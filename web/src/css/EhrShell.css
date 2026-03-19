@@ -1,0 +1,154 @@
+/* ===========================
+   EHR Shell Layout
+   =========================== */
+.ehr-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    "header  header"
+    "banner  banner"
+    "sidebar content"
+    "footer  footer";
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* ===========================
+   Header
+   =========================== */
+.ehr-header {
+  grid-area: header;
+  background: #2b1424;
+  color: white;
+  padding: 0.65rem 1.5rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  z-index: 100;
+}
+
+.ehr-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ehr-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: white;
+}
+
+.ehr-brand h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ehr-brand-subtitle {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+}
+
+/* ===========================
+   Mobile Sidebar Toggle
+   =========================== */
+.ehr-sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.ehr-hamburger {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: white;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.ehr-hamburger::before,
+.ehr-hamburger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 2px;
+  background: white;
+  transition: transform 0.3s, top 0.3s;
+}
+
+.ehr-hamburger::before { top: -6px; }
+.ehr-hamburger::after { top: 6px; }
+
+.ehr-hamburger--active { background: transparent; }
+.ehr-hamburger--active::before { top: 0; transform: rotate(45deg); }
+.ehr-hamburger--active::after { top: 0; transform: rotate(-45deg); }
+
+/* ===========================
+   Content Area
+   =========================== */
+.ehr-content {
+  grid-area: content;
+  padding: 1.5rem 2rem 2rem;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* ===========================
+   Footer
+   =========================== */
+.ehr-footer {
+  grid-area: footer;
+  background: #1e0f19;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ehr-footer a {
+  color: #d16b47;
+  text-decoration: underline;
+  text-decoration-color: rgba(209, 107, 71, 0.3);
+}
+
+.ehr-footer a:hover {
+  text-decoration-color: #d16b47;
+}
+
+/* ===========================
+   Responsive
+   =========================== */
+@media (max-width: 768px) {
+  .ehr-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "banner"
+      "content"
+      "footer";
+  }
+
+  .ehr-sidebar-toggle {
+    display: block;
+  }
+
+  .ehr-content {
+    padding: 1rem;
+  }
+
+  .ehr-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+}

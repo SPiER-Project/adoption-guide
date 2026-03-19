@@ -1,0 +1,157 @@
+.data-dictionary {
+  max-width: 1200px;
+}
+
+.dd-description {
+  color: #64748b;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: -1rem 0 1.5rem 0;
+}
+
+.dd-filters {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.dd-search {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: white;
+}
+
+.dd-search:focus {
+  outline: 2px solid #d16b47;
+  outline-offset: -1px;
+  border-color: #d16b47;
+}
+
+.dd-search::placeholder {
+  color: #94a3b8;
+}
+
+.dd-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: white;
+  cursor: pointer;
+}
+
+.dd-count {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+.dd-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+}
+
+.dd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.dd-table thead {
+  background: #f8fafc;
+}
+
+.dd-table th {
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.6875rem;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.dd-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: top;
+}
+
+.dd-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.dd-cell-field {
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.dd-cell-code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  color: #7c3aed;
+  white-space: nowrap;
+}
+
+.dd-cell-system {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.dd-cell-path {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.6875rem;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.dd-cell-desc {
+  max-width: 300px;
+  line-height: 1.4;
+  color: #64748b;
+}
+
+.dd-resource-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.dd-resource-badge--careplan { background: #dbeafe; color: #1d4ed8; }
+.dd-resource-badge--observation { background: #fef3c7; color: #92400e; }
+.dd-resource-badge--condition { background: #fce7f3; color: #9d174d; }
+
+.dd-tool-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.dd-tool-badge--sb { background: #fef3c7; color: #92400e; }
+.dd-tool-badge--cams { background: #e0e7ff; color: #3730a3; }
+.dd-tool-badge--both { background: #f1f5f9; color: #475569; }
+
+.dd-empty {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 2rem !important;
+}

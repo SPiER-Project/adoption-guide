@@ -1,0 +1,170 @@
+.dashboard {
+  max-width: 1000px;
+}
+
+.dashboard-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.dashboard-widget {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.widget-title {
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.widget-body {
+  padding: 1.25rem;
+}
+
+/* Risk badges */
+.risk-badge {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.risk-badge--active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.risk-badge--none {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.widget-hint {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 0.75rem 0 0 0;
+}
+
+/* List items */
+.widget-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.widget-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+
+.widget-list-item:last-child {
+  border-bottom: none;
+}
+
+.widget-list-name {
+  color: #334155;
+  font-weight: 500;
+}
+
+.widget-list-date {
+  color: #94a3b8;
+  font-size: 0.8125rem;
+}
+
+.widget-empty {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin: 0;
+  font-style: italic;
+}
+
+.widget-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: #d16b47;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.widget-link:hover {
+  text-decoration: underline;
+}
+
+/* Count display */
+.widget-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.widget-count-label {
+  display: block;
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* Action buttons */
+.widget-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.widget-action-btn {
+  display: block;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  background: #2b1424;
+  color: white;
+  transition: background 0.2s;
+}
+
+.widget-action-btn:hover {
+  background: #4a2840;
+}
+
+.widget-action-btn--secondary {
+  background: #f8fafc;
+  color: #2b1424;
+  border: 1px solid #e2e8f0;
+}
+
+.widget-action-btn--secondary:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

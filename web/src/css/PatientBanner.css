@@ -1,0 +1,81 @@
+.patient-banner {
+  background: #edf2f7;
+  border-bottom: 1px solid #cbd5e1;
+  padding: 0.5rem 1.5rem;
+  grid-area: banner;
+}
+
+.patient-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+}
+
+.patient-banner-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.9375rem;
+}
+
+.patient-banner-divider {
+  color: #cbd5e1;
+  font-weight: 300;
+}
+
+.patient-banner-field {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.patient-banner-label {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.patient-banner-value {
+  color: #334155;
+  font-weight: 500;
+}
+
+.patient-banner-mrn {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+}
+
+.patient-banner-smart {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
+@media (max-width: 768px) {
+  .patient-banner {
+    padding: 0.4rem 1rem;
+  }
+
+  .patient-banner-content {
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .patient-banner-divider:nth-child(n+4) {
+    display: none;
+  }
+
+  .patient-banner-field:nth-child(n+6) {
+    display: none;
+  }
+}
