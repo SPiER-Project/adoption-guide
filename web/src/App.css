@@ -213,6 +213,11 @@
   margin-bottom: 0.5rem;
 }
 
+.screening-badge--screening {
+  background: #fce7f3;
+  color: #9d174d;
+}
+
 .screening-badge--safety {
   background: #fef3c7;
   color: #92400e;
@@ -560,6 +565,7 @@
   width: fit-content;
 }
 
+.card-badge--screening { background: #fce7f3; color: #9d174d; }
 .card-badge--safety { background: #fef3c7; color: #92400e; }
 .card-badge--cams { background: #e0e7ff; color: #3730a3; }
 

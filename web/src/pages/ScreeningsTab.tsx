@@ -5,6 +5,27 @@ import { FhirJsonViewer } from '../components/FhirJsonViewer'
 
 const AVAILABLE_SCREENINGS = [
   {
+    name: 'PHQ-9 Depression Screening',
+    description: '9-item depression screening (0-27). Item 9 screens for suicidal ideation — the primary gateway for suicide risk assessment in most EHR workflows.',
+    path: '/chart/screenings/phq-9',
+    badge: 'Screening',
+    badgeClass: 'screening-badge--screening',
+  },
+  {
+    name: 'ASQ — Suicide Risk Screening',
+    description: 'NIMH 4-question screening tool (~20 seconds) with acuity question. Validated for youth (8+) and adults across all care settings.',
+    path: '/chart/screenings/asq',
+    badge: 'Screening',
+    badgeClass: 'screening-badge--screening',
+  },
+  {
+    name: 'SBQ-R — Suicide Behaviors Questionnaire',
+    description: '4-item self-report covering lifetime ideation, past-year frequency, threat disclosure, and future likelihood. Score range 3-18.',
+    path: '/chart/screenings/sbq-r',
+    badge: 'Screening',
+    badgeClass: 'screening-badge--screening',
+  },
+  {
     name: 'Stanley-Brown Safety Plan',
     description: 'A brief intervention to help individuals manage suicidal crises and reduce access to lethal means.',
     path: '/chart/screenings/stanley-and-brown',

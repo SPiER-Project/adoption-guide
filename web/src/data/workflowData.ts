@@ -27,18 +27,21 @@ export const WORKFLOW_PHASES: WorkflowPhase[] = [
     tools: [
       {
         name: 'PHQ-9 (Item 9)',
-        description: 'Depression screening; Item 9 asks about self-harm thoughts. Positive screen triggers further assessment.',
-        status: 'coming-soon',
+        description: 'Depression screening with 9 items (0-27). Item 9 asks about self-harm thoughts — the most common screening gateway for suicide risk assessment.',
+        status: 'active',
+        path: '/chart/screenings/phq-9',
       },
       {
         name: 'ASQ (Ask Suicide-Screening Questions)',
-        description: 'Brief 4-question screening tool validated for ED, inpatient, and outpatient settings.',
-        status: 'coming-soon',
+        description: 'Brief 4-question screening tool (~20 sec) validated for youth (8+) and adults across ED, inpatient, outpatient, and primary care.',
+        status: 'active',
+        path: '/chart/screenings/asq',
       },
       {
         name: 'SBQ-R (Suicide Behaviors Questionnaire-Revised)',
-        description: '4-item self-report measure of past and future suicidal behavior.',
-        status: 'coming-soon',
+        description: '4-item self-report covering lifetime ideation, past-year frequency, threat disclosure, and future likelihood. Score 3-18.',
+        status: 'active',
+        path: '/chart/screenings/sbq-r',
       },
     ],
     cdsHook: {

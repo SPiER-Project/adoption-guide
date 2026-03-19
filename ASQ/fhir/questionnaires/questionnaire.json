@@ -1,0 +1,246 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "ASQ-Screening-Tool",
+  "url": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+  "version": "1.0.0",
+  "name": "ASQ_Screening_Tool",
+  "title": "ASQ — Ask Suicide-Screening Questions",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": ["Patient"],
+  "date": "2026-03-19",
+  "publisher": "SPiER Project (FHIR translation of NIMH ASQ Toolkit)",
+  "description": "FHIR Questionnaire representation of the NIMH Ask Suicide-Screening Questions (ASQ) tool. A 4-question screening instrument validated for youth (8+) and adults across ED, inpatient, outpatient, and primary care settings. Includes acuity question (#5) triggered by any positive response to questions 1-4. Source: NIMH ASQ Toolkit (www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials).",
+  "purpose": "Universal suicide risk screening. The ASQ takes approximately 20 seconds to administer and stratifies patients into Negative Screen, Non-Acute Positive Screen, or Acute Positive Screen (imminent risk).",
+  "copyright": "The ASQ is a public domain instrument developed by the National Institute of Mental Health (NIMH). No permission is required for use.",
+  "item": [
+    {
+      "linkId": "screening-questions",
+      "text": "Ask the patient:",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "q1",
+          "text": "In the past few weeks, have you wished you were dead?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "q2",
+          "text": "In the past few weeks, have you felt that you or your family would be better off if you were dead?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "q3",
+          "text": "In the past week, have you been having thoughts about killing yourself?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "q4",
+          "text": "Have you ever tried to kill yourself?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "q4-recent-attempt",
+          "text": "If yes, when was the most recent attempt?",
+          "type": "choice",
+          "required": false,
+          "enableWhen": [
+            {
+              "question": "q4",
+              "operator": "=",
+              "answerBoolean": true
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/asq-attempt-recency",
+                "code": "within-12-months",
+                "display": "Within last 12 months"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/asq-attempt-recency",
+                "code": "over-1-year",
+                "display": "Over 1 year ago"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "acuity-section",
+      "text": "If patient answers Yes to any of Questions 1 through 4, ask the following acuity question:",
+      "type": "group",
+      "enableWhen": [
+        {
+          "question": "q1",
+          "operator": "=",
+          "answerBoolean": true
+        },
+        {
+          "question": "q2",
+          "operator": "=",
+          "answerBoolean": true
+        },
+        {
+          "question": "q3",
+          "operator": "=",
+          "answerBoolean": true
+        },
+        {
+          "question": "q4",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ],
+      "enableBehavior": "any",
+      "item": [
+        {
+          "linkId": "q5",
+          "text": "Are you having thoughts of killing yourself right now?",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "linkId": "q5-describe",
+          "text": "If yes, describe briefly:",
+          "type": "text",
+          "required": false,
+          "enableWhen": [
+            {
+              "question": "q5",
+              "operator": "=",
+              "answerBoolean": true
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxLength",
+              "valueInteger": 500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "screening-result",
+      "text": "Screening Result",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "result-category",
+          "text": "Screening result category",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/asq-screening-result",
+                "code": "negative",
+                "display": "Negative Screen"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/asq-screening-result",
+                "code": "non-acute-positive",
+                "display": "Non-Acute Positive Screen (potential risk identified)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/asq-screening-result",
+                "code": "acute-positive",
+                "display": "Acute Positive Screen (imminent/acute risk identified)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "drop-down",
+                    "display": "Drop down"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "patient-refused",
+          "text": "Patient refused to answer screening questions",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "linkId": "patient-age-group",
+          "text": "Patient age group (affects refusal interpretation)",
+          "type": "choice",
+          "required": false,
+          "enableWhen": [
+            {
+              "question": "patient-refused",
+              "operator": "=",
+              "answerBoolean": true
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/asq-age-group",
+                "code": "youth",
+                "display": "Youth (under 18)"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/asq-age-group",
+                "code": "adult",
+                "display": "Adult (18+)"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://hl7.org/fhir/questionnaire-item-control",
+                    "code": "radio-button",
+                    "display": "Radio Button"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,9 @@ import './CarePlan.css'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 // FHIR Questionnaires
+import asqQuestionnaire from '../../ASQ/fhir/questionnaires/questionnaire.json'
+import phq9Questionnaire from '../../PHQ-9/fhir/questionnaires/questionnaire.json'
+import sbqrQuestionnaire from '../../SBQ-R/fhir/questionnaires/questionnaire.json'
 import camsSectionA from '../../CAMS/fhir/questionnaires/SSF5_SectionA.json'
 import camsSectionB from '../../CAMS/fhir/questionnaires/SSF5_SectionB.json'
 import camsStabilizationPlan from '../../CAMS/fhir/questionnaires/Stabilization_Plan.json'
@@ -45,6 +48,15 @@ function AppRoutes() {
       <Route path="/chart" element={<EhrShell />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="screenings" element={<ScreeningsTab />} />
+        <Route path="screenings/phq-9" element={
+          <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />
+        } />
+        <Route path="screenings/asq" element={
+          <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaire={asqQuestionnaire} persistName="ASQ Screening" />
+        } />
+        <Route path="screenings/sbq-r" element={
+          <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />
+        } />
         <Route path="screenings/stanley-and-brown" element={<StanleyBrownView />} />
         <Route path="screenings/cams-section-a" element={
           <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />
