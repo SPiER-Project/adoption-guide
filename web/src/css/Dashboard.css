@@ -2,6 +2,79 @@
   max-width: 1000px;
 }
 
+/* ── Demo Scenario Banner ── */
+.demo-scenario-banner {
+  background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.demo-scenario-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.demo-scenario-content strong {
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.demo-scenario-content p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.demo-scenario-btn {
+  flex-shrink: 0;
+  background: #2b1424;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.demo-scenario-btn:hover {
+  background: #4a2840;
+  transform: translateY(-1px);
+}
+
+.demo-scenario-detail {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.demo-scenario-reset {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.demo-reset-btn {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.demo-reset-btn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
 .dashboard-title {
   font-size: 1.5rem;
   font-weight: 700;

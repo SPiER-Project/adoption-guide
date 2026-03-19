@@ -5,6 +5,7 @@ import type { PatientDisplay } from '../data/demoPatient'
 import { useSmart } from './SmartContext'
 import { mapResponseToObservations } from '../observationMappers'
 import type { RiskAlert } from '../observationMappers'
+import { MOCK_RESPONSES, MOCK_OBSERVATIONS, MOCK_CAREPLANS, MOCK_RISK_ALERTS } from '../data/mockScenario'
 
 interface StoredResponse {
   id: string
@@ -23,6 +24,7 @@ interface PatientContextType {
   addResponse: (name: string, resource: any) => void
   observations: any[]
   riskAlerts: RiskAlert[]
+  loadDemoScenario: () => void
   clearDemoData: () => void
 }
 
@@ -70,6 +72,13 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     }
   }, [setResponses, setObservations, setRiskAlerts])
 
+  const loadDemoScenario = useCallback(() => {
+    setResponses(MOCK_RESPONSES)
+    setObservations(MOCK_OBSERVATIONS)
+    setCarePlans(MOCK_CAREPLANS)
+    setRiskAlerts(MOCK_RISK_ALERTS)
+  }, [setResponses, setObservations, setCarePlans, setRiskAlerts])
+
   const clearDemoData = useCallback(() => {
     removeCarePlans()
     removeResponses()
@@ -87,8 +96,9 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     addResponse,
     observations,
     riskAlerts,
+    loadDemoScenario,
     clearDemoData,
-  }), [activePatient, patientDisplay, isSmartConnected, carePlans, addCarePlan, responses, addResponse, observations, riskAlerts, clearDemoData])
+  }), [activePatient, patientDisplay, isSmartConnected, carePlans, addCarePlan, responses, addResponse, observations, riskAlerts, loadDemoScenario, clearDemoData])
 
   return (
     <PatientContext.Provider value={value}>

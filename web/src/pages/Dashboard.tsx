@@ -11,7 +11,8 @@ const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
 }
 
 export function Dashboard() {
-  const { carePlans, responses, riskAlerts } = usePatient()
+  const { carePlans, responses, riskAlerts, loadDemoScenario, clearDemoData } = usePatient()
+  const hasData = responses.length > 0 || carePlans.length > 0
 
   const activePlans = carePlans.filter((cp: any) => cp.status === 'active')
   const recentResponses = [...responses].reverse().slice(0, 5)
@@ -25,6 +26,29 @@ export function Dashboard() {
   return (
     <div className="dashboard">
       <h2 className="dashboard-title">Patient Dashboard</h2>
+
+      {/* Demo Scenario Banner */}
+      {!hasData && (
+        <div className="demo-scenario-banner">
+          <div className="demo-scenario-content">
+            <div>
+              <strong>Welcome to SPiER</strong>
+              <p>This demo is empty. Load a sample clinical scenario to see how suicide prevention tools integrate into an EHR workflow.</p>
+            </div>
+            <button className="demo-scenario-btn" onClick={loadDemoScenario}>
+              Load Demo Scenario
+            </button>
+          </div>
+          <p className="demo-scenario-detail">
+            Loads a PHQ-9 (score 18, Item 9 positive) &rarr; ASQ (non-acute positive) &rarr; CAMS assessment &rarr; Stanley-Brown Safety Plan.
+          </p>
+        </div>
+      )}
+      {hasData && (
+        <div className="demo-scenario-reset">
+          <button className="demo-reset-btn" onClick={clearDemoData}>Reset Demo Data</button>
+        </div>
+      )}
 
       {/* Risk Alert Banner — only shows when there are active alerts */}
       {activeAlerts.length > 0 && (

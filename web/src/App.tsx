@@ -32,6 +32,7 @@ import { EncountersTab } from './pages/EncountersTab'
 import { ToolsReference } from './pages/ToolsReference'
 import { DataDictionary } from './pages/DataDictionary'
 import { ClinicalWorkflow } from './pages/ClinicalWorkflow'
+import { ImplementationGuide } from './pages/ImplementationGuide'
 
 // Questionnaire Views
 import { StanleyBrownView } from './components/StanleyBrownView'
@@ -73,6 +74,7 @@ function AppRoutes() {
         <Route path="careplan" element={<CarePlanTab />} />
         <Route path="encounters" element={<EncountersTab />} />
         <Route path="workflow" element={<ClinicalWorkflow />} />
+        <Route path="implementation-guide" element={<ImplementationGuide />} />
         <Route path="data-dictionary" element={<DataDictionary />} />
         <Route path="tools" element={<ToolsReference />} />
       </Route>

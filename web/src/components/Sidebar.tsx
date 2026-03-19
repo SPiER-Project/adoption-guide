@@ -8,7 +8,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { clearDemoData } = usePatient()
+  const { clearDemoData, loadDemoScenario } = usePatient()
 
   return (
     <>
@@ -41,6 +41,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <span className="sidebar-icon">&#8644;</span>
               Clinical Workflow
             </NavLink>
+            <NavLink to="/chart/implementation-guide" className="sidebar-link" onClick={onClose}>
+              <span className="sidebar-icon">&#128221;</span>
+              Implementation Guide
+            </NavLink>
             <NavLink to="/chart/data-dictionary" className="sidebar-link" onClick={onClose}>
               <span className="sidebar-icon">&#128218;</span>
               Data Dictionary
@@ -53,6 +57,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         <div className="sidebar-footer">
+          <button className="sidebar-load-btn" onClick={() => { loadDemoScenario(); onClose() }}>
+            Load Demo Scenario
+          </button>
           <button className="sidebar-clear-btn" onClick={() => { clearDemoData(); onClose() }}>
             Clear Demo Data
           </button>
