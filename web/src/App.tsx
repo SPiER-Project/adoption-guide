@@ -13,6 +13,7 @@ import cssrsFull from '../../C-SSRS/fhir/questionnaires/full-lifetime-recent.jso
 import camsSectionA from '../../CAMS/fhir/questionnaires/SSF5_SectionA.json'
 import camsSectionB from '../../CAMS/fhir/questionnaires/SSF5_SectionB.json'
 import camsStabilizationPlan from '../../CAMS/fhir/questionnaires/Stabilization_Plan.json'
+import { generateStabilizationCarePlan } from './camsCarePlanMapper'
 import camsTherapeuticWorksheet from '../../CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
 
 // Context Providers
@@ -74,7 +75,7 @@ function AppRoutes() {
           <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />
         } />
         <Route path="screenings/cams-stabilization-plan" element={
-          <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" />
+          <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />
         } />
         <Route path="screenings/cams-therapeutic-worksheet" element={
           <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" />

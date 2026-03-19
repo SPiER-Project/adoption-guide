@@ -4,23 +4,39 @@ import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { CarePlanDisplay } from './CarePlanDisplay'
+import type { GeneratedCarePlan } from '../carePlanMapper'
 
 interface QuestionnaireViewProps {
   title: string
   questionnaire: any
-  persistName?: string // if provided, response will be saved to localStorage on submit
+  persistName?: string
+  carePlanMapper?: (response: any) => { resource: any; activities: any[]; isEmpty: boolean }
 }
 
-export function QuestionnaireView({ title, questionnaire, persistName }: QuestionnaireViewProps) {
+export function QuestionnaireView({ title, questionnaire, persistName, carePlanMapper }: QuestionnaireViewProps) {
   const [response, setResponse] = useState<any>(null)
   const [submitted, setSubmitted] = useState(false)
-  const { addResponse } = usePatient()
+  const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
+  const { addResponse, addCarePlan } = usePatient()
 
   function handleSubmit(submittedResponse: any) {
     const responseToUse = submittedResponse || response
     if (responseToUse && persistName) {
       addResponse(persistName, responseToUse)
       setSubmitted(true)
+
+      // Generate CarePlan if mapper provided
+      if (carePlanMapper) {
+        const plan = carePlanMapper(responseToUse)
+        if (!plan.isEmpty) {
+          setCarePlan(plan as GeneratedCarePlan)
+          addCarePlan(plan.resource)
+          setTimeout(() => {
+            document.querySelector('.careplan-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 100)
+        }
+      }
     }
   }
 
@@ -39,7 +55,7 @@ export function QuestionnaireView({ title, questionnaire, persistName }: Questio
           onChange={(newResponse: any) => setResponse(newResponse)}
           onSubmit={persistName ? handleSubmit : undefined}
         />
-        {submitted && (
+        {submitted && !carePlan && (
           <div className="submit-success-notice">
             Response saved to patient chart.{' '}
             <Link to="/chart/screenings">View in Screenings</Link>
@@ -47,9 +63,15 @@ export function QuestionnaireView({ title, questionnaire, persistName }: Questio
         )}
       </div>
 
+      {carePlan && (
+        <div className="form-card">
+          <CarePlanDisplay carePlan={carePlan} />
+        </div>
+      )}
+
       <aside className="debug-sidebar">
         <FhirJsonViewer data={questionnaire} title="FHIR Questionnaire Definition" />
-        {response && (
+        {response && !carePlan && (
           <FhirJsonViewer data={response} title="Live FHIR QuestionnaireResponse" defaultOpen />
         )}
       </aside>
