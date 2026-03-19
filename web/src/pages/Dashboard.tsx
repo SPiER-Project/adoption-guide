@@ -2,28 +2,74 @@ import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import '../css/Dashboard.css'
 
+const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
+  acute:    { className: 'alert--acute',    label: 'ACUTE' },
+  high:     { className: 'alert--high',     label: 'HIGH' },
+  moderate: { className: 'alert--moderate', label: 'MODERATE' },
+  low:      { className: 'alert--low',      label: 'LOW' },
+  none:     { className: 'alert--none',     label: 'NONE' },
+}
+
 export function Dashboard() {
-  const { carePlans, responses } = usePatient()
+  const { carePlans, responses, riskAlerts } = usePatient()
 
   const activePlans = carePlans.filter((cp: any) => cp.status === 'active')
   const recentResponses = [...responses].reverse().slice(0, 5)
 
+  // Active alerts = anything above "none"
+  const activeAlerts = riskAlerts.filter(a => a.level !== 'none')
+  const highestLevel = activeAlerts.length > 0
+    ? (['acute', 'high', 'moderate', 'low'] as const).find(l => activeAlerts.some(a => a.level === l)) || 'none'
+    : 'none'
+
   return (
     <div className="dashboard">
       <h2 className="dashboard-title">Patient Dashboard</h2>
+
+      {/* Risk Alert Banner — only shows when there are active alerts */}
+      {activeAlerts.length > 0 && (
+        <div className={`risk-alert-banner ${LEVEL_CONFIG[highestLevel].className}`}>
+          <div className="risk-alert-banner-header">
+            <span className="risk-alert-banner-icon">&#9888;</span>
+            <span className="risk-alert-banner-title">
+              Suicide Risk Alert — {LEVEL_CONFIG[highestLevel].label}
+            </span>
+          </div>
+          {activeAlerts.map((alert, idx) => (
+            <div key={idx} className="risk-alert-item">
+              <div className="risk-alert-item-header">
+                <span className={`risk-alert-level ${LEVEL_CONFIG[alert.level].className}`}>
+                  {LEVEL_CONFIG[alert.level].label}
+                </span>
+                <span className="risk-alert-tool">{alert.summary}</span>
+              </div>
+              <p className="risk-alert-detail">{alert.detail}</p>
+              {alert.suggestedAction && (
+                <Link to={alert.suggestedAction.path} className="risk-alert-action-btn">
+                  {alert.suggestedAction.label} &rarr;
+                </Link>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="dashboard-grid">
         {/* Risk Status Widget */}
         <div className="dashboard-widget">
           <h3 className="widget-title">Risk Status</h3>
           <div className="widget-body">
-            {activePlans.length > 0 ? (
+            {activeAlerts.length > 0 ? (
+              <span className={`risk-badge risk-badge--${highestLevel}`}>
+                {LEVEL_CONFIG[highestLevel].label} Risk
+              </span>
+            ) : activePlans.length > 0 ? (
               <span className="risk-badge risk-badge--active">Active Safety Plan</span>
             ) : (
-              <span className="risk-badge risk-badge--none">No Active Plans</span>
+              <span className="risk-badge risk-badge--none">No Screenings</span>
             )}
             <p className="widget-hint">
-              Risk status is determined by screening and assessment tools.
+              Based on most recent screening results.
             </p>
           </div>
         </div>
@@ -70,14 +116,14 @@ export function Dashboard() {
         <div className="dashboard-widget">
           <h3 className="widget-title">Quick Actions</h3>
           <div className="widget-body widget-actions">
-            <Link to="/chart/screenings/stanley-and-brown" className="widget-action-btn">
+            <Link to="/chart/screenings/phq-9" className="widget-action-btn">
+              Start PHQ-9 Screening
+            </Link>
+            <Link to="/chart/screenings/stanley-and-brown" className="widget-action-btn widget-action-btn--secondary">
               Start Safety Plan
             </Link>
             <Link to="/chart/screenings/cams-section-a" className="widget-action-btn widget-action-btn--secondary">
               Start CAMS Assessment
-            </Link>
-            <Link to="/chart/workflow" className="widget-action-btn widget-action-btn--secondary">
-              View Clinical Workflow
             </Link>
           </div>
         </div>

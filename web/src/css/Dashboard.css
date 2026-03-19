@@ -9,6 +9,119 @@
   margin: 0 0 1.5rem 0;
 }
 
+/* ── Risk Alert Banner ── */
+.risk-alert-banner {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid;
+}
+
+.risk-alert-banner.alert--acute {
+  background: #fef2f2;
+  border-left-color: #dc2626;
+}
+
+.risk-alert-banner.alert--high {
+  background: #fff7ed;
+  border-left-color: #ea580c;
+}
+
+.risk-alert-banner.alert--moderate {
+  background: #fefce8;
+  border-left-color: #ca8a04;
+}
+
+.risk-alert-banner.alert--low {
+  background: #f0fdf4;
+  border-left-color: #16a34a;
+}
+
+.risk-alert-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.risk-alert-banner-icon {
+  font-size: 1.1rem;
+}
+
+.risk-alert-banner-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.risk-alert-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.risk-alert-item:last-child {
+  margin-bottom: 0;
+}
+
+.risk-alert-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.risk-alert-level {
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  color: white;
+}
+
+.risk-alert-level.alert--acute { background: #dc2626; }
+.risk-alert-level.alert--high { background: #ea580c; }
+.risk-alert-level.alert--moderate { background: #ca8a04; }
+.risk-alert-level.alert--low { background: #16a34a; }
+
+.risk-alert-tool {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.risk-alert-detail {
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 0.5rem 0;
+}
+
+.risk-alert-action-btn {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: white;
+  background: #2b1424;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.risk-alert-action-btn:hover {
+  background: #4a2840;
+}
+
+/* Risk badge variants */
+.risk-badge--acute { background: #fecaca; color: #991b1b; }
+.risk-badge--high { background: #fed7aa; color: #9a3412; }
+.risk-badge--moderate { background: #fef08a; color: #854d0e; }
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

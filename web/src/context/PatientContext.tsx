@@ -3,6 +3,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { DEMO_PATIENT, formatPatientDisplay } from '../data/demoPatient'
 import type { PatientDisplay } from '../data/demoPatient'
 import { useSmart } from './SmartContext'
+import { mapResponseToObservations } from '../observationMappers'
+import type { RiskAlert } from '../observationMappers'
 
 interface StoredResponse {
   id: string
@@ -19,6 +21,8 @@ interface PatientContextType {
   addCarePlan: (carePlan: any) => void
   responses: StoredResponse[]
   addResponse: (name: string, resource: any) => void
+  observations: any[]
+  riskAlerts: RiskAlert[]
   clearDemoData: () => void
 }
 
@@ -29,6 +33,8 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   const [demoPatient] = useLocalStorage('spier-demo-patient', DEMO_PATIENT)
   const [carePlans, setCarePlans, removeCarePlans] = useLocalStorage<any[]>('spier-demo-careplans', [])
   const [responses, setResponses, removeResponses] = useLocalStorage<StoredResponse[]>('spier-demo-responses', [])
+  const [observations, setObservations, removeObservations] = useLocalStorage<any[]>('spier-demo-observations', [])
+  const [riskAlerts, setRiskAlerts, removeRiskAlerts] = useLocalStorage<RiskAlert[]>('spier-demo-risk-alerts', [])
 
   // SMART patient takes priority over demo patient
   const isSmartConnected = !!(smartPatient && smartPatient.name)
@@ -51,12 +57,25 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       resource,
     }
     setResponses(prev => [...prev, entry])
-  }, [setResponses])
+
+    // Auto-generate Observations from the response
+    const result = mapResponseToObservations(questionnaireName, resource)
+    if (result) {
+      setObservations(prev => [...prev, ...result.observations])
+      // Replace any existing alert from the same tool, keep latest
+      setRiskAlerts(prev => [
+        ...prev.filter(a => a.tool !== result.riskAlert.tool),
+        result.riskAlert,
+      ])
+    }
+  }, [setResponses, setObservations, setRiskAlerts])
 
   const clearDemoData = useCallback(() => {
     removeCarePlans()
     removeResponses()
-  }, [removeCarePlans, removeResponses])
+    removeObservations()
+    removeRiskAlerts()
+  }, [removeCarePlans, removeResponses, removeObservations, removeRiskAlerts])
 
   const value = useMemo(() => ({
     patient: activePatient,
@@ -66,8 +85,10 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     addCarePlan,
     responses,
     addResponse,
+    observations,
+    riskAlerts,
     clearDemoData,
-  }), [activePatient, patientDisplay, isSmartConnected, carePlans, addCarePlan, responses, addResponse, clearDemoData])
+  }), [activePatient, patientDisplay, isSmartConnected, carePlans, addCarePlan, responses, addResponse, observations, riskAlerts, clearDemoData])
 
   return (
     <PatientContext.Provider value={value}>
