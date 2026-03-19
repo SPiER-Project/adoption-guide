@@ -48,6 +48,25 @@ export function ToolsReference() {
         </div>
 
         <div className="tool-card">
+          <div className="card-badge card-badge--assessment">Assessment</div>
+          <h3>C-SSRS — Columbia Suicide Severity Rating Scale</h3>
+          <p>Gold-standard suicide risk assessment with hierarchical ideation levels, intensity ratings, and behavior tracking. Two versions available.</p>
+          <div className="tool-card-meta">
+            <span className="tool-card-tag">LOINC coded</span>
+            <span className="tool-card-tag">5-level hierarchy</span>
+            <span className="tool-card-tag">risk stratification</span>
+          </div>
+          <div className="cams-links">
+            <Link to="/chart/screenings/cssrs-screener" className="btn-secondary">
+              Screener (6-item) <span className="btn-meta">Quick</span>
+            </Link>
+            <Link to="/chart/screenings/cssrs-full" className="btn-secondary">
+              Full Lifetime/Recent <span className="btn-meta">Comprehensive</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="tool-card">
           <div className="card-badge card-badge--safety">Safety Plan</div>
           <h3>Stanley-Brown Safety Plan</h3>
           <p>A brief intervention to help individuals manage suicidal crises and reduce access to lethal means.</p>

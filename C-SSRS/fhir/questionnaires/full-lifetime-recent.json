@@ -1,0 +1,485 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "C-SSRS-Full-Lifetime-Recent",
+  "url": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent",
+  "version": "1.0.0",
+  "name": "CSSRS_Full_Lifetime_Recent",
+  "title": "Columbia-Suicide Severity Rating Scale — Full (Lifetime/Recent)",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": ["Patient"],
+  "date": "2026-03-19",
+  "publisher": "SPiER Project (FHIR translation)",
+  "description": "FHIR Questionnaire representation of the C-SSRS Full Lifetime/Recent version. Comprehensive suicide risk assessment with 5 levels of ideation severity, intensity of ideation ratings (frequency, duration, controllability, deterrents, reasons), and suicidal behavior assessment (actual attempts, interrupted attempts, aborted attempts, preparatory acts, lethality). Dual timeframe: Lifetime and Past Month.",
+  "purpose": "Comprehensive suicide risk assessment. The 5-level ideation hierarchy provides granular severity classification. Intensity ratings enable longitudinal tracking. Behavior section captures full history of suicidal acts with lethality scoring.",
+  "copyright": "© 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. For inquiries and training: posnerk@nyspi.columbia.edu",
+  "code": [
+    {
+      "system": "http://loinc.org",
+      "code": "93245-9",
+      "display": "Columbia-suicide severity rating scale - lifetime recent"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "ideation-section",
+      "text": "Suicidal Ideation",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "ideation-instructions",
+          "text": "Ask questions 1 and 2. If both are negative, proceed to Suicidal Behavior section. If the answer to question 2 is 'yes', ask questions 3, 4 and 5. If the answer to question 1 and/or 2 is 'yes', complete Intensity of Ideation section.",
+          "type": "display"
+        },
+        {
+          "linkId": "q1-group",
+          "text": "1. Wish to be Dead",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "q1-lifetime",
+              "text": "Have you wished you were dead or wished you could go to sleep and not wake up? (Lifetime)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93246-7", "display": "Wish to be dead - lifetime" }]
+            },
+            {
+              "linkId": "q1-recent",
+              "text": "Have you wished you were dead or wished you could go to sleep and not wake up? (Past month)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93246-7", "display": "Wish to be dead - recent" }]
+            },
+            {
+              "linkId": "q1-describe",
+              "text": "If yes, describe:",
+              "type": "text",
+              "required": false,
+              "enableWhen": [
+                { "question": "q1-lifetime", "operator": "=", "answerBoolean": true },
+                { "question": "q1-recent", "operator": "=", "answerBoolean": true }
+              ],
+              "enableBehavior": "any"
+            }
+          ]
+        },
+        {
+          "linkId": "q2-group",
+          "text": "2. Non-Specific Active Suicidal Thoughts",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "q2-lifetime",
+              "text": "Have you actually had any thoughts of killing yourself? (Lifetime)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93247-5", "display": "Non-specific active suicidal thoughts - lifetime" }]
+            },
+            {
+              "linkId": "q2-recent",
+              "text": "Have you actually had any thoughts of killing yourself? (Past month)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93247-5", "display": "Non-specific active suicidal thoughts - recent" }]
+            },
+            {
+              "linkId": "q2-describe",
+              "text": "If yes, describe:",
+              "type": "text",
+              "required": false,
+              "enableWhen": [
+                { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
+                { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+              ],
+              "enableBehavior": "any"
+            }
+          ]
+        },
+        {
+          "linkId": "q3-group",
+          "text": "3. Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act",
+          "type": "group",
+          "enableWhen": [
+            { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
+            { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+          ],
+          "enableBehavior": "any",
+          "item": [
+            {
+              "linkId": "q3-lifetime",
+              "text": "Have you been thinking about how you might do this? (Lifetime)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93248-3", "display": "Active suicidal ideation with any methods - lifetime" }]
+            },
+            {
+              "linkId": "q3-recent",
+              "text": "Have you been thinking about how you might do this? (Past month)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93248-3", "display": "Active suicidal ideation with any methods - recent" }]
+            },
+            {
+              "linkId": "q3-describe",
+              "text": "If yes, describe:",
+              "type": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "linkId": "q4-group",
+          "text": "4. Active Suicidal Ideation with Some Intent to Act, without Specific Plan",
+          "type": "group",
+          "enableWhen": [
+            { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
+            { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+          ],
+          "enableBehavior": "any",
+          "item": [
+            {
+              "linkId": "q4-lifetime",
+              "text": "Have you had these thoughts and had some intention of acting on them? (Lifetime)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93249-1", "display": "Active suicidal ideation with some intent to act - lifetime" }]
+            },
+            {
+              "linkId": "q4-recent",
+              "text": "Have you had these thoughts and had some intention of acting on them? (Past month)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93249-1", "display": "Active suicidal ideation with some intent to act - recent" }]
+            },
+            {
+              "linkId": "q4-describe",
+              "text": "If yes, describe:",
+              "type": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "linkId": "q5-group",
+          "text": "5. Active Suicidal Ideation with Specific Plan and Intent",
+          "type": "group",
+          "enableWhen": [
+            { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
+            { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+          ],
+          "enableBehavior": "any",
+          "item": [
+            {
+              "linkId": "q5-lifetime",
+              "text": "Have you started to work out or worked out the details of how to kill yourself? Did you intend to carry out this plan? (Lifetime)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93250-9", "display": "Active suicidal ideation with specific plan and intent - lifetime" }]
+            },
+            {
+              "linkId": "q5-recent",
+              "text": "Have you started to work out or worked out the details of how to kill yourself? Did you intend to carry out this plan? (Past month)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93250-9", "display": "Active suicidal ideation with specific plan and intent - recent" }]
+            },
+            {
+              "linkId": "q5-describe",
+              "text": "If yes, describe:",
+              "type": "text",
+              "required": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "intensity-section",
+      "text": "Intensity of Ideation",
+      "type": "group",
+      "enableWhen": [
+        { "question": "q1-lifetime", "operator": "=", "answerBoolean": true },
+        { "question": "q1-recent", "operator": "=", "answerBoolean": true },
+        { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
+        { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+      ],
+      "enableBehavior": "any",
+      "item": [
+        {
+          "linkId": "intensity-instructions",
+          "text": "Rate with respect to the most severe type of ideation (1-5, with 1 being least severe and 5 being most severe).",
+          "type": "display"
+        },
+        {
+          "linkId": "most-severe-type",
+          "text": "Most severe ideation type (1-5)",
+          "type": "integer",
+          "required": true,
+          "extension": [
+            { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
+            { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+          ]
+        },
+        {
+          "linkId": "frequency",
+          "text": "How many times have you had these thoughts?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "1", "display": "Less than once a week" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "2", "display": "Once a week" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "3", "display": "2-5 times in week" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "4", "display": "Daily or almost daily" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "5", "display": "Many times each day" } }
+          ]
+        },
+        {
+          "linkId": "duration",
+          "text": "When you have the thoughts, how long do they last?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "1", "display": "Fleeting - few seconds or minutes" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "2", "display": "Less than 1 hour / some of the time" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "3", "display": "1-4 hours / a lot of time" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "4", "display": "4-8 hours / most of day" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "5", "display": "More than 8 hours / persistent or continuous" } }
+          ]
+        },
+        {
+          "linkId": "controllability",
+          "text": "Could/can you stop thinking about killing yourself or wanting to die if you want to?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "1", "display": "Easily able to control thoughts" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "2", "display": "Can control thoughts with little difficulty" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "3", "display": "Can control thoughts with some difficulty" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "4", "display": "Can control thoughts with a lot of difficulty" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "5", "display": "Unable to control thoughts" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "0", "display": "Does not attempt to control thoughts" } }
+          ]
+        },
+        {
+          "linkId": "deterrents",
+          "text": "Are there things — anyone or anything (e.g., family, religion, pain of death) — that stopped you from wanting to die or acting on thoughts of suicide?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "1", "display": "Deterrents definitely stopped you from attempting suicide" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "2", "display": "Deterrents probably stopped you" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "3", "display": "Uncertain that deterrents stopped you" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "4", "display": "Deterrents most likely did not stop you" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "5", "display": "Deterrents definitely did not stop you" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "0", "display": "Does not apply" } }
+          ]
+        },
+        {
+          "linkId": "reasons",
+          "text": "What sort of reasons did you have for thinking about wanting to die or killing yourself? Was it to end the pain or to get attention/revenge/a reaction from others?",
+          "type": "choice",
+          "required": true,
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "1", "display": "Completely to get attention, revenge or a reaction from others" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "2", "display": "Mostly to get attention, revenge or a reaction from others" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "3", "display": "Equally to get attention/reaction and to end/stop the pain" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "4", "display": "Mostly to end or stop the pain" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "5", "display": "Completely to end or stop the pain" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "0", "display": "Does not apply" } }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "behavior-section",
+      "text": "Suicidal Behavior",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "actual-attempt",
+          "text": "Have you made a suicide attempt? (A potentially self-injurious act with at least some wish to die)",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "actual-attempt-lifetime",
+              "text": "Actual suicide attempt (Lifetime)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93267-3", "display": "Actual suicide attempt - lifetime" }]
+            },
+            {
+              "linkId": "actual-attempt-recent",
+              "text": "Actual suicide attempt (Past 3 months)",
+              "type": "boolean",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93267-3", "display": "Actual suicide attempt - recent" }]
+            },
+            {
+              "linkId": "actual-attempt-count",
+              "text": "Total number of attempts",
+              "type": "integer",
+              "required": false,
+              "enableWhen": [
+                { "question": "actual-attempt-lifetime", "operator": "=", "answerBoolean": true },
+                { "question": "actual-attempt-recent", "operator": "=", "answerBoolean": true }
+              ],
+              "enableBehavior": "any"
+            },
+            {
+              "linkId": "actual-attempt-describe",
+              "text": "If yes, describe:",
+              "type": "text",
+              "required": false,
+              "enableWhen": [
+                { "question": "actual-attempt-lifetime", "operator": "=", "answerBoolean": true },
+                { "question": "actual-attempt-recent", "operator": "=", "answerBoolean": true }
+              ],
+              "enableBehavior": "any"
+            }
+          ]
+        },
+        {
+          "linkId": "nssi",
+          "text": "Has person engaged in Non-Suicidal Self-Injurious Behavior?",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "linkId": "interrupted-attempt",
+          "text": "Has there been a time when you started to do something to end your life but someone or something stopped you before you actually did anything?",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "interrupted-lifetime",
+              "text": "Interrupted attempt (Lifetime)",
+              "type": "boolean",
+              "required": true
+            },
+            {
+              "linkId": "interrupted-recent",
+              "text": "Interrupted attempt (Past 3 months)",
+              "type": "boolean",
+              "required": true
+            },
+            {
+              "linkId": "interrupted-count",
+              "text": "Total number of interrupted attempts",
+              "type": "integer",
+              "required": false,
+              "enableWhen": [
+                { "question": "interrupted-lifetime", "operator": "=", "answerBoolean": true },
+                { "question": "interrupted-recent", "operator": "=", "answerBoolean": true }
+              ],
+              "enableBehavior": "any"
+            }
+          ]
+        },
+        {
+          "linkId": "aborted-attempt",
+          "text": "Has there been a time when you started to do something to try to end your life but you stopped yourself before you actually did anything?",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "aborted-lifetime",
+              "text": "Aborted or self-interrupted attempt (Lifetime)",
+              "type": "boolean",
+              "required": true
+            },
+            {
+              "linkId": "aborted-recent",
+              "text": "Aborted or self-interrupted attempt (Past 3 months)",
+              "type": "boolean",
+              "required": true
+            },
+            {
+              "linkId": "aborted-count",
+              "text": "Total number of aborted or self-interrupted attempts",
+              "type": "integer",
+              "required": false,
+              "enableWhen": [
+                { "question": "aborted-lifetime", "operator": "=", "answerBoolean": true },
+                { "question": "aborted-recent", "operator": "=", "answerBoolean": true }
+              ],
+              "enableBehavior": "any"
+            }
+          ]
+        },
+        {
+          "linkId": "preparatory-acts",
+          "text": "Have you taken any steps towards making a suicide attempt or preparing to kill yourself (such as collecting pills, getting a gun, giving valuables away, or writing a suicide note)?",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "preparatory-lifetime",
+              "text": "Preparatory acts or behavior (Lifetime)",
+              "type": "boolean",
+              "required": true
+            },
+            {
+              "linkId": "preparatory-recent",
+              "text": "Preparatory acts or behavior (Past 3 months)",
+              "type": "boolean",
+              "required": true
+            },
+            {
+              "linkId": "preparatory-count",
+              "text": "Total number of preparatory acts",
+              "type": "integer",
+              "required": false,
+              "enableWhen": [
+                { "question": "preparatory-lifetime", "operator": "=", "answerBoolean": true },
+                { "question": "preparatory-recent", "operator": "=", "answerBoolean": true }
+              ],
+              "enableBehavior": "any"
+            }
+          ]
+        },
+        {
+          "linkId": "lethality-section",
+          "text": "Lethality Assessment (for most lethal attempt)",
+          "type": "group",
+          "enableWhen": [
+            { "question": "actual-attempt-lifetime", "operator": "=", "answerBoolean": true },
+            { "question": "actual-attempt-recent", "operator": "=", "answerBoolean": true }
+          ],
+          "enableBehavior": "any",
+          "item": [
+            {
+              "linkId": "actual-lethality",
+              "text": "Actual Lethality / Medical Damage",
+              "type": "choice",
+              "required": true,
+              "code": [{ "system": "http://loinc.org", "code": "93271-5", "display": "Actual lethality/medical damage most lethal suicide attempt" }],
+              "answerOption": [
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "0", "display": "No physical damage or very minor physical damage" } },
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "1", "display": "Minor physical damage (e.g., lethargic speech, first-degree burns, mild bleeding)" } },
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "2", "display": "Moderate physical damage; medical attention needed" } },
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "3", "display": "Moderately severe physical damage; medical hospitalization likely required" } },
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "4", "display": "Severe physical damage; intensive care required" } },
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "5", "display": "Death" } }
+              ]
+            },
+            {
+              "linkId": "potential-lethality",
+              "text": "Potential Lethality (only if Actual Lethality = 0)",
+              "type": "choice",
+              "required": false,
+              "enableWhen": [
+                {
+                  "question": "actual-lethality",
+                  "operator": "=",
+                  "answerCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "0" }
+                }
+              ],
+              "answerOption": [
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-potential-lethality", "code": "0", "display": "Behavior not likely to result in injury" } },
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-potential-lethality", "code": "1", "display": "Behavior likely to result in injury but not likely to cause death" } },
+                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-potential-lethality", "code": "2", "display": "Behavior likely to result in death despite available medical care" } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

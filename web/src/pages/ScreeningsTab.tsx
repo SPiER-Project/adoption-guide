@@ -26,6 +26,20 @@ const AVAILABLE_SCREENINGS = [
     badgeClass: 'screening-badge--screening',
   },
   {
+    name: 'C-SSRS Screener (Recent)',
+    description: 'Columbia 6-item suicide risk assessment with three-tier stratification (Low/Moderate/High). The gold-standard brief assessment tool.',
+    path: '/chart/screenings/cssrs-screener',
+    badge: 'Assessment',
+    badgeClass: 'screening-badge--assessment',
+  },
+  {
+    name: 'C-SSRS Full (Lifetime/Recent)',
+    description: 'Comprehensive Columbia assessment: 5-level ideation hierarchy, intensity ratings (frequency, duration, controllability, deterrents, reasons), and full behavior section with lethality scoring.',
+    path: '/chart/screenings/cssrs-full',
+    badge: 'Assessment',
+    badgeClass: 'screening-badge--assessment',
+  },
+  {
     name: 'Stanley-Brown Safety Plan',
     description: 'A brief intervention to help individuals manage suicidal crises and reduce access to lethal means.',
     path: '/chart/screenings/stanley-and-brown',

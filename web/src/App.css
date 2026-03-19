@@ -218,6 +218,16 @@
   color: #9d174d;
 }
 
+.screening-badge--assessment {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.card-badge--assessment {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 .screening-badge--safety {
   background: #fef3c7;
   color: #92400e;

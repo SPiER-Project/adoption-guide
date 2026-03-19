@@ -8,6 +8,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import asqQuestionnaire from '../../ASQ/fhir/questionnaires/questionnaire.json'
 import phq9Questionnaire from '../../PHQ-9/fhir/questionnaires/questionnaire.json'
 import sbqrQuestionnaire from '../../SBQ-R/fhir/questionnaires/questionnaire.json'
+import cssrsScreener from '../../C-SSRS/fhir/questionnaires/screener.json'
+import cssrsFull from '../../C-SSRS/fhir/questionnaires/full-lifetime-recent.json'
 import camsSectionA from '../../CAMS/fhir/questionnaires/SSF5_SectionA.json'
 import camsSectionB from '../../CAMS/fhir/questionnaires/SSF5_SectionB.json'
 import camsStabilizationPlan from '../../CAMS/fhir/questionnaires/Stabilization_Plan.json'
@@ -57,6 +59,12 @@ function AppRoutes() {
         } />
         <Route path="screenings/sbq-r" element={
           <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />
+        } />
+        <Route path="screenings/cssrs-screener" element={
+          <QuestionnaireView title="C-SSRS Screener (Recent)" questionnaire={cssrsScreener} persistName="C-SSRS Screener" />
+        } />
+        <Route path="screenings/cssrs-full" element={
+          <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />
         } />
         <Route path="screenings/stanley-and-brown" element={<StanleyBrownView />} />
         <Route path="screenings/cams-section-a" element={

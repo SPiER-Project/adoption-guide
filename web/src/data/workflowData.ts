@@ -64,9 +64,16 @@ export const WORKFLOW_PHASES: WorkflowPhase[] = [
     description: 'Comprehensive risk assessment for patients who screen positive.',
     tools: [
       {
-        name: 'C-SSRS (Columbia Suicide Severity Rating Scale)',
-        description: 'Gold-standard risk assessment with stratification logic for multiple risk levels.',
-        status: 'coming-soon',
+        name: 'C-SSRS Screener (6-item)',
+        description: 'Quick risk assessment with 3-tier stratification (Low/Moderate/High). 6 questions with enableWhen logic.',
+        status: 'active',
+        path: '/chart/screenings/cssrs-screener',
+      },
+      {
+        name: 'C-SSRS Full (Lifetime/Recent)',
+        description: '5-level ideation hierarchy, intensity ratings, full behavior section with lethality scoring. Comprehensive assessment.',
+        status: 'active',
+        path: '/chart/screenings/cssrs-full',
       },
       {
         name: 'SAFE-T (Suicide Assessment Five-Step Eval & Triage)',
