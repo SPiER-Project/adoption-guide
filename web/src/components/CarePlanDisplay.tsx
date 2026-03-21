@@ -34,7 +34,7 @@ export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
           <div key={idx} className="careplan-step">
             <p className="careplan-step-title">
               {activity.stepTitle}
-              <span className="careplan-step-loinc">LOINC: {activity.loincCode}</span>
+              {activity.loincCode && <span className="careplan-step-loinc">LOINC: {activity.loincCode}</span>}
             </p>
             <p className={`careplan-step-description ${activity.description.includes('No ') && activity.description.includes('provided')
               ? 'careplan-step-empty' : ''

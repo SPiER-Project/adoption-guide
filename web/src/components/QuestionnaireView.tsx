@@ -5,7 +5,17 @@ import { theme } from '@formbox/hs-theme'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { CarePlanDisplay } from './CarePlanDisplay'
+import { mapResponseToObservations } from '../observationMappers'
 import type { GeneratedCarePlan } from '../carePlanMapper'
+import type { RiskAlert } from '../observationMappers'
+
+const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
+  acute:    { className: 'alert--acute',    label: 'ACUTE' },
+  high:     { className: 'alert--high',     label: 'HIGH' },
+  moderate: { className: 'alert--moderate', label: 'MODERATE' },
+  low:      { className: 'alert--low',      label: 'LOW' },
+  none:     { className: 'alert--none',     label: 'NONE' },
+}
 
 interface QuestionnaireViewProps {
   title: string
@@ -14,10 +24,16 @@ interface QuestionnaireViewProps {
   carePlanMapper?: (response: any) => { resource: any; activities: any[]; isEmpty: boolean }
 }
 
+interface SubmitResult {
+  riskAlert: RiskAlert
+  observations: any[]
+}
+
 export function QuestionnaireView({ title, questionnaire, persistName, carePlanMapper }: QuestionnaireViewProps) {
   const [response, setResponse] = useState<any>(null)
   const [submitted, setSubmitted] = useState(false)
   const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
+  const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
   const { addResponse, addCarePlan } = usePatient()
 
   function handleSubmit(submittedResponse: any) {
@@ -25,6 +41,12 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
     if (responseToUse && persistName) {
       addResponse(persistName, responseToUse)
       setSubmitted(true)
+
+      // Preview the observation results for immediate display
+      const mapperResult = mapResponseToObservations(persistName, responseToUse)
+      if (mapperResult) {
+        setSubmitResult(mapperResult)
+      }
 
       // Generate CarePlan if mapper provided
       if (carePlanMapper) {
@@ -35,8 +57,14 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
           setTimeout(() => {
             document.querySelector('.careplan-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           }, 100)
+          return
         }
       }
+
+      // Scroll to result summary if no care plan
+      setTimeout(() => {
+        document.querySelector('.submit-result-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
     }
   }
 
@@ -55,7 +83,41 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
           onChange={(newResponse: any) => setResponse(newResponse)}
           onSubmit={persistName ? handleSubmit : undefined}
         />
-        {submitted && !carePlan && (
+        {submitted && !carePlan && submitResult && (
+          <div className={`submit-result-summary ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>
+            <div className="submit-result-header">
+              <span className={`risk-alert-level ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>
+                {LEVEL_CONFIG[submitResult.riskAlert.level].label}
+              </span>
+              <span className="submit-result-title">{submitResult.riskAlert.summary}</span>
+            </div>
+            <p className="submit-result-detail">{submitResult.riskAlert.detail}</p>
+            {submitResult.observations.length > 0 && (
+              <div className="submit-result-obs">
+                {submitResult.observations.slice(0, 6).map((obs, idx) => (
+                  <span key={idx} className="submit-result-obs-chip">
+                    <span className="chip-label">{obs.code?.text || obs.code?.coding?.[0]?.display}:</span>
+                    <span className="chip-value">
+                      {obs.valueInteger !== undefined && obs.valueInteger}
+                      {obs.valueBoolean !== undefined && (obs.valueBoolean ? 'Yes' : 'No')}
+                      {obs.valueString !== undefined && obs.valueString}
+                      {obs.valueCodeableConcept && (obs.valueCodeableConcept.text || obs.valueCodeableConcept.coding?.[0]?.display)}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="submit-result-actions">
+              <Link to="/chart/screenings" className="submit-result-link">View in Screenings</Link>
+              {submitResult.riskAlert.suggestedAction && (
+                <Link to={submitResult.riskAlert.suggestedAction.path} className="submit-result-action-btn">
+                  {submitResult.riskAlert.suggestedAction.label} &rarr;
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+        {submitted && !carePlan && !submitResult && (
           <div className="submit-success-notice">
             Response saved to patient chart.{' '}
             <Link to="/chart/screenings">View in Screenings</Link>

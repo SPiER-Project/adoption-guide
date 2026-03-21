@@ -2,6 +2,15 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import type { RiskAlert } from '../observationMappers'
+
+const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
+  acute:    { className: 'alert--acute',    label: 'ACUTE' },
+  high:     { className: 'alert--high',     label: 'HIGH' },
+  moderate: { className: 'alert--moderate', label: 'MODERATE' },
+  low:      { className: 'alert--low',      label: 'LOW' },
+  none:     { className: 'alert--none',     label: 'NONE' },
+}
 
 const AVAILABLE_SCREENINGS = [
   {
@@ -76,8 +85,21 @@ const AVAILABLE_SCREENINGS = [
   },
 ]
 
+function findAlertForResponse(riskAlerts: RiskAlert[], questionnaireName: string): RiskAlert | undefined {
+  return riskAlerts.find(a => a.tool === questionnaireName)
+}
+
+function findObservationsForResponse(observations: any[], completedAt: string): any[] {
+  // Match observations generated within 2 seconds of the response (they're auto-generated together)
+  const responseTime = new Date(completedAt).getTime()
+  return observations.filter(obs => {
+    const obsTime = new Date(obs.effectiveDateTime).getTime()
+    return Math.abs(obsTime - responseTime) < 2000
+  })
+}
+
 export function ScreeningsTab() {
-  const { responses } = usePatient()
+  const { responses, riskAlerts, observations } = usePatient()
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const reversedResponses = [...responses].reverse()
 
@@ -90,28 +112,83 @@ export function ScreeningsTab() {
         <h3 className="section-title">Completed ({responses.length})</h3>
         {reversedResponses.length > 0 ? (
           <div className="completed-list">
-            {reversedResponses.map(r => (
-              <div key={r.id} className="completed-item">
-                <div
-                  className="completed-item-header"
-                  onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <span className="completed-item-name">{r.questionnaireName}</span>
-                  <span className="completed-item-date">
-                    {new Date(r.completedAt).toLocaleDateString()}{' '}
-                    {new Date(r.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <span className="completed-item-toggle">{expandedId === r.id ? '\u25BC' : '\u25B6'}</span>
-                </div>
-                {expandedId === r.id && (
-                  <div className="completed-item-body">
-                    <FhirJsonViewer data={r.resource} title="QuestionnaireResponse" defaultOpen />
+            {reversedResponses.map(r => {
+              const alert = findAlertForResponse(riskAlerts, r.questionnaireName)
+              const relatedObs = findObservationsForResponse(observations, r.completedAt)
+
+              return (
+                <div key={r.id} className="completed-item">
+                  <div
+                    className="completed-item-header"
+                    onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <span className="completed-item-name">{r.questionnaireName}</span>
+                    {alert && alert.level !== 'none' && (
+                      <span className={`completed-item-risk-badge risk-alert-level ${LEVEL_CONFIG[alert.level].className}`}>
+                        {LEVEL_CONFIG[alert.level].label}
+                      </span>
+                    )}
+                    {alert && (
+                      <span className="completed-item-summary">{alert.summary}</span>
+                    )}
+                    <span className="completed-item-date">
+                      {new Date(r.completedAt).toLocaleDateString()}{' '}
+                      {new Date(r.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <span className="completed-item-toggle">{expandedId === r.id ? '\u25BC' : '\u25B6'}</span>
                   </div>
-                )}
-              </div>
-            ))}
+                  {expandedId === r.id && (
+                    <div className="completed-item-body">
+                      {/* Observation Results */}
+                      {(alert || relatedObs.length > 0) && (
+                        <div className="completed-item-results">
+                          {alert && (
+                            <div className={`completed-item-alert ${LEVEL_CONFIG[alert.level].className}`}>
+                              <span className={`risk-alert-level ${LEVEL_CONFIG[alert.level].className}`}>
+                                {LEVEL_CONFIG[alert.level].label}
+                              </span>
+                              <span className="completed-alert-summary">{alert.summary}</span>
+                              <p className="completed-alert-detail">{alert.detail}</p>
+                              {alert.suggestedAction && (
+                                <Link to={alert.suggestedAction.path} className="completed-alert-action">
+                                  {alert.suggestedAction.label} &rarr;
+                                </Link>
+                              )}
+                            </div>
+                          )}
+                          {relatedObs.length > 0 && (
+                            <div className="completed-item-observations">
+                              <h5 className="completed-obs-title">Generated Observations ({relatedObs.length})</h5>
+                              <div className="completed-obs-list">
+                                {relatedObs.map((obs, idx) => (
+                                  <div key={idx} className="completed-obs-row">
+                                    <span className="completed-obs-code">{obs.code?.text || obs.code?.coding?.[0]?.display || 'Observation'}</span>
+                                    <span className="completed-obs-value">
+                                      {obs.valueInteger !== undefined && obs.valueInteger}
+                                      {obs.valueBoolean !== undefined && (obs.valueBoolean ? 'Yes' : 'No')}
+                                      {obs.valueString !== undefined && obs.valueString}
+                                      {obs.valueCodeableConcept && (obs.valueCodeableConcept.text || obs.valueCodeableConcept.coding?.[0]?.display)}
+                                    </span>
+                                    {obs.interpretation?.[0]?.coding?.[0] && (
+                                      <span className={`completed-obs-interp interp--${obs.interpretation[0].coding[0].code?.toLowerCase()}`}>
+                                        {obs.interpretation[0].coding[0].display}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <FhirJsonViewer data={r.resource} title="QuestionnaireResponse" defaultOpen />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         ) : (
           <p className="screenings-empty">No screenings completed yet. Start one below.</p>

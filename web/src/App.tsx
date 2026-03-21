@@ -14,6 +14,7 @@ import camsSectionA from '../../CAMS/fhir/questionnaires/SSF5_SectionA.json'
 import camsSectionB from '../../CAMS/fhir/questionnaires/SSF5_SectionB.json'
 import camsStabilizationPlan from '../../CAMS/fhir/questionnaires/Stabilization_Plan.json'
 import { generateStabilizationCarePlan } from './camsCarePlanMapper'
+import { generateTherapeuticCarePlan } from './camsTherapeuticCarePlanMapper'
 import camsTherapeuticWorksheet from '../../CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
 
 // Context Providers
@@ -78,7 +79,7 @@ function AppRoutes() {
           <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />
         } />
         <Route path="screenings/cams-therapeutic-worksheet" element={
-          <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" />
+          <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />
         } />
         <Route path="careplan" element={<CarePlanTab />} />
         <Route path="encounters" element={<EncountersTab />} />
