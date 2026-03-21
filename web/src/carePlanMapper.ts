@@ -90,7 +90,7 @@ function extractStep5(items: any[]): string {
 
 export interface CarePlanActivity {
     stepTitle: string
-    loincCode: string
+    loincCode?: string
     description: string
 }
 

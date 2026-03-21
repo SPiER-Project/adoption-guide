@@ -55,6 +55,7 @@ function extractPairs(items: any[], groupLinkId: string, fieldA: string, fieldB:
 
 export interface CarePlanActivity {
   stepTitle: string
+  loincCode?: string
   description: string
 }
 
@@ -83,11 +84,12 @@ export function generateStabilizationCarePlan(questionnaireResponse: any): Gener
   const barriers = extractPairs(items, 'barrier-solution-group', 'barrier', 'solution')
   const barrierStr = barriers.map(p => p.b ? `${p.a} → ${p.b}` : p.a).join('; ')
 
+  // LOINC codes reused from Stanley-Brown Safety Plan panel where concepts overlap
   const activityDescriptions: CarePlanActivity[] = [
-    { stepTitle: 'Lethal Means Reduction', description: lethalMeans || 'No lethal means reduction steps provided.' },
-    { stepTitle: 'Coping Strategies', description: coping || 'No coping strategies provided.' },
-    { stepTitle: 'Emergency Contact', description: emergencyContact || 'No emergency contact provided.' },
-    { stepTitle: 'Support Network', description: support || 'No support contacts provided.' },
+    { stepTitle: 'Lethal Means Reduction', loincCode: '76694-1', description: lethalMeans || 'No lethal means reduction steps provided.' },
+    { stepTitle: 'Coping Strategies', loincCode: '76690-9', description: coping || 'No coping strategies provided.' },
+    { stepTitle: 'Emergency Contact', loincCode: '76693-3', description: emergencyContact || 'No emergency contact provided.' },
+    { stepTitle: 'Support Network', loincCode: '76692-5', description: support || 'No support contacts provided.' },
     { stepTitle: 'Treatment Adherence Plan', description: barrierStr || 'No barriers/solutions identified.' },
   ]
 
@@ -119,7 +121,9 @@ export function generateStabilizationCarePlan(questionnaireResponse: any): Gener
     addresses: [{ display: 'Risk for suicide' }],
     activity: activityDescriptions.map(a => ({
       detail: {
-        code: { text: a.stepTitle },
+        code: a.loincCode
+          ? { coding: [{ system: 'http://loinc.org', code: a.loincCode }], text: a.stepTitle }
+          : { text: a.stepTitle },
         status: 'in-progress',
         description: a.description,
       },

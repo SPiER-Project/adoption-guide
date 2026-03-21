@@ -4,12 +4,15 @@ import type { GeneratedCarePlan } from '../carePlanMapper'
 export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
   const [showJson, setShowJson] = useState(false)
 
+  // Derive filename from the resource id (e.g. "cams-stabilization-careplan-1234" → "cams-stabilization-careplan")
+  const idSlug = carePlan.resource?.id?.replace(/-\d+$/, '') || 'careplan'
+
   function downloadJson() {
     const blob = new Blob([JSON.stringify(carePlan.resource, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `stanley-brown-careplan-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `${idSlug}-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
