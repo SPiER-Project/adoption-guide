@@ -100,7 +100,7 @@ export function Dashboard() {
 
         {/* Recent Screenings Widget */}
         <div className="dashboard-widget">
-          <h3 className="widget-title">Recent Screenings</h3>
+          <h3 className="widget-title">Recent Results</h3>
           <div className="widget-body">
             {recentResponses.length > 0 ? (
               <ul className="widget-list">
@@ -114,9 +114,9 @@ export function Dashboard() {
                 ))}
               </ul>
             ) : (
-              <p className="widget-empty">No screenings completed yet.</p>
+              <p className="widget-empty">No assessments completed yet.</p>
             )}
-            <Link to="/chart/screenings" className="widget-link">View all screenings</Link>
+            <Link to="/chart/screenings" className="widget-link">View all results</Link>
           </div>
         </div>
 

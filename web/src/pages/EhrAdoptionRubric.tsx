@@ -3,21 +3,38 @@ import { RUBRIC_CRITERIA, RUBRIC_TOOLS, STAGE_ORDER } from '../data/ehrAdoptionD
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import '../css/EhrAdoptionRubric.css'
 
-type Scores = Record<string, Record<string, number>> // toolId → criterionId → level
+interface RubricState {
+  supported: Record<string, boolean>                    // toolId → checked
+  stageScores: Record<string, Record<string, number>>   // stage → criterionId → level
+}
+
+const EMPTY_STATE: RubricState = { supported: {}, stageScores: {} }
 
 const LEVEL_COLORS = ['#fee2e2', '#fed7aa', '#fef08a', '#bbf7d0']
 const LEVEL_TEXT_COLORS = ['#991b1b', '#9a3412', '#854d0e', '#166534']
 
 export function EhrAdoptionRubric() {
-  const [scores, setScores] = useLocalStorage<Scores>('spier-ehr-rubric', {})
+  const [state, setState] = useLocalStorage<RubricState>('spier-ehr-rubric-v2', EMPTY_STATE)
 
-  const getScore = (toolId: string, criterionId: string) =>
-    scores[toolId]?.[criterionId] ?? 0
+  const isSupported = (toolId: string) => state.supported[toolId] ?? false
 
-  const setScore = (toolId: string, criterionId: string, level: number) => {
-    setScores(prev => ({
+  const toggleTool = (toolId: string) => {
+    setState(prev => ({
       ...prev,
-      [toolId]: { ...prev[toolId], [criterionId]: level },
+      supported: { ...prev.supported, [toolId]: !prev.supported[toolId] },
+    }))
+  }
+
+  const getStageScore = (stage: string, criterionId: string) =>
+    state.stageScores[stage]?.[criterionId] ?? 0
+
+  const setStageScore = (stage: string, criterionId: string, level: number) => {
+    setState(prev => ({
+      ...prev,
+      stageScores: {
+        ...prev.stageScores,
+        [stage]: { ...prev.stageScores[stage], [criterionId]: level },
+      },
     }))
   }
 
@@ -30,54 +47,71 @@ export function EhrAdoptionRubric() {
     return grouped
   }, [])
 
-  const overallStats = useMemo(() => {
-    let totalScore = 0
-    let totalTarget = 0
-    for (const tool of RUBRIC_TOOLS) {
-      for (const criterion of RUBRIC_CRITERIA) {
-        totalScore += getScore(tool.toolId, criterion.id)
-        totalTarget += tool.targets[criterion.id] ?? 3
-      }
-    }
-    return { score: totalScore, target: totalTarget, pct: totalTarget > 0 ? Math.round((totalScore / totalTarget) * 100) : 0 }
-  }, [scores])
-
   const stageStats = useMemo(() => {
-    const stats: Record<string, { score: number; target: number; pct: number }> = {}
+    const stats: Record<string, { covered: boolean; supportedCount: number; totalCount: number; allSupported: boolean }> = {}
     for (const stage of STAGE_ORDER) {
-      let score = 0
-      let target = 0
-      for (const tool of toolsByStage[stage] ?? []) {
-        for (const criterion of RUBRIC_CRITERIA) {
-          score += getScore(tool.toolId, criterion.id)
-          target += tool.targets[criterion.id] ?? 3
-        }
+      const tools = toolsByStage[stage] ?? []
+      const supportedCount = tools.filter(t => isSupported(t.toolId)).length
+      stats[stage] = {
+        covered: supportedCount > 0,
+        supportedCount,
+        totalCount: tools.length,
+        allSupported: supportedCount === tools.length,
       }
-      stats[stage] = { score, target, pct: target > 0 ? Math.round((score / target) * 100) : 0 }
     }
     return stats
-  }, [scores, toolsByStage])
+  }, [state.supported, toolsByStage])
 
-  const resetScores = () => setScores({})
+  const overallStats = useMemo(() => {
+    const coveredStages = STAGE_ORDER.filter(s => stageStats[s]?.covered).length
+    const totalStages = STAGE_ORDER.length
+
+    let maturityScore = 0
+    let maturityMax = 0
+    for (const stage of STAGE_ORDER) {
+      if (stageStats[stage]?.covered) {
+        for (const c of RUBRIC_CRITERIA) {
+          maturityScore += getStageScore(stage, c.id)
+          maturityMax += 3
+        }
+      }
+    }
+
+    return {
+      coveredStages,
+      totalStages,
+      coveragePct: Math.round((coveredStages / totalStages) * 100),
+      maturityPct: maturityMax > 0 ? Math.round((maturityScore / maturityMax) * 100) : 0,
+    }
+  }, [state, stageStats])
+
+  const resetAll = () => setState(EMPTY_STATE)
 
   return (
     <div className="ehr-rubric">
       <h2 className="page-title">EHR Adoption Rubric</h2>
       <p className="rubric-description">
-        Self-assess your EHR&rsquo;s adoption of suicide safer care tools across three criteria.
-        Select your current maturity level for each tool — the target column shows the recommended level.
+        Assess your EHR&rsquo;s adoption of suicide safer care tools. Check which tools your system
+        supports (at least one per stage is needed), then rate each stage across three maturity criteria.
       </p>
 
-      {/* Overall score */}
-      <div className="rubric-overall">
-        <div className="rubric-overall-score">
-          <span className="rubric-overall-pct">{overallStats.pct}%</span>
-          <span className="rubric-overall-label">Overall Adoption</span>
+      {/* Overall summary */}
+      <div className="rubric-summary">
+        <div className="rubric-summary-stat">
+          <span className="rubric-summary-value">{overallStats.coveredStages}/{overallStats.totalStages}</span>
+          <span className="rubric-summary-label">Stages Covered</span>
         </div>
-        <div className="rubric-overall-bar">
-          <div className="rubric-overall-fill" style={{ width: `${overallStats.pct}%` }} />
+        <div className="rubric-summary-bar">
+          <div className="rubric-summary-fill rubric-summary-fill--coverage" style={{ width: `${overallStats.coveragePct}%` }} />
         </div>
-        <button className="rubric-reset-btn" onClick={resetScores}>Reset All</button>
+        <div className="rubric-summary-stat">
+          <span className="rubric-summary-value">{overallStats.maturityPct}%</span>
+          <span className="rubric-summary-label">Maturity</span>
+        </div>
+        <div className="rubric-summary-bar">
+          <div className="rubric-summary-fill rubric-summary-fill--maturity" style={{ width: `${overallStats.maturityPct}%` }} />
+        </div>
+        <button className="rubric-reset-btn" onClick={resetAll}>Reset All</button>
       </div>
 
       {/* Legend */}
@@ -104,69 +138,70 @@ export function EhrAdoptionRubric() {
         ))}
       </div>
 
-      {/* Matrix table by stage */}
+      {/* Stages */}
       {STAGE_ORDER.map(stage => {
         const tools = toolsByStage[stage] ?? []
         const stats = stageStats[stage]
         return (
-          <div key={stage} className="rubric-stage-section">
+          <div key={stage} className={`rubric-stage-section ${stats.covered ? 'rubric-stage-section--covered' : ''}`}>
             <div className="rubric-stage-header">
-              <h3 className="rubric-stage-title">{stage}</h3>
-              <span className="rubric-stage-pct">{stats.pct}%</span>
+              <div className="rubric-stage-title-row">
+                <span className={`rubric-stage-indicator ${stats.covered ? 'rubric-stage-indicator--covered' : ''}`}>
+                  {stats.covered ? '\u2713' : '\u2015'}
+                </span>
+                <h3 className="rubric-stage-title">{stage}</h3>
+              </div>
+              <div className="rubric-stage-counts">
+                <span className={`rubric-stage-coverage ${stats.allSupported ? 'rubric-stage-coverage--all' : ''}`}>
+                  {stats.supportedCount}/{stats.totalCount} tools
+                </span>
+                {stats.allSupported && <span className="rubric-bonus-badge">All tools!</span>}
+              </div>
             </div>
-            <table className="rubric-table">
-              <thead>
-                <tr>
-                  <th className="rubric-th-tool">Tool</th>
-                  {RUBRIC_CRITERIA.map(c => (
-                    <th key={c.id} className="rubric-th-criterion">{c.name}</th>
-                  ))}
-                  <th className="rubric-th-gap">Gap</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tools.map(tool => {
-                  let toolGap = 0
-                  for (const c of RUBRIC_CRITERIA) {
-                    toolGap += (tool.targets[c.id] ?? 3) - getScore(tool.toolId, c.id)
-                  }
-                  return (
-                    <tr key={tool.toolId}>
-                      <td className="rubric-td-tool">{tool.name}</td>
-                      {RUBRIC_CRITERIA.map(criterion => {
-                        const current = getScore(tool.toolId, criterion.id)
-                        const target = tool.targets[criterion.id] ?? 3
-                        return (
-                          <td key={criterion.id} className="rubric-td-score">
-                            <div className="rubric-score-cell">
-                              <select
-                                className="rubric-select"
-                                value={current}
-                                onChange={e => setScore(tool.toolId, criterion.id, Number(e.target.value))}
-                                style={{
-                                  background: LEVEL_COLORS[current],
-                                  color: LEVEL_TEXT_COLORS[current],
-                                }}
-                              >
-                                {criterion.levels.map(l => (
-                                  <option key={l.level} value={l.level}>{l.level} — {l.label}</option>
-                                ))}
-                              </select>
-                              <span className="rubric-target">Target: {target}</span>
-                            </div>
-                          </td>
-                        )
-                      })}
-                      <td className="rubric-td-gap">
-                        <span className={`rubric-gap-badge ${toolGap === 0 ? 'rubric-gap-badge--met' : 'rubric-gap-badge--gap'}`}>
-                          {toolGap === 0 ? '\u2713' : `-${toolGap}`}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+
+            {/* Tool checkboxes */}
+            <div className="rubric-tool-list">
+              {tools.map(tool => (
+                <label key={tool.toolId} className={`rubric-tool-checkbox ${isSupported(tool.toolId) ? 'rubric-tool-checkbox--checked' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={isSupported(tool.toolId)}
+                    onChange={() => toggleTool(tool.toolId)}
+                  />
+                  <span className="rubric-tool-name">{tool.name}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* Stage-level maturity scoring — only shown when at least one tool is supported */}
+            {stats.covered && (
+              <div className="rubric-maturity">
+                <div className="rubric-maturity-label">Stage Maturity</div>
+                <div className="rubric-maturity-grid">
+                  {RUBRIC_CRITERIA.map(criterion => {
+                    const current = getStageScore(stage, criterion.id)
+                    return (
+                      <div key={criterion.id} className="rubric-maturity-cell">
+                        <span className="rubric-maturity-criterion">{criterion.name}</span>
+                        <select
+                          className="rubric-select"
+                          value={current}
+                          onChange={e => setStageScore(stage, criterion.id, Number(e.target.value))}
+                          style={{
+                            background: LEVEL_COLORS[current],
+                            color: LEVEL_TEXT_COLORS[current],
+                          }}
+                        >
+                          {criterion.levels.map(l => (
+                            <option key={l.level} value={l.level}>{l.level} — {l.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )
       })}

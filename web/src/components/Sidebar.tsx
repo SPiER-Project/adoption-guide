@@ -23,7 +23,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </NavLink>
             <NavLink to="/chart/screenings" className="sidebar-link" onClick={onClose} end>
               <span className="sidebar-icon">&#9997;&#65039;</span>
-              Screenings
+              Clinical Tools
             </NavLink>
             <NavLink to="/chart/careplan" className="sidebar-link" onClick={onClose}>
               <span className="sidebar-icon">&#128203;</span>
