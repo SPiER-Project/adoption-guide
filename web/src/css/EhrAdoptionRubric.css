@@ -1,0 +1,261 @@
+.ehr-rubric {
+  max-width: 1100px;
+}
+
+.rubric-description {
+  color: #64748b;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: -1rem 0 1.5rem 0;
+}
+
+/* ── Overall Score ── */
+.rubric-overall {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.rubric-overall-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.rubric-overall-pct {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.rubric-overall-label {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rubric-overall-bar {
+  flex: 1;
+  height: 12px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.rubric-overall-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f87171 0%, #fb923c 33%, #facc15 66%, #4ade80 100%);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.rubric-reset-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rubric-reset-btn:hover {
+  background: #e2e8f0;
+}
+
+/* ── Legend ── */
+.rubric-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.rubric-legend-criterion {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rubric-legend-summary {
+  padding: 0.6rem 1rem;
+  font-size: 0.8125rem;
+  color: #334155;
+  cursor: pointer;
+  background: #f8fafc;
+}
+
+.rubric-legend-summary:hover {
+  background: #f1f5f9;
+}
+
+.rubric-legend-levels {
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rubric-legend-level {
+  font-size: 0.8125rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rubric-level-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Stage Sections ── */
+.rubric-stage-section {
+  margin-bottom: 2rem;
+}
+
+.rubric-stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.rubric-stage-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.rubric-stage-pct {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* ── Table ── */
+.rubric-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.8125rem;
+}
+
+.rubric-table thead {
+  background: #f8fafc;
+}
+
+.rubric-table th {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rubric-th-tool {
+  width: 22%;
+}
+
+.rubric-th-criterion {
+  width: 22%;
+}
+
+.rubric-th-gap {
+  width: 12%;
+  text-align: center;
+}
+
+.rubric-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.rubric-table tr:last-child td {
+  border-bottom: none;
+}
+
+.rubric-td-tool {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.rubric-td-gap {
+  text-align: center;
+}
+
+/* ── Score Cell ── */
+.rubric-score-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.rubric-select {
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+}
+
+.rubric-select:hover {
+  border-color: #94a3b8;
+}
+
+.rubric-target {
+  font-size: 0.625rem;
+  color: #94a3b8;
+}
+
+/* ── Gap Badge ── */
+.rubric-gap-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.rubric-gap-badge--met {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rubric-gap-badge--gap {
+  background: #fee2e2;
+  color: #991b1b;
+}

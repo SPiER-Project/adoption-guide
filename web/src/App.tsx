@@ -35,7 +35,8 @@ import { CarePlanTab } from './pages/CarePlanTab'
 import { EncountersTab } from './pages/EncountersTab'
 import { ToolsReference } from './pages/ToolsReference'
 import { DataDictionary } from './pages/DataDictionary'
-import { ClinicalWorkflow } from './pages/ClinicalWorkflow'
+import { PatientJourney } from './pages/PatientJourney'
+import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
 import { ImplementationGuide } from './pages/ImplementationGuide'
 
 // Questionnaire Views
@@ -83,7 +84,8 @@ function AppRoutes() {
         } />
         <Route path="careplan" element={<CarePlanTab />} />
         <Route path="encounters" element={<EncountersTab />} />
-        <Route path="workflow" element={<ClinicalWorkflow />} />
+        <Route path="workflow" element={<PatientJourney />} />
+        <Route path="ehr-rubric" element={<EhrAdoptionRubric />} />
         <Route path="implementation-guide" element={<ImplementationGuide />} />
         <Route path="data-dictionary" element={<DataDictionary />} />
         <Route path="tools" element={<ToolsReference />} />
