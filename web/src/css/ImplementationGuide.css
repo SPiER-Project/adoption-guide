@@ -1,0 +1,65 @@
+.implementation-guide {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ig-header {
+  padding: 20px 24px 0 24px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ig-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+}
+
+.ig-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.ig-tab-btn {
+  padding: 8px 16px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ig-tab-btn:hover {
+  color: #1e293b;
+  background: #f8fafc;
+}
+
+.ig-tab-btn--active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.ig-content {
+  flex: 1;
+  padding: 0; /* Sub-pages have their own padding usually, but we might want to standardize */
+  overflow-y: auto;
+}
+
+/* Adjust nested page styles to look better in a tabbed view */
+.implementation-guide .page-title {
+  display: none; /* Hide the sub-page redundant titles */
+}
+
+.implementation-guide .patient-journey,
+.implementation-guide .data-dictionary,
+.implementation-guide .ehr-adoption-rubric {
+  padding: 24px;
+}

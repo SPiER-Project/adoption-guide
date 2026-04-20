@@ -5,17 +5,17 @@ import './CarePlan.css'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 // FHIR Questionnaires
-import asqQuestionnaire from '../../ASQ/fhir/questionnaires/questionnaire.json'
-import phq9Questionnaire from '../../PHQ-9/fhir/questionnaires/questionnaire.json'
-import sbqrQuestionnaire from '../../SBQ-R/fhir/questionnaires/questionnaire.json'
-import cssrsScreener from '../../C-SSRS/fhir/questionnaires/screener.json'
-import cssrsFull from '../../C-SSRS/fhir/questionnaires/full-lifetime-recent.json'
-import camsSectionA from '../../CAMS/fhir/questionnaires/SSF5_SectionA.json'
-import camsSectionB from '../../CAMS/fhir/questionnaires/SSF5_SectionB.json'
-import camsStabilizationPlan from '../../CAMS/fhir/questionnaires/Stabilization_Plan.json'
+import asqQuestionnaire from '../../FHIR-Resources/1-Flag-Risk/ASQ/fhir/questionnaires/questionnaire.json'
+import phq9Questionnaire from '../../FHIR-Resources/1-Flag-Risk/PHQ-9/fhir/questionnaires/questionnaire.json'
+import sbqrQuestionnaire from '../../FHIR-Resources/1-Flag-Risk/SBQ-R/fhir/questionnaires/questionnaire.json'
+import cssrsScreener from '../../FHIR-Resources/1-Flag-Risk/C-SSRS/fhir/questionnaires/screener.json'
+import cssrsFull from '../../FHIR-Resources/1-Flag-Risk/C-SSRS/fhir/questionnaires/full-lifetime-recent.json'
+import camsSectionA from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/questionnaires/SSF5_SectionA.json'
+import camsSectionB from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/questionnaires/SSF5_SectionB.json'
+import camsStabilizationPlan from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/questionnaires/Stabilization_Plan.json'
+import camsTherapeuticWorksheet from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
 import { generateStabilizationCarePlan } from './camsCarePlanMapper'
 import { generateTherapeuticCarePlan } from './camsTherapeuticCarePlanMapper'
-import camsTherapeuticWorksheet from '../../CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
 
 // Context Providers
 import { SmartProvider } from './context/SmartContext'
@@ -36,6 +36,7 @@ import { EncountersTab } from './pages/EncountersTab'
 import { DataDictionary } from './pages/DataDictionary'
 import { PatientJourney } from './pages/PatientJourney'
 import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
+import { ImplementationGuide } from './pages/ImplementationGuide'
 import { PilotPlan } from './pages/PilotPlan'
 
 // Questionnaire Views
@@ -83,12 +84,12 @@ function AppRoutes() {
         } />
         <Route path="careplan" element={<CarePlanTab />} />
         <Route path="encounters" element={<EncountersTab />} />
-        <Route path="workflow" element={<PatientJourney />} />
+        <Route path="implementation-guide" element={<ImplementationGuide />} />
+        <Route path="workflow" element={<Navigate to="/chart/implementation-guide" replace />} />
         <Route path="workflow/:slug/plan" element={<PilotPlan />} />
-        <Route path="ehr-rubric" element={<EhrAdoptionRubric />} />
-        <Route path="data-dictionary" element={<DataDictionary />} />
-        <Route path="implementation-guide" element={<Navigate to="/chart/workflow" replace />} />
-        <Route path="tools" element={<Navigate to="/chart/workflow" replace />} />
+        <Route path="ehr-rubric" element={<Navigate to="/chart/implementation-guide" replace />} />
+        <Route path="data-dictionary" element={<Navigate to="/chart/implementation-guide" replace />} />
+        <Route path="tools" element={<Navigate to="/chart/implementation-guide" replace />} />
       </Route>
 
       {/* Default: redirect to dashboard */}
