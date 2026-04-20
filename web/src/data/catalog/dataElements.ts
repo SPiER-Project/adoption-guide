@@ -27,7 +27,7 @@ export interface DataElement {
 
 const TOOLS_CSSRS = ['TL-003', 'TL-004']
 const TOOLS_CAMS_SSF = ['TL-020']
-const TOOLS_CAMS_FAMILY = ['TL-020', 'TL-021', 'TL-024']
+// const TOOLS_CAMS_FAMILY = ['TL-020', 'TL-021', 'TL-024']
 
 export const DATA_ELEMENTS: DataElement[] = [
   // ── C-SSRS ──

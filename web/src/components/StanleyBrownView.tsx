@@ -8,7 +8,7 @@ import { CarePlanDisplay } from './CarePlanDisplay'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { usePatient } from '../context/PatientContext'
 
-import stanleyBrownQuestionnaire from '../../../Stanley Brown Safety Plan/fhir/questionnaires/questionnaire.json'
+import stanleyBrownQuestionnaire from '../../../FHIR-Resources/4-Document-Safety-Actions/Stanley-Brown/fhir/questionnaires/questionnaire.json'
 
 export function StanleyBrownView() {
   const [response, setResponse] = useState<any>(null)
