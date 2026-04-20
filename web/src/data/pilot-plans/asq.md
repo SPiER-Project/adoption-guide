@@ -1,6 +1,6 @@
 # ASQ FHIR Questionnaire — Open Items
 
-Tracking list of improvements to `/ASQ/fhir/questionnaires/questionnaire.json` and `/ASQ/README.md` identified during pilot prep review.
+Tracking list of improvements to `/FHIR-Resources/1-Flag-Risk/ASQ/fhir/questionnaires/questionnaire.json` and `/FHIR-Resources/1-Flag-Risk/ASQ/README.md` identified during pilot prep review.
 
 ## Priority 1 — Required for pilot-ready artifact
 
@@ -31,7 +31,7 @@ Every question item and the Questionnaire root should carry a `code` array point
 - `Yes` → SNOMED `373066001`
 - `No` → SNOMED `373067005`
 
-The ValueSet resource lives at `/ASQ/fhir/valuesets/yes-no.json`. Downstream Observation generation now maps the coded answer directly from the QuestionnaireResponse `valueCoding`.
+The ValueSet resource lives at `/FHIR-Resources/1-Flag-Risk/ASQ/fhir/valuesets/yes-no.json`. Downstream Observation generation now maps the coded answer directly from the QuestionnaireResponse `valueCoding`.
 
 ### Add `code` element to Questionnaire root ✅
 
@@ -41,7 +41,7 @@ The ValueSet resource lives at `/ASQ/fhir/valuesets/yes-no.json`. Downstream Obs
 
 ### Add CodeSystem resources for local codes ✅
 
-*Completed.* Three CodeSystem resources now live at `/ASQ/fhir/codesystems/`:
+*Completed.* Three CodeSystem resources now live at `/FHIR-Resources/1-Flag-Risk/ASQ/fhir/codesystems/`:
 
 - `asq-attempt-recency.json`
 - `asq-screening-result.json`
