@@ -1,3 +1,9 @@
+/**
+ * Thin adapter that derives the rubric view over the shared catalog.
+ * New code should import from `./catalog` directly.
+ */
+import { STAGES, TOOLS, type MaturityLevel } from './catalog'
+
 export interface RubricCriterion {
   id: string
   name: string
@@ -9,7 +15,7 @@ export interface RubricTool {
   toolId: string
   name: string
   stage: string
-  targets: Record<string, number> // criterionId → target level
+  targets: Record<string, MaturityLevel>
 }
 
 export const RUBRIC_CRITERIA: RubricCriterion[] = [
@@ -48,44 +54,17 @@ export const RUBRIC_CRITERIA: RubricCriterion[] = [
   },
 ]
 
-export const RUBRIC_TOOLS: RubricTool[] = [
-  // Screen
-  { toolId: 'TL-001', name: 'ASQ Adult / Youth', stage: 'Screen', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-002', name: 'PHQ-9 / PHQ-A Item 9 Trigger', stage: 'Screen', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-003', name: 'C-SSRS Screener / Triage', stage: 'Screen', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-011', name: 'PSS-3', stage: 'Screen', targets: { electronic: 3, writeback: 3, triggering: 2 } },
-  { toolId: 'TL-014', name: 'PSS / SRS Full', stage: 'Screen', targets: { electronic: 2, writeback: 2, triggering: 2 } },
+const stageTitleById = new Map(STAGES.map(s => [s.id, s.title]))
 
-  // Assess
-  { toolId: 'TL-004', name: 'C-SSRS Full Scale (Lifetime/Recent)', stage: 'Assess', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-019', name: 'C-SSRS Since Last Contact', stage: 'Assess', targets: { electronic: 3, writeback: 3, triggering: 2 } },
-  { toolId: 'TL-005', name: 'BSSA', stage: 'Assess', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-020', name: 'CAMS SSF-5 First Session', stage: 'Assess', targets: { electronic: 3, writeback: 3, triggering: 3 } },
+export const RUBRIC_TOOLS: RubricTool[] = TOOLS.map(t => ({
+  toolId: t.id,
+  name: t.shortName ?? t.name,
+  stage: stageTitleById.get(t.stageId) ?? t.stageId,
+  targets: t.targetMaturity as unknown as Record<string, MaturityLevel>,
+}))
 
-  // Formulate
-  { toolId: 'TL-006', name: 'SAFE-T', stage: 'Formulate', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-024', name: 'CAMS Therapeutic Worksheet', stage: 'Formulate', targets: { electronic: 3, writeback: 3, triggering: 2 } },
+export const STAGE_ORDER = STAGES.map(s => s.title)
 
-  // Plan
-  { toolId: 'TL-007', name: 'Safety Plan Core / Stanley-Brown', stage: 'Plan', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-008', name: 'Means Safety Counseling', stage: 'Plan', targets: { electronic: 3, writeback: 3, triggering: 2 } },
-  { toolId: 'TL-021', name: 'CAMS Stabilization Support Plan', stage: 'Plan', targets: { electronic: 3, writeback: 3, triggering: 2 } },
-  { toolId: 'TL-013', name: 'Now Matters Now', stage: 'Plan', targets: { electronic: 2, writeback: 1, triggering: 1 } },
-  { toolId: 'TL-015', name: 'Crisis Response Planning', stage: 'Plan', targets: { electronic: 2, writeback: 2, triggering: 2 } },
-  { toolId: 'TL-016', name: 'CALM / Means Safety Protocol', stage: 'Plan', targets: { electronic: 2, writeback: 2, triggering: 2 } },
-
-  // Transition
-  { toolId: 'TL-009', name: 'Transition Checkpoint', stage: 'Transition', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-023', name: 'CAMS Outcome/Disposition', stage: 'Transition', targets: { electronic: 3, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-017', name: 'Rapid Referral', stage: 'Transition', targets: { electronic: 2, writeback: 2, triggering: 3 } },
-
-  // Follow-up
-  { toolId: 'TL-010', name: 'Outreach / Caring Contacts', stage: 'Follow-up', targets: { electronic: 2, writeback: 3, triggering: 3 } },
-  { toolId: 'TL-012', name: 'ED-SAFE / CLASP-ED Protocol', stage: 'Follow-up', targets: { electronic: 2, writeback: 2, triggering: 3 } },
-  { toolId: 'TL-018', name: 'Colorado Post-Visit Protocol', stage: 'Follow-up', targets: { electronic: 2, writeback: 2, triggering: 2 } },
-
-  // Monitor
-  { toolId: 'TL-022', name: 'CAMS SSF-5 Interim Sessions', stage: 'Monitor', targets: { electronic: 3, writeback: 3, triggering: 2 } },
-]
-
-export const STAGE_ORDER = ['Screen', 'Assess', 'Formulate', 'Plan', 'Transition', 'Follow-up', 'Monitor']
+export const STAGE_DESCRIPTIONS: Record<string, string> = Object.fromEntries(
+  STAGES.map(s => [s.title, s.description])
+)

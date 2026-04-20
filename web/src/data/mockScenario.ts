@@ -52,16 +52,16 @@ export const MOCK_RESPONSES = [
         {
           linkId: 'screening-questions',
           item: [
-            { linkId: 'q1', answer: [{ valueBoolean: true }] },
-            { linkId: 'q2', answer: [{ valueBoolean: true }] },
-            { linkId: 'q3', answer: [{ valueBoolean: false }] },
-            { linkId: 'q4', answer: [{ valueBoolean: false }] },
+            { linkId: 'q1', answer: [{ valueCoding: { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' } }] },
+            { linkId: 'q2', answer: [{ valueCoding: { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' } }] },
+            { linkId: 'q3', answer: [{ valueCoding: { system: 'http://snomed.info/sct', code: '373067005', display: 'No' } }] },
+            { linkId: 'q4', answer: [{ valueCoding: { system: 'http://snomed.info/sct', code: '373067005', display: 'No' } }] },
           ],
         },
         {
           linkId: 'acuity-section',
           item: [
-            { linkId: 'q5', answer: [{ valueBoolean: false }] },
+            { linkId: 'q5', answer: [{ valueCoding: { system: 'http://snomed.info/sct', code: '373067005', display: 'No' } }] },
           ],
         },
       ],

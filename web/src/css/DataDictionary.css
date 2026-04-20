@@ -137,21 +137,90 @@
 .dd-resource-badge--observation { background: #fef3c7; color: #92400e; }
 .dd-resource-badge--condition { background: #fce7f3; color: #9d174d; }
 
-.dd-tool-badge {
+.dd-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.dd-tool-chip {
   font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
   white-space: nowrap;
 }
-
-.dd-tool-badge--sb { background: #fef3c7; color: #92400e; }
-.dd-tool-badge--cams { background: #e0e7ff; color: #3730a3; }
-.dd-tool-badge--both { background: #f1f5f9; color: #475569; }
 
 .dd-empty {
   text-align: center;
   color: #94a3b8;
   font-style: italic;
   padding: 2rem !important;
+}
+
+.dd-empty-state {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 2rem;
+  background: white;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+}
+
+/* ── Journey-grouped stage sections ── */
+.dd-stage-section {
+  margin-bottom: 2rem;
+}
+
+.dd-stage-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+}
+
+.dd-stage-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  border-left: 3px solid #d16b47;
+  padding-left: 0.5rem;
+}
+
+.dd-stage-count {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.dd-cross-stage {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  font-weight: 400;
+}
+
+.dd-cross-label {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.dd-cross-chip {
+  font-size: 0.6875rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: #fef5f1;
+  color: #b8573a;
+  border: 1px solid #fed7aa;
 }

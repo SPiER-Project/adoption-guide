@@ -1,0 +1,30 @@
+{
+  "resourceType": "ValueSet",
+  "id": "yes-no",
+  "url": "http://spier.org/ValueSet/yes-no",
+  "version": "1.0.0",
+  "name": "YesNo",
+  "title": "Yes / No (SNOMED-bound)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2026-04-20",
+  "publisher": "SPiER Project",
+  "description": "Yes/No answer binding used by SPiER clinical questionnaires. Uses the canonical SNOMED CT qualifier values so answers round-trip as coded values through QuestionnaireResponse and downstream Observations.",
+  "compose": {
+    "include": [
+      {
+        "system": "http://snomed.info/sct",
+        "concept": [
+          {
+            "code": "373066001",
+            "display": "Yes"
+          },
+          {
+            "code": "373067005",
+            "display": "No"
+          }
+        ]
+      }
+    ]
+  }
+}

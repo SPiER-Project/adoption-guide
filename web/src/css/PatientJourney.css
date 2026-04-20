@@ -128,8 +128,37 @@
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  overflow: hidden;
+}
+
+.stage-tool-card--expanded {
+  border-color: #d16b47;
+  box-shadow: 0 1px 12px rgba(209, 107, 71, 0.15);
+  grid-column: 1 / -1;
+}
+
+.stage-tool-summary {
+  display: block;
+  width: 100%;
   padding: 1rem;
-  transition: border-color 0.15s;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.stage-tool-summary:hover {
+  background: #f8fafc;
+}
+
+.stage-tool-expand-hint {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #d16b47;
 }
 
 .stage-tool-card--core {
@@ -268,4 +297,192 @@
   font-size: 1.25rem;
   color: #cbd5e1;
   line-height: 1;
+}
+
+/* ── Tool Detail (drill-down) ── */
+.tool-detail {
+  padding: 0 1rem 1rem 1rem;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+}
+
+.tool-detail-section {
+  padding-top: 1rem;
+}
+
+.tool-detail-section + .tool-detail-section {
+  margin-top: 0.5rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.tool-detail-heading {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tool-detail-body {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.tool-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.tool-detail-meta-label {
+  color: #64748b;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.tool-detail-chip {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background: #e2e8f0;
+  color: #334155;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+}
+
+.tool-detail-chip--tag {
+  background: #fef3c7;
+  color: #854d0e;
+}
+
+.tool-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
+}
+
+.tool-detail-table th {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.tool-detail-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+  color: #334155;
+}
+
+.tool-detail-table code {
+  font-size: 0.75rem;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.tool-detail-when {
+  color: #64748b;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.tool-detail-trigger {
+  margin: 0.5rem 0 0 0;
+  padding: 0.5rem 0.75rem;
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  color: #78350f;
+}
+
+.tool-detail-elements {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tool-detail-elements li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+}
+
+.tool-detail-element-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.tool-detail-element-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  background: #e2e8f0;
+  color: #334155;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+.tool-detail-element-path {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tool-detail-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tool-detail-launch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tool-detail-launch-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tool-detail-launch-btn--primary {
+  background: #d16b47;
+  color: white;
+}
+
+.tool-detail-launch-btn--primary:hover {
+  background: #b8573a;
+}
+
+.tool-detail-launch-btn--secondary {
+  background: white;
+  color: #d16b47;
+  border: 1px solid #d16b47;
+}
+
+.tool-detail-launch-btn--secondary:hover {
+  background: #fef5f1;
 }

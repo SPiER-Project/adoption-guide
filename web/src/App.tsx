@@ -33,11 +33,10 @@ import { Dashboard } from './pages/Dashboard'
 import { ScreeningsTab } from './pages/ScreeningsTab'
 import { CarePlanTab } from './pages/CarePlanTab'
 import { EncountersTab } from './pages/EncountersTab'
-import { ToolsReference } from './pages/ToolsReference'
 import { DataDictionary } from './pages/DataDictionary'
 import { PatientJourney } from './pages/PatientJourney'
 import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
-import { ImplementationGuide } from './pages/ImplementationGuide'
+import { PilotPlan } from './pages/PilotPlan'
 
 // Questionnaire Views
 import { StanleyBrownView } from './components/StanleyBrownView'
@@ -85,10 +84,11 @@ function AppRoutes() {
         <Route path="careplan" element={<CarePlanTab />} />
         <Route path="encounters" element={<EncountersTab />} />
         <Route path="workflow" element={<PatientJourney />} />
+        <Route path="workflow/:slug/plan" element={<PilotPlan />} />
         <Route path="ehr-rubric" element={<EhrAdoptionRubric />} />
-        <Route path="implementation-guide" element={<ImplementationGuide />} />
         <Route path="data-dictionary" element={<DataDictionary />} />
-        <Route path="tools" element={<ToolsReference />} />
+        <Route path="implementation-guide" element={<Navigate to="/chart/workflow" replace />} />
+        <Route path="tools" element={<Navigate to="/chart/workflow" replace />} />
       </Route>
 
       {/* Default: redirect to dashboard */}

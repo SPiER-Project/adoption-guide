@@ -1,0 +1,27 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "asq-attempt-recency",
+  "url": "http://spier.org/CodeSystem/asq-attempt-recency",
+  "version": "1.0.0",
+  "name": "AsqAttemptRecency",
+  "title": "ASQ Attempt Recency (local)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2026-04-20",
+  "publisher": "SPiER Project",
+  "description": "Timing buckets for a prior suicide attempt disclosed during ASQ screening. Local code system used until a LOINC or SNOMED binding is established.",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "within-12-months",
+      "display": "Within last 12 months",
+      "definition": "Most recent prior suicide attempt occurred within the past 12 months."
+    },
+    {
+      "code": "over-1-year",
+      "display": "Over 1 year ago",
+      "definition": "Most recent prior suicide attempt occurred more than 12 months ago."
+    }
+  ]
+}

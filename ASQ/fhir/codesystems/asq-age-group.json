@@ -1,0 +1,27 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "asq-age-group",
+  "url": "http://spier.org/CodeSystem/asq-age-group",
+  "version": "1.0.0",
+  "name": "AsqAgeGroup",
+  "title": "ASQ Age Group (local)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2026-04-20",
+  "publisher": "SPiER Project",
+  "description": "Age group used to interpret patient refusal during ASQ administration. Local code system; the age group can often be derived from Patient.birthDate and may be removed in a future revision. See ASQ pilot plan, Priority 3.",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "youth",
+      "display": "Youth (under 18)",
+      "definition": "Patient age under 18 at time of screening. Per NIMH ASQ guidance, refusal in this population is treated as a non-acute positive screen."
+    },
+    {
+      "code": "adult",
+      "display": "Adult (18+)",
+      "definition": "Patient age 18 or older at time of screening. Refusal alone is not treated as positive unless other safety concerns are present."
+    }
+  ]
+}

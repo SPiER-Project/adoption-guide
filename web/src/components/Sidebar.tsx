@@ -39,23 +39,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <h4 className="sidebar-section-title">Reference</h4>
             <NavLink to="/chart/workflow" className="sidebar-link" onClick={onClose}>
               <span className="sidebar-icon">&#8644;</span>
-              Patient Journey
+              Pathway
             </NavLink>
             <NavLink to="/chart/ehr-rubric" className="sidebar-link" onClick={onClose}>
               <span className="sidebar-icon">&#9745;</span>
               EHR Adoption Rubric
             </NavLink>
-            <NavLink to="/chart/implementation-guide" className="sidebar-link" onClick={onClose}>
-              <span className="sidebar-icon">&#128221;</span>
-              Implementation Guide
-            </NavLink>
             <NavLink to="/chart/data-dictionary" className="sidebar-link" onClick={onClose}>
               <span className="sidebar-icon">&#128218;</span>
               Data Dictionary
-            </NavLink>
-            <NavLink to="/chart/tools" className="sidebar-link" onClick={onClose}>
-              <span className="sidebar-icon">&#128736;&#65039;</span>
-              Tools
             </NavLink>
           </div>
         </nav>

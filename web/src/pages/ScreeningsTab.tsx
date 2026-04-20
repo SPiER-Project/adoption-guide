@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import type { RiskAlert } from '../observationMappers'
+import { STAGES, launchableTools, type BadgeVariant } from '../data/catalog'
 
 const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   acute:    { className: 'alert--acute',    label: 'ACUTE' },
@@ -12,116 +13,15 @@ const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   none:     { className: 'alert--none',     label: 'NONE' },
 }
 
-interface ToolEntry {
-  name: string
-  description: string
-  path: string
-  badge: string
-  badgeClass: string
+const BADGE_CLASS: Record<BadgeVariant, string> = {
+  screening: 'screening-badge--screening',
+  assessment: 'screening-badge--assessment',
+  safety: 'screening-badge--safety',
+  cams: 'screening-badge--cams',
+  handoff: 'screening-badge--assessment',
+  followup: 'screening-badge--screening',
+  monitoring: 'screening-badge--cams',
 }
-
-interface ToolStage {
-  stage: string
-  description: string
-  tools: ToolEntry[]
-}
-
-const TOOL_STAGES: ToolStage[] = [
-  {
-    stage: 'Screen',
-    description: 'Universal or targeted screening to identify patients who may be at risk.',
-    tools: [
-      {
-        name: 'PHQ-9 Depression Screening',
-        description: '9-item depression screening (0-27). Item 9 screens for suicidal ideation — the primary gateway for suicide risk assessment in most EHR workflows.',
-        path: '/chart/screenings/phq-9',
-        badge: 'Screening',
-        badgeClass: 'screening-badge--screening',
-      },
-      {
-        name: 'ASQ — Suicide Risk Screening',
-        description: 'NIMH 4-question screening tool (~20 seconds) with acuity question. Validated for youth (8+) and adults across all care settings.',
-        path: '/chart/screenings/asq',
-        badge: 'Screening',
-        badgeClass: 'screening-badge--screening',
-      },
-      {
-        name: 'SBQ-R — Suicide Behaviors Questionnaire',
-        description: '4-item self-report covering lifetime ideation, past-year frequency, threat disclosure, and future likelihood. Score range 3-18.',
-        path: '/chart/screenings/sbq-r',
-        badge: 'Screening',
-        badgeClass: 'screening-badge--screening',
-      },
-    ],
-  },
-  {
-    stage: 'Assess',
-    description: 'Comprehensive risk assessment for patients who screen positive.',
-    tools: [
-      {
-        name: 'C-SSRS Screener (Recent)',
-        description: 'Columbia 6-item suicide risk assessment with three-tier stratification (Low/Moderate/High). The gold-standard brief assessment tool.',
-        path: '/chart/screenings/cssrs-screener',
-        badge: 'Assessment',
-        badgeClass: 'screening-badge--assessment',
-      },
-      {
-        name: 'C-SSRS Full (Lifetime/Recent)',
-        description: 'Comprehensive Columbia assessment: 5-level ideation hierarchy, intensity ratings (frequency, duration, controllability, deterrents, reasons), and full behavior section with lethality scoring.',
-        path: '/chart/screenings/cssrs-full',
-        badge: 'Assessment',
-        badgeClass: 'screening-badge--assessment',
-      },
-      {
-        name: 'CAMS SSF-5: Section A',
-        description: 'Patient self-report of psychological pain, stress, agitation, hopelessness, self-hate, and overall risk.',
-        path: '/chart/screenings/cams-section-a',
-        badge: 'CAMS',
-        badgeClass: 'screening-badge--cams',
-      },
-      {
-        name: 'CAMS SSF-5: Section B',
-        description: 'Clinician assessment of suicidal ideation, plan, preparation, history, and risk factors.',
-        path: '/chart/screenings/cams-section-b',
-        badge: 'CAMS',
-        badgeClass: 'screening-badge--cams',
-      },
-    ],
-  },
-  {
-    stage: 'Formulate',
-    description: 'Structured clinical formulation of risk level, rationale, and disposition.',
-    tools: [
-      {
-        name: 'CAMS Therapeutic Worksheet',
-        description: 'Exploration of suicide drivers and development of a working crisis model.',
-        path: '/chart/screenings/cams-therapeutic-worksheet',
-        badge: 'CAMS',
-        badgeClass: 'screening-badge--cams',
-      },
-    ],
-  },
-  {
-    stage: 'Plan',
-    description: 'Collaborative safety planning, means safety counseling, and stabilization strategies.',
-    tools: [
-      {
-        name: 'Stanley-Brown Safety Plan',
-        description: 'A brief intervention to help individuals manage suicidal crises and reduce access to lethal means.',
-        path: '/chart/screenings/stanley-and-brown',
-        badge: 'Safety Plan',
-        badgeClass: 'screening-badge--safety',
-      },
-      {
-        name: 'CAMS Stabilization Plan',
-        description: 'Collaborative safety and stabilization plan including lethal means counseling and coping strategies.',
-        path: '/chart/screenings/cams-stabilization-plan',
-        badge: 'CAMS',
-        badgeClass: 'screening-badge--cams',
-      },
-    ],
-  },
-]
 
 function findAlertForResponse(riskAlerts: RiskAlert[], questionnaireName: string): RiskAlert | undefined {
   return riskAlerts.find(a => a.tool === questionnaireName)
@@ -139,6 +39,17 @@ export function ScreeningsTab() {
   const { responses, riskAlerts, observations } = usePatient()
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const reversedResponses = [...responses].reverse()
+
+  // Group launchable tools by stage for the "Available Tools" section.
+  const launchablesByStage = useMemo(() => {
+    const tools = launchableTools()
+    return STAGES
+      .map(stage => ({
+        stage,
+        tools: tools.filter(t => t.stageId === stage.id),
+      }))
+      .filter(g => g.tools.length > 0)
+  }, [])
 
   return (
     <div className="screenings-tab">
@@ -231,24 +142,31 @@ export function ScreeningsTab() {
         )}
       </section>
 
-      {/* Available Tools — grouped by care stage */}
+      {/* Available Tools — grouped by care stage, sourced from the catalog */}
       <section className="screenings-section">
         <h3 className="section-title">Available Tools</h3>
-        {TOOL_STAGES.map(stageGroup => (
-          <div key={stageGroup.stage} className="tool-stage-group">
+        {launchablesByStage.map(({ stage, tools }) => (
+          <div key={stage.id} className="tool-stage-group">
             <div className="tool-stage-header">
-              <h4 className="tool-stage-title">{stageGroup.stage}</h4>
-              <p className="tool-stage-desc">{stageGroup.description}</p>
+              <h4 className="tool-stage-title">{stage.title}</h4>
+              <p className="tool-stage-desc">{stage.description}</p>
             </div>
             <div className="available-grid">
-              {stageGroup.tools.map(s => (
-                <div key={s.path} className="available-card">
-                  <span className={`screening-badge ${s.badgeClass}`}>{s.badge}</span>
-                  <h4 className="available-card-title">{s.name}</h4>
-                  <p className="available-card-desc">{s.description}</p>
-                  <Link to={s.path} className="available-card-btn">Start</Link>
-                </div>
-              ))}
+              {tools.flatMap(tool =>
+                tool.launchActions.map(action => (
+                  <div key={action.path} className="available-card">
+                    <span className={`screening-badge ${BADGE_CLASS[tool.badge.variant]}`}>
+                      {tool.badge.label}
+                    </span>
+                    <h4 className="available-card-title">
+                      {tool.name}
+                      {tool.launchActions.length > 1 && ` — ${action.label}`}
+                    </h4>
+                    <p className="available-card-desc">{tool.description ?? tool.purpose}</p>
+                    <Link to={action.path} className="available-card-btn">Start</Link>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         ))}

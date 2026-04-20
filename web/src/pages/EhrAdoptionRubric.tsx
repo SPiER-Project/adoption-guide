@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { RUBRIC_CRITERIA, RUBRIC_TOOLS, STAGE_ORDER } from '../data/ehrAdoptionData'
+import { RUBRIC_CRITERIA, RUBRIC_TOOLS, STAGE_ORDER, STAGE_DESCRIPTIONS } from '../data/ehrAdoptionData'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import '../css/EhrAdoptionRubric.css'
 
@@ -14,7 +14,7 @@ const LEVEL_COLORS = ['#fee2e2', '#fed7aa', '#fef08a', '#bbf7d0']
 const LEVEL_TEXT_COLORS = ['#991b1b', '#9a3412', '#854d0e', '#166534']
 
 export function EhrAdoptionRubric() {
-  const [state, setState] = useLocalStorage<RubricState>('spier-ehr-rubric-v2', EMPTY_STATE)
+  const [state, setState] = useLocalStorage<RubricState>('spier-ehr-rubric-v3', EMPTY_STATE)
 
   const isSupported = (toolId: string) => state.supported[toolId] ?? false
 
@@ -149,7 +149,12 @@ export function EhrAdoptionRubric() {
                 <span className={`rubric-stage-indicator ${stats.covered ? 'rubric-stage-indicator--covered' : ''}`}>
                   {stats.covered ? '\u2713' : '\u2015'}
                 </span>
-                <h3 className="rubric-stage-title">{stage}</h3>
+                <div className="rubric-stage-title-block">
+                  <h3 className="rubric-stage-title">{stage}</h3>
+                  {STAGE_DESCRIPTIONS[stage] && (
+                    <p className="rubric-stage-description">{STAGE_DESCRIPTIONS[stage]}</p>
+                  )}
+                </div>
               </div>
               <div className="rubric-stage-counts">
                 <span className={`rubric-stage-coverage ${stats.allSupported ? 'rubric-stage-coverage--all' : ''}`}>

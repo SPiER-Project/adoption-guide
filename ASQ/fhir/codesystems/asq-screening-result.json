@@ -1,0 +1,32 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "asq-screening-result",
+  "url": "http://spier.org/CodeSystem/asq-screening-result",
+  "version": "1.0.0",
+  "name": "AsqScreeningResult",
+  "title": "ASQ Screening Result (local)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2026-04-20",
+  "publisher": "SPiER Project",
+  "description": "Three-tier risk stratification derived from ASQ responses. Local code system used pending investigation of whether LOINC 93374-7 (Suicide risk level) has associated answer concepts that would subsume this binding.",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "negative",
+      "display": "Negative Screen",
+      "definition": "No to all Q1\u2013Q4. No intervention required on this screen alone."
+    },
+    {
+      "code": "non-acute-positive",
+      "display": "Non-Acute Positive Screen",
+      "definition": "Yes to any Q1\u2013Q4 and No to Q5. Potential risk identified \u2014 brief suicide safety assessment indicated."
+    },
+    {
+      "code": "acute-positive",
+      "display": "Acute Positive Screen",
+      "definition": "Yes to any Q1\u2013Q4 and Yes to Q5. Imminent risk \u2014 STAT safety evaluation required."
+    }
+  ]
+}

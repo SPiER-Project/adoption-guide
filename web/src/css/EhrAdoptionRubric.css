@@ -152,15 +152,33 @@
 
 .rubric-stage-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 0.75rem;
 }
 
 .rubric-stage-title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.rubric-stage-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.rubric-stage-description {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .rubric-stage-indicator {

@@ -48,6 +48,17 @@ function getBooleanAnswer(item: any): boolean | undefined {
   return item?.answer?.[0]?.valueBoolean
 }
 
+// SNOMED Yes/No coding \u2014 maps the coded answer back to a boolean for logic gating.
+function getYesNoBoolean(item: any): boolean | undefined {
+  const coding = getCodingAnswer(item)
+  if (!coding) return undefined
+  if (coding.system === 'http://snomed.info/sct') {
+    if (coding.code === '373066001') return true
+    if (coding.code === '373067005') return false
+  }
+  return undefined
+}
+
 function makeObservation(params: {
   id: string
   code: { system: string; code: string; display: string }
@@ -207,12 +218,12 @@ export function mapASQ(response: any): MapperResult {
   const items = response?.item || []
   const observations: any[] = []
 
-  // Check Q1-Q4
-  const q1 = getBooleanAnswer(walkItems(items, 'q1'))
-  const q2 = getBooleanAnswer(walkItems(items, 'q2'))
-  const q3 = getBooleanAnswer(walkItems(items, 'q3'))
-  const q4 = getBooleanAnswer(walkItems(items, 'q4'))
-  const q5 = getBooleanAnswer(walkItems(items, 'q5'))
+  // Q1\u2013Q5 carry SNOMED-coded Yes/No answers (post pilot refactor). Convert to booleans for logic gating.
+  const q1 = getYesNoBoolean(walkItems(items, 'q1'))
+  const q2 = getYesNoBoolean(walkItems(items, 'q2'))
+  const q3 = getYesNoBoolean(walkItems(items, 'q3'))
+  const q4 = getYesNoBoolean(walkItems(items, 'q4'))
+  const q5 = getYesNoBoolean(walkItems(items, 'q5'))
 
   const anyPositive = q1 || q2 || q3 || q4
 
@@ -242,7 +253,8 @@ export function mapASQ(response: any): MapperResult {
     })
   )
 
-  // Individual item observations for discrete tracking
+  // Individual item observations for discrete tracking.
+  // NOTE: LOINC bindings below are candidate/unverified. See ASQ pilot plan for reconciliation.
   const itemMap = [
     { linkId: 'q1', code: '93267-4', display: 'Wished you were dead' },
     { linkId: 'q2', code: '93266-6', display: 'Family better off if dead' },
@@ -252,14 +264,14 @@ export function mapASQ(response: any): MapperResult {
   ]
 
   for (const { linkId, code, display } of itemMap) {
-    const val = getBooleanAnswer(walkItems(items, linkId))
-    if (val !== undefined) {
+    const coding = getCodingAnswer(walkItems(items, linkId))
+    if (coding) {
       observations.push(
         makeObservation({
           id: `asq-${linkId}-${Date.now()}`,
           code: { system: 'http://loinc.org', code, display },
-          value: val,
-          valueType: 'boolean',
+          value: { coding: [coding], text: coding.display },
+          valueType: 'codeable',
           questionnaireName: 'ASQ',
         })
       )
