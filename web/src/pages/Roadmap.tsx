@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { STAGES, TOOLS, type Tool } from '../data/catalog'
+import { TOOLS, groupToolsByStage, type Tool } from '../data/catalog'
 
 type ToolBuildStatus = 'built' | 'planned'
 
@@ -43,13 +43,9 @@ function planForTool(tool: Tool): string {
 
 export function Roadmap() {
   const { groupedTools, built, planned } = useMemo(() => {
-    const grouped = STAGES.map(stage => ({
-      stage,
-      tools: TOOLS.filter(t => t.stageId === stage.id),
-    }))
     const builtCount = TOOLS.filter(t => buildStatusOf(t) === 'built').length
     return {
-      groupedTools: grouped,
+      groupedTools: groupToolsByStage(),
       built: builtCount,
       planned: TOOLS.length - builtCount,
     }

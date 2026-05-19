@@ -1,24 +1,17 @@
 import { useMemo } from 'react'
-import { STAGES, TOOLS, launchableTools } from '../data/catalog'
+import { TOOLS, groupToolsByStage, launchableTools } from '../data/catalog'
 import { PRESETS, useToolConfig } from '../context/ToolConfigContext'
 import '../css/ToolConfiguration.css'
 
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
 
-  const toolsByStage = useMemo(() => {
-    return STAGES
-      .map(stage => ({
-        stage,
-        tools: TOOLS.filter(t => t.stageId === stage.id),
-      }))
-      .filter(g => g.tools.length > 0)
-  }, [])
-
-  const launchableCount = useMemo(() => launchableTools().length, [])
+  const toolsByStage = useMemo(() => groupToolsByStage(TOOLS, { skipEmpty: true }), [])
+  const launchable = useMemo(() => launchableTools(), [])
+  const launchableCount = launchable.length
   const enabledCount = useMemo(
-    () => launchableTools().filter(t => isToolEnabled(t.id)).length,
-    [isToolEnabled],
+    () => launchable.filter(t => isToolEnabled(t.id)).length,
+    [isToolEnabled, launchable],
   )
 
   return (

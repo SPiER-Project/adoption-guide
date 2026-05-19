@@ -501,3 +501,28 @@ export const TOOLS: Tool[] = [
 export const toolById = (id: string) => TOOLS.find(t => t.id === id)
 export const toolsByStage = (stageId: string) => TOOLS.filter(t => t.stageId === stageId)
 export const launchableTools = () => TOOLS.filter(t => t.launchActions.length > 0)
+
+/**
+ * Group tools by pathway stage in canonical stage order.
+ *
+ * Pass a subset of tools (e.g. `launchableTools()`) to narrow the grouping.
+ * Pass `{ skipEmpty: true }` to omit stages with no matching tools — handy
+ * for UIs that don't want to render placeholder rows.
+ */
+import { STAGES, type Stage } from './stages'
+
+export interface ToolStageGroup {
+  stage: Stage
+  tools: Tool[]
+}
+
+export function groupToolsByStage(
+  tools: Tool[] = TOOLS,
+  options: { skipEmpty?: boolean } = {},
+): ToolStageGroup[] {
+  const groups = STAGES.map(stage => ({
+    stage,
+    tools: tools.filter(t => t.stageId === stage.id),
+  }))
+  return options.skipEmpty ? groups.filter(g => g.tools.length > 0) : groups
+}
