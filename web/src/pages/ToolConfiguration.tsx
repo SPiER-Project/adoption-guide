@@ -3,11 +3,6 @@ import { STAGES, TOOLS, launchableTools } from '../data/catalog'
 import { PRESETS, useToolConfig } from '../context/ToolConfigContext'
 import '../css/ToolConfiguration.css'
 
-function isLaunchable(toolId: string): boolean {
-  const tool = TOOLS.find(t => t.id === toolId)
-  return !!tool && tool.launchActions.length > 0
-}
-
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
 
@@ -20,7 +15,7 @@ export function ToolConfiguration() {
       .filter(g => g.tools.length > 0)
   }, [])
 
-  const launchableCount = launchableTools().length
+  const launchableCount = useMemo(() => launchableTools().length, [])
   const enabledCount = useMemo(
     () => launchableTools().filter(t => isToolEnabled(t.id)).length,
     [isToolEnabled],
@@ -92,7 +87,7 @@ export function ToolConfiguration() {
             </header>
             <div className="tool-config-stage-list">
               {tools.map(tool => {
-                const launchable = isLaunchable(tool.id)
+                const launchable = tool.launchActions.length > 0
                 const enabled = launchable && isToolEnabled(tool.id)
                 const rowClass = !launchable
                   ? 'tool-row tool-row--not-built'
