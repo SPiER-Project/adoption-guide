@@ -1,45 +1,56 @@
-import { Link } from 'react-router-dom';
-import './Home.css';
+import { Link } from 'react-router-dom'
+import './Home.css'
 
 export function Home() {
-    return (
-        <div className="home-container">
-            <div className="hero-section">
-                <h2 className="spier-title">Clinical Assessment Tools</h2>
-                <div className="accent-line"></div>
-                <p className="spier-description">
-                    Select a clinical tool below to begin an interactive, FHIR-native screening or safety planning session.
-                </p>
-            </div>
+  return (
+    <div className="home-container">
+      <div className="hero-section">
+        <h2 className="spier-title">SPiER</h2>
+        <div className="accent-line"></div>
+        <p className="spier-tagline">
+          Setting Priorities for technology-enabled suicide-safer care in Electronic Records
+        </p>
+        <p className="spier-description">
+          A FHIR-native reference implementation of a suicide prevention pathway. SPiER demonstrates
+          to EHR vendors and health-system admins what a configured implementation can look like &mdash;
+          and provides the code to execute on it.
+        </p>
+      </div>
 
-            <div className="tools-grid">
-                <div className="tool-card">
-                    <div className="card-badge card-badge--safety">Safety Plan</div>
-                    <h3>Stanley-Brown Safety Plan</h3>
-                    <p>A brief intervention to help individuals manage suicidal crises and reduce access to lethal means.</p>
-                    <Link to="/questionnaire/stanley-and-brown" className="btn-primary">Launch Safety Plan</Link>
-                </div>
+      <div className="lens-grid">
+        <Link to="/implementation-guide" className="lens-card lens-card--guide">
+          <div className="lens-card-badge">Lens 1</div>
+          <h3>Implementation Guide</h3>
+          <p>
+            The 8-stage suicide-safer care pathway, a data dictionary for the FHIR resources it
+            produces, an EHR adoption rubric, a configurable Tool Configuration that drives the
+            Patient View, and a public roadmap.
+          </p>
+          <span className="lens-card-cta">Explore the guide &rarr;</span>
+        </Link>
 
-                <div className="tool-card">
-                    <div className="card-badge card-badge--cams">CAMS Framework</div>
-                    <h3>Collaborative Assessment &amp; Management of Suicidality</h3>
-                    <p>A therapeutic framework for suicide-specific assessment and treatment planning.</p>
-                    <div className="cams-links">
-                        <Link to="/questionnaire/cams-section-a" className="btn-secondary">
-                            <span className="btn-icon">📋</span> SSF-5 Section A <span className="btn-meta">Patient</span>
-                        </Link>
-                        <Link to="/questionnaire/cams-section-b" className="btn-secondary">
-                            <span className="btn-icon">📋</span> SSF-5 Section B <span className="btn-meta">Clinician</span>
-                        </Link>
-                        <Link to="/questionnaire/cams-stabilization-plan" className="btn-secondary">
-                            <span className="btn-icon">🛡️</span> Stabilization Plan
-                        </Link>
-                        <Link to="/questionnaire/cams-therapeutic-worksheet" className="btn-secondary">
-                            <span className="btn-icon">📝</span> Therapeutic Worksheet
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+        <Link to="/population" className="lens-card lens-card--population">
+          <div className="lens-card-badge">Lens 2</div>
+          <h3>Population View</h3>
+          <p>
+            A behavioral-health counselor's caseload &mdash; 10 sample patients spanning every
+            pathway stage and risk level. Each row surfaces the recommended next step regardless
+            of which specific tools an implementation has enabled.
+          </p>
+          <span className="lens-card-cta">Open the caseload &rarr;</span>
+        </Link>
+
+        <Link to="/patient/chart" className="lens-card lens-card--patient">
+          <div className="lens-card-badge">Lens 3</div>
+          <h3>Patient View</h3>
+          <p>
+            One patient's chart, organized around the 8-stage pathway: a visual stage tracker,
+            CDS-style next-step recommendation cards, activity grouped by stage, encounter
+            timeline, and a full FHIR document list.
+          </p>
+          <span className="lens-card-cta">Open the chart &rarr;</span>
+        </Link>
+      </div>
+    </div>
+  )
 }

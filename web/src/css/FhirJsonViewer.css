@@ -1,20 +1,20 @@
 .fhir-viewer {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .fhir-viewer-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   width: 100%;
   padding: 0.6rem 0.75rem;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--border-emphasis);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   transition: background 0.2s;
@@ -22,7 +22,7 @@
 }
 
 .fhir-viewer-toggle:hover {
-  background: #e2e8f0;
+  background: var(--border-default);
 }
 
 .fhir-viewer-toggle-icon {
@@ -31,10 +31,10 @@
 }
 
 .fhir-viewer-panel {
-  margin-top: 0.5rem;
-  background: #1e293b;
-  border-radius: 8px;
-  padding: 1rem;
+  margin-top: var(--space-2);
+  background: var(--text-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
   overflow-x: auto;
   max-height: 500px;
   overflow-y: auto;
@@ -42,7 +42,7 @@
 
 .fhir-viewer-panel pre {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--border-default);
   font-size: 0.75rem;
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   line-height: 1.5;

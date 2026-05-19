@@ -1,11 +1,95 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* ============================================================
+   Design tokens
+   ------------------------------------------------------------
+   Centralized color, spacing, and radius tokens. Prefer var()
+   references in component CSS over hex literals or magic numbers.
+   ============================================================ */
 :root {
+  /* ── Surfaces ───────────────────────────────────────────── */
+  --surface-page:        #f8fafc; /* app background */
+  --surface-card:        #ffffff; /* cards, panels */
+  --surface-muted:       #f1f5f9; /* subtle wash (hover, secondary) */
+  --surface-elevated:    #ffffff;
+
+  /* ── Text ───────────────────────────────────────────────── */
+  --text-strong:         #1e293b; /* primary headings */
+  --text-body:           #475569; /* body copy */
+  --text-muted:          #64748b; /* secondary copy */
+  --text-faint:          #94a3b8; /* placeholder, meta */
+  --text-on-brand:       #ffffff; /* text on dark brand bg */
+  --text-base:           #213547; /* default :root text color */
+
+  /* ── Borders & dividers ─────────────────────────────────── */
+  --border-default:      #e2e8f0;
+  --border-strong:       #cbd5e1;
+  --border-emphasis:     #334155;
+
+  /* ── Brand ──────────────────────────────────────────────── */
+  --brand-primary:       #2b1424; /* header maroon */
+  --brand-primary-hover: #4a2840;
+  --brand-primary-deep:  #1e0f19; /* footer */
+  --brand-accent:        #d16b47; /* CTA orange */
+  --brand-accent-hover:  #b85636;
+
+  /* ── Semantic accents ───────────────────────────────────── */
+  --accent-info:         #2563eb;
+  --accent-info-soft:    #dbeafe;
+  --accent-warning-bg:   #fef3c7;
+  --accent-warning-text: #92400e;
+  --accent-warning-edge: #f59e0b;
+  --accent-success-bg:   #dcfce7;
+  --accent-success-text: #166534;
+  --accent-orange-soft:  #fff7ed;
+  --accent-orange-mid:   #fed7aa;
+
+  /* ── Risk-level scale (clinical severity) ──────────────── */
+  --risk-acute:               #dc2626;
+  --risk-acute-soft-bg:       #fef2f2;
+  --risk-acute-soft-text:     #991b1b;
+  --risk-acute-faded:         #fecaca;
+
+  --risk-high:                #ea580c;
+  --risk-high-soft-bg:        var(--accent-orange-soft);
+  --risk-high-soft-text:      #9a3412;
+  --risk-high-faded:          var(--accent-orange-mid);
+
+  --risk-moderate:            #ca8a04;
+  --risk-moderate-soft-bg:    #fefce8;
+  --risk-moderate-soft-text:  #854d0e;
+  --risk-moderate-faded:      #fde68a;
+
+  --risk-low:                 #16a34a;
+  --risk-low-soft-bg:         #f0fdf4;
+  --risk-low-soft-text:       #15803d;
+  --risk-low-faded:           #86efac;
+
+  /* ── Spacing scale (4-pt rem) ───────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+
+  /* ── Radius scale ───────────────────────────────────────── */
+  --radius-xs:  3px;
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+  --radius-xl:  10px;
+  --radius-2xl: 12px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #213547;
-  background-color: #ffffff;
+  color: var(--text-base);
+  background-color: var(--surface-card);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;

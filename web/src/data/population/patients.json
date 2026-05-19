@@ -1,0 +1,192 @@
+[
+  {
+    "id": "patient-001",
+    "displayName": "Jane Doe",
+    "dob": "1990-01-15",
+    "mrn": "12345",
+    "gender": "Female",
+    "currentStage": "document-safety-actions",
+    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status"],
+    "currentRiskLevel": "high",
+    "lastActivity": {
+      "date": "2026-03-17",
+      "label": "Stanley-Brown Safety Plan completed"
+    },
+    "recommendedNextStep": {
+      "stageId": "track-follow-up",
+      "label": "Schedule 7-day caring contact",
+      "rationale": "High-risk patient with active safety plan; caring contacts within 7 days reduce repeat attempts."
+    }
+  },
+  {
+    "id": "patient-002",
+    "displayName": "Marcus Chen",
+    "dob": "1985-06-22",
+    "mrn": "23456",
+    "gender": "Male",
+    "currentStage": "flag-risk",
+    "completedStages": [],
+    "currentRiskLevel": "none",
+    "lastActivity": {
+      "date": "2026-05-10",
+      "label": "Annual wellness visit"
+    },
+    "recommendedNextStep": {
+      "stageId": "flag-risk",
+      "label": "Administer ASQ or PHQ-9",
+      "rationale": "No suicide-risk screening on file in the past 12 months."
+    }
+  },
+  {
+    "id": "patient-003",
+    "displayName": "Sarah Patel",
+    "dob": "1978-11-03",
+    "mrn": "34567",
+    "gender": "Female",
+    "currentStage": "flag-risk",
+    "completedStages": [],
+    "currentRiskLevel": "moderate",
+    "lastActivity": {
+      "date": "2026-05-15",
+      "label": "PHQ-9 Item 9 positive (score: 1)"
+    },
+    "recommendedNextStep": {
+      "stageId": "clarify-risk",
+      "label": "Clarify risk with C-SSRS or ASQ",
+      "rationale": "PHQ-9 Item 9 endorsed; further suicide-risk assessment indicated."
+    }
+  },
+  {
+    "id": "patient-004",
+    "displayName": "Daniel Okafor",
+    "dob": "1996-04-09",
+    "mrn": "45678",
+    "gender": "Male",
+    "currentStage": "clarify-risk",
+    "completedStages": ["flag-risk"],
+    "currentRiskLevel": "moderate",
+    "lastActivity": {
+      "date": "2026-05-12",
+      "label": "ASQ non-acute positive"
+    },
+    "recommendedNextStep": {
+      "stageId": "clarify-risk",
+      "label": "Complete brief suicide safety assessment",
+      "rationale": "Non-acute positive ASQ — BSSA or CAMS SSF-5 needed to disposition."
+    }
+  },
+  {
+    "id": "patient-005",
+    "displayName": "Elena Rodriguez",
+    "dob": "1972-08-30",
+    "mrn": "56789",
+    "gender": "Female",
+    "currentStage": "clarify-risk",
+    "completedStages": ["flag-risk"],
+    "currentRiskLevel": "acute",
+    "lastActivity": {
+      "date": "2026-05-18",
+      "label": "ASQ acute positive (Yes to Q5)"
+    },
+    "recommendedNextStep": {
+      "stageId": "clarify-risk",
+      "label": "Urgent face-to-face risk assessment",
+      "rationale": "Acute positive ASQ — do not leave alone. Initiate emergency safety procedures and clarify risk immediately."
+    }
+  },
+  {
+    "id": "patient-006",
+    "displayName": "Jamal Washington",
+    "dob": "1989-02-14",
+    "mrn": "67890",
+    "gender": "Male",
+    "currentStage": "set-risk-status",
+    "completedStages": ["flag-risk", "clarify-risk"],
+    "currentRiskLevel": "high",
+    "lastActivity": {
+      "date": "2026-05-16",
+      "label": "CAMS SSF-5 First Session completed"
+    },
+    "recommendedNextStep": {
+      "stageId": "document-safety-actions",
+      "label": "Complete Stanley-Brown Safety Plan",
+      "rationale": "Risk status set to high — safety plan and means counseling required before discharge."
+    }
+  },
+  {
+    "id": "patient-007",
+    "displayName": "Aisha Patel-Williams",
+    "dob": "2008-09-21",
+    "mrn": "78901",
+    "gender": "Female",
+    "currentStage": "coordinate-handoffs",
+    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions"],
+    "currentRiskLevel": "moderate",
+    "lastActivity": {
+      "date": "2026-05-08",
+      "label": "Outpatient referral sent"
+    },
+    "recommendedNextStep": {
+      "stageId": "coordinate-handoffs",
+      "label": "Confirm outpatient appointment scheduled",
+      "rationale": "Referral sent 10 days ago; outpatient receipt not yet confirmed. High-risk handoff window closing."
+    }
+  },
+  {
+    "id": "patient-008",
+    "displayName": "Thomas Becker",
+    "dob": "1965-12-05",
+    "mrn": "89012",
+    "gender": "Male",
+    "currentStage": "track-follow-up",
+    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions", "coordinate-handoffs"],
+    "currentRiskLevel": "low",
+    "lastActivity": {
+      "date": "2026-04-28",
+      "label": "7-day caring contact: phone call"
+    },
+    "recommendedNextStep": {
+      "stageId": "track-follow-up",
+      "label": "30-day follow-up contact due",
+      "rationale": "First caring contact complete; 30-day check-in window opens this week."
+    }
+  },
+  {
+    "id": "patient-009",
+    "displayName": "Mei Lin",
+    "dob": "1981-07-17",
+    "mrn": "90123",
+    "gender": "Female",
+    "currentStage": "manage-active-risk",
+    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions", "coordinate-handoffs", "track-follow-up"],
+    "currentRiskLevel": "high",
+    "lastActivity": {
+      "date": "2026-05-14",
+      "label": "CAMS Therapeutic Worksheet — Session 4"
+    },
+    "recommendedNextStep": {
+      "stageId": "manage-active-risk",
+      "label": "Session 5: re-rate SSF vitals and review drivers",
+      "rationale": "Active CAMS episode; psychological pain still elevated (3/5). Continue weekly sessions until resolution criteria met."
+    }
+  },
+  {
+    "id": "patient-010",
+    "displayName": "Robert Hayes",
+    "dob": "1953-03-08",
+    "mrn": "01234",
+    "gender": "Male",
+    "currentStage": "measure-and-share",
+    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions", "coordinate-handoffs", "track-follow-up", "manage-active-risk"],
+    "currentRiskLevel": "low",
+    "lastActivity": {
+      "date": "2026-04-02",
+      "label": "Episode resolution documented"
+    },
+    "recommendedNextStep": {
+      "stageId": "measure-and-share",
+      "label": "Include in Q2 zero-suicide outcome report",
+      "rationale": "Resolved episode — eligible for pathway-completion measurement and population-level outcome reporting."
+    }
+  }
+]

@@ -212,20 +212,20 @@ export const MOCK_RISK_ALERTS: RiskAlert[] = [
     level: 'high',
     summary: 'PHQ-9 Item 9 positive (score: 2/3)',
     detail: 'Patient endorsed thoughts of death or self-harm on more than half the days. Total PHQ-9 score: 18/27 (Moderately Severe). Further suicide risk assessment completed.',
-    suggestedAction: { label: 'View ASQ Results', path: '/chart/screenings' },
+    suggestedAction: { label: 'View ASQ Results', path: '/patient/assessments' },
   },
   {
     tool: 'ASQ',
     level: 'moderate',
     summary: 'ASQ: Non-Acute Positive Screen',
     detail: 'Patient endorsed passive death wish and perceived burdensomeness. No active plan or current ideation. CAMS assessment initiated.',
-    suggestedAction: { label: 'View CAMS Assessment', path: '/chart/screenings' },
+    suggestedAction: { label: 'View CAMS Assessment', path: '/patient/assessments' },
   },
   {
     tool: 'CAMS Section A',
     level: 'high',
     summary: 'CAMS Vitals: Elevated scores (max 4/5)',
     detail: 'Psychological pain and hopelessness both rated 4/5. Stabilization plan completed. Follow-up scheduled.',
-    suggestedAction: { label: 'View Care Plan', path: '/chart/careplan' },
+    suggestedAction: { label: 'View Care Plan', path: '/patient/chart#care-plans' },
   },
 ]

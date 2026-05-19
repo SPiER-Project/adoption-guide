@@ -1,7 +1,7 @@
 .sidebar {
   grid-area: sidebar;
-  background: #1e293b;
-  color: #e2e8f0;
+  background: var(--text-strong);
+  color: var(--border-default);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -18,7 +18,7 @@
 }
 
 .sidebar-section {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .sidebar-section-title {
@@ -26,7 +26,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: var(--text-muted);
   padding: 0.5rem 1.25rem 0.35rem;
   margin: 0;
 }
@@ -38,21 +38,37 @@
   padding: 0.55rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #cbd5e1;
+  color: var(--border-strong);
   text-decoration: none;
   border-left: 3px solid transparent;
   transition: all 0.15s ease;
 }
 
 .sidebar-link:hover {
-  background: #334155;
-  color: #f1f5f9;
+  background: var(--border-emphasis);
+  color: var(--surface-muted);
 }
 
 .sidebar-link.active {
-  background: #334155;
+  background: var(--border-emphasis);
   color: #ffffff;
-  border-left-color: #d16b47;
+  border-left-color: var(--brand-accent);
+  font-weight: 600;
+}
+
+.sidebar-link--lens {
+  font-weight: 600;
+  color: var(--border-default);
+}
+
+.sidebar-link--child {
+  padding-left: 3rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--text-faint);
+}
+
+.sidebar-link--child.active {
   font-weight: 600;
 }
 
@@ -65,18 +81,18 @@
 
 .sidebar-footer {
   padding: 1rem 1.25rem;
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--border-emphasis);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .sidebar-load-btn {
-  background: #d16b47;
+  background: var(--brand-accent);
   border: none;
   color: white;
   padding: 0.4rem 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -84,28 +100,28 @@
 }
 
 .sidebar-load-btn:hover {
-  background: #b85636;
+  background: var(--brand-accent-hover);
 }
 
 .sidebar-clear-btn {
   background: transparent;
-  border: 1px solid #475569;
-  color: #94a3b8;
+  border: 1px solid var(--text-body);
+  color: var(--text-faint);
   padding: 0.4rem 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .sidebar-clear-btn:hover {
-  background: #475569;
-  color: #e2e8f0;
+  background: var(--text-body);
+  color: var(--border-default);
 }
 
 .sidebar-version {
   font-size: 0.6875rem;
-  color: #475569;
+  color: var(--text-body);
   text-align: center;
 }
 
@@ -136,6 +152,6 @@
   }
 
   .sidebar-nav {
-    padding-top: 1.5rem;
+    padding-top: var(--space-6);
   }
 }

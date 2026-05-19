@@ -1,0 +1,111 @@
+import { useMemo } from 'react'
+import { STAGES, launchableTools } from '../data/catalog'
+import { PRESETS, useToolConfig } from '../context/ToolConfigContext'
+import '../css/ToolConfiguration.css'
+
+export function ToolConfiguration() {
+  const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
+
+  const toolsByStage = useMemo(() => {
+    const tools = launchableTools()
+    return STAGES
+      .map(stage => ({
+        stage,
+        tools: tools.filter(t => t.stageId === stage.id),
+      }))
+      .filter(g => g.tools.length > 0)
+  }, [])
+
+  const enabledCount = useMemo(
+    () => launchableTools().filter(t => isToolEnabled(t.id)).length,
+    [isToolEnabled],
+  )
+  const totalCount = launchableTools().length
+
+  return (
+    <div className="tool-config">
+      <header className="tool-config-header">
+        <h2 className="tool-config-title">Tool Configuration</h2>
+        <p className="tool-config-intro">
+          Choose which suicide-prevention tools your implementation supports. The Patient View's{' '}
+          <strong>Assessments</strong> tab will only let clinicians launch the tools you enable here —
+          mirroring how different EHRs and sites vary in what they're set up to do.
+        </p>
+        <p className="tool-config-meta">
+          <span className="tool-config-meta-count">
+            {enabledCount} of {totalCount} tools enabled
+          </span>
+          <span className="tool-config-meta-divider">·</span>
+          <span className="tool-config-meta-preset">
+            Profile:{' '}
+            <strong>
+              {activePreset === 'custom'
+                ? 'Customized'
+                : PRESETS.find(p => p.id === activePreset)?.label ?? activePreset}
+            </strong>
+          </span>
+        </p>
+      </header>
+
+      <section className="tool-config-presets">
+        <h3 className="tool-config-section-title">Presets</h3>
+        <div className="preset-grid">
+          {PRESETS.map(preset => {
+            const isActive = activePreset === preset.id
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                className={`preset-card ${isActive ? 'preset-card--active' : ''}`}
+                onClick={() => setPreset(preset.id)}
+                aria-pressed={isActive}
+              >
+                <span className="preset-card-label">{preset.label}</span>
+                <span className="preset-card-desc">{preset.description}</span>
+              </button>
+            )
+          })}
+        </div>
+        {activePreset === 'custom' && (
+          <p className="preset-custom-hint">
+            You've customized the toolset. Click a preset above to reset to its baseline selection.
+          </p>
+        )}
+      </section>
+
+      <section className="tool-config-tools">
+        <h3 className="tool-config-section-title">Tools by pathway stage</h3>
+        {toolsByStage.map(({ stage, tools }) => (
+          <div key={stage.id} className="tool-config-stage">
+            <header className="tool-config-stage-header">
+              <h4 className="tool-config-stage-title">{stage.title}</h4>
+              <p className="tool-config-stage-desc">{stage.description}</p>
+            </header>
+            <div className="tool-config-stage-list">
+              {tools.map(tool => {
+                const enabled = isToolEnabled(tool.id)
+                return (
+                  <label key={tool.id} className={`tool-row ${enabled ? '' : 'tool-row--disabled'}`}>
+                    <input
+                      type="checkbox"
+                      className="tool-row-toggle"
+                      checked={enabled}
+                      onChange={() => toggleTool(tool.id)}
+                    />
+                    <span className="tool-row-body">
+                      <span className="tool-row-name">
+                        {tool.shortName ?? tool.name}
+                        <span className="tool-row-id">{tool.id}</span>
+                      </span>
+                      <span className="tool-row-purpose">{tool.purpose}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+    </div>
+  )
+}
