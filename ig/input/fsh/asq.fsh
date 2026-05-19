@@ -21,7 +21,6 @@ CodeSystem: ASQResultCodes
 Id: asq-screening-result
 Title: "ASQ Suicide Risk Screening Result Codes"
 Description: "SPiER-local code system for the three possible outcomes of the NIMH ASQ screener. Used because no equivalent LOINC concepts have been published for the disposition tiers."
-* ^url = "http://spier.org/CodeSystem/asq-screening-result"
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true
@@ -37,7 +36,6 @@ ValueSet: ASQResult
 Id: asq-result
 Title: "ASQ Result"
 Description: "All three possible outcomes of an ASQ screen."
-* ^url = "http://spier.org/ValueSet/asq-result"
 * ^status = #draft
 * ^experimental = true
 * include codes from system ASQResultCodes
@@ -47,7 +45,6 @@ ValueSet: ASQResultPositive
 Id: asq-result-positive
 Title: "ASQ Positive Result"
 Description: "The two ASQ outcomes that should trigger advancement to the Clarify Risk stage (excludes 'negative')."
-* ^url = "http://spier.org/ValueSet/asq-result-positive"
 * ^status = #draft
 * ^experimental = true
 * ASQResultCodes#non-acute-positive
