@@ -1,0 +1,49 @@
+name: IG — Sushi compile + validate
+
+# Compile the FSH IG with Sushi on every push touching ig/ and on every PR.
+# A full IG Publisher run is deliberately not done in CI here — it pulls
+# ~500MB of dependencies and adds several minutes per run. Run it locally
+# (see ig/README.md) when authoring narrative pages or producing release
+# artifacts.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ig/**'
+      - '.github/workflows/ig.yml'
+  pull_request:
+    paths:
+      - 'ig/**'
+      - '.github/workflows/ig.yml'
+  workflow_dispatch:
+
+jobs:
+  sushi:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ig
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Sushi
+        run: npm install -g fsh-sushi
+
+      - name: Compile FSH
+        run: sushi .
+
+      - name: Upload generated resources
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsh-generated
+          path: ig/fsh-generated/
+          if-no-files-found: error
+          retention-days: 14

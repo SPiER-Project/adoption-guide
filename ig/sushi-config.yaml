@@ -1,0 +1,62 @@
+# SPiER FHIR Implementation Guide — Sushi configuration
+#
+# This IG compiles via fsh-sushi (https://fshschool.org/docs/sushi/) and is
+# rendered by the HL7 IG Publisher. The output is a hostable FHIR IG site
+# that complements the React companion app.
+#
+# Status: ci-build / draft. Not yet balloted or formally published.
+
+id: spier.ig
+# Canonical root matches the existing FHIR-Resources artifacts (Questionnaire
+# url = http://spier.org/Questionnaire/...) and the observationMappers code
+# systems. Keep the IG and runtime data in the same namespace.
+canonical: http://spier.org
+name: SPiER
+title: SPiER — Suicide Prevention in Electronic Records
+status: draft
+version: 0.1.0
+fhirVersion: 4.0.1
+copyrightYear: 2026+
+releaseLabel: ci-build
+
+description: >-
+  A FHIR-native reference implementation of the suicide-safer care pathway,
+  developed in alignment with the Zero Suicide framework. SPiER models the
+  eight technical stages of suicide-safer care (Flag Risk through Measure and
+  Share) as FHIR PlanDefinitions, ActivityDefinitions, and supporting
+  resources, with the goal of giving EHR vendors and health systems
+  lift-able artifacts that demonstrate what suicide-prevention pathway
+  conformance looks like in practice.
+
+license: CC0-1.0
+
+publisher:
+  name: HTD Health
+  url: https://htdhealth.com
+  email: brad.thorson@htdhealth.com
+
+jurisdiction: urn:iso:std:iso:3166#US "United States of America"
+
+# US Core dependency anchors patient demographics and standard observations
+# to the US realm. Add additional dependencies (e.g., SDC) as needed.
+dependencies:
+  hl7.fhir.us.core: 6.1.0
+
+# IG Publisher parameters
+parameters:
+  show-inherited-invariants: false
+  apply-contact: true
+  apply-jurisdiction: true
+  apply-publisher: true
+
+# Pages and menu structure
+pages:
+  index.md:
+    title: Home
+  zero-suicide-mapping.md:
+    title: Zero Suicide ↔ SPiER mapping
+
+menu:
+  Home: index.html
+  Mapping: zero-suicide-mapping.html
+  Artifacts: artifacts.html

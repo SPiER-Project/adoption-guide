@@ -486,3 +486,31 @@
 .tool-detail-launch-btn--secondary:hover {
   background: #fef5f1;
 }
+
+/* Zero Suicide alignment callout (Pathway page top) */
+.journey-zs-callout {
+  background: var(--accent-info-soft);
+  border: 1px solid var(--accent-info);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-4) 0 var(--space-6);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-strong);
+}
+
+.journey-zs-callout strong {
+  color: var(--accent-info);
+}
+
+.journey-zs-callout a {
+  color: var(--accent-info);
+  text-decoration: underline;
+}
+
+.journey-zs-callout em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--text-strong);
+}
