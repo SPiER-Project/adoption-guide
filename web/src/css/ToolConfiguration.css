@@ -1,0 +1,211 @@
+.tool-config {
+  padding: 24px;
+  max-width: 1040px;
+}
+
+.tool-config-header {
+  margin-bottom: var(--space-7);
+}
+
+.tool-config-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin: 0 0 0.5rem 0;
+}
+
+.tool-config-intro {
+  color: var(--text-body);
+  line-height: 1.55;
+  margin: 0 0 0.75rem 0;
+  max-width: 720px;
+}
+
+.tool-config-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.tool-config-meta-divider {
+  color: var(--border-strong);
+}
+
+.tool-config-meta-preset strong {
+  color: var(--text-strong);
+}
+
+.tool-config-section-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem 0;
+}
+
+/* ===========================
+   Presets
+   =========================== */
+.tool-config-presets {
+  margin-bottom: var(--space-8);
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .preset-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.preset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  text-align: left;
+  background: white;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font: inherit;
+  color: inherit;
+}
+
+.preset-card:hover {
+  border-color: var(--text-faint);
+  background: var(--surface-page);
+}
+
+.preset-card--active {
+  border-color: var(--accent-info);
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.preset-card-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.preset-card-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.preset-custom-hint {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.8125rem;
+  color: var(--accent-warning-text);
+  background: var(--accent-warning-bg);
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent-warning-edge);
+}
+
+/* ===========================
+   Stage list / tool rows
+   =========================== */
+.tool-config-stage {
+  background: white;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 1rem 1.1rem;
+  margin-bottom: var(--space-4);
+}
+
+.tool-config-stage-header {
+  margin-bottom: 0.65rem;
+}
+
+.tool-config-stage-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin: 0 0 0.2rem 0;
+}
+
+.tool-config-stage-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.tool-config-stage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tool-row {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.tool-row:hover {
+  background: var(--surface-page);
+  border-color: var(--border-default);
+}
+
+.tool-row-toggle {
+  margin-top: 0.2rem;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: var(--accent-info);
+}
+
+.tool-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.tool-row-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.tool-row-id {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+}
+
+.tool-row-purpose {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.tool-row--disabled .tool-row-name,
+.tool-row--disabled .tool-row-purpose {
+  color: var(--text-faint);
+}

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
 
@@ -7,41 +7,99 @@ interface SidebarProps {
   onClose: () => void
 }
 
+interface LensChild {
+  to: string
+  label: string
+}
+
+interface Lens {
+  to: string
+  label: string
+  icon: string
+  matchPrefix: string
+  children?: LensChild[]
+}
+
+const LENSES: Lens[] = [
+  {
+    to: '/',
+    label: 'Home',
+    icon: '⌂', // house
+    matchPrefix: '__exact__', // never matches via prefix; uses `end` instead
+  },
+  {
+    to: '/implementation-guide',
+    label: 'Implementation Guide',
+    icon: '\u{1F4DA}', // books
+    matchPrefix: '/implementation-guide',
+    children: [
+      { to: '/implementation-guide/pathway', label: 'Pathway' },
+      { to: '/implementation-guide/tool-configuration', label: 'Tool Configuration' },
+      { to: '/implementation-guide/data-dictionary', label: 'Data Dictionary' },
+      { to: '/implementation-guide/adoption-rubric', label: 'Adoption Rubric' },
+      { to: '/implementation-guide/roadmap', label: 'Roadmap' },
+    ],
+  },
+  {
+    to: '/population',
+    label: 'Population View',
+    icon: '\u{1F465}', // busts in silhouette
+    matchPrefix: '/population',
+  },
+  {
+    to: '/patient/chart',
+    label: 'Patient View',
+    icon: '\u{1F464}', // bust
+    matchPrefix: '/patient',
+  },
+]
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { clearDemoData, loadDemoScenario } = usePatient()
+  const location = useLocation()
+
+  const isLensActive = (lens: Lens) => {
+    if (lens.to === '/') return location.pathname === '/'
+    return location.pathname.startsWith(lens.matchPrefix)
+  }
 
   return (
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
         <nav className="sidebar-nav">
-          <div className="sidebar-section">
-            <h4 className="sidebar-section-title">Chart</h4>
-            <NavLink to="/chart/dashboard" className="sidebar-link" onClick={onClose}>
-              <span className="sidebar-icon">&#9634;</span>
-              Dashboard
-            </NavLink>
-            <NavLink to="/chart/screenings" className="sidebar-link" onClick={onClose} end>
-              <span className="sidebar-icon">&#9997;&#65039;</span>
-              Clinical Tools
-            </NavLink>
-            <NavLink to="/chart/careplan" className="sidebar-link" onClick={onClose}>
-              <span className="sidebar-icon">&#128203;</span>
-              Care Plans
-            </NavLink>
-            <NavLink to="/chart/encounters" className="sidebar-link" onClick={onClose}>
-              <span className="sidebar-icon">&#128197;</span>
-              Encounters
-            </NavLink>
-          </div>
-
-          <div className="sidebar-section">
-            <h4 className="sidebar-section-title">Reference</h4>
-            <NavLink to="/chart/implementation-guide" className="sidebar-link" onClick={onClose}>
-              <span className="sidebar-icon">&#128218;</span>
-              Implementation Guide
-            </NavLink>
-          </div>
+          {LENSES.map(lens => {
+            const expanded = isLensActive(lens) && !!lens.children?.length
+            return (
+              <div key={lens.to} className="sidebar-section">
+                <NavLink
+                  to={lens.to}
+                  className={({ isActive }) =>
+                    `sidebar-link sidebar-link--lens ${
+                      isActive || isLensActive(lens) ? 'active' : ''
+                    }`
+                  }
+                  end={lens.to === '/'}
+                  onClick={onClose}
+                >
+                  <span className="sidebar-icon">{lens.icon}</span>
+                  {lens.label}
+                </NavLink>
+                {expanded && lens.children!.map(child => (
+                  <NavLink
+                    key={child.to}
+                    to={child.to}
+                    className={({ isActive }) =>
+                      `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
+                    }
+                    onClick={onClose}
+                  >
+                    {child.label}
+                  </NavLink>
+                ))}
+              </div>
+            )
+          })}
         </nav>
 
         <div className="sidebar-footer">

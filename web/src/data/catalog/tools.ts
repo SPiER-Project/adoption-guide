@@ -120,7 +120,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'core',
     settings: ['medical', 'ambulatory', 'acute care'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [{ label: 'Launch ASQ Screening', path: '/chart/screenings/asq' }],
+    launchActions: [{ label: 'Launch ASQ Screening', path: '/patient/assessments/asq' }],
     tags: ['~20 seconds', 'NIMH public domain', 'enableWhen logic'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     pilotPlanSlug: 'asq',
@@ -144,7 +144,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'core',
     settings: ['ambulatory', 'primary care', 'medical'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [{ label: 'Launch PHQ-9', path: '/chart/screenings/phq-9' }],
+    launchActions: [{ label: 'Launch PHQ-9', path: '/patient/assessments/phq-9' }],
     tags: ['9 items', 'LOINC coded', 'public domain'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -167,7 +167,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'core',
     settings: ['acute care', 'ED', 'inpatient', 'ambulatory', 'behavioral health'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [{ label: 'Launch C-SSRS Screener', path: '/chart/screenings/cssrs-screener' }],
+    launchActions: [{ label: 'Launch C-SSRS Screener', path: '/patient/assessments/cssrs-screener' }],
     tags: ['LOINC coded', '3-tier risk'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
   },
@@ -205,7 +205,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'optional',
     settings: ['ambulatory', 'behavioral health'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [{ label: 'Launch SBQ-R', path: '/chart/screenings/sbq-r' }],
+    launchActions: [{ label: 'Launch SBQ-R', path: '/patient/assessments/sbq-r' }],
     tags: ['4 items', 'ordinalValue scoring', 'validated cutoffs'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
     recordingPattern: {
@@ -228,7 +228,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'core',
     settings: ['acute care', 'ED', 'inpatient', 'ambulatory', 'behavioral health'],
     badge: { label: 'Assessment', variant: 'assessment' },
-    launchActions: [{ label: 'Launch C-SSRS Full', path: '/chart/screenings/cssrs-full' }],
+    launchActions: [{ label: 'Launch C-SSRS Full', path: '/patient/assessments/cssrs-full' }],
     tags: ['LOINC coded', '5-level hierarchy', 'risk stratification'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
   },
@@ -267,8 +267,8 @@ export const TOOLS: Tool[] = [
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
     launchActions: [
-      { label: 'SSF-5 Section A (Patient)', path: '/chart/screenings/cams-section-a', variant: 'secondary' },
-      { label: 'SSF-5 Section B (Clinician)', path: '/chart/screenings/cams-section-b', variant: 'secondary' },
+      { label: 'SSF-5 Section A (Patient)', path: '/patient/assessments/cams-section-a', variant: 'secondary' },
+      { label: 'SSF-5 Section B (Clinician)', path: '/patient/assessments/cams-section-b', variant: 'secondary' },
     ],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -310,7 +310,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'optional',
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
-    launchActions: [{ label: 'Launch Therapeutic Worksheet', path: '/chart/screenings/cams-therapeutic-worksheet' }],
+    launchActions: [{ label: 'Launch Therapeutic Worksheet', path: '/patient/assessments/cams-therapeutic-worksheet' }],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
   },
 
@@ -325,7 +325,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Safety Plan', variant: 'safety' },
-    launchActions: [{ label: 'Launch Safety Plan', path: '/chart/screenings/stanley-and-brown' }],
+    launchActions: [{ label: 'Launch Safety Plan', path: '/patient/assessments/stanley-and-brown' }],
     tags: ['7-step plan', 'LOINC coded', 'CarePlan output'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -358,7 +358,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'optional',
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
-    launchActions: [{ label: 'Launch Stabilization Plan', path: '/chart/screenings/cams-stabilization-plan' }],
+    launchActions: [{ label: 'Launch Stabilization Plan', path: '/patient/assessments/cams-stabilization-plan' }],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
     recordingPattern: {
       resources: [
@@ -491,7 +491,7 @@ export const TOOLS: Tool[] = [
     inclusionStatus: 'optional',
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
-    launchActions: [{ label: 'Launch Interim Session', path: '/chart/screenings/cams-section-a' }],
+    launchActions: [{ label: 'Launch Interim Session', path: '/patient/assessments/cams-section-a' }],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
   },
 

@@ -1,14 +1,17 @@
 import { useState } from 'react'
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
 import '../css/EhrShell.css'
 
 export function EhrShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const location = useLocation()
+  const isPatientView =
+    location.pathname.startsWith('/patient') || location.pathname.startsWith('/chart')
 
   return (
-    <div className="ehr-shell">
+    <div className={`ehr-shell ${isPatientView ? '' : 'ehr-shell--no-banner'}`}>
       <header className="ehr-header">
         <div className="ehr-header-content">
           <button
@@ -19,14 +22,14 @@ export function EhrShell() {
           >
             <span className={`ehr-hamburger ${sidebarOpen ? 'ehr-hamburger--active' : ''}`} />
           </button>
-          <Link to="/chart/dashboard" className="ehr-brand">
+          <Link to="/" className="ehr-brand">
             <h1>SPiER</h1>
-            <span className="ehr-brand-subtitle">Clinical Assessment Tools</span>
+            <span className="ehr-brand-subtitle">Suicide Prevention in Electronic Records</span>
           </Link>
         </div>
       </header>
 
-      <PatientBanner />
+      {isPatientView && <PatientBanner />}
 
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

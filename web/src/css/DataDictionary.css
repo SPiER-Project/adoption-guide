@@ -3,7 +3,7 @@
 }
 
 .dd-description {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9375rem;
   line-height: 1.6;
   margin: -1rem 0 1.5rem 0;
@@ -11,53 +11,53 @@
 
 .dd-filters {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--space-5);
 }
 
 .dd-search {
   flex: 1;
   min-width: 200px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
-  color: #1e293b;
+  color: var(--text-strong);
   background: white;
 }
 
 .dd-search:focus {
-  outline: 2px solid #d16b47;
+  outline: 2px solid var(--brand-accent);
   outline-offset: -1px;
-  border-color: #d16b47;
+  border-color: var(--brand-accent);
 }
 
 .dd-search::placeholder {
-  color: #94a3b8;
+  color: var(--text-faint);
 }
 
 .dd-select {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
-  color: #1e293b;
+  color: var(--text-strong);
   background: white;
   cursor: pointer;
 }
 
 .dd-count {
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: var(--text-faint);
   margin-left: auto;
 }
 
 .dd-table-wrapper {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
   background: white;
 }
 
@@ -68,35 +68,35 @@
 }
 
 .dd-table thead {
-  background: #f8fafc;
+  background: var(--surface-page);
 }
 
 .dd-table th {
   padding: 0.65rem 0.75rem;
   text-align: left;
   font-weight: 700;
-  color: #475569;
+  color: var(--text-body);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.6875rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-default);
   white-space: nowrap;
 }
 
 .dd-table td {
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
+  border-bottom: 1px solid var(--surface-muted);
+  color: var(--border-emphasis);
   vertical-align: top;
 }
 
 .dd-table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--surface-page);
 }
 
 .dd-cell-field {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-strong);
   white-space: nowrap;
 }
 
@@ -109,78 +109,78 @@
 
 .dd-cell-system {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .dd-cell-path {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 0.6875rem;
-  color: #475569;
+  color: var(--text-body);
   white-space: nowrap;
 }
 
 .dd-cell-desc {
   max-width: 300px;
   line-height: 1.4;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .dd-resource-badge {
   font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.1rem 0.4rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
-.dd-resource-badge--careplan { background: #dbeafe; color: #1d4ed8; }
-.dd-resource-badge--observation { background: #fef3c7; color: #92400e; }
+.dd-resource-badge--careplan { background: var(--accent-info-soft); color: #1d4ed8; }
+.dd-resource-badge--observation { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
 .dd-resource-badge--condition { background: #fce7f3; color: #9d174d; }
 
 .dd-tools {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .dd-tool-chip {
   font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-  background: #f1f5f9;
-  color: #475569;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-body);
   white-space: nowrap;
 }
 
 .dd-empty {
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-faint);
   font-style: italic;
   padding: 2rem !important;
 }
 
 .dd-empty-state {
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-faint);
   font-style: italic;
-  padding: 2rem;
+  padding: var(--space-8);
   background: white;
-  border: 1px dashed #cbd5e1;
-  border-radius: 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-xl);
 }
 
 /* ── Journey-grouped stage sections ── */
 .dd-stage-section {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 }
 
 .dd-stage-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
   padding: 0 0.25rem;
 }
 
@@ -188,29 +188,29 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: #1e293b;
-  border-left: 3px solid #d16b47;
-  padding-left: 0.5rem;
+  color: var(--text-strong);
+  border-left: 3px solid var(--brand-accent);
+  padding-left: var(--space-2);
 }
 
 .dd-stage-count {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-faint);
   font-weight: 600;
 }
 
 .dd-cross-stage {
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: var(--space-1);
   align-items: center;
   font-weight: 400;
 }
 
 .dd-cross-label {
   font-size: 0.6875rem;
-  color: #94a3b8;
+  color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
@@ -219,8 +219,8 @@
 .dd-cross-chip {
   font-size: 0.6875rem;
   padding: 0.1rem 0.4rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: #fef5f1;
   color: #b8573a;
-  border: 1px solid #fed7aa;
+  border: 1px solid var(--accent-orange-mid);
 }

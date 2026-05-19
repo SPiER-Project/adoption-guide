@@ -1,6 +1,6 @@
 .patient-banner {
   background: #edf2f7;
-  border-bottom: 1px solid #cbd5e1;
+  border-bottom: 1px solid var(--border-strong);
   padding: 0.5rem 1.5rem;
   grid-area: banner;
 }
@@ -8,19 +8,19 @@
 .patient-banner-content {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
   font-size: 0.875rem;
 }
 
 .patient-banner-name {
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-strong);
   font-size: 0.9375rem;
 }
 
 .patient-banner-divider {
-  color: #cbd5e1;
+  color: var(--border-strong);
   font-weight: 300;
 }
 
@@ -31,7 +31,7 @@
 }
 
 .patient-banner-label {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -39,7 +39,7 @@
 }
 
 .patient-banner-value {
-  color: #334155;
+  color: var(--border-emphasis);
   font-weight: 500;
 }
 
@@ -55,8 +55,8 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  background: #dbeafe;
+  border-radius: var(--radius-sm);
+  background: var(--accent-info-soft);
   color: #1d4ed8;
   border: 1px solid #93c5fd;
 }
@@ -67,7 +67,7 @@
   }
 
   .patient-banner-content {
-    gap: 0.5rem;
+    gap: var(--space-2);
     font-size: 0.8125rem;
   }
 

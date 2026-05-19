@@ -2,7 +2,7 @@ import '@formbox/hs-theme/style.css'
 import './App.css'
 import './CarePlan.css'
 
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 
 // FHIR Questionnaires
 import asqQuestionnaire from '../../FHIR-Resources/1-Flag-Risk/ASQ/fhir/questionnaires/questionnaire.json'
@@ -20,6 +20,7 @@ import { generateTherapeuticCarePlan } from './camsTherapeuticCarePlanMapper'
 // Context Providers
 import { SmartProvider } from './context/SmartContext'
 import { PatientProvider } from './context/PatientContext'
+import { ToolConfigProvider } from './context/ToolConfigContext'
 
 // SMART on FHIR
 import { SmartLaunch } from './components/SmartLaunch'
@@ -28,17 +29,37 @@ import { SmartRedirect } from './components/SmartRedirect'
 // Shell
 import { EhrShell } from './components/EhrShell'
 
-// Chart Pages
-import { Dashboard } from './pages/Dashboard'
-import { ScreeningsTab } from './pages/ScreeningsTab'
-import { CarePlanTab } from './pages/CarePlanTab'
-import { EncountersTab } from './pages/EncountersTab'
+// Top-level pages
+import { Home } from './Home'
+
+// Implementation Guide
 import { ImplementationGuide } from './pages/ImplementationGuide'
+import { PatientJourney } from './pages/PatientJourney'
+import { DataDictionary } from './pages/DataDictionary'
+import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
+import { ToolConfiguration } from './pages/ToolConfiguration'
+import { Roadmap } from './pages/Roadmap'
 import { PilotPlan } from './pages/PilotPlan'
+
+// Patient View
+import { PatientChart } from './pages/PatientChart'
+
+// Population View
+import { PopulationView } from './pages/PopulationView'
 
 // Questionnaire Views
 import { StanleyBrownView } from './components/StanleyBrownView'
 import { QuestionnaireView } from './components/QuestionnaireView'
+
+function LegacyWorkflowRedirect() {
+  const { slug } = useParams<{ slug: string }>()
+  return <Navigate to={slug ? `/implementation-guide/pathway/${slug}/plan` : '/implementation-guide/pathway'} replace />
+}
+
+function LegacyAssessmentRedirect() {
+  const { tool } = useParams<{ tool: string }>()
+  return <Navigate to={tool ? `/patient/assessments/${tool}` : '/patient/assessments'} replace />
+}
 
 function AppRoutes() {
   return (
@@ -47,51 +68,79 @@ function AppRoutes() {
       <Route path="/launch" element={<SmartLaunch />} />
       <Route path="/redirect" element={<SmartRedirect />} />
 
-      {/* EHR Shell wraps all chart routes */}
-      <Route path="/chart" element={<EhrShell />}>
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="screenings" element={<ScreeningsTab />} />
-        <Route path="screenings/phq-9" element={
-          <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />
-        } />
-        <Route path="screenings/asq" element={
-          <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaire={asqQuestionnaire} persistName="ASQ Screening" />
-        } />
-        <Route path="screenings/sbq-r" element={
-          <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />
-        } />
-        <Route path="screenings/cssrs-screener" element={
-          <QuestionnaireView title="C-SSRS Screener (Recent)" questionnaire={cssrsScreener} persistName="C-SSRS Screener" />
-        } />
-        <Route path="screenings/cssrs-full" element={
-          <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />
-        } />
-        <Route path="screenings/stanley-and-brown" element={<StanleyBrownView />} />
-        <Route path="screenings/cams-section-a" element={
-          <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />
-        } />
-        <Route path="screenings/cams-section-b" element={
-          <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />
-        } />
-        <Route path="screenings/cams-stabilization-plan" element={
-          <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />
-        } />
-        <Route path="screenings/cams-therapeutic-worksheet" element={
-          <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />
-        } />
-        <Route path="careplan" element={<CarePlanTab />} />
-        <Route path="encounters" element={<EncountersTab />} />
-        <Route path="implementation-guide" element={<ImplementationGuide />} />
-        <Route path="workflow" element={<Navigate to="/chart/implementation-guide" replace />} />
-        <Route path="workflow/:slug/plan" element={<PilotPlan />} />
-        <Route path="ehr-rubric" element={<Navigate to="/chart/implementation-guide" replace />} />
-        <Route path="data-dictionary" element={<Navigate to="/chart/implementation-guide" replace />} />
-        <Route path="tools" element={<Navigate to="/chart/implementation-guide" replace />} />
+      {/* EHR Shell wraps everything else */}
+      <Route element={<EhrShell />}>
+        {/* Home / landing */}
+        <Route path="/" element={<Home />} />
+
+        {/* Implementation Guide lens */}
+        <Route path="/implementation-guide" element={<ImplementationGuide />}>
+          <Route index element={<Navigate to="pathway" replace />} />
+          <Route path="pathway" element={<PatientJourney />} />
+          <Route path="pathway/:slug/plan" element={<PilotPlan />} />
+          <Route path="tool-configuration" element={<ToolConfiguration />} />
+          <Route path="data-dictionary" element={<DataDictionary />} />
+          <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
+          <Route path="roadmap" element={<Roadmap />} />
+        </Route>
+
+        {/* Patient View lens */}
+        <Route path="/patient">
+          <Route index element={<Navigate to="chart" replace />} />
+          <Route path="chart" element={<PatientChart />} />
+          <Route path="assessments" element={<Navigate to="/patient/chart" replace />} />
+          <Route path="assessments/phq-9" element={
+            <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />
+          } />
+          <Route path="assessments/asq" element={
+            <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaire={asqQuestionnaire} persistName="ASQ Screening" />
+          } />
+          <Route path="assessments/sbq-r" element={
+            <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />
+          } />
+          <Route path="assessments/cssrs-screener" element={
+            <QuestionnaireView title="C-SSRS Screener (Recent)" questionnaire={cssrsScreener} persistName="C-SSRS Screener" />
+          } />
+          <Route path="assessments/cssrs-full" element={
+            <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />
+          } />
+          <Route path="assessments/stanley-and-brown" element={<StanleyBrownView />} />
+          <Route path="assessments/cams-section-a" element={
+            <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />
+          } />
+          <Route path="assessments/cams-section-b" element={
+            <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />
+          } />
+          <Route path="assessments/cams-stabilization-plan" element={
+            <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />
+          } />
+          <Route path="assessments/cams-therapeutic-worksheet" element={
+            <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />
+          } />
+          <Route path="care-plans" element={<Navigate to="/patient/chart#care-plans" replace />} />
+          <Route path="encounters" element={<Navigate to="/patient/chart#encounters" replace />} />
+        </Route>
+
+        {/* Population View placeholder */}
+        <Route path="/population" element={<PopulationView />} />
+
+        {/* Legacy /chart/* redirects — keep for one cycle */}
+        <Route path="/chart" element={<Navigate to="/patient/chart" replace />} />
+        <Route path="/chart/dashboard" element={<Navigate to="/patient/chart" replace />} />
+        <Route path="/chart/screenings" element={<Navigate to="/patient/assessments" replace />} />
+        <Route path="/chart/screenings/:tool" element={<LegacyAssessmentRedirect />} />
+        <Route path="/chart/careplan" element={<Navigate to="/patient/care-plans" replace />} />
+        <Route path="/chart/encounters" element={<Navigate to="/patient/encounters" replace />} />
+        <Route path="/chart/implementation-guide" element={<Navigate to="/implementation-guide" replace />} />
+        <Route path="/chart/workflow" element={<Navigate to="/implementation-guide/pathway" replace />} />
+        <Route path="/chart/workflow/:slug/plan" element={<LegacyWorkflowRedirect />} />
+        <Route path="/chart/ehr-rubric" element={<Navigate to="/implementation-guide/adoption-rubric" replace />} />
+        <Route path="/chart/data-dictionary" element={<Navigate to="/implementation-guide/data-dictionary" replace />} />
+        <Route path="/chart/tools" element={<Navigate to="/implementation-guide/pathway" replace />} />
       </Route>
 
-      {/* Default: redirect to dashboard */}
-      <Route path="/" element={<Navigate to="/chart/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/chart/dashboard" replace />} />
+      {/* Anything else → home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
@@ -100,7 +149,9 @@ export default function App() {
   return (
     <SmartProvider>
       <PatientProvider>
-        <AppRoutes />
+        <ToolConfigProvider>
+          <AppRoutes />
+        </ToolConfigProvider>
       </PatientProvider>
     </SmartProvider>
   )

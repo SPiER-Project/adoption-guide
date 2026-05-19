@@ -200,7 +200,7 @@ export function mapPHQ9(response: any): MapperResult {
         level: item9Score >= 2 ? 'high' : 'moderate',
         summary: `PHQ-9 Item 9 positive (score: ${item9Score}/3)`,
         detail: `Patient endorsed thoughts of death or self-harm. Total PHQ-9 score: ${totalScore}/27 (${severity}). Further suicide risk assessment recommended.`,
-        suggestedAction: { label: 'Start ASQ Screening', path: '/chart/screenings/asq' },
+        suggestedAction: { label: 'Start ASQ Screening', path: '/patient/assessments/asq' },
       }
     : {
         tool: 'PHQ-9',
@@ -284,7 +284,7 @@ export function mapASQ(response: any): MapperResult {
         level: 'acute',
         summary: 'ASQ: Acute Positive Screen',
         detail: 'Patient reports active suicidal thoughts RIGHT NOW. STAT/urgent safety evaluation required. Patient cannot leave until evaluated. Keep in sight. Remove dangerous objects.',
-        suggestedAction: { label: 'Start Safety Plan', path: '/chart/screenings/stanley-and-brown' },
+        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
       }
     : resultCode === 'non-acute-positive'
     ? {
@@ -292,7 +292,7 @@ export function mapASQ(response: any): MapperResult {
         level: 'moderate',
         summary: 'ASQ: Non-Acute Positive Screen',
         detail: 'Patient endorsed suicidal ideation or history. Brief suicide safety assessment recommended to determine if full mental health evaluation is needed.',
-        suggestedAction: { label: 'Start Safety Plan', path: '/chart/screenings/stanley-and-brown' },
+        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
       }
     : {
         tool: 'ASQ',
@@ -343,7 +343,7 @@ export function mapSBQR(response: any): MapperResult {
         level: 'high',
         summary: `SBQ-R: ${totalScore}/18 (above inpatient cutoff)`,
         detail: `Score ${totalScore} exceeds both general population (≥7) and psychiatric inpatient (≥8) cutoffs. Comprehensive suicide risk assessment and safety planning recommended.`,
-        suggestedAction: { label: 'Start Safety Plan', path: '/chart/screenings/stanley-and-brown' },
+        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
       }
     : aboveGeneralCutoff
     ? {
@@ -351,7 +351,7 @@ export function mapSBQR(response: any): MapperResult {
         level: 'moderate',
         summary: `SBQ-R: ${totalScore}/18 (above general cutoff)`,
         detail: `Score ${totalScore} exceeds general population cutoff (≥7). Further assessment recommended.`,
-        suggestedAction: { label: 'Start ASQ Screening', path: '/chart/screenings/asq' },
+        suggestedAction: { label: 'Start ASQ Screening', path: '/patient/assessments/asq' },
       }
     : {
         tool: 'SBQ-R',
@@ -435,7 +435,7 @@ export function mapCAMSSectionA(response: any): MapperResult {
         level: 'high',
         summary: `CAMS Vitals: Elevated scores (max ${maxScore}/5)`,
         detail: `One or more CAMS SSF vitals rated 4-5/5. Stabilization planning and driver-focused treatment indicated.`,
-        suggestedAction: { label: 'Start Stabilization Plan', path: '/chart/screenings/cams-stabilization-plan' },
+        suggestedAction: { label: 'Start Stabilization Plan', path: '/patient/assessments/cams-stabilization-plan' },
       }
     : maxScore >= 3
     ? {
@@ -443,7 +443,7 @@ export function mapCAMSSectionA(response: any): MapperResult {
         level: 'moderate',
         summary: `CAMS Vitals: Moderate scores (max ${maxScore}/5)`,
         detail: `CAMS SSF vitals in moderate range. Continue CAMS framework with driver exploration.`,
-        suggestedAction: { label: 'Start Therapeutic Worksheet', path: '/chart/screenings/cams-therapeutic-worksheet' },
+        suggestedAction: { label: 'Start Therapeutic Worksheet', path: '/patient/assessments/cams-therapeutic-worksheet' },
       }
     : {
         tool: 'CAMS Section A',
@@ -525,7 +525,7 @@ export function mapCAMSSectionB(response: any): MapperResult {
         level: 'high',
         summary: `CAMS: Suicidal plan identified, ${driverCount} driver(s)`,
         detail: `Clinician assessment indicates presence of suicidal plan. ${driverCount} suicide driver(s) identified for problem list. Immediate stabilization planning recommended.`,
-        suggestedAction: { label: 'Start Stabilization Plan', path: '/chart/screenings/cams-stabilization-plan' },
+        suggestedAction: { label: 'Start Stabilization Plan', path: '/patient/assessments/cams-stabilization-plan' },
       }
     : ideationPresent
     ? {
@@ -533,7 +533,7 @@ export function mapCAMSSectionB(response: any): MapperResult {
         level: 'moderate',
         summary: `CAMS: Ideation present, ${driverCount} driver(s)`,
         detail: `Clinician assessment indicates suicidal ideation without specific plan. ${driverCount} suicide driver(s) identified. Continue CAMS framework with driver-focused treatment.`,
-        suggestedAction: { label: 'Start Stabilization Plan', path: '/chart/screenings/cams-stabilization-plan' },
+        suggestedAction: { label: 'Start Stabilization Plan', path: '/patient/assessments/cams-stabilization-plan' },
       }
     : {
         tool: 'CAMS Section B',
@@ -632,7 +632,7 @@ export function mapCSSRSScreener(response: any): MapperResult {
         level: 'high',
         summary: `C-SSRS: HIGH Risk`,
         detail: riskDisplay + '. Immediate safety planning and possible emergency psychiatric evaluation indicated.',
-        suggestedAction: { label: 'Start Safety Plan', path: '/chart/screenings/stanley-and-brown' },
+        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
       }
     : riskCode === 'moderate'
     ? {
@@ -640,7 +640,7 @@ export function mapCSSRSScreener(response: any): MapperResult {
         level: 'moderate',
         summary: `C-SSRS: MODERATE Risk`,
         detail: riskDisplay + '. Safety planning recommended. Consider full C-SSRS assessment.',
-        suggestedAction: { label: 'Start Safety Plan', path: '/chart/screenings/stanley-and-brown' },
+        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
       }
     : riskCode === 'low'
     ? {
@@ -731,7 +731,7 @@ export function mapCSSRSFull(response: any): MapperResult {
         level: 'high',
         summary: `C-SSRS Full: HIGH Risk (ideation level ${highestRecent}/5)`,
         detail: `Comprehensive assessment indicates high risk. ${attemptRecent ? 'Recent suicide attempt reported.' : ''} Immediate safety planning and intervention required.`,
-        suggestedAction: { label: 'Start Safety Plan', path: '/chart/screenings/stanley-and-brown' },
+        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
       }
     : riskCode === 'moderate'
     ? {
@@ -739,7 +739,7 @@ export function mapCSSRSFull(response: any): MapperResult {
         level: 'moderate',
         summary: `C-SSRS Full: MODERATE Risk (ideation level ${highestRecent}/5)`,
         detail: `Active ideation with method or intent identified. Safety planning recommended.`,
-        suggestedAction: { label: 'Start Safety Plan', path: '/chart/screenings/stanley-and-brown' },
+        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
       }
     : riskCode === 'low'
     ? {
