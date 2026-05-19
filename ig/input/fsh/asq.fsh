@@ -143,6 +143,33 @@ Usage: #definition
   * output[+]
     * type = #Observation
     * profile = "http://spier.org/StructureDefinition/spier-asq-result"
+* action[+]
+  * id = "administer-phq9"
+  * title = "Administer PHQ-9"
+  * description = "Capture a PHQ-9 depression screen; Item 9 is the gateway to Clarify Risk."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerPHQ9"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-phq9-total-score"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-phq9-item9"
+* action[+]
+  * id = "administer-cssrs-screener"
+  * title = "Administer C-SSRS Screener"
+  * description = "Capture a 6-item C-SSRS screener and derive a suicide-risk-level Observation."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCSSRSScreener"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
+* action[+]
+  * id = "administer-sbqr"
+  * title = "Administer SBQ-R"
+  * description = "Capture a Suicide Behaviors Questionnaire-Revised; score ≥7 advances to Clarify Risk."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerSBQR"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-sbqr-total-score"
 
 
 // ─── PlanDefinition: Clarify Risk stage (stub with ASQ trigger) ──
@@ -183,6 +210,27 @@ Usage: #definition
       * codeFilter[+]
         * path = "value"
         * valueSet = "http://spier.org/ValueSet/asq-result-positive"
+* action[+]
+  * id = "on-phq9-item9-positive"
+  * title = "Evaluate Clarify Risk activities after PHQ-9 Item 9 positive"
+  * description = "Fires when a PHQ-9 Item 9 Observation is recorded with any value > 0 (any endorsement of thoughts of death or self-harm)."
+  * trigger[+]
+    * type = #data-added
+    * name = "phq9-item9-positive"
+    * data[+]
+      * type = #Observation
+      * profile[+] = "http://spier.org/StructureDefinition/spier-phq9-item9"
+      * codeFilter[+]
+        * path = "code"
+        * code = http://loinc.org#44260-8
+* action[+]
+  * id = "administer-cssrs-full"
+  * title = "Administer C-SSRS Full"
+  * description = "Capture the full C-SSRS (lifetime/recent) to clarify suicide-risk nature, severity, and timing."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCSSRSFull"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
 
 
 // ─── Examples ────────────────────────────────────────────────
