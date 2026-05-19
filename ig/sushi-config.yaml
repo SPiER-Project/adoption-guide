@@ -7,7 +7,10 @@
 # Status: ci-build / draft. Not yet balloted or formally published.
 
 id: spier.ig
-canonical: http://htdhealth.com/fhir/spier
+# Canonical root matches the existing FHIR-Resources artifacts (Questionnaire
+# url = http://spier.org/Questionnaire/...) and the observationMappers code
+# systems. Keep the IG and runtime data in the same namespace.
+canonical: http://spier.org
 name: SPiER
 title: SPiER — Suicide Prevention in Electronic Records
 status: draft
