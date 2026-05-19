@@ -1,2 +1,0 @@
-Output File                          Name               Type        FSH File              Lines
-CodeSystem-spier-pathway-stage.json  SPiERPathwayStage  CodeSystem  spier-codesystem.fsh  7 - 24

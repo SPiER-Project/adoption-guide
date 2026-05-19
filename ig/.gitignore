@@ -1,0 +1,8 @@
+# Sushi build output — regenerated on every `sushi .` run
+fsh-generated/
+
+# IG Publisher output and caches
+output/
+temp/
+template/
+input-cache/
