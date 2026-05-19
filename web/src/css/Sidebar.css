@@ -6,6 +6,15 @@
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;
+  /* Stay visible regardless of content length. align-self: start prevents the
+     grid from stretching the sidebar; sticky keeps it pinned to viewport top
+     once scrolled into; height matches the viewport. Sticky naturally
+     "releases" at the bottom of its grid row, so the footer can scroll into
+     view without the sidebar covering it. */
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  align-self: start;
 }
 
 .sidebar-overlay {
