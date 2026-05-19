@@ -1,41 +1,46 @@
 import { useMemo } from 'react'
-import { STAGES, launchableTools } from '../data/catalog'
+import { STAGES, TOOLS, launchableTools } from '../data/catalog'
 import { PRESETS, useToolConfig } from '../context/ToolConfigContext'
 import '../css/ToolConfiguration.css'
+
+function isLaunchable(toolId: string): boolean {
+  const tool = TOOLS.find(t => t.id === toolId)
+  return !!tool && tool.launchActions.length > 0
+}
 
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
 
   const toolsByStage = useMemo(() => {
-    const tools = launchableTools()
     return STAGES
       .map(stage => ({
         stage,
-        tools: tools.filter(t => t.stageId === stage.id),
+        tools: TOOLS.filter(t => t.stageId === stage.id),
       }))
       .filter(g => g.tools.length > 0)
   }, [])
 
+  const launchableCount = launchableTools().length
   const enabledCount = useMemo(
     () => launchableTools().filter(t => isToolEnabled(t.id)).length,
     [isToolEnabled],
   )
-  const totalCount = launchableTools().length
 
   return (
     <div className="tool-config">
       <header className="tool-config-header">
         <h2 className="tool-config-title">Tool Configuration</h2>
         <p className="tool-config-intro">
-          Choose which suicide-prevention tools your implementation supports. The Patient View's{' '}
-          <strong>Assessments</strong> tab will only let clinicians launch the tools you enable here —
-          mirroring how different EHRs and sites vary in what they're set up to do.
+          Choose which suicide-prevention tools your implementation supports. The Patient View's
+          recommendation cards will only offer launch options for tools you enable here &mdash;
+          mirroring how different EHRs and sites vary in what they're set up to do. Tools that
+          aren't yet built in SPiER are listed but cannot be toggled.
         </p>
         <p className="tool-config-meta">
           <span className="tool-config-meta-count">
-            {enabledCount} of {totalCount} tools enabled
+            {enabledCount} of {launchableCount} buildable tools enabled
           </span>
-          <span className="tool-config-meta-divider">·</span>
+          <span className="tool-config-meta-divider">&middot;</span>
           <span className="tool-config-meta-preset">
             Profile:{' '}
             <strong>
@@ -43,6 +48,10 @@ export function ToolConfiguration() {
                 ? 'Customized'
                 : PRESETS.find(p => p.id === activePreset)?.label ?? activePreset}
             </strong>
+          </span>
+          <span className="tool-config-meta-divider">&middot;</span>
+          <span className="tool-config-meta-count">
+            {TOOLS.length} total in catalog ({TOOLS.length - launchableCount} on roadmap)
           </span>
         </p>
       </header>
@@ -83,19 +92,34 @@ export function ToolConfiguration() {
             </header>
             <div className="tool-config-stage-list">
               {tools.map(tool => {
-                const enabled = isToolEnabled(tool.id)
+                const launchable = isLaunchable(tool.id)
+                const enabled = launchable && isToolEnabled(tool.id)
+                const rowClass = !launchable
+                  ? 'tool-row tool-row--not-built'
+                  : enabled
+                    ? 'tool-row'
+                    : 'tool-row tool-row--disabled'
                 return (
-                  <label key={tool.id} className={`tool-row ${enabled ? '' : 'tool-row--disabled'}`}>
-                    <input
-                      type="checkbox"
-                      className="tool-row-toggle"
-                      checked={enabled}
-                      onChange={() => toggleTool(tool.id)}
-                    />
+                  <label key={tool.id} className={rowClass}>
+                    {launchable ? (
+                      <input
+                        type="checkbox"
+                        className="tool-row-toggle"
+                        checked={enabled}
+                        onChange={() => toggleTool(tool.id)}
+                      />
+                    ) : (
+                      <span className="tool-row-roadmap-badge" title="Not yet built — see Roadmap">
+                        Roadmap
+                      </span>
+                    )}
                     <span className="tool-row-body">
                       <span className="tool-row-name">
                         {tool.shortName ?? tool.name}
                         <span className="tool-row-id">{tool.id}</span>
+                        <span className={`tool-row-status tool-row-status--${tool.inclusionStatus}`}>
+                          {tool.inclusionStatus}
+                        </span>
                       </span>
                       <span className="tool-row-purpose">{tool.purpose}</span>
                     </span>
