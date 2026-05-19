@@ -1,4 +1,5 @@
-import { STAGES, TOOLS, type Tool } from '../data/catalog'
+import { useMemo } from 'react'
+import { TOOLS, groupToolsByStage, type Tool } from '../data/catalog'
 
 type ToolBuildStatus = 'built' | 'planned'
 
@@ -6,45 +7,49 @@ function buildStatusOf(tool: Tool): ToolBuildStatus {
   return tool.launchActions.length > 0 ? 'built' : 'planned'
 }
 
+// Per-tool roadmap notes. Module-scope so this isn't reallocated on every call.
+// Edit this map when the build plan for a tool changes.
+const PLANS: Record<string, string> = {
+  'TL-001': 'Built. Next: LOINC coding on the result Observation and a published ActivityDefinition.',
+  'TL-002': 'Built. Next: LOINC item codes for each PHQ-9 question and CDS trigger on Item 9 ≥ 1.',
+  'TL-003': 'Built. Next: publish ActivityDefinition; add SNOMED CT for severity outcomes.',
+  'TL-011': 'Planned. Need: Questionnaire JSON, response-to-Observation mapper, route wiring. Public domain instrument.',
+  'TL-014': 'Future. Lower-priority; PSS-3 covers most flag-risk needs. Build only if requested by an adopter.',
+  'TL-025': 'Built. Next: LOINC mapping for total score and clinical-cutoff Observation.',
+  'TL-004': 'Built. Next: long-form item-level LOINC codes and risk-history-derived Condition extraction.',
+  'TL-019': 'Planned. Need: Questionnaire JSON for the since-last-contact form, mapping to a tracking Observation.',
+  'TL-005': 'Planned. Need: BSSA Questionnaire JSON and CarePlan generation from the disposition decision tree.',
+  'TL-020': 'Built (Sections A/B). Next: link Section B drivers to FHIR Condition resources for problem-list tracking.',
+  'TL-006': 'Planned. Need: SAFE-T as a structured decision-support form; ties to risk-status Observation.',
+  'TL-024': 'Built. Next: longitudinal SSF vital tracking via repeated Observations with consistent LOINC codes.',
+  'TL-007': 'Built. Next: CarePlan transformation formalized as a defined PlanDefinition.action.transform.',
+  'TL-008': 'Planned. Need: Means counseling Questionnaire + Procedure resource generation per CALM model.',
+  'TL-021': 'Built. Next: surface stabilization activities as discrete CarePlan.activity entries with codes.',
+  'TL-013': 'Planned. Need: Now Matters Now integration (external resource library) plus CarePlan link-out.',
+  'TL-015': 'Future. CRP requires licensure and a video-mediated workflow; defer until partner request.',
+  'TL-016': 'Future. CALM training assets needed; provider-side workflow rather than patient-facing form.',
+  'TL-009': 'Planned. Need: Transition Questionnaire + ServiceRequest/Task resources for inter-setting handoff.',
+  'TL-023': 'Planned. Need: CAMS outcome form; outputs an Observation describing pathway resolution.',
+  'TL-017': 'Future. Rapid-referral logic depends on having receiving-system FHIR endpoints; defer.',
+  'TL-010': 'Planned. Need: Caring Contacts Questionnaire + scheduled Task resources for 7/30-day follow-up.',
+  'TL-012': 'Planned. Need: ED-SAFE telephone-follow-up workflow modeled as CommunicationRequest + Communication resources.',
+  'TL-018': 'Future. Post-visit survey instrument; lower priority than active-risk tooling.',
+  'TL-022': 'Built. Next: link CAMS interim sessions to the parent CAMS Encounter and update active-episode state.',
+}
+
 function planForTool(tool: Tool): string {
-  // Per-tool roadmap notes. Edit this map when the build plan for a tool changes.
-  const PLANS: Record<string, string> = {
-    'TL-001': 'Built. Next: LOINC coding on the result Observation and a published ActivityDefinition.',
-    'TL-002': 'Built. Next: LOINC item codes for each PHQ-9 question and CDS trigger on Item 9 ≥ 1.',
-    'TL-003': 'Built. Next: publish ActivityDefinition; add SNOMED CT for severity outcomes.',
-    'TL-011': 'Planned. Need: Questionnaire JSON, response-to-Observation mapper, route wiring. Public domain instrument.',
-    'TL-014': 'Future. Lower-priority; PSS-3 covers most flag-risk needs. Build only if requested by an adopter.',
-    'TL-025': 'Built. Next: LOINC mapping for total score and clinical-cutoff Observation.',
-    'TL-004': 'Built. Next: long-form item-level LOINC codes and risk-history-derived Condition extraction.',
-    'TL-019': 'Planned. Need: Questionnaire JSON for the since-last-contact form, mapping to a tracking Observation.',
-    'TL-005': 'Planned. Need: BSSA Questionnaire JSON and CarePlan generation from the disposition decision tree.',
-    'TL-020': 'Built (Sections A/B). Next: link Section B drivers to FHIR Condition resources for problem-list tracking.',
-    'TL-006': 'Planned. Need: SAFE-T as a structured decision-support form; ties to risk-status Observation.',
-    'TL-024': 'Built. Next: longitudinal SSF vital tracking via repeated Observations with consistent LOINC codes.',
-    'TL-007': 'Built. Next: CarePlan transformation formalized as a defined PlanDefinition.action.transform.',
-    'TL-008': 'Planned. Need: Means counseling Questionnaire + Procedure resource generation per CALM model.',
-    'TL-021': 'Built. Next: surface stabilization activities as discrete CarePlan.activity entries with codes.',
-    'TL-013': 'Planned. Need: Now Matters Now integration (external resource library) plus CarePlan link-out.',
-    'TL-015': 'Future. CRP requires licensure and a video-mediated workflow; defer until partner request.',
-    'TL-016': 'Future. CALM training assets needed; provider-side workflow rather than patient-facing form.',
-    'TL-009': 'Planned. Need: Transition Questionnaire + ServiceRequest/Task resources for inter-setting handoff.',
-    'TL-023': 'Planned. Need: CAMS outcome form; outputs an Observation describing pathway resolution.',
-    'TL-017': 'Future. Rapid-referral logic depends on having receiving-system FHIR endpoints; defer.',
-    'TL-010': 'Planned. Need: Caring Contacts Questionnaire + scheduled Task resources for 7/30-day follow-up.',
-    'TL-012': 'Planned. Need: ED-SAFE telephone-follow-up workflow modeled as CommunicationRequest + Communication resources.',
-    'TL-018': 'Future. Post-visit survey instrument; lower priority than active-risk tooling.',
-    'TL-022': 'Built. Next: link CAMS interim sessions to the parent CAMS Encounter and update active-episode state.',
-  }
   return PLANS[tool.id] ?? 'Not yet scoped.'
 }
 
 export function Roadmap() {
-  const groupedTools = STAGES.map(stage => ({
-    stage,
-    tools: TOOLS.filter(t => t.stageId === stage.id),
-  }))
-  const built = TOOLS.filter(t => buildStatusOf(t) === 'built').length
-  const planned = TOOLS.length - built
+  const { groupedTools, built, planned } = useMemo(() => {
+    const builtCount = TOOLS.filter(t => buildStatusOf(t) === 'built').length
+    return {
+      groupedTools: groupToolsByStage(),
+      built: builtCount,
+      planned: TOOLS.length - builtCount,
+    }
+  }, [])
 
   return (
     <div className="page-placeholder">

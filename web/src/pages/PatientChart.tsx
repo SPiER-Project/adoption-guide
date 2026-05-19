@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
@@ -83,6 +83,12 @@ const STAGE_BLURB: Record<string, string> = {
 }
 
 /* ---------- Helpers ---------- */
+
+// Sortable sentinel for FHIR resources missing an authoritative timestamp.
+// Keeps date-driven memos deterministic and pushes undated rows to the bottom
+// when sorting newest-first.
+const UNDATED_SENTINEL = '1970-01-01T00:00:00.000Z'
+
 function readSectionAnchor(): string {
   const raw = window.location.hash
   const stripped = raw.startsWith('#') ? raw.slice(1) : raw
@@ -419,7 +425,9 @@ function PatientDocuments({
         kind: 'careplan',
         key: cp.id ?? `cp-${all.length}`,
         title: cp.id?.includes('stanley-brown') ? 'Stanley-Brown Safety Plan' : 'CAMS Stabilization Plan',
-        when: cp._savedAt ?? new Date().toISOString(),
+        // Stable sentinel so this useMemo stays deterministic across recomputes
+        // when an artifact is missing its timestamp. Undated entries sort to the bottom.
+        when: cp._savedAt ?? UNDATED_SENTINEL,
         resource: cp,
       })
     }
@@ -428,7 +436,7 @@ function PatientDocuments({
         kind: 'observation',
         key: obs.id ?? `obs-${all.length}`,
         title: obs.code?.text || obs.code?.coding?.[0]?.display || 'Observation',
-        when: obs.effectiveDateTime ?? new Date().toISOString(),
+        when: obs.effectiveDateTime ?? UNDATED_SENTINEL,
         resource: obs,
       })
     }
@@ -484,7 +492,9 @@ function PatientDocuments({
                   {d.kind === 'response' ? 'QR' : d.kind === 'careplan' ? 'CP' : 'OBS'}
                 </span>
                 <span className="document-title">{d.title}</span>
-                <span className="document-when">{new Date(d.when).toLocaleDateString()}</span>
+                <span className="document-when">
+                  {d.when === UNDATED_SENTINEL ? 'Undated' : new Date(d.when).toLocaleDateString()}
+                </span>
                 <span className="document-toggle">{isOpen ? '▼' : '▶'}</span>
               </button>
               {isOpen && (
@@ -521,14 +531,23 @@ export function PatientChart() {
     scrollToAnchor(anchor)
   }, [])
 
+  // Disable the browser's automatic scroll restoration so our anchor scroll
+  // isn't immediately overridden when the page mounts with a hash. Use
+  // useLayoutEffect so the scroll runs synchronously after DOM mutation but
+  // before paint, removing the need for a magic-number setTimeout.
+  useLayoutEffect(() => {
+    const prev = history.scrollRestoration
+    if (prev !== undefined) history.scrollRestoration = 'manual'
+    scrollToAnchor(readSectionAnchor())
+    return () => {
+      if (prev !== undefined) history.scrollRestoration = prev
+    }
+  }, [])
+
   useEffect(() => {
-    const timer = setTimeout(() => scrollToAnchor(readSectionAnchor()), 80)
     const onHashChange = () => scrollToAnchor(readSectionAnchor())
     window.addEventListener('hashchange', onHashChange)
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('hashchange', onHashChange)
-    }
+    return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
   const activeAlerts = riskAlerts.filter(a => a.level !== 'none')
