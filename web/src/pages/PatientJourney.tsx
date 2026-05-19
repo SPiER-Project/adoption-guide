@@ -152,6 +152,16 @@ export function PatientJourney() {
         Tools are grouped by care stage. Click a tool to see its specification, implementation details, data elements, and launch options.
       </p>
 
+      <aside className="journey-zs-callout">
+        <strong>Aligned with Zero Suicide.</strong>{' '}
+        SPiER's 8 technical stages are a FHIR-native instantiation of the workflow layers of the{' '}
+        <a href="https://zerosuicide.edc.org/" target="_blank" rel="noopener noreferrer">Zero Suicide</a>{' '}
+        framework. Stages 1&ndash;3 model <em>Identify</em>; stage 4 models <em>Engage</em>;
+        stages 5&ndash;6 model <em>Transition</em>; stage 7 models <em>Treat</em>;
+        stage 8 models <em>Improve</em>. The organizational layers (<em>Lead</em>, <em>Train</em>)
+        are out of SPiER's EHR-pathway scope.
+      </aside>
+
       {/* Horizontal progress bar */}
       <div className="journey-progress">
         {STAGES.map((stage, idx) => (

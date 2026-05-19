@@ -1,0 +1,55 @@
+{
+  "resourceType": "CodeSystem",
+  "status": "draft",
+  "content": "complete",
+  "name": "SPiERPathwayStage",
+  "id": "spier-pathway-stage",
+  "title": "SPiER Pathway Stage",
+  "description": "The eight technical stages of the SPiER suicide-safer care pathway. These align with the technical layers of the Zero Suicide framework (Identify, Engage, Treat, Transition, Improve). Organizational layers of the Zero Suicide framework (Lead, Train) are out of scope for SPiER.",
+  "url": "http://htdhealth.com/fhir/spier/CodeSystem/spier-pathway-stage",
+  "concept": [
+    {
+      "code": "flag-risk",
+      "display": "Flag Risk",
+      "definition": "The EHR captures a suicide-related signal and indicates whether further suicide-risk review is needed."
+    },
+    {
+      "code": "clarify-risk",
+      "display": "Clarify Risk",
+      "definition": "The EHR captures the details needed to understand the nature, severity, and context of suicide risk."
+    },
+    {
+      "code": "set-risk-status",
+      "display": "Set Risk Status",
+      "definition": "The EHR supports documenting the current risk status and the clinical reasoning that guides next steps."
+    },
+    {
+      "code": "document-safety-actions",
+      "display": "Document Safety Actions",
+      "definition": "The EHR supports documenting and updating the concrete actions used to reduce risk and support safety."
+    },
+    {
+      "code": "coordinate-handoffs",
+      "display": "Coordinate Handoffs",
+      "definition": "The EHR supports the transfer of essential suicide-safety information, responsibility, and follow-up details across people, settings, and time points."
+    },
+    {
+      "code": "track-follow-up",
+      "display": "Track Follow-Up",
+      "definition": "The EHR tracks whether outreach and follow-up steps occur after the immediate encounter."
+    },
+    {
+      "code": "manage-active-risk",
+      "display": "Manage Active Risk",
+      "definition": "The EHR keeps active suicide-safer care episodes visible, trackable, and escalated when needed."
+    },
+    {
+      "code": "measure-and-share",
+      "display": "Measure and Share",
+      "definition": "The EHR makes pathway activity usable for reporting, quality improvement, accountability, and information sharing."
+    }
+  ],
+  "experimental": true,
+  "caseSensitive": true,
+  "count": 8
+}

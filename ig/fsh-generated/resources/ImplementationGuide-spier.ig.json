@@ -1,0 +1,105 @@
+{
+  "resourceType": "ImplementationGuide",
+  "id": "spier.ig",
+  "url": "http://htdhealth.com/fhir/spier/ImplementationGuide/spier.ig",
+  "version": "0.1.0",
+  "name": "SPiER",
+  "title": "SPiER — Suicide Prevention in Electronic Records",
+  "status": "draft",
+  "publisher": "HTD Health",
+  "contact": [
+    {
+      "name": "HTD Health",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://htdhealth.com"
+        },
+        {
+          "system": "email",
+          "value": "brad.thorson@htdhealth.com"
+        }
+      ]
+    }
+  ],
+  "description": "A FHIR-native reference implementation of the suicide-safer care pathway, developed in alignment with the Zero Suicide framework. SPiER models the eight technical stages of suicide-safer care (Flag Risk through Measure and Share) as FHIR PlanDefinitions, ActivityDefinitions, and supporting resources, with the goal of giving EHR vendors and health systems lift-able artifacts that demonstrate what suicide-prevention pathway conformance looks like in practice.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "code": "US",
+          "system": "urn:iso:std:iso:3166",
+          "display": "United States of America"
+        }
+      ]
+    }
+  ],
+  "packageId": "spier.ig",
+  "license": "CC0-1.0",
+  "fhirVersion": [
+    "4.0.1"
+  ],
+  "dependsOn": [
+    {
+      "packageId": "hl7.fhir.us.core",
+      "version": "6.1.0",
+      "uri": "http://hl7.org/fhir/us/core/ImplementationGuide/hl7.fhir.us.core",
+      "id": "hl7_fhir_us_core"
+    }
+  ],
+  "definition": {
+    "resource": [
+      {
+        "reference": {
+          "reference": "CodeSystem/spier-pathway-stage"
+        },
+        "name": "SPiER Pathway Stage",
+        "description": "The eight technical stages of the SPiER suicide-safer care pathway. These align with the technical layers of the Zero Suicide framework (Identify, Engage, Treat, Transition, Improve). Organizational layers of the Zero Suicide framework (Lead, Train) are out of scope for SPiER.",
+        "exampleBoolean": false
+      }
+    ],
+    "page": {
+      "nameUrl": "toc.html",
+      "title": "Table of Contents",
+      "generation": "html",
+      "page": [
+        {
+          "nameUrl": "index.html",
+          "title": "Home",
+          "generation": "markdown"
+        },
+        {
+          "nameUrl": "zero-suicide-mapping.html",
+          "title": "Zero Suicide ↔ SPiER mapping",
+          "generation": "markdown"
+        }
+      ]
+    },
+    "parameter": [
+      {
+        "code": "copyrightyear",
+        "value": "2026+"
+      },
+      {
+        "code": "releaselabel",
+        "value": "ci-build"
+      },
+      {
+        "code": "show-inherited-invariants",
+        "value": "false"
+      },
+      {
+        "code": "apply-contact",
+        "value": "true"
+      },
+      {
+        "code": "apply-jurisdiction",
+        "value": "true"
+      },
+      {
+        "code": "apply-publisher",
+        "value": "true"
+      }
+    ]
+  }
+}
