@@ -22,7 +22,6 @@ CodeSystem: CSSRSRiskLevelCodes
 Id: cssrs-risk-level
 Title: "C-SSRS Risk Level Codes"
 Description: "SPiER-local code system for the derived risk level from a C-SSRS screener or full assessment. Used because no equivalent LOINC tier exists; LOINC 93374-7 'Suicide risk level' is the *measurement*, not a coded tier vocabulary."
-* ^url = "http://spier.org/CodeSystem/cssrs-risk-level"
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true
@@ -37,7 +36,6 @@ ValueSet: CSSRSRiskLevel
 Id: cssrs-risk-level
 Title: "C-SSRS Risk Level"
 Description: "All four C-SSRS derived risk levels."
-* ^url = "http://spier.org/ValueSet/cssrs-risk-level"
 * ^status = #draft
 * ^experimental = true
 * include codes from system CSSRSRiskLevelCodes

@@ -7,8 +7,7 @@
 CodeSystem: SPiERPathwayStage
 Id: spier-pathway-stage
 Title: "SPiER Pathway Stage"
-Description: "The eight technical stages of the SPiER suicide-safer care pathway. These align with the technical layers of the Zero Suicide framework (Identify, Engage, Treat, Transition, Improve). Organizational layers of the Zero Suicide framework (Lead, Train) are out of scope for SPiER."
-* ^url = "http://htdhealth.com/fhir/spier/CodeSystem/spier-pathway-stage"
+Description: "The eight technical stages of the SPiER suicide-safer care pathway. These align with the technical layers of the Zero Suicide framework (Identify, Engage, Transition, Treat, Improve). Organizational layers of the Zero Suicide framework (Lead, Train) are out of scope for SPiER."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true

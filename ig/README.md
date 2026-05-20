@@ -54,6 +54,14 @@ java -jar validator_cli.jar ig/fsh-generated/resources/*.json \
 - **Profile thoughtfully.** Tight profiles for SPiER-specific Observations
   (e.g. ASQ result); use US Core as the baseline for patient demographics
   and generic encounter data.
+- **Don't set `^url` on CodeSystems, ValueSets, or Profiles.** Sushi
+  auto-generates `url` as `[canonical]/[resourceType]/[id]` from
+  `sushi-config.yaml`'s canonical (`http://spier.org`) and the resource's
+  declared `Id`. Setting `^url` explicitly duplicates this information and
+  creates drift risk — we hit exactly that bug in PR #4. On `Instance:`
+  declarations (e.g. ActivityDefinition, PlanDefinition) you do set
+  `* url = "..."` directly because that's a regular resource field, not
+  metadata.
 
 ## Status
 
