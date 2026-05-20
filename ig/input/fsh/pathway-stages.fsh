@@ -22,7 +22,7 @@
 Instance: SPiERFlagRiskStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Flag Risk Stage"
-Description: "Stage 1 of 8 in the SPiER suicide-safer care pathway: capture a suicide-related signal and indicate whether further review is needed. ASQ is the flagship action; other screening tools will be added as additional actions over time."
+Description: "Stage 1 of 8 in the SPiER suicide-safer care pathway: capture a suicide-related signal and indicate whether further review is needed. ASQ is the flagship action; PHQ-9, C-SSRS Screener, and SBQ-R are alternates that an implementation can enable in any combination."
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERFlagRiskStage"
 * name = "SPiERFlagRiskStage"
@@ -75,7 +75,7 @@ Usage: #definition
 Instance: SPiERClarifyRiskStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Clarify Risk Stage"
-Description: "Stage 2 of 8: capture the details needed to understand the nature, severity, and context of suicide risk. Triggered by a positive ASQ result. Specific clarify-risk activities (C-SSRS Full, BSSA, CAMS SSF-5) are stubbed pending future authoring."
+Description: "Stage 2 of 8: capture the details needed to understand the nature, severity, and context of suicide risk. Triggered by a positive ASQ result or a positive PHQ-9 Item 9. Defined clarify-risk activities are C-SSRS Full and CAMS SSF-5 Section A + Section B."
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERClarifyRiskStage"
 * name = "SPiERClarifyRiskStage"
@@ -104,16 +104,21 @@ Usage: #definition
 * action[+]
   * id = "on-phq9-item9-positive"
   * title = "Evaluate Clarify Risk activities after PHQ-9 Item 9 positive"
-  * description = "Fires when a PHQ-9 Item 9 Observation is recorded with any value > 0 (any endorsement of thoughts of death or self-harm)."
+  * description = "Fires when a PHQ-9 Item 9 Observation (LOINC 44260-8) is recorded; the action condition further narrows to any positive integer value (1, 2, or 3 — any endorsement of thoughts of death or self-harm). Item 9 is integer-typed under spier-phq9-item9, so the threshold is expressed via PlanDefinition.action.condition (FHIRPath) rather than DataRequirement.codeFilter, which only filters coded values."
   * trigger[+]
     * type = #data-added
-    * name = "phq9-item9-positive"
+    * name = "phq9Item9Observation"
     * data[+]
       * type = #Observation
       * profile[+] = "http://spier.org/StructureDefinition/spier-phq9-item9"
       * codeFilter[+]
         * path = "code"
         * code = http://loinc.org#44260-8
+  * condition[+]
+    * kind = #applicability
+    * expression
+      * language = #text/fhirpath
+      * expression = "%phq9Item9Observation.value.exists() and %phq9Item9Observation.value > 0"
 * action[+]
   * id = "administer-cssrs-full"
   * title = "Administer C-SSRS Full"
@@ -170,7 +175,7 @@ Usage: #definition
 Instance: SPiERDocumentSafetyActionsStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Document Safety Actions Stage"
-Description: "Stage 4 of 8 in the SPiER suicide-safer care pathway: document concrete actions used to reduce risk and support safety. Stanley-Brown is the flagship safety-planning action; CAMS Stabilization will be added when that artifact set is authored (Move 6c)."
+Description: "Stage 4 of 8 in the SPiER suicide-safer care pathway: document concrete actions used to reduce risk and support safety. Stanley-Brown and CAMS Stabilization are the two safety-plan actions an implementation can enable; sites typically pick one based on their treatment model."
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERDocumentSafetyActionsStage"
 * name = "SPiERDocumentSafetyActionsStage"
