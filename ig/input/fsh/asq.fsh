@@ -7,7 +7,7 @@
 // patient from Flag Risk to Clarify Risk.
 //
 // References the existing Questionnaire authored at
-// FHIR-Resources/1-Flag-Risk/ASQ/fhir/questionnaires/questionnaire.json
+// FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json
 // (canonical: http://spier.org/Questionnaire/ASQ-Screening-Tool).
 // =============================================================
 
