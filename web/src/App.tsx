@@ -14,8 +14,8 @@ import camsSectionA from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/question
 import camsSectionB from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/questionnaires/SSF5_SectionB.json'
 import camsStabilizationPlan from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/questionnaires/Stabilization_Plan.json'
 import camsTherapeuticWorksheet from '../../FHIR-Resources/2-Clarify-Risk/CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
-import { generateStabilizationCarePlan } from './camsCarePlanMapper'
-import { generateTherapeuticCarePlan } from './camsTherapeuticCarePlanMapper'
+import { generateStabilizationCarePlan } from './lib/carePlanMappers'
+import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
 
 // Context Providers
 import { SmartProvider } from './context/SmartContext'
@@ -30,7 +30,7 @@ import { SmartRedirect } from './components/SmartRedirect'
 import { EhrShell } from './components/EhrShell'
 
 // Top-level pages
-import { Home } from './Home'
+import { Home } from './pages/Home'
 
 // Implementation Guide
 import { ImplementationGuide } from './pages/ImplementationGuide'

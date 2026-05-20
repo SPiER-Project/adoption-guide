@@ -3,8 +3,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { DEMO_PATIENT, formatPatientDisplay } from '../data/demoPatient'
 import type { PatientDisplay } from '../data/demoPatient'
 import { useSmart } from './SmartContext'
-import { mapResponseToObservations } from '../observationMappers'
-import type { RiskAlert } from '../observationMappers'
+import { mapResponseToObservations } from '../lib/observationMappers'
+import type { RiskAlert } from '../lib/observationMappers'
 import { MOCK_RESPONSES, MOCK_OBSERVATIONS, MOCK_CAREPLANS, MOCK_RISK_ALERTS } from '../data/mockScenario'
 
 interface StoredResponse {

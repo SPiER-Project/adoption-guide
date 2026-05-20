@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { GeneratedCarePlan } from '../carePlanMapper'
+import type { GeneratedCarePlan } from '../lib/carePlanMappers'
 
 export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
   const [showJson, setShowJson] = useState(false)

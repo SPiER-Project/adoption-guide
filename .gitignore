@@ -1,0 +1,23 @@
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Editor scratch / swap files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Firebase / deploy debug
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+
+# Node / build artifacts that shouldn't be in source control
+node_modules/
+
+# Local environment secrets
+.env
+.env.local
+.env.*.local

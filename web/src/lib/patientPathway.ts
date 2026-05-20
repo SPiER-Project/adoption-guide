@@ -1,4 +1,4 @@
-import { STAGES, TOOLS, type Tool } from './data/catalog'
+import { STAGES, TOOLS, type Tool } from '../data/catalog'
 
 export type StageStatus = 'not-started' | 'active' | 'complete'
 

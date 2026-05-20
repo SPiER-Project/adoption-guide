@@ -9,8 +9,8 @@ import {
   groupArtifactsByStage,
   stageForResponseName,
   type StageStatus,
-} from '../patientPathway'
-import type { RiskAlert } from '../observationMappers'
+} from '../lib/patientPathway'
+import type { RiskAlert } from '../lib/observationMappers'
 import '../css/Dashboard.css'
 import '../css/PatientChart.css'
 
