@@ -98,10 +98,8 @@ Usage: #definition
 * description = "Capture an ASQ screen from the patient (or proxy), persist responses as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER ASQ Result profile."
 * purpose = "Flag whether a patient has suicide-related signs warranting further clarification. Belongs to the Flag Risk stage of the SPiER pathway."
 * kind = #ServiceRequest
-* topic[+]
-  * coding[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
-* code
-  * coding[+] = http://loinc.org#93243-5 "ASQ suicide risk screening result"
+* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* code = http://loinc.org#93243-5 "ASQ suicide risk screening result"
 // The Questionnaire used to capture responses for this activity.
 // Versioned canonical so future updates of the ASQ form can be tracked
 // independent of this ActivityDefinition.
@@ -126,12 +124,9 @@ Usage: #definition
 * title = "SPiER Pathway — Flag Risk Stage"
 * status = #draft
 * experimental = true
-* type
-  * coding[+] = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
-* useContext[+]
-  * code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
-  * valueCodeableConcept
-    * coding[+] = SPiERPathwayStage#flag-risk
+* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
+* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
+* useContext[=].valueCodeableConcept = SPiERPathwayStage#flag-risk
 * action[+]
   * id = "administer-asq"
   * title = "Administer ASQ"
@@ -185,12 +180,9 @@ Usage: #definition
 * title = "SPiER Pathway — Clarify Risk Stage"
 * status = #draft
 * experimental = true
-* type
-  * coding[+] = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
-* useContext[+]
-  * code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
-  * valueCodeableConcept
-    * coding[+] = SPiERPathwayStage#clarify-risk
+* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
+* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
+* useContext[=].valueCodeableConcept = SPiERPathwayStage#clarify-risk
 * action[+]
   * id = "on-asq-positive"
   * title = "Evaluate Clarify Risk activities after a positive ASQ"
@@ -238,12 +230,11 @@ Title: "Example — ASQ Result: Non-Acute Positive"
 Description: "Sample Observation showing a non-acute positive ASQ outcome for an example patient. Used as a conformance fixture and for human reviewers."
 Usage: #example
 * status = #final
-* category[+].coding[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * code = http://loinc.org#93243-5 "ASQ suicide risk screening result"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
-* valueCodeableConcept
-  * coding[+] = ASQResultCodes#non-acute-positive "Non-Acute Positive"
+* valueCodeableConcept = ASQResultCodes#non-acute-positive "Non-Acute Positive"
 
 
 Instance: ExampleASQResultAcutePositive
@@ -252,9 +243,8 @@ Title: "Example — ASQ Result: Acute Positive"
 Description: "Sample Observation showing an acute positive ASQ outcome. Triggers the most urgent disposition (do-not-leave-alone, initiate emergency safety procedures)."
 Usage: #example
 * status = #final
-* category[+].coding[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * code = http://loinc.org#93243-5 "ASQ suicide risk screening result"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
-* valueCodeableConcept
-  * coding[+] = ASQResultCodes#acute-positive "Acute Positive"
+* valueCodeableConcept = ASQResultCodes#acute-positive "Acute Positive"

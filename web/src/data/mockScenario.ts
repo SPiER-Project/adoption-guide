@@ -103,7 +103,7 @@ export const MOCK_RESPONSES = [
     resource: {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      questionnaire: 'http://your-organization.org/Questionnaire/StanleyBrownSafetyPlan',
+      questionnaire: 'http://spier.org/Questionnaire/StanleyBrownSafetyPlan',
     },
   },
 ]

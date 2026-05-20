@@ -61,10 +61,8 @@ Usage: #definition
 * description = "Capture a PHQ-9 depression screen, persist as a QuestionnaireResponse, and derive total-score and item-9 Observations."
 * purpose = "Screen for depression severity; any positive PHQ-9 item 9 score is the canonical suicide-risk trigger for Clarify Risk."
 * kind = #ServiceRequest
-* topic[+]
-  * coding[+] = http://snomed.info/sct#171207006 "Depression screening (procedure)"
-* code
-  * coding[+] = http://loinc.org#44249-1 "Patient Health Questionnaire 9 item (PHQ-9) total score"
+* topic[+] = http://snomed.info/sct#171207006 "Depression screening (procedure)"
+* code = http://loinc.org#44249-1 "Patient Health Questionnaire 9 item (PHQ-9) total score"
 * extension[+]
   * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
   * valueCanonical = "http://spier.org/Questionnaire/PHQ-9|1.0.0"
@@ -76,14 +74,13 @@ Title: "Example — PHQ-9 Total Score 18 (Moderately Severe)"
 Description: "Sample total-score Observation showing a Moderately Severe PHQ-9 result for an example patient."
 Usage: #example
 * status = #final
-* category[+].coding[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * code = http://loinc.org#44261-6 "Patient Health Questionnaire 9 item total score"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
 * valueInteger = 18
-* interpretation[+]
-  * coding[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
-  * text = "Moderately Severe depression (score 18/27)"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
+* interpretation[=].text = "Moderately Severe depression (score 18/27)"
 
 
 Instance: ExamplePHQ9Item9Positive
@@ -92,11 +89,10 @@ Title: "Example — PHQ-9 Item 9 Positive"
 Description: "Sample item-9 Observation showing endorsement of suicide-related thoughts (score 2 = 'More than half the days')."
 Usage: #example
 * status = #final
-* category[+].coding[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * code = http://loinc.org#44260-8 "Thoughts that you would be better off dead or of hurting yourself"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
 * valueInteger = 2
-* interpretation[+]
-  * coding[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
-  * text = "Positive — suicide risk screening indicated"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
+* interpretation[=].text = "Positive — suicide risk screening indicated"
