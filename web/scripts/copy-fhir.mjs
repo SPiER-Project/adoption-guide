@@ -26,8 +26,10 @@ function log(msg) {
 
 function runSushi() {
   log('compiling FSH with sushi...')
-  const result = spawnSync('npx', ['--no-install', 'fsh-sushi', '.'], {
-    cwd: igDir,
+  // Run from the script's cwd (web/ when invoked via `npm run`) so npx finds
+  // the local fsh-sushi in web/node_modules/.bin. Pass igDir as an argument
+  // — sushi treats it as the project folder and writes to ig/fsh-generated/.
+  const result = spawnSync('npx', ['--no-install', 'fsh-sushi', igDir], {
     stdio: 'inherit',
     shell: process.platform === 'win32',
   })
