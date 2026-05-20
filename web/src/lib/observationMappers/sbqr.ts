@@ -44,8 +44,8 @@ export function mapSBQR(response: any): MapperResult {
         tool: 'SBQ-R',
         level: 'moderate',
         summary: `SBQ-R: ${totalScore}/18 (above general cutoff)`,
-        detail: `Score ${totalScore} exceeds general population cutoff (≥7) but is below inpatient cutoff (≥8). Brief suicide safety assessment recommended.`,
-        suggestedAction: { label: 'Start Safety Plan', path: '/patient/assessments/stanley-and-brown' },
+        detail: `Score ${totalScore} exceeds general population cutoff (≥7). Further assessment recommended.`,
+        suggestedAction: { label: 'Start ASQ Screening', path: '/patient/assessments/asq' },
       }
     : {
         tool: 'SBQ-R',

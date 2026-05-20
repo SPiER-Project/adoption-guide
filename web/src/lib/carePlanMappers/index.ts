@@ -18,8 +18,3 @@ export type { CarePlanActivity, GeneratedCarePlan } from './shared'
 export { generateCarePlan } from './stanleyBrown'
 export { generateStabilizationCarePlan } from './camsStabilization'
 export { generateTherapeuticCarePlan } from './camsTherapeutic'
-
-// Legacy type aliases — keep until callers are updated to use
-// `GeneratedCarePlan` directly.
-export type { GeneratedCarePlan as GeneratedStabilizationPlan } from './shared'
-export type { GeneratedCarePlan as GeneratedTherapeuticPlan } from './shared'
