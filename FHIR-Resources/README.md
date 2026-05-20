@@ -1,6 +1,6 @@
 # FHIR-Resources
 
-Hand-authored FHIR Questionnaire (and a handful of historical CarePlan template) JSON files, organized by **tool**. Each tool's folder contains the FHIR resource(s) the React app loads at runtime plus reference material (training transcripts, original forms, dashboards) where applicable.
+Hand-authored FHIR Questionnaires and a handful of historical CarePlan templates, organized by **tool**. Each tool's folder contains the FHIR resource(s) the React app loads at runtime plus reference material (training transcripts, original forms, dashboards) where applicable.
 
 For the **canonical, machine-readable** SPiER FHIR artifacts — Profiles, ValueSets, CodeSystems, ActivityDefinitions, PlanDefinitions, and example Instances — see [`ig/input/fsh/`](../ig/input/fsh/). The IG compiles to [`ig/fsh-generated/resources/`](../ig/fsh-generated/) (generated, gitignored) and a subset is copied into [`web/src/data/fhir/`](../web/src/data/fhir/) by the prebuild step for the demo app to consume.
 
@@ -8,7 +8,7 @@ For the **canonical, machine-readable** SPiER FHIR artifacts — Profiles, Value
 
 | Folder | Primary stage(s) | What's here |
 |---|---|---|
-| [ASQ/](ASQ/) | Flag Risk (1) | NIMH 4-item suicide screener Questionnaire + ValueSet + 3 CodeSystems |
+| [ASQ/](ASQ/) | Flag Risk (1) | NIMH 5-item suicide screener (4 screening questions + 1 acuity question) Questionnaire + ValueSet + 3 CodeSystems |
 | [PHQ-9/](PHQ-9/) | Flag Risk (1) | 9-item depression screener Questionnaire (Item 9 → Clarify Risk trigger) |
 | [C-SSRS/](C-SSRS/) | Flag Risk (1), Clarify Risk (2) | Screener + Full (Lifetime/Recent) Questionnaires |
 | [SBQ-R/](SBQ-R/) | Flag Risk (1) | 4-item Suicide Behaviors Questionnaire-Revised |

@@ -11,7 +11,7 @@ This manifest provides a computer-readable and human-readable index of the asset
 
 ## FHIR Implementation Guide
 *   **Location:** `ig/`
-*   **FSH sources:** `ig/input/fsh/` — one file per tool plus `pathway-stages.fsh` for all 5 stage PlanDefinitions and `spier-codesystem.fsh` for the pathway-stage CodeSystem.
+*   **FSH sources:** `ig/input/fsh/` — one file per tool plus `pathway-stages.fsh` for the 5 implemented stage PlanDefinitions (of 8 total pathway stages; stages 5, 6, 8 pending authoring) and `spier-codesystem.fsh` for the pathway-stage CodeSystem.
 *   **Generated FHIR JSON:** `ig/fsh-generated/resources/` (sushi output, gitignored). A subset is copied to `web/src/data/fhir/` by `npm run copy-fhir` for the React app.
 *   **CI:** `.github/workflows/ig.yml` compiles FSH on every PR.
 
