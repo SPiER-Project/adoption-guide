@@ -89,6 +89,14 @@ Usage: #definition
   * output[+]
     * type = #CarePlan
     * profile = "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
+* action[+]
+  * id = "administer-cams-stabilization-plan"
+  * title = "Author CAMS Stabilization Plan"
+  * description = "CAMS-framework alternative to Stanley-Brown — five-section plan reviewed and updated each session."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSStabilizationPlan"
+  * output[+]
+    * type = #CarePlan
+    * profile = "http://spier.org/StructureDefinition/spier-cams-stabilization-plan"
 
 
 // ─── Example ─────────────────────────────────────────────────

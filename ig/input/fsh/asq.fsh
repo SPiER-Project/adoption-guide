@@ -220,6 +220,22 @@ Usage: #definition
   * output[+]
     * type = #Observation
     * profile = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
+* action[+]
+  * id = "administer-cams-section-a"
+  * title = "Administer CAMS SSF-5 Section A (Patient Vitals)"
+  * description = "Patient-completed CAMS SSF Core Assessment. Produces six SSF Vital Observations."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSSectionA"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cams-ssf-vital"
+* action[+]
+  * id = "administer-cams-section-b"
+  * title = "Administer CAMS SSF-5 Section B (Clinician Drivers)"
+  * description = "Clinician-completed CAMS driver assessment. Materializes drivers as Condition resources on the problem list."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSSectionB"
+  * output[+]
+    * type = #Condition
+    * profile = "http://spier.org/StructureDefinition/spier-cams-suicide-driver"
 
 
 // ─── Examples ────────────────────────────────────────────────
