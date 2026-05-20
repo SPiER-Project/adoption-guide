@@ -39,6 +39,14 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
   function handleSubmit(submittedResponse: any) {
     const responseToUse = submittedResponse || response
     if (responseToUse && persistName) {
+      // Stamp the QR with the source Questionnaire's canonical URL (FHIR R4
+      // QuestionnaireResponse.questionnaire). Downstream lookup matches Tools
+      // by this URL — see catalog/tools.ts → toolForQuestionnaireUrl.
+      if (questionnaire?.url && !responseToUse.questionnaire) {
+        responseToUse.questionnaire = questionnaire.version
+          ? `${questionnaire.url}|${questionnaire.version}`
+          : questionnaire.url
+      }
       addResponse(persistName, responseToUse)
       setSubmitted(true)
 

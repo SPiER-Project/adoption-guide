@@ -1,32 +1,23 @@
-import { STAGES, TOOLS, type Tool } from '../data/catalog'
+import { STAGES, TOOLS, toolForQuestionnaireUrl, type Tool } from '../data/catalog'
 
 export type StageStatus = 'not-started' | 'active' | 'complete'
 
 /**
- * Maps the persistName used in QuestionnaireView (and thus stored on
- * StoredResponse.questionnaireName) back to the canonical tool catalog entry.
- * Keep this aligned with the persistName values in App.tsx.
+ * The subset of QuestionnaireResponse we care about for pathway lookup.
+ * `questionnaire` is the canonical URL of the source Questionnaire (FHIR
+ * R4 conformance field — see https://hl7.org/fhir/R4/questionnaireresponse-definitions.html#QuestionnaireResponse.questionnaire).
  */
-const RESPONSE_NAME_TO_TOOL_ID: Record<string, string> = {
-  'ASQ Screening': 'TL-001',
-  'PHQ-9': 'TL-002',
-  'C-SSRS Screener': 'TL-003',
-  'SBQ-R': 'TL-025',
-  'C-SSRS Full': 'TL-004',
-  'CAMS SSF-5: Section A': 'TL-020',
-  'CAMS SSF-5: Section B': 'TL-020',
-  'CAMS Therapeutic Worksheet': 'TL-024',
-  'Stanley-Brown Safety Plan': 'TL-007',
-  'CAMS Stabilization Plan': 'TL-021',
+export interface QuestionnaireResponseLike {
+  questionnaire?: string
+  [k: string]: unknown
 }
 
-export function toolForResponseName(name: string): Tool | undefined {
-  const id = RESPONSE_NAME_TO_TOOL_ID[name]
-  return id ? TOOLS.find(t => t.id === id) : undefined
+export function toolForResponse(qr: QuestionnaireResponseLike | undefined): Tool | undefined {
+  return toolForQuestionnaireUrl(qr?.questionnaire)
 }
 
-export function stageForResponseName(name: string): string | undefined {
-  return toolForResponseName(name)?.stageId
+export function stageForResponse(qr: QuestionnaireResponseLike | undefined): string | undefined {
+  return toolForResponse(qr)?.stageId
 }
 
 /**
@@ -34,14 +25,14 @@ export function stageForResponseName(name: string): string | undefined {
  * 'cams-stabilization-...'. Map them to the stage they belong to.
  */
 const CAREPLAN_ID_PATTERNS: { pattern: RegExp; stageId: string }[] = [
-  { pattern: /stanley-brown/i,       stageId: 'document-safety-actions' },
-  { pattern: /cams-stabilization/i,  stageId: 'document-safety-actions' },
-  { pattern: /cams-therapeutic/i,    stageId: 'set-risk-status' },
+  { pattern: /stanley-brown/i, stageId: 'document-safety-actions' },
+  { pattern: /cams-stabilization/i, stageId: 'document-safety-actions' },
+  { pattern: /cams-therapeutic/i, stageId: 'set-risk-status' },
 ]
 
 export function stageForCarePlan(plan: { id?: string }): string | undefined {
   if (!plan.id) return undefined
-  return CAREPLAN_ID_PATTERNS.find(p => p.pattern.test(plan.id!))?.stageId
+  return CAREPLAN_ID_PATTERNS.find((p) => p.pattern.test(plan.id!))?.stageId
 }
 
 interface DerivedPathway {
@@ -50,13 +41,17 @@ interface DerivedPathway {
   maxCompletedIndex: number
 }
 
+export interface StoredResponseLike {
+  resource: QuestionnaireResponseLike
+}
+
 export function derivePathwayStatus(
-  responses: { questionnaireName: string }[],
+  responses: StoredResponseLike[],
   carePlans: { id?: string }[],
 ): DerivedPathway {
   const directlyTouched = new Set<string>()
   for (const r of responses) {
-    const stage = stageForResponseName(r.questionnaireName)
+    const stage = stageForResponse(r.resource)
     if (stage) directlyTouched.add(stage)
   }
   for (const cp of carePlans) {
@@ -64,7 +59,7 @@ export function derivePathwayStatus(
     if (stage) directlyTouched.add(stage)
   }
 
-  const stageIndex = (id: string) => STAGES.findIndex(s => s.id === id)
+  const stageIndex = (id: string) => STAGES.findIndex((s) => s.id === id)
   const maxCompletedIndex = Array.from(directlyTouched)
     .map(stageIndex)
     .reduce((a, b) => Math.max(a, b), -1)
@@ -93,17 +88,21 @@ export function derivePathwayStatus(
  */
 export interface StageArtifacts {
   stageId: string
-  responses: any[]
-  carePlans: any[]
+  responses: StoredResponseLike[]
+  carePlans: { id?: string }[]
 }
 
 export function groupArtifactsByStage(
-  responses: { questionnaireName: string }[],
+  responses: StoredResponseLike[],
   carePlans: { id?: string }[],
 ): StageArtifacts[] {
-  return STAGES.map(stage => ({
+  return STAGES.map((stage) => ({
     stageId: stage.id,
-    responses: responses.filter(r => stageForResponseName(r.questionnaireName) === stage.id),
-    carePlans: carePlans.filter(cp => stageForCarePlan(cp) === stage.id),
+    responses: responses.filter((r) => stageForResponse(r.resource) === stage.id),
+    carePlans: carePlans.filter((cp) => stageForCarePlan(cp) === stage.id),
   }))
 }
+
+// TOOLS re-exported here for back-compat with patientPathway consumers that
+// expected the symbol. Prefer importing from '../data/catalog' directly.
+export { TOOLS }

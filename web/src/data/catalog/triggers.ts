@@ -1,30 +1,34 @@
+// Stage-transition triggers.
+//
+// Two of these are now FHIR-encoded as PlanDefinition.action.trigger entries
+// in ig/input/fsh/. The remaining narrative entries below describe transitions
+// that the IG has not yet machine-encoded. The merged TRIGGERS array surfaces
+// both kinds so PatientJourney and other consumers stay stable.
+//
+// As more stage transitions get encoded in FSH, move them out of
+// NARRATIVE_TRIGGERS below — the FHIR-derived list will pick them up.
+
+import { STAGES } from './stages'
+
+export type TriggerSource = 'fhir' | 'narrative'
+
 export interface StageTrigger {
   id: string
   fromStageId: string
-  toStageId?: string             // undefined = same-stage / ongoing
+  toStageId?: string
   event: string
   condition: string
   action: string
+  source: TriggerSource
+  fhirActionId?: string
 }
 
-export const TRIGGERS: StageTrigger[] = [
-  // Flag Risk → Clarify Risk
-  {
-    id: 'TRG-001',
-    fromStageId: 'flag-risk',
-    toStageId: 'clarify-risk',
-    event: 'PHQ-9 completed',
-    condition: 'Item 9 response above configured threshold',
-    action: 'Flag suicide-related signal and route to Clarify Risk',
-  },
-  {
-    id: 'TRG-002',
-    fromStageId: 'flag-risk',
-    toStageId: 'clarify-risk',
-    event: 'ASQ completed',
-    condition: 'Any yes to items 1\u20134',
-    action: 'Set screen positive; ask acuity question and route to Clarify Risk',
-  },
+// ─────────────────────────────────────────────────────────────
+// Narrative triggers (text-only; not yet in FSH)
+// ─────────────────────────────────────────────────────────────
+
+const NARRATIVE_TRIGGERS: Omit<StageTrigger, 'source'>[] = [
+  // Flag Risk → Clarify Risk (TRG-001 PHQ-9 and TRG-002 ASQ removed — now FHIR-encoded)
   {
     id: 'TRG-003',
     fromStageId: 'flag-risk',
@@ -121,7 +125,7 @@ export const TRIGGERS: StageTrigger[] = [
     toStageId: 'manage-active-risk',
     event: 'Discharge timestamp recorded',
     condition: 'Patient discharged with active episode',
-    action: 'Create 24\u201348 hour outreach task',
+    action: 'Create 24–48 hour outreach task',
   },
   {
     id: 'TRG-010',
@@ -150,4 +154,106 @@ export const TRIGGERS: StageTrigger[] = [
   },
 ]
 
-export const triggersFromStage = (stageId: string) => TRIGGERS.filter(t => t.fromStageId === stageId)
+// ─────────────────────────────────────────────────────────────
+// FHIR-derived triggers (from PlanDefinition.action.trigger)
+// ─────────────────────────────────────────────────────────────
+
+interface PdTriggerData {
+  type?: string
+  profile?: string[]
+  codeFilter?: Array<{
+    path?: string
+    code?: Array<{ system?: string; code?: string; display?: string }>
+    valueSet?: string
+  }>
+}
+
+interface PdAction {
+  id?: string
+  title?: string
+  description?: string
+  trigger?: Array<{
+    type?: string
+    name?: string
+    data?: PdTriggerData[]
+  }>
+}
+
+interface PlanDefinitionDoc {
+  id: string
+  useContext?: Array<{
+    code: { code: string }
+    valueCodeableConcept?: { coding?: Array<{ code: string; system?: string }> }
+  }>
+  action?: PdAction[]
+}
+
+const pdModules = import.meta.glob<{ default: PlanDefinitionDoc }>(
+  '../fhir/PlanDefinition-*.json',
+  { eager: true },
+)
+const PLAN_DEFS: PlanDefinitionDoc[] = Object.values(pdModules).map((m) => m.default)
+
+function stageIdOf(pd: PlanDefinitionDoc): string | undefined {
+  const focus = pd.useContext?.find((c) => c.code.code === 'focus')
+  return focus?.valueCodeableConcept?.coding?.find(
+    (c) => c.system === 'http://spier.org/CodeSystem/spier-pathway-stage',
+  )?.code
+}
+
+function previousStageId(stageId: string): string {
+  const idx = STAGES.findIndex((s) => s.id === stageId)
+  if (idx <= 0) return stageId
+  return STAGES[idx - 1].id
+}
+
+function describeData(data: PdTriggerData): string {
+  const profile = data.profile?.[0]?.split('/').pop() ?? data.type ?? 'resource'
+  const valueSet = data.codeFilter?.find((cf) => cf.valueSet)?.valueSet
+  if (valueSet) {
+    const vsName = valueSet.split('/').pop()
+    return `${profile} added with value in ${vsName}`
+  }
+  const code = data.codeFilter?.find((cf) => cf.code?.length)?.code?.[0]
+  if (code?.code) {
+    const display = code.display ? ` (${code.display})` : ''
+    return `${profile} added with code ${code.code}${display}`
+  }
+  return `${profile} added`
+}
+
+function buildFhirTriggers(): StageTrigger[] {
+  const triggers: StageTrigger[] = []
+  for (const pd of PLAN_DEFS) {
+    const toStageId = stageIdOf(pd)
+    if (!toStageId) continue
+    for (const action of pd.action ?? []) {
+      for (const trig of action.trigger ?? []) {
+        const condition = (trig.data ?? []).map(describeData).join(' AND ') || 'data-added'
+        triggers.push({
+          id: `pd-${pd.id}-${action.id ?? trig.name ?? 'action'}`,
+          fromStageId: previousStageId(toStageId),
+          toStageId,
+          event: action.title ?? trig.name ?? 'data-added trigger',
+          condition,
+          action: `Route to ${toStageId} stage`,
+          source: 'fhir',
+          fhirActionId: action.id,
+        })
+      }
+    }
+  }
+  return triggers
+}
+
+// ─────────────────────────────────────────────────────────────
+// Public surface
+// ─────────────────────────────────────────────────────────────
+
+export const TRIGGERS: StageTrigger[] = [
+  ...buildFhirTriggers(),
+  ...NARRATIVE_TRIGGERS.map((t) => ({ ...t, source: 'narrative' as const })),
+]
+
+export const triggersFromStage = (stageId: string) =>
+  TRIGGERS.filter((t) => t.fromStageId === stageId)
