@@ -50,6 +50,7 @@ export function generateTherapeuticCarePlan(questionnaireResponse: any): Generat
 
   return makeSuicidePreventionCarePlan({
     id: `cams-therapeutic-careplan-${Date.now()}`,
+    profileUrl: 'http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet',
     noteText: "DEMO ONLY — CAMS Therapeutic Worksheet CarePlan generated client-side. This captures the patient's suicide drivers and crisis working model to guide treatment planning. Uses the Hybrid model where core data is embedded in activity.description fields.",
     hasAnyData,
     activities: [

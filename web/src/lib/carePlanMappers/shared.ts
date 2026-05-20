@@ -117,6 +117,14 @@ export function extractPairs(
  */
 export function makeSuicidePreventionCarePlan(options: {
   id: string
+  /**
+   * Canonical URL of the SPiER CarePlan profile this resource conforms to.
+   * Defined in `ig/input/fsh/<tool>.fsh` — one of:
+   *   - http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan
+   *   - http://spier.org/StructureDefinition/spier-cams-stabilization-plan
+   *   - http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet
+   */
+  profileUrl: string
   noteText: string
   activities: CarePlanActivity[]
   hasAnyData: boolean
@@ -124,10 +132,8 @@ export function makeSuicidePreventionCarePlan(options: {
   const resource = {
     resourceType: 'CarePlan',
     id: options.id,
-    // TODO (Move 6d.9): swap external us-ecareplan claim for the
-    // SPiER-specific profiles defined in ig/input/fsh/.
     meta: {
-      profile: ['http://hl7.org/fhir/us/ecareplan/StructureDefinition/us-ecareplan'],
+      profile: [options.profileUrl],
     },
     status: 'active',
     intent: 'plan',
