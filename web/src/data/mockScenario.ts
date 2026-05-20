@@ -74,7 +74,7 @@ export const MOCK_RESPONSES = [
     resource: {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      questionnaire: 'http://your-organization.org/Questionnaire/CAMS-SSF5-SectionA',
+      questionnaire: 'http://spier.org/Questionnaire/CAMS-SSF5-SectionA',
       item: [
         {
           linkId: 'core-ratings',

@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "cams-stabilization-plan",
-  "url": "http://your-organization.org/Questionnaire/CAMS-Stabilization-Plan",
+  "url": "http://spier.org/Questionnaire/CAMS-Stabilization-Plan",
   "version": "1.0.0",
   "name": "CAMS_Stabilization_Plan",
   "title": "CAMS Stabilization Plan",

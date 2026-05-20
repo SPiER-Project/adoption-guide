@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "cams-therapeutic-worksheet",
-  "url": "http://your-organization.org/Questionnaire/CAMS-Therapeutic-Worksheet",
+  "url": "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet",
   "version": "1.0.0",
   "name": "CAMS_Therapeutic_Worksheet",
   "title": "CAMS Therapeutic Worksheet: Understanding Your Suicidality",

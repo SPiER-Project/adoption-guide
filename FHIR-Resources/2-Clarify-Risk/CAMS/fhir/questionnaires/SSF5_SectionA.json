@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "cams-ssf5-section-a",
-  "url": "http://your-organization.org/Questionnaire/CAMS-SSF5-SectionA",
+  "url": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
   "version": "1.0.0",
   "name": "SSF5_SectionA",
   "title": "CAMS Suicide Status Form (SSF-5) - Section A (Patient)",
