@@ -119,12 +119,13 @@ export function makeSuicidePreventionCarePlan(options: {
   id: string
   /**
    * Canonical URL of the SPiER CarePlan profile this resource conforms to.
-   * Defined in `ig/input/fsh/<tool>.fsh` — one of:
-   *   - http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan
-   *   - http://spier.org/StructureDefinition/spier-cams-stabilization-plan
-   *   - http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet
+   * Defined in `ig/input/fsh/<tool>.fsh`. When adding a new SPiER CarePlan
+   * profile, extend this union (and add a regression test in the mapper).
    */
-  profileUrl: string
+  profileUrl:
+    | 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'
+    | 'http://spier.org/StructureDefinition/spier-cams-stabilization-plan'
+    | 'http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet'
   noteText: string
   activities: CarePlanActivity[]
   hasAnyData: boolean
