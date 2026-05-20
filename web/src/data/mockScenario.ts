@@ -11,7 +11,7 @@
  * This populates the dashboard with a complete patient journey.
  */
 
-import type { RiskAlert } from '../observationMappers'
+import type { RiskAlert } from '../lib/observationMappers'
 
 const NOW = new Date()
 const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86400000).toISOString()

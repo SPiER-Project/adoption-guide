@@ -5,9 +5,9 @@ import { theme } from '@formbox/hs-theme'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { CarePlanDisplay } from './CarePlanDisplay'
-import { mapResponseToObservations } from '../observationMappers'
-import type { GeneratedCarePlan } from '../carePlanMapper'
-import type { RiskAlert } from '../observationMappers'
+import { mapResponseToObservations } from '../lib/observationMappers'
+import type { GeneratedCarePlan } from '../lib/carePlanMappers'
+import type { RiskAlert } from '../lib/observationMappers'
 
 const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   acute:    { className: 'alert--acute',    label: 'ACUTE' },
