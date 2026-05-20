@@ -21,7 +21,7 @@ export interface Stage {
   orderIndex: number
 }
 
-const concepts = (codeSystem as CodeSystemDoc).concept
+const concepts = (codeSystem as CodeSystemDoc).concept ?? []
 
 export const STAGES: Stage[] = concepts.map((c, i) => ({
   id: c.code,

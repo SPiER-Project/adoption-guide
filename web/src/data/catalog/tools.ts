@@ -91,8 +91,21 @@ const pdModules = import.meta.glob<{ default: PlanDefinitionDoc }>(
 const ACTIVITY_DEFS: ActivityDefinitionDoc[] = Object.values(adModules).map((m) => m.default)
 const PLAN_DEFS: PlanDefinitionDoc[] = Object.values(pdModules).map((m) => m.default)
 
+/**
+ * Strip the optional `|version` suffix from a canonical URL so lookups
+ * tolerate both `http://spier.org/Questionnaire/ASQ-Screening-Tool` and
+ * `http://spier.org/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot`.
+ */
+export function stripCanonicalVersion(canonical: string): string {
+  const pipe = canonical.indexOf('|')
+  return pipe === -1 ? canonical : canonical.slice(0, pipe)
+}
+
 // AD.url → stageId, derived by inverting PD.action.definitionCanonical
 // (each action points to an AD, the PD itself carries a stage useContext).
+// Keys are stored with the version suffix stripped so lookups by AD.url
+// (typically unversioned) match PD action canonicals even if those carry
+// `|version`.
 const STAGE_BY_AD_URL = (() => {
   const stageOf = (pd: PlanDefinitionDoc): string | undefined => {
     const stageContext = pd.useContext?.find((c) => c.code.code === 'focus')
@@ -105,7 +118,9 @@ const STAGE_BY_AD_URL = (() => {
     const stageId = stageOf(pd)
     if (!stageId) continue
     for (const action of pd.action ?? []) {
-      if (action.definitionCanonical) map.set(action.definitionCanonical, stageId)
+      if (action.definitionCanonical) {
+        map.set(stripCanonicalVersion(action.definitionCanonical), stageId)
+      }
     }
   }
   return map
@@ -170,7 +185,7 @@ function buildFhirBackedTools(): Tool[] {
   const tools: Tool[] = []
   for (const [toolId, ads] of groups) {
     const primary = ads[0]
-    const stageId = STAGE_BY_AD_URL.get(primary.url)
+    const stageId = STAGE_BY_AD_URL.get(stripCanonicalVersion(primary.url))
     if (!stageId) {
       console.warn(`[catalog] No PD references ${primary.url} — tool ${toolId} has no stageId`)
       continue
@@ -247,16 +262,6 @@ export function groupToolsByStage(
     tools: tools.filter((t) => t.stageId === stage.id),
   }))
   return options.skipEmpty ? groups.filter((g) => g.tools.length > 0) : groups
-}
-
-/**
- * Strip the optional `|version` suffix from a canonical URL so lookups
- * tolerate both `http://spier.org/Questionnaire/ASQ-Screening-Tool` and
- * `http://spier.org/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot`.
- */
-export function stripCanonicalVersion(canonical: string): string {
-  const pipe = canonical.indexOf('|')
-  return pipe === -1 ? canonical : canonical.slice(0, pipe)
 }
 
 /**
