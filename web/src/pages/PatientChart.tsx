@@ -7,7 +7,7 @@ import { STAGES, TOOLS, stageById, type Tool } from '../data/catalog'
 import {
   derivePathwayStatus,
   groupArtifactsByStage,
-  stageForResponseName,
+  stageForResponse,
   type StageStatus,
 } from '../lib/patientPathway'
 import type { RiskAlert } from '../lib/observationMappers'
@@ -417,7 +417,7 @@ function PatientDocuments({
         title: r.questionnaireName,
         when: r.completedAt,
         resource: r.resource,
-        stageTag: stageForResponseName(r.questionnaireName),
+        stageTag: stageForResponse(r.resource),
       })
     }
     for (const cp of carePlans) {
