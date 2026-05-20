@@ -27,6 +27,7 @@ export function generateStabilizationCarePlan(questionnaireResponse: any): Gener
 
   return makeSuicidePreventionCarePlan({
     id: `cams-stabilization-careplan-${Date.now()}`,
+    profileUrl: 'http://spier.org/StructureDefinition/spier-cams-stabilization-plan',
     noteText: 'DEMO ONLY — CAMS Stabilization CarePlan generated client-side. This plan should be reviewed and updated at the start of every CAMS session. Uses the Hybrid model where core safety data is embedded in activity.description fields.',
     hasAnyData,
     activities: [
