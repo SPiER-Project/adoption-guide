@@ -44,10 +44,8 @@ Usage: #definition
 * description = "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and derive a total-score Observation. Total ≥7 advances the patient to Clarify Risk; ≥8 indicates higher acuity warranting a full safety assessment."
 * purpose = "Screen for lifetime and recent suicide-related ideation, plans, and behavior. Validated in both general-population and psychiatric-inpatient settings."
 * kind = #ServiceRequest
-* topic[+]
-  * coding[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
-* code
-  * coding[+] = http://snomed.info/sct#225337009 "Suicide risk assessment score"
+* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* code = http://snomed.info/sct#225337009 "Suicide risk assessment score"
 * extension[+]
   * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
   * valueCanonical = "http://spier.org/Questionnaire/SBQ-R|1.0.0"
@@ -59,12 +57,11 @@ Title: "Example — SBQ-R Total Score 9 (Above Inpatient Cutoff)"
 Description: "Sample SBQ-R total-score Observation indicating a score above both the general-population and psychiatric-inpatient cutoffs."
 Usage: #example
 * status = #final
-* category[+].coding[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * code = http://snomed.info/sct#225337009 "Suicide risk assessment score"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:45:00Z"
 * valueInteger = 9
-* interpretation[+]
-  * coding[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
-  * text = "Above inpatient cutoff (≥8). Score 9/18."
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
+* interpretation[=].text = "Above inpatient cutoff (≥8). Score 9/18."
 * note[+].text = "SBQ-R total score: 9/18. General population cutoff: ≥7. Psychiatric inpatient cutoff: ≥8."

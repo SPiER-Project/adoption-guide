@@ -59,10 +59,8 @@ Usage: #definition
 * description = "Collaboratively complete a Stanley-Brown Safety Plan with the patient and persist the result as a CarePlan profiled by SPiERStanleyBrownSafetyPlan. Each of the seven safety-plan steps becomes a CarePlan.activity with its own LOINC code."
 * purpose = "Establish a written, individualized plan a patient can use to manage suicidal crises. Belongs to the Document Safety Actions stage of the SPiER pathway."
 * kind = #ServiceRequest
-* topic[+]
-  * coding[+] = http://snomed.info/sct#763304007 "Suicide prevention strategy (regime/therapy)"
-* code
-  * coding[+] = http://snomed.info/sct#735324008 "Treatment plan for suicide prevention"
+* topic[+] = http://snomed.info/sct#763304007 "Suicide prevention strategy (regime/therapy)"
+* code = http://snomed.info/sct#735324008 "Treatment plan for suicide prevention"
 * extension[+]
   * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
   * valueCanonical = "http://spier.org/Questionnaire/StanleyBrownSafetyPlan|1.1.0"
@@ -80,12 +78,9 @@ Usage: #definition
 * title = "SPiER Pathway — Document Safety Actions Stage"
 * status = #draft
 * experimental = true
-* type
-  * coding[+] = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
-* useContext[+]
-  * code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
-  * valueCodeableConcept
-    * coding[+] = SPiERPathwayStage#document-safety-actions
+* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
+* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
+* useContext[=].valueCodeableConcept = SPiERPathwayStage#document-safety-actions
 * action[+]
   * id = "administer-stanley-brown"
   * title = "Author Stanley-Brown Safety Plan"
@@ -105,41 +100,41 @@ Description: "Sample CarePlan showing all seven Stanley-Brown steps populated fo
 Usage: #example
 * status = #active
 * intent = #plan
-* category[+].coding[+] = http://snomed.info/sct#735324008 "Treatment plan for suicide prevention"
+* category[+] = http://snomed.info/sct#735324008 "Treatment plan for suicide prevention"
 * subject = Reference(Patient/example)
 * addresses[+].display = "Risk for suicide"
 * activity[+].detail
-  * code.coding[+] = http://loinc.org#76689-1 "Stanley-Brown safety plan — warning signs"
+  * code = http://loinc.org#76689-1 "Stanley-Brown safety plan — warning signs"
   * code.text = "Step 1: Warning Signs"
   * status = #in-progress
   * description = "Sleep disruption; isolation from friends; thoughts of being a burden"
 * activity[+].detail
-  * code.coding[+] = http://loinc.org#76690-9 "Stanley-Brown safety plan — internal coping"
+  * code = http://loinc.org#76690-9 "Stanley-Brown safety plan — internal coping"
   * code.text = "Step 2: Internal Coping Strategies"
   * status = #in-progress
   * description = "Long walk; cold shower; breathing exercise from app"
 * activity[+].detail
-  * code.coding[+] = http://loinc.org#76691-7 "Stanley-Brown safety plan — social distractions"
+  * code = http://loinc.org#76691-7 "Stanley-Brown safety plan — social distractions"
   * code.text = "Step 3: Social Distractions"
   * status = #in-progress
   * description = "Brother (555-0102); coffee shop on 2nd Ave"
 * activity[+].detail
-  * code.coding[+] = http://loinc.org#76692-5 "Stanley-Brown safety plan — crisis support"
+  * code = http://loinc.org#76692-5 "Stanley-Brown safety plan — crisis support"
   * code.text = "Step 4: Crisis Support Contacts"
   * status = #in-progress
   * description = "Best friend Maria (555-0143); aunt Carol (555-0188)"
 * activity[+].detail
-  * code.coding[+] = http://loinc.org#76693-3 "Stanley-Brown safety plan — professional support"
+  * code = http://loinc.org#76693-3 "Stanley-Brown safety plan — professional support"
   * code.text = "Step 5: Professional Support"
   * status = #in-progress
   * description = "Dr. Chen (555-0200) / Memorial ED, 100 Hospital Dr, 555-0911 / 988 Suicide & Crisis Lifeline"
 * activity[+].detail
-  * code.coding[+] = http://loinc.org#76694-1 "Stanley-Brown safety plan — lethal means safety"
+  * code = http://loinc.org#76694-1 "Stanley-Brown safety plan — lethal means safety"
   * code.text = "Step 6: Lethal Means Safety"
   * status = #in-progress
   * description = "Roommate to hold medications until follow-up; gun-lock voucher accepted from clinic"
 * activity[+].detail
-  * code.coding[+] = http://loinc.org#81344-4 "Reason for living"
+  * code = http://loinc.org#81344-4 "Reason for living"
   * code.text = "Step 7: Reason for Living"
   * status = #in-progress
   * description = "Niece's high-school graduation in six weeks; finishing the novel I'm writing"

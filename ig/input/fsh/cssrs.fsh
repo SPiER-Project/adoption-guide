@@ -79,10 +79,8 @@ Usage: #definition
 * description = "Capture a 6-item C-SSRS screener (items 1–5 for ideation, item 6 for behavior) and derive a suicide-risk-level Observation."
 * purpose = "Rapidly screen for suicide ideation and behavior at the Flag Risk stage."
 * kind = #ServiceRequest
-* topic[+]
-  * coding[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
-* code
-  * coding[+] = http://loinc.org#93374-7 "Suicide risk level"
+* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* code = http://loinc.org#93374-7 "Suicide risk level"
 * extension[+]
   * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
   * valueCanonical = "http://spier.org/Questionnaire/C-SSRS-Screener|1.0.0"
@@ -104,10 +102,8 @@ Usage: #definition
 * description = "Capture the full C-SSRS instrument (ideation 1–5 with lifetime/recent dimensions, behavior with attempt subtypes, intensity section), and derive a suicide-risk-level Observation."
 * purpose = "Clarify the nature, severity, and timing of suicide-related ideation and behavior. Used at the Clarify Risk stage following a positive screen."
 * kind = #ServiceRequest
-* topic[+]
-  * coding[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
-* code
-  * coding[+] = http://loinc.org#93374-7 "Suicide risk level"
+* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* code = http://loinc.org#93374-7 "Suicide risk level"
 * extension[+]
   * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
   * valueCanonical = "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0"
@@ -121,15 +117,13 @@ Title: "Example — C-SSRS Screener: High Risk"
 Description: "Sample risk-level Observation from a C-SSRS screener with item 5 (active ideation with specific plan and intent) endorsed."
 Usage: #example
 * status = #final
-* category[+].coding[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
-* valueCodeableConcept
-  * coding[+] = CSSRSRiskLevelCodes#high "High"
-  * text = "High Risk — specific plan with intent"
-* interpretation[+]
-  * coding[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
+* valueCodeableConcept = CSSRSRiskLevelCodes#high "High"
+* valueCodeableConcept.text = "High Risk — specific plan with intent"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
 
 
 Instance: ExampleCSSRSFullModerateRisk
@@ -138,12 +132,10 @@ Title: "Example — C-SSRS Full: Moderate Risk"
 Description: "Sample risk-level Observation from a full C-SSRS with item 3 (active ideation with methods, no intent) endorsed in the recent timeframe."
 Usage: #example
 * status = #final
-* category[+].coding[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:15:00Z"
-* valueCodeableConcept
-  * coding[+] = CSSRSRiskLevelCodes#moderate "Moderate"
-  * text = "Moderate Risk — ideation with method, no intent"
-* interpretation[+]
-  * coding[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
+* valueCodeableConcept = CSSRSRiskLevelCodes#moderate "Moderate"
+* valueCodeableConcept.text = "Moderate Risk — ideation with method, no intent"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
