@@ -246,54 +246,6 @@ Usage: #definition
   * valueCanonical = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
 
 
-// ─── New PlanDefinitions: stages 3 and 7 ─────────────────────
-
-Instance: SPiERSetRiskStatusStage
-InstanceOf: PlanDefinition
-Title: "SPiER Pathway — Set Risk Status Stage"
-Description: "Stage 3 of 8 in the SPiER suicide-safer care pathway: document the current risk status and the clinical reasoning that guides next steps. The CAMS Therapeutic Worksheet is the first concrete action; SAFE-T and similar disposition tools will be added when authored."
-Usage: #definition
-* url = "http://spier.org/PlanDefinition/SPiERSetRiskStatusStage"
-* name = "SPiERSetRiskStatusStage"
-* title = "SPiER Pathway — Set Risk Status Stage"
-* status = #draft
-* experimental = true
-* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
-* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
-* useContext[=].valueCodeableConcept = SPiERPathwayStage#set-risk-status
-* action[+]
-  * id = "author-cams-therapeutic-worksheet"
-  * title = "Author CAMS Therapeutic Worksheet"
-  * description = "Capture the personal narrative, drivers, and crisis working model that inform the patient's risk status and treatment plan."
-  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSTherapeuticWorksheet"
-  * output[+]
-    * type = #CarePlan
-    * profile = "http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet"
-
-
-Instance: SPiERManageActiveRiskStage
-InstanceOf: PlanDefinition
-Title: "SPiER Pathway — Manage Active Risk Stage"
-Description: "Stage 7 of 8 in the SPiER suicide-safer care pathway: keep active suicide-safer care episodes visible, trackable, and escalated when needed. The CAMS interim session is the first concrete action — repeats the SSF Core Assessment at every visit and tracks trend toward resolution."
-Usage: #definition
-* url = "http://spier.org/PlanDefinition/SPiERManageActiveRiskStage"
-* name = "SPiERManageActiveRiskStage"
-* title = "SPiER Pathway — Manage Active Risk Stage"
-* status = #draft
-* experimental = true
-* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
-* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
-* useContext[=].valueCodeableConcept = SPiERPathwayStage#manage-active-risk
-* action[+]
-  * id = "administer-cams-interim-session"
-  * title = "Administer CAMS Interim Session"
-  * description = "Repeat the CAMS Section A SSF Core Assessment to track risk-level trend across CAMS treatment episodes."
-  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSInterimSession"
-  * output[+]
-    * type = #Observation
-    * profile = "http://spier.org/StructureDefinition/spier-cams-ssf-vital"
-
-
 // ─── Examples ────────────────────────────────────────────────
 
 Instance: ExampleCAMSSSFPsychologicalPain

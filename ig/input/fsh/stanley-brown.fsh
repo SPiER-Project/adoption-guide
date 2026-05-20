@@ -66,39 +66,6 @@ Usage: #definition
   * valueCanonical = "http://spier.org/Questionnaire/StanleyBrownSafetyPlan|1.1.0"
 
 
-// ─── PlanDefinition: Document Safety Actions stage ───────────
-
-Instance: SPiERDocumentSafetyActionsStage
-InstanceOf: PlanDefinition
-Title: "SPiER Pathway — Document Safety Actions Stage"
-Description: "Stage 4 of 8 in the SPiER suicide-safer care pathway: document concrete actions used to reduce risk and support safety. Stanley-Brown is the flagship safety-planning action; CAMS Stabilization will be added when that artifact set is authored (Move 6c)."
-Usage: #definition
-* url = "http://spier.org/PlanDefinition/SPiERDocumentSafetyActionsStage"
-* name = "SPiERDocumentSafetyActionsStage"
-* title = "SPiER Pathway — Document Safety Actions Stage"
-* status = #draft
-* experimental = true
-* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
-* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
-* useContext[=].valueCodeableConcept = SPiERPathwayStage#document-safety-actions
-* action[+]
-  * id = "administer-stanley-brown"
-  * title = "Author Stanley-Brown Safety Plan"
-  * description = "Collaboratively complete a Stanley-Brown Safety Plan with the patient."
-  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerStanleyBrown"
-  * output[+]
-    * type = #CarePlan
-    * profile = "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
-* action[+]
-  * id = "administer-cams-stabilization-plan"
-  * title = "Author CAMS Stabilization Plan"
-  * description = "CAMS-framework alternative to Stanley-Brown — five-section plan reviewed and updated each session."
-  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSStabilizationPlan"
-  * output[+]
-    * type = #CarePlan
-    * profile = "http://spier.org/StructureDefinition/spier-cams-stabilization-plan"
-
-
 // ─── Example ─────────────────────────────────────────────────
 
 Instance: ExampleStanleyBrownSafetyPlan
