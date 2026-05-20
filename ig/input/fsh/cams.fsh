@@ -145,7 +145,7 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 Instance: AdministerCAMSSectionA
 InstanceOf: ActivityDefinition
 Title: "Administer CAMS SSF-5 Section A (Patient Vitals)"
-Description: "Patient-completed Suicide Status Form Section A. Produces six SSF Vital Observations (psychological pain, stress, agitation, hopelessness, self-hate, overall risk) plus an overall suicide-risk-level Observation."
+Description: "Patient-completed Suicide Status Form Section A. Produces six SSF Vital Observations conformant to SPiERCAMSSSFVital — one each for psychological pain, stress, agitation, hopelessness, self-hate, and overall risk. The 'overall risk' measure carries the patient's self-rated suicide risk on the same 1–5 scale and serves as the activity's risk-level component."
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionA"
 * name = "AdministerCAMSSectionA"
@@ -153,7 +153,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
-* description = "Patient-completed Suicide Status Form Section A. Produces six SSF Vital Observations and one overall suicide-risk-level Observation."
+* description = "Patient-completed Suicide Status Form Section A. Produces six SSF Vital Observations covering psychological pain, stress, agitation, hopelessness, self-hate, and overall risk. The 'overall risk' measure functions as the risk-level component of the assessment."
 * purpose = "Capture the patient's self-rated CAMS SSF Core Assessment at the Clarify Risk stage. Repeated for longitudinal tracking during CAMS treatment episodes."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
@@ -166,7 +166,7 @@ Usage: #definition
 Instance: AdministerCAMSSectionB
 InstanceOf: ActivityDefinition
 Title: "Administer CAMS SSF-5 Section B (Clinician Drivers)"
-Description: "Clinician-completed Suicide Status Form Section B identifying suicide drivers and ideation/plan status. Produces up to 3 Condition resources (one per driver) and clinical flags for ideation/plan presence."
+Description: "Clinician-completed Suicide Status Form Section B. Identifies up to three suicide drivers, each materialized as a SPiERCAMSSuicideDriver Condition on the patient's problem list. Ideation and plan presence are recorded clinically within the QuestionnaireResponse but are not yet materialized as separate FHIR resources (future work — see Roadmap)."
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionB"
 * name = "AdministerCAMSSectionB"
@@ -174,7 +174,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
-* description = "Clinician-completed Suicide Status Form Section B. Captures up to three CAMS-identified drivers of suicidality (each materialized as a Condition resource on the patient's problem list) plus ideation/plan flags."
+* description = "Clinician-completed Suicide Status Form Section B. Captures up to three CAMS-identified drivers of suicidality, each materialized as a Condition resource on the patient's problem list. Ideation and plan presence are captured in the QuestionnaireResponse but are not currently emitted as separate FHIR resources."
 * purpose = "Capture the clinician's CAMS driver assessment at the Clarify Risk stage. Drivers surface on the problem list and guide treatment until resolution."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
