@@ -160,6 +160,7 @@
 
 .roadmap-tool--built   { border-left-color: var(--risk-low); }
 .roadmap-tool--planned { border-left-color: var(--accent-warning-edge); }
+.roadmap-tool--future  { border-left-color: var(--border-strong); }
 
 .roadmap-tool-status {
   display: inline-block;
@@ -175,6 +176,7 @@
 
 .roadmap-tool-status--built   { background: var(--risk-low-faded);    color: var(--risk-low-soft-text); }
 .roadmap-tool-status--planned { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
+.roadmap-tool-status--future  { background: var(--surface-muted);     color: var(--text-muted); }
 
 .roadmap-tool-body { min-width: 0; }
 
@@ -222,4 +224,46 @@
   background: var(--surface-muted);
   border-radius: var(--radius-md);
   border-left: 3px solid var(--border-strong);
+}
+
+/* GitHub-issue link on each tool row. */
+.roadmap-tool-issue-link {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-info);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-info-soft);
+}
+
+.roadmap-tool-issue-link:hover {
+  text-decoration: underline;
+}
+
+.roadmap-tool-issue-link--missing {
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  border: 1px dashed var(--border-strong);
+  font-style: italic;
+}
+
+.roadmap-source-note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.roadmap-source-note code {
+  background: var(--surface-muted);
+  padding: 0 0.25rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.85em;
+}
+
+.roadmap-priority-link {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: var(--space-2) 0 0;
 }

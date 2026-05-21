@@ -1,55 +1,127 @@
 import { useMemo } from 'react'
 import { TOOLS, groupToolsByStage, type Tool } from '../data/catalog'
+import roadmapSnapshot from '../data/roadmap.generated.json'
 
-type ToolBuildStatus = 'built' | 'planned'
+// ─────────────────────────────────────────────────────────────
+// Roadmap data
+// ------------------------------------------------------------
+// Source of truth = GitHub Issues on the SPiER repo, snapshotted by
+// `node web/scripts/fetch-roadmap.mjs` into roadmap.generated.json
+// (committed so the build works offline).
+//
+// If a tool has no tracking epic in the snapshot, the page renders
+// an "open tracking issue" CTA pointing at a pre-filled new-issue
+// URL — see newIssueUrl() below.
+// ─────────────────────────────────────────────────────────────
 
-function buildStatusOf(tool: Tool): ToolBuildStatus {
-  return tool.launchActions.length > 0 ? 'built' : 'planned'
+interface RoadmapIssue {
+  number: number
+  title: string
+  state: 'open' | 'closed'
+  url: string
+  bodyMd: string
+  labels: string[]
+  createdAt: string
+  updatedAt: string
+  closedAt?: string
+  toolId?: string
+  priority?: 'p1' | 'p2' | 'p3'
+  status?: 'built' | 'planned' | 'future'
+  type?: 'epic' | 'task'
+  stage?: string
+  area?: string
 }
 
-// Per-tool roadmap notes. Module-scope so this isn't reallocated on every call.
-// Edit this map when the build plan for a tool changes.
-const PLANS: Record<string, string> = {
-  'TL-001': 'Built. Next: LOINC coding on the result Observation and a published ActivityDefinition.',
-  'TL-002': 'Built. Next: LOINC item codes for each PHQ-9 question and CDS trigger on Item 9 ≥ 1.',
-  'TL-003': 'Built. Next: publish ActivityDefinition; add SNOMED CT for severity outcomes.',
-  'TL-011': 'Planned. Need: Questionnaire JSON, response-to-Observation mapper, route wiring. Public domain instrument.',
-  'TL-014': 'Future. Lower-priority; PSS-3 covers most flag-risk needs. Build only if requested by an adopter.',
-  'TL-025': 'Built. Next: LOINC mapping for total score and clinical-cutoff Observation.',
-  'TL-004': 'Built. Next: long-form item-level LOINC codes and risk-history-derived Condition extraction.',
-  'TL-019': 'Planned. Need: Questionnaire JSON for the since-last-contact form, mapping to a tracking Observation.',
-  'TL-005': 'Planned. Need: BSSA Questionnaire JSON and CarePlan generation from the disposition decision tree.',
-  'TL-020': 'Built (Sections A/B). Next: link Section B drivers to FHIR Condition resources for problem-list tracking.',
-  'TL-006': 'Planned. Need: SAFE-T as a structured decision-support form; ties to risk-status Observation.',
-  'TL-024': 'Built. Next: longitudinal SSF vital tracking via repeated Observations with consistent LOINC codes.',
-  'TL-007': 'Built. Next: CarePlan transformation formalized as a defined PlanDefinition.action.transform.',
-  'TL-008': 'Planned. Need: Means counseling Questionnaire + Procedure resource generation per CALM model.',
-  'TL-021': 'Built. Next: surface stabilization activities as discrete CarePlan.activity entries with codes.',
-  'TL-013': 'Planned. Need: Now Matters Now integration (external resource library) plus CarePlan link-out.',
-  'TL-015': 'Future. CRP requires licensure and a video-mediated workflow; defer until partner request.',
-  'TL-016': 'Future. CALM training assets needed; provider-side workflow rather than patient-facing form.',
-  'TL-009': 'Planned. Need: Transition Questionnaire + ServiceRequest/Task resources for inter-setting handoff.',
-  'TL-023': 'Planned. Need: CAMS outcome form; outputs an Observation describing pathway resolution.',
-  'TL-017': 'Future. Rapid-referral logic depends on having receiving-system FHIR endpoints; defer.',
-  'TL-010': 'Planned. Need: Caring Contacts Questionnaire + scheduled Task resources for 7/30-day follow-up.',
-  'TL-012': 'Planned. Need: ED-SAFE telephone-follow-up workflow modeled as CommunicationRequest + Communication resources.',
-  'TL-018': 'Future. Post-visit survey instrument; lower priority than active-risk tooling.',
-  'TL-022': 'Built. Next: link CAMS interim sessions to the parent CAMS Encounter and update active-episode state.',
+interface RoadmapSnapshot {
+  fetchedAt: string
+  repo: string
+  issues: RoadmapIssue[]
+  error?: string
 }
 
-function planForTool(tool: Tool): string {
-  return PLANS[tool.id] ?? 'Not yet scoped.'
+const SNAPSHOT = roadmapSnapshot as RoadmapSnapshot
+const REPO_URL = `https://github.com/${SNAPSHOT.repo}`
+
+type ToolBuildStatus = 'built' | 'planned' | 'future'
+
+interface ToolRow {
+  tool: Tool
+  status: ToolBuildStatus
+  epicIssue?: RoadmapIssue
+}
+
+function buildToolRow(tool: Tool, issuesByToolId: Map<string, RoadmapIssue[]>): ToolRow {
+  const issues = issuesByToolId.get(tool.id) ?? []
+  const epic = issues.find((i) => i.type === 'epic') ?? issues[0]
+  if (epic) {
+    return {
+      tool,
+      epicIssue: epic,
+      status: (epic.status ?? 'planned') as ToolBuildStatus,
+    }
+  }
+  // No tracking epic yet — page renders an "open tracking issue" CTA via newIssueUrl.
+  // launch-action heuristic gives a best-guess status until the epic exists.
+  return {
+    tool,
+    status: tool.launchActions.length > 0 ? 'built' : 'planned',
+  }
+}
+
+function newIssueUrl(tool: Tool): string {
+  const params = new URLSearchParams({
+    title: `[${tool.id}] ${tool.shortName ?? tool.name}`,
+    labels: `type:epic,tool:${tool.id},stage:${tool.stageId}`,
+    body: `Tracking epic for **${tool.name}**.\n\n## Next\n\n(describe the next step here)\n`,
+  })
+  return `${REPO_URL}/issues/new?${params.toString()}`
 }
 
 export function Roadmap() {
-  const { groupedTools, built, planned } = useMemo(() => {
-    const builtCount = TOOLS.filter(t => buildStatusOf(t) === 'built').length
+  const { groupedRows, builtCount, plannedCount, futureCount, priorityEpics, doneIssues } = useMemo(() => {
+    // Index issues by tool ID for O(1) lookup.
+    const byTool = new Map<string, RoadmapIssue[]>()
+    for (const issue of SNAPSHOT.issues) {
+      if (!issue.toolId) continue
+      const list = byTool.get(issue.toolId) ?? []
+      list.push(issue)
+      byTool.set(issue.toolId, list)
+    }
+
+    const rows = TOOLS.map((t) => buildToolRow(t, byTool))
+    const rowById = new Map(rows.map((r) => [r.tool.id, r]))
+    const grouped = groupToolsByStage().map(({ stage, tools }) => ({
+      stage,
+      rows: tools.map((t) => rowById.get(t.id)).filter((r): r is ToolRow => !!r),
+    }))
+
+    const counts = rows.reduce(
+      (acc, r) => {
+        acc[r.status] += 1
+        return acc
+      },
+      { built: 0, planned: 0, future: 0 } as Record<ToolBuildStatus, number>,
+    )
+
+    const priority = SNAPSHOT.issues.filter((i) => i.priority && i.type === 'epic')
+    const done = SNAPSHOT.issues
+      .filter((i) => i.state === 'closed' && i.closedAt)
+      .sort((a, b) => (b.closedAt ?? '').localeCompare(a.closedAt ?? ''))
+      .slice(0, 10)
+
     return {
-      groupedTools: groupToolsByStage(),
-      built: builtCount,
-      planned: TOOLS.length - builtCount,
+      groupedRows: grouped,
+      builtCount: counts.built,
+      plannedCount: counts.planned,
+      futureCount: counts.future,
+      priorityEpics: priority,
+      doneIssues: done,
     }
   }, [])
+
+  const seedRequired = SNAPSHOT.issues.length === 0
+  const epicByPriority = (key: 'p1' | 'p2' | 'p3') =>
+    priorityEpics.find((i) => i.priority === key)
 
   return (
     <div className="page-placeholder">
@@ -58,6 +130,25 @@ export function Roadmap() {
         Three strategic priorities, taken in order. Each one is a precondition for the next:
         you can't put codes on tools that aren't structured, and you can't wire automations
         between tools whose data elements aren't standardized.
+      </p>
+      <p className="roadmap-source-note">
+        Tracking lives in{' '}
+        <a href={`${REPO_URL}/issues`} target="_blank" rel="noreferrer">
+          {SNAPSHOT.repo} issues
+        </a>
+        {seedRequired ? (
+          <>
+            {' '}— snapshot is empty. Run{' '}
+            <code>node scripts/seed-roadmap-issues.mjs</code> then{' '}
+            <code>node web/scripts/fetch-roadmap.mjs</code> to populate.
+          </>
+        ) : (
+          <>
+            {' '}— snapshot from{' '}
+            <time dateTime={SNAPSHOT.fetchedAt}>{new Date(SNAPSHOT.fetchedAt).toLocaleString()}</time>.
+            Refresh with <code>node web/scripts/fetch-roadmap.mjs</code>.
+          </>
+        )}
       </p>
 
       <section className="roadmap-section">
@@ -85,6 +176,7 @@ export function Roadmap() {
           The payoff: a configured implementation can be exported as a FHIR Bundle and handed
           to another EHR. SPiER stops modeling interop and starts demonstrating it.
         </p>
+        <PriorityEpicLink epic={epicByPriority('p1')} />
       </section>
 
       <section className="roadmap-section">
@@ -103,6 +195,7 @@ export function Roadmap() {
           Where no published LOINC exists (e.g. CAMS SSF measures), document the local code system
           clearly so a receiving system knows what to map.
         </p>
+        <PriorityEpicLink epic={epicByPriority('p2')} />
       </section>
 
       <section className="roadmap-section">
@@ -128,59 +221,91 @@ export function Roadmap() {
             automatically (already partially implemented; formalize as a defined transformation).
           </li>
         </ul>
-      </section>
-
-      <section className="roadmap-section">
-        <h3>In flight</h3>
-        <ul>
-          <li>Population View: a CoCM-style behavioral-health patient registry (prototype lives separately in <code>cocm_registry</code>)</li>
-        </ul>
+        <PriorityEpicLink epic={epicByPriority('p3')} />
       </section>
 
       <section className="roadmap-section">
         <h3>Tool build status</h3>
         <p>
           Every tool catalogued on the Pathway page is listed here with its current build state
-          and what's needed next. <strong>{built}</strong> of <strong>{TOOLS.length}</strong>{' '}
-          tools are launchable today; <strong>{planned}</strong> are planned.
+          and a link to its tracking epic. <strong>{builtCount}</strong> built,{' '}
+          <strong>{plannedCount}</strong> planned, <strong>{futureCount}</strong> future, of{' '}
+          <strong>{TOOLS.length}</strong> total.
         </p>
-        {groupedTools.map(({ stage, tools }) => (
+        {groupedRows.map(({ stage, rows }) => (
           <div key={stage.id} className="roadmap-stage-block">
             <h4 className="roadmap-stage-heading">{stage.title}</h4>
-            {tools.length === 0 && (
+            {rows.length === 0 && (
               <p className="roadmap-tool-empty">
                 No tools catalogued for this stage yet. Likely candidates: outcome reporting
                 packs, registry exports, and de-identified pathway-completion measures.
               </p>
             )}
             <ul className="roadmap-tool-list">
-              {tools.map(tool => {
-                const status = buildStatusOf(tool)
-                return (
-                  <li key={tool.id} className={`roadmap-tool roadmap-tool--${status}`}>
-                    <span className={`roadmap-tool-status roadmap-tool-status--${status}`}>
-                      {status === 'built' ? 'Built' : 'Planned'}
-                    </span>
-                    <div className="roadmap-tool-body">
-                      <div className="roadmap-tool-name">
-                        <strong>{tool.shortName ?? tool.name}</strong>
-                        <span className="roadmap-tool-id">{tool.id}</span>
-                        <span className={`roadmap-tool-inclusion roadmap-tool-inclusion--${tool.inclusionStatus}`}>
-                          {tool.inclusionStatus}
-                        </span>
-                      </div>
-                      <div className="roadmap-tool-plan">{planForTool(tool)}</div>
+              {rows.map((row) => (
+                <li key={row.tool.id} className={`roadmap-tool roadmap-tool--${row.status}`}>
+                  <span className={`roadmap-tool-status roadmap-tool-status--${row.status}`}>
+                    {row.status}
+                  </span>
+                  <div className="roadmap-tool-body">
+                    <div className="roadmap-tool-name">
+                      <strong>{row.tool.shortName ?? row.tool.name}</strong>
+                      <span className="roadmap-tool-id">{row.tool.id}</span>
+                      <span className={`roadmap-tool-inclusion roadmap-tool-inclusion--${row.tool.inclusionStatus}`}>
+                        {row.tool.inclusionStatus}
+                      </span>
+                      {row.epicIssue ? (
+                        <a
+                          className="roadmap-tool-issue-link"
+                          href={row.epicIssue.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          #{row.epicIssue.number}
+                        </a>
+                      ) : (
+                        <a
+                          className="roadmap-tool-issue-link roadmap-tool-issue-link--missing"
+                          href={newIssueUrl(row.tool)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          open tracking issue
+                        </a>
+                      )}
                     </div>
-                  </li>
-                )
-              })}
+                    <div className="roadmap-tool-plan">
+                      {row.epicIssue ? excerpt(row.epicIssue.bodyMd) : 'Not yet scoped — open a tracking issue.'}
+                    </div>
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         ))}
       </section>
 
+      {doneIssues.length > 0 && (
+        <section className="roadmap-section">
+          <h3>Recently completed</h3>
+          <ul>
+            {doneIssues.map((i) => (
+              <li key={i.number}>
+                <a href={i.url} target="_blank" rel="noreferrer">
+                  #{i.number} {i.title}
+                </a>
+                {i.closedAt && (
+                  <span className="roadmap-tool-id"> — {new Date(i.closedAt).toLocaleDateString()}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="roadmap-section">
-        <h3>Done</h3>
+        <h3>Foundational milestones</h3>
+        <p>The cross-cutting work that brought SPiER to its current state. Future milestones live in the issue tracker.</p>
         <ul>
           <li>FHIR Questionnaires for ASQ, PHQ-9, C-SSRS, SBQ-R, CAMS (Sections A/B, Stabilization, Therapeutic Worksheet), Stanley-Brown</li>
           <li>Unified Implementation Guide (Pathway, Data Dictionary, Adoption Rubric, Tool Configuration, Roadmap)</li>
@@ -193,4 +318,31 @@ export function Roadmap() {
       </section>
     </div>
   )
+}
+
+function PriorityEpicLink({ epic }: { epic?: RoadmapIssue }) {
+  if (!epic) return null
+  return (
+    <p className="roadmap-priority-link">
+      Tracking:{' '}
+      <a href={epic.url} target="_blank" rel="noreferrer">
+        #{epic.number} {epic.title}
+      </a>
+    </p>
+  )
+}
+
+// Show the first ~280 chars of the issue body so the page stays scannable.
+// The full body is one click away via the issue link.
+function excerpt(md: string, max = 280): string {
+  if (!md) return 'No description.'
+  const stripped = md
+    .replace(/^#{1,6}\s+/gm, '')               // headings
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')   // links → link text
+    .replace(/^-{3,}$/gm, '')                  // horizontal rules
+    .replace(/[`*_>]/g, '')                    // markdown noise (incl. backticks)
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (stripped.length <= max) return stripped
+  return stripped.slice(0, max).replace(/\s\S*$/, '') + '…'
 }
