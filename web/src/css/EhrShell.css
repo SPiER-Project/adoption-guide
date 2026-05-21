@@ -4,22 +4,13 @@
 .ehr-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: auto auto 1fr auto;
-  grid-template-areas:
-    "header  header"
-    "banner  banner"
-    "sidebar content"
-    "footer  footer";
-  min-height: 100vh;
-  background: var(--surface-page);
-}
-
-.ehr-shell--no-banner {
   grid-template-rows: auto 1fr auto;
   grid-template-areas:
     "header  header"
     "sidebar content"
     "footer  footer";
+  min-height: 100vh;
+  background: var(--surface-page);
 }
 
 /* ===========================
@@ -104,8 +95,15 @@
    =========================== */
 .ehr-content {
   grid-area: content;
-  padding: 1.5rem 2rem 2rem;
   overflow-y: auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ehr-content-body {
+  padding: 1.5rem 2rem 2rem;
+  flex: 1;
   min-width: 0;
 }
 
@@ -142,14 +140,6 @@
     grid-template-columns: 1fr;
     grid-template-areas:
       "header"
-      "banner"
-      "content"
-      "footer";
-  }
-
-  .ehr-shell--no-banner {
-    grid-template-areas:
-      "header"
       "content"
       "footer";
   }
@@ -158,7 +148,7 @@
     display: block;
   }
 
-  .ehr-content {
+  .ehr-content-body {
     padding: var(--space-4);
   }
 

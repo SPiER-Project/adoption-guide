@@ -2,7 +2,6 @@
   background: #edf2f7;
   border-bottom: 1px solid var(--border-strong);
   padding: 0.5rem 1.5rem;
-  grid-area: banner;
 }
 
 .patient-banner-content {

@@ -10,6 +10,13 @@ interface SidebarProps {
 interface LensChild {
   to: string
   label: string
+  /**
+   * When set, this child represents a section anchor on the parent route.
+   * Active state is computed by matching against the current URL fragment
+   * rather than the React Router pathname, since multiple anchor children
+   * share the same path.
+   */
+  anchor?: string
 }
 
 interface Lens {
@@ -51,6 +58,12 @@ const LENSES: Lens[] = [
     label: 'Patient View',
     icon: '\u{1F464}', // bust
     matchPrefix: '/patient',
+    children: [
+      { to: '/patient/chart#recommendations', label: 'Recommendations', anchor: 'recommendations' },
+      { to: '/patient/chart#activity',        label: 'Activity',        anchor: 'activity' },
+      { to: '/patient/chart#encounters',      label: 'Encounters',      anchor: 'encounters' },
+      { to: '/patient/chart#documents',       label: 'Documents',       anchor: 'documents' },
+    ],
   },
 ]
 
@@ -61,6 +74,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const isLensActive = (lens: Lens) => {
     if (lens.to === '/') return location.pathname === '/'
     return location.pathname.startsWith(lens.matchPrefix)
+  }
+
+  // Anchor children share a pathname, so NavLink's default isActive would
+  // highlight all of them. Match both pathname and hash explicitly. React
+  // Router's HashRouter exposes the section anchor (the part after the
+  // second '#' in `#/patient/chart#activity`) as `location.hash`.
+  const isChildActive = (child: LensChild) => {
+    if (!child.anchor) return false
+    const [childPath] = child.to.split('#')
+    return location.pathname === childPath && location.hash === `#${child.anchor}`
   }
 
   return (
@@ -85,18 +108,42 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <span className="sidebar-icon">{lens.icon}</span>
                   {lens.label}
                 </NavLink>
-                {expanded && lens.children!.map(child => (
-                  <NavLink
-                    key={child.to}
-                    to={child.to}
-                    className={({ isActive }) =>
-                      `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
-                    }
-                    onClick={onClose}
-                  >
-                    {child.label}
-                  </NavLink>
-                ))}
+                {expanded && lens.children!.map(child => {
+                  // Anchor children combine a route path with a section
+                  // anchor (`/patient/chart#recommendations`). React Router's
+                  // <Link>/<NavLink> strip the second '#' since they navigate
+                  // via the History API, not by mutating window.location.hash.
+                  // Use a plain anchor with the full HashRouter URL form
+                  // (`#/patient/chart#recommendations`) so a single hash
+                  // mutation updates both the route and the section anchor —
+                  // React Router observes the resulting hashchange and
+                  // surfaces the section anchor as `location.hash`.
+                  if (child.anchor) {
+                    const active = isChildActive(child)
+                    return (
+                      <a
+                        key={child.to}
+                        href={`#${child.to}`}
+                        className={`sidebar-link sidebar-link--child ${active ? 'active' : ''}`}
+                        onClick={onClose}
+                      >
+                        {child.label}
+                      </a>
+                    )
+                  }
+                  return (
+                    <NavLink
+                      key={child.to}
+                      to={child.to}
+                      className={({ isActive }) =>
+                        `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
+                      }
+                      onClick={onClose}
+                    >
+                      {child.label}
+                    </NavLink>
+                  )
+                })}
               </div>
             )
           })}
