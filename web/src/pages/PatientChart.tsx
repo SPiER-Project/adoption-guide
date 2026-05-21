@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
@@ -88,13 +88,6 @@ const STAGE_BLURB: Record<string, string> = {
 // Keeps date-driven memos deterministic and pushes undated rows to the bottom
 // when sorting newest-first.
 const UNDATED_SENTINEL = '1970-01-01T00:00:00.000Z'
-
-function readSectionAnchor(): string {
-  const raw = window.location.hash
-  const stripped = raw.startsWith('#') ? raw.slice(1) : raw
-  const second = stripped.indexOf('#')
-  return second >= 0 ? stripped.slice(second + 1) : ''
-}
 
 function scrollToAnchor(anchor: string) {
   if (!anchor) return
@@ -514,6 +507,7 @@ function PatientDocuments({
 export function PatientChart() {
   const { carePlans, responses, riskAlerts, observations, loadDemoScenario, clearDemoData } = usePatient()
   const { isToolEnabled } = useToolConfig()
+  const location = useLocation()
 
   const hasData = responses.length > 0 || carePlans.length > 0
   const { statuses, activeStageId } = useMemo(
@@ -532,23 +526,22 @@ export function PatientChart() {
   }, [])
 
   // Disable the browser's automatic scroll restoration so our anchor scroll
-  // isn't immediately overridden when the page mounts with a hash. Use
-  // useLayoutEffect so the scroll runs synchronously after DOM mutation but
-  // before paint, removing the need for a magic-number setTimeout.
+  // isn't immediately overridden when the page mounts with a hash.
   useLayoutEffect(() => {
     const prev = history.scrollRestoration
     if (prev !== undefined) history.scrollRestoration = 'manual'
-    scrollToAnchor(readSectionAnchor())
     return () => {
       if (prev !== undefined) history.scrollRestoration = prev
     }
   }, [])
 
-  useEffect(() => {
-    const onHashChange = () => scrollToAnchor(readSectionAnchor())
-    window.addEventListener('hashchange', onHashChange)
-    return () => window.removeEventListener('hashchange', onHashChange)
-  }, [])
+  // Scroll on initial mount and whenever the router-tracked hash changes
+  // (sidebar Link clicks, browser back/forward). useLayoutEffect runs
+  // synchronously after DOM mutation but before paint.
+  useLayoutEffect(() => {
+    const anchor = location.hash.startsWith('#') ? location.hash.slice(1) : location.hash
+    scrollToAnchor(anchor)
+  }, [location.hash])
 
   const activeAlerts = riskAlerts.filter(a => a.level !== 'none')
   const highestLevel = activeAlerts.length > 0
