@@ -9,6 +9,19 @@ import type { RiskAlert } from '../lib/observationMappers'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 
+// Minimal FHIR R4 shape used for resources passing through this context. We
+// don't pull in @types/fhir to keep the dep surface small; downstream code
+// (observationMappers, carePlanMappers) still treats payloads as loose JSON.
+interface FhirResource {
+  resourceType: string
+  id?: string
+  [k: string]: unknown
+}
+type QuestionnaireResponseResource = FhirResource & { resourceType: 'QuestionnaireResponse' }
+type ObservationResource = FhirResource & { resourceType: 'Observation' }
+type CarePlanResource = FhirResource & { resourceType: 'CarePlan' }
+type PatientResource = FhirResource & { resourceType: 'Patient' }
+
 type PopulationRiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none'
 
 interface PopulationPatient {
@@ -35,16 +48,13 @@ interface StoredResponse {
   id: string
   questionnaireName: string
   completedAt: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resource: any
+  resource: QuestionnaireResponseResource
 }
 
 interface PatientSlice {
   responses: StoredResponse[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  observations: any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  carePlans: any[]
+  observations: ObservationResource[]
+  carePlans: CarePlanResource[]
   riskAlerts: RiskAlert[]
 }
 
@@ -69,10 +79,8 @@ function migrateLegacyStorage(): PatientStore | null {
     }
   }
   const responses = read<StoredResponse[]>('spier-demo-responses') ?? []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const observations = read<any[]>('spier-demo-observations') ?? []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const carePlans = read<any[]>('spier-demo-careplans') ?? []
+  const observations = read<ObservationResource[]>('spier-demo-observations') ?? []
+  const carePlans = read<CarePlanResource[]>('spier-demo-careplans') ?? []
   const riskAlerts = read<RiskAlert[]>('spier-demo-risk-alerts') ?? []
   if (responses.length || observations.length || carePlans.length || riskAlerts.length) {
     return { 'patient-001': { responses, observations, carePlans, riskAlerts } }
@@ -117,23 +125,18 @@ function isAllowedPatientId(id: string): boolean {
 }
 
 interface PatientContextType {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  patient: any
+  patient: PatientResource
   patientDisplay: PatientDisplay
   isSmartConnected: boolean
   /** Null when no patient is selected (blank "play with forms" state). */
   activePatientId: string | null
   populationPatient: PopulationPatient | null
   populationRiskLevel: PopulationRiskLevel | null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  carePlans: any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  addCarePlan: (carePlan: any) => void
+  carePlans: CarePlanResource[]
+  addCarePlan: (carePlan: CarePlanResource) => void
   responses: StoredResponse[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  addResponse: (name: string, resource: any) => void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  observations: any[]
+  addResponse: (name: string, resource: QuestionnaireResponseResource) => void
+  observations: ObservationResource[]
   riskAlerts: RiskAlert[]
 }
 
@@ -244,8 +247,10 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   const populationPatient =
     activePatientId !== null ? POPULATION_BY_ID.get(activePatientId) ?? null : null
 
-  const activePatient = useMemo(() => {
-    if (isSmartConnected) return smartPatient
+  const activePatient = useMemo<PatientResource>(() => {
+    // fhirclient returns a FHIR R4 Patient; the local SmartContext typing is a
+    // looser subset, so coerce at the boundary.
+    if (isSmartConnected && smartPatient) return smartPatient as unknown as PatientResource
     if (populationPatient) return populationToFhir(populationPatient)
     return BLANK_PATIENT
   }, [isSmartConnected, smartPatient, populationPatient])
@@ -256,8 +261,7 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   )
 
   const addCarePlan = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (carePlan: any) => {
+    (carePlan: CarePlanResource) => {
       updateActiveSlice(prev => ({
         ...prev,
         carePlans: [...prev.carePlans, { ...carePlan, _savedAt: new Date().toISOString() }],
@@ -267,10 +271,9 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   )
 
   const addResponse = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (questionnaireName: string, resource: any) => {
+    (questionnaireName: string, resource: QuestionnaireResponseResource) => {
       const entry: StoredResponse = {
-        id: `response-${Date.now()}`,
+        id: `response-${crypto.randomUUID()}`,
         questionnaireName,
         completedAt: new Date().toISOString(),
         resource,

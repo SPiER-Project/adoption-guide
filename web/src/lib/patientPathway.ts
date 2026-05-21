@@ -48,13 +48,13 @@ export interface CarePlanLike {
 }
 
 export function stageForCarePlan(plan: CarePlanLike): string | undefined {
-  for (const cat of plan.category ?? []) {
-    for (const coding of cat.coding ?? []) {
-      if (coding.system === PATHWAY_STAGE_SYSTEM && coding.code && STAGE_IDS.has(coding.code)) {
-        return coding.code
-      }
-    }
-  }
+  const stageFromCategory = (plan.category ?? [])
+    .flatMap((cat) => cat.coding ?? [])
+    .find(
+      (coding) =>
+        coding.system === PATHWAY_STAGE_SYSTEM && !!coding.code && STAGE_IDS.has(coding.code),
+    )?.code
+  if (stageFromCategory) return stageFromCategory
   if (plan.id) {
     const match = CAREPLAN_ID_PATTERNS.find((p) => p.pattern.test(plan.id!))
     if (match) return match.stageId
