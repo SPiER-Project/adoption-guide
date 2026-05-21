@@ -34,3 +34,18 @@ See [docs/README.md](docs/README.md) for a guide to the documentation.
 
 ## Contributing
 This repository contains the canonical source for SPiER's technical and clinical definitions.
+
+## Roadmap & issue tracking
+
+Tool-level and cross-cutting work is tracked in [GitHub Issues](https://github.com/bbthorson/SPiER/issues). The Roadmap page on the site reads from a committed snapshot at `web/src/data/roadmap.generated.json`.
+
+Workflow:
+
+- One-time seed of the label taxonomy + initial epics: `node scripts/seed-roadmap-issues.mjs` (re-runnable; idempotent).
+- Refresh the site's snapshot after editing issues: `node web/scripts/fetch-roadmap.mjs`. The result is committed.
+
+Label conventions: `tool:TL-XXX`, `priority:p1|p2|p3`, `status:built|planned|future`, `type:epic|task`, `stage:<slug>`, `area:<slug>`.
+
+## Authoring new assessments
+
+The `.claude/skills/assessment-to-ig/` skill walks Claude through converting a validated clinical assessment into the full SPiER artifact set (Questionnaire JSON + FSH + IG page + catalog wiring). The `fhir-questionnaire-quality` skill is the review counterpart.

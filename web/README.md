@@ -1,6 +1,24 @@
-# React + TypeScript + Vite
+# SPiER web app
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite.
+
+## Scripts
+
+- `npm run dev` — local dev server. `predev` runs `copy-fhir` first.
+- `npm run build` — production build. `prebuild` runs `copy-fhir`.
+- `npm run copy-fhir` — compile FSH with sushi, copy generated JSON into `src/data/fhir/`, regenerate `src/data/catalog/care-plan-profiles.generated.ts`.
+- `npm run fetch-roadmap` — refresh `src/data/roadmap.generated.json` from GitHub Issues. Optional `GITHUB_TOKEN` env var for higher rate limit. The snapshot is committed so the build works offline.
+- `npm run lint` — ESLint.
+
+## Roadmap page data flow
+
+The Roadmap page reads `src/data/roadmap.generated.json`, which is produced by `scripts/fetch-roadmap.mjs`. Source of truth lives in GitHub Issues — see the root README for label conventions. To seed the issue tracker from scratch, run `node ../scripts/seed-roadmap-issues.mjs` from the repo root.
+
+---
+
+Vite scaffold notes below.
+
+## Vite
 
 Currently, two official plugins are available:
 
