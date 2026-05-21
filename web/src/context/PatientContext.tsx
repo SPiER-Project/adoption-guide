@@ -96,10 +96,20 @@ function populationToFhir(p: PopulationPatient) {
   }
 }
 
-// URL like /patient/chart/patient-005 → 'patient-005'. Returns null for any other path.
+// URL like /patient/chart/patient-005 → 'patient-005'. Returns null for any other
+// path. Also returns null for IDs that aren't in the population dataset — this
+// is both a defense against crafted URLs being used as store keys (e.g.
+// /patient/chart/__proto__) and a guard against typos silently creating empty
+// patient slices.
 function deriveActiveIdFromPath(pathname: string): string | null {
   const m = pathname.match(/^\/patient\/chart\/([^/]+)\/?$/)
-  return m ? decodeURIComponent(m[1]) : null
+  if (!m) return null
+  const id = decodeURIComponent(m[1])
+  return POPULATION_BY_ID.has(id) ? id : null
+}
+
+function isAllowedPatientId(id: string): boolean {
+  return POPULATION_BY_ID.has(id)
 }
 
 interface PatientContextType {
@@ -130,10 +140,13 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     DEFAULT_PATIENT_ID,
   )
 
-  // URL is authoritative when it carries an ID; otherwise we use the last stored
-  // active patient so non-chart routes (e.g. /patient/assessments/...) stay scoped.
+  // URL is authoritative when it carries a valid ID; otherwise we use the last
+  // stored active patient so non-chart routes (e.g. /patient/assessments/...)
+  // stay scoped. Stored ID is also validated in case localStorage is stale or
+  // tampered with.
   const urlPatientId = deriveActiveIdFromPath(location.pathname)
-  const activePatientId = urlPatientId ?? storedActiveId
+  const safeStoredId = isAllowedPatientId(storedActiveId) ? storedActiveId : DEFAULT_PATIENT_ID
+  const activePatientId = urlPatientId ?? safeStoredId
 
   useEffect(() => {
     if (urlPatientId && urlPatientId !== storedActiveId) {
@@ -141,46 +154,38 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     }
   }, [urlPatientId, storedActiveId, setStoredActiveId])
 
-  // Patient-scoped chart store. Initializer runs once and handles legacy migration.
-  const [store, setStoreInternal] = useState<PatientStore>(() => {
+  // Patient-scoped chart store. Initializer reads existing data or runs the
+  // one-time migration from legacy single-patient keys. Per-update writes go
+  // through a separate useEffect below so the setState updater stays pure.
+  const [store, setStore] = useState<PatientStore>(() => {
     try {
       const raw = window.localStorage.getItem(STORE_KEY)
       if (raw) return JSON.parse(raw) as PatientStore
     } catch {
       // fall through to migration
     }
-    const migrated = migrateLegacyStorage()
-    if (migrated) {
-      try {
-        window.localStorage.setItem(STORE_KEY, JSON.stringify(migrated))
-      } catch {
-        // ignore
-      }
-      return migrated
-    }
-    return {}
+    return migrateLegacyStorage() ?? {}
   })
 
-  const setStore = useCallback((updater: (prev: PatientStore) => PatientStore) => {
-    setStoreInternal(prev => {
-      const next = updater(prev)
-      try {
-        window.localStorage.setItem(STORE_KEY, JSON.stringify(next))
-      } catch {
-        // ignore
-      }
-      return next
-    })
-  }, [])
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(store))
+    } catch {
+      // ignore
+    }
+  }, [store])
 
   const updateSlice = useCallback(
     (patientId: string, updater: (prev: PatientSlice) => PatientSlice) => {
+      // Defense in depth — deriveActiveIdFromPath already gates URL input, but
+      // direct callers (loadDemoScenario etc.) could still be passed a bad ID.
+      if (!isAllowedPatientId(patientId)) return
       setStore(prev => ({
         ...prev,
         [patientId]: updater(prev[patientId] ?? EMPTY_SLICE),
       }))
     },
-    [setStore],
+    [],
   )
 
   const slice = store[activePatientId] ?? EMPTY_SLICE
