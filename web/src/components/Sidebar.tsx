@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
@@ -68,46 +67,23 @@ const LENSES: Lens[] = [
   },
 ]
 
-/**
- * Reads the section anchor from the URL. HashRouter uses the first '#' for
- * routing (e.g. '#/patient/chart'); the section anchor is anything after a
- * second '#'.
- */
-function readSectionAnchor(): string {
-  const raw = window.location.hash
-  const stripped = raw.startsWith('#') ? raw.slice(1) : raw
-  const second = stripped.indexOf('#')
-  return second >= 0 ? stripped.slice(second + 1) : ''
-}
-
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { clearDemoData, loadDemoScenario } = usePatient()
   const location = useLocation()
-
-  // Track the current section anchor so anchor children can show active state.
-  // React Router only updates on path changes, so we also subscribe to
-  // hashchange (fires when only the section fragment changes).
-  const [sectionAnchor, setSectionAnchor] = useState<string>(() => readSectionAnchor())
-  useEffect(() => {
-    const update = () => setSectionAnchor(readSectionAnchor())
-    update()
-    window.addEventListener('hashchange', update)
-    return () => window.removeEventListener('hashchange', update)
-  }, [location.pathname])
 
   const isLensActive = (lens: Lens) => {
     if (lens.to === '/') return location.pathname === '/'
     return location.pathname.startsWith(lens.matchPrefix)
   }
 
-  const isChildActive = (lens: Lens, child: LensChild) => {
-    if (child.anchor) {
-      // Anchor child: parent route must match, and the URL fragment must
-      // equal this child's anchor.
-      return isLensActive(lens) && sectionAnchor === child.anchor
-    }
-    // Regular path child: NavLink's `isActive` handles it elsewhere.
-    return false
+  // Anchor children share a pathname, so NavLink's default isActive would
+  // highlight all of them. Match both pathname and hash explicitly. React
+  // Router's HashRouter exposes the section anchor (the part after the
+  // second '#' in `#/patient/chart#activity`) as `location.hash`.
+  const isChildActive = (child: LensChild) => {
+    if (!child.anchor) return false
+    const [childPath] = child.to.split('#')
+    return location.pathname === childPath && location.hash === `#${child.anchor}`
   }
 
   return (
@@ -139,10 +115,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   // via the History API, not by mutating window.location.hash.
                   // Use a plain anchor with the full HashRouter URL form
                   // (`#/patient/chart#recommendations`) so a single hash
-                  // change updates both the route and the section anchor —
-                  // and our hashchange listener picks it up for active state.
+                  // mutation updates both the route and the section anchor —
+                  // React Router observes the resulting hashchange and
+                  // surfaces the section anchor as `location.hash`.
                   if (child.anchor) {
-                    const active = isChildActive(lens, child)
+                    const active = isChildActive(child)
                     return (
                       <a
                         key={child.to}
