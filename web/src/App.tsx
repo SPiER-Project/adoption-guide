@@ -88,6 +88,7 @@ function AppRoutes() {
         <Route path="/patient">
           <Route index element={<Navigate to="chart" replace />} />
           <Route path="chart" element={<PatientChart />} />
+          <Route path="chart/:patientId" element={<PatientChart />} />
           <Route path="assessments" element={<Navigate to="/patient/chart" replace />} />
           <Route path="assessments/phq-9" element={
             <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />
