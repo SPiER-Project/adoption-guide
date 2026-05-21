@@ -21,18 +21,45 @@ export function stageForResponse(qr: QuestionnaireResponseLike | undefined): str
 }
 
 /**
- * CarePlan resources are identified by id strings like 'stanley-brown-...' or
- * 'cams-stabilization-...'. Map them to the stage they belong to.
+ * Map a CarePlan to its pathway stage.
+ *
+ * Preferred (FHIR-clean): a `category.coding` entry that points at the SPiER
+ * pathway-stage CodeSystem. Used for stages 4-7 that don't have dedicated tools
+ * yet, so a synthetic CarePlan can mark a stage complete without a matching
+ * QuestionnaireResponse.
+ *
+ * Fallback (legacy): regex on the plan id for tool-emitted CarePlans whose
+ * stage is implicit in the id convention (Stanley-Brown, CAMS Stabilization,
+ * CAMS Therapeutic).
  */
+const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
+
 const CAREPLAN_ID_PATTERNS: { pattern: RegExp; stageId: string }[] = [
   { pattern: /stanley-brown/i, stageId: 'document-safety-actions' },
   { pattern: /cams-stabilization/i, stageId: 'document-safety-actions' },
   { pattern: /cams-therapeutic/i, stageId: 'set-risk-status' },
 ]
 
-export function stageForCarePlan(plan: { id?: string }): string | undefined {
-  if (!plan.id) return undefined
-  return CAREPLAN_ID_PATTERNS.find((p) => p.pattern.test(plan.id!))?.stageId
+const STAGE_IDS = new Set(STAGES.map((s) => s.id))
+
+export interface CarePlanLike {
+  id?: string
+  category?: { coding?: { system?: string; code?: string }[] }[]
+}
+
+export function stageForCarePlan(plan: CarePlanLike): string | undefined {
+  for (const cat of plan.category ?? []) {
+    for (const coding of cat.coding ?? []) {
+      if (coding.system === PATHWAY_STAGE_SYSTEM && coding.code && STAGE_IDS.has(coding.code)) {
+        return coding.code
+      }
+    }
+  }
+  if (plan.id) {
+    const match = CAREPLAN_ID_PATTERNS.find((p) => p.pattern.test(plan.id!))
+    if (match) return match.stageId
+  }
+  return undefined
 }
 
 interface DerivedPathway {
@@ -47,7 +74,7 @@ export interface StoredResponseLike {
 
 export function derivePathwayStatus(
   responses: StoredResponseLike[],
-  carePlans: { id?: string }[],
+  carePlans: CarePlanLike[],
 ): DerivedPathway {
   const directlyTouched = new Set<string>()
   for (const r of responses) {
@@ -89,12 +116,12 @@ export function derivePathwayStatus(
 export interface StageArtifacts {
   stageId: string
   responses: StoredResponseLike[]
-  carePlans: { id?: string }[]
+  carePlans: CarePlanLike[]
 }
 
 export function groupArtifactsByStage(
   responses: StoredResponseLike[],
-  carePlans: { id?: string }[],
+  carePlans: CarePlanLike[],
 ): StageArtifacts[] {
   return STAGES.map((stage) => ({
     stageId: stage.id,

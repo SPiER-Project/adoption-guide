@@ -1,5 +1,4 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
 
 interface SidebarProps {
@@ -54,7 +53,10 @@ const LENSES: Lens[] = [
     matchPrefix: '/population',
   },
   {
-    to: '/patient/chart',
+    // ?new=1 explicitly clears the last-viewed patient so the Patient tab
+    // always opens the blank "play with forms" state. Bare /patient/chart
+    // (assessment-submit redirects) preserves the active patient.
+    to: '/patient/chart?new=1',
     label: 'Patient View',
     icon: '\u{1F464}', // bust
     matchPrefix: '/patient',
@@ -68,7 +70,6 @@ const LENSES: Lens[] = [
 ]
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { clearDemoData, loadDemoScenario } = usePatient()
   const location = useLocation()
 
   const isLensActive = (lens: Lens) => {
@@ -150,12 +151,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="sidebar-load-btn" onClick={() => { loadDemoScenario(); onClose() }}>
-            Load Demo Scenario
-          </button>
-          <button className="sidebar-clear-btn" onClick={() => { clearDemoData(); onClose() }}>
-            Clear Demo Data
-          </button>
           <span className="sidebar-version">SPiER v0.1.0</span>
         </div>
       </aside>

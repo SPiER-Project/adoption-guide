@@ -1,0 +1,18 @@
+{
+  "responses": [],
+  "observations": [],
+  "carePlans": [
+    {
+      "resourceType": "CarePlan",
+      "id": "p009-follow-up",
+      "status": "completed",
+      "intent": "plan",
+      "category": [{ "coding": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "track-follow-up", "display": "Track Follow-Up" }] }],
+      "subject": { "reference": "Patient/patient-009" },
+      "_savedAt": "2026-05-07T14:00:00Z",
+      "title": "Caring contacts series complete",
+      "note": [{ "text": "7-day and 30-day caring contacts complete. Patient enrolled in active CAMS episode." }]
+    }
+  ],
+  "riskAlerts": []
+}

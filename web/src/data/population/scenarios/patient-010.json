@@ -1,0 +1,18 @@
+{
+  "responses": [],
+  "observations": [],
+  "carePlans": [
+    {
+      "resourceType": "CarePlan",
+      "id": "p010-active-risk-episode",
+      "status": "completed",
+      "intent": "plan",
+      "category": [{ "coding": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "manage-active-risk", "display": "Manage Active Risk" }] }],
+      "subject": { "reference": "Patient/patient-010" },
+      "_savedAt": "2026-04-02T09:00:00Z",
+      "title": "Active risk episode — resolution documented",
+      "note": [{ "text": "CAMS episode resolved (3 consecutive sessions meeting criteria). Eligible for Q2 zero-suicide outcome report." }]
+    }
+  ],
+  "riskAlerts": []
+}

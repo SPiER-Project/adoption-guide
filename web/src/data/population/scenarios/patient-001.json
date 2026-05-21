@@ -1,0 +1,204 @@
+{
+  "responses": [
+    {
+      "id": "p001-phq9",
+      "questionnaireName": "PHQ-9",
+      "completedAt": "2026-03-13T10:15:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
+        "item": [
+          { "linkId": "q1", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6571-9", "display": "Nearly every day" } }] },
+          { "linkId": "q2", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] },
+          { "linkId": "q3", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6571-9", "display": "Nearly every day" } }] },
+          { "linkId": "q4", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] },
+          { "linkId": "q5", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
+          { "linkId": "q6", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] },
+          { "linkId": "q7", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
+          { "linkId": "q8", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
+          { "linkId": "q9", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] }
+        ]
+      }
+    },
+    {
+      "id": "p001-asq",
+      "questionnaireName": "ASQ Screening",
+      "completedAt": "2026-03-13T10:35:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "item": [
+          {
+            "linkId": "screening-questions",
+            "item": [
+              { "linkId": "q1", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }] },
+              { "linkId": "q2", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }] },
+              { "linkId": "q3", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] },
+              { "linkId": "q4", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] }
+            ]
+          },
+          {
+            "linkId": "acuity-section",
+            "item": [
+              { "linkId": "q5", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "p001-cams-a",
+      "questionnaireName": "CAMS SSF-5: Section A",
+      "completedAt": "2026-03-14T11:00:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
+        "item": [
+          {
+            "linkId": "core-ratings",
+            "item": [
+              { "linkId": "1-score", "answer": [{ "valueInteger": 4 }] },
+              { "linkId": "1-text", "answer": [{ "valueString": "Constant ache in my chest, feeling of dread that won't go away" }] },
+              { "linkId": "2-score", "answer": [{ "valueInteger": 4 }] },
+              { "linkId": "2-text", "answer": [{ "valueString": "Work pressure, relationship problems, financial strain" }] },
+              { "linkId": "3-score", "answer": [{ "valueInteger": 3 }] },
+              { "linkId": "3-text", "answer": [{ "valueString": "Can't sit still, pacing at night" }] },
+              { "linkId": "4-score", "answer": [{ "valueInteger": 4 }] },
+              { "linkId": "4-text", "answer": [{ "valueString": "Nothing will ever get better" }] },
+              { "linkId": "5-score", "answer": [{ "valueInteger": 3 }] },
+              { "linkId": "5-text", "answer": [{ "valueString": "I'm a burden to everyone around me" }] },
+              { "linkId": "6-score", "answer": [{ "valueInteger": 3 }] },
+              { "linkId": "6-text", "answer": [{ "valueString": "Thoughts come and go but I don't have a plan" }] }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "p001-sb",
+      "questionnaireName": "Stanley-Brown Safety Plan",
+      "completedAt": "2026-03-15T14:00:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan"
+      }
+    }
+  ],
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "id": "p001-phq9-total",
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "PHQ-9 total score" }] },
+      "subject": { "reference": "Patient/patient-001" },
+      "effectiveDateTime": "2026-03-13T10:15:00Z",
+      "valueInteger": 18,
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "HH", "display": "Moderately Severe depression (score 18/27)" }] }]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p001-phq9-item9",
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts of death/self-harm" }] },
+      "subject": { "reference": "Patient/patient-001" },
+      "effectiveDateTime": "2026-03-13T10:15:00Z",
+      "valueInteger": 2,
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "A", "display": "Positive — suicide risk screening indicated" }] }]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p001-asq-result",
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "93243-5", "display": "ASQ screening result" }] },
+      "subject": { "reference": "Patient/patient-001" },
+      "effectiveDateTime": "2026-03-13T10:35:00Z",
+      "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/asq-screening-result", "code": "non-acute-positive", "display": "Non-Acute Positive Screen" }] }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p001-cams-pain",
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "CAMS SSF: Psychological Pain" }] },
+      "subject": { "reference": "Patient/patient-001" },
+      "effectiveDateTime": "2026-03-14T11:00:00Z",
+      "valueInteger": 4,
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "Elevated (4/5)" }] }]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p001-cams-hopelessness",
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "hopelessness", "display": "CAMS SSF: Hopelessness" }] },
+      "subject": { "reference": "Patient/patient-001" },
+      "effectiveDateTime": "2026-03-14T11:00:00Z",
+      "valueInteger": 4,
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "Elevated (4/5)" }] }]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p001-cams-risk",
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }] },
+      "subject": { "reference": "Patient/patient-001" },
+      "effectiveDateTime": "2026-03-14T11:00:00Z",
+      "valueInteger": 3,
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Moderate risk (3/5)" }] }]
+    }
+  ],
+  "carePlans": [
+    {
+      "resourceType": "CarePlan",
+      "id": "p001-stanley-brown",
+      "meta": { "profile": ["http://hl7.org/fhir/us/ecareplan/StructureDefinition/us-ecareplan"] },
+      "status": "active",
+      "intent": "plan",
+      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment plan for suicide prevention" }] }],
+      "subject": { "reference": "Patient/patient-001" },
+      "addresses": [{ "display": "Risk for suicide" }],
+      "_savedAt": "2026-03-15T14:00:00Z",
+      "activity": [
+        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76689-1" }], "text": "Step 1: Warning Signs" }, "status": "in-progress", "description": "Feeling trapped, chest tightness, racing thoughts at night, withdrawing from friends" } },
+        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76690-9" }], "text": "Step 2: Internal Coping Strategies" }, "status": "in-progress", "description": "Deep breathing exercises, going for a walk, listening to music, journaling" } },
+        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76691-7" }], "text": "Step 3: Social Distractions" }, "status": "in-progress", "description": "Call sister Maria, visit coffee shop on Main St, go to the gym" } },
+        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76692-5" }], "text": "Step 4: Crisis Support Contacts" }, "status": "in-progress", "description": "Maria Doe (555-0101), best friend Tom (555-0102)" } },
+        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76693-3" }], "text": "Step 5: Professional Support" }, "status": "in-progress", "description": "Dr. Sarah Chen (555-0200) / City General ED, 100 Hospital Dr (555-0300) / 988 Suicide & Crisis Lifeline" } },
+        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76694-1" }], "text": "Step 6: Lethal Means Safety" }, "status": "in-progress", "description": "Gave prescription medications to sister Maria for safekeeping, removed sharp objects from bedroom" } },
+        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "81344-4" }], "text": "Step 7: Reason for Living" }, "status": "in-progress", "description": "My niece Sofia — I want to see her grow up" } }
+      ],
+      "note": [{ "text": "DEMO SCENARIO — Safety plan created collaboratively during session 2." }]
+    }
+  ],
+  "riskAlerts": [
+    {
+      "tool": "PHQ-9",
+      "level": "high",
+      "summary": "PHQ-9 Item 9 positive (score: 2/3)",
+      "detail": "Patient endorsed thoughts of death or self-harm on more than half the days. Total PHQ-9 score: 18/27 (Moderately Severe). Further suicide risk assessment completed.",
+      "suggestedAction": { "label": "View ASQ Results", "path": "/patient/assessments" }
+    },
+    {
+      "tool": "ASQ",
+      "level": "moderate",
+      "summary": "ASQ: Non-Acute Positive Screen",
+      "detail": "Patient endorsed passive death wish and perceived burdensomeness. No active plan or current ideation. CAMS assessment initiated.",
+      "suggestedAction": { "label": "View CAMS Assessment", "path": "/patient/assessments" }
+    },
+    {
+      "tool": "CAMS Section A",
+      "level": "high",
+      "summary": "CAMS Vitals: Elevated scores (max 4/5)",
+      "detail": "Psychological pain and hopelessness both rated 4/5. Stabilization plan completed. Follow-up scheduled.",
+      "suggestedAction": { "label": "View Care Plan", "path": "/patient/chart#care-plans" }
+    }
+  ]
+}
