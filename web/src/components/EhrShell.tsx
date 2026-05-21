@@ -11,7 +11,7 @@ export function EhrShell() {
     location.pathname.startsWith('/patient') || location.pathname.startsWith('/chart')
 
   return (
-    <div className={`ehr-shell ${isPatientView ? '' : 'ehr-shell--no-banner'}`}>
+    <div className="ehr-shell">
       <header className="ehr-header">
         <div className="ehr-header-content">
           <button
@@ -29,12 +29,13 @@ export function EhrShell() {
         </div>
       </header>
 
-      {isPatientView && <PatientBanner />}
-
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="ehr-content">
-        <Outlet />
+        {isPatientView && <PatientBanner />}
+        <div className="ehr-content-body">
+          <Outlet />
+        </div>
       </main>
 
       <footer className="ehr-footer">
