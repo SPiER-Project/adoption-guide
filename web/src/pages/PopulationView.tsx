@@ -100,9 +100,9 @@ export function PopulationView() {
     return counts
   }, [])
 
-  const handleOpenChart = () => {
+  const handleOpenChart = (patientId: string) => {
     // v1: cross-app patient switching is mocked. In production this would be FHIRcast.
-    navigate('/patient/chart')
+    navigate(`/patient/chart/${patientId}`)
   }
 
   return (
@@ -199,7 +199,7 @@ export function PopulationView() {
           </thead>
           <tbody>
             {filteredSorted.map(p => (
-              <tr key={p.id} className="caseload-row" onClick={handleOpenChart}>
+              <tr key={p.id} className="caseload-row" onClick={() => handleOpenChart(p.id)}>
                 <td>
                   <div className="caseload-patient-name">{p.displayName}</div>
                   <div className="caseload-patient-meta">MRN {p.mrn} &middot; DOB {p.dob}</div>

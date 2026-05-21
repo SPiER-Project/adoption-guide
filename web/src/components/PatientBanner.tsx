@@ -1,8 +1,36 @@
 import { usePatient } from '../context/PatientContext'
 import '../css/PatientBanner.css'
 
+type RiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
+
+const RISK_LABEL: Record<RiskLevel, string> = {
+  acute: 'Acute',
+  high: 'High',
+  moderate: 'Moderate',
+  low: 'Low',
+  none: 'None',
+  unknown: 'Unknown',
+}
+
+// "Unknown" means no risk-bearing data has been captured yet (no screening on
+// file, and no population-level state). Once any source reports a level —
+// even 'none' — we surface the highest one.
+function highestRiskLevel(
+  alertLevels: string[],
+  populationLevel: string | null,
+): RiskLevel {
+  const all = populationLevel ? [...alertLevels, populationLevel] : alertLevels
+  if (all.length === 0) return 'unknown'
+  const order: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none']
+  return order.find(l => all.includes(l)) ?? 'none'
+}
+
 export function PatientBanner() {
-  const { patientDisplay, isSmartConnected } = usePatient()
+  const { patientDisplay, isSmartConnected, riskAlerts, populationRiskLevel } = usePatient()
+  const risk = highestRiskLevel(
+    riskAlerts.map(a => a.level),
+    populationRiskLevel,
+  )
 
   return (
     <div className="patient-banner">
@@ -22,6 +50,20 @@ export function PatientBanner() {
         <span className="patient-banner-field">
           <span className="patient-banner-label">Sex</span>
           <span className="patient-banner-value">{patientDisplay.gender}</span>
+        </span>
+        <span className="patient-banner-divider">|</span>
+        <span className="patient-banner-field">
+          <span className="patient-banner-label">Risk</span>
+          <span
+            className={`patient-banner-risk patient-banner-risk--${risk}`}
+            title={
+              risk === 'unknown'
+                ? 'No suicide-risk screening on file'
+                : `Highest active risk level: ${RISK_LABEL[risk]}`
+            }
+          >
+            {RISK_LABEL[risk]}
+          </span>
         </span>
         {isSmartConnected && (
           <span className="patient-banner-smart" title="Connected via SMART on FHIR">

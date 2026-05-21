@@ -63,14 +63,6 @@ const MOCK_ENCOUNTERS: MockEncounter[] = [
   },
 ]
 
-const RISK_LEVEL_LABEL: Record<string, string> = {
-  acute: 'ACUTE',
-  high: 'HIGH',
-  moderate: 'MODERATE',
-  low: 'LOW',
-  none: 'NONE',
-}
-
 const STAGE_BLURB: Record<string, string> = {
   'flag-risk': 'Administer a suicide-risk screen to flag whether further review is needed.',
   'clarify-risk': 'Positive screen — clarify the nature, severity, and context of suicide risk.',
@@ -543,20 +535,10 @@ export function PatientChart() {
     scrollToAnchor(anchor)
   }, [location.hash])
 
-  const activeAlerts = riskAlerts.filter(a => a.level !== 'none')
-  const highestLevel = activeAlerts.length > 0
-    ? (['acute', 'high', 'moderate', 'low'] as const).find(l => activeAlerts.some(a => a.level === l)) || 'none'
-    : null
-
   return (
     <div className="patient-chart">
       <header className="patient-chart-titlebar">
         <h2 className="patient-chart-title">Patient Chart</h2>
-        {highestLevel && (
-          <span className={`risk-summary risk-summary--${highestLevel}`}>
-            {RISK_LEVEL_LABEL[highestLevel]} risk
-          </span>
-        )}
         {hasData ? (
           <button className="patient-chart-reset" onClick={clearDemoData}>Reset demo data</button>
         ) : (
