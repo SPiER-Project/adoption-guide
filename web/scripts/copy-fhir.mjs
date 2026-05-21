@@ -106,6 +106,9 @@ function writeCarePlanProfileTypes() {
     'export type CarePlanProfileUrl = (typeof CAREPLAN_PROFILE_URLS)[number]',
     '',
   ]
+  // `recursive: true` is idempotent — guards against the rare case where
+  // the catalog directory has been deleted (e.g., partial clone, manual rm).
+  mkdirSync(catalogDir, { recursive: true })
   writeFileSync(outPath, lines.join('\n'), 'utf8')
   log(`emitted ${outPath.replace(repoRoot + '/', '')} with ${urls.length} CarePlan profile URL(s)`)
 }
