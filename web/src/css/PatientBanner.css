@@ -69,6 +69,33 @@
 .patient-banner-risk--none     { background: var(--border-default); color: var(--text-muted); }
 .patient-banner-risk--unknown  { background: var(--border-default); color: var(--text-muted); font-style: italic; }
 
+.patient-banner--unassigned {
+  background: #f1f5f9;
+}
+
+.patient-banner-name--unassigned {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.patient-banner-unassigned-hint {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.patient-banner-population-link {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--brand-primary, #1d4ed8);
+  text-decoration: none;
+}
+
+.patient-banner-population-link:hover {
+  text-decoration: underline;
+}
+
 .patient-banner-smart {
   margin-left: auto;
   font-size: 0.6875rem;

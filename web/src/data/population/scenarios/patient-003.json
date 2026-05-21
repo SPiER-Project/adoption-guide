@@ -1,0 +1,28 @@
+{
+  "responses": [
+    {
+      "id": "p003-phq9",
+      "questionnaireName": "PHQ-9",
+      "completedAt": "2026-05-15T09:30:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
+        "item": [
+          { "linkId": "q1", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
+          { "linkId": "q2", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
+          { "linkId": "q3", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
+          { "linkId": "q4", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
+          { "linkId": "q5", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
+          { "linkId": "q6", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
+          { "linkId": "q7", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
+          { "linkId": "q8", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
+          { "linkId": "q9", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] }
+        ]
+      }
+    }
+  ],
+  "observations": [],
+  "carePlans": [],
+  "riskAlerts": []
+}
