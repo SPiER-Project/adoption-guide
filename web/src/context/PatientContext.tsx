@@ -8,19 +8,14 @@ import { mapResponseToObservations } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
-
-// Minimal FHIR R4 shape used for resources passing through this context. We
-// don't pull in @types/fhir to keep the dep surface small; downstream code
-// (observationMappers, carePlanMappers) still treats payloads as loose JSON.
-interface FhirResource {
-  resourceType: string
-  id?: string
-  [k: string]: unknown
-}
-type QuestionnaireResponseResource = FhirResource & { resourceType: 'QuestionnaireResponse' }
-type ObservationResource = FhirResource & { resourceType: 'Observation' }
-type CarePlanResource = FhirResource & { resourceType: 'CarePlan' }
-type PatientResource = FhirResource & { resourceType: 'Patient' }
+import type {
+  CarePlanResource,
+  ObservationResource,
+  PatientResource,
+  PatientSlice,
+  QuestionnaireResponseResource,
+  StoredResponse,
+} from '../types/fhir'
 
 type PopulationRiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none'
 
@@ -43,20 +38,6 @@ const POPULATION_BY_ID = new Map(POPULATION_PATIENTS.map(p => [p.id, p]))
 const STORE_KEY = 'spier-patient-store'
 const ACTIVE_ID_KEY = 'spier-active-patient-id'
 const BLANK_SLICE_KEY = 'spier-blank-slice'
-
-interface StoredResponse {
-  id: string
-  questionnaireName: string
-  completedAt: string
-  resource: QuestionnaireResponseResource
-}
-
-interface PatientSlice {
-  responses: StoredResponse[]
-  observations: ObservationResource[]
-  carePlans: CarePlanResource[]
-  riskAlerts: RiskAlert[]
-}
 
 type PatientStore = Record<string, PatientSlice>
 

@@ -2,28 +2,17 @@
  * Per-patient scenario data — one JSON file per population patient, loaded
  * eagerly so PatientContext can pre-seed empty slices on first view.
  *
- * Each scenario has the shape { responses, observations, carePlans, riskAlerts }
- * matching the in-memory PatientSlice. The patient id is derived from the
- * filename (e.g. `patient-005.json` → `patient-005`).
+ * Each scenario has the shape of a `PatientSlice` (responses, observations,
+ * carePlans, riskAlerts). The patient id is derived from the filename
+ * (e.g. `patient-005.json` → `patient-005`).
  */
-import type { RiskAlert } from '../../../lib/observationMappers'
+import type { PatientSlice } from '../../../types/fhir'
 
-interface StoredResponse {
-  id: string
-  questionnaireName: string
-  completedAt: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resource: any
-}
-
-export interface PatientScenario {
-  responses: StoredResponse[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  observations: any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  carePlans: any[]
-  riskAlerts: RiskAlert[]
-}
+/**
+ * Alias kept for backward compatibility with prior imports; the on-disk
+ * scenario shape is identical to the in-memory `PatientSlice`.
+ */
+export type PatientScenario = PatientSlice
 
 const modules = import.meta.glob<PatientScenario>('./patient-*.json', {
   eager: true,
