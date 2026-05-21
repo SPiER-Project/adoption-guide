@@ -89,9 +89,10 @@ export function Roadmap() {
     }
 
     const rows = TOOLS.map((t) => buildToolRow(t, byTool))
+    const rowById = new Map(rows.map((r) => [r.tool.id, r]))
     const grouped = groupToolsByStage().map(({ stage, tools }) => ({
       stage,
-      rows: tools.map((t) => rows.find((r) => r.tool.id === t.id)!).filter(Boolean),
+      rows: tools.map((t) => rowById.get(t.id)).filter((r): r is ToolRow => !!r),
     }))
 
     const counts = rows.reduce(
@@ -336,8 +337,10 @@ function PriorityEpicLink({ epic }: { epic?: RoadmapIssue }) {
 function excerpt(md: string, max = 280): string {
   if (!md) return 'No description.'
   const stripped = md
-    .replace(/^#{1,6}\s+/gm, '') // headings
-    .replace(/[`*_>]/g, '')      // markdown noise
+    .replace(/^#{1,6}\s+/gm, '')               // headings
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')   // links → link text
+    .replace(/^-{3,}$/gm, '')                  // horizontal rules
+    .replace(/[`*_>]/g, '')                    // markdown noise (incl. backticks)
     .replace(/\s+/g, ' ')
     .trim()
   if (stripped.length <= max) return stripped
