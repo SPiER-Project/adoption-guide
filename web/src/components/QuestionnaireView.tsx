@@ -51,7 +51,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
       setSubmitted(true)
 
       // Preview the observation results for immediate display
-      const mapperResult = mapResponseToObservations(persistName, responseToUse)
+      const mapperResult = mapResponseToObservations(responseToUse)
       if (mapperResult) {
         setSubmitResult(mapperResult)
       }

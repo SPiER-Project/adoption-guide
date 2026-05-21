@@ -60,8 +60,9 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     }
     setResponses(prev => [...prev, entry])
 
-    // Auto-generate Observations from the response
-    const result = mapResponseToObservations(questionnaireName, resource)
+    // Auto-generate Observations from the response. Dispatch is by
+    // resource.questionnaire (canonical URL) — see observationMappers/index.ts.
+    const result = mapResponseToObservations(resource)
     if (result) {
       setObservations(prev => [...prev, ...result.observations])
       // Replace any existing alert from the same tool, keep latest
