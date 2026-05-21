@@ -37,7 +37,7 @@ const SPIER_Q = 'http://spier.org/Questionnaire'
 // `valueCanonical` in each ActivityDefinition's sdc-questionnaire extension
 // (ig/input/fsh/<tool>.fsh). When adding a new mapper, mirror the entry
 // against the AD's canonical so a versioned QR still dispatches correctly.
-const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: any) => MapperResult> = {
+const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: any) => MapperResult | null> = {
   [`${SPIER_Q}/PHQ-9`]: mapPHQ9,
   [`${SPIER_Q}/ASQ-Screening-Tool`]: mapASQ,
   [`${SPIER_Q}/SBQ-R`]: mapSBQR,
@@ -53,9 +53,13 @@ const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: any) => MapperResult> = {
  * canonical reference or for canonicals SPiER doesn't have a mapper for
  * (the latter includes Stanley-Brown / CAMS Stabilization / CAMS Therapeutic
  * which produce CarePlans via lib/carePlanMappers, not Observations).
+ *
+ * `qr` is typed `any` to match the rest of the codebase's FHIR-resource
+ * convention — the dispatcher reads `qr.questionnaire`, but the full
+ * resource (incl. `item[]`) gets passed through to the per-tool mapper.
  */
-export function mapResponseToObservations(qr: { questionnaire?: string } | undefined | null): MapperResult | null {
-  const canonical = qr?.questionnaire
+export function mapResponseToObservations(qr: any): MapperResult | null {
+  const canonical: string | undefined = qr?.questionnaire
   if (!canonical) return null
   const mapper = MAPPER_BY_QUESTIONNAIRE_URL[stripCanonicalVersion(canonical)]
   return mapper ? mapper(qr) : null
