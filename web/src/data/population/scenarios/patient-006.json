@@ -1,0 +1,30 @@
+{
+  "responses": [
+    {
+      "id": "p006-cams-a",
+      "questionnaireName": "CAMS SSF-5: Section A",
+      "completedAt": "2026-05-16T10:00:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
+        "item": [
+          {
+            "linkId": "core-ratings",
+            "item": [
+              { "linkId": "1-score", "answer": [{ "valueInteger": 4 }] },
+              { "linkId": "2-score", "answer": [{ "valueInteger": 3 }] },
+              { "linkId": "3-score", "answer": [{ "valueInteger": 3 }] },
+              { "linkId": "4-score", "answer": [{ "valueInteger": 4 }] },
+              { "linkId": "5-score", "answer": [{ "valueInteger": 3 }] },
+              { "linkId": "6-score", "answer": [{ "valueInteger": 3 }] }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "observations": [],
+  "carePlans": [],
+  "riskAlerts": []
+}

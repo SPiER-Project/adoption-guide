@@ -497,7 +497,7 @@ function PatientDocuments({
 
 /* ---------- Main page ---------- */
 export function PatientChart() {
-  const { carePlans, responses, riskAlerts, observations, loadDemoScenario, clearDemoData } = usePatient()
+  const { carePlans, responses, riskAlerts, observations, activePatientId } = usePatient()
   const { isToolEnabled } = useToolConfig()
   const location = useLocation()
 
@@ -539,19 +539,15 @@ export function PatientChart() {
     <div className="patient-chart">
       <header className="patient-chart-titlebar">
         <h2 className="patient-chart-title">Patient Chart</h2>
-        {hasData ? (
-          <button className="patient-chart-reset" onClick={clearDemoData}>Reset demo data</button>
-        ) : (
-          <button className="patient-chart-reset" onClick={loadDemoScenario}>Load demo scenario</button>
-        )}
       </header>
 
       {!hasData && (
         <div className="empty-chart-banner">
           <strong>This chart is empty.</strong>
           <p>
-            Click <em>Load demo scenario</em> to populate with a PHQ-9 + ASQ + CAMS + Stanley-Brown
-            sequence, or use the recommendations below to start fresh.
+            {activePatientId === null
+              ? 'Use the assessment forms in the sidebar to try them, or pick a patient from the Population view.'
+              : 'No artifacts yet for this patient. Submit an assessment from the sidebar to populate the chart.'}
           </p>
         </div>
       )}

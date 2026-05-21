@@ -43,8 +43,8 @@
     "dob": "1978-11-03",
     "mrn": "34567",
     "gender": "Female",
-    "currentStage": "flag-risk",
-    "completedStages": [],
+    "currentStage": "clarify-risk",
+    "completedStages": ["flag-risk"],
     "currentRiskLevel": "moderate",
     "lastActivity": {
       "date": "2026-05-15",

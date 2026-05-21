@@ -1,13 +1,21 @@
 import React, { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { DEMO_PATIENT, formatPatientDisplay } from '../data/demoPatient'
+import { formatPatientDisplay } from '../data/demoPatient'
 import type { PatientDisplay } from '../data/demoPatient'
 import { useSmart } from './SmartContext'
 import { mapResponseToObservations } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
-import { MOCK_RESPONSES, MOCK_OBSERVATIONS, MOCK_CAREPLANS, MOCK_RISK_ALERTS } from '../data/mockScenario'
 import populationPatientsData from '../data/population/patients.json'
+import { POPULATION_SCENARIOS } from '../data/population/scenarios'
+import type {
+  CarePlanResource,
+  ObservationResource,
+  PatientResource,
+  PatientSlice,
+  QuestionnaireResponseResource,
+  StoredResponse,
+} from '../types/fhir'
 
 type PopulationRiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none'
 
@@ -27,24 +35,9 @@ interface PopulationPatient {
 const POPULATION_PATIENTS = populationPatientsData as PopulationPatient[]
 const POPULATION_BY_ID = new Map(POPULATION_PATIENTS.map(p => [p.id, p]))
 
-// Jane Doe — matches DEMO_PATIENT and gets legacy single-patient storage on migration
-const DEFAULT_PATIENT_ID = 'patient-001'
 const STORE_KEY = 'spier-patient-store'
 const ACTIVE_ID_KEY = 'spier-active-patient-id'
-
-interface StoredResponse {
-  id: string
-  questionnaireName: string
-  completedAt: string
-  resource: any
-}
-
-interface PatientSlice {
-  responses: StoredResponse[]
-  observations: any[]
-  carePlans: any[]
-  riskAlerts: RiskAlert[]
-}
+const BLANK_SLICE_KEY = 'spier-blank-slice'
 
 type PatientStore = Record<string, PatientSlice>
 
@@ -55,8 +48,8 @@ const EMPTY_SLICE: PatientSlice = {
   riskAlerts: [],
 }
 
-// One-time migration from the original single-patient keys into a patient-001 slice
-// so existing demo data isn't lost when this build first runs in a browser.
+// One-time migration from the original single-patient keys into a patient-001
+// slice so existing demo data isn't lost when this build first runs in a browser.
 function migrateLegacyStorage(): PatientStore | null {
   const read = <T,>(k: string): T | null => {
     try {
@@ -67,11 +60,11 @@ function migrateLegacyStorage(): PatientStore | null {
     }
   }
   const responses = read<StoredResponse[]>('spier-demo-responses') ?? []
-  const observations = read<any[]>('spier-demo-observations') ?? []
-  const carePlans = read<any[]>('spier-demo-careplans') ?? []
+  const observations = read<ObservationResource[]>('spier-demo-observations') ?? []
+  const carePlans = read<CarePlanResource[]>('spier-demo-careplans') ?? []
   const riskAlerts = read<RiskAlert[]>('spier-demo-risk-alerts') ?? []
   if (responses.length || observations.length || carePlans.length || riskAlerts.length) {
-    return { [DEFAULT_PATIENT_ID]: { responses, observations, carePlans, riskAlerts } }
+    return { 'patient-001': { responses, observations, carePlans, riskAlerts } }
   }
   return null
 }
@@ -96,11 +89,11 @@ function populationToFhir(p: PopulationPatient) {
   }
 }
 
-// URL like /patient/chart/patient-005 → 'patient-005'. Returns null for any other
-// path. Also returns null for IDs that aren't in the population dataset — this
-// is both a defense against crafted URLs being used as store keys (e.g.
-// /patient/chart/__proto__) and a guard against typos silently creating empty
-// patient slices.
+// URL like /patient/chart/patient-005 → 'patient-005'. Returns null for any
+// other path. Also returns null for IDs that aren't in the population dataset
+// — defense against crafted URLs being used as store keys (e.g.
+// /patient/chart/__proto__) and a guard against typo'd IDs silently creating
+// empty patient slices.
 function deriveActiveIdFromPath(pathname: string): string | null {
   const m = pathname.match(/^\/patient\/chart\/([^/]+)\/?$/)
   if (!m) return null
@@ -113,50 +106,68 @@ function isAllowedPatientId(id: string): boolean {
 }
 
 interface PatientContextType {
-  patient: any
+  patient: PatientResource
   patientDisplay: PatientDisplay
   isSmartConnected: boolean
-  activePatientId: string
+  /** Null when no patient is selected (blank "play with forms" state). */
+  activePatientId: string | null
   populationPatient: PopulationPatient | null
   populationRiskLevel: PopulationRiskLevel | null
-  carePlans: any[]
-  addCarePlan: (carePlan: any) => void
+  carePlans: CarePlanResource[]
+  addCarePlan: (carePlan: CarePlanResource) => void
   responses: StoredResponse[]
-  addResponse: (name: string, resource: any) => void
-  observations: any[]
+  addResponse: (name: string, resource: QuestionnaireResponseResource) => void
+  observations: ObservationResource[]
   riskAlerts: RiskAlert[]
-  loadDemoScenario: () => void
-  clearDemoData: () => void
 }
 
 const PatientContext = createContext<PatientContextType | undefined>(undefined)
+
+// Build a FHIR-ish Patient resource that represents the blank state, so
+// downstream code (formatPatientDisplay) still gets a defined shape.
+const BLANK_PATIENT = {
+  resourceType: 'Patient' as const,
+  id: 'blank',
+  name: [{ use: 'official' as const, given: [''], family: '' }],
+  birthDate: '',
+  gender: '',
+  identifier: [{ system: 'http://hospital.example.org/mrn', value: '' }],
+}
 
 export function PatientProvider({ children }: { children: React.ReactNode }) {
   const { patient: smartPatient } = useSmart()
   const location = useLocation()
 
-  const [storedActiveId, setStoredActiveId] = useLocalStorage<string>(
+  // Active patient id is persisted across non-chart routes (e.g. when the user
+  // submits an assessment and bounces back through /patient/assessments → chart).
+  // Null is the "no patient selected" state.
+  const [storedActiveId, setStoredActiveId] = useLocalStorage<string | null>(
     ACTIVE_ID_KEY,
-    DEFAULT_PATIENT_ID,
+    null,
   )
 
-  // URL is authoritative when it carries a valid ID; otherwise we use the last
-  // stored active patient so non-chart routes (e.g. /patient/assessments/...)
-  // stay scoped. Stored ID is also validated in case localStorage is stale or
-  // tampered with.
+  // /patient/chart?new=1 is the explicit "blank state" entry point (sidebar
+  // Patient tab). Without ?new=1, bare /patient/chart preserves the last
+  // viewed patient so assessment-submit redirects don't lose context.
+  const search = new URLSearchParams(location.search)
+  const wantsBlank = location.pathname === '/patient/chart' && search.get('new') === '1'
+
   const urlPatientId = deriveActiveIdFromPath(location.pathname)
-  const safeStoredId = isAllowedPatientId(storedActiveId) ? storedActiveId : DEFAULT_PATIENT_ID
-  const activePatientId = urlPatientId ?? safeStoredId
+  const safeStoredId =
+    storedActiveId && isAllowedPatientId(storedActiveId) ? storedActiveId : null
+  const activePatientId: string | null = wantsBlank ? null : (urlPatientId ?? safeStoredId)
 
   useEffect(() => {
-    if (urlPatientId && urlPatientId !== storedActiveId) {
+    if (wantsBlank && storedActiveId !== null) {
+      setStoredActiveId(null)
+    } else if (urlPatientId && urlPatientId !== storedActiveId) {
       setStoredActiveId(urlPatientId)
     }
-  }, [urlPatientId, storedActiveId, setStoredActiveId])
+  }, [wantsBlank, urlPatientId, storedActiveId, setStoredActiveId])
 
   // Patient-scoped chart store. Initializer reads existing data or runs the
   // one-time migration from legacy single-patient keys. Per-update writes go
-  // through a separate useEffect below so the setState updater stays pure.
+  // through useEffect so the setState updater stays pure.
   const [store, setStore] = useState<PatientStore>(() => {
     try {
       const raw = window.localStorage.getItem(STORE_KEY)
@@ -175,29 +186,54 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     }
   }, [store])
 
-  const updateSlice = useCallback(
-    (patientId: string, updater: (prev: PatientSlice) => PatientSlice) => {
-      // Defense in depth — deriveActiveIdFromPath already gates URL input, but
-      // direct callers (loadDemoScenario etc.) could still be passed a bad ID.
-      if (!isAllowedPatientId(patientId)) return
-      setStore(prev => ({
-        ...prev,
-        [patientId]: updater(prev[patientId] ?? EMPTY_SLICE),
-      }))
-    },
-    [],
+  // Blank slice — backs the "no patient selected" mode so users can submit
+  // assessments without picking a population patient first.
+  const [blankSlice, setBlankSlice] = useLocalStorage<PatientSlice>(
+    BLANK_SLICE_KEY,
+    EMPTY_SLICE,
   )
 
-  const slice = store[activePatientId] ?? EMPTY_SLICE
+  // Auto-seed: when a population patient's slice is missing from the store and
+  // a static scenario exists, pre-populate it. Idempotent — once data exists
+  // (even mutated), the scenario won't reseed. clearing a slice (delete key)
+  // and reviewing the patient will re-seed.
+  useEffect(() => {
+    if (activePatientId === null) return
+    if (store[activePatientId]) return
+    const scenario = POPULATION_SCENARIOS[activePatientId]
+    if (!scenario) return
+    setStore(prev => ({ ...prev, [activePatientId]: scenario }))
+  }, [activePatientId, store])
 
-  // SMART patient (if connected) wins over population/demo data
+  const updateActiveSlice = useCallback(
+    (updater: (prev: PatientSlice) => PatientSlice) => {
+      if (activePatientId === null) {
+        setBlankSlice(prev => updater(prev))
+        return
+      }
+      if (!isAllowedPatientId(activePatientId)) return
+      setStore(prev => ({
+        ...prev,
+        [activePatientId]: updater(prev[activePatientId] ?? EMPTY_SLICE),
+      }))
+    },
+    [activePatientId, setBlankSlice],
+  )
+
+  const slice =
+    activePatientId === null ? blankSlice : (store[activePatientId] ?? EMPTY_SLICE)
+
+  // SMART patient (if connected) wins over population/blank
   const isSmartConnected = !!(smartPatient && smartPatient.name)
-  const populationPatient = POPULATION_BY_ID.get(activePatientId) ?? null
+  const populationPatient =
+    activePatientId !== null ? POPULATION_BY_ID.get(activePatientId) ?? null : null
 
-  const activePatient = useMemo(() => {
-    if (isSmartConnected) return smartPatient
+  const activePatient = useMemo<PatientResource>(() => {
+    // fhirclient returns a FHIR R4 Patient; the local SmartContext typing is a
+    // looser subset, so coerce at the boundary.
+    if (isSmartConnected && smartPatient) return smartPatient as unknown as PatientResource
     if (populationPatient) return populationToFhir(populationPatient)
-    return DEMO_PATIENT
+    return BLANK_PATIENT
   }, [isSmartConnected, smartPatient, populationPatient])
 
   const patientDisplay = useMemo(
@@ -206,19 +242,19 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   )
 
   const addCarePlan = useCallback(
-    (carePlan: any) => {
-      updateSlice(activePatientId, prev => ({
+    (carePlan: CarePlanResource) => {
+      updateActiveSlice(prev => ({
         ...prev,
         carePlans: [...prev.carePlans, { ...carePlan, _savedAt: new Date().toISOString() }],
       }))
     },
-    [activePatientId, updateSlice],
+    [updateActiveSlice],
   )
 
   const addResponse = useCallback(
-    (questionnaireName: string, resource: any) => {
+    (questionnaireName: string, resource: QuestionnaireResponseResource) => {
       const entry: StoredResponse = {
-        id: `response-${Date.now()}`,
+        id: `response-${crypto.randomUUID()}`,
         questionnaireName,
         completedAt: new Date().toISOString(),
         resource,
@@ -226,7 +262,7 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       // Auto-generate Observations from the response. Dispatch is by
       // resource.questionnaire (canonical URL) — see observationMappers/index.ts.
       const result = mapResponseToObservations(resource)
-      updateSlice(activePatientId, prev => ({
+      updateActiveSlice(prev => ({
         ...prev,
         responses: [...prev.responses, entry],
         observations: result ? [...prev.observations, ...result.observations] : prev.observations,
@@ -235,21 +271,8 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
           : prev.riskAlerts,
       }))
     },
-    [activePatientId, updateSlice],
+    [updateActiveSlice],
   )
-
-  const loadDemoScenario = useCallback(() => {
-    updateSlice(activePatientId, () => ({
-      responses: MOCK_RESPONSES,
-      observations: MOCK_OBSERVATIONS,
-      carePlans: MOCK_CAREPLANS,
-      riskAlerts: MOCK_RISK_ALERTS,
-    }))
-  }, [activePatientId, updateSlice])
-
-  const clearDemoData = useCallback(() => {
-    updateSlice(activePatientId, () => EMPTY_SLICE)
-  }, [activePatientId, updateSlice])
 
   const value = useMemo<PatientContextType>(
     () => ({
@@ -265,8 +288,6 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       addResponse,
       observations: slice.observations,
       riskAlerts: slice.riskAlerts,
-      loadDemoScenario,
-      clearDemoData,
     }),
     [
       activePatient,
@@ -277,8 +298,6 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       slice,
       addCarePlan,
       addResponse,
-      loadDemoScenario,
-      clearDemoData,
     ],
   )
 

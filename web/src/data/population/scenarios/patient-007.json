@@ -1,0 +1,30 @@
+{
+  "responses": [
+    {
+      "id": "p007-sb",
+      "questionnaireName": "Stanley-Brown Safety Plan",
+      "completedAt": "2026-05-06T16:30:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan"
+      }
+    }
+  ],
+  "observations": [],
+  "carePlans": [
+    {
+      "resourceType": "CarePlan",
+      "id": "p007-stanley-brown",
+      "status": "active",
+      "intent": "plan",
+      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment plan for suicide prevention" }] }],
+      "subject": { "reference": "Patient/patient-007" },
+      "addresses": [{ "display": "Risk for suicide" }],
+      "_savedAt": "2026-05-06T16:30:00Z",
+      "title": "Stanley-Brown Safety Plan",
+      "note": [{ "text": "Outpatient referral sent — awaiting receipt confirmation." }]
+    }
+  ],
+  "riskAlerts": []
+}

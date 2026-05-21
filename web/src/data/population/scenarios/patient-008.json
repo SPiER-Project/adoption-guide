@@ -1,0 +1,18 @@
+{
+  "responses": [],
+  "observations": [],
+  "carePlans": [
+    {
+      "resourceType": "CarePlan",
+      "id": "p008-handoff",
+      "status": "completed",
+      "intent": "plan",
+      "category": [{ "coding": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "coordinate-handoffs", "display": "Coordinate Handoffs" }] }],
+      "subject": { "reference": "Patient/patient-008" },
+      "_savedAt": "2026-04-21T11:00:00Z",
+      "title": "Outpatient referral & receipt confirmed",
+      "note": [{ "text": "Warm handoff completed; outpatient provider accepted referral. 7-day caring contact next." }]
+    }
+  ],
+  "riskAlerts": []
+}

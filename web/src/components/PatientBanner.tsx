@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import '../css/PatientBanner.css'
 
@@ -26,7 +27,34 @@ function highestRiskLevel(
 }
 
 export function PatientBanner() {
-  const { patientDisplay, isSmartConnected, riskAlerts, populationRiskLevel } = usePatient()
+  const {
+    patientDisplay,
+    isSmartConnected,
+    riskAlerts,
+    populationRiskLevel,
+    activePatientId,
+  } = usePatient()
+
+  // Unassigned (blank) state — no patient selected.
+  if (activePatientId === null && !isSmartConnected) {
+    return (
+      <div className="patient-banner patient-banner--unassigned">
+        <div className="patient-banner-content">
+          <span className="patient-banner-name patient-banner-name--unassigned">
+            No patient selected
+          </span>
+          <span className="patient-banner-divider">|</span>
+          <span className="patient-banner-unassigned-hint">
+            Submit assessments here to try forms, or pick a patient from the population.
+          </span>
+          <Link to="/population" className="patient-banner-population-link">
+            Choose from population →
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const risk = highestRiskLevel(
     riskAlerts.map(a => a.level),
     populationRiskLevel,
