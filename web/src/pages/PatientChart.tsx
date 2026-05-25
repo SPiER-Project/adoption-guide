@@ -181,11 +181,11 @@ function buildCdsCards(
       id: `cds-stage-${activeStageId}`,
       stageId: activeStageId,
       level,
-      title: useRecommendation
-        ? recommended!.label
+      title: useRecommendation && recommended
+        ? recommended.label
         : `Next step: ${stage?.title ?? activeStageId}`,
-      rationale: useRecommendation
-        ? recommended!.rationale
+      rationale: useRecommendation && recommended
+        ? recommended.rationale
         : STAGE_BLURB[activeStageId] ?? stage?.description ?? '',
       options,
       narrativeOnly: useRecommendation,
