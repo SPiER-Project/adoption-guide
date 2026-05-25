@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
+import type { PopulationPatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import { STAGES, TOOLS, stageById, type Tool } from '../data/catalog'
@@ -131,12 +132,17 @@ interface CdsCard {
   title: string
   rationale: string
   options: { tool: Tool; action: { label: string; path: string } }[]
+  // When true, suppress the "no tools enabled" fallback because the
+  // title/rationale already convey a curated next-step recommendation.
+  narrativeOnly?: boolean
 }
 
 function buildCdsCards(
   activeStageId: string | null,
   riskAlerts: RiskAlert[],
   isToolEnabled: (id: string) => boolean,
+  populationPatient: PopulationPatient | null,
+  isSmartConnected: boolean,
 ): CdsCard[] {
   const cards: CdsCard[] = []
 
@@ -159,13 +165,30 @@ function buildCdsCards(
       : topAlert?.level === 'moderate' ? 'recommended'
       : 'routine'
 
+    // Population-patient recommendedNextStep substitution: when no tools are
+    // wired for the active stage and the patient's curated recommendation
+    // targets that same stage, swap in the recommendation's label/rationale.
+    // Suppressed under SMART so a connected EHR's real chart isn't overwritten
+    // by demo population data.
+    const recommended = populationPatient?.recommendedNextStep
+    const useRecommendation =
+      options.length === 0 &&
+      !isSmartConnected &&
+      recommended != null &&
+      recommended.stageId === activeStageId
+
     cards.push({
       id: `cds-stage-${activeStageId}`,
       stageId: activeStageId,
       level,
-      title: `Next step: ${stage?.title ?? activeStageId}`,
-      rationale: STAGE_BLURB[activeStageId] ?? stage?.description ?? '',
+      title: useRecommendation
+        ? recommended!.label
+        : `Next step: ${stage?.title ?? activeStageId}`,
+      rationale: useRecommendation
+        ? recommended!.rationale
+        : STAGE_BLURB[activeStageId] ?? stage?.description ?? '',
       options,
+      narrativeOnly: useRecommendation,
     })
   }
 
@@ -222,7 +245,7 @@ function CdsCardStack({ cards }: { cards: CdsCard[] }) {
                     </Link>
                   ))}
                 </div>
-              ) : (
+              ) : card.narrativeOnly ? null : (
                 <p className="cds-card-no-options">
                   No tools enabled for this stage in your implementation.{' '}
                   <Link to="/implementation-guide/tool-configuration">Configure tools</Link>.
@@ -497,7 +520,15 @@ function PatientDocuments({
 
 /* ---------- Main page ---------- */
 export function PatientChart() {
-  const { carePlans, responses, riskAlerts, observations, activePatientId } = usePatient()
+  const {
+    carePlans,
+    responses,
+    riskAlerts,
+    observations,
+    activePatientId,
+    populationPatient,
+    isSmartConnected,
+  } = usePatient()
   const { isToolEnabled } = useToolConfig()
   const location = useLocation()
 
@@ -508,8 +539,8 @@ export function PatientChart() {
   )
   const stageGroups = useMemo(() => groupArtifactsByStage(responses, carePlans), [responses, carePlans])
   const cdsCards = useMemo(
-    () => buildCdsCards(activeStageId, riskAlerts, isToolEnabled),
-    [activeStageId, riskAlerts, isToolEnabled],
+    () => buildCdsCards(activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected),
+    [activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected],
   )
 
   const jumpTo = useCallback((anchor: string) => {
