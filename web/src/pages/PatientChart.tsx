@@ -155,14 +155,25 @@ function buildCdsCards(
         .filter(() => isToolEnabled(tool.id))
         .map(action => ({ tool, action })),
     )
-    // Highest-severity risk alert drives the urgency
+    // Highest-severity risk alert drives the urgency. When no live alert
+    // exists, fall back to the population patient's curated currentRiskLevel
+    // so curated next-step cards keep accurate urgency styling. SMART
+    // suppresses the fallback since a connected EHR's real chart is
+    // authoritative.
     const topAlert = [...riskAlerts].sort((a, b) => {
       const order = { acute: 0, high: 1, moderate: 2, low: 3, none: 4 } as Record<string, number>
       return (order[a.level] ?? 9) - (order[b.level] ?? 9)
     })[0]
+    const populationLevel = !isSmartConnected ? populationPatient?.currentRiskLevel : null
+    const effectiveLevel =
+      topAlert?.level && topAlert.level !== 'none'
+        ? topAlert.level
+        : populationLevel && populationLevel !== 'none'
+          ? populationLevel
+          : null
     const level: CdsCard['level'] =
-      topAlert?.level === 'acute' || topAlert?.level === 'high' ? 'urgent'
-      : topAlert?.level === 'moderate' ? 'recommended'
+      effectiveLevel === 'acute' || effectiveLevel === 'high' ? 'urgent'
+      : effectiveLevel === 'moderate' ? 'recommended'
       : 'routine'
 
     // Population-patient recommendedNextStep substitution: when no tools are
