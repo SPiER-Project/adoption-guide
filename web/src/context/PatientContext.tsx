@@ -17,9 +17,9 @@ import type {
   StoredResponse,
 } from '../types/fhir'
 
-type PopulationRiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none'
+export type PopulationRiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none'
 
-interface PopulationPatient {
+export interface PopulationPatient {
   id: string
   displayName: string
   dob: string
