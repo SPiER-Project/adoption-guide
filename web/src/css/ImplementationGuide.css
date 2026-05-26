@@ -105,7 +105,8 @@
   background: var(--border-default);
   padding: 0 0.25rem;
   border-radius: var(--radius-xs);
-  font-size: 0.85em; /* em-relative: inline code stays proportional to parent */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- em-relative: inline code stays proportional to parent */
+  font-size: 0.85em;
 }
 
 .roadmap-section {
@@ -259,7 +260,8 @@
   background: var(--surface-muted);
   padding: 0 0.25rem;
   border-radius: var(--radius-xs);
-  font-size: 0.85em; /* em-relative: inline code stays proportional to parent */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- em-relative: inline code stays proportional to parent */
+  font-size: 0.85em;
 }
 
 .roadmap-priority-link {
