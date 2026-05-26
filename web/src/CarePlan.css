@@ -31,7 +31,7 @@
 
 .careplan-header h3 {
     margin: 0;
-    font-size: 1.35rem;
+    font-size: var(--font-size-3xl);
     color: var(--brand-primary);
 }
 
@@ -39,7 +39,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.75rem;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -51,21 +51,21 @@
 
 .careplan-demo-notice {
     background: linear-gradient(135deg, var(--accent-warning-bg) 0%, var(--accent-orange-soft) 100%);
-    border: 1px solid #fcd34d;
+    border: 1px solid var(--accent-warning-border);
     border-radius: var(--radius-xl);
     padding: 0.85rem 1.15rem;
     margin-bottom: var(--space-6);
     display: flex;
     align-items: flex-start;
     gap: var(--space-2);
-    font-size: 0.875rem;
+    font-size: var(--font-size-md);
     color: var(--accent-warning-text);
     line-height: 1.5;
 }
 
 .careplan-demo-notice .notice-icon {
     flex-shrink: 0;
-    font-size: 1rem;
+    font-size: var(--font-size-xl);
     margin-top: 0.1rem;
 }
 
@@ -86,11 +86,11 @@
 
 .careplan-step:hover {
     border-color: var(--border-strong);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--shadow-md);
 }
 
 .careplan-step-title {
-    font-size: 0.8125rem;
+    font-size: var(--font-size-base);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -99,7 +99,7 @@
 }
 
 .careplan-step-loinc {
-    font-size: 0.6875rem;
+    font-size: var(--font-size-xs);
     color: var(--text-faint);
     font-weight: 400;
     margin-left: var(--space-2);
@@ -108,7 +108,7 @@
 
 .careplan-step-description {
     color: var(--text-strong);
-    font-size: 0.95rem;
+    font-size: var(--font-size-lg);
     line-height: 1.5;
     margin: 0;
 }
@@ -136,7 +136,7 @@
     border: none;
     border-radius: var(--radius-lg);
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: var(--font-size-md);
     cursor: pointer;
     transition: background-color 0.2s, transform 0.15s;
 }
@@ -147,7 +147,7 @@
 }
 
 .careplan-download-btn .btn-icon {
-    font-size: 1rem;
+    font-size: var(--font-size-xl);
 }
 
 .careplan-json-toggle {
@@ -160,7 +160,7 @@
     border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: var(--font-size-md);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -182,7 +182,7 @@
 .careplan-json-panel pre {
     margin: 0;
     color: var(--border-default);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-base);
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
     line-height: 1.5;
     white-space: pre-wrap;

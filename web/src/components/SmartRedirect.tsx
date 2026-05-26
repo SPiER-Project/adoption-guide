@@ -61,7 +61,7 @@ export function SmartRedirect() {
     if (error) {
         return (
             <div className="smart-error" style={{ padding: '2rem', textAlign: 'center' }}>
-                <h2 style={{ color: '#d32f2f' }}>Authorization Error</h2>
+                <h2 className="smart-error-heading">Authorization Error</h2>
                 <p>{error}</p>
                 <button
                     onClick={() => navigate('/')}

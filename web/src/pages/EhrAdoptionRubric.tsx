@@ -10,9 +10,6 @@ interface RubricState {
 
 const EMPTY_STATE: RubricState = { supported: {}, stageScores: {} }
 
-const LEVEL_COLORS = ['#fee2e2', '#fed7aa', '#fef08a', '#bbf7d0']
-const LEVEL_TEXT_COLORS = ['#991b1b', '#9a3412', '#854d0e', '#166534']
-
 export function EhrAdoptionRubric() {
   const [state, setState] = useLocalStorage<RubricState>('spier-ehr-rubric-v3', EMPTY_STATE)
 
@@ -124,10 +121,7 @@ export function EhrAdoptionRubric() {
             <div className="rubric-legend-levels">
               {criterion.levels.map(l => (
                 <div key={l.level} className="rubric-legend-level">
-                  <span
-                    className="rubric-level-chip"
-                    style={{ background: LEVEL_COLORS[l.level], color: LEVEL_TEXT_COLORS[l.level] }}
-                  >
+                  <span className={`rubric-level-chip rubric-level-chip--${l.level}`}>
                     {l.level}
                   </span>
                   <strong>{l.label}</strong> &mdash; {l.description}
@@ -189,13 +183,9 @@ export function EhrAdoptionRubric() {
                       <div key={criterion.id} className="rubric-maturity-cell">
                         <span className="rubric-maturity-criterion">{criterion.name}</span>
                         <select
-                          className="rubric-select"
+                          className={`rubric-select rubric-select--level-${current}`}
                           value={current}
                           onChange={e => setStageScore(stage, criterion.id, Number(e.target.value))}
-                          style={{
-                            background: LEVEL_COLORS[current],
-                            color: LEVEL_TEXT_COLORS[current],
-                          }}
                         >
                           {criterion.levels.map(l => (
                             <option key={l.level} value={l.level}>{l.level} — {l.label}</option>

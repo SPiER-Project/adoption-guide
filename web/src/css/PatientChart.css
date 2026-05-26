@@ -13,7 +13,7 @@
 }
 
 .patient-chart-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--text-strong);
   margin: 0;
@@ -26,7 +26,7 @@
   color: var(--text-body);
   padding: 0.35rem 0.7rem;
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -39,7 +39,7 @@
 
 .risk-summary {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
   padding: 0.25rem 0.6rem;
@@ -119,7 +119,7 @@
   width: 1.4rem;
   height: 1.4rem;
   border-radius: var(--radius-circle);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   background: var(--surface-muted);
   color: var(--text-muted);
@@ -127,7 +127,7 @@
 }
 
 .pathway-step-label {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 0.01em;
@@ -181,14 +181,14 @@
 }
 
 .cds-stack-title {
-  font-size: 1.05rem;
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--text-strong);
   margin: 0;
 }
 
 .cds-stack-subtitle {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   color: var(--text-faint);
 }
 
@@ -218,7 +218,7 @@
 }
 
 .cds-card-pill {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -232,7 +232,7 @@
 .cds-card-pill--routine     { background: var(--accent-info); }
 
 .cds-card-stage-tag {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-faint);
@@ -240,7 +240,7 @@
 }
 
 .cds-card-title {
-  font-size: 1rem;
+  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-strong);
   margin: 0 0 0.3rem 0;
@@ -248,7 +248,7 @@
 
 .cds-card-rationale {
   color: var(--text-body);
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   line-height: 1.5;
   margin: 0 0 var(--space-3) 0;
 }
@@ -265,7 +265,7 @@
   color: var(--text-on-brand);
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   text-decoration: none;
   transition: background 0.15s;
@@ -276,7 +276,7 @@
 }
 
 .cds-card-no-options {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   margin: 0;
 }
@@ -309,7 +309,7 @@
 
 .stage-section--active {
   border-color: var(--accent-info);
-  box-shadow: 0 0 0 1px var(--accent-info-soft);
+  box-shadow: var(--shadow-card-outline);
 }
 
 .stage-section--complete {
@@ -325,14 +325,14 @@
 }
 
 .stage-section-title {
-  font-size: 0.95rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-strong);
   margin: 0;
 }
 
 .stage-section-status {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -345,14 +345,14 @@
 .stage-section-status--not-started { background: var(--surface-muted); color: var(--text-muted); }
 
 .stage-section-desc {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.5;
   margin: 0 0 var(--space-3) 0;
 }
 
 .stage-section-empty {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-faint);
   font-style: italic;
   margin: 0;
@@ -374,7 +374,7 @@
 }
 
 .stage-artifact-icon {
-  font-size: 1rem;
+  font-size: var(--font-size-xl);
   margin-top: 0.1rem;
 }
 
@@ -386,12 +386,12 @@
 
 .stage-artifact-name {
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-strong);
 }
 
 .stage-artifact-meta {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   color: var(--text-faint);
   margin-top: 0.15rem;
 }
@@ -404,7 +404,7 @@
 }
 
 .encounters-note {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   margin: 0 0 var(--space-3) 0;
   line-height: 1.5;
@@ -449,17 +449,17 @@
 
 .encounter-row-date {
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-strong);
 }
 
 .encounter-row-type {
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-body);
 }
 
 .encounter-row-status {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -479,7 +479,7 @@
 
 .encounter-row-toggle {
   color: var(--text-faint);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
 }
 
 .encounter-row-body {
@@ -489,13 +489,13 @@
 .encounter-row-meta {
   display: flex;
   gap: var(--space-2);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   margin-bottom: 0.4rem;
 }
 
 .encounter-row-notes {
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-body);
   line-height: 1.55;
   margin: 0 0 var(--space-3) 0;
@@ -509,7 +509,7 @@
 
 .encounter-related-title {
   margin: 0 0 0.4rem 0;
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
@@ -520,7 +520,7 @@
   list-style: disc;
   margin: 0;
   padding-left: 1.25rem;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-body);
 }
 
@@ -530,7 +530,7 @@
 
 .encounter-related-meta {
   color: var(--text-faint);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
 }
 
 /* ===========================
@@ -541,7 +541,7 @@
 }
 
 .documents-note {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   margin: 0 0 var(--space-3) 0;
   line-height: 1.5;
@@ -599,7 +599,7 @@
 }
 
 .document-kind {
-  font-size: 0.65rem;
+  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   padding: 0.15rem 0.45rem;
@@ -612,19 +612,19 @@
 .document-kind--observation { background: var(--surface-muted); color: var(--text-muted); border: 1px solid var(--border-default); }
 
 .document-title {
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-strong);
   font-weight: 500;
 }
 
 .document-when {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   color: var(--text-faint);
 }
 
 .document-toggle {
   color: var(--text-faint);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
 }
 
 .document-body {

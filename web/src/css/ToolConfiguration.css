@@ -8,7 +8,7 @@
 }
 
 .tool-config-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--text-strong);
   margin: 0 0 0.5rem 0;
@@ -26,7 +26,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-muted);
   margin: 0;
 }
@@ -40,7 +40,7 @@
 }
 
 .tool-config-section-title {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -90,25 +90,25 @@
 
 .preset-card--active {
   border-color: var(--accent-info);
-  background: #eff6ff;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  background: var(--accent-info-soft-bg);
+  box-shadow: var(--shadow-focus-ring);
 }
 
 .preset-card-label {
-  font-size: 0.95rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-strong);
 }
 
 .preset-card-desc {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.4;
 }
 
 .preset-custom-hint {
   margin: 0.75rem 0 0 0;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--accent-warning-text);
   background: var(--accent-warning-bg);
   padding: 0.4rem 0.65rem;
@@ -132,14 +132,14 @@
 }
 
 .tool-config-stage-title {
-  font-size: 1rem;
+  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-strong);
   margin: 0 0 0.2rem 0;
 }
 
 .tool-config-stage-desc {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   margin: 0;
   line-height: 1.45;
@@ -187,20 +187,20 @@
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-2);
-  font-size: 0.9rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-strong);
 }
 
 .tool-row-id {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-faint);
   letter-spacing: 0.04em;
 }
 
 .tool-row-purpose {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -227,7 +227,7 @@
   justify-content: center;
   margin-top: 0.15rem;
   flex-shrink: 0;
-  font-size: 0.625rem;
+  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -242,7 +242,7 @@
 .tool-row-status {
   display: inline-block;
   margin-left: 0.4rem;
-  font-size: 0.625rem;
+  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;

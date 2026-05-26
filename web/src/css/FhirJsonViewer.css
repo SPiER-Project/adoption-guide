@@ -12,7 +12,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   cursor: pointer;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--border-emphasis);
   text-transform: uppercase;
@@ -26,7 +26,7 @@
 }
 
 .fhir-viewer-toggle-icon {
-  font-size: 0.625rem;
+  font-size: var(--font-size-2xs);
   flex-shrink: 0;
 }
 
@@ -43,7 +43,7 @@
 .fhir-viewer-panel pre {
   margin: 0;
   color: var(--border-default);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   line-height: 1.5;
   white-space: pre-wrap;

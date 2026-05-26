@@ -12,7 +12,7 @@
 }
 
 .spier-title {
-    font-size: 2rem;
+    font-size: var(--font-size-4xl);
     font-weight: 700;
     color: var(--brand-primary);
     margin: 0 0 0.5rem 0;
@@ -28,7 +28,7 @@
 }
 
 .spier-description {
-    font-size: 1.05rem;
+    font-size: var(--font-size-xl);
     color: var(--text-body);
     max-width: 600px;
     line-height: 1.6;
@@ -36,7 +36,7 @@
 }
 
 .spier-tagline {
-    font-size: 1.1rem;
+    font-size: var(--font-size-2xl);
     color: var(--brand-primary);
     font-weight: 500;
     max-width: 640px;
@@ -67,7 +67,7 @@
     padding: var(--space-6);
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+    box-shadow: var(--shadow-sm);
     border: 1px solid rgba(0, 0, 0, 0.04);
     border-top: 4px solid transparent;
     transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -75,7 +75,7 @@
 
 .lens-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgb(0 0 0 / 0.08), 0 4px 10px rgb(0 0 0 / 0.04);
+    box-shadow: var(--shadow-xl);
 }
 
 .lens-card--guide { border-top-color: var(--accent-info); }
@@ -84,7 +84,7 @@
 
 .lens-card-badge {
     display: inline-block;
-    font-size: 0.6875rem;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -95,7 +95,7 @@
 .lens-card h3 {
     color: var(--brand-primary);
     margin: 0 0 0.5rem 0;
-    font-size: 1.15rem;
+    font-size: var(--font-size-2xl);
     line-height: 1.3;
 }
 
@@ -103,12 +103,12 @@
     color: var(--text-body);
     flex-grow: 1;
     margin: 0 0 1rem 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-lg);
     line-height: 1.5;
 }
 
 .lens-card-cta {
-    font-size: 0.875rem;
+    font-size: var(--font-size-md);
     font-weight: 600;
     color: var(--accent-info);
 }
@@ -135,7 +135,7 @@
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-7);
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -144,13 +144,13 @@
 
 .tool-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgb(0 0 0 / 0.08), 0 4px 10px rgb(0 0 0 / 0.04);
+    box-shadow: var(--shadow-xl);
 }
 
 /* Card Badges */
 .card-badge {
     display: inline-block;
-    font-size: 0.6875rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -166,14 +166,14 @@
 }
 
 .card-badge--cams {
-    background: #e0e7ff;
-    color: #3730a3;
+    background: var(--accent-violet-soft);
+    color: var(--accent-violet-deep);
 }
 
 .tool-card h3 {
     color: var(--brand-primary);
     margin: 0 0 0.5rem 0;
-    font-size: 1.15rem;
+    font-size: var(--font-size-2xl);
     line-height: 1.3;
 }
 
@@ -182,66 +182,8 @@
     flex-grow: 1;
     margin: 0 0 1.25rem 0;
     line-height: 1.5;
-    font-size: 0.9375rem;
+    font-size: var(--font-size-lg);
 }
 
-/* ===========================
-   Buttons
-   =========================== */
-.btn-primary {
-    display: inline-block;
-    background-color: var(--brand-primary);
-    color: white;
-    padding: 0.65rem 1.25rem;
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    text-align: center;
-    transition: background-color 0.2s, transform 0.15s;
-}
-
-.btn-primary:hover {
-    background-color: var(--brand-primary-hover);
-    transform: translateY(-1px);
-}
-
-.cams-links {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.btn-secondary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    background-color: var(--surface-page);
-    color: var(--brand-primary);
-    padding: 0.6rem 0.85rem;
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    font-weight: 500;
-    font-size: 0.875rem;
-    text-align: left;
-    border: 1px solid var(--border-default);
-    transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background-color: var(--surface-muted);
-    border-color: var(--border-strong);
-    transform: translateX(2px);
-}
-
-.btn-icon {
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.btn-meta {
-    margin-left: auto;
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    font-weight: 400;
-}
+/* Button rules (.btn-primary, .btn-secondary, .btn-meta, .btn-icon, .cams-links)
+   are defined in App.css — the canonical home for shared button styles. */
