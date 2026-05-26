@@ -208,7 +208,7 @@ export function PopulationView() {
                   <span className="caseload-stage">{stageTitleById(p.currentStage)}</span>
                 </td>
                 <td>
-                  <span className={`caseload-risk caseload-risk--${p.currentRiskLevel}`}>
+                  <span className={`risk-pill risk-pill--${p.currentRiskLevel}`}>
                     {RISK_LABEL[p.currentRiskLevel]}
                   </span>
                 </td>

@@ -178,22 +178,6 @@
   font-weight: 500;
 }
 
-.caseload-risk {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-pill);
-  text-transform: uppercase;
-}
-
-.caseload-risk--acute    { background: var(--risk-acute);            color: var(--text-on-brand); }
-.caseload-risk--high     { background: var(--risk-high);             color: var(--text-on-brand); }
-.caseload-risk--moderate { background: var(--risk-moderate);         color: var(--text-on-brand); }
-.caseload-risk--low      { background: var(--risk-low-faded);        color: var(--risk-low-soft-text); }
-.caseload-risk--none     { background: var(--border-default);        color: var(--text-muted); }
-
 .caseload-activity-label {
   color: var(--text-body);
   font-size: 0.8125rem;

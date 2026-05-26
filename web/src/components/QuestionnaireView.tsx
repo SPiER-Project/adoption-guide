@@ -94,7 +94,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
         {submitted && !carePlan && submitResult && (
           <div className={`submit-result-summary ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>
             <div className="submit-result-header">
-              <span className={`risk-alert-level ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>
+              <span className={`risk-pill risk-pill--sm risk-pill--${submitResult.riskAlert.level}`}>
                 {LEVEL_CONFIG[submitResult.riskAlert.level].label}
               </span>
               <span className="submit-result-title">{submitResult.riskAlert.summary}</span>
