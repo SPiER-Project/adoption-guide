@@ -38,6 +38,10 @@
 .risk-pill--acute    { background: var(--risk-acute);        color: var(--text-on-brand); }
 .risk-pill--high     { background: var(--risk-high);         color: var(--text-on-brand); }
 .risk-pill--moderate { background: var(--risk-moderate);     color: var(--text-on-brand); }
-.risk-pill--low      { background: var(--risk-low-faded);    color: var(--risk-low-soft-text); }
-.risk-pill--none     { background: var(--border-default);    color: var(--text-muted); }
-.risk-pill--unknown  { background: var(--border-default);    color: var(--text-muted); font-style: italic; }
+/* Darker text on the muted backgrounds to clear WCAG AA contrast (4.5:1)
+   for small body copy. `--risk-low-soft-text` on `--risk-low-faded` lands
+   at 3.54:1, and `--text-muted` on `--border-default` at 3.84:1; bumping
+   to `--accent-success-text` / `--text-body` raises both above 5:1. */
+.risk-pill--low      { background: var(--risk-low-faded);    color: var(--accent-success-text); }
+.risk-pill--none     { background: var(--border-default);    color: var(--text-body); }
+.risk-pill--unknown  { background: var(--border-default);    color: var(--text-body); font-style: italic; }
