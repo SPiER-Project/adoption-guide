@@ -89,7 +89,6 @@
   --font-size-2xs:  0.625rem;   /* risk-alert-level micro labels */
   --font-size-xs:   0.6875rem;
   --font-size-sm:   0.75rem;
-  --font-size-base: 0.8125rem;
   --font-size-md:   0.875rem;   /* current default body */
   --font-size-lg:   0.9375rem;
   --font-size-xl:   1rem;
@@ -108,7 +107,7 @@
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
   --surface-banner:      #edf2f7; /* patient banner background */
-  --accent-info-strong:  #1d4ed8; /* deep info blue used by links/badges */
+  --accent-info-text:    #1d4ed8; /* deep info blue for text on info surfaces */
   --text-error:          #d32f2f; /* error/destructive copy */
 
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
