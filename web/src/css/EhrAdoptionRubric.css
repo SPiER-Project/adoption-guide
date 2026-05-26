@@ -4,7 +4,7 @@
 
 .rubric-description {
   color: var(--text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--font-size-lg);
   line-height: 1.6;
   margin: -1rem 0 1.5rem 0;
 }
@@ -30,14 +30,14 @@
 }
 
 .rubric-summary-value {
-  font-size: 1.5rem;
+  font-size: var(--font-size-3xl);
   font-weight: 800;
   color: var(--text-strong);
   line-height: 1;
 }
 
 .rubric-summary-label {
-  font-size: 0.625rem;
+  font-size: var(--font-size-2xs);
   color: var(--text-faint);
   font-weight: 600;
   text-transform: uppercase;
@@ -60,16 +60,16 @@
 }
 
 .rubric-summary-fill--coverage {
-  background: linear-gradient(90deg, #fb923c, #4ade80);
+  background: linear-gradient(90deg, var(--accent-orange-strong), var(--accent-success-light));
 }
 
 .rubric-summary-fill--maturity {
-  background: linear-gradient(90deg, #f87171 0%, #fb923c 33%, #facc15 66%, #4ade80 100%);
+  background: linear-gradient(90deg, var(--accent-red-light) 0%, var(--accent-orange-strong) 33%, var(--accent-warning-stop) 66%, var(--accent-success-light) 100%);
 }
 
 .rubric-reset-btn {
   padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-muted);
   background: var(--surface-muted);
@@ -99,7 +99,7 @@
 
 .rubric-legend-summary {
   padding: 0.6rem 1rem;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--border-emphasis);
   cursor: pointer;
   background: var(--surface-page);
@@ -117,7 +117,7 @@
 }
 
 .rubric-legend-level {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-body);
   display: flex;
   align-items: center;
@@ -131,10 +131,15 @@
   width: 1.5rem;
   height: 1.5rem;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   flex-shrink: 0;
 }
+
+.rubric-level-chip--0 { background: var(--risk-acute-faded);    color: var(--risk-acute-soft-text); }
+.rubric-level-chip--1 { background: var(--risk-high-faded);     color: var(--risk-high-soft-text); }
+.rubric-level-chip--2 { background: var(--risk-moderate-faded); color: var(--risk-moderate-soft-text); }
+.rubric-level-chip--3 { background: var(--risk-low-faded);      color: var(--risk-low-soft-text); }
 
 /* ── Stage Sections ── */
 .rubric-stage-section {
@@ -175,7 +180,7 @@
 
 .rubric-stage-description {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-muted);
   font-weight: 400;
@@ -188,7 +193,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   background: var(--surface-muted);
   color: var(--text-faint);
@@ -202,7 +207,7 @@
 
 .rubric-stage-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--text-strong);
 }
@@ -214,7 +219,7 @@
 }
 
 .rubric-stage-coverage {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -224,7 +229,7 @@
 }
 
 .rubric-bonus-badge {
-  font-size: 0.625rem;
+  font-size: var(--font-size-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -249,7 +254,7 @@
   padding: 0.35rem 0.6rem;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-body);
   cursor: pointer;
   transition: all 0.15s;
@@ -267,7 +272,7 @@
 }
 
 .rubric-tool-checkbox input[type="checkbox"] {
-  accent-color: #22c55e;
+  accent-color: var(--accent-success);
   cursor: pointer;
 }
 
@@ -282,7 +287,7 @@
 }
 
 .rubric-maturity-label {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -303,7 +308,7 @@
 }
 
 .rubric-maturity-criterion {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-body);
 }
@@ -312,7 +317,7 @@
   padding: 0.35rem 0.4rem;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   width: 100%;
@@ -322,3 +327,8 @@
 .rubric-select:hover {
   border-color: var(--text-faint);
 }
+
+.rubric-select--level-0 { background: var(--risk-acute-faded);    color: var(--risk-acute-soft-text); }
+.rubric-select--level-1 { background: var(--risk-high-faded);     color: var(--risk-high-soft-text); }
+.rubric-select--level-2 { background: var(--risk-moderate-faded); color: var(--risk-moderate-soft-text); }
+.rubric-select--level-3 { background: var(--risk-low-faded);      color: var(--risk-low-soft-text); }

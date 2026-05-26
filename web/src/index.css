@@ -34,15 +34,50 @@
   --brand-accent-hover:  #b85636;
 
   /* ── Semantic accents ───────────────────────────────────── */
-  --accent-info:         #2563eb;
-  --accent-info-soft:    #dbeafe;
-  --accent-warning-bg:   #fef3c7;
-  --accent-warning-text: #92400e;
-  --accent-warning-edge: #f59e0b;
-  --accent-success-bg:   #dcfce7;
-  --accent-success-text: #166534;
-  --accent-orange-soft:  #fff7ed;
-  --accent-orange-mid:   #fed7aa;
+  --accent-info:           #2563eb;
+  --accent-info-soft:      #dbeafe;
+  --accent-info-soft-bg:   #eff6ff; /* pale info wash (lighter than --accent-info-soft) */
+  --accent-info-border:    #93c5fd; /* pale info border */
+  --accent-info-mid:       #3b82f6; /* mid info blue */
+  --accent-info-text-deep: #1e40af; /* deeper info text */
+  --accent-warning-bg:     #fef3c7;
+  --accent-warning-text:   #92400e;
+  --accent-warning-text-deep: #78350f; /* deeper amber/brown text */
+  --accent-warning-edge:   #f59e0b;
+  --accent-warning-border: #fcd34d; /* warning border */
+  --accent-warning-stop:   #facc15; /* yellow gradient stop */
+  --accent-success-bg:     #dcfce7;
+  --accent-success-text:   #166534;
+  --accent-success:        #22c55e; /* solid success green */
+  --accent-success-light:  #4ade80; /* lighter success */
+  --accent-orange-soft:    #fff7ed;
+  --accent-orange-mid:     #fed7aa;
+  --accent-orange-strong:  #fb923c; /* stronger orange (rubric mid) */
+  --accent-red-light:      #f87171; /* light red (rubric low) */
+
+  /* ── Accent — violet/indigo family (Dashboard hero, badges) */
+  --accent-violet:         #7c3aed;
+  --accent-violet-deep:    #3730a3;
+  --accent-violet-soft:    #e0e7ff;
+  --accent-violet-soft-bg: #ede9fe;
+  --accent-violet-border:  #c7d2fe;
+
+  /* ── Accent — magenta (screening badge family) ──────────── */
+  --accent-magenta-soft:   #fce7f3;
+  --accent-magenta-text:   #9d174d;
+
+  /* ── Brand-accent soft tones (orange-tinted surfaces) ───── */
+  --brand-accent-soft:     #fef5f1;
+  --brand-accent-text:     #b8573a;
+
+  /* ── Banner-muted surfaces (subnav buttons, header chips) ─ */
+  --surface-banner-muted:       #f5f0f4;
+  --surface-banner-muted-hover: #ebe1e8;
+  --border-banner-muted:        #d4c0cf;
+  --border-banner-muted-hover:  #b89aaf;
+
+  /* ── Alternate page surface (slightly off-white) ────────── */
+  --surface-page-alt:      #fafbfc;
 
   /* ── Risk-level scale (clinical severity) ──────────────── */
   --risk-acute:               #dc2626;
@@ -89,6 +124,7 @@
   --font-size-2xs:  0.625rem;   /* risk-pill--sm micro labels */
   --font-size-xs:   0.6875rem;
   --font-size-sm:   0.75rem;
+  --font-size-base: 0.8125rem;  /* most common body size in components */
   --font-size-md:   0.875rem;   /* current default body */
   --font-size-lg:   0.9375rem;
   --font-size-xl:   1rem;
@@ -104,6 +140,12 @@
   --shadow-md: 0 2px 8px rgb(0 0 0 / 0.08);
   --shadow-lg: 0 4px 16px rgb(0 0 0 / 0.10);
   --shadow-xl: 0 8px 24px rgb(0 0 0 / 0.12);
+
+  /* ── Specialty shadows (non-elevation semantic uses) ────── */
+  --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* mobile slide-out sidebar */
+  --shadow-focus-ring:   0 0 0 2px rgb(37 99 235 / 0.15);          /* info-tinted focus halo */
+  --shadow-card-outline: 0 0 0 1px var(--accent-info-soft);        /* selected-card soft outline */
+  --shadow-brand-glow:   0 1px 12px rgb(209 107 71 / 0.15);        /* brand-accent tinted halo */
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
   --surface-banner:      #edf2f7; /* patient banner background */

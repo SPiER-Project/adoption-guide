@@ -1,5 +1,5 @@
 .patient-banner {
-  background: #edf2f7;
+  background: var(--surface-banner);
   border-bottom: 1px solid var(--border-strong);
   padding: 0.5rem 1.5rem;
   /* Stick to the top of .ehr-content as the page scrolls so identifiers + risk
@@ -14,13 +14,13 @@
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
 }
 
 .patient-banner-name {
   font-weight: 700;
   color: var(--text-strong);
-  font-size: 0.9375rem;
+  font-size: var(--font-size-lg);
 }
 
 .patient-banner-divider {
@@ -36,7 +36,7 @@
 
 .patient-banner-label {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -49,11 +49,11 @@
 
 .patient-banner-mrn {
   font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
 }
 
 .patient-banner--unassigned {
-  background: #f1f5f9;
+  background: var(--surface-muted);
 }
 
 .patient-banner-name--unassigned {
@@ -64,14 +64,14 @@
 
 .patient-banner-unassigned-hint {
   color: var(--text-muted);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
 }
 
 .patient-banner-population-link {
   margin-left: auto;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
-  color: var(--brand-primary, #1d4ed8);
+  color: var(--brand-primary, var(--accent-info-text));
   text-decoration: none;
 }
 
@@ -81,15 +81,15 @@
 
 .patient-banner-smart {
   margin-left: auto;
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 0.2rem 0.5rem;
   border-radius: var(--radius-sm);
   background: var(--accent-info-soft);
-  color: #1d4ed8;
-  border: 1px solid #93c5fd;
+  color: var(--accent-info-text);
+  border: 1px solid var(--accent-info-border);
 }
 
 @media (max-width: 768px) {
@@ -99,7 +99,7 @@
 
   .patient-banner-content {
     gap: var(--space-2);
-    font-size: 0.8125rem;
+    font-size: var(--font-size-base);
   }
 
   .patient-banner-divider:nth-child(n+4) {

@@ -4,7 +4,7 @@
 
 .dd-description {
   color: var(--text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--font-size-lg);
   line-height: 1.6;
   margin: -1rem 0 1.5rem 0;
 }
@@ -23,7 +23,7 @@
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-strong);
   background: white;
 }
@@ -42,14 +42,14 @@
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-strong);
   background: white;
   cursor: pointer;
 }
 
 .dd-count {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-faint);
   margin-left: auto;
 }
@@ -64,7 +64,7 @@
 .dd-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
 }
 
 .dd-table thead {
@@ -78,7 +78,7 @@
   color: var(--text-body);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   border-bottom: 2px solid var(--border-default);
   white-space: nowrap;
 }
@@ -102,19 +102,19 @@
 
 .dd-cell-code {
   font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 0.75rem;
-  color: #7c3aed;
+  font-size: var(--font-size-sm);
+  color: var(--accent-violet);
   white-space: nowrap;
 }
 
 .dd-cell-system {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
 .dd-cell-path {
   font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   color: var(--text-body);
   white-space: nowrap;
 }
@@ -126,16 +126,16 @@
 }
 
 .dd-resource-badge {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
-.dd-resource-badge--careplan { background: var(--accent-info-soft); color: #1d4ed8; }
+.dd-resource-badge--careplan { background: var(--accent-info-soft); color: var(--accent-info-text); }
 .dd-resource-badge--observation { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
-.dd-resource-badge--condition { background: #fce7f3; color: #9d174d; }
+.dd-resource-badge--condition { background: var(--accent-magenta-soft); color: var(--accent-magenta-text); }
 
 .dd-tools {
   display: flex;
@@ -144,7 +144,7 @@
 }
 
 .dd-tool-chip {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
@@ -186,7 +186,7 @@
 
 .dd-stage-title {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--text-strong);
   border-left: 3px solid var(--brand-accent);
@@ -194,7 +194,7 @@
 }
 
 .dd-stage-count {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   color: var(--text-faint);
   font-weight: 600;
 }
@@ -209,7 +209,7 @@
 }
 
 .dd-cross-label {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -217,10 +217,10 @@
 }
 
 .dd-cross-chip {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
-  background: #fef5f1;
-  color: #b8573a;
+  background: var(--brand-accent-soft);
+  color: var(--brand-accent-text);
   border: 1px solid var(--accent-orange-mid);
 }

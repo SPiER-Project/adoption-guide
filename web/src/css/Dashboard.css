@@ -4,8 +4,8 @@
 
 /* ── Demo Scenario Banner ── */
 .demo-scenario-banner {
-  background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%);
-  border: 1px solid #c7d2fe;
+  background: linear-gradient(135deg, var(--accent-violet-soft-bg) 0%, var(--accent-violet-soft) 100%);
+  border: 1px solid var(--accent-violet-border);
   border-radius: var(--radius-xl);
   padding: var(--space-5);
   margin-bottom: var(--space-6);
@@ -19,13 +19,13 @@
 }
 
 .demo-scenario-content strong {
-  font-size: 1rem;
+  font-size: var(--font-size-xl);
   color: var(--text-strong);
 }
 
 .demo-scenario-content p {
   margin: 0.25rem 0 0 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-body);
 }
 
@@ -36,7 +36,7 @@
   border: none;
   padding: 0.6rem 1.25rem;
   border-radius: var(--radius-lg);
-  font-size: 0.9375rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, transform 0.15s;
@@ -49,7 +49,7 @@
 
 .demo-scenario-detail {
   margin: 0.75rem 0 0 0;
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
@@ -65,7 +65,7 @@
   color: var(--text-muted);
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -76,7 +76,7 @@
 }
 
 .dashboard-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--text-strong);
   margin: 0 0 1.5rem 0;
@@ -118,11 +118,11 @@
 }
 
 .risk-alert-banner-icon {
-  font-size: 1.1rem;
+  font-size: var(--font-size-2xl);
 }
 
 .risk-alert-banner-title {
-  font-size: 0.9375rem;
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--text-strong);
 }
@@ -147,13 +147,13 @@
 }
 
 .risk-alert-tool {
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   font-weight: 600;
   color: var(--border-emphasis);
 }
 
 .risk-alert-detail {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-body);
   line-height: 1.5;
   margin: 0 0 0.5rem 0;
@@ -161,7 +161,7 @@
 
 .risk-alert-action-btn {
   display: inline-block;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: white;
   background: var(--brand-primary);
@@ -191,7 +191,7 @@
 .widget-title {
   margin: 0;
   padding: 0.75rem 1.25rem;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -209,7 +209,7 @@
   display: inline-block;
   padding: 0.3rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
 }
 
@@ -224,7 +224,7 @@
 }
 
 .widget-hint {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-faint);
   margin: 0.75rem 0 0 0;
 }
@@ -242,7 +242,7 @@
   align-items: center;
   padding: 0.4rem 0;
   border-bottom: 1px solid var(--surface-muted);
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
 }
 
 .widget-list-item:last-child {
@@ -256,12 +256,12 @@
 
 .widget-list-date {
   color: var(--text-faint);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
 }
 
 .widget-empty {
   color: var(--text-faint);
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   margin: 0;
   font-style: italic;
 }
@@ -269,7 +269,7 @@
 .widget-link {
   display: inline-block;
   margin-top: var(--space-3);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--brand-accent);
   font-weight: 500;
   text-decoration: none;
@@ -281,7 +281,7 @@
 
 /* Count display */
 .widget-count {
-  font-size: 2rem;
+  font-size: var(--font-size-4xl);
   font-weight: 700;
   color: var(--text-strong);
   line-height: 1;
@@ -289,7 +289,7 @@
 
 .widget-count-label {
   display: block;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   margin-top: var(--space-1);
 }
@@ -305,7 +305,7 @@
   display: block;
   padding: 0.55rem 1rem;
   border-radius: var(--radius-lg);
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   font-weight: 600;
   text-align: center;
   text-decoration: none;
@@ -355,13 +355,13 @@
 
 .chart-section-title {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-strong);
 }
 
 .chart-section-count {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   font-weight: 500;
 }

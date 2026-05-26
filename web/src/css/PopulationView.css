@@ -8,7 +8,7 @@
 }
 
 .population-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--text-strong);
   margin: 0 0 var(--space-2) 0;
@@ -22,7 +22,7 @@
 }
 
 .population-meta {
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
   color: var(--text-muted);
   margin: 0;
 }
@@ -51,7 +51,7 @@
 }
 
 .filter-group-label {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -64,7 +64,7 @@
   border: 1px solid var(--border-default);
   color: var(--text-body);
   padding: 0.3rem 0.65rem;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   border-radius: var(--radius-pill);
   cursor: pointer;
@@ -104,7 +104,7 @@
   border: 1px solid var(--border-default);
   color: var(--text-body);
   padding: 0.3rem 0.55rem;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   border-radius: var(--radius-md);
   cursor: pointer;
   font: inherit;
@@ -123,7 +123,7 @@
 .caseload-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: var(--font-size-md);
 }
 
 .caseload-table thead {
@@ -133,7 +133,7 @@
 
 .caseload-table th {
   text-align: left;
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -166,25 +166,25 @@
 }
 
 .caseload-patient-meta {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   color: var(--text-faint);
   margin-top: 0.1rem;
 }
 
 .caseload-stage {
   display: inline-block;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-body);
   font-weight: 500;
 }
 
 .caseload-activity-label {
   color: var(--text-body);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
 }
 
 .caseload-activity-date {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   color: var(--text-faint);
   margin-top: 0.1rem;
 }
@@ -192,12 +192,12 @@
 .caseload-next-label {
   color: var(--text-strong);
   font-weight: 500;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
 }
 
 .caseload-next-rationale {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   line-height: 1.4;
   margin-top: 0.15rem;
 }
@@ -208,7 +208,7 @@
 }
 
 .caseload-open-cta {
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--accent-info);
 }
@@ -222,7 +222,7 @@
 
 .population-footnote {
   margin-top: var(--space-4);
-  font-size: 0.8125rem;
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.5;
   background: var(--surface-muted);
