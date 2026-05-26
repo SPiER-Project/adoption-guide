@@ -85,6 +85,32 @@
   --radius-pill: 999px;
   --radius-circle: 50%;
 
+  /* ── Typography scale ───────────────────────────────────── */
+  --font-size-2xs:  0.625rem;   /* risk-alert-level micro labels */
+  --font-size-xs:   0.6875rem;
+  --font-size-sm:   0.75rem;
+  --font-size-base: 0.8125rem;
+  --font-size-md:   0.875rem;   /* current default body */
+  --font-size-lg:   0.9375rem;
+  --font-size-xl:   1rem;
+  --font-size-2xl:  1.15rem;
+  --font-size-3xl:  1.5rem;
+  --font-size-4xl:  2rem;
+
+  --line-height-tight:  1.2;
+  --line-height-normal: 1.5;
+
+  /* ── Elevation scale ────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 4px 16px rgb(0 0 0 / 0.10);
+  --shadow-xl: 0 8px 24px rgb(0 0 0 / 0.12);
+
+  /* ── Surface & text aliases (repeating hex literals) ────── */
+  --surface-banner:      #edf2f7; /* patient banner background */
+  --accent-info-strong:  #1d4ed8; /* deep info blue used by links/badges */
+  --text-error:          #d32f2f; /* error/destructive copy */
+
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
