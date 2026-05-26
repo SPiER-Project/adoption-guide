@@ -1,0 +1,47 @@
+/* ============================================================
+   .risk-pill — canonical severity badge
+   ------------------------------------------------------------
+   Single component for rendering a risk-level chip anywhere in
+   the app. Replaces the previous per-page implementations:
+     - .patient-banner-risk   (PatientBanner)
+     - .caseload-risk         (PopulationView)
+     - .risk-alert-level      (post-submit result chip)
+     - .risk-badge--{level}   (deprecated Dashboard variants)
+
+   Canonical shape (matches majority pattern, PatientBanner +
+   PopulationView agreed today):
+     solid severity background + white text for acute/high/
+     moderate; --risk-low-faded + --risk-low-soft-text for low
+     (better contrast at low severity); muted bg + muted text
+     for none/unknown.
+
+   Variants: --acute / --high / --moderate / --low / --none / --unknown
+   Sizes:    default / --sm  (smaller, for dense alert lists)
+   ============================================================ */
+.risk-pill {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  line-height: var(--line-height-tight);
+}
+
+.risk-pill--sm {
+  font-size: var(--font-size-2xs);
+  padding: 2px var(--space-1);
+  letter-spacing: 0.08em;
+}
+
+.risk-pill--acute    { background: var(--risk-acute);        color: var(--text-on-brand); }
+.risk-pill--high     { background: var(--risk-high);         color: var(--text-on-brand); }
+.risk-pill--moderate { background: var(--risk-moderate);     color: var(--text-on-brand); }
+/* Darker text on the muted backgrounds to clear WCAG AA contrast (4.5:1)
+   for small body copy. `--risk-low-soft-text` on `--risk-low-faded` lands
+   at 3.54:1, and `--text-muted` on `--border-default` at 3.84:1; bumping
+   to `--accent-success-text` / `--text-body` raises both above 5:1. */
+.risk-pill--low      { background: var(--risk-low-faded);    color: var(--accent-success-text); }
+.risk-pill--none     { background: var(--border-default);    color: var(--text-body); }
+.risk-pill--unknown  { background: var(--border-default);    color: var(--text-body); font-style: italic; }

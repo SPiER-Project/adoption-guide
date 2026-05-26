@@ -86,7 +86,7 @@
   --radius-circle: 50%;
 
   /* ── Typography scale ───────────────────────────────────── */
-  --font-size-2xs:  0.625rem;   /* risk-alert-level micro labels */
+  --font-size-2xs:  0.625rem;   /* risk-pill--sm micro labels */
   --font-size-xs:   0.6875rem;
   --font-size-sm:   0.75rem;
   --font-size-md:   0.875rem;   /* current default body */

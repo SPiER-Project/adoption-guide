@@ -146,21 +146,6 @@
   margin-bottom: 0.35rem;
 }
 
-.risk-alert-level {
-  font-size: 0.625rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 0.15rem 0.4rem;
-  border-radius: var(--radius-xs);
-  color: white;
-}
-
-.risk-alert-level.alert--acute { background: var(--risk-acute); }
-.risk-alert-level.alert--high { background: var(--risk-high); }
-.risk-alert-level.alert--moderate { background: var(--risk-moderate); }
-.risk-alert-level.alert--low { background: var(--risk-low); }
-
 .risk-alert-tool {
   font-size: 0.875rem;
   font-weight: 600;
@@ -189,11 +174,6 @@
 .risk-alert-action-btn:hover {
   background: var(--brand-primary-hover);
 }
-
-/* Risk badge variants */
-.risk-badge--acute { background: var(--risk-acute-faded); color: var(--risk-acute-soft-text); }
-.risk-badge--high { background: var(--accent-orange-mid); color: var(--risk-high-soft-text); }
-.risk-badge--moderate { background: #fef08a; color: var(--risk-moderate-soft-text); }
 
 .dashboard-grid {
   display: grid;

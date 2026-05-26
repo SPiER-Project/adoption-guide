@@ -83,7 +83,7 @@ export function PatientBanner() {
         <span className="patient-banner-field">
           <span className="patient-banner-label">Risk</span>
           <span
-            className={`patient-banner-risk patient-banner-risk--${risk}`}
+            className={`risk-pill risk-pill--${risk}`}
             title={
               risk === 'unknown'
                 ? 'No suicide-risk screening on file'
