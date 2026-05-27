@@ -29,5 +29,5 @@
     "rule-empty-line-before": null,
     "shorthand-property-no-redundant-values": null
   },
-  "ignoreFiles": ["src/index.css"]
+  "ignoreFiles": ["**/src/index.css"]
 }

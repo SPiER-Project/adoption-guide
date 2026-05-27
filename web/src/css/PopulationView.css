@@ -104,10 +104,10 @@
   border: 1px solid var(--border-default);
   color: var(--text-body);
   padding: 0.3rem 0.55rem;
+  font: inherit;
   font-size: var(--font-size-base);
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-family: inherit;
 }
 
 /* ===========================

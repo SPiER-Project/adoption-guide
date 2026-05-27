@@ -11,7 +11,7 @@
     "prebuild": "npm run copy-fhir",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "lint:css": "stylelint 'src/**/*.css'",
+    "lint:css": "stylelint \"src/**/*.css\"",
     "preview": "vite preview"
   },
   "dependencies": {
