@@ -32,6 +32,7 @@
   --brand-primary-deep:  #1e0f19; /* footer */
   --brand-accent:        #d16b47; /* CTA orange */
   --brand-accent-hover:  #b85636;
+  --brand-accent-light:  #e8956e; /* lighter orange gradient stop */
 
   /* ── Semantic accents ───────────────────────────────────── */
   --accent-info:           #2563eb;

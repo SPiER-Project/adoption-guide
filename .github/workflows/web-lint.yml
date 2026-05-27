@@ -1,0 +1,38 @@
+name: Web — CSS lint
+
+# Enforce the design-token vocabulary (no raw hex / font-size / box-shadow
+# outside index.css). Runs on every push to main and every PR touching web/.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-lint.yml'
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-lint.yml'
+  workflow_dispatch:
+
+jobs:
+  lint-css:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint CSS
+        run: npm run lint:css

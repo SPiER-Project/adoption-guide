@@ -1,0 +1,33 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-declaration-strict-value"],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      ["color", "background-color", "border-color", "fill", "font-size", "box-shadow"],
+      {
+        "ignoreValues": [
+          "transparent", "inherit", "currentColor", "none", "white", "unset",
+          "/^var\\(--/"
+        ],
+        "disableFix": true
+      }
+    ],
+    "color-no-hex": [true, { "severity": "error" }],
+    "selector-class-pattern": [
+      "^[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)*$",
+      { "message": "Expected class selector to be kebab-case BEM (block, block__element, block--modifier)" }
+    ],
+    "alpha-value-notation": null,
+    "color-function-notation": null,
+    "color-function-alias-notation": null,
+    "comment-empty-line-before": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "declaration-block-single-line-max-declarations": null,
+    "keyframes-name-pattern": null,
+    "media-feature-range-notation": null,
+    "no-descending-specificity": null,
+    "rule-empty-line-before": null,
+    "shorthand-property-no-redundant-values": null
+  },
+  "ignoreFiles": ["**/src/index.css"]
+}

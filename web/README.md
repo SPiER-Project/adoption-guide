@@ -9,6 +9,12 @@ React + TypeScript + Vite.
 - `npm run copy-fhir` — compile FSH with sushi, copy generated JSON into `src/data/fhir/`, regenerate `src/data/catalog/care-plan-profiles.generated.ts`.
 - `npm run fetch-roadmap` — refresh `src/data/roadmap.generated.json` from GitHub Issues. Optional `GITHUB_TOKEN` env var for higher rate limit. The snapshot is committed so the build works offline.
 - `npm run lint` — ESLint.
+- `npm run lint:css` — stylelint; enforces the design-token vocabulary (no raw hex / font-size / box-shadow outside `index.css`).
+
+## Design system
+
+Visual tokens (color, spacing, type, elevation) and shared components live in a
+documented, lint-enforced design system — see [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md).
 
 ## Roadmap page data flow
 
