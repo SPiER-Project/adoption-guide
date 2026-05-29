@@ -3,6 +3,36 @@
 ## Mission
 The SPiER project is a non-profit initiative dedicated to translating research-validated suicide prevention tools from paper-based formats into structured, interoperable healthcare data standards (e.g., HL7 FHIR). The goal is to make these high-quality tools easily accessible to EHR vendors and healthcare systems to improve the identification, assessment, and management of suicide risk.
 
+## How SPiER's Work Connects to HL7 Standards
+
+HL7 is the standards body that defines how healthcare data is structured and exchanged (FHIR is their modern standard). National standards like **US Core** and **USCDI** already cover the basics — demographics, diagnoses, medications — but they don't yet specify *how* suicide screeners, risk assessments, and safety plans should be captured. That's the gap SPiER fills.
+
+Today, every EHR captures suicide risk information a little differently — same questions, different shapes. That makes the data hard to share, hard to measure, and hard to act on.
+
+SPiER's work has two halves:
+
+- **Standards side:** Translate each tool (ASQ, Columbia, Stanley-Brown, and others) into a single canonical FHIR shape, and contribute that work to the existing HL7 workgroups already shaping clinical data standards. The path is **draft → test with partners → contribute to HL7 → influence the published standard.**
+- **Provider side:** Build a coalition of provider organizations who can collectively *demand* this consistency from their EHR vendors. Standards work alone is slow; standards plus a clear customer ask is what drives adoption nationwide.
+
+## How the HIE Work Connects to the EHR Work
+
+EHRs hold the data; **Health Information Exchanges (HIEs) move it between organizations.** A safety plan written in an emergency department is only useful if the patient's outpatient provider, crisis line, or next ED visit can actually see it. The HIE work is the second half of the same workstream:
+
+- **With EHR vendors:** make sure suicide-safer-care data is *captured* in a standard shape.
+- **With HIEs:** make sure that data is *findable and shareable* across organizations.
+
+**Toward a repeatable workstream across partner types.** The common entry point for every partner conversation is the 8-stage Suicide Safer Care Pathway (below). Whether the partner is an EHR, an HIE, or another vendor, the opening rubric is the same: *which of these stages do you support today, and where are the gaps?* The specific FHIR artifacts SPiER produces plug in at different points depending on the partner, but the underlying model doesn't change. We are not yet at a turnkey playbook — each engagement still teaches us something — but the pattern is consolidating.
+
+## Why This Matters for Suicide-Safer Care Transitions
+
+A patient at risk of suicide moves through many hands: ED, inpatient, outpatient, primary care, crisis line, community provider. Today, the safety plan and risk assessment too often stay behind with the system that created them.
+
+When SPiER's standards work and HIE work come together, **the patient's safety information becomes available wherever they show up next — not just locked in the chart that first created it.**
+
+**A concrete example.** A patient is screened with the ASQ in an emergency department, assessed with the Columbia Scale, and discharged with a Stanley-Brown Safety Plan. Forty-eight hours later, they are seen by an outpatient clinician at a different organization. Today, that clinician usually starts from scratch — re-screens, re-asks, re-builds the plan. With SPiER's work in place, the clinician can see what's already been done — what screener, what risk level, what coping strategies and supports the patient already identified — and pick up where the ED left off.
+
+The same standardized data also gives systems a foundation for measuring whether the pathway is working — a path to quality improvement at the population level.
+
 ## The 8-Stage Suicide Safer Care Pathway
 We have adopted a standardized 8-stage model for suicide prevention in EHRs, ensuring that clinical workflows are supported from the first signal to the final resolution.
 

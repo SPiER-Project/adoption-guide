@@ -5,6 +5,19 @@ The SPiER project is a non-profit initiative dedicated to translating research-v
 
 We organize these tools around an **8-stage Suicide Safer Care Pathway** to ensure that EHR implementations support the full longitudinal journey of a patient at risk.
 
+## How SPiER works
+
+SPiER takes research-validated suicide prevention tools — the **ASQ** screener, the **Columbia Suicide Severity Rating Scale**, the **Stanley-Brown Safety Plan**, and others — and turns them into structured, machine-readable forms that any EHR or health system can implement the same way.
+
+The work has two halves that meet in the middle:
+
+- **EHR side (capture):** National standards like US Core and USCDI cover the basics — demographics, diagnoses, medications — but don't yet specify *how* suicide screeners, risk assessments, and safety plans should be captured. SPiER fills that gap by translating each tool into a single canonical FHIR shape and contributing it to the existing HL7 workgroups already shaping clinical data standards. In parallel, we build a coalition of provider organizations who can collectively *demand* that consistency from their EHR vendors.
+- **HIE side (exchange):** EHRs hold the data; Health Information Exchanges move it between organizations. A safety plan written in an emergency department is only useful if the patient's next clinician can actually see it. So our work with HIEs is about making suicide-safer-care data *findable and shareable* across organizations — not just locked in the chart that first created it.
+
+The common entry point for every partner conversation — EHR vendor, HIE, or other — is the 8-stage Suicide Safer Care Pathway below. We ask which stages a partner supports today, and where the gaps are. The artifacts SPiER produces plug in at different points depending on the partner, but the underlying model doesn't change.
+
+**Why this matters.** A patient screened with the ASQ in an ED, assessed with the Columbia Scale, and discharged with a Stanley-Brown Safety Plan is often re-screened from scratch when they show up at an outpatient clinic 48 hours later. With SPiER's standards work and HIE work in place, the next clinician can see what's already been done — what screener, what risk level, what coping strategies the patient identified — and pick up where the ED left off. The same standardized data also gives systems a foundation for measurement and quality improvement at the population level.
+
 ## The SPiER Pathway
 1.  **Flag Risk:** Capture suicide-related signals (e.g., ASQ, PHQ-9 Item 9).
 2.  **Clarify Risk:** Detailed assessment (e.g., C-SSRS Full, CAMS SSF-5).
