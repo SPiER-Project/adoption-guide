@@ -43,7 +43,7 @@
 
 ## FHIR artifact metadata reflection
 
-- `Questionnaire.copyright`: *Not yet set. Needs an attribution string referencing the originating institution and citing the canonical publication.*
+- Questionnaire.copyright: "The ASQ is a public domain instrument developed by the National Institute of Mental Health (NIMH). No permission is required for use." (To be updated with the canonical citation once finalized.)
 - `Questionnaire.useContext`: *Not yet set.*
 - IG page attribution block: *Not yet authored — will live in `ig/input/pagecontent/asq.md` when that page is created.*
 - FSH source attribution: *Not yet set in `ig/input/fsh/asq.fsh`.*
