@@ -34,6 +34,7 @@ import { Home } from './pages/Home'
 
 // Implementation Guide
 import { ImplementationGuide } from './pages/ImplementationGuide'
+import { IgOverview } from './pages/IgOverview'
 import { PatientJourney } from './pages/PatientJourney'
 import { DataDictionary } from './pages/DataDictionary'
 import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
@@ -75,7 +76,8 @@ function AppRoutes() {
 
         {/* Implementation Guide lens */}
         <Route path="/implementation-guide" element={<ImplementationGuide />}>
-          <Route index element={<Navigate to="pathway" replace />} />
+          <Route index element={<Navigate to="overview" replace />} />
+          <Route path="overview" element={<IgOverview />} />
           <Route path="pathway" element={<PatientJourney />} />
           <Route path="pathway/:slug/plan" element={<PilotPlan />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />

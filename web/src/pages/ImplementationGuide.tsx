@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import '../css/ImplementationGuide.css'
 
 const TABS = [
+  { to: 'overview', label: 'Overview' },
   { to: 'pathway', label: 'Pathway' },
   { to: 'tool-configuration', label: 'Tool Configuration' },
   { to: 'data-dictionary', label: 'Data Dictionary' },

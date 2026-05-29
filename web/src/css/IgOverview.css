@@ -1,0 +1,74 @@
+.ig-overview {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.ig-overview__intro p {
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  color: var(--text-body);
+  margin: 0;
+}
+
+.ig-overview__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ig-overview__section p,
+.ig-overview__section li {
+  font-size: var(--font-size-md);
+  line-height: 1.65;
+  color: var(--text-body);
+  margin: 0;
+}
+
+.ig-overview__section ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ig-overview__h3 {
+  color: var(--brand-primary);
+  font-size: var(--font-size-xl);
+  margin: 0;
+}
+
+.ig-overview__pathway {
+  margin: var(--space-2) 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-muted, rgba(0, 0, 0, 0.025));
+  border-left: 3px solid var(--brand-accent);
+  border-radius: var(--radius-md);
+  color: var(--text-body);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+}
+
+.ig-overview__vignette {
+  background: var(--surface-muted, rgba(0, 0, 0, 0.025));
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  border-left: 3px solid var(--accent-info);
+}
+
+.ig-overview__vignette h4 {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--brand-primary);
+  font-size: var(--font-size-lg);
+}
+
+.ig-overview__vignette p {
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+}

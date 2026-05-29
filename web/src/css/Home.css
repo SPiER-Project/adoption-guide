@@ -45,6 +45,66 @@
 }
 
 /* ===========================
+   How It Works
+   =========================== */
+.how-it-works {
+    background: white;
+    border-radius: var(--radius-2xl);
+    padding: var(--space-7);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.how-it-works__title {
+    color: var(--brand-primary);
+    font-size: var(--font-size-2xl);
+    margin: 0;
+}
+
+.how-it-works__lead {
+    color: var(--text-body);
+    font-size: var(--font-size-lg);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 760px;
+}
+
+.how-it-works__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+}
+
+@media (min-width: 720px) {
+    .how-it-works__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.how-it-works__card {
+    background: var(--surface-muted, rgba(0, 0, 0, 0.025));
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    border-left: 3px solid var(--brand-accent);
+}
+
+.how-it-works__card h4 {
+    color: var(--brand-primary);
+    margin: 0 0 0.5rem 0;
+    font-size: var(--font-size-lg);
+}
+
+.how-it-works__card p {
+    color: var(--text-body);
+    margin: 0;
+    font-size: var(--font-size-md);
+    line-height: 1.55;
+}
+
+/* ===========================
    Lens Cards Grid
    =========================== */
 .lens-grid {
