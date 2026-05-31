@@ -7,6 +7,8 @@
 // TODO: Add minimal FSH ActivityDefinitions for these 15 tools so this file
 // can be deleted (tracked separately from Move 6d.6).
 
+import type { WorkflowType } from './tool-ui-metadata'
+
 export interface ToolStub {
   id: string
   name: string
@@ -14,6 +16,8 @@ export interface ToolStub {
   stageId: string
   purpose: string
   description?: string
+  /** Kind of FHIR artifact this tool produces. Defaults to 'questionnaire'. */
+  workflowType?: WorkflowType
 }
 
 export const TOOL_STUBS: ToolStub[] = [
@@ -85,6 +89,7 @@ export const TOOL_STUBS: ToolStub[] = [
     name: 'Transition Checkpoint',
     stageId: 'coordinate-handoffs',
     purpose: 'Pre-discharge transfer of care',
+    workflowType: 'communication',
   },
   {
     id: 'TL-023',
@@ -97,6 +102,7 @@ export const TOOL_STUBS: ToolStub[] = [
     name: 'Rapid Referral to Outpatient Behavioral Healthcare',
     stageId: 'coordinate-handoffs',
     purpose: 'Warm handoff and accelerated access to follow-up',
+    workflowType: 'communication',
   },
 
   // ── Track Follow-Up ──
@@ -105,17 +111,20 @@ export const TOOL_STUBS: ToolStub[] = [
     name: 'Outreach / Caring Contacts',
     stageId: 'track-follow-up',
     purpose: 'Closed-loop follow-up',
+    workflowType: 'communication',
   },
   {
     id: 'TL-012',
     name: 'ED-SAFE / CLASP-ED Follow-up Protocol',
     stageId: 'track-follow-up',
     purpose: 'Protocol-based post-discharge follow-up',
+    workflowType: 'communication',
   },
   {
     id: 'TL-018',
     name: 'Colorado Post-Visit Protocol',
     stageId: 'track-follow-up',
     purpose: 'Protocol-based post-visit outreach',
+    workflowType: 'communication',
   },
 ]

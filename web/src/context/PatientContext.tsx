@@ -10,6 +10,8 @@ import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
   CarePlanResource,
+  CommunicationResource,
+  FhirResource,
   ObservationResource,
   PatientResource,
   PatientSlice,
@@ -52,6 +54,7 @@ const EMPTY_SLICE: PatientSlice = {
   observations: [],
   carePlans: [],
   riskAlerts: [],
+  communications: [],
 }
 
 // One-time migration from the original single-patient keys into a patient-001
@@ -131,7 +134,14 @@ interface PatientContextType {
   responses: StoredResponse[]
   addResponse: (name: string, resource: QuestionnaireResponseResource) => void
   observations: ObservationResource[]
+  communications: CommunicationResource[]
   riskAlerts: RiskAlert[]
+  /**
+   * Append a non-Questionnaire workflow artifact, routing it into the right
+   * slice array by `resourceType`. Stamps `_savedAt`. (QuestionnaireResponses
+   * go through `addResponse`, which also derives Observations.)
+   */
+  addArtifact: (resource: FhirResource) => void
 }
 
 const PatientContext = createContext<PatientContextType | undefined>(undefined)
@@ -310,6 +320,34 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     [updateActiveSlice],
   )
 
+  // Generic adder for non-Questionnaire workflow artifacts. Routes by
+  // resourceType into the matching slice array and stamps _savedAt. New arrays
+  // are read defensively (`?? []`) because slices persisted by earlier builds
+  // predate them. QuestionnaireResponses are NOT handled here — use addResponse,
+  // which additionally derives Observations.
+  const addArtifact = useCallback(
+    (resource: FhirResource) => {
+      const stamped = { ...resource, _savedAt: new Date().toISOString() }
+      updateActiveSlice(prev => {
+        switch (resource.resourceType) {
+          case 'Communication':
+            return {
+              ...prev,
+              communications: [...(prev.communications ?? []), stamped as CommunicationResource],
+            }
+          case 'Observation':
+            return { ...prev, observations: [...prev.observations, stamped as ObservationResource] }
+          case 'CarePlan':
+            return { ...prev, carePlans: [...prev.carePlans, stamped as CarePlanResource] }
+          default:
+            console.warn(`[PatientContext] addArtifact: unhandled resourceType "${resource.resourceType}"`)
+            return prev
+        }
+      })
+    },
+    [updateActiveSlice],
+  )
+
   const value = useMemo<PatientContextType>(
     () => ({
       patient: activePatient,
@@ -324,7 +362,9 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       responses: slice.responses,
       addResponse,
       observations: slice.observations,
+      communications: slice.communications ?? [],
       riskAlerts: slice.riskAlerts,
+      addArtifact,
     }),
     [
       activePatient,
@@ -336,6 +376,7 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       slice,
       addCarePlan,
       addResponse,
+      addArtifact,
     ],
   )
 

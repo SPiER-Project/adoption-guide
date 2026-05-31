@@ -22,6 +22,9 @@ export type QuestionnaireResponseResource = FhirResource & { resourceType: 'Ques
 export type ObservationResource = FhirResource & { resourceType: 'Observation' }
 export type CarePlanResource = FhirResource & { resourceType: 'CarePlan' }
 export type PatientResource = FhirResource & { resourceType: 'Patient' }
+export type CommunicationResource = FhirResource & { resourceType: 'Communication' }
+export type AppointmentResource = FhirResource & { resourceType: 'Appointment' }
+export type MeasureReportResource = FhirResource & { resourceType: 'MeasureReport' }
 
 /** One captured QuestionnaireResponse with display metadata for activity lists. */
 export interface StoredResponse {
@@ -40,6 +43,12 @@ export interface PatientSlice {
   observations: ObservationResource[]
   carePlans: CarePlanResource[]
   riskAlerts: RiskAlert[]
+  /**
+   * Non-Questionnaire workflow artifacts (caring contacts, referrals, etc.).
+   * Optional so previously-persisted slices and existing scenario JSON files —
+   * which predate this field — remain valid; always read with `?? []`.
+   */
+  communications?: CommunicationResource[]
 }
 
 /**

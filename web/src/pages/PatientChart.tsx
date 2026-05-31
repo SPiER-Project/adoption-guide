@@ -228,14 +228,22 @@ function StageActivitySection({
   status,
   responses,
   carePlans,
+  observations,
+  communications,
 }: {
   stageId: string
   status: StageStatus
   responses: any[]
   carePlans: any[]
+  observations: any[]
+  communications: any[]
 }) {
   const stage = stageById(stageId)
-  const empty = responses.length === 0 && carePlans.length === 0
+  const empty =
+    responses.length === 0 &&
+    carePlans.length === 0 &&
+    observations.length === 0 &&
+    communications.length === 0
   if (empty && status === 'not-started') return null
 
   return (
@@ -276,6 +284,42 @@ function StageActivitySection({
                   <span className="stage-artifact-meta">
                     CarePlan &middot; {cp.status ?? 'active'}
                     {savedAt && ` · ${savedAt}`}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+          {observations.map((obs, idx) => {
+            const name = obs.code?.text || obs.code?.coding?.[0]?.display || 'Observation'
+            const when = obs.effectiveDateTime ?? obs._savedAt
+            return (
+              <div key={obs.id ?? `obs-${idx}`} className="stage-artifact stage-artifact--observation">
+                <span className="stage-artifact-icon" aria-hidden>{'\u{1F4CA}'}</span>
+                <div className="stage-artifact-body">
+                  <span className="stage-artifact-name">{name}</span>
+                  <span className="stage-artifact-meta">
+                    Observation
+                    {when && ` · ${new Date(when).toLocaleDateString()}`}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+          {communications.map((c, idx) => {
+            const name =
+              c.reasonCode?.[0]?.text ||
+              c.category?.[0]?.text ||
+              c.category?.[0]?.coding?.[0]?.display ||
+              'Communication'
+            const when = c.sent ?? c._savedAt
+            return (
+              <div key={c.id ?? `comm-${idx}`} className="stage-artifact stage-artifact--communication">
+                <span className="stage-artifact-icon" aria-hidden>{'\u{1F4DE}'}</span>
+                <div className="stage-artifact-body">
+                  <span className="stage-artifact-name">{name}</span>
+                  <span className="stage-artifact-meta">
+                    Communication &middot; {c.status ?? 'completed'}
+                    {when && ` · ${new Date(when).toLocaleDateString()}`}
                   </span>
                 </div>
               </div>
@@ -534,6 +578,7 @@ export function PatientChart() {
     responses,
     riskAlerts,
     observations,
+    communications,
     activePatientId,
     populationPatient,
     isSmartConnected,
@@ -542,12 +587,20 @@ export function PatientChart() {
   const { isToolEnabled } = useToolConfig()
   const location = useLocation()
 
-  const hasData = responses.length > 0 || carePlans.length > 0
-  const { statuses, activeStageId } = useMemo(
-    () => derivePathwayStatus(responses, carePlans),
-    [responses, carePlans],
+  const artifacts = useMemo(
+    () => ({ responses, carePlans, observations, communications }),
+    [responses, carePlans, observations, communications],
   )
-  const stageGroups = useMemo(() => groupArtifactsByStage(responses, carePlans), [responses, carePlans])
+  const hasData =
+    responses.length > 0 ||
+    carePlans.length > 0 ||
+    observations.length > 0 ||
+    communications.length > 0
+  const { statuses, activeStageId } = useMemo(
+    () => derivePathwayStatus(artifacts),
+    [artifacts],
+  )
+  const stageGroups = useMemo(() => groupArtifactsByStage(artifacts), [artifacts])
   const cdsCards = useMemo(
     () => buildCdsCards(activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected),
     [activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected],
@@ -612,6 +665,8 @@ export function PatientChart() {
               status={statuses[group.stageId]}
               responses={group.responses}
               carePlans={group.carePlans}
+              observations={group.observations}
+              communications={group.communications}
             />
           ))}
         </div>

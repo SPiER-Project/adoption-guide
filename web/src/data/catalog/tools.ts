@@ -16,6 +16,7 @@ import {
   type MaturityLevel,
   type RecordingPattern,
   type RecordingResource,
+  type WorkflowType,
 } from './tool-ui-metadata'
 import { TOOL_STUBS } from './tool-stubs'
 import { STAGES, type Stage } from './stages'
@@ -30,6 +31,7 @@ export type {
   MaturityLevel,
   RecordingPattern,
   RecordingResource,
+  WorkflowType,
 }
 
 export interface Tool {
@@ -40,6 +42,8 @@ export interface Tool {
   purpose: string
   description?: string
   questionnaireUrls?: string[]
+  /** Kind of FHIR artifact this tool produces. Defaults to 'questionnaire'. */
+  workflowType: WorkflowType
   inclusionStatus: InclusionStatus
   settings: string[]
   badge: { label: string; variant: BadgeVariant }
@@ -203,6 +207,9 @@ function buildFhirBackedTools(): Tool[] {
       purpose: overrides.purpose ?? primary.purpose ?? '',
       description: overrides.description ?? primary.description,
       questionnaireUrls: questionnaireUrls.length > 0 ? questionnaireUrls : undefined,
+      // FHIR-backed tools are all Questionnaire-based today. (A future PR can
+      // derive this from ActivityDefinition.kind.)
+      workflowType: 'questionnaire',
       ...ui,
     })
   }
@@ -218,6 +225,7 @@ function buildStubTools(): Tool[] {
       stageId: stub.stageId,
       purpose: stub.purpose,
       description: stub.description,
+      workflowType: stub.workflowType ?? 'questionnaire',
       ...ui,
     }
   })

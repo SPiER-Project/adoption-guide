@@ -21,19 +21,15 @@ export function stageForResponse(qr: QuestionnaireResponseLike | undefined): str
 }
 
 /**
- * Map a CarePlan to its pathway stage.
- *
- * Preferred (FHIR-clean): a `category.coding` entry that points at the SPiER
- * pathway-stage CodeSystem. Used for stages 4-7 that don't have dedicated tools
- * yet, so a synthetic CarePlan can mark a stage complete without a matching
- * QuestionnaireResponse.
- *
- * Fallback (legacy): regex on the plan id for tool-emitted CarePlans whose
- * stage is implicit in the id convention (Stanley-Brown, CAMS Stabilization,
- * CAMS Therapeutic).
+ * The SPiER pathway-stage CodeSystem. A coding/tag against this system whose
+ * `code` is a known stage id binds a resource to that pathway stage.
  */
 const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
 
+/**
+ * Legacy fallback: tool-emitted CarePlans whose stage is implicit in the id
+ * convention (predate the category.coding tagging mechanism).
+ */
 const CAREPLAN_ID_PATTERNS: { pattern: RegExp; stageId: string }[] = [
   { pattern: /stanley-brown/i, stageId: 'document-safety-actions' },
   { pattern: /cams-stabilization/i, stageId: 'document-safety-actions' },
@@ -42,24 +38,71 @@ const CAREPLAN_ID_PATTERNS: { pattern: RegExp; stageId: string }[] = [
 
 const STAGE_IDS = new Set(STAGES.map((s) => s.id))
 
+/** Minimal shape we read off any FHIR resource for pathway-stage resolution. */
+export interface FhirResourceLike {
+  resourceType?: string
+  id?: string
+  questionnaire?: string
+  meta?: { tag?: { system?: string; code?: string }[] }
+  category?: { coding?: { system?: string; code?: string }[] }[]
+  [k: string]: unknown
+}
+
+/** Kept for back-compat with importers that referenced the CarePlan-specific shape. */
 export interface CarePlanLike {
   id?: string
   category?: { coding?: { system?: string; code?: string }[] }[]
 }
 
-export function stageForCarePlan(plan: CarePlanLike): string | undefined {
-  const stageFromCategory = (plan.category ?? [])
-    .flatMap((cat) => cat.coding ?? [])
-    .find(
-      (coding) =>
-        coding.system === PATHWAY_STAGE_SYSTEM && !!coding.code && STAGE_IDS.has(coding.code),
-    )?.code
-  if (stageFromCategory) return stageFromCategory
-  if (plan.id) {
-    const match = CAREPLAN_ID_PATTERNS.find((p) => p.pattern.test(plan.id!))
+function stageFromCodings(
+  codings: { system?: string; code?: string }[] | undefined,
+): string | undefined {
+  return codings?.find(
+    (c) => c.system === PATHWAY_STAGE_SYSTEM && !!c.code && STAGE_IDS.has(c.code),
+  )?.code
+}
+
+/**
+ * Resolve the pathway stage for ANY FHIR resource. Resolution order:
+ *  1. `meta.tag` against the SPiER pathway-stage CodeSystem — the universal
+ *     channel that works on Communication / Appointment / Observation /
+ *     MeasureReport / etc. without each type needing bespoke handling.
+ *  2. `category.coding` against the same CodeSystem — the CarePlan mechanism
+ *     introduced by PR #48 (placeholder CarePlans for stages 4-7).
+ *  3. QuestionnaireResponse → its source Questionnaire's tool → stageId.
+ *  4. Legacy CarePlan id-regex fallback (Stanley-Brown / CAMS Stabilization /
+ *     CAMS Therapeutic) for tool-emitted plans without an explicit stage tag.
+ */
+export function stageForArtifact(resource: FhirResourceLike | undefined): string | undefined {
+  if (!resource) return undefined
+
+  const fromTag = stageFromCodings(resource.meta?.tag)
+  if (fromTag) return fromTag
+
+  const fromCategory = stageFromCodings(
+    (resource.category ?? []).flatMap((cat) => cat.coding ?? []),
+  )
+  if (fromCategory) return fromCategory
+
+  if (resource.resourceType === 'QuestionnaireResponse') {
+    const fromQr = stageForResponse(resource as QuestionnaireResponseLike)
+    if (fromQr) return fromQr
+  }
+
+  if (resource.id) {
+    const match = CAREPLAN_ID_PATTERNS.find((p) => p.pattern.test(resource.id!))
     if (match) return match.stageId
   }
+
   return undefined
+}
+
+/**
+ * Back-compat delegate — CarePlan stage resolution now flows through the
+ * generalized `stageForArtifact`.
+ */
+export function stageForCarePlan(plan: CarePlanLike): string | undefined {
+  return stageForArtifact(plan as FhirResourceLike)
 }
 
 interface DerivedPathway {
@@ -72,17 +115,32 @@ export interface StoredResponseLike {
   resource: QuestionnaireResponseLike
 }
 
-export function derivePathwayStatus(
-  responses: StoredResponseLike[],
-  carePlans: CarePlanLike[],
-): DerivedPathway {
+/**
+ * A patient's stage-bearing artifacts. `responses` wrap their FHIR resource in
+ * `.resource` (display metadata lives alongside); the other kinds are the FHIR
+ * resources directly. All optional kinds default to empty so callers can pass a
+ * partial set.
+ */
+export interface PatientArtifacts {
+  responses: StoredResponseLike[]
+  carePlans?: FhirResourceLike[]
+  observations?: FhirResourceLike[]
+  communications?: FhirResourceLike[]
+}
+
+function everyResource(artifacts: PatientArtifacts): FhirResourceLike[] {
+  return [
+    ...artifacts.responses.map((r) => r.resource as FhirResourceLike),
+    ...(artifacts.carePlans ?? []),
+    ...(artifacts.observations ?? []),
+    ...(artifacts.communications ?? []),
+  ]
+}
+
+export function derivePathwayStatus(artifacts: PatientArtifacts): DerivedPathway {
   const directlyTouched = new Set<string>()
-  for (const r of responses) {
-    const stage = stageForResponse(r.resource)
-    if (stage) directlyTouched.add(stage)
-  }
-  for (const cp of carePlans) {
-    const stage = stageForCarePlan(cp)
+  for (const resource of everyResource(artifacts)) {
+    const stage = stageForArtifact(resource)
     if (stage) directlyTouched.add(stage)
   }
 
@@ -111,22 +169,27 @@ export function derivePathwayStatus(
 /**
  * Group a patient's artifacts by the pathway stage they belong to.
  * Returns one entry per stage, in pathway order, including stages with no
- * artifacts (caller can decide whether to render the empty section).
+ * artifacts (caller can decide whether to render the empty section). Buckets
+ * are kept per-kind so the chart can render type-specific cards.
  */
 export interface StageArtifacts {
   stageId: string
   responses: StoredResponseLike[]
-  carePlans: CarePlanLike[]
+  carePlans: FhirResourceLike[]
+  observations: FhirResourceLike[]
+  communications: FhirResourceLike[]
 }
 
-export function groupArtifactsByStage(
-  responses: StoredResponseLike[],
-  carePlans: CarePlanLike[],
-): StageArtifacts[] {
+export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifacts[] {
+  const { responses, carePlans = [], observations = [], communications = [] } = artifacts
   return STAGES.map((stage) => ({
     stageId: stage.id,
-    responses: responses.filter((r) => stageForResponse(r.resource) === stage.id),
-    carePlans: carePlans.filter((cp) => stageForCarePlan(cp) === stage.id),
+    responses: responses.filter(
+      (r) => stageForArtifact(r.resource as FhirResourceLike) === stage.id,
+    ),
+    carePlans: carePlans.filter((cp) => stageForArtifact(cp) === stage.id),
+    observations: observations.filter((o) => stageForArtifact(o) === stage.id),
+    communications: communications.filter((c) => stageForArtifact(c) === stage.id),
   }))
 }
 
