@@ -130,7 +130,7 @@ export interface PatientArtifacts {
 
 function everyResource(artifacts: PatientArtifacts): FhirResourceLike[] {
   return [
-    ...artifacts.responses.map((r) => r.resource as FhirResourceLike),
+    ...(artifacts.responses ?? []).map((r) => r.resource as FhirResourceLike),
     ...(artifacts.carePlans ?? []),
     ...(artifacts.observations ?? []),
     ...(artifacts.communications ?? []),
@@ -181,7 +181,7 @@ export interface StageArtifacts {
 }
 
 export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifacts[] {
-  const { responses, carePlans = [], observations = [], communications = [] } = artifacts
+  const { responses = [], carePlans = [], observations = [], communications = [] } = artifacts
   return STAGES.map((stage) => ({
     stageId: stage.id,
     responses: responses.filter(
