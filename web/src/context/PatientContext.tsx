@@ -14,6 +14,7 @@ import type {
   PatientResource,
   PatientSlice,
   QuestionnaireResponseResource,
+  ScenarioEncounter,
   StoredResponse,
 } from '../types/fhir'
 
@@ -38,6 +39,11 @@ const POPULATION_BY_ID = new Map(POPULATION_PATIENTS.map(p => [p.id, p]))
 const STORE_KEY = 'spier-patient-store'
 const ACTIVE_ID_KEY = 'spier-active-patient-id'
 const BLANK_SLICE_KEY = 'spier-blank-slice'
+
+// The patient shown when the chart is opened in "demo mode" (?demo=1) — the
+// ED suicide-care Scenario 11 walkthrough used for the federal-regulator
+// briefing. See issue #51 and docs/use-cases/ed-scenario-11.md.
+const DEMO_PATIENT_ID = 'patient-011'
 
 type PatientStore = Record<string, PatientSlice>
 
@@ -113,6 +119,13 @@ interface PatientContextType {
   activePatientId: string | null
   populationPatient: PopulationPatient | null
   populationRiskLevel: PopulationRiskLevel | null
+  /**
+   * Read-only scenario walkthrough timeline for the active patient. Sourced
+   * directly from the static scenario (not the mutable store) so submitted
+   * assessments never alter it. Empty for blank/SMART patients or scenarios
+   * without an authored timeline.
+   */
+  encounters: ScenarioEncounter[]
   carePlans: CarePlanResource[]
   addCarePlan: (carePlan: CarePlanResource) => void
   responses: StoredResponse[]
@@ -147,23 +160,35 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   )
 
   // /patient/chart?new=1 is the explicit "blank state" entry point (sidebar
-  // Patient tab). Without ?new=1, bare /patient/chart preserves the last
-  // viewed patient so assessment-submit redirects don't lose context.
+  // Patient tab). /patient/chart?demo=1 is the regulator-briefing entry point
+  // that loads the ED Scenario 11 walkthrough. Without either flag, bare
+  // /patient/chart preserves the last viewed patient so assessment-submit
+  // redirects don't lose context.
   const search = new URLSearchParams(location.search)
   const wantsBlank = location.pathname === '/patient/chart' && search.get('new') === '1'
+  const wantsDemo =
+    location.pathname === '/patient/chart' &&
+    search.get('demo') === '1' &&
+    isAllowedPatientId(DEMO_PATIENT_ID)
 
   const urlPatientId = deriveActiveIdFromPath(location.pathname)
   const safeStoredId =
     storedActiveId && isAllowedPatientId(storedActiveId) ? storedActiveId : null
-  const activePatientId: string | null = wantsBlank ? null : (urlPatientId ?? safeStoredId)
+  const activePatientId: string | null = wantsBlank
+    ? null
+    : wantsDemo
+      ? DEMO_PATIENT_ID
+      : (urlPatientId ?? safeStoredId)
 
   useEffect(() => {
     if (wantsBlank && storedActiveId !== null) {
       setStoredActiveId(null)
+    } else if (wantsDemo && storedActiveId !== DEMO_PATIENT_ID) {
+      setStoredActiveId(DEMO_PATIENT_ID)
     } else if (urlPatientId && urlPatientId !== storedActiveId) {
       setStoredActiveId(urlPatientId)
     }
-  }, [wantsBlank, urlPatientId, storedActiveId, setStoredActiveId])
+  }, [wantsBlank, wantsDemo, urlPatientId, storedActiveId, setStoredActiveId])
 
   // Patient-scoped chart store. Initializer reads existing data or runs the
   // one-time migration from legacy single-patient keys. Per-update writes go
@@ -228,6 +253,17 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   const populationPatient =
     activePatientId !== null ? POPULATION_BY_ID.get(activePatientId) ?? null : null
 
+  // Read-only scenario walkthrough timeline. Sourced from the static scenario,
+  // not the mutable store, so submitted assessments never overwrite it.
+  // Suppressed under SMART, where the connected EHR's real chart is authoritative.
+  const encounters = useMemo<ScenarioEncounter[]>(
+    () =>
+      !isSmartConnected && activePatientId !== null
+        ? POPULATION_SCENARIOS[activePatientId]?.encounters ?? []
+        : [],
+    [isSmartConnected, activePatientId],
+  )
+
   const activePatient = useMemo<PatientResource>(() => {
     // fhirclient returns a FHIR R4 Patient; the local SmartContext typing is a
     // looser subset, so coerce at the boundary.
@@ -282,6 +318,7 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       activePatientId,
       populationPatient,
       populationRiskLevel: populationPatient?.currentRiskLevel ?? null,
+      encounters,
       carePlans: slice.carePlans,
       addCarePlan,
       responses: slice.responses,
@@ -295,6 +332,7 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       isSmartConnected,
       activePatientId,
       populationPatient,
+      encounters,
       slice,
       addCarePlan,
       addResponse,

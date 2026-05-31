@@ -41,3 +41,39 @@ export interface PatientSlice {
   carePlans: CarePlanResource[]
   riskAlerts: RiskAlert[]
 }
+
+/**
+ * One step in a scenario walkthrough timeline. JSON-safe (no RegExp): artifact
+ * linking is by string match against the patient's captured resources.
+ *
+ * Used by the ED suicide-care scenario (issue #51) to render the 24-step
+ * walkthrough mapped in `docs/use-cases/ed-scenario-11.md`. Each step ties an
+ * event in the narrative to the FHIR artifact(s) it produces and the pathway
+ * stage it belongs to. Steps whose real-world artifact has no SPiER profile yet
+ * are marked `profileGap` (see issue #52 for the non-Questionnaire workflow work).
+ *
+ * Encounters are read-only scenario metadata, kept out of the mutable
+ * `PatientSlice` store so they're never overwritten by submitted assessments.
+ */
+export interface ScenarioEncounter {
+  id: string
+  /** Scenario step label, e.g. "11.2-1A". Optional for generic timelines. */
+  step?: string
+  date: string
+  /** Short title for the step, e.g. "Triage suicide screen (ASQ)". */
+  title: string
+  /** Pathway stage slug this step belongs to (matches catalog/stages). */
+  stageId?: string
+  /** Acting role, e.g. "Triage Nurse / Screener". */
+  actor?: string
+  status: 'completed' | 'scheduled'
+  notes: string
+  /** FHIR resource types this step produces, e.g. ["QuestionnaireResponse", "Observation"]. */
+  fhirArtifacts?: string[]
+  /** True when no SPiER profile exists yet for this step's artifact. */
+  profileGap?: boolean
+  /** Link to captured QuestionnaireResponses by their display name. */
+  relatedResponseNames?: string[]
+  /** Link to captured CarePlans by substring match on CarePlan.id. */
+  relatedCarePlanIdSubstrings?: string[]
+}

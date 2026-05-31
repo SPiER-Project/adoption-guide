@@ -430,7 +430,7 @@
 
 .encounter-row-header {
   display: grid;
-  grid-template-columns: 130px 1fr auto auto;
+  grid-template-columns: 132px 1fr auto auto;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
@@ -441,6 +441,20 @@
   font: inherit;
   text-align: left;
   transition: background 0.12s;
+}
+
+.encounter-row-when {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.encounter-row-step {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-info);
+  font-variant-numeric: tabular-nums;
 }
 
 .encounter-row-header:hover {
@@ -499,6 +513,32 @@
   color: var(--text-body);
   line-height: 1.55;
   margin: 0 0 var(--space-3) 0;
+}
+
+.encounter-gap-tag {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-warning-text);
+}
+
+.encounter-artifacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 var(--space-3) 0;
+}
+
+.encounter-artifact-chip {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
 }
 
 .encounter-related {
