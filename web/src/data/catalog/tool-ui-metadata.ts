@@ -9,6 +9,18 @@
 // without a matching entry here, that tool gets default UI metadata.
 
 export type InclusionStatus = 'core' | 'optional' | 'future'
+
+/**
+ * The kind of FHIR artifact a tool produces. Drives how a tool is recorded and
+ * how its output binds to the pathway. Most tools are `questionnaire`
+ * (QuestionnaireResponse); stages 5-8 introduce non-Questionnaire workflows.
+ */
+export type WorkflowType =
+  | 'questionnaire'
+  | 'communication'
+  | 'appointment'
+  | 'observation'
+  | 'measure'
 export type BadgeVariant =
   | 'screening'
   | 'assessment'
