@@ -12,7 +12,7 @@ import {
   type StageStatus,
 } from '../lib/patientPathway'
 import type { RiskAlert } from '../lib/observationMappers'
-import type { ScenarioEncounter } from '../types/fhir'
+import type { CarePlanResource, ScenarioEncounter, StoredResponse } from '../types/fhir'
 import '../css/Dashboard.css'
 import '../css/PatientChart.css'
 
@@ -294,8 +294,8 @@ function EncountersTimeline({
   carePlans,
 }: {
   encounters: ScenarioEncounter[]
-  responses: any[]
-  carePlans: any[]
+  responses: StoredResponse[]
+  carePlans: CarePlanResource[]
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -321,7 +321,7 @@ function EncountersTimeline({
               const relatedResponses = responses.filter(r =>
                 (enc.relatedResponseNames ?? []).includes(r.questionnaireName),
               )
-              const relatedCarePlans = carePlans.filter((cp: any) =>
+              const relatedCarePlans = carePlans.filter(cp =>
                 (enc.relatedCarePlanIdSubstrings ?? []).some(
                   sub => cp.id && cp.id.includes(sub),
                 ),
@@ -343,6 +343,7 @@ function EncountersTimeline({
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
+                          timeZone: 'UTC',
                         })}
                       </span>
                     </span>
@@ -383,7 +384,7 @@ function EncountersTimeline({
                                 <span className="encounter-related-meta"> &middot; QuestionnaireResponse</span>
                               </li>
                             ))}
-                            {relatedCarePlans.map((cp: any, idx: number) => (
+                            {relatedCarePlans.map((cp, idx) => (
                               <li key={`${cp.id}-${idx}`}>
                                 <strong>{cp.id?.includes('stanley-brown') ? 'Stanley-Brown Safety Plan' : 'CAMS Stabilization Plan'}</strong>
                                 <span className="encounter-related-meta"> &middot; CarePlan</span>
