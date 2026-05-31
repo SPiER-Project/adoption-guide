@@ -12,57 +12,9 @@ import {
   type StageStatus,
 } from '../lib/patientPathway'
 import type { RiskAlert } from '../lib/observationMappers'
+import type { ScenarioEncounter } from '../types/fhir'
 import '../css/Dashboard.css'
 import '../css/PatientChart.css'
-
-/* ---------- Mock encounter data (until real FHIR Encounter resources flow in) ---------- */
-interface MockEncounter {
-  id: string
-  date: string
-  type: string
-  provider: string
-  location: string
-  status: 'completed' | 'scheduled'
-  notes: string
-  relatedResponseNames: string[]
-  relatedCarePlanIdPatterns: RegExp[]
-}
-
-const MOCK_ENCOUNTERS: MockEncounter[] = [
-  {
-    id: 'enc-001',
-    date: '2026-03-15',
-    type: 'Initial Assessment',
-    provider: 'Dr. Sarah Chen',
-    location: 'Outpatient Behavioral Health',
-    status: 'completed',
-    notes: 'Initial suicide risk assessment. PHQ-9 administered. C-SSRS screening positive. Safety plan initiated.',
-    relatedResponseNames: ['PHQ-9', 'ASQ Screening'],
-    relatedCarePlanIdPatterns: [],
-  },
-  {
-    id: 'enc-002',
-    date: '2026-03-17',
-    type: 'Safety Planning Session',
-    provider: 'Dr. Sarah Chen',
-    location: 'Outpatient Behavioral Health',
-    status: 'completed',
-    notes: 'Stanley-Brown Safety Plan completed collaboratively. Lethal means counseling provided. Follow-up scheduled.',
-    relatedResponseNames: ['Stanley-Brown Safety Plan', 'CAMS SSF-5: Section A'],
-    relatedCarePlanIdPatterns: [/stanley-brown/i, /cams-stabilization/i],
-  },
-  {
-    id: 'enc-003',
-    date: '2026-03-24',
-    type: 'Follow-up Visit',
-    provider: 'Dr. Sarah Chen',
-    location: 'Outpatient Behavioral Health',
-    status: 'scheduled',
-    notes: 'Scheduled follow-up. CAMS Therapeutic Worksheet planned. Re-assess safety plan.',
-    relatedResponseNames: [] as string[],
-    relatedCarePlanIdPatterns: [] as RegExp[],
-  },
-]
 
 const STAGE_BLURB: Record<string, string> = {
   'flag-risk': 'Administer a suicide-risk screen to flag whether further review is needed.',
@@ -335,74 +287,119 @@ function StageActivitySection({
   )
 }
 
-/* ---------- Encounters timeline with inline drill-in ---------- */
-function EncountersTimeline({ responses, carePlans }: { responses: any[]; carePlans: any[] }) {
+/* ---------- Encounters / scenario-walkthrough timeline with inline drill-in ---------- */
+function EncountersTimeline({
+  encounters,
+  responses,
+  carePlans,
+}: {
+  encounters: ScenarioEncounter[]
+  responses: any[]
+  carePlans: any[]
+}) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   return (
     <section id="encounters" className="encounters-timeline-section">
       <header className="chart-section-header">
         <h3 className="chart-section-title">Encounters</h3>
-        <span className="chart-section-count">{MOCK_ENCOUNTERS.length} encounters</span>
+        <span className="chart-section-count">
+          {encounters.length} {encounters.length === 1 ? 'step' : 'steps'}
+        </span>
       </header>
-      <p className="encounters-note">
-        Mock encounter data. In production these would be linked FHIR Encounter resources with references back to the artifacts captured during each visit.
-      </p>
-      <ol className="encounters-list">
-        {MOCK_ENCOUNTERS.map(enc => {
-          const relatedResponses = responses.filter(r => enc.relatedResponseNames.includes(r.questionnaireName))
-          const relatedCarePlans = carePlans.filter((cp: any) =>
-            enc.relatedCarePlanIdPatterns.some(p => cp.id && p.test(cp.id))
-          )
-          const isExpanded = expandedId === enc.id
-          return (
-            <li key={enc.id} className={`encounter-row encounter-row--${enc.status}`}>
-              <button
-                type="button"
-                className="encounter-row-header"
-                onClick={() => setExpandedId(isExpanded ? null : enc.id)}
-                aria-expanded={isExpanded}
-              >
-                <span className="encounter-row-date">
-                  {new Date(enc.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </span>
-                <span className="encounter-row-type">{enc.type}</span>
-                <span className={`encounter-row-status encounter-row-status--${enc.status}`}>{enc.status}</span>
-                <span className="encounter-row-toggle">{isExpanded ? '▼' : '▶'}</span>
-              </button>
-              {isExpanded && (
-                <div className="encounter-row-body">
-                  <div className="encounter-row-meta">
-                    <span>{enc.provider}</span>
-                    <span className="encounter-card-divider">&middot;</span>
-                    <span>{enc.location}</span>
-                  </div>
-                  <p className="encounter-row-notes">{enc.notes}</p>
-                  {(relatedResponses.length > 0 || relatedCarePlans.length > 0) && (
-                    <div className="encounter-related">
-                      <h5 className="encounter-related-title">Documented at this encounter</h5>
-                      <ul className="encounter-related-list">
-                        {relatedResponses.map(r => (
-                          <li key={r.id}>
-                            <strong>{r.questionnaireName}</strong>
-                            <span className="encounter-related-meta"> &middot; QuestionnaireResponse</span>
-                          </li>
-                        ))}
-                        {relatedCarePlans.map((cp: any, idx: number) => (
-                          <li key={`${cp.id}-${idx}`}>
-                            <strong>{cp.id?.includes('stanley-brown') ? 'Stanley-Brown Safety Plan' : 'CAMS Stabilization Plan'}</strong>
-                            <span className="encounter-related-meta"> &middot; CarePlan</span>
-                          </li>
-                        ))}
-                      </ul>
+      {encounters.length === 0 ? (
+        <p className="encounters-note">No encounters recorded for this patient yet.</p>
+      ) : (
+        <>
+          <p className="encounters-note">
+            Scenario walkthrough — each step links to the FHIR artifact it produces. Steps
+            marked <em>profile gap</em> map to resource types that don't yet have a SPiER
+            profile (tracked in issue&nbsp;#52).
+          </p>
+          <ol className="encounters-list">
+            {encounters.map(enc => {
+              const relatedResponses = responses.filter(r =>
+                (enc.relatedResponseNames ?? []).includes(r.questionnaireName),
+              )
+              const relatedCarePlans = carePlans.filter((cp: any) =>
+                (enc.relatedCarePlanIdSubstrings ?? []).some(
+                  sub => cp.id && cp.id.includes(sub),
+                ),
+              )
+              const stage = enc.stageId ? stageById(enc.stageId) : undefined
+              const isExpanded = expandedId === enc.id
+              return (
+                <li key={enc.id} className={`encounter-row encounter-row--${enc.status}`}>
+                  <button
+                    type="button"
+                    className="encounter-row-header"
+                    onClick={() => setExpandedId(isExpanded ? null : enc.id)}
+                    aria-expanded={isExpanded}
+                  >
+                    <span className="encounter-row-when">
+                      {enc.step && <span className="encounter-row-step">{enc.step}</span>}
+                      <span className="encounter-row-date">
+                        {new Date(enc.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </span>
+                    <span className="encounter-row-type">{enc.title}</span>
+                    <span className={`encounter-row-status encounter-row-status--${enc.status}`}>
+                      {enc.status}
+                    </span>
+                    <span className="encounter-row-toggle">{isExpanded ? '▼' : '▶'}</span>
+                  </button>
+                  {isExpanded && (
+                    <div className="encounter-row-body">
+                      <div className="encounter-row-meta">
+                        {enc.actor && <span>{enc.actor}</span>}
+                        {enc.actor && stage && <span className="encounter-card-divider">&middot;</span>}
+                        {stage && <span>{stage.title}</span>}
+                        {enc.profileGap && (
+                          <>
+                            <span className="encounter-card-divider">&middot;</span>
+                            <span className="encounter-gap-tag">profile gap</span>
+                          </>
+                        )}
+                      </div>
+                      <p className="encounter-row-notes">{enc.notes}</p>
+                      {enc.fhirArtifacts && enc.fhirArtifacts.length > 0 && (
+                        <div className="encounter-artifacts">
+                          {enc.fhirArtifacts.map(a => (
+                            <span key={a} className="encounter-artifact-chip">{a}</span>
+                          ))}
+                        </div>
+                      )}
+                      {(relatedResponses.length > 0 || relatedCarePlans.length > 0) && (
+                        <div className="encounter-related">
+                          <h5 className="encounter-related-title">Captured in this patient's chart</h5>
+                          <ul className="encounter-related-list">
+                            {relatedResponses.map(r => (
+                              <li key={r.id}>
+                                <strong>{r.questionnaireName}</strong>
+                                <span className="encounter-related-meta"> &middot; QuestionnaireResponse</span>
+                              </li>
+                            ))}
+                            {relatedCarePlans.map((cp: any, idx: number) => (
+                              <li key={`${cp.id}-${idx}`}>
+                                <strong>{cp.id?.includes('stanley-brown') ? 'Stanley-Brown Safety Plan' : 'CAMS Stabilization Plan'}</strong>
+                                <span className="encounter-related-meta"> &middot; CarePlan</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
-            </li>
-          )
-        })}
-      </ol>
+                </li>
+              )
+            })}
+          </ol>
+        </>
+      )}
     </section>
   )
 }
@@ -539,6 +536,7 @@ export function PatientChart() {
     activePatientId,
     populationPatient,
     isSmartConnected,
+    encounters,
   } = usePatient()
   const { isToolEnabled } = useToolConfig()
   const location = useLocation()
@@ -618,7 +616,7 @@ export function PatientChart() {
         </div>
       </section>
 
-      <EncountersTimeline responses={responses} carePlans={carePlans} />
+      <EncountersTimeline encounters={encounters} responses={responses} carePlans={carePlans} />
 
       <PatientDocuments responses={responses} carePlans={carePlans} observations={observations} />
     </div>

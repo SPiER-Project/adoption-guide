@@ -6,13 +6,17 @@
  * carePlans, riskAlerts). The patient id is derived from the filename
  * (e.g. `patient-005.json` → `patient-005`).
  */
-import type { PatientSlice } from '../../../types/fhir'
+import type { PatientSlice, ScenarioEncounter } from '../../../types/fhir'
 
 /**
- * Alias kept for backward compatibility with prior imports; the on-disk
- * scenario shape is identical to the in-memory `PatientSlice`.
+ * The on-disk scenario shape is a `PatientSlice` plus an optional read-only
+ * `encounters` walkthrough timeline (see `ScenarioEncounter`). The encounter
+ * list is intentionally kept out of `PatientSlice` so it never lands in the
+ * mutable patient store — it's static scenario narration, not chart state.
  */
-export type PatientScenario = PatientSlice
+export type PatientScenario = PatientSlice & {
+  encounters?: ScenarioEncounter[]
+}
 
 const modules = import.meta.glob<PatientScenario>('./patient-*.json', {
   eager: true,

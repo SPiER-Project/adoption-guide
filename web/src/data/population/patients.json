@@ -188,5 +188,24 @@
       "label": "Include in Q2 zero-suicide outcome report",
       "rationale": "Resolved episode — eligible for pathway-completion measurement and population-level outcome reporting."
     }
+  },
+  {
+    "id": "patient-011",
+    "displayName": "Maria Alvarez",
+    "dob": "1997-10-12",
+    "mrn": "11011",
+    "gender": "Female",
+    "currentStage": "coordinate-handoffs",
+    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions"],
+    "currentRiskLevel": "high",
+    "lastActivity": {
+      "date": "2026-05-22",
+      "label": "ED discharge — transition-of-care packet sent"
+    },
+    "recommendedNextStep": {
+      "stageId": "coordinate-handoffs",
+      "label": "Confirm outpatient BH appointment + start caring-contact cadence",
+      "rationale": "ED suicide-care episode (Scenario 11): 28-year-old presenting with severe insomnia and anxiety, chronic pain and recent job loss. Positive triage screen, safety plan and lethal-means counseling completed in the ED. Discharged to outpatient BH — confirm receipt of the transition-of-care packet and begin the 24–48h caring-contact cadence."
+    }
   }
 ]
