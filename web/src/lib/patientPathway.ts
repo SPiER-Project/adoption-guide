@@ -22,9 +22,10 @@ export function stageForResponse(qr: QuestionnaireResponseLike | undefined): str
 
 /**
  * The SPiER pathway-stage CodeSystem. A coding/tag against this system whose
- * `code` is a known stage id binds a resource to that pathway stage.
+ * `code` is a known stage id binds a resource to that pathway stage. Exported
+ * so resource producers (e.g. the workflow recorder) can stamp `meta.tag`.
  */
-const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
+export const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
 
 /**
  * Legacy fallback: tool-emitted CarePlans whose stage is implicit in the id

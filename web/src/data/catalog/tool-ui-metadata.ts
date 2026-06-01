@@ -382,8 +382,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
-    launchActions: [],
+    launchActions: [{ label: 'Log caring contact', path: '/patient/workflow/caring-contact' }],
     targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Communication', description: 'Each outreach attempt (caring contact), stage-tagged to Track Follow-Up', when: 'On record' },
+      ],
+      workflowTrigger: 'Post-discharge caring-contact cadence (e.g. 24–48h, 7-day, 30-day).',
+    },
   },
   'TL-012': {
     shortName: 'ED-SAFE',
