@@ -356,8 +356,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Handoff', variant: 'handoff' },
-    launchActions: [],
+    launchActions: [{ label: 'Record transition', path: '/patient/workflow/transition' }],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Communication', description: 'Pre-discharge transfer-of-care checkpoint, stage-tagged to Coordinate Handoffs', when: 'On record' },
+      ],
+      workflowTrigger: 'Pre-discharge transfer of care to the next setting.',
+    },
   },
   'TL-023': {
     shortName: 'CAMS Outcome',
@@ -372,8 +378,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'future',
     settings: ['ED', 'inpatient'],
     badge: { label: 'Handoff', variant: 'handoff' },
-    launchActions: [],
+    launchActions: [{ label: 'Send rapid referral', path: '/patient/workflow/rapid-referral' }],
     targetMaturity: { electronic: 2, writeback: 2, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Communication', description: 'Outreach to the receiving outpatient BH provider, stage-tagged to Coordinate Handoffs', when: 'On record' },
+      ],
+      workflowTrigger: 'Warm handoff / accelerated access to follow-up care.',
+    },
   },
 
   // ── Track Follow-Up ──

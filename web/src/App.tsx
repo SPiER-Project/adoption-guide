@@ -125,7 +125,13 @@ function AppRoutes() {
           } />
           {/* Non-Questionnaire workflow recorders */}
           <Route path="workflow/caring-contact" element={
-            <WorkflowActionView toolId="TL-010" title="Log a Caring Contact" />
+            <WorkflowActionView toolId="TL-010" title="Log a Caring Contact" actionNoun="caring contact" summaryPlaceholder="e.g. 7-day caring contact: check-in call" />
+          } />
+          <Route path="workflow/rapid-referral" element={
+            <WorkflowActionView toolId="TL-017" title="Send a Rapid Referral" actionNoun="referral" summaryPlaceholder="e.g. Urgent outpatient BH referral — receiving clinic notified" />
+          } />
+          <Route path="workflow/transition" element={
+            <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />
           } />
           <Route path="care-plans" element={<Navigate to="/patient/chart#care-plans" replace />} />
           <Route path="encounters" element={<Navigate to="/patient/chart#encounters" replace />} />
