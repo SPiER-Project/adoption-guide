@@ -52,6 +52,9 @@ import { PopulationView } from './pages/PopulationView'
 import { StanleyBrownView } from './components/StanleyBrownView'
 import { QuestionnaireView } from './components/QuestionnaireView'
 
+// Non-Questionnaire workflow recorders (issue #52)
+import { WorkflowActionView } from './components/WorkflowActionView'
+
 function LegacyWorkflowRedirect() {
   const { slug } = useParams<{ slug: string }>()
   return <Navigate to={slug ? `/implementation-guide/pathway/${slug}/plan` : '/implementation-guide/pathway'} replace />
@@ -119,6 +122,10 @@ function AppRoutes() {
           } />
           <Route path="assessments/cams-therapeutic-worksheet" element={
             <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />
+          } />
+          {/* Non-Questionnaire workflow recorders */}
+          <Route path="workflow/caring-contact" element={
+            <WorkflowActionView toolId="TL-010" title="Log a Caring Contact" />
           } />
           <Route path="care-plans" element={<Navigate to="/patient/chart#care-plans" replace />} />
           <Route path="encounters" element={<Navigate to="/patient/chart#encounters" replace />} />
