@@ -133,6 +133,9 @@ function AppRoutes() {
           <Route path="workflow/transition" element={
             <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />
           } />
+          <Route path="workflow/follow-up-appointment" element={
+            <WorkflowActionView toolId="TL-012" title="Track a Follow-Up Appointment" actionNoun="appointment" summaryPlaceholder="e.g. 7-day outpatient BH follow-up" />
+          } />
           <Route path="care-plans" element={<Navigate to="/patient/chart#care-plans" replace />} />
           <Route path="encounters" element={<Navigate to="/patient/chart#encounters" replace />} />
         </Route>

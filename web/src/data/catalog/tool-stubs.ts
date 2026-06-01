@@ -117,8 +117,8 @@ export const TOOL_STUBS: ToolStub[] = [
     id: 'TL-012',
     name: 'ED-SAFE / CLASP-ED Follow-up Protocol',
     stageId: 'track-follow-up',
-    purpose: 'Protocol-based post-discharge follow-up',
-    workflowType: 'communication',
+    purpose: 'Protocol-based post-discharge follow-up — schedule and track the follow-up appointment',
+    workflowType: 'appointment',
   },
   {
     id: 'TL-018',

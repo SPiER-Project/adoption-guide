@@ -4,7 +4,7 @@ import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { TOOLS, stageById } from '../data/catalog'
 import { PATHWAY_STAGE_SYSTEM } from '../lib/patientPathway'
-import type { CommunicationResource } from '../types/fhir'
+import type { AppointmentResource, CommunicationResource, FhirResource } from '../types/fhir'
 import '../css/WorkflowActionView.css'
 
 /**
@@ -16,12 +16,12 @@ import '../css/WorkflowActionView.css'
  * CodeSystem so the generalized `stageForArtifact` dispatch groups it under the
  * right stage and advances the pathway — see lib/patientPathway.ts.
  *
- * Currently handles `workflowType: 'communication'` (caring contacts, referral
- * outreach). Other workflow types (appointment, measure) can extend the same
- * shape in follow-up work.
+ * The form and emitted resource are driven by the tool's `workflowType`:
+ *  - 'communication' → Communication (caring contacts, referral/transition outreach)
+ *  - 'appointment'   → Appointment (follow-up scheduling + missed-appointment tracking)
  */
 
-// HL7 v3 ParticipationMode codes for how the contact was made.
+// HL7 v3 ParticipationMode codes for how a contact was made.
 const CHANNELS = [
   { code: 'PHONE', display: 'Telephone call' },
   { code: 'WRITTEN', display: 'Letter / card' },
@@ -30,6 +30,15 @@ const CHANNELS = [
 ] as const
 const PARTICIPATION_MODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode'
 
+// FHIR R4 Appointment.status subset relevant to follow-up tracking.
+const APPOINTMENT_STATUSES = [
+  { code: 'booked', display: 'Booked' },
+  { code: 'arrived', display: 'Arrived' },
+  { code: 'fulfilled', display: 'Fulfilled (attended)' },
+  { code: 'cancelled', display: 'Cancelled' },
+  { code: 'noshow', display: 'No-show (missed)' },
+] as const
+
 interface WorkflowActionViewProps {
   /** Catalog Tool id this recorder logs for (e.g. 'TL-010'). */
   toolId: string
@@ -37,8 +46,8 @@ interface WorkflowActionViewProps {
   title?: string
   /**
    * Lower-case noun for the thing being recorded ('caring contact', 'referral',
-   * …). Drives the default summary, placeholder copy, and success message.
-   * Defaults to 'contact'.
+   * 'appointment', …). Drives the default summary, placeholder copy, and success
+   * message. Defaults to 'contact'.
    */
   actionNoun?: string
   /** Optional override for the Summary field placeholder. */
@@ -79,35 +88,71 @@ export function WorkflowActionView({
   const stageId = tool?.stageId ?? 'track-follow-up'
   const stage = stageById(stageId)
   const heading = title ?? tool?.name ?? 'Workflow step'
+  const isAppointment = tool?.workflowType === 'appointment'
+  const resourceType = isAppointment ? 'Appointment' : 'Communication'
 
-  const [channel, setChannel] = useState<string>(CHANNELS[0].code)
+  // 'channel' doubles as Appointment.status when isAppointment.
+  const [channel, setChannel] = useState<string>(
+    isAppointment ? APPOINTMENT_STATUSES[0].code : CHANNELS[0].code,
+  )
   const [date, setDate] = useState<string>(todayIso())
   const [summary, setSummary] = useState<string>('')
   const [note, setNote] = useState<string>('')
   const [submitted, setSubmitted] = useState(false)
 
-  // Live preview of the FHIR Communication that will be written.
-  const draft = useMemo<CommunicationResource>(() => {
+  // All /patient/workflow/* routes render this same component at the same tree
+  // position, so React preserves state across route changes. Reset form state
+  // when the tool changes (e.g. carrying an Appointment 'noshow' status into the
+  // Communication form, or a stale `submitted`). Adjusting state during render
+  // per https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [prevToolId, setPrevToolId] = useState(toolId)
+  if (toolId !== prevToolId) {
+    setPrevToolId(toolId)
+    setChannel(isAppointment ? APPOINTMENT_STATUSES[0].code : CHANNELS[0].code)
+    setDate(todayIso())
+    setSummary('')
+    setNote('')
+    setSubmitted(false)
+  }
+
+  // Live preview of the FHIR resource that will be written.
+  const draft = useMemo<FhirResource>(() => {
+    const subjectRef = `Patient/${activePatientId ?? 'unknown'}`
+    const tag = [{ system: PATHWAY_STAGE_SYSTEM, code: stageId, display: stage?.title }]
+    const description = summary.trim() || capitalize(actionNoun)
+
+    if (isAppointment) {
+      const resource: AppointmentResource = {
+        resourceType: 'Appointment',
+        status: channel,
+        meta: { tag },
+        description,
+        start: `${date}T12:00:00Z`,
+        participant: [{ actor: { reference: subjectRef }, status: 'accepted' }],
+      }
+      if (note.trim()) resource.comment = note.trim()
+      return resource
+    }
+
     const channelMeta = CHANNELS.find(c => c.code === channel) ?? CHANNELS[0]
     const resource: CommunicationResource = {
       resourceType: 'Communication',
       status: 'completed',
-      meta: {
-        tag: [{ system: PATHWAY_STAGE_SYSTEM, code: stageId, display: stage?.title }],
-      },
+      meta: { tag },
       category: [{ text: tool?.shortName ?? tool?.name ?? 'Workflow contact' }],
-      reasonCode: [{ text: summary.trim() || capitalize(actionNoun) }],
+      reasonCode: [{ text: description }],
       medium: [{ coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channelMeta.code, display: channelMeta.display }] }],
-      subject: { reference: `Patient/${activePatientId ?? 'unknown'}` },
+      subject: { reference: subjectRef },
       sent: `${date}T12:00:00Z`,
     }
     if (note.trim()) resource.payload = [{ contentString: note.trim() }]
     return resource
-  }, [channel, date, summary, note, stageId, stage, tool, activePatientId, actionNoun])
+  }, [isAppointment, channel, date, summary, note, stageId, stage, tool, activePatientId, actionNoun])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact({ ...draft, id: `communication-${makeId()}` })
+    const idPrefix = isAppointment ? 'appointment' : 'communication'
+    addArtifact({ ...draft, id: `${idPrefix}-${makeId()}` })
     setSubmitted(true)
     setTimeout(() => {
       document.querySelector('.workflow-success-notice')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -126,7 +171,7 @@ export function WorkflowActionView({
         <header className="workflow-form-header">
           <h2 className="workflow-form-title">{heading}</h2>
           <p className="workflow-form-subtitle">
-            Records a <strong>Communication</strong> tagged to the{' '}
+            Records {isAppointment ? 'an' : 'a'} <strong>{resourceType}</strong> tagged to the{' '}
             <strong>{stage?.title ?? stageId}</strong> pathway stage. {tool?.purpose}
           </p>
         </header>
@@ -140,20 +185,20 @@ export function WorkflowActionView({
 
         <form className="workflow-form" onSubmit={handleSubmit}>
           <label className="workflow-field">
-            <span className="workflow-field-label">Contact method</span>
+            <span className="workflow-field-label">{isAppointment ? 'Status' : 'Contact method'}</span>
             <select
               className="workflow-input"
               value={channel}
               onChange={e => setChannel(e.target.value)}
             >
-              {CHANNELS.map(c => (
-                <option key={c.code} value={c.code}>{c.display}</option>
+              {(isAppointment ? APPOINTMENT_STATUSES : CHANNELS).map(o => (
+                <option key={o.code} value={o.code}>{o.display}</option>
               ))}
             </select>
           </label>
 
           <label className="workflow-field">
-            <span className="workflow-field-label">Date of contact</span>
+            <span className="workflow-field-label">Date</span>
             <input
               type="date"
               className="workflow-input"
@@ -196,7 +241,7 @@ export function WorkflowActionView({
       </div>
 
       <aside className="debug-sidebar">
-        <FhirJsonViewer data={draft} title="Live FHIR Communication" defaultOpen />
+        <FhirJsonViewer data={draft} title={`Live FHIR ${resourceType}`} defaultOpen />
       </aside>
     </div>
   )

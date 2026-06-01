@@ -9,6 +9,7 @@ import type { RiskAlert } from '../lib/observationMappers'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
+  AppointmentResource,
   CarePlanResource,
   CommunicationResource,
   FhirResource,
@@ -55,6 +56,7 @@ const EMPTY_SLICE: PatientSlice = {
   carePlans: [],
   riskAlerts: [],
   communications: [],
+  appointments: [],
 }
 
 // One-time migration from the original single-patient keys into a patient-001
@@ -135,6 +137,7 @@ interface PatientContextType {
   addResponse: (name: string, resource: QuestionnaireResponseResource) => void
   observations: ObservationResource[]
   communications: CommunicationResource[]
+  appointments: AppointmentResource[]
   riskAlerts: RiskAlert[]
   /**
    * Append a non-Questionnaire workflow artifact, routing it into the right
@@ -335,6 +338,11 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
               ...prev,
               communications: [...(prev.communications ?? []), stamped as CommunicationResource],
             }
+          case 'Appointment':
+            return {
+              ...prev,
+              appointments: [...(prev.appointments ?? []), stamped as AppointmentResource],
+            }
           case 'Observation':
             return { ...prev, observations: [...prev.observations, stamped as ObservationResource] }
           case 'CarePlan':
@@ -363,6 +371,7 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
       addResponse,
       observations: slice.observations,
       communications: slice.communications ?? [],
+      appointments: slice.appointments ?? [],
       riskAlerts: slice.riskAlerts,
       addArtifact,
     }),
