@@ -96,7 +96,7 @@ export function WorkflowActionView({
         tag: [{ system: PATHWAY_STAGE_SYSTEM, code: stageId, display: stage?.title }],
       },
       category: [{ text: tool?.shortName ?? tool?.name ?? 'Workflow contact' }],
-      reasonCode: [{ text: summary || capitalize(actionNoun) }],
+      reasonCode: [{ text: summary.trim() || capitalize(actionNoun) }],
       medium: [{ coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channelMeta.code, display: channelMeta.display }] }],
       subject: { reference: `Patient/${activePatientId ?? 'unknown'}` },
       sent: `${date}T12:00:00Z`,
