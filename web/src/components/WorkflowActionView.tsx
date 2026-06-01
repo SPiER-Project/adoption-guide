@@ -38,7 +38,21 @@ interface WorkflowActionViewProps {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  // Build the date in the browser's local timezone. toISOString() is UTC, which
+  // would default to tomorrow's date for users behind UTC in the evening.
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/** crypto.randomUUID() is secure-context only; fall back for plain-HTTP/test envs. */
+function makeId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 }
 
 export function WorkflowActionView({ toolId, title }: WorkflowActionViewProps) {
@@ -76,7 +90,7 @@ export function WorkflowActionView({ toolId, title }: WorkflowActionViewProps) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact({ ...draft, id: `communication-${crypto.randomUUID()}` })
+    addArtifact({ ...draft, id: `communication-${makeId()}` })
     setSubmitted(true)
     setTimeout(() => {
       document.querySelector('.workflow-success-notice')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
