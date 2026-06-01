@@ -100,6 +100,21 @@ export function WorkflowActionView({
   const [note, setNote] = useState<string>('')
   const [submitted, setSubmitted] = useState(false)
 
+  // All /patient/workflow/* routes render this same component at the same tree
+  // position, so React preserves state across route changes. Reset form state
+  // when the tool changes (e.g. carrying an Appointment 'noshow' status into the
+  // Communication form, or a stale `submitted`). Adjusting state during render
+  // per https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [prevToolId, setPrevToolId] = useState(toolId)
+  if (toolId !== prevToolId) {
+    setPrevToolId(toolId)
+    setChannel(isAppointment ? APPOINTMENT_STATUSES[0].code : CHANNELS[0].code)
+    setDate(todayIso())
+    setSummary('')
+    setNote('')
+    setSubmitted(false)
+  }
+
   // Live preview of the FHIR resource that will be written.
   const draft = useMemo<FhirResource>(() => {
     const subjectRef = `Patient/${activePatientId ?? 'unknown'}`
