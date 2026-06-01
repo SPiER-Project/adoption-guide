@@ -35,6 +35,18 @@ interface WorkflowActionViewProps {
   toolId: string
   /** Optional page-title override; defaults to the tool name. */
   title?: string
+  /**
+   * Lower-case noun for the thing being recorded ('caring contact', 'referral',
+   * …). Drives the default summary, placeholder copy, and success message.
+   * Defaults to 'contact'.
+   */
+  actionNoun?: string
+  /** Optional override for the Summary field placeholder. */
+  summaryPlaceholder?: string
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 function todayIso(): string {
@@ -55,7 +67,12 @@ function makeId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-export function WorkflowActionView({ toolId, title }: WorkflowActionViewProps) {
+export function WorkflowActionView({
+  toolId,
+  title,
+  actionNoun = 'contact',
+  summaryPlaceholder,
+}: WorkflowActionViewProps) {
   const tool = useMemo(() => TOOLS.find(t => t.id === toolId), [toolId])
   const { addArtifact, activePatientId } = usePatient()
 
@@ -79,14 +96,14 @@ export function WorkflowActionView({ toolId, title }: WorkflowActionViewProps) {
         tag: [{ system: PATHWAY_STAGE_SYSTEM, code: stageId, display: stage?.title }],
       },
       category: [{ text: tool?.shortName ?? tool?.name ?? 'Workflow contact' }],
-      reasonCode: [{ text: summary || 'Caring contact' }],
+      reasonCode: [{ text: summary || capitalize(actionNoun) }],
       medium: [{ coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channelMeta.code, display: channelMeta.display }] }],
       subject: { reference: `Patient/${activePatientId ?? 'unknown'}` },
       sent: `${date}T12:00:00Z`,
     }
     if (note.trim()) resource.payload = [{ contentString: note.trim() }]
     return resource
-  }, [channel, date, summary, note, stageId, stage, tool, activePatientId])
+  }, [channel, date, summary, note, stageId, stage, tool, activePatientId, actionNoun])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -150,7 +167,7 @@ export function WorkflowActionView({ toolId, title }: WorkflowActionViewProps) {
             <input
               type="text"
               className="workflow-input"
-              placeholder="e.g. 7-day caring contact: check-in call"
+              placeholder={summaryPlaceholder ?? `e.g. ${capitalize(actionNoun)} — brief summary`}
               value={summary}
               onChange={e => setSummary(e.target.value)}
             />
@@ -161,18 +178,18 @@ export function WorkflowActionView({ toolId, title }: WorkflowActionViewProps) {
             <textarea
               className="workflow-input workflow-textarea"
               rows={3}
-              placeholder="Brief free-text note about the contact."
+              placeholder={`Brief free-text note about the ${actionNoun}.`}
               value={note}
               onChange={e => setNote(e.target.value)}
             />
           </label>
 
-          <button type="submit" className="workflow-submit-btn">Record contact</button>
+          <button type="submit" className="workflow-submit-btn">Record {actionNoun}</button>
         </form>
 
         {submitted && (
           <div className="workflow-success-notice">
-            Caring contact recorded to the patient chart under <strong>{stage?.title ?? stageId}</strong>.{' '}
+            {capitalize(actionNoun)} recorded to the patient chart under <strong>{stage?.title ?? stageId}</strong>.{' '}
             <Link to="/patient/chart#activity">View in chart</Link>
           </div>
         )}
