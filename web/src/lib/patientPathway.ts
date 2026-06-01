@@ -127,6 +127,7 @@ export interface PatientArtifacts {
   carePlans?: FhirResourceLike[]
   observations?: FhirResourceLike[]
   communications?: FhirResourceLike[]
+  appointments?: FhirResourceLike[]
 }
 
 function everyResource(artifacts: PatientArtifacts): FhirResourceLike[] {
@@ -135,6 +136,7 @@ function everyResource(artifacts: PatientArtifacts): FhirResourceLike[] {
     ...(artifacts.carePlans ?? []),
     ...(artifacts.observations ?? []),
     ...(artifacts.communications ?? []),
+    ...(artifacts.appointments ?? []),
   ]
 }
 
@@ -179,10 +181,17 @@ export interface StageArtifacts {
   carePlans: FhirResourceLike[]
   observations: FhirResourceLike[]
   communications: FhirResourceLike[]
+  appointments: FhirResourceLike[]
 }
 
 export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifacts[] {
-  const { responses = [], carePlans = [], observations = [], communications = [] } = artifacts
+  const {
+    responses = [],
+    carePlans = [],
+    observations = [],
+    communications = [],
+    appointments = [],
+  } = artifacts
   return STAGES.map((stage) => ({
     stageId: stage.id,
     responses: responses.filter(
@@ -191,6 +200,7 @@ export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifac
     carePlans: carePlans.filter((cp) => stageForArtifact(cp) === stage.id),
     observations: observations.filter((o) => stageForArtifact(o) === stage.id),
     communications: communications.filter((c) => stageForArtifact(c) === stage.id),
+    appointments: appointments.filter((a) => stageForArtifact(a) === stage.id),
   }))
 }
 

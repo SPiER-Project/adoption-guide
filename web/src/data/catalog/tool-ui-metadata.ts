@@ -408,8 +408,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['ED'],
     badge: { label: 'Follow-Up', variant: 'followup' },
-    launchActions: [],
+    launchActions: [{ label: 'Track follow-up appointment', path: '/patient/workflow/follow-up-appointment' }],
     targetMaturity: { electronic: 2, writeback: 2, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Appointment', description: 'Follow-up appointment with status tracking (booked → fulfilled / no-show), stage-tagged to Track Follow-Up', when: 'On record / status update' },
+      ],
+      workflowTrigger: 'Missed appointment (no-show) escalates outreach per the follow-up protocol.',
+    },
   },
   'TL-018': {
     shortName: 'Colorado Post-Visit',

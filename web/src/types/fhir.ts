@@ -49,6 +49,8 @@ export interface PatientSlice {
    * which predate this field — remain valid; always read with `?? []`.
    */
   communications?: CommunicationResource[]
+  /** Follow-up appointments (incl. missed-appointment tracking). Optional — read with `?? []`. */
+  appointments?: AppointmentResource[]
 }
 
 /**

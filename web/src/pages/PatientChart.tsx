@@ -230,6 +230,7 @@ function StageActivitySection({
   carePlans,
   observations,
   communications,
+  appointments,
 }: {
   stageId: string
   status: StageStatus
@@ -237,13 +238,15 @@ function StageActivitySection({
   carePlans: any[]
   observations: any[]
   communications: any[]
+  appointments: any[]
 }) {
   const stage = stageById(stageId)
   const empty =
     responses.length === 0 &&
     carePlans.length === 0 &&
     observations.length === 0 &&
-    communications.length === 0
+    communications.length === 0 &&
+    appointments.length === 0
   if (empty && status === 'not-started') return null
 
   return (
@@ -319,6 +322,23 @@ function StageActivitySection({
                   <span className="stage-artifact-name">{name}</span>
                   <span className="stage-artifact-meta">
                     Communication &middot; {c.status ?? 'completed'}
+                    {when && ` · ${new Date(when).toLocaleDateString()}`}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+          {appointments.map((appt, idx) => {
+            const name = appt.description || 'Appointment'
+            const when = appt.start ?? appt._savedAt
+            const noShow = appt.status === 'noshow'
+            return (
+              <div key={appt.id ?? `appt-${idx}`} className="stage-artifact stage-artifact--appointment">
+                <span className="stage-artifact-icon" aria-hidden>{noShow ? '\u{1F6AB}' : '\u{1F4C5}'}</span>
+                <div className="stage-artifact-body">
+                  <span className="stage-artifact-name">{name}</span>
+                  <span className="stage-artifact-meta">
+                    Appointment &middot; {appt.status ?? 'booked'}
                     {when && ` · ${new Date(when).toLocaleDateString()}`}
                   </span>
                 </div>
@@ -579,6 +599,7 @@ export function PatientChart() {
     riskAlerts,
     observations,
     communications,
+    appointments,
     activePatientId,
     populationPatient,
     isSmartConnected,
@@ -588,14 +609,15 @@ export function PatientChart() {
   const location = useLocation()
 
   const artifacts = useMemo(
-    () => ({ responses, carePlans, observations, communications }),
-    [responses, carePlans, observations, communications],
+    () => ({ responses, carePlans, observations, communications, appointments }),
+    [responses, carePlans, observations, communications, appointments],
   )
   const hasData =
     responses.length > 0 ||
     carePlans.length > 0 ||
     observations.length > 0 ||
-    communications.length > 0
+    communications.length > 0 ||
+    appointments.length > 0
   const { statuses, activeStageId } = useMemo(
     () => derivePathwayStatus(artifacts),
     [artifacts],
@@ -667,6 +689,7 @@ export function PatientChart() {
               carePlans={group.carePlans}
               observations={group.observations}
               communications={group.communications}
+              appointments={group.appointments}
             />
           ))}
         </div>
