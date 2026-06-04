@@ -7,6 +7,7 @@ import { useSmart } from './SmartContext'
 import { mapResponseToObservations } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
 import { stageForResponse, PATHWAY_STAGE_SYSTEM } from '../lib/patientPathway'
+import { makeId } from '../lib/id'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
@@ -302,7 +303,7 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     (questionnaireName: string, resource: QuestionnaireResponseResource) => {
       // Mint the id first and stamp it onto the stored resource so derived
       // Observations can reference it via Observation.derivedFrom.
-      const id = `response-${crypto.randomUUID()}`
+      const id = `response-${makeId()}`
       const storedResource = { ...resource, id: (resource as { id?: string }).id ?? id }
       const entry: StoredResponse = {
         id,
