@@ -301,10 +301,12 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
 
   const addResponse = useCallback(
     (questionnaireName: string, resource: QuestionnaireResponseResource) => {
-      // Mint the id first and stamp it onto the stored resource so derived
-      // Observations can reference it via Observation.derivedFrom.
-      const id = `response-${makeId()}`
-      const storedResource = { ...resource, id: (resource as { id?: string }).id ?? id }
+      // Resolve a single id up front — prefer the resource's own id, otherwise
+      // mint one — and use it for the stored resource, the entry, AND the
+      // derived Observations' Observation.derivedFrom reference, so they all
+      // point at the same QuestionnaireResponse.
+      const id = (resource as { id?: string }).id ?? `response-${makeId()}`
+      const storedResource = { ...resource, id }
       const entry: StoredResponse = {
         id,
         questionnaireName,
