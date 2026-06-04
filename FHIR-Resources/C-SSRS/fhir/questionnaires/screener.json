@@ -37,6 +37,12 @@
               "code": "93246-7",
               "display": "Wish to be dead"
             }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
           ]
         },
         {
@@ -49,6 +55,12 @@
               "system": "http://loinc.org",
               "code": "93247-5",
               "display": "Non-specific active suicidal thoughts"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },
@@ -70,6 +82,12 @@
               "code": "93248-3",
               "display": "Active suicidal ideation with any methods (not plan) without intent to act"
             }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
           ]
         },
         {
@@ -89,6 +107,12 @@
               "system": "http://loinc.org",
               "code": "93249-1",
               "display": "Active suicidal ideation with some intent to act without specific plan"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },
@@ -110,6 +134,12 @@
               "code": "93250-9",
               "display": "Active suicidal ideation with specific plan and intent"
             }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
           ]
         }
       ]
@@ -129,6 +159,12 @@
               "system": "http://loinc.org",
               "code": "93267-3",
               "display": "Have you ever done anything, started to do anything, or prepared to do anything to end your life"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },

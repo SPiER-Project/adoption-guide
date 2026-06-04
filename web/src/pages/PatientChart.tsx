@@ -223,6 +223,14 @@ function CdsCardStack({ cards }: { cards: CdsCard[] }) {
 }
 
 /* ---------- Stage-grouped activity ---------- */
+// Short labels for the per-stage score chip — full LOINC/SNOMED display names
+// are too long to read inline.
+const SCORE_CHIP_LABELS: Record<string, string> = {
+  '44261-6': 'PHQ-9 total',
+  '44260-8': 'PHQ-9 item 9',
+  '225337009': 'SBQ-R total',
+}
+
 function StageActivitySection({
   stageId,
   status,
@@ -269,6 +277,22 @@ function StageActivitySection({
   const showArtifacts = !empty && (!collapsible || open)
   const showDesc = !collapsible || open
 
+  // Surface the clinical score(s) for this stage from its Observations, e.g. "PHQ-9: 14".
+  // Read straight off the persisted resource value; omit when no scored observation exists.
+  const scoreSummary = observations
+    .map(o => {
+      const value = o.valueInteger ?? o.valueQuantity?.value
+      if (value === undefined || value === null) return null
+      // Full LOINC display names are long and clutter the chip — prefer a short
+      // label for known scored codes, falling back to the resource's own text.
+      const code = o.code?.coding?.[0]?.code
+      const label =
+        (code && SCORE_CHIP_LABELS[code]) || o.code?.text || o.code?.coding?.[0]?.display || 'Score'
+      return `${label}: ${value}`
+    })
+    .filter(Boolean)
+    .join(' · ')
+
   return (
     <section
       id={`stage-${stageId}`}
@@ -288,6 +312,7 @@ function StageActivitySection({
             >
               <span className="stage-section-toggle-main">
                 <span className="stage-section-title">{stage?.title}</span>
+                {scoreSummary && <span className="stage-section-score">{scoreSummary}</span>}
               </span>
               <span className="stage-section-toggle-aside">
                 <span className="stage-section-status stage-section-status--complete">Complete</span>

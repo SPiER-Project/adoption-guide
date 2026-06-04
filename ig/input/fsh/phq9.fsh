@@ -78,6 +78,7 @@ Usage: #example
 * code = http://loinc.org#44261-6 "Patient Health Questionnaire 9 item total score"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
+* derivedFrom = Reference(ExamplePHQ9Response)
 * valueInteger = 18
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
 * interpretation[=].text = "Moderately Severe depression (score 18/27)"
@@ -93,6 +94,24 @@ Usage: #example
 * code = http://loinc.org#44260-8 "Thoughts that you would be better off dead or of hurting yourself"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
+* derivedFrom = Reference(ExamplePHQ9Response)
 * valueInteger = 2
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
 * interpretation[=].text = "Positive — suicide risk screening indicated"
+
+
+// Source QuestionnaireResponse the example Observations are derived from
+// (Observation.derivedFrom) — the provenance link SDC $extract would set, and
+// that the SPiER app stamps when it extracts Observations on submit.
+Instance: ExamplePHQ9Response
+InstanceOf: QuestionnaireResponse
+Title: "Example — PHQ-9 QuestionnaireResponse"
+Description: "Sample completed PHQ-9 QuestionnaireResponse that the example total-score and item-9 Observations reference via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://spier.org/Questionnaire/PHQ-9"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T10:30:00Z"
+* item[+].linkId = "q9"
+* item[=].text = "Thoughts that you would be better off dead or of hurting yourself in some way"
+* item[=].answer.valueCoding = http://loinc.org#LA6570-1 "More than half the days"

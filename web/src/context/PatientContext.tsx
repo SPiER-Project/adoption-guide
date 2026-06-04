@@ -6,6 +6,8 @@ import type { PatientDisplay } from '../data/demoPatient'
 import { useSmart } from './SmartContext'
 import { mapResponseToObservations } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
+import { stageForResponse, PATHWAY_STAGE_SYSTEM } from '../lib/patientPathway'
+import { makeId } from '../lib/id'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
@@ -299,19 +301,42 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
 
   const addResponse = useCallback(
     (questionnaireName: string, resource: QuestionnaireResponseResource) => {
+      // Mint the id first and stamp it onto the stored resource so derived
+      // Observations can reference it via Observation.derivedFrom.
+      const id = `response-${makeId()}`
+      const storedResource = { ...resource, id: (resource as { id?: string }).id ?? id }
       const entry: StoredResponse = {
-        id: `response-${crypto.randomUUID()}`,
+        id,
         questionnaireName,
         completedAt: new Date().toISOString(),
-        resource,
+        resource: storedResource,
       }
       // Auto-generate Observations from the response. Dispatch is by
       // resource.questionnaire (canonical URL) — see observationMappers/index.ts.
-      const result = mapResponseToObservations(resource)
+      const result = mapResponseToObservations(storedResource)
+      // Stamp provenance + pathway stage onto each extracted Observation so it
+      // (a) links back to its source QR (Observation.derivedFrom — what SDC
+      // $extract would emit) and (b) resolves to a pathway stage via the
+      // meta.tag channel in stageForArtifact, so it groups under the right
+      // stage instead of being orphaned. The stage is the source response's
+      // stage (questionnaire → tool → stageId).
+      const stageId = stageForResponse(storedResource)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const observations: ObservationResource[] = (result?.observations ?? []).map((obs: any) => ({
+        ...obs,
+        derivedFrom: [...(obs.derivedFrom ?? []), { reference: `QuestionnaireResponse/${id}` }],
+        meta: {
+          ...(obs.meta ?? {}),
+          tag: [
+            ...(obs.meta?.tag ?? []),
+            ...(stageId ? [{ system: PATHWAY_STAGE_SYSTEM, code: stageId }] : []),
+          ],
+        },
+      }))
       updateActiveSlice(prev => ({
         ...prev,
         responses: [...prev.responses, entry],
-        observations: result ? [...prev.observations, ...result.observations] : prev.observations,
+        observations: result ? [...prev.observations, ...observations] : prev.observations,
         riskAlerts: result
           ? [...prev.riskAlerts.filter(a => a.tool !== result.riskAlert.tool), result.riskAlert]
           : prev.riskAlerts,
