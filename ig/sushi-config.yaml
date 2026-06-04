@@ -41,6 +41,9 @@ jurisdiction: urn:iso:std:iso:3166#US "United States of America"
 # to the US realm. Add additional dependencies (e.g., SDC) as needed.
 dependencies:
   hl7.fhir.us.core: 6.1.0
+  # SDC: calculatedExpression (score totals) + observationExtract (declared
+  # extraction contract) extensions used by the screening Questionnaires.
+  hl7.fhir.uv.sdc: 3.0.0
 
 # IG Publisher parameters
 parameters:

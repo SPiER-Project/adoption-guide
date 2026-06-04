@@ -12,6 +12,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.css\"",
+    "check:extract": "node scripts/check-observation-extract.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

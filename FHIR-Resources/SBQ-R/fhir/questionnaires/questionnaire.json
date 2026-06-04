@@ -167,6 +167,13 @@
       "text": "SBQ-R Total Score (range 3-18)",
       "type": "integer",
       "readOnly": true,
+      "code": [
+        {
+          "system": "http://snomed.info/sct",
+          "code": "225337009",
+          "display": "Suicide risk assessment score"
+        }
+      ],
       "extension": [
         {
           "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression",
@@ -175,6 +182,10 @@
             "language": "text/fhirpath",
             "expression": "%resource.item.where(linkId.startsWith('q')).answer.weight().sum()"
           }
+        },
+        {
+          "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+          "valueBoolean": true
         }
       ]
     }
