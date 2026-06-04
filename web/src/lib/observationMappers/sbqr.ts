@@ -1,18 +1,20 @@
-import { makeObservation, walkItems, getCodingAnswer, getOrdinalValue, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert } from './shared'
+import { ordinalForAnswer } from '../../data/questionnaires'
 
 export function mapSBQR(response: any): MapperResult {
   const items = response?.item || []
   const observations: any[] = []
+  const questionnaireUrl: string | undefined = response?.questionnaire
 
-  let totalScore = 0
-  for (const linkId of ['q1', 'q2', 'q3', 'q4']) {
-    const item = walkItems(items, linkId)
-    const coding = getCodingAnswer(item)
-    if (coding) {
-      const ordinal = getOrdinalValue(coding)
-      if (ordinal !== undefined) totalScore += ordinal
-    }
-  }
+  // Prefer a renderer-computed total-score item; else join each answer's code
+  // to the Questionnaire answerOption ordinal (SDC weight() semantics).
+  const rendererTotal = walkItems(items, 'total-score')?.answer?.[0]?.valueInteger
+  const totalScore = typeof rendererTotal === 'number'
+    ? rendererTotal
+    : ['q1', 'q2', 'q3', 'q4'].reduce((sum, linkId) => {
+        const coding = getCodingAnswer(walkItems(items, linkId))
+        return sum + (ordinalForAnswer(questionnaireUrl, linkId, coding?.code) ?? 0)
+      }, 0)
 
   const aboveGeneralCutoff = totalScore >= 7
   const aboveInpatientCutoff = totalScore >= 8
