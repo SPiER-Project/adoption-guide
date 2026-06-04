@@ -269,6 +269,18 @@ function StageActivitySection({
   const showArtifacts = !empty && (!collapsible || open)
   const showDesc = !collapsible || open
 
+  // Surface the clinical score(s) for this stage from its Observations, e.g. "PHQ-9: 14".
+  // Read straight off the persisted resource value; omit when no scored observation exists.
+  const scoreSummary = observations
+    .map(o => {
+      const value = o.valueInteger ?? o.valueQuantity?.value
+      if (value === undefined || value === null) return null
+      const label = o.code?.text || o.code?.coding?.[0]?.display || 'Score'
+      return `${label}: ${value}`
+    })
+    .filter(Boolean)
+    .join(' · ')
+
   return (
     <section
       id={`stage-${stageId}`}
@@ -288,6 +300,7 @@ function StageActivitySection({
             >
               <span className="stage-section-toggle-main">
                 <span className="stage-section-title">{stage?.title}</span>
+                {scoreSummary && <span className="stage-section-score">{scoreSummary}</span>}
               </span>
               <span className="stage-section-toggle-aside">
                 <span className="stage-section-status stage-section-status--complete">Complete</span>
