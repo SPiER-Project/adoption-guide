@@ -388,6 +388,13 @@
   flex-shrink: 0;
 }
 
+/* At-a-glance clinical score(s) for a completed stage, e.g. "PHQ-9: 14". */
+.stage-section-score {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .stage-section-toggle-hint {
   font-size: var(--font-size-2xs);
   color: var(--text-muted);

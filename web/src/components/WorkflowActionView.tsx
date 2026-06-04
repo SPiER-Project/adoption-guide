@@ -4,6 +4,7 @@ import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { TOOLS, stageById } from '../data/catalog'
 import { PATHWAY_STAGE_SYSTEM } from '../lib/patientPathway'
+import { makeId } from '../lib/id'
 import type { CommunicationResource } from '../types/fhir'
 import '../css/WorkflowActionView.css'
 
@@ -57,14 +58,6 @@ function todayIso(): string {
   const month = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
-}
-
-/** crypto.randomUUID() is secure-context only; fall back for plain-HTTP/test envs. */
-function makeId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 }
 
 export function WorkflowActionView({

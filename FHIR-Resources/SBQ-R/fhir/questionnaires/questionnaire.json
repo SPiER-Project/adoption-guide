@@ -167,14 +167,25 @@
       "text": "SBQ-R Total Score (range 3-18)",
       "type": "integer",
       "readOnly": true,
+      "code": [
+        {
+          "system": "http://snomed.info/sct",
+          "code": "225337009",
+          "display": "Suicide risk assessment score"
+        }
+      ],
       "extension": [
         {
           "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression",
           "valueExpression": {
-            "description": "Sum of ordinal values from all 4 items. Range 3-18. Cutoff ≥7 general population, ≥8 psychiatric inpatients.",
+            "description": "Sum of the ordinal weights of all 4 item answers (SDC weight() resolves each answer's ordinalValue from the Questionnaire answerOption). Range 3-18. Cutoff ≥7 general population, ≥8 psychiatric inpatients.",
             "language": "text/fhirpath",
-            "expression": "%resource.item.where(linkId='q1').answer.valueCoding.extension.where(url='http://hl7.org/fhir/StructureDefinition/ordinalValue').valueDecimal + %resource.item.where(linkId='q2').answer.valueCoding.extension.where(url='http://hl7.org/fhir/StructureDefinition/ordinalValue').valueDecimal + %resource.item.where(linkId='q3').answer.valueCoding.extension.where(url='http://hl7.org/fhir/StructureDefinition/ordinalValue').valueDecimal + %resource.item.where(linkId='q4').answer.valueCoding.extension.where(url='http://hl7.org/fhir/StructureDefinition/ordinalValue').valueDecimal"
+            "expression": "%resource.item.where(linkId.startsWith('q')).answer.weight().sum()"
           }
+        },
+        {
+          "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+          "valueBoolean": true
         }
       ]
     }

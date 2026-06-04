@@ -1,0 +1,42 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "asq-item",
+  "url": "http://spier.org/CodeSystem/asq-item",
+  "version": "1.0.0",
+  "name": "AsqItem",
+  "title": "ASQ Screening Item Codes (local)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2026-06-04",
+  "publisher": "SPiER Project",
+  "description": "SPiER-local code system for the five NIMH ASQ screening questions (q1–q5). Used because the ASQ has NO published per-item LOINC codes: verification against LOINC (June 2026) confirmed that (a) the codes previously placed on these items (93246-7, 93247-5, 93248-3, 93249-1) are members of the C-SSRS screener panel 93373-9, not ASQ, and (b) the codes previously emitted by the observation mapper (93267-4, 93266-6, 93265-8, 93264-1, 93263-3) do not exist in LOINC at all (failed check-digits of C-SSRS suicidal-behavior codes). The ASQ is documented at the encounter level as an overall screening result; no authoritative per-question LOINC binding exists. These local codes give the items stable identifiers so the Questionnaire, the observation mapper, and the observationExtract anti-drift check can agree. Replace with published LOINC concepts if/when NIMH/Regenstrief assign them.",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "wished-dead",
+      "display": "Wished you were dead",
+      "definition": "ASQ Q1 — In the past few weeks, have you wished you were dead? (passive death wish)"
+    },
+    {
+      "code": "family-better-off-dead",
+      "display": "Family better off if dead",
+      "definition": "ASQ Q2 — In the past few weeks, have you felt that you or your family would be better off if you were dead? (perceived burdensomeness)"
+    },
+    {
+      "code": "thoughts-killing-self",
+      "display": "Thoughts about killing yourself",
+      "definition": "ASQ Q3 — In the past week, have you been having thoughts about killing yourself? (active ideation)"
+    },
+    {
+      "code": "ever-attempted",
+      "display": "Ever tried to kill yourself",
+      "definition": "ASQ Q4 — Have you ever tried to kill yourself? (lifetime attempt history)"
+    },
+    {
+      "code": "acute-ideation-now",
+      "display": "Killing yourself right now (acuity)",
+      "definition": "ASQ Q5 (acuity) — Are you having thoughts of killing yourself right now? Asked only when any of Q1–Q4 is 'yes'."
+    }
+  ]
+}

@@ -47,17 +47,10 @@ export function walkItems(items: any[], linkId: string): any | undefined {
   return undefined
 }
 
-/**
- * Read the FHIR `ordinalValue` extension off an answerOption to recover
- * the numeric score for instruments like PHQ-9 and SBQ-R where the answer
- * is a Coding but the score lives on an extension.
- */
-export function getOrdinalValue(answerOption: any): number | undefined {
-  const ext = answerOption?.extension?.find(
-    (e: any) => e.url === 'http://hl7.org/fhir/StructureDefinition/ordinalValue',
-  )
-  return ext?.valueDecimal
-}
+// Ordinal/weight resolution moved to ../../data/questionnaires (ordinalForAnswer):
+// the score lives on the Questionnaire answerOption, not the response answer, so
+// it must be resolved by joining the selected code back to the Questionnaire
+// (SDC weight() semantics) — not read off the captured answer.
 
 export function getCodingAnswer(item: any): any | undefined {
   return item?.answer?.[0]?.valueCoding

@@ -4,25 +4,27 @@ Tracking list of improvements to `/FHIR-Resources/ASQ/fhir/questionnaires/questi
 
 ## Priority 1 — Required for pilot-ready artifact
 
-### LOINC binding on every item
+### LOINC binding on every item — VERIFIED (June 2026): ASQ has no per-item LOINC ✅
 
-Every question item and the Questionnaire root should carry a `code` array pointing at the corresponding LOINC concept. Without these bindings, a receiving system has no way to recognize what `q1`, `q2`, etc. represent except by string-matching the question text — which defeats the point of using a standard instrument.
+Every question item should carry a `code` so a receiving system can recognize what `q1`, `q2`, etc. represent without string-matching the question text. LOINC verification (June 2026) found that **the ASQ has no published per-item LOINC codes**, so the items now bind to a SPiER-local CodeSystem instead.
 
-**⚠️ VERIFICATION NEEDED:** The exact LOINC-to-question mappings have not been independently verified against the official LOINC panel definition for 93373-9 (ASQ panel). The candidate codes below are drawn from prior conversation but need to be confirmed against LOINC's authoritative binding before the Questionnaire is promoted from `draft` to `active`. ASQ has gone through minor wording variants over time, and the LOINC bindings target specific phrasings. Mismatches here cause silent portability failures downstream.
+The two code sets that previously appeared on these items were both wrong:
 
-| linkId | Question (current wording) | Candidate LOINC | Verified? |
-|--------|----------------------------|-----------------|-----------|
-| root Questionnaire | ASQ panel wrapper | 93373-9 | ☐ |
-| q1 | Wished you were dead | 93246-7 | ☐ |
-| q2 | You or family better off if you were dead | — (possibly no LOINC) | ☐ |
-| q3 | Thoughts about killing yourself | 93247-5 | ☐ |
-| q4 | Ever tried to kill yourself | 93248-3 | ☐ |
-| q5 | Thoughts of killing yourself right now | 93249-1 | ☐ |
-| result-category | Suicide risk level | 93374-7 | ☐ |
+| linkId | Question (current wording) | Now bound to | Prior (wrong) codes |
+|--------|----------------------------|--------------|---------------------|
+| root Questionnaire | panel wrapper | `93373-9` (still flagged — this is the **C-SSRS** screener panel, not ASQ) | — |
+| q1 | Wished you were dead | `asq-item#wished-dead` | `93246-7` (C-SSRS) / `93267-4` (does not exist) |
+| q2 | You or family better off if you were dead | `asq-item#family-better-off-dead` | — / `93266-6` (does not exist) |
+| q3 | Thoughts about killing yourself | `asq-item#thoughts-killing-self` | `93247-5` (C-SSRS) / `93265-8` (does not exist) |
+| q4 | Ever tried to kill yourself | `asq-item#ever-attempted` | `93248-3` (C-SSRS) / `93264-1` (does not exist) |
+| q5 | Thoughts of killing yourself right now | `asq-item#acute-ideation-now` | `93249-1` (C-SSRS) / `93263-3` (does not exist) |
+| result-category | Suicide risk level | `93374-7` (real LOINC, flagged `unverified`) | — |
 
-**Action:** Verify each row against the LOINC 93373-9 panel definition. If ASQ Q2 has no LOINC binding, flag as a potential LOINC submission as a pilot deliverable. Until verified, each item's `code` block carries the `http://spier.org/StructureDefinition/coding-verification-status` extension set to `unverified`.
+`asq-item` = `http://spier.org/CodeSystem/asq-item` (`FHIR-Resources/ASQ/fhir/codesystems/asq-item.json`); each coding is marked `no-standard-binding`. q1–q5 now declare `sdc-questionnaire-observationExtract`, and the codes match the observation mapper and the `check-observation-extract.mjs` anti-drift check.
 
-> **Conflict to reconcile during verification:** The candidate codes above (93246-7, 93247-5, 93248-3, 93249-1) appear to overlap with **C-SSRS** LOINC codes already assigned in `web/src/data/catalog/dataElements.ts`. Separately, the SPiER data dictionary and observation mapper use a **different** ASQ LOINC series (93267-4, 93266-6, 93265-8, 93264-1, 93263-3) for the same questions. These two code sets cannot both be right — LOINC verification resolves which is correct.
+> **Conflict — RESOLVED.** The codes formerly on q1/q3/q4/q5 (`93246-7`, `93247-5`, `93248-3`, `93249-1`) are confirmed C-SSRS screener panel members. The SPiER data-dictionary/mapper series (`93267-4`, `93266-6`, `93265-8`, `93264-1`, `93263-3`, and result `93243-5`) do **not exist** in LOINC — they fail their check digits. Neither was ASQ. Resolution: SPiER-local `asq-item` codes. If a LOINC Q2 (or any item) binding is ever published, swap the local code; a LOINC submission remains a possible pilot deliverable.
+>
+> **Root panel + result codes — also reconciled (June 2026):** the root `Questionnaire.code` `93373-9` (which is the C-SSRS screener panel, not ASQ) was replaced with the SPiER-local `asq-panel#asq-screening`; the result/composite Observation code `93243-5` (nonexistent in LOINC) was replaced with the real, verified `93374-7` "Suicide risk level" at the FSH source and in the mapper, and the `web/src/data/fhir/` artifacts were regenerated. The result Observation's *value* stays the SPiER-local `asq-screening-result` tier.
 
 ### Switch q1–q5 from boolean to choice with SNOMED bindings ✅
 
@@ -99,7 +101,7 @@ Since the pilot targets discrete observations in the receiving EHR chart, docume
 
 ## Quick reference — suggested order of operations
 
-1. ☐ Verify LOINC mappings against the 93373-9 panel definition (resolve the conflict with existing C-SSRS / ASQ code sets in `dataElements.ts`)
+1. ✅ Verify LOINC mappings — done (June 2026): ASQ has no per-item or panel LOINC. q1–q5 → SPiER-local `asq-item`; root → SPiER-local `asq-panel`; result Observation `93243-5` (nonexistent) → real LOINC `93374-7` "Suicide risk level"; `result-category` item LOINC `93374-7` verified.
 2. ✅ Switch q1–q5 to `choice` with SNOMED-bound Yes/No ValueSet
 3. ✅ Add `code` elements to all items and the root Questionnaire (candidate, unverified)
 4. ✅ Add CodeSystem resources for local codes

@@ -1,21 +1,23 @@
-import { makeObservation, walkItems, getCodingAnswer, getOrdinalValue, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert } from './shared'
+import { ordinalForAnswer } from '../../data/questionnaires'
 
 export function mapPHQ9(response: any): MapperResult {
   const items = response?.item || []
   const observations: any[] = []
+  const questionnaireUrl: string | undefined = response?.questionnaire
 
-  // Calculate total score from ordinal values
-  let totalScore = 0
+  // Total score. Prefer a renderer-computed total-score item (SDC
+  // calculatedExpression) when present; otherwise compute it by joining each
+  // answer's code back to the Questionnaire answerOption ordinal (SDC weight()
+  // semantics) — the renderer does not carry ordinalValue onto the answer.
   const itemLinkIds = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9']
-
-  for (const linkId of itemLinkIds) {
-    const item = walkItems(items, linkId)
-    const coding = getCodingAnswer(item)
-    if (coding) {
-      const ordinal = getOrdinalValue(coding)
-      if (ordinal !== undefined) totalScore += ordinal
-    }
-  }
+  const rendererTotal = walkItems(items, 'total-score')?.answer?.[0]?.valueInteger
+  const totalScore = typeof rendererTotal === 'number'
+    ? rendererTotal
+    : itemLinkIds.reduce((sum, linkId) => {
+        const coding = getCodingAnswer(walkItems(items, linkId))
+        return sum + (ordinalForAnswer(questionnaireUrl, linkId, coding?.code) ?? 0)
+      }, 0)
 
   // Total score Observation
   let severity = 'Minimal'
@@ -41,9 +43,8 @@ export function mapPHQ9(response: any): MapperResult {
   )
 
   // Item 9 specifically — suicide risk gateway
-  const item9 = walkItems(items, 'q9')
-  const item9Coding = getCodingAnswer(item9)
-  const item9Score = item9Coding ? (getOrdinalValue(item9Coding) ?? 0) : 0
+  const item9Coding = getCodingAnswer(walkItems(items, 'q9'))
+  const item9Score = ordinalForAnswer(questionnaireUrl, 'q9', item9Coding?.code) ?? 0
 
   observations.push(
     makeObservation({
