@@ -1,0 +1,22 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "asq-panel",
+  "url": "http://spier.org/CodeSystem/asq-panel",
+  "version": "1.0.0",
+  "name": "AsqPanel",
+  "title": "ASQ Panel Code (local)",
+  "status": "draft",
+  "experimental": true,
+  "date": "2026-06-04",
+  "publisher": "SPiER Project",
+  "description": "SPiER-local code identifying the NIMH ASQ screening instrument at the panel/root level. Used because the ASQ has NO published panel LOINC code. The code that previously sat on this Questionnaire's root, LOINC 93373-9, is the C-SSRS screener panel (https://loinc.org/93373-9/panel) — a different instrument — and must not be used to identify ASQ. This local code lets a FHIR client recognize 'this is an ASQ screening' by code rather than by string-matching the title. Replace with a published LOINC panel code if/when NIMH/Regenstrief assign one.",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "asq-screening",
+      "display": "Ask Suicide-Screening Questions (ASQ) panel",
+      "definition": "The NIMH Ask Suicide-Screening Questions instrument as a whole (4 screening questions plus acuity question)."
+    }
+  ]
+}

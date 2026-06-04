@@ -37,6 +37,13 @@ const EXPECTED = {
   'FHIR-Resources/C-SSRS/fhir/questionnaires/screener.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
+  // ASQ has NO published per-item LOINC codes (verified June 2026), so the five
+  // screening items bind to the SPiER-local http://spier.org/CodeSystem/asq-item.
+  // These are NOT LOINC codes; they match web/src/lib/observationMappers/asq.ts.
+  'FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json': [
+    'wished-dead', 'family-better-off-dead', 'thoughts-killing-self',
+    'ever-attempted', 'acute-ideation-now',
+  ],
 }
 
 function* walk(items) {

@@ -27,15 +27,23 @@ Every coding in the Questionnaire that has not been verified against an authorit
 
 This is a machine-readable marker. When every coding reads `verified`, the Questionnaire can flip to `status: active`.
 
-### Known LOINC code conflict to reconcile
+### LOINC code conflict — RESOLVED (June 2026): ASQ has no per-item LOINC
 
-The candidate LOINC codes on q1, q3, q4, q5 in this Questionnaire (`93246-7`, `93247-5`, `93248-3`, `93249-1`) were drawn from a prior discussion and appear to overlap with **C-SSRS** LOINC codes (see `web/src/data/catalog/dataElements.ts` — these same codes are assigned there to C-SSRS levels 1–5). Separately, the SPiER data dictionary and observation mapper use a **different** ASQ LOINC series (`93267-4`, `93266-6`, `93265-8`, `93264-1`, `93263-3`) for the same five questions.
+The per-item LOINC codes were verified against LOINC in June 2026. **Neither** prior code set was correct for ASQ:
 
-These two code sets cannot both be right. Verification against the LOINC 93373-9 panel definition is the first task in the pilot plan. Until that reconciliation happens, treat **every** LOINC coding on this Questionnaire as unverified.
+- The codes that had been placed on q1, q3, q4, q5 (`93246-7`, `93247-5`, `93248-3`, `93249-1`) are confirmed members of the **C-SSRS screener panel `93373-9`** (e.g. `93246-7` = "Wish to be dead 1 month"), not ASQ. They were copy-pasted from C-SSRS.
+- The codes the observation mapper / data dictionary emitted (`93267-4`, `93266-6`, `93265-8`, `93264-1`, `93263-3`, and the result code `93243-5`) **do not exist in LOINC at all** — each fails its check digit and resolves to a neighboring C-SSRS suicidal-behavior code. They were fabricated.
 
-### Q2 — potentially no standard binding
+The ASQ has **no published per-item LOINC codes**; it is documented at the encounter level as an overall screening result. Accordingly, q1–q5 now bind to the SPiER-local CodeSystem **`http://spier.org/CodeSystem/asq-item`** (`fhir/codesystems/asq-item.json`), with each coding marked `no-standard-binding`. The Questionnaire item codes, the observation mapper (`web/src/lib/observationMappers/asq.ts`), the data dictionary (`web/src/data/catalog/dataElements.ts`), and the anti-drift check (`web/scripts/check-observation-extract.mjs`) all agree on these local codes, and q1–q5 now declare `sdc-questionnaire-observationExtract`.
 
-Q2 ("have you felt that you or your family would be better off if you were dead") is marked with verification status `no-standard-binding` and has no `code` entry. If the LOINC review confirms no binding exists, a LOINC submission may be warranted as a pilot deliverable.
+**Root panel and result codes — also reconciled (June 2026):**
+
+- The root `Questionnaire.code` was `93373-9`, which is the **C-SSRS** screener panel — a different instrument (a real interop hazard). Since the ASQ has no panel LOINC, the root now uses the SPiER-local `http://spier.org/CodeSystem/asq-panel#asq-screening` (`fhir/codesystems/asq-panel.json`), marked `no-standard-binding`.
+- The result/composite Observation code was `93243-5`, which **does not exist** in LOINC. It is now `93374-7` ("Suicide risk level") — a real, verified LOINC code that also matches the Questionnaire's `result-category` item. This was changed at the FSH source (`ig/input/fsh/asq.fsh`, `ig/input/fsh/pathway-stages.fsh`) and in the observation mapper; the generated artifacts under `web/src/data/fhir/` were regenerated. The Observation *value* remains the SPiER-local `asq-screening-result` tier (negative / non-acute-positive / acute-positive), since LOINC has no answer concepts for the disposition tiers.
+
+### Q2 — local binding
+
+Q2 ("have you felt that you or your family would be better off if you were dead") now carries the local code `http://spier.org/CodeSystem/asq-item#family-better-off-dead` (marked `no-standard-binding`) and declares `observationExtract`. If a published LOINC concept ever exists for this item, replace the local code.
 
 ## Screening Questions
 
@@ -78,8 +86,9 @@ Refusal is currently captured via the `patient-refused` boolean plus a `patient-
 
 | Asset | Path | Description |
 |-------|------|-------------|
-| Questionnaire | `fhir/questionnaires/questionnaire.json` | FHIR R4 Questionnaire with enableWhen conditional logic, LOINC panel + item codes (unverified), SNOMED-bound Yes/No answers |
+| Questionnaire | `fhir/questionnaires/questionnaire.json` | FHIR R4 Questionnaire with enableWhen conditional logic, SPiER-local `asq-item` per-item codes (no per-item LOINC exists), `observationExtract` on q1–q5, SNOMED-bound Yes/No answers |
 | ValueSet | `fhir/valuesets/yes-no.json` | SNOMED-bound Yes/No answer value set |
+| CodeSystem | `fhir/codesystems/asq-item.json` | Local codes for the five screening questions q1–q5 |
 | CodeSystem | `fhir/codesystems/asq-attempt-recency.json` | Local codes for recency of prior attempt |
 | CodeSystem | `fhir/codesystems/asq-screening-result.json` | Local codes for three-tier result stratification |
 | CodeSystem | `fhir/codesystems/asq-age-group.json` | Local codes for refusal-interpretation age group |
@@ -102,7 +111,7 @@ This Questionnaire is intended to align with the ONC/SAMHSA Behavioral Health IT
 
 - **USCDI+ Behavioral Health** dataset — ASQ result and individual-item observations should be consumable by any EHR that advertises USCDI+ BH support.
 - **HL7 FHIR Behavioral Health Profiles Implementation Guide** (in development by the BHIT community) — where profiles exist, the Questionnaire and its downstream Observations should conform.
-- **LOINC panel 93373-9** — the correct root `Questionnaire.code` per NIMH/LOINC coordination.
+- **LOINC** — note that `93373-9` (currently the root `Questionnaire.code`) is the **C-SSRS** screener panel, *not* ASQ; ASQ has no published panel/item LOINC codes as of June 2026. The root code remains flagged `unverified` pending a decision (see "LOINC code conflict — RESOLVED" above).
 
 Practical implication for pilot: this artifact is not a local SPiER invention — it is a FHIR representation of a federally-coordinated screening standard, and its coded bindings are the substrate that lets its outputs be received, filtered, and acted on across EHRs.
 

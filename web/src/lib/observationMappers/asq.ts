@@ -26,7 +26,7 @@ export function mapASQ(response: any): MapperResult {
   observations.push(
     makeObservation({
       id: `asq-result-${Date.now()}`,
-      code: { system: 'http://loinc.org', code: '93243-5', display: 'ASQ suicide risk screening result' },
+      code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
         coding: [{ system: 'http://spier.org/CodeSystem/asq-screening-result', code: resultCode, display: resultDisplay }],
         text: resultDisplay,
@@ -40,13 +40,18 @@ export function mapASQ(response: any): MapperResult {
   )
 
   // Individual item observations for discrete tracking.
-  // NOTE: LOINC bindings below are candidate/unverified. See ASQ pilot plan for reconciliation.
+  // The ASQ has NO published per-item LOINC codes (verified against LOINC, June 2026:
+  // the codes formerly used here did not exist, and the C-SSRS panel 93373-9 codes that
+  // were on the Questionnaire items belong to C-SSRS, not ASQ). We bind to the SPiER-local
+  // http://spier.org/CodeSystem/asq-item instead. These codes MUST stay in sync with the
+  // Questionnaire item codes and web/scripts/check-observation-extract.mjs EXPECTED.
+  const ASQ_ITEM_SYSTEM = 'http://spier.org/CodeSystem/asq-item'
   const itemMap = [
-    { linkId: 'q1', code: '93267-4', display: 'Wished you were dead' },
-    { linkId: 'q2', code: '93266-6', display: 'Family better off if dead' },
-    { linkId: 'q3', code: '93265-8', display: 'Thoughts about killing yourself' },
-    { linkId: 'q4', code: '93264-1', display: 'Ever tried to kill yourself' },
-    { linkId: 'q5', code: '93263-3', display: 'Killing yourself right now (acuity)' },
+    { linkId: 'q1', code: 'wished-dead', display: 'Wished you were dead' },
+    { linkId: 'q2', code: 'family-better-off-dead', display: 'Family better off if dead' },
+    { linkId: 'q3', code: 'thoughts-killing-self', display: 'Thoughts about killing yourself' },
+    { linkId: 'q4', code: 'ever-attempted', display: 'Ever tried to kill yourself' },
+    { linkId: 'q5', code: 'acute-ideation-now', display: 'Killing yourself right now (acuity)' },
   ]
 
   for (const { linkId, code, display } of itemMap) {
@@ -55,7 +60,7 @@ export function mapASQ(response: any): MapperResult {
       observations.push(
         makeObservation({
           id: `asq-${linkId}-${Date.now()}`,
-          code: { system: 'http://loinc.org', code, display },
+          code: { system: ASQ_ITEM_SYSTEM, code, display },
           value: { coding: [coding], text: coding.display },
           valueType: 'codeable',
           questionnaireName: 'ASQ',

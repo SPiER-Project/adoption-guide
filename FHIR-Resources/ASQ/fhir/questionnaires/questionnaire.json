@@ -11,7 +11,7 @@
   "date": "2026-04-20",
   "publisher": "SPiER Project (FHIR translation of NIMH ASQ Toolkit)",
   "description": "FHIR Questionnaire representation of the NIMH Ask Suicide-Screening Questions (ASQ) tool. A 4-question screening instrument validated for youth (8+) and adults across ED, inpatient, outpatient, and primary care settings. Includes acuity question (#5) triggered by any positive response to questions 1-4. Source: NIMH ASQ Toolkit (www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials).",
-  "purpose": "Universal suicide risk screening. The ASQ takes approximately 20 seconds to administer and stratifies patients into Negative Screen, Non-Acute Positive Screen, or Acute Positive Screen (imminent risk). PILOT STATUS: LOINC bindings on items are candidate mappings marked with the spier-coding-verification extension set to 'unverified'. See the ASQ pilot plan in the SPiER app for the reconciliation checklist. Promotion from status=draft to active requires every coding to be verified against the LOINC 93373-9 panel definition.",
+  "purpose": "Universal suicide risk screening. The ASQ takes approximately 20 seconds to administer and stratifies patients into Negative Screen, Non-Acute Positive Screen, or Acute Positive Screen (imminent risk). PILOT STATUS: LOINC bindings on items are candidate mappings marked with the spier-coding-verification extension set to 'unverified'. See the ASQ pilot plan in the SPiER app for the reconciliation checklist. NOTE: the ASQ has no published panel or per-item LOINC codes (verified June 2026); the root code and the five item codes use SPiER-local CodeSystems marked 'no-standard-binding'. The earlier LOINC 93373-9 panel code was the C-SSRS screener panel, not ASQ.",
   "copyright": "The ASQ is a public domain instrument developed by the National Institute of Mental Health (NIMH). No permission is required for use.",
   "useContext": [
     {
@@ -64,13 +64,13 @@
   ],
   "code": [
     {
-      "system": "http://loinc.org",
-      "code": "93373-9",
-      "display": "Ask suicide-screening questions [ASQ]",
+      "system": "http://spier.org/CodeSystem/asq-panel",
+      "code": "asq-screening",
+      "display": "Ask Suicide-Screening Questions (ASQ) panel",
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/coding-verification-status",
-          "valueCode": "unverified"
+          "valueCode": "no-standard-binding"
         }
       ]
     }
@@ -92,15 +92,21 @@
           ],
           "code": [
             {
-              "system": "http://loinc.org",
-              "code": "93246-7",
-              "display": "Wish to be dead",
+              "system": "http://spier.org/CodeSystem/asq-item",
+              "code": "wished-dead",
+              "display": "Wished you were dead",
               "extension": [
                 {
                   "url": "http://spier.org/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "no-standard-binding"
                 }
               ]
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },
@@ -113,10 +119,23 @@
             { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
             { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
           ],
+          "code": [
+            {
+              "system": "http://spier.org/CodeSystem/asq-item",
+              "code": "family-better-off-dead",
+              "display": "Family better off if dead",
+              "extension": [
+                {
+                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "valueCode": "no-standard-binding"
+                }
+              ]
+            }
+          ],
           "extension": [
             {
-              "url": "http://spier.org/StructureDefinition/coding-verification-status",
-              "valueCode": "no-standard-binding"
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },
@@ -131,15 +150,21 @@
           ],
           "code": [
             {
-              "system": "http://loinc.org",
-              "code": "93247-5",
-              "display": "Non-specific active suicidal thoughts",
+              "system": "http://spier.org/CodeSystem/asq-item",
+              "code": "thoughts-killing-self",
+              "display": "Thoughts about killing yourself",
               "extension": [
                 {
                   "url": "http://spier.org/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "no-standard-binding"
                 }
               ]
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },
@@ -154,15 +179,21 @@
           ],
           "code": [
             {
-              "system": "http://loinc.org",
-              "code": "93248-3",
-              "display": "Active suicidal ideation with any methods without intent to act",
+              "system": "http://spier.org/CodeSystem/asq-item",
+              "code": "ever-attempted",
+              "display": "Ever tried to kill yourself",
               "extension": [
                 {
                   "url": "http://spier.org/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "no-standard-binding"
                 }
               ]
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },
@@ -270,15 +301,21 @@
           ],
           "code": [
             {
-              "system": "http://loinc.org",
-              "code": "93249-1",
-              "display": "Active suicidal ideation with some intent to act without specific plan",
+              "system": "http://spier.org/CodeSystem/asq-item",
+              "code": "acute-ideation-now",
+              "display": "Killing yourself right now (acuity)",
               "extension": [
                 {
                   "url": "http://spier.org/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "no-standard-binding"
                 }
               ]
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
             }
           ]
         },
@@ -325,7 +362,7 @@
               "extension": [
                 {
                   "url": "http://spier.org/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }

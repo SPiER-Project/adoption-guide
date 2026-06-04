@@ -97,7 +97,7 @@ Usage: #definition
       * profile[+] = "http://spier.org/StructureDefinition/spier-asq-result"
       * codeFilter[+]
         * path = "code"
-        * code = http://loinc.org#93243-5
+        * code = http://loinc.org#93374-7
       * codeFilter[+]
         * path = "value"
         * valueSet = "http://spier.org/ValueSet/asq-result-positive"

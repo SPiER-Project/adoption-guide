@@ -93,7 +93,7 @@ const ASQ_RESULT_EXAMPLE = {
   id: 'asq-result-example',
   status: 'final',
   category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '93243-5', display: 'ASQ suicide risk screening result' }] },
+  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-03-19T10:35:00Z',
   valueCodeableConcept: {
@@ -149,7 +149,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       resources: [
         { type: 'QuestionnaireResponse', description: 'All 5 items (Q1–Q4 + acuity Q5)', when: 'On submit' },
         { type: 'Observation', description: 'Screening result (negative / non-acute-positive / acute-positive)', when: 'Extracted from response' },
-        { type: 'Observation', description: 'Individual item responses (LOINC 93263-3 through 93267-4)', when: 'Extracted from response' },
+        { type: 'Observation', description: 'Individual item responses (SPiER-local asq-item codes; ASQ has no per-item LOINC)', when: 'Extracted from response' },
       ],
       workflowTrigger: 'Acute positive → STAT safety evaluation + safety plan. Non-acute positive → brief safety assessment.',
     },

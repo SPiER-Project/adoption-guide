@@ -69,7 +69,7 @@ Description: "An Observation representing the disposition of an ASQ suicide-risk
 // can add a discriminator-based slice on category.coding when more category
 // types are introduced.
 * category.coding 1..*
-* code = http://loinc.org#93243-5
+* code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
 * subject only Reference(Patient)
 * effective[x] 1..1
@@ -99,7 +99,7 @@ Usage: #definition
 * purpose = "Flag whether a patient has suicide-related signs warranting further clarification. Belongs to the Flag Risk stage of the SPiER pathway."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
-* code = http://loinc.org#93243-5 "ASQ suicide risk screening result"
+* code = http://loinc.org#93374-7 "Suicide risk level"
 // The Questionnaire used to capture responses for this activity.
 // Versioned canonical so future updates of the ASQ form can be tracked
 // independent of this ActivityDefinition.
@@ -117,7 +117,7 @@ Description: "Sample Observation showing a non-acute positive ASQ outcome for an
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
-* code = http://loinc.org#93243-5 "ASQ suicide risk screening result"
+* code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
 * valueCodeableConcept = ASQResultCodes#non-acute-positive "Non-Acute Positive"
@@ -130,7 +130,7 @@ Description: "Sample Observation showing an acute positive ASQ outcome. Triggers
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
-* code = http://loinc.org#93243-5 "ASQ suicide risk screening result"
+* code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
 * valueCodeableConcept = ASQResultCodes#acute-positive "Acute Positive"
