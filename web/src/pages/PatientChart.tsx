@@ -239,12 +239,35 @@ function StageActivitySection({
   communications: any[]
 }) {
   const stage = stageById(stageId)
+  const [open, setOpen] = useState(false)
   const empty =
     responses.length === 0 &&
     carePlans.length === 0 &&
     observations.length === 0 &&
     communications.length === 0
-  if (empty && status === 'not-started') return null
+
+  // Future stages (always empty, since any artifact would mark the stage complete)
+  // render as a faded, read-only roadmap row so the full 8-stage journey stays visible.
+  if (status === 'not-started') {
+    return (
+      <section
+        id={`stage-${stageId}`}
+        className="stage-section stage-section--not-started"
+        aria-label={`${stage?.title} stage`}
+      >
+        <header className="stage-section-header">
+          <h4 className="stage-section-title">{stage?.title}</h4>
+          <span className="stage-section-status stage-section-status--not-started">Not started</span>
+        </header>
+        <p className="stage-section-desc">{stage?.description}</p>
+      </section>
+    )
+  }
+
+  // Completed stages with activity collapse to a one-line summary that expands on click.
+  const collapsible = status === 'complete' && !empty
+  const showArtifacts = !empty && (!collapsible || open)
+  const showDesc = !collapsible || open
 
   return (
     <section
@@ -253,16 +276,39 @@ function StageActivitySection({
       aria-label={`${stage?.title} stage`}
     >
       <header className="stage-section-header">
-        <h4 className="stage-section-title">{stage?.title}</h4>
-        <span className={`stage-section-status stage-section-status--${status}`}>
-          {status === 'complete' ? 'Complete' : status === 'active' ? 'Active' : 'Not started'}
-        </span>
+        {collapsible ? (
+          // Accordion pattern: heading wraps the toggle button so the stage title
+          // keeps its <h4> heading semantics while staying fully clickable.
+          <h4 className="stage-section-toggle-heading">
+            <button
+              type="button"
+              className="stage-section-toggle"
+              onClick={() => setOpen(v => !v)}
+              aria-expanded={open}
+            >
+              <span className="stage-section-toggle-main">
+                <span className="stage-section-title">{stage?.title}</span>
+              </span>
+              <span className="stage-section-toggle-aside">
+                <span className="stage-section-status stage-section-status--complete">Complete</span>
+                <span className="stage-section-toggle-hint" aria-hidden>{open ? '▲' : '▼'}</span>
+              </span>
+            </button>
+          </h4>
+        ) : (
+          <>
+            <h4 className="stage-section-title">{stage?.title}</h4>
+            <span className={`stage-section-status stage-section-status--${status}`}>
+              {status === 'complete' ? 'Complete' : 'Active'}
+            </span>
+          </>
+        )}
       </header>
-      <p className="stage-section-desc">{stage?.description}</p>
+      {showDesc && <p className="stage-section-desc">{stage?.description}</p>}
 
       {empty ? (
         <p className="stage-section-empty">No activity at this stage yet.</p>
-      ) : (
+      ) : showArtifacts ? (
         <div className="stage-section-artifacts">
           {responses.map(r => (
             <div key={r.id} className="stage-artifact stage-artifact--response">
@@ -326,7 +372,7 @@ function StageActivitySection({
             )
           })}
         </div>
-      )}
+      ) : null}
     </section>
   )
 }

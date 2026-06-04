@@ -316,6 +316,13 @@
   background: var(--surface-card);
 }
 
+/* Future / not-started stages: faded, read-only roadmap rows. */
+.stage-section--not-started {
+  background: var(--surface-muted);
+  border-color: var(--border-default);
+  opacity: 0.6;
+}
+
 .stage-section-header {
   display: flex;
   align-items: baseline;
@@ -343,6 +350,48 @@
 .stage-section-status--complete    { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
 .stage-section-status--active      { background: var(--accent-info-soft); color: var(--accent-info); }
 .stage-section-status--not-started { background: var(--surface-muted); color: var(--text-muted); }
+
+/* Heading wrapper for a collapsible completed stage: keeps <h4> semantics but
+   defers all sizing to the inner title span so the button can fill the row. */
+.stage-section-toggle-heading {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+}
+
+/* Clickable header for a collapsible completed stage. */
+.stage-section-toggle {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.stage-section-toggle-main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.stage-section-toggle-aside {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.stage-section-toggle-hint {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+}
 
 .stage-section-desc {
   font-size: var(--font-size-base);
