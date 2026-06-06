@@ -94,10 +94,16 @@ Description: "The instrument-agnostic, actionable suicide-risk concept derived f
 * status = #final (exactly)
 // Generic concept code — NOT an instrument item code.
 * code = http://loinc.org#93374-7
-// Domain category for cross-instrument filtering (Gravity pattern).
+// Require a suicide-risk domain category (Gravity pattern) via a sliced,
+// pattern-discriminated slice (US Core vitals style) so standard categories
+// like `survey` coexist without the validator warnings a blanket extensible
+// binding on the whole array would raise.
 * category 1..*
-* category.coding 1..*
-* category from SPiERConceptDomainVS (extensible)
+* category ^slicing.discriminator.type = #pattern
+* category ^slicing.discriminator.path = "$this"
+* category ^slicing.rules = #open
+* category contains suicideRisk 1..1
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 // Value is the common, ordered risk tier.
 * value[x] 1..1
 * value[x] only CodeableConcept
@@ -125,12 +131,11 @@ Title: "Example — Suicide Risk Concept derived from a non-acute positive ASQ"
 Description: "Illustrative harmonized concept Observation: a non-acute positive ASQ screen mapped to the moderate tier, derived from the source ASQ QuestionnaireResponse. Crosswalk pending clinical sign-off."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
-* category[+] = SPiERConceptDomain#suicide-risk
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-06-05T14:20:00Z"
-* derivedFrom = Reference(QuestionnaireResponse/asq-example)
+* derivedFrom[+] = Reference(QuestionnaireResponse/asq-example)
 * valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS "Positive"
 * interpretation[=].text = "Non-acute positive ASQ screen mapped to the moderate tier (wider — ASQ cannot resolve finer severity). Illustrative; pending clinical sign-off."

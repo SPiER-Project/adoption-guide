@@ -48,8 +48,8 @@ group cssrsRiskLevelToConcept(source src : CSSRSRiskLevel, target tgt : Concept)
   } "map-value";
 
   // --- interpretation: NEG for a 'none' risk level, POS otherwise ---
-  src.value : CodeableConcept as level where coding.where(code = 'none').exists() ->
+  src.value : CodeableConcept as level where coding.code = 'none' ->
     tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
-  src.value : CodeableConcept as level where coding.where(code != 'none').exists() ->
+  src.value : CodeableConcept as level where coding.code != 'none' ->
     tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
 }
