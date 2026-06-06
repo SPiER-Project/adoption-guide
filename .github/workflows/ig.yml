@@ -12,10 +12,12 @@ on:
       - main
     paths:
       - 'ig/**'
+      - 'web/scripts/check-concept-crosswalk.mjs'
       - '.github/workflows/ig.yml'
   pull_request:
     paths:
       - 'ig/**'
+      - 'web/scripts/check-concept-crosswalk.mjs'
       - '.github/workflows/ig.yml'
   workflow_dispatch:
 
@@ -39,6 +41,10 @@ jobs:
 
       - name: Compile FSH
         run: sushi .
+
+      - name: Check concept-layer crosswalks
+        working-directory: ${{ github.workspace }}
+        run: node web/scripts/check-concept-crosswalk.mjs
 
       - name: Upload generated resources
         uses: actions/upload-artifact@v4

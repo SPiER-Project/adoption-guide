@@ -1,0 +1,69 @@
+/// url = "http://spier.org/StructureMap/ASQResultToSuicideRiskConcept"
+/// name = "ASQResultToSuicideRiskConcept"
+/// title = "ASQ Result → SPiER Suicide Risk Concept"
+/// status = draft
+
+// =============================================================
+// DRAFT — UNVALIDATED. FHIR Mapping Language (R4 / FHIRPath).
+//
+// This file lives in ig/drafts/ (OUTSIDE ig/input/) on purpose:
+// SUSHI does not compile .fml, and the HL7 IG Publisher would try to
+// compile anything under ig/input/. Keeping it here means it cannot
+// break the IG build before it has been validated.
+//
+// BEFORE PROMOTING to ig/input/fml/:
+//   1. Validate the FML compiles (HL7 IG Publisher, or matchbox /
+//      `validator_cli.jar -transform`). The transform/where syntax
+//      below is best-effort and unverified.
+//   2. Confirm the ConceptMap crosswalk has clinical sign-off
+//      (ig/input/fsh/crosswalk-asq.fsh — epic #77).
+// =============================================================
+//
+// DESIGN (see .claude/skills/concept-harmonization/ and
+// docs/best-practices/concept-harmonization.md):
+//
+// The ASQ tier inference is two steps, deliberately split:
+//   (a) multi-item inference: Q1–Q4 OR-gated by Q5 -> a disposition
+//       (negative / non-acute-positive / acute-positive). This is
+//       computed deterministically by the tested runtime mapper
+//       (web/src/lib/observationMappers/asq.ts) and persisted as a
+//       SPiERASQResult Observation (LOINC 93374-7, value = disposition).
+//   (b) THIS map: SPiERASQResult Observation -> harmonized
+//       SPiERSuicideRiskConcept Observation — declarative resource
+//       shaping plus a ConceptMap translate() of the disposition code
+//       to the common tier, with provenance via derivedFrom.
+//
+// Re-encoding step (a)'s boolean logic in FML would be fragile and
+// redundant with the tested runtime; a future QR->concept variant
+// could fold it in if a fully FHIR-native $extract is required.
+
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias ASQResult as source
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+
+imports "http://spier.org/ConceptMap/ASQDispositionToRiskTier"
+
+group asqResultToConcept(source src : ASQResult, target tgt : Concept) {
+  // --- fixed / carried-through shape ---
+  src -> tgt.status = 'final' "set-status";
+  src.code as code -> tgt.code = code "carry-code";            // generic LOINC 93374-7 passes through unchanged
+  src.subject as subj -> tgt.subject = subj "carry-subject";
+  src.effective as eff -> tgt.effective = eff "carry-effective";
+
+  // --- provenance: the concept is DERIVED from the disposition Observation ---
+  src -> tgt.derivedFrom = reference(src) "derived-from";
+
+  // --- domain + survey category (Gravity cross-instrument filtering pattern) ---
+  src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
+  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
+
+  // --- value: translate the ASQ disposition coding to the common tier coding ---
+  src.value : CodeableConcept as disp -> tgt.value = create('CodeableConcept') as tier then {
+    disp.coding as dc -> tier.coding = translate(dc, 'http://spier.org/ConceptMap/ASQDispositionToRiskTier', 'Coding') "translate-tier";
+  } "map-value";
+
+  // --- interpretation: NEG for a negative disposition, POS otherwise ---
+  src.value : CodeableConcept as disp where coding.code = 'negative' ->
+    tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
+  src.value : CodeableConcept as disp where coding.code != 'negative' ->
+    tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
+}

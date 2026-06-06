@@ -1,0 +1,52 @@
+/// url = "http://spier.org/StructureMap/SBQRTotalScoreToSuicideRiskConcept"
+/// name = "SBQRTotalScoreToSuicideRiskConcept"
+/// title = "SBQ-R Total Score → SPiER Suicide Risk Concept"
+/// status = draft
+
+// =============================================================
+// DRAFT — UNVALIDATED. FHIR Mapping Language (R4 / FHIRPath).
+// In ig/drafts/ (outside ig/input/) so it can't break the IG build
+// until validated; gated by .github/workflows/fml-validate.yml.
+// =============================================================
+//
+// CROSSWALK SHAPE: numeric threshold (NOT a ConceptMap).
+// SBQ-R produces an integer total score (3–18), not a coded
+// disposition, so the crosswalk is a StructureMap keyed on the score
+// against the instrument's validated cutoffs.
+//
+// Source: SPiER SBQ-R Total Score Observation (spier-sbqr-total-score),
+// value integer 3–18, code SNOMED 225337009.
+// Re-coded to the GENERIC LOINC 93374-7 for the concept Observation.
+//
+// Score → tier (thresholds mirror observationMappers/sbqr.ts, so the
+// FHIR map and the runtime stay in lockstep — PENDING CLINICAL SIGN-OFF):
+//   < 7   below general-population cutoff      -> no-risk  (NEG)
+//   = 7   at/above general cutoff (≥7), < 8    -> moderate (POS)
+//   ≥ 8   at/above psychiatric-inpatient cutoff-> high     (POS)
+// Cutoffs: ≥7 general population (93% sens / 95% spec); ≥8 inpatient
+// (80% / 91%). SME to confirm whether sub-cutoff scores with lifetime
+// behavior endorsed warrant `low` rather than `no-risk`.
+
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias SBQRTotal as source
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+
+group sbqrTotalToConcept(source src : SBQRTotal, target tgt : Concept) {
+  // --- fixed shape ---
+  src -> tgt.status = 'final' "set-status";
+  // Re-code to the generic concept LOINC (source carries SNOMED 225337009).
+  src -> tgt.code = cc('http://loinc.org', '93374-7') "concept-code";
+  src.subject as subj -> tgt.subject = subj "carry-subject";
+  src.effective as eff -> tgt.effective = eff "carry-effective";
+  src -> tgt.derivedFrom = reference(src) "derived-from";
+  src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
+  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
+
+  // --- value: total score band -> common tier ---
+  src.value : integer as v where v < 7 -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'no-risk') "tier-below";
+  src.value : integer as v where v >= 7 and v < 8 -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'moderate') "tier-general";
+  src.value : integer as v where v >= 8 -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'high') "tier-inpatient";
+
+  // --- interpretation: NEG below cutoff, POS at/above ---
+  src.value : integer as v where v < 7 -> tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
+  src.value : integer as v where v >= 7 -> tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
+}
