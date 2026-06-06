@@ -12,10 +12,12 @@ on:
       - main
     paths:
       - 'ig/**'
+      - 'web/scripts/check-concept-crosswalk.mjs'
       - '.github/workflows/ig.yml'
   pull_request:
     paths:
       - 'ig/**'
+      - 'web/scripts/check-concept-crosswalk.mjs'
       - '.github/workflows/ig.yml'
   workflow_dispatch:
 
