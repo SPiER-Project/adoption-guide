@@ -14,7 +14,7 @@ Each role will get its own `CapabilityStatement` declaring the resources and int
 
 ## What "Must-Support" will mean
 
-Following [US Core](http://hl7.org/fhir/us/core/STU4/conformance-expectations.html), Must-Support will be defined **operationally, by role**:
+Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html), Must-Support will be defined **operationally, by role**:
 
 - A **producer** (screening-source EHR) *SHALL be capable of populating* every Must-Support element.
 - A **consumer** (risk client) *SHALL be capable of processing* instances containing those elements *without erroring or failing*.

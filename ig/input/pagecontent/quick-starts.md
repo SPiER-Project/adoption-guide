@@ -41,8 +41,8 @@ GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
 
 ```
 GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/PHQ-9&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|44260-8&subject=Patient/[id]   # Item 9
-GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]   # total score
+GET [base]/Observation?code=http://loinc.org|44260-8&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]
 ```
 
 ## SBQ-R (Suicide Behaviors Questionnaire-Revised)
