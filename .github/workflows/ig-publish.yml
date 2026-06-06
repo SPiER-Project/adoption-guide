@@ -1,0 +1,96 @@
+name: IG Publisher (on-demand render)
+
+# Full HL7 IG Publisher build: runs SUSHI, renders the narrative pages with
+# Jekyll, checks internal links, and produces the hostable site + a QA report.
+#
+# This is HEAVY (downloads the publisher jar + hundreds of MB of FHIR packages,
+# plus Jekyll) so it deliberately does NOT run on normal PRs — the lightweight
+# `ig.yml` (SUSHI only) covers those. Trigger this one ON DEMAND from the
+# Actions tab (Run workflow), or it self-tests automatically when this workflow
+# file itself changes.
+#
+# The rendered site + qa.html are uploaded as an artifact so you can preview the
+# IG and inspect any broken links / QA findings.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/ig-publish.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install Jekyll
+        run: gem install jekyll
+
+      - name: Install SUSHI
+        run: npm install -g fsh-sushi
+
+      - name: Download IG Publisher
+        run: curl -sL -o publisher.jar https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar
+
+      - name: Run IG Publisher
+        working-directory: ./ig
+        run: java -jar ../publisher.jar -ig . | tee publisher.log
+
+      - name: QA summary + gate on errors / broken links
+        if: always()
+        working-directory: ./ig
+        run: |
+          qa=output/qa.txt
+          if [ ! -f "$qa" ]; then
+            echo "::error::no output/qa.txt produced — the IG Publisher did not complete"
+            exit 1
+          fi
+          echo "===== qa.txt (head) ====="
+          head -40 "$qa"
+          echo "========================="
+          # qa.txt summary line, e.g. "errors = 0, warn = 12, info = 3, broken links = 0"
+          line=$(grep -iE 'error.*=|broken link' "$qa" | head -1)
+          echo "Summary line: $line"
+          errs=$(printf '%s' "$line" | grep -oiE 'error[s]? *= *[0-9]+' | grep -oE '[0-9]+' | head -1)
+          broken=$(printf '%s' "$line" | grep -oiE 'broken link[s]? *= *[0-9]+' | grep -oE '[0-9]+' | head -1)
+          echo "Parsed: errors=${errs:-unknown} brokenLinks=${broken:-unknown}"
+          fail=0
+          [ -n "$errs" ] && [ "$errs" != "0" ] && { echo "::error::IG Publisher reported $errs error(s)"; fail=1; }
+          [ -n "$broken" ] && [ "$broken" != "0" ] && { echo "::error::IG Publisher reported $broken broken link(s)"; fail=1; }
+          if [ -z "$errs" ] && [ -z "$broken" ]; then
+            echo "::warning::could not parse the QA summary — inspect the uploaded qa.html artifact manually"
+          fi
+          exit $fail
+
+      - name: Upload rendered site + QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ig-site
+          path: |
+            ig/output/qa.html
+            ig/output/qa.txt
+            ig/output/*.html
+            ig/publisher.log
+          if-no-files-found: warn
+          retention-days: 14
