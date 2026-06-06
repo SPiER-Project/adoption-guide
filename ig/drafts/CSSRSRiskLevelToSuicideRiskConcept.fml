@@ -1,0 +1,55 @@
+/// url = "http://spier.org/StructureMap/CSSRSRiskLevelToSuicideRiskConcept"
+/// name = "CSSRSRiskLevelToSuicideRiskConcept"
+/// title = "C-SSRS Risk Level → SPiER Suicide Risk Concept"
+/// status = draft
+
+// =============================================================
+// DRAFT — UNVALIDATED. FHIR Mapping Language (R4 / FHIRPath).
+//
+// Lives in ig/drafts/ (OUTSIDE ig/input/) on purpose: SUSHI does not
+// compile .fml and the IG Publisher would try to compile anything under
+// ig/input/, so this cannot break the IG build until validated.
+//
+// BEFORE PROMOTING to ig/input/fml/:
+//   1. Validate it compiles (.github/workflows/fml-validate.yml runs the
+//      HL7 validator in -compile mode on each draft).
+//   2. Confirm the ConceptMap crosswalk has clinical sign-off
+//      (ig/input/fsh/crosswalk-cssrs.fsh — epic #77).
+// =============================================================
+//
+// Mirror of ASQResultToSuicideRiskConcept.fml for the C-SSRS instrument.
+// The multi-item C-SSRS inference (items 1–6 -> none/low/moderate/high)
+// is computed by the runtime mapper and persisted as a SPiERCSSRSRiskLevel
+// Observation; THIS map performs the declarative resource shaping and the
+// ConceptMap translate() of the risk level to the common tier.
+
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias CSSRSRiskLevel as source
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+
+imports "http://spier.org/ConceptMap/CSSRSRiskLevelToRiskTier"
+
+group cssrsRiskLevelToConcept(source src : CSSRSRiskLevel, target tgt : Concept) {
+  // --- fixed / carried-through shape ---
+  src -> tgt.status = 'final' "set-status";
+  src.code as code -> tgt.code = code "carry-code";            // generic LOINC 93374-7 passes through unchanged
+  src.subject as subj -> tgt.subject = subj "carry-subject";
+  src.effective as eff -> tgt.effective = eff "carry-effective";
+
+  // --- provenance: the concept is DERIVED from the risk-level Observation ---
+  src -> tgt.derivedFrom = reference(src) "derived-from";
+
+  // --- domain + survey category (Gravity cross-instrument filtering pattern) ---
+  src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
+  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
+
+  // --- value: translate the C-SSRS risk-level coding to the common tier coding ---
+  src.value : CodeableConcept as level -> tgt.value = create('CodeableConcept') as tier then {
+    level.coding as lc -> tier.coding = translate(lc, 'http://spier.org/ConceptMap/CSSRSRiskLevelToRiskTier', 'Coding') "translate-tier";
+  } "map-value";
+
+  // --- interpretation: NEG for a 'none' risk level, POS otherwise ---
+  src.value : CodeableConcept as level where coding.where(code = 'none').exists() ->
+    tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
+  src.value : CodeableConcept as level where coding.where(code != 'none').exists() ->
+    tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
+}

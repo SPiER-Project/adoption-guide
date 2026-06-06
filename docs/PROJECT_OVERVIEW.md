@@ -33,6 +33,17 @@ When SPiER's standards work and HIE work come together, **the patient's safety i
 
 The same standardized data also gives systems a foundation for measuring whether the pathway is working — a path to quality improvement at the population level.
 
+## The Concept Layer: Cross-Instrument Harmonization
+
+Partners do not all use the same instruments. One site screens with the ASQ, another with the Columbia (C-SSRS), another with PHQ-9 Item 9 — and some instruments (ASQ item-level) have no published LOINC codes at all. A receiving system shouldn't have to understand every tool to act on a result. SPiER therefore works in **two layers**:
+
+- **Capture layer (instrument):** every question and answer, in high fidelity, coded to instrument-specific LOINC/SNOMED. This is what `assessment-to-ig` and `fhir-questionnaire-quality` already produce and police.
+- **Concept layer (harmonized):** an instrument-agnostic, lower-fidelity but universally consumable summary — *"positive screen, this severity tier, this date"* — that every instrument maps **into**, derived from the capture layer and linked back to it.
+
+This mirrors HL7's **Gravity Project**, which harmonized ~135 SDOH screening instruments to a common set of coded concepts, and rides on **HL7 SDC** extraction mechanics. The concept layer is where a "translation layer to a universally known code set" actually lives: a single common suicide-risk-tier ValueSet, carried on a generic LOINC (`93374-7` "Suicide risk level") with a universal `interpretation` flag, populated from each instrument via a portable FHIR ConceptMap/StructureMap. Lower-fidelity instruments map to the widest defensible tier — the layer never fabricates precision it doesn't have, and the derived concept is treated as an *unconfirmed* screen warranting follow-up, not a diagnosis.
+
+This asset is also SPiER's most contributable standards artifact. The path is **build it in-IG → prove it in the Big Sky Care Connect pilot → contribute to an HL7 Work Group (Behavioral Health / Patient Care)**, with a standalone harmonization IG as a stage-2 ambition contingent on pilot traction. See `docs/best-practices/concept-harmonization.md` and the `concept-harmonization` skill for the conformance rules.
+
 ## The 8-Stage Suicide Safer Care Pathway
 We have adopted a standardized 8-stage model for suicide prevention in EHRs, ensuring that clinical workflows are supported from the first signal to the final resolution.
 
@@ -66,6 +77,8 @@ We have adopted a standardized 8-stage model for suicide prevention in EHRs, ens
 
 ## Roadmap & Tracking
 Active work is tracked in [GitHub Issues](https://github.com/bbthorson/SPiER/issues): one epic per tool (`tool:TL-XXX`), three cross-cutting priority epics (`priority:p1|p2|p3` — FHIR shapes, terminology coding, CDS automation), and task issues under each epic. The Roadmap page on the site renders a committed snapshot of those issues. See `MANIFEST.md` for the seed/fetch workflow.
+
+The **cross-instrument concept layer** (see above) is its own workstream epic — building the common suicide-risk-tier ValueSet, the per-instrument ConceptMap/StructureMap crosswalks, and the harmonized derived-Observation profile, validated through the Big Sky Care Connect pilot.
 
 ## Project Phases
 1.  **Indexing & Discovery:** Inventorying existing assets and documentation (See `MANIFEST.md`).
