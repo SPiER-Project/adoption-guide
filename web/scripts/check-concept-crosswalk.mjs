@@ -122,7 +122,7 @@ for (const { id, resource } of conceptMaps) {
         console.log(`  note: no mapper file found for ${group.source} — skipping coverage check`)
       } else {
         for (const code of mapped) {
-          const found = present.some(({ txt }) => txt.includes(`'${code}'`) || txt.includes(`"${code}"`))
+          const found = present.some(({ txt }) => txt.includes(`'${code}'`) || txt.includes(`"${code}"`) || txt.includes(`\`${code}\``))
           if (!found) {
             fail(`${id}: source code "${code}" not found in any runtime mapper (${mapperRels.join(', ')}) — possible drift`)
           }
@@ -134,21 +134,22 @@ for (const { id, resource } of conceptMaps) {
 }
 
 // ---- D/E: draft StructureMaps (.fml) -------------------------------------
-const TIER_REF = /spier-suicide-risk-tier'\s*,\s*'([^']+)'/g
-const CM_TRANSLATE = /translate\([^,]+,\s*'([^']+)'/g
-const CM_IMPORT = /imports\s+"([^"]+)"/g
+// Quote-agnostic (single/double); matchAll avoids global-regex lastIndex state.
+const TIER_REF = /spier-suicide-risk-tier['"]\s*,\s*['"]([^'"]+)['"]/g
+const CM_TRANSLATE = /translate\([^,]+\s*,\s*['"]([^'"]+)['"]/g
+const CM_IMPORT = /imports\s+['"]([^'"]+)['"]/g
 
 if (existsSync(draftsDir)) {
   for (const file of readdirSync(draftsDir)) {
     if (!file.endsWith('.fml')) continue
     const txt = readFileSync(join(draftsDir, file), 'utf8')
-    let m, n = 0
-    while ((m = TIER_REF.exec(txt))) {
+    let n = 0
+    for (const m of txt.matchAll(TIER_REF)) {
       n++
       if (tierCodes && !tierCodes.has(m[1])) fail(`${file}: tier code "${m[1]}" is not a valid suicide-risk tier`)
     }
     for (const re of [CM_TRANSLATE, CM_IMPORT]) {
-      while ((m = re.exec(txt))) {
+      for (const m of txt.matchAll(re)) {
         const url = m[1]
         if (url.includes('/ConceptMap/') && !conceptMapUrls.has(url)) {
           fail(`${file}: references ConceptMap "${url}" which does not exist`)
