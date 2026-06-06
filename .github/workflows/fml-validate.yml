@@ -1,0 +1,83 @@
+name: FML — StructureMap compile check
+
+# Compile-checks the draft StructureMaps in ig/drafts/*.fml with the
+# official HL7 FHIR validator. These maps are NOT under ig/input/ (so the
+# SUSHI build and the IG Publisher never touch them); this workflow is the
+# gate that must go green before a draft is promoted to ig/input/fml/.
+#
+# Runs only when a draft .fml (or this workflow) changes, so it doesn't add
+# Java/validator overhead to the main FSH compile in ig.yml.
+#
+# NOTE: the validator's -compile invocation/flags below are best-effort and
+# may need a one-time tweak on the first CI run; adjust here once confirmed.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ig/drafts/**.fml'
+      - '.github/workflows/fml-validate.yml'
+  pull_request:
+    paths:
+      - 'ig/drafts/**.fml'
+      - '.github/workflows/fml-validate.yml'
+  workflow_dispatch:
+
+jobs:
+  fml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Sushi
+        run: npm install -g fsh-sushi
+
+      # Generate the SPiER resources so the validator can resolve the
+      # canonical ConceptMaps / profiles the maps reference.
+      - name: Compile FSH (for canonical resolution)
+        working-directory: ./ig
+        run: sushi .
+
+      - name: Download FHIR validator
+        run: curl -sL -o validator_cli.jar https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar
+
+      - name: Compile each draft StructureMap
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          found=0
+          for f in ig/drafts/*.fml; do
+            found=1
+            url=$(grep -m1 -oP '(?<=/// url = ")[^"]+' "$f")
+            echo "::group::Compiling $f  ($url)"
+            java -jar validator_cli.jar "$f" \
+              -compile "$url" \
+              -version 4.0.1 \
+              -ig hl7.fhir.us.core#6.1.0 \
+              -ig hl7.fhir.uv.sdc#3.0.0 \
+              -ig ig/fsh-generated \
+              -output "${f%.fml}.compiled.json"
+            echo "::endgroup::"
+          done
+          if [ "$found" = "0" ]; then echo "No .fml drafts to compile."; fi
+
+      - name: Upload compiled StructureMaps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-structuremaps
+          path: ig/drafts/*.compiled.json
+          if-no-files-found: ignore
+          retention-days: 14

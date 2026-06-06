@@ -8,6 +8,7 @@ This manifest provides a computer-readable and human-readable index of the asset
 *   **`docs/best-practices/strategy-consent.md`**: Architectural plan for cross-practice data sharing.
 *   **`docs/best-practices/consent-vs-ds4p.md`**: Educational guide on FHIR Consent and data segmentation standards.
 *   **`docs/best-practices/validation-guide.md`**: Instructions for technical and clinical validation of assets.
+*   **`docs/best-practices/concept-harmonization.md`**: Conformance rationale for the cross-instrument concept layer — mapping disparate instruments (ASQ, C-SSRS, PHQ-9) to one common suicide-risk-tier representation, modeled on HL7 Gravity + SDC. Pairs with the `concept-harmonization` skill.
 *   **`docs/repo-audit.md`**: Move 6d structural audit.
 
 ## Pilot Plans
@@ -28,6 +29,7 @@ This manifest provides a computer-readable and human-readable index of the asset
 ## Skills (Claude Code)
 *   **`.claude/skills/fhir-questionnaire-quality/`**: Review-time skill for evaluating FHIR R4 Questionnaire portability.
 *   **`.claude/skills/assessment-to-ig/`**: Authoring skill — converts a validated assessment into the full SPiER IG artifact set (Questionnaire JSON, FSH, IG page, catalog wiring).
+*   **`.claude/skills/concept-harmonization/`**: Cross-instrument skill — enforces the concept layer that spans instruments (common risk-tier CodeSystem/ValueSet, ConceptMap/StructureMap crosswalks, harmonized derived-Observation conformance, VSAC publication). The counterpart to the two instrument-scoped skills above.
 
 ## FHIR Implementation Guide
 *   **Location:** `ig/`
@@ -65,4 +67,4 @@ This manifest provides a computer-readable and human-readable index of the asset
 *   **Evaluation:** `Evaluation/SPiER Evaluation Plan_12.23.2025.docx` (Placeholders - pending addition).
 
 ---
-*Last Updated: 2026-05-29*
+*Last Updated: 2026-06-05*
