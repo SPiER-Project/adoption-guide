@@ -75,6 +75,9 @@ Use the `concept-harmonization` skill for the full version. In brief, a harmoniz
 - [ ] Every crosswalk row is cited to validated scoring and cleared by a clinical SME.
 - [ ] Derived concepts are excluded from the `observationExtract` contract and its anti-drift `EXPECTED`.
 - [ ] Tier + grouping ValueSets are planned for VSAC publication.
+- [ ] `check:crosswalk` passes — every ConceptMap target is a real tier, every disposition is mapped and present in its CodeSystem + runtime mapper, and every tier code in a draft StructureMap is valid.
+
+**Two crosswalk shapes, by instrument output:** instruments with a **coded disposition** (ASQ, C-SSRS) use a **ConceptMap** (code→code); instruments emitting a **score/ordinal** (PHQ-9 Item 9, SBQ-R total) use a **StructureMap with numeric thresholds** aligned to the runtime mapper's bands. A ConceptMap can't express score→tier, so the shape follows the instrument. `check:crosswalk` keeps both honest.
 
 ---
 *Created: 2026-06-05*

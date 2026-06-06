@@ -48,10 +48,10 @@ There must be a **single** instrument-agnostic risk-tier CodeSystem (e.g. `http:
 
 SPiER's per-instrument logic lives in TypeScript (`web/src/lib/observationMappers/*.ts`). That is fine as the *runtime*, but a TS function is not interoperable — a partner can't consume it. For each instrument, the response→concept mapping must **also** exist as a publishable FHIR artifact:
 
-- **StructureMap** (FHIR Mapping Language) when the concept is inferred from *multiple* items — e.g. ASQ tier depends on Q1–Q4 *and* Q5. This is what Gravity uses, precisely because their findings derive from "a Q-A pair or pairs."
-- **ConceptMap** when it's a simple answer-code → tier lookup (one source code → one tier).
+- **ConceptMap** when it's a simple answer-code → tier lookup (one source code → one tier) — e.g. ASQ disposition (`crosswalk-asq.fsh`) or C-SSRS risk level (`crosswalk-cssrs.fsh`).
+- **StructureMap** (FHIR Mapping Language) when the concept is inferred from *multiple* items, or when the instrument emits a **score/ordinal** rather than a coded disposition (PHQ-9 Item 9 = 0–3; SBQ-R total = 3–18). A ConceptMap maps code→code and cannot express score→tier, so these are StructureMap-only (`ig/drafts/*.fml`). Keep the thresholds aligned with the runtime mapper's own bands so the FHIR map and the TS mapper can't diverge.
 
-Gravity's guidance is that the **instrument steward ships the StructureMap** so every implementer derives the same concept. SPiER is the de-facto steward for its instruments — own that. The TS mapper and the FHIR map must agree; treat divergence the way `check-observation-extract.mjs` treats extract drift.
+Gravity's guidance is that the **instrument steward ships the StructureMap** so every implementer derives the same concept. SPiER is the de-facto steward for its instruments — own that. The TS mapper and the FHIR map must agree; the `check:crosswalk` CI guard (`web/scripts/check-concept-crosswalk.mjs`, run after `sushi`) enforces it: every ConceptMap target is a real tier code, every disposition is mapped (completeness) and exists in its source CodeSystem and runtime mapper, and every tier code in a draft StructureMap is valid — the concept-layer analogue of `check-observation-extract.mjs`.
 
 ### 3. Required fields on the derived concept Observation
 
