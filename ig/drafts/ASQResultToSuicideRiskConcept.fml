@@ -62,8 +62,8 @@ group asqResultToConcept(source src : ASQResult, target tgt : Concept) {
   } "map-value";
 
   // --- interpretation: NEG for a negative disposition, POS otherwise ---
-  src.value : CodeableConcept as disp where coding.where(code = 'negative').exists() ->
+  src.value : CodeableConcept as disp where coding.code = 'negative' ->
     tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
-  src.value : CodeableConcept as disp where coding.where(code != 'negative').exists() ->
+  src.value : CodeableConcept as disp where coding.code != 'negative' ->
     tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
 }
