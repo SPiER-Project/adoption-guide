@@ -1,0 +1,7 @@
+# IG Publisher suppressed-messages file.
+#
+# One message pattern per line (substring or == exact match). Use this to
+# downgrade/suppress QA messages that have been reviewed and accepted as OK
+# (e.g. expected cross-spec references). Keep it minimal and documented —
+# do not suppress real errors. See:
+# https://build.fhir.org/ig/FHIR/ig-guidance/qa.html
