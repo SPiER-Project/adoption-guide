@@ -62,9 +62,13 @@ jobs:
             found=1
             url=$(grep -m1 -oP '(?<=/// url = ")[^"]+' "$f")
             echo "::group::Compiling $f  ($url)"
+            # -tx n/a: no terminology server. FML->StructureMap compilation
+            # doesn't need one, and contacting tx.fhir.org made the job flaky
+            # (java.net.SocketException). Keeps the check hermetic.
             java -jar validator_cli.jar "$f" \
               -compile "$url" \
               -version 4.0.1 \
+              -tx n/a \
               -ig hl7.fhir.us.core#6.1.0 \
               -ig hl7.fhir.uv.sdc#3.0.0 \
               -ig ig/fsh-generated \
