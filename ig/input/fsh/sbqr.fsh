@@ -23,6 +23,12 @@ Description: "Integer total score (3–18) derived from a completed SBQ-R Questi
 // for this specific instrument.
 * code = http://snomed.info/sct#225337009
 * subject 1..1
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
 * subject only Reference(Patient)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
@@ -65,3 +71,16 @@ Usage: #example
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
 * interpretation[=].text = "Above inpatient cutoff (≥8). Score 9/18."
 * note[+].text = "SBQ-R total score: 9/18. General population cutoff: ≥7. Psychiatric inpatient cutoff: ≥8."
+
+
+Instance: ExampleSBQRResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — SBQ-R QuestionnaireResponse (above inpatient cutoff)"
+Description: "Source SBQ-R QuestionnaireResponse yielding a total of 9 (above the ≥8 inpatient cutoff). The derived SPiERSBQRTotalScore and the harmonized concept Observation reference this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://spier.org/Questionnaire/SBQ-R"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T10:45:00Z"
+* item[+].linkId = "q1"
+* item[=].answer.valueString = "Selected response indicating prior ideation/attempt"

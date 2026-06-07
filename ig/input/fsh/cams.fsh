@@ -59,6 +59,12 @@ Description: "Integer rating (1–5) for one of the six Suicide Status Form (SSF
 * category 1..*
 * category.coding 1..*
 * code from CAMSSSFMeasure (required)
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
 * subject 1..1
 * subject only Reference(Patient)
 * effective[x] 1..1
@@ -90,6 +96,11 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * category.coding 1..*
 * code 1..1
 * code.text 1..1
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* clinicalStatus MS
+* subject MS
+* category MS
+* code MS
 * subject 1..1
 * subject only Reference(Patient)
 
@@ -115,6 +126,12 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 * activity.detail.code 1..1
 * activity.detail.status 1..1
 * activity.detail.description 0..1
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* subject MS
+* category MS
+* activity MS
+* activity.detail.code MS
 
 
 // ─── CarePlan profile: CAMS Therapeutic Worksheet ────────────
@@ -138,6 +155,12 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 * activity.detail.code 1..1
 * activity.detail.status 1..1
 * activity.detail.description 0..1
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* subject MS
+* category MS
+* activity MS
+* activity.detail.code MS
 
 
 // ─── ActivityDefinitions ─────────────────────────────────────

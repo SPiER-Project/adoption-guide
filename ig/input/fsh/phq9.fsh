@@ -21,6 +21,12 @@ Description: "Integer total score (0–27) derived from a completed PHQ-9 Questi
 * category.coding 1..*
 * code = http://loinc.org#44261-6
 * subject 1..1
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
 * subject only Reference(Patient)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
@@ -40,6 +46,12 @@ Description: "Discrete Observation for PHQ-9 item 9 (\"Thoughts that you would b
 * category.coding 1..*
 * code = http://loinc.org#44260-8
 * subject 1..1
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
 * subject only Reference(Patient)
 * effective[x] 1..1
 * effective[x] only dateTime or Period

@@ -1,26 +1,30 @@
 # Conformance
 
-> **Status: in progress.** SPiER is a draft IG (FMM 0–1). This page describes the conformance model SPiER is adopting. Formal **Must-Support** flags and **CapabilityStatements** are being authored next; until they land, treat the expectations below as the intended direction, not yet binding conformance.
+> **Status: draft.** SPiER is a draft IG (FMM 0–1). Must-Support flags and the role CapabilityStatements described below are now defined, but remain draft/experimental — treat them as the intended conformance contract, not yet balloted.
 
 ## Actor roles
 
-Rather than a single monolithic specification, SPiER will define conformance per **system role** (the approach used by the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/)). The roles map directly onto SPiER's audiences and its cross-EHR portability pilot:
+Rather than a single monolithic specification, SPiER defines conformance per **system role** (the approach used by the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/)). The roles map directly onto SPiER's audiences and its cross-EHR portability pilot:
 
 - **Screening-source EHR** — captures an instrument as a `QuestionnaireResponse` and produces the derived instrument Observation(s) and the harmonized suicide-risk concept Observation.
 - **HIE intermediary** — stores and forwards those resources across organizations without losing fidelity or provenance.
 - **Risk consumer / client** — reads the harmonized concept (and, optionally, the underlying capture data) to surface actionable suicide-risk information at the point of care.
 
-Each role will get its own `CapabilityStatement` declaring the resources and interactions it supports.
+Each role has a `CapabilityStatement` declaring the resources and interactions it supports:
 
-## What "Must-Support" will mean
+- [Screening-Source EHR](CapabilityStatement-screening-source-ehr.html) — produces the screening data.
+- [HIE Intermediary](CapabilityStatement-hie-intermediary.html) — stores and forwards it.
+- [Risk Consumer](CapabilityStatement-risk-consumer.html) — reads the harmonized concept.
 
-Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html), Must-Support will be defined **operationally, by role**:
+## What "Must-Support" means
+
+Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html), Must-Support is defined **operationally, by role**:
 
 - A **producer** (screening-source EHR) *SHALL be capable of populating* every Must-Support element.
 - A **consumer** (risk client) *SHALL be capable of processing* instances containing those elements *without erroring or failing*.
 - **Missing-data semantics:** when an element's absence reason is unknown, a producer SHALL omit the element, and a consumer SHALL interpret a missing element as *data not present* (not as an error).
 
-Must-Support will identify *what must be supported* — it will **not** constrain maximum cardinality, so source systems are never forced to strip data out.
+Must-Support identifies *what must be supported* — it does **not** constrain maximum cardinality, so source systems are never forced to strip data out.
 
 ## The concept layer is screening-level
 
