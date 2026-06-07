@@ -5,15 +5,14 @@
 // Stanley-Brown produces a CarePlan resource (not an Observation),
 // with one activity per step of the safety plan template.
 //
-// SPiER models the seven canonical Stanley-Brown steps. The six core steps
-// have no validated LOINC panel — codes previously asserted here had invalid
-// check digits and did not resolve, so each activity now carries the step
-// name in detail.code.text. Only step 7 has a real LOINC code.
-//   1. Warning signs        2. Internal coping     3. Social distractions
+// SPiER models the seven canonical Stanley-Brown steps. There is no validated
+// LOINC panel for these steps — codes previously asserted here either had
+// invalid check digits or resolved to unrelated concepts — so each activity
+// carries the step name in detail.code.text only.
+//   1. Warning signs        2. Internal coping       3. Social distractions
 //   4. Crisis support       5. Professional support  6. Lethal means safety
-//   7. Reason for living    (LOINC 81344-4)
-// Adding a verified Stanley-Brown LOINC panel, if one is published, is a
-// follow-up.
+//   7. Reason for living
+// Adding a verified Stanley-Brown LOINC panel, if one is published, is a follow-up.
 //
 // Existing Questionnaire:
 //   http://spier.org/Questionnaire/StanleyBrownSafetyPlan|1.1.0
@@ -26,7 +25,7 @@ Profile: SPiERStanleyBrownSafetyPlan
 Parent: CarePlan
 Id: spier-stanley-brown-safety-plan
 Title: "SPiER Stanley-Brown Safety Plan CarePlan"
-Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan QuestionnaireResponse. Carries one CarePlan.activity per safety-plan step; each activity names the step in detail.code.text (only 'Reason for living' has a validated LOINC code) and the patient-authored content in detail.description."
+Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan QuestionnaireResponse. Carries one CarePlan.activity per safety-plan step; each activity names the step in detail.code.text (no validated LOINC panel applies) and the patient-authored content in detail.description."
 * ^status = #draft
 * ^experimental = true
 * status 1..1
@@ -71,7 +70,7 @@ Usage: #definition
 Instance: ExampleStanleyBrownSafetyPlan
 InstanceOf: SPiERStanleyBrownSafetyPlan
 Title: "Example — Completed Stanley-Brown Safety Plan"
-Description: "Sample CarePlan showing all seven Stanley-Brown steps populated for an example patient. Each activity names the step in detail.code.text (the six core steps have no validated LOINC panel; step 7 uses LOINC 81344-4) and the patient-authored content in detail.description."
+Description: "Sample CarePlan showing all seven Stanley-Brown steps populated for an example patient. Each activity names the step in detail.code.text (no validated LOINC panel applies to these safety-plan steps) and the patient-authored content in detail.description."
 Usage: #example
 * status = #active
 * intent = #plan
@@ -103,7 +102,6 @@ Usage: #example
   * status = #in-progress
   * description = "Roommate to hold medications until follow-up; gun-lock voucher accepted from clinic"
 * activity[+].detail
-  * code = http://loinc.org#81344-4 "Reason for living"
   * code.text = "Step 7: Reason for Living"
   * status = #in-progress
   * description = "Niece's high-school graduation in six weeks; finishing the novel I'm writing"
