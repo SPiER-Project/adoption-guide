@@ -44,11 +44,11 @@ Usage: #definition
 * description = "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and derive a total-score Observation. Total ≥7 advances the patient to Clarify Risk; ≥8 indicates higher acuity warranting a full safety assessment."
 * purpose = "Screen for lifetime and recent suicide-related ideation, plans, and behavior. Validated in both general-population and psychiatric-inpatient settings."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
-* code = http://snomed.info/sct#225337009 "Suicide risk assessment score"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/SBQ-R|1.0.0"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* code = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "SBQ-R questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/SBQ-R|1.0.0"
 
 
 Instance: ExampleSBQRTotalScore9
@@ -58,7 +58,7 @@ Description: "Sample SBQ-R total-score Observation indicating a score above both
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
-* code = http://snomed.info/sct#225337009 "Suicide risk assessment score"
+* code = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:45:00Z"
 * valueInteger = 9

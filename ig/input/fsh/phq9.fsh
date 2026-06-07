@@ -62,10 +62,10 @@ Usage: #definition
 * purpose = "Screen for depression severity; any positive PHQ-9 item 9 score is the canonical suicide-risk trigger for Clarify Risk."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#171207006 "Depression screening (procedure)"
-* code = http://loinc.org#44249-1 "Patient Health Questionnaire 9 item (PHQ-9) total score"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/PHQ-9|1.0.0"
+* code = http://loinc.org#44249-1 "PHQ-9 quick depression assessment panel [Reported.PHQ]"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "PHQ-9 questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/PHQ-9|1.0.0"
 
 
 Instance: ExamplePHQ9TotalScore18
@@ -75,7 +75,7 @@ Description: "Sample total-score Observation showing a Moderately Severe PHQ-9 r
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
-* code = http://loinc.org#44261-6 "Patient Health Questionnaire 9 item total score"
+* code = http://loinc.org#44261-6 "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
 * derivedFrom = Reference(ExamplePHQ9Response)
@@ -91,7 +91,7 @@ Description: "Sample item-9 Observation showing endorsement of suicide-related t
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
-* code = http://loinc.org#44260-8 "Thoughts that you would be better off dead or of hurting yourself"
+* code = http://loinc.org#44260-8 "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
 * derivedFrom = Reference(ExamplePHQ9Response)

@@ -80,10 +80,11 @@ jobs:
             echo ""
             echo "Full report (\`qa.html\`) and the rendered site are in the **ig-site** artifact."
           } >> "$GITHUB_STEP_SUMMARY"
-          # Report-only for now: a draft IG has a known QA baseline. Once errors
-          # reach 0, harden this step to `exit 1` on errs>0 to gate on regressions.
-          if [ -n "$errs" ] && [ "$errs" != "0" ]; then
-            echo "::warning::IG Publisher reported ${errs} error(s) and ${broken:-?} broken link(s) — see the qa.html artifact"
+          # Gate: fail on any IG Publisher error or broken link. The baseline is
+          # 0 / 0 as of Phase 2a (#84); this guards against regressions.
+          if { [ -n "$errs" ] && [ "$errs" != "0" ]; } || { [ -n "$broken" ] && [ "$broken" != "0" ]; }; then
+            echo "::error::IG Publisher reported ${errs:-?} error(s) and ${broken:-?} broken link(s) — see the qa.html artifact"
+            exit 1
           fi
 
       - name: Upload rendered site + QA report
