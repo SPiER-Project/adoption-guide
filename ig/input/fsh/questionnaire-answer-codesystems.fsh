@@ -4,8 +4,12 @@
 // SPiER-local code systems for the coded answer options used by the
 // SBQ-R, C-SSRS (full), and ASQ Questionnaires. The codes/displays are
 // taken verbatim from those Questionnaires' answerOption.valueCoding
-// entries — formalizing the encodings the instruments already use so
-// the IG is self-contained and the Questionnaires render/validate.
+// entries — formalizing, in the IG, the answer encodings the instruments
+// already use. (The Questionnaires themselves are maintained in
+// FHIR-Resources/ and referenced by canonical; rendering them IN the IG
+// is deferred — blocked by an IG Publisher renderer bug — so most of
+// these are defined ahead of that inclusion; sbqr-q1 is already used by
+// the SBQ-R QuestionnaireResponse example.)
 //
 // (asq-screening-result is in asq.fsh; cssrs-risk-level is in cssrs.fsh —
 // not repeated here.)

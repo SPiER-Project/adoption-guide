@@ -3,3 +3,11 @@
 # IG Publisher suppressed-messages file (new format; header line above required).
 # Add one reviewed/accepted QA message per line — either the exact message text
 # or a %regex% pattern. Keep minimal and documented; do not suppress real errors.
+
+# Accepted: the screening Questionnaires are maintained in FHIR-Resources/ and
+# referenced by canonical (ActivityDefinition.relatedArtifact, QuestionnaireResponse
+# .questionnaire). They are not yet rendered IN the IG — including them is blocked by
+# an IG Publisher QuestionnaireRenderer NPE (tracked as a follow-up), so these
+# unresolved-canonical messages are expected.
+%A definition could not be found for Canonical URL 'http://spier.org/Questionnaire/.*'%
+%Unable to resolve the Canonical URL 'http://spier.org/Questionnaire/.*'%
