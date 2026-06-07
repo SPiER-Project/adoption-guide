@@ -19,6 +19,7 @@ InstanceOf: CapabilityStatement
 Title: "SPiER Screening-Source EHR"
 Description: "Capabilities of a system that CAPTURES a suicide-risk screening or assessment and PRODUCES the SPiER artifacts: it persists the QuestionnaireResponse and creates the derived instrument Observations, the harmonized suicide-risk concept Observation, and (for safety-planning tools) CarePlan / Condition resources."
 Usage: #definition
+* id = "screening-source-ehr"
 * url = "http://spier.org/CapabilityStatement/screening-source-ehr"
 * name = "SPiERScreeningSourceEHR"
 * title = "SPiER Screening-Source EHR"
@@ -71,6 +72,7 @@ InstanceOf: CapabilityStatement
 Title: "SPiER HIE Intermediary"
 Description: "Capabilities of a Health Information Exchange or interoperability platform that STORES and FORWARDS SPiER resources across organizations without losing fidelity or provenance. It accepts the resources from a screening-source EHR and makes them available to risk consumers."
 Usage: #definition
+* id = "hie-intermediary"
 * url = "http://spier.org/CapabilityStatement/hie-intermediary"
 * name = "SPiERHIEIntermediary"
 * title = "SPiER HIE Intermediary"
@@ -109,6 +111,7 @@ InstanceOf: CapabilityStatement
 Title: "SPiER Risk Consumer"
 Description: "Capabilities of a CLIENT that READS suicide-risk information to surface it at the point of care. The minimal requirement is the harmonized suicide-risk concept Observation (generic LOINC 93374-7, category suicide-risk); the instrument-specific Observations and safety plans are optional higher-fidelity reads."
 Usage: #definition
+* id = "risk-consumer"
 * url = "http://spier.org/CapabilityStatement/risk-consumer"
 * name = "SPiERRiskConsumer"
 * title = "SPiER Risk Consumer"
