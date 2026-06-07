@@ -128,14 +128,14 @@ Description: "The instrument-agnostic, actionable suicide-risk concept derived f
 Instance: ExampleSuicideRiskConceptFromASQ
 InstanceOf: SPiERSuicideRiskConcept
 Title: "Example — Suicide Risk Concept derived from a non-acute positive ASQ"
-Description: "Illustrative harmonized concept Observation: a non-acute positive ASQ screen mapped to the moderate tier, derived from the source ASQ QuestionnaireResponse. Crosswalk pending clinical sign-off."
+Description: "Illustrative harmonized concept Observation: a non-acute positive ASQ screen mapped to the moderate tier, derived from the ASQ result Observation. Crosswalk pending clinical sign-off."
 Usage: #example
 * status = #final
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-06-05T14:20:00Z"
-* derivedFrom[+] = Reference(QuestionnaireResponse/asq-example)
+* derivedFrom[+] = Reference(ExampleASQResultNonAcutePositive)
 * valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS "Positive"
 * interpretation[=].text = "Non-acute positive ASQ screen mapped to the moderate tier (wider — ASQ cannot resolve finer severity). Illustrative; pending clinical sign-off."
