@@ -6,3 +6,7 @@ output/
 temp/
 template/
 input-cache/
+
+# Hand-authored Questionnaires copied from FHIR-Resources/ at render time
+# by ig/scripts/copy-ig-questionnaires.mjs (source of truth stays in FHIR-Resources/).
+input/resources/

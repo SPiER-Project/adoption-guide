@@ -52,6 +52,11 @@ jobs:
       - name: Download IG Publisher
         run: curl -sL -o publisher.jar https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar
 
+      # Copy the hand-authored Questionnaires from FHIR-Resources/ into
+      # ig/input/resources/ (gitignored) so the publisher includes them.
+      - name: Copy Questionnaires into the IG
+        run: node ig/scripts/copy-ig-questionnaires.mjs
+
       - name: Run IG Publisher
         working-directory: ./ig
         run: java -jar ../publisher.jar -ig . | tee publisher.log

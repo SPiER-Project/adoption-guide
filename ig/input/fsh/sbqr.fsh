@@ -83,4 +83,4 @@ Usage: #example
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T10:45:00Z"
 * item[+].linkId = "q1"
-* item[=].answer.valueString = "Selected response indicating prior ideation/attempt"
+* item[=].answer.valueCoding = http://spier.org/CodeSystem/sbqr-q1#4b
