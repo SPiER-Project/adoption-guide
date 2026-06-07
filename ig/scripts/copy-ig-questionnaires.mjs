@@ -29,7 +29,13 @@ const SOURCES = [
   'FHIR-Resources/C-SSRS/fhir/questionnaires/full-lifetime-recent.json',
   'FHIR-Resources/Stanley-Brown/fhir/questionnaires/questionnaire.json',
   'FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionA.json',
-  'FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionB.json',
+  // CAMS SSF-5 Section B is intentionally excluded: its `plan-access` and
+  // `history-type` choice items use answerOption.valueString (valid FHIR), which
+  // the IG Publisher's QuestionnaireRenderer NPEs on. Re-include once those answer
+  // options are coded (valueCoding) or the publisher bug is resolved. The
+  // AdministerCAMSSectionB ActivityDefinition still references it by canonical
+  // (one residual unresolved-canonical warning).
+  // 'FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionB.json',
   'FHIR-Resources/CAMS/fhir/questionnaires/Therapeutic_Worksheet.json',
   'FHIR-Resources/CAMS/fhir/questionnaires/Stabilization_Plan.json',
 ]
