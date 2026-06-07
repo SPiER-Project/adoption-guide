@@ -108,6 +108,15 @@ Description: "The instrument-agnostic, actionable suicide-risk concept derived f
 * value[x] 1..1
 * value[x] only CodeableConcept
 * value[x] from SPiERSuicideRiskTierVS (required)
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
+* interpretation MS
+* category[suicideRisk] MS
+* derivedFrom MS
 // Universal actionable flag — POS/NEG (see header decision).
 * interpretation 1..1
 * interpretation from http://hl7.org/fhir/ValueSet/observation-interpretation (extensible)
@@ -139,3 +148,48 @@ Usage: #example
 * valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS "Positive"
 * interpretation[=].text = "Non-acute positive ASQ screen mapped to the moderate tier (wider — ASQ cannot resolve finer severity). Illustrative; pending clinical sign-off."
+
+
+Instance: ExampleSuicideRiskConceptFromCSSRS
+InstanceOf: SPiERSuicideRiskConcept
+Title: "Example — Suicide Risk Concept derived from a high-risk C-SSRS"
+Description: "Harmonized concept Observation: a high-risk C-SSRS screener mapped to the high tier, derived from the C-SSRS risk-level Observation. Illustrative; pending clinical sign-off."
+Usage: #example
+* status = #final
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* subject = Reference(Patient/example)
+* effectiveDateTime = "2026-03-19T11:00:00Z"
+* derivedFrom[+] = Reference(ExampleCSSRSScreenerHighRisk)
+* valueCodeableConcept = SPiERSuicideRiskTier#high "High risk"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS "Positive"
+
+
+Instance: ExampleSuicideRiskConceptFromPHQ9
+InstanceOf: SPiERSuicideRiskConcept
+Title: "Example — Suicide Risk Concept derived from PHQ-9 Item 9"
+Description: "Harmonized concept Observation: a PHQ-9 Item 9 score of 2 mapped to the moderate tier, derived from the PHQ-9 Item 9 Observation. Illustrative; pending clinical sign-off."
+Usage: #example
+* status = #final
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* subject = Reference(Patient/example)
+* effectiveDateTime = "2026-03-19T10:30:00Z"
+* derivedFrom[+] = Reference(ExamplePHQ9Item9Positive)
+* valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS "Positive"
+
+
+Instance: ExampleSuicideRiskConceptFromSBQR
+InstanceOf: SPiERSuicideRiskConcept
+Title: "Example — Suicide Risk Concept derived from SBQ-R"
+Description: "Harmonized concept Observation: an SBQ-R total of 9 (above the inpatient cutoff) mapped to the high tier, derived from the SBQ-R total-score Observation. Illustrative; pending clinical sign-off."
+Usage: #example
+* status = #final
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* subject = Reference(Patient/example)
+* effectiveDateTime = "2026-03-19T10:45:00Z"
+* derivedFrom[+] = Reference(ExampleSBQRTotalScore9)
+* valueCodeableConcept = SPiERSuicideRiskTier#high "High risk"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS "Positive"

@@ -40,6 +40,12 @@ Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan Ques
 * activity.detail.code 1..1
 * activity.detail.status 1..1
 * activity.detail.description 0..1
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* subject MS
+* category MS
+* activity MS
+* activity.detail.code MS
 
 
 // ─── ActivityDefinition ──────────────────────────────────────

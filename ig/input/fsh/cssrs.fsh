@@ -61,6 +61,12 @@ Description: "Derived risk-level Observation produced by either the C-SSRS Scree
 * value[x] 1..1
 * value[x] only CodeableConcept
 * valueCodeableConcept from CSSRSRiskLevel (required)
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
 
 
 // ─── ActivityDefinition: C-SSRS Screener ─────────────────────
@@ -139,3 +145,18 @@ Usage: #example
 * valueCodeableConcept = CSSRSRiskLevelCodes#moderate "Moderate"
 * valueCodeableConcept.text = "Moderate Risk — ideation with method, no intent"
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
+
+
+Instance: ExampleCSSRSScreenerResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — C-SSRS Screener QuestionnaireResponse (high risk)"
+Description: "Source C-SSRS Screener QuestionnaireResponse with high-risk ideation endorsed. The derived SPiERCSSRSRiskLevel and the harmonized concept Observation reference this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://spier.org/Questionnaire/C-SSRS-Screener"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T11:00:00Z"
+* item[+].linkId = "q1"
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001
+* item[+].linkId = "q5"
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001

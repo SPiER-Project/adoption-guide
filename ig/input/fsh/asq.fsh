@@ -77,6 +77,12 @@ Description: "An Observation representing the disposition of an ASQ suicide-risk
 * value[x] 1..1
 * value[x] only CodeableConcept
 * valueCodeableConcept from ASQResult (required)
+// Must-Support — a producer SHALL populate these; a consumer SHALL process them.
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
 
 
 // ─── ActivityDefinition ──────────────────────────────────────
@@ -134,3 +140,18 @@ Usage: #example
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
 * valueCodeableConcept = ASQResultCodes#acute-positive "Acute Positive"
+
+
+Instance: ExampleASQResponseNonAcute
+InstanceOf: QuestionnaireResponse
+Title: "Example — ASQ QuestionnaireResponse (non-acute positive)"
+Description: "Source ASQ QuestionnaireResponse: a baseline item is 'yes' and the acuity item is 'no' — a non-acute positive screen. The derived SPiERASQResult and the harmonized concept Observation reference this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://spier.org/Questionnaire/ASQ-Screening-Tool"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T10:35:00Z"
+* item[+].linkId = "q1"
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001
+* item[+].linkId = "q5"
+* item[=].answer.valueCoding = http://snomed.info/sct#373067005
