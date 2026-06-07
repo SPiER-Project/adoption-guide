@@ -79,11 +79,11 @@ Usage: #definition
 * description = "Capture a 6-item C-SSRS screener (items 1–5 for ideation, item 6 for behavior) and derive a suicide-risk-level Observation."
 * purpose = "Rapidly screen for suicide ideation and behavior at the Flag Risk stage."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/C-SSRS-Screener|1.0.0"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "C-SSRS Screener questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Screener|1.0.0"
 
 
 // ─── ActivityDefinition: C-SSRS Full ─────────────────────────
@@ -102,11 +102,11 @@ Usage: #definition
 * description = "Capture the full C-SSRS instrument (ideation 1–5 with lifetime/recent dimensions, behavior with attempt subtypes, intensity section), and derive a suicide-risk-level Observation."
 * purpose = "Clarify the nature, severity, and timing of suicide-related ideation and behavior. Used at the Clarify Risk stage following a positive screen."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "C-SSRS Full (Lifetime/Recent) questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0"
 
 
 // ─── Examples ────────────────────────────────────────────────

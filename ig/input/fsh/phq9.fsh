@@ -62,10 +62,10 @@ Usage: #definition
 * purpose = "Screen for depression severity; any positive PHQ-9 item 9 score is the canonical suicide-risk trigger for Clarify Risk."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#171207006 "Depression screening (procedure)"
-* code = http://loinc.org#44249-1 "Patient Health Questionnaire 9 item (PHQ-9) total score"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/PHQ-9|1.0.0"
+* code = http://loinc.org#44249-1 "PHQ-9 quick depression assessment panel [Reported.PHQ]"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "PHQ-9 questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/PHQ-9|1.0.0"
 
 
 Instance: ExamplePHQ9TotalScore18

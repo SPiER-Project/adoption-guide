@@ -156,11 +156,11 @@ Usage: #definition
 * description = "Patient-completed Suicide Status Form Section A. Produces six SSF Vital Observations covering psychological pain, stress, agitation, hopelessness, self-hate, and overall risk. The 'overall risk' measure functions as the risk-level component of the assessment."
 * purpose = "Capture the patient's self-rated CAMS SSF Core Assessment at the Clarify Risk stage. Repeated for longitudinal tracking during CAMS treatment episodes."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "CAMS SSF-5 Section A questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
 
 
 Instance: AdministerCAMSSectionB
@@ -177,10 +177,10 @@ Usage: #definition
 * description = "Clinician-completed Suicide Status Form Section B. Captures up to three CAMS-identified drivers of suicidality, each materialized as a Condition resource on the patient's problem list. Ideation and plan presence are captured in the QuestionnaireResponse but are not currently emitted as separate FHIR resources."
 * purpose = "Capture the clinician's CAMS driver assessment at the Clarify Risk stage. Drivers surface on the problem list and guide treatment until resolution."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/CAMS-SSF5-SectionB|1.0.0"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "CAMS SSF-5 Section B questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionB|1.0.0"
 
 
 Instance: AdministerCAMSTherapeuticWorksheet
@@ -197,11 +197,11 @@ Usage: #definition
 * description = "Author a CAMS Therapeutic Worksheet CarePlan capturing the patient's personal narrative, direct/indirect suicide drivers, and crisis working model."
 * purpose = "Document the CAMS clinical formulation that guides ongoing treatment. Belongs to the Set Risk Status stage."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#763304007 "Suicide prevention strategy (regime/therapy)"
-* code = http://snomed.info/sct#735324008 "Treatment plan for suicide prevention"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet|1.0.0"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* code = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "CAMS Therapeutic Worksheet"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet|1.0.0"
 
 
 Instance: AdministerCAMSStabilizationPlan
@@ -218,11 +218,11 @@ Usage: #definition
 * description = "Author a CAMS Stabilization Plan CarePlan covering lethal-means reduction, coping strategies, emergency contact, support network, and treatment-adherence plan."
 * purpose = "Document concrete safety actions in the CAMS framework. Reviewed and updated at the start of every CAMS session. Belongs to the Document Safety Actions stage as an alternative or complement to Stanley-Brown."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#763304007 "Suicide prevention strategy (regime/therapy)"
-* code = http://snomed.info/sct#735324008 "Treatment plan for suicide prevention"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/CAMS-Stabilization-Plan|1.0.0"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* code = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "CAMS Stabilization Plan template"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-Stabilization-Plan|1.0.0"
 
 
 Instance: AdministerCAMSInterimSession
@@ -239,11 +239,11 @@ Usage: #definition
 * description = "Repeat the CAMS Section A SSF Core Assessment at the start of each interim CAMS session. Produces a fresh set of six SSF Vital Observations for longitudinal trend analysis."
 * purpose = "Track SSF vitals across active-risk care episodes. Resolution criteria are met when three consecutive interim sessions show low overall risk."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "CAMS SSF-5 Section A questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
 
 
 // ─── Examples ────────────────────────────────────────────────
@@ -278,29 +278,25 @@ Usage: #example
 Instance: ExampleCAMSStabilizationPlan
 InstanceOf: SPiERCAMSStabilizationPlan
 Title: "Example — Completed CAMS Stabilization Plan"
-Description: "Sample CAMS Stabilization Plan CarePlan with all five sections populated. Note that some activities reuse LOINC codes from the Stanley-Brown panel (where the underlying concept is identical), and one activity (treatment-adherence) has no published LOINC and uses text only."
+Description: "Sample CAMS Stabilization Plan CarePlan with all five sections populated. Each activity names its section in detail.code.text (no validated LOINC panel applies to these safety-plan sections)."
 Usage: #example
 * status = #active
 * intent = #plan
-* category[+] = http://snomed.info/sct#735324008 "Treatment plan for suicide prevention"
+* category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * subject = Reference(Patient/example)
 * activity[+].detail
-  * code = http://loinc.org#76694-1 "Stanley-Brown safety plan — lethal means safety"
   * code.text = "Lethal Means Reduction"
   * status = #in-progress
   * description = "Locked medication box; firearm transferred to trusted family member; clinic gun-lock voucher accepted"
 * activity[+].detail
-  * code = http://loinc.org#76690-9 "Stanley-Brown safety plan — internal coping"
   * code.text = "Coping Strategies"
   * status = #in-progress
   * description = "Mindfulness breathing; grounding 5-4-3-2-1; calling crisis line BEFORE pain peaks"
 * activity[+].detail
-  * code = http://loinc.org#76693-3 "Stanley-Brown safety plan — professional support"
   * code.text = "Emergency Contact"
   * status = #in-progress
   * description = "Dr. Chen (555-0200), pager 555-0299; 988 Suicide & Crisis Lifeline"
 * activity[+].detail
-  * code = http://loinc.org#76692-5 "Stanley-Brown safety plan — crisis support"
   * code.text = "Support Network"
   * status = #in-progress
   * description = "Sister Maria (555-0143); best friend Joe (555-0188); NAMI peer support group Thursdays"

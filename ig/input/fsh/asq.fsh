@@ -98,14 +98,14 @@ Usage: #definition
 * description = "Capture an ASQ screen from the patient (or proxy), persist responses as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER ASQ Result profile."
 * purpose = "Flag whether a patient has suicide-related signs warranting further clarification. Belongs to the Flag Risk stage of the SPiER pathway."
 * kind = #ServiceRequest
-* topic[+] = http://snomed.info/sct#225336008 "Suicide risk assessment (procedure)"
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"
 // The Questionnaire used to capture responses for this activity.
 // Versioned canonical so future updates of the ASQ form can be tracked
 // independent of this ActivityDefinition.
-* extension[+]
-  * url = "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire"
-  * valueCanonical = "http://spier.org/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "ASQ Screening Tool questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot"
 
 
 // ─── Examples ────────────────────────────────────────────────
