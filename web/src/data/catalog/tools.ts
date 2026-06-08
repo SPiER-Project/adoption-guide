@@ -13,6 +13,7 @@ import {
   type FhirExample,
   type InclusionStatus,
   type LaunchAction,
+  type Licensing,
   type MaturityLevel,
   type RecordingPattern,
   type RecordingResource,
@@ -28,6 +29,7 @@ export type {
   FhirExample,
   InclusionStatus,
   LaunchAction,
+  Licensing,
   MaturityLevel,
   RecordingPattern,
   RecordingResource,
@@ -57,6 +59,7 @@ export interface Tool {
   recordingPattern?: RecordingPattern
   fhirExamples?: FhirExample[]
   pilotPlanSlug?: string
+  licensing?: Licensing
 }
 
 // ─────────────────────────────────────────────────────────────

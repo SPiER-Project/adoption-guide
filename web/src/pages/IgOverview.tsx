@@ -70,6 +70,11 @@ export function IgOverview() {
           model doesn&rsquo;t change. We&rsquo;re not yet at a turnkey playbook &mdash; each engagement still teaches
           us something &mdash; but the pattern is consolidating.
         </p>
+        <p>
+          To see where each instrument stands today &mdash; what&rsquo;s built, what its licensing
+          requires, and how deeply it integrates &mdash; start with the{' '}
+          <Link to="/implementation-guide/adoption-readiness">Adoption Readiness matrix</Link>.
+        </p>
       </section>
 
       <section className="ig-overview__section">

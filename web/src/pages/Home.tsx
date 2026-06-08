@@ -60,8 +60,8 @@ export function Home() {
           <h3>Implementation Guide</h3>
           <p>
             The 8-stage suicide-safer care pathway, a data dictionary for the FHIR resources it
-            produces, an EHR adoption rubric, a configurable Tool Configuration that drives the
-            Patient View, and a public roadmap.
+            produces, an adoption-readiness matrix and EHR adoption rubric, a configurable Tool
+            Configuration that drives the Patient View, and a public roadmap.
           </p>
           <span className="lens-card-cta">Explore the guide &rarr;</span>
         </Link>

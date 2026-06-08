@@ -38,6 +38,7 @@ import { IgOverview } from './pages/IgOverview'
 import { PatientJourney } from './pages/PatientJourney'
 import { DataDictionary } from './pages/DataDictionary'
 import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
+import { AdoptionReadiness } from './pages/AdoptionReadiness'
 import { ToolConfiguration } from './pages/ToolConfiguration'
 import { Roadmap } from './pages/Roadmap'
 import { PilotPlan } from './pages/PilotPlan'
@@ -85,6 +86,7 @@ function AppRoutes() {
           <Route path="pathway/:slug/plan" element={<PilotPlan />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
+          <Route path="adoption-readiness" element={<AdoptionReadiness />} />
           <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
           <Route path="roadmap" element={<Roadmap />} />
         </Route>

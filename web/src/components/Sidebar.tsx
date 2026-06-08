@@ -42,6 +42,7 @@ const LENSES: Lens[] = [
       { to: '/implementation-guide/pathway', label: 'Pathway' },
       { to: '/implementation-guide/tool-configuration', label: 'Tool Configuration' },
       { to: '/implementation-guide/data-dictionary', label: 'Data Dictionary' },
+      { to: '/implementation-guide/adoption-readiness', label: 'Adoption Readiness' },
       { to: '/implementation-guide/adoption-rubric', label: 'Adoption Rubric' },
       { to: '/implementation-guide/roadmap', label: 'Roadmap' },
     ],
