@@ -13,16 +13,17 @@ export function Home() {
         <p className="spier-description">
           A FHIR-native reference implementation of a suicide prevention pathway. SPiER demonstrates
           to EHR vendors and health-system admins what a configured implementation can look like &mdash;
-          and provides the code to execute on it.
+          and provides the code to execute on it. It&rsquo;s a non-profit standards effort: the artifacts
+          are free and open, and vendors adopt them at no cost.
         </p>
       </div>
 
       <section className="how-it-works">
         <h3 className="how-it-works__title">How SPiER works</h3>
         <p className="how-it-works__lead">
-          SPiER takes research-validated suicide prevention tools &mdash; the <strong>ASQ</strong> screener,
+          SPiER is turning research-validated suicide prevention tools &mdash; the <strong>ASQ</strong> screener,
           the <strong>Columbia Suicide Severity Rating Scale</strong>, the <strong>Stanley-Brown Safety Plan</strong>,
-          and others &mdash; and turns them into structured, machine-readable forms that any EHR or health
+          and others &mdash; into structured, machine-readable forms that any EHR or health
           system can implement the same way.
         </p>
         <div className="how-it-works__grid">
