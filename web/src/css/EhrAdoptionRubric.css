@@ -297,7 +297,9 @@
 
 .rubric-maturity-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Reflow from 3 columns down to 1 as the viewport narrows instead of
+     forcing three cramped columns. */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-3);
 }
 

@@ -365,6 +365,10 @@
   border-collapse: collapse;
   font-size: var(--font-size-base);
   margin-bottom: var(--space-2);
+  /* No wrapper element around this table, so make it scroll on its own
+     when the columns can't fit a narrow viewport. */
+  display: block;
+  overflow-x: auto;
 }
 
 .tool-detail-table th {

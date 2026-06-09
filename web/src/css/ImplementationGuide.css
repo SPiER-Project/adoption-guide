@@ -23,6 +23,14 @@
 .ig-tabs {
   display: flex;
   gap: 8px;
+  /* Let the tab strip scroll horizontally on narrow screens instead of
+     wrapping labels or pushing tabs out of reach. The negative margin +
+     padding keeps the scrollable area flush with the header edges. */
+  overflow-x: auto;
+  scrollbar-width: thin;
+  margin: 0 -24px;
+  padding: 0 24px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .ig-tab-btn {
@@ -37,6 +45,8 @@
   transition: all 0.2s;
   text-decoration: none;
   display: inline-block;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ig-tab-btn:hover {
