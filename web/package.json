@@ -8,7 +8,7 @@
     "fetch-roadmap": "node scripts/fetch-roadmap.mjs",
     "predev": "npm run copy-fhir",
     "dev": "vite",
-    "prebuild": "npm run copy-fhir",
+    "prebuild": "npm run copy-fhir -- --force",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.css\"",
