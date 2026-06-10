@@ -117,11 +117,14 @@
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  overflow: hidden;
+  /* Scroll horizontally on narrow screens rather than squeezing/clipping
+     columns. overflow-x: auto still clips the rounded corners. */
+  overflow-x: auto;
 }
 
 .caseload-table {
   width: 100%;
+  min-width: 540px;
   border-collapse: collapse;
   font-size: var(--font-size-md);
 }
