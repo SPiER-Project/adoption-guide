@@ -127,7 +127,7 @@ export function AdoptionReadiness() {
   const { groups, stats } = useMemo(() => {
     // Index the single tracking epic per tool (matches Roadmap.tsx's epic-first rule).
     const epicsByTool = new Map<string, RoadmapIssue>()
-    for (const issue of SNAPSHOT.issues) {
+    for (const issue of SNAPSHOT?.issues ?? []) {
       if (!issue.toolId) continue
       const existing = epicsByTool.get(issue.toolId)
       // Prefer an explicit epic; otherwise keep the first issue seen.
@@ -151,7 +151,7 @@ export function AdoptionReadiness() {
     const rowById = new Map(TOOLS.map((t) => [t.id, rowFor(t)]))
     const groups = groupToolsByStage(TOOLS, { skipEmpty: true }).map(({ stage, tools }) => ({
       stage,
-      rows: tools.map((t) => rowById.get(t.id)!).filter(Boolean),
+      rows: tools.map((t) => rowById.get(t.id)).filter((r): r is ReadinessRow => !!r),
     }))
 
     const allRows = [...rowById.values()]
@@ -325,7 +325,7 @@ export function AdoptionReadiness() {
                           </Link>
                         )}
                         {epicUrl && (
-                          <a className="ar-res-link ar-res-link--ext" href={epicUrl} target="_blank" rel="noreferrer">
+                          <a className="ar-res-link ar-res-link--ext" href={epicUrl} target="_blank" rel="noopener noreferrer">
                             Epic
                           </a>
                         )}
