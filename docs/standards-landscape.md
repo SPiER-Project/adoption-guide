@@ -143,9 +143,11 @@ the [Behavioral Health Confluence page](https://confluence.hl7.org/spaces/EHR/pa
 
 So the strategic question is **formalizing and advancing an existing position**, not opening a new door.
 
-> **⚠ Naming nuance to reconcile.** The WG page attributes this work to **ZeroOverdose / Kelly
-> Samuelson**, not to **HTD Health / spier.org**, and lists no SPiER leadership role (the project is
-> still *seeking a Clinical Co-Lead*). Worth aligning the public attribution and pursuing a named role.
+> **Leadership.** SPiER is led by **Kelly Samuelson** (affiliated with **ZeroOverdose, ZeroSuicide,
+> and SPiER**); the WG page's attribution to ZeroOverdose / Kelly Samuelson is correct. **HTD Health
+> is a supporting contributor, not the project owner.** One consequence: the IG's current
+> `publisher = "SPiER (HTD Health)"` under-represents that leadership and is worth revisiting. The
+> project is still *seeking a Clinical Co-Lead*.
 
 ---
 
@@ -163,8 +165,9 @@ So the strategic question is **formalizing and advancing an existing position**,
    workflow and adoption-readiness rubric formally incorporated, not just referenced.
 5. **Use a pilot + HL7 Connectathon track as the maturity evidence** all three tracks require —
    the cross-EHR ASQ portability pilot is the natural candidate.
-6. **Pursue a named role and attribution alignment** in the BH Project Team (address the Clinical
-   Co-Lead gap and the ZeroOverdose/HTD Health naming nuance).
+6. **Formalize SPiER's standing in the BH Project Team** — fill the open Clinical Co-Lead seat and
+   confirm public attribution reflects Kelly Samuelson's leadership (ZeroSuicide / ZeroOverdose /
+   SPiER), with HTD Health credited as a supporter.
 
 ---
 
