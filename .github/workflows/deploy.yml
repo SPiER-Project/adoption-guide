@@ -1,5 +1,15 @@
 name: Deploy to GitHub Pages
 
+# Publishes BOTH the companion React app (served at /SPiER/) and the rendered
+# HL7 IG (served at /SPiER/ig/) as a single GitHub Pages site. The web app is
+# built with Vite; the IG is rendered with the full HL7 IG Publisher and nested
+# under the app's dist/ig directory before upload.
+#
+# The IG render is heavy (downloads the publisher jar + FHIR packages + Jekyll),
+# so this runs only on pushes to main and manual dispatch — not on every PR. The
+# lightweight ig.yml (SUSHI only) covers PRs. The on-demand ig-publish.yml stays
+# as a way to preview the rendered IG as an artifact without deploying.
+
 on:
   push:
     branches:
@@ -18,31 +28,79 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./web # Tell actions where the React code lives
 
     steps:
       - uses: actions/checkout@v4
 
+      # ── Companion web app (Vite → web/dist) ───────────────────────────────
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install web dependencies
+        working-directory: ./web
         run: npm ci
 
-      - name: Build
+      - name: Build web app
+        working-directory: ./web
         run: npm run build
 
+      # ── Rendered HL7 IG (IG Publisher → ig/output) ────────────────────────
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install Jekyll
+        run: gem install jekyll
+
+      - name: Install SUSHI
+        run: npm install -g fsh-sushi
+
+      - name: Download IG Publisher
+        run: curl -sL -o publisher.jar https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar
+
+      - name: Run IG Publisher
+        working-directory: ./ig
+        run: java -jar ../publisher.jar -ig . | tee publisher.log
+
+      - name: Gate on IG QA (fail on errors or broken links)
+        working-directory: ./ig
+        run: |
+          qa=output/qa.txt
+          if [ ! -f "$qa" ]; then
+            echo "::error::no output/qa.txt produced — the IG Publisher did not complete"
+            exit 1
+          fi
+          errs=$(grep -oiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+')
+          broken=$(grep -oiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+')
+          echo "IG QA → errors=${errs:-?} brokenLinks=${broken:-?}"
+          if { [ -n "$errs" ] && [ "$errs" != "0" ]; } || { [ -n "$broken" ] && [ "$broken" != "0" ]; }; then
+            echo "::error::IG Publisher reported ${errs:-?} error(s) and ${broken:-?} broken link(s) — not deploying"
+            exit 1
+          fi
+
+      # ── Combine: nest the rendered IG under the app at /SPiER/ig/ ──────────
+      - name: Nest rendered IG under web/dist/ig
+        run: |
+          mkdir -p web/dist/ig
+          cp -r ig/output/. web/dist/ig/
+
+      # ── Publish the combined site ─────────────────────────────────────────
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './web/dist' # Upload the output directory from Vite
+          path: './web/dist' # app at /SPiER/, rendered IG at /SPiER/ig/
 
   deploy:
     environment:
