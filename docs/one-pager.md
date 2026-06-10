@@ -30,7 +30,7 @@ National standards like **US Core** and **USCDI** cover demographics, diagnoses,
 
 1. **Implementation Guides for specific tools.** A canonical FHIR shape for each validated instrument, so the ASQ (or Columbia, or Stanley-Brown) is captured and exchanged identically everywhere it's used.
 
-2. **A normalization layer *between* tools.** Partners don't all use the same instruments — one site screens with the ASQ, another with the Columbia, another with PHQ-9 Item 9. SPiER defines a harmonized, instrument-agnostic **concept layer** — a common suicide-risk representation that every tool maps *into* — so a receiving system can act on a result **without having to run the same tool that produced it.** This mirrors the approach HL7's Gravity Project took for social-determinants screening.
+2. **A normalization layer *between* tools.** Partners don't all use the same instruments — one site screens with the ASQ, another with the Columbia, another with PHQ-9 Item 9. SPiER defines a harmonized, instrument-agnostic **concept layer** — a common suicide-risk representation that every tool maps *into* — so a receiving system can act on a result **without having to run the same tool that produced it.** This mirrors the approach HL7's Gravity Project took for social determinants of health (SDOH) screening.
 
 ## What turns this into standard practice
 
