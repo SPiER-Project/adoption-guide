@@ -1,7 +1,7 @@
 # Project Overview: SPiER (Suicide Prevention in Electronic Health Records)
 
 ## Mission
-The SPiER project is a non-profit initiative dedicated to translating research-validated suicide prevention tools from paper-based formats into structured, interoperable healthcare data standards (e.g., HL7 FHIR). The goal is to make these high-quality tools easily accessible to EHR vendors and healthcare systems to improve the identification, assessment, and management of suicide risk.
+SPiER is a non-profit standards effort translating research-validated suicide prevention tools from paper-based formats into structured, interoperable healthcare data standards (e.g., HL7 FHIR). The goal is to make these high-quality tools easily accessible to EHR vendors and healthcare systems to improve the identification, assessment, and management of suicide risk. Everything SPiER produces is free and open — vendors adopt the standards at no cost. There's no product to buy and no service to subscribe to; SPiER is not a market participant, which is what lets it define a neutral shape no vendor owns and every vendor can adopt.
 
 ## How SPiER's Work Connects to HL7 Standards
 

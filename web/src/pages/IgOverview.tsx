@@ -7,9 +7,9 @@ export function IgOverview() {
       <section className="ig-overview__intro">
         <h3 className="ig-overview__h3">What SPiER does</h3>
         <p>
-          SPiER takes research-validated suicide prevention tools &mdash; the <strong>ASQ</strong> screener,
+          SPiER is turning research-validated suicide prevention tools &mdash; the <strong>ASQ</strong> screener,
           the <strong>Columbia Suicide Severity Rating Scale</strong>, the <strong>Stanley-Brown Safety Plan</strong>,
-          and others &mdash; and turns them into structured, machine-readable forms that any EHR or health
+          and others &mdash; into structured, machine-readable forms that any EHR or health
           system can implement the same way.
         </p>
       </section>

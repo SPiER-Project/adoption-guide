@@ -8,7 +8,7 @@
 | **FHIR version** | R4 (4.0.1) |
 | **Realm** | US |
 
-A FHIR-native reference implementation of the suicide-safer care pathway, developed in alignment with the **[Zero Suicide framework](https://zerosuicide.edc.org/)**. SPiER turns research-validated suicide-prevention instruments into portable FHIR artifacts so that a screen captured in one system can be **understood and acted on anywhere the patient is next seen**.
+A FHIR-native reference implementation of the suicide-safer care pathway, developed in alignment with the **[Zero Suicide framework](https://zerosuicide.edc.org/)**. SPiER is turning research-validated suicide-prevention instruments into portable FHIR artifacts so that a screen captured in one system can be **understood and acted on anywhere the patient is next seen**. The artifacts are free and open — vendors and health systems adopt them at no cost; there's no product to buy.
 
 > **New here? Read [Getting Started](getting-started.html) and [How to Read This Guide](how-to-read.html).** You should be able to grasp the scope, who it's for, and what implementing it involves in about 30 minutes.
 
