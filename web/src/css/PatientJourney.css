@@ -360,15 +360,19 @@
   color: var(--risk-moderate-soft-text);
 }
 
+/* Scroll on the wrapper, not the table, so the table keeps its native
+   semantics/layout for assistive tech while still scrolling on narrow
+   viewports when the columns can't fit. */
+.tool-detail-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-2);
+}
+
 .tool-detail-table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--font-size-base);
-  margin-bottom: var(--space-2);
-  /* No wrapper element around this table, so make it scroll on its own
-     when the columns can't fit a narrow viewport. */
-  display: block;
-  overflow-x: auto;
 }
 
 .tool-detail-table th {

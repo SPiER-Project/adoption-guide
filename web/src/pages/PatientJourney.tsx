@@ -49,24 +49,26 @@ function ToolDetail({ tool }: ToolDetailProps) {
       {tool.recordingPattern && (
         <section className="tool-detail-section">
           <h4 className="tool-detail-heading">Implementation</h4>
-          <table className="tool-detail-table">
-            <thead>
-              <tr>
-                <th>FHIR Resource</th>
-                <th>Content</th>
-                <th>When</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tool.recordingPattern.resources.map((r, idx) => (
-                <tr key={idx}>
-                  <td><code>{r.type}</code></td>
-                  <td>{r.description}</td>
-                  <td className="tool-detail-when">{r.when}</td>
+          <div className="tool-detail-table-scroll">
+            <table className="tool-detail-table">
+              <thead>
+                <tr>
+                  <th>FHIR Resource</th>
+                  <th>Content</th>
+                  <th>When</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {tool.recordingPattern.resources.map((r, idx) => (
+                  <tr key={idx}>
+                    <td><code>{r.type}</code></td>
+                    <td>{r.description}</td>
+                    <td className="tool-detail-when">{r.when}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {tool.recordingPattern.workflowTrigger && (
             <p className="tool-detail-trigger">
               <strong>Workflow trigger:</strong> {tool.recordingPattern.workflowTrigger}

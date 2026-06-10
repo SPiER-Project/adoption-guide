@@ -93,9 +93,17 @@ function mtimeMs(path) {
 }
 
 function isUpToDate() {
-  const outputFiles = [...walkFiles(destDir), generatedTsPath].filter((p) => mtimeMs(p) !== null)
-  // Nothing generated yet (fresh clone, cleaned tree) → must build.
-  if (outputFiles.length === 0) return false
+  // Both consumed artifacts must be present, or there is nothing to trust:
+  //   - the copied resource dir (must contain files), and
+  //   - the generated TS bundle (a single file).
+  // Filtering missing paths out of the comparison would let a deleted output
+  // (empty destDir, removed generated TS) pass as "up to date" and skip a
+  // rebuild the app actually needs — so check existence explicitly first.
+  const destFiles = walkFiles(destDir)
+  if (destFiles.length === 0) return false // fresh clone / cleaned tree → build
+
+  const tsMtime = mtimeMs(generatedTsPath)
+  if (tsMtime === null) return false // generated TS deleted → build
 
   const inputFiles = [sushiConfig, scriptPath, ...walkFiles(fshInputDir)]
   const inputTimes = inputFiles.map(mtimeMs).filter((t) => t !== null)
@@ -103,7 +111,7 @@ function isUpToDate() {
   if (inputTimes.length === 0) return false
 
   const newestInput = Math.max(...inputTimes)
-  const oldestOutput = Math.min(...outputFiles.map(mtimeMs))
+  const oldestOutput = Math.min(...destFiles.map(mtimeMs), tsMtime)
   return oldestOutput > newestInput
 }
 
