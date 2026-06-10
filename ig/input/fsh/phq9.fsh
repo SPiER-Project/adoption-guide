@@ -66,10 +66,11 @@ Description: "Capture a PHQ-9 depression screen, persist as a QuestionnaireRespo
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerPHQ9"
 * name = "AdministerPHQ9"
+* version = "0.1.0"
 * title = "Administer PHQ-9"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Capture a PHQ-9 depression screen, persist as a QuestionnaireResponse, and derive total-score and item-9 Observations."
 * purpose = "Screen for depression severity; any positive PHQ-9 item 9 score is the canonical suicide-risk trigger for Clarify Risk."
 * kind = #ServiceRequest

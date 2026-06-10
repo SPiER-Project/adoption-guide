@@ -53,6 +53,17 @@ EHR workflow steps:
 | 7. **Manage Active Risk**  | Treat                 | Keep active suicide-safer care episodes visible, trackable, and escalated when needed.                           |
 | 8. **Measure and Share**   | Improve               | Make pathway activity usable for reporting, QI, accountability, and information sharing.                         |
 
+### Build status of the eight stages
+
+Not all eight stages are equally built out in this IG version. Stages
+**1 (Flag Risk), 2 (Clarify Risk), 3 (Set Risk Status), 4 (Document
+Safety Actions), and 7 (Manage Active Risk)** have published
+`PlanDefinition`s with wired instruments. Stages **5 (Coordinate
+Handoffs), 6 (Track Follow-Up), and 8 (Measure and Share)** are mapped
+conceptually here but their `PlanDefinition`s and tooling are roadmap
+items — see the [Roadmap](https://bbthorson.github.io/SPiER/#/implementation-guide/roadmap)
+for per-tool build status.
+
 ### Notes on the mapping
 
 - **Identify decomposes into three SPiER stages**, not one. The framework

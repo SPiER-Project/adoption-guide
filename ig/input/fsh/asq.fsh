@@ -97,10 +97,11 @@ Description: "Capture an ASQ screen from the patient (or proxy), persist respons
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerASQ"
 * name = "AdministerASQ"
+* version = "0.1.0"
 * title = "Administer ASQ Suicide Screen"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Capture an ASQ screen from the patient (or proxy), persist responses as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER ASQ Result profile."
 * purpose = "Flag whether a patient has suicide-related signs warranting further clarification. Belongs to the Flag Risk stage of the SPiER pathway."
 * kind = #ServiceRequest

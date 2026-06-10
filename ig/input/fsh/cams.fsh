@@ -172,10 +172,11 @@ Description: "Patient-completed Suicide Status Form Section A. Produces six SSF 
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionA"
 * name = "AdministerCAMSSectionA"
+* version = "0.1.0"
 * title = "Administer CAMS SSF-5 Section A (Patient Vitals)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Patient-completed Suicide Status Form Section A. Produces six SSF Vital Observations covering psychological pain, stress, agitation, hopelessness, self-hate, and overall risk. The 'overall risk' measure functions as the risk-level component of the assessment."
 * purpose = "Capture the patient's self-rated CAMS SSF Core Assessment at the Clarify Risk stage. Repeated for longitudinal tracking during CAMS treatment episodes."
 * kind = #ServiceRequest
@@ -193,10 +194,11 @@ Description: "Clinician-completed Suicide Status Form Section B. Identifies up t
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionB"
 * name = "AdministerCAMSSectionB"
+* version = "0.1.0"
 * title = "Administer CAMS SSF-5 Section B (Clinician Drivers)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Clinician-completed Suicide Status Form Section B. Captures up to three CAMS-identified drivers of suicidality, each materialized as a Condition resource on the patient's problem list. Ideation and plan presence are captured in the QuestionnaireResponse but are not currently emitted as separate FHIR resources."
 * purpose = "Capture the clinician's CAMS driver assessment at the Clarify Risk stage. Drivers surface on the problem list and guide treatment until resolution."
 * kind = #ServiceRequest
@@ -213,10 +215,11 @@ Description: "Collaboratively complete a CAMS Therapeutic Worksheet capturing th
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSTherapeuticWorksheet"
 * name = "AdministerCAMSTherapeuticWorksheet"
+* version = "0.1.0"
 * title = "Author CAMS Therapeutic Worksheet"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Author a CAMS Therapeutic Worksheet CarePlan capturing the patient's personal narrative, direct/indirect suicide drivers, and crisis working model."
 * purpose = "Document the CAMS clinical formulation that guides ongoing treatment. Belongs to the Set Risk Status stage."
 * kind = #ServiceRequest
@@ -234,10 +237,11 @@ Description: "Collaboratively complete a CAMS Stabilization Plan CarePlan — th
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSStabilizationPlan"
 * name = "AdministerCAMSStabilizationPlan"
+* version = "0.1.0"
 * title = "Author CAMS Stabilization Plan"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Author a CAMS Stabilization Plan CarePlan covering lethal-means reduction, coping strategies, emergency contact, support network, and treatment-adherence plan."
 * purpose = "Document concrete safety actions in the CAMS framework. Reviewed and updated at the start of every CAMS session. Belongs to the Document Safety Actions stage as an alternative or complement to Stanley-Brown."
 * kind = #ServiceRequest
@@ -255,10 +259,11 @@ Description: "Repeat the CAMS Section A SSF Core Assessment at the start of each
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSInterimSession"
 * name = "AdministerCAMSInterimSession"
+* version = "0.1.0"
 * title = "Administer CAMS Interim Session (SSF Re-Rating)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Repeat the CAMS Section A SSF Core Assessment at the start of each interim CAMS session. Produces a fresh set of six SSF Vital Observations for longitudinal trend analysis."
 * purpose = "Track SSF vitals across active-risk care episodes. Resolution criteria are met when three consecutive interim sessions show low overall risk."
 * kind = #ServiceRequest

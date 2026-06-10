@@ -30,6 +30,20 @@ Must-Support identifies *what must be supported* — it does **not** constrain m
 
 The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived, unconfirmed** signal: it indicates a screen result warranting follow-up, not a confirmed clinical finding. Consumers SHOULD treat it as a triage/routing signal and preserve the `derivedFrom` link to the originating `QuestionnaireResponse`. See [How to Read This Guide](how-to-read.html#two-layer-model).
 
+## Harmonization status
+
+The instrument-to-tier crosswalks are at different stages of completion, and **none have clinical sign-off yet**:
+
+| Instrument | Tier-mapping artifact | Status |
+|---|---|---|
+| ASQ | [ConceptMap: ASQ Disposition → Risk Tier](ConceptMap-ASQDispositionToRiskTier.html) | Authored — pending clinical sign-off |
+| C-SSRS | [ConceptMap: C-SSRS Risk Level → Risk Tier](ConceptMap-CSSRSRiskLevelToRiskTier.html) | Authored — pending clinical sign-off |
+| PHQ-9 (Item 9) | Draft FHIR Mapping Language file (`ig/drafts/` in the repository) | Draft, unvalidated — targeted for the v0.2 release |
+| SBQ-R (total score) | Draft FHIR Mapping Language file (`ig/drafts/` in the repository) | Draft, unvalidated — targeted for the v0.2 release |
+| CAMS (SSF overall risk) | — | Not yet authored |
+
+Until sign-off by suicide-prevention subject-matter experts, the tier assignments in these artifacts are **illustrative reference logic**, not clinical guidance. Adopters SHALL validate tier assignments against their own clinical protocols before using the harmonized tier to drive care decisions.
+
 ## Maturity
 
 SPiER is FMM 0–1. Advancing maturity requires evidence from **independently developed implementations** (FMM 2 expects interoperability across 3+ such systems); the current HIE portability pilot and planned HL7 Connectathon participation are the path there. Maturity is tracked per artifact, not coupled mechanically to ballot status.

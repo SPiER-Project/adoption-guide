@@ -43,10 +43,11 @@ Description: "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and deri
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerSBQR"
 * name = "AdministerSBQR"
+* version = "0.1.0"
 * title = "Administer SBQ-R"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and derive a total-score Observation. Total ≥7 advances the patient to Clarify Risk; ≥8 indicates higher acuity warranting a full safety assessment."
 * purpose = "Screen for lifetime and recent suicide-related ideation, plans, and behavior. Validated in both general-population and psychiatric-inpatient settings."
 * kind = #ServiceRequest
