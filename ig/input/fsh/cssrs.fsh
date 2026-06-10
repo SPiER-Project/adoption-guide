@@ -78,6 +78,7 @@ Description: "Capture a 6-item Columbia Suicide Severity Rating Scale screener a
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCSSRSScreener"
 * name = "AdministerCSSRSScreener"
+* version = "0.1.0"
 * title = "Administer C-SSRS Screener"
 * status = #draft
 * experimental = true
@@ -101,6 +102,7 @@ Description: "Capture the full Columbia Suicide Severity Rating Scale with both 
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCSSRSFull"
 * name = "AdministerCSSRSFull"
+* version = "0.1.0"
 * title = "Administer C-SSRS Full (Lifetime/Recent)"
 * status = #draft
 * experimental = true

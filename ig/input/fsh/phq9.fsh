@@ -66,6 +66,7 @@ Description: "Capture a PHQ-9 depression screen, persist as a QuestionnaireRespo
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerPHQ9"
 * name = "AdministerPHQ9"
+* version = "0.1.0"
 * title = "Administer PHQ-9"
 * status = #draft
 * experimental = true

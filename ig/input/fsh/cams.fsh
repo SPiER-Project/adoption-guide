@@ -172,6 +172,7 @@ Description: "Patient-completed Suicide Status Form Section A. Produces six SSF 
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionA"
 * name = "AdministerCAMSSectionA"
+* version = "0.1.0"
 * title = "Administer CAMS SSF-5 Section A (Patient Vitals)"
 * status = #draft
 * experimental = true
@@ -193,6 +194,7 @@ Description: "Clinician-completed Suicide Status Form Section B. Identifies up t
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionB"
 * name = "AdministerCAMSSectionB"
+* version = "0.1.0"
 * title = "Administer CAMS SSF-5 Section B (Clinician Drivers)"
 * status = #draft
 * experimental = true
@@ -213,6 +215,7 @@ Description: "Collaboratively complete a CAMS Therapeutic Worksheet capturing th
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSTherapeuticWorksheet"
 * name = "AdministerCAMSTherapeuticWorksheet"
+* version = "0.1.0"
 * title = "Author CAMS Therapeutic Worksheet"
 * status = #draft
 * experimental = true
@@ -234,6 +237,7 @@ Description: "Collaboratively complete a CAMS Stabilization Plan CarePlan — th
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSStabilizationPlan"
 * name = "AdministerCAMSStabilizationPlan"
+* version = "0.1.0"
 * title = "Author CAMS Stabilization Plan"
 * status = #draft
 * experimental = true
@@ -255,6 +259,7 @@ Description: "Repeat the CAMS Section A SSF Core Assessment at the start of each
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSInterimSession"
 * name = "AdministerCAMSInterimSession"
+* version = "0.1.0"
 * title = "Administer CAMS Interim Session (SSF Re-Rating)"
 * status = #draft
 * experimental = true

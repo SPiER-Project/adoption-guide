@@ -26,6 +26,7 @@ Description: "Stage 1 of 8 in the SPiER suicide-safer care pathway: capture a su
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERFlagRiskStage"
 * name = "SPiERFlagRiskStage"
+* version = "0.1.0"
 * title = "SPiER Pathway — Flag Risk Stage"
 * status = #draft
 * experimental = true
@@ -79,6 +80,7 @@ Description: "Stage 2 of 8: capture the details needed to understand the nature,
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERClarifyRiskStage"
 * name = "SPiERClarifyRiskStage"
+* version = "0.1.0"
 * title = "SPiER Pathway — Clarify Risk Stage"
 * status = #draft
 * experimental = true
@@ -154,6 +156,7 @@ Description: "Stage 3 of 8 in the SPiER suicide-safer care pathway: document the
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERSetRiskStatusStage"
 * name = "SPiERSetRiskStatusStage"
+* version = "0.1.0"
 * title = "SPiER Pathway — Set Risk Status Stage"
 * status = #draft
 * experimental = true
@@ -179,6 +182,7 @@ Description: "Stage 4 of 8 in the SPiER suicide-safer care pathway: document con
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERDocumentSafetyActionsStage"
 * name = "SPiERDocumentSafetyActionsStage"
+* version = "0.1.0"
 * title = "SPiER Pathway — Document Safety Actions Stage"
 * status = #draft
 * experimental = true
@@ -212,6 +216,7 @@ Description: "Stage 7 of 8 in the SPiER suicide-safer care pathway: keep active 
 Usage: #definition
 * url = "http://spier.org/PlanDefinition/SPiERManageActiveRiskStage"
 * name = "SPiERManageActiveRiskStage"
+* version = "0.1.0"
 * title = "SPiER Pathway — Manage Active Risk Stage"
 * status = #draft
 * experimental = true

@@ -43,6 +43,7 @@ Description: "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and deri
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerSBQR"
 * name = "AdministerSBQR"
+* version = "0.1.0"
 * title = "Administer SBQ-R"
 * status = #draft
 * experimental = true

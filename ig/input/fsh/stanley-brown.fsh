@@ -57,6 +57,7 @@ Description: "Collaboratively complete a Stanley-Brown Safety Plan with the pati
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerStanleyBrown"
 * name = "AdministerStanleyBrown"
+* version = "0.1.0"
 * title = "Author Stanley-Brown Safety Plan"
 * status = #draft
 * experimental = true

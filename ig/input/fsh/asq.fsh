@@ -97,6 +97,7 @@ Description: "Capture an ASQ screen from the patient (or proxy), persist respons
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerASQ"
 * name = "AdministerASQ"
+* version = "0.1.0"
 * title = "Administer ASQ Suicide Screen"
 * status = #draft
 * experimental = true
