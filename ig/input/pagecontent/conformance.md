@@ -33,3 +33,5 @@ The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived, uncon
 ## Maturity
 
 SPiER is FMM 0–1. Advancing maturity requires evidence from **independently developed implementations** (FMM 2 expects interoperability across 3+ such systems); the current HIE portability pilot and planned HL7 Connectathon participation are the path there. Maturity is tracked per artifact, not coupled mechanically to ballot status.
+
+Per-instrument maturity is tracked in the companion reference application. The [**Adoption Readiness matrix**](https://bbthorson.github.io/SPiER/#/implementation-guide/adoption-readiness) scores every catalogued instrument on its build status, recommendation tier, and target integration depth (electronic capture / discrete write-back / workflow triggering), and links each to its pilot plan, live demo, and tracking epic.
