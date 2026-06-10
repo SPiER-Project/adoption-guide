@@ -1,5 +1,7 @@
 # SPiER (Suicide Prevention in Electronic Health Records)
 
+**Live:** [Implementation Guide](https://bbthorson.github.io/SPiER/ig/) · [Companion app](https://bbthorson.github.io/SPiER/) · [Roadmap](https://github.com/bbthorson/SPiER/milestones)
+
 ## Mission
 SPiER is a non-profit standards effort. We're translating research-validated suicide prevention tools from paper-based formats into structured, interoperable healthcare data standards (e.g., HL7 FHIR) — and giving the results away. The Implementation Guides, profiles, and value sets are free and open; vendors and health systems adopt them at no cost. There's no product to buy and no service to subscribe to. 
 
@@ -29,11 +31,12 @@ The common entry point for every partner conversation — EHR vendor, HIE, or ot
 8.  **Measure and Share:** Pathway analytics and quality improvement.
 
 ## Repository Structure
-The repository is moving toward a stage-based organization, while maintaining framework-specific technical assets:
 
-*   **`web/`**: The SPiER Dashboard (React/TS), demonstrating the interactive pathway and EHR adoption rubric.
+*   **`ig/`**: The HL7 FHIR Implementation Guide — FSH sources in `input/fsh/` compiled by SUSHI, plus the IG Publisher configuration. Rendered and published at the [Implementation Guide](https://bbthorson.github.io/SPiER/ig/) link above.
+*   **`web/`**: The SPiER companion app (React/TS) — the interactive pathway demo, patient and population views, and EHR adoption rubric. Deployed to GitHub Pages at `/SPiER/`.
+*   **`FHIR-Resources/`**: The canonical Questionnaire JSON and per-tool FHIR assets, organized by instrument (`ASQ/`, `C-SSRS/`, `CAMS/`, `PHQ-9/`, `SBQ-R/`, `Stanley-Brown/`).
 *   **`docs/`**: Global strategy, validation guides, and the project overview.
-*   **`FHIR-Resources/`**: Contains the canonical FHIR resources organized by pathway stage (e.g., `1-Flag-Risk/ASQ`, `4-Document-Safety-Actions/Stanley-Brown`).
+*   **`scripts/`**: Roadmap seeding and other repository tooling.
 
 ## Getting Started
 
