@@ -12,6 +12,8 @@ A FHIR-native reference implementation of the suicide-safer care pathway, develo
 
 > **New here? Read [Getting Started](getting-started.html) and [How to Read This Guide](how-to-read.html).** You should be able to grasp the scope, who it's for, and what implementing it involves in about 30 minutes.
 
+> **Clinical review status:** the cross-instrument risk-tier harmonization (the concept layer) is a **proposed reference model** authored by SPiER. It has not yet been reviewed by suicide-prevention subject-matter experts or the Zero Suicide Institute, and clinical co-authorship is being pursued. Adopters should validate the tier assignments against their own clinical protocols before relying on them — see [Harmonization status](conformance.html#harmonization-status).
+
 ## What's in this guide
 
 SPiER models the screening instruments and the eight technical stages of suicide-safer care as FHIR `Questionnaire`, `Observation`, `CarePlan`, `PlanDefinition`, and `ActivityDefinition` resources. It works in **two layers**:

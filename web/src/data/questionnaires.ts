@@ -23,11 +23,23 @@ import cssrsScreener from '../../../FHIR-Resources/C-SSRS/fhir/questionnaires/sc
 import cssrsFull from '../../../FHIR-Resources/C-SSRS/fhir/questionnaires/full-lifetime-recent.json'
 import camsSectionA from '../../../FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionA.json'
 import camsSectionB from '../../../FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionB.json'
+import camsStabilizationPlan from '../../../FHIR-Resources/CAMS/fhir/questionnaires/Stabilization_Plan.json'
+import camsTherapeuticWorksheet from '../../../FHIR-Resources/CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
 
 const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ALL_QUESTIONNAIRES = [asq, phq9, sbqr, cssrsScreener, cssrsFull, camsSectionA, camsSectionB] as any[]
+const ALL_QUESTIONNAIRES = [
+  asq,
+  phq9,
+  sbqr,
+  cssrsScreener,
+  cssrsFull,
+  camsSectionA,
+  camsSectionB,
+  camsStabilizationPlan,
+  camsTherapeuticWorksheet,
+] as any[]
 
 /** Canonical (version-stripped) Questionnaire URL → Questionnaire resource. */
 export const QUESTIONNAIRE_BY_URL: Record<string, unknown> = Object.fromEntries(

@@ -81,7 +81,7 @@ Usage: #definition
 * title = "Administer C-SSRS Screener"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Capture a 6-item C-SSRS screener (items 1–5 for ideation, item 6 for behavior) and derive a suicide-risk-level Observation."
 * purpose = "Rapidly screen for suicide ideation and behavior at the Flag Risk stage."
 * kind = #ServiceRequest
@@ -104,7 +104,7 @@ Usage: #definition
 * title = "Administer C-SSRS Full (Lifetime/Recent)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health) — pending Zero Suicide co-authorship"
+* publisher = "SPiER (HTD Health)"
 * description = "Capture the full C-SSRS instrument (ideation 1–5 with lifetime/recent dimensions, behavior with attempt subtypes, intensity section), and derive a suicide-risk-level Observation."
 * purpose = "Clarify the nature, severity, and timing of suicide-related ideation and behavior. Used at the Clarify Risk stage following a positive screen."
 * kind = #ServiceRequest
