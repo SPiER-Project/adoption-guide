@@ -14,7 +14,7 @@ We organize this work around an **8-stage Suicide Safer Care Pathway** — from 
 
 ## Who's behind it — and why that matters
 
-SPiER is led by **Kelly Samuelson, MSW, LADC**, and built by a team with deep roots in the **Zero Suicide** movement — working as its technology-enablement counterpart: where Zero Suicide defines the clinical and organizational framework for suicide-safer care, SPiER builds the data-standards layer that lets that model actually travel between systems.
+SPiER is led by **Kelly Samuelson, MSW, LADC**, and built by a team with deep roots in the **Zero Suicide** movement, working as its technology-enablement counterpart. Where Zero Suicide defines the clinical and organizational framework for suicide-safer care, SPiER builds the data-standards layer that lets that model actually travel between systems.
 
 The standards themselves are **vendor-neutral**: SPiER doesn't sell an EHR, an integration engine, or a screening product, so no vendor owns the canonical shape for suicide-care data and every vendor can adopt it for free.
 
