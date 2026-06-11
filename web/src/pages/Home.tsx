@@ -13,8 +13,9 @@ export function Home() {
         <p className="spier-description">
           A FHIR-native reference implementation of a suicide prevention pathway. SPiER demonstrates
           to EHR vendors and health-system admins what a configured implementation can look like &mdash;
-          and provides the code to execute on it. It&rsquo;s a non-profit standards effort: the artifacts
-          are free and open, and vendors adopt them at no cost.
+          and provides the code to execute on it. Its mission is to make suicide-safer care the standard
+          everywhere. The artifacts are free and open for vendors to adopt at no cost, and SPiER partners
+          with organizations to embed and implement these tools in the systems they already use.
         </p>
       </div>
 

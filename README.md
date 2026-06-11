@@ -3,9 +3,13 @@
 **Live:** [Implementation Guide](https://bbthorson.github.io/SPiER/ig/) · [Companion app](https://bbthorson.github.io/SPiER/) · [Roadmap](https://github.com/bbthorson/SPiER/milestones)
 
 ## Mission
-SPiER is a non-profit standards effort. We're translating research-validated suicide prevention tools from paper-based formats into structured, interoperable healthcare data standards (e.g., HL7 FHIR) — and giving the results away. The Implementation Guides, profiles, and value sets are free and open; vendors and health systems adopt them at no cost. There's no product to buy and no service to subscribe to. 
 
-We organize these tools around an **8-stage Suicide Safer Care Pathway** to ensure that EHR implementations support the full longitudinal journey of a patient at risk.
+**SPiER's mission is to make suicide-safer care the standard everywhere.** Front-line professionals encounter people at risk every day, but the tools and supports for suicide-safer care often aren't built into the systems they rely on — so critical opportunities for care get missed. SPiER exists to close that gap, in two complementary ways:
+
+- **Free, open standards.** We translate research-validated suicide-prevention tools out of paper and PDF into structured, interoperable **HL7 FHIR** artifacts — Implementation Guides, profiles, and value sets — that any EHR or health system can adopt at no cost. The standards are vendor-neutral; nothing needs to be purchased to use them.
+- **Partnership and implementation support.** We partner across healthcare, behavioral health, community-based, and technology settings to embed these tools into the systems people already use — providing subject-matter expertise, training, and technical assistance, and helping partners strengthen suicide-safer care over time.
+
+We organize the work around an **8-stage Suicide Safer Care Pathway** so that implementations support the full longitudinal journey of a patient at risk — not just a single screen.
 
 ## How SPiER works
 

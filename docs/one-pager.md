@@ -1,6 +1,6 @@
 # SPiER — Suicide Prevention in Electronic Health Records
 
-**A non-profit standards effort making suicide-safer-care data portable across every system a patient touches.**
+**Making suicide-safer care the standard everywhere — by making suicide-safer-care data portable across every system a patient touches.**
 
 ---
 
@@ -10,13 +10,13 @@ SPiER is translating the research-validated suicide prevention tools clinicians 
 
 We organize this work around an **8-stage Suicide Safer Care Pathway** — from flagging risk through safety planning, care transitions, follow-up, and population measurement — so that an implementation supports the whole longitudinal journey of a patient at risk, not just a single screen.
 
-**We're not selling any of it.** SPiER gives the field open Implementation Guides, FHIR profiles, value sets, and reference examples — and vendors adopt these standards for free. There's no product to buy and no service to subscribe to.
+**The standards are free and open.** SPiER gives the field open Implementation Guides, FHIR profiles, value sets, and reference examples that vendors adopt at no cost — nothing needs to be purchased to use them. Alongside the standards, SPiER partners with organizations to embed and implement these tools, providing subject-matter expertise, training, and technical assistance, and helping them strengthen suicide-safer care over time.
 
 ## Who's behind it — and why that matters
 
-SPiER is a **non-profit standards effort, not a market participant.** We don't sell an EHR, an integration engine, or a screening product — so we have no stake in any one vendor winning. That independence is what lets us define a *neutral* canonical shape for suicide-care data: one no vendor owns and every vendor can adopt for free.
+SPiER is led by **Kelly Samuelson, MSW, LADC**, and built by a team with deep roots in the **Zero Suicide** movement, working as its technology-enablement counterpart. Where Zero Suicide defines the clinical and organizational framework for suicide-safer care, SPiER builds the data-standards layer that lets that model actually travel between systems.
 
-SPiER is built by a team with deep roots in the **Zero Suicide** movement, and works as its technology-enablement counterpart: where Zero Suicide defines the clinical and organizational framework for suicide-safer care, SPiER builds the data-standards layer that lets that model actually travel between systems.
+The standards themselves are **vendor-neutral**: SPiER doesn't sell an EHR, an integration engine, or a screening product, so no vendor owns the canonical shape for suicide-care data and every vendor can adopt it for free.
 
 ## Why interoperability is a blocker to care
 
