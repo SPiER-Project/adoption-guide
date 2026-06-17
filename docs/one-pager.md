@@ -26,11 +26,15 @@ National standards like **US Core** and **USCDI** cover demographics, diagnoses,
 
 > A patient screened with the ASQ in an ED, assessed with the Columbia, and discharged with a Stanley-Brown Safety Plan is too often re-screened from scratch at an outpatient clinic 48 hours later. The next clinician should be able to see what's already been done — and pick up where the ED left off.
 
-## What we provide — two layers
+## What we provide — Capture → Translate → Act
 
-1. **Implementation Guides for specific tools.** A canonical FHIR shape for each validated instrument, so the ASQ (or Columbia, or Stanley-Brown) is captured and exchanged identically everywhere it's used.
+Everything that matters in suicide prevention currently lives only in human-readable form. SPiER makes each layer machine-actionable, in three steps that build on each other:
 
-2. **A normalization layer *between* tools.** Partners don't all use the same instruments — one site screens with the ASQ, another with the Columbia, another with PHQ-9 Item 9. SPiER defines a harmonized, instrument-agnostic **concept layer** — a common suicide-risk representation that every tool maps *into* — so a receiving system can act on a result **without having to run the same tool that produced it.** This mirrors the approach HL7's Gravity Project took for social determinants of health (SDOH) screening.
+1. **Capture.** A canonical FHIR shape for each validated instrument, so the ASQ (or Columbia, or Stanley-Brown) is captured and exchanged identically everywhere it's used.
+
+2. **Translate.** Partners don't all use the same instruments — one site screens with the ASQ, another with the Columbia, another with PHQ-9 Item 9. SPiER defines a harmonized, instrument-agnostic **concept layer** — a common suicide-risk representation that every tool maps *into* — so a receiving system can act on a result **without having to run the same tool that produced it.** This mirrors the approach HL7's Gravity Project took for social determinants of health (SDOH) screening.
+
+3. **Act.** The clinical response to a positive screen already exists as endorsed, written protocol — it just can't fire on its own. SPiER encodes it as executable logic (`PlanDefinition` + CDS Hooks) so the right next step surfaces at the right moment. It's an *encoding* problem, not a *consensus* problem. SPiER recommends; the clinician decides.
 
 ## What turns this into standard practice
 

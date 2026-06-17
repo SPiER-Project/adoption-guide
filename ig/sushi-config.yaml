@@ -21,12 +21,15 @@ releaseLabel: ci-build
 
 description: >-
   A FHIR-native reference implementation of the suicide-safer care pathway,
-  developed in alignment with the Zero Suicide framework. SPiER models the
-  eight technical stages of suicide-safer care (Flag Risk through Measure and
-  Share) as FHIR PlanDefinitions, ActivityDefinitions, and supporting
-  resources, with the goal of giving EHR vendors and health systems
-  lift-able artifacts that demonstrate what suicide-prevention pathway
-  conformance looks like in practice.
+  developed in alignment with the Zero Suicide framework. SPiER makes each
+  layer of suicide prevention machine-actionable across three steps: Capture
+  (validated instruments as FHIR Questionnaires), Translate (an
+  instrument-agnostic suicide-risk concept that every tool maps into), and Act
+  (PlanDefinitions and ActivityDefinitions that turn the already-settled
+  response protocol into executable recommendations) — modeling the eight
+  technical stages from Flag Risk through Measure and Share. The goal is to
+  give EHR vendors and health systems lift-able artifacts that demonstrate
+  what suicide-prevention pathway conformance looks like in practice.
 
 license: CC0-1.0
 

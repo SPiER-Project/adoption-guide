@@ -4,25 +4,27 @@
 
 ## Mission
 
-**SPiER's mission is to make suicide-safer care the standard everywhere.** Front-line professionals encounter people at risk every day, but the tools and supports for suicide-safer care often aren't built into the systems they rely on — so critical opportunities for care get missed. SPiER exists to close that gap, in two complementary ways:
+**SPiER's mission is to make suicide-safer care the standard everywhere.** Front-line professionals encounter people at risk every day, but the tools and supports for suicide-safer care often aren't built into the systems they rely on — so critical opportunities for care get missed.
 
-- **Free, open standards.** We translate research-validated suicide-prevention tools out of paper and PDF into structured, interoperable **HL7 FHIR** artifacts — Implementation Guides, profiles, and value sets — that any EHR or health system can adopt at no cost. The standards are vendor-neutral; nothing needs to be purchased to use them.
-- **Partnership and implementation support.** We partner across healthcare, behavioral health, community-based, and technology settings to embed these tools into the systems people already use — providing subject-matter expertise, training, and technical assistance, and helping partners strengthen suicide-safer care over time.
+The reason is that everything that matters in suicide prevention currently lives only in human-readable form — validated screeners on paper, the equivalences between different tools in clinicians' heads, response protocols in plain-text guidelines. SPiER closes that gap by making each layer machine-actionable, in three steps that build on each other:
+
+- **Capture** — translate validated tools (the **ASQ**, **C-SSRS**, **Stanley-Brown Safety Plan**, and others) out of paper and PDF into a single canonical FHIR shape (`Questionnaire` / `QuestionnaireResponse`), so each instrument is recorded identically in every system that uses it.
+- **Translate** — define a shared, instrument-agnostic suicide-risk concept that every tool maps *into*, so a receiving system can act on a result **without having to run the same tool that produced it**. This mirrors the approach HL7's Gravity Project took for social-determinants screening.
+- **Act** — encode the already-settled response protocols as executable logic (`PlanDefinition` + CDS Hooks), so the right next step surfaces at the right moment. SPiER recommends; the clinician decides.
 
 We organize the work around an **8-stage Suicide Safer Care Pathway** so that implementations support the full longitudinal journey of a patient at risk — not just a single screen.
 
+**How we deliver it.** The standards are **free, open, and vendor-neutral** — Implementation Guides, FHIR profiles, and value sets that any EHR or health system can adopt at no cost, with no vendor owning the canonical shape. Alongside the standards, SPiER partners across healthcare, behavioral health, community-based, and technology settings to embed these tools into the systems people already use, providing subject-matter expertise, training, and technical assistance.
+
 ## How SPiER works
 
-SPiER takes research-validated suicide prevention tools — the **ASQ** screener, the **Columbia Suicide Severity Rating Scale**, the **Stanley-Brown Safety Plan**, and others — and turns them into structured, machine-readable forms that any EHR or health system can implement the same way.
+The three steps are a dependency chain, and a roadmap: you can't translate a result you never captured in a structured way, and you can't automate a response to a risk tier you can't compute.
 
-The work has two halves that meet in the middle:
+- **Capture** is the most mature: National standards like US Core and USCDI cover the basics — demographics, diagnoses, medications — but don't yet specify *how* suicide screeners, risk assessments, and safety plans should be captured. SPiER fills that gap, translating each tool into a canonical FHIR shape and contributing it to the existing HL7 workgroups, paired with a coalition of provider organizations who can collectively *demand* that consistency from their EHR vendors.
+- **Translate** is the differentiator: partners don't all use the same instruments, and a result is useless to a system that can't read the instrument behind it. The harmonized concept layer — a common risk tier on a generic LOINC — is screening-level and *unconfirmed*, always linked back to the full-fidelity capture, and is SPiER's most contributable standards artifact.
+- **Act** is the frontier: it's an *encoding* problem rather than a *consensus* problem, because the protocol content is already endorsed. The clinician or the institution's configured policy acts; SPiER delivers the right recommendation at the right moment.
 
-- **EHR side (capture):** National standards like US Core and USCDI cover the basics — demographics, diagnoses, medications — but don't yet specify *how* suicide screeners, risk assessments, and safety plans should be captured. SPiER fills that gap by translating each tool into a single canonical FHIR shape and contributing it to the existing HL7 workgroups already shaping clinical data standards. In parallel, we build a coalition of provider organizations who can collectively *demand* that consistency from their EHR vendors.
-- **HIE side (exchange):** EHRs hold the data; Health Information Exchanges move it between organizations. A safety plan written in an emergency department is only useful if the patient's next clinician can actually see it. So our work with HIEs is about making suicide-safer-care data *findable and shareable* across organizations — not just locked in the chart that first created it.
-
-The common entry point for every partner conversation — EHR vendor, HIE, or other — is the 8-stage Suicide Safer Care Pathway below. We ask which stages a partner supports today, and where the gaps are. The artifacts SPiER produces plug in at different points depending on the partner, but the underlying model doesn't change.
-
-**Why this matters.** A patient screened with the ASQ in an ED, assessed with the Columbia Scale, and discharged with a Stanley-Brown Safety Plan is often re-screened from scratch when they show up at an outpatient clinic 48 hours later. With SPiER's standards work and HIE work in place, the next clinician can see what's already been done — what screener, what risk level, what coping strategies the patient identified — and pick up where the ED left off. The same standardized data also gives systems a foundation for measurement and quality improvement at the population level.
+**Why this matters.** Captured, translated, and made actionable, a patient's safety information can travel across systems — EHRs hold the data, Health Information Exchanges move it between organizations — and be available wherever the patient shows up next. A patient screened with the ASQ in an ED, assessed with the Columbia Scale, and discharged with a Stanley-Brown Safety Plan is often re-screened from scratch at an outpatient clinic 48 hours later. With SPiER's work in place, the next clinician can see what's already been done — what screener, what risk level, what coping strategies the patient identified — and pick up where the ED left off. The same standardized data also gives systems a foundation for measurement and quality improvement at the population level.
 
 ## The SPiER Pathway
 1.  **Flag Risk:** Capture suicide-related signals (e.g., ASQ, PHQ-9 Item 9).
