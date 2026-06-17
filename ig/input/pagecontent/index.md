@@ -16,10 +16,11 @@ A FHIR-native reference implementation of the suicide-safer care pathway, develo
 
 ## What's in this guide
 
-SPiER models the screening instruments and the eight technical stages of suicide-safer care as FHIR `Questionnaire`, `Observation`, `CarePlan`, `PlanDefinition`, and `ActivityDefinition` resources. It works in **two layers**:
+SPiER models the screening instruments and the eight technical stages of suicide-safer care as FHIR `Questionnaire`, `Observation`, `CarePlan`, `PlanDefinition`, and `ActivityDefinition` resources. The guiding idea is that everything that matters in suicide prevention currently lives only in human-readable form, and SPiER's job is to make each layer machine-actionable — **Capture → Translate → Act**:
 
-- **Capture layer** — instrument-specific profiles (ASQ, C-SSRS, PHQ-9, SBQ-R, Stanley-Brown, CAMS) with their native LOINC/SNOMED coding, in full fidelity.
-- **Concept layer** — a single, instrument-agnostic *suicide-risk tier* (carried on the generic LOINC `93374-7`) that every instrument maps into, so a downstream system can consume a result without understanding the originating tool. See [How to Read This Guide](how-to-read.html#two-layer-model).
+- **Capture** — instrument-specific profiles (ASQ, C-SSRS, PHQ-9, SBQ-R, Stanley-Brown, CAMS) modeled as `Questionnaire` / `QuestionnaireResponse` with their native LOINC/SNOMED coding, in full fidelity. This is the **capture layer**.
+- **Translate** — a single, instrument-agnostic *suicide-risk tier* (carried on the generic LOINC `93374-7`) that every instrument maps into, so a downstream system can consume a result without understanding the originating tool. This is the **concept layer**; see [How to Read This Guide](how-to-read.html#capture-translate-act).
+- **Act** — `PlanDefinition` and `ActivityDefinition` that turn the already-settled clinical response into executable recommendations. SPiER recommends the next step; the clinician (or the institution's configured policy) decides.
 
 ## Who this is for
 

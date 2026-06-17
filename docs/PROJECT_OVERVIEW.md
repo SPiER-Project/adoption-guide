@@ -3,46 +3,39 @@
 ## Mission
 SPiER's mission is to make suicide-safer care the standard everywhere. It translates research-validated suicide prevention tools from paper-based formats into structured, interoperable healthcare data standards (e.g., HL7 FHIR). This makes these high-quality tools easily accessible to EHR vendors and healthcare systems to improve the identification, assessment, and management of suicide risk. The standards SPiER produces are free, open, and vendor-neutral — vendors adopt them at no cost, and no vendor owns the canonical shape. Alongside the standards, SPiER partners with organizations to embed and implement these tools, providing subject-matter expertise, training, and technical assistance.
 
-## How SPiER's Work Connects to HL7 Standards
+## How SPiER works: Capture → Translate → Act
 
-HL7 is the standards body that defines how healthcare data is structured and exchanged (FHIR is their modern standard). National standards like **US Core** and **USCDI** already cover the basics — demographics, diagnoses, medications — but they don't yet specify *how* suicide screeners, risk assessments, and safety plans should be captured. That's the gap SPiER fills.
+Everything that matters in suicide prevention currently lives only in human-readable form — validated screeners on paper, the equivalences between different tools in clinicians' heads, response protocols in plain-text guidelines. SPiER makes each layer machine-actionable, in three steps that build on each other. They are a dependency chain, and a roadmap: you can't translate a result you never captured in a structured way, and you can't automate a response to a risk tier you can't compute.
 
-Today, every EHR captures suicide risk information a little differently — same questions, different shapes. That makes the data hard to share, hard to measure, and hard to act on.
+### Capture — make the tools writable
 
-SPiER's work has two halves:
+HL7 is the standards body that defines how healthcare data is structured and exchanged (FHIR is their modern standard). National standards like **US Core** and **USCDI** already cover the basics — demographics, diagnoses, medications — but they don't yet specify *how* suicide screeners, risk assessments, and safety plans should be captured. Today every EHR captures that information a little differently — same questions, different shapes — which makes the data hard to share, hard to measure, and hard to act on. That's the gap SPiER fills.
 
-- **Standards side:** Translate each tool (ASQ, Columbia, Stanley-Brown, and others) into a single canonical FHIR shape, and contribute that work to the existing HL7 workgroups already shaping clinical data standards. The path is **draft → test with partners → contribute to HL7 → influence the published standard.**
-- **Provider side:** Build a coalition of provider organizations who can collectively *demand* this consistency from their EHR vendors. Standards work alone is slow; standards plus a clear customer ask is what drives adoption nationwide.
+SPiER translates each tool (ASQ, Columbia, Stanley-Brown, and others) into a single canonical FHIR shape — a `Questionnaire` and its `QuestionnaireResponse` — and contributes that work to the existing HL7 workgroups already shaping clinical data standards. The path is **draft → test with partners → contribute to HL7 → influence the published standard**, paired with a coalition of provider organizations who can collectively *demand* this consistency from their EHR vendors. Standards work alone is slow; standards plus a clear customer ask is what drives adoption nationwide.
 
-## How the HIE Work Connects to the EHR Work
+### Translate — make different tools mutually intelligible
 
-EHRs hold the data; **Health Information Exchanges (HIEs) move it between organizations.** A safety plan written in an emergency department is only useful if the patient's outpatient provider, crisis line, or next ED visit can actually see it. The HIE work is the second half of the same workstream:
+Partners do not all use the same instruments. One site screens with the ASQ, another with the Columbia (C-SSRS), another with PHQ-9 Item 9 — and some instruments (ASQ item-level) have no published LOINC codes at all. A receiving system shouldn't have to understand every tool to act on a result. SPiER therefore separates the **capture layer** (every question and answer, in high fidelity, coded to instrument-specific LOINC/SNOMED — what `assessment-to-ig` and `fhir-questionnaire-quality` already produce and police) from an instrument-agnostic **concept layer**: a lower-fidelity but universally consumable summary — *"positive screen, this severity tier, this date"* — that every instrument maps **into**, derived from the capture layer and linked back to it.
 
-- **With EHR vendors:** make sure suicide-safer-care data is *captured* in a standard shape.
-- **With HIEs:** make sure that data is *findable and shareable* across organizations.
+This mirrors HL7's **Gravity Project**, which harmonized ~135 SDOH screening instruments to a common set of coded concepts, and rides on **HL7 SDC** extraction mechanics. The concept layer is where a "translation layer to a universally known code set" actually lives: a single common suicide-risk-tier ValueSet, carried on a generic LOINC (`93374-7` "Suicide risk level") with a universal `interpretation` flag, populated from each instrument via a portable FHIR ConceptMap/StructureMap. Lower-fidelity instruments map to the widest defensible tier — the layer never fabricates precision it doesn't have, and the derived concept is treated as an *unconfirmed* screen warranting follow-up, not a diagnosis.
 
-**Toward a repeatable workstream across partner types.** The common entry point for every partner conversation is the 8-stage Suicide Safer Care Pathway (below). Whether the partner is an EHR, an HIE, or another vendor, the opening rubric is the same: *which of these stages do you support today, and where are the gaps?* The specific FHIR artifacts SPiER produces plug in at different points depending on the partner, but the underlying model doesn't change. We are not yet at a turnkey playbook — each engagement still teaches us something — but the pattern is consolidating.
+This asset is also SPiER's most contributable standards artifact. The path is **build it in-IG → prove it in the Big Sky Care Connect pilot → contribute to an HL7 Work Group (Behavioral Health / Patient Care)**, with a standalone harmonization IG as a stage-2 ambition contingent on pilot traction. See `docs/best-practices/concept-harmonization.md` and the `concept-harmonization` skill for the conformance rules.
+
+### Act — make the response protocols executable
+
+The clinical response to a positive screen already exists as endorsed, written protocol — it just can't fire on its own. SPiER encodes it as executable logic (`PlanDefinition` + CDS Hooks) so the right next step surfaces at the right moment: an acute-positive ASQ prompts a safety evaluation and a safety plan; a transition prompts a caring-contact follow-up. This is the frontier of the work, and notably an *encoding* problem rather than a *consensus* problem, because the protocol content is already settled. Throughout, **SPiER recommends; the clinician (or the institution's configured policy) decides.**
 
 ## Why This Matters for Suicide-Safer Care Transitions
 
-A patient at risk of suicide moves through many hands: ED, inpatient, outpatient, primary care, crisis line, community provider. Today, the safety plan and risk assessment too often stay behind with the system that created them.
+A patient at risk of suicide moves through many hands: ED, inpatient, outpatient, primary care, crisis line, community provider. Today, the safety plan and risk assessment too often stay behind with the system that created them. EHRs hold the data; **Health Information Exchanges (HIEs) move it between organizations** — but exchange is only meaningful once the data is captured in a standard shape, translated into a concept any system can read, and tied to a clear next action.
 
-When SPiER's standards work and HIE work come together, **the patient's safety information becomes available wherever they show up next — not just locked in the chart that first created it.**
+When all three come together, **the patient's safety information becomes available wherever they show up next — not just locked in the chart that first created it.**
 
 **A concrete example.** A patient is screened with the ASQ in an emergency department, assessed with the Columbia Scale, and discharged with a Stanley-Brown Safety Plan. Forty-eight hours later, they are seen by an outpatient clinician at a different organization. Today, that clinician usually starts from scratch — re-screens, re-asks, re-builds the plan. With SPiER's work in place, the clinician can see what's already been done — what screener, what risk level, what coping strategies and supports the patient already identified — and pick up where the ED left off.
 
 The same standardized data also gives systems a foundation for measuring whether the pathway is working — a path to quality improvement at the population level.
 
-## The Concept Layer: Cross-Instrument Harmonization
-
-Partners do not all use the same instruments. One site screens with the ASQ, another with the Columbia (C-SSRS), another with PHQ-9 Item 9 — and some instruments (ASQ item-level) have no published LOINC codes at all. A receiving system shouldn't have to understand every tool to act on a result. SPiER therefore works in **two layers**:
-
-- **Capture layer (instrument):** every question and answer, in high fidelity, coded to instrument-specific LOINC/SNOMED. This is what `assessment-to-ig` and `fhir-questionnaire-quality` already produce and police.
-- **Concept layer (harmonized):** an instrument-agnostic, lower-fidelity but universally consumable summary — *"positive screen, this severity tier, this date"* — that every instrument maps **into**, derived from the capture layer and linked back to it.
-
-This mirrors HL7's **Gravity Project**, which harmonized ~135 SDOH screening instruments to a common set of coded concepts, and rides on **HL7 SDC** extraction mechanics. The concept layer is where a "translation layer to a universally known code set" actually lives: a single common suicide-risk-tier ValueSet, carried on a generic LOINC (`93374-7` "Suicide risk level") with a universal `interpretation` flag, populated from each instrument via a portable FHIR ConceptMap/StructureMap. Lower-fidelity instruments map to the widest defensible tier — the layer never fabricates precision it doesn't have, and the derived concept is treated as an *unconfirmed* screen warranting follow-up, not a diagnosis.
-
-This asset is also SPiER's most contributable standards artifact. The path is **build it in-IG → prove it in the Big Sky Care Connect pilot → contribute to an HL7 Work Group (Behavioral Health / Patient Care)**, with a standalone harmonization IG as a stage-2 ambition contingent on pilot traction. See `docs/best-practices/concept-harmonization.md` and the `concept-harmonization` skill for the conformance rules.
+**Toward a repeatable workstream across partner types.** The common entry point for every partner conversation is the 8-stage Suicide Safer Care Pathway (below). Whether the partner is an EHR, an HIE, or another vendor, the opening rubric is the same: *which of these stages do you support today, and where are the gaps?* The specific FHIR artifacts SPiER produces plug in at different points depending on the partner, but the underlying model doesn't change. We are not yet at a turnkey playbook — each engagement still teaches us something — but the pattern is consolidating.
 
 ## The 8-Stage Suicide Safer Care Pathway
 We have adopted a standardized 8-stage model for suicide prevention in EHRs, ensuring that clinical workflows are supported from the first signal to the final resolution.

@@ -21,16 +21,21 @@ Each profile (e.g. *SPiER ASQ Screening Result Observation*) shows the base reso
 - **`draft` / `experimental`** — every SPiER profile currently carries these flags. They are correct for a pre-publication IG and signal that definitions may still change; plan for it.
 - **Must-Support** — not yet flagged on SPiER profiles. Formal Must-Support (which elements a producer must populate and a consumer must process) is being added next; see [Conformance](conformance.html).
 
-## The two-layer model {#two-layer-model}
+<a id="two-layer-model"></a>
 
-SPiER deliberately separates **capture** from **concept**:
+## The Capture → Translate → Act model {#capture-translate-act}
 
-| Layer | What it holds | Coding | Fidelity |
+SPiER's organizing idea is that every layer of suicide prevention currently lives only in human-readable form, and the job is to make each one machine-actionable. The artifacts fall into three steps that build on each other:
+
+| Step | What it holds | FHIR artifacts | Coding / fidelity |
 |---|---|---|---|
-| **Capture** (per instrument) | Every question and answer | Instrument LOINC / SNOMED, local item codes | High |
-| **Concept** (harmonized) | "Positive screen, this severity tier, this date" | One common suicide-risk tier on generic LOINC `93374-7` | Lower, universally consumable |
+| **Capture** (per instrument) | Every question and answer | `Questionnaire` / `QuestionnaireResponse`, instrument profiles | Instrument LOINC / SNOMED, local item codes — high fidelity |
+| **Translate** (harmonized) | "Positive screen, this severity tier, this date" | derived `Observation`, `ConceptMap` / `StructureMap` | One common suicide-risk tier on generic LOINC `93374-7` — lower, universally consumable |
+| **Act** (response) | "Given that tier, recommend this next step" | `PlanDefinition`, `ActivityDefinition`, CDS Hooks | Encodes already-settled protocol; recommends, does not decide |
 
-The concept layer is **derived from** the capture layer and linked back via `Observation.derivedFrom` — it never replaces it. Instruments with a coded disposition (ASQ, C-SSRS) map via **ConceptMaps**; score-based instruments (PHQ-9 Item 9, SBQ-R) map via **StructureMaps**. The derived concept is a **screening-level, unconfirmed** signal — it flags a need for follow-up, not a diagnosis. This pattern is modeled on the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and [SDC](https://hl7.org/fhir/uv/sdc/).
+**Capture** and **Translate** are the historical "two-layer model": the Translate (concept) layer is **derived from** the Capture layer and linked back via `Observation.derivedFrom` — it never replaces it. Instruments with a coded disposition (ASQ, C-SSRS) map via **ConceptMaps**; score-based instruments (PHQ-9 Item 9, SBQ-R) map via **StructureMaps**. The derived concept is a **screening-level, unconfirmed** signal — it flags a need for follow-up, not a diagnosis. This pattern is modeled on the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and [SDC](https://hl7.org/fhir/uv/sdc/).
+
+**Act** is the newest and least-built step. It is an *encoding* problem rather than a *consensus* problem — the clinical response to a given risk tier is already endorsed in guidelines; SPiER's contribution is rendering it as executable logic so the right recommendation surfaces at the right moment. The clinician, or the institution's configured policy, remains the decision-maker.
 
 ## Clinical primer (for non-clinical engineers) {#clinical-primer}
 

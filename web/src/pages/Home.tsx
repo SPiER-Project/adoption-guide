@@ -11,49 +11,60 @@ export function Home() {
           Setting Priorities for technology-enabled suicide-safer care in Electronic Records
         </p>
         <p className="spier-description">
-          A FHIR-native reference implementation of a suicide prevention pathway. SPiER demonstrates
-          to EHR vendors and health-system admins what a configured implementation can look like &mdash;
-          and provides the code to execute on it. Its mission is to make suicide-safer care the standard
-          everywhere. The artifacts are free and open for vendors to adopt at no cost, and SPiER partners
-          with organizations to embed and implement these tools in the systems they already use.
+          A FHIR-native reference implementation of the suicide-safer care pathway. SPiER&rsquo;s mission is to
+          make suicide-safer care the standard everywhere &mdash; and the tools to do it already exist.
+          Validated screeners, risk assessments, safety plans, and response protocols live on paper, in PDFs,
+          and in plain-text guidelines that no EHR can act on. SPiER makes each layer machine-actionable,
+          shows EHR vendors and health-system admins what a configured implementation looks like, and
+          provides the code to execute on it. The artifacts are free and open to adopt at no cost.
         </p>
       </div>
 
       <section className="how-it-works">
         <h3 className="how-it-works__title">How SPiER works</h3>
         <p className="how-it-works__lead">
-          SPiER is turning research-validated suicide prevention tools &mdash; the <strong>ASQ</strong> screener,
-          the <strong>Columbia Suicide Severity Rating Scale</strong>, the <strong>Stanley-Brown Safety Plan</strong>,
-          and others &mdash; into structured, machine-readable forms that any EHR or health
-          system can implement the same way.
+          Everything that matters in suicide prevention currently lives only in human-readable form. SPiER&rsquo;s
+          work is to encode each layer so software can act on it &mdash; in three steps that build on each other:{' '}
+          <strong>Capture &rarr; Translate &rarr; Act</strong>.
         </p>
         <div className="how-it-works__grid">
           <div className="how-it-works__card">
-            <h4>Standards (HL7)</h4>
+            <span className="how-it-works__step">Step 1</span>
+            <h4>Capture</h4>
             <p>
-              US Core and USCDI cover the basics, but don't specify <em>how</em> suicide screeners,
-              risk assessments, and safety plans should be captured. SPiER fills that gap by
-              translating each tool into a canonical FHIR shape and contributing it to existing
-              HL7 workgroups.
+              Validated tools &mdash; the <strong>ASQ</strong> screener, the{' '}
+              <strong>Columbia Suicide Severity Rating Scale</strong>, the <strong>Stanley-Brown Safety Plan</strong>{' '}
+              &mdash; live on paper and in PDFs. SPiER turns each into a single canonical FHIR shape (a{' '}
+              <code>Questionnaire</code>) so it&rsquo;s recorded identically in every system that uses it.
             </p>
           </div>
           <div className="how-it-works__card">
-            <h4>Exchange (HIEs)</h4>
+            <span className="how-it-works__step">Step 2</span>
+            <h4>Translate</h4>
             <p>
-              EHRs hold the data; Health Information Exchanges move it between organizations.
-              SPiER's HIE work makes suicide-safer-care data findable and shareable across the
-              systems a patient actually moves through.
+              Different sites use different tools, and a result is useless to a system that can&rsquo;t read the
+              instrument behind it. SPiER defines a shared, instrument-agnostic risk concept that every tool maps
+              into &mdash; so a receiving system can act on a result <em>without running the same tool</em>. It&rsquo;s
+              the approach HL7&rsquo;s Gravity Project took for social-determinants screening.
             </p>
           </div>
           <div className="how-it-works__card">
-            <h4>Care transitions</h4>
+            <span className="how-it-works__step">Step 3</span>
+            <h4>Act</h4>
             <p>
-              When standards and exchange come together, the patient's safety information is
-              available wherever they show up next &mdash; so the next clinician can pick up
-              where the last one left off, instead of starting from scratch.
+              The response protocols already exist as written guidelines &mdash; they just can&rsquo;t fire on
+              their own. SPiER encodes them as executable logic (<code>PlanDefinition</code> + CDS Hooks) so the
+              right next step surfaces at the right moment. SPiER recommends; the clinician decides.
             </p>
           </div>
         </div>
+        <p className="how-it-works__payoff">
+          <strong>Why it matters.</strong> Captured once, translated into a shared concept, and made actionable,
+          a patient&rsquo;s safety information can travel across systems and be available wherever they show up
+          next. A patient screened with the ASQ in an emergency department and discharged with a safety plan
+          shouldn&rsquo;t be re-screened from scratch at an outpatient clinic 48 hours later &mdash; the next
+          clinician should pick up where the last one left off.
+        </p>
       </section>
 
       <div className="lens-grid">

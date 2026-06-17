@@ -91,6 +91,16 @@
     border-left: 3px solid var(--brand-accent);
 }
 
+.how-it-works__step {
+    display: inline-block;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--brand-accent);
+    margin-bottom: 0.35rem;
+}
+
 .how-it-works__card h4 {
     color: var(--brand-primary);
     margin: 0 0 0.5rem 0;
@@ -102,6 +112,24 @@
     margin: 0;
     font-size: var(--font-size-md);
     line-height: 1.55;
+}
+
+.how-it-works__card code {
+    font-size: var(--font-size-sm);
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.05em 0.35em;
+    border-radius: var(--radius-sm);
+}
+
+.how-it-works__payoff {
+    color: var(--text-body);
+    font-size: var(--font-size-md);
+    line-height: 1.6;
+    margin: 0;
+    padding: var(--space-4);
+    background: var(--surface-muted, rgba(0, 0, 0, 0.025));
+    border-radius: var(--radius-lg);
+    border-left: 3px solid var(--brand-primary);
 }
 
 /* ===========================
