@@ -115,7 +115,7 @@
 }
 
 .how-it-works__card code {
-    font-size: 0.9em;
+    font-size: var(--font-size-sm);
     background: rgba(0, 0, 0, 0.05);
     padding: 0.05em 0.35em;
     border-radius: var(--radius-sm);
