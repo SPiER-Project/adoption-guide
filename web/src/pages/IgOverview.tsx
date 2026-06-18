@@ -13,6 +13,13 @@ export function IgOverview() {
           three steps that build on each other:{' '}
           <strong>Capture &rarr; Translate &rarr; Act</strong>.
         </p>
+        <p className="ig-overview__note">
+          This <strong>Adoption Guide</strong> shows how to adopt SPiER and see it running. For the normative
+          spec &mdash; profiles, value sets, and canonical Questionnaires &mdash; see the{' '}
+          <a href={`${import.meta.env.BASE_URL}ig/`} target="_blank" rel="noopener noreferrer">
+            published HL7 FHIR Implementation Guide
+          </a>.
+        </p>
       </section>
 
       <section className="ig-overview__section">

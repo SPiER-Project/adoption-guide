@@ -15,7 +15,7 @@ export function ImplementationGuide() {
   return (
     <div className="implementation-guide">
       <header className="ig-header">
-        <h2 className="ig-title">Implementation Guide</h2>
+        <h2 className="ig-title">Adoption Guide</h2>
         <nav className="ig-tabs">
           {TABS.map(tab => (
             <NavLink

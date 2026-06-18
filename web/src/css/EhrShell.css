@@ -33,17 +33,16 @@
 
 .ehr-brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.6rem;
   text-decoration: none;
   color: white;
 }
 
-.ehr-brand h1 {
-  margin: 0;
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+.ehr-brand-logo {
+  height: 26px;
+  width: auto;
+  /* wordmark fill follows currentColor (white) from .ehr-brand */
 }
 
 .ehr-brand-subtitle {

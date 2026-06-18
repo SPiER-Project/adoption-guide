@@ -1,9 +1,53 @@
+/* ===========================
+   Standalone portal chrome
+   (front door lives outside the EHR shell, so it brings its own
+   lightweight header/footer instead of inheriting EhrShell's)
+   =========================== */
+.portal {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-page);
+}
+
+.portal-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    padding: var(--space-4) var(--space-6);
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.portal-logo {
+    height: 30px;
+    width: auto;
+    color: var(--brand-primary); /* drives the wordmark fill via currentColor */
+}
+
+.portal-brand-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.portal-footer {
+    margin-top: auto;
+    padding: var(--space-5) var(--space-6);
+    background: var(--brand-primary-deep);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: var(--font-size-sm);
+    text-align: center;
+}
+
 .home-container {
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
     max-width: 900px;
     margin: 0 auto;
+    padding: var(--space-7) var(--space-6);
+    width: 100%;
 }
 
 .hero-section {
@@ -141,9 +185,9 @@
     gap: var(--space-5);
 }
 
-@media (min-width: 900px) {
+@media (min-width: 640px) {
     .lens-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -166,6 +210,7 @@
     box-shadow: var(--shadow-xl);
 }
 
+.lens-card--ig { border-top-color: var(--brand-primary); }
 .lens-card--guide { border-top-color: var(--accent-info); }
 .lens-card--patient { border-top-color: var(--brand-accent); }
 .lens-card--population { border-top-color: var(--text-faint); }
@@ -201,6 +246,7 @@
     color: var(--accent-info);
 }
 
+.lens-card--ig .lens-card-cta { color: var(--brand-primary); }
 .lens-card--patient .lens-card-cta { color: var(--brand-accent); }
 .lens-card--population .lens-card-cta { color: var(--text-muted); }
 

@@ -1,9 +1,21 @@
 import { Link } from 'react-router-dom'
+import { SpierLogo } from '../components/SpierLogo'
 import '../css/Home.css'
+
+// The published HL7 IG is a sibling static site (web/dist/ig/), not a hash route —
+// link to it with a plain anchor built from the Vite base path. Resolves to
+// `/SPiER/ig/` in the production build and `/ig/` in local dev (not served by `npm run dev`).
+const IG_HREF = `${import.meta.env.BASE_URL}ig/`
 
 export function Home() {
   return (
-    <div className="home-container">
+    <div className="portal">
+      <header className="portal-header">
+        <SpierLogo className="portal-logo" />
+        <span className="portal-brand-subtitle">Suicide Prevention in Electronic Records</span>
+      </header>
+
+      <div className="home-container">
       <div className="hero-section">
         <h2 className="spier-title">SPiER</h2>
         <div className="accent-line"></div>
@@ -68,19 +80,29 @@ export function Home() {
       </section>
 
       <div className="lens-grid">
-        <Link to="/implementation-guide" className="lens-card lens-card--guide">
-          <div className="lens-card-badge">Lens 1</div>
+        <a href={IG_HREF} target="_blank" rel="noopener noreferrer" className="lens-card lens-card--ig">
+          <div className="lens-card-badge">Specification</div>
           <h3>Implementation Guide</h3>
           <p>
-            The 8-stage suicide-safer care pathway, a data dictionary for the FHIR resources it
-            produces, an adoption-readiness matrix and EHR adoption rubric, a configurable Tool
+            The published HL7 FHIR Implementation Guide &mdash; the normative spec: profiles,
+            value sets, code systems, and canonical Questionnaires for suicide-safer care.
+          </p>
+          <span className="lens-card-cta">Open the HL7 IG &rarr;</span>
+        </a>
+
+        <Link to="/implementation-guide" className="lens-card lens-card--guide">
+          <div className="lens-card-badge">Adopt</div>
+          <h3>Adoption Guide</h3>
+          <p>
+            How to adopt SPiER and see it running: the 8-stage suicide-safer care pathway, a data
+            dictionary, an adoption-readiness matrix and EHR adoption rubric, a configurable Tool
             Configuration that drives the Patient View, and a public roadmap.
           </p>
           <span className="lens-card-cta">Explore the guide &rarr;</span>
         </Link>
 
         <Link to="/population" className="lens-card lens-card--population">
-          <div className="lens-card-badge">Lens 2</div>
+          <div className="lens-card-badge">Demo</div>
           <h3>Population View</h3>
           <p>
             A behavioral-health counselor's caseload &mdash; 10 sample patients spanning every
@@ -91,7 +113,7 @@ export function Home() {
         </Link>
 
         <Link to="/patient/chart" className="lens-card lens-card--patient">
-          <div className="lens-card-badge">Lens 3</div>
+          <div className="lens-card-badge">Demo</div>
           <h3>Patient View</h3>
           <p>
             One patient's chart, organized around the 8-stage pathway: a visual stage tracker,
@@ -101,6 +123,11 @@ export function Home() {
           <span className="lens-card-cta">Open the chart &rarr;</span>
         </Link>
       </div>
+      </div>
+
+      <footer className="portal-footer">
+        <span>SPiER &mdash; Setting priorities for technology-enabled suicide-safer care</span>
+      </footer>
     </div>
   )
 }

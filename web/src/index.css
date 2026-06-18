@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
 
 /* ============================================================
    Design tokens
@@ -26,13 +26,14 @@
   --border-strong:       #cbd5e1;
   --border-emphasis:     #334155;
 
-  /* ── Brand ──────────────────────────────────────────────── */
-  --brand-primary:       #2b1424; /* header maroon */
-  --brand-primary-hover: #4a2840;
-  --brand-primary-deep:  #1e0f19; /* footer */
-  --brand-accent:        #d16b47; /* CTA orange */
-  --brand-accent-hover:  #b85636;
-  --brand-accent-light:  #e8956e; /* lighter orange gradient stop */
+  /* ── Brand (matches thespierproject.org) ────────────────── */
+  --brand-primary:       #341528; /* deep plum/aubergine — logo, headings, CTA pills */
+  --brand-primary-hover: #4a2038;
+  --brand-primary-deep:  #26101d; /* footer */
+  --brand-accent:        #cc3366; /* raspberry/magenta — links, highlights */
+  --brand-accent-hover:  #b02a56;
+  --brand-accent-light:  #e06088; /* lighter raspberry gradient stop */
+  --brand-cyan:          #d2edf3; /* signature soft-cyan secondary (hero wash, panels) */
 
   /* ── Semantic accents ───────────────────────────────────── */
   --accent-info:           #2563eb;
@@ -146,14 +147,14 @@
   --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* mobile slide-out sidebar */
   --shadow-focus-ring:   0 0 0 2px rgb(37 99 235 / 0.15);          /* info-tinted focus halo */
   --shadow-card-outline: 0 0 0 1px var(--accent-info-soft);        /* selected-card soft outline */
-  --shadow-brand-glow:   0 1px 12px rgb(209 107 71 / 0.15);        /* brand-accent tinted halo */
+  --shadow-brand-glow:   0 1px 12px rgb(204 51 102 / 0.15);        /* brand-accent tinted halo */
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
   --surface-banner:      #edf2f7; /* patient banner background */
   --accent-info-text:    #1d4ed8; /* deep info blue for text on info surfaces */
   --text-error:          #d32f2f; /* error/destructive copy */
 
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Poppins', 'Roboto', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: var(--text-base);

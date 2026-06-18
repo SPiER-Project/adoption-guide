@@ -73,11 +73,11 @@ function AppRoutes() {
       <Route path="/launch" element={<SmartLaunch />} />
       <Route path="/redirect" element={<SmartRedirect />} />
 
-      {/* EHR Shell wraps everything else */}
-      <Route element={<EhrShell />}>
-        {/* Home / landing */}
-        <Route path="/" element={<Home />} />
+      {/* Front door — a standalone portal above the apps, outside the EHR shell */}
+      <Route path="/" element={<Home />} />
 
+      {/* EHR Shell wraps the demo lenses */}
+      <Route element={<EhrShell />}>
         {/* Implementation Guide lens */}
         <Route path="/implementation-guide" element={<ImplementationGuide />}>
           <Route index element={<Navigate to="overview" replace />} />

@@ -35,7 +35,7 @@ const LENSES: Lens[] = [
   },
   {
     to: '/implementation-guide',
-    label: 'Implementation Guide',
+    label: 'Adoption Guide',
     icon: '\u{1F4DA}', // books
     matchPrefix: '/implementation-guide',
     children: [
