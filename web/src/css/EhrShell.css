@@ -40,14 +40,14 @@
 }
 
 .ehr-brand-logo {
-  height: 26px;
+  height: var(--brand-logo-height-sm);
   width: auto;
   /* wordmark fill follows currentColor (white) from .ehr-brand */
 }
 
 .ehr-brand-subtitle {
   font-size: var(--font-size-base);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-on-brand-muted);
   font-weight: 400;
 }
 
@@ -112,7 +112,7 @@
 .ehr-footer {
   grid-area: footer;
   background: var(--brand-primary-deep);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-on-brand-faint);
   padding: 0.75rem 1.5rem;
   font-size: var(--font-size-sm);
   display: flex;
@@ -124,7 +124,7 @@
 .ehr-footer a {
   color: var(--brand-accent);
   text-decoration: underline;
-  text-decoration-color: rgba(209, 107, 71, 0.3);
+  text-decoration-color: var(--brand-accent-faint);
 }
 
 .ehr-footer a:hover {

@@ -19,6 +19,8 @@
   --text-muted:          #64748b; /* secondary copy */
   --text-faint:          #94a3b8; /* placeholder, meta */
   --text-on-brand:       #ffffff; /* text on dark brand bg */
+  --text-on-brand-muted: rgb(255 255 255 / 0.7); /* subtitles, footer copy on brand bg */
+  --text-on-brand-faint: rgb(255 255 255 / 0.5); /* faint meta on brand bg */
   --text-base:           #213547; /* default :root text color */
 
   /* ── Borders & dividers ─────────────────────────────────── */
@@ -33,7 +35,10 @@
   --brand-accent:        #cc3366; /* raspberry/magenta — links, highlights */
   --brand-accent-hover:  #b02a56;
   --brand-accent-light:  #e06088; /* lighter raspberry gradient stop */
+  --brand-accent-faint:  rgb(204 51 102 / 0.3); /* translucent raspberry (underlines, hairlines) */
   --brand-cyan:          #d2edf3; /* signature soft-cyan secondary (hero wash, panels) */
+  --brand-logo-height:    1.875rem; /* wordmark height in the standalone front-door header */
+  --brand-logo-height-sm: 1.625rem; /* wordmark height in the compact EHR header */
 
   /* ── Semantic accents ───────────────────────────────────── */
   --accent-info:           #2563eb;
