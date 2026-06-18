@@ -21,7 +21,7 @@
 CodeSystem: CSSRSRiskLevelCodes
 Id: cssrs-risk-level
 Title: "C-SSRS Risk Level Codes"
-Description: "SPiER-local code system for the derived risk level from a C-SSRS screener or full assessment. Used because no equivalent LOINC tier exists; LOINC 93374-7 'Suicide risk level' is the *measurement*, not a coded tier vocabulary."
+Description: "SPiER-local code system for the derived risk level from a C-SSRS screener or full assessment. LOINC 93374-7 'Suicide risk level' carries a normative answer list (LL465-6: Low / Moderate / High); this local system extends that list with a `none` value (no C-SSRS items endorsed) that LOINC does not provide, and aligns display names with the SPiER suicide-risk tier. The derived Observation SHOULD dual-code its value with the matching LOINC answer code (LA9194-7 / LA6751-7 / LA9193-9) so HL7-aligned consumers — e.g. the HL7 US Behavioral Health Profiles IG — can interpret it without understanding the SPiER-local vocabulary."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true
@@ -60,6 +60,11 @@ Description: "Derived risk-level Observation produced by either the C-SSRS Scree
 * effective[x] only dateTime or Period
 * value[x] 1..1
 * value[x] only CodeableConcept
+// Required: at least one coding from the SPiER-local C-SSRS risk-level set
+// (this is the only set with a `none` value). Producers SHOULD additionally
+// include the matching LOINC answer code (LL465-6: LA9194-7 Low / LA6751-7
+// Moderate / LA9193-9 High) as a second coding so HL7-aligned consumers can
+// read the value natively. The `none` level has no LOINC equivalent.
 * valueCodeableConcept from CSSRSRiskLevel (required)
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
 * status MS
@@ -129,7 +134,9 @@ Usage: #example
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
-* valueCodeableConcept = CSSRSRiskLevelCodes#high "High"
+// Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
+* valueCodeableConcept.coding[0] = CSSRSRiskLevelCodes#high "High"
+* valueCodeableConcept.coding[1] = http://loinc.org#LA9193-9 "High"
 * valueCodeableConcept.text = "High Risk — specific plan with intent"
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
 
@@ -144,7 +151,9 @@ Usage: #example
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:15:00Z"
-* valueCodeableConcept = CSSRSRiskLevelCodes#moderate "Moderate"
+// Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
+* valueCodeableConcept.coding[0] = CSSRSRiskLevelCodes#moderate "Moderate"
+* valueCodeableConcept.coding[1] = http://loinc.org#LA6751-7 "Moderate"
 * valueCodeableConcept.text = "Moderate Risk — ideation with method, no intent"
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
 
