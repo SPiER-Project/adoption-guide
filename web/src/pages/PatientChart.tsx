@@ -211,7 +211,7 @@ function CdsCardStack({ cards }: { cards: CdsCard[] }) {
               ) : card.narrativeOnly ? null : (
                 <p className="cds-card-no-options">
                   No tools enabled for this stage in your implementation.{' '}
-                  <Link to="/implementation-guide/tool-configuration">Configure tools</Link>.
+                  <Link to="/adoption-guide/tool-configuration">Configure tools</Link>.
                 </p>
               )}
             </article>

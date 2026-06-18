@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import '../css/ImplementationGuide.css'
+import '../css/AdoptionGuide.css'
 
 const TABS = [
   { to: 'overview', label: 'Overview' },
@@ -11,7 +11,7 @@ const TABS = [
   { to: 'roadmap', label: 'Roadmap' },
 ]
 
-export function ImplementationGuide() {
+export function AdoptionGuide() {
   return (
     <div className="implementation-guide">
       <header className="ig-header">

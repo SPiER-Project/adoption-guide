@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 /* ============================================================
    Design tokens
@@ -159,7 +159,7 @@
   --accent-info-text:    #1d4ed8; /* deep info blue for text on info surfaces */
   --text-error:          #d32f2f; /* error/destructive copy */
 
-  font-family: 'Poppins', 'Roboto', system-ui, -apple-system, sans-serif;
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: var(--text-base);
