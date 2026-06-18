@@ -3,6 +3,7 @@ import {
   extractPairs,
   makeSuicidePreventionCarePlan,
   type GeneratedCarePlan,
+  type QuestionnaireResponseResource,
 } from './shared'
 
 /**
@@ -12,7 +13,7 @@ import {
  * the treatment-adherence step has no published LOINC and uses
  * text-only coding.
  */
-export function generateStabilizationCarePlan(questionnaireResponse: any): GeneratedCarePlan {
+export function generateStabilizationCarePlan(questionnaireResponse: QuestionnaireResponseResource): GeneratedCarePlan {
   const items = questionnaireResponse?.item || []
 
   const lethalMeans     = extractAnswers(items, 'lethal-means-list').join('; ')

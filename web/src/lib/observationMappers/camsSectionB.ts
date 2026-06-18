@@ -1,8 +1,8 @@
-import { walkItems, getCodingAnswer, getBooleanAnswer, type MapperResult, type RiskAlert } from './shared'
+import { walkItems, getCodingAnswer, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, type FhirResource } from './shared'
 
-export function mapCAMSSectionB(response: any): MapperResult {
+export function mapCAMSSectionB(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: any[] = []
+  const observations: ObservationResource[] = []
 
   // Extract identified drivers (Problem #1-3)
   const driverLinkIds = [
@@ -11,7 +11,7 @@ export function mapCAMSSectionB(response: any): MapperResult {
     { descLinkId: 'driver-3-desc', typeLinkId: 'driver-3-type', label: 'Driver #3' },
   ]
 
-  const conditions: any[] = []
+  const conditions: FhirResource[] = []
 
   for (const driver of driverLinkIds) {
     const descItem = walkItems(items, driver.descLinkId)
@@ -54,7 +54,7 @@ export function mapCAMSSectionB(response: any): MapperResult {
   }
 
   // Store conditions as observations (they're really Conditions but we store them together for the demo)
-  observations.push(...conditions)
+  observations.push(...(conditions as ObservationResource[]))
 
   // Check for ideation, plan, preparation
   const ideationPresent = getBooleanAnswer(walkItems(items, 'ideation-present'))

@@ -18,13 +18,69 @@ export interface FhirResource {
   [k: string]: unknown
 }
 
-export type QuestionnaireResponseResource = FhirResource & { resourceType: 'QuestionnaireResponse' }
-export type ObservationResource = FhirResource & { resourceType: 'Observation' }
+export interface QuestionnaireResource extends FhirResource {
+  resourceType: 'Questionnaire'
+  url?: string
+  version?: string
+}
+
+export interface QuestionnaireResponseResource extends FhirResource {
+  resourceType: 'QuestionnaireResponse'
+  /** Canonical URL of the Questionnaire this response answers (used for mapper dispatch). */
+  questionnaire?: string
+  authored?: string
+  item?: QuestionnaireResponseItem[]
+}
+export interface CodeableConcept {
+  text?: string
+  coding?: Coding[]
+}
+
+export interface ObservationResource extends FhirResource {
+  resourceType: 'Observation'
+  code?: CodeableConcept
+  effectiveDateTime?: string
+  valueInteger?: number
+  valueBoolean?: boolean
+  valueDecimal?: number
+  valueString?: string
+  valueCodeableConcept?: CodeableConcept
+  interpretation?: Array<{ coding?: Coding[]; text?: string }>
+}
 export type CarePlanResource = FhirResource & { resourceType: 'CarePlan' }
 export type PatientResource = FhirResource & { resourceType: 'Patient' }
 export type CommunicationResource = FhirResource & { resourceType: 'Communication' }
 export type AppointmentResource = FhirResource & { resourceType: 'Appointment' }
 export type MeasureReportResource = FhirResource & { resourceType: 'MeasureReport' }
+
+/**
+ * Minimal QuestionnaireResponse item shapes (loose FHIR R4) used by the
+ * observation/care-plan mappers to walk captured answers. Intentionally small,
+ * every field optional — matching the loose-JSON convention above.
+ */
+export interface Coding {
+  system?: string
+  code?: string
+  display?: string
+}
+
+export interface QuestionnaireResponseAnswer {
+  valueCoding?: Coding
+  valueBoolean?: boolean
+  valueInteger?: number
+  valueDecimal?: number
+  valueString?: string
+  valueText?: string
+  valueDate?: string
+  item?: QuestionnaireResponseItem[]
+}
+
+export interface QuestionnaireResponseItem {
+  linkId?: string
+  text?: string
+  answer?: QuestionnaireResponseAnswer[]
+  item?: QuestionnaireResponseItem[]
+}
 
 /** One captured QuestionnaireResponse with display metadata for activity lists. */
 export interface StoredResponse {

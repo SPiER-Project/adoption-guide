@@ -27,7 +27,21 @@ export interface PatientDisplay {
   gender: string
 }
 
-export function formatPatientDisplay(patient: any): PatientDisplay {
+/**
+ * Loose shape accepted by formatPatientDisplay — covers both the SMART context's
+ * pre-parsed patient (name as a string) and a raw FHIR Patient resource (name as
+ * an array of HumanName).
+ */
+interface PatientLike {
+  name?: string | Array<{ given?: string[]; family?: string }>
+  dob?: string
+  id?: string
+  gender?: string
+  birthDate?: string
+  identifier?: Array<{ value?: string }>
+}
+
+export function formatPatientDisplay(patient: PatientLike | null | undefined): PatientDisplay {
   // Handle SMART on FHIR patient format (pre-parsed in SmartContext)
   if (patient?.name && typeof patient.name === 'string') {
     return {
@@ -38,8 +52,8 @@ export function formatPatientDisplay(patient: any): PatientDisplay {
     }
   }
 
-  // Handle FHIR Patient resource format
-  const name = patient?.name?.[0]
+  // Handle FHIR Patient resource format (name is an array of HumanName)
+  const name = Array.isArray(patient?.name) ? patient.name[0] : undefined
   const fullName = name
     ? `${(name.given || []).join(' ')} ${name.family || ''}`.trim()
     : 'Unknown Patient'

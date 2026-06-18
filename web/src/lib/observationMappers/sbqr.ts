@@ -1,9 +1,9 @@
-import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 import { ordinalForAnswer } from '../../data/questionnaires'
 
-export function mapSBQR(response: any): MapperResult {
+export function mapSBQR(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: any[] = []
+  const observations: ObservationResource[] = []
   const questionnaireUrl: string | undefined = response?.questionnaire
 
   // Prefer a renderer-computed total-score item; else join each answer's code

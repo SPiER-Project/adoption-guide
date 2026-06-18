@@ -48,7 +48,8 @@ export function EhrAdoptionRubric() {
     const stats: Record<string, { covered: boolean; supportedCount: number; totalCount: number; allSupported: boolean }> = {}
     for (const stage of STAGE_ORDER) {
       const tools = toolsByStage[stage] ?? []
-      const supportedCount = tools.filter(t => isSupported(t.toolId)).length
+      // Inlined from isSupported() so this memo's deps stay honest (state.supported).
+      const supportedCount = tools.filter(t => state.supported[t.toolId] ?? false).length
       stats[stage] = {
         covered: supportedCount > 0,
         supportedCount,
@@ -68,7 +69,8 @@ export function EhrAdoptionRubric() {
     for (const stage of STAGE_ORDER) {
       if (stageStats[stage]?.covered) {
         for (const c of RUBRIC_CRITERIA) {
-          maturityScore += getStageScore(stage, c.id)
+          // Inlined from getStageScore() so this memo's deps stay honest (state).
+          maturityScore += state.stageScores[stage]?.[c.id] ?? 0
           maturityMax += 3
         }
       }

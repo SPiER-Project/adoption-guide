@@ -19,6 +19,7 @@
 export type { RiskAlert, MapperResult } from './shared'
 
 import type { MapperResult } from './shared'
+import type { QuestionnaireResponseResource } from '../../types/fhir'
 import { stripCanonicalVersion } from '../../data/catalog'
 import { mapPHQ9 } from './phq9'
 import { mapASQ } from './asq'
@@ -37,7 +38,7 @@ const SPIER_Q = 'http://spier.org/Questionnaire'
 // `valueCanonical` in each ActivityDefinition's sdc-questionnaire extension
 // (ig/input/fsh/<tool>.fsh). When adding a new mapper, mirror the entry
 // against the AD's canonical so a versioned QR still dispatches correctly.
-const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: any) => MapperResult | null> = {
+const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: QuestionnaireResponseResource) => MapperResult | null> = {
   [`${SPIER_Q}/PHQ-9`]: mapPHQ9,
   [`${SPIER_Q}/ASQ-Screening-Tool`]: mapASQ,
   [`${SPIER_Q}/SBQ-R`]: mapSBQR,
@@ -58,7 +59,7 @@ const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: any) => MapperResult | nu
  * convention — the dispatcher reads `qr.questionnaire`, but the full
  * resource (incl. `item[]`) gets passed through to the per-tool mapper.
  */
-export function mapResponseToObservations(qr: any): MapperResult | null {
+export function mapResponseToObservations(qr: QuestionnaireResponseResource): MapperResult | null {
   const canonical: string | undefined = qr?.questionnaire
   if (!canonical) return null
   const mapper = MAPPER_BY_QUESTIONNAIRE_URL[stripCanonicalVersion(canonical)]

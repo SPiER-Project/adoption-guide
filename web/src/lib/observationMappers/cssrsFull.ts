@@ -1,8 +1,8 @@
-import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
-export function mapCSSRSFull(response: any): MapperResult {
+export function mapCSSRSFull(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: any[] = []
+  const observations: ObservationResource[] = []
 
   // Check both lifetime and recent for each ideation level
   const q1Life = getBooleanAnswer(walkItems(items, 'q1-lifetime'))

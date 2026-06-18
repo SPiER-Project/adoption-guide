@@ -8,6 +8,7 @@ import { CarePlanDisplay } from './CarePlanDisplay'
 import { mapResponseToObservations } from '../lib/observationMappers'
 import type { GeneratedCarePlan } from '../lib/carePlanMappers'
 import type { RiskAlert } from '../lib/observationMappers'
+import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
 
 const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   acute:    { className: 'alert--acute',    label: 'ACUTE' },
@@ -19,34 +20,36 @@ const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
 
 interface QuestionnaireViewProps {
   title: string
-  questionnaire: any
+  questionnaire: FhirResource
   persistName?: string
-  carePlanMapper?: (response: any) => { resource: any; activities: any[]; isEmpty: boolean }
+  carePlanMapper?: (response: QuestionnaireResponseResource) => GeneratedCarePlan
 }
 
 interface SubmitResult {
   riskAlert: RiskAlert
-  observations: any[]
+  observations: ObservationResource[]
 }
 
 export function QuestionnaireView({ title, questionnaire, persistName, carePlanMapper }: QuestionnaireViewProps) {
-  const [response, setResponse] = useState<any>(null)
+  const [response, setResponse] = useState<QuestionnaireResponseResource | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
   const { addResponse, addCarePlan } = usePatient()
 
-  function handleSubmit(submittedResponse: any) {
-    const responseToUse = submittedResponse || response
-    if (responseToUse && persistName) {
+  function handleSubmit(submittedResponse: QuestionnaireResponseResource) {
+    const base = submittedResponse || response
+    if (base && persistName) {
       // Stamp the QR with the source Questionnaire's canonical URL (FHIR R4
       // QuestionnaireResponse.questionnaire). Downstream lookup matches Tools
-      // by this URL — see catalog/tools.ts → toolForQuestionnaireUrl.
-      if (questionnaire?.url && !responseToUse.questionnaire) {
-        responseToUse.questionnaire = questionnaire.version
-          ? `${questionnaire.url}|${questionnaire.version}`
-          : questionnaire.url
-      }
+      // by this URL — see catalog/tools.ts → toolForQuestionnaireUrl. Build a
+      // new object rather than mutating the (state-derived) response.
+      const qUrl = questionnaire.url as string | undefined
+      const qVersion = questionnaire.version as string | undefined
+      const responseToUse: QuestionnaireResponseResource =
+        qUrl && !base.questionnaire
+          ? { ...base, questionnaire: qVersion ? `${qUrl}|${qVersion}` : qUrl }
+          : base
       addResponse(persistName, responseToUse)
       setSubmitted(true)
 
@@ -86,10 +89,13 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
       <div className="form-card">
         <Renderer
           fhirVersion="r4"
-          questionnaire={questionnaire}
+          // Renderer is generic over formbox's strict FHIR types; the raw imported
+          // Questionnaire JSON doesn't structurally match, so cast at this boundary.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          questionnaire={questionnaire as any}
           theme={theme}
-          onChange={(newResponse: any) => setResponse(newResponse)}
-          onSubmit={persistName ? handleSubmit : undefined}
+          onChange={(newResponse) => setResponse(newResponse as unknown as QuestionnaireResponseResource)}
+          onSubmit={persistName ? (r => handleSubmit(r as unknown as QuestionnaireResponseResource)) : undefined}
         />
         {submitted && !carePlan && submitResult && (
           <div className={`submit-result-summary ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>

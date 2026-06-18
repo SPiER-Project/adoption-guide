@@ -3,11 +3,13 @@ import {
   extractPairs,
   makeSuicidePreventionCarePlan,
   type GeneratedCarePlan,
+  type QuestionnaireResponseResource,
+  type QuestionnaireResponseItem,
 } from './shared'
 
 // Step 5 needs a custom extractor: clinician/agency pairs + a separate
 // emergency-department block of three fields.
-function extractStep5(items: any[]): string {
+function extractStep5(items: QuestionnaireResponseItem[]): string {
   const clinicians = extractPairs(items, '5-1-clinician-agency-group', '5-1-name', '5-2-contact-info')
   const clinicianStr = clinicians.map(p => p.b ? `${p.a} (${p.b})` : p.a).join(', ')
 
@@ -31,7 +33,7 @@ function extractStep5(items: any[]): string {
  * 7-activity CarePlan using the Hybrid model (LOINC codes on each
  * step + patient-authored content in detail.description).
  */
-export function generateCarePlan(questionnaireResponse: any): GeneratedCarePlan {
+export function generateCarePlan(questionnaireResponse: QuestionnaireResponseResource): GeneratedCarePlan {
   const items = questionnaireResponse?.item || []
 
   const step1 = extractAnswers(items, '1-1-warning-sign').join(', ')

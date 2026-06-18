@@ -4,7 +4,7 @@ import type Client from 'fhirclient/lib/Client';
 interface Patient {
     name?: string;
     dob?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 interface SmartContextType {
@@ -45,6 +45,8 @@ export function SmartProvider({ children }: { children: React.ReactNode }) {
     );
 }
 
+// Hook co-located with its provider by design (idiomatic context module).
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSmart() {
     const context = useContext(SmartContext);
     if (context === undefined) {

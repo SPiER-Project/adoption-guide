@@ -11,6 +11,8 @@ export interface Preset {
   toolIds: string[]
 }
 
+// Shared preset data co-located with the provider by design.
+// eslint-disable-next-line react-refresh/only-export-components
 export const PRESETS: Preset[] = [
   {
     id: 'minimum-viable',
@@ -133,6 +135,8 @@ export function ToolConfigProvider({ children }: { children: ReactNode }) {
   return <ToolConfigContext.Provider value={value}>{children}</ToolConfigContext.Provider>
 }
 
+// Hook co-located with its provider by design (idiomatic context module).
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToolConfig() {
   const ctx = useContext(ToolConfigContext)
   if (!ctx) throw new Error('useToolConfig must be used inside ToolConfigProvider')

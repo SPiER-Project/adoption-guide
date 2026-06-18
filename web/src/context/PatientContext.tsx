@@ -239,6 +239,9 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     if (store[activePatientId]) return
     const scenario = POPULATION_SCENARIOS[activePatientId]
     if (!scenario) return
+    // Idempotent one-time auto-seed of static scenario data when a patient is
+    // first viewed (guarded by the store[id] check above); intentional sync.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStore(prev => ({ ...prev, [activePatientId]: scenario }))
   }, [activePatientId, store])
 
@@ -410,6 +413,8 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
   return <PatientContext.Provider value={value}>{children}</PatientContext.Provider>
 }
 
+// Hook co-located with its provider by design (idiomatic context module).
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePatient() {
   const context = useContext(PatientContext)
   if (context === undefined) {

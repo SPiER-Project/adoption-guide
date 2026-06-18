@@ -1,9 +1,9 @@
-import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 import { ordinalForAnswer } from '../../data/questionnaires'
 
-export function mapPHQ9(response: any): MapperResult {
+export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: any[] = []
+  const observations: ObservationResource[] = []
   const questionnaireUrl: string | undefined = response?.questionnaire
 
   // Total score. Prefer a renderer-computed total-score item (SDC

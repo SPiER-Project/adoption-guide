@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 const CAMS_VITALS = [
   { linkId: '1-score', code: 'psychological-pain', display: 'Psychological Pain', textLinkId: '1-text' },
@@ -9,9 +9,9 @@ const CAMS_VITALS = [
   { linkId: '6-score', code: 'overall-risk', display: 'Overall Risk of Suicide', textLinkId: '6-text' },
 ]
 
-export function mapCAMSSectionA(response: any): MapperResult {
+export function mapCAMSSectionA(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: any[] = []
+  const observations: ObservationResource[] = []
 
   let maxScore = 0
 

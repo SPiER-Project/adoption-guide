@@ -1,8 +1,8 @@
-import { makeObservation, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
-export function mapASQ(response: any): MapperResult {
+export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: any[] = []
+  const observations: ObservationResource[] = []
 
   // Q1–Q5 carry SNOMED-coded Yes/No answers (post pilot refactor). Convert to booleans for logic gating.
   const q1 = getYesNoBoolean(walkItems(items, 'q1'))

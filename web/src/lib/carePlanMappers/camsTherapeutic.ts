@@ -2,6 +2,7 @@ import {
   extractAnswer,
   makeSuicidePreventionCarePlan,
   type GeneratedCarePlan,
+  type QuestionnaireResponseResource,
 } from './shared'
 
 /**
@@ -11,7 +12,7 @@ import {
  * activities are text-only since these CAMS-framework concepts have
  * no published LOINC equivalents.
  */
-export function generateTherapeuticCarePlan(questionnaireResponse: any): GeneratedCarePlan {
+export function generateTherapeuticCarePlan(questionnaireResponse: QuestionnaireResponseResource): GeneratedCarePlan {
   const items = questionnaireResponse?.item || []
 
   // 1. Personal Narrative

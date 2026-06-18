@@ -10,9 +10,28 @@ import {
   groupArtifactsByStage,
   stageForResponse,
   type StageStatus,
+  type FhirResourceLike,
+  type StoredResponseLike,
 } from '../lib/patientPathway'
 import type { RiskAlert } from '../lib/observationMappers'
-import type { CarePlanResource, ScenarioEncounter, StoredResponse } from '../types/fhir'
+import type { CarePlanResource, CodeableConcept, ScenarioEncounter, StoredResponse } from '../types/fhir'
+
+// The chart renders stored FHIR resources that arrive (via patientPathway) as
+// loose FhirResourceLike — typed only for stage resolution. This is the set of
+// extra fields the rendering reads off them; `_savedAt` is SPiER's client-side
+// capture stamp (demo only, no server persistence).
+interface RenderableResource {
+  id?: string
+  status?: string
+  code?: CodeableConcept
+  effectiveDateTime?: string
+  valueInteger?: number
+  valueQuantity?: { value?: number }
+  reasonCode?: CodeableConcept[]
+  category?: CodeableConcept[]
+  sent?: string
+  _savedAt?: string
+}
 import '../css/Dashboard.css'
 import '../css/PatientChart.css'
 
@@ -241,10 +260,10 @@ function StageActivitySection({
 }: {
   stageId: string
   status: StageStatus
-  responses: any[]
-  carePlans: any[]
-  observations: any[]
-  communications: any[]
+  responses: StoredResponseLike[]
+  carePlans: FhirResourceLike[]
+  observations: FhirResourceLike[]
+  communications: FhirResourceLike[]
 }) {
   const stage = stageById(stageId)
   const [open, setOpen] = useState(false)
@@ -280,7 +299,8 @@ function StageActivitySection({
   // Surface the clinical score(s) for this stage from its Observations, e.g. "PHQ-9: 14".
   // Read straight off the persisted resource value; omit when no scored observation exists.
   const scoreSummary = observations
-    .map(o => {
+    .map(rawObs => {
+      const o = rawObs as RenderableResource
       const value = o.valueInteger ?? o.valueQuantity?.value
       if (value === undefined || value === null) return null
       // Full LOINC display names are long and clutter the chip — prefer a short
@@ -335,7 +355,9 @@ function StageActivitySection({
         <p className="stage-section-empty">No activity at this stage yet.</p>
       ) : showArtifacts ? (
         <div className="stage-section-artifacts">
-          {responses.map(r => (
+          {responses.map(rawR => {
+            const r = rawR as StoredResponse
+            return (
             <div key={r.id} className="stage-artifact stage-artifact--response">
               <span className="stage-artifact-icon" aria-hidden>{'\u{1F4DD}'}</span>
               <div className="stage-artifact-body">
@@ -343,8 +365,10 @@ function StageActivitySection({
                 <span className="stage-artifact-meta">QuestionnaireResponse &middot; {formatDateTime(r.completedAt)}</span>
               </div>
             </div>
-          ))}
-          {carePlans.map((cp, idx) => {
+            )
+          })}
+          {carePlans.map((rawCp, idx) => {
+            const cp = rawCp as RenderableResource
             const source = cp.id?.includes('stanley-brown') ? 'Stanley-Brown Safety Plan' : 'CAMS Stabilization Plan'
             const savedAt = cp._savedAt ? new Date(cp._savedAt).toLocaleDateString() : null
             return (
@@ -360,7 +384,8 @@ function StageActivitySection({
               </div>
             )
           })}
-          {observations.map((obs, idx) => {
+          {observations.map((rawObs, idx) => {
+            const obs = rawObs as RenderableResource
             const name = obs.code?.text || obs.code?.coding?.[0]?.display || 'Observation'
             const when = obs.effectiveDateTime ?? obs._savedAt
             return (
@@ -376,7 +401,8 @@ function StageActivitySection({
               </div>
             )
           })}
-          {communications.map((c, idx) => {
+          {communications.map((rawComm, idx) => {
+            const c = rawComm as RenderableResource
             const name =
               c.reasonCode?.[0]?.text ||
               c.category?.[0]?.text ||
@@ -528,21 +554,22 @@ function PatientDocuments({
   carePlans,
   observations,
 }: {
-  responses: any[]
-  carePlans: any[]
-  observations: any[]
+  responses: StoredResponseLike[]
+  carePlans: FhirResourceLike[]
+  observations: FhirResourceLike[]
 }) {
   const [filter, setFilter] = useState<DocFilter>('all')
   const [openDoc, setOpenDoc] = useState<string | null>(null)
 
   type DocEntry =
-    | { kind: 'response'; key: string; title: string; when: string; resource: any; stageTag?: string }
-    | { kind: 'careplan'; key: string; title: string; when: string; resource: any; stageTag?: string }
-    | { kind: 'observation'; key: string; title: string; when: string; resource: any; stageTag?: string }
+    | { kind: 'response'; key: string; title: string; when: string; resource: FhirResourceLike; stageTag?: string }
+    | { kind: 'careplan'; key: string; title: string; when: string; resource: FhirResourceLike; stageTag?: string }
+    | { kind: 'observation'; key: string; title: string; when: string; resource: FhirResourceLike; stageTag?: string }
 
   const docs: DocEntry[] = useMemo(() => {
     const all: DocEntry[] = []
-    for (const r of responses) {
+    for (const rawR of responses) {
+      const r = rawR as StoredResponse
       all.push({
         kind: 'response',
         key: r.id,
@@ -553,22 +580,24 @@ function PatientDocuments({
       })
     }
     for (const cp of carePlans) {
+      const cpRead = cp as RenderableResource
       all.push({
         kind: 'careplan',
-        key: cp.id ?? `cp-${all.length}`,
-        title: cp.id?.includes('stanley-brown') ? 'Stanley-Brown Safety Plan' : 'CAMS Stabilization Plan',
+        key: cpRead.id ?? `cp-${all.length}`,
+        title: cpRead.id?.includes('stanley-brown') ? 'Stanley-Brown Safety Plan' : 'CAMS Stabilization Plan',
         // Stable sentinel so this useMemo stays deterministic across recomputes
         // when an artifact is missing its timestamp. Undated entries sort to the bottom.
-        when: cp._savedAt ?? UNDATED_SENTINEL,
+        when: cpRead._savedAt ?? UNDATED_SENTINEL,
         resource: cp,
       })
     }
     for (const obs of observations) {
+      const obsRead = obs as RenderableResource
       all.push({
         kind: 'observation',
-        key: obs.id ?? `obs-${all.length}`,
-        title: obs.code?.text || obs.code?.coding?.[0]?.display || 'Observation',
-        when: obs.effectiveDateTime ?? UNDATED_SENTINEL,
+        key: obsRead.id ?? `obs-${all.length}`,
+        title: obsRead.code?.text || obsRead.code?.coding?.[0]?.display || 'Observation',
+        when: obsRead.effectiveDateTime ?? UNDATED_SENTINEL,
         resource: obs,
       })
     }

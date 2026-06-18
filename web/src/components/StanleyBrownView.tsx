@@ -7,15 +7,16 @@ import type { GeneratedCarePlan } from '../lib/carePlanMappers'
 import { CarePlanDisplay } from './CarePlanDisplay'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { usePatient } from '../context/PatientContext'
+import type { QuestionnaireResponseResource } from '../types/fhir'
 
 import stanleyBrownQuestionnaire from '../../../FHIR-Resources/Stanley-Brown/fhir/questionnaires/questionnaire.json'
 
 export function StanleyBrownView() {
-  const [response, setResponse] = useState<any>(null)
+  const [response, setResponse] = useState<QuestionnaireResponseResource | null>(null)
   const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
   const { addCarePlan, addResponse } = usePatient()
 
-  function handleSubmit(submittedResponse: any) {
+  function handleSubmit(submittedResponse: QuestionnaireResponseResource) {
     const responseToUse = submittedResponse || response
     if (responseToUse) {
       const plan = generateCarePlan(responseToUse)
@@ -41,10 +42,13 @@ export function StanleyBrownView() {
       <div className="form-card">
         <Renderer
           fhirVersion="r4"
+          // Renderer is generic over formbox's strict FHIR types; the raw imported
+          // Questionnaire JSON doesn't structurally match, so cast at this boundary.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           questionnaire={stanleyBrownQuestionnaire as any}
           theme={theme}
-          onChange={(newResponse: any) => setResponse(newResponse)}
-          onSubmit={handleSubmit}
+          onChange={(newResponse) => setResponse(newResponse as unknown as QuestionnaireResponseResource)}
+          onSubmit={(r) => handleSubmit(r as unknown as QuestionnaireResponseResource)}
         />
       </div>
 
