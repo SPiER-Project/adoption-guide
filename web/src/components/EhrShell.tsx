@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
+import { SpierLogo } from './SpierLogo'
 import '../css/EhrShell.css'
 
 export function EhrShell() {
@@ -23,7 +24,7 @@ export function EhrShell() {
             <span className={`ehr-hamburger ${sidebarOpen ? 'ehr-hamburger--active' : ''}`} />
           </button>
           <Link to="/" className="ehr-brand">
-            <h1>SPiER</h1>
+            <SpierLogo className="ehr-brand-logo" />
             <span className="ehr-brand-subtitle">Suicide Prevention in Electronic Records</span>
           </Link>
         </div>

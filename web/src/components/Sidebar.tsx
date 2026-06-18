@@ -34,17 +34,17 @@ const LENSES: Lens[] = [
     matchPrefix: '__exact__', // never matches via prefix; uses `end` instead
   },
   {
-    to: '/implementation-guide',
-    label: 'Implementation Guide',
+    to: '/adoption-guide',
+    label: 'Adoption Guide',
     icon: '\u{1F4DA}', // books
-    matchPrefix: '/implementation-guide',
+    matchPrefix: '/adoption-guide',
     children: [
-      { to: '/implementation-guide/pathway', label: 'Pathway' },
-      { to: '/implementation-guide/tool-configuration', label: 'Tool Configuration' },
-      { to: '/implementation-guide/data-dictionary', label: 'Data Dictionary' },
-      { to: '/implementation-guide/adoption-readiness', label: 'Adoption Readiness' },
-      { to: '/implementation-guide/adoption-rubric', label: 'Adoption Rubric' },
-      { to: '/implementation-guide/roadmap', label: 'Roadmap' },
+      { to: '/adoption-guide/pathway', label: 'Pathway' },
+      { to: '/adoption-guide/tool-configuration', label: 'Tool Configuration' },
+      { to: '/adoption-guide/data-dictionary', label: 'Data Dictionary' },
+      { to: '/adoption-guide/adoption-readiness', label: 'Adoption Readiness' },
+      { to: '/adoption-guide/adoption-rubric', label: 'Adoption Rubric' },
+      { to: '/adoption-guide/roadmap', label: 'Roadmap' },
     ],
   },
   {

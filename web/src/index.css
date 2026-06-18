@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 /* ============================================================
    Design tokens
@@ -7,32 +7,38 @@
    references in component CSS over hex literals or magic numbers.
    ============================================================ */
 :root {
-  /* ── Surfaces ───────────────────────────────────────────── */
-  --surface-page:        #f8fafc; /* app background */
+  /* ── Surfaces (warm neutrals — matches thespierproject.org) ─ */
+  --surface-page:        #fafaf9; /* app background — warm off-white */
   --surface-card:        #ffffff; /* cards, panels */
-  --surface-muted:       #f1f5f9; /* subtle wash (hover, secondary) */
+  --surface-muted:       #f5f5f4; /* subtle wash (hover, secondary) */
   --surface-elevated:    #ffffff;
 
-  /* ── Text ───────────────────────────────────────────────── */
-  --text-strong:         #1e293b; /* primary headings */
-  --text-body:           #475569; /* body copy */
-  --text-muted:          #64748b; /* secondary copy */
-  --text-faint:          #94a3b8; /* placeholder, meta */
+  /* ── Text (warm neutral grays) ──────────────────────────── */
+  --text-strong:         #292524; /* primary headings */
+  --text-body:           #44403c; /* body copy */
+  --text-muted:          #57534e; /* secondary copy */
+  --text-faint:          #a8a29e; /* placeholder, meta */
   --text-on-brand:       #ffffff; /* text on dark brand bg */
-  --text-base:           #213547; /* default :root text color */
+  --text-on-brand-muted: rgb(255 255 255 / 0.7); /* subtitles, footer copy on brand bg */
+  --text-on-brand-faint: rgb(255 255 255 / 0.5); /* faint meta on brand bg */
+  --text-base:           #292524; /* default :root text color */
 
-  /* ── Borders & dividers ─────────────────────────────────── */
-  --border-default:      #e2e8f0;
-  --border-strong:       #cbd5e1;
-  --border-emphasis:     #334155;
+  /* ── Borders & dividers (warm) ──────────────────────────── */
+  --border-default:      #e7e5e4;
+  --border-strong:       #d6d3d1;
+  --border-emphasis:     #44403c;
 
-  /* ── Brand ──────────────────────────────────────────────── */
-  --brand-primary:       #2b1424; /* header maroon */
-  --brand-primary-hover: #4a2840;
-  --brand-primary-deep:  #1e0f19; /* footer */
-  --brand-accent:        #d16b47; /* CTA orange */
-  --brand-accent-hover:  #b85636;
-  --brand-accent-light:  #e8956e; /* lighter orange gradient stop */
+  /* ── Brand (matches thespierproject.org) ────────────────── */
+  --brand-primary:       #341528; /* deep plum/aubergine — logo, headings, CTA pills */
+  --brand-primary-hover: #4a2038;
+  --brand-primary-deep:  #26101d; /* footer */
+  --brand-accent:        #cc3366; /* raspberry/magenta — links, highlights */
+  --brand-accent-hover:  #b02a56;
+  --brand-accent-light:  #e06088; /* lighter raspberry gradient stop */
+  --brand-accent-faint:  rgb(204 51 102 / 0.3); /* translucent raspberry (underlines, hairlines) */
+  --brand-cyan:          #d2edf3; /* signature soft-cyan secondary (hero wash, panels) */
+  --brand-logo-height:    1.875rem; /* wordmark height in the standalone front-door header */
+  --brand-logo-height-sm: 1.625rem; /* wordmark height in the compact EHR header */
 
   /* ── Semantic accents ───────────────────────────────────── */
   --accent-info:           #2563eb;
@@ -146,14 +152,14 @@
   --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* mobile slide-out sidebar */
   --shadow-focus-ring:   0 0 0 2px rgb(37 99 235 / 0.15);          /* info-tinted focus halo */
   --shadow-card-outline: 0 0 0 1px var(--accent-info-soft);        /* selected-card soft outline */
-  --shadow-brand-glow:   0 1px 12px rgb(209 107 71 / 0.15);        /* brand-accent tinted halo */
+  --shadow-brand-glow:   0 1px 12px rgb(204 51 102 / 0.15);        /* brand-accent tinted halo */
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
-  --surface-banner:      #edf2f7; /* patient banner background */
+  --surface-banner:      #f5f5f4; /* patient banner background (warm) */
   --accent-info-text:    #1d4ed8; /* deep info blue for text on info surfaces */
   --text-error:          #d32f2f; /* error/destructive copy */
 
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: var(--text-base);

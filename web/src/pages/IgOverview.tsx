@@ -13,6 +13,13 @@ export function IgOverview() {
           three steps that build on each other:{' '}
           <strong>Capture &rarr; Translate &rarr; Act</strong>.
         </p>
+        <p className="ig-overview__note">
+          This <strong>Adoption Guide</strong> shows how to adopt SPiER and see it running. For the normative
+          spec &mdash; profiles, value sets, and canonical Questionnaires &mdash; see the{' '}
+          <a href={`${import.meta.env.BASE_URL}ig/`} target="_blank" rel="noopener noreferrer">
+            published HL7 FHIR Implementation Guide
+          </a>.
+        </p>
       </section>
 
       <section className="ig-overview__section">
@@ -66,7 +73,7 @@ export function IgOverview() {
           <em>consensus</em> problem, because the protocol content is already settled. Throughout,{' '}
           <strong>SPiER recommends; the clinician (or the institution&rsquo;s configured policy) decides.</strong>{' '}
           The common entry point for every partner conversation is the{' '}
-          <Link to="/implementation-guide/pathway">8-stage Suicide Safer Care Pathway</Link>:
+          <Link to="/adoption-guide/pathway">8-stage Suicide Safer Care Pathway</Link>:
         </p>
         <blockquote className="ig-overview__pathway">
           Flag Risk &rarr; Clarify Risk &rarr; Set Risk Status &rarr; Document Safety Actions &rarr;
@@ -75,7 +82,7 @@ export function IgOverview() {
         <p>
           To see where each instrument stands today &mdash; what&rsquo;s built, what its licensing requires, and how
           deeply it integrates &mdash; start with the{' '}
-          <Link to="/implementation-guide/adoption-readiness">Adoption Readiness matrix</Link>.
+          <Link to="/adoption-guide/adoption-readiness">Adoption Readiness matrix</Link>.
         </p>
       </section>
 
