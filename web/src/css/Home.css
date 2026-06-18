@@ -74,7 +74,6 @@
 .spier-description {
     font-size: var(--font-size-xl);
     color: var(--text-body);
-    max-width: 600px;
     line-height: 1.6;
     margin: 0;
 }
@@ -83,7 +82,6 @@
     font-size: var(--font-size-2xl);
     color: var(--brand-primary);
     font-weight: 500;
-    max-width: 640px;
     line-height: 1.5;
     margin: 0 0 0.75rem 0;
 }
