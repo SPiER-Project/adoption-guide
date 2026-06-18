@@ -63,6 +63,8 @@ pages:
     title: Getting Started
   how-to-read.md:
     title: How to Read This Guide
+  relationship-to-other-igs.md:
+    title: Relationship to Other IGs
   conformance.md:
     title: Conformance
   quick-starts.md:
@@ -78,6 +80,7 @@ menu:
   Getting Started: getting-started.html
   Guidance:
     How to Read This Guide: how-to-read.html
+    Relationship to Other IGs: relationship-to-other-igs.html
     Zero Suicide ↔ SPiER mapping: zero-suicide-mapping.html
   Conformance: conformance.html
   Quick Starts: quick-starts.html
