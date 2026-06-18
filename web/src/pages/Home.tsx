@@ -1,18 +1,43 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SpierLogo } from '../components/SpierLogo'
 import '../css/Home.css'
 
 // The published HL7 IG is a sibling static site (web/dist/ig/), not a hash route —
 // link to it with a plain anchor built from the Vite base path. Resolves to
-// `/SPiER/ig/` in the production build and `/ig/` in local dev (not served by `npm run dev`).
+// `/adoption-guide/ig/` in the production build and `/ig/` in local dev (not served by `npm run dev`).
 const IG_HREF = `${import.meta.env.BASE_URL}ig/`
+const MARKETING_URL = 'https://thespierproject.org'
+const REPO_URL = 'https://github.com/SPiER-Project/adoption-guide'
 
 export function Home() {
+  const [navOpen, setNavOpen] = useState(false)
+  const closeNav = () => setNavOpen(false)
+
   return (
     <div className="portal">
       <header className="portal-header">
         <SpierLogo className="portal-logo" />
         <span className="portal-brand-subtitle">Suicide Prevention in Electronic Records</span>
+
+        <button
+          type="button"
+          className="portal-nav-toggle"
+          aria-label={navOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={navOpen}
+          onClick={() => setNavOpen(o => !o)}
+        >
+          <span className={`portal-hamburger ${navOpen ? 'portal-hamburger--active' : ''}`} />
+        </button>
+
+        <nav className={`portal-nav ${navOpen ? 'portal-nav--open' : ''}`}>
+          <Link to="/adoption-guide" className="portal-nav-link" onClick={closeNav}>Adoption Guide</Link>
+          <Link to="/population" className="portal-nav-link" onClick={closeNav}>Population</Link>
+          <Link to="/patient/chart" className="portal-nav-link" onClick={closeNav}>Patient</Link>
+          <a className="portal-nav-link" href={IG_HREF} target="_blank" rel="noopener noreferrer" onClick={closeNav}>Implementation Guide&nbsp;&#8599;</a>
+          <a className="portal-nav-link" href={MARKETING_URL} target="_blank" rel="noopener noreferrer" onClick={closeNav}>thespierproject.org&nbsp;&#8599;</a>
+          <a className="portal-nav-link" href={REPO_URL} target="_blank" rel="noopener noreferrer" onClick={closeNav}>GitHub&nbsp;&#8599;</a>
+        </nav>
       </header>
 
       <div className="home-container">

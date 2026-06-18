@@ -37,6 +37,7 @@
   --brand-accent-light:  #e06088; /* lighter raspberry gradient stop */
   --brand-accent-faint:  rgb(204 51 102 / 0.3); /* translucent raspberry (underlines, hairlines) */
   --brand-cyan:          #d2edf3; /* signature soft-cyan secondary (hero wash, panels) */
+  --brand-cyan-strong:   #2c7a8c; /* legible cyan-teal for accents/text (same hue as --brand-cyan) */
   --brand-logo-height:    1.875rem; /* wordmark height in the standalone front-door header */
   --brand-logo-height-sm: 1.625rem; /* wordmark height in the compact EHR header */
 
@@ -150,8 +151,8 @@
 
   /* ── Specialty shadows (non-elevation semantic uses) ────── */
   --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* mobile slide-out sidebar */
-  --shadow-focus-ring:   0 0 0 2px rgb(37 99 235 / 0.15);          /* info-tinted focus halo */
-  --shadow-card-outline: 0 0 0 1px var(--accent-info-soft);        /* selected-card soft outline */
+  --shadow-focus-ring:   0 0 0 2px rgb(204 51 102 / 0.3);          /* brand-tinted focus halo */
+  --shadow-card-outline: 0 0 0 1px var(--brand-cyan);              /* selected-card soft outline (brand cyan) */
   --shadow-brand-glow:   0 1px 12px rgb(204 51 102 / 0.15);        /* brand-accent tinted halo */
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
