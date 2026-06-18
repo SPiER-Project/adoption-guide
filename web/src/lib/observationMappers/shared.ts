@@ -8,6 +8,17 @@
  * ⚠️ DEMO ONLY — No data is persisted to a server.
  */
 
+import type {
+  CodeableConcept,
+  Coding,
+  ObservationResource,
+  QuestionnaireResponseItem,
+} from '../../types/fhir'
+
+// Re-export the FHIR resource shapes the per-tool mappers need, so they can
+// import everything from './shared'.
+export type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '../../types/fhir'
+
 export interface RiskAlert {
   tool: string
   level: 'none' | 'low' | 'moderate' | 'high' | 'acute'
@@ -20,7 +31,7 @@ export interface RiskAlert {
 }
 
 export interface MapperResult {
-  observations: any[]
+  observations: ObservationResource[]
   riskAlert: RiskAlert
 }
 
@@ -28,7 +39,10 @@ export interface MapperResult {
  * Find a QuestionnaireResponse item by linkId, recursing into nested
  * item arrays and answer.item nodes (used by repeating-group structures).
  */
-export function walkItems(items: any[], linkId: string): any | undefined {
+export function walkItems(
+  items: QuestionnaireResponseItem[],
+  linkId: string,
+): QuestionnaireResponseItem | undefined {
   for (const item of items) {
     if (item.linkId === linkId) return item
     if (item.item) {
@@ -52,11 +66,11 @@ export function walkItems(items: any[], linkId: string): any | undefined {
 // it must be resolved by joining the selected code back to the Questionnaire
 // (SDC weight() semantics) — not read off the captured answer.
 
-export function getCodingAnswer(item: any): any | undefined {
+export function getCodingAnswer(item: QuestionnaireResponseItem | undefined): Coding | undefined {
   return item?.answer?.[0]?.valueCoding
 }
 
-export function getBooleanAnswer(item: any): boolean | undefined {
+export function getBooleanAnswer(item: QuestionnaireResponseItem | undefined): boolean | undefined {
   return item?.answer?.[0]?.valueBoolean
 }
 
@@ -64,7 +78,7 @@ export function getBooleanAnswer(item: any): boolean | undefined {
  * SNOMED Yes/No coding → boolean. Used by ASQ where answers are SNOMED-
  * coded Yes (373066001) / No (373067005).
  */
-export function getYesNoBoolean(item: any): boolean | undefined {
+export function getYesNoBoolean(item: QuestionnaireResponseItem | undefined): boolean | undefined {
   const coding = getCodingAnswer(item)
   if (!coding) return undefined
   if (coding.system === 'http://snomed.info/sct') {
@@ -82,13 +96,13 @@ export function getYesNoBoolean(item: any): boolean | undefined {
 export function makeObservation(params: {
   id: string
   code: { system: string; code: string; display: string }
-  value: any
+  value: unknown
   valueType: 'integer' | 'codeable' | 'boolean' | 'string'
   interpretation?: { system: string; code: string; display: string }
   note?: string
   questionnaireName: string
-}): any {
-  const obs: any = {
+}): ObservationResource {
+  const obs: ObservationResource = {
     resourceType: 'Observation',
     id: params.id,
     status: 'final',
@@ -115,13 +129,13 @@ export function makeObservation(params: {
   }
 
   if (params.valueType === 'integer') {
-    obs.valueInteger = params.value
+    obs.valueInteger = params.value as number
   } else if (params.valueType === 'codeable') {
-    obs.valueCodeableConcept = params.value
+    obs.valueCodeableConcept = params.value as CodeableConcept
   } else if (params.valueType === 'boolean') {
-    obs.valueBoolean = params.value
+    obs.valueBoolean = params.value as boolean
   } else if (params.valueType === 'string') {
-    obs.valueString = params.value
+    obs.valueString = params.value as string
   }
 
   if (params.interpretation) {

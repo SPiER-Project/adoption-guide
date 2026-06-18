@@ -11,6 +11,10 @@
  */
 
 import type { CarePlanProfileUrl } from '../../data/catalog/care-plan-profiles.generated'
+import type { CarePlanResource, QuestionnaireResponseItem } from '../../types/fhir'
+
+// Re-export the QuestionnaireResponse shapes the per-tool mappers need.
+export type { QuestionnaireResponseItem, QuestionnaireResponseResource } from '../../types/fhir'
 
 // ─── Public types ─────────────────────────────────────────────
 
@@ -21,7 +25,7 @@ export interface CarePlanActivity {
 }
 
 export interface GeneratedCarePlan {
-  resource: any           // Full FHIR CarePlan JSON
+  resource: CarePlanResource  // Full FHIR CarePlan JSON
   activities: CarePlanActivity[]
   isEmpty: boolean
 }
@@ -33,9 +37,9 @@ export interface GeneratedCarePlan {
  * `item` and `answer.item` arrays. Used for repeating-text fields like
  * Stanley-Brown's warning-sign list.
  */
-export function extractAnswers(items: any[], linkId: string): string[] {
+export function extractAnswers(items: QuestionnaireResponseItem[], linkId: string): string[] {
   const results: string[] = []
-  function walk(itemList: any[]) {
+  function walk(itemList: QuestionnaireResponseItem[]) {
     for (const item of itemList) {
       if (item.linkId === linkId && item.answer) {
         for (const ans of item.answer) {
@@ -55,7 +59,7 @@ export function extractAnswers(items: any[], linkId: string): string[] {
  * Used for one-shot free-text fields like CAMS Therapeutic Worksheet's
  * personal narrative.
  */
-export function extractAnswer(items: any[], linkId: string): string {
+export function extractAnswer(items: QuestionnaireResponseItem[], linkId: string): string {
   for (const item of items) {
     if (item.linkId === linkId && item.answer?.[0]) {
       return item.answer[0].valueString || item.answer[0].valueText || ''
@@ -73,13 +77,13 @@ export function extractAnswer(items: any[], linkId: string): string {
  * captured as two child items under a parent group's answer.item array.
  */
 export function extractPairs(
-  items: any[],
+  items: QuestionnaireResponseItem[],
   groupLinkId: string,
   fieldA: string,
   fieldB: string,
 ): Array<{ a: string; b: string }> {
   const pairs: Array<{ a: string; b: string }> = []
-  function walk(itemList: any[]) {
+  function walk(itemList: QuestionnaireResponseItem[]) {
     for (const item of itemList) {
       if (item.linkId === groupLinkId && item.answer) {
         for (const ans of item.answer) {
@@ -132,7 +136,7 @@ export function makeSuicidePreventionCarePlan(options: {
   activities: CarePlanActivity[]
   hasAnyData: boolean
 }): GeneratedCarePlan {
-  const resource = {
+  const resource: CarePlanResource = {
     resourceType: 'CarePlan',
     id: options.id,
     meta: {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import '../css/FhirJsonViewer.css'
 
 interface FhirJsonViewerProps {
-  data: any
+  data: unknown
   title?: string
   defaultOpen?: boolean
 }

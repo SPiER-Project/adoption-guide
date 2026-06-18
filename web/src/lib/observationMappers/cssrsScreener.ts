@@ -1,8 +1,8 @@
-import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert } from './shared'
+import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
-export function mapCSSRSScreener(response: any): MapperResult {
+export function mapCSSRSScreener(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: any[] = []
+  const observations: ObservationResource[] = []
 
   // Extract ideation items
   const q1 = getBooleanAnswer(walkItems(items, 'q1'))

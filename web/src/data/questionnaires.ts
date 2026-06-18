@@ -13,6 +13,7 @@
  * join, used by the per-instrument observation mappers.
  */
 import { stripCanonicalVersion } from './catalog'
+import type { QuestionnaireResource } from '../types/fhir'
 
 // Same source JSONs the form renderer loads (see App.tsx). Importing them here
 // too is free — the bundler dedupes.
@@ -28,7 +29,6 @@ import camsTherapeuticWorksheet from '../../../FHIR-Resources/CAMS/fhir/question
 
 const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ALL_QUESTIONNAIRES = [
   asq,
   phq9,
@@ -39,11 +39,11 @@ const ALL_QUESTIONNAIRES = [
   camsSectionB,
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
-] as any[]
+] as unknown as QuestionnaireResource[]
 
 /** Canonical (version-stripped) Questionnaire URL → Questionnaire resource. */
 export const QUESTIONNAIRE_BY_URL: Record<string, unknown> = Object.fromEntries(
-  ALL_QUESTIONNAIRES.filter(q => q?.url).map(q => [stripCanonicalVersion(q.url), q]),
+  ALL_QUESTIONNAIRES.filter(q => q?.url).map(q => [stripCanonicalVersion(q.url!), q]),
 )
 
 /** Depth-first search for an item by linkId (items can nest). */
