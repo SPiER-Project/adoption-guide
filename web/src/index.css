@@ -7,26 +7,26 @@
    references in component CSS over hex literals or magic numbers.
    ============================================================ */
 :root {
-  /* ── Surfaces ───────────────────────────────────────────── */
-  --surface-page:        #f8fafc; /* app background */
+  /* ── Surfaces (warm neutrals — matches thespierproject.org) ─ */
+  --surface-page:        #fafaf9; /* app background — warm off-white */
   --surface-card:        #ffffff; /* cards, panels */
-  --surface-muted:       #f1f5f9; /* subtle wash (hover, secondary) */
+  --surface-muted:       #f5f5f4; /* subtle wash (hover, secondary) */
   --surface-elevated:    #ffffff;
 
-  /* ── Text ───────────────────────────────────────────────── */
-  --text-strong:         #1e293b; /* primary headings */
-  --text-body:           #475569; /* body copy */
-  --text-muted:          #64748b; /* secondary copy */
-  --text-faint:          #94a3b8; /* placeholder, meta */
+  /* ── Text (warm neutral grays) ──────────────────────────── */
+  --text-strong:         #292524; /* primary headings */
+  --text-body:           #44403c; /* body copy */
+  --text-muted:          #57534e; /* secondary copy */
+  --text-faint:          #a8a29e; /* placeholder, meta */
   --text-on-brand:       #ffffff; /* text on dark brand bg */
   --text-on-brand-muted: rgb(255 255 255 / 0.7); /* subtitles, footer copy on brand bg */
   --text-on-brand-faint: rgb(255 255 255 / 0.5); /* faint meta on brand bg */
-  --text-base:           #213547; /* default :root text color */
+  --text-base:           #292524; /* default :root text color */
 
-  /* ── Borders & dividers ─────────────────────────────────── */
-  --border-default:      #e2e8f0;
-  --border-strong:       #cbd5e1;
-  --border-emphasis:     #334155;
+  /* ── Borders & dividers (warm) ──────────────────────────── */
+  --border-default:      #e7e5e4;
+  --border-strong:       #d6d3d1;
+  --border-emphasis:     #44403c;
 
   /* ── Brand (matches thespierproject.org) ────────────────── */
   --brand-primary:       #341528; /* deep plum/aubergine — logo, headings, CTA pills */
@@ -155,7 +155,7 @@
   --shadow-brand-glow:   0 1px 12px rgb(204 51 102 / 0.15);        /* brand-accent tinted halo */
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
-  --surface-banner:      #edf2f7; /* patient banner background */
+  --surface-banner:      #f5f5f4; /* patient banner background (warm) */
   --accent-info-text:    #1d4ed8; /* deep info blue for text on info surfaces */
   --text-error:          #d32f2f; /* error/destructive copy */
 
