@@ -31,7 +31,7 @@ export function Home() {
         </button>
 
         <nav className={`portal-nav ${navOpen ? 'portal-nav--open' : ''}`}>
-          <Link to="/adoption-guide" className="portal-nav-link" onClick={closeNav}>Adoption Guide</Link>
+          <Link to="/guide" className="portal-nav-link" onClick={closeNav}>Adoption Guide</Link>
           <Link to="/population" className="portal-nav-link" onClick={closeNav}>Population</Link>
           <Link to="/patient/chart" className="portal-nav-link" onClick={closeNav}>Patient</Link>
           <a className="portal-nav-link" href={IG_HREF} target="_blank" rel="noopener noreferrer" onClick={closeNav}>Implementation Guide&nbsp;&#8599;</a>
@@ -115,7 +115,7 @@ export function Home() {
             <span className="lens-card-cta">Open the HL7 IG &rarr;</span>
           </a>
 
-          <Link to="/adoption-guide" className="lens-card lens-card--guide">
+          <Link to="/guide" className="lens-card lens-card--guide">
             <div className="lens-card-badge">Adopt</div>
             <h3>Adoption Guide</h3>
             <p>

@@ -73,7 +73,7 @@ export function IgOverview() {
           <em>consensus</em> problem, because the protocol content is already settled. Throughout,{' '}
           <strong>SPiER recommends; the clinician (or the institution&rsquo;s configured policy) decides.</strong>{' '}
           The common entry point for every partner conversation is the{' '}
-          <Link to="/adoption-guide/pathway">8-stage Suicide Safer Care Pathway</Link>:
+          <Link to="/guide/pathway">8-stage Suicide Safer Care Pathway</Link>:
         </p>
         <blockquote className="ig-overview__pathway">
           Flag Risk &rarr; Clarify Risk &rarr; Set Risk Status &rarr; Document Safety Actions &rarr;
@@ -82,7 +82,7 @@ export function IgOverview() {
         <p>
           To see where each instrument stands today &mdash; what&rsquo;s built, what its licensing requires, and how
           deeply it integrates &mdash; start with the{' '}
-          <Link to="/adoption-guide/adoption-readiness">Adoption Readiness matrix</Link>.
+          <Link to="/guide/adoption-readiness">Adoption Readiness matrix</Link>.
         </p>
       </section>
 

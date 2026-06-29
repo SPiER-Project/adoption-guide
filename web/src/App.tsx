@@ -58,15 +58,16 @@ import { WorkflowActionView } from './components/WorkflowActionView'
 
 function LegacyWorkflowRedirect() {
   const { slug } = useParams<{ slug: string }>()
-  return <Navigate to={slug ? `/adoption-guide/pathway/${slug}/plan` : '/adoption-guide/pathway'} replace />
+  return <Navigate to={slug ? `/guide/pathway/${slug}/plan` : '/guide/pathway'} replace />
 }
 
-// /implementation-guide was renamed to /adoption-guide; preserve any subpath
-// so old bookmarks (the route shipped on main) keep working.
-function LegacyImplementationGuideRedirect() {
+// The Adoption Guide lens lived at /adoption-guide (and, before that,
+// /implementation-guide). It is now /guide; preserve any subpath so old
+// bookmarks for either prior route keep working.
+function LegacyGuideRedirect() {
   const params = useParams()
   const rest = params['*']
-  return <Navigate to={`/adoption-guide${rest ? `/${rest}` : ''}`} replace />
+  return <Navigate to={`/guide${rest ? `/${rest}` : ''}`} replace />
 }
 
 function LegacyAssessmentRedirect() {
@@ -87,7 +88,7 @@ function AppRoutes() {
       {/* EHR Shell wraps the demo lenses */}
       <Route element={<EhrShell />}>
         {/* Adoption Guide lens */}
-        <Route path="/adoption-guide" element={<AdoptionGuide />}>
+        <Route path="/guide" element={<AdoptionGuide />}>
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<IgOverview />} />
           <Route path="pathway" element={<PatientJourney />} />
@@ -157,16 +158,18 @@ function AppRoutes() {
         <Route path="/chart/screenings/:tool" element={<LegacyAssessmentRedirect />} />
         <Route path="/chart/careplan" element={<Navigate to="/patient/care-plans" replace />} />
         <Route path="/chart/encounters" element={<Navigate to="/patient/encounters" replace />} />
-        <Route path="/chart/implementation-guide" element={<Navigate to="/adoption-guide" replace />} />
-        <Route path="/chart/workflow" element={<Navigate to="/adoption-guide/pathway" replace />} />
+        <Route path="/chart/implementation-guide" element={<Navigate to="/guide" replace />} />
+        <Route path="/chart/workflow" element={<Navigate to="/guide/pathway" replace />} />
         <Route path="/chart/workflow/:slug/plan" element={<LegacyWorkflowRedirect />} />
-        <Route path="/chart/ehr-rubric" element={<Navigate to="/adoption-guide/adoption-rubric" replace />} />
-        <Route path="/chart/data-dictionary" element={<Navigate to="/adoption-guide/data-dictionary" replace />} />
-        <Route path="/chart/tools" element={<Navigate to="/adoption-guide/pathway" replace />} />
+        <Route path="/chart/ehr-rubric" element={<Navigate to="/guide/adoption-rubric" replace />} />
+        <Route path="/chart/data-dictionary" element={<Navigate to="/guide/data-dictionary" replace />} />
+        <Route path="/chart/tools" element={<Navigate to="/guide/pathway" replace />} />
 
-        {/* Legacy /implementation-guide/* → /adoption-guide/* (route renamed) */}
-        <Route path="/implementation-guide" element={<LegacyImplementationGuideRedirect />} />
-        <Route path="/implementation-guide/*" element={<LegacyImplementationGuideRedirect />} />
+        {/* Legacy guide routes → /guide/* (lens renamed from /implementation-guide, then /adoption-guide) */}
+        <Route path="/implementation-guide" element={<LegacyGuideRedirect />} />
+        <Route path="/implementation-guide/*" element={<LegacyGuideRedirect />} />
+        <Route path="/adoption-guide" element={<LegacyGuideRedirect />} />
+        <Route path="/adoption-guide/*" element={<LegacyGuideRedirect />} />
       </Route>
 
       {/* Anything else → home */}

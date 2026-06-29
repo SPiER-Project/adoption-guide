@@ -11,17 +11,17 @@ export function PilotPlan() {
   const tool = slug ? TOOLS.find(t => t.pilotPlanSlug === slug) : undefined
 
   if (!slug || !content) {
-    return <Navigate to="/adoption-guide/pathway" replace />
+    return <Navigate to="/guide/pathway" replace />
   }
 
   return (
     <div className="pilot-plan">
       <div className="pilot-plan-breadcrumb">
-        <Link to="/adoption-guide/pathway">Pathway</Link>
+        <Link to="/guide/pathway">Pathway</Link>
         {tool && (
           <>
             <span className="pilot-plan-breadcrumb-sep">/</span>
-            <Link to="/adoption-guide/pathway" className="pilot-plan-breadcrumb-tool">{tool.shortName ?? tool.name}</Link>
+            <Link to="/guide/pathway" className="pilot-plan-breadcrumb-tool">{tool.shortName ?? tool.name}</Link>
           </>
         )}
         <span className="pilot-plan-breadcrumb-sep">/</span>

@@ -185,7 +185,7 @@ export function AdoptionReadiness() {
         the build lifecycle, how strongly SPiER recommends it, what its licensing requires, and how deeply
         its target design integrates into a workflow — captured electronically, written back as discrete
         data, and triggering the next step. This is the spec-side companion to the{' '}
-        <Link to="/adoption-guide/adoption-rubric">EHR Adoption Rubric</Link>, where you score your
+        <Link to="/guide/adoption-rubric">EHR Adoption Rubric</Link>, where you score your
         own system.
       </p>
 
@@ -315,7 +315,7 @@ export function AdoptionReadiness() {
                     <td className="ar-col-resources">
                       <div className="ar-resources">
                         {tool.pilotPlanSlug && (
-                          <Link className="ar-res-link" to={`/adoption-guide/pathway/${tool.pilotPlanSlug}/plan`}>
+                          <Link className="ar-res-link" to={`/guide/pathway/${tool.pilotPlanSlug}/plan`}>
                             Pilot plan
                           </Link>
                         )}
@@ -347,15 +347,15 @@ export function AdoptionReadiness() {
         <h3 className="ar-crosslinks-title">Where to go next</h3>
         <ul className="ar-crosslinks-list">
           <li>
-            <Link to="/adoption-guide/roadmap">Roadmap</Link> — the build status above, by tool, with
+            <Link to="/guide/roadmap">Roadmap</Link> — the build status above, by tool, with
             tracking epics and the three strategic priorities behind them.
           </li>
           <li>
-            <Link to="/adoption-guide/pathway">Pathway</Link> — each instrument in its clinical
+            <Link to="/guide/pathway">Pathway</Link> — each instrument in its clinical
             context across the 8-stage Suicide Safer Care pathway.
           </li>
           <li>
-            <Link to="/adoption-guide/adoption-rubric">EHR Adoption Rubric</Link> — score your own
+            <Link to="/guide/adoption-rubric">EHR Adoption Rubric</Link> — score your own
             system's maturity against these same dimensions.
           </li>
         </ul>
