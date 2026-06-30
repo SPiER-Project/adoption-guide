@@ -20,7 +20,7 @@ Tool-to-stage mapping is many-to-many (CAMS in particular spans four stages), wh
 ## How resources connect
 
 ```
-FHIR-Resources/<Tool>/fhir/questionnaires/*.json
+FHIR-Resources/<Tool>/*.json
     ↑
     │  imported directly by web/src/App.tsx (rendered by @formbox/renderer)
     │

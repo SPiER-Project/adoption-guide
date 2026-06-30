@@ -122,19 +122,6 @@ function ToolDetail({ tool }: ToolDetailProps) {
         </section>
       )}
 
-      {tool.pilotPlanSlug && (
-        <section className="tool-detail-section">
-          <h4 className="tool-detail-heading">Pilot Plan</h4>
-          <div className="tool-detail-launch">
-            <Link
-              to={`/guide/pathway/${tool.pilotPlanSlug}/plan`}
-              className="tool-detail-launch-btn tool-detail-launch-btn--secondary"
-            >
-              View Pilot Plan &rarr;
-            </Link>
-          </div>
-        </section>
-      )}
     </div>
   )
 }

@@ -5,15 +5,15 @@ import './CarePlan.css'
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 
 // FHIR Questionnaires
-import asqQuestionnaire from '../../FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json'
-import phq9Questionnaire from '../../FHIR-Resources/PHQ-9/fhir/questionnaires/questionnaire.json'
-import sbqrQuestionnaire from '../../FHIR-Resources/SBQ-R/fhir/questionnaires/questionnaire.json'
-import cssrsScreener from '../../FHIR-Resources/C-SSRS/fhir/questionnaires/screener.json'
-import cssrsFull from '../../FHIR-Resources/C-SSRS/fhir/questionnaires/full-lifetime-recent.json'
-import camsSectionA from '../../FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionA.json'
-import camsSectionB from '../../FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionB.json'
-import camsStabilizationPlan from '../../FHIR-Resources/CAMS/fhir/questionnaires/Stabilization_Plan.json'
-import camsTherapeuticWorksheet from '../../FHIR-Resources/CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
+import asqQuestionnaire from '../../FHIR-Resources/ASQ/asq-questionnaire.json'
+import phq9Questionnaire from '../../FHIR-Resources/PHQ-9/phq9-questionnaire.json'
+import sbqrQuestionnaire from '../../FHIR-Resources/SBQ-R/sbqr-questionnaire.json'
+import cssrsScreener from '../../FHIR-Resources/C-SSRS/cssrs-screener.json'
+import cssrsFull from '../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
+import camsSectionA from '../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
+import camsSectionB from '../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
+import camsStabilizationPlan from '../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
+import camsTherapeuticWorksheet from '../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
 import { generateStabilizationCarePlan } from './lib/carePlanMappers'
 import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
 
@@ -41,7 +41,6 @@ import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
 import { AdoptionReadiness } from './pages/AdoptionReadiness'
 import { ToolConfiguration } from './pages/ToolConfiguration'
 import { Roadmap } from './pages/Roadmap'
-import { PilotPlan } from './pages/PilotPlan'
 
 // Patient View
 import { PatientChart } from './pages/PatientChart'
@@ -92,7 +91,6 @@ function AppRoutes() {
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<IgOverview />} />
           <Route path="pathway" element={<PatientJourney />} />
-          <Route path="pathway/:slug/plan" element={<PilotPlan />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
           <Route path="adoption-readiness" element={<AdoptionReadiness />} />

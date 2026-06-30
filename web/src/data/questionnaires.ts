@@ -17,15 +17,15 @@ import type { QuestionnaireResource } from '../types/fhir'
 
 // Same source JSONs the form renderer loads (see App.tsx). Importing them here
 // too is free — the bundler dedupes.
-import asq from '../../../FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json'
-import phq9 from '../../../FHIR-Resources/PHQ-9/fhir/questionnaires/questionnaire.json'
-import sbqr from '../../../FHIR-Resources/SBQ-R/fhir/questionnaires/questionnaire.json'
-import cssrsScreener from '../../../FHIR-Resources/C-SSRS/fhir/questionnaires/screener.json'
-import cssrsFull from '../../../FHIR-Resources/C-SSRS/fhir/questionnaires/full-lifetime-recent.json'
-import camsSectionA from '../../../FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionA.json'
-import camsSectionB from '../../../FHIR-Resources/CAMS/fhir/questionnaires/SSF5_SectionB.json'
-import camsStabilizationPlan from '../../../FHIR-Resources/CAMS/fhir/questionnaires/Stabilization_Plan.json'
-import camsTherapeuticWorksheet from '../../../FHIR-Resources/CAMS/fhir/questionnaires/Therapeutic_Worksheet.json'
+import asq from '../../../FHIR-Resources/ASQ/asq-questionnaire.json'
+import phq9 from '../../../FHIR-Resources/PHQ-9/phq9-questionnaire.json'
+import sbqr from '../../../FHIR-Resources/SBQ-R/sbqr-questionnaire.json'
+import cssrsScreener from '../../../FHIR-Resources/C-SSRS/cssrs-screener.json'
+import cssrsFull from '../../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
+import camsSectionA from '../../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
+import camsSectionB from '../../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
+import camsStabilizationPlan from '../../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
+import camsTherapeuticWorksheet from '../../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
 
 const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
 

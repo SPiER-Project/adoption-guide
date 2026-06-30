@@ -15,7 +15,7 @@ import '../css/AdoptionReadiness.css'
 // plus the adoption assets that exist to help (pilot plan, demo, tracking epic).
 //
 // Data is reused, not duplicated:
-//   - TOOLS / targetMaturity / inclusionStatus / pilotPlanSlug  → catalog
+//   - TOOLS / targetMaturity / inclusionStatus  → catalog
 //   - build status                                              → roadmap.generated.json (GitHub epics)
 // ─────────────────────────────────────────────────────────────
 
@@ -38,17 +38,15 @@ type BuildStatus = 'built' | 'planned' | 'future'
 
 // Composite readiness tier, refining build status with the adoption assets
 // that actually let a partner act on it. Order = most → least adoptable.
-type ReadinessTier = 'pilot-ready' | 'built' | 'in-progress' | 'roadmap'
+type ReadinessTier = 'built' | 'in-progress' | 'roadmap'
 
 const READINESS_LABELS: Record<ReadinessTier, string> = {
-  'pilot-ready': 'Pilot-ready',
   built: 'Built',
   'in-progress': 'In progress',
   roadmap: 'On roadmap',
 }
 
 const READINESS_BLURB: Record<ReadinessTier, string> = {
-  'pilot-ready': 'Built and demoable, with a step-by-step pilot plan you can run with a partner today.',
   built: 'Implemented as FHIR artifacts and demoable in the Patient View; pilot plan not yet written.',
   'in-progress': 'Actively being built — tracked by an open epic, not yet ready to adopt.',
   roadmap: 'Catalogued and scoped, but scheduled for a later phase.',
@@ -105,8 +103,8 @@ function buildStatusFor(tool: Tool, epicsByTool: Map<string, RoadmapIssue>): { s
   return { status: tool.launchActions.length > 0 ? 'built' : 'planned' }
 }
 
-function readinessTier(tool: Tool, buildStatus: BuildStatus): ReadinessTier {
-  if (buildStatus === 'built') return tool.pilotPlanSlug ? 'pilot-ready' : 'built'
+function readinessTier(buildStatus: BuildStatus): ReadinessTier {
+  if (buildStatus === 'built') return 'built'
   if (buildStatus === 'planned') return 'in-progress'
   return 'roadmap'
 }
@@ -143,7 +141,7 @@ export function AdoptionReadiness() {
         tool,
         buildStatus: status,
         epicUrl,
-        tier: readinessTier(tool, status),
+        tier: readinessTier(status),
         depthScore: m.electronic + m.writeback + m.triggering,
       }
     }
@@ -155,7 +153,6 @@ export function AdoptionReadiness() {
     }))
 
     const allRows = [...rowById.values()]
-    const pilotReady = allRows.filter((r) => r.tier === 'pilot-ready').length
     const builtOrBetter = allRows.filter((r) => r.buildStatus === 'built').length
     const coreRows = allRows.filter((r) => r.tool.inclusionStatus === 'core')
     const coreBuilt = coreRows.filter((r) => r.buildStatus === 'built').length
@@ -166,7 +163,6 @@ export function AdoptionReadiness() {
       groups,
       stats: {
         total: allRows.length,
-        pilotReady,
         builtOrBetter,
         builtPct: allRows.length > 0 ? Math.round((builtOrBetter / allRows.length) * 100) : 0,
         coreBuilt,
@@ -191,10 +187,6 @@ export function AdoptionReadiness() {
 
       {/* Summary */}
       <div className="ar-summary">
-        <div className="ar-summary-stat">
-          <span className="ar-summary-value">{stats.pilotReady}</span>
-          <span className="ar-summary-label">Pilot-ready</span>
-        </div>
         <div className="ar-summary-stat">
           <span className="ar-summary-value">{stats.builtOrBetter}/{stats.total}</span>
           <span className="ar-summary-label">Built</span>
@@ -314,11 +306,6 @@ export function AdoptionReadiness() {
                     <td className="ar-col-mat"><MaturityChip level={tool.targetMaturity.triggering} dimension="Workflow triggering" /></td>
                     <td className="ar-col-resources">
                       <div className="ar-resources">
-                        {tool.pilotPlanSlug && (
-                          <Link className="ar-res-link" to={`/guide/pathway/${tool.pilotPlanSlug}/plan`}>
-                            Pilot plan
-                          </Link>
-                        )}
                         {tool.launchActions[0] && (
                           <Link className="ar-res-link" to={tool.launchActions[0].path}>
                             Demo
@@ -329,7 +316,7 @@ export function AdoptionReadiness() {
                             Epic
                           </a>
                         )}
-                        {!tool.pilotPlanSlug && !tool.launchActions[0] && !epicUrl && (
+                        {!tool.launchActions[0] && !epicUrl && (
                           <span className="ar-res-empty">—</span>
                         )}
                       </div>
