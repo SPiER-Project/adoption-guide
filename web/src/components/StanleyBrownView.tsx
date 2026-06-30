@@ -9,7 +9,7 @@ import { FhirJsonViewer } from './FhirJsonViewer'
 import { usePatient } from '../context/PatientContext'
 import type { QuestionnaireResponseResource } from '../types/fhir'
 
-import stanleyBrownQuestionnaire from '../../../FHIR-Resources/Stanley-Brown/fhir/questionnaires/questionnaire.json'
+import stanleyBrownQuestionnaire from '../../../FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json'
 
 export function StanleyBrownView() {
   const [response, setResponse] = useState<QuestionnaireResponseResource | null>(null)

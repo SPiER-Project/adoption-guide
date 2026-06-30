@@ -58,7 +58,6 @@ export interface Tool {
   }
   recordingPattern?: RecordingPattern
   fhirExamples?: FhirExample[]
-  pilotPlanSlug?: string
   licensing?: Licensing
 }
 

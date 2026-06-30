@@ -75,7 +75,6 @@ export interface ToolUiMetadata {
   }
   recordingPattern?: RecordingPattern
   fhirExamples?: FhirExample[]
-  pilotPlanSlug?: string
   licensing?: Licensing
 }
 
@@ -154,7 +153,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [{ label: 'Launch ASQ Screening', path: '/patient/assessments/asq' }],
     tags: ['~20 seconds', 'NIMH public domain', 'enableWhen logic'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
-    pilotPlanSlug: 'asq',
     recordingPattern: {
       resources: [
         { type: 'QuestionnaireResponse', description: 'All 5 items (Q1–Q4 + acuity Q5)', when: 'On submit' },
