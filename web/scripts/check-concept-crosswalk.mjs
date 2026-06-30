@@ -111,6 +111,36 @@ for (const { id, resource } of conceptMaps) {
         if (!mapped.has(code)) fail(`${id}: disposition "${code}" (${group.source}) has no tier mapping`)
       }
     }
+    // Validate LOINC and SNOMED bindings in ConceptMaps
+    if (group.source === 'http://loinc.org' || group.target === 'http://loinc.org') {
+      for (const el of group.element ?? []) {
+        if (group.source === 'http://loinc.org' && !/^\d{3,5}-\d$/.test(el.code)) {
+          fail(`${id}: Invalid LOINC code "${el.code}" in source`);
+        }
+        for (const t of el.target ?? []) {
+          if (group.target === 'http://loinc.org' && !/^\d{3,5}-\d$/.test(t.code)) {
+            // Some target LOINC answers (like LA9194-7) have an "L" prefix. Let's accommodate HL7 normative codes.
+            if (!/^L[A-Z0-9]+-\d$/.test(t.code) && !/^\d{3,5}-\d$/.test(t.code)) {
+              fail(`${id}: Invalid LOINC code "${t.code}" in target`);
+            }
+          }
+        }
+      }
+    }
+
+    if (group.source === 'http://snomed.info/sct' || group.target === 'http://snomed.info/sct') {
+      for (const el of group.element ?? []) {
+        if (group.source === 'http://snomed.info/sct' && !/^\d{6,18}$/.test(el.code)) {
+          fail(`${id}: Invalid SNOMED CT code "${el.code}" in source`);
+        }
+        for (const t of el.target ?? []) {
+          if (group.target === 'http://snomed.info/sct' && !/^\d{6,18}$/.test(t.code)) {
+            fail(`${id}: Invalid SNOMED CT code "${t.code}" in target`);
+          }
+        }
+      }
+    }
+
     // F: mapper coverage (best-effort) — code must appear in >=1 existing mapper
     const mapperRels = MAPPER_FOR_SOURCE[group.source]
     if (mapperRels) {
