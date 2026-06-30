@@ -1,0 +1,50 @@
+{
+  "tools": {
+    "ASQ": {
+      "items": {
+        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" },
+        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" },
+        "answer_positive": { "system": "http://snomed.info/sct", "code": "373066001" },
+        "answer_negative": { "system": "http://snomed.info/sct", "code": "373067005" }
+      }
+    },
+    "C-SSRS": {
+      "items": {
+        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" },
+        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" }
+      }
+    },
+    "CAMS": {
+      "items": {
+        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" },
+        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" },
+        "treatment_escalation_plan": { "system": "http://snomed.info/sct", "code": "735324008" }
+      }
+    },
+    "PHQ-9": {
+      "items": {
+        "phq9_quick_depression_assessment": { "system": "http://loinc.org", "code": "44249-1" },
+        "phq9_total_score": { "system": "http://loinc.org", "code": "44261-6" },
+        "item_9": { "system": "http://loinc.org", "code": "44260-8" },
+        "depression_screening_procedure": { "system": "http://snomed.info/sct", "code": "171207006" },
+        "more_than_half_days": { "system": "http://loinc.org", "code": "LA6570-1" }
+      }
+    },
+    "SBQ-R": {
+      "items": {
+        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" }
+      }
+    },
+    "Stanley-Brown": {
+      "items": {
+        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" },
+        "treatment_escalation_plan": { "system": "http://snomed.info/sct", "code": "735324008" }
+      }
+    },
+    "ConceptLayer": {
+      "items": {
+        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" }
+      }
+    }
+  }
+}
