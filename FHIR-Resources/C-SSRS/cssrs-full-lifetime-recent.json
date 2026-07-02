@@ -4,15 +4,17 @@
   "url": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent",
   "version": "1.0.0",
   "name": "CSSRS_Full_Lifetime_Recent",
-  "title": "Columbia-Suicide Severity Rating Scale — Full (Lifetime/Recent)",
+  "title": "Columbia-Suicide Severity Rating Scale \u2014 Full (Lifetime/Recent)",
   "status": "draft",
   "experimental": true,
-  "subjectType": ["Patient"],
+  "subjectType": [
+    "Patient"
+  ],
   "date": "2026-03-19",
   "publisher": "SPiER Project (FHIR translation)",
   "description": "FHIR Questionnaire representation of the C-SSRS Full Lifetime/Recent version. Comprehensive suicide risk assessment with 5 levels of ideation severity, intensity of ideation ratings (frequency, duration, controllability, deterrents, reasons), and suicidal behavior assessment (actual attempts, interrupted attempts, aborted attempts, preparatory acts, lethality). Dual timeframe: Lifetime and Past Month.",
   "purpose": "Comprehensive suicide risk assessment. The 5-level ideation hierarchy provides granular severity classification. Intensity ratings enable longitudinal tracking. Behavior section captures full history of suicidal acts with lethality scoring.",
-  "copyright": "© 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. For inquiries and training: posnerk@nyspi.columbia.edu",
+  "copyright": "\u00a9 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. For inquiries and training: posnerk@nyspi.columbia.edu",
   "code": [
     {
       "system": "http://loinc.org",
@@ -39,16 +41,60 @@
             {
               "linkId": "q1-lifetime",
               "text": "Have you wished you were dead or wished you could go to sleep and not wake up? (Lifetime)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93246-7", "display": "Wish to be dead - lifetime" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93246-7",
+                  "display": "Wish to be dead - lifetime"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q1-recent",
               "text": "Have you wished you were dead or wished you could go to sleep and not wake up? (Past month)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93246-7", "display": "Wish to be dead - recent" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93246-7",
+                  "display": "Wish to be dead - recent"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q1-describe",
@@ -56,8 +102,24 @@
               "type": "text",
               "required": false,
               "enableWhen": [
-                { "question": "q1-lifetime", "operator": "=", "answerBoolean": true },
-                { "question": "q1-recent", "operator": "=", "answerBoolean": true }
+                {
+                  "question": "q1-lifetime",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "question": "q1-recent",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                }
               ],
               "enableBehavior": "any"
             }
@@ -71,16 +133,60 @@
             {
               "linkId": "q2-lifetime",
               "text": "Have you actually had any thoughts of killing yourself? (Lifetime)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93247-5", "display": "Non-specific active suicidal thoughts - lifetime" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93247-5",
+                  "display": "Non-specific active suicidal thoughts - lifetime"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q2-recent",
               "text": "Have you actually had any thoughts of killing yourself? (Past month)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93247-5", "display": "Non-specific active suicidal thoughts - recent" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93247-5",
+                  "display": "Non-specific active suicidal thoughts - recent"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q2-describe",
@@ -88,8 +194,24 @@
               "type": "text",
               "required": false,
               "enableWhen": [
-                { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
-                { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+                {
+                  "question": "q2-lifetime",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "question": "q2-recent",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                }
               ],
               "enableBehavior": "any"
             }
@@ -100,24 +222,84 @@
           "text": "3. Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act",
           "type": "group",
           "enableWhen": [
-            { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
-            { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+            {
+              "question": "q2-lifetime",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "question": "q2-recent",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            }
           ],
           "enableBehavior": "any",
           "item": [
             {
               "linkId": "q3-lifetime",
               "text": "Have you been thinking about how you might do this? (Lifetime)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93248-3", "display": "Active suicidal ideation with any methods - lifetime" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93248-3",
+                  "display": "Active suicidal ideation with any methods - lifetime"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q3-recent",
               "text": "Have you been thinking about how you might do this? (Past month)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93248-3", "display": "Active suicidal ideation with any methods - recent" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93248-3",
+                  "display": "Active suicidal ideation with any methods - recent"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q3-describe",
@@ -132,24 +314,84 @@
           "text": "4. Active Suicidal Ideation with Some Intent to Act, without Specific Plan",
           "type": "group",
           "enableWhen": [
-            { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
-            { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+            {
+              "question": "q2-lifetime",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "question": "q2-recent",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            }
           ],
           "enableBehavior": "any",
           "item": [
             {
               "linkId": "q4-lifetime",
               "text": "Have you had these thoughts and had some intention of acting on them? (Lifetime)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93249-1", "display": "Active suicidal ideation with some intent to act - lifetime" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93249-1",
+                  "display": "Active suicidal ideation with some intent to act - lifetime"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q4-recent",
               "text": "Have you had these thoughts and had some intention of acting on them? (Past month)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93249-1", "display": "Active suicidal ideation with some intent to act - recent" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93249-1",
+                  "display": "Active suicidal ideation with some intent to act - recent"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q4-describe",
@@ -164,24 +406,84 @@
           "text": "5. Active Suicidal Ideation with Specific Plan and Intent",
           "type": "group",
           "enableWhen": [
-            { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
-            { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+            {
+              "question": "q2-lifetime",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "question": "q2-recent",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            }
           ],
           "enableBehavior": "any",
           "item": [
             {
               "linkId": "q5-lifetime",
               "text": "Have you started to work out or worked out the details of how to kill yourself? Did you intend to carry out this plan? (Lifetime)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93250-9", "display": "Active suicidal ideation with specific plan and intent - lifetime" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93250-9",
+                  "display": "Active suicidal ideation with specific plan and intent - lifetime"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q5-recent",
               "text": "Have you started to work out or worked out the details of how to kill yourself? Did you intend to carry out this plan? (Past month)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93250-9", "display": "Active suicidal ideation with specific plan and intent - recent" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93250-9",
+                  "display": "Active suicidal ideation with specific plan and intent - recent"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "q5-describe",
@@ -198,10 +500,42 @@
       "text": "Intensity of Ideation",
       "type": "group",
       "enableWhen": [
-        { "question": "q1-lifetime", "operator": "=", "answerBoolean": true },
-        { "question": "q1-recent", "operator": "=", "answerBoolean": true },
-        { "question": "q2-lifetime", "operator": "=", "answerBoolean": true },
-        { "question": "q2-recent", "operator": "=", "answerBoolean": true }
+        {
+          "question": "q1-lifetime",
+          "operator": "=",
+          "answerCoding": {
+            "system": "http://snomed.info/sct",
+            "code": "373066001",
+            "display": "Yes"
+          }
+        },
+        {
+          "question": "q1-recent",
+          "operator": "=",
+          "answerCoding": {
+            "system": "http://snomed.info/sct",
+            "code": "373066001",
+            "display": "Yes"
+          }
+        },
+        {
+          "question": "q2-lifetime",
+          "operator": "=",
+          "answerCoding": {
+            "system": "http://snomed.info/sct",
+            "code": "373066001",
+            "display": "Yes"
+          }
+        },
+        {
+          "question": "q2-recent",
+          "operator": "=",
+          "answerCoding": {
+            "system": "http://snomed.info/sct",
+            "code": "373066001",
+            "display": "Yes"
+          }
+        }
       ],
       "enableBehavior": "any",
       "item": [
@@ -216,8 +550,14 @@
           "type": "integer",
           "required": true,
           "extension": [
-            { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-            { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 1
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 5
+            }
           ]
         },
         {
@@ -226,11 +566,41 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "1", "display": "Less than once a week" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "2", "display": "Once a week" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "3", "display": "2-5 times in week" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "4", "display": "Daily or almost daily" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-frequency", "code": "5", "display": "Many times each day" } }
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "code": "1",
+                "display": "Less than once a week"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "code": "2",
+                "display": "Once a week"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "code": "3",
+                "display": "2-5 times in week"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "code": "4",
+                "display": "Daily or almost daily"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "code": "5",
+                "display": "Many times each day"
+              }
+            }
           ]
         },
         {
@@ -239,11 +609,41 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "1", "display": "Fleeting - few seconds or minutes" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "2", "display": "Less than 1 hour / some of the time" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "3", "display": "1-4 hours / a lot of time" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "4", "display": "4-8 hours / most of day" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-duration", "code": "5", "display": "More than 8 hours / persistent or continuous" } }
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "code": "1",
+                "display": "Fleeting - few seconds or minutes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "code": "2",
+                "display": "Less than 1 hour / some of the time"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "code": "3",
+                "display": "1-4 hours / a lot of time"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "code": "4",
+                "display": "4-8 hours / most of day"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "code": "5",
+                "display": "More than 8 hours / persistent or continuous"
+              }
+            }
           ]
         },
         {
@@ -252,26 +652,98 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "1", "display": "Easily able to control thoughts" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "2", "display": "Can control thoughts with little difficulty" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "3", "display": "Can control thoughts with some difficulty" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "4", "display": "Can control thoughts with a lot of difficulty" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "5", "display": "Unable to control thoughts" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-controllability", "code": "0", "display": "Does not attempt to control thoughts" } }
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "code": "1",
+                "display": "Easily able to control thoughts"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "code": "2",
+                "display": "Can control thoughts with little difficulty"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "code": "3",
+                "display": "Can control thoughts with some difficulty"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "code": "4",
+                "display": "Can control thoughts with a lot of difficulty"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "code": "5",
+                "display": "Unable to control thoughts"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "code": "0",
+                "display": "Does not attempt to control thoughts"
+              }
+            }
           ]
         },
         {
           "linkId": "deterrents",
-          "text": "Are there things — anyone or anything (e.g., family, religion, pain of death) — that stopped you from wanting to die or acting on thoughts of suicide?",
+          "text": "Are there things \u2014 anyone or anything (e.g., family, religion, pain of death) \u2014 that stopped you from wanting to die or acting on thoughts of suicide?",
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "1", "display": "Deterrents definitely stopped you from attempting suicide" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "2", "display": "Deterrents probably stopped you" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "3", "display": "Uncertain that deterrents stopped you" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "4", "display": "Deterrents most likely did not stop you" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "5", "display": "Deterrents definitely did not stop you" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-deterrents", "code": "0", "display": "Does not apply" } }
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "code": "1",
+                "display": "Deterrents definitely stopped you from attempting suicide"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "code": "2",
+                "display": "Deterrents probably stopped you"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "code": "3",
+                "display": "Uncertain that deterrents stopped you"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "code": "4",
+                "display": "Deterrents most likely did not stop you"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "code": "5",
+                "display": "Deterrents definitely did not stop you"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "code": "0",
+                "display": "Does not apply"
+              }
+            }
           ]
         },
         {
@@ -280,12 +752,48 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "1", "display": "Completely to get attention, revenge or a reaction from others" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "2", "display": "Mostly to get attention, revenge or a reaction from others" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "3", "display": "Equally to get attention/reaction and to end/stop the pain" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "4", "display": "Mostly to end or stop the pain" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "5", "display": "Completely to end or stop the pain" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-reasons", "code": "0", "display": "Does not apply" } }
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "code": "1",
+                "display": "Completely to get attention, revenge or a reaction from others"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "code": "2",
+                "display": "Mostly to get attention, revenge or a reaction from others"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "code": "3",
+                "display": "Equally to get attention/reaction and to end/stop the pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "code": "4",
+                "display": "Mostly to end or stop the pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "code": "5",
+                "display": "Completely to end or stop the pain"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "code": "0",
+                "display": "Does not apply"
+              }
+            }
           ]
         }
       ]
@@ -303,16 +811,60 @@
             {
               "linkId": "actual-attempt-lifetime",
               "text": "Actual suicide attempt (Lifetime)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93267-3", "display": "Actual suicide attempt - lifetime" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93267-3",
+                  "display": "Actual suicide attempt - lifetime"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "actual-attempt-recent",
               "text": "Actual suicide attempt (Past 3 months)",
-              "type": "boolean",
+              "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93267-3", "display": "Actual suicide attempt - recent" }]
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93267-3",
+                  "display": "Actual suicide attempt - recent"
+                }
+              ],
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "actual-attempt-count",
@@ -320,8 +872,24 @@
               "type": "integer",
               "required": false,
               "enableWhen": [
-                { "question": "actual-attempt-lifetime", "operator": "=", "answerBoolean": true },
-                { "question": "actual-attempt-recent", "operator": "=", "answerBoolean": true }
+                {
+                  "question": "actual-attempt-lifetime",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "question": "actual-attempt-recent",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                }
               ],
               "enableBehavior": "any"
             },
@@ -331,8 +899,24 @@
               "type": "text",
               "required": false,
               "enableWhen": [
-                { "question": "actual-attempt-lifetime", "operator": "=", "answerBoolean": true },
-                { "question": "actual-attempt-recent", "operator": "=", "answerBoolean": true }
+                {
+                  "question": "actual-attempt-lifetime",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "question": "actual-attempt-recent",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                }
               ],
               "enableBehavior": "any"
             }
@@ -341,8 +925,24 @@
         {
           "linkId": "nssi",
           "text": "Has person engaged in Non-Suicidal Self-Injurious Behavior?",
-          "type": "boolean",
-          "required": false
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
+          ]
         },
         {
           "linkId": "interrupted-attempt",
@@ -352,14 +952,46 @@
             {
               "linkId": "interrupted-lifetime",
               "text": "Interrupted attempt (Lifetime)",
-              "type": "boolean",
-              "required": true
+              "type": "choice",
+              "required": true,
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "interrupted-recent",
               "text": "Interrupted attempt (Past 3 months)",
-              "type": "boolean",
-              "required": true
+              "type": "choice",
+              "required": true,
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "interrupted-count",
@@ -367,8 +999,24 @@
               "type": "integer",
               "required": false,
               "enableWhen": [
-                { "question": "interrupted-lifetime", "operator": "=", "answerBoolean": true },
-                { "question": "interrupted-recent", "operator": "=", "answerBoolean": true }
+                {
+                  "question": "interrupted-lifetime",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "question": "interrupted-recent",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                }
               ],
               "enableBehavior": "any"
             }
@@ -382,14 +1030,46 @@
             {
               "linkId": "aborted-lifetime",
               "text": "Aborted or self-interrupted attempt (Lifetime)",
-              "type": "boolean",
-              "required": true
+              "type": "choice",
+              "required": true,
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "aborted-recent",
               "text": "Aborted or self-interrupted attempt (Past 3 months)",
-              "type": "boolean",
-              "required": true
+              "type": "choice",
+              "required": true,
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "aborted-count",
@@ -397,8 +1077,24 @@
               "type": "integer",
               "required": false,
               "enableWhen": [
-                { "question": "aborted-lifetime", "operator": "=", "answerBoolean": true },
-                { "question": "aborted-recent", "operator": "=", "answerBoolean": true }
+                {
+                  "question": "aborted-lifetime",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "question": "aborted-recent",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                }
               ],
               "enableBehavior": "any"
             }
@@ -412,14 +1108,46 @@
             {
               "linkId": "preparatory-lifetime",
               "text": "Preparatory acts or behavior (Lifetime)",
-              "type": "boolean",
-              "required": true
+              "type": "choice",
+              "required": true,
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "preparatory-recent",
               "text": "Preparatory acts or behavior (Past 3 months)",
-              "type": "boolean",
-              "required": true
+              "type": "choice",
+              "required": true,
+              "answerOption": [
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373067005",
+                    "display": "No"
+                  }
+                }
+              ]
             },
             {
               "linkId": "preparatory-count",
@@ -427,8 +1155,24 @@
               "type": "integer",
               "required": false,
               "enableWhen": [
-                { "question": "preparatory-lifetime", "operator": "=", "answerBoolean": true },
-                { "question": "preparatory-recent", "operator": "=", "answerBoolean": true }
+                {
+                  "question": "preparatory-lifetime",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                },
+                {
+                  "question": "preparatory-recent",
+                  "operator": "=",
+                  "answerCoding": {
+                    "system": "http://snomed.info/sct",
+                    "code": "373066001",
+                    "display": "Yes"
+                  }
+                }
               ],
               "enableBehavior": "any"
             }
@@ -439,8 +1183,24 @@
           "text": "Lethality Assessment (for most lethal attempt)",
           "type": "group",
           "enableWhen": [
-            { "question": "actual-attempt-lifetime", "operator": "=", "answerBoolean": true },
-            { "question": "actual-attempt-recent", "operator": "=", "answerBoolean": true }
+            {
+              "question": "actual-attempt-lifetime",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "question": "actual-attempt-recent",
+              "operator": "=",
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            }
           ],
           "enableBehavior": "any",
           "item": [
@@ -449,14 +1209,56 @@
               "text": "Actual Lethality / Medical Damage",
               "type": "choice",
               "required": true,
-              "code": [{ "system": "http://loinc.org", "code": "93271-5", "display": "Actual lethality/medical damage most lethal suicide attempt" }],
+              "code": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "93271-5",
+                  "display": "Actual lethality/medical damage most lethal suicide attempt"
+                }
+              ],
               "answerOption": [
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "0", "display": "No physical damage or very minor physical damage" } },
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "1", "display": "Minor physical damage (e.g., lethargic speech, first-degree burns, mild bleeding)" } },
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "2", "display": "Moderate physical damage; medical attention needed" } },
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "3", "display": "Moderately severe physical damage; medical hospitalization likely required" } },
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "4", "display": "Severe physical damage; intensive care required" } },
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "5", "display": "Death" } }
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "code": "0",
+                    "display": "No physical damage or very minor physical damage"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "code": "1",
+                    "display": "Minor physical damage (e.g., lethargic speech, first-degree burns, mild bleeding)"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "code": "2",
+                    "display": "Moderate physical damage; medical attention needed"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "code": "3",
+                    "display": "Moderately severe physical damage; medical hospitalization likely required"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "code": "4",
+                    "display": "Severe physical damage; intensive care required"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "code": "5",
+                    "display": "Death"
+                  }
+                }
               ]
             },
             {
@@ -468,13 +1270,34 @@
                 {
                   "question": "actual-lethality",
                   "operator": "=",
-                  "answerCoding": { "system": "http://spier.org/CodeSystem/cssrs-lethality", "code": "0" }
+                  "answerCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "code": "0"
+                  }
                 }
               ],
               "answerOption": [
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-potential-lethality", "code": "0", "display": "Behavior not likely to result in injury" } },
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-potential-lethality", "code": "1", "display": "Behavior likely to result in injury but not likely to cause death" } },
-                { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-potential-lethality", "code": "2", "display": "Behavior likely to result in death despite available medical care" } }
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-potential-lethality",
+                    "code": "0",
+                    "display": "Behavior not likely to result in injury"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-potential-lethality",
+                    "code": "1",
+                    "display": "Behavior likely to result in injury but not likely to cause death"
+                  }
+                },
+                {
+                  "valueCoding": {
+                    "system": "http://spier.org/CodeSystem/cssrs-potential-lethality",
+                    "code": "2",
+                    "display": "Behavior likely to result in death despite available medical care"
+                  }
+                }
               ]
             }
           ]

@@ -7,7 +7,9 @@
   "title": "ASQ \u2014 Ask Suicide-Screening Questions",
   "status": "draft",
   "experimental": true,
-  "subjectType": ["Patient"],
+  "subjectType": [
+    "Patient"
+  ],
   "date": "2026-04-20",
   "publisher": "SPiER Project (FHIR translation of NIMH ASQ Toolkit)",
   "description": "FHIR Questionnaire representation of the NIMH Ask Suicide-Screening Questions (ASQ) tool. A 4-question screening instrument validated for youth (8+) and adults across ED, inpatient, outpatient, and primary care settings. Includes acuity question (#5) triggered by any positive response to questions 1-4. Source: NIMH ASQ Toolkit (www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials).",
@@ -87,8 +89,20 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ],
           "code": [
             {
@@ -116,8 +130,20 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ],
           "code": [
             {
@@ -145,8 +171,20 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ],
           "code": [
             {
@@ -174,8 +212,20 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ],
           "code": [
             {
@@ -296,8 +346,20 @@
           "type": "choice",
           "required": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
-            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ],
           "code": [
             {
@@ -408,8 +470,24 @@
         {
           "linkId": "patient-refused",
           "text": "Patient refused to answer screening questions",
-          "type": "boolean",
-          "required": false
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
+          ]
         },
         {
           "linkId": "patient-age-group",
@@ -420,7 +498,11 @@
             {
               "question": "patient-refused",
               "operator": "=",
-              "answerBoolean": true
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
             }
           ],
           "answerOption": [

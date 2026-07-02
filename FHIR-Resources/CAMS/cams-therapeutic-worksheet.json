@@ -6,7 +6,9 @@
   "name": "CAMS_Therapeutic_Worksheet",
   "title": "CAMS Therapeutic Worksheet: Understanding Your Suicidality",
   "status": "draft",
-  "subjectType": [ "Patient" ],
+  "subjectType": [
+    "Patient"
+  ],
   "date": "2026-02-04",
   "publisher": "SPiER Project",
   "copyright": "The Collaborative Assessment and Management of Suicidality (CAMS) framework and Suicide Status Form (SSF) are developed by David A. Jobes, PhD. CAMS is a copyrighted clinical framework. Use of CAMS materials requires appropriate training and licensing. See https://cams-care.com for details.",
@@ -36,10 +38,26 @@
           "text": "Analysis of Direct Drivers (Problem #2)",
           "type": "group",
           "item": [
-            { "linkId": "dd-thoughts", "text": "Specific thoughts (e.g., 'It would be easier on everyone if I were dead'):", "type": "string" },
-            { "linkId": "dd-feelings", "text": "Specific feelings (e.g., 'I just feel so much shame'):", "type": "string" },
-            { "linkId": "dd-behaviors", "text": "Specific behaviors (e.g., 'When I waste time all day long'):", "type": "string" },
-            { "linkId": "dd-themes", "text": "Specific themes (e.g., patterns in relationships or self-concept):", "type": "string" }
+            {
+              "linkId": "dd-thoughts",
+              "text": "Specific thoughts (e.g., 'It would be easier on everyone if I were dead'):",
+              "type": "string"
+            },
+            {
+              "linkId": "dd-feelings",
+              "text": "Specific feelings (e.g., 'I just feel so much shame'):",
+              "type": "string"
+            },
+            {
+              "linkId": "dd-behaviors",
+              "text": "Specific behaviors (e.g., 'When I waste time all day long'):",
+              "type": "string"
+            },
+            {
+              "linkId": "dd-themes",
+              "text": "Specific themes (e.g., patterns in relationships or self-concept):",
+              "type": "string"
+            }
           ]
         },
         {
@@ -48,7 +66,11 @@
           "description": "Underlying factors that contribute but do not necessarily lead to acute suicidal ideation (e.g., substance abuse, PTSD).",
           "type": "group",
           "item": [
-            { "linkId": "id-desc", "text": "Describe the indirect drivers:", "type": "string" }
+            {
+              "linkId": "id-desc",
+              "text": "Describe the indirect drivers:",
+              "type": "string"
+            }
           ]
         }
       ]
@@ -64,8 +86,16 @@
           "text": "Stage 1: Indirect Drivers",
           "type": "group",
           "item": [
-            { "linkId": "si-increase", "text": "What increases risk?", "type": "string" },
-            { "linkId": "si-decrease", "text": "What decreases risk? (Stabilization Plan)", "type": "string" }
+            {
+              "linkId": "si-increase",
+              "text": "What increases risk?",
+              "type": "string"
+            },
+            {
+              "linkId": "si-decrease",
+              "text": "What decreases risk? (Stabilization Plan)",
+              "type": "string"
+            }
           ]
         },
         {
@@ -73,8 +103,16 @@
           "text": "Stage 2: Direct Drivers",
           "type": "group",
           "item": [
-            { "linkId": "sd-increase", "text": "What increases risk?", "type": "string" },
-            { "linkId": "sd-decrease", "text": "What decreases risk? (Stabilization Plan)", "type": "string" }
+            {
+              "linkId": "sd-increase",
+              "text": "What increases risk?",
+              "type": "string"
+            },
+            {
+              "linkId": "sd-decrease",
+              "text": "What decreases risk? (Stabilization Plan)",
+              "type": "string"
+            }
           ]
         },
         {
@@ -82,8 +120,16 @@
           "text": "Stage 3: Suicide as an Option ('I should kill myself')",
           "type": "group",
           "item": [
-            { "linkId": "so-increase", "text": "What increases risk?", "type": "string" },
-            { "linkId": "so-decrease", "text": "What decreases risk? (Stabilization Plan)", "type": "string" }
+            {
+              "linkId": "so-increase",
+              "text": "What increases risk?",
+              "type": "string"
+            },
+            {
+              "linkId": "so-decrease",
+              "text": "What decreases risk? (Stabilization Plan)",
+              "type": "string"
+            }
           ]
         }
       ]
