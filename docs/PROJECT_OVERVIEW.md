@@ -69,7 +69,7 @@ We have adopted a standardized 8-stage model for suicide prevention in EHRs, ens
 *   **EHR Adoption Rubric:** Providing a framework for vendors to self-assess their support for the 8-stage pathway.
 
 ## Roadmap & Tracking
-Active work is tracked in [GitHub Issues](https://github.com/bbthorson/SPiER/issues): one epic per tool (`tool:TL-XXX`), three cross-cutting priority epics (`priority:p1|p2|p3` — FHIR shapes, terminology coding, CDS automation), and task issues under each epic. The Roadmap page on the site renders a committed snapshot of those issues. See `MANIFEST.md` for the seed/fetch workflow.
+Active work is tracked in [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues): one epic per tool (`tool:TL-XXX`), three cross-cutting priority epics (`priority:p1|p2|p3` — FHIR shapes, terminology coding, CDS automation), and task issues under each epic. The Roadmap page on the site renders a committed snapshot of those issues. See `MANIFEST.md` for the seed/fetch workflow.
 
 The **cross-instrument concept layer** (see above) is its own workstream epic — building the common suicide-risk-tier ValueSet, the per-instrument ConceptMap/StructureMap crosswalks, and the harmonized derived-Observation profile, validated through the Big Sky Care Connect pilot.
 

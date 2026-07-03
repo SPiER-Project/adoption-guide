@@ -2,7 +2,7 @@
 
 > **Public, sanitized draft.** Named partner organizations, vendors, individuals, grants, and specific federal initiatives are referenced by role only. The fully-named planning document lives outside this repository.
 
-**Anchor epic:** [#60 — HIE Pilot: ASQ cross-EHR portability (two-phase)](https://github.com/bbthorson/SPiER/issues/60)
+**Anchor epic:** [#60 — HIE Pilot: ASQ cross-EHR portability (two-phase)](https://github.com/SPiER-Project/adoption-guide/issues/60)
 
 ---
 
@@ -106,13 +106,13 @@ For the comparison to be defensible, both phases share an identical payload defi
 1. Execute the bilateral agreement between SPiER and the HIE partner (Layer 1 MOU).
 2. Introduce the receiving-site clinical lead and the originating-site partner to the two-phase roadmap and confirm site-level participation (Layer 2 — site-level agreements).
 3. Schedule the kickoff strategy call referenced under Workstream B/C/D.
-4. Finalize the federal-regulator briefing material (tracked under [#65](https://github.com/bbthorson/SPiER/issues/65)) — the pilot is the empirical anchor.
+4. Finalize the federal-regulator briefing material (tracked under [#65](https://github.com/SPiER-Project/adoption-guide/issues/65)) — the pilot is the empirical anchor.
 
 ---
 
 ## Related epics
 
-- [#60](https://github.com/bbthorson/SPiER/issues/60) — Anchor epic for this pilot.
-- [#61](https://github.com/bbthorson/SPiER/issues/61) — ED Functional Profile. The ED scenario shares tools and downstream artifacts with this pilot.
-- [#64](https://github.com/bbthorson/SPiER/issues/64) — Tool licensing audit. ASQ licensing letter must be on file before the IG is publicly hosted.
-- [#65](https://github.com/bbthorson/SPiER/issues/65) — Federal-regulator briefing. This pilot is the demo flow.
+- [#60](https://github.com/SPiER-Project/adoption-guide/issues/60) — Anchor epic for this pilot.
+- [#61](https://github.com/SPiER-Project/adoption-guide/issues/61) — ED Functional Profile. The ED scenario shares tools and downstream artifacts with this pilot.
+- [#64](https://github.com/SPiER-Project/adoption-guide/issues/64) — Tool licensing audit. ASQ licensing letter must be on file before the IG is publicly hosted.
+- [#65](https://github.com/SPiER-Project/adoption-guide/issues/65) — Federal-regulator briefing. This pilot is the demo flow.
