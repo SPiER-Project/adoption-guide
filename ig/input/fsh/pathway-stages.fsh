@@ -10,8 +10,7 @@
 // consolidated here so each tool file declares only tool artifacts and the
 // pathway assembly happens in one place. (See docs/repo-audit.md §2.)
 //
-// Stages not yet authored: 5 (Coordinate Handoffs), 6 (Track Follow-Up),
-// 8 (Measure and Share).
+// Stages not yet authored: 8 (Measure and Share).
 
 
 // ─── Stage 1: Flag Risk ──────────────────────────────────────
@@ -68,6 +67,18 @@ Usage: #definition
   * output[+]
     * type = #Observation
     * profile = "http://spier.org/StructureDefinition/spier-sbqr-total-score"
+// Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
+// fully FHIR-modelled, so no output profile is declared.
+* action[+]
+  * id = "administer-pss3"
+  * title = "Administer Patient Safety Screener-3 (PSS-3)"
+  * description = "Brief acute-care suicide screen. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerPSS3"
+* action[+]
+  * id = "administer-pss-full"
+  * title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
+  * description = "Combined acute-care screen with local stratification. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerPSSFull"
 
 
 // ─── Stage 2: Clarify Risk ───────────────────────────────────
@@ -145,6 +156,18 @@ Usage: #definition
   * output[+]
     * type = #Condition
     * profile = "http://spier.org/StructureDefinition/spier-cams-suicide-driver"
+// Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
+// fully FHIR-modelled, so no output profile is declared.
+* action[+]
+  * id = "administer-cssrs-since-last-contact"
+  * title = "Administer Columbia C-SSRS Since Last Contact"
+  * description = "Repeat assessment since the prior contact. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCSSRSSinceLastContact"
+* action[+]
+  * id = "administer-bssa"
+  * title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
+  * description = "Disposition-oriented assessment after a positive ASQ. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerBSSA"
 
 
 // ─── Stage 3: Set Risk Status ────────────────────────────────
@@ -171,6 +194,13 @@ Usage: #definition
   * output[+]
     * type = #CarePlan
     * profile = "http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet"
+// Placeholder tool (see pathway-tool-placeholders.fsh) — catalogued but not yet
+// fully FHIR-modelled, so no output profile is declared.
+* action[+]
+  * id = "administer-safe-t"
+  * title = "Administer SAFE-T"
+  * description = "Structured clinical formulation and triage. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerSAFET"
 
 
 // ─── Stage 4: Document Safety Actions ────────────────────────
@@ -205,6 +235,100 @@ Usage: #definition
   * output[+]
     * type = #CarePlan
     * profile = "http://spier.org/StructureDefinition/spier-cams-stabilization-plan"
+// Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
+// fully FHIR-modelled, so no output profile is declared.
+* action[+]
+  * id = "provide-means-safety-counseling"
+  * title = "Provide Means Safety Counseling"
+  * description = "Lethal-means reduction counseling. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/ProvideMeansSafetyCounseling"
+* action[+]
+  * id = "recommend-now-matters-now"
+  * title = "Recommend Now Matters Now"
+  * description = "Patient-facing coping-skills and safety-plan support resource. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/RecommendNowMattersNow"
+* action[+]
+  * id = "author-crisis-response-plan"
+  * title = "Author Crisis Response Plan"
+  * description = "Alternative crisis-planning framework. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AuthorCrisisResponsePlan"
+* action[+]
+  * id = "provide-calm-means-safety"
+  * title = "Provide CALM / Means Safety Counseling Protocol"
+  * description = "Named means-safety protocol option. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/ProvideCALMMeansSafety"
+
+
+// ─── Stage 5: Coordinate Handoffs ────────────────────────────
+// Stage assembly for the catalogued Coordinate Handoffs tools. These are
+// placeholder ActivityDefinitions (see pathway-tool-placeholders.fsh) — no
+// output profiles are declared until each tool is fully FHIR-modelled.
+
+Instance: SPiERCoordinateHandoffsStage
+InstanceOf: PlanDefinition
+Title: "SPiER Pathway — Coordinate Handoffs Stage"
+Description: "Stage 5 of 8 in the SPiER suicide-safer care pathway: transfer essential suicide-safety information, responsibility, and follow-up details across people, settings, and time points. Actions here are catalogued placeholder tools pending full FHIR modelling."
+Usage: #definition
+* url = "http://spier.org/PlanDefinition/SPiERCoordinateHandoffsStage"
+* name = "SPiERCoordinateHandoffsStage"
+* version = "0.1.0"
+* title = "SPiER Pathway — Coordinate Handoffs Stage"
+* status = #draft
+* experimental = true
+* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
+* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
+* useContext[=].valueCodeableConcept = SPiERPathwayStage#coordinate-handoffs
+* action[+]
+  * id = "record-transition-checkpoint"
+  * title = "Record Transition Checkpoint"
+  * description = "Pre-discharge transfer of care. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/RecordTransitionCheckpoint"
+* action[+]
+  * id = "administer-cams-outcome-disposition"
+  * title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
+  * description = "Episode closure, disposition, and next-step planning. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
+* action[+]
+  * id = "send-rapid-referral"
+  * title = "Send Rapid Referral to Outpatient Behavioral Healthcare"
+  * description = "Warm handoff and accelerated access to follow-up. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/SendRapidReferral"
+
+
+// ─── Stage 6: Track Follow-Up ────────────────────────────────
+// Stage assembly for the catalogued Track Follow-Up tools. These are
+// placeholder ActivityDefinitions (see pathway-tool-placeholders.fsh) — no
+// output profiles are declared until each tool is fully FHIR-modelled.
+
+Instance: SPiERTrackFollowUpStage
+InstanceOf: PlanDefinition
+Title: "SPiER Pathway — Track Follow-Up Stage"
+Description: "Stage 6 of 8 in the SPiER suicide-safer care pathway: track whether outreach and follow-up steps occur after the immediate encounter. Actions here are catalogued placeholder tools pending full FHIR modelling."
+Usage: #definition
+* url = "http://spier.org/PlanDefinition/SPiERTrackFollowUpStage"
+* name = "SPiERTrackFollowUpStage"
+* version = "0.1.0"
+* title = "SPiER Pathway — Track Follow-Up Stage"
+* status = #draft
+* experimental = true
+* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
+* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
+* useContext[=].valueCodeableConcept = SPiERPathwayStage#track-follow-up
+* action[+]
+  * id = "send-caring-contact"
+  * title = "Send Outreach / Caring Contact"
+  * description = "Closed-loop follow-up. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/SendCaringContact"
+* action[+]
+  * id = "conduct-ed-safe-follow-up"
+  * title = "Conduct ED-SAFE / CLASP-ED Follow-up"
+  * description = "Protocol-based post-discharge follow-up. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/ConductEDSAFEFollowUp"
+* action[+]
+  * id = "conduct-colorado-post-visit-follow-up"
+  * title = "Conduct Colorado Post-Visit Protocol Follow-up"
+  * description = "Protocol-based post-visit outreach. Placeholder — no Questionnaire binding yet."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/ConductColoradoPostVisitFollowUp"
 
 
 // ─── Stage 7: Manage Active Risk ─────────────────────────────

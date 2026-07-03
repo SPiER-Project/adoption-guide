@@ -4,7 +4,8 @@
 // ActivityDefinition and PlanDefinition JSON in web/src/data/fhir/, which the
 // `npm run copy-fhir` prebuild step regenerates from ig/input/fsh/. UI
 // metadata (badge, launchActions, etc.) is overlaid from tool-ui-metadata.ts.
-// Tools that don't yet have a FSH ActivityDefinition come from tool-stubs.ts.
+// Every catalogued tool has a FSH ActivityDefinition; tools not yet fully
+// FHIR-modelled use the minimal placeholders in pathway-tool-placeholders.fsh.
 
 import {
   TOOL_UI_METADATA,
@@ -19,7 +20,6 @@ import {
   type RecordingResource,
   type WorkflowType,
 } from './tool-ui-metadata'
-import { TOOL_STUBS } from './tool-stubs'
 import { STAGES, type Stage } from './stages'
 
 // Re-export UI metadata types so downstream consumers can keep importing them
@@ -71,6 +71,7 @@ interface ActivityDefinitionDoc {
   title?: string
   description?: string
   purpose?: string
+  kind?: string
   relatedArtifact?: Array<{ type?: string; display?: string; resource?: string }>
 }
 
@@ -148,6 +149,23 @@ const AD_TO_TOOL_ID: Record<string, string> = {
   AdministerCAMSInterimSession: 'TL-022',
   AdministerCAMSTherapeuticWorksheet: 'TL-024',
   AdministerSBQR: 'TL-025',
+  // Minimal placeholder ActivityDefinitions (ig/input/fsh/pathway-tool-placeholders.fsh).
+  // Clinical fields come from the AD; UI metadata stays keyed by these TL ids.
+  AdministerPSS3: 'TL-011',
+  AdministerPSSFull: 'TL-014',
+  AdministerCSSRSSinceLastContact: 'TL-019',
+  AdministerBSSA: 'TL-005',
+  AdministerSAFET: 'TL-006',
+  ProvideMeansSafetyCounseling: 'TL-008',
+  RecommendNowMattersNow: 'TL-013',
+  AuthorCrisisResponsePlan: 'TL-015',
+  ProvideCALMMeansSafety: 'TL-016',
+  RecordTransitionCheckpoint: 'TL-009',
+  AdministerCAMSOutcomeDisposition: 'TL-023',
+  SendRapidReferral: 'TL-017',
+  SendCaringContact: 'TL-010',
+  ConductEDSAFEFollowUp: 'TL-012',
+  ConductColoradoPostVisitFollowUp: 'TL-018',
 }
 
 // Where the per-AD FHIR title/purpose is too narrow for the Tool's combined
@@ -178,6 +196,20 @@ function questionnaireUrlsFromAD(ad: ActivityDefinitionDoc): string[] {
   return (ad.relatedArtifact ?? [])
     .filter((r) => r.type === 'depends-on' && r.resource?.includes('/Questionnaire/'))
     .map((r) => stripCanonicalVersion(r.resource!))
+}
+
+// Derive the catalog WorkflowType from ActivityDefinition.kind. Most tools are
+// Questionnaire-based (kind ServiceRequest); outreach/handoff tools declare
+// kind CommunicationRequest and surface as `communication`.
+function workflowTypeFromAD(ad: ActivityDefinitionDoc): WorkflowType {
+  switch (ad.kind) {
+    case 'CommunicationRequest':
+      return 'communication'
+    case 'Appointment':
+      return 'appointment'
+    default:
+      return 'questionnaire'
+  }
 }
 
 function buildFhirBackedTools(): Tool[] {
@@ -213,28 +245,11 @@ function buildFhirBackedTools(): Tool[] {
       purpose: overrides.purpose ?? primary.purpose ?? '',
       description: overrides.description ?? primary.description,
       questionnaireUrls: questionnaireUrls.length > 0 ? questionnaireUrls : undefined,
-      // FHIR-backed tools are all Questionnaire-based today. (A future PR can
-      // derive this from ActivityDefinition.kind.)
-      workflowType: 'questionnaire',
+      workflowType: workflowTypeFromAD(primary),
       ...ui,
     })
   }
   return tools
-}
-
-function buildStubTools(): Tool[] {
-  return TOOL_STUBS.map((stub) => {
-    const ui = uiMetadataFor(stub.id)
-    return {
-      id: stub.id,
-      name: stub.name,
-      stageId: stub.stageId,
-      purpose: stub.purpose,
-      description: stub.description,
-      workflowType: stub.workflowType ?? 'questionnaire',
-      ...ui,
-    }
-  })
 }
 
 const STATUS_RANK: Record<InclusionStatus, number> = { core: 0, optional: 1, future: 2 }
@@ -252,7 +267,7 @@ function sortTools(tools: Tool[]): Tool[] {
   })
 }
 
-export const TOOLS: Tool[] = sortTools([...buildFhirBackedTools(), ...buildStubTools()])
+export const TOOLS: Tool[] = sortTools(buildFhirBackedTools())
 
 // ─────────────────────────────────────────────────────────────
 // Public helpers

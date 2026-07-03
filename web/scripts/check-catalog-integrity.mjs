@@ -2,29 +2,29 @@
 /**
  * Anti-drift check for the TOOL CATALOG wiring.
  *
- * The catalog (web/src/data/catalog/tools.ts) merges three hand-maintained
- * layers that can silently drift apart:
+ * The catalog (web/src/data/catalog/tools.ts) merges hand-maintained layers
+ * that can silently drift apart:
  *
  *   - generated FHIR (web/src/data/fhir/ActivityDefinition-*.json and
  *     PlanDefinition-*.json, produced by `npm run copy-fhir`)
- *   - TOOL_STUBS (tool-stubs.ts) — tools without an ActivityDefinition yet
  *   - TOOL_UI_METADATA (tool-ui-metadata.ts) — UI overlay keyed by Tool id
  *   - AD_TO_TOOL_ID (tools.ts) — maps ActivityDefinition ids to Tool ids
  *
+ * Every catalogued tool is FHIR-backed: it derives its clinical fields from an
+ * ActivityDefinition and its stage from the PlanDefinition that references it.
+ *
  * This script asserts:
  *
- *   A. every stageId in TOOL_STUBS is a real code in the pathway-stage
- *      CodeSystem, and every PlanDefinition stage useContext is too
- *      (TOOL_UI_METADATA carries no stageIds — FHIR-backed tools get theirs
- *      from the PlanDefinition that references their ActivityDefinition)
+ *   A. every PlanDefinition stage useContext is a real code in the
+ *      pathway-stage CodeSystem (TOOL_UI_METADATA carries no stageIds —
+ *      FHIR-backed tools get theirs from the PlanDefinition that references
+ *      their ActivityDefinition)
  *   B. no orphans in the id space:
  *      - every TOOL_UI_METADATA key is a FHIR-backed Tool id (via
- *        AD_TO_TOOL_ID) or a TOOL_STUBS id
+ *        AD_TO_TOOL_ID)
  *      - every AD_TO_TOOL_ID key is a generated ActivityDefinition, and every
  *        generated ActivityDefinition has an AD_TO_TOOL_ID entry (otherwise
  *        tools.ts drops it with only a console.warn)
- *      - no TOOL_STUBS id collides with a FHIR-backed Tool id (the stub must
- *        be deleted once its ActivityDefinition lands)
  *      - every FHIR-backed ActivityDefinition is referenced by a
  *        PlanDefinition action (otherwise the tool gets no stageId and is
  *        dropped at runtime)
@@ -100,14 +100,8 @@ if (activityDefs.length === 0) {
 }
 
 // ---- parse the hand-maintained catalog TS (regex, no compile) --------------
-const stubsSrc = readFileSync(join(catalogDir, 'tool-stubs.ts'), 'utf8')
 const uiSrc = readFileSync(join(catalogDir, 'tool-ui-metadata.ts'), 'utf8')
 const toolsSrc = readFileSync(join(catalogDir, 'tools.ts'), 'utf8')
-
-// TOOL_STUBS entries: id then stageId within one object literal
-const stubs = [...stubsSrc.matchAll(/id:\s*'(TL-\d+)'[\s\S]*?stageId:\s*'([^']+)'/g)]
-  .map((m) => ({ id: m[1], stageId: m[2] }))
-if (stubs.length === 0) fail('tool-stubs.ts: no TOOL_STUBS entries parsed — has the file shape changed?')
 
 // TOOL_UI_METADATA keys
 const uiIds = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{/gm)].map((m) => m[1])
@@ -119,17 +113,8 @@ const adToTool = [...adMapBlock.matchAll(/(\w+):\s*'(TL-\d+)'/g)]
   .map((m) => ({ adId: m[1], toolId: m[2] }))
 if (adToTool.length === 0) fail('tools.ts: no AD_TO_TOOL_ID entries parsed — has the file shape changed?')
 
-// ---- A: stub stageIds are real stage codes ---------------------------------
-for (const { id, stageId } of stubs) {
-  if (!stageCodes.has(stageId)) {
-    fail(`tool-stubs.ts: ${id} stageId "${stageId}" is not a pathway-stage code`)
-  }
-}
-console.log(`✓ tool-stubs.ts: ${stubs.length} stub stageId(s) checked`)
-
 // ---- B: id-space integrity --------------------------------------------------
 const adIds = new Set(activityDefs.map((ad) => ad.id))
-const stubIds = new Set(stubs.map((s) => s.id))
 const fhirToolIds = new Set(adToTool.map((m) => m.toolId))
 
 for (const { adId } of adToTool) {
@@ -146,16 +131,11 @@ for (const ad of activityDefs) {
   }
 }
 for (const id of uiIds) {
-  if (!fhirToolIds.has(id) && !stubIds.has(id)) {
-    fail(`tool-ui-metadata.ts: "${id}" matches no ActivityDefinition-backed tool and no TOOL_STUBS entry — orphan UI metadata`)
+  if (!fhirToolIds.has(id)) {
+    fail(`tool-ui-metadata.ts: "${id}" matches no ActivityDefinition-backed tool — orphan UI metadata`)
   }
 }
-for (const id of stubIds) {
-  if (fhirToolIds.has(id)) {
-    fail(`tool-stubs.ts: "${id}" is also ActivityDefinition-backed — delete the stub (FHIR wins)`)
-  }
-}
-console.log(`✓ id space: ${activityDefs.length} ActivityDefinition(s), ${stubIds.size} stub(s), ${uiIds.length} UI metadata entries cross-checked`)
+console.log(`✓ id space: ${activityDefs.length} ActivityDefinition(s), ${uiIds.length} UI metadata entries cross-checked`)
 
 // ---- C: questionnaire canonicals resolve to real Questionnaire JSON --------
 function* jsonFiles(dir) {
