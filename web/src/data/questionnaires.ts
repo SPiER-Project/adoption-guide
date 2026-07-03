@@ -15,31 +15,44 @@
 import { stripCanonicalVersion } from './catalog'
 import type { QuestionnaireResource } from '../types/fhir'
 
-// Same source JSONs the form renderer loads (see App.tsx). Importing them here
-// too is free — the bundler dedupes.
+// This module is the single owner of the hand-authored Questionnaire JSON
+// imports from FHIR-Resources/. Both the form renderer (App.tsx routes) and the
+// ordinal-scoring join below consume the resources through the named exports
+// here, so the raw JSON paths live in exactly one place.
 import asq from '../../../FHIR-Resources/ASQ/asq-questionnaire.json'
 import phq9 from '../../../FHIR-Resources/PHQ-9/phq9-questionnaire.json'
 import sbqr from '../../../FHIR-Resources/SBQ-R/sbqr-questionnaire.json'
-import cssrsScreener from '../../../FHIR-Resources/C-SSRS/cssrs-screener.json'
-import cssrsFull from '../../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
-import camsSectionA from '../../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
-import camsSectionB from '../../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
-import camsStabilizationPlan from '../../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
-import camsTherapeuticWorksheet from '../../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
+import cssrsScreenerJson from '../../../FHIR-Resources/C-SSRS/cssrs-screener.json'
+import cssrsFullJson from '../../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
+import camsSectionAJson from '../../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
+import camsSectionBJson from '../../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
+import camsStabilizationPlanJson from '../../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
+import camsTherapeuticWorksheetJson from '../../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
 
 const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
 
-const ALL_QUESTIONNAIRES = [
-  asq,
-  phq9,
-  sbqr,
+/** Named Questionnaire resources — the canonical, typed registry entries. */
+export const asqQuestionnaire = asq as unknown as QuestionnaireResource
+export const phq9Questionnaire = phq9 as unknown as QuestionnaireResource
+export const sbqrQuestionnaire = sbqr as unknown as QuestionnaireResource
+export const cssrsScreener = cssrsScreenerJson as unknown as QuestionnaireResource
+export const cssrsFull = cssrsFullJson as unknown as QuestionnaireResource
+export const camsSectionA = camsSectionAJson as unknown as QuestionnaireResource
+export const camsSectionB = camsSectionBJson as unknown as QuestionnaireResource
+export const camsStabilizationPlan = camsStabilizationPlanJson as unknown as QuestionnaireResource
+export const camsTherapeuticWorksheet = camsTherapeuticWorksheetJson as unknown as QuestionnaireResource
+
+const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
+  asqQuestionnaire,
+  phq9Questionnaire,
+  sbqrQuestionnaire,
   cssrsScreener,
   cssrsFull,
   camsSectionA,
   camsSectionB,
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
-] as unknown as QuestionnaireResource[]
+]
 
 /** Canonical (version-stripped) Questionnaire URL → Questionnaire resource. */
 export const QUESTIONNAIRE_BY_URL: Record<string, unknown> = Object.fromEntries(

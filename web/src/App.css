@@ -1,4 +1,17 @@
 /* ===========================
+   Route-level lazy-load fallback
+   =========================== */
+.route-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: var(--space-8);
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+}
+
+/* ===========================
    SMART on FHIR redirect (success / error states)
    =========================== */
 .smart-error-heading {
