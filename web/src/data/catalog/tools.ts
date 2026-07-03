@@ -71,7 +71,7 @@ interface ActivityDefinitionDoc {
   title?: string
   description?: string
   purpose?: string
-  extension?: Array<{ url: string; valueCanonical?: string }>
+  relatedArtifact?: Array<{ type?: string; display?: string; resource?: string }>
 }
 
 interface PlanDefinitionDoc {
@@ -168,10 +168,16 @@ const CLINICAL_OVERRIDES: Record<
 // Build the catalog
 // ─────────────────────────────────────────────────────────────
 
-function questionnaireUrlFromAD(ad: ActivityDefinitionDoc): string | undefined {
-  return ad.extension?.find(
-    (e) => e.url === 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire',
-  )?.valueCanonical
+// The ActivityDefinitions reference their source Questionnaire via a
+// `depends-on` relatedArtifact whose `resource` is the Questionnaire canonical
+// (carrying a `|version` suffix, e.g. `.../Questionnaire/PHQ-9|1.0.0`). Match on
+// the `/Questionnaire/` path so a future non-Questionnaire `depends-on` artifact
+// isn't mistaken for one, and strip the version suffix so stored URLs line up
+// with the (typically unversioned) lookups in `toolForQuestionnaireUrl`.
+function questionnaireUrlsFromAD(ad: ActivityDefinitionDoc): string[] {
+  return (ad.relatedArtifact ?? [])
+    .filter((r) => r.type === 'depends-on' && r.resource?.includes('/Questionnaire/'))
+    .map((r) => stripCanonicalVersion(r.resource!))
 }
 
 function buildFhirBackedTools(): Tool[] {
@@ -198,9 +204,7 @@ function buildFhirBackedTools(): Tool[] {
     }
     const overrides = CLINICAL_OVERRIDES[toolId] ?? {}
     const ui = uiMetadataFor(toolId)
-    const questionnaireUrls = ads
-      .map(questionnaireUrlFromAD)
-      .filter((u): u is string => Boolean(u))
+    const questionnaireUrls = ads.flatMap(questionnaireUrlsFromAD)
 
     tools.push({
       id: toolId,
