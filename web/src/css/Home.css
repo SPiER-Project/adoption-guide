@@ -27,8 +27,10 @@
 }
 
 .portal-brand-subtitle {
+    display: block;
     font-size: var(--font-size-sm);
     color: var(--text-muted);
+    margin-bottom: var(--space-2);
 }
 
 /* Front-door nav: inline links on desktop, collapses to a hamburger < 768px */
@@ -99,10 +101,6 @@
 }
 
 @media (max-width: 767px) {
-    .portal-brand-subtitle {
-        display: none; /* avoid crowding the wordmark + toggle */
-    }
-
     .portal-nav-toggle {
         display: inline-flex;
     }
