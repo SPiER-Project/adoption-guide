@@ -13,7 +13,7 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`:
+In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, and all four drift checks in sequence. The individual pieces:
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
@@ -21,6 +21,8 @@ npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:crosswalk  # concept-crosswalk validation
 npm run check:extract    # observation-extract validation
+npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions / questionnaire URLs)
+npm run check:stages     # stage ids in population data vs canonical FSH stage list
 ```
 
 In `ig/`:

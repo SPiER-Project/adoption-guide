@@ -14,7 +14,9 @@
     "lint:css": "stylelint \"src/**/*.css\"",
     "check:extract": "node scripts/check-observation-extract.mjs",
     "check:crosswalk": "node scripts/check-concept-crosswalk.mjs",
-    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk",
+    "check:catalog": "node scripts/check-catalog-integrity.mjs",
+    "check:stages": "node scripts/check-stage-ids.mjs",
+    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages",
     "preview": "vite preview"
   },
   "dependencies": {
