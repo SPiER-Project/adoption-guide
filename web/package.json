@@ -16,7 +16,8 @@
     "check:crosswalk": "node scripts/check-concept-crosswalk.mjs",
     "check:catalog": "node scripts/check-catalog-integrity.mjs",
     "check:stages": "node scripts/check-stage-ids.mjs",
-    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages",
+    "test": "vitest run",
+    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm test",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -45,6 +46,7 @@
     "stylelint-declaration-strict-value": "^1.11.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.1.9"
   }
 }
