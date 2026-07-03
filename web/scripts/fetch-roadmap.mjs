@@ -19,7 +19,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(__dirname, '..', '..')
 const outPath = join(repoRoot, 'web', 'src', 'data', 'roadmap.generated.json')
 
-const REPO = process.env.SPIER_ROADMAP_REPO ?? 'bbthorson/SPiER'
+const REPO = process.env.SPIER_ROADMAP_REPO ?? 'SPiER-Project/adoption-guide'
 const API_BASE = 'https://api.github.com'
 
 function log(msg) {

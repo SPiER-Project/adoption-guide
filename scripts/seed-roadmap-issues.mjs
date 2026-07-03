@@ -15,7 +15,7 @@
 import { spawnSync } from 'node:child_process'
 
 const DRY_RUN = process.argv.includes('--dry-run')
-const REPO = process.env.SPIER_ROADMAP_REPO ?? 'bbthorson/SPiER'
+const REPO = process.env.SPIER_ROADMAP_REPO ?? 'SPiER-Project/adoption-guide'
 
 function log(msg) {
   console.log(`[seed-roadmap] ${msg}`)
