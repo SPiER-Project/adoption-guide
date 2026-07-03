@@ -12,7 +12,7 @@ SPiER pursues adoption of its FHIR artifacts and the Suicide Safer Care pathway 
 
 **Decision-making locus.** HIE governance — typically an executive director plus a member-driven board representing participating health systems. Decisions cascade through HIE governance rather than through any single member.
 
-**Proof point we need.** A working pilot demonstrating that discrete behavioral-health observations can move across the HIE and land as actionable data on the receiving side. This is the anchor pilot tracked in [#60](https://github.com/bbthorson/SPiER/issues/60). The two-phase design (document-based transport in Phase 1; FHIR API in Phase 2) produces the comparative evidence.
+**Proof point we need.** A working pilot demonstrating that discrete behavioral-health observations can move across the HIE and land as actionable data on the receiving side. This is the anchor pilot tracked in [#60](https://github.com/SPiER-Project/adoption-guide/issues/60). The two-phase design (document-based transport in Phase 1; FHIR API in Phase 2) produces the comparative evidence.
 
 **Why this tier is hard.** HIEs are mostly under-resourced relative to scope. Many have inherited federation infrastructure that was never designed for discrete clinical data; many are mid-transition between document-based and API-based exchange paradigms. The good news is that the ones that *are* well-resourced have strong incentive to be reference implementations and tend to be open about how their plumbing works.
 
@@ -34,7 +34,7 @@ SPiER pursues adoption of its FHIR artifacts and the Suicide Safer Care pathway 
 
 **Reusability across the tier.** Medium. Different aggregators use different EHR bases, so the technical configuration doesn't transfer directly. The pitch and the value framing do.
 
-**Initial targets.** One federally-funded multi-site aggregator running on one EHR base; one peer aggregator on a different EHR base; one large academic health system with an existing data informatics relationship. Tracked in [#63](https://github.com/bbthorson/SPiER/issues/63).
+**Initial targets.** One federally-funded multi-site aggregator running on one EHR base; one peer aggregator on a different EHR base; one large academic health system with an existing data informatics relationship. Tracked in [#63](https://github.com/SPiER-Project/adoption-guide/issues/63).
 
 ---
 
@@ -62,7 +62,7 @@ This isn't an adoption tier in the same sense as 1–3, but it shapes the others
 
 **Why they matter.** The regulator can push standards-development working groups toward including suicide-care discrete elements as required (not example-only) in interoperability datasets. The standards body produces the functional profile the project intends to publish. Together they convert SPiER artifacts from "interesting reference" to "expected behavior."
 
-**SPiER's approach to this tier** is a "show up done" posture: build the artifact bundle, walk it in to the relevant working group meeting, and ask whether they would adopt it as written rather than asking what "done" looks like. Workflow-specific scoping (ED first, then inpatient) is the operational principle. Tracked across [#61](https://github.com/bbthorson/SPiER/issues/61), [#62](https://github.com/bbthorson/SPiER/issues/62), and [#65](https://github.com/bbthorson/SPiER/issues/65).
+**SPiER's approach to this tier** is a "show up done" posture: build the artifact bundle, walk it in to the relevant working group meeting, and ask whether they would adopt it as written rather than asking what "done" looks like. Workflow-specific scoping (ED first, then inpatient) is the operational principle. Tracked across [#61](https://github.com/SPiER-Project/adoption-guide/issues/61), [#62](https://github.com/SPiER-Project/adoption-guide/issues/62), and [#65](https://github.com/SPiER-Project/adoption-guide/issues/65).
 
 ---
 
@@ -88,8 +88,8 @@ The tiers are not pursued in sequence. They feed each other.
 
 ## Tracking
 
-- [#60](https://github.com/bbthorson/SPiER/issues/60) — Tier 1 anchor pilot.
-- [#61](https://github.com/bbthorson/SPiER/issues/61), [#62](https://github.com/bbthorson/SPiER/issues/62) — Tier 4 functional profile artifacts (ED, inpatient).
-- [#63](https://github.com/bbthorson/SPiER/issues/63) — Tier 2 engagement track.
-- [#65](https://github.com/bbthorson/SPiER/issues/65) — Tier 4 regulator briefing prep.
-- [#64](https://github.com/bbthorson/SPiER/issues/64) — Tool licensing audit (gates all four tiers via repository transfer to the SPiER organization).
+- [#60](https://github.com/SPiER-Project/adoption-guide/issues/60) — Tier 1 anchor pilot.
+- [#61](https://github.com/SPiER-Project/adoption-guide/issues/61), [#62](https://github.com/SPiER-Project/adoption-guide/issues/62) — Tier 4 functional profile artifacts (ED, inpatient).
+- [#63](https://github.com/SPiER-Project/adoption-guide/issues/63) — Tier 2 engagement track.
+- [#65](https://github.com/SPiER-Project/adoption-guide/issues/65) — Tier 4 regulator briefing prep.
+- [#64](https://github.com/SPiER-Project/adoption-guide/issues/64) — Tool licensing audit (gates all four tiers via repository transfer to the SPiER organization).

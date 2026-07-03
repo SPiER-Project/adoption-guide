@@ -2,7 +2,7 @@
 
 > **First-pass skeleton.** Source scenario authored by the SPiER clinical lead as an external CSV. This document captures the structure plus an initial draft mapping of each event step to FHIR resources, profile bindings, and HL7 EHR System Functional Model references. Cells marked *TBD* are open work; cells marked *gap* indicate no SPiER profile exists yet for that artifact.
 >
-> **Tracking epic:** [#61 — ED Functional Profile](https://github.com/bbthorson/SPiER/issues/61).
+> **Tracking epic:** [#61 — ED Functional Profile](https://github.com/SPiER-Project/adoption-guide/issues/61).
 >
 > The clinical scenario itself stays generic — no real patient, no named site, no named vendor. The pseudonymous patient ("Maria, 28, chronic pain and recent job loss") is a scenario archetype, not a real person.
 
@@ -31,7 +31,7 @@ A 28-year-old woman with chronic pain and recent job loss presents to a general 
 | 11.2-2B | EHR System / Status Visibility Manager | `Flag` (suicide screening status) | **gap** — SPiER Suicide-Screening-Status Flag profile | DC.1.3.1 Manage Alerts; IN.5 Clinical Decision Support | n/a |
 | 11.2-2C | EHR System / CDS Workflow Router | `Task` (role-routed) + `ServiceRequest` (BH consult / BSSA) + `PlanDefinition` reference | SPiER PlanDefinition for stage-1 → stage-2 transition ([`pathway-stages.fsh`](../../ig/input/fsh/pathway-stages.fsh)) | DC.2.4.3 Support for Standard Care Plans, Guidelines, Protocols; IN.5.1 Support Decision Logic | `order-select` / advisory |
 
-**Open profile work:** ASQ Outcome Observation, Suicide-Screening-Status Flag. Both feed back to issue [#52](https://github.com/bbthorson/SPiER/issues/52) as non-Questionnaire workflow artifacts.
+**Open profile work:** ASQ Outcome Observation, Suicide-Screening-Status Flag. Both feed back to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52) as non-Questionnaire workflow artifacts.
 
 ---
 
@@ -45,7 +45,7 @@ A 28-year-old woman with chronic pain and recent job loss presents to a general 
 | 11.3-1D | Sitter / Continuous Observer | `Observation` series (time-stamped observations) + `CareTeam` (observer assignment) | **gap** — Continuous Observation Log profile | DC.2.4 Manage Care Plans; DC.1.3.1 Manage Alerts | n/a |
 | 11.3-1E | EHR System / Status Visibility Manager | `Flag` (active precautions) with current parameters | **gap** — Active Precautions Flag profile | DC.1.3.1 Manage Alerts; IN.5 Clinical Decision Support | n/a |
 
-**Open profile work:** Mitigation Checklist, Suicide Precaution Order, Room Clearance Checklist, Belongings Inventory, Continuous Observation Log, Active Precautions Flag. All flow to issue [#52](https://github.com/bbthorson/SPiER/issues/52).
+**Open profile work:** Mitigation Checklist, Suicide Precaution Order, Room Clearance Checklist, Belongings Inventory, Continuous Observation Log, Active Precautions Flag. All flow to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52).
 
 ---
 
@@ -53,9 +53,9 @@ A 28-year-old woman with chronic pain and recent job loss presents to a general 
 
 | Step | Actor / Role | FHIR resources | Profile bindings | HL7 EHR functional model | CDS Hooks |
 |---|---|---|---|---|---|
-| 11.4-0A | ED / BH Clinician / Assessor | `QuestionnaireResponse` (BSSA) | **gap** — needs FSH for BSSA ([TL-005](https://github.com/bbthorson/SPiER/issues/21), status:planned, promote priority) | DC.1.7.1 Capture Standardized Assessments | n/a |
+| 11.4-0A | ED / BH Clinician / Assessor | `QuestionnaireResponse` (BSSA) | **gap** — needs FSH for BSSA ([TL-005](https://github.com/SPiER-Project/adoption-guide/issues/21), status:planned, promote priority) | DC.1.7.1 Capture Standardized Assessments | n/a |
 | 11.4-0B | EHR System / Analyzer + Router | `Observation` (BSSA outcome) + `Task` (next-step routing) + `Flag` (cannot leave until evaluated) | **gap** — BSSA Outcome Observation; "Hold for Evaluation" Flag | DC.2.3.1 Standard Assessments and Outcomes; DC.2.4.3 Care Plans Protocols | `patient-view` |
-| 11.4-1A | BH Clinician / Assessor | `QuestionnaireResponse` (C-SSRS Full + SAFE-T framing) | C-SSRS Full ([built — `full-lifetime-recent.json`](../../FHIR-Resources/C-SSRS/fhir/questionnaires/full-lifetime-recent.json)); SAFE-T ([TL-006](https://github.com/bbthorson/SPiER/issues/22), status:planned, promote) | DC.1.7.1 Capture Standardized Assessments | n/a |
+| 11.4-1A | BH Clinician / Assessor | `QuestionnaireResponse` (C-SSRS Full + SAFE-T framing) | C-SSRS Full ([built — `cssrs-full-lifetime-recent.json`](../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json)); SAFE-T ([TL-006](https://github.com/SPiER-Project/adoption-guide/issues/22), status:planned, promote) | DC.1.7.1 Capture Standardized Assessments | n/a |
 | 11.4-1B | EHR System / Analyzer + Persister | `Observation` (current suicide risk level) + `Condition` (suicide-risk condition, coded) + `Flag` (longitudinal risk indicator) | **gap** — Current Suicide Risk Level Observation; Longitudinal Risk Flag | DC.1.3.1 Manage Alerts; DC.2.4 Manage Care Plans | n/a |
 
 **Gating tools:** BSSA (#21) and SAFE-T (#22) must move from `status:planned` to `status:built` to satisfy this section.
@@ -78,7 +78,7 @@ A 28-year-old woman with chronic pain and recent job loss presents to a general 
 |---|---|---|---|---|---|
 | 11.6-1A | ED Clinician / Enterer | `QuestionnaireResponse` (Stanley-Brown safety plan) + `CarePlan` | Stanley-Brown ([built](../../FHIR-Resources/Stanley-Brown/)) | DC.2.4 Manage Care Plans; DC.1.7.1 Capture Standardized Assessments | n/a |
 | 11.6-1B | EHR System / Retainer + Versioner | `CarePlan` with version history + `Provenance` for each version | Reuses Stanley-Brown CarePlan profile; **gap** — versioning extension | DC.2.4 Manage Care Plans; IN.2.2 Auditable Records | n/a |
-| 11.6-2A | ED Clinician / Educator | `Procedure` (lethal means counseling delivered) + `CarePlan.activity` (means-safety actions, who/what/when/where) | **gap** — Lethal Means Counseling Procedure + Means-Safety Action profile ([TL-008](https://github.com/bbthorson/SPiER/issues/24), status:planned, promote) | DC.1.7 Patient Education; DC.2.4 Manage Care Plans | n/a |
+| 11.6-2A | ED Clinician / Educator | `Procedure` (lethal means counseling delivered) + `CarePlan.activity` (means-safety actions, who/what/when/where) | **gap** — Lethal Means Counseling Procedure + Means-Safety Action profile ([TL-008](https://github.com/SPiER-Project/adoption-guide/issues/24), status:planned, promote) | DC.1.7 Patient Education; DC.2.4 Manage Care Plans | n/a |
 | 11.6-2B | EHR System / Discharge Checklist Manager | `Task` (discharge readiness) + `Flag` (blocking alert if incomplete) | **gap** — Discharge Readiness Checklist profile | DC.1.6.1 Order Entry; IN.5.1 Support Decision Logic | `encounter-discharge` |
 | 11.6-3A | EHR System / Patient Materials Generator | `Composition` (after-visit summary) + `DocumentReference` (printed/portal-delivered safety plan + discharge instructions) | **gap** — Suicide-Specific Discharge AVS Composition profile | DC.1.9 Manage Patient Education; DC.2.7.2 Patient Discharge Summary | n/a |
 
@@ -90,9 +90,9 @@ A 28-year-old woman with chronic pain and recent job loss presents to a general 
 
 | Step | Actor / Role | FHIR resources | Profile bindings | HL7 EHR functional model | CDS Hooks |
 |---|---|---|---|---|---|
-| 11.7-1A | ED Clinician / Orderer | `ServiceRequest` (urgent outpatient referral) + `Appointment` request + `Communication` to receiving provider | **gap** — Urgent BH Follow-Up Referral profile ([TL-009 Transition](https://github.com/bbthorson/SPiER/issues/25), status:planned, promote) | DC.2.5 Order Entry — Referrals; DC.1.6.1 Order Entry | `order-select` |
+| 11.7-1A | ED Clinician / Orderer | `ServiceRequest` (urgent outpatient referral) + `Appointment` request + `Communication` to receiving provider | **gap** — Urgent BH Follow-Up Referral profile ([TL-009 Transition](https://github.com/SPiER-Project/adoption-guide/issues/25), status:planned, promote) | DC.2.5 Order Entry — Referrals; DC.1.6.1 Order Entry | `order-select` |
 | 11.7-1B | EHR System / Transmitter | `Bundle` (transition-of-care packet) + `Composition` + `Provenance` for delivery acknowledgement | **gap** — Suicide-Specific Transition-of-Care Bundle profile | DC.2.7.1 Care Plan, Guideline, Protocol Generation; IN.4 Manage Health Information Sharing | n/a |
-| 11.7-2A | EHR System / Follow-Up Protocol Manager | `Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment | **gap** — Caring Contacts PlanDefinition + Caring Contact Task profile ([TL-010](https://github.com/bbthorson/SPiER/issues/26), status:planned, promote); ED-SAFE telephone follow-up profile ([TL-012](https://github.com/bbthorson/SPiER/issues/28), status:planned, promote) — ED-SAFE specifies the phone-call protocol that Caring Contacts envelopes; both are needed for an ED-anchored follow-up program | DC.2.4.3 Care Plans Protocols; DC.2.4 Manage Care Plans | n/a |
+| 11.7-2A | EHR System / Follow-Up Protocol Manager | `Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment | **gap** — Caring Contacts PlanDefinition + Caring Contact Task profile ([TL-010](https://github.com/SPiER-Project/adoption-guide/issues/26), status:planned, promote); ED-SAFE telephone follow-up profile ([TL-012](https://github.com/SPiER-Project/adoption-guide/issues/28), status:planned, promote) — ED-SAFE specifies the phone-call protocol that Caring Contacts envelopes; both are needed for an ED-anchored follow-up program | DC.2.4.3 Care Plans Protocols; DC.2.4 Manage Care Plans | n/a |
 | 11.7-2B | Care Team / Outreach + Monitor | `Communication` (outreach attempt) + updated `Observation` (current risk) + updated `CarePlan` | Reuses earlier profiles | DC.2.4 Manage Care Plans; DC.1.3.1 Manage Alerts | n/a |
 | 11.7-2C | EHR System / Exception + Escalation Manager | `Task` status transitions to overdue + `Communication` (supervisor alert) + `Flag` (escalated follow-up status) | **gap** — Follow-Up Overdue Escalation profile | IN.5.1 Support Decision Logic; DC.1.3.1 Manage Alerts | n/a |
 
@@ -127,15 +127,15 @@ Profiles that do not yet exist in the SPiER IG and are required by the ED scenar
 21. Caring Contacts PlanDefinition + Caring Contact Task
 22. Follow-Up Overdue Escalation
 
-These map to issue [#52](https://github.com/bbthorson/SPiER/issues/52) (non-Questionnaire workflows) for catalog modeling and to issue [#53](https://github.com/bbthorson/SPiER/issues/53) for IG profile-page publication.
+These map to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52) (non-Questionnaire workflows) for catalog modeling and to issue [#53](https://github.com/SPiER-Project/adoption-guide/issues/53) for IG profile-page publication.
 
 ## Gating tool promotions
 
 Existing tool epics that must advance from `status:planned` to `status:built` for the ED profile to be complete:
 
-- [#21 BSSA](https://github.com/bbthorson/SPiER/issues/21)
-- [#22 SAFE-T](https://github.com/bbthorson/SPiER/issues/22)
-- [#24 Means Counseling](https://github.com/bbthorson/SPiER/issues/24)
-- [#25 Transition](https://github.com/bbthorson/SPiER/issues/25)
-- [#26 Caring Contacts](https://github.com/bbthorson/SPiER/issues/26)
-- [#28 ED-SAFE](https://github.com/bbthorson/SPiER/issues/28)
+- [#21 BSSA](https://github.com/SPiER-Project/adoption-guide/issues/21)
+- [#22 SAFE-T](https://github.com/SPiER-Project/adoption-guide/issues/22)
+- [#24 Means Counseling](https://github.com/SPiER-Project/adoption-guide/issues/24)
+- [#25 Transition](https://github.com/SPiER-Project/adoption-guide/issues/25)
+- [#26 Caring Contacts](https://github.com/SPiER-Project/adoption-guide/issues/26)
+- [#28 ED-SAFE](https://github.com/SPiER-Project/adoption-guide/issues/28)
