@@ -1,11 +1,13 @@
 name: Web — lint, typecheck & build
 
 # Enforce the design-token vocabulary (no raw hex / font-size / box-shadow
-# outside index.css), guard the observationExtract anti-drift check, and run
-# TypeScript, ESLint, and a production build. The observationExtract check reads
-# Questionnaires from FHIR-Resources/ at the repo root, so this also triggers on
-# FHIR-Resources/** — path drift there (e.g. the PR #107 flattening) would
-# otherwise slip past CI. Runs on every push to main and matching PRs.
+# outside index.css), guard the anti-drift checks (observationExtract, stage
+# ids, catalog integrity), and run TypeScript, ESLint, and a production build.
+# The observationExtract check reads Questionnaires from FHIR-Resources/ at the
+# repo root, so this also triggers on FHIR-Resources/** — path drift there
+# (e.g. the PR #107 flattening) would otherwise slip past CI. The stage-id and
+# catalog checks validate against ig/input/fsh/, so ig/** triggers too. Runs on
+# every push to main and matching PRs.
 
 on:
   push:
@@ -14,11 +16,13 @@ on:
     paths:
       - 'web/**'
       - 'FHIR-Resources/**'
+      - 'ig/**'
       - '.github/workflows/web-lint.yml'
   pull_request:
     paths:
       - 'web/**'
       - 'FHIR-Resources/**'
+      - 'ig/**'
       - '.github/workflows/web-lint.yml'
   workflow_dispatch:
 
@@ -46,6 +50,11 @@ jobs:
       - name: Check observationExtract contract
         run: npm run check:extract
 
+      # Reads the canonical stage list straight from ig/input/fsh/ — no
+      # copy-fhir needed, so it can run in this fast job.
+      - name: Check population stage ids
+        run: npm run check:stages
+
   verify:
     runs-on: ubuntu-latest
     defaults:
@@ -68,6 +77,11 @@ jobs:
       # import. Must run before tsc and build.
       - name: Copy FHIR resources
         run: npm run copy-fhir
+
+      # Needs the generated ActivityDefinition/PlanDefinition/CodeSystem JSON,
+      # so it runs after copy-fhir.
+      - name: Check catalog integrity
+        run: npm run check:catalog
 
       - name: Typecheck
         run: npx tsc -b
