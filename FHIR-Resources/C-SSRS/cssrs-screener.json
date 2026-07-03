@@ -7,7 +7,9 @@
   "title": "Columbia-Suicide Severity Rating Scale — Screener (Recent)",
   "status": "draft",
   "experimental": true,
-  "subjectType": ["Patient"],
+  "subjectType": [
+    "Patient"
+  ],
   "date": "2026-03-19",
   "publisher": "SPiER Project (FHIR translation)",
   "description": "FHIR Questionnaire representation of the C-SSRS Screen Version (Recent). A 6-item suicide risk assessment with three-tier risk stratification (Low/Moderate/High). Questions 1-2 are always asked; Questions 3-5 are conditional on Q2=Yes; Question 6 (suicidal behavior) is always asked. This is the brief screener version — see also the Full Lifetime/Recent version for comprehensive assessment.",
@@ -29,7 +31,7 @@
         {
           "linkId": "q1",
           "text": "Have you wished you were dead or wished you could go to sleep and not wake up?",
-          "type": "boolean",
+          "type": "choice",
           "required": true,
           "code": [
             {
@@ -43,12 +45,28 @@
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
               "valueBoolean": true
             }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ]
         },
         {
           "linkId": "q2",
           "text": "Have you actually had any thoughts of killing yourself?",
-          "type": "boolean",
+          "type": "choice",
           "required": true,
           "code": [
             {
@@ -62,18 +80,38 @@
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
               "valueBoolean": true
             }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ]
         },
         {
           "linkId": "q3",
           "text": "Have you been thinking about how you might do this?",
-          "type": "boolean",
+          "type": "choice",
           "required": true,
           "enableWhen": [
             {
               "question": "q2",
               "operator": "=",
-              "answerBoolean": true
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
             }
           ],
           "code": [
@@ -88,18 +126,38 @@
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
               "valueBoolean": true
             }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ]
         },
         {
           "linkId": "q4",
           "text": "Have you had these thoughts and had some intention of acting on them?",
-          "type": "boolean",
+          "type": "choice",
           "required": true,
           "enableWhen": [
             {
               "question": "q2",
               "operator": "=",
-              "answerBoolean": true
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
             }
           ],
           "code": [
@@ -114,18 +172,38 @@
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
               "valueBoolean": true
             }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ]
         },
         {
           "linkId": "q5",
           "text": "Have you started to work out or worked out the details of how to kill yourself? Do you intend to carry out this plan?",
-          "type": "boolean",
+          "type": "choice",
           "required": true,
           "enableWhen": [
             {
               "question": "q2",
               "operator": "=",
-              "answerBoolean": true
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
             }
           ],
           "code": [
@@ -140,6 +218,22 @@
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
               "valueBoolean": true
             }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ]
         }
       ]
@@ -152,7 +246,7 @@
         {
           "linkId": "q6",
           "text": "Have you ever done anything, started to do anything, or prepared to do anything to end your life?",
-          "type": "boolean",
+          "type": "choice",
           "required": true,
           "code": [
             {
@@ -166,18 +260,38 @@
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
               "valueBoolean": true
             }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
+            }
           ]
         },
         {
           "linkId": "q6-recent",
           "text": "Was this within the past three months?",
-          "type": "boolean",
+          "type": "choice",
           "required": false,
           "enableWhen": [
             {
               "question": "q6",
               "operator": "=",
-              "answerBoolean": true
+              "answerCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
             }
           ],
           "code": [
@@ -185,6 +299,22 @@
               "system": "http://loinc.org",
               "code": "93269-9",
               "display": "Was this within the past 3 months"
+            }
+          ],
+          "answerOption": [
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373066001",
+                "display": "Yes"
+              }
+            },
+            {
+              "valueCoding": {
+                "system": "http://snomed.info/sct",
+                "code": "373067005",
+                "display": "No"
+              }
             }
           ]
         }

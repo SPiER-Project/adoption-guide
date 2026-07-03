@@ -168,6 +168,6 @@ Usage: #example
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T11:00:00Z"
 * item[+].linkId = "q1"
-* item[=].answer.valueBoolean = true
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
 * item[+].linkId = "q5"
-* item[=].answer.valueBoolean = true
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
