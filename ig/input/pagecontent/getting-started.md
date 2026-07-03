@@ -8,7 +8,7 @@ Three ways, depending on your tooling:
 
 - **Browse** — the [Artifacts](artifacts.html) page lists every profile, value set, code system, ConceptMap, and example. Each example is downloadable as JSON.
 - **IG package** — the IG publishes a FHIR NPM package, `spier.ig` (canonical `http://spier.org`). Point your FHIR tooling (Sushi, the HL7 validator, a Firely/HAPI server) at it to load all definitions at once.
-- **Build locally** — clone [the repo](https://github.com/bbthorson/SPiER), then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the FSH sources to FHIR JSON (`fsh-generated/`), and the HL7 IG Publisher to render this site.
+- **Build locally** — clone [the repo](https://github.com/SPiER-Project/adoption-guide), then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the FSH sources to FHIR JSON (`fsh-generated/`), and the HL7 IG Publisher to render this site.
 
 ## 2. Validate a resource against a SPiER profile
 
@@ -27,11 +27,11 @@ A good first instance to validate is one of the published [examples](artifacts.h
 
 ## 3. See it working
 
-The **[interactive companion app](https://bbthorson.github.io/SPiER/)** is a runnable reference implementation: it captures each instrument, persists `QuestionnaireResponse`s, derives the Observations (including the harmonized suicide-risk concept), and walks the 8-stage pathway in a simulated chart. Use it to see the expected shapes end-to-end before you build.
+The **[interactive companion app](https://spier-project.github.io/adoption-guide/)** is a runnable reference implementation: it captures each instrument, persists `QuestionnaireResponse`s, derives the Observations (including the harmonized suicide-risk concept), and walks the 8-stage pathway in a simulated chart. Use it to see the expected shapes end-to-end before you build.
 
 ## 4. Give feedback / track progress
 
-- File questions and issues on [GitHub Issues](https://github.com/bbthorson/SPiER/issues).
-- Track build status on the [Roadmap](https://bbthorson.github.io/SPiER/#/implementation-guide/roadmap).
+- File questions and issues on [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues).
+- Track build status on the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap).
 
 > SPiER is **draft / FMM 0–1**. Definitions may change before Trial-Use. If you're implementing against it now, pin to version `0.1.0` and watch the repo for updates.
