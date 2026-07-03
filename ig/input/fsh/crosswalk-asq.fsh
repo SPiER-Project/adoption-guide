@@ -32,7 +32,7 @@ Usage: #definition
 * name = "ASQDispositionToRiskTier"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * purpose = "Translate the SPiER-local ASQ disposition vocabulary into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume an ASQ result without understanding the ASQ."
 * sourceCanonical = "http://spier.org/ValueSet/asq-result"
 * targetCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"

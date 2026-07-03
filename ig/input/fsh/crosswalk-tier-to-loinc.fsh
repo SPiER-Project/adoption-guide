@@ -37,7 +37,7 @@ Usage: #definition
 * name = "SPiERRiskTierToLOINC"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * purpose = "Translate the instrument-agnostic SPiER suicide-risk tier into the LOINC 93374-7 answer list so HL7-aligned partner systems can consume the harmonized concept value natively."
 * sourceCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"
 * targetCanonical = "http://loinc.org/vs/LL465-6"
