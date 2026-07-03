@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '../data/catalog'
 import patientsData from '../data/population/patients.json'
 import '../css/PopulationView.css'
@@ -201,7 +201,17 @@ export function PopulationView() {
             {filteredSorted.map(p => (
               <tr key={p.id} className="caseload-row" onClick={() => handleOpenChart(p.id)}>
                 <td>
-                  <div className="caseload-patient-name">{p.displayName}</div>
+                  {/* Real link: keyboard-focusable and activatable, and announced
+                      to screen readers. The whole-row onClick above is a
+                      mouse-only convenience; stopPropagation avoids a double
+                      navigate when the link itself is clicked. */}
+                  <Link
+                    to={`/patient/chart/${p.id}`}
+                    className="caseload-patient-link"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <span className="caseload-patient-name">{p.displayName}</span>
+                  </Link>
                   <div className="caseload-patient-meta">MRN {p.mrn} &middot; DOB {p.dob}</div>
                 </td>
                 <td>
