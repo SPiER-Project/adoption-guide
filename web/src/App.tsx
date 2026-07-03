@@ -2,18 +2,21 @@ import '@formbox/hs-theme/style.css'
 import './App.css'
 import './CarePlan.css'
 
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 
-// FHIR Questionnaires
-import asqQuestionnaire from '../../FHIR-Resources/ASQ/asq-questionnaire.json'
-import phq9Questionnaire from '../../FHIR-Resources/PHQ-9/phq9-questionnaire.json'
-import sbqrQuestionnaire from '../../FHIR-Resources/SBQ-R/sbqr-questionnaire.json'
-import cssrsScreener from '../../FHIR-Resources/C-SSRS/cssrs-screener.json'
-import cssrsFull from '../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
-import camsSectionA from '../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
-import camsSectionB from '../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
-import camsStabilizationPlan from '../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
-import camsTherapeuticWorksheet from '../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
+// FHIR Questionnaires — sourced from the single registry (web/src/data/questionnaires.ts).
+import {
+  asqQuestionnaire,
+  phq9Questionnaire,
+  sbqrQuestionnaire,
+  cssrsScreener,
+  cssrsFull,
+  camsSectionA,
+  camsSectionB,
+  camsStabilizationPlan,
+  camsTherapeuticWorksheet,
+} from './data/questionnaires'
 import { generateStabilizationCarePlan } from './lib/carePlanMappers'
 import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
 
@@ -26,34 +29,33 @@ import { ToolConfigProvider } from './context/ToolConfigContext'
 import { SmartLaunch } from './components/SmartLaunch'
 import { SmartRedirect } from './components/SmartRedirect'
 
-// Shell
+// Shell — kept eager so the nav/sidebar chrome is always in the main chunk.
 import { EhrShell } from './components/EhrShell'
 
-// Top-level pages
-import { Home } from './pages/Home'
+// Route pages and views are code-split (React.lazy) so each lens loads on
+// demand. Named exports are adapted to lazy()'s default-export contract.
+const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })))
+const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide })))
+const IgOverview = lazy(() => import('./pages/IgOverview').then(m => ({ default: m.IgOverview })))
+const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney })))
+const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
+const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
+const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
+const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
+const Roadmap = lazy(() => import('./pages/Roadmap').then(m => ({ default: m.Roadmap })))
+const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
+const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
+const StanleyBrownView = lazy(() => import('./components/StanleyBrownView').then(m => ({ default: m.StanleyBrownView })))
+const QuestionnaireView = lazy(() => import('./components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
+const WorkflowActionView = lazy(() => import('./components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
 
-// Adoption Guide
-import { AdoptionGuide } from './pages/AdoptionGuide'
-import { IgOverview } from './pages/IgOverview'
-import { PatientJourney } from './pages/PatientJourney'
-import { DataDictionary } from './pages/DataDictionary'
-import { EhrAdoptionRubric } from './pages/EhrAdoptionRubric'
-import { AdoptionReadiness } from './pages/AdoptionReadiness'
-import { ToolConfiguration } from './pages/ToolConfiguration'
-import { Roadmap } from './pages/Roadmap'
-
-// Patient View
-import { PatientChart } from './pages/PatientChart'
-
-// Population View
-import { PopulationView } from './pages/PopulationView'
-
-// Questionnaire Views
-import { StanleyBrownView } from './components/StanleyBrownView'
-import { QuestionnaireView } from './components/QuestionnaireView'
-
-// Non-Questionnaire workflow recorders (issue #52)
-import { WorkflowActionView } from './components/WorkflowActionView'
+function RouteFallback() {
+  return (
+    <div className="route-loading" role="status" aria-live="polite">
+      Loading…
+    </div>
+  )
+}
 
 function LegacyWorkflowRedirect() {
   const { slug } = useParams<{ slug: string }>()
@@ -76,7 +78,8 @@ function LegacyAssessmentRedirect() {
 
 function AppRoutes() {
   return (
-    <Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
       {/* SMART on FHIR — outside the EHR shell */}
       <Route path="/launch" element={<SmartLaunch />} />
       <Route path="/redirect" element={<SmartRedirect />} />
@@ -172,7 +175,8 @@ function AppRoutes() {
 
       {/* Anything else → home */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   )
 }
 
