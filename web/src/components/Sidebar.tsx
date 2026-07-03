@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import '../css/Sidebar.css'
 
@@ -84,6 +85,17 @@ const LENSES: Lens[] = [
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
+
+  // Dismiss the mobile overlay on Escape, mirroring the click-away behavior.
+  // The listener is only attached while the sidebar is open.
+  useEffect(() => {
+    if (!isOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [isOpen, onClose])
 
   const isLensActive = (lens: Lens) => {
     if (lens.to === '/') return location.pathname === '/'

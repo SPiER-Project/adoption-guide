@@ -163,6 +163,21 @@
   vertical-align: top;
 }
 
+.caseload-patient-link {
+  display: inline-block;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.caseload-patient-link:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
+}
+
+.caseload-patient-link:hover .caseload-patient-name {
+  text-decoration: underline;
+}
+
 .caseload-patient-name {
   font-weight: 600;
   color: var(--text-strong);

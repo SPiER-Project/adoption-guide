@@ -16,6 +16,7 @@ export function FhirJsonViewer({ data, title = 'FHIR JSON', defaultOpen = false 
         className="fhir-viewer-toggle"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
+        aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${title}`}
       >
         <span className="fhir-viewer-toggle-icon">{isOpen ? '\u25BC' : '\u25B6'}</span>
         <span className="fhir-viewer-toggle-title">{title}</span>
