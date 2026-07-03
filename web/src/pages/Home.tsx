@@ -18,7 +18,6 @@ export function Home() {
     <div className="portal">
       <header className="portal-header">
         <SpierLogo className="portal-logo" />
-        <span className="portal-brand-subtitle">Suicide Prevention in Electronic Records</span>
 
         <button
           type="button"
@@ -43,6 +42,7 @@ export function Home() {
       <div className="home-container">
         <div className="hero-section">
           <h2 className="spier-title">SPiER</h2>
+          <span className="portal-brand-subtitle">Suicide Prevention in Electronic Records</span>
           <div className="accent-line"></div>
           <p className="spier-tagline">
             Setting Priorities for technology-enabled suicide-safer care in Electronic Records
