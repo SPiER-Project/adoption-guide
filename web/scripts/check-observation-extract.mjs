@@ -32,15 +32,15 @@ const EXTRACT_URL =
 // per-item / total-score Observations (i.e. the items that should declare
 // observationExtract). Keep in sync with web/src/lib/observationMappers/*.
 const EXPECTED = {
-  'FHIR-Resources/PHQ-9/fhir/questionnaires/questionnaire.json': ['44261-6'],
-  'FHIR-Resources/SBQ-R/fhir/questionnaires/questionnaire.json': ['225337009'],
-  'FHIR-Resources/C-SSRS/fhir/questionnaires/screener.json': [
+  'FHIR-Resources/PHQ-9/phq9-questionnaire.json': ['44261-6'],
+  'FHIR-Resources/SBQ-R/sbqr-questionnaire.json': ['225337009'],
+  'FHIR-Resources/C-SSRS/cssrs-screener.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
   // ASQ has NO published per-item LOINC codes (verified June 2026), so the five
   // screening items bind to the SPiER-local http://spier.org/CodeSystem/asq-item.
   // These are NOT LOINC codes; they match web/src/lib/observationMappers/asq.ts.
-  'FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json': [
+  'FHIR-Resources/ASQ/asq-questionnaire.json': [
     'wished-dead', 'family-better-off-dead', 'thoughts-killing-self',
     'ever-attempted', 'acute-ideation-now',
   ],
