@@ -6,7 +6,9 @@
   "name": "SSF5_SectionA",
   "title": "CAMS Suicide Status Form (SSF-5) - Section A (Patient)",
   "status": "draft",
-  "subjectType": [ "Patient" ],
+  "subjectType": [
+    "Patient"
+  ],
   "date": "2026-02-04",
   "publisher": "SPiER Project",
   "copyright": "The Collaborative Assessment and Management of Suicidality (CAMS) framework and Suicide Status Form (SSF) are developed by David A. Jobes, PhD. CAMS is a copyrighted clinical framework. Use of CAMS materials requires appropriate training and licensing. See https://cams-care.com for details.",
@@ -29,11 +31,22 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
                   "valueCodeableConcept": {
-                    "coding": [ { "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "slider" } ]
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/questionnaire-item-control",
+                        "code": "slider"
+                      }
+                    ]
                   }
                 },
-                { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-                { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+                  "valueInteger": 1
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+                  "valueInteger": 5
+                }
               ]
             },
             {
@@ -53,8 +66,14 @@
               "text": "Rating (1=Low stress, 5=High stress)",
               "type": "integer",
               "extension": [
-                { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-                { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+                  "valueInteger": 1
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+                  "valueInteger": 5
+                }
               ]
             },
             {
@@ -74,8 +93,14 @@
               "text": "Rating (1=Low agitation, 5=High agitation)",
               "type": "integer",
               "extension": [
-                { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-                { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+                  "valueInteger": 1
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+                  "valueInteger": 5
+                }
               ]
             },
             {
@@ -95,8 +120,14 @@
               "text": "Rating (1=Low hopelessness, 5=High hopelessness)",
               "type": "integer",
               "extension": [
-                { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-                { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+                  "valueInteger": 1
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+                  "valueInteger": 5
+                }
               ]
             },
             {
@@ -116,8 +147,14 @@
               "text": "Rating (1=Low self-hate, 5=High self-hate)",
               "type": "integer",
               "extension": [
-                { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-                { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+                  "valueInteger": 1
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+                  "valueInteger": 5
+                }
               ]
             },
             {
@@ -137,8 +174,14 @@
               "text": "Rating (1=Extremely low risk/will not kill self, 5=Extremely high risk/will kill self)",
               "type": "integer",
               "extension": [
-                { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-                { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+                  "valueInteger": 1
+                },
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+                  "valueInteger": 5
+                }
               ]
             }
           ]
@@ -155,8 +198,14 @@
           "text": "1) How much is being suicidal related to thoughts and feelings about YOURSELF? (1=Not at all, 5=Completely)",
           "type": "integer",
           "extension": [
-            { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-            { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 1
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 5
+            }
           ]
         },
         {
@@ -164,8 +213,14 @@
           "text": "2) How much is being suicidal related to thoughts and feelings about OTHERS? (1=Not at all, 5=Completely)",
           "type": "integer",
           "extension": [
-            { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 1 },
-            { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 5 }
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 1
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 5
+            }
           ]
         }
       ]
@@ -181,7 +236,10 @@
           "type": "group",
           "repeats": true,
           "extension": [
-            { "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs", "valueInteger": 1 }
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
+              "valueInteger": 1
+            }
           ],
           "item": [
             {
@@ -202,7 +260,10 @@
           "type": "group",
           "repeats": true,
           "extension": [
-            { "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs", "valueInteger": 1 }
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
+              "valueInteger": 1
+            }
           ],
           "item": [
             {
@@ -229,8 +290,14 @@
           "text": "I wish to live to the following extent (0=Not at all, 8=Very much)",
           "type": "integer",
           "extension": [
-            { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 0 },
-            { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 8 }
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 8
+            }
           ]
         },
         {
@@ -238,8 +305,14 @@
           "text": "I wish to die to the following extent (0=Not at all, 8=Very much)",
           "type": "integer",
           "extension": [
-            { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 0 },
-            { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 8 }
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueInteger": 0
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueInteger": 8
+            }
           ]
         }
       ]
