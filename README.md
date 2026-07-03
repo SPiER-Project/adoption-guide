@@ -1,6 +1,6 @@
 # SPiER (Suicide Prevention in Electronic Health Records)
 
-**Live:** [Implementation Guide](https://bbthorson.github.io/SPiER/ig/) · [Companion app](https://bbthorson.github.io/SPiER/) · [Roadmap](https://github.com/bbthorson/SPiER/milestones)
+**Live:** [Implementation Guide](https://spier-project.github.io/adoption-guide/ig/) · [Companion app](https://spier-project.github.io/adoption-guide/) · [Roadmap](https://github.com/SPiER-Project/adoption-guide/milestones)
 
 ## Mission
 
@@ -38,8 +38,8 @@ The three steps are a dependency chain, and a roadmap: you can't translate a res
 
 ## Repository Structure
 
-*   **`ig/`**: The HL7 FHIR Implementation Guide — FSH sources in `input/fsh/` compiled by SUSHI, plus the IG Publisher configuration. Rendered and published at the [Implementation Guide](https://bbthorson.github.io/SPiER/ig/) link above.
-*   **`web/`**: The SPiER companion app (React/TS) — the interactive pathway demo, patient and population views, and EHR adoption rubric. Deployed to GitHub Pages at `/SPiER/`.
+*   **`ig/`**: The HL7 FHIR Implementation Guide — FSH sources in `input/fsh/` compiled by SUSHI, plus the IG Publisher configuration. Rendered and published at the [Implementation Guide](https://spier-project.github.io/adoption-guide/ig/) link above.
+*   **`web/`**: The SPiER companion app (React/TS) — the interactive pathway demo, patient and population views, and EHR adoption rubric. Deployed to GitHub Pages at `/adoption-guide/`.
 *   **`FHIR-Resources/`**: The canonical Questionnaire JSON and per-tool FHIR assets, organized by instrument (`ASQ/`, `C-SSRS/`, `CAMS/`, `PHQ-9/`, `SBQ-R/`, `Stanley-Brown/`).
 *   **`docs/`**: Global strategy, validation guides, and the project overview.
 *   **`scripts/`**: Roadmap seeding and other repository tooling.
@@ -59,7 +59,7 @@ This repository contains the canonical source for SPiER's technical and clinical
 
 ## Roadmap & issue tracking
 
-Tool-level and cross-cutting work is tracked in [GitHub Issues](https://github.com/bbthorson/SPiER/issues). The Roadmap page on the site reads from a committed snapshot at `web/src/data/roadmap.generated.json`.
+Tool-level and cross-cutting work is tracked in [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues). The Roadmap page on the site reads from a committed snapshot at `web/src/data/roadmap.generated.json`.
 
 Workflow:
 

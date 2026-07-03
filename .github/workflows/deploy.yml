@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 
-# Publishes BOTH the companion React app (served at /SPiER/) and the rendered
-# HL7 IG (served at /SPiER/ig/) as a single GitHub Pages site. The web app is
+# Publishes BOTH the companion React app (served at /adoption-guide/) and the rendered
+# HL7 IG (served at /adoption-guide/ig/) as a single GitHub Pages site. The web app is
 # built with Vite; the IG is rendered with the full HL7 IG Publisher and nested
 # under the app's dist/ig directory before upload.
 #
@@ -87,7 +87,7 @@ jobs:
             exit 1
           fi
 
-      # ── Combine: nest the rendered IG under the app at /SPiER/ig/ ──────────
+      # ── Combine: nest the rendered IG under the app at /adoption-guide/ig/ ──────────
       - name: Nest rendered IG under web/dist/ig
         run: |
           mkdir -p web/dist/ig
@@ -100,7 +100,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './web/dist' # app at /SPiER/, rendered IG at /SPiER/ig/
+          path: './web/dist' # app at /adoption-guide/, rendered IG at /adoption-guide/ig/
 
   deploy:
     environment:

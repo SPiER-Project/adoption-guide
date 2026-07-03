@@ -31,7 +31,7 @@ Usage: #definition
 * name = "CSSRSRiskLevelToRiskTier"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * purpose = "Translate the SPiER-local C-SSRS risk-level vocabulary into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume a C-SSRS result without understanding the C-SSRS."
 * sourceCanonical = "http://spier.org/ValueSet/cssrs-risk-level"
 * targetCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"

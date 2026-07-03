@@ -61,7 +61,7 @@ Safety Actions), and 7 (Manage Active Risk)** have published
 `PlanDefinition`s with wired instruments. Stages **5 (Coordinate
 Handoffs), 6 (Track Follow-Up), and 8 (Measure and Share)** are mapped
 conceptually here but their `PlanDefinition`s and tooling are roadmap
-items — see the [Roadmap](https://bbthorson.github.io/SPiER/#/implementation-guide/roadmap)
+items — see the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap)
 for per-tool build status.
 
 ### Notes on the mapping
@@ -87,7 +87,7 @@ for per-tool build status.
 
 - **Improve is intentionally light.** SPiER's *Measure and Share* stage
   surfaces pathway-completion measures and population-level views (see the
-  companion app's [Population View](https://bbthorson.github.io/SPiER/#/population)).
+  companion app's [Population View](https://spier-project.github.io/adoption-guide/#/population)).
   Full QI methodology — running PDSA cycles, board reporting cadence — is
   Zero Suicide's territory, not SPiER's.
 
@@ -102,7 +102,7 @@ piece:
 - **Adopt Zero Suicide directly for *Lead* and *Train*** — leadership
   commitment, workforce competency, organizational change. These are not
   EHR features.
-- **The SPiER [Adoption Rubric](https://bbthorson.github.io/SPiER/#/implementation-guide/adoption-rubric)**
+- **The SPiER [Adoption Rubric](https://spier-project.github.io/adoption-guide/#/implementation-guide/adoption-rubric)**
   scores your EHR's capability across the eight technical stages. Use it
   alongside the Zero Suicide [Organizational Self-Study](https://zerosuicide.edc.org/toolkit/lead/zero-suicide-organizational-self-study)
   for a full picture.

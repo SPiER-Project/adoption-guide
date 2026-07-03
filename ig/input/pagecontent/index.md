@@ -34,11 +34,11 @@ A short clinical primer for the screening terms is in [How to Read This Guide](h
 
 ## Companion resources
 
-- **[Interactive companion app](https://bbthorson.github.io/SPiER/)** — a React application demonstrating the pathway in a simulated EHR (8-stage patient chart, population view, tool configuration, roadmap). It doubles as a working **reference implementation**.
-- **[GitHub repository](https://github.com/bbthorson/SPiER)** — source for both this IG and the companion app; use [Issues](https://github.com/bbthorson/SPiER/issues) for feedback.
+- **[Interactive companion app](https://spier-project.github.io/adoption-guide/)** — a React application demonstrating the pathway in a simulated EHR (8-stage patient chart, population view, tool configuration, roadmap). It doubles as a working **reference implementation**.
+- **[GitHub repository](https://github.com/SPiER-Project/adoption-guide)** — source for both this IG and the companion app; use [Issues](https://github.com/SPiER-Project/adoption-guide/issues) for feedback.
 
 ## Status & expectations
 
 **Draft / continuous build.** Profiles are `draft` / `experimental`; the concept-layer crosswalks are drafted but pending clinical sign-off. Formal conformance artifacts (Must-Support, CapabilityStatements) are in progress — see [Conformance](conformance.html). Maturity is signaled honestly: SPiER is early (FMM 0–1) and advancing through real-world piloting toward independent multi-system validation.
 
-See the [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) for how the pathway relates to the broader Zero Suicide framework, and the [Roadmap](https://bbthorson.github.io/SPiER/#/implementation-guide/roadmap) for build status across the catalogued tools.
+See the [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) for how the pathway relates to the broader Zero Suicide framework, and the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap) for build status across the catalogued tools.

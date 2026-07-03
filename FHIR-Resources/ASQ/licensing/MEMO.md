@@ -1,6 +1,6 @@
 # ASQ — Licensing Audit Memo
 
-> **Status:** Placeholder. Sign-off correspondence exists in non-repository storage and needs to be filed here before this memo is complete. Template: [`docs/best-practices/licensing-audit-template.md`](../../../docs/best-practices/licensing-audit-template.md). Tracking issue: [#64](https://github.com/bbthorson/SPiER/issues/64).
+> **Status:** Placeholder. Sign-off correspondence exists in non-repository storage and needs to be filed here before this memo is complete. Template: [`docs/best-practices/licensing-audit-template.md`](../../../docs/best-practices/licensing-audit-template.md). Tracking issue: [#64](https://github.com/SPiER-Project/adoption-guide/issues/64).
 
 ---
 
@@ -11,7 +11,7 @@
 **SPiER tool ID:** TL-001
 **SPiER pathway stage(s):** flag-risk (1)
 **Repository location:** `FHIR-Resources/ASQ/`
-**Tracking issue:** [#18](https://github.com/bbthorson/SPiER/issues/18)
+**Tracking issue:** [#18](https://github.com/SPiER-Project/adoption-guide/issues/18)
 
 ## Instrument provenance
 
