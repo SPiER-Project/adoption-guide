@@ -70,7 +70,7 @@ Usage: #definition
 * title = "Administer PHQ-9"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Capture a PHQ-9 depression screen, persist as a QuestionnaireResponse, and derive total-score and item-9 Observations."
 * purpose = "Screen for depression severity; any positive PHQ-9 item 9 score is the canonical suicide-risk trigger for Clarify Risk."
 * kind = #ServiceRequest

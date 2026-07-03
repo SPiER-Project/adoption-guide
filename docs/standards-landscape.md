@@ -145,9 +145,9 @@ So the strategic question is **formalizing and advancing an existing position**,
 
 > **Leadership.** SPiER is led by **Kelly Samuelson** (affiliated with **ZeroOverdose, ZeroSuicide,
 > and SPiER**); the WG page's attribution to ZeroOverdose / Kelly Samuelson is correct. **HTD Health
-> is a supporting contributor, not the project owner.** One consequence: the IG's current
-> `publisher = "SPiER (HTD Health)"` under-represents that leadership and is worth revisiting. The
-> project is still *seeking a Clinical Co-Lead*.
+> is a supporting contributor, not the project owner.** The IG's `publisher` is set to **SPiER**
+> accordingly, with HTD Health as the technical contact. The project is still *seeking a Clinical
+> Co-Lead*.
 
 ---
 

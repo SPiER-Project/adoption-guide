@@ -61,7 +61,7 @@ Usage: #definition
 * title = "Author Stanley-Brown Safety Plan"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Collaboratively complete a Stanley-Brown Safety Plan with the patient and persist the result as a CarePlan profiled by SPiERStanleyBrownSafetyPlan. Each of the seven safety-plan steps becomes a CarePlan.activity with its own LOINC code."
 * purpose = "Establish a written, individualized plan a patient can use to manage suicidal crises. Belongs to the Document Safety Actions stage of the SPiER pathway."
 * kind = #ServiceRequest

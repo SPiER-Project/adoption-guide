@@ -47,7 +47,7 @@ Usage: #definition
 * title = "Administer SBQ-R"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and derive a total-score Observation. Total ≥7 advances the patient to Clarify Risk; ≥8 indicates higher acuity warranting a full safety assessment."
 * purpose = "Screen for lifetime and recent suicide-related ideation, plans, and behavior. Validated in both general-population and psychiatric-inpatient settings."
 * kind = #ServiceRequest
