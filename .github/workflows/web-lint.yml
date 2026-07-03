@@ -1,7 +1,8 @@
-name: Web — CSS lint
+name: Web — lint, typecheck & build
 
 # Enforce the design-token vocabulary (no raw hex / font-size / box-shadow
-# outside index.css). Runs on every push to main and every PR touching web/.
+# outside index.css) plus TypeScript, ESLint, and a production build.
+# Runs on every push to main and every PR touching web/.
 
 on:
   push:
@@ -36,3 +37,35 @@ jobs:
 
       - name: Lint CSS
         run: npm run lint:css
+
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Generates web/src/data/fhir/*.json and care-plan-profiles.generated.ts,
+      # which src/data/catalog/stages.ts and src/lib/carePlanMappers/shared.ts
+      # import. Must run before tsc and build.
+      - name: Copy FHIR resources
+        run: npm run copy-fhir
+
+      - name: Typecheck
+        run: npx tsc -b
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
