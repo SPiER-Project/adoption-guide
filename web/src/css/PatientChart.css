@@ -66,6 +66,32 @@
   line-height: 1.5;
 }
 
+/* Async data-source states (SMART live reads/writes) */
+.chart-loading-banner {
+  background: var(--accent-info-soft);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  color: var(--accent-info);
+  font-weight: 600;
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.chart-data-error {
+  background: var(--risk-acute-soft-bg);
+  border: 1px solid var(--risk-acute-faded);
+  border-radius: var(--radius-xl);
+  color: var(--risk-acute-soft-text);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.chart-data-error p {
+  margin: 0.4rem 0 0 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 /* ===========================
    Pathway tracker
    =========================== */
@@ -350,6 +376,12 @@
 .stage-section-status--complete    { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
 .stage-section-status--active      { background: var(--accent-info-soft); color: var(--accent-info); }
 .stage-section-status--not-started { background: var(--surface-muted); color: var(--text-muted); }
+.stage-section-status--other       { background: var(--surface-muted); color: var(--text-muted); }
+
+/* Unstaged "Other activity" bucket — muted like a roadmap row but interactive. */
+.stage-section--other {
+  background: var(--surface-muted);
+}
 
 /* Heading wrapper for a collapsible completed stage: keeps <h4> semantics but
    defers all sizing to the inner title span so the button can fill the row. */

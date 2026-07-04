@@ -8,6 +8,7 @@ import type { RiskAlert } from '../lib/observationMappers'
 import { makeId } from '../lib/id'
 import { deriveFromResponse } from '../lib/deriveFromResponse'
 import { localDataSource } from '../lib/dataSource/localDataSource'
+import { SmartDataSource } from '../lib/dataSource/smartDataSource'
 import type { FhirDataSource } from '../lib/dataSource/types'
 import type { RegistryPatient } from '../lib/registry'
 import populationPatientsData from '../data/population/patients.json'
@@ -45,14 +46,27 @@ const ACTIVE_ID_KEY = 'spier-active-patient-id'
 const DEMO_PATIENT_ID = 'patient-011'
 
 // Fallback initial slice for the first render when the data source can't
-// resolve synchronously (async-only sources omit getSliceSync). LocalDataSource
-// hydrates synchronously so this is never shown in the default configuration.
+// resolve synchronously (async-only sources like SmartDataSource omit
+// getSliceSync). LocalDataSource hydrates synchronously so this is never
+// shown in the default configuration.
 const EMPTY_SLICE: PatientSlice = {
   responses: [],
   observations: [],
   carePlans: [],
   riskAlerts: [],
   communications: [],
+}
+
+/** Chart-slice load state — the slice plus async fetch progress/failure. */
+interface SliceState {
+  slice: PatientSlice
+  isLoading: boolean
+  error: string | null
+}
+
+function describeError(err: unknown): string {
+  if (err instanceof Error) return err.message
+  return String(err)
 }
 
 function populationToFhir(p: PopulationPatient) {
@@ -118,6 +132,16 @@ interface PatientContextType {
    * go through `addResponse`, which also derives Observations.)
    */
   addArtifact: (resource: FhirResource) => void
+  /**
+   * True while an async data source (SMART) is fetching the chart slice.
+   * Always false for the synchronous local source.
+   */
+  isSliceLoading: boolean
+  /**
+   * Read or write failure from the data source — SMART server errors surface
+   * here instead of silently falling back to local storage. Null when healthy.
+   */
+  dataSourceError: string | null
 }
 
 const PatientContext = createContext<PatientContextType | undefined>(undefined)
@@ -142,7 +166,7 @@ export function PatientProvider({
    *  shared localStorage/scenario source. */
   dataSource?: FhirDataSource
 }) {
-  const { patient: smartPatient } = useSmart()
+  const { patient: smartPatient, client: smartClient } = useSmart()
   const location = useLocation()
 
   // Active patient id is persisted across non-chart routes (e.g. when the user
@@ -184,35 +208,87 @@ export function PatientProvider({
     }
   }, [wantsBlank, wantsDemo, urlPatientId, storedActiveId, setStoredActiveId])
 
-  // The active patient's chart slice, delegated to the injected data source.
+  // SMART patient (if connected) wins over population/blank — both for the
+  // Patient resource shown in the banner and for where chart data comes from.
+  const isSmartConnected = !!(smartPatient && smartPatient.name)
+  const smartPatientId = smartPatient?.id ?? smartClient?.patient.id ?? null
+
+  // Under SMART, chart data is read from / written to the connected FHIR
+  // server via SmartDataSource; otherwise the injected source (default: the
+  // localStorage/scenario store). The slice key follows suit: the SMART
+  // patient id versus the population id.
+  const smartSource = useMemo(
+    () =>
+      isSmartConnected && smartClient && smartPatientId
+        ? new SmartDataSource(smartClient)
+        : null,
+    [isSmartConnected, smartClient, smartPatientId],
+  )
+  const activeSource: FhirDataSource = smartSource ?? dataSource
+  const sliceKey = smartSource ? smartPatientId : activePatientId
+
+  // The active patient's chart slice, delegated to the active data source.
   // Storage (localStorage keys, legacy migration, scenario auto-seeding) all
-  // live in the source now; the context just holds the current slice in state
-  // and refreshes it on active-patient change and on source mutations.
+  // live in the source; the context just holds the current slice in state and
+  // refreshes it on active-patient change and on source mutations.
   //
   // Initial state is hydrated synchronously where the source supports it
   // (LocalDataSource does) so the first paint isn't an empty chart; async-only
-  // sources fall back to EMPTY_SLICE until getSlice resolves.
-  const [slice, setSlice] = useState<PatientSlice>(
-    () => dataSource.getSliceSync?.(activePatientId) ?? EMPTY_SLICE,
-  )
+  // sources (SmartDataSource) show EMPTY_SLICE + isLoading until getSlice
+  // resolves.
+  const [sliceState, setSliceState] = useState<SliceState>(() => ({
+    slice: activeSource.getSliceSync?.(sliceKey) ?? EMPTY_SLICE,
+    isLoading: !activeSource.getSliceSync,
+    error: null,
+  }))
 
   useEffect(() => {
     let cancelled = false
-    const refresh = () => {
-      dataSource.getSlice(activePatientId).then(next => {
-        if (!cancelled) setSlice(next)
-      })
+    // `initial` distinguishes a source/patient switch (reset to empty while
+    // the async fetch runs — never show another patient's data under the new
+    // context) from a mutation refresh (keep the current slice visible).
+    const load = (initial: boolean) => {
+      const sync = activeSource.getSliceSync?.(sliceKey)
+      if (sync) {
+        setSliceState({ slice: sync, isLoading: false, error: null })
+        return
+      }
+      setSliceState(prev => ({
+        slice: initial ? EMPTY_SLICE : prev.slice,
+        isLoading: true,
+        error: null,
+      }))
+      activeSource.getSlice(sliceKey).then(
+        next => {
+          if (!cancelled) setSliceState({ slice: next, isLoading: false, error: null })
+        },
+        (err: unknown) => {
+          if (!cancelled)
+            setSliceState(prev => ({ ...prev, isLoading: false, error: describeError(err) }))
+        },
+      )
     }
-    refresh()
-    const unsubscribe = dataSource.subscribe(refresh)
+    load(true)
+    const unsubscribe = activeSource.subscribe(() => load(false))
     return () => {
       cancelled = true
       unsubscribe()
     }
-  }, [dataSource, activePatientId])
+  }, [activeSource, sliceKey])
 
-  // SMART patient (if connected) wins over population/blank
-  const isSmartConnected = !!(smartPatient && smartPatient.name)
+  const slice = sliceState.slice
+
+  // Write failures surface to the UI (the SMART server may reject a POST —
+  // scope issues, validation); there is deliberately no silent fallback to
+  // local storage. Cleared by the next successful write.
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const trackSave = useCallback((op: Promise<void>) => {
+    op.then(
+      () => setSaveError(null),
+      (err: unknown) => setSaveError(describeError(err)),
+    )
+  }, [])
+
   const populationPatient =
     activePatientId !== null ? POPULATION_BY_ID.get(activePatientId) ?? null : null
 
@@ -244,9 +320,9 @@ export function PatientProvider({
     (carePlan: CarePlanResource) => {
       // CarePlans are non-QR artifacts — the source routes them into the
       // carePlans array and stamps _savedAt, same as any other artifact.
-      void dataSource.saveArtifact(activePatientId, carePlan)
+      trackSave(activeSource.saveArtifact(sliceKey, carePlan))
     },
-    [dataSource, activePatientId],
+    [activeSource, sliceKey, trackSave],
   )
 
   const addResponse = useCallback(
@@ -254,7 +330,8 @@ export function PatientProvider({
       // Resolve a single id up front — prefer the resource's own id, otherwise
       // mint one — and use it for the stored resource, the entry, AND the
       // derived Observations' Observation.derivedFrom reference, so they all
-      // point at the same QuestionnaireResponse.
+      // point at the same QuestionnaireResponse. (The SMART source swaps in
+      // the server-assigned id on create.)
       const id = (resource as { id?: string }).id ?? `response-${makeId()}`
       const storedResource = { ...resource, id }
       const entry: StoredResponse = {
@@ -268,9 +345,9 @@ export function PatientProvider({
       // (e.g. Stanley-Brown / CAMS plans), in which case only the response is
       // persisted.
       const derived = deriveFromResponse(storedResource)
-      void dataSource.saveResponse(activePatientId, entry, derived)
+      trackSave(activeSource.saveResponse(sliceKey, entry, derived))
     },
-    [dataSource, activePatientId],
+    [activeSource, sliceKey, trackSave],
   )
 
   // Generic adder for non-Questionnaire workflow artifacts. The source routes
@@ -279,9 +356,9 @@ export function PatientProvider({
   // additionally derives Observations.
   const addArtifact = useCallback(
     (resource: FhirResource) => {
-      void dataSource.saveArtifact(activePatientId, resource)
+      trackSave(activeSource.saveArtifact(sliceKey, resource))
     },
-    [dataSource, activePatientId],
+    [activeSource, sliceKey, trackSave],
   )
 
   const value = useMemo<PatientContextType>(
@@ -300,6 +377,8 @@ export function PatientProvider({
       communications: slice.communications ?? [],
       riskAlerts: slice.riskAlerts,
       addArtifact,
+      isSliceLoading: sliceState.isLoading,
+      dataSourceError: sliceState.error ?? saveError,
     }),
     [
       activePatient,
@@ -309,6 +388,9 @@ export function PatientProvider({
       populationPatient,
       encounters,
       slice,
+      sliceState.isLoading,
+      sliceState.error,
+      saveError,
       addCarePlan,
       addResponse,
       addArtifact,

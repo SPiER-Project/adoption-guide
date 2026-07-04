@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import FHIR from 'fhirclient';
 import { useNavigate } from 'react-router-dom';
 import { useSmart } from '../context/SmartContext';
+import { readSmartPatientSummary } from '../lib/smartPatient';
 
 export function SmartRedirect() {
     const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...');
@@ -20,27 +21,17 @@ export function SmartRedirect() {
                 try {
                     // If a patient is in context (from EHR launch params), fetch their basic demographics
                     if (client.patient.id) {
-                        const patientData = await client.patient.read();
-
-                        // Format some basic info for display
-                        const name = patientData.name?.[0];
-                        const formattedName = name
-                            ? `${name.given?.join(' ') || ''} ${name.family || ''}`.trim()
-                            : 'Unknown Name';
-
-                        setSmartData(client, {
-                            id: patientData.id,
-                            name: formattedName,
-                            dob: patientData.birthDate,
-                            gender: patientData.gender,
-                        });
+                        const summary = await readSmartPatientSummary(client);
+                        setSmartData(client, summary);
 
                         setStatus('Patient data loaded. Redirecting...');
 
-                        // Everything is ready, route the user back to the main app dashboard
-                        // Give them a brief moment to see success before redirecting
+                        // Land on the patient chart — a SMART launch carries a
+                        // patient context, so the chart (which now reads live
+                        // EHR data via SmartDataSource) is the destination.
+                        // Give the user a brief moment to see success first.
                         setTimeout(() => {
-                            navigate('/');
+                            navigate('/patient/chart');
                         }, 500);
                     } else {
                         // We authenticated, but no patient was in context
