@@ -36,6 +36,27 @@ export interface MapperResult {
 }
 
 /**
+ * Severity ordering shared by every UI that ranks risk levels: lower number =
+ * more severe. Single source of truth for what was previously a duplicated
+ * `RISK_ORDER`-style map in PatientChart.tsx and PopulationView.tsx.
+ */
+export const RISK_LEVEL_ORDER: Record<RiskAlert['level'], number> = {
+  acute: 0,
+  high: 1,
+  moderate: 2,
+  low: 3,
+  none: 4,
+}
+
+/** Most severe level across a set of risk alerts; 'none' when the set is empty. */
+export function highestRiskLevel(alerts: RiskAlert[]): RiskAlert['level'] {
+  if (alerts.length === 0) return 'none'
+  return alerts.reduce((worst, a) =>
+    RISK_LEVEL_ORDER[a.level] < RISK_LEVEL_ORDER[worst.level] ? a : worst,
+  ).level
+}
+
+/**
  * Find a QuestionnaireResponse item by linkId, recursing into nested
  * item arrays and answer.item nodes (used by repeating-group structures).
  */

@@ -48,7 +48,19 @@
       }
     }
   ],
-  "observations": [],
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "id": "p011-asq-result",
+      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "flag-risk" }] },
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }] },
+      "subject": { "reference": "Patient/patient-011" },
+      "effectiveDateTime": "2026-05-21T08:40:00Z",
+      "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/asq-screening-result", "code": "non-acute-positive", "display": "Non-Acute Positive Screen" }] }
+    }
+  ],
   "carePlans": [
     {
       "resourceType": "CarePlan",
@@ -63,7 +75,33 @@
       "note": [{ "text": "Collaborative ED safety plan with lethal-means counseling. Copy provided to patient at discharge; included in transition-of-care packet to outpatient BH." }]
     }
   ],
-  "riskAlerts": [],
+  "riskAlerts": [
+    {
+      "tool": "ASQ",
+      "level": "moderate",
+      "summary": "ASQ: Non-Acute Positive Screen",
+      "detail": "Patient endorsed suicidal ideation or history. Brief suicide safety assessment recommended to determine if full mental health evaluation is needed.",
+      "suggestedAction": { "label": "Start Safety Plan", "path": "/patient/assessments/stanley-and-brown" }
+    },
+    {
+      "tool": "Risk Status",
+      "level": "high",
+      "summary": "Risk status: High (set after full risk assessment)",
+      "detail": "Current suicide risk level set to high following C-SSRS Full assessment within a SAFE-T framing; safety plan and lethal-means counseling completed prior to ED discharge."
+    }
+  ],
+  "communications": [
+    {
+      "resourceType": "Communication",
+      "id": "p011-transition-packet",
+      "status": "completed",
+      "category": [{ "text": "Transition of care" }],
+      "reasonCode": [{ "text": "ED discharge — transition-of-care packet sent" }],
+      "subject": { "reference": "Patient/patient-011" },
+      "sent": "2026-05-22T12:00:00Z",
+      "_savedAt": "2026-05-22T12:00:00Z"
+    }
+  ],
   "encounters": [
     {
       "id": "ed-11-2-1a",

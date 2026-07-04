@@ -13,6 +13,7 @@ import {
   type FhirResourceLike,
   type StoredResponseLike,
 } from '../lib/patientPathway'
+import { RISK_LEVEL_ORDER } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
 import type { CarePlanResource, CodeableConcept, ScenarioEncounter, StoredResponse } from '../types/fhir'
 
@@ -126,22 +127,12 @@ function buildCdsCards(
         .filter(() => isToolEnabled(tool.id))
         .map(action => ({ tool, action })),
     )
-    // Highest-severity risk alert drives the urgency. When no live alert
-    // exists, fall back to the population patient's curated currentRiskLevel
-    // so curated next-step cards keep accurate urgency styling. SMART
-    // suppresses the fallback since a connected EHR's real chart is
-    // authoritative.
-    const topAlert = [...riskAlerts].sort((a, b) => {
-      const order = { acute: 0, high: 1, moderate: 2, low: 3, none: 4 } as Record<string, number>
-      return (order[a.level] ?? 9) - (order[b.level] ?? 9)
-    })[0]
-    const populationLevel = !isSmartConnected ? populationPatient?.currentRiskLevel : null
-    const effectiveLevel =
-      topAlert?.level && topAlert.level !== 'none'
-        ? topAlert.level
-        : populationLevel && populationLevel !== 'none'
-          ? populationLevel
-          : null
+    // Highest-severity risk alert drives the urgency. This is the patient's
+    // own live slice — after the population registry moved to deriving risk
+    // from the same riskAlerts (see lib/registry.ts), there's no separate
+    // curated fallback to consult.
+    const topAlert = [...riskAlerts].sort((a, b) => RISK_LEVEL_ORDER[a.level] - RISK_LEVEL_ORDER[b.level])[0]
+    const effectiveLevel = topAlert?.level && topAlert.level !== 'none' ? topAlert.level : null
     const level: CdsCard['level'] =
       effectiveLevel === 'acute' || effectiveLevel === 'high' ? 'urgent'
       : effectiveLevel === 'moderate' ? 'recommended'

@@ -2,12 +2,15 @@
 /**
  * Anti-drift check for PATHWAY STAGE IDs in the demo population data.
  *
- * The registry (web/src/data/population/patients.json) and the per-patient
- * scenario files (web/src/data/population/scenarios/*.json) reference pathway
- * stages by hand-typed id — as `currentStage` / `completedStages` /
- * `recommendedNextStep.stageId` fields, as `stageId` on scenario encounters,
- * and as codings with the spier-pathway-stage system on Communication
- * resources. Renaming a stage in the CodeSystem silently strands them all.
+ * The registry (web/src/data/population/patients.json) references a pathway
+ * stage by hand-typed id in `recommendedNextStep.stageId` — the one field
+ * patients.json still curates (current stage / risk / last activity are
+ * derived from FHIR data at runtime, see lib/registry.ts). The per-patient
+ * scenario files (web/src/data/population/scenarios/*.json) reference stages
+ * as `stageId` on scenario encounters and as codings with the
+ * spier-pathway-stage system on CarePlan/Communication/Observation resources
+ * — this is the ground truth the registry derives `currentStage` from.
+ * Renaming a stage in the CodeSystem silently strands them all.
  *
  * This script parses the CANONICAL stage list straight from the FSH source
  * (ig/input/fsh/spier-codesystem.fsh — no SUSHI compile needed) and asserts
@@ -55,12 +58,9 @@ const check = (stageId, where) => {
 const patients = JSON.parse(readFileSync(join(populationDir, 'patients.json'), 'utf8'))
 let patientRefs = 0
 for (const p of patients) {
-  const at = (field) => `patients.json ${p.id} ${field}`
-  if (p.currentStage != null) { patientRefs++; check(p.currentStage, at('currentStage')) }
-  for (const s of p.completedStages ?? []) { patientRefs++; check(s, at('completedStages')) }
   if (p.recommendedNextStep?.stageId != null) {
     patientRefs++
-    check(p.recommendedNextStep.stageId, at('recommendedNextStep.stageId'))
+    check(p.recommendedNextStep.stageId, `patients.json ${p.id} recommendedNextStep.stageId`)
   }
 }
 console.log(`✓ patients.json: ${patientRefs} stage reference(s) across ${patients.length} patient(s)`)

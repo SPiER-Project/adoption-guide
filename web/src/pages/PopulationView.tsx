@@ -1,32 +1,33 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '../data/catalog'
-import patientsData from '../data/population/patients.json'
+import registryPatientsData from '../data/population/patients.json'
+import { localDataSource } from '../lib/dataSource/localDataSource'
+import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '../lib/registry'
+import { RISK_LEVEL_ORDER } from '../lib/observationMappers'
+import type { RiskAlert } from '../lib/observationMappers'
+import type { PatientSlice } from '../types/fhir'
 import '../css/PopulationView.css'
 
-type RiskLevel = 'none' | 'low' | 'moderate' | 'high' | 'acute'
+type RiskLevel = RiskAlert['level']
 
-interface Patient {
-  id: string
-  displayName: string
-  dob: string
-  mrn: string
-  gender: string
-  currentStage: string
-  completedStages: string[]
-  currentRiskLevel: RiskLevel
-  lastActivity: { date: string; label: string }
-  recommendedNextStep: { stageId: string; label: string; rationale: string }
+const REGISTRY_PATIENTS = registryPatientsData as RegistryPatient[]
+
+const EMPTY_SLICE: PatientSlice = {
+  responses: [],
+  observations: [],
+  carePlans: [],
+  riskAlerts: [],
+  communications: [],
 }
 
-const PATIENTS = patientsData as Patient[]
-
-const RISK_ORDER: Record<RiskLevel, number> = {
-  acute: 0,
-  high: 1,
-  moderate: 2,
-  low: 3,
-  none: 4,
+// Rows are computed from the same FhirDataSource slices PatientChart reads —
+// this is a query over live FHIR data, not a hand-curated snapshot. Submitting
+// an assessment on a patient's chart updates their registry row here too.
+function deriveAllRows(): DerivedRegistryRow[] {
+  return REGISTRY_PATIENTS.map(p =>
+    deriveRegistryRow(p, localDataSource.getSliceSync?.(p.id) ?? EMPTY_SLICE),
+  )
 }
 
 const RISK_LABEL: Record<RiskLevel, string> = {
@@ -61,14 +62,26 @@ function formatDaysAgo(isoDate: string): string {
   return `${Math.floor(d / 30)} months ago`
 }
 
+// Undated rows sort to the end regardless of sort direction.
+function activityTime(row: DerivedRegistryRow): number {
+  return row.lastActivity ? new Date(row.lastActivity.date).getTime() : Number.NEGATIVE_INFINITY
+}
+
 export function PopulationView() {
   const navigate = useNavigate()
   const [stageFilter, setStageFilter] = useState<string | 'all'>('all')
   const [riskFilter, setRiskFilter] = useState<RiskLevel | 'all'>('all')
   const [sortKey, setSortKey] = useState<SortKey>('risk')
+  const [rows, setRows] = useState<DerivedRegistryRow[]>(deriveAllRows)
+
+  useEffect(() => {
+    const refresh = () => setRows(deriveAllRows())
+    refresh()
+    return localDataSource.subscribe(refresh)
+  }, [])
 
   const filteredSorted = useMemo(() => {
-    let list = PATIENTS
+    let list = rows
     if (stageFilter !== 'all') list = list.filter(p => p.currentStage === stageFilter)
     if (riskFilter !== 'all') list = list.filter(p => p.currentRiskLevel === riskFilter)
 
@@ -76,29 +89,31 @@ export function PopulationView() {
     sorted.sort((a, b) => {
       switch (sortKey) {
         case 'risk':
-          return RISK_ORDER[a.currentRiskLevel] - RISK_ORDER[b.currentRiskLevel]
+          return RISK_LEVEL_ORDER[a.currentRiskLevel] - RISK_LEVEL_ORDER[b.currentRiskLevel]
         case 'oldest':
-          return new Date(a.lastActivity.date).getTime() - new Date(b.lastActivity.date).getTime()
+          return activityTime(a) - activityTime(b)
         case 'recent':
-          return new Date(b.lastActivity.date).getTime() - new Date(a.lastActivity.date).getTime()
+          return activityTime(b) - activityTime(a)
         case 'name':
           return a.displayName.localeCompare(b.displayName)
       }
     })
     return sorted
-  }, [stageFilter, riskFilter, sortKey])
+  }, [rows, stageFilter, riskFilter, sortKey])
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const p of PATIENTS) counts[p.currentStage] = (counts[p.currentStage] ?? 0) + 1
+    for (const p of rows) {
+      if (p.currentStage) counts[p.currentStage] = (counts[p.currentStage] ?? 0) + 1
+    }
     return counts
-  }, [])
+  }, [rows])
 
   const riskCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const p of PATIENTS) counts[p.currentRiskLevel] = (counts[p.currentRiskLevel] ?? 0) + 1
+    for (const p of rows) counts[p.currentRiskLevel] = (counts[p.currentRiskLevel] ?? 0) + 1
     return counts
-  }, [])
+  }, [rows])
 
   const handleOpenChart = (patientId: string) => {
     // v1: cross-app patient switching is mocked. In production this would be FHIRcast.
@@ -115,7 +130,7 @@ export function PopulationView() {
           level, what matters is the patient's status and risk, not the specific instrument.
         </p>
         <p className="population-meta">
-          {filteredSorted.length} of {PATIENTS.length} patients shown
+          {filteredSorted.length} of {rows.length} patients shown
         </p>
       </header>
 
@@ -127,7 +142,7 @@ export function PopulationView() {
             className={`filter-chip ${stageFilter === 'all' ? 'filter-chip--active' : ''}`}
             onClick={() => setStageFilter('all')}
           >
-            All ({PATIENTS.length})
+            All ({rows.length})
           </button>
           {STAGES.map(stage => {
             const count = stageCounts[stage.id] ?? 0
@@ -215,7 +230,9 @@ export function PopulationView() {
                   <div className="caseload-patient-meta">MRN {p.mrn} &middot; DOB {p.dob}</div>
                 </td>
                 <td>
-                  <span className="caseload-stage">{stageTitleById(p.currentStage)}</span>
+                  <span className="caseload-stage">
+                    {p.currentStage ? stageTitleById(p.currentStage) : 'Pathway complete'}
+                  </span>
                 </td>
                 <td>
                   <span className={`risk-pill risk-pill--${p.currentRiskLevel}`}>
@@ -223,10 +240,16 @@ export function PopulationView() {
                   </span>
                 </td>
                 <td>
-                  <div className="caseload-activity-label">{p.lastActivity.label}</div>
-                  <div className="caseload-activity-date">
-                    {formatDaysAgo(p.lastActivity.date)}
-                  </div>
+                  {p.lastActivity ? (
+                    <>
+                      <div className="caseload-activity-label">{p.lastActivity.label}</div>
+                      <div className="caseload-activity-date">
+                        {formatDaysAgo(p.lastActivity.date)}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="caseload-activity-label">No activity yet</div>
+                  )}
                 </td>
                 <td>
                   <div className="caseload-next-label">{p.recommendedNextStep.label}</div>
@@ -245,9 +268,9 @@ export function PopulationView() {
       </section>
 
       <p className="population-footnote">
-        Mock registry data &mdash; 10 patients sampled across all 8 pathway stages and risk levels.
-        Click any row to view that patient's chart. In a production implementation, cross-app
-        patient context would switch via <strong>FHIRcast</strong>.
+        Mock registry data &mdash; {rows.length} patients sampled across the pathway stages and
+        risk levels. Click any row to view that patient's chart. In a production implementation,
+        cross-app patient context would switch via <strong>FHIRcast</strong>.
       </p>
     </div>
   )

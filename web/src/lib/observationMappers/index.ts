@@ -17,6 +17,7 @@
  */
 
 export type { RiskAlert, MapperResult } from './shared'
+export { RISK_LEVEL_ORDER, highestRiskLevel } from './shared'
 
 import type { MapperResult } from './shared'
 import type { QuestionnaireResponseResource } from '../../types/fhir'
