@@ -1,5 +1,16 @@
 {
-  "responses": [],
+  "responses": [
+    {
+      "id": "p009-cams-therapeutic-s4",
+      "questionnaireName": "CAMS Therapeutic Worksheet — Session 4",
+      "completedAt": "2026-05-14T10:00:00Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet"
+      }
+    }
+  ],
   "observations": [],
   "carePlans": [
     {
@@ -14,5 +25,12 @@
       "note": [{ "text": "7-day and 30-day caring contacts complete. Patient enrolled in active CAMS episode." }]
     }
   ],
-  "riskAlerts": []
+  "riskAlerts": [
+    {
+      "tool": "Risk Status",
+      "level": "high",
+      "summary": "Risk status: High (active CAMS episode)",
+      "detail": "High suicide risk maintained during active CAMS treatment episode; psychological pain remains elevated (3/5) per most recent SSF vitals. Continuing weekly sessions until resolution criteria met."
+    }
+  ]
 }

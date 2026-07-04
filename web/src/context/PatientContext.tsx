@@ -9,6 +9,7 @@ import { makeId } from '../lib/id'
 import { deriveFromResponse } from '../lib/deriveFromResponse'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import type { FhirDataSource } from '../lib/dataSource/types'
+import type { RegistryPatient } from '../lib/registry'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
@@ -23,20 +24,12 @@ import type {
   StoredResponse,
 } from '../types/fhir'
 
-export type PopulationRiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none'
-
-export interface PopulationPatient {
-  id: string
-  displayName: string
-  dob: string
-  mrn: string
-  gender: string
-  currentStage: string
-  completedStages: string[]
-  currentRiskLevel: PopulationRiskLevel
-  lastActivity: { date: string; label: string }
-  recommendedNextStep: { stageId: string; label: string; rationale: string }
-}
+/**
+ * A population patient's static demographics + curated next-step rationale.
+ * Live pathway/risk/activity state is derived from FHIR data (see
+ * `lib/registry.ts`) rather than read off this record.
+ */
+export type PopulationPatient = RegistryPatient
 
 const POPULATION_PATIENTS = populationPatientsData as PopulationPatient[]
 const POPULATION_BY_ID = new Map(POPULATION_PATIENTS.map(p => [p.id, p]))
@@ -105,7 +98,6 @@ interface PatientContextType {
   /** Null when no patient is selected (blank "play with forms" state). */
   activePatientId: string | null
   populationPatient: PopulationPatient | null
-  populationRiskLevel: PopulationRiskLevel | null
   /**
    * Read-only scenario walkthrough timeline for the active patient. Sourced
    * directly from the static scenario (not the mutable store) so submitted
@@ -299,7 +291,6 @@ export function PatientProvider({
       isSmartConnected,
       activePatientId,
       populationPatient,
-      populationRiskLevel: populationPatient?.currentRiskLevel ?? null,
       encounters,
       carePlans: slice.carePlans,
       addCarePlan,

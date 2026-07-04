@@ -5,13 +5,6 @@
     "dob": "1990-01-15",
     "mrn": "12345",
     "gender": "Female",
-    "currentStage": "document-safety-actions",
-    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status"],
-    "currentRiskLevel": "high",
-    "lastActivity": {
-      "date": "2026-03-17",
-      "label": "Stanley-Brown Safety Plan completed"
-    },
     "recommendedNextStep": {
       "stageId": "track-follow-up",
       "label": "Schedule 7-day caring contact",
@@ -24,13 +17,6 @@
     "dob": "1985-06-22",
     "mrn": "23456",
     "gender": "Male",
-    "currentStage": "flag-risk",
-    "completedStages": [],
-    "currentRiskLevel": "none",
-    "lastActivity": {
-      "date": "2026-05-10",
-      "label": "Annual wellness visit"
-    },
     "recommendedNextStep": {
       "stageId": "flag-risk",
       "label": "Administer ASQ or PHQ-9",
@@ -43,13 +29,6 @@
     "dob": "1978-11-03",
     "mrn": "34567",
     "gender": "Female",
-    "currentStage": "clarify-risk",
-    "completedStages": ["flag-risk"],
-    "currentRiskLevel": "moderate",
-    "lastActivity": {
-      "date": "2026-05-15",
-      "label": "PHQ-9 Item 9 positive (score: 1)"
-    },
     "recommendedNextStep": {
       "stageId": "clarify-risk",
       "label": "Clarify risk with C-SSRS or ASQ",
@@ -62,13 +41,6 @@
     "dob": "1996-04-09",
     "mrn": "45678",
     "gender": "Male",
-    "currentStage": "clarify-risk",
-    "completedStages": ["flag-risk"],
-    "currentRiskLevel": "moderate",
-    "lastActivity": {
-      "date": "2026-05-12",
-      "label": "ASQ non-acute positive"
-    },
     "recommendedNextStep": {
       "stageId": "clarify-risk",
       "label": "Complete brief suicide safety assessment",
@@ -81,13 +53,6 @@
     "dob": "1972-08-30",
     "mrn": "56789",
     "gender": "Female",
-    "currentStage": "clarify-risk",
-    "completedStages": ["flag-risk"],
-    "currentRiskLevel": "acute",
-    "lastActivity": {
-      "date": "2026-05-18",
-      "label": "ASQ acute positive (Yes to Q5)"
-    },
     "recommendedNextStep": {
       "stageId": "clarify-risk",
       "label": "Urgent face-to-face risk assessment",
@@ -100,13 +65,6 @@
     "dob": "1989-02-14",
     "mrn": "67890",
     "gender": "Male",
-    "currentStage": "set-risk-status",
-    "completedStages": ["flag-risk", "clarify-risk"],
-    "currentRiskLevel": "high",
-    "lastActivity": {
-      "date": "2026-05-16",
-      "label": "CAMS SSF-5 First Session completed"
-    },
     "recommendedNextStep": {
       "stageId": "document-safety-actions",
       "label": "Complete Stanley-Brown Safety Plan",
@@ -119,13 +77,6 @@
     "dob": "2008-09-21",
     "mrn": "78901",
     "gender": "Female",
-    "currentStage": "coordinate-handoffs",
-    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions"],
-    "currentRiskLevel": "moderate",
-    "lastActivity": {
-      "date": "2026-05-08",
-      "label": "Outpatient referral sent"
-    },
     "recommendedNextStep": {
       "stageId": "coordinate-handoffs",
       "label": "Confirm outpatient appointment scheduled",
@@ -138,17 +89,10 @@
     "dob": "1965-12-05",
     "mrn": "89012",
     "gender": "Male",
-    "currentStage": "track-follow-up",
-    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions", "coordinate-handoffs"],
-    "currentRiskLevel": "low",
-    "lastActivity": {
-      "date": "2026-04-28",
-      "label": "7-day caring contact: phone call"
-    },
     "recommendedNextStep": {
-      "stageId": "track-follow-up",
-      "label": "30-day follow-up contact due",
-      "rationale": "First caring contact complete; 30-day check-in window opens this week."
+      "stageId": "manage-active-risk",
+      "label": "Confirm no active-risk escalation; prepare for outcome reporting",
+      "rationale": "Caring-contact follow-up complete with no risk escalation; low risk sustained. Ready to close out the active-risk window and move toward Q2 outcome measurement."
     }
   },
   {
@@ -157,13 +101,6 @@
     "dob": "1981-07-17",
     "mrn": "90123",
     "gender": "Female",
-    "currentStage": "manage-active-risk",
-    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions", "coordinate-handoffs", "track-follow-up"],
-    "currentRiskLevel": "high",
-    "lastActivity": {
-      "date": "2026-05-14",
-      "label": "CAMS Therapeutic Worksheet — Session 4"
-    },
     "recommendedNextStep": {
       "stageId": "manage-active-risk",
       "label": "Session 5: re-rate SSF vitals and review drivers",
@@ -176,13 +113,6 @@
     "dob": "1953-03-08",
     "mrn": "01234",
     "gender": "Male",
-    "currentStage": "measure-and-share",
-    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions", "coordinate-handoffs", "track-follow-up", "manage-active-risk"],
-    "currentRiskLevel": "low",
-    "lastActivity": {
-      "date": "2026-04-02",
-      "label": "Episode resolution documented"
-    },
     "recommendedNextStep": {
       "stageId": "measure-and-share",
       "label": "Include in Q2 zero-suicide outcome report",
@@ -195,13 +125,6 @@
     "dob": "1997-10-12",
     "mrn": "11011",
     "gender": "Female",
-    "currentStage": "coordinate-handoffs",
-    "completedStages": ["flag-risk", "clarify-risk", "set-risk-status", "document-safety-actions"],
-    "currentRiskLevel": "high",
-    "lastActivity": {
-      "date": "2026-05-22",
-      "label": "ED discharge — transition-of-care packet sent"
-    },
     "recommendedNextStep": {
       "stageId": "coordinate-handoffs",
       "label": "Confirm outpatient BH appointment + start caring-contact cadence",
