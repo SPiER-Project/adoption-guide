@@ -26,5 +26,24 @@
       "note": [{ "text": "Outpatient referral sent — awaiting receipt confirmation." }]
     }
   ],
-  "riskAlerts": []
+  "riskAlerts": [
+    {
+      "tool": "Risk Status",
+      "level": "moderate",
+      "summary": "Risk status: Moderate (carried forward)",
+      "detail": "Moderate suicide risk established earlier in the episode; safety plan completed and outpatient referral sent. Status persists pending confirmed handoff."
+    }
+  ],
+  "communications": [
+    {
+      "resourceType": "Communication",
+      "id": "p007-referral-sent",
+      "status": "completed",
+      "category": [{ "text": "Referral" }],
+      "reasonCode": [{ "text": "Outpatient referral sent" }],
+      "subject": { "reference": "Patient/patient-007" },
+      "sent": "2026-05-08T10:00:00Z",
+      "_savedAt": "2026-05-08T10:00:00Z"
+    }
+  ]
 }

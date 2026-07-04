@@ -14,16 +14,12 @@ const RISK_LABEL: Record<RiskLevel, string> = {
 }
 
 // "Unknown" means no risk-bearing data has been captured yet (no screening on
-// file, and no population-level state). Once any source reports a level —
-// even 'none' — we surface the highest one.
-function highestRiskLevel(
-  alertLevels: string[],
-  populationLevel: string | null,
-): RiskLevel {
-  const all = populationLevel ? [...alertLevels, populationLevel] : alertLevels
-  if (all.length === 0) return 'unknown'
+// file). Once any alert reports a level — even 'none' — we surface the
+// highest one.
+function highestRiskLevel(alertLevels: string[]): RiskLevel {
+  if (alertLevels.length === 0) return 'unknown'
   const order: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none']
-  return order.find(l => all.includes(l)) ?? 'none'
+  return order.find(l => alertLevels.includes(l)) ?? 'none'
 }
 
 export function PatientBanner() {
@@ -31,7 +27,6 @@ export function PatientBanner() {
     patientDisplay,
     isSmartConnected,
     riskAlerts,
-    populationRiskLevel,
     activePatientId,
   } = usePatient()
 
@@ -55,10 +50,7 @@ export function PatientBanner() {
     )
   }
 
-  const risk = highestRiskLevel(
-    riskAlerts.map(a => a.level),
-    populationRiskLevel,
-  )
+  const risk = highestRiskLevel(riskAlerts.map(a => a.level))
 
   return (
     <div className="patient-banner">
