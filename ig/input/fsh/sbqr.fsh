@@ -19,8 +19,16 @@ Description: "Integer total score (3–18) derived from a completed SBQ-R Questi
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// SBQ-R total score uses SNOMED CT — no published LOINC equivalent
-// for this specific instrument.
+// TERMINOLOGY NOTE (LOINC recheck, July 2026):
+//   As of July 2026 there is still no published LOINC panel, item, or
+//   total-score code for the SBQ-R (see
+//   docs/research/2026-07-terminology-crosswalk-research.md). The resolution
+//   is documentation, not a code switch.
+//   SNOMED CT 225337009 is used here for the total-score Observation. Its
+//   actual display is "Suicide risk assessment" — a *generic* suicide-risk
+//   concept, NOT an SBQ-R-specific code. This is a pragmatic local choice, not
+//   an assertion that 225337009 identifies the SBQ-R.
+//   Re-check for a dedicated LOINC code at the next major release.
 * code = http://snomed.info/sct#225337009
 * subject 1..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.

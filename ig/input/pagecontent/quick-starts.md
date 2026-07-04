@@ -49,6 +49,7 @@ GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]
 
 - Questionnaire: `http://spier.org/Questionnaire/SBQ-R` (v1.0.0)
 - Derived profile: `SPiERSBQRTotalScore` (total on SNOMED `225337009`; cutoffs ≥7 / ≥8)
+  - No LOINC panel/item/total-score code exists for the SBQ-R (rechecked July 2026). SNOMED `225337009` ("Suicide risk assessment") is a generic concept used as a pragmatic choice for the total score, not an SBQ-R-specific code; re-checked each major release.
 
 ```
 GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/SBQ-R&subject=Patient/[id]
