@@ -28,7 +28,27 @@
       }
     }
   ],
-  "observations": [],
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "id": "p004-asq-result",
+      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "flag-risk" }] },
+      "status": "final",
+      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }] },
+      "subject": { "reference": "Patient/patient-004" },
+      "effectiveDateTime": "2026-05-12T13:45:00Z",
+      "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/asq-screening-result", "code": "non-acute-positive", "display": "Non-Acute Positive Screen" }] }
+    }
+  ],
   "carePlans": [],
-  "riskAlerts": []
+  "riskAlerts": [
+    {
+      "tool": "ASQ",
+      "level": "moderate",
+      "summary": "ASQ: Non-Acute Positive Screen",
+      "detail": "Patient endorsed suicidal ideation or history. Brief suicide safety assessment recommended to determine if full mental health evaluation is needed.",
+      "suggestedAction": { "label": "Start Safety Plan", "path": "/patient/assessments/stanley-and-brown" }
+    }
+  ]
 }

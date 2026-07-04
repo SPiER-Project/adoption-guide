@@ -14,7 +14,14 @@
       "note": [{ "text": "Warm handoff completed; outpatient provider accepted referral. 7-day caring contact next." }]
     }
   ],
-  "riskAlerts": [],
+  "riskAlerts": [
+    {
+      "tool": "Risk Status",
+      "level": "low",
+      "summary": "Risk status: Low (carried forward)",
+      "detail": "Risk downgraded to low following completed handoff and first caring contact. Continuing scheduled follow-up."
+    }
+  ],
   "communications": [
     {
       "resourceType": "Communication",

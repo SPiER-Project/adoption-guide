@@ -14,5 +14,12 @@
       "note": [{ "text": "CAMS episode resolved (3 consecutive sessions meeting criteria). Eligible for Q2 zero-suicide outcome report." }]
     }
   ],
-  "riskAlerts": []
+  "riskAlerts": [
+    {
+      "tool": "Risk Status",
+      "level": "low",
+      "summary": "Risk status: Low (episode resolved)",
+      "detail": "Active risk episode resolved; risk downgraded to low following documented resolution criteria met."
+    }
+  ]
 }
