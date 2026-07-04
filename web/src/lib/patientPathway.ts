@@ -194,6 +194,25 @@ export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifac
   }))
 }
 
+/**
+ * Artifacts that resolve to no pathway stage — typically foreign EHR data
+ * read over SMART whose codes SPiER doesn't recognize (a QR against a
+ * non-SPiER Questionnaire canonical, a survey Observation from another
+ * system). The chart renders these in an "Other activity" bucket so they
+ * stay visible instead of silently disappearing from the stage grouping.
+ */
+export function unstagedArtifacts(artifacts: PatientArtifacts): Omit<StageArtifacts, 'stageId'> {
+  const { responses = [], carePlans = [], observations = [], communications = [] } = artifacts
+  return {
+    responses: responses.filter(
+      (r) => stageForArtifact(r.resource as FhirResourceLike) === undefined,
+    ),
+    carePlans: carePlans.filter((cp) => stageForArtifact(cp) === undefined),
+    observations: observations.filter((o) => stageForArtifact(o) === undefined),
+    communications: communications.filter((c) => stageForArtifact(c) === undefined),
+  }
+}
+
 // TOOLS re-exported here for back-compat with patientPathway consumers that
 // expected the symbol. Prefer importing from '../data/catalog' directly.
 export { TOOLS }
