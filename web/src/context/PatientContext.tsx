@@ -4,10 +4,11 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { formatPatientDisplay } from '../data/demoPatient'
 import type { PatientDisplay } from '../data/demoPatient'
 import { useSmart } from './SmartContext'
-import { mapResponseToObservations } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
-import { stageForResponse, PATHWAY_STAGE_SYSTEM } from '../lib/patientPathway'
 import { makeId } from '../lib/id'
+import { deriveFromResponse } from '../lib/deriveFromResponse'
+import { localDataSource } from '../lib/dataSource/localDataSource'
+import type { FhirDataSource } from '../lib/dataSource/types'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
@@ -40,44 +41,25 @@ export interface PopulationPatient {
 const POPULATION_PATIENTS = populationPatientsData as PopulationPatient[]
 const POPULATION_BY_ID = new Map(POPULATION_PATIENTS.map(p => [p.id, p]))
 
-const STORE_KEY = 'spier-patient-store'
+// Persisted across non-chart routes so assessment-submit redirects don't lose
+// the active patient. The patient *store* keys (spier-patient-store /
+// spier-blank-slice) live in LocalDataSource; this one is selection state.
 const ACTIVE_ID_KEY = 'spier-active-patient-id'
-const BLANK_SLICE_KEY = 'spier-blank-slice'
 
 // The patient shown when the chart is opened in "demo mode" (?demo=1) — the
 // ED suicide-care Scenario 11 walkthrough used for the federal-regulator
 // briefing. See issue #51 and docs/use-cases/ed-scenario-11.md.
 const DEMO_PATIENT_ID = 'patient-011'
 
-type PatientStore = Record<string, PatientSlice>
-
+// Fallback initial slice for the first render when the data source can't
+// resolve synchronously (async-only sources omit getSliceSync). LocalDataSource
+// hydrates synchronously so this is never shown in the default configuration.
 const EMPTY_SLICE: PatientSlice = {
   responses: [],
   observations: [],
   carePlans: [],
   riskAlerts: [],
   communications: [],
-}
-
-// One-time migration from the original single-patient keys into a patient-001
-// slice so existing demo data isn't lost when this build first runs in a browser.
-function migrateLegacyStorage(): PatientStore | null {
-  const read = <T,>(k: string): T | null => {
-    try {
-      const raw = window.localStorage.getItem(k)
-      return raw ? (JSON.parse(raw) as T) : null
-    } catch {
-      return null
-    }
-  }
-  const responses = read<StoredResponse[]>('spier-demo-responses') ?? []
-  const observations = read<ObservationResource[]>('spier-demo-observations') ?? []
-  const carePlans = read<CarePlanResource[]>('spier-demo-careplans') ?? []
-  const riskAlerts = read<RiskAlert[]>('spier-demo-risk-alerts') ?? []
-  if (responses.length || observations.length || carePlans.length || riskAlerts.length) {
-    return { 'patient-001': { responses, observations, carePlans, riskAlerts } }
-  }
-  return null
 }
 
 function populationToFhir(p: PopulationPatient) {
@@ -159,7 +141,15 @@ const BLANK_PATIENT = {
   identifier: [{ system: 'http://hospital.example.org/mrn', value: '' }],
 }
 
-export function PatientProvider({ children }: { children: React.ReactNode }) {
+export function PatientProvider({
+  children,
+  dataSource = localDataSource,
+}: {
+  children: React.ReactNode
+  /** Injectable for tests and the future SMART-backed source; defaults to the
+   *  shared localStorage/scenario source. */
+  dataSource?: FhirDataSource
+}) {
   const { patient: smartPatient } = useSmart()
   const location = useLocation()
 
@@ -202,66 +192,32 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
     }
   }, [wantsBlank, wantsDemo, urlPatientId, storedActiveId, setStoredActiveId])
 
-  // Patient-scoped chart store. Initializer reads existing data or runs the
-  // one-time migration from legacy single-patient keys. Per-update writes go
-  // through useEffect so the setState updater stays pure.
-  const [store, setStore] = useState<PatientStore>(() => {
-    try {
-      const raw = window.localStorage.getItem(STORE_KEY)
-      if (raw) return JSON.parse(raw) as PatientStore
-    } catch {
-      // fall through to migration
-    }
-    return migrateLegacyStorage() ?? {}
-  })
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORE_KEY, JSON.stringify(store))
-    } catch {
-      // ignore
-    }
-  }, [store])
-
-  // Blank slice — backs the "no patient selected" mode so users can submit
-  // assessments without picking a population patient first.
-  const [blankSlice, setBlankSlice] = useLocalStorage<PatientSlice>(
-    BLANK_SLICE_KEY,
-    EMPTY_SLICE,
+  // The active patient's chart slice, delegated to the injected data source.
+  // Storage (localStorage keys, legacy migration, scenario auto-seeding) all
+  // live in the source now; the context just holds the current slice in state
+  // and refreshes it on active-patient change and on source mutations.
+  //
+  // Initial state is hydrated synchronously where the source supports it
+  // (LocalDataSource does) so the first paint isn't an empty chart; async-only
+  // sources fall back to EMPTY_SLICE until getSlice resolves.
+  const [slice, setSlice] = useState<PatientSlice>(
+    () => dataSource.getSliceSync?.(activePatientId) ?? EMPTY_SLICE,
   )
 
-  // Auto-seed: when a population patient's slice is missing from the store and
-  // a static scenario exists, pre-populate it. Idempotent — once data exists
-  // (even mutated), the scenario won't reseed. clearing a slice (delete key)
-  // and reviewing the patient will re-seed.
   useEffect(() => {
-    if (activePatientId === null) return
-    if (store[activePatientId]) return
-    const scenario = POPULATION_SCENARIOS[activePatientId]
-    if (!scenario) return
-    // Idempotent one-time auto-seed of static scenario data when a patient is
-    // first viewed (guarded by the store[id] check above); intentional sync.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setStore(prev => ({ ...prev, [activePatientId]: scenario }))
-  }, [activePatientId, store])
-
-  const updateActiveSlice = useCallback(
-    (updater: (prev: PatientSlice) => PatientSlice) => {
-      if (activePatientId === null) {
-        setBlankSlice(prev => updater(prev))
-        return
-      }
-      if (!isAllowedPatientId(activePatientId)) return
-      setStore(prev => ({
-        ...prev,
-        [activePatientId]: updater(prev[activePatientId] ?? EMPTY_SLICE),
-      }))
-    },
-    [activePatientId, setBlankSlice],
-  )
-
-  const slice =
-    activePatientId === null ? blankSlice : (store[activePatientId] ?? EMPTY_SLICE)
+    let cancelled = false
+    const refresh = () => {
+      dataSource.getSlice(activePatientId).then(next => {
+        if (!cancelled) setSlice(next)
+      })
+    }
+    refresh()
+    const unsubscribe = dataSource.subscribe(refresh)
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
+  }, [dataSource, activePatientId])
 
   // SMART patient (if connected) wins over population/blank
   const isSmartConnected = !!(smartPatient && smartPatient.name)
@@ -294,12 +250,11 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
 
   const addCarePlan = useCallback(
     (carePlan: CarePlanResource) => {
-      updateActiveSlice(prev => ({
-        ...prev,
-        carePlans: [...prev.carePlans, { ...carePlan, _savedAt: new Date().toISOString() }],
-      }))
+      // CarePlans are non-QR artifacts — the source routes them into the
+      // carePlans array and stamps _savedAt, same as any other artifact.
+      void dataSource.saveArtifact(activePatientId, carePlan)
     },
-    [updateActiveSlice],
+    [dataSource, activePatientId],
   )
 
   const addResponse = useCallback(
@@ -316,66 +271,25 @@ export function PatientProvider({ children }: { children: React.ReactNode }) {
         completedAt: new Date().toISOString(),
         resource: storedResource,
       }
-      // Auto-generate Observations from the response. Dispatch is by
-      // resource.questionnaire (canonical URL) — see observationMappers/index.ts.
-      const result = mapResponseToObservations(storedResource)
-      // Stamp provenance + pathway stage onto each extracted Observation so it
-      // (a) links back to its source QR (Observation.derivedFrom — what SDC
-      // $extract would emit) and (b) resolves to a pathway stage via the
-      // meta.tag channel in stageForArtifact, so it groups under the right
-      // stage instead of being orphaned. The stage is the source response's
-      // stage (questionnaire → tool → stageId).
-      const stageId = stageForResponse(storedResource)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const observations: ObservationResource[] = (result?.observations ?? []).map((obs: any) => ({
-        ...obs,
-        derivedFrom: [...(obs.derivedFrom ?? []), { reference: `QuestionnaireResponse/${id}` }],
-        meta: {
-          ...(obs.meta ?? {}),
-          tag: [
-            ...(obs.meta?.tag ?? []),
-            ...(stageId ? [{ system: PATHWAY_STAGE_SYSTEM, code: stageId }] : []),
-          ],
-        },
-      }))
-      updateActiveSlice(prev => ({
-        ...prev,
-        responses: [...prev.responses, entry],
-        observations: result ? [...prev.observations, ...observations] : prev.observations,
-        riskAlerts: result
-          ? [...prev.riskAlerts.filter(a => a.tool !== result.riskAlert.tool), result.riskAlert]
-          : prev.riskAlerts,
-      }))
+      // Derivation (QR → Observations + risk alert) is business logic, not the
+      // source's job. deriveFromResponse returns null when the QR has no mapper
+      // (e.g. Stanley-Brown / CAMS plans), in which case only the response is
+      // persisted.
+      const derived = deriveFromResponse(storedResource)
+      void dataSource.saveResponse(activePatientId, entry, derived)
     },
-    [updateActiveSlice],
+    [dataSource, activePatientId],
   )
 
-  // Generic adder for non-Questionnaire workflow artifacts. Routes by
-  // resourceType into the matching slice array and stamps _savedAt. New arrays
-  // are read defensively (`?? []`) because slices persisted by earlier builds
-  // predate them. QuestionnaireResponses are NOT handled here — use addResponse,
-  // which additionally derives Observations.
+  // Generic adder for non-Questionnaire workflow artifacts. The source routes
+  // by resourceType into the matching slice array and stamps _savedAt.
+  // QuestionnaireResponses are NOT handled here — use addResponse, which
+  // additionally derives Observations.
   const addArtifact = useCallback(
     (resource: FhirResource) => {
-      const stamped = { ...resource, _savedAt: new Date().toISOString() }
-      updateActiveSlice(prev => {
-        switch (resource.resourceType) {
-          case 'Communication':
-            return {
-              ...prev,
-              communications: [...(prev.communications ?? []), stamped as CommunicationResource],
-            }
-          case 'Observation':
-            return { ...prev, observations: [...prev.observations, stamped as ObservationResource] }
-          case 'CarePlan':
-            return { ...prev, carePlans: [...prev.carePlans, stamped as CarePlanResource] }
-          default:
-            console.warn(`[PatientContext] addArtifact: unhandled resourceType "${resource.resourceType}"`)
-            return prev
-        }
-      })
+      void dataSource.saveArtifact(activePatientId, resource)
     },
-    [updateActiveSlice],
+    [dataSource, activePatientId],
   )
 
   const value = useMemo<PatientContextType>(
