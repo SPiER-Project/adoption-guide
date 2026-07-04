@@ -82,6 +82,40 @@ Description: "All six CAMS SSF Core Assessment measures."
 * include codes from system CAMSSSFMeasureCodes
 
 
+// ─── CodeSystem: SSF Overall Risk rating (crosswalk source) ──
+// CAMS Section A records the self-rated Overall Risk of Suicide (SSF
+// rating 6) as a plain integer 1–5 (valueInteger on SPiERCAMSSSFVital);
+// no LOINC concept has been published for this measure (verified July
+// 2026). This CodeSystem provides the ordinal CODED representation of
+// that same 1–5 scale so it can serve as the source of the overall-risk
+// → suicide-risk-tier ConceptMap (crosswalk-cams.fsh), mirroring how the
+// C-SSRS risk level (cssrs-risk-level) sources its crosswalk. A producer
+// maps valueInteger n to the like-numbered code before translating.
+
+CodeSystem: CAMSSSFOverallRiskCodes
+Id: cams-ssf-overall-risk
+Title: "CAMS SSF Overall Risk Rating Codes"
+Description: "SPiER-local ordinal codes (1–5) for the patient's self-rated CAMS SSF Overall Risk of Suicide (SSF rating 6). Coded representation of the 1–5 rating that CAMS Section A stores as a plain integer, used as the source of the overall-risk → suicide-risk-tier ConceptMap. No LOINC concept exists for this SSF measure (verified July 2026)."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+* #1 "1 — Extremely low risk" "Self-rated overall risk of suicide = 1 (extremely low; will not kill self)."
+* #2 "2 — Low risk" "Self-rated overall risk of suicide = 2."
+* #3 "3 — Moderate risk" "Self-rated overall risk of suicide = 3."
+* #4 "4 — High risk" "Self-rated overall risk of suicide = 4."
+* #5 "5 — Extremely high risk" "Self-rated overall risk of suicide = 5 (extremely high; will kill self)."
+
+
+ValueSet: CAMSSSFOverallRisk
+Id: cams-ssf-overall-risk
+Title: "CAMS SSF Overall Risk Rating"
+Description: "All five CAMS SSF self-rated Overall Risk of Suicide ratings (1–5)."
+* ^status = #draft
+* ^experimental = true
+* include codes from system CAMSSSFOverallRiskCodes
+
+
 // ─── Condition profile: Suicide Driver ───────────────────────
 
 Profile: SPiERCAMSSuicideDriver
