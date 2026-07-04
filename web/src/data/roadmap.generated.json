@@ -1,11 +1,11 @@
 {
-  "fetchedAt": "2026-05-21T14:30:10.174Z",
+  "fetchedAt": "2026-07-04T16:04:45.558Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
       "number": 18,
       "title": "[TL-001] ASQ",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/18",
       "bodyMd": "**Tool:** Ask Suicide-Screening Questions (ASQ)\n**Stage:** flag-risk\n**Current status:** built\n\n## Next\n\nLOINC coding on the result Observation and a published ActivityDefinition.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-001` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
@@ -15,7 +15,8 @@
         "tool:TL-001"
       ],
       "createdAt": "2026-05-21T14:21:42Z",
-      "updatedAt": "2026-05-21T14:21:42Z",
+      "updatedAt": "2026-07-04T16:03:29Z",
+      "closedAt": "2026-07-04T16:03:29Z",
       "toolId": "TL-001",
       "status": "built",
       "type": "epic",
@@ -24,7 +25,7 @@
     {
       "number": 19,
       "title": "[TL-003] C-SSRS Screener",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/19",
       "bodyMd": "**Tool:** C-SSRS Screener\n**Stage:** flag-risk\n**Current status:** built\n\n## Next\n\nPublish ActivityDefinition; add SNOMED CT for severity outcomes.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-003` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
@@ -34,7 +35,8 @@
         "tool:TL-003"
       ],
       "createdAt": "2026-05-21T14:21:53Z",
-      "updatedAt": "2026-05-21T14:21:53Z",
+      "updatedAt": "2026-07-04T16:03:31Z",
+      "closedAt": "2026-07-04T16:03:31Z",
       "toolId": "TL-003",
       "status": "built",
       "type": "epic",
@@ -53,7 +55,7 @@
         "tool:TL-004"
       ],
       "createdAt": "2026-05-21T14:22:02Z",
-      "updatedAt": "2026-05-21T14:22:02Z",
+      "updatedAt": "2026-06-10T17:57:04Z",
       "toolId": "TL-004",
       "status": "built",
       "type": "epic",
@@ -69,10 +71,11 @@
         "status:planned",
         "type:epic",
         "stage:clarify-risk",
-        "tool:TL-005"
+        "tool:TL-005",
+        "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:03Z",
-      "updatedAt": "2026-05-21T14:22:03Z",
+      "updatedAt": "2026-06-10T17:57:22Z",
       "toolId": "TL-005",
       "status": "planned",
       "type": "epic",
@@ -88,10 +91,11 @@
         "status:planned",
         "type:epic",
         "stage:set-risk-status",
-        "tool:TL-006"
+        "tool:TL-006",
+        "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:05Z",
-      "updatedAt": "2026-05-21T14:22:05Z",
+      "updatedAt": "2026-06-10T17:57:23Z",
       "toolId": "TL-006",
       "status": "planned",
       "type": "epic",
@@ -110,7 +114,7 @@
         "tool:TL-007"
       ],
       "createdAt": "2026-05-21T14:22:07Z",
-      "updatedAt": "2026-05-21T14:22:07Z",
+      "updatedAt": "2026-06-10T17:57:06Z",
       "toolId": "TL-007",
       "status": "built",
       "type": "epic",
@@ -126,10 +130,11 @@
         "status:planned",
         "type:epic",
         "stage:document-safety-actions",
-        "tool:TL-008"
+        "tool:TL-008",
+        "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:09Z",
-      "updatedAt": "2026-05-21T14:22:09Z",
+      "updatedAt": "2026-06-10T17:57:25Z",
       "toolId": "TL-008",
       "status": "planned",
       "type": "epic",
@@ -145,10 +150,11 @@
         "status:planned",
         "type:epic",
         "stage:coordinate-handoffs",
-        "tool:TL-009"
+        "tool:TL-009",
+        "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:10Z",
-      "updatedAt": "2026-05-21T14:22:10Z",
+      "updatedAt": "2026-06-10T17:57:27Z",
       "toolId": "TL-009",
       "status": "planned",
       "type": "epic",
@@ -164,10 +170,11 @@
         "status:planned",
         "type:epic",
         "stage:track-follow-up",
-        "tool:TL-010"
+        "tool:TL-010",
+        "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:12Z",
-      "updatedAt": "2026-05-21T14:22:12Z",
+      "updatedAt": "2026-06-10T17:57:29Z",
       "toolId": "TL-010",
       "status": "planned",
       "type": "epic",
@@ -186,7 +193,7 @@
         "tool:TL-011"
       ],
       "createdAt": "2026-05-21T14:22:20Z",
-      "updatedAt": "2026-05-21T14:22:20Z",
+      "updatedAt": "2026-06-10T17:57:31Z",
       "toolId": "TL-011",
       "status": "planned",
       "type": "epic",
@@ -202,10 +209,11 @@
         "status:planned",
         "type:epic",
         "stage:track-follow-up",
-        "tool:TL-012"
+        "tool:TL-012",
+        "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:22Z",
-      "updatedAt": "2026-05-21T14:22:22Z",
+      "updatedAt": "2026-06-10T17:57:33Z",
       "toolId": "TL-012",
       "status": "planned",
       "type": "epic",
@@ -224,7 +232,7 @@
         "tool:TL-013"
       ],
       "createdAt": "2026-05-21T14:22:24Z",
-      "updatedAt": "2026-05-21T14:22:24Z",
+      "updatedAt": "2026-06-10T17:57:35Z",
       "toolId": "TL-013",
       "status": "planned",
       "type": "epic",
@@ -338,7 +346,7 @@
         "tool:TL-019"
       ],
       "createdAt": "2026-05-21T14:22:42Z",
-      "updatedAt": "2026-05-21T14:22:42Z",
+      "updatedAt": "2026-06-10T17:57:36Z",
       "toolId": "TL-019",
       "status": "planned",
       "type": "epic",
@@ -357,7 +365,7 @@
         "tool:TL-020"
       ],
       "createdAt": "2026-05-21T14:22:45Z",
-      "updatedAt": "2026-05-21T14:22:45Z",
+      "updatedAt": "2026-06-10T17:57:07Z",
       "toolId": "TL-020",
       "status": "built",
       "type": "epic",
@@ -376,7 +384,7 @@
         "tool:TL-021"
       ],
       "createdAt": "2026-05-21T14:22:46Z",
-      "updatedAt": "2026-05-21T14:22:46Z",
+      "updatedAt": "2026-06-10T17:57:09Z",
       "toolId": "TL-021",
       "status": "built",
       "type": "epic",
@@ -395,7 +403,7 @@
         "tool:TL-022"
       ],
       "createdAt": "2026-05-21T14:22:48Z",
-      "updatedAt": "2026-05-21T14:22:48Z",
+      "updatedAt": "2026-06-10T17:57:11Z",
       "toolId": "TL-022",
       "status": "built",
       "type": "epic",
@@ -414,7 +422,7 @@
         "tool:TL-023"
       ],
       "createdAt": "2026-05-21T14:22:50Z",
-      "updatedAt": "2026-05-21T14:22:50Z",
+      "updatedAt": "2026-06-10T17:57:38Z",
       "toolId": "TL-023",
       "status": "planned",
       "type": "epic",
@@ -433,7 +441,7 @@
         "tool:TL-024"
       ],
       "createdAt": "2026-05-21T14:22:52Z",
-      "updatedAt": "2026-05-21T14:22:52Z",
+      "updatedAt": "2026-06-10T17:57:14Z",
       "toolId": "TL-024",
       "status": "built",
       "type": "epic",
@@ -452,7 +460,7 @@
         "tool:TL-025"
       ],
       "createdAt": "2026-05-21T14:22:54Z",
-      "updatedAt": "2026-05-21T14:22:54Z",
+      "updatedAt": "2026-06-10T17:57:16Z",
       "toolId": "TL-025",
       "status": "built",
       "type": "epic",
@@ -461,7 +469,7 @@
     {
       "number": 42,
       "title": "[P1] Translate tools to FHIR objects",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/42",
       "bodyMd": "Cross-cutting roadmap priority #1.\n\nToday the catalog (`Tool`, `Stage`, `Trigger`, `Preset`) lives as bespoke TypeScript interfaces. To be a real reference implementation rather than just a demo, the catalog needs to be FHIR-shaped:\n\n- `Tool` → **ActivityDefinition** (referencing the Questionnaire)\n- `Stage` + pathway → **PlanDefinition** with grouped actions\n- `Trigger` → **PlanDefinition.action.trigger** (TriggerDefinition)\n- `Preset` / user tool-config → a custom **PlanDefinition** that selects a subset of the canonical pathway's actions\n- **Licensing & usage requirements per tool** — capture each instrument's licensing status using `ActivityDefinition.copyright`, `copyrightLabel`, and related fields.\n\nPayoff: a configured implementation can be exported as a FHIR Bundle and handed to another EHR. SPiER stops modeling interop and starts demonstrating it.",
       "labels": [
@@ -471,7 +479,8 @@
         "area:ig"
       ],
       "createdAt": "2026-05-21T14:22:55Z",
-      "updatedAt": "2026-05-21T14:22:55Z",
+      "updatedAt": "2026-07-04T16:03:33Z",
+      "closedAt": "2026-07-04T16:03:33Z",
       "priority": "p1",
       "type": "epic",
       "area": "catalog"
@@ -489,7 +498,7 @@
         "area:ig"
       ],
       "createdAt": "2026-05-21T14:22:57Z",
-      "updatedAt": "2026-05-21T14:22:57Z",
+      "updatedAt": "2026-06-10T17:56:56Z",
       "priority": "p2",
       "type": "epic",
       "area": "catalog"
@@ -507,7 +516,7 @@
         "area:ig"
       ],
       "createdAt": "2026-05-21T14:22:58Z",
-      "updatedAt": "2026-05-21T14:22:58Z",
+      "updatedAt": "2026-06-10T17:57:40Z",
       "priority": "p3",
       "type": "epic",
       "area": "catalog"
@@ -515,7 +524,7 @@
     {
       "number": 45,
       "title": "[TL-002] PHQ-9",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/45",
       "bodyMd": "**Tool:** Patient Health Questionnaire-9 (PHQ-9)\n**Stage:** flag-risk\n**Current status:** built\n\n## Next\n\nLOINC item codes for each PHQ-9 question and CDS trigger on Item 9 ≥ 1.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-002` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
@@ -525,11 +534,409 @@
         "tool:TL-002"
       ],
       "createdAt": "2026-05-21T14:26:51Z",
-      "updatedAt": "2026-05-21T14:26:51Z",
+      "updatedAt": "2026-07-04T16:03:27Z",
+      "closedAt": "2026-07-04T16:03:27Z",
       "toolId": "TL-002",
       "status": "built",
       "type": "epic",
       "stage": "flag-risk"
+    },
+    {
+      "number": 50,
+      "title": "Patient View: surface recommendedNextStep from population JSON in CDS cards",
+      "state": "closed",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/50",
+      "bodyMd": "Pipe each population patient's `recommendedNextStep` (label + rationale) from `web/src/data/population/patients.json` into `buildCdsCards` so a recommended action surfaces even when stage derivation can't find a stage-tool match.\n\nThis is especially useful for patients 008-010 today, whose active stages (4-7) have no wired Questionnaire tools yet — the recommendation card shows \"No tools enabled for this stage in your implementation\" instead of the curated next step the population JSON already encodes.\n\n## Pointers\n- Population data: [web/src/data/population/patients.json](web/src/data/population/patients.json) — `recommendedNextStep: { stageId, label, rationale }` exists per patient\n- Consumer: [web/src/lib/buildCdsCards.ts](web/src/lib/buildCdsCards.ts) (or wherever cards are assembled — `PatientChart.tsx` renders them)\n- Should fall through cleanly when population patient is null (blank state / SMART) or when derivation already returned a matching tool",
+      "labels": [
+        "enhancement",
+        "priority:p3",
+        "area:patient-view"
+      ],
+      "createdAt": "2026-05-21T21:54:19Z",
+      "updatedAt": "2026-05-25T17:03:29Z",
+      "closedAt": "2026-05-25T17:03:29Z",
+      "priority": "p3",
+      "area": "patient-view"
+    },
+    {
+      "number": 51,
+      "title": "Patient View: ED Scenario 11 demo walkthrough (replace MOCK_ENCOUNTERS)",
+      "state": "closed",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/51",
+      "bodyMd": "## Purpose (re-scoped 2026-05-29)\n\nThis issue is now the visible demo artifact for the federal-regulator briefing tracked in #65, and the in-app rendering of the ED suicide-care scenario whose FHIR / functional-model mapping lives in `docs/use-cases/ed-scenario-11.md` (epic #61).\n\nThe patient chart should walk a reviewer through the 24-step ED suicide-care scenario in the order it actually unfolds — triage screening, mitigation, brief assessment, full risk assessment, boarding/reassessment, safety planning, lethal-means counseling, discharge readiness, transition-of-care packet, post-discharge follow-up — using the pseudonymous scenario archetype (28-year-old presenting with insomnia and anxiety) as the patient.\n\nThis is **the** flow used in the regulator demo. It is no longer a generic encounter timeline.\n\n## Current state\n\nThe encounter timeline on the chart is hardcoded in [`web/src/pages/PatientChart.tsx`](web/src/pages/PatientChart.tsx) (`MOCK_ENCOUNTERS`, ~lines 30-64) with Jane Doe-specific entries (Initial Assessment, Safety Planning Session, Follow-up Visit). Every population patient shows the same three encounters.\n\n## Implementation options\n\n1. **Move into scenario JSON.** Add an `encounters: []` array to each `web/src/data/population/scenarios/patient-*.json` and render from there. Lowest-effort path; sufficient to get the ED scenario walkthrough rendered.\n2. **Promote to FHIR.** Model real `Encounter` resources alongside scenarios and derive the timeline from them. Closer to the FHIR-native end-state but a larger change.\n\nRecommended for the regulator-briefing window: option 1 now, option 2 once stages 4–7 also emit `Encounter`-bearing artifacts.\n\n## Acceptance criteria\n\n- A new `ed-scenario-11` patient scenario JSON exists in `web/src/data/population/scenarios/`.\n- That scenario's encounter timeline walks through all 24 ED-scenario event steps in narrative order.\n- Each timeline entry links the relevant assessment / observation / care-plan / task surface where applicable.\n- Blank-state behavior: a patient with no encounters renders an empty timeline (not the mock list).\n- The ED scenario walkthrough is the patient shown by default when the dashboard loads in \"demo mode\" for the regulator briefing.\n\n## Cross-references\n\n- Epic: #61 (ED Functional Profile)\n- Briefing epic: #65 (Federal-regulator briefing prep)\n- Mapping doc: `docs/use-cases/ed-scenario-11.md`\n- Profile gaps surfaced by the mapping: #52",
+      "labels": [
+        "enhancement",
+        "area:patient-view",
+        "bundle:ed-profile"
+      ],
+      "createdAt": "2026-05-21T21:54:28Z",
+      "updatedAt": "2026-05-31T17:14:10Z",
+      "closedAt": "2026-05-31T17:14:10Z",
+      "area": "patient-view"
+    },
+    {
+      "number": 52,
+      "title": "Catalog: model non-Questionnaire workflow types for stages 4-7",
+      "state": "closed",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/52",
+      "bodyMd": "Stages 5-8 currently have no wired Tools. PR #48 worked around this with placeholder `CarePlan` resources tagged via `CarePlan.category.coding` against the `spier-pathway-stage` CodeSystem (lets the pathway tracker mark stages complete without a matching QuestionnaireResponse).\n\nThe real-world artifacts at these stages aren't `Questionnaire`-shaped. Catalog and pathway machinery currently dispatch on `toolForQuestionnaireUrl` — they need to learn other resource types.\n\n## Per-stage notes\n- **5 — Coordinate Handoffs** → `Communication` and/or `Encounter` documenting referral made and receipt confirmed\n- **6 — Track Follow-Up** → `Communication` for caring contacts (Motto-style BCI cadence); `Appointment` + `Encounter` for missed-appointment workflow\n- **7 — Manage Active Risk** → re-rated CAMS Therapeutic Worksheet (already wired) **plus** monitoring `Observation`s\n- **8 — Measure and Share** → `Measure` and `MeasureReport`\n\n## Why\n- Closes the gap that makes patients 008-010 work only via placeholder CarePlans (currently FHIR-clean but semantically empty).\n- Unblocks #50 (CDS recommendations) and #51 (encounter timeline) from being stages-1-4-only.\n- The Zero Suicide Resource Database is mostly organizational/policy material, not validated instruments — so expansion at these stages must model workflow, not screeners.\n\n## Open questions\n- Should `Tool` gain a `resourceType` field (`Questionnaire` | `Communication` | `Appointment` | `Measure`)?\n- How does the Tool Configuration UI surface non-Questionnaire tools?\n- Routing — `/patient/assessments/:tool` assumes a Questionnaire form; need parallel routes per resource type.",
+      "labels": [
+        "enhancement",
+        "stage:coordinate-handoffs",
+        "stage:track-follow-up",
+        "stage:manage-active-risk",
+        "stage:measure-and-share",
+        "area:catalog",
+        "bundle:ed-profile"
+      ],
+      "createdAt": "2026-05-21T21:54:43Z",
+      "updatedAt": "2026-07-04T16:03:25Z",
+      "closedAt": "2026-07-04T16:03:25Z",
+      "stage": "coordinate-handoffs",
+      "area": "catalog"
+    },
+    {
+      "number": 53,
+      "title": "IG: publish profile pages + value-set tables alongside the site",
+      "state": "closed",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/53",
+      "bodyMd": "Today CI runs Sushi compilation only — the published HL7-style IG (profile pages, value-set tables, narrative) isn't deployed anywhere. Visitors to the site can read prose in the Implementation Guide tab but can't browse the actual generated artifacts.\n\n## Options, ranked by effort\n1. **Add IG Publisher to deploy workflow** — outputs land at `bbthorson.github.io/SPiER/ig/`. Adds ~5-10 min per deploy. Highest fidelity (matches every other HL7 IG site).\n2. **Commit `ig/output/`** — deploy step copies into `web/dist/ig/`. Cheaper CI, larger repo, manual regen step before each merge.\n3. **Sibling repo** — `SPiER-ig` Pages site, cross-link from main site. Cleanest separation, more infra to maintain.\n4. **In-React IG browser** — read directly from `web/src/data/fhir/` JSON. Custom UI, doesn't match standard IG presentation, but no extra build step.\n\nBrad deferred this earlier (\"skip for now, maybe future\"). Filed for visibility — close as `wontfix` if it stays deferred.",
+      "labels": [
+        "enhancement",
+        "area:ig",
+        "bundle:ed-profile"
+      ],
+      "createdAt": "2026-05-21T21:54:54Z",
+      "updatedAt": "2026-06-10T18:51:33Z",
+      "closedAt": "2026-06-10T18:51:33Z",
+      "area": "ig"
+    },
+    {
+      "number": 60,
+      "title": "[Epic] HIE Pilot: ASQ cross-EHR portability (two-phase)",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/60",
+      "bodyMd": "## Goal\n\nDemonstrate that a discrete Ask Suicide-Screening Questions (ASQ) result captured at one EHR can be transmitted across a Health Information Exchange and surfaced as actionable, discrete data inside a second EHR using a different vendor stack.\n\n## Why this matters\n\nThis pilot is the SPiER reference implementation for cross-EHR behavioral-health data portability. It is the empirical test of a longstanding assumption in the project — that discrete FHIR observations are materially more actionable than the same data embedded in document-based exchanges. The pilot doubles as the publication vehicle for that comparison.\n\nIt also anchors the project's near-term HL7 / federal-regulator engagement: the artifact set produced here is what we plan to walk in the door with, not a request for what an Implementation Guide should look like.\n\n## Two phases\n\n**Phase 1 — Transport Benchmark.** Originating EHR emits a document-based clinical summary containing discrete ASQ observations. HIE ingests via existing interface-engine pipelines. Receiving EHR renders the data as an external-record view.\n\n**Phase 2 — Actionability Benchmark.** HIE surfaces the same ASQ observations via FHIR API. Receiving EHR consumes and writes back into the patient chart as discrete data alongside native assessments.\n\nThe contrast between phase 1 and phase 2 is the measurement.\n\n## Evaluation framework\n\n- Implementation effort (analyst/clinician hours per side, per phase)\n- Vendor friction (EHR-vendor services dependency vs. local configuration)\n- Data fidelity (proportion of payload elements that survive the trip as discrete, queryable data)\n- Format utility (head-to-head comparison of document-based vs. API-based for downstream clinician decision support)\n\n## Scope (this epic)\n\n- ASQ panel only for the pilot payload. Other tools out of scope here; they ride on the same plumbing in follow-on work.\n- One HIE partner, one origin EHR, one receiving EHR.\n- One-directional movement (origin → HIE → receiver).\n\n## Out of scope\n\n- Multi-tool payloads (separate follow-on epic).\n- HIE-to-HIE federation (separate follow-on epic).\n- Patient-mediated consent management beyond what the HIE already enforces (covered by the consent strategy doc).\n\n## Child tasks\n\nWill be scoped after the kickoff strategy call. Anticipated workstreams: data specification, originating-site integration, receiving-site integration, evaluation.\n\n## Risks / open questions\n\n- ASQ is referenced as an example for \"Suicide Risk Screen\" in the federal behavioral-health dataset rather than required. Strategic leverage and strategic risk simultaneously.\n- Receiving-side write-back to discrete chart fields (phase 2) is likely the highest-friction single technical step in the pilot. Needs its own milestone.\n- Evaluation control variables — for the two-phase comparison to be defensible, both phases need identical payload definitions and a documented receiving-site configuration baseline.\n\n## Timeline\n\nAnchor pilot for the active multi-year grant period. Workstream-level milestones get filed as child tasks after the kickoff call.",
+      "labels": [
+        "type:epic",
+        "stage:flag-risk",
+        "area:ig",
+        "tool:TL-001",
+        "area:hie"
+      ],
+      "createdAt": "2026-05-29T16:27:32Z",
+      "updatedAt": "2026-06-10T17:57:42Z",
+      "toolId": "TL-001",
+      "type": "epic",
+      "stage": "flag-risk",
+      "area": "ig"
+    },
+    {
+      "number": 61,
+      "title": "[Epic] ED Functional Profile: populate HL7 EHR System Functional Model mappings for ED suicide-care scenario",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/61",
+      "bodyMd": "## Goal\n\nProduce the Emergency Department workflow-specific functional profile that we intend to bring to HL7 as a candidate Suicide Safer Care functional profile contribution.\n\n## Source scenario\n\nA 24-step ED suicide identification, assessment, safety, and follow-up scenario has been drafted as a CSV by the clinical lead. The scenario is organized into seven sub-flows:\n\n1. Patient narrative\n2. Screening and identification\n3. Immediate safety / mitigation\n4. Brief assessment and full risk assessment\n5. Boarding and reassessment\n6. Safety planning and discharge planning\n7. Care transitions and follow-up\n\nEach event step has columns for Actor, Actor Role, Event, Input data, Output data, and Actions Taken. **The \"HL7 EHR System Functional Model\" column is empty across every row. Populating that column is the work of this epic.**\n\n## Deliverable\n\nFor each of the 24 event steps:\n\n- FHIR resources implicated (Questionnaire / QuestionnaireResponse / Observation / Task / CarePlan / DocumentReference / ServiceRequest / Communication / Encounter / Provenance)\n- Profile bindings (existing SPiER profiles where they exist; gaps flagged as new profile work)\n- HL7 EHR System Functional Model function references\n- CDS Hooks surfaces where applicable (advisory, order-set launch, decision support)\n\nThe output is a populated mapping document plus the FSH/profile work required to back each binding.\n\n## Tools touched\n\nASQ (built), C-SSRS Screener/Full (built), Brief Suicide Safety Assessment (planned), SAFE-T (planned), Stanley-Brown safety plan (built), lethal means counseling (planned, currently \"Means Counseling\"), Caring Contacts (planned), ED-SAFE (planned).\n\nThe \"planned\" items in that list are now gating dependencies for this epic and should be promoted accordingly.\n\n## Non-Questionnaire workflows surfaced\n\nThe scenario explicitly requires structured artifacts that are not Questionnaires:\n\n- Mitigation checklist (room clearance, belongings, environmental safety)\n- Observation / 1:1 sitter order with documentation log\n- Reassessment task scheduler (time-based, role-routed)\n- Discharge readiness checklist with blocking behavior\n- Transition-of-care packet (electronic, with delivery acknowledgement)\n- Follow-up task set with overdue escalation\n\nThese should be modeled under issue #52 with this epic as a downstream consumer.\n\n## Why ED first\n\nA 30-minute conversation with a member of the relevant standards-development organization on the way back from a recent conference reinforced the project's working hypothesis: workflow-specific scoped profiles get adopted; abstract ideal-state profiles do not. ED is the setting where the screening-through-discharge loop is most compressed, the protocol pressure is highest, and the cross-setting data movement is most visible.\n\n## Companion epic\n\nInpatient functional profile (separate epic) follows the same pattern with a different scenario document.",
+      "labels": [
+        "type:epic",
+        "stage:flag-risk",
+        "stage:clarify-risk",
+        "stage:document-safety-actions",
+        "stage:coordinate-handoffs",
+        "stage:track-follow-up",
+        "area:ig"
+      ],
+      "createdAt": "2026-05-29T16:28:17Z",
+      "updatedAt": "2026-06-10T17:57:44Z",
+      "type": "epic",
+      "stage": "flag-risk",
+      "area": "ig"
+    },
+    {
+      "number": 62,
+      "title": "[Epic] Inpatient Functional Profile: workflow-specific HL7 mapping for inpatient suicide care",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/62",
+      "bodyMd": "## Goal\n\nProduce the inpatient workflow-specific functional profile to sit alongside the ED profile (see companion epic) as part of the SPiER Suicide Safer Care functional profile bundle.\n\n## Status\n\nAwaiting source scenario document from the clinical lead. Once available, the structure mirrors the ED epic:\n\n- Per-event-step actor, role, inputs, outputs, actions\n- FHIR resource bindings and SPiER profile references\n- HL7 EHR System Functional Model function references\n- CDS Hooks surfaces\n\n## Expected scope\n\nInpatient suicide care covers stages the ED setting doesn't fully exercise — set-risk-status formulation, durable care planning, ongoing treatment management for the in-episode patient, and the discharge handoff back to ambulatory care. Tools likely in scope: SAFE-T, CAMS family (SSF-5, Stabilization, Interim, Worksheet, Outcome), Stanley-Brown, Caring Contacts.\n\n## Why a separate epic\n\nFollowing the principle that workflow-specific profiles get adopted and abstract ones do not, inpatient is a distinct setting with a distinct workflow, distinct actors, and a distinct timescale. It is not a superset of the ED profile.",
+      "labels": [
+        "type:epic",
+        "stage:set-risk-status",
+        "stage:document-safety-actions",
+        "stage:coordinate-handoffs",
+        "stage:manage-active-risk",
+        "area:ig"
+      ],
+      "createdAt": "2026-05-29T16:28:22Z",
+      "updatedAt": "2026-06-10T17:57:46Z",
+      "type": "epic",
+      "stage": "set-risk-status",
+      "area": "ig"
+    },
+    {
+      "number": 63,
+      "title": "[Epic] Mid-range engagement: multi-site EHR aggregators and academic health systems",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/63",
+      "bodyMd": "## Goal\n\nDefine and operationalize the engagement archetype that sits between a statewide Health Information Exchange and a single-EHR vendor — specifically multi-site EHR aggregators that host shared instances across many member sites, and large academic health systems with multi-instance EHR footprints.\n\n## Why this is a distinct track\n\nThe HIE track and the EHR-vendor track were the two engagement modes the project initially organized around. Recent partner conversations surfaced a third archetype: aggregator organizations that operate a shared EHR tenancy for many member care-delivery sites. These have a different decision-making locus than either HIEs (where buy-in cascades through HIE governance) or EHR vendors (where buy-in requires customer pressure). The aggregator acts more like a group purchasing organization for a specific class of care-delivery site, which means a single technical adoption decision propagates to all member sites at once.\n\nAcademic health systems present a structurally similar mid-range opportunity — multiple instances, centralized informatics decision-making, motivated by research collaboration as much as operational benefit.\n\n## Initial targets\n\n- One federally-funded multi-site EHR aggregator currently running an Epic-based tenancy for low-income-serving care sites.\n- A peer aggregator on a different EHR base.\n- A large academic health system with an existing data informatics relationship.\n\n## Deliverables\n\n- A written engagement-archetype model added to `docs/engagement-strategy.md` covering the three tiers (HIE / aggregator / direct EHR).\n- A reusable pitch artifact tailored to aggregator decision-makers (distinct from the HIE pitch and the EHR-vendor pitch).\n- A first-target relationship moved to an active conversation.\n\n## Why now\n\nThe principle observed in recent partner conversations is that aggregator adoption is high-leverage: one yes propagates across many member sites. Capturing the archetype explicitly prevents the engagement work from being incorrectly bucketed under the HIE track or the EHR track, both of which have different timelines and different success criteria.",
+      "labels": [
+        "type:epic",
+        "area:catalog",
+        "area:engagement"
+      ],
+      "createdAt": "2026-05-29T16:28:33Z",
+      "updatedAt": "2026-06-10T17:57:47Z",
+      "type": "epic",
+      "area": "catalog"
+    },
+    {
+      "number": 64,
+      "title": "[Epic] Tool licensing audit across the catalog",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/64",
+      "bodyMd": "## Goal\n\nFor each tool with built FHIR artifacts, document the licensing status of the underlying instrument and the constraints (if any) on republishing the artifacts under an open license as part of the SPiER Implementation Guide.\n\n## Why this matters now\n\nThe repository's FHIR artifacts will eventually move from a personal namespace to the SPiER organization. Before that transfer, every built tool needs a clear answer on:\n\n- Who holds rights to the underlying instrument\n- Whether the instrument itself is open or restricted\n- Whether the FHIR representation can be redistributed independently of the source instrument\n- What attribution or sign-off is required to publish\n\nA surprise downstream — for example, discovering after the IG is publicly hosted that one of the tools requires a per-distribution license — is significantly more expensive than catching it now.\n\n## Tools in scope (status:built)\n\n- ASQ — letter of permission already exists from the originating researcher; needs to be filed in-repo.\n- C-SSRS Screener\n- C-SSRS Full\n- PHQ-9\n- SBQ-R\n- Stanley-Brown safety plan — known to require licensing review.\n- CAMS SSF-5\n- CAMS Stabilization\n- CAMS Interim\n- CAMS Worksheet — known to require originator engagement (CAMS family).\n\n## Deliverable per tool\n\nA short licensing memo committed to the tool's `FHIR-Resources/<tool>/` directory containing: licensing source, contact for sign-off, sign-off status, conditions on redistribution, and how those conditions are reflected in the artifact's `copyright`/`useContext` metadata.\n\n## Gate\n\nThis epic gates the repository's transfer to the SPiER organization namespace.",
+      "labels": [
+        "type:epic",
+        "area:catalog"
+      ],
+      "createdAt": "2026-05-29T16:28:49Z",
+      "updatedAt": "2026-06-10T17:57:49Z",
+      "type": "epic",
+      "area": "catalog"
+    },
+    {
+      "number": 65,
+      "title": "[Epic] Federal-regulator briefing prep",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/65",
+      "bodyMd": "## Goal\n\nProduce the artifact set and demo flow for an in-person briefing with federal-regulator leadership on cross-EHR behavioral-health data portability.\n\n## Context\n\nAn initial conversation with a federal-regulator contact reinforced strong interest in the SPiER approach and a willingness to escalate to leadership for an in-person presentation. That conversation is being scheduled. The regulator's parallel interest in substance-misuse and overdose interoperability creates a natural follow-on pitch — \"we built it here, we can build it there\" — that should be reflected in the briefing material.\n\n## Deliverables\n\n- Presentation deck framing the discrete-FHIR-versus-document-exchange argument, anchored on the active HIE pilot.\n- A demo flow walking through the ED workflow scenario in the project dashboard, ending in the cross-EHR data movement the HIE pilot will produce.\n- A one-page leave-behind summarizing the project, the pilot, and the specific asks of the regulator (push on the relevant standards work; adopt discrete elements as required, not example-only, in the behavioral-health dataset).\n- A follow-on substance-misuse pitch sketch.\n\n## Specific asks of the regulator (draft)\n\n1. Push the relevant standards working groups to include suicide-care discrete data fields as required elements rather than examples.\n2. Adopt discrete-data interoperability testing (rather than document-based) as part of certification testing for relevant scenarios.\n3. Sponsor or co-publish the cross-EHR portability evidence produced by the active HIE pilot.\n\n## Cross-references\n\n- HIE pilot epic — the empirical anchor.\n- ED Functional Profile epic — the artifact bundle the briefing demonstrates.\n- Existing roadmap dashboard ([web/](../tree/main/web)) — the visual demo surface.\n\n## Status\n\nScheduling in progress.",
+      "labels": [
+        "type:epic",
+        "area:engagement"
+      ],
+      "createdAt": "2026-05-29T16:29:03Z",
+      "updatedAt": "2026-06-10T17:57:51Z",
+      "type": "epic",
+      "area": "engagement"
+    },
+    {
+      "number": 77,
+      "title": "[Epic] Cross-instrument concept layer: common suicide-risk-tier harmonization",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/77",
+      "bodyMd": "## Goal\n\nBuild SPiER's **cross-instrument concept layer**: the instrument-agnostic, actionable representation that disparate suicide-risk tools (ASQ, C-SSRS, PHQ-9 Item 9, SBQ-R, CAMS) all map into, so a partner system can consume a result without understanding the originating instrument.\n\n## Why this matters\n\nPartners in a care network do not all run the same instruments — and some (ASQ item-level) have no published LOINC codes at all. Today SPiER codes each instrument well at the **capture layer** but has no shared **concept layer**: the ASQ mapper emits `asq-screening-result` codes while the alert layer uses a separate `none/moderate/acute` set, and the response→concept logic lives only in TypeScript, so it isn't interoperable.\n\nThis is the \"translation layer to a universally known code set\" the Big Sky Care Connect pilot surfaced as a requirement. It is also SPiER's most contributable HL7 artifact — directly modeled on the Gravity Project's harmonization of ~135 SDOH instruments and built on HL7 SDC extraction mechanics.\n\n## Approach\n\nTwo-layer model (capture preserved, concept derived from it and linked back via `derivedFrom`). Concept layer = one common risk-tier ValueSet carried on the generic LOINC `93374-7` (\"Suicide risk level\") with a universal `interpretation` flag, populated per-instrument via portable FHIR ConceptMap/StructureMap. Lower-fidelity instruments map to the widest defensible tier, recorded with an honest equivalence (`narrower`/`relatedto`, not `wider`) — never fabricated precision. Derived concept = unconfirmed screen warranting follow-up, not a diagnosis.\n\nSee `docs/best-practices/concept-harmonization.md` and the `concept-harmonization` skill for the full conformance rules.\n\n## Progress (2026-06-05)\n\nFoundation + first two crosswalks drafted (`ig/input/fsh/concept-layer.fsh`, `crosswalk-asq.fsh`, `crosswalk-cssrs.fsh`; draft StructureMaps in `ig/drafts/`; FML compile-check CI in `.github/workflows/fml-validate.yml`). All FSH compiles clean. Outstanding before these crosswalks are authoritative: **clinical SME sign-off** on the disposition→tier rows, and **FML validation** of the draft StructureMaps.\n\n## Child tasks\n\n- [x] **Define the common risk-tier CodeSystem + ValueSet** (`no-risk | low | moderate | high | imminent`) in FSH. Interpretation decision settled on `POS`/`NEG`.\n- [x] **Author the harmonized derived-Observation profile** — `code` (93374-7), `value` (tier VS), `interpretation`, `category` (required binding to a suicide-risk domain VS), `derivedFrom`, status/subject/effective.\n- [ ] **ASQ → common-tier crosswalk** — ConceptMap drafted (`crosswalk-asq.fsh`) + draft StructureMap. Pending: SME sign-off + FML validation.\n- [ ] **C-SSRS → common-tier crosswalk** — ConceptMap drafted (`crosswalk-cssrs.fsh`) + draft StructureMap. Pending: SME sign-off + FML validation.\n- [ ] **PHQ-9 Item 9 / SBQ-R → common-tier crosswalks**.\n- [ ] **Grouping ValueSet** (parent → per-instrument source value sets), mirroring Gravity's VSAC hierarchy.\n- [ ] **Verify SNOMED SCTIDs** for any clinical-finding concepts used (suicidal ideation, at risk for suicide).\n- [ ] **Pilot validation** — exercise cross-instrument consumption in the Big Sky Care Connect pilot.\n- [ ] **VSAC publication** of the tier + grouping ValueSets (follow-on).\n\n## Out of scope\n\n- Deciding clinical equivalence unilaterally — every crosswalk row needs SME sign-off.\n- Minting new LOINC or asserting unverified SNOMED codes.\n- Executing HL7 balloting — this epic prepares publication-ready assets and names the contribution path; the Work Group process is separate.\n\n## Risks / open questions\n\n- `A`/`N` vs `POS`/`NEG` interpretation harmonization — pick one and apply everywhere.\n- Clinical equivalence claims (ASQ \"non-acute positive\" ≈ which C-SSRS tier?) are the highest-judgment step and gate the crosswalks.\n- Keeping the FHIR maps and the TS mappers in agreement — needs a drift guard analogous to `check-observation-extract.mjs`.\n\n## Suggested labels\n\n`type:epic`, `priority:p2`, `area:ig`, `area:hie`, `stage:measure-and-share`\n",
+      "labels": [
+        "type:epic",
+        "priority:p2",
+        "stage:measure-and-share",
+        "area:ig",
+        "area:hie"
+      ],
+      "createdAt": "2026-06-05T22:05:18Z",
+      "updatedAt": "2026-06-10T17:56:55Z",
+      "priority": "p2",
+      "type": "epic",
+      "stage": "measure-and-share",
+      "area": "ig"
+    },
+    {
+      "number": 91,
+      "title": "Concept layer: author CAMS SSF overall-risk → suicide-risk-tier ConceptMap",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/91",
+      "bodyMd": "ASQ and C-SSRS have authored ConceptMaps into the harmonized tier (`spier-suicide-risk-tier`), and PHQ-9/SBQ-R have draft FML, but CAMS has no tier mapping at all. Author a ConceptMap (or FML) from the SSF overall-risk rating (1–5, `CAMSSSFMeasureCodes#overall-risk`) to the five-tier vocabulary, wire it into `scripts/check-concept-crosswalk.mjs`, and add it to the Harmonization Status table on the Conformance page. Parent epic: #77.",
+      "labels": [
+        "type:task",
+        "area:ig"
+      ],
+      "createdAt": "2026-06-10T17:56:03Z",
+      "updatedAt": "2026-06-10T17:56:03Z",
+      "type": "task",
+      "area": "ig"
+    },
+    {
+      "number": 92,
+      "title": "Promote the four draft FML StructureMaps from ig/drafts/ into the validated build",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/92",
+      "bodyMd": "Four FHIR Mapping Language files (`ASQResultToSuicideRiskConcept`, `CSSRSRiskLevelToSuicideRiskConcept`, `PHQ9Item9ToSuicideRiskConcept`, `SBQRTotalScoreToSuicideRiskConcept`) live in `ig/drafts/` deliberately outside the SUSHI compile and are marked DRAFT — UNVALIDATED. Promote them into the IG build (validate with the FHIR validator / map compiler), include them in the published artifact list, and update the Conformance Harmonization Status table from 'draft, unvalidated' to authored. Parent epic: #77.",
+      "labels": [
+        "type:task",
+        "area:ig"
+      ],
+      "createdAt": "2026-06-10T17:56:26Z",
+      "updatedAt": "2026-06-10T17:56:26Z",
+      "type": "task",
+      "area": "ig"
+    },
+    {
+      "number": 93,
+      "title": "Obtain SME clinical sign-off on ASQ and C-SSRS risk-tier ConceptMaps",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/93",
+      "bodyMd": "Both authored crosswalks carry 'pending clinical sign-off' caveats in source: the ASQ map sends non-acute-positive → moderate and acute-positive → imminent as `relatedto` (lossy; SME to confirm whether some acute-positive cases belong in high rather than imminent), and the C-SSRS high → high mapping notes that active intent + means may warrant escalation to imminent. Get suicide-prevention SME review (Zero Suicide co-authorship track), record decisions in the ConceptMap comments, and flip equivalences/caveats accordingly. Parent epic: #77.",
+      "labels": [
+        "type:task",
+        "area:ig"
+      ],
+      "createdAt": "2026-06-10T17:56:28Z",
+      "updatedAt": "2026-06-10T17:56:28Z",
+      "type": "task",
+      "area": "ig"
+    },
+    {
+      "number": 94,
+      "title": "Add explicit version to all ActivityDefinition and PlanDefinition instances",
+      "state": "closed",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/94",
+      "bodyMd": "The 11 ActivityDefinitions and 5 PlanDefinitions omit `version`. Downstream systems consuming these definitional resources can't tell which IG release an instance tracks. Add `* version = \"0.1.0\"` (or current IG version) to every ActivityDefinition/PlanDefinition instance in `ig/input/fsh/` and keep it in lockstep with sushi-config going forward.",
+      "labels": [
+        "type:task",
+        "area:ig"
+      ],
+      "createdAt": "2026-06-10T17:56:30Z",
+      "updatedAt": "2026-06-10T18:21:17Z",
+      "closedAt": "2026-06-10T18:21:17Z",
+      "type": "task",
+      "area": "ig"
+    },
+    {
+      "number": 95,
+      "title": "Tighten CAMS CarePlan profiles to match the questionnaire section structure",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/95",
+      "bodyMd": "`SPiERCAMSStabilizationPlan` and `SPiERCAMSTherapeuticWorksheet` (ig/input/fsh/cams.fsh) constrain `activity.detail.code` generically, while the source Questionnaires (e.g. Stabilization_Plan.json's five sections) have concrete section structure. Tighten the profile constraints (slicing/section bindings) so example CarePlans validate meaningfully against them, or document why the loose shape is intentional.",
+      "labels": [
+        "type:task",
+        "area:ig",
+        "tool:TL-021",
+        "tool:TL-024"
+      ],
+      "createdAt": "2026-06-10T17:56:32Z",
+      "updatedAt": "2026-06-10T17:56:32Z",
+      "toolId": "TL-021",
+      "type": "task",
+      "area": "ig"
+    },
+    {
+      "number": 96,
+      "title": "Recheck LOINC for SBQ-R total score before v0.2 publication",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/96",
+      "bodyMd": "sbqr.fsh notes the SBQ-R total score uses SNOMED CT because no published LOINC equivalent existed at authoring time. Before the v0.2 release, re-run a LOINC search for SBQ-R item/total-score codes; if codes have since been published, switch the Observation profile and data dictionary to LOINC and note the change in the IG history.",
+      "labels": [
+        "type:task",
+        "area:ig",
+        "tool:TL-025"
+      ],
+      "createdAt": "2026-06-10T17:56:34Z",
+      "updatedAt": "2026-06-10T17:56:34Z",
+      "toolId": "TL-025",
+      "type": "task",
+      "area": "ig"
+    },
+    {
+      "number": 122,
+      "title": "Refresh and automate the roadmap snapshot (roadmap.generated.json)",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/122",
+      "bodyMd": "The committed snapshot at web/src/data/roadmap.generated.json was last fetched 2026-05-21 (28 issues) and no longer reflects the tracker (tool epics closed, new tasks added), so the app's roadmap page is stale.\n\nTwo parts:\n1. **Refresh now:** run `node web/scripts/fetch-roadmap.mjs` (optionally with GITHUB_TOKEN) and commit the updated snapshot.\n2. **Automate:** add a lightweight scheduled GitHub Actions workflow (weekly cron + workflow_dispatch) that runs fetch-roadmap and opens a PR when the snapshot changed, so the roadmap page can't silently drift from the tracker again. Keep the fetch best-effort (the script already preserves the prior snapshot on network failure).\n\nAcceptance: snapshot reflects current issue state; a scheduled workflow exists and has run green at least once.",
+      "labels": [
+        "type:task"
+      ],
+      "createdAt": "2026-07-04T16:03:52Z",
+      "updatedAt": "2026-07-04T16:03:52Z",
+      "type": "task"
+    },
+    {
+      "number": 123,
+      "title": "Run the HL7 FHIR validator over generated IG resources in CI",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/123",
+      "bodyMd": "SUSHI compiling clean does not guarantee valid FHIR: cardinality, binding-strength, and required-field violations in ig/fsh-generated/resources/ (and the hand-authored Questionnaires in FHIR-Resources/) are currently only caught by the heavy on-demand IG Publisher run, not on PRs.\n\nAdd a CI step (extend .github/workflows/ig.yml or a sibling job) that runs the official HL7 validator_cli against the generated resources — at minimum the Questionnaire, ActivityDefinition, PlanDefinition, ConceptMap, and example instances — with the validator jar and FHIR packages cached between runs so the job stays fast. Failures gate the PR.\n\nThis was the top missing deterministic check in the July 2026 repo audit: it protects the v0.2 publication and every downstream consumer from shipping malformed FHIR.",
+      "labels": [
+        "type:task",
+        "area:ig"
+      ],
+      "createdAt": "2026-07-04T16:03:53Z",
+      "updatedAt": "2026-07-04T16:03:53Z",
+      "type": "task",
+      "area": "ig"
+    },
+    {
+      "number": 124,
+      "title": "Validate population-scenario QuestionnaireResponses against their Questionnaires",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/124",
+      "bodyMd": "The demo registry's scenario files (web/src/data/population/scenarios/patient-*.json) contain hand-authored QuestionnaireResponse resources with no validation: nothing checks that their linkIds exist in the referenced Questionnaire, that coded answers are members of the item's answer options/ValueSet, or that integer answers are in range (e.g. CAMS 0–5 ratings).\n\nAdd web/scripts/check-scenario-responses.mjs in the style of the existing drift checks (check-stage-ids.mjs, check-catalog-integrity.mjs): for each QuestionnaireResponse in a scenario, resolve its questionnaire URL to the canonical JSON (FHIR-Resources/ or web/src/data/fhir/), then verify linkId existence, answer-code membership, and basic type/range agreement. Wire it into web/package.json (check:scenarios), the verify chain, and .github/workflows/web-lint.yml.\n\nCompletes the drift-check family: stage IDs, catalog wiring, extract contracts, and crosswalks are covered; scenario content is the last hand-authored FHIR with no gate.",
+      "labels": [
+        "type:task",
+        "area:population-view"
+      ],
+      "createdAt": "2026-07-04T16:04:14Z",
+      "updatedAt": "2026-07-04T16:04:14Z",
+      "type": "task",
+      "area": "population-view"
+    },
+    {
+      "number": 125,
+      "title": "Consolidate hardcoded example Observations into IG example instances",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/125",
+      "bodyMd": "web/src/data/catalog/tool-ui-metadata.ts hardcodes several example Observation resources in TypeScript (see the TODO around line 83). The IG already generates example instances (Observation-Example*.json copied into web/src/data/fhir/ by copy-fhir), so the examples should be authored once in FSH and read from the generated output — a single source of truth instead of hand-duplicated FHIR in TS.\n\nSteps: author FSH example instances for any tool whose hardcoded example has no IG counterpart yet; switch tool-ui-metadata.ts to import/reference the generated JSON; delete the inline resources and the TODO. Run the full verify chain; the catalog-integrity check should still pass.\n\nThis is the last TODO comment remaining in the codebase.",
+      "labels": [
+        "type:task",
+        "area:catalog"
+      ],
+      "createdAt": "2026-07-04T16:04:15Z",
+      "updatedAt": "2026-07-04T16:04:15Z",
+      "type": "task",
+      "area": "catalog"
+    },
+    {
+      "number": 126,
+      "title": "Decompose PatientChart.tsx and split PatientContext concerns",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/126",
+      "bodyMd": "Maintainability debt flagged in the July 2026 audit:\n\n- **web/src/pages/PatientChart.tsx (~780 lines)** mixes CDS card generation, stage-grouped activity rendering, encounter timeline, and document display. Extract subcomponents (e.g. CdsCardStack, StageActivitySection, EncountersTimeline, PatientDocuments) plus the buildCdsCards/grouping helpers into a PatientChart/ directory.\n- **web/src/context/PatientContext.tsx (~424 lines)** handles patient selection, slice persistence, SMART integration, artifact versioning, and risk-alert derivation in one provider. Split the SMART logic into its own hook (useSmartPatient) and consider separating persistence from derivation.\n\nBehavior-preserving refactor only — no functional changes. The Vitest mapper suite, full verify chain, and a click-through of the patient chart must pass. Good candidate for an AI-agent session now that the verification loop gates regressions.",
+      "labels": [
+        "type:task",
+        "area:patient-view"
+      ],
+      "createdAt": "2026-07-04T16:04:17Z",
+      "updatedAt": "2026-07-04T16:04:17Z",
+      "type": "task",
+      "area": "patient-view"
+    },
+    {
+      "number": 127,
+      "title": "Add licensing metadata (copyright/copyrightLabel) to all ActivityDefinitions",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/127",
+      "bodyMd": "First concrete task under the tool-licensing-audit epic #64, and the remaining licensing bullet from the now-closed P1 epic #42.\n\nNo ActivityDefinition in ig/input/fsh/ currently carries copyright, copyrightLabel, or related licensing fields (verified July 2026). For each of the 26 tools, capture the instrument's licensing status — public domain (e.g. PHQ-9, ASQ), permission-required (e.g. C-SSRS training requirements, CAMS licensing), or unknown-pending-audit — using ActivityDefinition.copyright / copyrightLabel, so an adopting system can see usage constraints directly in the FHIR artifact.\n\nDo not guess license terms: where the epic #64 audit hasn't confirmed a tool's status, state that explicitly in the copyright text rather than inventing terms. Compile with SUSHI and run the verify chain.",
+      "labels": [
+        "type:task",
+        "area:catalog",
+        "area:ig"
+      ],
+      "createdAt": "2026-07-04T16:04:34Z",
+      "updatedAt": "2026-07-04T16:04:34Z",
+      "type": "task",
+      "area": "catalog"
+    },
+    {
+      "number": 128,
+      "title": "Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset)",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/128",
+      "bodyMd": "Carries forward the final bullet of the now-closed P1 epic #42 — its original payoff: 'a configured implementation can be exported as a FHIR Bundle and handed to another EHR. SPiER stops modeling interop and starts demonstrating it.'\n\nThe app's Preset / tool-configuration concept should be representable as a custom PlanDefinition that selects a subset of the canonical stage PlanDefinitions' actions (all 8 stage PlanDefinitions now exist in pathway-stages.fsh). Then add an export affordance in the app that assembles the configured pathway — preset PlanDefinition + referenced ActivityDefinitions + Questionnaires + ConceptMaps — into a downloadable FHIR Bundle.\n\nScoping the FHIR shape (how a preset PlanDefinition composes with the canonical ones) is the first step and may warrant a short design note in docs/ before implementation.",
+      "labels": [
+        "type:task",
+        "area:ig"
+      ],
+      "createdAt": "2026-07-04T16:04:35Z",
+      "updatedAt": "2026-07-04T16:04:35Z",
+      "type": "task",
+      "area": "ig"
     }
   ]
 }
