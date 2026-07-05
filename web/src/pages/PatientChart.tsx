@@ -156,7 +156,8 @@ function CdsCardStack({ cards }: { cards: Card[] }) {
       <header className="cds-stack-header">
         <h3 className="cds-stack-title">Recommendations</h3>
         <span className="cds-stack-subtitle">
-          Generated from this patient's pathway state &middot; real CDS Hooks 2.0 cards
+          Generated from this patient's pathway state &middot; real CDS Hooks 2.0 cards &middot;{' '}
+          <Link to="/guide/cds-service">also served over the wire by SPiER's hosted CDS service</Link>
         </span>
       </header>
       <div className="cds-stack-list">
