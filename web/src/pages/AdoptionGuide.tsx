@@ -6,6 +6,7 @@ const TABS = [
   { to: 'pathway', label: 'Pathway' },
   { to: 'tool-configuration', label: 'Tool Configuration' },
   { to: 'data-dictionary', label: 'Data Dictionary' },
+  { to: 'cds-service', label: 'CDS Service' },
   { to: 'adoption-readiness', label: 'Adoption Readiness' },
   { to: 'adoption-rubric', label: 'Adoption Rubric' },
   { to: 'roadmap', label: 'Roadmap' },
