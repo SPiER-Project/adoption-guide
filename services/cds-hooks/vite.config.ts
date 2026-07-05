@@ -1,11 +1,21 @@
 import { defineConfig } from 'vite'
-import { cloudflare } from '@cloudflare/vite-plugin'
 
-// Cloudflare Workers build. The plugin runs the Worker in workerd for `vite dev`
-// and produces a wrangler-deployable bundle for `vite build`. Because it is a
-// Vite build, the app's `import.meta.glob` catalog + scenario loaders (imported
-// from ../../web/src) are transformed and their JSON inlined at build time — no
-// filesystem access at runtime.
+// Bundle the Worker entry (src/index.ts) into a single ESM file for Cloudflare.
+// Plain Vite (not @cloudflare/vite-plugin) so the build stays decoupled from
+// asset handling — wrangler serves ./web-dist natively. This is still a Vite
+// build, so the app's `import.meta.glob` catalog + scenario loaders (imported
+// from ../../web/src) are transformed and their JSON inlined at build time.
 export default defineConfig({
-  plugins: [cloudflare()],
+  build: {
+    ssr: './src/index.ts',
+    outDir: 'dist',
+    emptyOutDir: true,
+    target: 'esnext',
+    rollupOptions: {
+      output: { entryFileNames: 'index.js', format: 'es' },
+    },
+  },
+  // Bundle every dependency (hono + the web/src modules) into the single output
+  // so the Worker has no runtime resolution to do.
+  ssr: { target: 'webworker', noExternal: true },
 })

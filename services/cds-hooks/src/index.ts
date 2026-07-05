@@ -1,42 +1,48 @@
 /**
- * SPiER CDS Hooks 2.0 service — Cloudflare Workers entry point.
+ * SPiER on Cloudflare Workers — single-Worker entry point.
  *
- * A thin, stateless Hono app over the pure logic in ./service.ts:
- *   GET  /cds-services                     → Discovery
- *   POST /cds-services/spier-patient-view          → patient-view cards
- *   POST /cds-services/spier-patient-view/feedback → feedback (accepted, not stored)
+ * One Worker hosts everything:
+ *   - the adoption-guide SPA, served from Static Assets (the `ASSETS` binding,
+ *     directory ./web-dist — the web app's `vite build` output at base `/`);
+ *   - the CDS Hooks 2.0 API under /cds-services/*;
+ *   - a transitional /ig/* redirect to the rendered HL7 IG on GitHub Pages
+ *     (the IG is built there by the Java IG Publisher, not on this Worker).
  *
- * CORS is wide open so the service is callable from the public CDS Hooks
- * Sandbox (https://sandbox.cds-hooks.org) and any EHR test harness.
+ * `run_worker_first` (wrangler.jsonc) means this handler sees every request:
+ * Hono routes the API + redirect, and the catch-all delegates to ASSETS (which
+ * does SPA fallback). App↔API calls are same-origin; external EHR/sandbox calls
+ * to /cds-services get the wide-open CORS below.
  *
- * Spec: https://cds-hooks.org/specification/current/
+ * CDS Hooks spec: https://cds-hooks.org/specification/current/
  */
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { PATIENT_VIEW_SERVICE, SERVICE_ID, buildPatientViewResponse } from './service'
 import type { CdsDiscoveryResponse, CdsHookRequest } from './types'
 
-const app = new Hono()
+interface Env {
+  /** Static Assets binding — serves the built SPA from ./web-dist. */
+  ASSETS: { fetch: (request: Request) => Promise<Response> }
+}
 
-// Wide-open CORS — the Sandbox and EHR test tools call this cross-origin.
-app.use(
-  '*',
-  cors({
-    origin: '*',
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 86400,
-  }),
-)
+/** Canonical GitHub Pages home of the rendered IG (see /ig redirect below). */
+const CANONICAL_IG_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
 
-// Health/landing — not part of the spec, handy for a browser sanity check.
-app.get('/', (c) =>
-  c.json({
-    service: 'SPiER CDS Hooks',
-    discovery: '/cds-services',
-    spec: 'https://cds-hooks.org/specification/current/',
-  }),
-)
+const app = new Hono<{ Bindings: Env }>()
+
+// Wide-open CORS on the API only (assets don't need it) — the CDS Hooks Sandbox
+// and EHR test tools call /cds-services cross-origin. Applied to both the bare
+// discovery path and the sub-routes ('/cds-services/*' alone misses '/cds-services').
+const apiCors = cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400,
+})
+app.use('/cds-services', apiCors)
+app.use('/cds-services/*', apiCors)
+
+// ── CDS Hooks API ────────────────────────────────────────────────────────────
 
 // Discovery.
 app.get('/cds-services', (c) => {
@@ -58,7 +64,21 @@ app.post(`/cds-services/${SERVICE_ID}`, async (c) => {
   return c.json(buildPatientViewResponse(request))
 })
 
-// Feedback — accepted per spec but not persisted (stateless demo service).
+// Feedback — accepted per spec but not persisted (stateless service).
 app.post(`/cds-services/${SERVICE_ID}/feedback`, (c) => c.body(null, 200))
+
+// ── IG redirect (transitional) ───────────────────────────────────────────────
+// The rendered IG lives only on the canonical GitHub Pages site during the
+// migration; the app's /ig/ links (import.meta.env.BASE_URL + 'ig/') land here.
+app.get('/ig', (c) => c.redirect(CANONICAL_IG_BASE, 302))
+app.get('/ig/*', (c) => {
+  const rest = c.req.path.slice('/ig/'.length)
+  return c.redirect(CANONICAL_IG_BASE + rest, 302)
+})
+
+// ── Static SPA (everything else) ─────────────────────────────────────────────
+// Delegate to Static Assets; not_found_handling: single-page-application means
+// unknown paths return index.html (harmless with the app's HashRouter).
+app.all('*', (c) => c.env.ASSETS.fetch(c.req.raw))
 
 export default app

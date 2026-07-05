@@ -1,12 +1,25 @@
 {
-  // SPiER CDS Hooks service — deploy target for Cloudflare Workers.
-  // The @cloudflare/vite-plugin reads this file; `main` points at the TS entry
-  // and Vite bundles it (transforming the app's `import.meta.glob` catalog +
-  // scenario loaders at build time).
+  // SPiER on Cloudflare Workers — ONE Worker hosts both the adoption-guide SPA
+  // (served from ./web-dist via Static Assets) and the CDS Hooks API
+  // (/cds-services/*, handled by the Hono app in src/index.ts).
+  //
+  // `main` is the Vite-bundled worker (dist/index.js) — Vite is required because
+  // the imported catalog/scenario loaders use import.meta.glob. `web-dist` is a
+  // copy of the web app's `vite build` output (base `/`), staged by the build
+  // script so the deploy artifact is self-contained.
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "spier-cds-hooks",
-  "main": "./src/index.ts",
+  "name": "spier-adoption-guide",
+  "main": "./dist/index.js",
   "compatibility_date": "2025-07-01",
+  "assets": {
+    "directory": "./web-dist",
+    "binding": "ASSETS",
+    // Worker runs first for every request; it routes /cds-services + /ig itself
+    // and delegates everything else to ASSETS (SPA fallback below). Unambiguous,
+    // and asset-serving cost is negligible for this app.
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  },
   "observability": {
     "enabled": true
   }

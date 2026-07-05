@@ -1,8 +1,0 @@
-# Cloudflare Pages redirects (ignored by GitHub Pages, which doesn't read this file).
-#
-# During the GitHub Pages → Cloudflare transition, the rendered HL7 IG is built
-# only on the canonical GitHub Pages site (by the Java IG Publisher in
-# .github/workflows/deploy.yml). The Cloudflare app build serves at root and does
-# NOT include the IG, so send /ig/ deep-links to the canonical copy. Remove this
-# once the IG is rendered into the Cloudflare deploy at cutover.
-/ig/*  https://spier-project.github.io/adoption-guide/ig/:splat  302
