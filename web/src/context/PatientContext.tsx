@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react'
+import React, { createContext, useContext, useMemo, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { formatPatientDisplay } from '../data/demoPatient'
@@ -11,6 +11,7 @@ import { localDataSource } from '../lib/dataSource/localDataSource'
 import { SmartDataSource } from '../lib/dataSource/smartDataSource'
 import type { FhirDataSource } from '../lib/dataSource/types'
 import type { RegistryPatient } from '../lib/registry'
+import { publishPatientOpen, shouldPublishOnActivation } from '../lib/fhircast'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
@@ -212,6 +213,39 @@ export function PatientProvider({
   // Patient resource shown in the banner and for where chart data comes from.
   const isSmartConnected = !!(smartPatient && smartPatient.name)
   const smartPatientId = smartPatient?.id ?? smartClient?.patient.id ?? null
+
+  // Two-way FHIRcast: broadcast a `patient-open` whenever the active patient
+  // changes to a real patient *in this tab* — so a chart open in another tab
+  // follows. This is the chart-side counterpart to the population worklist's
+  // publish, giving true two-way sync (direct chart-URL loads and in-chart
+  // patient switches now broadcast too, not just worklist clicks).
+  //
+  // Echo suppression + guards live in shouldPublishOnActivation (lib/fhircast):
+  // it skips publishing under SMART, for the blank state, for an already-sent
+  // patient, and — crucially — for an activation that was itself an incoming
+  // follow (marked by FhircastListener before it navigates), which would
+  // otherwise ping-pong across tabs forever.
+  const lastPublishedIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (
+      activePatientId !== null &&
+      shouldPublishOnActivation({
+        activePatientId,
+        isSmartConnected,
+        lastPublishedId: lastPublishedIdRef.current,
+        now: Date.now(),
+      })
+    ) {
+      const p = POPULATION_BY_ID.get(activePatientId)
+      publishPatientOpen(
+        { patientId: activePatientId, mrn: p?.mrn, displayName: p?.displayName },
+        new Date().toISOString(),
+      )
+    }
+    // Track the current selection either way, so a later re-run for an unchanged
+    // patient (e.g. SMART toggling) doesn't rebroadcast it.
+    lastPublishedIdRef.current = activePatientId
+  }, [activePatientId, isSmartConnected])
 
   // Under SMART, chart data is read from / written to the connected FHIR
   // server via SmartDataSource; otherwise the injected source (default: the

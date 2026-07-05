@@ -6,7 +6,6 @@ import { localDataSource } from '../lib/dataSource/localDataSource'
 import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '../lib/registry'
 import { RISK_LEVEL_ORDER } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
-import { publishPatientOpen } from '../lib/fhircast'
 import type { PatientSlice } from '../types/fhir'
 import '../css/PopulationView.css'
 
@@ -117,15 +116,12 @@ export function PopulationView() {
   }, [rows])
 
   const handleOpenChart = (row: DerivedRegistryRow) => {
-    // Broadcast a FHIRcast STU3 patient-open event so a chart already open in
-    // another tab follows this selection — the population worklist and the
-    // chart behave as two context-synced FHIRcast apps. The receiving tab
-    // decides whether to honor it (see FhircastListener); this tab always
-    // navigates itself.
-    publishPatientOpen(
-      { patientId: row.id, mrn: row.mrn, displayName: row.displayName },
-      new Date().toISOString(),
-    )
+    // Just navigate. The FHIRcast patient-open broadcast is centralized in
+    // PatientContext's publish-on-activation effect, which fires once this
+    // navigation makes the patient active — so a chart open in another tab
+    // follows. (The population worklist and the chart behave as two
+    // context-synced FHIRcast apps; the receiving tab decides whether to honor
+    // it — see FhircastListener.)
     navigate(`/patient/chart/${row.id}`)
   }
 
@@ -228,19 +224,13 @@ export function PopulationView() {
                   {/* Real link: keyboard-focusable and activatable, and announced
                       to screen readers. The whole-row onClick above is a
                       mouse-only convenience; stopPropagation avoids a double
-                      navigate when the link itself is clicked. */}
+                      navigate when the link itself is clicked. The FHIRcast
+                      broadcast happens on activation in PatientContext, so both
+                      paths publish without an explicit call here. */}
                   <Link
                     to={`/patient/chart/${p.id}`}
                     className="caseload-patient-link"
-                    onClick={e => {
-                      // Keyboard/link activation broadcasts too; stopPropagation
-                      // then avoids the row handler double-firing.
-                      e.stopPropagation()
-                      publishPatientOpen(
-                        { patientId: p.id, mrn: p.mrn, displayName: p.displayName },
-                        new Date().toISOString(),
-                      )
-                    }}
+                    onClick={e => e.stopPropagation()}
                   >
                     <span className="caseload-patient-name">{p.displayName}</span>
                   </Link>

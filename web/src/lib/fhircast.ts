@@ -12,11 +12,20 @@ import { makeId } from './id'
  * on the wire is a real FHIRcast **event notification**, so it can be
  * inspected and it maps 1:1 onto what a production hub would deliver.
  *
- * Deliberately one-way and v1-scoped: this module only *models* the
- * `patient-open` event. The receiving side's guardrails (only follow while on
- * a chart route, ignore under a live SMART session) live in the React
- * listener, not here — this file stays framework-free and side-effect-free
- * apart from the channel it owns.
+ * Two-way and v1-scoped: this module only *models* the `patient-open` event,
+ * but context changes flow both directions — the population worklist and any
+ * open chart each publish when they change the active patient, and each follows
+ * the other. The receiving side's *policy* guardrails (only follow while on a
+ * chart route, ignore under a live SMART session) live in the React listener,
+ * not here — this file stays framework-free.
+ *
+ * The one piece of shared plumbing echo-suppression needs is the
+ * `markFollowing`/`consumeFollowing` pair below: a module-level marker the
+ * listener sets before it navigates in response to an incoming event, so the
+ * publisher-side effect can tell a *followed* context change apart from a
+ * user-initiated one and not rebroadcast it (which would ping-pong across
+ * tabs). Everything else in this file is side-effect-free apart from the
+ * channel it owns.
  */
 
 /** BroadcastChannel name — the local stand-in for a FHIRcast hub endpoint. */
@@ -130,6 +139,85 @@ export function parsePatientOpen(data: unknown): PatientOpenPayload | null {
     : undefined
 
   return { patientId, mrn, displayName }
+}
+
+// --- Echo suppression: the "programmatic follow" marker ---------------------
+//
+// When a tab follows an incoming event, its listener navigates, which changes
+// the URL → the active patient → and would fire the publish effect again,
+// rebroadcasting the very event it just received (an infinite cross-tab loop).
+// To break it, the listener marks the patient it is *about* to follow to; the
+// publish effect consumes that marker and skips publishing for that activation.
+//
+// This is an id + timestamp guard, not a timer: it is robust to arbitrary delay
+// between navigate() and the resulting activePatientId change (a few React
+// ticks, never seconds). The policy (when to follow, when to publish) still
+// lives in React; this is only the shared one-bit signal between the two.
+
+interface FollowMark {
+  patientId: string
+  at: number
+}
+
+let followMark: FollowMark | null = null
+
+// Generous upper bound on the URL→context→effect chain. Well beyond the handful
+// of React ticks it actually takes, but short enough that a genuine, much-later
+// re-selection of the same patient is never mistaken for a stale follow.
+export const FOLLOW_WINDOW_MS = 5_000
+
+/**
+ * Record that the app is about to programmatically navigate to `patientId` in
+ * response to an incoming FHIRcast event. Call immediately before navigating.
+ */
+export function markFollowing(patientId: string, now: number): void {
+  followMark = { patientId, at: now }
+}
+
+/**
+ * True if `patientId` matches an outstanding, fresh follow marker — i.e. this
+ * activation was caused by an incoming event and must NOT be rebroadcast. Any
+ * marker for this id is cleared (whether fresh or stale), so a later genuine
+ * re-selection of the same patient publishes normally.
+ */
+export function consumeFollowing(patientId: string, now: number): boolean {
+  if (!followMark || followMark.patientId !== patientId) return false
+  const fresh = now - followMark.at <= FOLLOW_WINDOW_MS
+  followMark = null
+  return fresh
+}
+
+/** Inputs to {@link shouldPublishOnActivation} — all plain values, no React. */
+export interface ActivationPublishInput {
+  /** The chart's newly-active patient id (null = blank / no patient). */
+  activePatientId: string | null
+  /** Under a live SMART session the connected EHR owns context — never publish. */
+  isSmartConnected: boolean
+  /** The last id this tab already broadcast, to avoid rebroadcasting it. */
+  lastPublishedId: string | null
+  /** Current time in ms (passed in for testability and marker freshness). */
+  now: number
+}
+
+/**
+ * Decide whether a change in the chart's active patient should broadcast a
+ * `patient-open` event. Returns false — without disturbing the follow marker —
+ * when SMART owns context, there is no patient, or this patient was already
+ * broadcast. Otherwise it consults (and consumes) the follow marker: a followed
+ * activation returns false (echo suppressed), a user-initiated one returns
+ * true. Kept pure/framework-free so the publish policy is unit-testable.
+ */
+export function shouldPublishOnActivation({
+  activePatientId,
+  isSmartConnected,
+  lastPublishedId,
+  now,
+}: ActivationPublishInput): boolean {
+  if (isSmartConnected) return false
+  if (activePatientId === null) return false
+  if (activePatientId === lastPublishedId) return false
+  if (consumeFollowing(activePatientId, now)) return false
+  return true
 }
 
 // One channel per document, opened lazily so importing this module has no
