@@ -11,6 +11,11 @@ import type { CdsServiceResponse } from '../../../web/src/lib/cdsHooks/types'
 
 const BASE = 'http://cds.test'
 
+// These tests exercise routing / CORS / card derivation, not auth — pin the JWT
+// policy to `off` (with a stub ASSETS binding) so a bearer token is never
+// required here. Bearer-JWT behavior is covered in auth.test.ts.
+const NO_AUTH = { ASSETS: { fetch: async () => new Response(null) }, CDS_JWT_ENFORCE: 'off' }
+
 describe('GET /cds-services (discovery)', () => {
   it('returns the patient-view service with CORS', async () => {
     const res = await app.request(`${BASE}/cds-services`, {
@@ -51,7 +56,7 @@ describe('POST /cds-services/spier-patient-view', () => {
         hookInstance: 'test',
         context: { patientId: 'patient-006' },
       }),
-    })
+    }, NO_AUTH)
     expect(res.status).toBe(200)
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
     const body = (await res.json()) as CdsServiceResponse
@@ -63,7 +68,7 @@ describe('POST /cds-services/spier-patient-view', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'not json',
-    })
+    }, NO_AUTH)
     expect(res.status).toBe(400)
   })
 
@@ -72,7 +77,7 @@ describe('POST /cds-services/spier-patient-view', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ hook: 'order-select', hookInstance: 'x', context: {} }),
-    })
+    }, NO_AUTH)
     expect(res.status).toBe(400)
   })
 })
@@ -83,7 +88,7 @@ describe('POST feedback', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feedback: [{ card: 'abc', outcome: 'accepted' }] }),
-    })
+    }, NO_AUTH)
     expect(res.status).toBe(200)
   })
 })

@@ -34,6 +34,50 @@ Patient Chart uses — so the endpoint and the app emit byte-identical cards.
   `context.patientId` (`patient-001` … `patient-011`), including that patient's
   curated `recommendedNextStep`. Unknown ids return `{ cards: [] }`.
 
+## Bearer-token authentication
+
+Per CDS Hooks 2.0 a CDS Client SHALL send `Authorization: Bearer <JWT>` on each
+service call. `src/auth.ts` (`cdsJwt()` middleware, backed by
+[`jose`](https://github.com/panva/jose) on Web Crypto) validates it on the
+**invoke** and **feedback** routes. **Discovery (`GET /cds-services`) stays open**
+— clients fetch it before they have a token.
+
+On a valid token the middleware verifies the signature and the registered claims
+(`aud` must equal this service's invoke URL, optional `iss` allowlist, `exp`/`iat`
+with 60 s clock tolerance) and stashes the claims on the Hono context. `jti` gets
+a **best-effort** in-isolate replay check — true one-time-use needs shared state
+(KV / Durable Object) and is documented as a follow-up.
+
+### Policy (`wrangler.jsonc` `vars`, overridable by secrets)
+
+| Var | Meaning |
+| --- | --- |
+| `CDS_JWT_ENFORCE` | `off` (skip), `warn` (verify, log failures, never block — **current default**), or `require` (401 on any failure). |
+| `CDS_JWT_AUDIENCE` | Accepted `aud` — this service's canonical invoke URL(s), comma-separated. |
+| `CDS_JWT_TRUSTED_ISSUERS` | Optional comma-separated allowlist of accepted `iss` values. |
+| `CDS_JWT_JWKS_URL` | Fixed JWK Set URL used when a token carries no `jku` header. |
+| `CDS_JWT_JKU_ALLOWED_HOSTS` | Comma-separated hosts a token's `jku` header may point at (see SSRF note). |
+
+Secrets (e.g. a JWKS URL you'd rather not commit) go via
+`wrangler secret put CDS_JWT_JWKS_URL` and override the `vars` value.
+
+### `jku` is an SSRF vector — it is allowlisted, never blindly fetched
+
+A JWT's `jku` (JWK Set URL) header is **client-controlled**. Fetching it naively
+would let any caller make the Worker issue an outbound request to a URL of their
+choice. This service refuses a `jku` whose host is not in
+`CDS_JWT_JKU_ALLOWED_HOSTS` **before any network call**; leave that var blank to
+ignore `jku` entirely and rely on `CDS_JWT_JWKS_URL` / registered issuers.
+
+### Rollout: `warn` → `require`
+
+Shipping in `warn` first: failures are logged via Workers observability without
+blocking, so we can confirm real callers present valid tokens before flipping to
+`require`. **The in-app demo / SMART path calls the service without a JWT**, so it
+must be handled before `require`: either exempt it (it is same-origin — a future
+option is to skip enforcement for same-origin requests) or have the SPA mint a
+dev token. Until then, keep `warn` and keep discovery open.
+
 ## Build & run
 
 The Worker bundles app source from `../../web/src`, whose catalog and scenario

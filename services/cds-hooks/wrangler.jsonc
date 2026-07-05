@@ -22,5 +22,23 @@
   },
   "observability": {
     "enabled": true
+  },
+  // CDS Hooks bearer-JWT policy (read by src/auth.ts). See README "Bearer-token
+  // authentication". Starts in `warn` so the in-app demo/SMART path — which may
+  // call the service without a token — keeps working while we observe real
+  // callers; flip to `require` once callers reliably present a valid JWT.
+  "vars": {
+    // "off" | "warn" | "require".
+    "CDS_JWT_ENFORCE": "warn",
+    // Accepted `aud` — this service's canonical invoke URL(s), comma-separated.
+    "CDS_JWT_AUDIENCE": "https://spier-adoption-guide.bbthorson.workers.dev/cds-services/spier-patient-view",
+    // Optional: comma-separated allowlist of accepted `iss` values.
+    "CDS_JWT_TRUSTED_ISSUERS": "",
+    // Optional: fixed JWK Set URL used when a token carries no `jku` header.
+    "CDS_JWT_JWKS_URL": "",
+    // SSRF guard: comma-separated hosts a token's `jku` header may point at.
+    // A `jku` on any other host is rejected WITHOUT being fetched. Blank =
+    // ignore `jku` entirely and rely on CDS_JWT_JWKS_URL / registered issuers.
+    "CDS_JWT_JKU_ALLOWED_HOSTS": ""
   }
 }

@@ -17,10 +17,12 @@
  */
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { cdsJwt } from './auth'
+import type { CdsJwtEnv, CdsJwtVariables } from './auth'
 import { PATIENT_VIEW_SERVICE, SERVICE_ID, buildPatientViewResponse } from './service'
 import type { CdsDiscoveryResponse, CdsHookRequest } from './types'
 
-interface Env {
+interface Env extends CdsJwtEnv {
   /** Static Assets binding — serves the built SPA from ./web-dist. */
   ASSETS: { fetch: (request: Request) => Promise<Response> }
 }
@@ -28,7 +30,7 @@ interface Env {
 /** Canonical GitHub Pages home of the rendered IG (see /ig redirect below). */
 const CANONICAL_IG_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
 
-const app = new Hono<{ Bindings: Env }>()
+const app = new Hono<{ Bindings: Env; Variables: CdsJwtVariables }>()
 
 // Wide-open CORS on the API only (assets don't need it) — the CDS Hooks Sandbox
 // and EHR test tools call /cds-services cross-origin. Applied to both the bare
@@ -50,8 +52,9 @@ app.get('/cds-services', (c) => {
   return c.json(body)
 })
 
-// patient-view invocation.
-app.post(`/cds-services/${SERVICE_ID}`, async (c) => {
+// patient-view invocation — bearer JWT validated per CDS_JWT_ENFORCE policy
+// (discovery above stays open; feedback below is likewise guarded).
+app.post(`/cds-services/${SERVICE_ID}`, cdsJwt(), async (c) => {
   let request: CdsHookRequest
   try {
     request = await c.req.json<CdsHookRequest>()
@@ -65,7 +68,7 @@ app.post(`/cds-services/${SERVICE_ID}`, async (c) => {
 })
 
 // Feedback — accepted per spec but not persisted (stateless service).
-app.post(`/cds-services/${SERVICE_ID}/feedback`, (c) => c.body(null, 200))
+app.post(`/cds-services/${SERVICE_ID}/feedback`, cdsJwt(), (c) => c.body(null, 200))
 
 // ── IG redirect (transitional) ───────────────────────────────────────────────
 // The rendered IG lives only on the canonical GitHub Pages site during the
