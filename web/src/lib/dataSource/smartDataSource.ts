@@ -10,11 +10,14 @@
  *    through `deriveFromResponse` (the same business logic the local store
  *    uses) rather than trusting server Observations — the alert is a SPiER UI
  *    concept, not a server resource.
- *  - Known limitation: the observation mappers dispatch on
- *    `http://spier.org/Questionnaire/*` canonical URLs, so only QRs written
- *    by SPiER (or by servers reusing SPiER canonicals) produce risk alerts
- *    and derived Observations. Foreign QRs/Observations still render on the
- *    chart — unstaged ones land in the "Other activity" bucket.
+ *  - Dispatch is canonical-first: QRs written by SPiER (or servers reusing
+ *    SPiER canonicals) map directly. A foreign QR whose canonical doesn't
+ *    match now also produces alerts/Observations when its instrument is
+ *    recognized from standardized LOINC item codes (Tier 2 — see
+ *    observationMappers/fallbackDispatch); such results are stamped as
+ *    inferred. We do NOT opt into the Tier-3 shape heuristic here, so a QR
+ *    with neither a matching canonical nor recognizable item codes still
+ *    renders as unmapped activity ("Other activity" bucket when unstaged).
  *  - Write failures propagate to the caller (PatientContext surfaces them in
  *    the UI). There is deliberately no silent fallback to localStorage.
  */

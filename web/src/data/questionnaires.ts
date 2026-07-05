@@ -91,3 +91,30 @@ export function ordinalForAnswer(
   const ext = (option?.extension ?? []).find((e: any) => e.url === ORDINAL_VALUE_URL)
   return ext?.valueDecimal
 }
+
+/**
+ * Inverse of `ordinalForAnswer`: given an ordinal weight, return the SPiER
+ * Questionnaire `answerOption.valueCoding` that carries it. Used by the
+ * code-based fallback dispatcher (../lib/observationMappers/fallbackDispatch.ts)
+ * to synthesize a SPiER-recognizable answer coding when a foreign QR captured a
+ * bare integer (0–3) instead of a coded answer — so the unchanged mapper's
+ * `ordinalForAnswer` join still resolves. Returns undefined when the
+ * questionnaire, item, or a matching ordinalValue isn't found.
+ */
+export function answerCodingForOrdinal(
+  questionnaireUrl: string | undefined,
+  linkId: string,
+  ordinal: number,
+): { system?: string; code?: string; display?: string } | undefined {
+  if (!questionnaireUrl) return undefined
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const q = QUESTIONNAIRE_BY_URL[stripCanonicalVersion(questionnaireUrl)] as any
+  if (!q) return undefined
+  const item = findQItem(q.item, linkId)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const option = (item?.answerOption ?? []).find((o: any) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (o.extension ?? []).some((e: any) => e.url === ORDINAL_VALUE_URL && e.valueDecimal === ordinal),
+  )
+  return option?.valueCoding
+}
