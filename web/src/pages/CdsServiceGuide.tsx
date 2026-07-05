@@ -115,6 +115,26 @@ export function CdsServiceGuide() {
       </section>
 
       <section className="cds-service-guide__section">
+        <h3 className="cds-service-guide__h3">Authentication</h3>
+        <p>
+          Per CDS Hooks 2.0 a CDS client sends{' '}
+          <code>Authorization: Bearer &lt;JWT&gt;</code> on each call. The service validates that
+          token on the <strong>invoke</strong> and <strong>feedback</strong> endpoints &mdash;
+          signature plus registered claims (<code>aud</code> must equal the invoke URL,{' '}
+          <code>exp</code>/<code>iat</code>, optional issuer allowlist). <strong>Discovery stays
+          open</strong>, since clients fetch it before they hold a token.
+        </p>
+        <p>
+          Enforcement currently runs in <strong>warn</strong> mode: an invalid or missing token is
+          logged but <em>not</em> blocked, so the tokenless curl commands above and the sandbox flow
+          still work while callers adopt tokens. It flips to a hard <code>require</code> (401 on any
+          failure) via a single config change. A JWT&rsquo;s client-controlled <code>jku</code>{' '}
+          header is treated as an SSRF risk &mdash; its host must be allowlisted or it is rejected
+          without ever being fetched.
+        </p>
+      </section>
+
+      <section className="cds-service-guide__section">
         <h3 className="cds-service-guide__h3">Live discovery document</h3>
         {discovery.status === 'loading' && (
           <p className="cds-service-guide__status" role="status" aria-live="polite">
@@ -148,8 +168,8 @@ export function CdsServiceGuide() {
         <h3 className="cds-service-guide__h3">Honesty notes</h3>
         <ul>
           <li>
-            This is a <strong>demo service</strong> &mdash; there is no authentication or JWT
-            validation.
+            This is a <strong>demo service</strong>. Bearer-JWT validation exists (see above) but runs
+            in <strong>warn</strong> mode &mdash; tokens are verified and logged, not yet enforced.
           </li>
           <li>
             It is <strong>prefetch-only</strong>: it never queries a FHIR server. Live-path cards come
