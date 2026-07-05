@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
-import { subscribePatientOpen, type PatientOpenPayload } from '../lib/fhircast'
+import { markFollowing, subscribePatientOpen, type PatientOpenPayload } from '../lib/fhircast'
 import '../css/FhircastListener.css'
 
 // Only a tab already viewing a patient chart follows a broadcast. This mirrors
@@ -46,6 +46,10 @@ export function FhircastListener() {
       if (!CHART_ROUTE.test(pathname)) return
       // Already viewing this patient — nothing to switch, no banner.
       if (pathname === `/patient/chart/${payload.patientId}`) return
+      // Mark this as a programmatic follow BEFORE navigating so PatientContext's
+      // publish effect (which fires once the navigation changes the active
+      // patient) suppresses it instead of rebroadcasting — no cross-tab echo.
+      markFollowing(payload.patientId, Date.now())
       navigate(`/patient/chart/${payload.patientId}`)
       setFollowed(payload)
     })
