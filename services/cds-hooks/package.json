@@ -1,0 +1,28 @@
+{
+  "name": "@spier/cds-hooks",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SPiER CDS Hooks 2.0 service — patient-view cards for the suicide-safer pathway, sharing the app's browser-free derivation code.",
+  "scripts": {
+    "predev": "npm --prefix ../../web run copy-fhir",
+    "dev": "vite",
+    "prebuild": "npm --prefix ../../web run copy-fhir -- --force",
+    "build": "vite build",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "verify": "npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.2.4",
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^3.0.5",
+    "wrangler": "^4.0.0"
+  }
+}

@@ -45,6 +45,8 @@ jobs:
       - name: Build web app
         working-directory: ./web
         run: npm run build
+        env:
+          VITE_BASE: /adoption-guide/ # GitHub Pages serves under this subpath; Cloudflare/dev default to root (/)
 
       # ── Rendered HL7 IG (IG Publisher → ig/output) ────────────────────────
       - name: Setup Java

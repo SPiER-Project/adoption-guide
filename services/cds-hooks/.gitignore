@@ -1,0 +1,4 @@
+# Vite / Cloudflare Workers build output
+dist/
+# wrangler local state (dev cache, logs)
+.wrangler/

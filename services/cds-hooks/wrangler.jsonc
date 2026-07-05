@@ -1,0 +1,13 @@
+{
+  // SPiER CDS Hooks service — deploy target for Cloudflare Workers.
+  // The @cloudflare/vite-plugin reads this file; `main` points at the TS entry
+  // and Vite bundles it (transforming the app's `import.meta.glob` catalog +
+  // scenario loaders at build time).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "spier-cds-hooks",
+  "main": "./src/index.ts",
+  "compatibility_date": "2025-07-01",
+  "observability": {
+    "enabled": true
+  }
+}
