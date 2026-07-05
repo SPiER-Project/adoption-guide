@@ -1,82 +1,93 @@
-# SPiER CDS Hooks service
+# SPiER on Cloudflare Workers
 
-A stateless [CDS Hooks 2.0](https://cds-hooks.org/specification/current/) service
-that surfaces the SPiER suicide-safer pathway's *next step* and *risk alerts* as
-CDS Hooks cards, for a `patient-view` hook.
+**One** Cloudflare Worker that hosts the whole SPiER adoption guide:
 
-It is a thin [Hono](https://hono.dev) wrapper over the adoption-guide app's
-**browser-free derivation code** — the same `observationMappers`,
-`derivePathwayStatus`, and `buildCdsCards` the in-app Patient Chart uses — so the
-hosted endpoint and the app emit byte-identical cards. Nothing is persisted.
+- the **adoption-guide SPA**, served from Static Assets (`./web-dist`, the web
+  app's `vite build` output at base `/`);
+- the **CDS Hooks 2.0 API** at `/cds-services/*` — a [Hono](https://hono.dev) app;
+- a transitional **`/ig/*` redirect** to the rendered HL7 IG on GitHub Pages.
 
-## Endpoints
+App ↔ API calls are same-origin (no CORS needed); external CDS clients calling
+`/cds-services` get wide-open CORS. Nothing is persisted.
+
+The CDS cards reuse the app's **browser-free derivation code** — the same
+`observationMappers`, `derivePathwayStatus`, and `buildCdsCards` the in-app
+Patient Chart uses — so the endpoint and the app emit byte-identical cards.
+
+## Routes
 
 | Method + path | Purpose |
 | --- | --- |
-| `GET /cds-services` | Discovery — advertises the `spier-patient-view` service. |
+| `GET /` (+ any non-API path) | The SPA (Static Assets; SPA fallback for unknown paths). |
+| `GET /cds-services` | CDS Hooks discovery — advertises `spier-patient-view`. |
 | `POST /cds-services/spier-patient-view` | `patient-view` invocation → `{ cards: [...] }`. |
 | `POST /cds-services/spier-patient-view/feedback` | Feedback — accepted (200), not stored. |
+| `GET /ig/*` | 302 → `https://spier-project.github.io/adoption-guide/ig/…`. |
 
-CORS is wide open (`*`) so the service is callable from the public
-[CDS Hooks Sandbox](https://sandbox.cds-hooks.org) and EHR test harnesses.
-
-### How cards are derived
+### How CDS cards are derived
 
 - **Live path** — when the CDS client includes the patient's completed
-  `QuestionnaireResponse`s in `prefetch`, they are run through the app's
-  observation mappers to produce risk alerts and a pathway stage. Behaves like a
-  connected EHR: no curated narrative fallback.
-- **Fallback path** — with no prefetch, the service serves the app's bundled
-  population scenario matching `context.patientId` (`patient-001` … `patient-011`),
-  including that patient's curated `recommendedNextStep`. Unknown ids return an
-  empty (spec-valid) `{ cards: [] }`.
+  `QuestionnaireResponse`s in `prefetch`, they run through the app's observation
+  mappers to produce risk alerts + a pathway stage. Behaves like a connected EHR:
+  no curated narrative fallback.
+- **Fallback path** — no prefetch → the bundled population scenario for
+  `context.patientId` (`patient-001` … `patient-011`), including that patient's
+  curated `recommendedNextStep`. Unknown ids return `{ cards: [] }`.
 
-The prefetch template requests:
-`QuestionnaireResponse?patient={{context.patientId}}&status=completed&_sort=-authored`.
+## Build & run
 
-## Develop
-
-This package imports app source from `../../web/src`, whose catalog and scenario
-loaders use Vite's `import.meta.glob`. That is why the Worker is **built with
-Vite** (`@cloudflare/vite-plugin`) rather than plain wrangler/esbuild: the globs
-(and the generated FHIR JSON they load) are transformed and inlined at build
-time. The generated FHIR must therefore exist first — the `predev`/`prebuild`
-hooks run the web app's `copy-fhir`.
+The Worker bundles app source from `../../web/src`, whose catalog and scenario
+loaders use Vite's `import.meta.glob` — so `src/index.ts` is **Vite-bundled** to
+`dist/index.js` (globs + generated FHIR JSON inlined at build time). The SPA is a
+separate `vite build`, staged into `./web-dist` and served by wrangler's Static
+Assets. Both are self-contained (SUSHI is a local devDependency; `copy-fhir` runs
+via the web build's `prebuild`).
 
 ```bash
-# One-time (fresh checkout): install the web app's deps so copy-fhir can run.
+# One-time on a fresh checkout: install the web app's deps.
 npm --prefix ../../web install
 
 npm install          # this package's deps
-npm run dev          # vite dev server on http://localhost:5173 (runs in workerd)
+npm run build        # build:web → stage:assets → build:worker (dist/index.js + web-dist/)
+npm run dev          # build the above, then `wrangler dev` (workerd) on :8787
 npm run typecheck    # tsc --noEmit
-npm test             # vitest — card derivation + HTTP routing + CORS
+npm test             # vitest — card derivation + API routing + CORS (via app.request)
 npm run verify       # typecheck + test
-npm run build        # production Worker bundle → dist/
 ```
 
-> **Note on `vite dev` + CORS:** the Vite dev server answers CORS preflight
-> (`OPTIONS`) requests with its *own* default headers before the request reaches
-> the Worker, so a live `curl -X OPTIONS localhost:5173` is not representative of
-> production. The deployed Worker's CORS is covered by `src/app.test.ts`
-> (`app.request(...)` against the real Hono app).
+`npm run build` orchestrates three steps: `build:web` (web app at base `/`),
+`stage:assets` (copy `../../web/dist` → `./web-dist`), `build:worker` (bundle the
+Worker). `dist/` and `web-dist/` are gitignored.
 
 ### Try it locally
 
 ```bash
-curl -s localhost:5173/cds-services | jq
-curl -s -X POST localhost:5173/cds-services/spier-patient-view \
+npm run dev   # http://localhost:8787
+curl -s localhost:8787/cds-services | jq
+curl -s -X POST localhost:8787/cds-services/spier-patient-view \
   -H 'Content-Type: application/json' \
   -d '{"hook":"patient-view","hookInstance":"1","context":{"patientId":"patient-006"}}' | jq
 ```
 
 ## Deploy (Cloudflare Workers)
 
-`wrangler.jsonc` targets Cloudflare Workers. After `wrangler login`:
+`wrangler.jsonc` targets one Worker (`spier-adoption-guide`) with a Static Assets
+binding. After `wrangler login`:
 
 ```bash
-npm run deploy       # wrangler deploy (uses the Vite-built bundle)
+npm run deploy       # build + wrangler deploy (Worker script + web-dist assets)
 ```
 
-Then point the CDS Hooks Sandbox's *Discovery Endpoint* at
-`https://<worker-name>.<subdomain>.workers.dev/cds-services`.
+CI does the same on push to `main` via `.github/workflows/deploy-cloudflare.yml`
+(needs repo secrets `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`). The Worker
+is created on first deploy — no pre-provisioning.
+
+Point the CDS Hooks Sandbox's *Discovery Endpoint* at
+`https://<worker-name>.<subdomain>.workers.dev/cds-services`; the app itself is at
+`https://<worker-name>.<subdomain>.workers.dev/`.
+
+> **Transition note:** during the GitHub Pages → Cloudflare migration the app is
+> hosted on both. The rendered IG is built only on GitHub Pages, so `/ig/*`
+> redirects there. At cutover: render the IG into `web-dist/ig`, drop the
+> redirect, flip `APP_BASE_URL` in `web/src/lib/cdsHooks/cards.ts`, and retire the
+> GitHub Pages workflow.
