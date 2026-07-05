@@ -78,6 +78,15 @@ export interface QuestionnaireResponseAnswer {
 export interface QuestionnaireResponseItem {
   linkId?: string
   text?: string
+  /**
+   * Not part of FHIR R4 QuestionnaireResponse.item, but foreign EHRs sometimes
+   * annotate captured items with the source Questionnaire's item `code`
+   * (LOINC per-item codes). The code-based fallback dispatcher
+   * (../lib/observationMappers/fallbackDispatch.ts) reads it — alongside a
+   * contained Questionnaire — to recognize an instrument whose canonical URL
+   * doesn't match a SPiER Questionnaire.
+   */
+  code?: Coding[]
   answer?: QuestionnaireResponseAnswer[]
   item?: QuestionnaireResponseItem[]
 }

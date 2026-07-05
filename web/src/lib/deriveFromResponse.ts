@@ -8,7 +8,8 @@
  * id, builds the `StoredResponse` entry, then calls this to produce the derived
  * artifacts to persist alongside it.
  */
-import { mapResponseToObservations } from './observationMappers'
+import { mapResponseToObservations, type DispatchOptions } from './observationMappers'
+import type { RiskAlert } from './observationMappers'
 import { stageForResponse, PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import type { DerivedArtifacts } from './dataSource/types'
 import type { ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
@@ -29,12 +30,25 @@ import type { ObservationResource, QuestionnaireResponseResource } from '../type
  *
  * `storedResource` must already carry the final `id` used for the persisted QR,
  * so the `derivedFrom` references point at the same resource.
+ *
+ * When the QR was matched by the code/shape fallback (its `questionnaire`
+ * canonical didn't match a SPiER Questionnaire), the derived Observations get a
+ * provenance note and the risk alert `detail` gains an "inferred mapping"
+ * caveat, so nothing silently presents a code-recognized result as if it came
+ * from a conformant submission.
  */
 export function deriveFromResponse(
   storedResource: QuestionnaireResponseResource,
+  opts: DispatchOptions = {},
 ): DerivedArtifacts | null {
-  const result = mapResponseToObservations(storedResource)
+  const result = mapResponseToObservations(storedResource, opts)
   if (!result) return null
+
+  const via = result.dispatch?.via
+  const inferred = via === 'code' || via === 'shape'
+  const provenanceNote = inferred
+    ? `Instrument recognized via ${via === 'code' ? 'standardized item codes' : 'an answer-shape heuristic'} — the submitted QuestionnaireResponse.questionnaire canonical did not match a SPiER Questionnaire. Mapping to SPiER was inferred from the response data.`
+    : undefined
 
   const id = storedResource.id
   const stageId = stageForResponse(storedResource)
@@ -42,6 +56,7 @@ export function deriveFromResponse(
   const observations: ObservationResource[] = result.observations.map((obs: any) => ({
     ...obs,
     derivedFrom: [...(obs.derivedFrom ?? []), { reference: `QuestionnaireResponse/${id}` }],
+    ...(provenanceNote ? { note: [...(obs.note ?? []), { text: provenanceNote }] } : {}),
     meta: {
       ...(obs.meta ?? {}),
       tag: [
@@ -51,5 +66,12 @@ export function deriveFromResponse(
     },
   }))
 
-  return { observations, riskAlert: result.riskAlert }
+  const riskAlert: RiskAlert = inferred
+    ? {
+        ...result.riskAlert,
+        detail: `${result.riskAlert.detail} (Instrument recognized from ${via === 'code' ? 'standardized item codes' : 'answer shape'}; the submitted questionnaire canonical did not match a SPiER Questionnaire.)`,
+      }
+    : result.riskAlert
+
+  return { observations, riskAlert }
 }

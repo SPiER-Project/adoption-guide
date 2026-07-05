@@ -30,9 +30,34 @@ export interface RiskAlert {
   }
 }
 
+/**
+ * How the dispatcher matched a QuestionnaireResponse to its mapper. Set by
+ * `mapResponseToObservations` (index.ts), not by the per-tool mappers.
+ *  - `canonical` — the QR's `questionnaire` URL matched a SPiER canonical
+ *    (highest confidence; today's behavior).
+ *  - `code` — the canonical didn't match but the instrument was recognized
+ *    from standardized item codes (LOINC), then normalized to SPiER shape.
+ *  - `shape` — recognized only by answer-shape heuristic (lowest confidence;
+ *    opt-in via `allowHeuristic`).
+ */
+export interface DispatchProvenance {
+  via: 'canonical' | 'code' | 'shape'
+  /** The SPiER canonical the QR was recognized as (set for `code`/`shape`). */
+  recognizedCanonical?: string
+  /** The QR's own (non-matching) canonical, if any (set for `code`/`shape`). */
+  submittedCanonical?: string
+}
+
 export interface MapperResult {
   observations: ObservationResource[]
   riskAlert: RiskAlert
+  /**
+   * Present only on results returned via the fallback dispatcher. When `via`
+   * is `code`/`shape`, callers stamp derived Observations + surface the
+   * inferred-mapping caveat so a clinician knows the instrument was recognized
+   * from data, not a matching canonical URL. See deriveFromResponse.ts.
+   */
+  dispatch?: DispatchProvenance
 }
 
 /**

@@ -86,4 +86,39 @@ describe('live path (prefetched QuestionnaireResponses)', () => {
     // Live path never emits the curated narrative fallback.
     expect(cards.every((c) => !c.extension?.['spier-narrative-only'])).toBe(true)
   })
+
+  // A foreign EHR's PHQ-9 QR: NOT under a SPiER canonical, foreign linkIds, but
+  // standard LOINC per-item codes. Tier-2 recognition (the default policy here)
+  // should still surface a card. q9 = 3 (LA6571-9) drives a suicide-risk alert.
+  const FOREIGN_PHQ9: unknown = {
+    resourceType: 'QuestionnaireResponse',
+    status: 'completed',
+    questionnaire: 'http://epic.example.org/Questionnaire/phq9-internal',
+    item: [
+      ['44250-9', 'LA6570-1'], ['44255-8', 'LA6570-1'], ['44259-0', 'LA6569-3'],
+      ['44254-1', 'LA6569-3'], ['44251-7', 'LA6568-5'], ['44258-2', 'LA6568-5'],
+      ['44252-5', 'LA6568-5'], ['44253-3', 'LA6568-5'], ['44260-8', 'LA6571-9'],
+    ].map(([code, answer], i) => ({
+      linkId: `EPIC-${i + 1}`,
+      code: [{ system: 'http://loinc.org', code }],
+      answer: [{ valueCoding: { system: 'http://loinc.org', code: answer } }],
+    })),
+  }
+
+  it('recognizes a foreign-canonical PHQ-9 via LOINC item codes (Tier 2) and emits a card', () => {
+    const { cards } = buildPatientViewResponse(
+      request({
+        context: { patientId: 'ehr-patient' },
+        prefetch: {
+          questionnaireResponses: {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{ resource: FOREIGN_PHQ9 }],
+          },
+        },
+      }),
+    )
+    expect(cards.length).toBeGreaterThan(0)
+    expect(cards.some((c) => c.indicator === 'critical' || c.indicator === 'warning')).toBe(true)
+  })
 })

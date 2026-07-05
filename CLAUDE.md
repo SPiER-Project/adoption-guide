@@ -23,6 +23,7 @@ npm run check:crosswalk  # concept-crosswalk validation
 npm run check:extract    # observation-extract validation
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions / questionnaire URLs)
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
+npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
 ```
 
 In `ig/`:
@@ -42,7 +43,7 @@ npx sushi .            # compile FSH → fsh-generated/resources/ (validates the
 - **Fresh worktrees need `npm install` in `web/`** before any npm script runs.
 - **`copy-fhir` is incremental:** it skips the ~30s SUSHI compile when `web/src/data/fhir/` is newer than every FSH input. `predev` runs it plain; `prebuild` runs it with `--force`. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
 - **Generated files must exist before `tsc -b`.** `web/src/data/fhir/*.json` and `web/src/data/catalog/care-plan-profiles.generated.ts` (both gitignored) are produced by `copy-fhir`. On a clean checkout, run `npm run copy-fhir` first or the typecheck/build fails on missing imports.
-- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `web/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `web/src/data/population/` (e.g. `patients.json`). When you change any such code, **grep the whole repo** for the old value and update every site.
+- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `web/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `web/src/data/population/` (e.g. `patients.json`). LOINC **per-item** codes additionally live in `web/src/lib/observationMappers/fallbackDispatch.ts` (`INSTRUMENT_SIGNATURES`, used to recognize foreign QRs) — guarded against the Questionnaire JSON by `npm run check:fallback`. When you change any such code, **grep the whole repo** for the old value and update every site.
 
 ## Skills (`.claude/skills/`)
 

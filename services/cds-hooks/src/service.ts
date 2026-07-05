@@ -94,7 +94,16 @@ function questionnaireResponsesFromPrefetch(
   return Object.values(prefetch).flatMap(collectQuestionnaireResponses)
 }
 
-/** Risk alerts derived from a set of QuestionnaireResponses (mappers that fire). */
+/**
+ * Risk alerts derived from a set of QuestionnaireResponses (mappers that fire).
+ *
+ * Uses the default dispatch policy: Tier 1 (SPiER canonical) + Tier 2 (LOINC
+ * item-code recognition of foreign QRs) fire, but the Tier-3 shape heuristic
+ * does NOT (`allowHeuristic` left false). A real EHR firing `patient-view`
+ * often prefetches PHQ-9 QRs under its own canonical; Tier 2 lets us still
+ * surface a card, while staying conservative — we won't fabricate a risk tier
+ * from a QR we can only guess at by shape.
+ */
 function riskAlertsFor(responses: QuestionnaireResponseResource[]): RiskAlert[] {
   return responses
     .map((qr) => mapResponseToObservations(qr)?.riskAlert)
