@@ -1,0 +1,52 @@
+name: Deploy to Cloudflare Pages
+
+# Parallel hosting alongside GitHub Pages (.github/workflows/deploy.yml) during
+# the migration to Cloudflare. Publishes the companion React app at the domain
+# ROOT (base `/`, the vite.config default) to a Cloudflare Pages project.
+#
+# The rendered HL7 IG is NOT built here — it stays on the canonical GitHub Pages
+# site, and web/public/_redirects sends /ig/ deep-links there. When Cloudflare
+# becomes canonical, render the IG in this workflow (mirror deploy.yml's IG steps
+# and nest under web/dist/ig) and drop the redirect.
+#
+# Requires two repo secrets: CLOUDFLARE_API_TOKEN (scoped to "Cloudflare Pages:
+# Edit") and CLOUDFLARE_ACCOUNT_ID. The Pages project must exist once, e.g.
+#   wrangler pages project create spier-adoption-guide --production-branch main
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm ci
+
+      # Root base (`/`) is the vite.config default — no VITE_BASE override here,
+      # unlike the GitHub Pages workflow. prebuild runs copy-fhir (SUSHI is a
+      # local devDependency), so the build is self-contained.
+      - name: Build web app
+        working-directory: ./web
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy web/dist --project-name=spier-adoption-guide --branch=${{ github.ref_name }}
