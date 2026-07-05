@@ -32,6 +32,10 @@ import { SmartRedirect } from './components/SmartRedirect'
 // Shell — kept eager so the nav/sidebar chrome is always in the main chunk.
 import { EhrShell } from './components/EhrShell'
 
+// Cross-tab patient-context sync (simulated FHIRcast). Eager + always mounted
+// so a chart tab is listening regardless of which lens the user loaded first.
+import { FhircastListener } from './components/FhircastListener'
+
 // Route pages and views are code-split (React.lazy) so each lens loads on
 // demand. Named exports are adapted to lazy()'s default-export contract.
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })))
@@ -79,6 +83,7 @@ function LegacyAssessmentRedirect() {
 function AppRoutes() {
   return (
     <Suspense fallback={<RouteFallback />}>
+      <FhircastListener />
       <Routes>
       {/* SMART on FHIR — outside the EHR shell */}
       <Route path="/launch" element={<SmartLaunch />} />
