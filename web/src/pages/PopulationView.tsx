@@ -6,6 +6,7 @@ import { localDataSource } from '../lib/dataSource/localDataSource'
 import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '../lib/registry'
 import { RISK_LEVEL_ORDER } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
+import { publishPatientOpen } from '../lib/fhircast'
 import type { PatientSlice } from '../types/fhir'
 import '../css/PopulationView.css'
 
@@ -115,9 +116,17 @@ export function PopulationView() {
     return counts
   }, [rows])
 
-  const handleOpenChart = (patientId: string) => {
-    // v1: cross-app patient switching is mocked. In production this would be FHIRcast.
-    navigate(`/patient/chart/${patientId}`)
+  const handleOpenChart = (row: DerivedRegistryRow) => {
+    // Broadcast a FHIRcast STU3 patient-open event so a chart already open in
+    // another tab follows this selection — the population worklist and the
+    // chart behave as two context-synced FHIRcast apps. The receiving tab
+    // decides whether to honor it (see FhircastListener); this tab always
+    // navigates itself.
+    publishPatientOpen(
+      { patientId: row.id, mrn: row.mrn, displayName: row.displayName },
+      new Date().toISOString(),
+    )
+    navigate(`/patient/chart/${row.id}`)
   }
 
   return (
@@ -214,7 +223,7 @@ export function PopulationView() {
           </thead>
           <tbody>
             {filteredSorted.map(p => (
-              <tr key={p.id} className="caseload-row" onClick={() => handleOpenChart(p.id)}>
+              <tr key={p.id} className="caseload-row" onClick={() => handleOpenChart(p)}>
                 <td>
                   {/* Real link: keyboard-focusable and activatable, and announced
                       to screen readers. The whole-row onClick above is a
@@ -223,7 +232,15 @@ export function PopulationView() {
                   <Link
                     to={`/patient/chart/${p.id}`}
                     className="caseload-patient-link"
-                    onClick={e => e.stopPropagation()}
+                    onClick={e => {
+                      // Keyboard/link activation broadcasts too; stopPropagation
+                      // then avoids the row handler double-firing.
+                      e.stopPropagation()
+                      publishPatientOpen(
+                        { patientId: p.id, mrn: p.mrn, displayName: p.displayName },
+                        new Date().toISOString(),
+                      )
+                    }}
                   >
                     <span className="caseload-patient-name">{p.displayName}</span>
                   </Link>
@@ -269,8 +286,9 @@ export function PopulationView() {
 
       <p className="population-footnote">
         Mock registry data &mdash; {rows.length} patients sampled across the pathway stages and
-        risk levels. Click any row to view that patient's chart. In a production implementation,
-        cross-app patient context would switch via <strong>FHIRcast</strong>.
+        risk levels. Click any row to view that patient's chart. Opening a patient here also
+        broadcasts a <strong>FHIRcast</strong> patient-open event: a chart open in another tab
+        follows along, the way context-synced apps do in production.
       </p>
     </div>
   )
