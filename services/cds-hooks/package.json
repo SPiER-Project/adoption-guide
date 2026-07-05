@@ -3,14 +3,16 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SPiER CDS Hooks 2.0 service — patient-view cards for the suicide-safer pathway, sharing the app's browser-free derivation code.",
+  "description": "SPiER on Cloudflare Workers — one Worker serving the adoption-guide SPA (Static Assets) and the CDS Hooks 2.0 API, sharing the app's browser-free derivation code.",
   "scripts": {
-    "predev": "npm --prefix ../../web run copy-fhir",
-    "dev": "vite",
-    "prebuild": "npm --prefix ../../web run copy-fhir -- --force",
-    "build": "vite build",
-    "deploy": "wrangler deploy",
+    "build:web": "npm --prefix ../../web run build",
+    "stage:assets": "rm -rf web-dist && cp -R ../../web/dist ./web-dist",
+    "build:worker": "vite build",
+    "build": "npm run build:web && npm run stage:assets && npm run build:worker",
+    "dev": "npm run build:web && npm run stage:assets && npm run build:worker && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
+    "pretest": "npm --prefix ../../web run copy-fhir",
     "test": "vitest run",
     "verify": "npm run typecheck && npm run test"
   },
@@ -18,7 +20,6 @@
     "hono": "^4.6.14"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.2.4",
     "@cloudflare/workers-types": "^4.20250109.0",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",

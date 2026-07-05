@@ -1,4 +1,6 @@
-# Vite / Cloudflare Workers build output
+# Vite worker bundle
 dist/
+# Staged copy of the web app build (assets served by the Worker)
+web-dist/
 # wrangler local state (dev cache, logs)
 .wrangler/
