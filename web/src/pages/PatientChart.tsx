@@ -1,10 +1,9 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
-import type { PopulationPatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
-import { STAGES, TOOLS, stageById, type Tool } from '../data/catalog'
+import { STAGES, stageById } from '../data/catalog'
 import {
   derivePathwayStatus,
   groupArtifactsByStage,
@@ -14,8 +13,7 @@ import {
   type FhirResourceLike,
   type StoredResponseLike,
 } from '../lib/patientPathway'
-import { RISK_LEVEL_ORDER } from '../lib/observationMappers'
-import type { RiskAlert } from '../lib/observationMappers'
+import { buildCdsCards, type Card, type CdsIndicator } from '../lib/cdsHooks'
 import type { CarePlanResource, CodeableConcept, ScenarioEncounter, StoredResponse } from '../types/fhir'
 
 // The chart renders stored FHIR resources that arrive (via patientPathway) as
@@ -36,17 +34,6 @@ interface RenderableResource {
 }
 import '../css/Dashboard.css'
 import '../css/PatientChart.css'
-
-const STAGE_BLURB: Record<string, string> = {
-  'flag-risk': 'Administer a suicide-risk screen to flag whether further review is needed.',
-  'clarify-risk': 'Positive screen — clarify the nature, severity, and context of suicide risk.',
-  'set-risk-status': 'Document the current risk status and the clinical reasoning that guides next steps.',
-  'document-safety-actions': 'Document concrete actions to reduce risk: safety plan, means counseling.',
-  'coordinate-handoffs': 'Transfer suicide-safety information and responsibility across settings.',
-  'track-follow-up': 'Track caring contacts and follow-up steps after the immediate encounter.',
-  'manage-active-risk': 'Keep the active suicide-safer care episode visible and escalated when needed.',
-  'measure-and-share': 'Use pathway activity for reporting, QI, and information sharing.',
-}
 
 /* ---------- Helpers ---------- */
 
@@ -98,136 +85,84 @@ function PathwayTracker({ statuses, onJump }: {
 }
 
 /* ---------- CDS recommendation cards ---------- */
-interface CdsCard {
-  id: string
-  stageId: string
-  level: 'urgent' | 'recommended' | 'routine'
-  title: string
-  rationale: string
-  options: { tool: Tool; action: { label: string; path: string } }[]
-  // When true, suppress the "no tools enabled" fallback because the
-  // title/rationale already convey a curated next-step recommendation.
-  narrativeOnly?: boolean
+// The chart's "Recommendations" are real CDS Hooks 2.0 Cards, built by the
+// shared, React-free builder in lib/cdsHooks. This UI renders those Card objects
+// and exposes the raw wire payload via a per-card JSON toggle.
+
+// CDS indicator → clinician-facing pill label and BEM modifier.
+const INDICATOR_LABEL: Record<CdsIndicator, string> = {
+  critical: 'Urgent',
+  warning: 'Recommended',
+  info: 'Routine',
 }
 
-function buildCdsCards(
-  activeStageId: string | null,
-  riskAlerts: RiskAlert[],
-  isToolEnabled: (id: string) => boolean,
-  populationPatient: PopulationPatient | null,
-  isSmartConnected: boolean,
-): CdsCard[] {
-  const cards: CdsCard[] = []
-
-  // Card #1: based on the active pathway stage
-  if (activeStageId) {
-    const stage = stageById(activeStageId)
-    const stageTools = TOOLS.filter(t => t.stageId === activeStageId && t.launchActions.length > 0)
-    const options = stageTools.flatMap(tool =>
-      tool.launchActions
-        .filter(() => isToolEnabled(tool.id))
-        .map(action => ({ tool, action })),
-    )
-    // Highest-severity risk alert drives the urgency. This is the patient's
-    // own live slice — after the population registry moved to deriving risk
-    // from the same riskAlerts (see lib/registry.ts), there's no separate
-    // curated fallback to consult.
-    const topAlert = [...riskAlerts].sort((a, b) => RISK_LEVEL_ORDER[a.level] - RISK_LEVEL_ORDER[b.level])[0]
-    const effectiveLevel = topAlert?.level && topAlert.level !== 'none' ? topAlert.level : null
-    const level: CdsCard['level'] =
-      effectiveLevel === 'acute' || effectiveLevel === 'high' ? 'urgent'
-      : effectiveLevel === 'moderate' ? 'recommended'
-      : 'routine'
-
-    // Population-patient recommendedNextStep substitution: when no tools are
-    // wired for the active stage and the patient's curated recommendation
-    // targets that same stage, swap in the recommendation's label/rationale.
-    // Suppressed under SMART so a connected EHR's real chart isn't overwritten
-    // by demo population data.
-    const recommended = populationPatient?.recommendedNextStep
-    const useRecommendation =
-      options.length === 0 &&
-      !isSmartConnected &&
-      recommended != null &&
-      recommended.stageId === activeStageId
-
-    cards.push({
-      id: `cds-stage-${activeStageId}`,
-      stageId: activeStageId,
-      level,
-      title: useRecommendation && recommended
-        ? recommended.label
-        : `Next step: ${stage?.title ?? activeStageId}`,
-      rationale: useRecommendation && recommended
-        ? recommended.rationale
-        : STAGE_BLURB[activeStageId] ?? stage?.description ?? '',
-      options,
-      narrativeOnly: useRecommendation,
-    })
-  }
-
-  // Card #2..n: any tool-suggested actions from risk alerts whose target isn't already covered
-  const seenPaths = new Set(cards.flatMap(c => c.options.map(o => o.action.path)))
-  for (const alert of riskAlerts) {
-    if (!alert.suggestedAction || alert.level === 'none') continue
-    if (seenPaths.has(alert.suggestedAction.path)) continue
-    // Find the tool by path
-    const tool = TOOLS.find(t => t.launchActions.some(a => a.path === alert.suggestedAction!.path))
-    if (!tool || !isToolEnabled(tool.id)) continue
-    cards.push({
-      id: `cds-alert-${alert.tool}`,
-      stageId: tool.stageId,
-      level: alert.level === 'acute' || alert.level === 'high' ? 'urgent' : 'recommended',
-      title: alert.suggestedAction.label,
-      rationale: alert.detail,
-      options: [{ tool, action: { label: alert.suggestedAction.label, path: alert.suggestedAction.path } }],
-    })
-    seenPaths.add(alert.suggestedAction.path)
-  }
-
-  return cards
+function CdsCardView({ card }: { card: Card }) {
+  const ext = card.extension
+  const stageId = ext?.['spier-stage-id']
+  const stage = stageId ? stageById(stageId) : undefined
+  const narrativeOnly = ext?.['spier-narrative-only'] === true
+  const routerPaths = ext?.['spier-router-paths'] ?? {}
+  const links = card.links ?? []
+  return (
+    <article className={`cds-card cds-card--${card.indicator}`}>
+      <header className="cds-card-header">
+        <span className={`cds-card-pill cds-card-pill--${card.indicator}`}>
+          {INDICATOR_LABEL[card.indicator]}
+        </span>
+        {stage && <span className="cds-card-stage-tag">{stage.title}</span>}
+      </header>
+      <h4 className="cds-card-title">{card.summary}</h4>
+      {card.detail && <p className="cds-card-rationale">{card.detail}</p>}
+      {links.length > 0 ? (
+        <div className="cds-card-actions">
+          {links.map(link => {
+            // Deep links carry an in-app router path in the extension so the SPA
+            // can navigate client-side; fall back to the absolute url otherwise.
+            const to = routerPaths[link.url]
+            return to ? (
+              <Link key={link.url} to={to} className="cds-card-action-btn">
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                key={link.url}
+                href={link.url}
+                className="cds-card-action-btn"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {link.label}
+              </a>
+            )
+          })}
+        </div>
+      ) : narrativeOnly ? null : (
+        <p className="cds-card-no-options">
+          No tools enabled for this stage in your implementation.{' '}
+          <Link to="/guide/tool-configuration">Configure tools</Link>.
+        </p>
+      )}
+      <div className="cds-card-json">
+        <FhirJsonViewer data={card} title="View CDS Hooks card JSON" />
+      </div>
+    </article>
+  )
 }
 
-function CdsCardStack({ cards }: { cards: CdsCard[] }) {
+function CdsCardStack({ cards }: { cards: Card[] }) {
   if (cards.length === 0) return null
   return (
     <section id="recommendations" className="cds-stack">
       <header className="cds-stack-header">
         <h3 className="cds-stack-title">Recommendations</h3>
         <span className="cds-stack-subtitle">
-          Generated from this patient's pathway state &middot; mirrors CDS Hooks card behavior
+          Generated from this patient's pathway state &middot; real CDS Hooks 2.0 cards
         </span>
       </header>
       <div className="cds-stack-list">
-        {cards.map(card => {
-          const stage = stageById(card.stageId)
-          return (
-            <article key={card.id} className={`cds-card cds-card--${card.level}`}>
-              <header className="cds-card-header">
-                <span className={`cds-card-pill cds-card-pill--${card.level}`}>
-                  {card.level === 'urgent' ? 'Urgent' : card.level === 'recommended' ? 'Recommended' : 'Routine'}
-                </span>
-                {stage && <span className="cds-card-stage-tag">{stage.title}</span>}
-              </header>
-              <h4 className="cds-card-title">{card.title}</h4>
-              <p className="cds-card-rationale">{card.rationale}</p>
-              {card.options.length > 0 ? (
-                <div className="cds-card-actions">
-                  {card.options.map(({ tool, action }) => (
-                    <Link key={action.path} to={action.path} className="cds-card-action-btn">
-                      {tool.launchActions.length > 1 ? `${tool.shortName ?? tool.name}: ${action.label}` : action.label}
-                    </Link>
-                  ))}
-                </div>
-              ) : card.narrativeOnly ? null : (
-                <p className="cds-card-no-options">
-                  No tools enabled for this stage in your implementation.{' '}
-                  <Link to="/guide/tool-configuration">Configure tools</Link>.
-                </p>
-              )}
-            </article>
-          )
-        })}
+        {cards.map(card => (
+          <CdsCardView key={card.extension?.['spier-card-id'] ?? card.uuid} card={card} />
+        ))}
       </div>
     </section>
   )
@@ -795,7 +730,14 @@ export function PatientChart() {
   const stageGroups = useMemo(() => groupArtifactsByStage(artifacts), [artifacts])
   const unstaged = useMemo(() => unstagedArtifacts(artifacts), [artifacts])
   const cdsCards = useMemo(
-    () => buildCdsCards(activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected),
+    () =>
+      buildCdsCards({
+        activeStageId,
+        riskAlerts,
+        isToolEnabled,
+        recommendedNextStep: populationPatient?.recommendedNextStep ?? null,
+        isSmartConnected,
+      }),
     [activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected],
   )
 

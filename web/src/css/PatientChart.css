@@ -232,9 +232,9 @@
   padding: var(--space-4);
 }
 
-.cds-card--urgent      { border-left-color: var(--risk-acute); }
-.cds-card--recommended { border-left-color: var(--risk-moderate); }
-.cds-card--routine     { border-left-color: var(--accent-info); }
+.cds-card--critical { border-left-color: var(--risk-acute); }
+.cds-card--warning  { border-left-color: var(--risk-moderate); }
+.cds-card--info     { border-left-color: var(--accent-info); }
 
 .cds-card-header {
   display: flex;
@@ -253,9 +253,9 @@
   color: var(--text-on-brand);
 }
 
-.cds-card-pill--urgent      { background: var(--risk-acute); }
-.cds-card-pill--recommended { background: var(--risk-moderate); }
-.cds-card-pill--routine     { background: var(--accent-info); }
+.cds-card-pill--critical { background: var(--risk-acute); }
+.cds-card-pill--warning  { background: var(--risk-moderate); }
+.cds-card-pill--info     { background: var(--accent-info); }
 
 .cds-card-stage-tag {
   font-size: var(--font-size-xs);
@@ -310,6 +310,10 @@
 .cds-card-no-options a {
   color: var(--accent-info);
   text-decoration: underline;
+}
+
+.cds-card-json {
+  margin-top: var(--space-3);
 }
 
 /* ===========================
