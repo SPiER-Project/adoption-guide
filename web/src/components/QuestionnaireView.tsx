@@ -82,7 +82,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
   return (
     <div className="form-wrapper">
       <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/assessments">← Screenings</Link>
+        <Link to="/patient/chart">← Patient chart</Link>
         <span className="breadcrumb-sep">/</span>
         <span className="breadcrumb-current">{title}</span>
       </nav>
@@ -122,7 +122,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
               </div>
             )}
             <div className="submit-result-actions">
-              <Link to="/patient/assessments" className="submit-result-link">View in Screenings</Link>
+              <Link to="/patient/chart#activity" className="submit-result-link">View in chart</Link>
               {submitResult.riskAlert.suggestedAction && (
                 <Link to={submitResult.riskAlert.suggestedAction.path} className="submit-result-action-btn">
                   {submitResult.riskAlert.suggestedAction.label} &rarr;
@@ -134,7 +134,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
         {submitted && !carePlan && !submitResult && (
           <div className="submit-success-notice">
             Response saved to patient chart.{' '}
-            <Link to="/patient/assessments">View in Screenings</Link>
+            <Link to="/patient/chart#activity">View in chart</Link>
           </div>
         )}
       </div>

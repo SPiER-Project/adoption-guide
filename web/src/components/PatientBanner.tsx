@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import '../css/PatientBanner.css'
 
@@ -28,7 +28,9 @@ export function PatientBanner() {
     isSmartConnected,
     riskAlerts,
     activePatientId,
+    populationPatients,
   } = usePatient()
+  const navigate = useNavigate()
 
   // Unassigned (blank) state — no patient selected.
   if (activePatientId === null && !isSmartConnected) {
@@ -40,7 +42,7 @@ export function PatientBanner() {
           </span>
           <span className="patient-banner-divider">|</span>
           <span className="patient-banner-unassigned-hint">
-            Submit assessments here to try forms, or pick a patient from the population.
+            Launch an assessment from the recommendation below to try the forms, or pick a patient.
           </span>
           <Link to="/population" className="patient-banner-population-link">
             Choose from population →
@@ -85,10 +87,39 @@ export function PatientBanner() {
             {RISK_LABEL[risk]}
           </span>
         </span>
-        {isSmartConnected && (
+        {isSmartConnected ? (
           <span className="patient-banner-smart" title="Connected via SMART on FHIR">
             SMART
           </span>
+        ) : (
+          // Patient-context controls. Hidden under SMART, where the connected
+          // EHR owns the patient in context. Switching navigates to the
+          // patient's chart URL, which broadcasts patient-open over FHIRcast.
+          <div className="patient-banner-actions">
+            <label className="patient-banner-switcher-label">
+              <span className="patient-banner-label">Switch</span>
+              <select
+                className="patient-banner-switcher"
+                aria-label="Switch patient"
+                value={activePatientId ?? ''}
+                onChange={e => navigate(`/patient/chart/${e.target.value}`)}
+              >
+                {populationPatients.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.displayName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="patient-banner-close"
+              onClick={() => navigate('/patient/chart?new=1')}
+              title="Close this patient and return to the blank chart"
+            >
+              Close patient ✕
+            </button>
+          </div>
         )}
       </div>
     </div>
