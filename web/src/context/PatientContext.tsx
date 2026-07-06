@@ -113,6 +113,8 @@ interface PatientContextType {
   /** Null when no patient is selected (blank "play with forms" state). */
   activePatientId: string | null
   populationPatient: PopulationPatient | null
+  /** The full population registry, for patient-switcher UIs. */
+  populationPatients: PopulationPatient[]
   /**
    * Read-only scenario walkthrough timeline for the active patient. Sourced
    * directly from the static scenario (not the mutable store) so submitted
@@ -402,6 +404,7 @@ export function PatientProvider({
       isSmartConnected,
       activePatientId,
       populationPatient,
+      populationPatients: POPULATION_PATIENTS,
       encounters,
       carePlans: slice.carePlans,
       addCarePlan,
