@@ -980,6 +980,15 @@
   color: var(--brand-primary);
 }
 
+/* The renderer's "Cancel" button is a no-op: formbox exposes no onCancel prop,
+   so it neither navigates nor resets the form. The breadcrumb ("← Patient
+   chart") and the post-submit "View in chart" link are the real exits, so hide
+   it. Scoped to the submit button's sibling in the form footer, which leaves
+   repeating-group add/remove controls (also type=button) untouched. */
+.form-card div:has(> button[type="submit"]) > button[type="button"] {
+  display: none;
+}
+
 .form-card .b1xzeqmh {
   background: var(--surface-banner-muted);
   border-color: var(--border-banner-muted);

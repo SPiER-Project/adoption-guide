@@ -789,10 +789,10 @@ export function PatientChart() {
           <strong>This chart is empty.</strong>
           <p>
             {isSmartConnected
-              ? 'No SPiER artifacts on the connected EHR for this patient yet. Submit an assessment from the sidebar to write one back.'
+              ? 'No SPiER artifacts on the connected EHR for this patient yet. Launch an assessment from the recommendation below to write one back.'
               : activePatientId === null
-                ? 'Use the assessment forms in the sidebar to try them, or pick a patient from the Population view.'
-                : 'No artifacts yet for this patient. Submit an assessment from the sidebar to populate the chart.'}
+                ? 'Launch an assessment from the recommendation below to try the forms, or pick a patient from the Population view.'
+                : 'No artifacts yet for this patient. Launch an assessment from the recommendation below to populate the chart.'}
           </p>
         </div>
       )}
