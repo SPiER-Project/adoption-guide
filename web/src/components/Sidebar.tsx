@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { GUIDE_SECTIONS, guideHref } from '../data/guideSections'
 import '../css/Sidebar.css'
 
 // Published HL7 IG — a sibling static site (not a hash route), linked via the Vite base path.
@@ -44,14 +45,12 @@ const LENSES: Lens[] = [
     label: 'Adoption Guide',
     icon: '\u{1F4DA}', // books
     matchPrefix: '/guide',
-    children: [
-      { to: '/guide/pathway', label: 'Pathway' },
-      { to: '/guide/tool-configuration', label: 'Tool Configuration' },
-      { to: '/guide/data-dictionary', label: 'Data Dictionary' },
-      { to: '/guide/adoption-readiness', label: 'Adoption Readiness' },
-      { to: '/guide/adoption-rubric', label: 'Adoption Rubric' },
-      { to: '/guide/roadmap', label: 'Roadmap' },
-    ],
+    // Children mirror the canonical guide section list so the sidebar can never
+    // drift from the routes or the in-page pager (see data/guideSections.ts).
+    children: GUIDE_SECTIONS.map(section => ({
+      to: guideHref(section.path),
+      label: section.label,
+    })),
   },
   {
     to: IG_HREF,

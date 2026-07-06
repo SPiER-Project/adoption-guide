@@ -175,7 +175,6 @@ export function AdoptionReadiness() {
 
   return (
     <div className="adoption-readiness">
-      <h2 className="page-title">Adoption Readiness</h2>
       <p className="ar-description">
         Every catalogued instrument, scored on how ready it is to adopt. For each tool: where it sits in
         the build lifecycle, how strongly SPiER recommends it, what its licensing requires, and how deeply

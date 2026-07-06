@@ -89,7 +89,6 @@ export function DataDictionary() {
 
   return (
     <div className="data-dictionary">
-      <h2 className="page-title">Data Dictionary</h2>
       <p className="dd-description">
         Structured data fields, terminology codes, and FHIR resource mappings across the suicide safer care pathway.
         Elements are grouped by the pathway stage whose tools first produce them — codes used in multiple stages are flagged inline.

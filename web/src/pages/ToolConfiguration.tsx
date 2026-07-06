@@ -17,7 +17,6 @@ export function ToolConfiguration() {
   return (
     <div className="tool-config">
       <header className="tool-config-header">
-        <h2 className="tool-config-title">Tool Configuration</h2>
         <p className="tool-config-intro">
           Choose which suicide-prevention tools your implementation supports. The Patient View's
           recommendation cards will only offer launch options for tools you enable here &mdash;

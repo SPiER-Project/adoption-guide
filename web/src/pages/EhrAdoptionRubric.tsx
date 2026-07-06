@@ -88,7 +88,6 @@ export function EhrAdoptionRubric() {
 
   return (
     <div className="ehr-rubric">
-      <h2 className="page-title">EHR Adoption Rubric</h2>
       <p className="rubric-description">
         Assess your EHR&rsquo;s adoption of suicide safer care tools. Check which tools your system
         supports (at least one per stage is needed), then rate each stage across three maturity criteria.

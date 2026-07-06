@@ -7,13 +7,6 @@
   margin-bottom: var(--space-7);
 }
 
-.tool-config-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--text-strong);
-  margin: 0 0 0.5rem 0;
-}
-
 .tool-config-intro {
   color: var(--text-body);
   line-height: 1.55;

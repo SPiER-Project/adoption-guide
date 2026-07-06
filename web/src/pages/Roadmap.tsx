@@ -125,7 +125,6 @@ export function Roadmap() {
 
   return (
     <div className="page-placeholder">
-      <h2>Roadmap</h2>
       <p>
         Three strategic priorities, taken in order. Each one is a precondition for the next:
         you can't put codes on tools that aren't structured, and you can't wire automations
