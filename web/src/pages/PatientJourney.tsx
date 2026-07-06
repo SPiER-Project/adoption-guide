@@ -135,7 +135,6 @@ export function PatientJourney() {
 
   return (
     <div className="patient-journey">
-      <h2 className="page-title">Pathway</h2>
       <p className="journey-description">
         The suicide safer care pathway from flagging risk through measuring and sharing pathway activity.
         Tools are grouped by care stage. Click a tool to see its specification, implementation details, data elements, and launch options.

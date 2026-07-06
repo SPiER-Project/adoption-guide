@@ -5,69 +5,77 @@
 }
 
 .ig-header {
-  padding: 20px 24px 0 24px;
-  background: white;
+  padding: 20px 24px 12px 24px;
+  background: var(--surface-card);
   border-bottom: 1px solid var(--border-default);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+}
+
+.ig-eyebrow {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
 }
 
 .ig-title {
   font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--text-strong);
-  margin: 0 0 16px 0;
-}
-
-.ig-tabs {
-  display: flex;
-  gap: 8px;
-  /* Let the tab strip scroll horizontally on narrow screens instead of
-     wrapping labels or pushing tabs out of reach. The negative margin +
-     padding keeps the scrollable area flush with the header edges. */
-  overflow-x: auto;
-  scrollbar-width: thin;
-  margin: 0 -24px;
-  padding: 0 24px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.ig-tab-btn {
-  padding: 8px 16px;
-  font-size: var(--font-size-lg);
-  font-weight: 500;
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: inline-block;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.ig-tab-btn:hover {
-  color: var(--text-strong);
-  background: var(--surface-page);
-}
-
-.ig-tab-btn--active {
-  color: var(--accent-info);
-  border-bottom-color: var(--accent-info);
+  margin: 0;
 }
 
 .ig-content {
   flex: 1;
-  padding: 0; /* Sub-pages have their own padding usually, but we might want to standardize */
+  padding: 0; /* Sub-pages carry their own body padding. */
   overflow-y: auto;
 }
 
-/* Adjust nested page styles to look better in a tabbed view */
-.implementation-guide .page-title {
-  display: none; /* Hide the sub-page redundant titles */
+/* Bottom-of-page prev/next navigation between guide sections. Order mirrors the
+   sidebar (data/guideSections.ts) and this is the primary lateral nav on mobile,
+   where the sidebar collapses into the drawer. */
+.guide-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5) 24px var(--space-6);
+  margin-top: var(--space-6);
+  border-top: 1px solid var(--border-default);
+}
+
+.guide-pager__link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 48%;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.guide-pager__link:hover {
+  border-color: var(--accent-info);
+  background: var(--surface-page);
+}
+
+.guide-pager__link--next {
+  text-align: right;
+}
+
+.guide-pager__dir {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.guide-pager__label {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--accent-info);
 }
 
 .implementation-guide .patient-journey,

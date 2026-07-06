@@ -1,39 +1,51 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
+import { GUIDE_SECTIONS, guideHref } from '../data/guideSections'
 import '../css/AdoptionGuide.css'
 
-const TABS = [
-  { to: 'overview', label: 'Overview' },
-  { to: 'pathway', label: 'Pathway' },
-  { to: 'tool-configuration', label: 'Tool Configuration' },
-  { to: 'data-dictionary', label: 'Data Dictionary' },
-  { to: 'cds-service', label: 'CDS Service' },
-  { to: 'adoption-readiness', label: 'Adoption Readiness' },
-  { to: 'adoption-rubric', label: 'Adoption Rubric' },
-  { to: 'roadmap', label: 'Roadmap' },
-]
-
 export function AdoptionGuide() {
+  const location = useLocation()
+
+  // The active section is the last path segment under /guide. The index route
+  // redirects /guide → /guide/overview, so a bare /guide falls back to the
+  // first section rather than rendering a titleless header.
+  const segment = location.pathname.replace(/^\/guide\/?/, '').split('/')[0]
+  const activeIndex = Math.max(
+    0,
+    GUIDE_SECTIONS.findIndex(s => s.path === segment),
+  )
+  const active = GUIDE_SECTIONS[activeIndex]
+  const prev = activeIndex > 0 ? GUIDE_SECTIONS[activeIndex - 1] : null
+  const next =
+    activeIndex < GUIDE_SECTIONS.length - 1 ? GUIDE_SECTIONS[activeIndex + 1] : null
+
   return (
     <div className="implementation-guide">
       <header className="ig-header">
-        <h2 className="ig-title">Adoption Guide</h2>
-        <nav className="ig-tabs">
-          {TABS.map(tab => (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              className={({ isActive }) =>
-                `ig-tab-btn ${isActive ? 'ig-tab-btn--active' : ''}`
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
-        </nav>
+        <p className="ig-eyebrow">Adoption Guide</p>
+        <h2 className="ig-title">{active.label}</h2>
       </header>
 
       <main className="ig-content">
         <Outlet />
+
+        <nav className="guide-pager" aria-label="Guide sections">
+          {prev ? (
+            <Link to={guideHref(prev.path)} className="guide-pager__link guide-pager__link--prev">
+              <span className="guide-pager__dir">← Previous</span>
+              <span className="guide-pager__label">{prev.label}</span>
+            </Link>
+          ) : (
+            <span />
+          )}
+          {next ? (
+            <Link to={guideHref(next.path)} className="guide-pager__link guide-pager__link--next">
+              <span className="guide-pager__dir">Next →</span>
+              <span className="guide-pager__label">{next.label}</span>
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
       </main>
     </div>
   )
