@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { GUIDE_SECTIONS, guideHref } from '../data/guideSections'
+import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
 
 // Published HL7 IG — a sibling static site (not a hash route), linked via the Vite base path.
@@ -33,57 +34,74 @@ interface Lens {
   external?: boolean
 }
 
-const LENSES: Lens[] = [
-  {
-    to: '/',
-    label: 'Home',
-    icon: '⌂', // house
-    matchPrefix: '__exact__', // never matches via prefix; uses `end` instead
-  },
-  {
-    to: '/guide',
-    label: 'Adoption Guide',
-    icon: '\u{1F4DA}', // books
-    matchPrefix: '/guide',
-    // Children mirror the canonical guide section list so the sidebar can never
-    // drift from the routes or the in-page pager (see data/guideSections.ts).
-    children: GUIDE_SECTIONS.map(section => ({
-      to: guideHref(section.path),
-      label: section.label,
-    })),
-  },
-  {
-    to: IG_HREF,
-    label: 'Implementation Guide ↗', // published HL7 IG (external)
-    icon: '\u{1F4C4}', // page facing up
-    matchPrefix: '__external__', // never active
-    external: true,
-  },
-  {
-    to: '/population',
-    label: 'Population View',
-    icon: '\u{1F465}', // busts in silhouette
-    matchPrefix: '/population',
-  },
-  {
-    // ?new=1 explicitly clears the last-viewed patient so the Patient tab
-    // always opens the blank "play with forms" state. Bare /patient/chart
-    // (assessment-submit redirects) preserves the active patient.
-    to: '/patient/chart?new=1',
-    label: 'Patient View',
-    icon: '\u{1F464}', // bust
-    matchPrefix: '/patient',
-    children: [
-      { to: '/patient/chart#recommendations', label: 'Recommendations', anchor: 'recommendations' },
-      { to: '/patient/chart#activity',        label: 'Activity',        anchor: 'activity' },
-      { to: '/patient/chart#encounters',      label: 'Encounters',      anchor: 'encounters' },
-      { to: '/patient/chart#documents',       label: 'Documents',       anchor: 'documents' },
-    ],
-  },
-]
+// The patient lens links depend on the active patient, so the lens list is
+// built per-render from the current chart base path (see the component).
+function buildLenses(patientBase: string): Lens[] {
+  return [
+    {
+      to: '/',
+      label: 'Home',
+      icon: '⌂', // house
+      matchPrefix: '__exact__', // never matches via prefix; uses `end` instead
+    },
+    {
+      to: '/guide',
+      label: 'Adoption Guide',
+      icon: '\u{1F4DA}', // books
+      matchPrefix: '/guide',
+      // Children mirror the canonical guide section list so the sidebar can never
+      // drift from the routes or the in-page pager (see data/guideSections.ts).
+      children: GUIDE_SECTIONS.map(section => ({
+        to: guideHref(section.path),
+        label: section.label,
+      })),
+    },
+    {
+      to: IG_HREF,
+      label: 'Implementation Guide ↗', // published HL7 IG (external)
+      icon: '\u{1F4C4}', // page facing up
+      matchPrefix: '__external__', // never active
+      external: true,
+    },
+    {
+      to: '/population',
+      label: 'Population View',
+      icon: '\u{1F465}', // busts in silhouette
+      matchPrefix: '/population',
+    },
+    {
+      // Opening the Patient lens preserves the active patient (bare
+      // /patient/chart, or the patient-specific URL when one is loaded).
+      // Clearing to the blank "play with forms" state is now an explicit
+      // action — the "Close patient" control in the patient banner
+      // (which routes to /patient/chart?new=1).
+      to: patientBase,
+      label: 'Patient View',
+      icon: '\u{1F464}', // bust
+      matchPrefix: '/patient',
+      // Anchor children carry the active patient id so a deep-linked section
+      // URL stays shareable mid-session (e.g. /patient/chart/patient-001#activity).
+      children: [
+        { to: `${patientBase}#recommendations`, label: 'Recommendations', anchor: 'recommendations' },
+        { to: `${patientBase}#activity`,        label: 'Activity',        anchor: 'activity' },
+        { to: `${patientBase}#encounters`,      label: 'Encounters',      anchor: 'encounters' },
+        { to: `${patientBase}#documents`,       label: 'Documents',       anchor: 'documents' },
+      ],
+    },
+  ]
+}
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
+  const { activePatientId } = usePatient()
+
+  // Patient lens links target the active patient's URL when one is loaded, so
+  // opening the lens (or a section anchor) keeps the same patient rather than
+  // dropping back to the blank chart.
+  const patientBase = activePatientId
+    ? `/patient/chart/${activePatientId}`
+    : '/patient/chart'
+  const lenses = useMemo(() => buildLenses(patientBase), [patientBase])
 
   // Dismiss the mobile overlay on Escape, mirroring the click-away behavior.
   // The listener is only attached while the sidebar is open.
@@ -101,14 +119,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return location.pathname.startsWith(lens.matchPrefix)
   }
 
-  // Anchor children share a pathname, so NavLink's default isActive would
-  // highlight all of them. Match both pathname and hash explicitly. React
-  // Router's HashRouter exposes the section anchor (the part after the
-  // second '#' in `#/patient/chart#activity`) as `location.hash`.
+  // Anchor children share the chart route, so NavLink's default isActive would
+  // highlight all of them. Match on the section anchor instead: React Router's
+  // HashRouter exposes it (the part after the second '#' in
+  // `#/patient/chart#activity`) as `location.hash`. Matching the chart route by
+  // prefix keeps the anchor active whether or not the URL carries a patient id.
   const isChildActive = (child: LensChild) => {
     if (!child.anchor) return false
-    const [childPath] = child.to.split('#')
-    return location.pathname === childPath && location.hash === `#${child.anchor}`
+    return location.pathname.startsWith('/patient/chart') && location.hash === `#${child.anchor}`
   }
 
   return (
@@ -116,7 +134,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
         <nav className="sidebar-nav">
-          {LENSES.map(lens => {
+          {lenses.map(lens => {
             const expanded = isLensActive(lens) && !!lens.children?.length
             return (
               <div key={lens.to} className="sidebar-section">

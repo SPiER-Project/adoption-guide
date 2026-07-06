@@ -79,6 +79,49 @@
   text-decoration: underline;
 }
 
+.patient-banner-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.patient-banner-switcher-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.patient-banner-switcher {
+  font-size: var(--font-size-base);
+  color: var(--border-emphasis);
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  max-width: 180px;
+}
+
+.patient-banner-close {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.patient-banner-close:hover {
+  color: var(--text-strong);
+  border-color: var(--border-emphasis);
+  background: var(--surface-muted);
+}
+
 .patient-banner-smart {
   margin-left: auto;
   font-size: var(--font-size-xs);

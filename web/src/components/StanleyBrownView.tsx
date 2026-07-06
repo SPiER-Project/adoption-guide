@@ -35,7 +35,7 @@ export function StanleyBrownView() {
   return (
     <div className="form-wrapper">
       <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/assessments">← Screenings</Link>
+        <Link to="/patient/chart">← Patient chart</Link>
         <span className="breadcrumb-sep">/</span>
         <span className="breadcrumb-current">Stanley-Brown Safety Plan</span>
       </nav>
