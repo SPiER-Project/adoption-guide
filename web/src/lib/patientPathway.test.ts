@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import {
-  derivePathwayStatus,
-  PatientArtifacts,
-  PATHWAY_STAGE_SYSTEM,
-  FhirResourceLike,
-} from './patientPathway'
+import { derivePathwayStatus, PATHWAY_STAGE_SYSTEM } from './patientPathway'
+import type { PatientArtifacts, FhirResourceLike } from './patientPathway'
 import { STAGES } from '../data/catalog'
 
 function mockArtifact(stageId?: string): FhirResourceLike {
