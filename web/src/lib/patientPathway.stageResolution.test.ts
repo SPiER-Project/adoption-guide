@@ -131,28 +131,30 @@ describe('deriveFromResponse — derived Observations carry the source QR stage'
   )
 })
 
-describe('write path: CAMS SSF Section A interim re-rating is mis-staged (documented gap)', () => {
+describe('write path: a CAMS SSF Section A interim re-rating should stage to manage-active-risk', () => {
   // TL-020 (first session @ clarify-risk) and TL-022 (interim re-rating @
   // manage-active-risk) BOTH launch /patient/assessments/cams-section-a → the
-  // same Questionnaire. The write path (PatientContext.addResponse →
-  // deriveFromResponse) derives the stage from the questionnaire canonical
-  // alone (stageForResponse), which cannot tell an interim re-rating from an
-  // initial one. So a CAMS Section A submission — whichever tool launched it —
-  // is staged as TL-020's clarify-risk. These tests PIN that behavior so the
-  // gap is explicit and regression-guarded; the last one shows what a fix needs.
+  // same Questionnaire. A CAMS Section A submission therefore can't be staged
+  // from the questionnaire canonical alone — the launching tool's stage has to
+  // ride along as a meta.tag. These tests assert the CORRECT end state; the two
+  // marked `it.fails` currently fail because deriveFromResponse still derives
+  // the stage from the canonical (stageForResponse) instead of honoring the
+  // QR's own tag. See the follow-up task; remove the `.fails` when fixed.
   const CAMS_A_URL = 'http://spier.org/Questionnaire/CAMS-SSF5-SectionA'
   const sharers = TOOLS.filter((t) => t.questionnaireUrls?.includes(CAMS_A_URL))
   const defaultStage = toolForQuestionnaireUrl(CAMS_A_URL)?.stageId
   const interimStage = sharers.map((t) => t.stageId).find((s) => s !== defaultStage)
 
-  // Minimal valid Section A response (six 1–5 ratings under a core-ratings group),
-  // matching what QuestionnaireView submits — no meta.tag, canonical only.
-  const camsASubmission = (): QuestionnaireResponseResource =>
+  // A fixed interim submission: minimal valid Section A response (six 1–5
+  // ratings under a core-ratings group) carrying the launching tool's stage as
+  // a meta.tag — what a fixed QuestionnaireView/addResponse would persist.
+  const interimSubmission = (): QuestionnaireResponseResource =>
     ({
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
       id: 'cams-a-interim-1',
       questionnaire: CAMS_A_URL,
+      meta: { tag: [{ system: PATHWAY_STAGE_SYSTEM, code: interimStage! }] },
       item: [
         {
           linkId: 'core-ratings',
@@ -162,45 +164,39 @@ describe('write path: CAMS SSF Section A interim re-rating is mis-staged (docume
     }) as QuestionnaireResponseResource
 
   it('is a genuinely shared, cross-stage questionnaire in the catalog', () => {
-    // If this stops being true (e.g. TL-022 gets its own Questionnaire), the
-    // gap below no longer exists and these tests should be revisited.
+    // Preconditions for the gap. If TL-022 ever gets its own Questionnaire this
+    // whole block can be deleted.
     expect(sharers.length).toBeGreaterThanOrEqual(2)
     expect(defaultStage).toBeDefined()
     expect(interimStage).toBeDefined()
     expect(interimStage).not.toBe(defaultStage)
   })
 
-  it('layer 1 — the untagged QR itself resolves to the default (first-owner) stage', () => {
-    const qr = camsASubmission() as FhirResourceLike
-    expect(stageForArtifact(qr)).toBe(defaultStage)
-    expect(stageForArtifact(qr)).not.toBe(interimStage)
+  it('the tagged interim QR resolves to the interim stage', () => {
+    // The resolution layer already honors the tag (tier 1) — this passes today.
+    expect(stageForArtifact(interimSubmission() as FhirResourceLike)).toBe(interimStage)
   })
 
-  it('layer 2 — deriveFromResponse tags derived Observations with the default stage, ignoring a QR meta.tag', () => {
-    // Even if the submission carried the interim stage tag, deriveFromResponse
-    // derives the tag from the canonical (stageForResponse), not from the QR's
-    // own meta.tag — so the derived Observations still land at clarify-risk.
-    const tagged: QuestionnaireResponseResource = {
-      ...camsASubmission(),
-      meta: { tag: [{ system: PATHWAY_STAGE_SYSTEM, code: interimStage! }] },
-    } as QuestionnaireResponseResource
-    const derived = deriveFromResponse(tagged)
+  // KNOWN-FAILING until deriveFromResponse honors the QR's stage tag: it still
+  // derives the stage from the canonical (stageForResponse), so an interim
+  // re-rating's derived Observations land at clarify-risk instead of
+  // manage-active-risk. Remove `.fails` as part of the fix.
+  it.fails('derived Observations of an interim re-rating resolve to the interim stage', () => {
+    const derived = deriveFromResponse(interimSubmission())
     expect(derived).not.toBeNull()
     expect(derived!.observations.length).toBeGreaterThan(0)
     for (const obs of derived!.observations) {
-      expect(stageForArtifact(obs as FhirResourceLike)).toBe(defaultStage)
+      expect(stageForArtifact(obs as FhirResourceLike)).toBe(interimStage)
     }
   })
 
-  it('the fix — once a stage tag is honored, the artifact resolves to the interim stage', () => {
-    // The resolution layer already supports disambiguation via meta.tag (tier 1).
-    // A complete fix stamps the launching tool's stage on the QR at submission
-    // AND has deriveFromResponse prefer that tag over the canonical.
-    const tagged: FhirResourceLike = {
-      ...camsASubmission(),
-      meta: { tag: [{ system: PATHWAY_STAGE_SYSTEM, code: interimStage! }] },
-    }
-    expect(stageForArtifact(tagged)).toBe(interimStage)
+  // KNOWN-FAILING: the same defect stated from the group's perspective — an
+  // interim re-rating's derived artifacts should bucket under manage-active-risk.
+  it.fails('groups an interim re-rating under the interim stage, not the default stage', () => {
+    const derived = deriveFromResponse(interimSubmission())
+    const grouped = groupArtifactsByStage({ responses: [], observations: derived!.observations })
+    const interimBucket = grouped.find((g) => g.stageId === interimStage)
+    expect(interimBucket!.observations.length).toBeGreaterThan(0)
   })
 })
 
