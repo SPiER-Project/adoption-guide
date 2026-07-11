@@ -8,6 +8,7 @@ import {
   type FhirResourceLike,
 } from './patientPathway'
 import { deriveFromResponse } from './deriveFromResponse'
+import { stampLaunchStage } from './launchStage'
 import { STAGES, TOOLS, toolForQuestionnaireUrl } from '../data/catalog'
 import type { QuestionnaireResponseResource } from '../types/fhir'
 
@@ -131,30 +132,29 @@ describe('deriveFromResponse — derived Observations carry the source QR stage'
   )
 })
 
-describe('write path: a CAMS SSF Section A interim re-rating should stage to manage-active-risk', () => {
+describe('write path: a CAMS SSF Section A interim re-rating stages to manage-active-risk', () => {
   // TL-020 (first session @ clarify-risk) and TL-022 (interim re-rating @
   // manage-active-risk) BOTH launch /patient/assessments/cams-section-a → the
   // same Questionnaire. A CAMS Section A submission therefore can't be staged
   // from the questionnaire canonical alone — the launching tool's stage has to
-  // ride along as a meta.tag. These tests assert the CORRECT end state; the two
-  // marked `it.fails` currently fail because deriveFromResponse still derives
-  // the stage from the canonical (stageForResponse) instead of honoring the
-  // QR's own tag. See the follow-up task; remove the `.fails` when fixed.
+  // ride along as a meta.tag. The write path threads the launching tool id
+  // (`?tool=`) into `stampLaunchStage`, which stamps that tag; `stageForArtifact`
+  // (tier 1) and `deriveFromResponse` then both honor it. These tests drive that
+  // real helper (not a hand-rolled tag) end to end.
   const CAMS_A_URL = 'http://spier.org/Questionnaire/CAMS-SSF5-SectionA'
   const sharers = TOOLS.filter((t) => t.questionnaireUrls?.includes(CAMS_A_URL))
   const defaultStage = toolForQuestionnaireUrl(CAMS_A_URL)?.stageId
-  const interimStage = sharers.map((t) => t.stageId).find((s) => s !== defaultStage)
+  const interimTool = sharers.find((t) => t.stageId !== defaultStage)
+  const interimStage = interimTool?.stageId
 
-  // A fixed interim submission: minimal valid Section A response (six 1–5
-  // ratings under a core-ratings group) carrying the launching tool's stage as
-  // a meta.tag — what a fixed QuestionnaireView/addResponse would persist.
-  const interimSubmission = (): QuestionnaireResponseResource =>
+  // A raw Section A submission before stamping: minimal valid response (six 1–5
+  // ratings under a core-ratings group), no stage tag — as formbox emits it.
+  const rawSubmission = (): QuestionnaireResponseResource =>
     ({
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      id: 'cams-a-interim-1',
+      id: 'cams-a-1',
       questionnaire: CAMS_A_URL,
-      meta: { tag: [{ system: PATHWAY_STAGE_SYSTEM, code: interimStage! }] },
       item: [
         {
           linkId: 'core-ratings',
@@ -162,6 +162,11 @@ describe('write path: a CAMS SSF Section A interim re-rating should stage to man
         },
       ],
     }) as QuestionnaireResponseResource
+
+  // What the write path persists for an interim re-rating: the raw submission
+  // stamped with the launching tool's (TL-022's) stage via the production helper.
+  const interimSubmission = (): QuestionnaireResponseResource =>
+    stampLaunchStage(rawSubmission(), interimTool!.id)
 
   it('is a genuinely shared, cross-stage questionnaire in the catalog', () => {
     // Preconditions for the gap. If TL-022 ever gets its own Questionnaire this
@@ -172,16 +177,14 @@ describe('write path: a CAMS SSF Section A interim re-rating should stage to man
     expect(interimStage).not.toBe(defaultStage)
   })
 
-  it('the tagged interim QR resolves to the interim stage', () => {
-    // The resolution layer already honors the tag (tier 1) — this passes today.
-    expect(stageForArtifact(interimSubmission() as FhirResourceLike)).toBe(interimStage)
+  it('stampLaunchStage tags the raw submission with the launching tool’s stage', () => {
+    const stamped = interimSubmission()
+    const tags = (stamped.meta as { tag?: { system?: string; code?: string }[] } | undefined)?.tag
+    expect(tags).toContainEqual({ system: PATHWAY_STAGE_SYSTEM, code: interimStage })
+    expect(stageForArtifact(stamped as FhirResourceLike)).toBe(interimStage)
   })
 
-  // KNOWN-FAILING until deriveFromResponse honors the QR's stage tag: it still
-  // derives the stage from the canonical (stageForResponse), so an interim
-  // re-rating's derived Observations land at clarify-risk instead of
-  // manage-active-risk. Remove `.fails` as part of the fix.
-  it.fails('derived Observations of an interim re-rating resolve to the interim stage', () => {
+  it('derived Observations of an interim re-rating resolve to the interim stage', () => {
     const derived = deriveFromResponse(interimSubmission())
     expect(derived).not.toBeNull()
     expect(derived!.observations.length).toBeGreaterThan(0)
@@ -190,13 +193,43 @@ describe('write path: a CAMS SSF Section A interim re-rating should stage to man
     }
   })
 
-  // KNOWN-FAILING: the same defect stated from the group's perspective — an
-  // interim re-rating's derived artifacts should bucket under manage-active-risk.
-  it.fails('groups an interim re-rating under the interim stage, not the default stage', () => {
+  it('groups an interim re-rating under the interim stage, not the default stage', () => {
     const derived = deriveFromResponse(interimSubmission())
     const grouped = groupArtifactsByStage({ responses: [], observations: derived!.observations })
     const interimBucket = grouped.find((g) => g.stageId === interimStage)
     expect(interimBucket!.observations.length).toBeGreaterThan(0)
+    // ...and nothing landed in the default (first-session) stage.
+    const defaultBucket = grouped.find((g) => g.stageId === defaultStage)
+    expect(defaultBucket!.observations.length).toBe(0)
+  })
+
+  it('a first session (launched by the default-stage tool) still stages to clarify-risk', () => {
+    const firstTool = sharers.find((t) => t.stageId === defaultStage)!
+    const derived = deriveFromResponse(stampLaunchStage(rawSubmission(), firstTool.id))
+    expect(derived).not.toBeNull()
+    for (const obs of derived!.observations) {
+      expect(stageForArtifact(obs as FhirResourceLike)).toBe(defaultStage)
+    }
+  })
+
+  it('an unstamped submission (no launching tool) falls back to the canonical default stage', () => {
+    const derived = deriveFromResponse(rawSubmission())
+    expect(derived).not.toBeNull()
+    for (const obs of derived!.observations) {
+      expect(stageForArtifact(obs as FhirResourceLike)).toBe(defaultStage)
+    }
+  })
+
+  it('stampLaunchStage ignores a ?tool= that does not own the questionnaire', () => {
+    const raw = rawSubmission()
+    // A tool whose questionnaire is NOT CAMS Section A must not stamp a stage.
+    const foreignTool = TOOLS.find(
+      (t) => (t.questionnaireUrls?.length ?? 0) > 0 && !t.questionnaireUrls!.includes(CAMS_A_URL),
+    )!
+    const out = stampLaunchStage(raw, foreignTool.id)
+    expect(out).toBe(raw) // returned untouched
+    // Falls back to the canonical default owner, not the foreign tool's stage.
+    expect(stageForArtifact(out as FhirResourceLike)).toBe(defaultStage)
   })
 })
 
