@@ -149,7 +149,10 @@
     display: none;
   }
 
-  .patient-banner-field:nth-child(n+6) {
+  /* Collapse the secondary identifiers to keep the banner compact, but always
+     keep the risk pill — the most important datum on a suicide-prevention
+     chart — visible. */
+  .patient-banner-field:nth-child(n+6):not(:has(.risk-pill)) {
     display: none;
   }
 }

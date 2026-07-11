@@ -218,6 +218,16 @@
   color: var(--text-faint);
 }
 
+/* On narrow screens the long subtitle collides with the title under
+   space-between; stack them instead. */
+@media (max-width: 768px) {
+  .cds-stack-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
 .cds-stack-list {
   display: flex;
   flex-direction: column;
