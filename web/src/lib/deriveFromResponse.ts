@@ -10,7 +10,7 @@
  */
 import { mapResponseToObservations, type DispatchOptions } from './observationMappers'
 import type { RiskAlert } from './observationMappers'
-import { stageForResponse, PATHWAY_STAGE_SYSTEM } from './patientPathway'
+import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from './patientPathway'
 import type { DerivedArtifacts } from './dataSource/types'
 import type { ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
 
@@ -26,7 +26,9 @@ import type { ObservationResource, QuestionnaireResponseResource } from '../type
  * `Observation.derivedFrom` — what an SDC `$extract` would emit — and (b)
  * resolves to a pathway stage via the `meta.tag` channel in `stageForArtifact`,
  * so it groups under the right stage instead of being orphaned. The stage is
- * the source response's stage (questionnaire → tool → stageId).
+ * the source response's own resolved stage: an explicit `meta.tag` on the QR
+ * (stamped from the launching tool) wins, else it falls back to the
+ * questionnaire canonical → tool → stageId.
  *
  * `storedResource` must already carry the final `id` used for the persisted QR,
  * so the `derivedFrom` references point at the same resource.
@@ -51,7 +53,13 @@ export function deriveFromResponse(
     : undefined
 
   const id = storedResource.id
-  const stageId = stageForResponse(storedResource)
+  // Prefer an explicit pathway-stage tag already on the QR (stamped at
+  // submission from the launching tool — see QuestionnaireView.stampLaunchStage)
+  // over resolving the questionnaire canonical, which for a questionnaire shared
+  // by tools at different stages (CAMS SSF-5 Section A: TL-020 @ clarify-risk vs
+  // TL-022 @ manage-active-risk) always picks the first-owner tool. stageForArtifact
+  // reads meta.tag first (tier 1) and falls back to canonical resolution (tier 3).
+  const stageId = stageForArtifact(storedResource as FhirResourceLike)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const observations: ObservationResource[] = result.observations.map((obs: any) => ({
     ...obs,

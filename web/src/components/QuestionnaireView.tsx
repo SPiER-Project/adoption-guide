@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { CarePlanDisplay } from './CarePlanDisplay'
 import { mapResponseToObservations } from '../lib/observationMappers'
+import { stampLaunchStage } from '../lib/launchStage'
 import type { GeneratedCarePlan } from '../lib/carePlanMappers'
 import type { RiskAlert } from '../lib/observationMappers'
 import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
@@ -35,6 +36,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
   const [submitted, setSubmitted] = useState(false)
   const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
+  const [searchParams] = useSearchParams()
   const { addResponse, addCarePlan } = usePatient()
 
   function handleSubmit(submittedResponse: QuestionnaireResponseResource) {
@@ -46,10 +48,14 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
       // new object rather than mutating the (state-derived) response.
       const qUrl = questionnaire.url as string | undefined
       const qVersion = questionnaire.version as string | undefined
-      const responseToUse: QuestionnaireResponseResource =
+      let responseToUse: QuestionnaireResponseResource =
         qUrl && !base.questionnaire
           ? { ...base, questionnaire: qVersion ? `${qUrl}|${qVersion}` : qUrl }
           : base
+      // Disambiguate a questionnaire shared by tools at different pathway stages
+      // (e.g. CAMS SSF-5 Section A) by stamping the launching tool's stage — the
+      // tool id arrives as a `?tool=` query param on the launchAction route.
+      responseToUse = stampLaunchStage(responseToUse, searchParams.get('tool'))
       addResponse(persistName, responseToUse)
       setSubmitted(true)
 

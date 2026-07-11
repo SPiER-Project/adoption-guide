@@ -262,7 +262,11 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
     launchActions: [
-      { label: 'SSF-5 Section A (Patient)', path: '/patient/assessments/cams-section-a', variant: 'secondary' },
+      // `?tool=` disambiguates the shared CAMS SSF-5 Section A questionnaire,
+      // which both this tool (TL-020 @ clarify-risk, first session) and TL-022
+      // (@ manage-active-risk, interim re-rating) launch. QuestionnaireView reads
+      // it to stamp the launching tool's stage onto the submitted QR.
+      { label: 'SSF-5 Section A (Patient)', path: '/patient/assessments/cams-section-a?tool=TL-020', variant: 'secondary' },
       { label: 'SSF-5 Section B (Clinician)', path: '/patient/assessments/cams-section-b', variant: 'secondary' },
     ],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
@@ -445,7 +449,11 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
-    launchActions: [{ label: 'Launch Interim Session', path: '/patient/assessments/cams-section-a' }],
+    // Shares the CAMS SSF-5 Section A questionnaire with TL-020 (first session
+    // @ clarify-risk). `?tool=TL-022` tells QuestionnaireView to stamp this
+    // tool's stage (manage-active-risk) onto the submitted QR, so an interim
+    // re-rating groups under manage-active-risk instead of clarify-risk.
+    launchActions: [{ label: 'Launch Interim Session', path: '/patient/assessments/cams-section-a?tool=TL-022' }],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
   },
 }
