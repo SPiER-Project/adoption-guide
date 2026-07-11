@@ -8,6 +8,8 @@ import {
   type Tool,
 } from '../data/catalog'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import { useScrollToHash } from '../hooks/useScrollToHash'
+import { guideHref } from '../data/guideSections'
 import '../css/PatientJourney.css'
 
 const STATUS_LABELS: Record<Tool['inclusionStatus'], string> = {
@@ -128,6 +130,8 @@ function ToolDetail({ tool }: ToolDetailProps) {
 
 export function PatientJourney() {
   const [expandedToolId, setExpandedToolId] = useState<string | null>(null)
+  // Scroll to a #stage-… section on mount (cold deep-link) and on hash change.
+  useScrollToHash()
 
   const toggleTool = (toolId: string) => {
     setExpandedToolId(prev => (prev === toolId ? null : toolId))
@@ -154,7 +158,7 @@ export function PatientJourney() {
       <div className="journey-progress">
         {STAGES.map((stage, idx) => (
           <div key={stage.id} className="journey-progress-step">
-            <a href={`#stage-${stage.id}`} className="journey-progress-dot">
+            <a href={`#${guideHref('pathway')}#stage-${stage.id}`} className="journey-progress-dot">
               {idx + 1}
             </a>
             <span className="journey-progress-label">{stage.title}</span>

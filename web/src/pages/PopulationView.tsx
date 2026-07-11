@@ -4,6 +4,7 @@ import { STAGES, stageTitleById } from '../data/catalog'
 import registryPatientsData from '../data/population/patients.json'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '../lib/registry'
+import { formatDaysAgo } from '../lib/relativeTime'
 import { RISK_LEVEL_ORDER } from '../lib/observationMappers'
 import type { RiskAlert } from '../lib/observationMappers'
 import type { PatientSlice } from '../types/fhir'
@@ -46,21 +47,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'recent', label: 'Last activity (most recent)' },
   { value: 'name', label: 'Name (A→Z)' },
 ]
-
-function daysSince(isoDate: string): number {
-  const then = new Date(isoDate).getTime()
-  const now = Date.now()
-  return Math.max(0, Math.floor((now - then) / 86_400_000))
-}
-
-function formatDaysAgo(isoDate: string): string {
-  const d = daysSince(isoDate)
-  if (d === 0) return 'Today'
-  if (d === 1) return '1 day ago'
-  if (d < 7) return `${d} days ago`
-  if (d < 30) return `${Math.floor(d / 7)} weeks ago`
-  return `${Math.floor(d / 30)} months ago`
-}
 
 // Undated rows sort to the end regardless of sort direction.
 function activityTime(row: DerivedRegistryRow): number {

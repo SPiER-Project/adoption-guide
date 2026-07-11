@@ -1,5 +1,6 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useScrollToHash } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
@@ -41,12 +42,6 @@ import '../css/PatientChart.css'
 // Keeps date-driven memos deterministic and pushes undated rows to the bottom
 // when sorting newest-first.
 const UNDATED_SENTINEL = '1970-01-01T00:00:00.000Z'
-
-function scrollToAnchor(anchor: string) {
-  if (!anchor) return
-  const el = document.getElementById(anchor)
-  if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' })
-}
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso)
@@ -713,7 +708,7 @@ export function PatientChart() {
     dataSourceError,
   } = usePatient()
   const { isToolEnabled } = useToolConfig()
-  const location = useLocation()
+  const { jumpTo } = useScrollToHash()
 
   const artifacts = useMemo(
     () => ({ responses, carePlans, observations, communications }),
@@ -741,29 +736,6 @@ export function PatientChart() {
       }),
     [activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected],
   )
-
-  const jumpTo = useCallback((anchor: string) => {
-    history.replaceState(null, '', `#/patient/chart#${anchor}`)
-    scrollToAnchor(anchor)
-  }, [])
-
-  // Disable the browser's automatic scroll restoration so our anchor scroll
-  // isn't immediately overridden when the page mounts with a hash.
-  useLayoutEffect(() => {
-    const prev = history.scrollRestoration
-    if (prev !== undefined) history.scrollRestoration = 'manual'
-    return () => {
-      if (prev !== undefined) history.scrollRestoration = prev
-    }
-  }, [])
-
-  // Scroll on initial mount and whenever the router-tracked hash changes
-  // (sidebar Link clicks, browser back/forward). useLayoutEffect runs
-  // synchronously after DOM mutation but before paint.
-  useLayoutEffect(() => {
-    const anchor = location.hash.startsWith('#') ? location.hash.slice(1) : location.hash
-    scrollToAnchor(anchor)
-  }, [location.hash])
 
   return (
     <div className="patient-chart">
