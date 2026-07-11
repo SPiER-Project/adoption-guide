@@ -131,6 +131,79 @@ describe('deriveFromResponse — derived Observations carry the source QR stage'
   )
 })
 
+describe('write path: CAMS SSF Section A interim re-rating is mis-staged (documented gap)', () => {
+  // TL-020 (first session @ clarify-risk) and TL-022 (interim re-rating @
+  // manage-active-risk) BOTH launch /patient/assessments/cams-section-a → the
+  // same Questionnaire. The write path (PatientContext.addResponse →
+  // deriveFromResponse) derives the stage from the questionnaire canonical
+  // alone (stageForResponse), which cannot tell an interim re-rating from an
+  // initial one. So a CAMS Section A submission — whichever tool launched it —
+  // is staged as TL-020's clarify-risk. These tests PIN that behavior so the
+  // gap is explicit and regression-guarded; the last one shows what a fix needs.
+  const CAMS_A_URL = 'http://spier.org/Questionnaire/CAMS-SSF5-SectionA'
+  const sharers = TOOLS.filter((t) => t.questionnaireUrls?.includes(CAMS_A_URL))
+  const defaultStage = toolForQuestionnaireUrl(CAMS_A_URL)?.stageId
+  const interimStage = sharers.map((t) => t.stageId).find((s) => s !== defaultStage)
+
+  // Minimal valid Section A response (six 1–5 ratings under a core-ratings group),
+  // matching what QuestionnaireView submits — no meta.tag, canonical only.
+  const camsASubmission = (): QuestionnaireResponseResource =>
+    ({
+      resourceType: 'QuestionnaireResponse',
+      status: 'completed',
+      id: 'cams-a-interim-1',
+      questionnaire: CAMS_A_URL,
+      item: [
+        {
+          linkId: 'core-ratings',
+          item: [1, 2, 3, 4, 5, 6].map((n) => ({ linkId: `${n}-score`, answer: [{ valueInteger: 2 }] })),
+        },
+      ],
+    }) as QuestionnaireResponseResource
+
+  it('is a genuinely shared, cross-stage questionnaire in the catalog', () => {
+    // If this stops being true (e.g. TL-022 gets its own Questionnaire), the
+    // gap below no longer exists and these tests should be revisited.
+    expect(sharers.length).toBeGreaterThanOrEqual(2)
+    expect(defaultStage).toBeDefined()
+    expect(interimStage).toBeDefined()
+    expect(interimStage).not.toBe(defaultStage)
+  })
+
+  it('layer 1 — the untagged QR itself resolves to the default (first-owner) stage', () => {
+    const qr = camsASubmission() as FhirResourceLike
+    expect(stageForArtifact(qr)).toBe(defaultStage)
+    expect(stageForArtifact(qr)).not.toBe(interimStage)
+  })
+
+  it('layer 2 — deriveFromResponse tags derived Observations with the default stage, ignoring a QR meta.tag', () => {
+    // Even if the submission carried the interim stage tag, deriveFromResponse
+    // derives the tag from the canonical (stageForResponse), not from the QR's
+    // own meta.tag — so the derived Observations still land at clarify-risk.
+    const tagged: QuestionnaireResponseResource = {
+      ...camsASubmission(),
+      meta: { tag: [{ system: PATHWAY_STAGE_SYSTEM, code: interimStage! }] },
+    } as QuestionnaireResponseResource
+    const derived = deriveFromResponse(tagged)
+    expect(derived).not.toBeNull()
+    expect(derived!.observations.length).toBeGreaterThan(0)
+    for (const obs of derived!.observations) {
+      expect(stageForArtifact(obs as FhirResourceLike)).toBe(defaultStage)
+    }
+  })
+
+  it('the fix — once a stage tag is honored, the artifact resolves to the interim stage', () => {
+    // The resolution layer already supports disambiguation via meta.tag (tier 1).
+    // A complete fix stamps the launching tool's stage on the QR at submission
+    // AND has deriveFromResponse prefer that tag over the canonical.
+    const tagged: FhirResourceLike = {
+      ...camsASubmission(),
+      meta: { tag: [{ system: PATHWAY_STAGE_SYSTEM, code: interimStage! }] },
+    }
+    expect(stageForArtifact(tagged)).toBe(interimStage)
+  })
+})
+
 describe('stageForArtifact — tier 1: meta.tag', () => {
   const stageId = STAGES[1]!.id
 
