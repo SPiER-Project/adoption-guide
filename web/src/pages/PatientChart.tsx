@@ -805,7 +805,7 @@ export function PatientChart() {
         <header className="chart-section-header">
           <h3 className="chart-section-title">Activity by pathway stage</h3>
           <span className="chart-section-count">
-            {STAGES.filter(s => statuses[s.id] === 'complete').length} of {STAGES.length} stages with activity
+            {STAGES.reduce((acc, s) => acc + (statuses[s.id] === 'complete' ? 1 : 0), 0)} of {STAGES.length} stages with activity
           </span>
         </header>
         <div className="stage-sections">
