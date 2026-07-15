@@ -1,6 +1,13 @@
 import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
-export function mapCSSRSScreener(response: QuestionnaireResponseResource): MapperResult {
+/**
+ * The C-SSRS 6-item screener and the C-SSRS "Since Last Visit / Since Last
+ * Contact" version share an identical item set (q1–q6, q6-recent), LOINC coding,
+ * conditional logic, and three-tier risk stratification — the only difference is
+ * the administration reference period. Both dispatch to this shared core; the
+ * `toolLabel` distinguishes them in the emitted Observations and RiskAlert.
+ */
+export function mapCSSRSScreenerCore(response: QuestionnaireResponseResource, toolLabel: string): MapperResult {
   const items = response?.item || []
   const observations: ObservationResource[] = []
 
@@ -51,7 +58,7 @@ export function mapCSSRSScreener(response: QuestionnaireResponseResource): Mappe
           code: { system: 'http://loinc.org', code, display },
           value: val,
           valueType: 'boolean',
-          questionnaireName: 'C-SSRS Screener',
+          questionnaireName: toolLabel,
         }),
       )
     }
@@ -74,14 +81,14 @@ export function mapCSSRSScreener(response: QuestionnaireResponseResource): Mappe
         : riskCode === 'low'
         ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'L', display: riskDisplay }
         : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'No risk identified' },
-      note: `C-SSRS Screener: Highest ideation level ${highestIdeation}/5. Behavior: ${q6 ? 'Yes' : 'No'}${q6Recent ? ' (within 3 months)' : ''}.`,
-      questionnaireName: 'C-SSRS Screener',
+      note: `${toolLabel}: Highest ideation level ${highestIdeation}/5. Behavior: ${q6 ? 'Yes' : 'No'}${q6Recent ? ' (within 3 months)' : ''}.`,
+      questionnaireName: toolLabel,
     }),
   )
 
   const riskAlert: RiskAlert = riskCode === 'high'
     ? {
-        tool: 'C-SSRS Screener',
+        tool: toolLabel,
         level: 'high',
         summary: `C-SSRS: HIGH Risk`,
         detail: riskDisplay + '. Immediate safety planning and possible emergency psychiatric evaluation indicated.',
@@ -89,7 +96,7 @@ export function mapCSSRSScreener(response: QuestionnaireResponseResource): Mappe
       }
     : riskCode === 'moderate'
     ? {
-        tool: 'C-SSRS Screener',
+        tool: toolLabel,
         level: 'moderate',
         summary: `C-SSRS: MODERATE Risk`,
         detail: riskDisplay + '. Safety planning recommended. Consider full C-SSRS assessment.',
@@ -97,17 +104,22 @@ export function mapCSSRSScreener(response: QuestionnaireResponseResource): Mappe
       }
     : riskCode === 'low'
     ? {
-        tool: 'C-SSRS Screener',
+        tool: toolLabel,
         level: 'low',
         summary: `C-SSRS: LOW Risk`,
         detail: riskDisplay + '. Outpatient referral with warm handoff. Provide crisis resources (988).',
       }
     : {
-        tool: 'C-SSRS Screener',
+        tool: toolLabel,
         level: 'none',
         summary: 'C-SSRS: No risk identified',
         detail: 'All C-SSRS screener items negative. No suicidal ideation or behavior endorsed.',
       }
 
   return { observations, riskAlert }
+}
+
+/** C-SSRS Screener (Recent) — the Identify Possible Risk 6-item screen. */
+export function mapCSSRSScreener(response: QuestionnaireResponseResource): MapperResult {
+  return mapCSSRSScreenerCore(response, 'C-SSRS Screener')
 }

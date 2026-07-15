@@ -21,6 +21,12 @@ The C-SSRS is the gold-standard suicide risk assessment tool, developed at Colum
 - **Full behavior section** (actual attempts, interrupted, aborted, preparatory acts, lethality)
 - LOINC panel: **93245-9**
 
+### C-SSRS Since Last Visit / Since Last Contact (TL-019)
+- **Same 6-item set + LOINC codes** as the Screener, scoped to the **interval since the patient's prior contact** (a repeat assessment) rather than lifetime/recent.
+- Shares the LOINC screener panel **93373-9** and the derived `SPiERCSSRSRiskLevel` risk-level Observation (none/low/moderate/high), so it reuses the same crosswalk to the common suicide-risk tier.
+- The interval framing is expressed in the title/description/instruction; item wording is unchanged (per the Columbia registration terms). The interval-scoped behavior item drops the "within past 3 months" recency sub-question.
+- Belongs to the **Clarify Risk** stage as a repeat assessment.
+
 ## Suicidal Ideation Hierarchy (5 Levels)
 
 | Level | Description | Risk Tier |

@@ -122,6 +122,35 @@ Usage: #definition
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0"
 
 
+// ─── ActivityDefinition: C-SSRS Since Last Visit / Since Last Contact ─
+// Promoted out of pathway-tool-placeholders.fsh. The AD id and canonical
+// URL are unchanged so the TL-019 catalog mapping and the clarify-risk
+// stage PlanDefinition action stay stable. Reuses the shared
+// SPiERCSSRSRiskLevel profile — the Since-Last-Visit version differs from
+// the recent screener only in its administration reference period.
+
+Instance: AdministerCSSRSSinceLastContact
+InstanceOf: ActivityDefinition
+Title: "Administer C-SSRS Since Last Visit / Since Last Contact"
+Description: "Capture a C-SSRS Since Last Visit / Since Last Contact screen (the 6-item set framed to the interval since the patient's prior contact) and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/AdministerCSSRSSinceLastContact"
+* name = "AdministerCSSRSSinceLastContact"
+* version = "1.0.0"
+* title = "Administer C-SSRS Since Last Visit / Since Last Contact"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "Capture the C-SSRS Since Last Visit / Since Last Contact version — the same 6-item C-SSRS assessment scoped to the interval since the patient's prior contact — and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
+* purpose = "Reassess suicide risk over the interval since the patient's prior contact and update the current risk workflow. Belongs to the Clarify Risk stage as a repeat assessment."
+* kind = #ServiceRequest
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "C-SSRS Since Last Visit / Since Last Contact questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact|1.0.0"
+
+
 // ─── Examples ────────────────────────────────────────────────
 
 Instance: ExampleCSSRSScreenerHighRisk
@@ -170,4 +199,39 @@ Usage: #example
 * item[+].linkId = "q1"
 * item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
 * item[+].linkId = "q5"
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+
+
+Instance: ExampleCSSRSSinceLastContactModerateRisk
+InstanceOf: SPiERCSSRSRiskLevel
+Title: "Example — C-SSRS Since Last Visit: Moderate Risk"
+Description: "Sample risk-level Observation from a C-SSRS Since Last Visit assessment with item 3 (active ideation with methods, no intent) endorsed over the interval since the prior contact."
+Usage: #example
+* status = #final
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* subject = Reference(Patient/example)
+* effectiveDateTime = "2026-07-15T12:00:00Z"
+* derivedFrom[+] = Reference(ExampleCSSRSSinceLastContactResponse)
+// Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
+* valueCodeableConcept.coding[0] = CSSRSRiskLevelCodes#moderate "Moderate"
+* valueCodeableConcept.coding[1] = http://loinc.org#LA6751-7 "Moderate"
+* valueCodeableConcept.text = "Moderate Risk — ideation with method, no intent (since last visit)"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#A "Abnormal"
+
+
+Instance: ExampleCSSRSSinceLastContactResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — C-SSRS Since Last Visit QuestionnaireResponse (moderate risk)"
+Description: "Source C-SSRS Since Last Visit QuestionnaireResponse: active suicidal thoughts (q2) with a method (q3) endorsed over the interval, no intent. The derived SPiERCSSRSRiskLevel references this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact"
+* subject = Reference(Patient/example)
+* authored = "2026-07-15T12:00:00Z"
+* item[+].linkId = "q1"
+* item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "q2"
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "q3"
 * item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"

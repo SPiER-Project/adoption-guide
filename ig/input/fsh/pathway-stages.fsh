@@ -200,9 +200,9 @@ Usage: #definition
   * title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
   * description = "Episode closure, disposition, and next-step planning. Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
-// BSSA is fully FHIR-modelled (ig/input/fsh/bssa.fsh). The remaining
-// placeholder tools below (see pathway-tool-placeholders.fsh) are catalogued
-// but not yet fully FHIR-modelled, so no output profile is declared.
+// BSSA and C-SSRS Since Last Visit are fully FHIR-modelled (bssa.fsh, cssrs.fsh).
+// The remaining placeholder tools below (see pathway-tool-placeholders.fsh) are
+// catalogued but not yet fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "administer-bssa"
   * title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
@@ -211,8 +211,11 @@ Usage: #definition
 * action[+]
   * id = "administer-cssrs-since-last-contact"
   * title = "Administer C-SSRS Since Last Visit / Since Last Contact"
-  * description = "Repeat assessment since the prior contact. Placeholder — no Questionnaire binding yet."
+  * description = "Repeat C-SSRS assessment scoped to the interval since the prior contact. Yields a suicide-risk-level Observation (shared SPiERCSSRSRiskLevel profile)."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCSSRSSinceLastContact"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
 * action[+]
   * id = "administer-pss-full"
   * title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
