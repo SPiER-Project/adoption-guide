@@ -179,21 +179,9 @@ Usage: #definition
 * kind = #ServiceRequest
 
 
-Instance: AuthorCrisisResponsePlan
-InstanceOf: ActivityDefinition
-Title: "Author Crisis Response Plan / Crisis Planning"
-Description: "Author a Crisis Response Plan (CRP), an alternative crisis-planning framework covering warning signs, coping steps, supports, and emergency instructions."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AuthorCrisisResponsePlan"
-* name = "AuthorCrisisResponsePlan"
-* version = "0.1.0"
-* title = "Author Crisis Response Plan / Crisis Planning"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Author a Crisis Response Plan (CRP). Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Provide an alternative crisis-planning framework to the Stanley-Brown Safety Plan."
-* kind = #ServiceRequest
+// AuthorCrisisResponsePlan has been promoted out of this placeholder file into
+// the full artifact set at ig/input/fsh/crp.fsh (Questionnaire binding + the
+// SPiERCrisisResponsePlan CarePlan profile, modeled on the Stanley-Brown plan).
 
 
 Instance: ShareCrisisResources

@@ -20,9 +20,11 @@ import {
   camsSectionB,
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
+  crpQuestionnaire,
 } from './data/questionnaires'
 import { generateStabilizationCarePlan } from './lib/carePlanMappers'
 import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
+import { generateCrisisResponseCarePlan } from './lib/carePlanMappers'
 
 // Context Providers
 import { SmartProvider } from './context/SmartContext'
@@ -157,6 +159,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/cams-therapeutic-worksheet" element={
             <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />
+          } />
+          <Route path="assessments/crisis-response-plan" element={
+            <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaire={crpQuestionnaire} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />
           } />
           {/* Non-Questionnaire workflow recorders */}
           <Route path="workflow/caring-contact" element={

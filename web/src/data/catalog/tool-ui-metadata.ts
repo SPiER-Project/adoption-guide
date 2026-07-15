@@ -504,11 +504,20 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-015': {
     shortName: 'CRP',
-    inclusionStatus: 'future',
+    licensing: 'registration',
+    inclusionStatus: 'optional',
     settings: ['military', 'VA', 'behavioral health'],
     badge: { label: 'Safety Plan', variant: 'safety' },
-    launchActions: [],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 2 },
+    launchActions: [{ label: 'Author Crisis Response Plan', path: '/patient/assessments/crisis-response-plan' }],
+    tags: ['Bryan & Rudd', 'CarePlan output', '5 sections'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: 'Five CRP sections (warning signs, coping, reasons for living, social support, professional/crisis support)', when: 'On submit' },
+        { type: 'CarePlan', description: 'Crisis Response Plan (SPiERCrisisResponsePlan) — one activity per section; LOINC reused from the Stanley-Brown panel', when: 'Generated from response' },
+      ],
+      workflowTrigger: 'An alternative/complement to the Stanley-Brown Safety Plan at Document Safety Actions; patient keeps a copy.',
+    },
   },
 
   // ── Coordinate Handoffs ──

@@ -49,6 +49,7 @@ function careplanLabel(resource: FhirResourceLike): string {
   if (typeof cp.title === 'string') return cp.title
   if (cp.id?.includes('stanley-brown')) return 'Stanley-Brown Safety Plan'
   if (cp.id?.includes('cams-stabilization')) return 'CAMS Stabilization Plan'
+  if (cp.id?.includes('crisis-response-plan')) return 'Crisis Response Plan'
   return 'Care plan'
 }
 
