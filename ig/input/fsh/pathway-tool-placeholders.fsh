@@ -135,21 +135,10 @@ Usage: #definition
 * kind = #ServiceRequest
 
 
-Instance: AdministerCAMSOutcomeDisposition
-InstanceOf: ActivityDefinition
-Title: "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
-Description: "Administer the CAMS SSF-5 Outcome/Disposition final-session assessment covering episode closure, disposition, and next-step planning."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
-* name = "AdministerCAMSOutcomeDisposition"
-* version = "0.1.0"
-* title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the CAMS SSF-5 Outcome/Disposition final-session assessment. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet. Session form of the single catalogued CAMS SSF-5 tool."
-* purpose = "Document episode closure, disposition, and next-step planning at the final CAMS session."
-* kind = #ServiceRequest
+// AdministerCAMSOutcomeDisposition has been promoted out of this placeholder file
+// into the full artifact set at ig/input/fsh/cams.fsh (Questionnaire binding,
+// CAMSDisposition CodeSystem/ValueSet, and the SPiERCAMSOutcomeDisposition
+// Observation profile). Still one CAMS SSF-5 tool — maps to TL-020.
 
 
 // ─── Define the Risk Picture ─────────────────────────────────

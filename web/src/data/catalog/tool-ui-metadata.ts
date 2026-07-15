@@ -381,6 +381,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       // the submitted QR via QuestionnaireView → stampLaunchStage.
       { label: 'SSF-5 Section A (Patient)', path: '/patient/assessments/cams-section-a?tool=TL-020', variant: 'secondary' },
       { label: 'SSF-5 Section B (Clinician)', path: '/patient/assessments/cams-section-b', variant: 'secondary' },
+      { label: 'SSF-5 Outcome/Disposition (Final)', path: '/patient/assessments/cams-outcome-disposition?tool=TL-020', variant: 'secondary' },
     ],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -390,8 +391,9 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
         { type: 'Observation', description: 'Overall suicide risk level (LOINC 93374-7)', when: 'Extracted from response' },
         { type: 'QuestionnaireResponse', description: 'SSF-5 Section B — ideation, plan, preparation, history, drivers', when: 'On submit (Section B)' },
         { type: 'Condition (x1-3)', description: 'Suicide drivers added to problem list (clinicalStatus: active)', when: 'Extracted from Section B' },
+        { type: 'Observation', description: 'Final-session disposition (continue / resolved / refer / higher level of care) — SPiERCAMSOutcomeDisposition', when: 'On submit (Outcome/Disposition)' },
       ],
-      workflowTrigger: 'Any vital ≥ 4 → stabilization planning. Drivers tracked until resolved.',
+      workflowTrigger: 'Any vital ≥ 4 → stabilization planning. Drivers tracked until resolved. Final session records the episode disposition.',
     },
     fhirExamples: [
       { title: 'CAMS Section A → Observation (psychological pain vital)', resource: CAMS_VITAL_EXAMPLE },

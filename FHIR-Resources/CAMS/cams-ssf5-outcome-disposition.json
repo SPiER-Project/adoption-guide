@@ -1,0 +1,85 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "CAMS-SSF5-OutcomeDisposition",
+  "url": "http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition",
+  "version": "1.0.0",
+  "name": "CAMS_SSF5_OutcomeDisposition",
+  "title": "CAMS SSF-5: Outcome / Disposition (Final Session)",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-07-15",
+  "publisher": "SPiER Project (FHIR translation of the CAMS Suicide Status Form, 5th ed.)",
+  "description": "FHIR Questionnaire for the CAMS SSF-5 Outcome/Disposition final session. The final CAMS session re-rates the six SSF Core Assessment vitals, confirms whether CAMS resolution criteria are met (three consecutive sessions of overall risk ≤ 2 with the patient managing suicidal thoughts/feelings and behaviorally stable), captures what made the difference and what to do differently if suicidal again, and records the episode disposition / next step. One of the CAMS SSF-5 session forms — all map to the single catalogued CAMS SSF-5 tool (TL-020).",
+  "purpose": "Close the CAMS episode: document the final SSF vitals, the resolution determination, and the disposition (continue CAMS, resolved, refer to adjunctive treatment, or step up to a higher level of care).",
+  "copyright": "The Suicide Status Form (SSF) and the CAMS framework are © David A. Jobes / CAMS-care, LLC, and are distributed via Guilford Press (Managing Suicidal Risk, 3rd ed.). Used by SPiER under the license/agreement held by the SPiER project; the CAMS SSF is a commercial instrument — do not reproduce without the CAMS-care/Guilford agreement.",
+  "useContext": [
+    {
+      "code": { "system": "http://terminology.hl7.org/CodeSystem/usage-context-type", "code": "focus", "display": "Clinical Focus" },
+      "valueCodeableConcept": {
+        "coding": [{ "system": "http://snomed.info/sct", "code": "225337009", "display": "Suicide risk assessment" }]
+      }
+    }
+  ],
+  "item": [
+    {
+      "linkId": "intro",
+      "text": "CAMS final session. Re-rate the SSF Core Assessment, determine whether resolution criteria are met, and record the disposition.",
+      "type": "display"
+    },
+    {
+      "linkId": "core-ratings",
+      "text": "SSF Core Assessment (rate each 1–5)",
+      "type": "group",
+      "item": [
+        { "linkId": "1-score", "text": "Psychological Pain (1 = low, 5 = high)", "type": "integer", "required": false },
+        { "linkId": "2-score", "text": "Stress (1 = low, 5 = high)", "type": "integer", "required": false },
+        { "linkId": "3-score", "text": "Agitation (1 = low, 5 = high)", "type": "integer", "required": false },
+        { "linkId": "4-score", "text": "Hopelessness (1 = low, 5 = high)", "type": "integer", "required": false },
+        { "linkId": "5-score", "text": "Self-Hate (1 = low, 5 = high)", "type": "integer", "required": false },
+        { "linkId": "6-score", "text": "Overall Risk of Suicide (1 = extremely low, 5 = extremely high)", "type": "integer", "required": false }
+      ]
+    },
+    {
+      "linkId": "outcome",
+      "text": "Outcome",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "met-resolution",
+          "text": "Resolution criteria met? (three consecutive sessions of overall risk ≤ 2, managing thoughts/feelings, and behaviorally stable)",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        { "linkId": "what-made-difference", "text": "What made the difference (patient's own words)?", "type": "text", "required": false },
+        { "linkId": "what-to-do-differently", "text": "What will you do differently if you become suicidal again?", "type": "text", "required": false }
+      ]
+    },
+    {
+      "linkId": "disposition",
+      "text": "Disposition / next step",
+      "type": "choice",
+      "required": true,
+      "answerOption": [
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "continue-cams", "display": "Continue CAMS outpatient care" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "resolved", "display": "CAMS resolved — episode complete" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "refer-adjunctive", "display": "Refer to other / adjunctive treatment (e.g., group therapy)" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "higher-level-care", "display": "Step up to a higher level of care (e.g., inpatient)" } }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [{ "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "drop-down", "display": "Drop down" }]
+          }
+        }
+      ]
+    }
+  ]
+}

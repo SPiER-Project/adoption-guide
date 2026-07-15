@@ -18,6 +18,7 @@ import {
   cssrsFull,
   camsSectionA,
   camsSectionB,
+  camsOutcomeDisposition,
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
   crpQuestionnaire,
@@ -153,6 +154,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/cams-section-b" element={
             <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />
+          } />
+          <Route path="assessments/cams-outcome-disposition" element={
+            <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaire={camsOutcomeDisposition} persistName="CAMS SSF-5: Outcome/Disposition" />
           } />
           <Route path="assessments/cams-stabilization-plan" element={
             <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />

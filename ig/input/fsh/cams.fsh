@@ -46,6 +46,35 @@ Description: "Marker category used on Condition resources that represent CAMS-id
 * #suicide-driver "Suicide Driver" "Condition is a CAMS-identified driver of the patient's suicidality. Surface on the problem list and track until resolved at CAMS disposition."
 
 
+// ─── CodeSystem / ValueSet: CAMS Outcome Disposition ─────────
+// Final-session (Outcome/Disposition) decision. The derived Observation
+// follows the BSSA precedent: code 93374-7 with a SPiER-local disposition
+// value. This is a care-disposition decision, not a risk tier, so it is
+// NOT crosswalked to the common suicide-risk tier.
+
+CodeSystem: CAMSDispositionCodes
+Id: cams-disposition
+Title: "CAMS Outcome Disposition Codes"
+Description: "SPiER-local codes for the CAMS SSF-5 Outcome/Disposition final-session decision (episode closure and next step)."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+* #continue-cams "Continue CAMS outpatient care" "Resolution criteria not yet met; continue CAMS treatment."
+* #resolved "CAMS resolved — episode complete" "Resolution criteria met (three consecutive sessions of overall risk ≤ 2, managing thoughts/feelings, behaviorally stable)."
+* #refer-adjunctive "Refer to other / adjunctive treatment" "Refer to or add adjunctive treatment (e.g., group therapy) alongside or after CAMS."
+* #higher-level-care "Step up to a higher level of care" "Escalate to a higher level of care (e.g., inpatient) due to increased risk or instability."
+
+
+ValueSet: CAMSDisposition
+Id: cams-disposition-vs
+Title: "CAMS Outcome Disposition"
+Description: "All CAMS SSF-5 Outcome/Disposition final-session decisions."
+* ^status = #draft
+* ^experimental = true
+* include codes from system CAMSDispositionCodes
+
+
 // ─── Observation profile: SSF Vital ──────────────────────────
 
 Profile: SPiERCAMSSSFVital
@@ -199,6 +228,33 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 
 // ─── ActivityDefinitions ─────────────────────────────────────
 
+// ─── Observation profile: CAMS Outcome Disposition ───────────
+
+Profile: SPiERCAMSOutcomeDisposition
+Parent: Observation
+Id: spier-cams-outcome-disposition
+Title: "SPiER CAMS Outcome Disposition Observation"
+Description: "The disposition decision from the CAMS SSF-5 Outcome/Disposition final session. Follows the BSSA precedent: the Observation carries the generic LOINC 93374-7 ('Suicide risk level') and a SPiER-local disposition value (continue-cams / resolved / refer-adjunctive / higher-level-care). A care-disposition decision, not a risk tier."
+* ^status = #draft
+* ^experimental = true
+* status = #final (exactly)
+* category 1..*
+* category.coding 1..*
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* subject 1..1
+* subject only Reference(Patient)
+* effective[x] 1..1
+* effective[x] only dateTime or Period
+* value[x] 1..1
+* value[x] only CodeableConcept
+* valueCodeableConcept from CAMSDisposition (required)
+* status MS
+* code MS
+* subject MS
+* effective[x] MS
+* value[x] MS
+
+
 Instance: AdministerCAMSSectionA
 InstanceOf: ActivityDefinition
 Title: "Administer CAMS SSF-5 Section A (Patient Vitals)"
@@ -308,6 +364,31 @@ Usage: #definition
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
 
 
+// Promoted out of pathway-tool-placeholders.fsh. The AD id and canonical URL
+// are unchanged so the TL-020 catalog mapping (one CAMS SSF-5 tool) and the
+// clarify-risk stage PlanDefinition action stay stable.
+Instance: AdministerCAMSOutcomeDisposition
+InstanceOf: ActivityDefinition
+Title: "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
+Description: "CAMS final-session Outcome/Disposition: re-rate the SSF Core Assessment, confirm whether resolution criteria are met, and record the episode disposition. Produces SSF Vital Observations plus a disposition Observation conformant to SPiERCAMSOutcomeDisposition."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
+* name = "AdministerCAMSOutcomeDisposition"
+* version = "1.0.0"
+* title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "CAMS final-session Outcome/Disposition form: re-rate the six SSF Core Assessment vitals, determine whether CAMS resolution criteria are met, capture what made the difference, and record the disposition (continue CAMS, resolved, refer to adjunctive treatment, or higher level of care). A distinct session form of the single catalogued CAMS SSF-5 tool (TL-020)."
+* purpose = "Close the CAMS episode with a documented disposition and final SSF vitals. Belongs to the Clarify Risk stage as the final CAMS session form."
+* kind = #ServiceRequest
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "CAMS SSF-5 Outcome/Disposition questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition|1.0.0"
+
+
 // ─── Examples ────────────────────────────────────────────────
 
 Instance: ExampleCAMSSSFPsychologicalPain
@@ -366,3 +447,34 @@ Usage: #example
   * code.text = "Treatment Adherence Plan"
   * status = #in-progress
   * description = "Barrier: transportation → Solution: ride-share voucher from clinic. Barrier: medication cost → Solution: patient-assistance program."
+
+
+Instance: ExampleCAMSOutcomeDispositionResolved
+InstanceOf: SPiERCAMSOutcomeDisposition
+Title: "Example — CAMS Outcome/Disposition: Resolved"
+Description: "Sample disposition Observation from a CAMS final session where resolution criteria were met and the episode was closed as resolved."
+Usage: #example
+* status = #final
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* subject = Reference(Patient/example)
+* effectiveDateTime = "2026-07-15T16:00:00Z"
+* derivedFrom[+] = Reference(ExampleCAMSOutcomeDispositionResponse)
+* valueCodeableConcept = CAMSDispositionCodes#resolved "CAMS resolved — episode complete"
+* note.text = "Three consecutive sessions with overall risk 2/5, managing thoughts, behaviorally stable. Disposition: resolved."
+
+
+Instance: ExampleCAMSOutcomeDispositionResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS Outcome/Disposition QuestionnaireResponse (resolved)"
+Description: "Source CAMS Outcome/Disposition QuestionnaireResponse: low final SSF vitals, resolution met, disposition resolved. The derived SPiERCAMSOutcomeDisposition references this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition"
+* subject = Reference(Patient/example)
+* authored = "2026-07-15T16:00:00Z"
+* item[+].linkId = "core-ratings"
+* item[=].item[+].linkId = "6-score"
+* item[=].item[=].answer.valueInteger = 2
+* item[+].linkId = "disposition"
+* item[=].answer.valueCoding = http://spier.org/CodeSystem/cams-disposition#resolved "CAMS resolved — episode complete"
