@@ -10,6 +10,7 @@ import {
   asqQuestionnaire,
   bssaQuestionnaire,
   pss3Questionnaire,
+  safetQuestionnaire,
   phq9Questionnaire,
   sbqrQuestionnaire,
   cssrsScreener,
@@ -127,6 +128,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/pss-3" element={
             <QuestionnaireView title="PSS-3 — Patient Safety Screener" questionnaire={pss3Questionnaire} persistName="PSS-3" />
+          } />
+          <Route path="assessments/safe-t" element={
+            <QuestionnaireView title="SAFE-T — Suicide Assessment Five-Step Evaluation and Triage" questionnaire={safetQuestionnaire} persistName="SAFE-T" />
           } />
           <Route path="assessments/sbq-r" element={
             <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />

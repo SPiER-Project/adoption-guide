@@ -450,6 +450,19 @@ export const DATA_ELEMENTS: DataElement[] = [
     description: 'PSS-3 Item 3: lifetime suicide attempt. A recent attempt (within ~6 months, item 3a) is a positive screen.',
   },
 
+  // ── SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) ──
+  {
+    id: 'safet-risk-level',
+    name: 'SAFE-T Risk Level',
+    code: '93374-7',
+    codeSystem: 'LOINC',
+    codeDisplay: 'Suicide risk level',
+    fhirResource: 'Observation',
+    fhirPath: 'valueCodeableConcept',
+    usedBy: ['TL-006'],
+    description: 'Clinician-determined SAFE-T risk level (low / moderate / high). Value binds DIRECTLY to the shared spier-suicide-risk-tier — SAFE-T lands on the concept layer with no per-instrument crosswalk. Rationale and any clinical-judgment override are captured in the Observation note.',
+  },
+
   // ── Stanley-Brown Safety Plan ──
   {
     id: 'sb-warning-signs',

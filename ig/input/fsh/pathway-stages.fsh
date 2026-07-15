@@ -254,13 +254,14 @@ Usage: #definition
   * output[+]
     * type = #CarePlan
     * profile = "http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet"
-// Placeholder tool (see pathway-tool-placeholders.fsh) — catalogued but not yet
-// fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "administer-safe-t"
   * title = "Administer SAFE-T"
-  * description = "Structured clinical formulation and triage. Placeholder — no Questionnaire binding yet."
+  * description = "Structured clinical formulation and triage. Yields a suicide-risk-level Observation (SPiERSAFETRiskLevel) whose value is a common suicide-risk tier."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerSAFET"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-safet-risk-level"
 
 
 // ─── Stage 4: Document Safety Actions ────────────────────────
