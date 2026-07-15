@@ -30,21 +30,10 @@
 
 // ─── Identify Possible Risk ──────────────────────────────────
 
-Instance: AdministerCSSRSPediatric
-InstanceOf: ActivityDefinition
-Title: "Administer C-SSRS Pediatric / Adolescent Version"
-Description: "Administer the age-appropriate pediatric/adolescent version of the Columbia-Suicide Severity Rating Scale screener."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCSSRSPediatric"
-* name = "AdministerCSSRSPediatric"
-* version = "0.1.0"
-* title = "Administer C-SSRS Pediatric / Adolescent Version"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the C-SSRS Pediatric / Adolescent Version. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Screen pediatric and adolescent patients for suicide risk with age-appropriate C-SSRS wording."
-* kind = #ServiceRequest
+// AdministerCSSRSPediatric has been promoted out of this placeholder file into
+// the full artifact set at ig/input/fsh/cssrs.fsh (Questionnaire binding,
+// reusing the shared SPiERCSSRSRiskLevel Observation profile and the existing
+// cssrs-risk-level → suicide-risk-tier crosswalk).
 
 
 // AdministerPSS3 has been promoted out of this placeholder file into the full
@@ -84,21 +73,10 @@ Usage: #definition
 // disposition → suicide-risk-tier crosswalk in crosswalk-bssa.fsh).
 
 
-Instance: AdministerPSSFull
-InstanceOf: ActivityDefinition
-Title: "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
-Description: "Administer the full Patient Safety Screener / Suicide Risk Screener, a combined acute-care screen with local risk stratification."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerPSSFull"
-* name = "AdministerPSSFull"
-* version = "0.1.0"
-* title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the full Patient Safety Screener / Suicide Risk Screener — a combined acute-care screen with local risk stratification. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Clarify suicide risk in acute care with a combined screen and site-defined risk-stratification step."
-* kind = #ServiceRequest
+// AdministerPSSFull has been promoted out of this placeholder file into the full
+// artifact set at ig/input/fsh/pss-full.fsh (Questionnaire binding + the
+// SPiERPSSFullRiskLevel Observation profile whose value binds directly to the
+// shared suicide-risk tier — combined PSS-3 screen + site-defined stratification).
 
 
 Instance: AdministerCARSS
@@ -135,21 +113,10 @@ Usage: #definition
 * kind = #ServiceRequest
 
 
-Instance: AdministerCAMSOutcomeDisposition
-InstanceOf: ActivityDefinition
-Title: "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
-Description: "Administer the CAMS SSF-5 Outcome/Disposition final-session assessment covering episode closure, disposition, and next-step planning."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
-* name = "AdministerCAMSOutcomeDisposition"
-* version = "0.1.0"
-* title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the CAMS SSF-5 Outcome/Disposition final-session assessment. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet. Session form of the single catalogued CAMS SSF-5 tool."
-* purpose = "Document episode closure, disposition, and next-step planning at the final CAMS session."
-* kind = #ServiceRequest
+// AdministerCAMSOutcomeDisposition has been promoted out of this placeholder file
+// into the full artifact set at ig/input/fsh/cams.fsh (Questionnaire binding,
+// CAMSDisposition CodeSystem/ValueSet, and the SPiERCAMSOutcomeDisposition
+// Observation profile). Still one CAMS SSF-5 tool — maps to TL-020.
 
 
 // ─── Define the Risk Picture ─────────────────────────────────

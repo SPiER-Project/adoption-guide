@@ -151,6 +151,37 @@ Usage: #definition
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact|1.0.0"
 
 
+// ─── ActivityDefinition: C-SSRS Pediatric / Adolescent ───────
+// Promoted out of pathway-tool-placeholders.fsh. The AD id and canonical
+// URL are unchanged so the TL-027 catalog mapping and the
+// identify-possible-risk stage PlanDefinition action stay stable. Reuses
+// the shared SPiERCSSRSRiskLevel profile. This encoding uses the validated
+// screener wording targeted at pediatric/adolescent settings; the Columbia
+// Children's-version younger-child wording is a pending licensing gate
+// (see FHIR-Resources/C-SSRS/licensing/MEMO.md).
+
+Instance: AdministerCSSRSPediatric
+InstanceOf: ActivityDefinition
+Title: "Administer C-SSRS Pediatric / Adolescent Version"
+Description: "Capture a C-SSRS screener for pediatric/adolescent patients and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/AdministerCSSRSPediatric"
+* name = "AdministerCSSRSPediatric"
+* version = "1.0.0"
+* title = "Administer C-SSRS Pediatric / Adolescent Version"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "Capture a C-SSRS screener for pediatric and adolescent patients (validated screener item set) and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
+* purpose = "Screen pediatric and adolescent patients for suicide risk at the Identify Possible Risk stage. For youth, involve a parent/guardian per protocol."
+* kind = #ServiceRequest
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* relatedArtifact[+].type = #depends-on
+* relatedArtifact[=].display = "C-SSRS Pediatric / Adolescent questionnaire"
+* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Pediatric|1.0.0"
+
+
 // ─── Examples ────────────────────────────────────────────────
 
 Instance: ExampleCSSRSScreenerHighRisk
@@ -235,3 +266,36 @@ Usage: #example
 * item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
 * item[+].linkId = "q3"
 * item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+
+
+Instance: ExampleCSSRSPediatricLowRisk
+InstanceOf: SPiERCSSRSRiskLevel
+Title: "Example — C-SSRS Pediatric: Low Risk"
+Description: "Sample risk-level Observation from a pediatric/adolescent C-SSRS screener with only item 1 (wish to be dead) endorsed."
+Usage: #example
+* status = #final
+* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* code = http://loinc.org#93374-7 "Suicide risk level"
+* subject = Reference(Patient/example)
+* effectiveDateTime = "2026-07-15T13:30:00Z"
+* derivedFrom[+] = Reference(ExampleCSSRSPediatricResponse)
+// Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
+* valueCodeableConcept.coding[0] = CSSRSRiskLevelCodes#low "Low"
+* valueCodeableConcept.coding[1] = http://loinc.org#LA9194-7 "Low"
+* valueCodeableConcept.text = "Low Risk — wish to be dead (pediatric/adolescent)"
+* interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#L "Low"
+
+
+Instance: ExampleCSSRSPediatricResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — C-SSRS Pediatric QuestionnaireResponse (low risk)"
+Description: "Source pediatric/adolescent C-SSRS Screener QuestionnaireResponse: wish to be dead (q1) endorsed, no active thoughts. The derived SPiERCSSRSRiskLevel references this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://spier.org/Questionnaire/C-SSRS-Pediatric"
+* subject = Reference(Patient/example)
+* authored = "2026-07-15T13:30:00Z"
+* item[+].linkId = "q1"
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "q2"
+* item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"

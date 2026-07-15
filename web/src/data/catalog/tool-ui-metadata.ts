@@ -276,11 +276,20 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-014': {
     shortName: 'PSS / SRS Full',
-    inclusionStatus: 'future',
+    licensing: 'public-domain',
+    inclusionStatus: 'optional',
     settings: ['acute care', 'ED'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 2 },
+    launchActions: [{ label: 'Launch PSS Full', path: '/patient/assessments/pss-full' }],
+    tags: ['combined screen + stratify', 'PSS-3 items + site tier', 'lands on concept layer'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: 'PSS-3 universal screen (3 items + recency) + site-defined stratification', when: 'On submit' },
+        { type: 'Observation', description: 'Risk level (LOINC 93374-7) — value is a shared suicide-risk tier (low/moderate/high)', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'Positive screen → site stratifies to a tier → safety planning per local protocol.',
+    },
   },
   'TL-025': {
     shortName: 'SBQ-R',
@@ -306,8 +315,18 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['pediatrics', 'ED', 'ambulatory'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [],
+    launchActions: [{ label: 'Launch C-SSRS Pediatric', path: '/patient/assessments/cssrs-pediatric' }],
+    tags: ['pediatric/adolescent', 'shared risk-level profile', 'registration'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: '6-item C-SSRS screener (pediatric/adolescent administration)', when: 'On submit' },
+        { type: 'Observation', description: 'Derived suicide risk level (LOINC 93374-7) — none/low/moderate/high (shared SPiERCSSRSRiskLevel profile)', when: 'Computed from response' },
+        { type: 'Observation (x6)', description: 'Individual ideation/behavior items (per-item LOINC)', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'High/moderate → safety planning; involve parent/guardian per protocol for youth.',
+    },
+    fhirExamples: [{ title: 'C-SSRS Pediatric → Observation (risk level)', resource: CSSRS_SLV_EXAMPLE }],
   },
   'TL-026': {
     shortName: 'Risk Workflow Trigger',
@@ -381,6 +400,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       // the submitted QR via QuestionnaireView → stampLaunchStage.
       { label: 'SSF-5 Section A (Patient)', path: '/patient/assessments/cams-section-a?tool=TL-020', variant: 'secondary' },
       { label: 'SSF-5 Section B (Clinician)', path: '/patient/assessments/cams-section-b', variant: 'secondary' },
+      { label: 'SSF-5 Outcome/Disposition (Final)', path: '/patient/assessments/cams-outcome-disposition?tool=TL-020', variant: 'secondary' },
     ],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -390,8 +410,9 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
         { type: 'Observation', description: 'Overall suicide risk level (LOINC 93374-7)', when: 'Extracted from response' },
         { type: 'QuestionnaireResponse', description: 'SSF-5 Section B — ideation, plan, preparation, history, drivers', when: 'On submit (Section B)' },
         { type: 'Condition (x1-3)', description: 'Suicide drivers added to problem list (clinicalStatus: active)', when: 'Extracted from Section B' },
+        { type: 'Observation', description: 'Final-session disposition (continue / resolved / refer / higher level of care) — SPiERCAMSOutcomeDisposition', when: 'On submit (Outcome/Disposition)' },
       ],
-      workflowTrigger: 'Any vital ≥ 4 → stabilization planning. Drivers tracked until resolved.',
+      workflowTrigger: 'Any vital ≥ 4 → stabilization planning. Drivers tracked until resolved. Final session records the episode disposition.',
     },
     fhirExamples: [
       { title: 'CAMS Section A → Observation (psychological pain vital)', resource: CAMS_VITAL_EXAMPLE },

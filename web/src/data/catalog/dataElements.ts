@@ -127,9 +127,9 @@ export const DATA_ELEMENTS: DataElement[] = [
     codeDisplay: 'Suicide risk level',
     fhirResource: 'Observation',
     fhirPath: 'valueCodeableConcept',
-    // Cross-cutting: derived from C-SSRS (Screener, Full, Since Last Visit) and reused as CAMS overall risk.
-    usedBy: [...TOOLS_CSSRS, 'TL-019', ...TOOLS_CAMS_SSF],
-    description: 'Derived risk level: Low (Q1–2), Moderate (Q3–4), High (Q5 or Q6+recent). Shared by the C-SSRS Screener, Full, and Since Last Visit versions; reused as CAMS overall risk.',
+    // Cross-cutting: derived from C-SSRS (Screener, Full, Since Last Visit, Pediatric) and reused as CAMS overall risk.
+    usedBy: [...TOOLS_CSSRS, 'TL-019', 'TL-027', ...TOOLS_CAMS_SSF],
+    description: 'Derived risk level: Low (Q1–2), Moderate (Q3–4), High (Q5 or Q6+recent). Shared by the C-SSRS Screener, Full, Since Last Visit, and Pediatric versions; reused as CAMS overall risk.',
   },
   {
     id: 'cssrs-actual-lethality',

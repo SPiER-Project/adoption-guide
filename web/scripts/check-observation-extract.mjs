@@ -43,6 +43,11 @@ const EXPECTED = {
   'FHIR-Resources/C-SSRS/cssrs-since-last-contact.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
+  // C-SSRS Pediatric / Adolescent reuses the validated screener item set + LOINC
+  // codes. Matches web/src/lib/observationMappers/cssrsPediatric.ts (shared core).
+  'FHIR-Resources/C-SSRS/cssrs-pediatric.json': [
+    '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
+  ],
   // ASQ has NO published per-item LOINC codes (verified June 2026), so the five
   // screening items bind to the SPiER-local http://spier.org/CodeSystem/asq-item.
   // These are NOT LOINC codes; they match web/src/lib/observationMappers/asq.ts.
@@ -68,6 +73,9 @@ const EXPECTED = {
   // literal extraction (LOINC 93374-7). Its value binds directly to the shared
   // suicide-risk tier (no crosswalk). Matches web/src/lib/observationMappers/safet.ts.
   'FHIR-Resources/SAFE-T/safet-questionnaire.json': ['93374-7'],
+  // PSS Full: only the site-defined risk-level (93374-7) is a literal extraction;
+  // the PSS-3 screen items are recorded in the QR for context. Matches web/src/lib/observationMappers/pssFull.ts.
+  'FHIR-Resources/PSS-Full/pss-full-questionnaire.json': ['93374-7'],
 }
 
 function* walk(items) {

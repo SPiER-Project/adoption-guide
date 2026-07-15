@@ -15,12 +15,15 @@ import {
   sbqrQuestionnaire,
   cssrsScreener,
   cssrsSinceLastContact,
+  cssrsPediatric,
   cssrsFull,
   camsSectionA,
   camsSectionB,
+  camsOutcomeDisposition,
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
   crpQuestionnaire,
+  pssFullQuestionnaire,
 } from './data/questionnaires'
 import { generateStabilizationCarePlan } from './lib/carePlanMappers'
 import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
@@ -147,12 +150,18 @@ function AppRoutes() {
           <Route path="assessments/cssrs-since-last-contact" element={
             <QuestionnaireView title="C-SSRS — Since Last Visit / Since Last Contact" questionnaire={cssrsSinceLastContact} persistName="C-SSRS Since Last Visit" />
           } />
+          <Route path="assessments/cssrs-pediatric" element={
+            <QuestionnaireView title="C-SSRS — Pediatric / Adolescent Screener" questionnaire={cssrsPediatric} persistName="C-SSRS Pediatric" />
+          } />
           <Route path="assessments/stanley-and-brown" element={<StanleyBrownView />} />
           <Route path="assessments/cams-section-a" element={
             <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />
           } />
           <Route path="assessments/cams-section-b" element={
             <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />
+          } />
+          <Route path="assessments/cams-outcome-disposition" element={
+            <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaire={camsOutcomeDisposition} persistName="CAMS SSF-5: Outcome/Disposition" />
           } />
           <Route path="assessments/cams-stabilization-plan" element={
             <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />
@@ -162,6 +171,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/crisis-response-plan" element={
             <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaire={crpQuestionnaire} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />
+          } />
+          <Route path="assessments/pss-full" element={
+            <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaire={pssFullQuestionnaire} persistName="PSS Full" />
           } />
           {/* Non-Questionnaire workflow recorders */}
           <Route path="workflow/caring-contact" element={

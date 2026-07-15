@@ -78,13 +78,16 @@ Usage: #definition
   * output[+]
     * type = #Observation
     * profile = "http://spier.org/StructureDefinition/spier-pss3-result"
-// Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
-// fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "administer-cssrs-pediatric"
   * title = "Administer C-SSRS Pediatric / Adolescent Version"
-  * description = "Age-appropriate C-SSRS screening. Placeholder — no Questionnaire binding yet."
+  * description = "Pediatric/adolescent C-SSRS screening. Yields a suicide-risk-level Observation (shared SPiERCSSRSRiskLevel profile)."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCSSRSPediatric"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
+// Placeholder tool (see pathway-tool-placeholders.fsh) — catalogued but not yet
+// fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "trigger-suicide-risk-workflow"
   * title = "Positive Screen Flag / Suicide-Risk Workflow Trigger"
@@ -198,8 +201,14 @@ Usage: #definition
 * action[+]
   * id = "administer-cams-outcome-disposition"
   * title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
-  * description = "Episode closure, disposition, and next-step planning. Placeholder — no Questionnaire binding yet."
+  * description = "Final CAMS session: re-rate SSF vitals and record the episode disposition. Yields SSF Vital Observations plus a disposition Observation (SPiERCAMSOutcomeDisposition)."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cams-ssf-vital"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cams-outcome-disposition"
 // BSSA and C-SSRS Since Last Visit are fully FHIR-modelled (bssa.fsh, cssrs.fsh).
 // The remaining placeholder tools below (see pathway-tool-placeholders.fsh) are
 // catalogued but not yet fully FHIR-modelled, so no output profile is declared.
@@ -219,8 +228,11 @@ Usage: #definition
 * action[+]
   * id = "administer-pss-full"
   * title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
-  * description = "Combined acute-care screen with local stratification. Placeholder — no Questionnaire binding yet."
+  * description = "Combined acute-care screen (PSS-3 items) with a site-defined stratification step. Yields a suicide-risk-level Observation (SPiERPSSFullRiskLevel) whose value is a common suicide-risk tier."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerPSSFull"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-pss-full-risk-level"
 * action[+]
   * id = "administer-cars-s"
   * title = "Administer Cultural Assessment of Risk for Suicide (CARS-S)"
