@@ -276,11 +276,20 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-014': {
     shortName: 'PSS / SRS Full',
-    inclusionStatus: 'future',
+    licensing: 'public-domain',
+    inclusionStatus: 'optional',
     settings: ['acute care', 'ED'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 2 },
+    launchActions: [{ label: 'Launch PSS Full', path: '/patient/assessments/pss-full' }],
+    tags: ['combined screen + stratify', 'PSS-3 items + site tier', 'lands on concept layer'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: 'PSS-3 universal screen (3 items + recency) + site-defined stratification', when: 'On submit' },
+        { type: 'Observation', description: 'Risk level (LOINC 93374-7) — value is a shared suicide-risk tier (low/moderate/high)', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'Positive screen → site stratifies to a tier → safety planning per local protocol.',
+    },
   },
   'TL-025': {
     shortName: 'SBQ-R',

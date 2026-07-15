@@ -1,0 +1,111 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "PSS-Full",
+  "url": "http://spier.org/Questionnaire/PSS-Full",
+  "version": "1.0.0",
+  "name": "PSSFull",
+  "title": "Patient Safety Screener / Suicide Risk Screener (Full)",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-07-15",
+  "publisher": "SPiER Project",
+  "description": "FHIR Questionnaire for the full Patient Safety Screener / Suicide Risk Screener — a combined acute-care instrument that pairs the ED-SAFE universal screen (the three public-domain PSS-3 items: depression, active ideation, lifetime attempt + recency) with a site-defined risk-stratification step. It is used at the Clarify Risk stage in EDs/inpatient settings that want a single combined screen-and-stratify tool. The universal screen wording is the public ED-SAFE PSS-3 (SAMHSA/SPRC); the risk-stratification tier is determined per the site's local protocol and clinician judgment (SPiER does not embed a proprietary secondary instrument).",
+  "purpose": "Screen and stratify suicide risk in one acute-care encounter. The three screening items follow the public PSS-3; the risk-level result is a site-defined stratification bound to the common SPiER suicide-risk tier, so the derived Observation lands directly on the concept layer (no per-instrument crosswalk).",
+  "copyright": "The PSS-3 screening items are from the ED-SAFE study, distributed free by SAMHSA and the Suicide Prevention Resource Center (no permission required). The risk-stratification step is site-defined. Used under the license/permission held by the SPiER project.",
+  "useContext": [
+    {
+      "code": { "system": "http://terminology.hl7.org/CodeSystem/usage-context-type", "code": "focus", "display": "Clinical Focus" },
+      "valueCodeableConcept": {
+        "coding": [{ "system": "http://snomed.info/sct", "code": "225337009", "display": "Suicide risk assessment" }]
+      }
+    },
+    {
+      "code": { "system": "http://terminology.hl7.org/CodeSystem/usage-context-type", "code": "venue", "display": "Clinical Venue" },
+      "valueCodeableConcept": {
+        "coding": [
+          { "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "ER", "display": "Emergency Room" },
+          { "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "HOSP", "display": "Hospital" }
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "linkId": "screen-intro",
+      "text": "Universal screen (ED-SAFE PSS-3). Ask items 1–3 exactly as worded; if item 3 is Yes, ask recency.",
+      "type": "display"
+    },
+    {
+      "linkId": "q1-depression",
+      "text": "In the past two weeks, have you felt down, depressed, or hopeless?",
+      "type": "choice",
+      "required": true,
+      "answerOption": [
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+      ]
+    },
+    {
+      "linkId": "q2-ideation",
+      "text": "In the past two weeks, have you had thoughts of killing yourself?",
+      "type": "choice",
+      "required": true,
+      "answerOption": [
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+      ]
+    },
+    {
+      "linkId": "q3-lifetime-attempt",
+      "text": "In your lifetime, have you ever attempted to kill yourself?",
+      "type": "choice",
+      "required": true,
+      "answerOption": [
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+      ]
+    },
+    {
+      "linkId": "q3a-recency",
+      "text": "If yes, when did this happen?",
+      "type": "text",
+      "required": false,
+      "enableWhen": [
+        { "question": "q3-lifetime-attempt", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+      ]
+    },
+    {
+      "linkId": "risk-level",
+      "text": "Risk stratification (site-defined protocol / clinician judgment)",
+      "type": "choice",
+      "required": true,
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "93374-7",
+          "display": "Suicide risk level",
+          "extension": [
+            { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "verified" }
+          ]
+        }
+      ],
+      "answerOption": [
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "low", "display": "Low risk" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "moderate", "display": "Moderate risk" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "high", "display": "High risk" } }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [{ "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "drop-down", "display": "Drop down" }]
+          }
+        },
+        { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+      ]
+    }
+  ]
+}
