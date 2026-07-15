@@ -110,6 +110,20 @@ const ASQ_RESULT_EXAMPLE = {
   },
 }
 
+const BSSA_DISPOSITION_EXAMPLE = {
+  resourceType: 'Observation',
+  id: 'bssa-disposition-example',
+  status: 'final',
+  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
+  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
+  subject: { reference: 'Patient/123' },
+  effectiveDateTime: '2026-07-15T14:20:00Z',
+  valueCodeableConcept: {
+    coding: [{ system: 'http://spier.org/CodeSystem/bssa-disposition', code: 'further-evaluation-necessary', display: 'Further evaluation of risk is necessary' }],
+  },
+  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Further evaluation of risk is necessary' }] }],
+}
+
 const CAMS_VITAL_EXAMPLE = {
   resourceType: 'Observation',
   id: 'cams-psychological-pain-example',
@@ -272,8 +286,18 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['medical', 'ambulatory', 'acute care'],
     badge: { label: 'Assessment', variant: 'assessment' },
-    launchActions: [],
+    launchActions: [{ label: 'Launch BSSA', path: '/patient/assessments/bssa' }],
+    tags: ['NIMH public domain', 'disposition-oriented', 'post-positive-screen'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: 'Structured interview — frequency, plan/intent, past behavior, symptoms, supports, safety plan', when: 'On submit' },
+        { type: 'Observation', description: 'Disposition result (LOINC 93374-7) — one of four dispositions', when: 'Extracted from response' },
+        { type: 'Observation (x1–5)', description: 'Discrete findings: current ideation, plan, intent 0–10, prior attempt, needs-help-to-be-safe (SPiER-local bssa-item codes)', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'Emergency psychiatric evaluation → STAT eval, do not leave alone. Further evaluation / non-urgent follow-up → safety plan + mental health referral.',
+    },
+    fhirExamples: [{ title: 'BSSA → Observation (disposition)', resource: BSSA_DISPOSITION_EXAMPLE }],
   },
   'TL-020': {
     shortName: 'CAMS SSF-5',

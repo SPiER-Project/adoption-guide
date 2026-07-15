@@ -1,0 +1,437 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "BSSA",
+  "url": "http://spier.org/Questionnaire/BSSA",
+  "version": "1.0.0",
+  "name": "BSSA",
+  "title": "BSSA — Brief Suicide Safety Assessment (NIMH)",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-07-15",
+  "publisher": "SPiER Project (FHIR translation of the NIMH ASQ Toolkit Brief Suicide Safety Assessment)",
+  "description": "FHIR Questionnaire representation of the NIMH Brief Suicide Safety Assessment (BSSA), the clinician assessment guide used after a patient screens positive for suicide risk on the ASQ. The BSSA is a guide — not a scored survey. It prompts a structured interview (frequency of suicidal thoughts, plan/intent, past behavior, symptoms, social support and stressors, reasons for living), a collaborative safety plan, and a clinician disposition. Source: NIMH ASQ Toolkit (Adult Outpatient BSSA worksheet, www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials). Item wording follows the Adult Outpatient worksheet; other settings (ED, inpatient, youth) differ only in disposition detail.",
+  "purpose": "Structure the post-positive-screen suicide safety assessment and record the resulting disposition as machine-actionable FHIR. The four dispositions (emergency psychiatric evaluation / further evaluation necessary / non-urgent follow-up / no further intervention) map onto the SPiER common suicide-risk tier for cross-instrument comparability. PILOT STATUS: the BSSA has no published panel or per-item LOINC codes; the root panel code and the discrete assessment items use SPiER-local CodeSystems marked 'no-standard-binding'. The disposition item carries the generic LOINC 93374-7 ('Suicide risk level'), consistent with the ASQ screening-result and the harmonized concept layer.",
+  "copyright": "The Brief Suicide Safety Assessment is part of the Ask Suicide-Screening Questions (ASQ) Toolkit, a public domain resource developed by the National Institute of Mental Health (NIMH). No permission is required for use.",
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "focus",
+        "display": "Clinical Focus"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "225337009",
+            "display": "Suicide risk assessment"
+          }
+        ]
+      }
+    },
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "venue",
+        "display": "Clinical Venue"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+            "code": "OF",
+            "display": "Outpatient Facility"
+          },
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+            "code": "ER",
+            "display": "Emergency Room"
+          },
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+            "code": "HOSP",
+            "display": "Hospital"
+          },
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+            "code": "PC",
+            "display": "Primary Care Clinic"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "http://spier.org/CodeSystem/bssa-panel",
+      "code": "bssa",
+      "display": "Brief Suicide Safety Assessment (BSSA) panel",
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/coding-verification-status",
+          "valueCode": "no-standard-binding"
+        }
+      ]
+    }
+  ],
+  "item": [
+    {
+      "linkId": "praise-patient",
+      "text": "Praise the patient for discussing their thoughts: “I’m here to follow up on your responses to the suicide risk screening questions. These can be hard things to talk about. Thank you for telling us. I need to ask you a few more questions.”",
+      "type": "display"
+    },
+    {
+      "linkId": "assessment",
+      "text": "Assess the patient (interview the patient alone; review their ASQ responses)",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "frequency",
+          "text": "Frequency of suicidal thoughts",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "past-weeks-ideation",
+              "text": "In the past few weeks, have you been thinking about killing yourself?",
+              "type": "choice",
+              "required": true,
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ]
+            },
+            {
+              "linkId": "ideation-frequency",
+              "text": "If yes: How often? (e.g. once or twice a day, several times a day, a couple times a week)",
+              "type": "text",
+              "required": false,
+              "enableWhen": [
+                { "question": "past-weeks-ideation", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+              ]
+            },
+            {
+              "linkId": "ideation-last-time",
+              "text": "If yes: When was the last time you had these thoughts?",
+              "type": "text",
+              "required": false,
+              "enableWhen": [
+                { "question": "past-weeks-ideation", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+              ]
+            },
+            {
+              "linkId": "current-ideation",
+              "text": "Are you having thoughts of killing yourself right now?",
+              "type": "choice",
+              "required": true,
+              "code": [
+                {
+                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "code": "current-ideation",
+                  "display": "Current suicidal ideation (right now)",
+                  "extension": [
+                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                  ]
+                }
+              ],
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ],
+              "extension": [
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "plan",
+          "text": "Suicide plan / Intent to die",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "has-plan",
+              "text": "Do you have a plan to kill yourself?",
+              "type": "choice",
+              "required": true,
+              "code": [
+                {
+                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "code": "suicide-plan",
+                  "display": "Has a suicide plan",
+                  "extension": [
+                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                  ]
+                }
+              ],
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ],
+              "extension": [
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+              ]
+            },
+            {
+              "linkId": "plan-description",
+              "text": "If yes: What is your plan? If no plan: If you were going to kill yourself, how would you do it? (Assess method and access to means.)",
+              "type": "text",
+              "required": false
+            },
+            {
+              "linkId": "intent-scale",
+              "text": "On a scale from 0 to 10, how serious are you about killing yourself? (0 = no chance at all; 10 = absolutely certain)",
+              "type": "integer",
+              "required": false,
+              "code": [
+                {
+                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "code": "intent-scale",
+                  "display": "Intent to die (0–10 self-rating)",
+                  "extension": [
+                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                  ]
+                }
+              ],
+              "extension": [
+                { "url": "http://hl7.org/fhir/StructureDefinition/minValue", "valueInteger": 0 },
+                { "url": "http://hl7.org/fhir/StructureDefinition/maxValue", "valueInteger": 10 },
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "past-behavior",
+          "text": "Past behavior",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "ever-self-harm",
+              "text": "Have you ever tried to hurt yourself?",
+              "type": "choice",
+              "required": false,
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ]
+            },
+            {
+              "linkId": "ever-attempt",
+              "text": "Have you ever tried to kill yourself?",
+              "type": "choice",
+              "required": true,
+              "code": [
+                {
+                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "code": "past-suicide-attempt",
+                  "display": "History of suicide attempt",
+                  "extension": [
+                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                  ]
+                }
+              ],
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ],
+              "extension": [
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+              ]
+            },
+            {
+              "linkId": "attempt-details",
+              "text": "If yes: How? When? Why? Did you think that method would kill you? Did you want to die? Did you receive medical/psychiatric treatment? (Intent is as important as lethality of method. Past suicidal behavior is the strongest risk factor for future attempts.)",
+              "type": "text",
+              "required": false,
+              "enableWhen": [
+                { "question": "ever-attempt", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "symptoms",
+          "text": "Symptoms present (select all that apply)",
+          "type": "choice",
+          "required": false,
+          "repeats": true,
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "depression", "display": "Depression" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "anxiety", "display": "Anxiety" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "impulsivity", "display": "Impulsivity / recklessness" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "hopelessness", "display": "Hopelessness" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "anhedonia", "display": "Anhedonia" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "isolation", "display": "Isolation / social withdrawal" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "irritability", "display": "Irritability" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "substance-alcohol-use", "display": "Substance and alcohol use" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "sleep-disturbance", "display": "Sleep disturbance" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "appetite-change", "display": "Appetite change" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "other", "display": "Other concerning change in thinking or feeling" } }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  { "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "check-box", "display": "Check-box" }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "social-support-stressors",
+          "text": "Social support & stressors (if the patient answers yes, ask them to describe)",
+          "type": "group",
+          "item": [
+            {
+              "linkId": "support-network",
+              "text": "Is there a trusted person you can talk to? Who? Have you ever seen a therapist/counselor?",
+              "type": "text",
+              "required": false
+            },
+            {
+              "linkId": "family-conflict",
+              "text": "Are there any conflicts at home that are so difficult to manage that they are causing you a lot of distress?",
+              "type": "choice",
+              "required": false,
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ]
+            },
+            {
+              "linkId": "employment-stress",
+              "text": "Do you ever feel so much pressure at work that you can’t take it anymore?",
+              "type": "choice",
+              "required": false,
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ]
+            },
+            {
+              "linkId": "domestic-violence",
+              "text": "Are you worried that anyone in your life is trying to hurt you?",
+              "type": "choice",
+              "required": false,
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ]
+            },
+            {
+              "linkId": "suicide-contagion",
+              "text": "Do you know anyone who has killed themselves or tried to kill themselves?",
+              "type": "choice",
+              "required": false,
+              "answerOption": [
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+                { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+              ]
+            },
+            {
+              "linkId": "reasons-for-living",
+              "text": "What are some of the reasons you would NOT kill yourself? (e.g. belief system / faith / family / other)",
+              "type": "text",
+              "required": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "safety-plan",
+      "text": "Make a safety plan with the patient (a safety plan is different than a “safety contract”; asking a patient to contract for safety is NOT effective)",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "safety-plan-created",
+          "text": "Was a safety plan developed with the patient (coping strategies, means restriction, who to contact)?",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "needs-help-to-be-safe",
+          "text": "Do you think you need help to keep yourself safe? (A “no” does not indicate the patient is safe; a “yes” is a reason to act immediately.)",
+          "type": "choice",
+          "required": false,
+          "code": [
+            {
+              "system": "http://spier.org/CodeSystem/bssa-item",
+              "code": "needs-help-to-be-safe",
+              "display": "Reports needing help to stay safe",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+              ]
+            }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "disposition-section",
+      "text": "Determine disposition",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "disposition",
+          "text": "After completing the assessment, choose the appropriate disposition plan.",
+          "type": "choice",
+          "required": true,
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "93374-7",
+              "display": "Suicide risk level",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "verified" }
+              ]
+            }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "emergency-psychiatric-evaluation", "display": "Emergency psychiatric evaluation (imminent risk — send to ED for evaluation)" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "further-evaluation-necessary", "display": "Further evaluation of risk is necessary (safety plan + mental health referral, preferably within 72 hours)" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "non-urgent-followup", "display": "Non-urgent mental health follow-up (safety plan + mental health referral)" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "no-intervention", "display": "No further intervention is necessary at this time" } }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [
+                  { "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "drop-down", "display": "Drop down" }
+                ]
+              }
+            },
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        },
+        {
+          "linkId": "nurse-followup-planned",
+          "text": "For all positive screens: is a nurse check-in phone call planned (within 48 hours)?",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

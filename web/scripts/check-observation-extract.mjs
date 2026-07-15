@@ -44,6 +44,14 @@ const EXPECTED = {
     'wished-dead', 'family-better-off-dead', 'thoughts-killing-self',
     'ever-attempted', 'acute-ideation-now',
   ],
+  // BSSA has NO published panel/per-item LOINC codes. The disposition item
+  // carries the generic LOINC 93374-7 ("Suicide risk level"); the discrete
+  // interview findings bind to the SPiER-local http://spier.org/CodeSystem/bssa-item.
+  // These match web/src/lib/observationMappers/bssa.ts.
+  'FHIR-Resources/BSSA/bssa-questionnaire.json': [
+    '93374-7', 'current-ideation', 'suicide-plan', 'intent-scale',
+    'past-suicide-attempt', 'needs-help-to-be-safe',
+  ],
 }
 
 function* walk(items) {

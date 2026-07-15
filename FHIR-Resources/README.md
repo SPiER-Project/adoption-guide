@@ -9,6 +9,7 @@ For the **canonical, machine-readable** SPiER FHIR artifacts — Profiles, Value
 | Folder | Primary stage(s) | What's here |
 |---|---|---|
 | [ASQ/](ASQ/) | Flag Risk (1) | NIMH 5-item suicide screener (4 screening questions + 1 acuity question) Questionnaire + ValueSet + 3 CodeSystems |
+| [BSSA/](BSSA/) | Clarify Risk (2) | NIMH Brief Suicide Safety Assessment (post-positive-screen clinician guide) Questionnaire → disposition Observation + disposition→risk-tier crosswalk |
 | [PHQ-9/](PHQ-9/) | Flag Risk (1) | 9-item depression screener Questionnaire (Item 9 → Clarify Risk trigger) |
 | [C-SSRS/](C-SSRS/) | Flag Risk (1), Clarify Risk (2) | Screener + Full (Lifetime/Recent) Questionnaires |
 | [SBQ-R/](SBQ-R/) | Flag Risk (1) | 4-item Suicide Behaviors Questionnaire-Revised |

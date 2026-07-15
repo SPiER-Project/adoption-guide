@@ -181,12 +181,13 @@ Usage: #definition
   * title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
   * description = "Episode closure, disposition, and next-step planning. Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
-// Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
-// fully FHIR-modelled, so no output profile is declared.
+// BSSA is fully FHIR-modelled (ig/input/fsh/bssa.fsh). The remaining
+// placeholder tools below (see pathway-tool-placeholders.fsh) are catalogued
+// but not yet fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "administer-bssa"
   * title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
-  * description = "Disposition-oriented assessment after a positive ASQ. Placeholder — no Questionnaire binding yet."
+  * description = "Disposition-oriented assessment after a positive ASQ. Yields a disposition Observation (SPiERBSSADispositionResult) crosswalked to the common suicide-risk tier."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerBSSA"
 * action[+]
   * id = "administer-cssrs-since-last-contact"
