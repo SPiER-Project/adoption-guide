@@ -14,6 +14,7 @@ import {
   phq9Questionnaire,
   sbqrQuestionnaire,
   cssrsScreener,
+  cssrsSinceLastContact,
   cssrsFull,
   camsSectionA,
   camsSectionB,
@@ -140,6 +141,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/cssrs-full" element={
             <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />
+          } />
+          <Route path="assessments/cssrs-since-last-contact" element={
+            <QuestionnaireView title="C-SSRS — Since Last Visit / Since Last Contact" questionnaire={cssrsSinceLastContact} persistName="C-SSRS Since Last Visit" />
           } />
           <Route path="assessments/stanley-and-brown" element={<StanleyBrownView />} />
           <Route path="assessments/cams-section-a" element={

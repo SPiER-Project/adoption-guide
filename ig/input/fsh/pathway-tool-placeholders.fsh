@@ -72,21 +72,10 @@ Usage: #definition
 
 // ─── Clarify Risk ────────────────────────────────────────────
 
-Instance: AdministerCSSRSSinceLastContact
-InstanceOf: ActivityDefinition
-Title: "Administer C-SSRS Since Last Visit / Since Last Contact"
-Description: "Administer the Columbia-Suicide Severity Rating Scale 'Since Last Visit / Since Last Contact' version — a repeat assessment covering the interval since the prior contact."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCSSRSSinceLastContact"
-* name = "AdministerCSSRSSinceLastContact"
-* version = "0.1.0"
-* title = "Administer C-SSRS Since Last Visit / Since Last Contact"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the Columbia-Suicide Severity Rating Scale 'Since Last Visit / Since Last Contact' version. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Reassess suicide risk over the interval since the patient's prior contact and update the current risk workflow."
-* kind = #ServiceRequest
+// AdministerCSSRSSinceLastContact has been promoted out of this placeholder file
+// into the full artifact set at ig/input/fsh/cssrs.fsh (Questionnaire binding,
+// reusing the shared SPiERCSSRSRiskLevel Observation profile and the existing
+// cssrs-risk-level → suicide-risk-tier crosswalk).
 
 
 // AdministerBSSA has been promoted out of this placeholder file into the full

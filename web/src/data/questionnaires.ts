@@ -26,6 +26,7 @@ import safet from '../../../FHIR-Resources/SAFE-T/safet-questionnaire.json'
 import phq9 from '../../../FHIR-Resources/PHQ-9/phq9-questionnaire.json'
 import sbqr from '../../../FHIR-Resources/SBQ-R/sbqr-questionnaire.json'
 import cssrsScreenerJson from '../../../FHIR-Resources/C-SSRS/cssrs-screener.json'
+import cssrsSinceLastContactJson from '../../../FHIR-Resources/C-SSRS/cssrs-since-last-contact.json'
 import cssrsFullJson from '../../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
 import camsSectionAJson from '../../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
 import camsSectionBJson from '../../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
@@ -42,6 +43,7 @@ export const safetQuestionnaire = safet as unknown as QuestionnaireResource
 export const phq9Questionnaire = phq9 as unknown as QuestionnaireResource
 export const sbqrQuestionnaire = sbqr as unknown as QuestionnaireResource
 export const cssrsScreener = cssrsScreenerJson as unknown as QuestionnaireResource
+export const cssrsSinceLastContact = cssrsSinceLastContactJson as unknown as QuestionnaireResource
 export const cssrsFull = cssrsFullJson as unknown as QuestionnaireResource
 export const camsSectionA = camsSectionAJson as unknown as QuestionnaireResource
 export const camsSectionB = camsSectionBJson as unknown as QuestionnaireResource
@@ -56,6 +58,7 @@ const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   phq9Questionnaire,
   sbqrQuestionnaire,
   cssrsScreener,
+  cssrsSinceLastContact,
   cssrsFull,
   camsSectionA,
   camsSectionB,

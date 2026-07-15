@@ -153,6 +153,25 @@ const SAFET_RISK_LEVEL_EXAMPLE = {
   note: [{ text: 'Value binds directly to the shared suicide-risk tier — no per-instrument crosswalk. Rationale: ideation with plan but no intent; multiple risk factors, few protective factors.' }],
 }
 
+const CSSRS_SLV_EXAMPLE = {
+  resourceType: 'Observation',
+  id: 'cssrs-since-last-contact-risk-level-example',
+  status: 'final',
+  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
+  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
+  subject: { reference: 'Patient/123' },
+  effectiveDateTime: '2026-07-15T12:00:00Z',
+  valueCodeableConcept: {
+    // Dual-coded: SPiER-local C-SSRS tier + matching LOINC answer (LL465-6) for HL7 interop.
+    coding: [
+      { system: 'http://spier.org/CodeSystem/cssrs-risk-level', code: 'moderate', display: 'Moderate' },
+      { system: 'http://loinc.org', code: 'LA6751-7', display: 'Moderate' },
+    ],
+    text: 'Moderate Risk — ideation with method, no intent (since last visit)',
+  },
+  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }] }],
+}
+
 const CAMS_VITAL_EXAMPLE = {
   resourceType: 'Observation',
   id: 'cams-psychological-pain-example',
@@ -317,8 +336,18 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['ambulatory', 'behavioral health'],
     badge: { label: 'Assessment', variant: 'assessment' },
-    launchActions: [],
+    launchActions: [{ label: 'Launch C-SSRS Since Last Visit', path: '/patient/assessments/cssrs-since-last-contact' }],
+    tags: ['interval reassessment', 'shared risk-level profile', 'registration'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: '6-item C-SSRS scoped to the interval since the prior contact', when: 'On submit' },
+        { type: 'Observation', description: 'Derived suicide risk level (LOINC 93374-7) — none/low/moderate/high (shared SPiERCSSRSRiskLevel profile)', when: 'Computed from response' },
+        { type: 'Observation (x6)', description: 'Individual ideation/behavior items (per-item LOINC)', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'High/moderate → safety planning; reassessment updates the current risk workflow.',
+    },
+    fhirExamples: [{ title: 'C-SSRS Since Last Visit → Observation (risk level)', resource: CSSRS_SLV_EXAMPLE }],
   },
   'TL-005': {
     shortName: 'BSSA',
