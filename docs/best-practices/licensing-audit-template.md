@@ -13,7 +13,7 @@
 **Name:** `<full tool name>`
 **Short name / abbreviation:** `<e.g. ASQ>`
 **SPiER tool ID:** `TL-<NNN>`
-**SPiER pathway stage(s):** `<flag-risk | clarify-risk | …>`
+**SPiER pathway stage(s):** `<identify-possible-risk | clarify-risk | …>`
 **Repository location:** `FHIR-Resources/<directory>/`
 **Tracking issue:** `<#NN>`
 

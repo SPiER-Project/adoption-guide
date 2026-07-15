@@ -16,13 +16,13 @@ import type { Card, CdsIndicator, CdsLink, Coding } from './types'
 // Per-stage rationale copy for the "next step" card, keyed by stage id. Falls
 // back to the stage's own CodeSystem definition when a stage has no blurb.
 const STAGE_BLURB: Record<string, string> = {
-  'flag-risk': 'Administer a suicide-risk screen to flag whether further review is needed.',
+  'identify-possible-risk': 'Administer a suicide-risk screen to find a signal and decide whether more review is needed.',
   'clarify-risk': 'Positive screen — clarify the nature, severity, and context of suicide risk.',
-  'set-risk-status': 'Document the current risk status and the clinical reasoning that guides next steps.',
+  'define-risk-picture': 'Document the current risk status and the clinical reasoning that guides next steps.',
   'document-safety-actions': 'Document concrete actions to reduce risk: safety plan, means counseling.',
   'coordinate-handoffs': 'Transfer suicide-safety information and responsibility across settings.',
   'track-follow-up': 'Track caring contacts and follow-up steps after the immediate encounter.',
-  'manage-active-risk': 'Keep the active suicide-safer care episode visible and escalated when needed.',
+  'track-risk-over-time': 'Keep the active suicide-safer care episode visible, trackable, and escalated when needed.',
   'measure-and-share': 'Use pathway activity for reporting, QI, and information sharing.',
 }
 

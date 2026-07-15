@@ -4,12 +4,12 @@
  * than one tool at different stages is grouped by launch context rather than by
  * the questionnaire canonical alone.
  *
- * The motivating case is CAMS SSF-5 Section A, launched by both TL-020 (first
- * session @ `clarify-risk`) and TL-022 (interim re-rating @ `manage-active-risk`)
- * against the same `Questionnaire/CAMS-SSF5-SectionA`. Without a stage tag,
- * `stageForArtifact` falls back to the canonical → tool → stageId path, which
- * always resolves to the first-owner tool (TL-020 @ clarify-risk), so the interim
- * re-rating would mis-group and TL-022's stage would be unreachable.
+ * The motivating case was CAMS SSF-5 Section A when its first-session and
+ * interim-session launches belonged to tools at different stages. The CAMS
+ * SSF-5 is now consolidated into one tool (TL-020 @ `clarify-risk`), so today
+ * every launch stamps the same stage — but the mechanism stays: any future
+ * questionnaire shared across tools at different stages groups by launch
+ * context rather than by the questionnaire canonical alone.
  *
  * The launching tool id is threaded from the launchAction/route as a `?tool=`
  * query param (see catalog `tool-ui-metadata.ts` and `QuestionnaireView`).

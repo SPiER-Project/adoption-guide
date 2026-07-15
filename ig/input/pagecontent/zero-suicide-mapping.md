@@ -44,32 +44,32 @@ EHR workflow steps:
 
 | SPiER stage                | Maps to Zero Suicide  | What the EHR does at this stage                                                                                  |
 |----------------------------|-----------------------|------------------------------------------------------------------------------------------------------------------|
-| 1. **Flag Risk**           | Identify              | Capture a suicide-related signal (positive screen, behavioral cue) and indicate that further review is needed.   |
+| 1. **Identify Possible Risk** | Identify              | Capture a suicide-related signal (positive screen, behavioral cue) and indicate that further review is needed.   |
 | 2. **Clarify Risk**        | Identify              | Capture the nature, severity, and context of risk via structured assessment.                                     |
-| 3. **Set Risk Status**     | Identify              | Document the current risk status and the clinical reasoning that determines next steps.                          |
+| 3. **Define the Risk Picture** | Identify              | Document the current risk status and the clinical reasoning that determines next steps.                          |
 | 4. **Document Safety Actions** | Engage            | Document concrete safety-promoting actions: safety planning, means counseling, lethal-means restriction.        |
 | 5. **Coordinate Handoffs** | Transition            | Transfer suicide-safety information, responsibility, and follow-up across people, settings, and time points.     |
 | 6. **Track Follow-Up**     | Transition            | Track whether outreach (caring contacts, scheduled follow-ups) actually occurs after the immediate encounter.    |
-| 7. **Manage Active Risk**  | Treat                 | Keep active suicide-safer care episodes visible, trackable, and escalated when needed.                           |
-| 8. **Measure and Share**   | Improve               | Make pathway activity usable for reporting, QI, accountability, and information sharing.                         |
+| 7. **Track Risk Over Time** | Treat                 | Keep active suicide-safer care episodes visible, trackable, and escalated when needed.                           |
+| 8. **Measure and Share the Data** | Improve               | Make pathway activity usable for reporting, QI, accountability, and information sharing.                         |
 
 ### Build status of the eight stages
 
 Not all eight stages are equally built out in this IG version. Stages
-**1 (Flag Risk), 2 (Clarify Risk), 3 (Set Risk Status), 4 (Document
-Safety Actions), and 7 (Manage Active Risk)** have published
+**1 (Identify Possible Risk), 2 (Clarify Risk), 3 (Define the Risk
+Picture), and 4 (Document Safety Actions)** have published
 `PlanDefinition`s with wired instruments. Stages **5 (Coordinate
-Handoffs), 6 (Track Follow-Up), and 8 (Measure and Share)** are mapped
-conceptually here but their `PlanDefinition`s and tooling are roadmap
-items — see the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap)
+Handoffs), 6 (Track Follow-Up), 7 (Track Risk Over Time), and 8
+(Measure and Share the Data)** have published `PlanDefinition`s whose
+actions are catalogued placeholder tools pending full FHIR modelling — see the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap)
 for per-tool build status.
 
 ### Notes on the mapping
 
 - **Identify decomposes into three SPiER stages**, not one. The framework
   treats *Identify* as a single element; SPiER separates the *signal*
-  (Flag Risk), the *structured assessment* (Clarify Risk), and the
-  *clinical disposition* (Set Risk Status) because each produces distinct
+  (Identify Possible Risk), the *structured assessment* (Clarify Risk),
+  and the *clinical disposition* (Define the Risk Picture) because each produces distinct
   FHIR resources with distinct workflow triggers between them.
 
 - **Transition decomposes into Coordinate Handoffs and Track Follow-Up.**
@@ -78,14 +78,14 @@ for per-tool build status.
   different FHIR resources (`ServiceRequest`/`Task` for coordination;
   `Communication`/`Procedure` for follow-up tracking).
 
-- **Treat maps to a single stage (Manage Active Risk).** SPiER's scope here
+- **Treat maps to a single stage (Track Risk Over Time).** SPiER's scope here
   is the *pathway view* of treatment — tracking that someone is in an
   active suicide-focused care episode (e.g., CAMS), updating that episode
   with new sessions and SSF measures. Specific therapeutic modalities are
   Zero Suicide's *Treat* element in full but are out of SPiER's
   EHR-pathway scope.
 
-- **Improve is intentionally light.** SPiER's *Measure and Share* stage
+- **Improve is intentionally light.** SPiER's *Measure and Share the Data* stage
   surfaces pathway-completion measures and population-level views (see the
   companion app's [Population View](https://spier-project.github.io/adoption-guide/#/population)).
   Full QI methodology — running PDSA cycles, board reporting cadence — is
@@ -112,10 +112,11 @@ piece:
 The following items will be discussed with the Zero Suicide Institute
 before this mapping is considered final:
 
-1. Is the decomposition of *Identify* into Flag Risk → Clarify Risk → Set
-   Risk Status faithful to the framework's intent, or does it
-   over-fragment what Zero Suicide treats as one workflow element?
-2. Should SPiER's *Measure and Share* stage explicitly reference the Zero
+1. Is the decomposition of *Identify* into Identify Possible Risk →
+   Clarify Risk → Define the Risk Picture faithful to the framework's
+   intent, or does it over-fragment what Zero Suicide treats as one
+   workflow element?
+2. Should SPiER's *Measure and Share the Data* stage explicitly reference the Zero
    Suicide outcome measures (e.g., attempts per 1000 patients, time-to-
    safety-plan), and if so, with what FHIR Measure profiles?
 3. Are there Zero Suicide-published code systems (for assessment

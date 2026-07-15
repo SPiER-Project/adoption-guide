@@ -2,7 +2,7 @@
 // C-SSRS — Columbia Suicide Severity Rating Scale
 // =============================================================
 // SPiER models two C-SSRS variants:
-//   - Screener (Flag Risk): 6-item rapid screen
+//   - Screener (Identify Possible Risk): 6-item rapid screen
 //   - Full Lifetime/Recent (Clarify Risk): full instrument with
 //     lifetime and recent ideation/behavior tracking and an
 //     intensity section
@@ -89,7 +89,7 @@ Usage: #definition
 * experimental = true
 * publisher = "SPiER"
 * description = "Capture a 6-item C-SSRS screener (items 1–5 for ideation, item 6 for behavior) and derive a suicide-risk-level Observation."
-* purpose = "Rapidly screen for suicide ideation and behavior at the Flag Risk stage."
+* purpose = "Rapidly screen for suicide ideation and behavior at the Identify Possible Risk stage."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"

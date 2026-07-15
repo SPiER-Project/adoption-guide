@@ -206,7 +206,7 @@ export function Roadmap() {
         <ul>
           <li>
             <strong>Triggers between stages</strong> &mdash; e.g. PHQ-9 Item 9 &ge; 1 fires the
-            Flag Risk &rarr; Clarify Risk transition, modeled as{' '}
+            Identify Possible Risk &rarr; Clarify Risk transition, modeled as{' '}
             <code>PlanDefinition.action.trigger</code>.
           </li>
           <li>

@@ -34,7 +34,7 @@ export const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-s
 const CAREPLAN_ID_PATTERNS: { pattern: RegExp; stageId: string }[] = [
   { pattern: /stanley-brown/i, stageId: 'document-safety-actions' },
   { pattern: /cams-stabilization/i, stageId: 'document-safety-actions' },
-  { pattern: /cams-therapeutic/i, stageId: 'set-risk-status' },
+  { pattern: /cams-therapeutic/i, stageId: 'define-risk-picture' },
 ]
 
 const STAGE_IDS = new Set(STAGES.map((s) => s.id))
