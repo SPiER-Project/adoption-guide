@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-04T16:04:45.558Z",
+  "fetchedAt": "2026-07-15T14:37:21.107Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
@@ -11,7 +11,7 @@
       "labels": [
         "status:built",
         "type:epic",
-        "stage:flag-risk",
+        "stage:identify-possible-risk",
         "tool:TL-001"
       ],
       "createdAt": "2026-05-21T14:21:42Z",
@@ -20,7 +20,7 @@
       "toolId": "TL-001",
       "status": "built",
       "type": "epic",
-      "stage": "flag-risk"
+      "stage": "identify-possible-risk"
     },
     {
       "number": 19,
@@ -31,7 +31,7 @@
       "labels": [
         "status:built",
         "type:epic",
-        "stage:flag-risk",
+        "stage:identify-possible-risk",
         "tool:TL-003"
       ],
       "createdAt": "2026-05-21T14:21:53Z",
@@ -40,7 +40,7 @@
       "toolId": "TL-003",
       "status": "built",
       "type": "epic",
-      "stage": "flag-risk"
+      "stage": "identify-possible-risk"
     },
     {
       "number": 20,
@@ -55,7 +55,7 @@
         "tool:TL-004"
       ],
       "createdAt": "2026-05-21T14:22:02Z",
-      "updatedAt": "2026-06-10T17:57:04Z",
+      "updatedAt": "2026-07-04T16:57:05Z",
       "toolId": "TL-004",
       "status": "built",
       "type": "epic",
@@ -90,7 +90,7 @@
       "labels": [
         "status:planned",
         "type:epic",
-        "stage:set-risk-status",
+        "stage:define-risk-picture",
         "tool:TL-006",
         "bundle:ed-profile"
       ],
@@ -99,7 +99,7 @@
       "toolId": "TL-006",
       "status": "planned",
       "type": "epic",
-      "stage": "set-risk-status"
+      "stage": "define-risk-picture"
     },
     {
       "number": 23,
@@ -122,7 +122,7 @@
     },
     {
       "number": 24,
-      "title": "[TL-008] Means Counseling",
+      "title": "[TL-008] Lethal Means Safety Counseling",
       "state": "open",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/24",
       "bodyMd": "**Tool:** Means Safety Counseling (Means Counseling)\n**Stage:** document-safety-actions\n**Current status:** planned\n\n## Next\n\nMeans counseling Questionnaire + Procedure resource generation per CALM model.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-008` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
@@ -134,7 +134,7 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:09Z",
-      "updatedAt": "2026-06-10T17:57:25Z",
+      "updatedAt": "2026-07-15T14:33:50Z",
       "toolId": "TL-008",
       "status": "planned",
       "type": "epic",
@@ -142,7 +142,7 @@
     },
     {
       "number": 25,
-      "title": "[TL-009] Transition",
+      "title": "[TL-009] Suicide-Safety Handoff",
       "state": "open",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/25",
       "bodyMd": "**Tool:** Transition Checkpoint (Transition)\n**Stage:** coordinate-handoffs\n**Current status:** planned\n\n## Next\n\nTransition Questionnaire + ServiceRequest/Task resources for inter-setting handoff.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-009` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
@@ -154,7 +154,7 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:10Z",
-      "updatedAt": "2026-06-10T17:57:27Z",
+      "updatedAt": "2026-07-15T14:33:51Z",
       "toolId": "TL-009",
       "status": "planned",
       "type": "epic",
@@ -189,7 +189,7 @@
       "labels": [
         "status:planned",
         "type:epic",
-        "stage:flag-risk",
+        "stage:identify-possible-risk",
         "tool:TL-011"
       ],
       "createdAt": "2026-05-21T14:22:20Z",
@@ -197,31 +197,32 @@
       "toolId": "TL-011",
       "status": "planned",
       "type": "epic",
-      "stage": "flag-risk"
+      "stage": "identify-possible-risk"
     },
     {
       "number": 28,
       "title": "[TL-012] ED-SAFE",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/28",
       "bodyMd": "**Tool:** ED-SAFE / CLASP-ED Follow-up (ED-SAFE)\n**Stage:** track-follow-up\n**Current status:** planned\n\n## Next\n\nED-SAFE telephone-follow-up workflow modeled as CommunicationRequest + Communication resources.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-012` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
-        "status:planned",
         "type:epic",
         "stage:track-follow-up",
         "tool:TL-012",
-        "bundle:ed-profile"
+        "bundle:ed-profile",
+        "status:retired"
       ],
       "createdAt": "2026-05-21T14:22:22Z",
-      "updatedAt": "2026-06-10T17:57:33Z",
+      "updatedAt": "2026-07-15T14:34:25Z",
+      "closedAt": "2026-07-15T14:34:25Z",
       "toolId": "TL-012",
-      "status": "planned",
+      "status": "retired",
       "type": "epic",
       "stage": "track-follow-up"
     },
     {
       "number": 29,
-      "title": "[TL-013] Now Matters Now",
+      "title": "[TL-013] Patient-Facing Crisis Resources",
       "state": "open",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/29",
       "bodyMd": "**Tool:** Now Matters Now\n**Stage:** document-safety-actions\n**Current status:** planned\n\n## Next\n\nNow Matters Now integration (external resource library) plus CarePlan link-out.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-013` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
@@ -232,7 +233,7 @@
         "tool:TL-013"
       ],
       "createdAt": "2026-05-21T14:22:24Z",
-      "updatedAt": "2026-06-10T17:57:35Z",
+      "updatedAt": "2026-07-15T14:33:52Z",
       "toolId": "TL-013",
       "status": "planned",
       "type": "epic",
@@ -247,15 +248,15 @@
       "labels": [
         "status:future",
         "type:epic",
-        "stage:flag-risk",
+        "stage:clarify-risk",
         "tool:TL-014"
       ],
       "createdAt": "2026-05-21T14:22:33Z",
-      "updatedAt": "2026-05-21T14:22:33Z",
+      "updatedAt": "2026-07-15T14:33:54Z",
       "toolId": "TL-014",
       "status": "future",
       "type": "epic",
-      "stage": "flag-risk"
+      "stage": "clarify-risk"
     },
     {
       "number": 31,
@@ -279,19 +280,20 @@
     {
       "number": 32,
       "title": "[TL-016] CALM",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/32",
       "bodyMd": "**Tool:** CALM / Means Safety Counseling Protocol (CALM)\n**Stage:** document-safety-actions\n**Current status:** future\n\n## Next\n\nCALM training assets needed; provider-side workflow rather than patient-facing form.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-016` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
-        "status:future",
         "type:epic",
         "stage:document-safety-actions",
-        "tool:TL-016"
+        "tool:TL-016",
+        "status:retired"
       ],
       "createdAt": "2026-05-21T14:22:36Z",
-      "updatedAt": "2026-05-21T14:22:36Z",
+      "updatedAt": "2026-07-15T14:34:29Z",
+      "closedAt": "2026-07-15T14:34:29Z",
       "toolId": "TL-016",
-      "status": "future",
+      "status": "retired",
       "type": "epic",
       "stage": "document-safety-actions"
     },
@@ -317,19 +319,20 @@
     {
       "number": 34,
       "title": "[TL-018] CO Post-Visit",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/34",
       "bodyMd": "**Tool:** Colorado Post-Visit Protocol (CO Post-Visit)\n**Stage:** track-follow-up\n**Current status:** future\n\n## Next\n\nPost-visit survey instrument; lower priority than active-risk tooling.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-018` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
-        "status:future",
         "type:epic",
         "stage:track-follow-up",
-        "tool:TL-018"
+        "tool:TL-018",
+        "status:retired"
       ],
       "createdAt": "2026-05-21T14:22:39Z",
-      "updatedAt": "2026-05-21T14:22:39Z",
+      "updatedAt": "2026-07-15T14:34:33Z",
+      "closedAt": "2026-07-15T14:34:33Z",
       "toolId": "TL-018",
-      "status": "future",
+      "status": "retired",
       "type": "epic",
       "stage": "track-follow-up"
     },
@@ -365,7 +368,7 @@
         "tool:TL-020"
       ],
       "createdAt": "2026-05-21T14:22:45Z",
-      "updatedAt": "2026-06-10T17:57:07Z",
+      "updatedAt": "2026-07-15T14:34:42Z",
       "toolId": "TL-020",
       "status": "built",
       "type": "epic",
@@ -393,38 +396,40 @@
     {
       "number": 38,
       "title": "[TL-022] CAMS Interim",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/38",
       "bodyMd": "**Tool:** CAMS Interim Session (CAMS Interim)\n**Stage:** manage-active-risk\n**Current status:** built\n\n## Next\n\nLink CAMS interim sessions to the parent CAMS Encounter and update active-episode state.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-022` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
-        "status:built",
         "type:epic",
-        "stage:manage-active-risk",
-        "tool:TL-022"
+        "stage:track-risk-over-time",
+        "tool:TL-022",
+        "status:retired"
       ],
       "createdAt": "2026-05-21T14:22:48Z",
-      "updatedAt": "2026-06-10T17:57:11Z",
+      "updatedAt": "2026-07-15T14:34:37Z",
+      "closedAt": "2026-07-15T14:34:37Z",
       "toolId": "TL-022",
-      "status": "built",
+      "status": "retired",
       "type": "epic",
-      "stage": "manage-active-risk"
+      "stage": "track-risk-over-time"
     },
     {
       "number": 39,
       "title": "[TL-023] CAMS Outcome",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/39",
       "bodyMd": "**Tool:** CAMS SSF-5 Outcome / Disposition Final Session (CAMS Outcome)\n**Stage:** coordinate-handoffs\n**Current status:** planned\n\n## Next\n\nCAMS outcome form; outputs an Observation describing pathway resolution.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-023` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
-        "status:planned",
         "type:epic",
         "stage:coordinate-handoffs",
-        "tool:TL-023"
+        "tool:TL-023",
+        "status:retired"
       ],
       "createdAt": "2026-05-21T14:22:50Z",
-      "updatedAt": "2026-06-10T17:57:38Z",
+      "updatedAt": "2026-07-15T14:34:41Z",
+      "closedAt": "2026-07-15T14:34:41Z",
       "toolId": "TL-023",
-      "status": "planned",
+      "status": "retired",
       "type": "epic",
       "stage": "coordinate-handoffs"
     },
@@ -437,15 +442,15 @@
       "labels": [
         "status:built",
         "type:epic",
-        "stage:manage-active-risk",
+        "stage:define-risk-picture",
         "tool:TL-024"
       ],
       "createdAt": "2026-05-21T14:22:52Z",
-      "updatedAt": "2026-06-10T17:57:14Z",
+      "updatedAt": "2026-07-15T14:33:55Z",
       "toolId": "TL-024",
       "status": "built",
       "type": "epic",
-      "stage": "manage-active-risk"
+      "stage": "define-risk-picture"
     },
     {
       "number": 41,
@@ -456,7 +461,7 @@
       "labels": [
         "status:built",
         "type:epic",
-        "stage:flag-risk",
+        "stage:identify-possible-risk",
         "tool:TL-025"
       ],
       "createdAt": "2026-05-21T14:22:54Z",
@@ -464,7 +469,7 @@
       "toolId": "TL-025",
       "status": "built",
       "type": "epic",
-      "stage": "flag-risk"
+      "stage": "identify-possible-risk"
     },
     {
       "number": 42,
@@ -530,7 +535,7 @@
       "labels": [
         "status:built",
         "type:epic",
-        "stage:flag-risk",
+        "stage:identify-possible-risk",
         "tool:TL-002"
       ],
       "createdAt": "2026-05-21T14:26:51Z",
@@ -539,7 +544,7 @@
       "toolId": "TL-002",
       "status": "built",
       "type": "epic",
-      "stage": "flag-risk"
+      "stage": "identify-possible-risk"
     },
     {
       "number": 50,
@@ -584,7 +589,7 @@
         "enhancement",
         "stage:coordinate-handoffs",
         "stage:track-follow-up",
-        "stage:manage-active-risk",
+        "stage:track-risk-over-time",
         "stage:measure-and-share",
         "area:catalog",
         "bundle:ed-profile"
@@ -619,16 +624,16 @@
       "bodyMd": "## Goal\n\nDemonstrate that a discrete Ask Suicide-Screening Questions (ASQ) result captured at one EHR can be transmitted across a Health Information Exchange and surfaced as actionable, discrete data inside a second EHR using a different vendor stack.\n\n## Why this matters\n\nThis pilot is the SPiER reference implementation for cross-EHR behavioral-health data portability. It is the empirical test of a longstanding assumption in the project — that discrete FHIR observations are materially more actionable than the same data embedded in document-based exchanges. The pilot doubles as the publication vehicle for that comparison.\n\nIt also anchors the project's near-term HL7 / federal-regulator engagement: the artifact set produced here is what we plan to walk in the door with, not a request for what an Implementation Guide should look like.\n\n## Two phases\n\n**Phase 1 — Transport Benchmark.** Originating EHR emits a document-based clinical summary containing discrete ASQ observations. HIE ingests via existing interface-engine pipelines. Receiving EHR renders the data as an external-record view.\n\n**Phase 2 — Actionability Benchmark.** HIE surfaces the same ASQ observations via FHIR API. Receiving EHR consumes and writes back into the patient chart as discrete data alongside native assessments.\n\nThe contrast between phase 1 and phase 2 is the measurement.\n\n## Evaluation framework\n\n- Implementation effort (analyst/clinician hours per side, per phase)\n- Vendor friction (EHR-vendor services dependency vs. local configuration)\n- Data fidelity (proportion of payload elements that survive the trip as discrete, queryable data)\n- Format utility (head-to-head comparison of document-based vs. API-based for downstream clinician decision support)\n\n## Scope (this epic)\n\n- ASQ panel only for the pilot payload. Other tools out of scope here; they ride on the same plumbing in follow-on work.\n- One HIE partner, one origin EHR, one receiving EHR.\n- One-directional movement (origin → HIE → receiver).\n\n## Out of scope\n\n- Multi-tool payloads (separate follow-on epic).\n- HIE-to-HIE federation (separate follow-on epic).\n- Patient-mediated consent management beyond what the HIE already enforces (covered by the consent strategy doc).\n\n## Child tasks\n\nWill be scoped after the kickoff strategy call. Anticipated workstreams: data specification, originating-site integration, receiving-site integration, evaluation.\n\n## Risks / open questions\n\n- ASQ is referenced as an example for \"Suicide Risk Screen\" in the federal behavioral-health dataset rather than required. Strategic leverage and strategic risk simultaneously.\n- Receiving-side write-back to discrete chart fields (phase 2) is likely the highest-friction single technical step in the pilot. Needs its own milestone.\n- Evaluation control variables — for the two-phase comparison to be defensible, both phases need identical payload definitions and a documented receiving-site configuration baseline.\n\n## Timeline\n\nAnchor pilot for the active multi-year grant period. Workstream-level milestones get filed as child tasks after the kickoff call.",
       "labels": [
         "type:epic",
-        "stage:flag-risk",
+        "stage:identify-possible-risk",
         "area:ig",
         "tool:TL-001",
         "area:hie"
       ],
       "createdAt": "2026-05-29T16:27:32Z",
-      "updatedAt": "2026-06-10T17:57:42Z",
+      "updatedAt": "2026-07-04T22:10:41Z",
       "toolId": "TL-001",
       "type": "epic",
-      "stage": "flag-risk",
+      "stage": "identify-possible-risk",
       "area": "ig"
     },
     {
@@ -639,7 +644,7 @@
       "bodyMd": "## Goal\n\nProduce the Emergency Department workflow-specific functional profile that we intend to bring to HL7 as a candidate Suicide Safer Care functional profile contribution.\n\n## Source scenario\n\nA 24-step ED suicide identification, assessment, safety, and follow-up scenario has been drafted as a CSV by the clinical lead. The scenario is organized into seven sub-flows:\n\n1. Patient narrative\n2. Screening and identification\n3. Immediate safety / mitigation\n4. Brief assessment and full risk assessment\n5. Boarding and reassessment\n6. Safety planning and discharge planning\n7. Care transitions and follow-up\n\nEach event step has columns for Actor, Actor Role, Event, Input data, Output data, and Actions Taken. **The \"HL7 EHR System Functional Model\" column is empty across every row. Populating that column is the work of this epic.**\n\n## Deliverable\n\nFor each of the 24 event steps:\n\n- FHIR resources implicated (Questionnaire / QuestionnaireResponse / Observation / Task / CarePlan / DocumentReference / ServiceRequest / Communication / Encounter / Provenance)\n- Profile bindings (existing SPiER profiles where they exist; gaps flagged as new profile work)\n- HL7 EHR System Functional Model function references\n- CDS Hooks surfaces where applicable (advisory, order-set launch, decision support)\n\nThe output is a populated mapping document plus the FSH/profile work required to back each binding.\n\n## Tools touched\n\nASQ (built), C-SSRS Screener/Full (built), Brief Suicide Safety Assessment (planned), SAFE-T (planned), Stanley-Brown safety plan (built), lethal means counseling (planned, currently \"Means Counseling\"), Caring Contacts (planned), ED-SAFE (planned).\n\nThe \"planned\" items in that list are now gating dependencies for this epic and should be promoted accordingly.\n\n## Non-Questionnaire workflows surfaced\n\nThe scenario explicitly requires structured artifacts that are not Questionnaires:\n\n- Mitigation checklist (room clearance, belongings, environmental safety)\n- Observation / 1:1 sitter order with documentation log\n- Reassessment task scheduler (time-based, role-routed)\n- Discharge readiness checklist with blocking behavior\n- Transition-of-care packet (electronic, with delivery acknowledgement)\n- Follow-up task set with overdue escalation\n\nThese should be modeled under issue #52 with this epic as a downstream consumer.\n\n## Why ED first\n\nA 30-minute conversation with a member of the relevant standards-development organization on the way back from a recent conference reinforced the project's working hypothesis: workflow-specific scoped profiles get adopted; abstract ideal-state profiles do not. ED is the setting where the screening-through-discharge loop is most compressed, the protocol pressure is highest, and the cross-setting data movement is most visible.\n\n## Companion epic\n\nInpatient functional profile (separate epic) follows the same pattern with a different scenario document.",
       "labels": [
         "type:epic",
-        "stage:flag-risk",
+        "stage:identify-possible-risk",
         "stage:clarify-risk",
         "stage:document-safety-actions",
         "stage:coordinate-handoffs",
@@ -649,7 +654,7 @@
       "createdAt": "2026-05-29T16:28:17Z",
       "updatedAt": "2026-06-10T17:57:44Z",
       "type": "epic",
-      "stage": "flag-risk",
+      "stage": "identify-possible-risk",
       "area": "ig"
     },
     {
@@ -660,16 +665,16 @@
       "bodyMd": "## Goal\n\nProduce the inpatient workflow-specific functional profile to sit alongside the ED profile (see companion epic) as part of the SPiER Suicide Safer Care functional profile bundle.\n\n## Status\n\nAwaiting source scenario document from the clinical lead. Once available, the structure mirrors the ED epic:\n\n- Per-event-step actor, role, inputs, outputs, actions\n- FHIR resource bindings and SPiER profile references\n- HL7 EHR System Functional Model function references\n- CDS Hooks surfaces\n\n## Expected scope\n\nInpatient suicide care covers stages the ED setting doesn't fully exercise — set-risk-status formulation, durable care planning, ongoing treatment management for the in-episode patient, and the discharge handoff back to ambulatory care. Tools likely in scope: SAFE-T, CAMS family (SSF-5, Stabilization, Interim, Worksheet, Outcome), Stanley-Brown, Caring Contacts.\n\n## Why a separate epic\n\nFollowing the principle that workflow-specific profiles get adopted and abstract ones do not, inpatient is a distinct setting with a distinct workflow, distinct actors, and a distinct timescale. It is not a superset of the ED profile.",
       "labels": [
         "type:epic",
-        "stage:set-risk-status",
+        "stage:define-risk-picture",
         "stage:document-safety-actions",
         "stage:coordinate-handoffs",
-        "stage:manage-active-risk",
+        "stage:track-risk-over-time",
         "area:ig"
       ],
       "createdAt": "2026-05-29T16:28:22Z",
       "updatedAt": "2026-06-10T17:57:46Z",
       "type": "epic",
-      "stage": "set-risk-status",
+      "stage": "define-risk-picture",
       "area": "ig"
     },
     {
@@ -749,7 +754,7 @@
         "area:ig"
       ],
       "createdAt": "2026-06-10T17:56:03Z",
-      "updatedAt": "2026-06-10T17:56:03Z",
+      "updatedAt": "2026-07-04T16:57:03Z",
       "type": "task",
       "area": "ig"
     },
@@ -779,7 +784,7 @@
         "area:ig"
       ],
       "createdAt": "2026-06-10T17:56:28Z",
-      "updatedAt": "2026-06-10T17:56:28Z",
+      "updatedAt": "2026-07-04T16:57:02Z",
       "type": "task",
       "area": "ig"
     },
@@ -820,7 +825,7 @@
     {
       "number": 96,
       "title": "Recheck LOINC for SBQ-R total score before v0.2 publication",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/96",
       "bodyMd": "sbqr.fsh notes the SBQ-R total score uses SNOMED CT because no published LOINC equivalent existed at authoring time. Before the v0.2 release, re-run a LOINC search for SBQ-R item/total-score codes; if codes have since been published, switch the Observation profile and data dictionary to LOINC and note the change in the IG history.",
       "labels": [
@@ -829,7 +834,8 @@
         "tool:TL-025"
       ],
       "createdAt": "2026-06-10T17:56:34Z",
-      "updatedAt": "2026-06-10T17:56:34Z",
+      "updatedAt": "2026-07-04T17:12:47Z",
+      "closedAt": "2026-07-04T17:12:47Z",
       "toolId": "TL-025",
       "type": "task",
       "area": "ig"
@@ -903,7 +909,7 @@
         "area:patient-view"
       ],
       "createdAt": "2026-07-04T16:04:17Z",
-      "updatedAt": "2026-07-04T16:04:17Z",
+      "updatedAt": "2026-07-04T22:10:03Z",
       "type": "task",
       "area": "patient-view"
     },
@@ -919,7 +925,7 @@
         "area:ig"
       ],
       "createdAt": "2026-07-04T16:04:34Z",
-      "updatedAt": "2026-07-04T16:04:34Z",
+      "updatedAt": "2026-07-04T16:57:06Z",
       "type": "task",
       "area": "catalog"
     },
@@ -937,6 +943,403 @@
       "updatedAt": "2026-07-04T16:04:35Z",
       "type": "task",
       "area": "ig"
+    },
+    {
+      "number": 138,
+      "title": "SMART on FHIR live read/write proven in sandbox — remaining path to a real EHR/HIE endpoint",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/138",
+      "bodyMd": "Tracks the **app-side** SMART on FHIR live read/write capability and what's left to point it at a real endpoint. Makes this workstream visible on the milestone map — it was previously untracked.\n\n### Context / why M5\n\nEpic #60 (HIE Pilot) flags Phase 2 receiving-side write-back to discrete chart fields as *\"likely the highest-friction single technical step in the pilot … Needs its own milestone.\"* The July data-layer series (#133 → #136 → #137) built and proved the app side of exactly that pattern: a SMART-launched app that reads discrete `QuestionnaireResponse`/`Observation` data from a live FHIR server and writes submissions back as discrete resources. This is de-risking, not the pilot itself — but it's the concrete artifact to walk into the HIE/EHR conversation with.\n\n### Done (shipped in #137, verified against the SMART Health IT sandbox)\n\n- `SmartDataSource` reads the launch patient's real `QuestionnaireResponse` / `Observation` / `CarePlan` / `Communication` resources and writes back on submit (QR first, then derived Observations with `derivedFrom` rewritten to the server-assigned QR id, `subject` set to the launch patient).\n- OAuth flow works for the HashRouter + GitHub Pages static host (public client + PKCE, no backend); SMART session rehydrates on reload; write failures surface in the UI with no silent fallback to localStorage.\n- Round-trip evidence in #137: submitted PHQ-9 landed as QR `4739604` + Observations `4739605/6` on the sandbox server and rendered back on the chart.\n- How-to: `docs/smart-sandbox-testing.md`.\n\n### Remaining before this is pilot-usable\n\n- [ ] One human two-click pass through the launcher UI (the automated verification completed the two OAuth 302 hops out-of-band; the in-browser reads/writes are proven but the click-through wasn't).\n- [ ] Register the SPiER client with a real EHR/HIE sandbox endpoint (client id, redirect URI allow-list) — the public open sandbox accepts an unregistered `spier-client`; a real endpoint won't.\n- [ ] Decide the receiving-side story for the pilot: SPiER-as-SMART-app writing discrete data vs. the EHR's own native chart write-back (the epic's actual Phase 2 measurement). Clarify which this capability serves.\n- [ ] Known limitation to resolve for foreign data: observation mappers dispatch on `http://spier.org/Questionnaire/*` canonicals, so only SPiER-authored QRs produce risk alerts / derived Observations. Cross-EHR ASQ payloads using other canonicals render but don't auto-derive — the ASQ crosswalk work under M1/#77 is the lever here.\n\n### Out of scope\n\nThe HIE transport itself, receiving-EHR native integration, and the evaluation framework — those are #60's child tasks.",
+      "labels": [
+        "status:built",
+        "type:task",
+        "area:patient-view"
+      ],
+      "createdAt": "2026-07-04T22:10:32Z",
+      "updatedAt": "2026-07-04T22:10:32Z",
+      "status": "built",
+      "type": "task",
+      "area": "patient-view"
+    },
+    {
+      "number": 164,
+      "title": "[TL-026] Positive Screen Flag / Suicide-Risk Workflow Trigger",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/164",
+      "bodyMd": "**Tool:** Positive Screen Flag / Suicide-Risk Workflow Trigger\n**Stage:** identify-possible-risk\n**Current status:** planned\n\n## Next\n\nMake positive screens actionable: chart flag, work-queue entry, notification, and next-step routing. Wave 1 — foundational, closely related to the already-encoded ASQ/PHQ-9 Item 9 → Clarify Risk PlanDefinition triggers.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-026` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:planned",
+        "type:epic",
+        "stage:identify-possible-risk",
+        "tool:TL-026"
+      ],
+      "createdAt": "2026-07-15T14:33:57Z",
+      "updatedAt": "2026-07-15T14:33:57Z",
+      "toolId": "TL-026",
+      "status": "planned",
+      "type": "epic",
+      "stage": "identify-possible-risk"
+    },
+    {
+      "number": 165,
+      "title": "[TL-027] C-SSRS Pediatric / Adolescent Version",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/165",
+      "bodyMd": "**Tool:** C-SSRS Pediatric / Adolescent Version\n**Stage:** identify-possible-risk\n**Current status:** planned\n\n## Next\n\nAge-appropriate C-SSRS wording. Wave 2 — verify Columbia Lighthouse Project licensing covers the pediatric variant before authoring; reuse cssrs.fsh patterns.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-027` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:planned",
+        "type:epic",
+        "stage:identify-possible-risk",
+        "tool:TL-027"
+      ],
+      "createdAt": "2026-07-15T14:33:59Z",
+      "updatedAt": "2026-07-15T14:33:59Z",
+      "toolId": "TL-027",
+      "status": "planned",
+      "type": "epic",
+      "stage": "identify-possible-risk"
+    },
+    {
+      "number": 166,
+      "title": "[TL-028] Cultural Assessment of Risk for Suicide (CARS-S)",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/166",
+      "bodyMd": "**Tool:** Cultural Assessment of Risk for Suicide (CARS-S)\n**Stage:** clarify-risk\n**Current status:** future\n\n## Next\n\nWave 3 — licensing status unknown. Do a licensing audit (FHIR-Resources/CARS-S/licensing/MEMO.md) BEFORE authoring any artifacts.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-028` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:clarify-risk",
+        "tool:TL-028"
+      ],
+      "createdAt": "2026-07-15T14:34:00Z",
+      "updatedAt": "2026-07-15T14:34:00Z",
+      "toolId": "TL-028",
+      "status": "future",
+      "type": "epic",
+      "stage": "clarify-risk"
+    },
+    {
+      "number": 167,
+      "title": "[TL-029] Full Suicide-Risk Assessment / Local Assessment Tool",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/167",
+      "bodyMd": "**Tool:** Full Suicide-Risk Assessment / Local Assessment Tool\n**Stage:** clarify-risk\n**Current status:** future\n\n## Next\n\nFallback for EHRs without a named assessment tool. Lowest priority — a gap in the original wave plan, filed here for tracking.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-029` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:clarify-risk",
+        "tool:TL-029"
+      ],
+      "createdAt": "2026-07-15T14:34:01Z",
+      "updatedAt": "2026-07-15T14:34:01Z",
+      "toolId": "TL-029",
+      "status": "future",
+      "type": "epic",
+      "stage": "clarify-risk"
+    },
+    {
+      "number": 168,
+      "title": "[TL-030] Discharge Safety Packet / Transition Bundle",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/168",
+      "bodyMd": "**Tool:** Discharge Safety Packet / Transition Bundle\n**Stage:** coordinate-handoffs\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: DocumentReference or Communication bundle listing included artifacts (safety plan, crisis resources, risk status, follow-up details).\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-030` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:coordinate-handoffs",
+        "tool:TL-030"
+      ],
+      "createdAt": "2026-07-15T14:34:02Z",
+      "updatedAt": "2026-07-15T14:34:02Z",
+      "toolId": "TL-030",
+      "status": "future",
+      "type": "epic",
+      "stage": "coordinate-handoffs"
+    },
+    {
+      "number": 169,
+      "title": "[TL-031] Next Appointment / Follow-Up Visit Scheduling",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/169",
+      "bodyMd": "**Tool:** Next Appointment / Follow-Up Visit Scheduling\n**Stage:** coordinate-handoffs\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Appointment resource, scheduled before discharge/transition; alert staff if missing.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-031` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:coordinate-handoffs",
+        "tool:TL-031"
+      ],
+      "createdAt": "2026-07-15T14:34:04Z",
+      "updatedAt": "2026-07-15T14:34:04Z",
+      "toolId": "TL-031",
+      "status": "future",
+      "type": "epic",
+      "stage": "coordinate-handoffs"
+    },
+    {
+      "number": 170,
+      "title": "[TL-032] Consent / Information-Sharing Status",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/170",
+      "bodyMd": "**Tool:** Consent / Information-Sharing Status\n**Stage:** coordinate-handoffs\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Consent resource governing what handoff/packet content can be shared and with whom.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-032` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:coordinate-handoffs",
+        "tool:TL-032"
+      ],
+      "createdAt": "2026-07-15T14:34:05Z",
+      "updatedAt": "2026-07-15T14:34:05Z",
+      "toolId": "TL-032",
+      "status": "future",
+      "type": "epic",
+      "stage": "coordinate-handoffs"
+    },
+    {
+      "number": 171,
+      "title": "[TL-033] Follow-Up Outreach / Contact Attempts",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/171",
+      "bodyMd": "**Tool:** Follow-Up Outreach / Contact Attempts\n**Stage:** track-follow-up\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Communication/Task per attempt (due date, method, outcome, next attempt needed). Absorbs ED-SAFE-style phone-call follow-up (see closed #TL-012).\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-033` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-follow-up",
+        "tool:TL-033"
+      ],
+      "createdAt": "2026-07-15T14:34:06Z",
+      "updatedAt": "2026-07-15T14:34:06Z",
+      "toolId": "TL-033",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-follow-up"
+    },
+    {
+      "number": 172,
+      "title": "[TL-034] Follow-Up Appointment Tracking",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/172",
+      "bodyMd": "**Tool:** Follow-Up Appointment Tracking\n**Stage:** track-follow-up\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Appointment + encounter-status derivation; 7-day / 30-day completion windows for measure reporting (TL-042).\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-034` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-follow-up",
+        "tool:TL-034"
+      ],
+      "createdAt": "2026-07-15T14:34:08Z",
+      "updatedAt": "2026-07-15T14:34:08Z",
+      "toolId": "TL-034",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-follow-up"
+    },
+    {
+      "number": 173,
+      "title": "[TL-035] Missed Appointment / No-Show Follow-Up",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/173",
+      "bodyMd": "**Tool:** Missed Appointment / No-Show Follow-Up\n**Stage:** track-follow-up\n**Current status:** future\n\n## Next\n\nWave 5. Connects a no-show to suicide-risk status/workflow and prompts outreach or escalation. Absorbs Colorado Post-Visit Protocol territory (see closed #TL-018).\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-035` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-follow-up",
+        "tool:TL-035"
+      ],
+      "createdAt": "2026-07-15T14:34:09Z",
+      "updatedAt": "2026-07-15T14:34:09Z",
+      "toolId": "TL-035",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-follow-up"
+    },
+    {
+      "number": 174,
+      "title": "[TL-036] Follow-Up Escalation Workflow",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/174",
+      "bodyMd": "**Tool:** Follow-Up Escalation Workflow\n**Stage:** track-follow-up\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Task with outcome codes, routed to responsible clinician/team/supervisor.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-036` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-follow-up",
+        "tool:TL-036"
+      ],
+      "createdAt": "2026-07-15T14:34:10Z",
+      "updatedAt": "2026-07-15T14:34:10Z",
+      "toolId": "TL-036",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-follow-up"
+    },
+    {
+      "number": 175,
+      "title": "[TL-037] Active Suicide-Safer Care Registry / Work Queue",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/175",
+      "bodyMd": "**Tool:** Active Suicide-Safer Care Registry / Work Queue\n**Stage:** track-risk-over-time\n**Current status:** future\n\n## Next\n\nWave 5 — do as a design PR first. Suggested shape: EpisodeOfCare + Flag (chart banner), the natural anchor for the whole Track Risk Over Time tile.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-037` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-risk-over-time",
+        "tool:TL-037"
+      ],
+      "createdAt": "2026-07-15T14:34:12Z",
+      "updatedAt": "2026-07-15T14:34:12Z",
+      "toolId": "TL-037",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-risk-over-time"
+    },
+    {
+      "number": 176,
+      "title": "[TL-038] Suicide-Risk Episode / Pathway Status",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/176",
+      "bodyMd": "**Tool:** Suicide-Risk Episode / Pathway Status\n**Stage:** track-risk-over-time\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: EpisodeOfCare lifecycle (open/closed, closure reason) — see TL-037 design PR.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-038` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-risk-over-time",
+        "tool:TL-038"
+      ],
+      "createdAt": "2026-07-15T14:34:13Z",
+      "updatedAt": "2026-07-15T14:34:13Z",
+      "toolId": "TL-038",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-risk-over-time"
+    },
+    {
+      "number": 177,
+      "title": "[TL-039] Reassessment / Risk Review Schedule",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/177",
+      "bodyMd": "**Tool:** Reassessment / Risk Review Schedule\n**Stage:** track-risk-over-time\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Task with due dates driven by risk tier / last assessment date; due/overdue alerts.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-039` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-risk-over-time",
+        "tool:TL-039"
+      ],
+      "createdAt": "2026-07-15T14:34:14Z",
+      "updatedAt": "2026-07-15T14:34:14Z",
+      "toolId": "TL-039",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-risk-over-time"
+    },
+    {
+      "number": 178,
+      "title": "[TL-040] Open Safety Actions / Care Gap Tracking",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/178",
+      "bodyMd": "**Tool:** Open Safety Actions / Care Gap Tracking\n**Stage:** track-risk-over-time\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Task per open action/gap with owner + due date.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-040` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-risk-over-time",
+        "tool:TL-040"
+      ],
+      "createdAt": "2026-07-15T14:34:16Z",
+      "updatedAt": "2026-07-15T14:34:16Z",
+      "toolId": "TL-040",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-risk-over-time"
+    },
+    {
+      "number": 179,
+      "title": "[TL-041] Risk Escalation / Overdue Workflow",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/179",
+      "bodyMd": "**Tool:** Risk Escalation / Overdue Workflow\n**Stage:** track-risk-over-time\n**Current status:** future\n\n## Next\n\nWave 5. Suggested shape: Task, triggered by overdue reassessment/follow-up or worsening risk; documented outcome.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-041` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:track-risk-over-time",
+        "tool:TL-041"
+      ],
+      "createdAt": "2026-07-15T14:34:17Z",
+      "updatedAt": "2026-07-15T14:34:17Z",
+      "toolId": "TL-041",
+      "status": "future",
+      "type": "epic",
+      "stage": "track-risk-over-time"
+    },
+    {
+      "number": 180,
+      "title": "[TL-042] Suicide-Safer Care KPI / Measure Reporting",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/180",
+      "bodyMd": "**Tool:** Suicide-Safer Care KPI / Measure Reporting\n**Stage:** measure-and-share\n**Current status:** future\n\n## Next\n\nWave 6. Suggested shape: FHIR Measure resources for the SSC measure list (screen→assessment, safety plan before discharge, 7/30-day follow-up, …) + example MeasureReports.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-042` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:measure-and-share",
+        "tool:TL-042"
+      ],
+      "createdAt": "2026-07-15T14:34:18Z",
+      "updatedAt": "2026-07-15T14:34:18Z",
+      "toolId": "TL-042",
+      "status": "future",
+      "type": "epic",
+      "stage": "measure-and-share"
+    },
+    {
+      "number": 181,
+      "title": "[TL-043] Reporting Dashboard / Aggregate View",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/181",
+      "bodyMd": "**Tool:** Reporting Dashboard / Aggregate View\n**Stage:** measure-and-share\n**Current status:** future\n\n## Next\n\nWave 6. Primarily app-side work (PopulationView aggregate); scope as a web feature rather than a FHIR artifact.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-043` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:measure-and-share",
+        "tool:TL-043"
+      ],
+      "createdAt": "2026-07-15T14:34:20Z",
+      "updatedAt": "2026-07-15T14:34:20Z",
+      "toolId": "TL-043",
+      "status": "future",
+      "type": "epic",
+      "stage": "measure-and-share"
+    },
+    {
+      "number": 182,
+      "title": "[TL-044] Data Export / Analytics Extract",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/182",
+      "bodyMd": "**Tool:** Data Export / Analytics Extract\n**Stage:** measure-and-share\n**Current status:** future\n\n## Next\n\nWave 6. Structured export (CSV/warehouse/FHIR API) with timestamps for measurement; align with the CapabilityStatement.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-044` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:measure-and-share",
+        "tool:TL-044"
+      ],
+      "createdAt": "2026-07-15T14:34:21Z",
+      "updatedAt": "2026-07-15T14:34:21Z",
+      "toolId": "TL-044",
+      "status": "future",
+      "type": "epic",
+      "stage": "measure-and-share"
+    },
+    {
+      "number": 183,
+      "title": "[TL-045] Data Sharing / Interoperability Output",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/183",
+      "bodyMd": "**Tool:** Data Sharing / Interoperability Output\n**Stage:** measure-and-share\n**Current status:** future\n\n## Next\n\nWave 6. Documentation + CapabilityStatement work; align with the existing CDS Hooks service and SMART read/write paths.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-045` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "labels": [
+        "status:future",
+        "type:epic",
+        "stage:measure-and-share",
+        "tool:TL-045"
+      ],
+      "createdAt": "2026-07-15T14:34:22Z",
+      "updatedAt": "2026-07-15T14:34:22Z",
+      "toolId": "TL-045",
+      "status": "future",
+      "type": "epic",
+      "stage": "measure-and-share"
     }
   ]
 }
