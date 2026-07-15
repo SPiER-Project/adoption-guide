@@ -228,8 +228,11 @@ Usage: #definition
 * action[+]
   * id = "administer-pss-full"
   * title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
-  * description = "Combined acute-care screen with local stratification. Placeholder — no Questionnaire binding yet."
+  * description = "Combined acute-care screen (PSS-3 items) with a site-defined stratification step. Yields a suicide-risk-level Observation (SPiERPSSFullRiskLevel) whose value is a common suicide-risk tier."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerPSSFull"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-pss-full-risk-level"
 * action[+]
   * id = "administer-cars-s"
   * title = "Administer Cultural Assessment of Risk for Suicide (CARS-S)"

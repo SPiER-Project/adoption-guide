@@ -73,6 +73,9 @@ const EXPECTED = {
   // literal extraction (LOINC 93374-7). Its value binds directly to the shared
   // suicide-risk tier (no crosswalk). Matches web/src/lib/observationMappers/safet.ts.
   'FHIR-Resources/SAFE-T/safet-questionnaire.json': ['93374-7'],
+  // PSS Full: only the site-defined risk-level (93374-7) is a literal extraction;
+  // the PSS-3 screen items are recorded in the QR for context. Matches web/src/lib/observationMappers/pssFull.ts.
+  'FHIR-Resources/PSS-Full/pss-full-questionnaire.json': ['93374-7'],
 }
 
 function* walk(items) {

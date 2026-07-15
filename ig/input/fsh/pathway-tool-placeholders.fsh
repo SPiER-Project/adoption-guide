@@ -73,21 +73,10 @@ Usage: #definition
 // disposition → suicide-risk-tier crosswalk in crosswalk-bssa.fsh).
 
 
-Instance: AdministerPSSFull
-InstanceOf: ActivityDefinition
-Title: "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
-Description: "Administer the full Patient Safety Screener / Suicide Risk Screener, a combined acute-care screen with local risk stratification."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerPSSFull"
-* name = "AdministerPSSFull"
-* version = "0.1.0"
-* title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the full Patient Safety Screener / Suicide Risk Screener — a combined acute-care screen with local risk stratification. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Clarify suicide risk in acute care with a combined screen and site-defined risk-stratification step."
-* kind = #ServiceRequest
+// AdministerPSSFull has been promoted out of this placeholder file into the full
+// artifact set at ig/input/fsh/pss-full.fsh (Questionnaire binding + the
+// SPiERPSSFullRiskLevel Observation profile whose value binds directly to the
+// shared suicide-risk tier — combined PSS-3 screen + site-defined stratification).
 
 
 Instance: AdministerCARSS

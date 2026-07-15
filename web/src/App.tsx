@@ -23,6 +23,7 @@ import {
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
   crpQuestionnaire,
+  pssFullQuestionnaire,
 } from './data/questionnaires'
 import { generateStabilizationCarePlan } from './lib/carePlanMappers'
 import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
@@ -170,6 +171,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/crisis-response-plan" element={
             <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaire={crpQuestionnaire} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />
+          } />
+          <Route path="assessments/pss-full" element={
+            <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaire={pssFullQuestionnaire} persistName="PSS Full" />
           } />
           {/* Non-Questionnaire workflow recorders */}
           <Route path="workflow/caring-contact" element={

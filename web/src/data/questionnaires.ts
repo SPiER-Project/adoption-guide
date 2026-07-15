@@ -35,6 +35,7 @@ import camsOutcomeDispositionJson from '../../../FHIR-Resources/CAMS/cams-ssf5-o
 import camsStabilizationPlanJson from '../../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
 import camsTherapeuticWorksheetJson from '../../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
 import crpJson from '../../../FHIR-Resources/CRP/crp-questionnaire.json'
+import pssFullJson from '../../../FHIR-Resources/PSS-Full/pss-full-questionnaire.json'
 
 const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
 
@@ -55,6 +56,7 @@ export const camsOutcomeDisposition = camsOutcomeDispositionJson as unknown as Q
 export const camsStabilizationPlan = camsStabilizationPlanJson as unknown as QuestionnaireResource
 export const camsTherapeuticWorksheet = camsTherapeuticWorksheetJson as unknown as QuestionnaireResource
 export const crpQuestionnaire = crpJson as unknown as QuestionnaireResource
+export const pssFullQuestionnaire = pssFullJson as unknown as QuestionnaireResource
 
 const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   asqQuestionnaire,
@@ -73,6 +75,7 @@ const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
   crpQuestionnaire,
+  pssFullQuestionnaire,
 ]
 
 /** Canonical (version-stripped) Questionnaire URL → Questionnaire resource. */
