@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SPiER Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --plum: #341528;
+    --plum-soft: #4d2340;
+    --raspberry: #CC3366;
+    --raspberry-tint: #fae9f0;
+    --cyan: #D2EDF3;
+    --cyan-tint: #eef8fa;
+    --ink: #2b1e27;
+    --ink-soft: #5c4a56;
+    --paper: #ffffff;
+    --line: #e5dbe2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { size: letter; margin: 0; }
+  html, body { font-family: 'Poppins', system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--paper); }
+  .page {
+    width: 8.5in; height: 11in;
+    page-break-after: always;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .page:last-child { page-break-after: avoid; }
+
+  /* ── shared ── */
+  .band {
+    background: var(--plum);
+    color: #fff;
+    padding: 0.34in 0.55in 0.28in;
+  }
+  .band .kicker {
+    font-size: 8.5pt; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--cyan); font-weight: 600; margin-bottom: 4pt;
+  }
+  .band h1 { font-size: 25pt; font-weight: 700; line-height: 1.12; }
+  .band h1 .accent { color: var(--raspberry); }
+  .band .tagline { margin-top: 6pt; font-size: 10.5pt; font-weight: 500; color: #e8d9e2; }
+  .band .tagline strong { color: #fff; font-weight: 600; }
+  .body { padding: 0.24in 0.55in 0; flex: 1; display: flex; flex-direction: column; }
+
+  h2 {
+    font-size: 10pt; font-weight: 700; color: var(--plum);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 6pt;
+  }
+  h2::after {
+    content: ""; display: block; width: 28pt; height: 2.5pt;
+    background: var(--raspberry); margin-top: 3pt; border-radius: 2pt;
+  }
+  p, li { font-size: 9.3pt; line-height: 1.45; color: var(--ink-soft); }
+  p strong, li strong { color: var(--ink); font-weight: 600; }
+
+  .footer {
+    background: var(--cyan-tint);
+    border-top: 2.5pt solid var(--cyan);
+    padding: 0.16in 0.55in;
+    display: flex; justify-content: space-between; align-items: center; gap: 12pt;
+    font-size: 8pt; color: var(--ink-soft);
+  }
+  .footer .orgs { line-height: 1.5; }
+  .footer .orgs strong { color: var(--plum); font-weight: 600; }
+  .footer .link { text-align: right; line-height: 1.5; white-space: nowrap; }
+  .footer .link strong { color: var(--raspberry); font-weight: 600; }
+
+  /* ── page 1 ── */
+  .lead {
+    font-size: 10.3pt; line-height: 1.45; color: var(--ink);
+    margin-bottom: 10pt;
+  }
+  .lead strong { color: var(--plum); font-weight: 600; }
+  .cols { display: flex; gap: 22pt; flex: 1; }
+  .col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 11pt; }
+
+  .pillars { display: flex; flex-direction: column; gap: 7pt; }
+  .pillar {
+    display: flex; gap: 9pt; align-items: flex-start;
+    background: var(--cyan-tint); border-left: 3pt solid var(--raspberry);
+    border-radius: 0 6pt 6pt 0; padding: 7pt 9pt;
+  }
+  .pillar .num {
+    flex: none; width: 15pt; height: 15pt; border-radius: 50%;
+    background: var(--plum); color: #fff; font-size: 8.5pt; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; margin-top: 1pt;
+  }
+  .pillar h3 { font-size: 9.6pt; font-weight: 600; color: var(--plum); margin-bottom: 1pt; }
+  .pillar p { font-size: 8.7pt; line-height: 1.4; }
+
+  ul.checks { list-style: none; display: flex; flex-direction: column; gap: 4.5pt; }
+  ul.checks li { padding-left: 15pt; position: relative; font-size: 8.8pt; }
+  ul.checks li::before {
+    content: "✓"; position: absolute; left: 0; top: 0;
+    color: var(--raspberry); font-weight: 700; font-size: 9.5pt;
+  }
+
+  .license-box {
+    background: var(--raspberry-tint);
+    border: 1pt solid #eec3d4; border-radius: 8pt;
+    padding: 8pt 11pt 9pt;
+  }
+  .license-box h2 { margin-bottom: 4pt; }
+  .license-box p { font-size: 8.4pt; margin-bottom: 6pt; }
+  .license-row { display: flex; gap: 8pt; align-items: baseline; margin-bottom: 3.5pt; }
+  .license-row:last-child { margin-bottom: 0; }
+  .license-tag {
+    flex: none; width: 92pt; font-size: 7.6pt; font-weight: 600;
+    color: var(--plum); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .license-row span:last-child { font-size: 8.5pt; color: var(--ink-soft); line-height: 1.35; }
+
+  .problem p { margin-bottom: 6pt; }
+  .problem p:last-child { margin-bottom: 0; }
+
+  /* ── page 2 ── */
+  .band.compact { padding: 0.24in 0.55in 0.2in; }
+  .band.compact h1 { font-size: 17pt; }
+  .band.compact .tagline { font-size: 9pt; margin-top: 3pt; }
+
+  .stages {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6.5pt 10pt; flex: 1; align-content: start;
+    padding-top: 1pt;
+  }
+  .stage {
+    border: 1pt solid var(--line); border-radius: 8pt;
+    padding: 6pt 9pt 7pt;
+    background: #fff;
+    position: relative;
+  }
+  .stage-head { display: flex; align-items: center; gap: 6pt; margin-bottom: 2.5pt; }
+  .stage-num {
+    flex: none; width: 17pt; height: 17pt; border-radius: 50%;
+    background: var(--raspberry); color: #fff;
+    font-size: 9.5pt; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stage h3 { font-size: 10pt; font-weight: 600; color: var(--plum); }
+  .stage .desc { font-size: 7.8pt; line-height: 1.32; color: var(--ink-soft); margin-bottom: 4pt; }
+  .chips { display: flex; flex-wrap: wrap; gap: 3pt; }
+  .chip {
+    font-size: 7pt; font-weight: 500; line-height: 1;
+    padding: 3pt 5pt; border-radius: 20pt;
+    background: var(--plum); color: #fff;
+    white-space: nowrap;
+  }
+  .chip.roadmap {
+    background: #fff; color: var(--ink-soft);
+    border: 1pt dashed #b9a7b3; font-weight: 400;
+  }
+
+  .flow-note {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 8pt;
+    background: var(--cyan-tint); border: 1pt solid var(--cyan);
+    border-radius: 8pt; padding: 5.5pt 10pt;
+    font-size: 8pt; color: var(--ink-soft); line-height: 1.35;
+  }
+  .flow-note .bolt {
+    flex: none; width: 16pt; height: 16pt; border-radius: 50%;
+    background: var(--plum); color: var(--cyan);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9pt; font-weight: 700;
+  }
+  .flow-note strong { color: var(--plum); }
+
+  .legend {
+    display: flex; gap: 16pt; align-items: center;
+    padding: 5pt 0 6pt; font-size: 7.8pt; color: var(--ink-soft);
+  }
+  .legend .chip { transform: translateY(0.5pt); }
+
+  .interop {
+    background: var(--plum); color: #fff;
+    border-radius: 10pt; padding: 8.5pt 12pt;
+    margin-bottom: 8pt;
+    display: flex; gap: 14pt;
+  }
+  .interop .cell { flex: 1; }
+  .interop h4 {
+    font-size: 8pt; font-weight: 600; color: var(--cyan);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3pt;
+  }
+  .interop p { font-size: 7.9pt; line-height: 1.35; color: #e8d9e2; }
+  .interop p strong { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ PAGE 1 · FRONT ══════════════════ -->
+<div class="page">
+  <div class="band">
+    <div class="kicker">SPiER · Suicide Prevention in Electronic Records</div>
+    <h1>Suicide-safer care, built into the <span class="accent">EHR</span></h1>
+    <div class="tagline"><strong>Built around people. Enabled by technology.</strong> &nbsp;A Zero Suicide–aligned initiative at no cost to participating sites.</div>
+  </div>
+
+  <div class="body">
+    <p class="lead">SPiER embeds evidence-based suicide screening, assessment, and safety-planning tools <strong>natively into electronic health records</strong> — written as discrete, coded data instead of forms attached to the chart — so risk is visible, triggers the right next step, and follows the patient across care settings.</p>
+
+    <div class="cols">
+      <div class="col">
+        <div class="problem">
+          <h2>Why native, coded tools matter</h2>
+          <p>Many health systems have rebuilt screening tools in EHR form builders — but the result is usually a document attached to the chart. Nothing downstream can act on it, and no receiving clinician has time to open ninety CCDs looking for suicidality.</p>
+          <p>When a PHQ-9 or C-SSRS writes to a <strong>coded observation</strong>, the EHR can flag risk, queue the follow-up assessment, and share a machine-readable signal with the next facility — even one on a different EHR.</p>
+        </div>
+
+        <div>
+          <h2>The approach</h2>
+          <div class="pillars">
+            <div class="pillar">
+              <div class="num">1</div>
+              <div><h3>Capture</h3><p>Standardized tools built into the EHR base product, writing discrete LOINC/SNOMED-coded results — deployed vendor-wide, not site by site.</p></div>
+            </div>
+            <div class="pillar">
+              <div class="num">2</div>
+              <div><h3>Translate</h3><p>Tool-specific results map to a common suicide-risk indicator, so sites using different instruments can still understand each other.</p></div>
+            </div>
+            <div class="pillar">
+              <div class="num">3</div>
+              <div><h3>Act</h3><p>Coded results trigger follow-up workflows and recommendations — within a site, and across sites through health information exchange.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div>
+          <h2>What SPiER provides — at no cost</h2>
+          <ul class="checks">
+            <li><strong>Tool selection guidance</strong> matched to your settings and workflows (ED, inpatient, primary care, behavioral health)</li>
+            <li><strong>Complete developer build specs</strong> — FHIR artifacts plus visual build references for every tool</li>
+            <li><strong>Adoption guide and data dictionary</strong> with LOINC and SNOMED codes for each instrument and answer</li>
+            <li><strong>Licensing agreements</strong> negotiated centrally with tool authors</li>
+            <li><strong>Clinician training and implementation support</strong>, grounded in the Zero Suicide framework</li>
+            <li><strong>Research and evaluation partnership</strong> to measure impact — including statewide, cross-site outcomes</li>
+          </ul>
+        </div>
+
+        <div class="license-box">
+          <h2>Licensing, answered</h2>
+          <p>Most instruments carry <strong>no cost to sites</strong>. SPiER holds or arranges the agreements, and helps match tools to the right setting — including which tools are appropriate for patient self-completion and which require clinician administration.</p>
+          <div class="license-row"><span class="license-tag">Public domain</span><span>ASQ (NIMH), PHQ-9, SBQ-R, PSS-3, BSSA</span></div>
+          <div class="license-row"><span class="license-tag">Free w/ registration</span><span>Columbia C-SSRS (screener and full)</span></div>
+          <div class="license-row"><span class="license-tag">Licensed + training</span><span>Stanley-Brown Safety Plan, CAMS — agreements in place; authors require clinician training before use</span></div>
+          <div class="license-row"><span class="license-tag">Vendor-level</span><span>EHR-vendor licensing (e.g., Oracle Health licensing for its whole client base) is negotiated separately from site licensing — SPiER supports both paths</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="orgs">Funded by the <strong>Four Pines Foundation</strong> · Administered through <strong>Zero Overdose</strong> · Evaluation by <strong>JG Research &amp; Evaluation</strong> · Protocols aligned to the <strong>Zero Suicide</strong> framework</div>
+    <div class="link">Interactive adoption guide &amp; live demo<br><strong>spier-adoption-guide.bbthorson.workers.dev</strong></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE 2 · BACK ══════════════════ -->
+<div class="page">
+  <div class="band compact">
+    <div class="kicker">The Patient Roadmap</div>
+    <h1>The SPiER suicide-safer <span class="accent">care pathway</span></h1>
+    <div class="tagline">Eight EHR-supported stages, aligned to the Zero Suicide framework — each with validated tools that write structured, shareable data.</div>
+  </div>
+
+  <div class="body">
+    <div class="legend">
+      <span><span class="chip">Tool</span>&nbsp; FHIR specification available today</span>
+      <span><span class="chip roadmap">Tool</span>&nbsp; Catalogued — on the roadmap</span>
+    </div>
+
+    <div class="stages">
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">1</div><h3>Identify Possible Risk</h3></div>
+        <p class="desc">Find a suicide-risk signal at any point of care and determine whether more review is needed.</p>
+        <div class="chips"><span class="chip">ASQ</span><span class="chip">PHQ-9 Item 9</span><span class="chip">C-SSRS Screener</span><span class="chip">SBQ-R</span><span class="chip roadmap">C-SSRS Pediatric</span><span class="chip roadmap">PSS-3</span><span class="chip roadmap">Positive-Screen Workflow Trigger</span></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">2</div><h3>Clarify Risk</h3></div>
+        <p class="desc">Determine what is going on clinically: thoughts, plan, intent, behavior history, access to means, risk and protective factors.</p>
+        <div class="chips"><span class="chip">C-SSRS Full</span><span class="chip">CAMS SSF-5</span><span class="chip roadmap">NIMH BSSA</span><span class="chip roadmap">C-SSRS Since Last Contact</span><span class="chip roadmap">CARS-S</span><span class="chip roadmap">Local Assessment</span></div>
+      </div>
+
+      <div class="flow-note">
+        <div class="bolt">⚡</div>
+        <div><strong>Automated hand-off between stages:</strong> a positive ASQ result or any endorsement of PHQ-9 Item&nbsp;9 automatically surfaces the Clarify Risk assessments — no one has to remember to order the next step.</div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">3</div><h3>Define the Risk Picture</h3></div>
+        <p class="desc">Document the current risk status and the clinical reasoning that guides next steps.</p>
+        <div class="chips"><span class="chip">CAMS Therapeutic Worksheet</span><span class="chip roadmap">SAFE-T</span></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">4</div><h3>Document Safety Actions</h3></div>
+        <p class="desc">Record the concrete actions taken to reduce risk — safety planning, lethal-means safety, crisis resources.</p>
+        <div class="chips"><span class="chip">Stanley-Brown Safety Plan</span><span class="chip">CAMS Stabilization Plan</span><span class="chip roadmap">Lethal Means Safety / CALM</span><span class="chip roadmap">Crisis Response Plan</span><span class="chip roadmap">Crisis Resources (988)</span></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">5</div><h3>Coordinate Handoffs</h3></div>
+        <p class="desc">Transfer safety information, responsibility, and follow-up details across people, settings, and time.</p>
+        <div class="chips"><span class="chip roadmap">Safety Handoff Checklist</span><span class="chip roadmap">Discharge Safety Packet</span><span class="chip roadmap">Referral Handoff</span><span class="chip roadmap">Next-Appointment Scheduling</span><span class="chip roadmap">Consent / Sharing Status</span></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">6</div><h3>Track Follow-Up</h3></div>
+        <p class="desc">Track whether outreach and follow-up actually happen after the immediate encounter.</p>
+        <div class="chips"><span class="chip roadmap">Outreach / Contact Attempts</span><span class="chip roadmap">Caring Contacts</span><span class="chip roadmap">Appointment Tracking</span><span class="chip roadmap">No-Show Follow-Up</span><span class="chip roadmap">Escalation Workflow</span></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">7</div><h3>Track Risk Over Time</h3></div>
+        <p class="desc">Keep active suicide-safer care episodes visible, trackable, and escalated when needed.</p>
+        <div class="chips"><span class="chip roadmap">Registry / Work Queue</span><span class="chip roadmap">Episode Status</span><span class="chip roadmap">Reassessment Schedule</span><span class="chip roadmap">Care-Gap Tracking</span><span class="chip roadmap">Overdue Escalation</span></div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><div class="stage-num">8</div><h3>Measure &amp; Share the Data</h3></div>
+        <p class="desc">Make pathway activity usable for quality improvement, reporting, and cross-site information sharing.</p>
+        <div class="chips"><span class="chip roadmap">KPI / Measure Reporting</span><span class="chip roadmap">Dashboard</span><span class="chip roadmap">Analytics Extract</span><span class="chip roadmap">Interoperability Output</span></div>
+      </div>
+    </div>
+
+    <div class="interop">
+      <div class="cell">
+        <h4>Discrete &amp; coded</h4>
+        <p>Every tool writes <strong>LOINC/SNOMED-coded observations</strong>, not attached documents — data the EHR, analytics, and AI tools can actually use.</p>
+      </div>
+      <div class="cell">
+        <h4>One common risk signal</h4>
+        <p>Tool-specific results roll up to a <strong>shared suicide-risk indicator</strong>, so a patient screened with the ASQ at one site is recognized at a site using the C-SSRS.</p>
+      </div>
+      <div class="cell">
+        <h4>Across settings &amp; EHRs</h4>
+        <p>Structured results travel through <strong>health information exchange</strong>, flagging risk when patients move between facilities and platforms.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="orgs"><strong>SPiER</strong> · Suicide Prevention in Electronic Records · Free tooling, training, and implementation support for participating sites</div>
+    <div class="link">Explore every tool, spec, and code set<br><strong>spier-adoption-guide.bbthorson.workers.dev</strong></div>
+  </div>
+</div>
+
+</body>
+</html>
