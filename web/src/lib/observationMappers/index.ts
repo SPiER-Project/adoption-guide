@@ -41,9 +41,10 @@ import { mapCSSRSSinceLastContact } from './cssrsSinceLastContact'
 import { mapCSSRSFull } from './cssrsFull'
 import { mapCAMSSectionA } from './camsSectionA'
 import { mapCAMSSectionB } from './camsSectionB'
+import { mapCAMSOutcomeDisposition } from './camsOutcomeDisposition'
 
 // Re-export individual mappers for tests / direct invocation
-export { mapPHQ9, mapASQ, mapBSSA, mapPSS3, mapSAFET, mapSBQR, mapCSSRSScreener, mapCSSRSSinceLastContact, mapCSSRSFull, mapCAMSSectionA, mapCAMSSectionB }
+export { mapPHQ9, mapASQ, mapBSSA, mapPSS3, mapSAFET, mapSBQR, mapCSSRSScreener, mapCSSRSSinceLastContact, mapCSSRSFull, mapCAMSSectionA, mapCAMSSectionB, mapCAMSOutcomeDisposition }
 
 const SPIER_Q = 'http://spier.org/Questionnaire'
 
@@ -63,6 +64,7 @@ const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: QuestionnaireResponseReso
   [`${SPIER_Q}/C-SSRS-Full-Lifetime-Recent`]: mapCSSRSFull,
   [`${SPIER_Q}/CAMS-SSF5-SectionA`]: mapCAMSSectionA,
   [`${SPIER_Q}/CAMS-SSF5-SectionB`]: mapCAMSSectionB,
+  [`${SPIER_Q}/CAMS-SSF5-OutcomeDisposition`]: mapCAMSOutcomeDisposition,
 }
 
 export interface DispatchOptions {

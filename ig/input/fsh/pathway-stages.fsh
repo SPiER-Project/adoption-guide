@@ -198,8 +198,14 @@ Usage: #definition
 * action[+]
   * id = "administer-cams-outcome-disposition"
   * title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
-  * description = "Episode closure, disposition, and next-step planning. Placeholder — no Questionnaire binding yet."
+  * description = "Final CAMS session: re-rate SSF vitals and record the episode disposition. Yields SSF Vital Observations plus a disposition Observation (SPiERCAMSOutcomeDisposition)."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cams-ssf-vital"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cams-outcome-disposition"
 // BSSA and C-SSRS Since Last Visit are fully FHIR-modelled (bssa.fsh, cssrs.fsh).
 // The remaining placeholder tools below (see pathway-tool-placeholders.fsh) are
 // catalogued but not yet fully FHIR-modelled, so no output profile is declared.

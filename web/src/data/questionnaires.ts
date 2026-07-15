@@ -30,6 +30,7 @@ import cssrsSinceLastContactJson from '../../../FHIR-Resources/C-SSRS/cssrs-sinc
 import cssrsFullJson from '../../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
 import camsSectionAJson from '../../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
 import camsSectionBJson from '../../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
+import camsOutcomeDispositionJson from '../../../FHIR-Resources/CAMS/cams-ssf5-outcome-disposition.json'
 import camsStabilizationPlanJson from '../../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
 import camsTherapeuticWorksheetJson from '../../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
 import crpJson from '../../../FHIR-Resources/CRP/crp-questionnaire.json'
@@ -48,6 +49,7 @@ export const cssrsSinceLastContact = cssrsSinceLastContactJson as unknown as Que
 export const cssrsFull = cssrsFullJson as unknown as QuestionnaireResource
 export const camsSectionA = camsSectionAJson as unknown as QuestionnaireResource
 export const camsSectionB = camsSectionBJson as unknown as QuestionnaireResource
+export const camsOutcomeDisposition = camsOutcomeDispositionJson as unknown as QuestionnaireResource
 export const camsStabilizationPlan = camsStabilizationPlanJson as unknown as QuestionnaireResource
 export const camsTherapeuticWorksheet = camsTherapeuticWorksheetJson as unknown as QuestionnaireResource
 export const crpQuestionnaire = crpJson as unknown as QuestionnaireResource
@@ -64,6 +66,7 @@ const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   cssrsFull,
   camsSectionA,
   camsSectionB,
+  camsOutcomeDisposition,
   camsStabilizationPlan,
   camsTherapeuticWorksheet,
   crpQuestionnaire,
