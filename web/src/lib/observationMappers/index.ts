@@ -33,6 +33,7 @@ import { recognizeInstrument, normalizeToSpierQr } from './fallbackDispatch'
 import { mapPHQ9 } from './phq9'
 import { mapASQ } from './asq'
 import { mapBSSA } from './bssa'
+import { mapPSS3 } from './pss3'
 import { mapSBQR } from './sbqr'
 import { mapCSSRSScreener } from './cssrsScreener'
 import { mapCSSRSFull } from './cssrsFull'
@@ -40,7 +41,7 @@ import { mapCAMSSectionA } from './camsSectionA'
 import { mapCAMSSectionB } from './camsSectionB'
 
 // Re-export individual mappers for tests / direct invocation
-export { mapPHQ9, mapASQ, mapBSSA, mapSBQR, mapCSSRSScreener, mapCSSRSFull, mapCAMSSectionA, mapCAMSSectionB }
+export { mapPHQ9, mapASQ, mapBSSA, mapPSS3, mapSBQR, mapCSSRSScreener, mapCSSRSFull, mapCAMSSectionA, mapCAMSSectionB }
 
 const SPIER_Q = 'http://spier.org/Questionnaire'
 
@@ -52,6 +53,7 @@ const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: QuestionnaireResponseReso
   [`${SPIER_Q}/PHQ-9`]: mapPHQ9,
   [`${SPIER_Q}/ASQ-Screening-Tool`]: mapASQ,
   [`${SPIER_Q}/BSSA`]: mapBSSA,
+  [`${SPIER_Q}/PSS-3`]: mapPSS3,
   [`${SPIER_Q}/SBQ-R`]: mapSBQR,
   [`${SPIER_Q}/C-SSRS-Screener`]: mapCSSRSScreener,
   [`${SPIER_Q}/C-SSRS-Full-Lifetime-Recent`]: mapCSSRSFull,

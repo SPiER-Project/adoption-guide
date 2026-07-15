@@ -1,0 +1,213 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "PSS-3",
+  "url": "http://spier.org/Questionnaire/PSS-3",
+  "version": "1.0.0",
+  "name": "PSS3",
+  "title": "PSS-3 — Patient Safety Screener 3",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-07-15",
+  "publisher": "SPiER Project (FHIR translation of the ED-SAFE Patient Safety Screener 3)",
+  "description": "FHIR Questionnaire representation of the Patient Safety Screener 3 (PSS-3), a brief universal suicide-risk screen for emergency departments and inpatient medical settings (ages 12+). Three questions cover depression, active suicidal ideation in the past two weeks, and lifetime suicide attempt (with a recency follow-up). Source: ED-SAFE study (Boudreaux et al.); printable tool distributed by the Suicide Prevention Resource Center (SPRC) and SAMHSA.",
+  "purpose": "Universal suicide-risk screening in acute care. A positive screen (active ideation in the past two weeks, or a suicide attempt within the last six months) should trigger a secondary risk-stratification assessment (Clarify Risk). PILOT STATUS: the PSS-3 has no published panel or per-item LOINC codes; the root panel code and the three screening items use SPiER-local CodeSystems marked 'no-standard-binding'. The computed result rides on the generic LOINC 93374-7 ('Suicide risk level'), consistent with the ASQ result and the harmonized concept layer.",
+  "copyright": "The Patient Safety Screener (PSS-3) was developed through the ED-SAFE study (funded by the National Institute of Mental Health) and is distributed as a free, public resource by SAMHSA and the Suicide Prevention Resource Center. No permission or fee is required for use.",
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "focus",
+        "display": "Clinical Focus"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "225337009",
+            "display": "Suicide risk assessment"
+          }
+        ]
+      }
+    },
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "venue",
+        "display": "Clinical Venue"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+            "code": "ER",
+            "display": "Emergency Room"
+          },
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+            "code": "HOSP",
+            "display": "Hospital"
+          }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "http://spier.org/CodeSystem/pss3-panel",
+      "code": "pss3",
+      "display": "Patient Safety Screener 3 (PSS-3) panel",
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/coding-verification-status",
+          "valueCode": "no-standard-binding"
+        }
+      ]
+    }
+  ],
+  "item": [
+    {
+      "linkId": "opening-script",
+      "text": "Opening script: “Now I’m going to ask you some questions that we ask everyone treated here, no matter what problem they are here for. It is part of the hospital’s policy and it helps us to make sure we are not missing anything important.” (Ages 12+. Ask the three questions exactly as worded; if Question 3 is Yes, ask 3a.)",
+      "type": "display"
+    },
+    {
+      "linkId": "q1-depression",
+      "text": "In the past two weeks, have you felt down, depressed, or hopeless?",
+      "type": "choice",
+      "required": true,
+      "code": [
+        {
+          "system": "http://spier.org/CodeSystem/pss3-item",
+          "code": "depression-2wk",
+          "display": "Depression in the past two weeks",
+          "extension": [
+            { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+          ]
+        }
+      ],
+      "answerOption": [
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "unable-to-complete", "display": "Patient unable to complete" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "patient-refused", "display": "Patient refused" } }
+      ],
+      "extension": [
+        { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+      ]
+    },
+    {
+      "linkId": "q2-ideation",
+      "text": "In the past two weeks, have you had thoughts of killing yourself? (A patient presenting with a current suicide attempt is an automatic Yes on Items 2 and 3.)",
+      "type": "choice",
+      "required": true,
+      "code": [
+        {
+          "system": "http://spier.org/CodeSystem/pss3-item",
+          "code": "active-ideation-2wk",
+          "display": "Active suicidal ideation in the past two weeks",
+          "extension": [
+            { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+          ]
+        }
+      ],
+      "answerOption": [
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "unable-to-complete", "display": "Patient unable to complete" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "patient-refused", "display": "Patient refused" } }
+      ],
+      "extension": [
+        { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+      ]
+    },
+    {
+      "linkId": "q3-lifetime-attempt",
+      "text": "In your lifetime, have you ever attempted to kill yourself? (A patient presenting with a current suicide attempt is an automatic Yes.)",
+      "type": "choice",
+      "required": true,
+      "code": [
+        {
+          "system": "http://spier.org/CodeSystem/pss3-item",
+          "code": "lifetime-attempt",
+          "display": "Lifetime suicide attempt",
+          "extension": [
+            { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+          ]
+        }
+      ],
+      "answerOption": [
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+        { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "unable-to-complete", "display": "Patient unable to complete" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "patient-refused", "display": "Patient refused" } }
+      ],
+      "extension": [
+        { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+      ]
+    },
+    {
+      "linkId": "q3a-recency",
+      "text": "If yes, when did this happen?",
+      "type": "choice",
+      "required": false,
+      "enableWhen": [
+        {
+          "question": "q3-lifetime-attempt",
+          "operator": "=",
+          "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" }
+        }
+      ],
+      "answerOption": [
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-attempt-recency", "code": "within-24-hours", "display": "Within past 24 hours (including today)" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-attempt-recency", "code": "within-last-month", "display": "Within last month (but not today)" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-attempt-recency", "code": "between-1-and-6-months", "display": "Between 1 and 6 months ago" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-attempt-recency", "code": "more-than-6-months", "display": "More than 6 months ago" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "unable-to-complete", "display": "Patient unable to complete" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-answer", "code": "patient-refused", "display": "Patient refused" } }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              { "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "radio-button", "display": "Radio Button" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "linkId": "result",
+      "text": "Screening result",
+      "type": "choice",
+      "required": false,
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "93374-7",
+          "display": "Suicide risk level",
+          "extension": [
+            { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "verified" }
+          ]
+        }
+      ],
+      "answerOption": [
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-result", "code": "negative", "display": "Negative Screen" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/pss3-result", "code": "positive", "display": "Positive Screen (suicide risk)" } }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              { "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "drop-down", "display": "Drop down" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

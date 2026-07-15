@@ -70,6 +70,14 @@ Usage: #definition
   * output[+]
     * type = #Observation
     * profile = "http://spier.org/StructureDefinition/spier-sbqr-total-score"
+* action[+]
+  * id = "administer-pss3"
+  * title = "Administer Patient Safety Screener-3 (PSS-3)"
+  * description = "Brief universal acute-care suicide screen. Yields a binary result Observation (SPiERPSS3Result); a positive result triggers the Clarify Risk stage."
+  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerPSS3"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-pss3-result"
 // Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
 // fully FHIR-modelled, so no output profile is declared.
 * action[+]
@@ -77,11 +85,6 @@ Usage: #definition
   * title = "Administer C-SSRS Pediatric / Adolescent Version"
   * description = "Age-appropriate C-SSRS screening. Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCSSRSPediatric"
-* action[+]
-  * id = "administer-pss3"
-  * title = "Administer Patient Safety Screener-3 (PSS-3)"
-  * description = "Brief acute-care suicide screen. Placeholder — no Questionnaire binding yet."
-  * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerPSS3"
 * action[+]
   * id = "trigger-suicide-risk-workflow"
   * title = "Positive Screen Flag / Suicide-Risk Workflow Trigger"
@@ -122,6 +125,22 @@ Usage: #definition
       * codeFilter[+]
         * path = "value"
         * valueSet = "http://spier.org/ValueSet/asq-result-positive"
+* action[+]
+  * id = "on-pss3-positive"
+  * title = "Evaluate Clarify Risk activities after a positive PSS-3"
+  * description = "Fires when an Observation conformant to the SPiER PSS-3 Result profile is recorded with a value in the PSS-3 Positive Result ValueSet."
+  * trigger[+]
+    * type = #data-added
+    * name = "pss3-positive-result"
+    * data[+]
+      * type = #Observation
+      * profile[+] = "http://spier.org/StructureDefinition/spier-pss3-result"
+      * codeFilter[+]
+        * path = "code"
+        * code = http://loinc.org#93374-7
+      * codeFilter[+]
+        * path = "value"
+        * valueSet = "http://spier.org/ValueSet/pss3-result-positive"
 * action[+]
   * id = "on-phq9-item9-positive"
   * title = "Evaluate Clarify Risk activities after PHQ-9 Item 9 positive"

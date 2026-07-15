@@ -52,6 +52,12 @@ const EXPECTED = {
     '93374-7', 'current-ideation', 'suicide-plan', 'intent-scale',
     'past-suicide-attempt', 'needs-help-to-be-safe',
   ],
+  // PSS-3 has NO published panel/per-item LOINC codes. The three screening
+  // items bind to the SPiER-local http://spier.org/CodeSystem/pss3-item; the
+  // result is COMPUTED (not observationExtract-declared). Match web/src/lib/observationMappers/pss3.ts.
+  'FHIR-Resources/PSS-3/pss3-questionnaire.json': [
+    'depression-2wk', 'active-ideation-2wk', 'lifetime-attempt',
+  ],
 }
 
 function* walk(items) {

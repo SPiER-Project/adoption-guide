@@ -404,6 +404,52 @@ export const DATA_ELEMENTS: DataElement[] = [
     description: 'BSSA safety-plan check. A "yes" is a reason to act immediately; a "no" does not by itself indicate the patient is safe.',
   },
 
+  // ── PSS-3 (Patient Safety Screener 3) ──
+  {
+    id: 'pss3-result',
+    name: 'PSS-3 Screening Result',
+    code: '93374-7',
+    codeSystem: 'LOINC',
+    codeDisplay: 'Suicide risk level',
+    fhirResource: 'Observation',
+    fhirPath: 'valueCodeableConcept',
+    usedBy: ['TL-011'],
+    description: 'Binary PSS-3 suicide-risk result. Positive if active ideation in the past two weeks (item 2) or a suicide attempt within the last six months (item 3a); a positive result triggers Clarify Risk. Value = SPiER-local pss3-result; crosswalked to the common suicide-risk tier.',
+  },
+  {
+    id: 'pss3-depression',
+    name: 'Depression (past two weeks)',
+    code: 'depression-2wk',
+    codeSystem: 'http://spier.org/CodeSystem/pss3-item',
+    codeDisplay: 'In the past two weeks, have you felt down, depressed, or hopeless',
+    fhirResource: 'Observation',
+    fhirPath: 'valueCodeableConcept',
+    usedBy: ['TL-011'],
+    description: 'PSS-3 Item 1: depression lead-in. Not counted toward the suicide-risk result.',
+  },
+  {
+    id: 'pss3-active-ideation',
+    name: 'Active suicidal ideation (past two weeks)',
+    code: 'active-ideation-2wk',
+    codeSystem: 'http://spier.org/CodeSystem/pss3-item',
+    codeDisplay: 'In the past two weeks, have you had thoughts of killing yourself',
+    fhirResource: 'Observation',
+    fhirPath: 'valueCodeableConcept',
+    usedBy: ['TL-011'],
+    description: 'PSS-3 Item 2: active suicidal ideation. A "yes" is a positive suicide-risk screen.',
+  },
+  {
+    id: 'pss3-lifetime-attempt',
+    name: 'Lifetime suicide attempt',
+    code: 'lifetime-attempt',
+    codeSystem: 'http://spier.org/CodeSystem/pss3-item',
+    codeDisplay: 'In your lifetime, have you ever attempted to kill yourself',
+    fhirResource: 'Observation',
+    fhirPath: 'valueCodeableConcept',
+    usedBy: ['TL-011'],
+    description: 'PSS-3 Item 3: lifetime suicide attempt. A recent attempt (within ~6 months, item 3a) is a positive screen.',
+  },
+
   // ── Stanley-Brown Safety Plan ──
   {
     id: 'sb-warning-signs',

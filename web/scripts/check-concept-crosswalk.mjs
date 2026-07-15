@@ -42,6 +42,7 @@ const TIER_URL = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
 const MAPPER_FOR_SOURCE = {
   'http://spier.org/CodeSystem/asq-screening-result': ['web/src/lib/observationMappers/asq.ts'],
   'http://spier.org/CodeSystem/bssa-disposition': ['web/src/lib/observationMappers/bssa.ts'],
+  'http://spier.org/CodeSystem/pss3-result': ['web/src/lib/observationMappers/pss3.ts'],
   'http://spier.org/CodeSystem/cssrs-risk-level': [
     'web/src/lib/observationMappers/cssrsScreener.ts',
     'web/src/lib/observationMappers/cssrsFull.ts',
