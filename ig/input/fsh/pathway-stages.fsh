@@ -78,13 +78,16 @@ Usage: #definition
   * output[+]
     * type = #Observation
     * profile = "http://spier.org/StructureDefinition/spier-pss3-result"
-// Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
-// fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "administer-cssrs-pediatric"
   * title = "Administer C-SSRS Pediatric / Adolescent Version"
-  * description = "Age-appropriate C-SSRS screening. Placeholder — no Questionnaire binding yet."
+  * description = "Pediatric/adolescent C-SSRS screening. Yields a suicide-risk-level Observation (shared SPiERCSSRSRiskLevel profile)."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerCSSRSPediatric"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
+// Placeholder tool (see pathway-tool-placeholders.fsh) — catalogued but not yet
+// fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "trigger-suicide-risk-workflow"
   * title = "Positive Screen Flag / Suicide-Risk Workflow Trigger"

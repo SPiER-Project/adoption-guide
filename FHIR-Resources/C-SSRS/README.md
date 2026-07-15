@@ -27,6 +27,12 @@ The C-SSRS is the gold-standard suicide risk assessment tool, developed at Colum
 - The interval framing is expressed in the title/description/instruction; item wording is unchanged (per the Columbia registration terms). The interval-scoped behavior item drops the "within past 3 months" recency sub-question.
 - Belongs to the **Clarify Risk** stage as a repeat assessment.
 
+### C-SSRS Pediatric / Adolescent Screener (TL-027)
+- Same **validated 6-item screener** set + LOINC codes, targeted at **pediatric/adolescent** settings (pediatric `useContext`, age = Child), with a parent/guardian involvement instruction.
+- Shares the LOINC screener panel **93373-9** and the derived `SPiERCSSRSRiskLevel` Observation, so it reuses the same crosswalk to the common suicide-risk tier.
+- Uses the standard adolescent-validated wording. The Columbia Lighthouse Project's separate younger-child "Children's" simplified wording is a **pending licensing/verification gate** (see `licensing/MEMO.md`) — not fabricated here.
+- Belongs to the **Identify Possible Risk** stage.
+
 ## Suicidal Ideation Hierarchy (5 Levels)
 
 | Level | Description | Risk Tier |

@@ -1,0 +1,212 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "C-SSRS-Pediatric",
+  "url": "http://spier.org/Questionnaire/C-SSRS-Pediatric",
+  "version": "1.0.0",
+  "name": "CSSRS_Pediatric",
+  "title": "Columbia-Suicide Severity Rating Scale — Pediatric / Adolescent Screener",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-07-15",
+  "publisher": "SPiER Project (FHIR translation)",
+  "description": "FHIR Questionnaire representation of the C-SSRS Screener for pediatric and adolescent patients. The C-SSRS is validated for use with youth; this encoding uses the standard validated screener item wording (the same 6-item set, LOINC codes, conditional logic, and three-tier risk stratification as the adult/recent Screener) targeted at pediatric/adolescent care settings. NOTE: the Columbia Lighthouse Project also maintains a separate Children's version with simplified age-appropriate wording for younger children; publishing that younger-child wording is a pending licensing/verification gate (see licensing/MEMO.md). Until confirmed, this Questionnaire reuses the validated screener wording rather than fabricating unverified pediatric text.",
+  "purpose": "Screen pediatric and adolescent patients for suicide risk. Questions 1-2 are always asked; Questions 3-5 are conditional on Q2=Yes; Question 6 (suicidal behavior) is always asked. Risk tiers: Q1-Q2 positive = Low, Q3-Q4 positive = Moderate, Q5 or Q6 positive = High. Belongs to the Identify Possible Risk stage. For youth, involve a parent/guardian per protocol.",
+  "copyright": "© 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. Used with registration; training required for administration. Pediatric/youth versions are maintained by the Columbia Lighthouse Project. For inquiries and training: posnerk@nyspi.columbia.edu",
+  "useContext": [
+    {
+      "code": { "system": "http://terminology.hl7.org/CodeSystem/usage-context-type", "code": "focus", "display": "Clinical Focus" },
+      "valueCodeableConcept": {
+        "coding": [{ "system": "http://snomed.info/sct", "code": "225337009", "display": "Suicide risk assessment" }]
+      }
+    },
+    {
+      "code": { "system": "http://terminology.hl7.org/CodeSystem/usage-context-type", "code": "age", "display": "Age Range" },
+      "valueCodeableConcept": {
+        "coding": [{ "system": "http://snomed.info/sct", "code": "67822003", "display": "Child" }]
+      }
+    },
+    {
+      "code": { "system": "http://terminology.hl7.org/CodeSystem/usage-context-type", "code": "venue", "display": "Clinical Venue" },
+      "valueCodeableConcept": {
+        "coding": [
+          { "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "PEDC", "display": "Pediatrics clinic" },
+          { "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "ER", "display": "Emergency Room" }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "http://loinc.org",
+      "code": "93373-9",
+      "display": "Columbia-suicide severity rating scale screener - recent"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "pediatric-instruction",
+      "text": "Pediatric / adolescent administration. For youth, ask the parent/guardian about the child's history of suicidal thoughts, plans, or behaviors, and changes in mood or behavior, per protocol.",
+      "type": "display"
+    },
+    {
+      "linkId": "ideation-section",
+      "text": "Suicide Ideation",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "q1",
+          "text": "Have you wished you were dead or wished you could go to sleep and not wake up?",
+          "type": "choice",
+          "required": true,
+          "code": [
+            { "system": "http://loinc.org", "code": "93246-7", "display": "Wish to be dead" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "q2",
+          "text": "Have you actually had any thoughts of killing yourself?",
+          "type": "choice",
+          "required": true,
+          "code": [
+            { "system": "http://loinc.org", "code": "93247-5", "display": "Non-specific active suicidal thoughts" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "q3",
+          "text": "Have you been thinking about how you might do this?",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            { "question": "q2", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+          ],
+          "code": [
+            { "system": "http://loinc.org", "code": "93248-3", "display": "Active suicidal ideation with any methods (not plan) without intent to act" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "q4",
+          "text": "Have you had these thoughts and had some intention of acting on them?",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            { "question": "q2", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+          ],
+          "code": [
+            { "system": "http://loinc.org", "code": "93249-1", "display": "Active suicidal ideation with some intent to act without specific plan" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "q5",
+          "text": "Have you started to work out or worked out the details of how to kill yourself? Do you intend to carry out this plan?",
+          "type": "choice",
+          "required": true,
+          "enableWhen": [
+            { "question": "q2", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+          ],
+          "code": [
+            { "system": "http://loinc.org", "code": "93250-9", "display": "Active suicidal ideation with specific plan and intent" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "behavior-section",
+      "text": "Suicidal Behavior",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "q6",
+          "text": "Have you ever done anything, started to do anything, or prepared to do anything to end your life?",
+          "type": "choice",
+          "required": true,
+          "code": [
+            { "system": "http://loinc.org", "code": "93267-3", "display": "Have you ever done anything, started to do anything, or prepared to do anything to end your life" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "q6-recent",
+          "text": "Was this within the past three months?",
+          "type": "choice",
+          "required": false,
+          "enableWhen": [
+            { "question": "q6", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+          ],
+          "code": [
+            { "system": "http://loinc.org", "code": "93269-9", "display": "Was this within the past 3 months" }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "risk-level",
+      "text": "Suicide Risk Level",
+      "type": "choice",
+      "required": true,
+      "code": [
+        { "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }
+      ],
+      "answerOption": [
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "low", "display": "Low Risk" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "moderate", "display": "Moderate Risk" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "high", "display": "High Risk" } }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [{ "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "radio-button", "display": "Radio Button" }]
+          }
+        }
+      ]
+    }
+  ]
+}
