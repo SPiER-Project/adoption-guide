@@ -11,6 +11,7 @@ For the **canonical, machine-readable** SPiER FHIR artifacts — Profiles, Value
 | [ASQ/](ASQ/) | Flag Risk (1) | NIMH 5-item suicide screener (4 screening questions + 1 acuity question) Questionnaire + ValueSet + 3 CodeSystems |
 | [BSSA/](BSSA/) | Clarify Risk (2) | NIMH Brief Suicide Safety Assessment (post-positive-screen clinician guide) Questionnaire → disposition Observation + disposition→risk-tier crosswalk |
 | [PHQ-9/](PHQ-9/) | Flag Risk (1) | 9-item depression screener Questionnaire (Item 9 → Clarify Risk trigger) |
+| [PSS-3/](PSS-3/) | Identify Possible Risk (1) | ED-SAFE 3-item universal acute-care suicide screen → positive/negative result Observation (positive → Clarify Risk trigger) + result→risk-tier crosswalk |
 | [C-SSRS/](C-SSRS/) | Flag Risk (1), Clarify Risk (2) | Screener + Full (Lifetime/Recent) Questionnaires |
 | [SBQ-R/](SBQ-R/) | Flag Risk (1) | 4-item Suicide Behaviors Questionnaire-Revised |
 | [CAMS/](CAMS/) | Clarify Risk (2), Set Risk Status (3), Document Safety Actions (4), Manage Active Risk (7) | SSF-5 Section A/B, Therapeutic Worksheet, Stabilization Plan Questionnaires + reference material |

@@ -9,6 +9,7 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import {
   asqQuestionnaire,
   bssaQuestionnaire,
+  pss3Questionnaire,
   phq9Questionnaire,
   sbqrQuestionnaire,
   cssrsScreener,
@@ -123,6 +124,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/bssa" element={
             <QuestionnaireView title="BSSA — Brief Suicide Safety Assessment" questionnaire={bssaQuestionnaire} persistName="BSSA" />
+          } />
+          <Route path="assessments/pss-3" element={
+            <QuestionnaireView title="PSS-3 — Patient Safety Screener" questionnaire={pss3Questionnaire} persistName="PSS-3" />
           } />
           <Route path="assessments/sbq-r" element={
             <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />

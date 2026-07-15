@@ -21,6 +21,7 @@ import type { QuestionnaireResource } from '../types/fhir'
 // here, so the raw JSON paths live in exactly one place.
 import asq from '../../../FHIR-Resources/ASQ/asq-questionnaire.json'
 import bssa from '../../../FHIR-Resources/BSSA/bssa-questionnaire.json'
+import pss3 from '../../../FHIR-Resources/PSS-3/pss3-questionnaire.json'
 import phq9 from '../../../FHIR-Resources/PHQ-9/phq9-questionnaire.json'
 import sbqr from '../../../FHIR-Resources/SBQ-R/sbqr-questionnaire.json'
 import cssrsScreenerJson from '../../../FHIR-Resources/C-SSRS/cssrs-screener.json'
@@ -35,6 +36,7 @@ const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
 /** Named Questionnaire resources — the canonical, typed registry entries. */
 export const asqQuestionnaire = asq as unknown as QuestionnaireResource
 export const bssaQuestionnaire = bssa as unknown as QuestionnaireResource
+export const pss3Questionnaire = pss3 as unknown as QuestionnaireResource
 export const phq9Questionnaire = phq9 as unknown as QuestionnaireResource
 export const sbqrQuestionnaire = sbqr as unknown as QuestionnaireResource
 export const cssrsScreener = cssrsScreenerJson as unknown as QuestionnaireResource
@@ -47,6 +49,7 @@ export const camsTherapeuticWorksheet = camsTherapeuticWorksheetJson as unknown 
 const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   asqQuestionnaire,
   bssaQuestionnaire,
+  pss3Questionnaire,
   phq9Questionnaire,
   sbqrQuestionnaire,
   cssrsScreener,

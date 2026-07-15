@@ -124,6 +124,20 @@ const BSSA_DISPOSITION_EXAMPLE = {
   interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Further evaluation of risk is necessary' }] }],
 }
 
+const PSS3_RESULT_EXAMPLE = {
+  resourceType: 'Observation',
+  id: 'pss3-result-example',
+  status: 'final',
+  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
+  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
+  subject: { reference: 'Patient/123' },
+  effectiveDateTime: '2026-07-15T09:10:00Z',
+  valueCodeableConcept: {
+    coding: [{ system: 'http://spier.org/CodeSystem/pss3-result', code: 'positive', display: 'Positive Screen (suicide risk)' }],
+  },
+  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Positive suicide-risk screen' }] }],
+}
+
 const CAMS_VITAL_EXAMPLE = {
   resourceType: 'Observation',
   id: 'cams-psychological-pain-example',
@@ -209,11 +223,22 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-011': {
     shortName: 'PSS-3',
+    licensing: 'public-domain',
     inclusionStatus: 'optional',
     settings: ['acute care', 'ED'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [],
-    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    launchActions: [{ label: 'Launch PSS-3', path: '/patient/assessments/pss-3' }],
+    tags: ['3 items', 'ED-SAFE public tool', 'universal screen'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: 'All 3 items (depression, active ideation, lifetime attempt + recency)', when: 'On submit' },
+        { type: 'Observation', description: 'Binary suicide-risk result (LOINC 93374-7) — positive / negative', when: 'Computed from response' },
+        { type: 'Observation (x3)', description: 'Individual item responses (SPiER-local pss3-item codes; PSS-3 has no per-item LOINC)', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'Active ideation (item 2) or attempt within 6 months (item 3a) → positive → Clarify Risk (secondary stratification).',
+    },
+    fhirExamples: [{ title: 'PSS-3 → Observation (screening result)', resource: PSS3_RESULT_EXAMPLE }],
   },
   'TL-014': {
     shortName: 'PSS / SRS Full',

@@ -47,21 +47,10 @@ Usage: #definition
 * kind = #ServiceRequest
 
 
-Instance: AdministerPSS3
-InstanceOf: ActivityDefinition
-Title: "Administer Patient Safety Screener-3 (PSS-3)"
-Description: "Administer the Patient Safety Screener-3 (PSS-3), a brief acute-care suicide screen."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerPSS3"
-* name = "AdministerPSS3"
-* version = "0.1.0"
-* title = "Administer Patient Safety Screener-3 (PSS-3)"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the Patient Safety Screener-3 (PSS-3), a brief acute-care suicide screen. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Provide a rapid suicide-risk screen in acute-care settings such as the emergency department."
-* kind = #ServiceRequest
+// AdministerPSS3 has been promoted out of this placeholder file into the full
+// artifact set at ig/input/fsh/pss3.fsh (Questionnaire binding, result
+// CodeSystem/ValueSets, SPiERPSS3Result Observation profile, and a
+// result → suicide-risk-tier crosswalk in crosswalk-pss3.fsh).
 
 
 Instance: TriggerSuicideRiskWorkflow
