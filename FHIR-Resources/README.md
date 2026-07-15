@@ -17,6 +17,7 @@ For the **canonical, machine-readable** SPiER FHIR artifacts — Profiles, Value
 | [SBQ-R/](SBQ-R/) | Flag Risk (1) | 4-item Suicide Behaviors Questionnaire-Revised |
 | [CAMS/](CAMS/) | Clarify Risk (2), Set Risk Status (3), Document Safety Actions (4), Manage Active Risk (7) | SSF-5 Section A/B, Therapeutic Worksheet, Stabilization Plan Questionnaires + reference material |
 | [Stanley-Brown/](Stanley-Brown/) | Document Safety Actions (4) | 7-step safety plan Questionnaire + a hybrid CarePlan template |
+| [CRP/](CRP/) | Document Safety Actions (4) | Crisis Response Plan (Bryan & Rudd) — 5-section Questionnaire → CarePlan (SPiERCrisisResponsePlan); alternative to Stanley-Brown |
 
 Tool-to-stage mapping is many-to-many (CAMS in particular spans four stages), which is why this directory is keyed by tool rather than by stage. The authoritative stage-membership lives in [`ig/input/fsh/pathway-stages.fsh`](../ig/input/fsh/pathway-stages.fsh) — each `PlanDefinition.action.definitionCanonical` points to the `ActivityDefinition` for the tool that performs the action at that stage.
 

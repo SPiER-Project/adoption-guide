@@ -309,8 +309,11 @@ Usage: #definition
 * action[+]
   * id = "author-crisis-response-plan"
   * title = "Author Crisis Response Plan / Crisis Planning"
-  * description = "Alternative crisis-planning framework. Placeholder — no Questionnaire binding yet."
+  * description = "Crisis Response Plan (Bryan & Rudd) — five-section patient-held plan. Yields a CarePlan (SPiERCrisisResponsePlan); an alternative/complement to Stanley-Brown."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AuthorCrisisResponsePlan"
+  * output[+]
+    * type = #CarePlan
+    * profile = "http://spier.org/StructureDefinition/spier-crisis-response-plan"
 * action[+]
   * id = "share-crisis-resources"
   * title = "Share Patient-Facing Crisis Resources / Coping Supports"

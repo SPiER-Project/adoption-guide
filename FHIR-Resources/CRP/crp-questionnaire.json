@@ -1,0 +1,68 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "CrisisResponsePlan",
+  "url": "http://spier.org/Questionnaire/CrisisResponsePlan",
+  "version": "1.0.0",
+  "name": "CrisisResponsePlan",
+  "title": "Crisis Response Plan (CRP)",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-07-15",
+  "publisher": "SPiER Project (FHIR translation of the Crisis Response Plan)",
+  "description": "FHIR Questionnaire representation of the Crisis Response Plan (CRP), a brief, collaboratively-authored suicide-prevention intervention (Bryan & Rudd). The CRP is a personalized, patient-held plan — typically handwritten on a card — with five sections: personal warning signs, self-management/coping strategies, reasons for living, social support, and professional/crisis support. Completed collaboratively and persisted as a CarePlan (one activity per section), mirroring the SPiER Stanley-Brown Safety Plan encoding.",
+  "purpose": "Establish a written, individualized crisis response plan the patient can use to manage a suicidal crisis. An alternative/complement to the Stanley-Brown Safety Plan at the Document Safety Actions stage. Produces a CarePlan, not a scored Observation.",
+  "copyright": "The Crisis Response Plan (CRP) is a clinical intervention described by Craig J. Bryan and M. David Rudd (e.g., Brief Cognitive-Behavioral Therapy for Suicide Prevention). Used by SPiER under the licensing/permission held by the SPiER project; attribute to Bryan & Rudd.",
+  "useContext": [
+    {
+      "code": { "system": "http://terminology.hl7.org/CodeSystem/usage-context-type", "code": "focus", "display": "Clinical Focus" },
+      "valueCodeableConcept": {
+        "coding": [{ "system": "http://snomed.info/sct", "code": "225337009", "display": "Suicide risk assessment" }]
+      }
+    }
+  ],
+  "item": [
+    {
+      "linkId": "intro",
+      "text": "Complete the Crisis Response Plan collaboratively with the patient. The patient keeps a copy (card, photo, or app). List one item per line; add as many as needed.",
+      "type": "display"
+    },
+    {
+      "linkId": "warning-signs-list",
+      "text": "Warning signs — personal signs (thoughts, feelings, situations, behaviors) that a crisis may be developing",
+      "type": "text",
+      "required": false,
+      "repeats": true
+    },
+    {
+      "linkId": "coping-list",
+      "text": "Self-management / coping strategies — things I can do on my own to calm and comfort myself",
+      "type": "text",
+      "required": false,
+      "repeats": true
+    },
+    {
+      "linkId": "reasons-living-list",
+      "text": "Reasons for living — what matters to me and is worth living for",
+      "type": "text",
+      "required": false,
+      "repeats": true
+    },
+    {
+      "linkId": "social-support-list",
+      "text": "Social support — people I can reach out to, and social settings that help me feel better",
+      "type": "text",
+      "required": false,
+      "repeats": true
+    },
+    {
+      "linkId": "professional-support-list",
+      "text": "Professional & crisis support — clinician, 988 Suicide & Crisis Lifeline, Crisis Text Line (text HOME to 741741), and the nearest emergency department",
+      "type": "text",
+      "required": false,
+      "repeats": true
+    }
+  ]
+}
