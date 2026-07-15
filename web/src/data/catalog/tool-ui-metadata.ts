@@ -493,8 +493,15 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['all settings'],
     badge: { label: 'Safety Plan', variant: 'safety' },
     launchActions: [],
-    tags: ['means-safety actions', 'CALM protocol'],
+    tags: ['means-safety actions', 'CALM protocol', 'Procedure + Observations'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'Procedure', description: 'Lethal means safety counseling provided (SPiERLethalMeansCounseling)', when: 'On counseling' },
+        { type: 'Observation (x1-n)', description: 'Per-method means-safety action (method → action taken; SPiERMeansSafetyAction) — firearm, medication, sharps, ligature, etc.', when: 'Per means addressed' },
+      ],
+      workflowTrigger: 'Documented, reportable means-safety actions; status final = completed, preliminary = agreed/planned.',
+    },
   },
   'TL-021': {
     shortName: 'CAMS Stabilization',
@@ -519,9 +526,15 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['all settings'],
     badge: { label: 'Safety Plan', variant: 'safety' },
-    launchActions: [],
+    launchActions: [{ label: 'Record Crisis Resources Shared', path: '/patient/workflow/crisis-resources' }],
     tags: ['988', 'Crisis Text Line', 'Now Matters Now'],
-    targetMaturity: { electronic: 2, writeback: 1, triggering: 1 },
+    targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
+    recordingPattern: {
+      resources: [
+        { type: 'Communication', description: 'Crisis resources shared (SPiERCrisisResourcesShared) — payloads coded via the crisis-resource ValueSet; sent timestamp; stage-tagged', when: 'On sharing' },
+      ],
+      workflowTrigger: 'Ensures the patient leaves with documented crisis-support access.',
+    },
   },
   'TL-015': {
     shortName: 'CRP',
