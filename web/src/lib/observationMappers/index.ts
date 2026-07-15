@@ -38,12 +38,13 @@ import { mapSAFET } from './safet'
 import { mapSBQR } from './sbqr'
 import { mapCSSRSScreener } from './cssrsScreener'
 import { mapCSSRSSinceLastContact } from './cssrsSinceLastContact'
+import { mapCSSRSPediatric } from './cssrsPediatric'
 import { mapCSSRSFull } from './cssrsFull'
 import { mapCAMSSectionA } from './camsSectionA'
 import { mapCAMSSectionB } from './camsSectionB'
 
 // Re-export individual mappers for tests / direct invocation
-export { mapPHQ9, mapASQ, mapBSSA, mapPSS3, mapSAFET, mapSBQR, mapCSSRSScreener, mapCSSRSSinceLastContact, mapCSSRSFull, mapCAMSSectionA, mapCAMSSectionB }
+export { mapPHQ9, mapASQ, mapBSSA, mapPSS3, mapSAFET, mapSBQR, mapCSSRSScreener, mapCSSRSSinceLastContact, mapCSSRSPediatric, mapCSSRSFull, mapCAMSSectionA, mapCAMSSectionB }
 
 const SPIER_Q = 'http://spier.org/Questionnaire'
 
@@ -60,6 +61,7 @@ const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: QuestionnaireResponseReso
   [`${SPIER_Q}/SBQ-R`]: mapSBQR,
   [`${SPIER_Q}/C-SSRS-Screener`]: mapCSSRSScreener,
   [`${SPIER_Q}/C-SSRS-Since-Last-Contact`]: mapCSSRSSinceLastContact,
+  [`${SPIER_Q}/C-SSRS-Pediatric`]: mapCSSRSPediatric,
   [`${SPIER_Q}/C-SSRS-Full-Lifetime-Recent`]: mapCSSRSFull,
   [`${SPIER_Q}/CAMS-SSF5-SectionA`]: mapCAMSSectionA,
   [`${SPIER_Q}/CAMS-SSF5-SectionB`]: mapCAMSSectionB,

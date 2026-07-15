@@ -30,21 +30,10 @@
 
 // ─── Identify Possible Risk ──────────────────────────────────
 
-Instance: AdministerCSSRSPediatric
-InstanceOf: ActivityDefinition
-Title: "Administer C-SSRS Pediatric / Adolescent Version"
-Description: "Administer the age-appropriate pediatric/adolescent version of the Columbia-Suicide Severity Rating Scale screener."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCSSRSPediatric"
-* name = "AdministerCSSRSPediatric"
-* version = "0.1.0"
-* title = "Administer C-SSRS Pediatric / Adolescent Version"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the C-SSRS Pediatric / Adolescent Version. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Screen pediatric and adolescent patients for suicide risk with age-appropriate C-SSRS wording."
-* kind = #ServiceRequest
+// AdministerCSSRSPediatric has been promoted out of this placeholder file into
+// the full artifact set at ig/input/fsh/cssrs.fsh (Questionnaire binding,
+// reusing the shared SPiERCSSRSRiskLevel Observation profile and the existing
+// cssrs-risk-level → suicide-risk-tier crosswalk).
 
 
 // AdministerPSS3 has been promoted out of this placeholder file into the full

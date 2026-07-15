@@ -50,7 +50,9 @@
 
 ## TL-027 — Pediatric / Adolescent version (licensing gate)
 
-The C-SSRS **Children/Youth (pediatric/adolescent)** version has its own age-appropriate wording maintained by the Columbia Lighthouse Project. Before publishing verbatim pediatric item wording, **confirm the pediatric-version terms with the Lighthouse Project** (per the SSC rollout plan). Until confirmed, TL-027 should either (a) reuse the validated screener item set under the same registration with the copyright notice, or (b) remain a placeholder. This section is updated when TL-027 is authored.
+The C-SSRS **Children/Youth (pediatric/adolescent)** version has its own age-appropriate wording maintained by the Columbia Lighthouse Project. Before publishing verbatim younger-child pediatric item wording, **confirm the pediatric-version terms with the Lighthouse Project** (per the SSC rollout plan).
+
+**Decision (2026-07-15):** TL-027 is authored per option (a) — it **reuses the validated C-SSRS screener item set** (the same wording validated for adolescents, already registered/used in this repo) under the same registration, with the copyright notice retained and pediatric `useContext` (age = Child). The Questionnaire `description` explicitly states this and flags that the Lighthouse Project's separate younger-child "Children's" simplified wording is a **pending gate** — SPiER does not fabricate that unverified wording. When the Children's-version terms are confirmed, TL-027 can be upgraded to the age-simplified wording. TL-027 reuses the shared `SPiERCSSRSRiskLevel` profile and the `cssrs-risk-level → tier` crosswalk (no new profile/crosswalk).
 
 ## Open questions
 

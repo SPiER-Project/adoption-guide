@@ -306,8 +306,18 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['pediatrics', 'ED', 'ambulatory'],
     badge: { label: 'Screening', variant: 'screening' },
-    launchActions: [],
+    launchActions: [{ label: 'Launch C-SSRS Pediatric', path: '/patient/assessments/cssrs-pediatric' }],
+    tags: ['pediatric/adolescent', 'shared risk-level profile', 'registration'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: '6-item C-SSRS screener (pediatric/adolescent administration)', when: 'On submit' },
+        { type: 'Observation', description: 'Derived suicide risk level (LOINC 93374-7) — none/low/moderate/high (shared SPiERCSSRSRiskLevel profile)', when: 'Computed from response' },
+        { type: 'Observation (x6)', description: 'Individual ideation/behavior items (per-item LOINC)', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'High/moderate → safety planning; involve parent/guardian per protocol for youth.',
+    },
+    fhirExamples: [{ title: 'C-SSRS Pediatric → Observation (risk level)', resource: CSSRS_SLV_EXAMPLE }],
   },
   'TL-026': {
     shortName: 'Risk Workflow Trigger',
