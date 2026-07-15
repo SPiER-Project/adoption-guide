@@ -32,12 +32,12 @@ import type { QuestionnaireResponseResource } from '../types/fhir'
 const STAGE_ID_SET = new Set(STAGES.map((s) => s.id))
 const toolsWithQuestionnaire = TOOLS.filter((t) => (t.questionnaireUrls?.length ?? 0) > 0)
 
-// A single Questionnaire canonical can be administered by more than one tool at
-// different pathway stages (e.g. CAMS SSF Section A is used both for the
-// initial rating at clarify-risk and the interim re-rating at
-// manage-active-risk). For those shared URLs a bare QR's canonical is
-// inherently ambiguous — disambiguation relies on the meta.tag stamp — so the
-// strict URL→stage assertion below only applies to uniquely-owned URLs.
+// A single Questionnaire canonical can in principle be administered by more
+// than one tool at different pathway stages. (The CAMS SSF-5 used to be the
+// live example before its session tools were consolidated into one TL-020
+// entry.) For any such shared URL a bare QR's canonical is inherently
+// ambiguous — disambiguation relies on the meta.tag stamp — so the strict
+// URL→stage assertion below only applies to uniquely-owned URLs.
 const urlOwnerCount = new Map<string, number>()
 for (const t of toolsWithQuestionnaire) {
   for (const url of t.questionnaireUrls ?? []) urlOwnerCount.set(url, (urlOwnerCount.get(url) ?? 0) + 1)
@@ -132,20 +132,16 @@ describe('deriveFromResponse — derived Observations carry the source QR stage'
   )
 })
 
-describe('write path: a CAMS SSF Section A interim re-rating stages to manage-active-risk', () => {
-  // TL-020 (first session @ clarify-risk) and TL-022 (interim re-rating @
-  // manage-active-risk) BOTH launch /patient/assessments/cams-section-a → the
-  // same Questionnaire. A CAMS Section A submission therefore can't be staged
-  // from the questionnaire canonical alone — the launching tool's stage has to
-  // ride along as a meta.tag. The write path threads the launching tool id
-  // (`?tool=`) into `stampLaunchStage`, which stamps that tag; `stageForArtifact`
-  // (tier 1) and `deriveFromResponse` then both honor it. These tests drive that
-  // real helper (not a hand-rolled tag) end to end.
+describe('write path: stampLaunchStage stamps the launching tool’s stage', () => {
+  // The CAMS SSF-5 is one consolidated tool (TL-020 @ clarify-risk): its
+  // first-session and interim launches share the Section A questionnaire and
+  // now stamp the same stage. The stamp mechanism stays load-bearing for any
+  // future questionnaire shared by tools at different stages, so the write
+  // path (`?tool=` → stampLaunchStage → meta.tag → stageForArtifact tier 1 →
+  // deriveFromResponse) is still driven end to end here with the real helper.
   const CAMS_A_URL = 'http://spier.org/Questionnaire/CAMS-SSF5-SectionA'
-  const sharers = TOOLS.filter((t) => t.questionnaireUrls?.includes(CAMS_A_URL))
-  const defaultStage = toolForQuestionnaireUrl(CAMS_A_URL)?.stageId
-  const interimTool = sharers.find((t) => t.stageId !== defaultStage)
-  const interimStage = interimTool?.stageId
+  const owner = toolForQuestionnaireUrl(CAMS_A_URL)
+  const ownerStage = owner?.stageId
 
   // A raw Section A submission before stamping: minimal valid response (six 1–5
   // ratings under a core-ratings group), no stage tag — as formbox emits it.
@@ -163,60 +159,46 @@ describe('write path: a CAMS SSF Section A interim re-rating stages to manage-ac
       ],
     }) as QuestionnaireResponseResource
 
-  // What the write path persists for an interim re-rating: the raw submission
-  // stamped with the launching tool's (TL-022's) stage via the production helper.
-  const interimSubmission = (): QuestionnaireResponseResource =>
-    stampLaunchStage(rawSubmission(), interimTool!.id)
+  const stampedSubmission = (): QuestionnaireResponseResource =>
+    stampLaunchStage(rawSubmission(), owner!.id)
 
-  it('is a genuinely shared, cross-stage questionnaire in the catalog', () => {
-    // Preconditions for the gap. If TL-022 ever gets its own Questionnaire this
-    // whole block can be deleted.
-    expect(sharers.length).toBeGreaterThanOrEqual(2)
-    expect(defaultStage).toBeDefined()
-    expect(interimStage).toBeDefined()
-    expect(interimStage).not.toBe(defaultStage)
+  it('the CAMS SSF-5 questionnaire is owned by exactly one consolidated tool', () => {
+    const sharers = TOOLS.filter((t) => t.questionnaireUrls?.includes(CAMS_A_URL))
+    expect(sharers.map((t) => t.id)).toEqual([owner!.id])
+    expect(ownerStage).toBeDefined()
   })
 
   it('stampLaunchStage tags the raw submission with the launching tool’s stage', () => {
-    const stamped = interimSubmission()
+    const stamped = stampedSubmission()
     const tags = (stamped.meta as { tag?: { system?: string; code?: string }[] } | undefined)?.tag
-    expect(tags).toContainEqual({ system: PATHWAY_STAGE_SYSTEM, code: interimStage })
-    expect(stageForArtifact(stamped as FhirResourceLike)).toBe(interimStage)
+    expect(tags).toContainEqual({ system: PATHWAY_STAGE_SYSTEM, code: ownerStage })
+    expect(stageForArtifact(stamped as FhirResourceLike)).toBe(ownerStage)
   })
 
-  it('derived Observations of an interim re-rating resolve to the interim stage', () => {
-    const derived = deriveFromResponse(interimSubmission())
+  it('derived Observations of a stamped submission resolve to the stamped stage', () => {
+    const derived = deriveFromResponse(stampedSubmission())
     expect(derived).not.toBeNull()
     expect(derived!.observations.length).toBeGreaterThan(0)
     for (const obs of derived!.observations) {
-      expect(stageForArtifact(obs as FhirResourceLike)).toBe(interimStage)
+      expect(stageForArtifact(obs as FhirResourceLike)).toBe(ownerStage)
     }
   })
 
-  it('groups an interim re-rating under the interim stage, not the default stage', () => {
-    const derived = deriveFromResponse(interimSubmission())
+  it('groups a stamped submission’s Observations under the owning stage only', () => {
+    const derived = deriveFromResponse(stampedSubmission())
     const grouped = groupArtifactsByStage({ responses: [], observations: derived!.observations })
-    const interimBucket = grouped.find((g) => g.stageId === interimStage)
-    expect(interimBucket!.observations.length).toBeGreaterThan(0)
-    // ...and nothing landed in the default (first-session) stage.
-    const defaultBucket = grouped.find((g) => g.stageId === defaultStage)
-    expect(defaultBucket!.observations.length).toBe(0)
-  })
-
-  it('a first session (launched by the default-stage tool) still stages to clarify-risk', () => {
-    const firstTool = sharers.find((t) => t.stageId === defaultStage)!
-    const derived = deriveFromResponse(stampLaunchStage(rawSubmission(), firstTool.id))
-    expect(derived).not.toBeNull()
-    for (const obs of derived!.observations) {
-      expect(stageForArtifact(obs as FhirResourceLike)).toBe(defaultStage)
+    const ownerBucket = grouped.find((g) => g.stageId === ownerStage)
+    expect(ownerBucket!.observations.length).toBe(derived!.observations.length)
+    for (const bucket of grouped) {
+      if (bucket.stageId !== ownerStage) expect(bucket.observations.length).toBe(0)
     }
   })
 
-  it('an unstamped submission (no launching tool) falls back to the canonical default stage', () => {
+  it('an unstamped submission (no launching tool) falls back to the canonical owner stage', () => {
     const derived = deriveFromResponse(rawSubmission())
     expect(derived).not.toBeNull()
     for (const obs of derived!.observations) {
-      expect(stageForArtifact(obs as FhirResourceLike)).toBe(defaultStage)
+      expect(stageForArtifact(obs as FhirResourceLike)).toBe(ownerStage)
     }
   })
 
@@ -228,8 +210,8 @@ describe('write path: a CAMS SSF Section A interim re-rating stages to manage-ac
     )!
     const out = stampLaunchStage(raw, foreignTool.id)
     expect(out).toBe(raw) // returned untouched
-    // Falls back to the canonical default owner, not the foreign tool's stage.
-    expect(stageForArtifact(out as FhirResourceLike)).toBe(defaultStage)
+    // Falls back to the canonical owner, not the foreign tool's stage.
+    expect(stageForArtifact(out as FhirResourceLike)).toBe(ownerStage)
   })
 })
 
@@ -279,7 +261,7 @@ describe('stageForArtifact — tier 4: legacy CarePlan id-regex', () => {
   const cases: Array<[string, string]> = [
     ['stanley-brown-careplan-123', 'document-safety-actions'],
     ['cams-stabilization-careplan-123', 'document-safety-actions'],
-    ['cams-therapeutic-careplan-123', 'set-risk-status'],
+    ['cams-therapeutic-careplan-123', 'define-risk-picture'],
   ]
 
   it.each(cases)('resolves id %s to stage %s', (id, expectedStage) => {

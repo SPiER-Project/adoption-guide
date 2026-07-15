@@ -255,7 +255,7 @@ Usage: #definition
 * experimental = true
 * publisher = "SPiER"
 * description = "Author a CAMS Therapeutic Worksheet CarePlan capturing the patient's personal narrative, direct/indirect suicide drivers, and crisis working model."
-* purpose = "Document the CAMS clinical formulation that guides ongoing treatment. Belongs to the Set Risk Status stage."
+* purpose = "Document the CAMS clinical formulation that guides ongoing treatment. Belongs to the Define the Risk Picture stage."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
@@ -289,7 +289,7 @@ Usage: #definition
 Instance: AdministerCAMSInterimSession
 InstanceOf: ActivityDefinition
 Title: "Administer CAMS Interim Session (SSF Re-Rating)"
-Description: "Repeat the CAMS Section A SSF Core Assessment at the start of each CAMS interim session. Same Questionnaire as Section A, but distinct activity because it belongs to the Manage Active Risk stage rather than initial Clarify Risk."
+Description: "Repeat the CAMS Section A SSF Core Assessment at the start of each CAMS interim session. Same Questionnaire as Section A; a distinct session form of the single catalogued CAMS SSF-5 tool (Clarify Risk stage)."
 Usage: #definition
 * url = "http://spier.org/ActivityDefinition/AdministerCAMSInterimSession"
 * name = "AdministerCAMSInterimSession"

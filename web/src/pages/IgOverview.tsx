@@ -76,8 +76,9 @@ export function IgOverview() {
           <Link to="/guide/pathway">8-stage Suicide Safer Care Pathway</Link>:
         </p>
         <blockquote className="ig-overview__pathway">
-          Flag Risk &rarr; Clarify Risk &rarr; Set Risk Status &rarr; Document Safety Actions &rarr;
-          Coordinate Handoffs &rarr; Track Follow-Up &rarr; Manage Active Risk &rarr; Measure &amp; Share
+          Identify Possible Risk &rarr; Clarify Risk &rarr; Define the Risk Picture &rarr; Document Safety
+          Actions &rarr; Coordinate Handoffs &rarr; Track Follow-Up &rarr; Track Risk Over Time &rarr; Measure
+          &amp; Share the Data
         </blockquote>
         <p>
           To see where each instrument stands today &mdash; what&rsquo;s built, what its licensing requires, and how

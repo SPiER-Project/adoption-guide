@@ -92,7 +92,7 @@
     {
       "resourceType": "Observation",
       "id": "p001-phq9-total",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "flag-risk" }] },
+      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
       "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "PHQ-9 total score" }] },
@@ -104,7 +104,7 @@
     {
       "resourceType": "Observation",
       "id": "p001-phq9-item9",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "flag-risk" }] },
+      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
       "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts of death/self-harm" }] },
@@ -116,7 +116,7 @@
     {
       "resourceType": "Observation",
       "id": "p001-asq-result",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "flag-risk" }] },
+      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
       "code": { "coding": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }] },

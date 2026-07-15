@@ -21,6 +21,7 @@ export type WorkflowType =
   | 'appointment'
   | 'observation'
   | 'measure'
+  | 'workflow'
 export type BadgeVariant =
   | 'screening'
   | 'assessment'
@@ -143,7 +144,7 @@ const CAMS_DRIVER_EXAMPLE = {
 // ─────────────────────────────────────────────────────────────
 
 export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
-  // ── Flag Risk ──
+  // ── Identify Possible Risk ──
   'TL-001': {
     shortName: 'ASQ',
     licensing: 'public-domain',
@@ -226,6 +227,25 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     },
   },
 
+  'TL-027': {
+    shortName: 'C-SSRS Pediatric',
+    licensing: 'registration',
+    inclusionStatus: 'optional',
+    settings: ['pediatrics', 'ED', 'ambulatory'],
+    badge: { label: 'Screening', variant: 'screening' },
+    launchActions: [],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+  },
+  'TL-026': {
+    shortName: 'Risk Workflow Trigger',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Workflow', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['positive-screen flag', 'automatic routing'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+  },
+
   // ── Clarify Risk ──
   'TL-004': {
     shortName: 'C-SSRS Full',
@@ -262,10 +282,10 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
     launchActions: [
-      // `?tool=` disambiguates the shared CAMS SSF-5 Section A questionnaire,
-      // which both this tool (TL-020 @ clarify-risk, first session) and TL-022
-      // (@ manage-active-risk, interim re-rating) launch. QuestionnaireView reads
-      // it to stamp the launching tool's stage onto the submitted QR.
+      // One catalogued CAMS SSF-5 tool: first-session Sections A/B and interim
+      // re-ratings all live here (the interim session reuses the Section A
+      // questionnaire). `?tool=` still stamps the launching tool's stage onto
+      // the submitted QR via QuestionnaireView → stampLaunchStage.
       { label: 'SSF-5 Section A (Patient)', path: '/patient/assessments/cams-section-a?tool=TL-020', variant: 'secondary' },
       { label: 'SSF-5 Section B (Clinician)', path: '/patient/assessments/cams-section-b', variant: 'secondary' },
     ],
@@ -286,7 +306,26 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     ],
   },
 
-  // ── Set Risk Status ──
+  'TL-028': {
+    shortName: 'CARS-S',
+    inclusionStatus: 'optional',
+    settings: ['behavioral health', 'ambulatory'],
+    badge: { label: 'Assessment', variant: 'assessment' },
+    launchActions: [],
+    tags: ['cultural risk & protective factors'],
+    targetMaturity: { electronic: 2, writeback: 2, triggering: 1 },
+  },
+  'TL-029': {
+    shortName: 'Local Assessment',
+    inclusionStatus: 'optional',
+    settings: ['all settings'],
+    badge: { label: 'Assessment', variant: 'assessment' },
+    launchActions: [],
+    tags: ['site-defined form', 'structured capture'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+  },
+
+  // ── Define the Risk Picture ──
   'TL-006': {
     shortName: 'SAFE-T',
     inclusionStatus: 'core',
@@ -323,11 +362,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     },
   },
   'TL-008': {
+    // Lethal means safety counseling / means safety actions — absorbs the
+    // former standalone CALM protocol entry (TL-016).
     shortName: 'Means Safety',
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Safety Plan', variant: 'safety' },
     launchActions: [],
+    tags: ['means-safety actions', 'CALM protocol'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
   },
   'TL-021': {
@@ -347,11 +389,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     },
   },
   'TL-013': {
-    shortName: 'Now Matters Now',
+    // Patient-facing crisis resources / coping supports (988, Crisis Text
+    // Line, Now Matters Now, safety-plan copy).
+    shortName: 'Crisis Resources',
     inclusionStatus: 'optional',
     settings: ['all settings'],
     badge: { label: 'Safety Plan', variant: 'safety' },
     launchActions: [],
+    tags: ['988', 'Crisis Text Line', 'Now Matters Now'],
     targetMaturity: { electronic: 2, writeback: 1, triggering: 1 },
   },
   'TL-015': {
@@ -362,45 +407,39 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     targetMaturity: { electronic: 2, writeback: 2, triggering: 2 },
   },
-  'TL-016': {
-    shortName: 'CALM',
-    inclusionStatus: 'future',
-    settings: ['all settings'],
-    badge: { label: 'Safety Plan', variant: 'safety' },
-    launchActions: [],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 2 },
-  },
 
   // ── Coordinate Handoffs ──
   'TL-009': {
-    shortName: 'Transition',
+    shortName: 'Safety Handoff',
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Handoff', variant: 'handoff' },
     launchActions: [{ label: 'Record transition', path: '/patient/workflow/transition' }],
+    tags: ['risk status', 'responsibility', 'next steps'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
       resources: [
-        { type: 'Communication', description: 'Pre-discharge transfer-of-care checkpoint, stage-tagged to Coordinate Handoffs', when: 'On record' },
+        { type: 'Communication', description: 'Suicide-safety handoff / transition checklist, stage-tagged to Coordinate Handoffs', when: 'On record' },
       ],
       workflowTrigger: 'Pre-discharge transfer of care to the next setting.',
     },
   },
-  'TL-023': {
-    shortName: 'CAMS Outcome',
-    licensing: 'commercial',
-    inclusionStatus: 'optional',
-    settings: ['behavioral health', 'outpatient'],
-    badge: { label: 'CAMS', variant: 'cams' },
+  'TL-030': {
+    shortName: 'Discharge Packet',
+    inclusionStatus: 'core',
+    settings: ['ED', 'inpatient'],
+    badge: { label: 'Handoff', variant: 'handoff' },
     launchActions: [],
-    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    tags: ['safety plan copy', 'crisis resources', 'follow-up details'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
   },
   'TL-017': {
-    shortName: 'Rapid Referral',
+    shortName: 'Referral Handoff',
     inclusionStatus: 'future',
     settings: ['ED', 'inpatient'],
     badge: { label: 'Handoff', variant: 'handoff' },
     launchActions: [{ label: 'Send rapid referral', path: '/patient/workflow/rapid-referral' }],
+    tags: ['status tracked to completion'],
     targetMaturity: { electronic: 2, writeback: 2, triggering: 3 },
     recordingPattern: {
       resources: [
@@ -409,8 +448,35 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       workflowTrigger: 'Warm handoff / accelerated access to follow-up care.',
     },
   },
+  'TL-031': {
+    shortName: 'Next Appointment',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Handoff', variant: 'handoff' },
+    launchActions: [],
+    tags: ['scheduled before discharge', 'missing-appointment alert'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+  },
+  'TL-032': {
+    shortName: 'Consent / Sharing',
+    inclusionStatus: 'optional',
+    settings: ['all settings'],
+    badge: { label: 'Handoff', variant: 'handoff' },
+    launchActions: [],
+    tags: ['sharing restrictions', 'support-person access'],
+    targetMaturity: { electronic: 2, writeback: 2, triggering: 1 },
+  },
 
   // ── Track Follow-Up ──
+  'TL-033': {
+    shortName: 'Outreach Attempts',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Follow-Up', variant: 'followup' },
+    launchActions: [],
+    tags: ['due dates', 'attempt outcomes', 'assignments'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+  },
   'TL-010': {
     shortName: 'Caring Contacts',
     inclusionStatus: 'core',
@@ -425,35 +491,116 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       workflowTrigger: 'Post-discharge caring-contact cadence (e.g. 24–48h, 7-day, 30-day).',
     },
   },
-  'TL-012': {
-    shortName: 'ED-SAFE',
-    inclusionStatus: 'optional',
-    settings: ['ED'],
+  'TL-034': {
+    shortName: 'Appointment Tracking',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
     launchActions: [],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 3 },
+    tags: ['attended / no-show', '7-day & 30-day windows'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
   },
-  'TL-018': {
-    shortName: 'Colorado Post-Visit',
-    inclusionStatus: 'future',
-    settings: ['ED', 'ambulatory'],
+  'TL-035': {
+    shortName: 'No-Show Follow-Up',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
     launchActions: [],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 2 },
+    tags: ['risk-aware no-show handling'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+  },
+  'TL-036': {
+    shortName: 'Follow-Up Escalation',
+    inclusionStatus: 'optional',
+    settings: ['all settings'],
+    badge: { label: 'Follow-Up', variant: 'followup' },
+    launchActions: [],
+    tags: ['unreachable patient', 'supervisor routing'],
+    targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
   },
 
-  // ── Manage Active Risk ──
-  'TL-022': {
-    shortName: 'CAMS Interim',
-    licensing: 'commercial',
+  // ── Track Risk Over Time ──
+  'TL-037': {
+    shortName: 'Risk Registry',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Monitoring', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['work queue', 'owners & due dates'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+  },
+  'TL-038': {
+    shortName: 'Episode Status',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Monitoring', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['open/closed lifecycle', 'closure reason'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+  },
+  'TL-039': {
+    shortName: 'Reassessment Schedule',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Monitoring', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['tier-driven cadence', 'due & overdue alerts'],
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+  },
+  'TL-040': {
+    shortName: 'Care Gap Tracking',
     inclusionStatus: 'optional',
-    settings: ['behavioral health', 'outpatient'],
-    badge: { label: 'CAMS', variant: 'cams' },
-    // Shares the CAMS SSF-5 Section A questionnaire with TL-020 (first session
-    // @ clarify-risk). `?tool=TL-022` tells QuestionnaireView to stamp this
-    // tool's stage (manage-active-risk) onto the submitted QR, so an interim
-    // re-rating groups under manage-active-risk instead of clarify-risk.
-    launchActions: [{ label: 'Launch Interim Session', path: '/patient/assessments/cams-section-a?tool=TL-022' }],
+    settings: ['all settings'],
+    badge: { label: 'Monitoring', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['open safety actions', 'owner + due date'],
+    targetMaturity: { electronic: 2, writeback: 3, triggering: 2 },
+  },
+  'TL-041': {
+    shortName: 'Overdue Escalation',
+    inclusionStatus: 'optional',
+    settings: ['all settings'],
+    badge: { label: 'Monitoring', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['worsening risk', 'documented outcome'],
+    targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
+  },
+
+  // ── Measure and Share the Data ──
+  'TL-042': {
+    shortName: 'KPI Reporting',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Reporting', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['numerators & denominators', 'follow-up timeliness'],
+    targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
+  },
+  'TL-043': {
+    shortName: 'Dashboard',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Reporting', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['aggregate view', 'site/team filters'],
+    targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
+  },
+  'TL-044': {
+    shortName: 'Analytics Extract',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Reporting', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['structured fields + timestamps'],
+    targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
+  },
+  'TL-045': {
+    shortName: 'Interop Output',
+    inclusionStatus: 'core',
+    settings: ['all settings'],
+    badge: { label: 'Reporting', variant: 'monitoring' },
+    launchActions: [],
+    tags: ['HIE / FHIR API', 'consent-aware sharing'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
   },
 }

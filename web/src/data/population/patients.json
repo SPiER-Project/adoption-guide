@@ -18,7 +18,7 @@
     "mrn": "23456",
     "gender": "Male",
     "recommendedNextStep": {
-      "stageId": "flag-risk",
+      "stageId": "identify-possible-risk",
       "label": "Administer ASQ or PHQ-9",
       "rationale": "No suicide-risk screening on file in the past 12 months."
     }
@@ -90,7 +90,7 @@
     "mrn": "89012",
     "gender": "Male",
     "recommendedNextStep": {
-      "stageId": "manage-active-risk",
+      "stageId": "track-risk-over-time",
       "label": "Confirm no active-risk escalation; prepare for outcome reporting",
       "rationale": "Caring-contact follow-up complete with no risk escalation; low risk sustained. Ready to close out the active-risk window and move toward Q2 outcome measurement."
     }
@@ -102,7 +102,7 @@
     "mrn": "90123",
     "gender": "Female",
     "recommendedNextStep": {
-      "stageId": "manage-active-risk",
+      "stageId": "track-risk-over-time",
       "label": "Session 5: re-rate SSF vitals and review drivers",
       "rationale": "Active CAMS episode; psychological pain still elevated (3/5). Continue weekly sessions until resolution criteria met."
     }

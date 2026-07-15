@@ -9,7 +9,7 @@
 **Name:** Ask Suicide-Screening Questions (ASQ)
 **Short name / abbreviation:** ASQ
 **SPiER tool ID:** TL-001
-**SPiER pathway stage(s):** flag-risk (1)
+**SPiER pathway stage(s):** identify-possible-risk (1)
 **Repository location:** `FHIR-Resources/ASQ/`
 **Tracking issue:** [#18](https://github.com/SPiER-Project/adoption-guide/issues/18)
 

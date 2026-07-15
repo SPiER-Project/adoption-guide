@@ -11,6 +11,15 @@
 //
 // After seeding, run `node web/scripts/fetch-roadmap.mjs` to snapshot the
 // issues into web/src/data/roadmap.generated.json for the site to render.
+//
+// NOTE (2026-07): this script is the historical 2026-05 migration record. The
+// pathway stages were since restructured to the SSC stage tiles (flag-risk →
+// identify-possible-risk, set-risk-status → define-risk-picture,
+// manage-active-risk → track-risk-over-time; CAMS session tools TL-022/TL-023
+// merged into TL-020; TL-012/TL-016/TL-018 retired; TL-026–TL-045 added — see
+// docs/reference/ssc-stage-tiles-question-set.md). The stage/tool lists below
+// are intentionally NOT updated; re-running against the live repo requires a
+// label + issue migration first.
 
 import { spawnSync } from 'node:child_process'
 

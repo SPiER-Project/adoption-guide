@@ -143,29 +143,49 @@ const AD_TO_TOOL_ID: Record<string, string> = {
   AdministerCSSRSScreener: 'TL-003',
   AdministerCSSRSFull: 'TL-004',
   AdministerStanleyBrown: 'TL-007',
+  // The CAMS SSF-5 is ONE catalogued tool (per the SSC stage tiles) — every
+  // session-form AD (Section A/B, interim re-rating, outcome/disposition)
+  // collapses to TL-020 at the Clarify Risk stage.
   AdministerCAMSSectionA: 'TL-020',
   AdministerCAMSSectionB: 'TL-020',
+  AdministerCAMSInterimSession: 'TL-020',
+  AdministerCAMSOutcomeDisposition: 'TL-020',
   AdministerCAMSStabilizationPlan: 'TL-021',
-  AdministerCAMSInterimSession: 'TL-022',
   AdministerCAMSTherapeuticWorksheet: 'TL-024',
   AdministerSBQR: 'TL-025',
   // Minimal placeholder ActivityDefinitions (ig/input/fsh/pathway-tool-placeholders.fsh).
   // Clinical fields come from the AD; UI metadata stays keyed by these TL ids.
+  AdministerCSSRSPediatric: 'TL-027',
   AdministerPSS3: 'TL-011',
-  AdministerPSSFull: 'TL-014',
-  AdministerCSSRSSinceLastContact: 'TL-019',
+  TriggerSuicideRiskWorkflow: 'TL-026',
   AdministerBSSA: 'TL-005',
+  AdministerCSSRSSinceLastContact: 'TL-019',
+  AdministerPSSFull: 'TL-014',
+  AdministerCARSS: 'TL-028',
+  AdministerLocalRiskAssessment: 'TL-029',
   AdministerSAFET: 'TL-006',
   ProvideMeansSafetyCounseling: 'TL-008',
-  RecommendNowMattersNow: 'TL-013',
   AuthorCrisisResponsePlan: 'TL-015',
-  ProvideCALMMeansSafety: 'TL-016',
+  ShareCrisisResources: 'TL-013',
   RecordTransitionCheckpoint: 'TL-009',
-  AdministerCAMSOutcomeDisposition: 'TL-023',
+  GenerateDischargeSafetyPacket: 'TL-030',
   SendRapidReferral: 'TL-017',
+  ScheduleFollowUpAppointment: 'TL-031',
+  RecordConsentSharingStatus: 'TL-032',
+  RecordFollowUpOutreach: 'TL-033',
   SendCaringContact: 'TL-010',
-  ConductEDSAFEFollowUp: 'TL-012',
-  ConductColoradoPostVisitFollowUp: 'TL-018',
+  TrackFollowUpAppointment: 'TL-034',
+  FollowUpMissedAppointment: 'TL-035',
+  EscalateFollowUp: 'TL-036',
+  MaintainRiskRegistry: 'TL-037',
+  TrackRiskEpisodeStatus: 'TL-038',
+  ScheduleRiskReassessment: 'TL-039',
+  TrackOpenSafetyActions: 'TL-040',
+  EscalateOverdueRisk: 'TL-041',
+  ReportSuicideSaferCareMeasures: 'TL-042',
+  ProvideReportingDashboard: 'TL-043',
+  ExportSuicideSaferCareData: 'TL-044',
+  ShareSuicideSaferCareData: 'TL-045',
 }
 
 // Where the per-AD FHIR title/purpose is too narrow for the Tool's combined
@@ -175,10 +195,13 @@ const CLINICAL_OVERRIDES: Record<
   { name?: string; purpose?: string; description?: string }
 > = {
   'TL-020': {
-    name: 'CAMS SSF-5 First Session',
-    purpose: 'Collaborative suicide-focused assessment and episode entry',
+    name: 'CAMS SSF-5',
+    purpose: 'Collaborative suicide-focused assessment across the CAMS episode',
     description:
-      'The SSF-5 is the structured collaborative assessment used to enter a CAMS episode. Section A is patient self-report (psychological pain, stress, agitation, hopelessness, self-hate, overall risk); Section B is clinician-rated ideation, plan, preparation, history, and drivers.',
+      'The SSF-5 is the structured collaborative assessment for the whole CAMS episode — one catalogued tool whose session-specific forms are captured inside it. First Session: Section A patient self-report (psychological pain, stress, agitation, hopelessness, self-hate, overall risk) and Section B clinician-rated ideation, plan, preparation, history, and drivers. Interim sessions repeat the Section A re-rating; the final session records outcome/disposition.',
+  },
+  'TL-002': {
+    name: 'PHQ-9 / PHQ-A Item 9 Trigger',
   },
 }
 
@@ -200,13 +223,16 @@ function questionnaireUrlsFromAD(ad: ActivityDefinitionDoc): string[] {
 
 // Derive the catalog WorkflowType from ActivityDefinition.kind. Most tools are
 // Questionnaire-based (kind ServiceRequest); outreach/handoff tools declare
-// kind CommunicationRequest and surface as `communication`.
+// kind CommunicationRequest and surface as `communication`; registry/tracking/
+// reporting functionality declares kind Task and surfaces as `workflow`.
 function workflowTypeFromAD(ad: ActivityDefinitionDoc): WorkflowType {
   switch (ad.kind) {
     case 'CommunicationRequest':
       return 'communication'
     case 'Appointment':
       return 'appointment'
+    case 'Task':
+      return 'workflow'
     default:
       return 'questionnaire'
   }
@@ -236,7 +262,9 @@ function buildFhirBackedTools(): Tool[] {
     }
     const overrides = CLINICAL_OVERRIDES[toolId] ?? {}
     const ui = uiMetadataFor(toolId)
-    const questionnaireUrls = ads.flatMap(questionnaireUrlsFromAD)
+    // Dedupe: multi-AD tools can share a Questionnaire (CAMS Section A is
+    // depended on by both the first-session and interim-session ADs).
+    const questionnaireUrls = [...new Set(ads.flatMap(questionnaireUrlsFromAD))]
 
     tools.push({
       id: toolId,

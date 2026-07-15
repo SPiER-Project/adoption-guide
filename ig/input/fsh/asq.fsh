@@ -4,7 +4,7 @@
 // Flagship tool for the SPiER FHIR IG. Demonstrates the full
 // chain from Questionnaire to ActivityDefinition to derived
 // Observation to a PlanDefinition trigger that advances the
-// patient from Flag Risk to Clarify Risk.
+// patient from Identify Possible Risk to Clarify Risk.
 //
 // References the existing Questionnaire authored at
 // FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json
@@ -103,7 +103,7 @@ Usage: #definition
 * experimental = true
 * publisher = "SPiER"
 * description = "Capture an ASQ screen from the patient (or proxy), persist responses as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER ASQ Result profile."
-* purpose = "Flag whether a patient has suicide-related signs warranting further clarification. Belongs to the Flag Risk stage of the SPiER pathway."
+* purpose = "Flag whether a patient has suicide-related signs warranting further clarification. Belongs to the Identify Possible Risk stage of the SPiER pathway."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"

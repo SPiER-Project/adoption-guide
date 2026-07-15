@@ -55,10 +55,10 @@ export function deriveFromResponse(
   const id = storedResource.id
   // Prefer an explicit pathway-stage tag already on the QR (stamped at
   // submission from the launching tool — see QuestionnaireView.stampLaunchStage)
-  // over resolving the questionnaire canonical, which for a questionnaire shared
-  // by tools at different stages (CAMS SSF-5 Section A: TL-020 @ clarify-risk vs
-  // TL-022 @ manage-active-risk) always picks the first-owner tool. stageForArtifact
-  // reads meta.tag first (tier 1) and falls back to canonical resolution (tier 3).
+  // over resolving the questionnaire canonical, which for a questionnaire
+  // shared by tools at different stages always picks the first-owner tool.
+  // stageForArtifact reads meta.tag first (tier 1) and falls back to canonical
+  // resolution (tier 3).
   const stageId = stageForArtifact(storedResource as FhirResourceLike)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const observations: ObservationResource[] = result.observations.map((obs: any) => ({
