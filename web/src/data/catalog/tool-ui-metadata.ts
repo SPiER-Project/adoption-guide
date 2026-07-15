@@ -138,6 +138,21 @@ const PSS3_RESULT_EXAMPLE = {
   interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Positive suicide-risk screen' }] }],
 }
 
+const SAFET_RISK_LEVEL_EXAMPLE = {
+  resourceType: 'Observation',
+  id: 'safet-risk-level-example',
+  status: 'final',
+  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
+  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
+  subject: { reference: 'Patient/123' },
+  effectiveDateTime: '2026-07-15T15:05:00Z',
+  valueCodeableConcept: {
+    coding: [{ system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', code: 'moderate', display: 'Moderate risk' }],
+  },
+  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Moderate risk' }] }],
+  note: [{ text: 'Value binds directly to the shared suicide-risk tier — no per-instrument crosswalk. Rationale: ideation with plan but no intent; multiple risk factors, few protective factors.' }],
+}
+
 const CAMS_VITAL_EXAMPLE = {
   resourceType: 'Observation',
   id: 'cams-psychological-pain-example',
@@ -377,11 +392,21 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   // ── Define the Risk Picture ──
   'TL-006': {
     shortName: 'SAFE-T',
+    licensing: 'public-domain',
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Assessment', variant: 'assessment' },
-    launchActions: [],
+    launchActions: [{ label: 'Launch SAFE-T', path: '/patient/assessments/safe-t' }],
+    tags: ['SAMHSA public resource', '5-step formulation', 'lands on concept layer'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'QuestionnaireResponse', description: 'Five steps: risk factors, protective factors, suicide inquiry, risk level + intervention, documentation', when: 'On submit' },
+        { type: 'Observation', description: 'Risk-level result (LOINC 93374-7) — value is a shared suicide-risk tier (low/moderate/high); rationale + override in note', when: 'Extracted from response' },
+      ],
+      workflowTrigger: 'Safety plan developed at low, moderate, and high risk. High → emergency psychiatric evaluation in a secure setting.',
+    },
+    fhirExamples: [{ title: 'SAFE-T → Observation (risk level on the shared tier)', resource: SAFET_RISK_LEVEL_EXAMPLE }],
   },
   'TL-024': {
     shortName: 'CAMS Worksheet',

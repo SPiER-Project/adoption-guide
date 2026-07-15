@@ -165,21 +165,10 @@ Usage: #definition
 
 // ─── Define the Risk Picture ─────────────────────────────────
 
-Instance: AdministerSAFET
-InstanceOf: ActivityDefinition
-Title: "Administer SAFE-T"
-Description: "Administer the SAFE-T (Suicide Assessment Five-step Evaluation and Triage) structured clinical formulation and triage protocol."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerSAFET"
-* name = "AdministerSAFET"
-* version = "0.1.0"
-* title = "Administer SAFE-T"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the SAFE-T (Suicide Assessment Five-step Evaluation and Triage). Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Support structured clinical formulation of suicide risk, the documented risk level with rationale, and corresponding triage/disposition."
-* kind = #ServiceRequest
+// AdministerSAFET has been promoted out of this placeholder file into the full
+// artifact set at ig/input/fsh/safet.fsh (Questionnaire binding, factor
+// CodeSystems/ValueSets, and the SPiERSAFETRiskLevel Observation profile whose
+// value binds directly to the shared suicide-risk tier — no crosswalk needed).
 
 
 // ─── Document Safety Actions ─────────────────────────────────

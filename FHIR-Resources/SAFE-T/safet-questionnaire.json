@@ -1,0 +1,269 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "SAFE-T",
+  "url": "http://spier.org/Questionnaire/SAFE-T",
+  "version": "1.0.0",
+  "name": "SAFET",
+  "title": "SAFE-T — Suicide Assessment Five-Step Evaluation and Triage",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-07-15",
+  "publisher": "SPiER Project (FHIR translation of the SAMHSA SAFE-T pocket card)",
+  "description": "FHIR Questionnaire representation of the SAMHSA Suicide Assessment Five-Step Evaluation and Triage (SAFE-T). SAFE-T is a structured clinical formulation — not a scored survey — that guides a clinician through five steps: (1) identify risk factors, (2) identify protective factors, (3) conduct a suicide inquiry, (4) determine a risk level and intervention based on clinical judgment, and (5) document the risk level, rationale, treatment plan, means-safety counseling, and follow-up. Source: SAMHSA SAFE-T pocket card (PEP24-01-036).",
+  "purpose": "Produce a documented, machine-actionable suicide-risk LEVEL with rationale and disposition. Because the risk level is a clinical-judgment formulation that maps onto the common tiers, the derived Observation's value binds DIRECTLY to the SPiER shared suicide-risk-tier ValueSet — SAFE-T lands on the concept layer without a per-instrument crosswalk. The risk-level item carries the generic LOINC 93374-7 ('Suicide risk level'); risk-factor and protective-factor checklists use SPiER-local CodeSystems marked 'no-standard-binding'.",
+  "copyright": "The SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) pocket card is a public resource of the Substance Abuse and Mental Health Services Administration (SAMHSA), developed with Screening for Mental Health, Inc. and Douglas Jacobs, MD. Distributed free by SAMHSA; no permission or fee is required for use.",
+  "useContext": [
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "focus",
+        "display": "Clinical Focus"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "225337009",
+            "display": "Suicide risk assessment"
+          }
+        ]
+      }
+    },
+    {
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+        "code": "venue",
+        "display": "Clinical Venue"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          { "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "OF", "display": "Outpatient Facility" },
+          { "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "ER", "display": "Emergency Room" },
+          { "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "HOSP", "display": "Hospital" }
+        ]
+      }
+    }
+  ],
+  "code": [
+    {
+      "system": "http://spier.org/CodeSystem/safet-panel",
+      "code": "safet",
+      "display": "Suicide Assessment Five-Step Evaluation and Triage (SAFE-T) panel",
+      "extension": [
+        { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+      ]
+    }
+  ],
+  "item": [
+    {
+      "linkId": "step1-risk-factors",
+      "text": "Step 1 — Identify risk factors (note those that can be modified to reduce risk; select all that apply)",
+      "type": "choice",
+      "required": false,
+      "repeats": true,
+      "answerOption": [
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "prior-attempt", "display": "Prior suicide attempt(s)" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "substance-use", "display": "Alcohol or substance use" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "mental-health-history", "display": "History of mental health concerns, particularly depression and other mood disorders" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "access-lethal-means", "display": "Access to lethal means, including firearms" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "knows-suicide-loss", "display": "Knowing someone who died by suicide, particularly a family member" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "social-isolation", "display": "Social isolation" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "chronic-disease-disability", "display": "Chronic disease and/or disability" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "lack-bh-access", "display": "Lack of access to behavioral health care" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "prolonged-hopelessness", "display": "Prolonged feelings of hopelessness" } }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [{ "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "check-box", "display": "Check-box" }]
+          }
+        }
+      ]
+    },
+    {
+      "linkId": "step2-protective-factors",
+      "text": "Step 2 — Identify protective factors (note those that can be enhanced; select all that apply). Note: protective factors, even if present, may not counteract significant acute risk.",
+      "type": "choice",
+      "required": false,
+      "repeats": true,
+      "answerOption": [
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "connectedness", "display": "Connectedness to people, family, community, and social supports" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "effective-bh-care", "display": "Effective behavioral health care" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "life-skills", "display": "Life skills (problem-solving, coping, emotional regulation, ability to adapt to change)" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "self-esteem-purpose", "display": "Self-esteem and a sense of purpose or meaning in life" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "beliefs-discourage-suicide", "display": "Cultural, religious, or personal beliefs that discourage suicide" } },
+        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "no-access-lethal-means", "display": "No access to lethal means" } }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [{ "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "check-box", "display": "Check-box" }]
+          }
+        }
+      ]
+    },
+    {
+      "linkId": "step3-suicide-inquiry",
+      "text": "Step 3 — Conduct suicide inquiry (specific questioning about thoughts, plans, behaviors, intent)",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "ideation-present",
+          "text": "Ideation present?",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "ideation-detail",
+          "text": "Ideation — frequency, intensity, duration (in last 48 hours, past month, and worst ever)",
+          "type": "text",
+          "required": false
+        },
+        {
+          "linkId": "plan-present",
+          "text": "Plan present?",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "plan-detail",
+          "text": "Plan — timing, location, lethality, availability, preparatory acts",
+          "type": "text",
+          "required": false
+        },
+        {
+          "linkId": "behaviors-detail",
+          "text": "Behaviors — past attempts, aborted attempts, rehearsals versus non-suicidal self-injurious actions",
+          "type": "text",
+          "required": false
+        },
+        {
+          "linkId": "intent-present",
+          "text": "Intent present?",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "intent-detail",
+          "text": "Intent — extent to which the patient expects to carry out the plan and believes it to be lethal. Explore ambivalence: reasons to die versus reasons to live.",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "linkId": "step4-risk-level-intervention",
+      "text": "Step 4 — Determine risk level & intervention (based on clinical judgment after completing steps 1–3; develop a safety plan for all individuals at low, moderate, and high risk)",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "risk-level",
+          "text": "Risk level",
+          "type": "choice",
+          "required": true,
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "93374-7",
+              "display": "Suicide risk level",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "verified" }
+              ]
+            }
+          ],
+          "answerOption": [
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "low", "display": "Low — thoughts of death; no plan, intent, or behavior; manageable risk factors, strong protective factors" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "moderate", "display": "Moderate — suicidal ideation with plan, but no intent or behavior; multiple risk factors, few protective factors" } },
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "high", "display": "High — suicidal ideation with plan, method, and intent to carry out; severe symptoms or acute precipitating event" } }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+              "valueCodeableConcept": {
+                "coding": [{ "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "drop-down", "display": "Drop down" }]
+              }
+            },
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        },
+        {
+          "linkId": "intervention",
+          "text": "Intervention / triage (e.g. outpatient referral with warm handoff; admission; emergency psychiatric treatment in a secure setting; provide 988 Lifeline)",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "linkId": "step5-document",
+      "text": "Step 5 — Document (risk level and rationale; treatment plan; counseling on access to lethal means; follow-up)",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "risk-rationale",
+          "text": "Rationale for the risk-level determination",
+          "type": "text",
+          "required": false
+        },
+        {
+          "linkId": "clinical-judgment-override",
+          "text": "Does your clinical judgment override the risk level suggested by the risk/protective factors and suicide inquiry?",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "override-rationale",
+          "text": "If yes, document the reason for the clinical-judgment override",
+          "type": "text",
+          "required": false,
+          "enableWhen": [
+            { "question": "clinical-judgment-override", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
+          ]
+        },
+        {
+          "linkId": "treatment-plan",
+          "text": "Treatment plan to address/reduce current risk (safety plan, medication, psychotherapy, contact with significant others, consultation, etc.)",
+          "type": "text",
+          "required": false
+        },
+        {
+          "linkId": "means-safety-counseling",
+          "text": "Counseling on access to lethal means provided?",
+          "type": "choice",
+          "required": false,
+          "answerOption": [
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } },
+            { "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }
+          ]
+        },
+        {
+          "linkId": "follow-up-plan",
+          "text": "Follow-up plan",
+          "type": "text",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

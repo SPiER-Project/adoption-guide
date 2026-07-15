@@ -58,6 +58,10 @@ const EXPECTED = {
   'FHIR-Resources/PSS-3/pss3-questionnaire.json': [
     'depression-2wk', 'active-ideation-2wk', 'lifetime-attempt',
   ],
+  // SAFE-T is a clinical-judgment formulation; only the risk-level item is a
+  // literal extraction (LOINC 93374-7). Its value binds directly to the shared
+  // suicide-risk tier (no crosswalk). Matches web/src/lib/observationMappers/safet.ts.
+  'FHIR-Resources/SAFE-T/safet-questionnaire.json': ['93374-7'],
 }
 
 function* walk(items) {
