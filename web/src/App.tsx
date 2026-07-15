@@ -8,6 +8,7 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 // FHIR Questionnaires — sourced from the single registry (web/src/data/questionnaires.ts).
 import {
   asqQuestionnaire,
+  bssaQuestionnaire,
   phq9Questionnaire,
   sbqrQuestionnaire,
   cssrsScreener,
@@ -119,6 +120,9 @@ function AppRoutes() {
           } />
           <Route path="assessments/asq" element={
             <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaire={asqQuestionnaire} persistName="ASQ Screening" />
+          } />
+          <Route path="assessments/bssa" element={
+            <QuestionnaireView title="BSSA — Brief Suicide Safety Assessment" questionnaire={bssaQuestionnaire} persistName="BSSA" />
           } />
           <Route path="assessments/sbq-r" element={
             <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />

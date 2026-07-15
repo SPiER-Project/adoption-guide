@@ -100,21 +100,10 @@ Usage: #definition
 * kind = #ServiceRequest
 
 
-Instance: AdministerBSSA
-InstanceOf: ActivityDefinition
-Title: "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
-Description: "Administer the NIMH Brief Suicide Safety Assessment (BSSA), a disposition-oriented assessment used after a positive ASQ screen."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerBSSA"
-* name = "AdministerBSSA"
-* version = "0.1.0"
-* title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Administer the NIMH Brief Suicide Safety Assessment (BSSA). Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Guide clinical disposition after a positive brief screen (e.g. ASQ)."
-* kind = #ServiceRequest
+// AdministerBSSA has been promoted out of this placeholder file into the full
+// artifact set at ig/input/fsh/bssa.fsh (Questionnaire binding, disposition
+// CodeSystem/ValueSets, SPiERBSSADispositionResult Observation profile, and a
+// disposition → suicide-risk-tier crosswalk in crosswalk-bssa.fsh).
 
 
 Instance: AdministerPSSFull
