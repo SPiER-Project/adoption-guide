@@ -311,13 +311,17 @@ Usage: #definition
   * output[+]
     * type = #CarePlan
     * profile = "http://spier.org/StructureDefinition/spier-cams-stabilization-plan"
-// Placeholder tools (see pathway-tool-placeholders.fsh) — catalogued but not yet
-// fully FHIR-modelled, so no output profile is declared.
 * action[+]
   * id = "provide-means-safety-counseling"
   * title = "Provide Lethal Means Safety Counseling / Means Safety Actions"
-  * description = "Lethal-means reduction counseling and documented means-safety actions (covers named protocols such as CALM). Placeholder — no Questionnaire binding yet."
+  * description = "Lethal-means reduction counseling (covers named protocols such as CALM). Yields a counseling Procedure (SPiERLethalMeansCounseling) plus per-method means-safety Observations (SPiERMeansSafetyAction)."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ProvideMeansSafetyCounseling"
+  * output[+]
+    * type = #Procedure
+    * profile = "http://spier.org/StructureDefinition/spier-lethal-means-counseling"
+  * output[+]
+    * type = #Observation
+    * profile = "http://spier.org/StructureDefinition/spier-means-safety-action"
 * action[+]
   * id = "author-crisis-response-plan"
   * title = "Author Crisis Response Plan / Crisis Planning"
@@ -329,8 +333,11 @@ Usage: #definition
 * action[+]
   * id = "share-crisis-resources"
   * title = "Share Patient-Facing Crisis Resources / Coping Supports"
-  * description = "Document that crisis resources (988, Crisis Text Line, Now Matters Now, coping supports) were provided. Placeholder — no Questionnaire binding yet."
+  * description = "Document that crisis resources (988, Crisis Text Line, Now Matters Now, safety-plan copy, coping supports) were provided. Yields a stage-tagged Communication (SPiERCrisisResourcesShared)."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ShareCrisisResources"
+  * output[+]
+    * type = #Communication
+    * profile = "http://spier.org/StructureDefinition/spier-crisis-resources-shared"
 
 
 // ─── Stage 5: Coordinate Handoffs ────────────────────────────

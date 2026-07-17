@@ -129,21 +129,10 @@ Usage: #definition
 
 // ─── Document Safety Actions ─────────────────────────────────
 
-Instance: ProvideMeansSafetyCounseling
-InstanceOf: ActivityDefinition
-Title: "Provide Lethal Means Safety Counseling / Means Safety Actions"
-Description: "Provide lethal-means safety counseling and document the agreed means-safety actions (storage/removal plans, responsible parties, completion)."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ProvideMeansSafetyCounseling"
-* name = "ProvideMeansSafetyCounseling"
-* version = "0.1.0"
-* title = "Provide Lethal Means Safety Counseling / Means Safety Actions"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Provide lethal-means safety counseling and document means-safety actions. Covers named protocols such as CALM (Counseling on Access to Lethal Means). Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
-* purpose = "Reduce the patient's access to lethal means as a concrete, documented, and reportable safety action."
-* kind = #ServiceRequest
+// ProvideMeansSafetyCounseling has been promoted out of this placeholder file
+// into the full artifact set at ig/input/fsh/lethal-means.fsh (SPiERLethalMeansCounseling
+// Procedure profile + SPiERMeansSafetyAction Observation profile + method/action
+// CodeSystems).
 
 
 // AuthorCrisisResponsePlan has been promoted out of this placeholder file into
@@ -151,21 +140,10 @@ Usage: #definition
 // SPiERCrisisResponsePlan CarePlan profile, modeled on the Stanley-Brown plan).
 
 
-Instance: ShareCrisisResources
-InstanceOf: ActivityDefinition
-Title: "Share Patient-Facing Crisis Resources / Coping Supports"
-Description: "Document that patient-facing crisis resources or coping supports (988, Crisis Text Line, Now Matters Now, safety-plan copy, local crisis lines) were provided."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ShareCrisisResources"
-* name = "ShareCrisisResources"
-* version = "0.1.0"
-* title = "Share Patient-Facing Crisis Resources / Coping Supports"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Document that patient-facing crisis resources or coping supports were provided (988, Crisis Text Line, Now Matters Now, coping-skills resources). Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Connect the patient to crisis resources and coping supports and record what was shared, when, and how."
-* kind = #CommunicationRequest
+// ShareCrisisResources has been promoted out of this placeholder file into the
+// full artifact set at ig/input/fsh/crisis-resources.fsh (SPiERCrisisResourcesShared
+// Communication profile + crisis-resource CodeSystem/ValueSet + CrisisResourceCode
+// extension).
 
 
 // ─── Coordinate Handoffs ─────────────────────────────────────
