@@ -88,8 +88,14 @@ export function Roadmap() {
       byTool.set(issue.toolId, list)
     }
 
-    const rows = TOOLS.map((t) => buildToolRow(t, byTool))
-    const rowById = new Map(rows.map((r) => [r.tool.id, r]))
+    // Single pass builds the flat list and the by-id index together.
+    const rows: ToolRow[] = []
+    const rowById = new Map<string, ToolRow>()
+    for (const tool of TOOLS) {
+      const row = buildToolRow(tool, byTool)
+      rows.push(row)
+      rowById.set(tool.id, row)
+    }
     const grouped = groupToolsByStage().map(({ stage, tools }) => ({
       stage,
       rows: tools.map((t) => rowById.get(t.id)).filter((r): r is ToolRow => !!r),
