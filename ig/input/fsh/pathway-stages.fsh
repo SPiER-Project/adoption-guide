@@ -451,31 +451,48 @@ Usage: #definition
 * type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
 * useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
 * useContext[=].valueCodeableConcept = SPiERPathwayStage#track-risk-over-time
+// The registry is a QUERY over the other four actions' output (open episodes
+// + their tasks), so it deliberately declares no output profile of its own.
 * action[+]
   * id = "maintain-risk-registry"
   * title = "Maintain Active Suicide-Safer Care Registry / Work Queue"
-  * description = "Keep active suicide-risk patients visible in one place with status, owner, and due dates. Placeholder — no Questionnaire binding yet."
+  * description = "Keep active suicide-risk patients visible in one place with status, owner, and due dates. Produces no resource — reads open SPiERSuicideRiskEpisode resources and their SPiERSafetyTask children."
   * definitionCanonical = "http://spier.org/ActivityDefinition/MaintainRiskRegistry"
 * action[+]
   * id = "track-risk-episode-status"
   * title = "Track Suicide-Risk Episode / Pathway Status"
-  * description = "Track an active suicide-risk episode over time, including entry reason, current tier, owner, and closure. Placeholder — no Questionnaire binding yet."
+  * description = "Track an active suicide-risk episode over time — entry reason, current tier, owner, and closure with reason plus final status. Yields the episode (SPiERSuicideRiskEpisode) and its chart banner (SPiERSuicideRiskFlag). Anchor for the whole stage."
   * definitionCanonical = "http://spier.org/ActivityDefinition/TrackRiskEpisodeStatus"
+  * output[+]
+    * type = #EpisodeOfCare
+    * profile = "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+  * output[+]
+    * type = #Flag
+    * profile = "http://spier.org/StructureDefinition/spier-suicide-risk-flag"
 * action[+]
   * id = "schedule-risk-reassessment"
   * title = "Schedule Reassessment / Risk Review"
-  * description = "Track when suicide-risk reassessment or review is due and alert when overdue. Placeholder — no Questionnaire binding yet."
+  * description = "Track when suicide-risk reassessment or review is due and alert when overdue. Yields a SPiERSafetyTask coded reassessment-due; overdue is computed from the task due date."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+  * output[+]
+    * type = #Task
+    * profile = "http://spier.org/StructureDefinition/spier-safety-task"
 * action[+]
   * id = "track-open-safety-actions"
   * title = "Track Open Safety Actions / Care Gaps"
-  * description = "Track open suicide-safety actions and care gaps with owner, due date, and completion. Placeholder — no Questionnaire binding yet."
+  * description = "Track open suicide-safety actions and care gaps with owner, due date, and completion. Yields one SPiERSafetyTask per gap, linked to the episode."
   * definitionCanonical = "http://spier.org/ActivityDefinition/TrackOpenSafetyActions"
+  * output[+]
+    * type = #Task
+    * profile = "http://spier.org/StructureDefinition/spier-safety-task"
 * action[+]
   * id = "escalate-overdue-risk"
   * title = "Run Risk Escalation / Overdue Workflow"
-  * description = "Escalate active cases when key steps are overdue or risk worsens. Placeholder — no Questionnaire binding yet."
+  * description = "Escalate active cases when key steps are overdue or risk worsens. Yields a SPiERSafetyTask coded escalation, carrying one or more escalation triggers."
   * definitionCanonical = "http://spier.org/ActivityDefinition/EscalateOverdueRisk"
+  * output[+]
+    * type = #Task
+    * profile = "http://spier.org/StructureDefinition/spier-safety-task"
 
 
 // ─── Stage 8: Measure and Share the Data ─────────────────────

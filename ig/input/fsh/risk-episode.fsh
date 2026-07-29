@@ -332,6 +332,106 @@ Description: "One piece of open suicide-safety work with an owner and a due date
 * for MS
 
 
+// ─── ActivityDefinitions ─────────────────────────────────────
+// Promoted out of pathway-tool-placeholders.fsh. Every AD id and canonical
+// URL is unchanged so the TL-0xx catalog mappings and the track-risk-over-time
+// stage PlanDefinition actions stay stable.
+//
+// Note the asymmetry: four of these produce resources, but TL-037 (registry)
+// produces NOTHING — it is a query over the other four's output. Its AD is
+// kept because the tool is catalogued and the stage PD references it, but it
+// deliberately declares no output profile.
+
+Instance: MaintainRiskRegistry
+InstanceOf: ActivityDefinition
+Title: "Maintain Active Suicide-Safer Care Registry / Work Queue"
+Description: "Present every open suicide-safer care episode in one work queue with risk tier, owner, due dates, and escalation state. Produces no resource of its own: the registry is a QUERY over open SPiERSuicideRiskEpisode resources and their SPiERSafetyTask children."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/MaintainRiskRegistry"
+* name = "MaintainRiskRegistry"
+* version = "1.0.0"
+* title = "Maintain Active Suicide-Safer Care Registry / Work Queue"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "Maintain an active suicide-safer care registry / work queue. This activity stores nothing — it reads. The canonical query is `EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on`, sorted/filtered by the episode's current-risk-tier extension and each task's restriction.period.end. Every column the SSC asks for (risk status, last assessment, next reassessment due, safety-plan status, open tasks, owner, escalation status) is derivable from that one query."
+* purpose = "Keep every active suicide-risk patient visible in one place with clear ownership and due dates. Belongs to the Track Risk Over Time stage."
+* kind = #Task
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+
+
+Instance: TrackRiskEpisodeStatus
+InstanceOf: ActivityDefinition
+Title: "Track Suicide-Risk Episode / Pathway Status"
+Description: "Open, maintain, and close an active suicide-safer care episode. Produces a SPiERSuicideRiskEpisode (EpisodeOfCare) plus the SPiERSuicideRiskFlag (Flag) chart banner that announces it."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/TrackRiskEpisodeStatus"
+* name = "TrackRiskEpisodeStatus"
+* version = "1.0.0"
+* title = "Track Suicide-Risk Episode / Pathway Status"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "Track suicide-risk episode / pathway status over time as a SPiERSuicideRiskEpisode: entry reason, current risk tier, assigned owner/team, and an open→closed lifecycle whose closure records both a reason and a final status. Raises a SPiERSuicideRiskFlag while the episode is open. This is the anchor resource for the whole Track Risk Over Time stage — reassessment, care-gap, and escalation Tasks all reference the episode via Task.basedOn."
+* purpose = "Give the active suicide-safer care episode a structured, reportable lifecycle from entry to resolution. Belongs to the Track Risk Over Time stage."
+* kind = #Task
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+
+
+Instance: ScheduleRiskReassessment
+InstanceOf: ActivityDefinition
+Title: "Schedule Reassessment / Risk Review"
+Description: "Schedule the next suicide-risk reassessment as a SPiERSafetyTask with an owner and a due date."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+* name = "ScheduleRiskReassessment"
+* version = "1.0.0"
+* title = "Schedule Reassessment / Risk Review"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "Schedule reassessment / risk review as a SPiERSafetyTask coded `reassessment-due`, owned by a person or team, with the due date on restriction.period.end. Due and overdue are computed from that date rather than stored, so the schedule cannot silently go stale."
+* purpose = "Make reassessment cadence explicit and enforceable rather than dependent on memory. Belongs to the Track Risk Over Time stage."
+* kind = #Task
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+
+
+Instance: TrackOpenSafetyActions
+InstanceOf: ActivityDefinition
+Title: "Track Open Safety Actions / Care Gaps"
+Description: "Track unfinished suicide-safety work as SPiERSafetyTask resources — safety plan needed, lethal-means action open, referral incomplete, appointment missing, and the rest of the SSC care-gap list."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/TrackOpenSafetyActions"
+* name = "TrackOpenSafetyActions"
+* version = "1.0.0"
+* title = "Track Open Safety Actions / Care Gaps"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "Track open safety actions / care gaps as SPiERSafetyTask resources, one per gap, each with an owner and a due date and each linked to its episode via Task.basedOn. Task.code carries which gap it is; completion is Task.status = completed."
+* purpose = "Keep unfinished safety work visible and assignable until completed. Belongs to the Track Risk Over Time stage."
+* kind = #Task
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+
+
+Instance: EscalateOverdueRisk
+InstanceOf: ActivityDefinition
+Title: "Run Risk Escalation / Overdue Workflow"
+Description: "Escalate an episode when risk worsens or key steps go overdue, as a SPiERSafetyTask coded `escalation` carrying one or more escalation triggers."
+Usage: #definition
+* url = "http://spier.org/ActivityDefinition/EscalateOverdueRisk"
+* name = "EscalateOverdueRisk"
+* version = "1.0.0"
+* title = "Run Risk Escalation / Overdue Workflow"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "Run the risk escalation / overdue workflow as a SPiERSafetyTask coded `escalation`. The repeating escalation-trigger extension records why (high-risk status, worsening or missed reassessment, missed follow-up or appointment, overdue safety action, unable to reach, or manual clinician escalation — the SSC allows several at once); Task.owner routes it; Task.businessStatus records the outcome."
+* purpose = "Ensure worsening or stalled episodes are surfaced and acted on, not silently aged out. Belongs to the Track Risk Over Time stage."
+* kind = #Task
+* topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+
+
 // ─── Examples ────────────────────────────────────────────────
 
 Instance: ExampleActiveSuicideRiskEpisode

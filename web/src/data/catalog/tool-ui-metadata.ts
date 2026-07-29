@@ -672,8 +672,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['all settings'],
     badge: { label: 'Monitoring', variant: 'monitoring' },
     launchActions: [],
-    tags: ['work queue', 'owners & due dates'],
+    tags: ['work queue', 'owners & due dates', 'query, not a resource'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: '(none — a query)', description: 'The registry stores nothing. It reads open episodes and their tasks: EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on', when: 'On view' },
+      ],
+      workflowTrigger: 'Sorted/filtered by the episode current-risk-tier extension and each task due date; overdue is computed, not stored.',
+    },
   },
   'TL-038': {
     shortName: 'Episode Status',
@@ -681,8 +687,15 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['all settings'],
     badge: { label: 'Monitoring', variant: 'monitoring' },
     launchActions: [],
-    tags: ['open/closed lifecycle', 'closure reason'],
+    tags: ['open/closed lifecycle', 'closure reason', 'stage anchor'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'EpisodeOfCare', description: 'The suicide-safer care episode (SPiERSuicideRiskEpisode) — entry reason, current risk tier, owner/team, open→closed with closure reason + statusHistory', when: 'On episode open; updated through to closure' },
+        { type: 'Flag', description: 'Chart banner announcing the open episode (SPiERSuicideRiskFlag). Carries no clinical detail; set inactive at closure', when: 'While the episode is open' },
+      ],
+      workflowTrigger: 'Anchor for the stage — reassessment, care-gap, and escalation Tasks all link back via Task.basedOn.',
+    },
   },
   'TL-039': {
     shortName: 'Reassessment Schedule',
@@ -692,6 +705,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['tier-driven cadence', 'due & overdue alerts'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Task', description: 'SPiERSafetyTask coded reassessment-due, with owner and due date (restriction.period.end), linked to the episode', when: 'On scheduling' },
+      ],
+      workflowTrigger: 'Due/overdue computed from the due date rather than stored, so the schedule cannot go stale.',
+    },
   },
   'TL-040': {
     shortName: 'Care Gap Tracking',
@@ -701,6 +720,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['open safety actions', 'owner + due date'],
     targetMaturity: { electronic: 2, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'Task (x1-n)', description: 'One SPiERSafetyTask per open gap (safety plan needed, lethal-means action open, referral incomplete, appointment missing, …), each with owner + due date', when: 'While the gap is open' },
+      ],
+      workflowTrigger: 'Completion = Task.status completed. Gaps roll up into the registry work queue.',
+    },
   },
   'TL-041': {
     shortName: 'Overdue Escalation',
@@ -710,6 +735,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['worsening risk', 'documented outcome'],
     targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Task', description: 'SPiERSafetyTask coded escalation with a repeating escalation-trigger extension (several triggers can fire at once); Task.owner routes it, businessStatus records the outcome', when: 'On escalation' },
+      ],
+      workflowTrigger: 'Triggers: high-risk status, worsening/missed reassessment, missed follow-up or appointment, overdue safety action, unable to reach, manual escalation.',
+    },
   },
 
   // ── Measure and Share the Data ──
