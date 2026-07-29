@@ -53,6 +53,13 @@ export type CommunicationResource = FhirResource & { resourceType: 'Communicatio
 export type AppointmentResource = FhirResource & { resourceType: 'Appointment' }
 export type MeasureReportResource = FhirResource & { resourceType: 'MeasureReport' }
 
+// ─── Stage 7 (Track Risk Over Time) ──────────────────────────
+// The episode pattern from ig/input/fsh/risk-episode.fsh. Typed loosely like
+// the other workflow resources above; the profiles are the real contract.
+export type EpisodeOfCareResource = FhirResource & { resourceType: 'EpisodeOfCare' }
+export type FlagResource = FhirResource & { resourceType: 'Flag' }
+export type TaskResource = FhirResource & { resourceType: 'Task' }
+
 /**
  * Minimal QuestionnaireResponse item shapes (loose FHIR R4) used by the
  * observation/care-plan mappers to walk captured answers. Intentionally small,
@@ -114,6 +121,14 @@ export interface PatientSlice {
    * which predate this field — remain valid; always read with `?? []`.
    */
   communications?: CommunicationResource[]
+  /**
+   * Stage-7 (Track Risk Over Time) artifacts. Optional for the same
+   * back-compat reason as `communications` — persisted slices and scenario
+   * JSON predate them; always read with `?? []`.
+   */
+  episodes?: EpisodeOfCareResource[]
+  flags?: FlagResource[]
+  tasks?: TaskResource[]
 }
 
 /**

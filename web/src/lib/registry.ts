@@ -14,6 +14,14 @@ import { STAGES } from '../data/catalog'
 import { derivePathwayStatus, type PatientArtifacts, type FhirResourceLike } from './patientPathway'
 import { highestRiskLevel } from './observationMappers'
 import type { RiskAlert } from './observationMappers'
+import {
+  episodeCurrentTier,
+  findOpenEpisode,
+  isTaskOpen,
+  isTaskOverdue,
+  taskDueDate,
+  tasksForEpisode,
+} from './riskEpisode'
 import type { PatientSlice } from '../types/fhir'
 
 export interface RegistryPatient {
@@ -37,11 +45,47 @@ export interface DerivedRegistryRow extends RegistryPatient {
   currentRiskLevel: RiskAlert['level']
   /** Null when the slice has no dated artifact at all. */
   lastActivity: RegistryActivity | null
+  /**
+   * Stage-7 work-queue rollup (TL-037). The registry is a QUERY, not a stored
+   * resource, so these are derived per row from the patient's open episode and
+   * its tasks — exactly the client-side equivalent of
+   * `EpisodeOfCare?status=active&_revinclude=Task:based-on`.
+   */
+  episodeOpen: boolean
+  /** Tier cached on the episode (see the episode-current-risk-tier extension). */
+  episodeTier: string | null
+  openTaskCount: number
+  /** Computed on read — never stored, so it can't disagree with the clock. */
+  overdueTaskCount: number
+  /** Soonest due date among open tasks, or null. */
+  nextTaskDue: string | null
 }
 
 function bestArtifactDate(resource: FhirResourceLike): string | undefined {
-  const r = resource as { authored?: string; effectiveDateTime?: string; issued?: string; sent?: string; _savedAt?: string }
-  return r.authored ?? r.effectiveDateTime ?? r.issued ?? r.sent ?? r._savedAt
+  const r = resource as {
+    authored?: string
+    effectiveDateTime?: string
+    issued?: string
+    sent?: string
+    // Stage-7: Task carries authoredOn; EpisodeOfCare/Flag carry period.start.
+    // Without these the feed would fall back to the local `_savedAt` stamp,
+    // which is the save time rather than the clinical time (and is absent
+    // entirely on resources read back from a SMART server).
+    authoredOn?: string
+    period?: { start?: string; end?: string }
+    _savedAt?: string
+  }
+  return (
+    r.authored ??
+    r.effectiveDateTime ??
+    r.issued ??
+    r.sent ??
+    r.authoredOn ??
+    // An episode that has closed is most meaningfully dated by its end.
+    r.period?.end ??
+    r.period?.start ??
+    r._savedAt
+  )
 }
 
 function careplanLabel(resource: FhirResourceLike): string {
@@ -56,6 +100,30 @@ function careplanLabel(resource: FhirResourceLike): string {
 function communicationLabel(resource: FhirResourceLike): string {
   const c = resource as { reasonCode?: { text?: string }[]; category?: { text?: string; coding?: { display?: string }[] }[] }
   return c.reasonCode?.[0]?.text ?? c.category?.[0]?.text ?? c.category?.[0]?.coding?.[0]?.display ?? 'Communication'
+}
+
+/**
+ * Stage-7 labels. Episodes/flags/tasks describe themselves through coded
+ * fields rather than a title, so each label is built from the code plus the
+ * lifecycle state that makes the row meaningful in an activity feed ("closed"
+ * vs "opened" is the whole point of an episode entry).
+ */
+function episodeLabel(resource: FhirResourceLike): string {
+  const e = resource as { status?: string }
+  const closed = e.status === 'finished' || e.status === 'cancelled'
+  return closed ? 'Suicide-safer care episode closed' : 'Suicide-safer care episode opened'
+}
+
+function flagLabel(resource: FhirResourceLike): string {
+  const f = resource as { status?: string; code?: { text?: string; coding?: { display?: string }[] } }
+  const name = f.code?.text ?? f.code?.coding?.[0]?.display ?? 'Suicide-risk flag'
+  return f.status === 'active' ? name : `${name} (cleared)`
+}
+
+function taskLabel(resource: FhirResourceLike): string {
+  const t = resource as { status?: string; code?: { text?: string; coding?: { display?: string }[] } }
+  const name = t.code?.text ?? t.code?.coding?.[0]?.display ?? 'Safety task'
+  return t.status === 'completed' ? `${name} (completed)` : name
 }
 
 function observationLabel(resource: FhirResourceLike): string {
@@ -97,12 +165,43 @@ function deriveLastActivity(slice: PatientSlice): RegistryActivity | null {
     const date = bestArtifactDate(c)
     if (date) candidates.push({ date, label: communicationLabel(c) })
   }
+  for (const e of slice.episodes ?? []) {
+    const date = bestArtifactDate(e)
+    if (date) candidates.push({ date, label: episodeLabel(e) })
+  }
+  for (const f of slice.flags ?? []) {
+    const date = bestArtifactDate(f)
+    if (date) candidates.push({ date, label: flagLabel(f) })
+  }
+  for (const t of slice.tasks ?? []) {
+    const date = bestArtifactDate(t)
+    if (date) candidates.push({ date, label: taskLabel(t) })
+  }
 
   if (candidates.length === 0) return null
   return candidates.reduce((newest, c) => (new Date(c.date) > new Date(newest.date) ? c : newest))
 }
 
-export function deriveRegistryRow(patient: RegistryPatient, slice: PatientSlice): DerivedRegistryRow {
+/** Stage-7 rollup for one patient's slice — the registry work-queue columns. */
+function deriveEpisodeRollup(slice: PatientSlice, now: Date) {
+  const openEpisode = findOpenEpisode(slice.episodes ?? [])
+  const episodeTasks = tasksForEpisode(slice.tasks ?? [], openEpisode?.id)
+  const open = episodeTasks.filter(isTaskOpen)
+  const nextDue = open.map(taskDueDate).filter((d): d is string => !!d).sort()[0] ?? null
+  return {
+    episodeOpen: !!openEpisode,
+    episodeTier: episodeCurrentTier(openEpisode) ?? null,
+    openTaskCount: open.length,
+    overdueTaskCount: open.filter(t => isTaskOverdue(t, now)).length,
+    nextTaskDue: nextDue,
+  }
+}
+
+export function deriveRegistryRow(
+  patient: RegistryPatient,
+  slice: PatientSlice,
+  now: Date = new Date(),
+): DerivedRegistryRow {
   const artifacts: PatientArtifacts = {
     responses: slice.responses,
     carePlans: slice.carePlans,
@@ -118,5 +217,6 @@ export function deriveRegistryRow(patient: RegistryPatient, slice: PatientSlice)
     completedStages,
     currentRiskLevel: highestRiskLevel(slice.riskAlerts),
     lastActivity: deriveLastActivity(slice),
+    ...deriveEpisodeRollup(slice, now),
   }
 }

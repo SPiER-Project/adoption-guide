@@ -2,7 +2,9 @@
 
 Design for the five Stage-7 tools, authored **before** per-tool implementation
 per [`ssc-stage-tiles-rollout.md`](ssc-stage-tiles-rollout.md) Wave 5
-("Do stage 7 as one design PR first, then implement per-tool").
+("Do stage 7 as one design PR first, then implement per-tool"). Now also
+records what shipped and what the build changed — see *Implementation status*
+below.
 
 Artifacts: [`ig/input/fsh/risk-episode.fsh`](../../ig/input/fsh/risk-episode.fsh).
 Requirements source: [`docs/reference/ssc-stage-tiles-question-set.md`](../reference/ssc-stage-tiles-question-set.md),
@@ -93,7 +95,8 @@ the full observation history per row. The extension documents that the
 Observation history stays the source of truth and producers **must** refresh the
 cache when a newer risk Observation lands. If that guarantee feels too fragile
 to rely on, the alternative is to drop the extension and make the registry
-resolve tier per patient — slower, but no staleness risk. **Worth a decision.**
+resolve tier per patient — slower, but no staleness risk. **Decided 2026-07-15:
+keep the cache** (see *Resolved decisions*).
 
 ### 6. The Flag carries no clinical detail
 
@@ -117,42 +120,64 @@ unverified codes are not asserted here.
 
 ---
 
-## What this PR does *not* do
+## Implementation status
 
-Deliberately out of scope, to keep the design reviewable:
+| Step | State |
+|---|---|
+| Profiles + terminology + this doc | ✅ merged (#196) |
+| All five ADs promoted + stage PD outputs + catalog metadata | ✅ merged (#197) |
+| Data layer, recorders, registry work queue | ✅ this PR |
 
-- **No ActivityDefinition promotion.** The five Stage-7 placeholders stay in
-  `pathway-tool-placeholders.fsh`; no stage PD outputs are declared yet.
-- **No catalog/UI wiring.** No launch actions, no recorders, no registry view.
-- **No mappers.** These resources are workflow state, not derived from
-  QuestionnaireResponses, so no `observationMappers` entry applies.
+Delivered in the implementation PR:
 
-The app is therefore unchanged by this PR — it adds profiles, terminology, and
-this document.
+- **Data layer** — `episodes` / `flags` / `tasks` buckets on `PatientSlice`
+  (optional, like `communications`, so persisted slices and scenario JSON stay
+  valid), routing in `localDataSource` and `smartDataSource`, and activity-feed
+  labels in `registry.ts`.
+- **TL-038 recorder** (`/patient/workflow/risk-episode`) — opens an episode and
+  raises the flag; closes it and clears the flag in the same action.
+- **TL-039/040/041 recorder** (`/patient/workflow/safety-tasks`) — one form for
+  all three, switching on task type; escalation reveals the trigger checkboxes.
+- **TL-037 work queue** — an "Open Work" column on the Population view, rolled
+  up per patient by `deriveEpisodeRollup` in `registry.ts`.
 
----
+### Two things the implementation forced that the design missed
 
-## Implementation plan (follow-up PRs)
+1. **Writes must upsert by id, not append.** Every other SPiER artifact is an
+   immutable point-in-time record, so the stores append. Stage-7 resources have
+   a *lifecycle* — the close of an episode is another save of the *same*
+   resource — and appending left a stale open copy behind, which showed up as a
+   phantom row in the work queue. `localDataSource` now upserts these three
+   types by id, and `smartDataSource` PUTs them (update-as-create, preserving
+   the client id) instead of POSTing.
+2. **`subject` is the wrong element for two of the three.** `toCreatePayload`
+   hard-coded `subject`, but `EpisodeOfCare` uses `patient` and `Task` uses
+   `for`. Writing `subject` would have produced invalid FHIR that a strict
+   server rejects and a lenient one silently drops — losing the patient link.
+   A `patientRefField()` helper now picks the right element per resource type.
 
-1. **TL-038 episode + Flag** — promote both ADs, declare stage outputs, add a
-   demo recorder that opens/closes an episode and raises/clears the flag.
-   `patientPathway.ts` already stages any resource by `meta.tag`, so no
-   resolver change is needed.
-2. **TL-039 / TL-040 tasks** — promote ADs, declare `Task` outputs, add a task
-   recorder (type, owner, due date).
-3. **TL-041 escalation** — promote AD, add trigger capture + outcome.
-4. **TL-037 registry view** — Population-view work queue built on the query in
-   §1. No new FHIR artifacts.
+## Resolved decisions
 
-## Open questions
+The design's open questions were decided on 2026-07-15:
 
-- **§5 cache vs. resolve** — keep the denormalized tier extension, or resolve
-  per patient in the registry query?
-- **Owner modelling** — `Task.owner` currently accepts any reference. Should
-  SPiER constrain it to `Practitioner | PractitionerRole | CareTeam` to make
-  work-queue assignment predictable?
-- **Episode granularity** — one episode per risk period (current design), or one
-  long-running episode per patient with statusHistory doing the work? The
-  current model assumes a patient can have several distinct episodes over time.
-- **`Flag` lifecycle automation** — should closing an episode automatically set
-  the flag inactive (a CDS/automation concern), or stay manual in the demo?
+- **Episode granularity → one episode per risk period.** A patient may have
+  several distinct episodes over time, with at most one open. The recorder makes
+  this structural rather than a validation message: it offers "open" only when
+  nothing is open, and "close" otherwise.
+- **Tier cache → keep it.** The `episode-current-risk-tier` extension stays, so
+  the work queue can sort by tier without joining observation history per row.
+  Producers must refresh it when a newer risk Observation lands.
+- **`Task.owner` → left unconstrained** for now (accepts any reference,
+  including a plain display string in the demo). Tightening to
+  `Practitioner | PractitionerRole | CareTeam` stays available as a purely
+  additive change.
+- **Flag lifecycle → automated in the recorder.** Closing an episode clears its
+  flag in the same action, so a banner cannot outlive the episode it announces.
+
+## Still open
+
+- **SMART update-as-create.** The PUT path assumes the server accepts a
+  client-supplied id. A server that rejects it will surface a write error rather
+  than silently duplicating — but full id-mapping for SMART mode is unbuilt.
+- **Registry filtering.** The work queue currently shows open work as a column;
+  a dedicated "open episodes only" filter and sort-by-overdue are not yet wired.

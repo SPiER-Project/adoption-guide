@@ -30,6 +30,9 @@ import type { DerivedArtifacts, FhirDataSource } from './types'
 import type {
   CarePlanResource,
   CommunicationResource,
+  EpisodeOfCareResource,
+  FlagResource,
+  TaskResource,
   FhirResource,
   ObservationResource,
   PatientSlice,
@@ -58,6 +61,28 @@ function toStoredResponse(qr: QuestionnaireResponseResource): StoredResponse {
     resource: qr,
   }
 }
+
+/**
+ * Which element carries the patient reference for a given resource type.
+ *
+ * Most SPiER artifacts use `subject`, but EpisodeOfCare uses `patient` and Task
+ * uses `for`. Writing `subject` onto those would produce invalid FHIR that a
+ * strict server rejects (and a lenient one silently drops, losing the patient
+ * link entirely).
+ */
+function patientRefField(resourceType: string): 'subject' | 'patient' | 'for' {
+  switch (resourceType) {
+    case 'EpisodeOfCare':
+      return 'patient'
+    case 'Task':
+      return 'for'
+    default:
+      return 'subject'
+  }
+}
+
+/** Stage-7 resources whose writes are lifecycle updates rather than appends. */
+const LIFECYCLE_RESOURCE_TYPES = new Set(['EpisodeOfCare', 'Flag', 'Task'])
 
 export class SmartDataSource implements FhirDataSource {
   private readonly listeners = new Set<() => void>()
@@ -92,11 +117,16 @@ export class SmartDataSource implements FhirDataSource {
     // QRs and Observations are the chart's core data — failures there surface
     // as the chart's error state. CarePlan/Communication reads are
     // best-effort (a server may not grant those scopes) and degrade to empty.
-    const [qrs, observations, carePlans, communications] = await Promise.all([
+    const [qrs, observations, carePlans, communications, episodes, flags, tasks] = await Promise.all([
       this.search('QuestionnaireResponse', pid),
       this.search('Observation', pid, '&category=survey'),
       this.search('CarePlan', pid).catch(() => [] as FhirResource[]),
       this.search('Communication', pid).catch(() => [] as FhirResource[]),
+      // Stage 7 (Track Risk Over Time). Best-effort like CarePlan/Communication:
+      // a server may not grant these scopes, and the chart still works without them.
+      this.search('EpisodeOfCare', pid).catch(() => [] as FhirResource[]),
+      this.search('Flag', pid).catch(() => [] as FhirResource[]),
+      this.search('Task', pid).catch(() => [] as FhirResource[]),
     ])
 
     const responses = qrs
@@ -117,6 +147,9 @@ export class SmartDataSource implements FhirDataSource {
       observations: observations as ObservationResource[],
       carePlans: carePlans as CarePlanResource[],
       communications: communications as CommunicationResource[],
+      episodes: episodes as EpisodeOfCareResource[],
+      flags: flags as FlagResource[],
+      tasks: tasks as TaskResource[],
       riskAlerts,
     }
   }
@@ -151,10 +184,34 @@ export class SmartDataSource implements FhirDataSource {
    * stamp that FHIR JSON would misparse as a primitive extension.
    */
   private toCreatePayload<T extends FhirResource>(resource: T, patientId: string): T {
-    const clean = { ...resource, subject: { reference: `Patient/${patientId}` } }
+    const clean = { ...resource, [patientRefField(resource.resourceType)]: { reference: `Patient/${patientId}` } }
     delete (clean as { id?: string }).id
     delete (clean as { _savedAt?: string })._savedAt
-    return clean
+    return clean as T
+  }
+
+  /**
+   * Write a Stage-7 lifecycle resource with PUT (update-as-create), keeping the
+   * client-supplied id.
+   *
+   * Episodes, flags, and tasks are the only resources here that are *mutated*
+   * rather than appended — an episode is opened then closed, a flag raised then
+   * cleared, a task created then completed. POSTing each transition would leave
+   * the superseded version on the server, so a closed episode would still read
+   * as open. Keeping the client id and PUTting makes the server converge on the
+   * same upsert-by-id semantics the local store uses.
+   *
+   * Caveat: this relies on the server permitting update-as-create (FHIR allows
+   * it, but a server may reject a client-supplied id). Failures propagate to the
+   * caller's save-error handling rather than being swallowed.
+   */
+  private async put(resource: FhirResource): Promise<void> {
+    await this.client.request({
+      url: `${resource.resourceType}/${resource.id}`,
+      method: 'PUT',
+      body: JSON.stringify(resource),
+      headers: { 'content-type': 'application/fhir+json' },
+    })
   }
 
   async saveResponse(
@@ -201,7 +258,12 @@ export class SmartDataSource implements FhirDataSource {
     if (stageId && !alreadyTagged) {
       payload.meta = { ...meta, tag: [...(meta.tag ?? []), { system: PATHWAY_STAGE_SYSTEM, code: stageId }] }
     }
-    await this.create(payload)
+    if (LIFECYCLE_RESOURCE_TYPES.has(resource.resourceType) && resource.id) {
+      // Preserve the client id so open→close converges on one resource.
+      await this.put({ ...payload, id: resource.id })
+    } else {
+      await this.create(payload)
+    }
     this.notify()
   }
 
