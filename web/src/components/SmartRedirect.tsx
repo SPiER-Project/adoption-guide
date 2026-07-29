@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
-import FHIR from 'fhirclient';
-import { useNavigate } from 'react-router-dom';
-import { useSmart } from '../context/SmartContext';
-import { readSmartPatientSummary } from '../lib/smartPatient';
+import { useEffect, useState } from 'react'
+import FHIR from 'fhirclient'
+import { useNavigate } from 'react-router-dom'
+import { useSmart } from '../context/SmartContext'
+import { readSmartPatientSummary } from '../lib/smartPatient'
 
 export function SmartRedirect() {
-    const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...');
-    const [error, setError] = useState<string | null>(null);
-    const { setSmartData } = useSmart();
-    const navigate = useNavigate();
+    const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...')
+    const [error, setError] = useState<string | null>(null)
+    const { setSmartData } = useSmart()
+    const navigate = useNavigate()
 
     useEffect(() => {
         // This function completes the SMART on FHIR launch sequence
@@ -16,38 +16,38 @@ export function SmartRedirect() {
         FHIR.oauth2
             .ready()
             .then(async (client) => {
-                setStatus('Client authenticated. Fetching patient context...');
+                setStatus('Client authenticated. Fetching patient context...')
 
                 try {
                     // If a patient is in context (from EHR launch params), fetch their basic demographics
                     if (client.patient.id) {
-                        const summary = await readSmartPatientSummary(client);
-                        setSmartData(client, summary);
+                        const summary = await readSmartPatientSummary(client)
+                        setSmartData(client, summary)
 
-                        setStatus('Patient data loaded. Redirecting...');
+                        setStatus('Patient data loaded. Redirecting...')
 
                         // Land on the patient chart — a SMART launch carries a
                         // patient context, so the chart (which now reads live
                         // EHR data via SmartDataSource) is the destination.
                         // Give the user a brief moment to see success first.
                         setTimeout(() => {
-                            navigate('/patient/chart');
-                        }, 500);
+                            navigate('/patient/chart')
+                        }, 500)
                     } else {
                         // We authenticated, but no patient was in context
-                        setSmartData(client, {});
-                        navigate('/');
+                        setSmartData(client, {})
+                        navigate('/')
                     }
                 } catch (fetchError) {
-                    console.error("Error fetching patient data:", fetchError);
-                    setError("Authorized successfully, but failed to fetch patient details.");
+                    console.error('Error fetching patient data:', fetchError)
+                    setError('Authorized successfully, but failed to fetch patient details.')
                 }
             })
             .catch((err) => {
-                console.error('SMART Ready Error:', err);
-                setError(err.message || 'Failed to complete SMART on FHIR authorization.');
-            });
-    }, [navigate, setSmartData]);
+                console.error('SMART Ready Error:', err)
+                setError(err.message || 'Failed to complete SMART on FHIR authorization.')
+            })
+    }, [navigate, setSmartData])
 
     if (error) {
         return (
@@ -61,7 +61,7 @@ export function SmartRedirect() {
                     Return to Tools
                 </button>
             </div>
-        );
+        )
     }
 
     return (
@@ -70,5 +70,5 @@ export function SmartRedirect() {
             <h2>{status}</h2>
             <p>Securely connecting to electronic health record...</p>
         </div>
-    );
+    )
 }

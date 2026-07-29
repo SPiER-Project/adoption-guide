@@ -190,7 +190,9 @@ function writeCarePlanProfileTypes() {
     '// Regenerated on every `npm run copy-fhir` (also runs as predev / prebuild).',
     '',
     'export const CAREPLAN_PROFILE_URLS = [',
-    ...urls.map((u) => `  ${JSON.stringify(u)},`),
+    // Single-quoted to satisfy the repo's @stylistic/quotes rule — this file is
+    // emitted into src/ and therefore linted.
+    ...urls.map((u) => `  '${u.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}',`),
     '] as const',
     '',
     'export type CarePlanProfileUrl = (typeof CAREPLAN_PROFILE_URLS)[number]',
