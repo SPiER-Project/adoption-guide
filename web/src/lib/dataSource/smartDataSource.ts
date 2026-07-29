@@ -1,9 +1,11 @@
 /**
  * SmartDataSource — the SMART on FHIR implementation of `FhirDataSource`,
  * backed by an authorized fhirclient `Client`. Where `LocalDataSource` reads
- * and writes a localStorage store, this source reads the launch patient's
- * real QuestionnaireResponses / Observations / CarePlans / Communications
- * from the connected FHIR server and POSTs submissions back.
+ * and writes a localStorage store, this source reads the launch patient's real
+ * chart resources from the connected FHIR server — QuestionnaireResponses,
+ * Observations, CarePlans, Communications, the Stage-7 episode/flag/task set,
+ * and the Stage-5 handoff artifacts (DocumentReference, ServiceRequest,
+ * Appointment, Consent) — and writes submissions back.
  *
  * Design notes:
  *  - Risk alerts are recomputed locally by running each QuestionnaireResponse
@@ -28,10 +30,14 @@ import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '.
 import type { RiskAlert } from '../observationMappers'
 import type { DerivedArtifacts, FhirDataSource } from './types'
 import type {
+  AppointmentResource,
   CarePlanResource,
   CommunicationResource,
+  ConsentResource,
+  DocumentReferenceResource,
   EpisodeOfCareResource,
   FlagResource,
+  ServiceRequestResource,
   TaskResource,
   FhirResource,
   ObservationResource,
@@ -65,24 +71,73 @@ function toStoredResponse(qr: QuestionnaireResponseResource): StoredResponse {
 /**
  * Which element carries the patient reference for a given resource type.
  *
- * Most SPiER artifacts use `subject`, but EpisodeOfCare uses `patient` and Task
- * uses `for`. Writing `subject` onto those would produce invalid FHIR that a
- * strict server rejects (and a lenient one silently drops, losing the patient
- * link entirely).
+ * Most SPiER artifacts use `subject`, but EpisodeOfCare and Consent use
+ * `patient` and Task uses `for`. Writing `subject` onto those would produce
+ * invalid FHIR that a strict server rejects (and a lenient one silently drops,
+ * losing the patient link entirely).
+ *
+ * `null` means the type has no patient element at all — see `withPatientLink`.
  */
-function patientRefField(resourceType: string): 'subject' | 'patient' | 'for' {
+function patientRefField(resourceType: string): 'subject' | 'patient' | 'for' | null {
   switch (resourceType) {
     case 'EpisodeOfCare':
+    case 'Consent':
       return 'patient'
     case 'Task':
       return 'for'
+    // Appointment carries the patient as a participant.actor, not as a
+    // top-level element. Handled by withPatientLink.
+    case 'Appointment':
+      return null
     default:
       return 'subject'
   }
 }
 
-/** Stage-7 resources whose writes are lifecycle updates rather than appends. */
-const LIFECYCLE_RESOURCE_TYPES = new Set(['EpisodeOfCare', 'Flag', 'Task'])
+/**
+ * Attach the patient link in whichever element this resource type actually
+ * uses.
+ *
+ * Appointment is the awkward one: it has neither `subject` nor `patient` — the
+ * patient is one of `participant.actor`. The builders already produce that
+ * participant, so here we only ensure the reference points at the server's
+ * patient id (which differs from the client-side population id), and add the
+ * participant if a resource arrived without one.
+ */
+function withPatientLink<T extends FhirResource>(resource: T, patientId: string): T {
+  const reference = `Patient/${patientId}`
+  const field = patientRefField(resource.resourceType)
+  if (field) return { ...resource, [field]: { reference } }
+
+  type Participant = { actor?: { reference?: string; display?: string }; status?: string }
+  const participants = ((resource as { participant?: Participant[] }).participant ?? []).slice()
+  const patientIdx = participants.findIndex(p => p.actor?.reference?.startsWith('Patient/'))
+  if (patientIdx === -1) {
+    participants.unshift({ actor: { reference }, status: 'accepted' })
+  } else {
+    participants[patientIdx] = {
+      ...participants[patientIdx],
+      actor: { ...participants[patientIdx].actor, reference },
+    }
+  }
+  return { ...resource, participant: participants }
+}
+
+/**
+ * Resources whose writes are lifecycle updates rather than appends: the Stage-7
+ * episode/flag/task, plus the Stage-5 handoff artifacts, all of which are
+ * tracked past creation (a referral to completed, an appointment to
+ * fulfilled/noshow, a consent to revoked, a packet to superseded).
+ */
+const LIFECYCLE_RESOURCE_TYPES = new Set([
+  'EpisodeOfCare',
+  'Flag',
+  'Task',
+  'DocumentReference',
+  'ServiceRequest',
+  'Appointment',
+  'Consent',
+])
 
 export class SmartDataSource implements FhirDataSource {
   private readonly listeners = new Set<() => void>()
@@ -117,7 +172,19 @@ export class SmartDataSource implements FhirDataSource {
     // QRs and Observations are the chart's core data — failures there surface
     // as the chart's error state. CarePlan/Communication reads are
     // best-effort (a server may not grant those scopes) and degrade to empty.
-    const [qrs, observations, carePlans, communications, episodes, flags, tasks] = await Promise.all([
+    const [
+      qrs,
+      observations,
+      carePlans,
+      communications,
+      episodes,
+      flags,
+      tasks,
+      documentReferences,
+      serviceRequests,
+      appointments,
+      consents,
+    ] = await Promise.all([
       this.search('QuestionnaireResponse', pid),
       this.search('Observation', pid, '&category=survey'),
       this.search('CarePlan', pid).catch(() => [] as FhirResource[]),
@@ -127,6 +194,11 @@ export class SmartDataSource implements FhirDataSource {
       this.search('EpisodeOfCare', pid).catch(() => [] as FhirResource[]),
       this.search('Flag', pid).catch(() => [] as FhirResource[]),
       this.search('Task', pid).catch(() => [] as FhirResource[]),
+      // Stage 5 (Coordinate Handoffs) — best-effort for the same reason.
+      this.search('DocumentReference', pid).catch(() => [] as FhirResource[]),
+      this.search('ServiceRequest', pid).catch(() => [] as FhirResource[]),
+      this.search('Appointment', pid).catch(() => [] as FhirResource[]),
+      this.search('Consent', pid).catch(() => [] as FhirResource[]),
     ])
 
     const responses = qrs
@@ -150,6 +222,10 @@ export class SmartDataSource implements FhirDataSource {
       episodes: episodes as EpisodeOfCareResource[],
       flags: flags as FlagResource[],
       tasks: tasks as TaskResource[],
+      documentReferences: documentReferences as DocumentReferenceResource[],
+      serviceRequests: serviceRequests as ServiceRequestResource[],
+      appointments: appointments as AppointmentResource[],
+      consents: consents as ConsentResource[],
       riskAlerts,
     }
   }
@@ -184,22 +260,24 @@ export class SmartDataSource implements FhirDataSource {
    * stamp that FHIR JSON would misparse as a primitive extension.
    */
   private toCreatePayload<T extends FhirResource>(resource: T, patientId: string): T {
-    const clean = { ...resource, [patientRefField(resource.resourceType)]: { reference: `Patient/${patientId}` } }
+    const clean = withPatientLink(resource, patientId)
     delete (clean as { id?: string }).id
     delete (clean as { _savedAt?: string })._savedAt
     return clean as T
   }
 
   /**
-   * Write a Stage-7 lifecycle resource with PUT (update-as-create), keeping the
+   * Write a lifecycle resource with PUT (update-as-create), keeping the
    * client-supplied id.
    *
-   * Episodes, flags, and tasks are the only resources here that are *mutated*
-   * rather than appended — an episode is opened then closed, a flag raised then
-   * cleared, a task created then completed. POSTing each transition would leave
-   * the superseded version on the server, so a closed episode would still read
-   * as open. Keeping the client id and PUTting makes the server converge on the
-   * same upsert-by-id semantics the local store uses.
+   * These are the resources that are *mutated* rather than appended — an
+   * episode is opened then closed, a flag raised then cleared, a task created
+   * then completed, a referral tracked through to completed, an appointment
+   * resolved to fulfilled or noshow. POSTing each transition would leave the
+   * superseded version on the server, so a closed episode would still read as
+   * open and a completed referral as outstanding. Keeping the client id and
+   * PUTting makes the server converge on the same upsert-by-id semantics the
+   * local store uses.
    *
    * Caveat: this relies on the server permitting update-as-create (FHIR allows
    * it, but a server may reject a client-supplied id). Failures propagate to the

@@ -575,7 +575,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['ED', 'inpatient'],
     badge: { label: 'Handoff', variant: 'handoff' },
-    launchActions: [],
+    launchActions: [{ label: 'Assemble discharge packet', path: '/patient/workflow/discharge-packet' }],
     tags: ['safety plan copy', 'crisis resources', 'follow-up details'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
     recordingPattern: {
@@ -587,16 +587,16 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-017': {
     shortName: 'Referral Handoff',
-    inclusionStatus: 'future',
+    inclusionStatus: 'core',
     settings: ['ED', 'inpatient'],
     badge: { label: 'Handoff', variant: 'handoff' },
-    launchActions: [{ label: 'Send rapid referral', path: '/patient/workflow/rapid-referral' }],
+    launchActions: [{ label: 'Send referral', path: '/patient/workflow/referral' }],
     tags: ['status tracked to completion', 'ServiceRequest'],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 3 },
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
       resources: [
-        { type: 'ServiceRequest', description: 'IG target: the referral (SPiERSafetyReferral), trackable past sent through accepted/completed via ServiceRequest.status — which is what the SSC asks for and a Communication cannot express', when: 'On referral' },
-        { type: 'Communication', description: 'What the demo recorder still emits today. Migrating it to ServiceRequest is a tracked follow-up, not silent drift — see docs/plans/stage-5-coordinate-handoffs.md', when: 'Demo only' },
+        { type: 'ServiceRequest', description: 'The referral (SPiERSafetyReferral), trackable past sent through accepted/completed via ServiceRequest.status — which is what the SSC asks for and a Communication cannot express', when: 'On referral' },
+        { type: 'ServiceRequest (same resource)', description: 'Advancing the referral to completed or revoked is an update to the SAME resource, not a new one — the recorder upserts by id so a closed referral cannot still read as outstanding', when: 'On acceptance / completion' },
       ],
       workflowTrigger: 'Warm handoff / accelerated access to follow-up care.',
     },
@@ -606,7 +606,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Handoff', variant: 'handoff' },
-    launchActions: [],
+    launchActions: [{ label: 'Book follow-up appointment', path: '/patient/workflow/follow-up-appointment' }],
     tags: ['scheduled before discharge', 'missing-appointment alert'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
     recordingPattern: {
@@ -621,9 +621,9 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['all settings'],
     badge: { label: 'Handoff', variant: 'handoff' },
-    launchActions: [],
+    launchActions: [{ label: 'Record sharing consent', path: '/patient/workflow/sharing-consent' }],
     tags: ['sharing restrictions', 'support-person access'],
-    targetMaturity: { electronic: 2, writeback: 2, triggering: 1 },
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 1 },
     recordingPattern: {
       resources: [
         { type: 'Consent', description: 'Whether suicide-safety information may be shared and with whom (SPiERInformationSharingConsent) — native Consent provisions: permit/deny is the decision, provision.actor the recipient, provision.period the expiry', when: 'On documenting consent' },
@@ -638,7 +638,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
-    launchActions: [],
+    launchActions: [{ label: 'Record outreach attempt', path: '/patient/workflow/outreach' }],
     tags: ['due dates', 'attempt outcomes', 'assignments'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -667,7 +667,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
-    launchActions: [],
+    launchActions: [{ label: 'Track follow-up appointments', path: '/patient/workflow/follow-up-appointment' }],
     tags: ['attended / no-show', '7-day & 30-day windows', 'reuses TL-031 Appointment'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
     recordingPattern: {
@@ -682,7 +682,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
-    launchActions: [],
+    launchActions: [{ label: 'Follow up on a no-show', path: '/patient/workflow/outreach' }],
     tags: ['risk-aware no-show handling', 'reuses TL-033 outreach'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -699,9 +699,9 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
-    launchActions: [],
+    launchActions: [{ label: 'Escalate a failing follow-up', path: '/patient/workflow/safety-tasks' }],
     tags: ['unreachable patient', 'supervisor routing', 'reuses TL-041 task'],
-    targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
+    targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
       resources: [
         { type: 'Task', description: 'The same SPiERSafetyTask (code = escalation) Stage 7 uses, with repeating escalation triggers — so a case escalated from failing follow-up and one escalated from the risk registry land in the same work queue', when: 'On escalation' },

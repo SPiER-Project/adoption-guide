@@ -53,6 +53,14 @@ export type CommunicationResource = FhirResource & { resourceType: 'Communicatio
 export type AppointmentResource = FhirResource & { resourceType: 'Appointment' }
 export type MeasureReportResource = FhirResource & { resourceType: 'MeasureReport' }
 
+// ─── Stage 5 (Coordinate Handoffs) ───────────────────────────
+// From ig/input/fsh/handoffs.fsh. Typed loosely like the workflow resources
+// above; the profiles are the real contract. Appointment is declared above
+// because it predates the stage (the scenario timelines referenced it first).
+export type DocumentReferenceResource = FhirResource & { resourceType: 'DocumentReference' }
+export type ServiceRequestResource = FhirResource & { resourceType: 'ServiceRequest' }
+export type ConsentResource = FhirResource & { resourceType: 'Consent' }
+
 // ─── Stage 7 (Track Risk Over Time) ──────────────────────────
 // The episode pattern from ig/input/fsh/risk-episode.fsh. Typed loosely like
 // the other workflow resources above; the profiles are the real contract.
@@ -129,6 +137,16 @@ export interface PatientSlice {
   episodes?: EpisodeOfCareResource[]
   flags?: FlagResource[]
   tasks?: TaskResource[]
+  /**
+   * Stage-5/6 (Coordinate Handoffs / Track Follow-Up) artifacts. Optional for
+   * the same back-compat reason as the buckets above; always read with `?? []`.
+   * Stage-6 outreach attempts and caring contacts are Communications, so they
+   * land in `communications` rather than getting a bucket of their own.
+   */
+  documentReferences?: DocumentReferenceResource[]
+  serviceRequests?: ServiceRequestResource[]
+  appointments?: AppointmentResource[]
+  consents?: ConsentResource[]
 }
 
 /**

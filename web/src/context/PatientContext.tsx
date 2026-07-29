@@ -15,10 +15,14 @@ import { publishPatientOpen, shouldPublishOnActivation } from '../lib/fhircast'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
+  AppointmentResource,
   CarePlanResource,
   CommunicationResource,
+  ConsentResource,
+  DocumentReferenceResource,
   EpisodeOfCareResource,
   FlagResource,
+  ServiceRequestResource,
   TaskResource,
   FhirResource,
   ObservationResource,
@@ -135,6 +139,11 @@ interface PatientContextType {
   episodes: EpisodeOfCareResource[]
   flags: FlagResource[]
   tasks: TaskResource[]
+  /** Stage-5 (Coordinate Handoffs) artifacts — see lib/handoffs.ts helpers. */
+  documentReferences: DocumentReferenceResource[]
+  serviceRequests: ServiceRequestResource[]
+  appointments: AppointmentResource[]
+  consents: ConsentResource[]
   riskAlerts: RiskAlert[]
   /**
    * Append a non-Questionnaire workflow artifact, routing it into the right
@@ -422,6 +431,10 @@ export function PatientProvider({
       episodes: slice.episodes ?? [],
       flags: slice.flags ?? [],
       tasks: slice.tasks ?? [],
+      documentReferences: slice.documentReferences ?? [],
+      serviceRequests: slice.serviceRequests ?? [],
+      appointments: slice.appointments ?? [],
+      consents: slice.consents ?? [],
       riskAlerts: slice.riskAlerts,
       addArtifact,
       isSliceLoading: sliceState.isLoading,

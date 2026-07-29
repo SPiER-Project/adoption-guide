@@ -14,8 +14,16 @@ import {
   type FhirResourceLike,
   type StoredResponseLike,
 } from '../lib/patientPathway'
+import { workflowArtifactsOf } from '../lib/registry'
+import { displayFor, outreachOutcome, OUTREACH_OUTCOMES } from '../lib/followUp'
 import { buildCdsCards, type Card, type CdsIndicator } from '../lib/cdsHooks'
-import type { CarePlanResource, CodeableConcept, ScenarioEncounter, StoredResponse } from '../types/fhir'
+import type {
+  CarePlanResource,
+  CodeableConcept,
+  CommunicationResource,
+  ScenarioEncounter,
+  StoredResponse,
+} from '../types/fhir'
 
 // The chart renders stored FHIR resources that arrive (via patientPathway) as
 // loose FhirResourceLike — typed only for stage resolution. This is the set of
@@ -184,18 +192,80 @@ function carePlanDisplayName(cp: RenderableResource & { title?: unknown }): stri
   return 'Care plan'
 }
 
-/** The four artifact-card lists shared by stage sections and the unstaged
+/**
+ * Label + icon for a Stage-5 workflow artifact. These types describe themselves
+ * through different elements (a packet's attachment title, a referral's code, an
+ * appointment's description), and the lifecycle state matters as much as the
+ * name — a referral that has completed and one still outstanding are the same
+ * resource at two points, and a card that couldn't tell them apart would
+ * undercut the tracking the stage exists to demonstrate.
+ */
+function workflowArtifactDisplay(resource: FhirResourceLike): { icon: string; name: string; meta: string } {
+  const r = resource as RenderableResource & {
+    type?: { text?: string }
+    content?: { attachment?: { title?: string } }[]
+    description?: string
+    start?: string
+    date?: string
+    dateTime?: string
+    authoredOn?: string
+    performer?: { display?: string }[]
+    provision?: { type?: string }
+  }
+  const on = (iso?: string) => (iso ? ` · ${new Date(iso).toLocaleDateString()}` : '')
+  switch (resource.resourceType) {
+    case 'DocumentReference':
+      return {
+        icon: '\u{1F4E6}',
+        name: r.content?.[0]?.attachment?.title ?? r.type?.text ?? 'Discharge safety packet',
+        meta: `DocumentReference · ${r.status ?? 'current'}${on(r.date ?? r._savedAt)}`,
+      }
+    case 'ServiceRequest':
+      return {
+        icon: '\u{1F500}',
+        name: r.code?.text ?? 'Suicide-safety referral',
+        meta: `ServiceRequest · ${r.status ?? 'active'}${
+          r.performer?.[0]?.display ? ` → ${r.performer[0].display}` : ''
+        }${on(r.authoredOn ?? r._savedAt)}`,
+      }
+    case 'Appointment':
+      return {
+        icon: '\u{1F4C5}',
+        name: r.description ?? 'Follow-up appointment',
+        meta: `Appointment · ${r.status ?? 'booked'}${on(r.start ?? r._savedAt)}`,
+      }
+    case 'Consent':
+      return {
+        icon: '\u{1F510}',
+        name:
+          r.provision?.type === 'deny'
+            ? 'Information sharing declined'
+            : 'Information sharing permitted',
+        meta: `Consent · ${r.status ?? 'active'}${on(r.dateTime ?? r._savedAt)}`,
+      }
+    default:
+      return {
+        icon: '\u{1F4C4}',
+        name: resource.resourceType ?? 'Resource',
+        meta: `${resource.resourceType ?? 'Resource'}${on(r._savedAt)}`,
+      }
+  }
+}
+
+/** The artifact-card lists shared by stage sections and the unstaged
  *  "Other activity" bucket. */
 function ArtifactCards({
   responses,
   carePlans,
   observations,
   communications,
+  workflowArtifacts,
 }: {
   responses: StoredResponseLike[]
   carePlans: FhirResourceLike[]
   observations: FhirResourceLike[]
   communications: FhirResourceLike[]
+  workflowArtifacts: FhirResourceLike[]
 }) {
   return (
     <div className="stage-section-artifacts">
@@ -252,15 +322,34 @@ function ArtifactCards({
           c.category?.[0]?.coding?.[0]?.display ||
           'Communication'
         const when = c.sent ?? c._savedAt
+        // For a Stage-6 outreach attempt the outcome is the defining fact —
+        // without it two attempts on the same day read as duplicates.
+        const outcome = outreachOutcome(rawComm as CommunicationResource)
         return (
           <div key={c.id ?? `comm-${idx}`} className="stage-artifact stage-artifact--communication">
             <span className="stage-artifact-icon" aria-hidden>{'\u{1F4DE}'}</span>
             <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{name}</span>
+              <span className="stage-artifact-name">
+                {name}
+                {outcome && ` — ${displayFor(OUTREACH_OUTCOMES, outcome)}`}
+              </span>
               <span className="stage-artifact-meta">
                 Communication &middot; {c.status ?? 'completed'}
-                {when && ` · ${new Date(when).toLocaleDateString()}`}
+                {when && ` · ${new Date(when).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${new Date(when).toLocaleDateString()}`}
               </span>
+            </div>
+          </div>
+        )
+      })}
+      {workflowArtifacts.map((raw, idx) => {
+        const w = raw as RenderableResource
+        const { icon, name, meta } = workflowArtifactDisplay(raw)
+        return (
+          <div key={w.id ?? `workflow-${idx}`} className="stage-artifact stage-artifact--workflow">
+            <span className="stage-artifact-icon" aria-hidden>{icon}</span>
+            <div className="stage-artifact-body">
+              <span className="stage-artifact-name">{name}</span>
+              <span className="stage-artifact-meta">{meta}</span>
             </div>
           </div>
         )
@@ -276,6 +365,7 @@ function StageActivitySection({
   carePlans,
   observations,
   communications,
+  workflowArtifacts,
 }: {
   stageId: string
   status: StageStatus
@@ -283,6 +373,7 @@ function StageActivitySection({
   carePlans: FhirResourceLike[]
   observations: FhirResourceLike[]
   communications: FhirResourceLike[]
+  workflowArtifacts: FhirResourceLike[]
 }) {
   const stage = stageById(stageId)
   const [open, setOpen] = useState(false)
@@ -290,7 +381,8 @@ function StageActivitySection({
     responses.length === 0 &&
     carePlans.length === 0 &&
     observations.length === 0 &&
-    communications.length === 0
+    communications.length === 0 &&
+    workflowArtifacts.length === 0
 
   // Future stages (always empty, since any artifact would mark the stage complete)
   // render as a faded, read-only roadmap row so the full 8-stage journey stays visible.
@@ -378,6 +470,7 @@ function StageActivitySection({
           carePlans={carePlans}
           observations={observations}
           communications={communications}
+          workflowArtifacts={workflowArtifacts}
         />
       ) : null}
     </section>
@@ -395,15 +488,21 @@ function OtherActivitySection({
   carePlans,
   observations,
   communications,
+  workflowArtifacts,
 }: {
   responses: StoredResponseLike[]
   carePlans: FhirResourceLike[]
   observations: FhirResourceLike[]
   communications: FhirResourceLike[]
+  workflowArtifacts: FhirResourceLike[]
 }) {
   const [open, setOpen] = useState(false)
   const count =
-    responses.length + carePlans.length + observations.length + communications.length
+    responses.length +
+    carePlans.length +
+    observations.length +
+    communications.length +
+    workflowArtifacts.length
   if (count === 0) return null
   return (
     <section
@@ -442,6 +541,7 @@ function OtherActivitySection({
             carePlans={carePlans}
             observations={observations}
             communications={communications}
+            workflowArtifacts={workflowArtifacts}
           />
         </>
       )}
@@ -700,6 +800,10 @@ export function PatientChart() {
     riskAlerts,
     observations,
     communications,
+    documentReferences,
+    serviceRequests,
+    appointments,
+    consents,
     activePatientId,
     populationPatient,
     isSmartConnected,
@@ -710,15 +814,22 @@ export function PatientChart() {
   const { isToolEnabled } = useToolConfig()
   const { jumpTo } = useScrollToHash()
 
+  // Stage-5 artifacts all stage themselves through meta.tag, so they travel as
+  // one bucket rather than a named field per resource type — see PatientArtifacts.
+  const workflowArtifacts = useMemo(
+    () => workflowArtifactsOf({ documentReferences, serviceRequests, appointments, consents }),
+    [documentReferences, serviceRequests, appointments, consents],
+  )
   const artifacts = useMemo(
-    () => ({ responses, carePlans, observations, communications }),
-    [responses, carePlans, observations, communications],
+    () => ({ responses, carePlans, observations, communications, workflowArtifacts }),
+    [responses, carePlans, observations, communications, workflowArtifacts],
   )
   const hasData =
     responses.length > 0 ||
     carePlans.length > 0 ||
     observations.length > 0 ||
-    communications.length > 0
+    communications.length > 0 ||
+    workflowArtifacts.length > 0
   const { statuses, activeStageId } = useMemo(
     () => derivePathwayStatus(artifacts),
     [artifacts],
@@ -790,6 +901,7 @@ export function PatientChart() {
               carePlans={group.carePlans}
               observations={group.observations}
               communications={group.communications}
+              workflowArtifacts={group.workflowArtifacts}
             />
           ))}
           <OtherActivitySection
@@ -797,6 +909,7 @@ export function PatientChart() {
             carePlans={unstaged.carePlans}
             observations={unstaged.observations}
             communications={unstaged.communications}
+            workflowArtifacts={unstaged.workflowArtifacts}
           />
         </div>
       </section>

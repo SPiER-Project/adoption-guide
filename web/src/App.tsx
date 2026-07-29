@@ -64,6 +64,11 @@ const QuestionnaireView = lazy(() => import('./components/QuestionnaireView').th
 const WorkflowActionView = lazy(() => import('./components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
 const RiskEpisodeView = lazy(() => import('./components/RiskEpisodeView').then(m => ({ default: m.RiskEpisodeView })))
 const SafetyTaskView = lazy(() => import('./components/SafetyTaskView').then(m => ({ default: m.SafetyTaskView })))
+const DischargePacketView = lazy(() => import('./components/DischargePacketView').then(m => ({ default: m.DischargePacketView })))
+const SafetyReferralView = lazy(() => import('./components/SafetyReferralView').then(m => ({ default: m.SafetyReferralView })))
+const FollowUpAppointmentView = lazy(() => import('./components/FollowUpAppointmentView').then(m => ({ default: m.FollowUpAppointmentView })))
+const SharingConsentView = lazy(() => import('./components/SharingConsentView').then(m => ({ default: m.SharingConsentView })))
+const OutreachAttemptView = lazy(() => import('./components/OutreachAttemptView').then(m => ({ default: m.OutreachAttemptView })))
 
 function RouteFallback() {
   return (
@@ -181,12 +186,20 @@ function AppRoutes() {
           <Route path="workflow/caring-contact" element={
             <WorkflowActionView toolId="TL-010" title="Log a Caring Contact" actionNoun="caring contact" summaryPlaceholder="e.g. 7-day caring contact: check-in call" />
           } />
-          <Route path="workflow/rapid-referral" element={
-            <WorkflowActionView toolId="TL-017" title="Send a Rapid Referral" actionNoun="referral" summaryPlaceholder="e.g. Urgent outpatient BH referral — receiving clinic notified" />
-          } />
           <Route path="workflow/transition" element={
             <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />
           } />
+          {/* Stage 5 — Coordinate Handoffs. rapid-referral used to render the
+              generic Communication recorder; TL-017 is a ServiceRequest so the
+              referral can be tracked past "sent" — see SafetyReferralView. The
+              old path is kept as a redirect so existing links don't 404. */}
+          <Route path="workflow/referral" element={<SafetyReferralView />} />
+          <Route path="workflow/rapid-referral" element={<Navigate to="/patient/workflow/referral" replace />} />
+          <Route path="workflow/discharge-packet" element={<DischargePacketView />} />
+          <Route path="workflow/follow-up-appointment" element={<FollowUpAppointmentView />} />
+          <Route path="workflow/sharing-consent" element={<SharingConsentView />} />
+          {/* Stage 6 — Track Follow-Up */}
+          <Route path="workflow/outreach" element={<OutreachAttemptView />} />
           {/* Stage 7 — Track Risk Over Time */}
           <Route path="workflow/risk-episode" element={<RiskEpisodeView />} />
           <Route path="workflow/safety-tasks" element={<SafetyTaskView />} />

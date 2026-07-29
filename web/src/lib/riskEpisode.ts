@@ -101,6 +101,13 @@ export const ESCALATION_TRIGGERS: CodedOption[] = [
   { code: 'missed-appointment', display: 'Missed appointment / no-show' },
   { code: 'unable-to-reach', display: 'Unable to reach patient' },
   { code: 'manual-escalation', display: 'Clinician manually escalated' },
+  // Added for Stage 6 (Track Follow-Up), whose SSC trigger list extends this
+  // one. Kept in the SAME CodeSystem (spier-escalation-trigger) rather than
+  // forked, so a case escalated from failing follow-up and one escalated from
+  // the risk registry land in the same work queue — see follow-up.fsh.
+  { code: 'new-safety-concern', display: 'New safety concern' },
+  { code: 'missed-outreach-window', display: 'Missed outreach window' },
+  { code: 'failed-contact-sequence', display: 'Failed contact sequence' },
 ]
 
 export function displayFor(options: CodedOption[], code: string): string {

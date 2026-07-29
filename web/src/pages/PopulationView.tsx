@@ -202,6 +202,7 @@ export function PopulationView() {
               <th scope="col">Current Stage</th>
               <th scope="col">Risk</th>
               <th scope="col">Open Work</th>
+              <th scope="col">Follow-Up</th>
               <th scope="col">Last Activity</th>
               <th scope="col">Recommended Next Step</th>
               <th scope="col" className="caseload-table-action-col"><span className="sr-only">Open</span></th>
@@ -253,6 +254,38 @@ export function PopulationView() {
                     </>
                   ) : (
                     <div className="caseload-activity-label">No open episode</div>
+                  )}
+                </td>
+                {/* Stage-6 follow-up rollup (TL-034/TL-035): derived from the
+                    Stage-5 Appointments and outreach Communications, so TL-034
+                    needs no resource of its own. */}
+                <td>
+                  {p.nextAppointment ? (
+                    <>
+                      <div className="caseload-activity-label">
+                        Next visit {p.nextAppointment.date.slice(0, 10)}
+                      </div>
+                      <div className="caseload-activity-date">
+                        {p.nextAppointment.provider ?? 'Provider not recorded'}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="caseload-activity-label">
+                      {p.awaitingNoShowFollowUp ? 'No-show — outreach due' : 'No visit booked'}
+                    </div>
+                  )}
+                  {(p.noShowCount > 0 || p.unreachedStreak > 0 || p.openReferralCount > 0) && (
+                    <div className="caseload-activity-date">
+                      {[
+                        p.noShowCount > 0 ? `${p.noShowCount} no-show` : null,
+                        p.unreachedStreak > 0 ? `${p.unreachedStreak} unreached` : null,
+                        p.openReferralCount > 0
+                          ? `${p.openReferralCount} referral${p.openReferralCount === 1 ? '' : 's'} open`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
                   )}
                 </td>
                 <td>
