@@ -63,7 +63,7 @@ Tool-level and cross-cutting work is tracked in [GitHub Issues](https://github.c
 
 Workflow:
 
-- One-time seed of the label taxonomy + initial epics: `node scripts/seed-roadmap-issues.mjs` (re-runnable; idempotent).
+- Create and edit issues in GitHub directly — Issues is the source of truth. The label taxonomy already exists on the repo; there is no seed step.
 - Refresh the site's snapshot after editing issues: `node web/scripts/fetch-roadmap.mjs`. The result is committed.
 
 Label conventions: `tool:TL-XXX`, `priority:p1|p2|p3`, `status:built|planned|future`, `type:epic|task`, `stage:<slug>`, `area:<slug>`.

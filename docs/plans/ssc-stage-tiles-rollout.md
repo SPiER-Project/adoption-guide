@@ -67,6 +67,12 @@ doc). All verification is green.
 
 ## Phase 1 — GitHub roadmap migration  *(after Phase 0)*
 
+> **Status: DONE.** Verified 2026-07-29 — all eight `stage:*` labels carry the
+> new codes and none of the old ones survive. Both scripts named below have
+> since been deleted: `migrate-roadmap-stages.mjs` because it is spent, and
+> `seed-roadmap-issues.mjs` because issues are now authored in GitHub directly.
+> The steps are kept as a record of what was done.
+
 **Problem:** GitHub labels and issues still describe the old structure.
 `web/src/pages/Roadmap.tsx` builds label-filter links like
 `stage:${tool.stageId}` — those now point at labels that don't exist. The
