@@ -19,11 +19,10 @@
 //                    TL-041 escalation) — differentiated by Task.code
 //   (no resource)  → TL-037 the registry/work queue is a QUERY over the
 //                    above, not a stored artifact. See the design doc at
-//                    docs/design/stage-7-track-risk-over-time.md.
+//                    docs/plans/stage-7-track-risk-over-time.md.
 //
-// Per-tool ActivityDefinition promotion, catalog wiring, and demo recorders
-// are deliberately NOT in this file — this PR establishes the shape first
-// (per docs/plans/ssc-stage-tiles-rollout.md, Wave 5).
+// The five ActivityDefinitions live at the bottom of this file; the data
+// layer, recorders, and registry work queue are in web/ (see the design doc).
 //
 // Resources conformant to these profiles carry the SPiER pathway-stage
 // `meta.tag` (track-risk-over-time) so web/src/lib/patientPathway.ts stages
@@ -107,7 +106,7 @@ Description: "SPiER-local Task.code values for open suicide-safety work tracked 
 CodeSystem: EscalationTriggerCodes
 Id: spier-escalation-trigger
 Title: "Risk Escalation Trigger Codes"
-Description: "SPiER-local reasons an active episode is escalated. Lifted from the SSC 'What can trigger risk escalation?' multiselect (Stage Tile 7, tool 5, question 3)."
+Description: "SPiER-local reasons an episode or a failing follow-up is escalated. Lifted from the SSC 'What can trigger risk escalation?' multiselects — Stage Tile 7 tool 5 question 3, plus the Stage Tile 6 tool 5 additions (new safety concern, missed outreach window, failed contact sequence). One vocabulary serves both stages so escalations converge on one work queue."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true
@@ -120,6 +119,12 @@ Description: "SPiER-local reasons an active episode is escalated. Lifted from th
 * #missed-appointment "Missed appointment / no-show" "The patient did not attend a scheduled appointment."
 * #unable-to-reach "Unable to reach patient" "Documented outreach attempts failed."
 * #manual-escalation "Clinician manually escalated" "A clinician escalated the case on judgment."
+// Added for Stage 6 (Track Follow-Up), whose SSC trigger list extends this one.
+// Kept in THIS CodeSystem rather than forked so a case escalated from follow-up
+// and one escalated from the risk registry land in the same work queue.
+* #new-safety-concern "New safety concern" "Contact or review surfaced a new suicide-safety concern."
+* #missed-outreach-window "Missed outreach window" "A required follow-up contact was not made inside its window."
+* #failed-contact-sequence "Failed contact sequence" "A defined sequence of contact attempts completed without reaching the patient."
 
 
 CodeSystem: SuicideRiskFlagCodes

@@ -641,6 +641,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['due dates', 'attempt outcomes', 'assignments'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Communication', description: 'One attempt (SPiEROutreachAttempt) — method, time, and an outcome extension (reached / no answer / message left / unable to reach), plus a separate flag for a new safety concern', when: 'Per attempt' },
+      ],
+      workflowTrigger: 'Outcome is an extension because Communication.status only says a message was sent, not whether anyone answered.',
+    },
   },
   'TL-010': {
     shortName: 'Caring Contacts',
@@ -651,7 +657,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
     recordingPattern: {
       resources: [
-        { type: 'Communication', description: 'Each outreach attempt (caring contact), stage-tagged to Track Follow-Up', when: 'On record' },
+        { type: 'Communication', description: 'The caring contact itself (SPiERCaringContact) — method, sent date, opt-out status. NOT an outreach attempt: a caring contact asks nothing of the patient, so it has no reached/unreached outcome', when: 'On each scheduled contact' },
       ],
       workflowTrigger: 'Post-discharge caring-contact cadence (e.g. 24–48h, 7-day, 30-day).',
     },
@@ -662,8 +668,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
     launchActions: [],
-    tags: ['attended / no-show', '7-day & 30-day windows'],
+    tags: ['attended / no-show', '7-day & 30-day windows', 'reuses TL-031 Appointment'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: '(none — reads TL-031)', description: 'Stores nothing new. Appointment.status already carries booked / fulfilled / cancelled / noshow and Appointment.start the date, so attended, no-show, rescheduled and the 7-/30-day windows all derive from the SPiERFollowUpAppointment created at handoff', when: 'On view' },
+      ],
+      workflowTrigger: 'The 7-/30-day completion figures are Stage-8 measures computed over these appointments.',
+    },
   },
   'TL-035': {
     shortName: 'No-Show Follow-Up',
@@ -671,8 +683,16 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
     launchActions: [],
-    tags: ['risk-aware no-show handling'],
+    tags: ['risk-aware no-show handling', 'reuses TL-033 outreach'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Communication', description: 'The same SPiEROutreachAttempt as routine outreach, with outreach-prompt = missed-appointment or no-show. The artifact is identical; only the trigger differs', when: 'After a missed appointment' },
+        { type: 'Appointment', description: 'A rescheduled visit, if one is booked', when: 'If rescheduled' },
+        { type: 'Task', description: 'A SPiERSafetyTask escalation, if contact fails', when: 'If escalated' },
+      ],
+      workflowTrigger: 'Treats a missed appointment by a high-risk patient as a safety event, not an empty slot.',
+    },
   },
   'TL-036': {
     shortName: 'Follow-Up Escalation',
@@ -680,8 +700,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['all settings'],
     badge: { label: 'Follow-Up', variant: 'followup' },
     launchActions: [],
-    tags: ['unreachable patient', 'supervisor routing'],
+    tags: ['unreachable patient', 'supervisor routing', 'reuses TL-041 task'],
     targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
+    recordingPattern: {
+      resources: [
+        { type: 'Task', description: 'The same SPiERSafetyTask (code = escalation) Stage 7 uses, with repeating escalation triggers — so a case escalated from failing follow-up and one escalated from the risk registry land in the same work queue', when: 'On escalation' },
+      ],
+      workflowTrigger: 'Triggers extended for this stage: new safety concern, missed outreach window, failed contact sequence.',
+    },
   },
 
   // ── Track Risk Over Time ──

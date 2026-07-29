@@ -170,89 +170,24 @@ Usage: #definition
 
 // ─── Track Follow-Up ─────────────────────────────────────────
 
-Instance: RecordFollowUpOutreach
-InstanceOf: ActivityDefinition
-Title: "Record Follow-Up Outreach / Contact Attempts"
-Description: "Document follow-up outreach and contact attempts: due date, method, outcome, and next attempt needed."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/RecordFollowUpOutreach"
-* name = "RecordFollowUpOutreach"
-* version = "0.1.0"
-* title = "Record Follow-Up Outreach / Contact Attempts"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Document follow-up outreach and contact attempts. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Track whether outreach happens after the encounter, with structured attempts, outcomes, and assignments."
-* kind = #CommunicationRequest
+// RecordFollowUpOutreach has been promoted out of this placeholder file into the Stage 6
+// follow-up artifacts at ig/input/fsh/follow-up.fsh.
 
 
-Instance: SendCaringContact
-InstanceOf: ActivityDefinition
-Title: "Send Caring Contact"
-Description: "Send a caring-contact outreach as part of a scheduled sequence of non-demanding post-discharge contacts."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/SendCaringContact"
-* name = "SendCaringContact"
-* version = "0.1.0"
-* title = "Send Caring Contact"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Send a caring-contact outreach. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Maintain closed-loop follow-up through non-demanding caring contacts after the encounter, with enrollment, schedule, and opt-out tracked."
-* kind = #CommunicationRequest
+// SendCaringContact has been promoted out of this placeholder file into the Stage 6
+// follow-up artifacts at ig/input/fsh/follow-up.fsh.
 
 
-Instance: TrackFollowUpAppointment
-InstanceOf: ActivityDefinition
-Title: "Track Follow-Up Appointment"
-Description: "Track whether the follow-up appointment occurred: scheduled, attended, cancelled, no-show, rescheduled, completed within 7/30 days."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/TrackFollowUpAppointment"
-* name = "TrackFollowUpAppointment"
-* version = "0.1.0"
-* title = "Track Follow-Up Appointment"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Track whether the follow-up appointment occurred. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Identify completed, missed, and overdue follow-up so timeliness measures (7-day / 30-day) are reportable."
-* kind = #Task
+// TrackFollowUpAppointment has been promoted out of this placeholder file into the Stage 6
+// follow-up artifacts at ig/input/fsh/follow-up.fsh.
 
 
-Instance: FollowUpMissedAppointment
-InstanceOf: ActivityDefinition
-Title: "Follow Up Missed Appointment / No-Show"
-Description: "Identify missed appointments or no-shows for patients with suicide risk and connect them to outreach and escalation."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/FollowUpMissedAppointment"
-* name = "FollowUpMissedAppointment"
-* version = "0.1.0"
-* title = "Follow Up Missed Appointment / No-Show"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Identify and follow up missed appointments / no-shows for patients with suicide risk. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Make a no-show by a high-risk patient an actionable event: outreach, safety check, or escalation."
-* kind = #CommunicationRequest
+// FollowUpMissedAppointment has been promoted out of this placeholder file into the Stage 6
+// follow-up artifacts at ig/input/fsh/follow-up.fsh.
 
 
-Instance: EscalateFollowUp
-InstanceOf: ActivityDefinition
-Title: "Run Follow-Up Escalation Workflow"
-Description: "Escalate when follow-up is missed, the patient is unreachable, or a new safety concern emerges; route to the right person or team and document the outcome."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/EscalateFollowUp"
-* name = "EscalateFollowUp"
-* version = "0.1.0"
-* title = "Run Follow-Up Escalation Workflow"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Run the follow-up escalation workflow. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Close the loop when follow-up fails: escalate to the responsible clinician, team, or supervisor and record the outcome."
-* kind = #Task
+// EscalateFollowUp has been promoted out of this placeholder file into the Stage 6
+// follow-up artifacts at ig/input/fsh/follow-up.fsh.
 
 
 // ─── Track Risk Over Time ────────────────────────────────────

@@ -425,26 +425,41 @@ Usage: #definition
   * title = "Record Follow-Up Outreach / Contact Attempts"
   * description = "Document outreach attempts, outcomes, and next attempts after the encounter. Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/RecordFollowUpOutreach"
+  * output[+]
+    * type = #Communication
+    * profile = "http://spier.org/StructureDefinition/spier-outreach-attempt"
 * action[+]
   * id = "send-caring-contact"
   * title = "Send Caring Contact"
   * description = "Non-demanding caring-contact outreach on a schedule or sequence. Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/SendCaringContact"
+  * output[+]
+    * type = #Communication
+    * profile = "http://spier.org/StructureDefinition/spier-caring-contact"
 * action[+]
   * id = "track-follow-up-appointment"
   * title = "Track Follow-Up Appointment"
   * description = "Track whether the follow-up appointment occurred (attended, cancelled, no-show, within 7/30 days). Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/TrackFollowUpAppointment"
+  * output[+]
+    * type = #Appointment
+    * profile = "http://spier.org/StructureDefinition/spier-follow-up-appointment"
 * action[+]
   * id = "follow-up-missed-appointment"
   * title = "Follow Up Missed Appointment / No-Show"
   * description = "Identify missed appointments for patients with suicide risk and prompt outreach or escalation. Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/FollowUpMissedAppointment"
+  * output[+]
+    * type = #Communication
+    * profile = "http://spier.org/StructureDefinition/spier-outreach-attempt"
 * action[+]
   * id = "escalate-follow-up"
   * title = "Run Follow-Up Escalation Workflow"
   * description = "Escalate when follow-up is missed, the patient is unreachable, or a new safety concern emerges. Placeholder — no Questionnaire binding yet."
   * definitionCanonical = "http://spier.org/ActivityDefinition/EscalateFollowUp"
+  * output[+]
+    * type = #Task
+    * profile = "http://spier.org/StructureDefinition/spier-safety-task"
 
 
 // ─── Stage 7: Track Risk Over Time ───────────────────────────
