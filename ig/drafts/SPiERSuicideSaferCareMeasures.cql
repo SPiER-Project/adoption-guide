@@ -22,9 +22,22 @@
  *     one period, the define picks the most recent — stated in the Measure's
  *     population description too, so the rule is visible without reading CQL.
  *
- * COMPILE GATE: SUSHI does not translate CQL. This file is compiled by the
- * HL7 IG Publisher, which is why `.github/workflows/ig-publish.yml` includes
- * ig/input/cql/** in its pull_request path filter.
+ * ⚠️ THIS FILE IS NOT COMPILED BY ANYTHING IN THIS REPO. It lives in drafts/
+ * for the same reason the StructureMap .fml drafts do: it is outside ig/input/,
+ * so neither SUSHI nor the IG Publisher touches it.
+ *
+ * An earlier revision of #201 put this under ig/input/cql/ with a published
+ * Library pointing at it, assuming the IG Publisher would translate input/cql
+ * and attach the ELM. It does not — the publisher log never mentions CQL, and
+ * the visible symptom was 63 broken narrative links from each
+ * `criteria.expression` into a Library page that had no rendered CQL in it.
+ *
+ * Treat this as the READABLE LONG FORM of each population criterion. The
+ * Measures name the definitions normatively; the executable reference
+ * implementation is the TypeScript measure engine (Wave 6 part 2), which the
+ * repo can actually unit-test. Before promoting this file to ig/input/cql/,
+ * prove a CQL translator in CI — cqframework publishes no fat jar on Maven
+ * Central, so that means resolving a classpath with Maven or Gradle.
  */
 
 library SPiERSuicideSaferCareMeasures version '1.0.0'

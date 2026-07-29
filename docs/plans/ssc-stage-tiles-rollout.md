@@ -182,10 +182,9 @@ resource via `meta.tag` — new resource types drop in without resolver changes.
 Split in two like Stage 7 was. Design doc:
 [`stage-8-measure-and-share.md`](stage-8-measure-and-share.md).
 
-**Part 1 — definitional (done).** 7 `Measure` resources + a CQL `Library`
-(`ig/input/cql/`) + `MeasureReport` examples in
-`ig/input/fsh/measure-and-share.fsh`; all four Stage-8 ADs promoted out of
-`pathway-tool-placeholders.fsh`; stage-8 PD outputs; the three original
+**Part 1 — definitional (done).** 7 `Measure` resources + `MeasureReport`
+examples in `ig/input/fsh/measure-and-share.fsh`; all four Stage-8 ADs promoted
+out of `pathway-tool-placeholders.fsh`; stage-8 PD outputs; the three original
 CapabilityStatements extended with the Stage 4–7 workflow resource types plus a
 new `SPiERQualityReporter` role (TL-044/TL-045); IG page
 `pagecontent/measurement.md`.
@@ -193,10 +192,17 @@ new `SPiERQualityReporter` role (TL-044/TL-045); IG page
 Only TL-042 produces an artifact — TL-043 is a rendering, TL-044 a
 serialization, TL-045 a transport. Same asymmetry Stage 7 had with TL-037.
 
-⚠️ **SUSHI does not translate CQL.** `npm run verify` and `ig.yml` cannot catch
-an error in the measure logic. The gate is `ig-publish.yml`, whose PR path
-filter now includes `ig/input/cql/**` so any CQL change triggers a full
-publisher run.
+⚠️ **Nothing in this repo compiles CQL.** The measure logic is a draft at
+`ig/drafts/SPiERSuicideSaferCareMeasures.cql`, alongside the `.fml` drafts and
+outside `ig/input/` for the same reason. An earlier revision of #201 assumed
+`ig-publish.yml` translated `input/cql`; it does not — the publisher log never
+mentions CQL. Do not re-add a cql path filter without confirming translation
+from a publisher log.
+
+⚠️ **`publish` had not run since 2026-06-10**, so Waves 1–5 merged without any
+FHIRPath-invariant or link checking. Its first run in months surfaced 66 errors,
+one of which (an invalid Wave 5 `Consent` example) was pre-existing. Consider
+running it on all `ig/**` changes.
 
 **Part 2 — make it live (next).** A measure engine in `web/src/lib/` computing
 MeasureReports over the real patient registry, plus the TL-043 dashboard that

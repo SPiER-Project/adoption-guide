@@ -328,10 +328,11 @@ Usage: #definition
     * documentation = "The seven SPiER suicide-safer care measures — screen-to-assessment, risk status documented, safety plan before discharge, lethal means counseling, follow-up timeliness, caring-contact adherence, referral loop closure. A reporter SHALL be able to resolve the Measure and its referenced Library in order to know what it is computing. (No supportedProfile is listed: SPiER constrains no Measure profile, it publishes Measure instances.)"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
-  * resource[+]
-    * type = #Library
-    * documentation = "The CQL logic library the measures reference. A reporter that reimplements the criteria in its own reporting stack (the common case) SHALL still be able to read the library, since it is the normative statement of what each population means."
-    * interaction[+].code = #read
+  // No #Library requirement: SPiER publishes no Measure logic Library. The
+  // normative statement of each population is Measure.group.population.criteria
+  // plus its description; the CQL long form is a draft at ig/drafts/ pending a
+  // translator in CI. A reporter reimplementing the criteria in its own
+  // reporting stack — the common case — needs only the Measure.
   * resource[+]
     * type = #MeasureReport
     * documentation = "Summary reports answer 'how is the program doing'. Individual reports SHALL populate `evaluatedResource` so a result can be traced back to the artifacts that produced it — an unauditable quality measure does not survive contact with a QI committee."

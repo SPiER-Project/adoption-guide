@@ -10,17 +10,18 @@ measurement is a read.
 
 | Measure | Reads | Denominator |
 |---|---|---|
-| [Positive Screen Followed by Assessment](Measure-SPiERScreenToAssessmentMeasure.html) | Risk-concept Observations, split by pathway-stage tag | Patients with a positive screen |
-| [Current Risk Level Documented](Measure-SPiERRiskStatusDocumentedMeasure.html) | Risk-concept Observations inside the episode | Patients in an episode |
-| [Safety Plan Before Discharge](Measure-SPiERSafetyPlanBeforeDischargeMeasure.html) | Safety-plan CarePlans; discharge packet content items | Patients with a documented transition |
-| [Lethal Means Counseling Completed](Measure-SPiERLethalMeansCounselingMeasure.html) | The counseling Procedure | Patients in an episode |
-| [Follow-Up Timeliness](Measure-SPiERFollowUpTimelinessMeasure.html) | Outreach attempts; follow-up Appointments | Patients with a documented transition |
-| [Caring Contact Adherence](Measure-SPiERCaringContactAdherenceMeasure.html) | Caring contacts; the opt-out extension | Patients with a documented transition |
-| [Referral Loop Closure](Measure-SPiERReferralCompletionMeasure.html) | Referral ServiceRequest status | Patients with a referral |
+| [Positive Screen Followed by Assessment](Measure-SPiERScreenToAssessment.html) | Risk-concept Observations, split by pathway-stage tag | Patients with a positive screen |
+| [Current Risk Level Documented](Measure-SPiERRiskStatusDocumented.html) | Risk-concept Observations inside the episode | Patients in an episode |
+| [Safety Plan Before Discharge](Measure-SPiERSafetyPlanBeforeDischarge.html) | Safety-plan CarePlans; discharge packet content items | Patients with a documented transition |
+| [Lethal Means Counseling Completed](Measure-SPiERLethalMeansCounselingCompleted.html) | The counseling Procedure | Patients in an episode |
+| [Follow-Up Timeliness](Measure-SPiERFollowUpTimeliness.html) | Outreach attempts; follow-up Appointments | Patients with a documented transition |
+| [Caring Contact Adherence](Measure-SPiERCaringContactAdherence.html) | Caring contacts; the opt-out extension | Patients with a documented transition |
+| [Referral Loop Closure](Measure-SPiERReferralCompletion.html) | Referral ServiceRequest status | Patients with a referral |
 
-The logic is CQL, published as
-[SPiERSuicideSaferCareMeasures](Library-SPiERSuicideSaferCareMeasures.html).
-Each `Measure.group.population.criteria` names one definition in that library.
+Each `Measure.group.population.criteria` names one definition. The definitions
+are written out in full as CQL in `ig/drafts/SPiERSuicideSaferCareMeasures.cql`
+— see *What is and isn't verified* at the end of this page for why that file is
+a draft rather than a published `Library`.
 
 ### Why the episode is the denominator
 
@@ -146,9 +147,23 @@ profile, so it lives in the
 **SPiER Quality Reporter**, whose access pattern is population-wide rather than
 per-patient.
 
-### Compiling the CQL
+### What is and isn't verified
 
-SUSHI does not translate CQL, so `sushi .` will not catch an error in the
-measure logic. The gate is the **IG Publisher** workflow, which runs
-`cql-to-elm` and attaches the result to the matching `Library`; its pull-request
-path filter includes `ig/input/cql/**` for exactly this reason.
+The `Measure` resources are validated by SUSHI and by the IG Publisher's QA
+run. The **CQL is not compiled by anything in this repo**, and it is worth being
+plain about that rather than implying a rigour that isn't there.
+
+An earlier revision of this work put the CQL under `ig/input/cql/` with a
+published `Library` pointing at it, on the assumption that the IG Publisher
+translates `input/cql` and attaches the ELM. It does not — the publisher log
+never mentions CQL. The visible symptom was 63 broken narrative links, because
+the publisher generates a link from every `criteria.expression` into the
+Library's rendered CQL, and there was no rendered CQL to land on.
+
+So the CQL now sits in `ig/drafts/`, the same place the draft StructureMap
+`.fml` files live, outside `ig/input/` where neither SUSHI nor the publisher
+touches it. Read it as the **readable long form** of each criterion. The
+`Measure` resources name the populations normatively; the executable reference
+implementation will be the TypeScript measure engine, which the repo can
+unit-test. Promoting the CQL into `ig/input/cql/` requires proving a translator
+in CI first.

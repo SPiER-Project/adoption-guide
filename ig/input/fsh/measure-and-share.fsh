@@ -58,47 +58,75 @@
 //    where that matters, the criterion names the tie-break rule explicitly
 //    ("the most recent in the period is the index").
 //
-// Terminology is entirely standard here — measure-scoring, measure-type,
-// measure-population, measure-improvement-notation are all HL7 CodeSystems.
-// Unlike stages 5–7, this stage needed no SPiER-local vocabulary.
+// Terminology is almost entirely standard here — measure-scoring, measure-type,
+// measure-population, and measure-improvement-notation are all HL7 CodeSystems.
+// The single SPiER-local addition is the measure-group vocabulary below, which
+// exists because a MeasureReport group is matched to its Measure group by code
+// and no published vocabulary of suicide-safer-care measure groups exists.
 //
-// The population criteria are CQL, in ig/input/cql/SPiERSuicideSaferCareMeasures.cql.
-// See the Library instance below for how that file is compiled and why the
-// gate is the IG Publisher workflow rather than the light SUSHI run.
+// ─── On the CQL, and what is NOT verified ────────────────────
+//
+// `criteria.expression` names a CQL definition, and those definitions are
+// written out in full at ig/drafts/SPiERSuicideSaferCareMeasures.cql. That
+// file sits in `drafts/` for the same reason the StructureMap `.fml` drafts do:
+// it is outside ig/input/, so neither SUSHI nor the IG Publisher touches it,
+// because NOTHING IN THIS REPO CURRENTLY COMPILES IT.
+//
+// That was established the hard way. An earlier revision of this PR put the
+// CQL under ig/input/cql/ and published a Library pointing at it, on the
+// assumption that the IG Publisher would translate input/cql and attach the
+// result. It does not — the publisher log never mentions CQL at all. The
+// visible symptom was 63 broken narrative links: the publisher generates a
+// link from each `criteria.expression` into the Library's rendered CQL, and
+// there was no rendered CQL for them to resolve against.
+//
+// So there is deliberately NO `Measure.library` here. The criteria expressions
+// are a normative NAMING of each population; the draft CQL is the readable
+// long form; and the executable reference implementation is the TypeScript
+// measure engine in Wave 6 part 2, which the repo can actually test. Promoting
+// the CQL to ig/input/cql/ requires first proving a translator in CI — see
+// docs/plans/stage-8-measure-and-share.md.
 // =============================================================
 
 
-// ─── The measure logic library ───────────────────────────────
-// The CQL source lives at ig/input/cql/SPiERSuicideSaferCareMeasures.cql.
-// `content.data` is intentionally absent: the HL7 IG Publisher reads
-// input/cql/, translates the CQL to ELM, and attaches both to the Library
-// whose `name`+`version` match the CQL header — so hand-inlining a base64
-// copy here would immediately drift from the source.
+// ─── Measure group vocabulary ────────────────────────────────
+// A MeasureReport group is matched to its Measure group by `code`, NOT by
+// element id — the FHIR validator is explicit about it ("Group should have a
+// code that matches the group definition in the measure"), and an earlier
+// revision of this file got it wrong by relying on `id` alone. Matching on a
+// coded value rather than free text is what lets a consumer line a report up
+// against the definition it was computed from.
 //
-// COMPILE GATE: SUSHI does not translate CQL, so `npx sushi .` will NOT catch
-// a CQL syntax error. The gate is the `IG Publisher (on-demand render)`
-// workflow, whose pull_request path filter includes ig/input/cql/** for
-// exactly this reason — any change to the CQL triggers a full publisher run,
-// and CQL translation errors fail it.
+// This is the one place Stage 8 needs SPiER-local terminology. There is no
+// published vocabulary of suicide-safer-care measure groups to bind to.
 
-Instance: SPiERSuicideSaferCareMeasures
-InstanceOf: Library
-Title: "SPiER Suicide-Safer Care Measure Logic"
-Description: "CQL logic library computing every population criterion referenced by the SPiER suicide-safer care Measures."
-Usage: #definition
-* url = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
-* name = "SPiERSuicideSaferCareMeasures"
-* version = "1.0.0"
-* title = "SPiER Suicide-Safer Care Measure Logic"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "The CQL logic behind the SPiER suicide-safer care measures. Defines the shared cohort (open suicide-safer care episodes), the shared index events (episode start, and the documented care transition), and one named definition per measure population. Every retrieve filters on a SPiER profile, so the library computes over exactly the resources stages 1–7 define and nothing else."
-* type = http://terminology.hl7.org/CodeSystem/library-type#logic-library
-* subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
-* content[+]
-  * contentType = #text/cql
-  * title = "SPiER Suicide-Safer Care measure logic (CQL)"
+CodeSystem: MeasureGroupCodes
+Id: spier-measure-group
+Title: "Suicide-Safer Care Measure Group Codes"
+Description: "Identifies each population group inside a SPiER suicide-safer care Measure, so a MeasureReport group can be matched back to the Measure group it was computed from."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+* #screen-to-assessment "Positive screen followed by assessment"
+* #risk-status-documented "Current risk level documented"
+* #safety-plan-completed "Safety plan completed before discharge"
+* #patient-copy-documented "Patient copy of the safety plan documented"
+* #lethal-means-counseling "Lethal means counseling completed"
+* #outreach-within-48-hours "Outreach within 48 hours of the transition"
+* #follow-up-within-7-days "Follow-up visit attended within 7 days"
+* #follow-up-within-30-days "Follow-up visit attended within 30 days"
+* #caring-contact-within-30-days "Caring contact sent within 30 days"
+* #referral-completion "Referral tracked through to completed"
+
+
+ValueSet: MeasureGroup
+Id: spier-measure-group-vs
+Title: "Suicide-Safer Care Measure Group"
+Description: "Population groups within the SPiER suicide-safer care measures."
+* ^status = #draft
+* ^experimental = true
+* include codes from system MeasureGroupCodes
 
 
 // ─── TL-042 Measure 1 — Positive screen → assessment ─────────
@@ -109,7 +137,7 @@ Usage: #definition
 // Screen and assessment are told apart by the pathway-stage meta.tag, not by
 // instrument identity — an EHR that swaps ASQ for PSS-3 keeps measuring.
 
-Instance: SPiERScreenToAssessmentMeasure
+Instance: SPiERScreenToAssessment
 InstanceOf: Measure
 Title: "Measure — Positive Screen Followed by Suicide-Risk Assessment"
 Description: "Proportion of patients with a positive suicide-risk screen who received a clarifying assessment within 24 hours."
@@ -123,28 +151,25 @@ Usage: #definition
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a positive suicide-risk screen who received a clarifying suicide-risk assessment within 24 hours. Both the screen and the assessment are SPiERSuicideRiskConcept Observations; they are distinguished by the SPiER pathway-stage tag (identify-possible-risk vs clarify-risk) rather than by instrument, so substituting one screening tool for another does not break the measure."
 * purpose = "A positive screen with no follow-up assessment is the single most consequential gap in a suicide-safer care pathway — the patient has been identified and then dropped. This measures that gap directly."
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
 * type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
 * group[+]
   * id = "screen-to-assessment"
+  * code = MeasureGroupCodes#screen-to-assessment "Positive screen followed by assessment"
   * description = "Patients whose positive screen was clarified within 24 hours."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a suicide-risk screen during the measurement period — a SPiERSuicideRiskConcept Observation tagged identify-possible-risk."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Suicide Risk Screen"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Patients whose screen was POSITIVE — interpretation POS, i.e. any tier above no-risk. Where a patient screened positive more than once, the measure indexes on the most recent positive screen in the period."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Positive Screen"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "Patients whose indexed positive screen was followed within 24 hours by a SPiERSuicideRiskConcept Observation tagged clarify-risk."
     * criteria.language = #text/cql-identifier
@@ -153,7 +178,7 @@ Usage: #definition
 
 // ─── TL-042 Measure 2 — Current risk level documented ────────
 
-Instance: SPiERRiskStatusDocumentedMeasure
+Instance: SPiERRiskStatusDocumented
 InstanceOf: Measure
 Title: "Measure — Current Risk Level Documented"
 Description: "Proportion of patients in a suicide-safer care episode carrying a documented current risk level."
@@ -167,34 +192,30 @@ Usage: #definition
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients in a suicide-safer care episode for whom a current suicide-risk level is documented as discrete, coded data. The numerator requires a SPiERSuicideRiskConcept Observation dated inside the episode — NOT merely the episode-current-risk-tier extension, which is a denormalized cache and could be stale or hand-set. Measuring the Observation measures the source of truth."
 * purpose = "Risk level recorded only in narrative cannot drive a work queue, a CDS card, or a handoff. This measures whether it exists as data."
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
 * type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
 * group[+]
   * id = "risk-status-documented"
+  * code = MeasureGroupCodes#risk-status-documented "Current risk level documented"
   * description = "Patients with a coded risk tier recorded during the episode."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a suicide-safer care episode overlapping the measurement period."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has An Active Suicide Safer Care Episode"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has An Active Suicide Safer Care Episode"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose episode was closed for administrative reasons — duplicate or entered-in-error records should not count against a site."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Episode Closed Administratively"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "Patients with at least one SPiERSuicideRiskConcept Observation dated inside the episode period."
     * criteria.language = #text/cql-identifier
@@ -210,7 +231,7 @@ Usage: #definition
 // patient get a copy" is answerable because TL-009 and TL-030 agreed on one
 // code list, so `safety-plan-copy` means the same thing in both.
 
-Instance: SPiERSafetyPlanBeforeDischargeMeasure
+Instance: SPiERSafetyPlanBeforeDischarge
 InstanceOf: Measure
 Title: "Measure — Safety Plan Completed Before Discharge"
 Description: "Proportion of patients whose care transition was preceded by a completed safety plan, and the proportion whose own copy is documented."
@@ -224,61 +245,54 @@ Usage: #definition
 * publisher = "SPiER (HTD Health)"
 * description = "Two related proportions over the same denominator of patients with a documented care transition: (1) a safety plan — Stanley-Brown or Crisis Response Plan — existed and was active at or before the transition; (2) the patient's own copy is documented, evidenced by a discharge packet carrying the handoff-content item `safety-plan-copy`. They are separate groups because a completed plan the patient leaves without is a distinct and well-documented failure."
 * purpose = "Safety planning is only protective if the plan exists before the patient leaves and travels with them. This measures both halves."
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
 * type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
 * group[+]
   * id = "safety-plan-completed"
+  * code = MeasureGroupCodes#safety-plan-completed "Safety plan completed before discharge"
   * description = "Patients whose transition was preceded by an active safety plan."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a documented care transition (SPiERSafetyHandoff or SPiERDischargeSafetyPacket) during the measurement period. Where there is more than one, the most recent in the period is the index."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose episode was closed for administrative reasons."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Episode Closed Administratively"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "A safety-plan CarePlan (Stanley-Brown or Crisis Response Plan) with status active, dated on or before the transition."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Safety Plan In Place Before Transition"
 * group[+]
   * id = "patient-copy-documented"
+  * code = MeasureGroupCodes#patient-copy-documented "Patient copy of the safety plan documented"
   * description = "Patients whose own copy of the safety plan is documented."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a documented care transition during the measurement period; the most recent in the period is the index."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose episode was closed for administrative reasons."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Episode Closed Administratively"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "A discharge packet for the transition carrying the handoff-content item `safety-plan-copy`."
     * criteria.language = #text/cql-identifier
@@ -287,12 +301,12 @@ Usage: #definition
 
 // ─── TL-042 Measure 4 — Lethal means counseling ──────────────
 
-Instance: SPiERLethalMeansCounselingMeasure
+Instance: SPiERLethalMeansCounselingCompleted
 InstanceOf: Measure
 Title: "Measure — Lethal Means Counseling Completed"
 Description: "Proportion of patients in a suicide-safer care episode who received lethal-means safety counseling."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERLethalMeansCounseling"
+* url = "http://spier.org/Measure/SPiERLethalMeansCounselingCompleted"
 * name = "SPiERLethalMeansCounselingCompleted"
 * version = "1.0.0"
 * title = "Lethal Means Counseling Completed"
@@ -301,34 +315,30 @@ Usage: #definition
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients in a suicide-safer care episode for whom a SPiERLethalMeansCounseling Procedure was completed during the episode. Counts the counseling Procedure, not the per-method SPiERMeansSafetyAction Observations: whether counseling happened is the process measure, while which methods were addressed and secured is richer detail a site can report on separately."
 * purpose = "Means-safety counseling has among the strongest evidence bases of any suicide-prevention intervention and is among the least reliably delivered. Measuring it is the point of coding it."
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
 * type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
 * group[+]
   * id = "lethal-means-counseling"
+  * code = MeasureGroupCodes#lethal-means-counseling "Lethal means counseling completed"
   * description = "Patients with completed means-safety counseling during the episode."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a suicide-safer care episode overlapping the measurement period."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has An Active Suicide Safer Care Episode"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has An Active Suicide Safer Care Episode"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose episode was closed for administrative reasons."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Episode Closed Administratively"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "A SPiERLethalMeansCounseling Procedure with status completed, performed during the episode."
     * criteria.language = #text/cql-identifier
@@ -351,7 +361,7 @@ Usage: #definition
 // answerable because Appointment.status carries noshow/fulfilled natively —
 // which is why Stage 6 added no resource for appointment tracking.
 
-Instance: SPiERFollowUpTimelinessMeasure
+Instance: SPiERFollowUpTimeliness
 InstanceOf: Measure
 Title: "Measure — Follow-Up Timeliness After a Care Transition"
 Description: "Proportion of patients with outreach within 48 hours, and an attended follow-up within 7 and 30 days, after a documented care transition."
@@ -365,88 +375,78 @@ Usage: #definition
 * publisher = "SPiER (HTD Health)"
 * description = "Three timeliness proportions over one denominator of patients with a documented care transition: outreach attempted within 48 hours, and a follow-up visit COMPLETED within 7 days and within 30 days. The appointment groups require Appointment.status = fulfilled rather than booked — a scheduled visit the patient did not attend is not follow-up, and distinguishing the two is precisely what TL-034 (Follow-Up Appointment Tracking) exists to do. The 48-hour group counts an attempt rather than a successful contact, because the attempt is what the care team controls; a stricter reached-only variant is a one-line change to the CQL and is described on the measurement page."
 * purpose = "The days immediately after discharge carry the highest suicide risk of any period in the pathway. These three windows are the standard Zero Suicide follow-up expectations."
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
 * type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
 * group[+]
   * id = "outreach-within-48-hours"
+  * code = MeasureGroupCodes#outreach-within-48-hours "Outreach within 48 hours of the transition"
   * description = "Patients contacted, or attempted, within 48 hours of the transition."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a documented care transition during the measurement period; the most recent in the period is the index."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose episode closed as deceased before the window elapsed, plus administratively closed episodes."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Excluded From Follow Up Measurement"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "A SPiEROutreachAttempt sent within 48 hours of the transition."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Outreach Within 48 Hours Of Transition"
 * group[+]
   * id = "follow-up-within-7-days"
+  * code = MeasureGroupCodes#follow-up-within-7-days "Follow-up visit attended within 7 days"
   * description = "Patients who attended a follow-up visit within 7 days of the transition."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a documented care transition during the measurement period; the most recent in the period is the index."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose episode closed as deceased before the window elapsed, plus administratively closed episodes."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Excluded From Follow Up Measurement"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "A SPiERFollowUpAppointment with status fulfilled starting within 7 days of the transition."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Follow Up Visit Within 7 Days"
 * group[+]
   * id = "follow-up-within-30-days"
+  * code = MeasureGroupCodes#follow-up-within-30-days "Follow-up visit attended within 30 days"
   * description = "Patients who attended a follow-up visit within 30 days of the transition."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a documented care transition during the measurement period; the most recent in the period is the index."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose episode closed as deceased before the window elapsed, plus administratively closed episodes."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Excluded From Follow Up Measurement"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "A SPiERFollowUpAppointment with status fulfilled starting within 30 days of the transition."
     * criteria.language = #text/cql-identifier
@@ -458,7 +458,7 @@ Usage: #definition
 // a site that correctly honors a patient's wish to stop receiving contacts
 // would be scored as having failed to send them.
 
-Instance: SPiERCaringContactAdherenceMeasure
+Instance: SPiERCaringContactAdherence
 InstanceOf: Measure
 Title: "Measure — Caring Contact Adherence"
 Description: "Proportion of patients sent a caring contact within 30 days of a care transition, excluding those who opted out."
@@ -472,34 +472,30 @@ Usage: #definition
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a documented care transition who were sent at least one SPiERCaringContact within 30 days. Patients who have opted out of the caring-contacts series are a DENOMINATOR EXCLUSION rather than a numerator failure — honoring an opt-out is correct behavior, and a measure that punished it would push sites to ignore the patient's wish. This is the reason the caring-contact-opt-out extension exists on the contact resource."
 * purpose = "Caring contacts are one of the few interventions with direct randomized evidence for reducing repeat suicide attempts, and adherence to the sending schedule is the whole intervention."
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
 * type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
 * group[+]
   * id = "caring-contact-within-30-days"
+  * code = MeasureGroupCodes#caring-contact-within-30-days "Caring contact sent within 30 days"
   * description = "Patients sent a caring contact within 30 days of the transition."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a documented care transition during the measurement period; the most recent in the period is the index."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Documented Care Transition"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients who opted out of the caring-contacts series, plus the standard deceased / administrative exclusions."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Excluded From Caring Contact Measurement"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "At least one SPiERCaringContact sent within 30 days of the transition."
     * criteria.language = #text/cql-identifier
@@ -512,7 +508,7 @@ Usage: #definition
 // can only record that something was SENT. Sent-vs-completed is the entire
 // measure; with the Communication shape it would have been uncomputable.
 
-Instance: SPiERReferralCompletionMeasure
+Instance: SPiERReferralCompletion
 InstanceOf: Measure
 Title: "Measure — Suicide-Safety Referral Loop Closure"
 Description: "Proportion of patients whose suicide-safety referrals were tracked through to completion rather than left at sent."
@@ -526,34 +522,30 @@ Usage: #definition
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a SPiERSafetyReferral authored during the measurement period whose referrals all reached status completed. This measure is only computable because TL-017 is modelled as a ServiceRequest: ServiceRequest.status carries draft → active → completed natively, whereas a Communication records only that a referral was sent. Referrals marked entered-in-error are excluded; revoked referrals are NOT excluded, because a referral withdrawn without an alternative being arranged is a genuine loop failure."
 * purpose = "A sent referral is not a received one. Loop closure is where suicide-safety handoffs most often fail silently."
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
 * type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
 * group[+]
   * id = "referral-completion"
+  * code = MeasureGroupCodes#referral-completion "Referral tracked through to completed"
   * description = "Patients whose referrals were all tracked through to completed."
   * population[+]
-    * id = "initial-population"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * description = "Patients with a SPiERSafetyReferral ServiceRequest authored during the measurement period."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Suicide Safety Referral"
   * population[+]
-    * id = "denominator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * description = "Same as the initial population."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Has A Suicide Safety Referral"
   * population[+]
-    * id = "denominator-exclusion"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
     * description = "Patients whose only referrals in the period are marked entered-in-error."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Referral Entered In Error"
   * population[+]
-    * id = "numerator"
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "Patients with no referral left incomplete — every non-erroneous referral authored in the period reached status completed."
     * criteria.language = #text/cql-identifier
@@ -587,7 +579,6 @@ Usage: #definition
 * purpose = "Turn pathway activity into numerators and denominators that quality improvement can act on. Belongs to the Measure and Share the Data stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
-* library[+] = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 
 
 Instance: ProvideReportingDashboard
@@ -707,6 +698,7 @@ Usage: #example
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * group[+]
   * id = "outreach-within-48-hours"
+  * code = MeasureGroupCodes#outreach-within-48-hours "Outreach within 48 hours of the transition"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * count = 1
@@ -716,6 +708,7 @@ Usage: #example
   * measureScore.value = 1
 * group[+]
   * id = "follow-up-within-7-days"
+  * code = MeasureGroupCodes#follow-up-within-7-days "Follow-up visit attended within 7 days"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * count = 1
@@ -725,6 +718,7 @@ Usage: #example
   * measureScore.value = 1
 * group[+]
   * id = "follow-up-within-30-days"
+  * code = MeasureGroupCodes#follow-up-within-30-days "Follow-up visit attended within 30 days"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * count = 1
@@ -756,6 +750,7 @@ Usage: #example
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * group[+]
   * id = "outreach-within-48-hours"
+  * code = MeasureGroupCodes#outreach-within-48-hours "Outreach within 48 hours of the transition"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * count = 64
@@ -771,6 +766,7 @@ Usage: #example
   * measureScore.value = 0.887
 * group[+]
   * id = "follow-up-within-7-days"
+  * code = MeasureGroupCodes#follow-up-within-7-days "Follow-up visit attended within 7 days"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * count = 64
@@ -786,6 +782,7 @@ Usage: #example
   * measureScore.value = 0.613
 * group[+]
   * id = "follow-up-within-30-days"
+  * code = MeasureGroupCodes#follow-up-within-30-days "Follow-up visit attended within 30 days"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * count = 64
@@ -816,6 +813,7 @@ Usage: #example
 * improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
 * group[+]
   * id = "caring-contact-within-30-days"
+  * code = MeasureGroupCodes#caring-contact-within-30-days "Caring contact sent within 30 days"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
     * count = 64

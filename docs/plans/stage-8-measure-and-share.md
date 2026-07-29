@@ -6,7 +6,7 @@ split the same way Stage 7 was: this PR is the definitional layer (Measures,
 CQL, MeasureReports, conformance), and a follow-up PR makes it live in the app.
 
 Artifacts: [`ig/input/fsh/measure-and-share.fsh`](../../ig/input/fsh/measure-and-share.fsh),
-[`ig/input/cql/SPiERSuicideSaferCareMeasures.cql`](../../ig/input/cql/SPiERSuicideSaferCareMeasures.cql),
+[`ig/drafts/SPiERSuicideSaferCareMeasures.cql`](../../ig/drafts/SPiERSuicideSaferCareMeasures.cql),
 [`ig/input/pagecontent/measurement.md`](../../ig/input/pagecontent/measurement.md).
 Requirements source: [`docs/reference/ssc-stage-tiles-question-set.md`](../reference/ssc-stage-tiles-question-set.md),
 Stage Tile 8.
@@ -29,7 +29,7 @@ avoid.
 
 | Tool | Artifact | How |
 |---|---|---|
-| **TL-042** KPI / Measure Reporting | 7 `Measure` + 1 `Library` + `MeasureReport`s | The measures below |
+| **TL-042** KPI / Measure Reporting | 7 `Measure` + `MeasureReport`s | The measures below |
 | **TL-043** Reporting Dashboard | *(none — a rendering)* | Summary MeasureReports + the TL-037 registry query |
 | **TL-044** Data Export | *(none — a serialization)* | Bulk Data `$export` of the existing profiles |
 | **TL-045** Data Sharing | *(none — a transport)* | The existing profiles, gated by TL-032 consent |
@@ -174,16 +174,54 @@ point of TL-031), which is precisely why measure examples need instances
 positioned relative to an index event. Citing them anyway would have produced
 an example whose arithmetic did not hold.
 
-## Verification
+## Verification, and what the IG Publisher caught
 
-`npx sushi` compiles clean. Note what that does **not** cover: SUSHI does not
-translate CQL, so a syntax or reference error in the measure logic will not be
-caught by `npm run verify` or the light `ig.yml` CI job. The gate is the IG
-Publisher workflow, which runs `cql-to-elm`; `ig-publish.yml` now includes
-`ig/input/cql/**` in its pull-request path filter for that reason. A standalone
-translator would have been lighter, but `cqframework` publishes no
-fat jar on Maven Central, so a standalone job would have needed Maven or Gradle
-to resolve a classpath — more moving parts than reusing the publisher.
+`npx sushi` compiles clean (0/0) and `npm run verify` plus vitest are green. But
+the first revision of this PR shipped **66 IG Publisher errors**, and the
+lesson is worth recording because it changed the design.
+
+**The CQL claim was wrong.** The first revision put the CQL under
+`ig/input/cql/` and published a `Library` pointing at it, asserting that the IG
+Publisher translates `input/cql` and attaches the ELM — and that
+`ig-publish.yml` was therefore a CQL compile gate. It is not. The publisher log
+never mentions CQL at all. The trigger bought a ~10 minute job that validated
+nothing, and the visible symptom was 63 broken narrative links: the publisher
+generates a link from every `criteria.expression` into the Library's rendered
+CQL, and there was no rendered CQL to land on.
+
+So the CQL moved to `ig/drafts/`, the slot this repo already uses for the draft
+StructureMap `.fml` files, whose header states the rationale exactly: outside
+`ig/input/`, so neither SUSHI nor the publisher touches it. The `Library` and
+every `Measure.library` reference are gone — publishing a Library that declares
+content it does not carry is worse than not publishing one. Promoting the CQL
+back requires proving a translator in CI first, and `cqframework` publishes no
+fat jar on Maven Central, so that means resolving a classpath with Maven or
+Gradle.
+
+**Four other error classes, all real:**
+
+| Count | Cause | Fix |
+|---|---|---|
+| 63 | Broken narrative links from the content-less Library | Dropped the Library |
+| 21 | `Measure.url` tail ≠ resource id | Renamed instances so id = url tail = `name` |
+| 12 | Duplicate `population.id` — element ids must be unique per resource | Dropped population ids; `code` identifies the population |
+| 8 | MeasureReport groups matched to Measure groups by `id`, not `code` | Added a `spier-measure-group` CodeSystem and `group.code` on both sides |
+| 1 | `Consent` ppc-1 — needs `policy` or `policyRule` | **Pre-existing Wave 5 bug**, fixed here |
+
+Two of those are worth dwelling on. The **group-code** one is a design
+correction, not a typo: the validator is explicit that a report group is tied to
+its definition by coded value, which is why Stage 8 ended up needing one small
+SPiER-local vocabulary after all (the header comment originally boasted it
+needed none). And the **Consent** error is not mine — it shipped in Wave 5 and
+no CI job in the repo could have caught it, because SUSHI does not evaluate
+FHIRPath invariants and `publish` had not run since June 10.
+
+**Which is the real finding here:** `publish` is on-demand plus a workflow-file
+path filter, so Waves 1–5 all merged without it ever running. The QA gate's
+baseline comment claims 0 errors / 0 broken links as of Phase 2a, and that
+baseline had silently rotted. Worth deciding whether `publish` should run on any
+`ig/**` change — it is ~10 minutes, but it is the only thing in the repo that
+evaluates invariants and link integrity.
 
 ## Scope
 
@@ -204,11 +242,13 @@ of which is scheduled.
   implementation of the same named definitions, and a drift guard should tie
   the TS measure ids to the FSH `Measure` ids (the pattern
   `check:catalog` / `check:crosswalk` already establishes).
-- **Bind `Measure.library` to a published Library with content.** Currently the
-  Library declares `contentType` but no `data`; the IG Publisher injects the
-  translated CQL at render time. If SPiER ever needs the Library to be
-  self-contained outside a publisher run, that inlining has to be automated,
-  not hand-pasted.
+- **Prove a CQL translator in CI, then promote the draft CQL and publish a real
+  `Library`.** Needs a Maven/Gradle classpath for `cqframework` (no fat jar on
+  Maven Central), or a confirmed IG Publisher configuration — confirmed from a
+  publisher log that actually mentions CQL, not assumed.
+- **Decide whether `publish` should run on all `ig/**` changes.** It is the only
+  job that evaluates FHIRPath invariants and link integrity, and its absence let
+  an invalid Wave 5 Consent example sit on `main`.
 - **Migrate the TL-017 referral recorder from Communication to ServiceRequest**
   — now blocking measure 7 from computing against demo data, not just an
   IG/app inconsistency.
