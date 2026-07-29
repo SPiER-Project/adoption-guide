@@ -18,7 +18,7 @@ documented, lint-enforced design system — see [`DESIGN_SYSTEM.md`](DESIGN_SYST
 
 ## Roadmap page data flow
 
-The Roadmap page reads `src/data/roadmap.generated.json`, which is produced by `scripts/fetch-roadmap.mjs`. Source of truth lives in GitHub Issues — see the root README for label conventions. To seed the issue tracker from scratch, run `node ../scripts/seed-roadmap-issues.mjs` from the repo root.
+The Roadmap page reads `src/data/roadmap.generated.json`, which is produced by `scripts/fetch-roadmap.mjs`. Source of truth lives in GitHub Issues — see the root README for label conventions. Create issues in GitHub directly; there is no seed script.
 
 ---
 

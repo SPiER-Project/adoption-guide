@@ -64,7 +64,7 @@ async function fetchAllIssues() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Label conventions (kept in sync with scripts/seed-roadmap-issues.mjs):
+// Label conventions (canonical list is in the root README):
 //   tool:TL-XXX        → bound to a specific tool catalog entry
 //   priority:p1|p2|p3  → cross-cutting roadmap priorities
 //   status:built|planned|future

@@ -143,8 +143,7 @@ export function Roadmap() {
         </a>
         {seedRequired ? (
           <>
-            {' '}— snapshot is empty. Run{' '}
-            <code>node scripts/seed-roadmap-issues.mjs</code> then{' '}
+            {' '}— snapshot is empty. Open tracking epics there, then run{' '}
             <code>node web/scripts/fetch-roadmap.mjs</code> to populate.
           </>
         ) : (
