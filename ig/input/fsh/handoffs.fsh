@@ -414,6 +414,11 @@ Usage: #example
 * category[suicideSafety] = ConsentCategoryCodes#suicide-safety-sharing
 * patient = Reference(Patient/example)
 * dateTime = "2026-07-20T14:55:00Z"
+// Required by the base Consent invariant ppc-1 ("Either a Policy or
+// PolicyRule"). Caught by the IG Publisher QA run in #201 — SUSHI does not
+// evaluate FHIRPath invariants, so this example shipped invalid in Wave 5 and
+// no light-CI job could have flagged it.
+* policyRule = http://terminology.hl7.org/CodeSystem/consentpolicycodes#hipaa-auth "HIPAA Authorization"
 * provision.type = #permit
 * provision.period.start = "2026-07-20"
 * provision.period.end = "2027-07-20"

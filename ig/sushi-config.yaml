@@ -71,6 +71,8 @@ pages:
     title: Quick Starts
   zero-suicide-mapping.md:
     title: Zero Suicide ↔ SPiER mapping
+  measurement.md:
+    title: Measurement (Stage 8)
 
 # Information architecture mirrors HL7 US Core (Home · Getting Started ·
 # Guidance · Conformance · Quick Starts · Artifacts · Downloads) so adopters
@@ -82,6 +84,7 @@ menu:
     How to Read This Guide: how-to-read.html
     Relationship to Other IGs: relationship-to-other-igs.html
     Zero Suicide ↔ SPiER mapping: zero-suicide-mapping.html
+    Measurement (Stage 8): measurement.html
   Conformance: conformance.html
   Quick Starts: quick-starts.html
   Artifacts: artifacts.html

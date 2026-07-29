@@ -526,9 +526,14 @@ Usage: #definition
 
 
 // ─── Stage 8: Measure and Share the Data ─────────────────────
-// Stage assembly for the catalogued Measure and Share the Data tools. These
-// are placeholder ActivityDefinitions (see pathway-tool-placeholders.fsh) — no
-// output profiles are declared until each tool is fully FHIR-modelled.
+// Stage assembly for the Measure and Share the Data tools, fully modelled in
+// ig/input/fsh/measure-and-share.fsh.
+//
+// Only TL-042 declares an output. That is the same asymmetry Stage 7 has with
+// TL-037: a dashboard is a rendering, an export is a serialization, and
+// interoperability is a transport — all three are capabilities over artifacts
+// that already exist, so they produce nothing new to profile. Their expected
+// behaviour is declared on the role CapabilityStatements instead.
 
 Instance: SPiERMeasureAndShareStage
 InstanceOf: PlanDefinition
@@ -547,20 +552,22 @@ Usage: #definition
 * action[+]
   * id = "report-suicide-safer-care-measures"
   * title = "Report Suicide-Safer Care KPIs / Measures"
-  * description = "Calculate and report suicide-safer care measures (screening-to-assessment, safety-plan completion, follow-up timeliness). Placeholder — no Measure resources authored yet."
+  * description = "Calculate the seven SPiER suicide-safer care Measures — screen-to-assessment, risk status documented, safety plan before discharge, lethal means counseling, follow-up timeliness at 48h/7d/30d, caring-contact adherence, and referral loop closure — and emit MeasureReports."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ReportSuicideSaferCareMeasures"
+  * output[+]
+    * type = #MeasureReport
 * action[+]
   * id = "provide-reporting-dashboard"
   * title = "Provide Reporting Dashboard / Aggregate View"
-  * description = "Aggregate view of pathway activity for clinicians, supervisors, and QI teams. Placeholder — no artifacts authored yet."
+  * description = "Aggregate view of pathway activity for clinicians, supervisors, and QI teams. Produces no resource: the measure tiles read summary MeasureReports and the operational counts read the TL-037 registry query."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ProvideReportingDashboard"
 * action[+]
   * id = "export-suicide-safer-care-data"
   * title = "Export Data / Analytics Extract"
-  * description = "Structured export of suicide-safer care data for analysis and quality improvement. Placeholder — no artifacts authored yet."
+  * description = "Structured, timestamped export of the suicide-safer care artifacts. Produces no new resource — the conforming export is a Bulk Data $export of the profiles stages 1–7 already define, each of which mandates a discrete date."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ExportSuicideSaferCareData"
 * action[+]
   * id = "share-suicide-safer-care-data"
   * title = "Share Data / Interoperability Output"
-  * description = "Share suicide-safer care data outside the EHR (HIE, FHIR API, Direct, referral platforms) with consent honored. Placeholder — no artifacts authored yet."
+  * description = "Share suicide-safer care data outside the EHR (HIE, FHIR API, Direct, referral platforms), honoring the sharing restrictions recorded as a SPiERInformationSharingConsent at TL-032. Produces no new resource — the shared payload is the existing profiles."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ShareSuicideSaferCareData"

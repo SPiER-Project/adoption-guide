@@ -11,6 +11,15 @@ name: IG Publisher (on-demand render)
 #
 # The rendered site + qa.html are uploaded as an artifact so you can preview the
 # IG and inspect any broken links / QA findings.
+#
+# NOTE ON CQL (learned in #201): this workflow is NOT a CQL compile gate, and an
+# earlier revision of that PR wrongly added ig/input/cql/** here on the
+# assumption that it was. The publisher run does not translate input/cql — its
+# log never mentions CQL — so the trigger bought a ~10 minute job and validated
+# nothing. SPiER's measure CQL therefore lives in ig/drafts/ alongside the
+# StructureMap drafts, outside ig/input/, until a translator is actually proven
+# in CI. Do not re-add a cql path filter here without first confirming, from a
+# publisher log, that translation happens.
 
 on:
   workflow_dispatch:
