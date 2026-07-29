@@ -148,89 +148,24 @@ Usage: #definition
 
 // ─── Coordinate Handoffs ─────────────────────────────────────
 
-Instance: RecordTransitionCheckpoint
-InstanceOf: ActivityDefinition
-Title: "Record Suicide-Safety Handoff / Transition Checklist"
-Description: "Record a suicide-safety handoff / transition checklist communicating risk status, safety-plan status, follow-up plan, and responsibility to the next setting."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/RecordTransitionCheckpoint"
-* name = "RecordTransitionCheckpoint"
-* version = "0.1.0"
-* title = "Record Suicide-Safety Handoff / Transition Checklist"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Record a suicide-safety handoff / transition checklist. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Transfer essential suicide-safety information, responsibility for the next step, and follow-up details before discharge or transition."
-* kind = #CommunicationRequest
+// RecordTransitionCheckpoint has been promoted out of this placeholder file into the Stage 5
+// handoff artifacts at ig/input/fsh/handoffs.fsh.
 
 
-Instance: GenerateDischargeSafetyPacket
-InstanceOf: ActivityDefinition
-Title: "Generate Discharge Safety Packet / Transition Bundle"
-Description: "Generate a discharge safety packet / transition bundle: safety plan, crisis resources, current risk status, means-safety actions, follow-up appointment, and care-team contact."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/GenerateDischargeSafetyPacket"
-* name = "GenerateDischargeSafetyPacket"
-* version = "0.1.0"
-* title = "Generate Discharge Safety Packet / Transition Bundle"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Generate a discharge safety packet / transition bundle for the patient and receiving provider. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Hand the patient and the receiving provider everything needed to keep the patient safe through the transition."
-* kind = #CommunicationRequest
+// GenerateDischargeSafetyPacket has been promoted out of this placeholder file into the Stage 5
+// handoff artifacts at ig/input/fsh/handoffs.fsh.
 
 
-Instance: SendRapidReferral
-InstanceOf: ActivityDefinition
-Title: "Send Referral / Next Provider Handoff"
-Description: "Send a referral or next-provider handoff with the suicide-risk concern, safety-plan status, and follow-up needs; track acceptance and completion."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/SendRapidReferral"
-* name = "SendRapidReferral"
-* version = "0.1.0"
-* title = "Send Referral / Next Provider Handoff"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Send a referral / next-provider handoff. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Enable a warm handoff and accelerated access to follow-up behavioral-health care, with referral status tracked to completion."
-* kind = #CommunicationRequest
+// SendRapidReferral has been promoted out of this placeholder file into the Stage 5
+// handoff artifacts at ig/input/fsh/handoffs.fsh.
 
 
-Instance: ScheduleFollowUpAppointment
-InstanceOf: ActivityDefinition
-Title: "Schedule Next Appointment / Follow-Up Visit"
-Description: "Document or schedule the next follow-up visit before transition/discharge, with structured date, provider, and status."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ScheduleFollowUpAppointment"
-* name = "ScheduleFollowUpAppointment"
-* version = "0.1.0"
-* title = "Schedule Next Appointment / Follow-Up Visit"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Document or schedule the next follow-up visit before transition/discharge. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Ensure a concrete follow-up appointment exists before the patient leaves, and alert staff when it is missing."
-* kind = #Appointment
+// ScheduleFollowUpAppointment has been promoted out of this placeholder file into the Stage 5
+// handoff artifacts at ig/input/fsh/handoffs.fsh.
 
 
-Instance: RecordConsentSharingStatus
-InstanceOf: ActivityDefinition
-Title: "Record Consent / Information-Sharing Status"
-Description: "Document whether suicide-safety information can be shared with another provider, team, or support person, and use that status to guide what is sent or withheld."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/RecordConsentSharingStatus"
-* name = "RecordConsentSharingStatus"
-* version = "0.1.0"
-* title = "Record Consent / Information-Sharing Status"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Document consent / information-sharing status for suicide-safety information. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Capture consent status, restrictions, and permitted recipients so handoffs and packets share only what is allowed."
-* kind = #Task
+// RecordConsentSharingStatus has been promoted out of this placeholder file into the Stage 5
+// handoff artifacts at ig/input/fsh/handoffs.fsh.
 
 
 // ─── Track Follow-Up ─────────────────────────────────────────

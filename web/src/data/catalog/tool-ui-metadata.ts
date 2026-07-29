@@ -565,7 +565,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
       resources: [
-        { type: 'Communication', description: 'Suicide-safety handoff / transition checklist, stage-tagged to Coordinate Handoffs', when: 'On record' },
+        { type: 'Communication', description: 'Suicide-safety handoff (SPiERSafetyHandoff) — who received it, when, and which safety context travelled, as repeating handoff-content-item codes', when: 'On record' },
       ],
       workflowTrigger: 'Pre-discharge transfer of care to the next setting.',
     },
@@ -578,6 +578,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['safety plan copy', 'crisis resources', 'follow-up details'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'DocumentReference', description: 'The packet itself (SPiERDischargeSafetyPacket) — attachment plus context.related pointing at the live safety plan / risk Observation / appointment it was assembled from', when: 'At discharge or transition' },
+      ],
+      workflowTrigger: 'DocumentReference rather than Communication because the packet is a retrievable artifact, not a one-time transmission.',
+    },
   },
   'TL-017': {
     shortName: 'Referral Handoff',
@@ -585,11 +591,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     settings: ['ED', 'inpatient'],
     badge: { label: 'Handoff', variant: 'handoff' },
     launchActions: [{ label: 'Send rapid referral', path: '/patient/workflow/rapid-referral' }],
-    tags: ['status tracked to completion'],
+    tags: ['status tracked to completion', 'ServiceRequest'],
     targetMaturity: { electronic: 2, writeback: 2, triggering: 3 },
     recordingPattern: {
       resources: [
-        { type: 'Communication', description: 'Outreach to the receiving outpatient BH provider, stage-tagged to Coordinate Handoffs', when: 'On record' },
+        { type: 'ServiceRequest', description: 'IG target: the referral (SPiERSafetyReferral), trackable past sent through accepted/completed via ServiceRequest.status — which is what the SSC asks for and a Communication cannot express', when: 'On referral' },
+        { type: 'Communication', description: 'What the demo recorder still emits today. Migrating it to ServiceRequest is a tracked follow-up, not silent drift — see docs/plans/stage-5-coordinate-handoffs.md', when: 'Demo only' },
       ],
       workflowTrigger: 'Warm handoff / accelerated access to follow-up care.',
     },
@@ -602,6 +609,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['scheduled before discharge', 'missing-appointment alert'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'Appointment', description: 'The follow-up visit (SPiERFollowUpAppointment) — date/time, receiving provider or team, location, status', when: 'Before transition/discharge' },
+      ],
+      workflowTrigger: 'Appointment.status carries booked → fulfilled / noshow, which is what makes the Stage-6 no-show workflow possible without a second resource type.',
+    },
   },
   'TL-032': {
     shortName: 'Consent / Sharing',
@@ -611,6 +624,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['sharing restrictions', 'support-person access'],
     targetMaturity: { electronic: 2, writeback: 2, triggering: 1 },
+    recordingPattern: {
+      resources: [
+        { type: 'Consent', description: 'Whether suicide-safety information may be shared and with whom (SPiERInformationSharingConsent) — native Consent provisions: permit/deny is the decision, provision.actor the recipient, provision.period the expiry', when: 'On documenting consent' },
+      ],
+      workflowTrigger: 'A patient declining is a deny provision, not a separate status — so the EHR can compute what to send or withhold at a handoff.',
+    },
   },
 
   // ── Track Follow-Up ──

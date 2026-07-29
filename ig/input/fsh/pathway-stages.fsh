@@ -362,28 +362,43 @@ Usage: #definition
 * action[+]
   * id = "record-transition-checkpoint"
   * title = "Record Suicide-Safety Handoff / Transition Checklist"
-  * description = "Pre-discharge transfer of care with suicide-safety information, responsibility, and next steps. Placeholder — no Questionnaire binding yet."
+  * description = "Pre-discharge transfer of care with suicide-safety information, responsibility, and next steps. Yields a SPiERSafetyHandoff Communication listing what travelled with the patient."
   * definitionCanonical = "http://spier.org/ActivityDefinition/RecordTransitionCheckpoint"
+  * output[+]
+    * type = #Communication
+    * profile = "http://spier.org/StructureDefinition/spier-safety-handoff"
 * action[+]
   * id = "generate-discharge-safety-packet"
   * title = "Generate Discharge Safety Packet / Transition Bundle"
-  * description = "Assemble the safety plan, crisis resources, risk status, and follow-up details for the patient and receiving provider. Placeholder — no Questionnaire binding yet."
+  * description = "Assemble the safety plan, crisis resources, risk status, and follow-up details for the patient and receiving provider. Yields a SPiERDischargeSafetyPacket DocumentReference."
   * definitionCanonical = "http://spier.org/ActivityDefinition/GenerateDischargeSafetyPacket"
+  * output[+]
+    * type = #DocumentReference
+    * profile = "http://spier.org/StructureDefinition/spier-discharge-safety-packet"
 * action[+]
   * id = "send-referral-handoff"
   * title = "Send Referral / Next Provider Handoff"
-  * description = "Warm handoff and accelerated access to follow-up behavioral healthcare. Placeholder — no Questionnaire binding yet."
+  * description = "Warm handoff and accelerated access to follow-up behavioral healthcare. Yields a SPiERSafetyReferral ServiceRequest, trackable past sent through accepted/completed."
   * definitionCanonical = "http://spier.org/ActivityDefinition/SendRapidReferral"
+  * output[+]
+    * type = #ServiceRequest
+    * profile = "http://spier.org/StructureDefinition/spier-safety-referral"
 * action[+]
   * id = "schedule-follow-up-appointment"
   * title = "Schedule Next Appointment / Follow-Up Visit"
-  * description = "Document or schedule the next follow-up visit before transition or discharge. Placeholder — no Questionnaire binding yet."
+  * description = "Document or schedule the next follow-up visit before transition or discharge. Yields a SPiERFollowUpAppointment."
   * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleFollowUpAppointment"
+  * output[+]
+    * type = #Appointment
+    * profile = "http://spier.org/StructureDefinition/spier-follow-up-appointment"
 * action[+]
   * id = "record-consent-sharing-status"
   * title = "Record Consent / Information-Sharing Status"
-  * description = "Document whether suicide-safety information can be shared with another provider, team, or support person. Placeholder — no Questionnaire binding yet."
+  * description = "Document whether suicide-safety information can be shared with another provider, team, or support person. Yields a SPiERInformationSharingConsent; a patient declining is a deny provision."
   * definitionCanonical = "http://spier.org/ActivityDefinition/RecordConsentSharingStatus"
+  * output[+]
+    * type = #Consent
+    * profile = "http://spier.org/StructureDefinition/spier-information-sharing-consent"
 
 
 // ─── Stage 6: Track Follow-Up ────────────────────────────────
