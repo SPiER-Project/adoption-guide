@@ -92,7 +92,8 @@ Definitional: profiles, terminology, ADs promoted out of
 With this, the placeholders for **Stages 5, 6, and 7 are fully drained**. What
 remains in `pathway-tool-placeholders.fsh` is TL-026 (generalized workflow
 trigger), TL-028 (CARS-S — licensing NO-GO), TL-029 (site-defined local tool),
-and the four Stage-8 tools of Wave 6.
+and the four Stage-8 tools of Wave 6 — *since drained too, see
+[stage-8-measure-and-share.md](stage-8-measure-and-share.md).*
 
 ## Follow-ups
 
@@ -101,5 +102,10 @@ and the four Stage-8 tools of Wave 6.
   of surgery, as Stage 7 established.
 - Migrate the TL-017 referral recorder from Communication to ServiceRequest
   (tracked in the [Stage 5 doc](stage-5-coordinate-handoffs.md)).
-- Wave 6 — Measure and Share: `Measure` / `MeasureReport` over exactly the
-  appointments, outreach attempts, and episodes these stages produce.
+- ~~Wave 6 — Measure and Share: `Measure` / `MeasureReport` over exactly the
+  appointments, outreach attempts, and episodes these stages produce.~~ **Done**
+  (definitional layer) — see [stage-8-measure-and-share.md](stage-8-measure-and-share.md).
+  Two Stage-6 calls got tested there and held: the 7-/30-day measures read
+  `Appointment.status = fulfilled`, vindicating TL-034 producing no resource of
+  its own; and the caring-contact opt-out extension is what lets an opt-out be a
+  denominator *exclusion* rather than a scored failure.

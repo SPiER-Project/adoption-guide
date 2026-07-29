@@ -789,6 +789,10 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
 
   // ── Measure and Share the Data ──
+  // Only TL-042 produces a resource. TL-043 is a rendering, TL-044 a
+  // serialization, TL-045 a transport — so their recordingPattern describes
+  // what they READ rather than what they write. See
+  // docs/plans/stage-8-measure-and-share.md.
   'TL-042': {
     shortName: 'KPI Reporting',
     inclusionStatus: 'core',
@@ -797,6 +801,14 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['numerators & denominators', 'follow-up timeliness'],
     targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
+    recordingPattern: {
+      resources: [
+        { type: 'MeasureReport', description: 'One report per measure per period. Summary reports answer "how is the program doing"; individual reports carry evaluatedResource links back to the artifacts behind the result', when: 'On each measurement run' },
+        { type: 'Measure', description: 'The seven definitions — screen-to-assessment, risk status documented, safety plan before discharge (+ patient copy), lethal means counseling, follow-up timeliness at 48h/7d/30d, caring-contact adherence, referral loop closure', when: 'Published definitions; not created per patient' },
+        { type: 'Library', description: 'The CQL computing every population criterion (ig/input/cql/). Retrieves filter on SPiER profiles, so the measures read exactly the stage 1–7 artifacts and nothing else', when: 'Published definition' },
+      ],
+      workflowTrigger: 'Reads only — no new capture. The episode (TL-038) supplies the cohort and index date; the documented transition (TL-009/TL-030) indexes every post-discharge window.',
+    },
   },
   'TL-043': {
     shortName: 'Dashboard',
@@ -806,6 +818,13 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['aggregate view', 'site/team filters'],
     targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
+    recordingPattern: {
+      resources: [
+        { type: 'MeasureReport', description: 'Read, not written — the measure tiles render summary reports produced by TL-042', when: 'On dashboard load' },
+        { type: 'EpisodeOfCare', description: 'Read — operational counts (active episodes, overdue items) come from the same registry query TL-037 defines: EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on', when: 'On dashboard load' },
+      ],
+      workflowTrigger: 'Produces no resource. The SSC filter list (date range, site, setting, provider/team, tool, risk level, completion status) maps onto search parameters over those two reads.',
+    },
   },
   'TL-044': {
     shortName: 'Analytics Extract',
@@ -815,6 +834,12 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['structured fields + timestamps'],
     targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
+    recordingPattern: {
+      resources: [
+        { type: 'Bundle', description: 'A Bulk Data $export of the SPiER resource types. The SSC requirement that an extract carry structured fields AND measurement timestamps is already met by the profiles — every one mandates a discrete date (Observation.effective, Procedure.performed, Communication.sent, Appointment.start, ServiceRequest.authoredOn, EpisodeOfCare.period, Task.authoredOn)', when: 'On scheduled or on-demand export' },
+      ],
+      workflowTrigger: 'Defines no new artifact — CSV and warehouse extracts are flattenings of the same resource set. Declared on the SPiERQualityReporter CapabilityStatement.',
+    },
   },
   'TL-045': {
     shortName: 'Interop Output',
@@ -824,6 +849,13 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     launchActions: [],
     tags: ['HIE / FHIR API', 'consent-aware sharing'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
+    recordingPattern: {
+      resources: [
+        { type: 'Observation', description: 'The harmonized SPiERSuicideRiskConcept is the minimum viable payload for a receiver that does not know the originating instrument', when: 'On share' },
+        { type: 'Consent', description: 'Read first, always — the SPiERInformationSharingConsent from TL-032 governs what may go where. A deny provision naming a recipient is what withholds data from that recipient', when: 'Before every share' },
+      ],
+      workflowTrigger: 'Every item on the SSC shareable list is already a SPiER profile, so sharing needs no new shape. What it needs is that the resources are readable and movable — a conformance claim, not a profile.',
+    },
   },
 }
 

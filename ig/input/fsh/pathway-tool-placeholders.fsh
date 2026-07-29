@@ -214,69 +214,17 @@ Usage: #definition
 
 // ─── Measure and Share the Data ──────────────────────────────
 
-Instance: ReportSuicideSaferCareMeasures
-InstanceOf: ActivityDefinition
-Title: "Report Suicide-Safer Care KPIs / Measures"
-Description: "Calculate and report suicide-safer care measures: screening-to-assessment, risk documented, safety plan before discharge, means counseling, follow-up timeliness (24–48h / 7-day / 30-day), and caring-contact adherence."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ReportSuicideSaferCareMeasures"
-* name = "ReportSuicideSaferCareMeasures"
-* version = "0.1.0"
-* title = "Report Suicide-Safer Care KPIs / Measures"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Report suicide-safer care KPIs / measures. Placeholder ActivityDefinition — no Measure resources authored yet."
-* purpose = "Turn pathway activity into numerators and denominators that quality improvement can act on."
-* kind = #Task
+// ReportSuicideSaferCareMeasures has been promoted out of this placeholder file into the Stage 8
+// measurement artifacts at ig/input/fsh/measure-and-share.fsh.
 
 
-Instance: ProvideReportingDashboard
-InstanceOf: ActivityDefinition
-Title: "Provide Reporting Dashboard / Aggregate View"
-Description: "Provide a dashboard / aggregate view of pathway activity — screening volume, positive screens, assessments, safety plans, handoffs, follow-up, active episodes, and overdue items — filterable by site, team, and time."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ProvideReportingDashboard"
-* name = "ProvideReportingDashboard"
-* version = "0.1.0"
-* title = "Provide Reporting Dashboard / Aggregate View"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Provide a reporting dashboard / aggregate view of suicide-safer care activity. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Give clinicians, supervisors, and QI teams a routinely refreshed aggregate view of pathway performance."
-* kind = #Task
+// ProvideReportingDashboard has been promoted out of this placeholder file into the Stage 8
+// measurement artifacts at ig/input/fsh/measure-and-share.fsh.
 
 
-Instance: ExportSuicideSaferCareData
-InstanceOf: ActivityDefinition
-Title: "Export Data / Analytics Extract"
-Description: "Export suicide-safer care data — structured fields with timestamps, not only narrative — for analysis and quality improvement (CSV, warehouse, or FHIR API)."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ExportSuicideSaferCareData"
-* name = "ExportSuicideSaferCareData"
-* version = "0.1.0"
-* title = "Export Data / Analytics Extract"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Export suicide-safer care data for analytics. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Make the structured pathway data available to analytics and evaluation without manual chart abstraction."
-* kind = #Task
+// ExportSuicideSaferCareData has been promoted out of this placeholder file into the Stage 8
+// measurement artifacts at ig/input/fsh/measure-and-share.fsh.
 
 
-Instance: ShareSuicideSaferCareData
-InstanceOf: ActivityDefinition
-Title: "Share Data / Interoperability Output"
-Description: "Share suicide-safer care data outside the EHR — risk status, assessment summary, safety-plan status and document, follow-up plan — over HIE, FHIR API, Direct, or referral platforms, honoring consent restrictions."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ShareSuicideSaferCareData"
-* name = "ShareSuicideSaferCareData"
-* version = "0.1.0"
-* title = "Share Data / Interoperability Output"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Share suicide-safer care data outside the EHR with structure and provenance preserved. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Let a patient's suicide-risk signal follow them across facilities and platforms, within consent."
-* kind = #CommunicationRequest
+// ShareSuicideSaferCareData has been promoted out of this placeholder file into the Stage 8
+// measurement artifacts at ig/input/fsh/measure-and-share.fsh.

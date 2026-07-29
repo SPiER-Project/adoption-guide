@@ -11,12 +11,20 @@ name: IG Publisher (on-demand render)
 #
 # The rendered site + qa.html are uploaded as an artifact so you can preview the
 # IG and inspect any broken links / QA findings.
+#
+# It ALSO runs on any change under ig/input/cql/, and that is not a
+# convenience — it is the CQL compile gate. SUSHI does not translate CQL, so
+# the lightweight `ig.yml` cannot catch a syntax or reference error in the
+# measure logic; the IG Publisher does, because it runs cql-to-elm and attaches
+# the result to the matching Library. Accepting a heavy run on CQL changes is
+# the price of the measure logic being checked at all.
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
       - '.github/workflows/ig-publish.yml'
+      - 'ig/input/cql/**'
 
 permissions:
   contents: read
