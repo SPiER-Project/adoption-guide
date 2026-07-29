@@ -34,11 +34,14 @@ completed"** (tool 3, question 5 — "Full status tracking" scores highest).
 natively. A `Communication` only records that something was *sent*, so it
 cannot answer the question the tile is scored on.
 
-**Known gap:** the demo recorder at `/patient/workflow/rapid-referral` still
-emits a `Communication` (it shares the generic `WorkflowActionView`). The
-catalog entry shows **both** — the ServiceRequest target and the Communication
-the demo emits today — so the guide doesn't imply a capability the app lacks.
-Migrating the recorder is a tracked follow-up.
+**Resolved.** The recorder now emits the ServiceRequest. It lives at
+`/patient/workflow/referral` (`SafetyReferralView`) instead of sharing the
+generic `WorkflowActionView`, and `/patient/workflow/rapid-referral` redirects
+there so existing links keep working. Advancing a referral to `completed` or
+`revoked` is an update to the **same** resource — the recorder reuses its id and
+the store upserts — so a closed referral cannot still read as outstanding. That
+round trip is the capability the SSC scores, and it is now demonstrable in the
+app rather than described in the IG.
 
 ### 2. DocumentReference for the packet, not another Communication
 
@@ -83,20 +86,69 @@ That is precisely the signal the Stage-6 no-show follow-up (TL-035) needs, so
 tracking appointments (TL-034) needs **no second resource type** — it reads the
 same Appointment. Worth keeping in mind when Stage 6 is encoded.
 
-## Scope of this PR
+## Implementation status
 
-Definitional: profiles, terminology, ActivityDefinitions promoted out of
-`pathway-tool-placeholders.fsh`, stage-PD outputs, catalog `recordingPattern`.
+| Step | State |
+|---|---|
+| Profiles + terminology + ADs + stage-PD outputs + catalog | ✅ merged (#199) |
+| Shared data layer + recorders (with Stage 6) | ✅ this PR |
 
-**Not included:** data-layer buckets and demo recorders for the four new
-resource types. Stage 7 showed that adding resource types to `PatientSlice`,
-the two data sources, and the registry is one shared piece of surgery — better
-done once for the whole of Stages 5–6 than piecemeal per tool.
+The data layer was deliberately deferred out of #199 and #200 and done once
+here, because adding resource types to `PatientSlice`, both data sources, and
+the registry is one shared piece of surgery rather than four per-tool changes.
+
+Delivered:
+
+- **Data layer** — `documentReferences` / `serviceRequests` / `appointments` /
+  `consents` buckets on `PatientSlice` (optional, like `communications`, so
+  persisted slices and scenario JSON stay valid), routing in `localDataSource`
+  and `smartDataSource`, activity-feed labels and date resolution in
+  `registry.ts`.
+- **`lib/handoffs.ts`** — the shared domain module (builders, lifecycle
+  transitions, predicates) with 24 unit tests, so the rules are not
+  re-implemented per view.
+- **Four recorders** — discharge packet (TL-030), referral (TL-017), follow-up
+  appointment (TL-031), sharing consent (TL-032). All reuse the existing
+  `workflow-*` classes, so no new CSS.
+- **Chart + registry surfacing** — the four types render as stage-grouped
+  artifact cards, and the Population view gains a Follow-Up column.
+
+### Three things the implementation forced
+
+1. **`Appointment` has no patient element at all.** Not `subject`, not
+   `patient` — the patient is a `participant.actor`. This is the same class of
+   bug Stage 7 hit with `EpisodeOfCare.patient` / `Task.for`, but worse: there
+   is no single field to substitute, so `smartDataSource` needed a
+   `withPatientLink()` helper that rewrites the participant instead of setting a
+   top-level element. `Consent` also uses `patient`, not `subject`.
+2. **All four types are lifecycle resources, so writes upsert by id.** The
+   Stage-7 finding generalizes further than expected: a referral moves to
+   completed, an appointment to fulfilled/noshow, a consent is superseded. Only
+   the *point-in-time* artifacts (Observation, CarePlan, Communication) append.
+3. **A booked appointment is dated in the future.** `Appointment.start` for a
+   follow-up is days ahead, and the registry's newest-wins "last activity" rule
+   would have reported a visit that hadn't happened yet as the patient's most
+   recent activity, pushing every real event off the row. A still-upcoming
+   appointment is now dated by when it was *booked*.
+4. **The consent recorder needed a `policyRule`.** The base Consent invariant
+   `ppc-1` requires either a Policy or a PolicyRule, so without one every Consent
+   the recorder wrote was invalid — a strict server would reject it. This only
+   came to light because the IG Publisher run in #201 caught the *example*
+   shipping invalid for the same reason. Worth remembering as a class of gap:
+   SUSHI does not evaluate FHIRPath invariants, so `npm run verify` is green on
+   resources that fail conformance. See
+   [the publish-gate note](ssc-stage-tiles-rollout.md) — the app-side builders
+   have no invariant check at all, only the unit test added here.
 
 ## Follow-ups
 
-- Data layer + recorders for `DocumentReference` / `ServiceRequest` /
-  `Appointment` / `Consent` (shared with Stage 6).
-- Migrate the TL-017 recorder from Communication to ServiceRequest (§1).
-- Stage 6 (Track Follow-Up), which reuses the Appointment above and the
-  Communication/Task patterns already established.
+- Stage 8 (Measure and Share) — the 7-/30-day follow-up measures compute over
+  exactly these appointments. `attendedWithinDays()` in `lib/followUp.ts` is
+  the definition they should reuse rather than restate.
+- **TL-009 content checklist.** The handoff recorder still emits a plain
+  stage-tagged Communication with no `handoff-content-item` extensions. That is
+  conformant (the profile is a low floor by design) but under-uses the shared
+  vocabulary the discharge packet now populates.
+- **Consent is recorded, not enforced.** Nothing in the app consults a deny
+  provision before showing or sharing data. Making the packet recorder respect
+  it would be the first real demonstration of consent-aware sharing.

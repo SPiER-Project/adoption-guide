@@ -128,6 +128,23 @@ export interface PatientArtifacts {
   carePlans?: FhirResourceLike[]
   observations?: FhirResourceLike[]
   communications?: FhirResourceLike[]
+  /**
+   * Stage-5/6 workflow artifacts that stage themselves through `meta.tag` —
+   * DocumentReference (discharge packet), ServiceRequest (referral),
+   * Appointment (follow-up visit), Consent (sharing status).
+   *
+   * Deliberately ONE untyped bucket rather than a named field per resource
+   * type: staging and grouping read nothing type-specific (just the stage tag),
+   * so a named field per type would mean the same four-site surgery again for
+   * every resource a later stage introduces.
+   *
+   * The Stage-7 episode/flag/task set is intentionally NOT routed here. Those
+   * have their own surfaces (the recorders plus the registry work-queue rollup),
+   * and staging them would mark every earlier stage complete the moment an
+   * episode opens — an episode can legitimately be opened straight off a
+   * positive screen, before any handoff has happened.
+   */
+  workflowArtifacts?: FhirResourceLike[]
 }
 
 function everyResource(artifacts: PatientArtifacts): FhirResourceLike[] {
@@ -136,6 +153,7 @@ function everyResource(artifacts: PatientArtifacts): FhirResourceLike[] {
     ...(artifacts.carePlans ?? []),
     ...(artifacts.observations ?? []),
     ...(artifacts.communications ?? []),
+    ...(artifacts.workflowArtifacts ?? []),
   ]
 }
 
@@ -180,10 +198,17 @@ export interface StageArtifacts {
   carePlans: FhirResourceLike[]
   observations: FhirResourceLike[]
   communications: FhirResourceLike[]
+  workflowArtifacts: FhirResourceLike[]
 }
 
 export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifacts[] {
-  const { responses = [], carePlans = [], observations = [], communications = [] } = artifacts
+  const {
+    responses = [],
+    carePlans = [],
+    observations = [],
+    communications = [],
+    workflowArtifacts = [],
+  } = artifacts
   return STAGES.map((stage) => ({
     stageId: stage.id,
     responses: responses.filter(
@@ -192,6 +217,7 @@ export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifac
     carePlans: carePlans.filter((cp) => stageForArtifact(cp) === stage.id),
     observations: observations.filter((o) => stageForArtifact(o) === stage.id),
     communications: communications.filter((c) => stageForArtifact(c) === stage.id),
+    workflowArtifacts: workflowArtifacts.filter((w) => stageForArtifact(w) === stage.id),
   }))
 }
 
@@ -203,7 +229,13 @@ export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifac
  * stay visible instead of silently disappearing from the stage grouping.
  */
 export function unstagedArtifacts(artifacts: PatientArtifacts): Omit<StageArtifacts, 'stageId'> {
-  const { responses = [], carePlans = [], observations = [], communications = [] } = artifacts
+  const {
+    responses = [],
+    carePlans = [],
+    observations = [],
+    communications = [],
+    workflowArtifacts = [],
+  } = artifacts
   return {
     responses: responses.filter(
       (r) => stageForArtifact(r.resource as FhirResourceLike) === undefined,
@@ -211,6 +243,7 @@ export function unstagedArtifacts(artifacts: PatientArtifacts): Omit<StageArtifa
     carePlans: carePlans.filter((cp) => stageForArtifact(cp) === undefined),
     observations: observations.filter((o) => stageForArtifact(o) === undefined),
     communications: communications.filter((c) => stageForArtifact(c) === undefined),
+    workflowArtifacts: workflowArtifacts.filter((w) => stageForArtifact(w) === undefined),
   }
 }
 

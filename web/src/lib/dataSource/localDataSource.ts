@@ -17,13 +17,17 @@
 import { POPULATION_SCENARIOS } from '../../data/population/scenarios'
 import type { DerivedArtifacts, FhirDataSource } from './types'
 import type {
+  AppointmentResource,
   CarePlanResource,
   CommunicationResource,
+  ConsentResource,
+  DocumentReferenceResource,
   EpisodeOfCareResource,
   FhirResource,
   FlagResource,
   ObservationResource,
   PatientSlice,
+  ServiceRequestResource,
   StoredResponse,
   TaskResource,
 } from '../../types/fhir'
@@ -43,6 +47,10 @@ const EMPTY_SLICE: PatientSlice = {
   episodes: [],
   flags: [],
   tasks: [],
+  documentReferences: [],
+  serviceRequests: [],
+  appointments: [],
+  consents: [],
 }
 
 /**
@@ -200,6 +208,33 @@ export class LocalDataSource implements FhirDataSource {
         // Tasks are upserted too — completing a task updates it in place.
         case 'Task':
           return { ...prev, tasks: upsertById(prev.tasks, stamped as TaskResource) }
+        // Stage 5 (Coordinate Handoffs). All four are upserted by id for the
+        // same reason as the Stage-7 types: every one of them is *tracked past
+        // its creation*. A referral moves draft → active → completed, an
+        // appointment booked → fulfilled | noshow, a consent is revoked, a
+        // packet superseded. Appending each transition would leave the stale
+        // version behind — a referral would read as still outstanding after it
+        // completed, which is precisely the capability TL-017 exists to prove.
+        case 'DocumentReference':
+          return {
+            ...prev,
+            documentReferences: upsertById(
+              prev.documentReferences,
+              stamped as DocumentReferenceResource,
+            ),
+          }
+        case 'ServiceRequest':
+          return {
+            ...prev,
+            serviceRequests: upsertById(prev.serviceRequests, stamped as ServiceRequestResource),
+          }
+        case 'Appointment':
+          return {
+            ...prev,
+            appointments: upsertById(prev.appointments, stamped as AppointmentResource),
+          }
+        case 'Consent':
+          return { ...prev, consents: upsertById(prev.consents, stamped as ConsentResource) }
         default:
           console.warn(
             `[LocalDataSource] saveArtifact: unhandled resourceType "${resource.resourceType}"`,

@@ -95,17 +95,62 @@ trigger), TL-028 (CARS-S — licensing NO-GO), TL-029 (site-defined local tool),
 and the four Stage-8 tools of Wave 6 — *since drained too, see
 [stage-8-measure-and-share.md](stage-8-measure-and-share.md).*
 
+## Implementation status
+
+| Step | State |
+|---|---|
+| Profiles + terminology + ADs + stage-PD outputs + catalog | ✅ merged (#200) |
+| Recorders + tracking, on the shared Stage-5/6 data layer | ✅ this PR |
+
+The reuse claimed above held up in code — the implementation added **one**
+builder, not five:
+
+- **TL-033 / TL-035 — one recorder** at `/patient/workflow/outreach`
+  (`OutreachAttemptView`). The outcome is a required extension because
+  `Communication.status` only says a message was sent; "safety concern
+  identified" stays a separate boolean axis. When the patient's latest
+  appointment was a no-show the prompt pre-sets to `no-show`, which is the whole
+  of the TL-035 difference.
+- **TL-034 — no new resource, as designed.** `deriveAppointmentTracking()` reads
+  the Stage-5 Appointments; attended / no-show / cancelled / next-visit all come
+  off `Appointment.status` and `.start`. It shares a page with TL-031, where the
+  status buttons resolve the *same* appointment in place.
+- **TL-036 — the Stage-7 recorder, unchanged.** Escalations from failing
+  follow-up land in the existing `SafetyTaskView` and so in the same work queue.
+  This surfaced real drift: the three triggers Stage 6 added to the
+  `spier-escalation-trigger` CodeSystem (new safety concern, missed outreach
+  window, failed contact sequence) were missing from the app's copy of the code
+  list, so they were unreachable in the UI. Added, and the outreach recorder now
+  points at escalation once two consecutive attempts fail to reach the patient —
+  the `failed-contact-sequence` trigger, computed rather than left to staff to
+  count.
+
+`lib/followUp.ts` holds the shared logic with 22 unit tests. See the
+[Stage 5 doc](stage-5-coordinate-handoffs.md) for the data-layer surgery and the
+three FHIR gotchas it turned up.
+
 ## Follow-ups
 
-- Shared data layer + recorders for the Stage-5/6 resource types
-  (`DocumentReference`, `ServiceRequest`, `Appointment`, `Consent`) — one piece
-  of surgery, as Stage 7 established.
-- Migrate the TL-017 referral recorder from Communication to ServiceRequest
-  (tracked in the [Stage 5 doc](stage-5-coordinate-handoffs.md)).
+- ~~Shared data layer + recorders for the Stage-5/6 resource types~~ and
+  ~~migrate the TL-017 referral recorder to ServiceRequest~~ — **done**; see the
+  [Stage 5 doc](stage-5-coordinate-handoffs.md) for the surgery and the three
+  FHIR gotchas it turned up.
+- **Caring contacts (TL-010) still use the generic recorder**, so the
+  `caring-contact-opt-out` extension is never written — and opt-out is what
+  stops the schedule. Conformant (the profile is a low floor) but incomplete,
+  and now load-bearing: the Stage-8 measures rely on that extension to treat an
+  opt-out as a denominator *exclusion* rather than a scored failure, so until a
+  recorder writes it the exclusion can never fire.
+- **Nothing schedules the cadence.** Outreach and caring contacts are recorded
+  when a human opens the form; the 24–48h / 7-day / 30-day schedule that should
+  *generate* due work isn't modelled. TL-039's Task cadence is the closest
+  existing machinery.
 - ~~Wave 6 — Measure and Share: `Measure` / `MeasureReport` over exactly the
   appointments, outreach attempts, and episodes these stages produce.~~ **Done**
   (definitional layer) — see [stage-8-measure-and-share.md](stage-8-measure-and-share.md).
   Two Stage-6 calls got tested there and held: the 7-/30-day measures read
   `Appointment.status = fulfilled`, vindicating TL-034 producing no resource of
   its own; and the caring-contact opt-out extension is what lets an opt-out be a
-  denominator *exclusion* rather than a scored failure.
+  denominator *exclusion* rather than a scored failure. When the measure engine
+  is built, reuse `attendedWithinDays()` in `lib/followUp.ts` — it already
+  defines that 7-/30-day window shape rather than restating it.
