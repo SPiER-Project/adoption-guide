@@ -62,6 +62,8 @@ const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ 
 const StanleyBrownView = lazy(() => import('./components/StanleyBrownView').then(m => ({ default: m.StanleyBrownView })))
 const QuestionnaireView = lazy(() => import('./components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
 const WorkflowActionView = lazy(() => import('./components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
+const RiskEpisodeView = lazy(() => import('./components/RiskEpisodeView').then(m => ({ default: m.RiskEpisodeView })))
+const SafetyTaskView = lazy(() => import('./components/SafetyTaskView').then(m => ({ default: m.SafetyTaskView })))
 
 function RouteFallback() {
   return (
@@ -185,6 +187,9 @@ function AppRoutes() {
           <Route path="workflow/transition" element={
             <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />
           } />
+          {/* Stage 7 — Track Risk Over Time */}
+          <Route path="workflow/risk-episode" element={<RiskEpisodeView />} />
+          <Route path="workflow/safety-tasks" element={<SafetyTaskView />} />
           <Route path="workflow/crisis-resources" element={
             <WorkflowActionView toolId="TL-013" title="Record Crisis Resources Shared" actionNoun="crisis resources shared" summaryPlaceholder="e.g. 988 Lifeline + Crisis Text Line + safety-plan copy given to patient" />
           } />

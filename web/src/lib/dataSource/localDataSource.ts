@@ -19,10 +19,13 @@ import type { DerivedArtifacts, FhirDataSource } from './types'
 import type {
   CarePlanResource,
   CommunicationResource,
+  EpisodeOfCareResource,
   FhirResource,
+  FlagResource,
   ObservationResource,
   PatientSlice,
   StoredResponse,
+  TaskResource,
 } from '../../types/fhir'
 import type { RiskAlert } from '../observationMappers'
 
@@ -37,6 +40,30 @@ const EMPTY_SLICE: PatientSlice = {
   carePlans: [],
   riskAlerts: [],
   communications: [],
+  episodes: [],
+  flags: [],
+  tasks: [],
+}
+
+/**
+ * Replace an existing resource with the same `id`, or append when it's new.
+ *
+ * Stage-7 resources have a LIFECYCLE — an episode is opened and later closed,
+ * a flag is raised and later cleared, a task is created and later completed —
+ * and each transition is another `saveArtifact` of the same logical resource.
+ * Appending (the behaviour used for Observations/CarePlans/Communications,
+ * which are immutable point-in-time records) would leave the superseded copy
+ * behind, so a closed episode would still show as open in the registry.
+ * Resources with no `id` are always appended.
+ */
+function upsertById<T extends { id?: string }>(list: T[] | undefined, next: T): T[] {
+  const current = list ?? []
+  if (!next.id) return [...current, next]
+  const idx = current.findIndex(r => r.id === next.id)
+  if (idx === -1) return [...current, next]
+  const copy = [...current]
+  copy[idx] = next
+  return copy
 }
 
 function readJson<T>(key: string): T | null {
@@ -161,6 +188,18 @@ export class LocalDataSource implements FhirDataSource {
           return { ...prev, observations: [...prev.observations, stamped as ObservationResource] }
         case 'CarePlan':
           return { ...prev, carePlans: [...prev.carePlans, stamped as CarePlanResource] }
+        // Stage 7 (Track Risk Over Time). The episode is upserted by id rather
+        // than appended: opening an episode and later closing it are two saves
+        // of the SAME episode, and appending would leave a stale open copy in
+        // the slice (and so a phantom row in the registry work queue).
+        case 'EpisodeOfCare':
+          return { ...prev, episodes: upsertById(prev.episodes, stamped as EpisodeOfCareResource) }
+        // Same for the flag: raising then clearing it is one resource's lifecycle.
+        case 'Flag':
+          return { ...prev, flags: upsertById(prev.flags, stamped as FlagResource) }
+        // Tasks are upserted too — completing a task updates it in place.
+        case 'Task':
+          return { ...prev, tasks: upsertById(prev.tasks, stamped as TaskResource) }
         default:
           console.warn(
             `[LocalDataSource] saveArtifact: unhandled resourceType "${resource.resourceType}"`,

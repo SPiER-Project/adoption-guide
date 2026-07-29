@@ -686,7 +686,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Monitoring', variant: 'monitoring' },
-    launchActions: [],
+    launchActions: [{ label: 'Open / close episode', path: '/patient/workflow/risk-episode' }],
     tags: ['open/closed lifecycle', 'closure reason', 'stage anchor'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
     recordingPattern: {
@@ -702,7 +702,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Monitoring', variant: 'monitoring' },
-    launchActions: [],
+    launchActions: [{ label: 'Schedule reassessment', path: '/patient/workflow/safety-tasks' }],
     tags: ['tier-driven cadence', 'due & overdue alerts'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
     recordingPattern: {
@@ -717,7 +717,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['all settings'],
     badge: { label: 'Monitoring', variant: 'monitoring' },
-    launchActions: [],
+    launchActions: [{ label: 'Track a care gap', path: '/patient/workflow/safety-tasks' }],
     tags: ['open safety actions', 'owner + due date'],
     targetMaturity: { electronic: 2, writeback: 3, triggering: 2 },
     recordingPattern: {
@@ -732,7 +732,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'optional',
     settings: ['all settings'],
     badge: { label: 'Monitoring', variant: 'monitoring' },
-    launchActions: [],
+    launchActions: [{ label: 'Escalate a case', path: '/patient/workflow/safety-tasks' }],
     tags: ['worsening risk', 'documented outcome'],
     targetMaturity: { electronic: 2, writeback: 3, triggering: 3 },
     recordingPattern: {
