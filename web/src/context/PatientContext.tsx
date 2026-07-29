@@ -17,6 +17,9 @@ import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
   CarePlanResource,
   CommunicationResource,
+  EpisodeOfCareResource,
+  FlagResource,
+  TaskResource,
   FhirResource,
   ObservationResource,
   PatientResource,
@@ -128,6 +131,10 @@ interface PatientContextType {
   addResponse: (name: string, resource: QuestionnaireResponseResource) => void
   observations: ObservationResource[]
   communications: CommunicationResource[]
+  /** Stage-7 (Track Risk Over Time) artifacts — see lib/riskEpisode.ts helpers. */
+  episodes: EpisodeOfCareResource[]
+  flags: FlagResource[]
+  tasks: TaskResource[]
   riskAlerts: RiskAlert[]
   /**
    * Append a non-Questionnaire workflow artifact, routing it into the right
@@ -412,6 +419,9 @@ export function PatientProvider({
       addResponse,
       observations: slice.observations,
       communications: slice.communications ?? [],
+      episodes: slice.episodes ?? [],
+      flags: slice.flags ?? [],
+      tasks: slice.tasks ?? [],
       riskAlerts: slice.riskAlerts,
       addArtifact,
       isSliceLoading: sliceState.isLoading,

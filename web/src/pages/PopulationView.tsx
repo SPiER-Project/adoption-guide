@@ -20,6 +20,9 @@ const EMPTY_SLICE: PatientSlice = {
   carePlans: [],
   riskAlerts: [],
   communications: [],
+  episodes: [],
+  flags: [],
+  tasks: [],
 }
 
 // Rows are computed from the same FhirDataSource slices PatientChart reads —
@@ -198,6 +201,7 @@ export function PopulationView() {
               <th scope="col">Patient</th>
               <th scope="col">Current Stage</th>
               <th scope="col">Risk</th>
+              <th scope="col">Open Work</th>
               <th scope="col">Last Activity</th>
               <th scope="col">Recommended Next Step</th>
               <th scope="col" className="caseload-table-action-col"><span className="sr-only">Open</span></th>
@@ -231,6 +235,25 @@ export function PopulationView() {
                   <span className={`risk-pill risk-pill--${p.currentRiskLevel}`}>
                     {RISK_LABEL[p.currentRiskLevel]}
                   </span>
+                </td>
+                {/* Stage-7 work queue (TL-037): open episode + its outstanding
+                    tasks. Overdue is computed per render, never stored. */}
+                <td>
+                  {p.episodeOpen ? (
+                    <>
+                      <div className="caseload-activity-label">
+                        {p.openTaskCount === 0
+                          ? 'Episode open · no open tasks'
+                          : `${p.openTaskCount} open task${p.openTaskCount === 1 ? '' : 's'}`}
+                        {p.overdueTaskCount > 0 ? ` · ${p.overdueTaskCount} overdue` : ''}
+                      </div>
+                      <div className="caseload-activity-date">
+                        {p.nextTaskDue ? `Next due ${p.nextTaskDue.slice(0, 10)}` : 'No due dates set'}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="caseload-activity-label">No open episode</div>
+                  )}
                 </td>
                 <td>
                   {p.lastActivity ? (
