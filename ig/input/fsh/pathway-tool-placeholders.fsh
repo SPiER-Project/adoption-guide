@@ -322,89 +322,24 @@ Usage: #definition
 
 // ─── Track Risk Over Time ────────────────────────────────────
 
-Instance: MaintainRiskRegistry
-InstanceOf: ActivityDefinition
-Title: "Maintain Active Suicide-Safer Care Registry / Work Queue"
-Description: "Maintain a registry / work queue of active suicide-risk patients with risk status, last/next assessment, safety-plan status, owner, and escalation state."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/MaintainRiskRegistry"
-* name = "MaintainRiskRegistry"
-* version = "0.1.0"
-* title = "Maintain Active Suicide-Safer Care Registry / Work Queue"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Maintain an active suicide-safer care registry / work queue. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Keep every active suicide-risk patient visible in one place with clear ownership and due dates."
-* kind = #Task
+// MaintainRiskRegistry has been promoted out of this placeholder file into the shared
+// stage-7 episode pattern at ig/input/fsh/risk-episode.fsh.
 
 
-Instance: TrackRiskEpisodeStatus
-InstanceOf: ActivityDefinition
-Title: "Track Suicide-Risk Episode / Pathway Status"
-Description: "Track an active suicide-risk episode / pathway status over time: entry reason, current tier, owner, open/closed state, and closure reason."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/TrackRiskEpisodeStatus"
-* name = "TrackRiskEpisodeStatus"
-* version = "0.1.0"
-* title = "Track Suicide-Risk Episode / Pathway Status"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Track suicide-risk episode / pathway status. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Give the active suicide-safer care episode a structured, reportable lifecycle from entry to resolution."
-* kind = #Task
+// TrackRiskEpisodeStatus has been promoted out of this placeholder file into the shared
+// stage-7 episode pattern at ig/input/fsh/risk-episode.fsh.
 
 
-Instance: ScheduleRiskReassessment
-InstanceOf: ActivityDefinition
-Title: "Schedule Reassessment / Risk Review"
-Description: "Track when suicide-risk reassessment or review is due — driven by risk tier, last assessment date, or clinical judgment — and alert when due or overdue."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
-* name = "ScheduleRiskReassessment"
-* version = "0.1.0"
-* title = "Schedule Reassessment / Risk Review"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Track reassessment / risk-review schedules. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Make reassessment cadence explicit and enforceable rather than dependent on memory."
-* kind = #Task
+// ScheduleRiskReassessment has been promoted out of this placeholder file into the shared
+// stage-7 episode pattern at ig/input/fsh/risk-episode.fsh.
 
 
-Instance: TrackOpenSafetyActions
-InstanceOf: ActivityDefinition
-Title: "Track Open Safety Actions / Care Gaps"
-Description: "Track open suicide-safety actions and care gaps (assessment needed, safety plan needed/update, means-safety action open, outreach due, referral incomplete) with owner and due date."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/TrackOpenSafetyActions"
-* name = "TrackOpenSafetyActions"
-* version = "0.1.0"
-* title = "Track Open Safety Actions / Care Gaps"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Track open safety actions / care gaps. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Keep unfinished safety work visible and assignable until completed."
-* kind = #Task
+// TrackOpenSafetyActions has been promoted out of this placeholder file into the shared
+// stage-7 episode pattern at ig/input/fsh/risk-episode.fsh.
 
 
-Instance: EscalateOverdueRisk
-InstanceOf: ActivityDefinition
-Title: "Run Risk Escalation / Overdue Workflow"
-Description: "Escalate active suicide-risk cases when key steps are overdue or risk worsens; route to the responsible clinician, team, or supervisor and document the outcome."
-Usage: #definition
-* url = "http://spier.org/ActivityDefinition/EscalateOverdueRisk"
-* name = "EscalateOverdueRisk"
-* version = "0.1.0"
-* title = "Run Risk Escalation / Overdue Workflow"
-* status = #draft
-* experimental = true
-* publisher = "SPiER (HTD Health)"
-* description = "Run the risk escalation / overdue workflow. Placeholder ActivityDefinition — no artifacts authored yet."
-* purpose = "Ensure worsening or stalled episodes are surfaced and acted on, not silently aged out."
-* kind = #Task
+// EscalateOverdueRisk has been promoted out of this placeholder file into the shared
+// stage-7 episode pattern at ig/input/fsh/risk-episode.fsh.
 
 
 // ─── Measure and Share the Data ──────────────────────────────
