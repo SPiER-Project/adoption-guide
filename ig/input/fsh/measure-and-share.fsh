@@ -686,7 +686,7 @@ Usage: #example
 Instance: ExampleFollowUpTimelinessReportIndividual
 InstanceOf: MeasureReport
 Title: "Example — Follow-up timeliness, individual report"
-Description: "One patient's follow-up timeliness, with evaluatedResource pointing at the exact artifacts that placed them in each numerator. Index event: the handoff on 2026-07-20T15:00Z. Outreach at +19h clears the 48-hour window; the attended visit at +4d clears both the 7- and 30-day windows."
+Description: "One patient's follow-up timeliness, with evaluatedResource pointing at the exact artifacts that placed them in each numerator. Every population the Measure defines is reported — including initial-population and a zero denominator-exclusion — because a MeasureReport that omits one cannot be checked against its Measure. Index event: the handoff on 2026-07-20T15:00Z. Outreach at +19h clears the 48-hour window; the attended visit at +4d clears both the 7- and 30-day windows."
 Usage: #example
 * status = #complete
 * type = #individual
@@ -700,8 +700,14 @@ Usage: #example
   * id = "outreach-within-48-hours"
   * code = MeasureGroupCodes#outreach-within-48-hours "Outreach within 48 hours of the transition"
   * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
+    * count = 1
+  * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * count = 1
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
+    * count = 0
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * count = 1
@@ -710,8 +716,14 @@ Usage: #example
   * id = "follow-up-within-7-days"
   * code = MeasureGroupCodes#follow-up-within-7-days "Follow-up visit attended within 7 days"
   * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
+    * count = 1
+  * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * count = 1
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
+    * count = 0
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * count = 1
@@ -720,8 +732,14 @@ Usage: #example
   * id = "follow-up-within-30-days"
   * code = MeasureGroupCodes#follow-up-within-30-days "Follow-up visit attended within 30 days"
   * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
+    * count = 1
+  * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
     * count = 1
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
+    * count = 0
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * count = 1

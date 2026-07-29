@@ -207,6 +207,13 @@ Gradle.
 | 12 | Duplicate `population.id` — element ids must be unique per resource | Dropped population ids; `code` identifies the population |
 | 8 | MeasureReport groups matched to Measure groups by `id`, not `code` | Added a `spier-measure-group` CodeSystem and `group.code` on both sides |
 | 1 | `Consent` ppc-1 — needs `policy` or `policyRule` | **Pre-existing Wave 5 bug**, fixed here |
+| 6 | Individual MeasureReport omitted `initial-population` and `denominator-exclusion` | A report must carry every population its Measure defines, or it cannot be checked against it |
+
+The last row took a second publisher round to surface — it was masked by the
+first round's larger failures. Errors went **66 → 6 → 0**, broken links
+**39 → 0**. Worth noting as a process point: each round of this loop costs a
+~10 minute publisher run, which is the practical argument for running `publish`
+more often on smaller diffs rather than once per wave.
 
 Two of those are worth dwelling on. The **group-code** one is a design
 correction, not a typo: the validator is explicit that a report group is tied to
