@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import FHIR from 'fhirclient';
+import { useEffect, useState } from 'react'
+import FHIR from 'fhirclient'
 
 export function SmartLaunch() {
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         // Initiate the SMART on FHIR OAuth2 authorization sequence.
@@ -45,10 +45,10 @@ export function SmartLaunch() {
                 redirectUri: import.meta.env.BASE_URL,
             })
             .catch((err) => {
-                console.error('FHIR OAuth2 Authorize Error:', err);
-                setError(err.message || 'An error occurred during SMART launch.');
-            });
-    }, []);
+                console.error('FHIR OAuth2 Authorize Error:', err)
+                setError(err.message || 'An error occurred during SMART launch.')
+            })
+    }, [])
 
     if (error) {
         return (
@@ -56,7 +56,7 @@ export function SmartLaunch() {
                 <h2>Launch Error</h2>
                 <p>{error}</p>
             </div>
-        );
+        )
     }
 
     // The fhirclient library handles the redirect immediately,
@@ -66,5 +66,5 @@ export function SmartLaunch() {
             <h2>Redirecting to EHR...</h2>
             <p>Please wait while we establish a secure connection.</p>
         </div>
-    );
+    )
 }
