@@ -328,19 +328,39 @@ of which is scheduled.
 
 ## Follow-ups
 
-- **Wave 6, part 2 — make it live.** A measure engine in `web/src/lib/` that
-  computes MeasureReports over the real patient registry, plus the TL-043
-  dashboard that renders them. The TypeScript becomes the executable reference
-  implementation of the same named definitions, and a drift guard should tie
-  the TS measure ids to the FSH `Measure` ids (the pattern
-  `check:catalog` / `check:crosswalk` already establishes).
+- ~~**Wave 6, part 2 — make it live.**~~ **Done in #208.** The measure engine
+  (`web/src/lib/measures.ts`) computes MeasureReports over the real patient
+  registry, the TL-043 dashboard renders them, and `npm run check:measures`
+  ties the TS criterion implementations to the FSH `Measure` ids (19 ↔ 19),
+  following the `check:catalog` / `check:crosswalk` pattern.
 - **Prove a CQL translator in CI, then promote the draft CQL and publish a real
   `Library`.** Needs a Maven/Gradle classpath for `cqframework` (no fat jar on
   Maven Central), or a confirmed IG Publisher configuration — confirmed from a
-  publisher log that actually mentions CQL, not assumed.
-- ~~Decide whether `publish` should run on all `ig/**` changes.~~ **In flight as
-  PR #207** — see the correction above. The gate was never absent (`deploy.yml`
+  publisher log that actually mentions CQL, not assumed. **Now tracked as
+  #212**, which also permits "prove it isn't feasible, then close" as an
+  outcome.
+- ~~Decide whether `publish` should run on all `ig/**` changes.~~ **Merged as
+  #207** — see the correction above. The gate was never absent (`deploy.yml`
   runs it on every push to main); it ran too late.
-- **Migrate the TL-017 referral recorder from Communication to ServiceRequest**
-  — now blocking measure 7 from computing against demo data, not just an
-  IG/app inconsistency.
+- ~~**Migrate the TL-017 referral recorder from Communication to
+  ServiceRequest.**~~ **Already done in #202 (Wave 5)** — this bullet was stale
+  when written. `web/src/lib/handoffs.ts` maps TL-017 → `ServiceRequest` and
+  `SafetyReferralView.tsx` records one. The residual gap is seed data: no
+  scenario file contains a `ServiceRequest`, so `SPiERReferralCompletion` still
+  cannot compute — folded into #209.
+
+### The gap table above is now tracked
+
+Each row of "What the dashboard revealed" has an issue, filed in the 2026-07-29
+audit rather than left in this doc:
+
+| Gap | Issue |
+|---|---|
+| No seeded Stage-5/6/7 artifacts (episodes, appointments, referrals, packets) | #209 |
+| TL-008 has no `Procedure` recorder | #210 |
+| TL-010 never writes `caring-contact-opt-out` | #211 |
+| Seeded `93374-7` Observations non-conformant to the concept-layer profile | #77 (upstream; #180 is marked `blocked_by` it) |
+
+The dependency chain is recorded on GitHub as real `blocked_by` links:
+#93 + #92 → #77 → #180 → #181, with #209/#210/#211 also blocking #180.
+Presentation of the all-empty state is #213.
