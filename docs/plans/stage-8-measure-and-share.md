@@ -1,9 +1,10 @@
 # Stage 8 — Measure and Share the Data: FHIR design
 
 Design for the four Stage-8 tools, per
-[`ssc-stage-tiles-rollout.md`](ssc-stage-tiles-rollout.md) Wave 6. Wave 6 is
-split the same way Stage 7 was: this PR is the definitional layer (Measures,
-CQL, MeasureReports, conformance), and a follow-up PR makes it live in the app.
+[`ssc-stage-tiles-rollout.md`](ssc-stage-tiles-rollout.md) Wave 6. Wave 6 was
+split the same way Stage 7 was: part 1 was the definitional layer (Measures,
+MeasureReports, conformance, #201) and part 2 makes it live (the measure engine,
+drift guard, and TL-043 dashboard). See *Implementation status* below.
 
 Artifacts: [`ig/input/fsh/measure-and-share.fsh`](../../ig/input/fsh/measure-and-share.fsh),
 [`ig/drafts/SPiERSuicideSaferCareMeasures.cql`](../../ig/drafts/SPiERSuicideSaferCareMeasures.cql),
@@ -118,14 +119,19 @@ without an alternative arranged is a genuine loop failure. Sites that revoke
 for legitimate clinical reasons may want this different; also flagged on the
 measurement page.
 
-### 6. Retrieves filter on profile, not on code
+### 6. Workflow resources match on profile; Observations match on code
 
-SPiER's stage-5/6/7 artifacts are distinguished by conformance claim and
+SPiER's stage-5/6/7 workflow artifacts are distinguished by conformance claim and
 extension values, not by codes — a follow-up Appointment and a routine
-Appointment differ by profile, not by a SNOMED code. So the CQL retrieves the
-base resource type and filters with a `ConformsTo` helper. This also keeps the
-library computable against a plain FHIR server with no SPiER-specific search
-parameters.
+Appointment differ by profile, not by a SNOMED code. So those retrieves filter on
+`meta.profile`, which is safe because every Stage-5/6/7 builder stamps it.
+
+**Observations are the exception, and the implementation had to correct the
+design here.** Nothing stamps `meta.profile` on a derived Observation — not this
+app's mappers, and not most real EHRs — so a profile-only match scored zero.
+Risk-concept Observations are therefore matched on **LOINC 93374-7**, which the
+concept-layer profile *mandates*; matching the code can never be wrong and is
+strictly more interoperable. See *Implementation status*.
 
 ### 7. Two SSC measures are deliberately not authored
 
@@ -143,10 +149,8 @@ earlier modelling calls were right rather than merely defensible:
 
 - **TL-017 as `ServiceRequest`** — referral loop closure is `sent` vs
   `completed`. With the `Communication` shape the earlier draft used, this
-  measure would have been uncomputable. The demo recorder is still on
-  Communication; that gap is tracked in
-  [the Stage 5 doc](stage-5-coordinate-handoffs.md) and now has a measure
-  depending on it.
+  measure would have been uncomputable. The demo recorder has since been
+  migrated in #202, so measure 7 computes against real demo data.
 - **TL-034 producing no resource** — the 7-/30-day groups need
   `Appointment.status = fulfilled`. Stage 6 declined to mint an
   "appointment tracking" resource on the grounds that `Appointment.status`
@@ -219,16 +223,97 @@ Two of those are worth dwelling on. The **group-code** one is a design
 correction, not a typo: the validator is explicit that a report group is tied to
 its definition by coded value, which is why Stage 8 ended up needing one small
 SPiER-local vocabulary after all (the header comment originally boasted it
-needed none). And the **Consent** error is not mine — it shipped in Wave 5 and
-no CI job in the repo could have caught it, because SUSHI does not evaluate
-FHIRPath invariants and `publish` had not run since June 10.
+needed none). And the **Consent** error is not from this work — it shipped in
+Wave 5, and no *PR-time* job could have caught it, because SUSHI does not
+evaluate FHIRPath invariants.
 
-**Which is the real finding here:** `publish` is on-demand plus a workflow-file
-path filter, so Waves 1–5 all merged without it ever running. The QA gate's
-baseline comment claims 0 errors / 0 broken links as of Phase 2a, and that
-baseline had silently rotted. Worth deciding whether `publish` should run on any
-`ig/**` change — it is ~10 minutes, but it is the only thing in the repo that
-evaluates invariants and link integrity.
+### Correction: the CI gap is timing, not coverage
+
+An earlier revision of this section claimed `publish` was "the only thing in the
+repo that evaluates invariants and link integrity" and that Waves 1–5 therefore
+"merged without it ever running". **Both halves were wrong, and the error is
+worth correcting rather than quietly deleting**, because it would leave a
+maintainer believing CI coverage is worse than it is.
+
+`deploy.yml` carries an **identical** QA gate — the same `err = N` and
+`Broken Links: N` parse, the same fail-on-nonzero — and it runs the full IG
+Publisher on **every push to main**. It has been passing. So the Wave 1–5
+merges *were* checked; a broken IG blocks the Pages deploy rather than shipping.
+`main` was verified clean on 2026-07-29 (0 errors, 0 broken links) by both a
+manual `ig-publish` dispatch and the deploy run.
+
+The genuine problem is **when** the gate runs. Post-merge only means an
+IG-breaking PR goes green, lands on `main`, and then fails the *deploy* —
+surfacing as a silently stale Pages site instead of a failed check. That is what
+happened with the Wave 5 `Consent` example. PR #207 addresses it directly by
+adding a `pull_request` trigger on `ig/input/**`, so the follow-up this document
+originally proposed is already in flight.
+
+`ig/input/cql/**` is deliberately excluded from that trigger — the publisher does
+not translate CQL, so including it would buy a heavy job that checks nothing.
+
+## Implementation status
+
+| Step | State |
+|---|---|
+| Measures + MeasureReport examples + conformance + IG page | ✅ merged (#201) |
+| Measure engine, drift guard, TL-043 dashboard | ✅ this PR |
+
+**`web/src/lib/measures.ts`** computes all 7 measures / 10 groups over a
+`PatientSlice` and assembles MeasureReports, with 40 unit tests. Two structural
+choices carried over from the design:
+
+- **The measure wiring is read from the generated `Measure` JSON**, not
+  hand-copied. Groups, populations, and criterion names all come from
+  `data/fhir/Measure-*.json`, so adding a group in FSH automatically demands a
+  criterion in TS. `npm run check:measures` gates both directions and was
+  negative-tested (rename a criterion → 2 failures).
+- **Window logic is reused, not reimplemented.** The 7-/30-day groups call
+  `followUp.attendedWithinDays`, which Stage 6 wrote specifically so "the
+  tracking view and the future MeasureReport agree on one definition".
+
+### The correction the build forced: profile-matching was too strict
+
+The design said retrieves should filter on SPiER profiles. That is right for the
+workflow resources — the Stage-5/6/7 builders all stamp `meta.profile` — but
+**wrong for Observations**: nothing in the app stamps a profile on a derived
+Observation, so measures 1 and 2 scored zero against the app's own output, and
+would score zero against any real EHR (most systems don't populate
+`meta.profile`).
+
+Fixed by matching the risk concept on **LOINC 93374-7**, which the profile
+mandates, so code-matching can never be wrong and is strictly more
+interoperable. Stage resolution likewise delegates to the app's existing
+`stageForArtifact`, falling back through `derivedFrom` to the source
+QuestionnaireResponse — rather than inventing a second definition of "which
+stage is this".
+
+### What the dashboard revealed: the measures audit our own capture
+
+Verified end-to-end in the browser against an injected two-patient cohort — the
+exclusion fires (denominator 2, excluded 1, score 1/1), a `noshow` correctly
+fails the 7-day window while a later `fulfilled` visit clears 30-day, and every
+MeasureReport renders. But **on a clean browser every group reads "no
+denominator"**, because the seeded scenario data cannot exercise the measures:
+
+| Gap | Effect | Fix |
+|---|---|---|
+| No seeded Stage-5/6/7 artifacts (no episodes, appointments, referrals, packets) | measures 2–7 have empty denominators | Seed a cohort |
+| TL-008 has no recorder and there was no `Procedure` bucket | measure 4's numerator can never fire | Bucket added here; recorder still missing |
+| TL-010 caring contacts use the generic recorder, so `caring-contact-opt-out` is never written | measure 6's exclusion can never fire from the UI | Recorder work |
+| Seeded 93374-7 Observations carry no `interpretation` and use instrument-specific value systems | positivity is undecidable, so measure 1's denominator stays empty | Seed data is non-conformant to the concept-layer profile |
+
+The last one is worth stating plainly rather than papering over: the
+concept-layer profile requires `interpretation` 1..1 and a value from the tier
+ValueSet. Without interpretation you genuinely cannot tell a positive screen
+from a negative one, so counting those Observations anyway would put negatives
+in a positive-screen denominator. **The measure is right and the data is
+incomplete** — which is the useful thing a measure layer does: it audits capture
+completeness rather than asserting numbers the data cannot support.
+
+Seeding a realistic cohort is deliberately NOT in this PR: population scenario
+data feeds Population View rows, pathway completion, and the journey timeline, so
+it has blast radius well beyond the dashboard and deserves its own change.
 
 ## Scope
 
@@ -253,9 +338,9 @@ of which is scheduled.
   `Library`.** Needs a Maven/Gradle classpath for `cqframework` (no fat jar on
   Maven Central), or a confirmed IG Publisher configuration — confirmed from a
   publisher log that actually mentions CQL, not assumed.
-- **Decide whether `publish` should run on all `ig/**` changes.** It is the only
-  job that evaluates FHIRPath invariants and link integrity, and its absence let
-  an invalid Wave 5 Consent example sit on `main`.
+- ~~Decide whether `publish` should run on all `ig/**` changes.~~ **In flight as
+  PR #207** — see the correction above. The gate was never absent (`deploy.yml`
+  runs it on every push to main); it ran too late.
 - **Migrate the TL-017 referral recorder from Communication to ServiceRequest**
   — now blocking measure 7 from computing against demo data, not just an
   IG/app inconsistency.

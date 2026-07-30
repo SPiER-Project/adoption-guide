@@ -52,6 +52,7 @@ const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ de
 const IgOverview = lazy(() => import('./pages/IgOverview').then(m => ({ default: m.IgOverview })))
 const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney })))
 const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
+const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
 const CdsServiceGuide = lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide })))
 const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
@@ -118,6 +119,7 @@ function AppRoutes() {
           <Route path="pathway" element={<PatientJourney />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
+          <Route path="measures" element={<MeasureDashboard />} />
           <Route path="cds-service" element={<CdsServiceGuide />} />
           <Route path="adoption-readiness" element={<AdoptionReadiness />} />
           <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
