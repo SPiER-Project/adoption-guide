@@ -19,8 +19,9 @@
     "check:fallback": "node scripts/check-fallback-signatures.mjs",
     "pretest": "npm run copy-fhir",
     "test": "vitest run",
-    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm test",
-    "preview": "vite preview"
+    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm run check:measures && npm test",
+    "preview": "vite preview",
+    "check:measures": "node scripts/check-measures.mjs"
   },
   "dependencies": {
     "@formbox/hs-theme": "^0.2.1",

@@ -1,0 +1,135 @@
+.measure-dashboard {
+  max-width: 1200px;
+}
+
+.md-description {
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  margin: -1rem 0 1.5rem 0;
+}
+
+.md-controls {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+
+.md-control-label {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.md-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  color: var(--text-strong);
+  background: white;
+  cursor: pointer;
+}
+
+.md-select:focus {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: -1px;
+  border-color: var(--brand-accent);
+}
+
+.md-period {
+  color: var(--text-faint);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.md-measure {
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: white;
+}
+
+.md-measure-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.md-measure-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--text-strong);
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-3);
+}
+
+.md-table th,
+.md-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--font-size-md);
+  color: var(--text-strong);
+}
+
+.md-table thead th {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+/* Counts read as columns of numbers; tabular figures keep them aligned. */
+.md-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.md-group-name {
+  font-weight: 500;
+}
+
+.md-score {
+  white-space: nowrap;
+}
+
+.md-score-value {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.md-score-fraction {
+  margin-left: var(--space-2);
+  color: var(--text-faint);
+  font-size: var(--font-size-sm);
+}
+
+/* An empty denominator is not a zero score — it means the measure could not be
+   computed for anyone, which is a different and important thing to show. */
+.md-empty {
+  color: var(--text-faint);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .md-measure {
+    padding: var(--space-3);
+  }
+
+  .md-table th,
+  .md-table td {
+    padding: 0.4rem 0.5rem;
+    font-size: var(--font-size-sm);
+  }
+}

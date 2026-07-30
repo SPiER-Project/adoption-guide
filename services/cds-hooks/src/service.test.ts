@@ -52,12 +52,25 @@ describe('scenario fallback (no prefetch)', () => {
     }
   })
 
-  it('surfaces the curated recommendedNextStep as a narrative-only card when a stage has no wired tool', () => {
-    // patient-010 is a resolved episode: active stage `measure-and-share` has no
-    // wired Questionnaire tool, so the curated recommendation surfaces instead.
+  it('offers the measure dashboard on the measure-and-share stage', () => {
+    // patient-010 is a resolved episode whose active stage is `measure-and-share`.
+    //
+    // This test used to assert the CURATED NARRATIVE FALLBACK here, because that
+    // stage had no wired tool and the recommendation text surfaced instead. That
+    // premise expired when TL-042/TL-043 gained launch actions pointing at the
+    // measure dashboard: every one of the eight stages now has a wired tool, so
+    // the fallback no longer fires for ANY bundled patient. Restoring the old
+    // assertion would mean un-wiring the dashboard, which is strictly worse — an
+    // actionable link beats narrative text with nowhere to go.
+    //
+    // The fallback itself is still reachable when a site disables a stage's tools
+    // via tool configuration, and remains unit-tested against `buildCdsCards`
+    // directly in web/src/lib/cdsHooks/cards.test.ts.
     const { cards } = buildPatientViewResponse(request({ context: { patientId: 'patient-010' } }))
-    const narrative = cards.find((c) => c.extension?.['spier-narrative-only'])
-    expect(narrative?.summary).toBe('Include in Q2 zero-suicide outcome report')
+    const stageCard = cards.find((c) => c.extension?.['spier-stage-id'] === 'measure-and-share')
+    expect(stageCard).toBeDefined()
+    expect(stageCard?.extension?.['spier-narrative-only']).toBeUndefined()
+    expect(stageCard?.links?.some((l) => l.url.includes('/guide/measures'))).toBe(true)
   })
 
   it('returns an empty (valid) card list for an unknown patient id', () => {

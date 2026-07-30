@@ -13,7 +13,7 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, and all four drift checks in sequence. The individual pieces:
+In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, and all six drift checks in sequence. The individual pieces:
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
@@ -24,12 +24,29 @@ npm run check:extract    # observation-extract validation
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions / questionnaire URLs)
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
+npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
 ```
 
 In `ig/`:
 ```
 npx sushi .            # compile FSH → fsh-generated/resources/ (validates the IG)
 ```
+
+In `services/cds-hooks/` — **easy to forget, and CI gates it:**
+```
+npm install && npm run verify   # typecheck + eslint + vitest for the Worker
+```
+`web/`'s `npm run verify` does NOT cover this package, but the `cds-hooks` CI job
+does. It imports the web catalog, so a change to `tool-ui-metadata.ts` (launch
+actions especially) or to the population scenarios can break its tests without
+anything in `web/` failing.
+
+⚠️ **`sushi` does not validate everything.** It reports 0 errors on FSH the IG
+Publisher rejects — FHIRPath invariants and narrative link integrity are only
+checked by a full IG Publisher run (`ig-publish.yml`, and the same gate inside
+`deploy.yml` on every push to main). After a substantial `ig/` change, dispatch
+it: `gh workflow run ig-publish.yml`. Nothing in the repo compiles the measure
+CQL at `ig/drafts/` — see `docs/plans/stage-8-measure-and-share.md`.
 
 ## Conventions
 

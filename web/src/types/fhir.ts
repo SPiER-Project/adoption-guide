@@ -61,6 +61,14 @@ export type DocumentReferenceResource = FhirResource & { resourceType: 'Document
 export type ServiceRequestResource = FhirResource & { resourceType: 'ServiceRequest' }
 export type ConsentResource = FhirResource & { resourceType: 'Consent' }
 
+// From ig/input/fsh/lethal-means.fsh (Stage 4). Added for the Stage-8 lethal
+// means counseling measure, which reads the counseling Procedure. There is no
+// Procedure recorder in the app yet (TL-008 has no launch action), so this
+// bucket is currently only ever empty — but the measure criterion is written
+// against the real profile so it starts working when a recorder lands, rather
+// than needing the measure rewritten later.
+export type ProcedureResource = FhirResource & { resourceType: 'Procedure' }
+
 // ─── Stage 7 (Track Risk Over Time) ──────────────────────────
 // The episode pattern from ig/input/fsh/risk-episode.fsh. Typed loosely like
 // the other workflow resources above; the profiles are the real contract.
@@ -147,6 +155,11 @@ export interface PatientSlice {
   serviceRequests?: ServiceRequestResource[]
   appointments?: AppointmentResource[]
   consents?: ConsentResource[]
+  /**
+   * Stage-4 lethal-means counseling Procedures. Read by the Stage-8 lethal
+   * means measure; nothing writes them yet (TL-008 has no recorder).
+   */
+  procedures?: ProcedureResource[]
 }
 
 /**

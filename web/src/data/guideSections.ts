@@ -19,6 +19,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   { path: 'pathway', label: 'Pathway' },
   { path: 'tool-configuration', label: 'Tool Configuration' },
   { path: 'data-dictionary', label: 'Data Dictionary' },
+  { path: 'measures', label: 'Measures' },
   { path: 'cds-service', label: 'CDS Service' },
   { path: 'adoption-readiness', label: 'Adoption Readiness' },
   { path: 'adoption-rubric', label: 'Adoption Rubric' },
