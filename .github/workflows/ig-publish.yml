@@ -1,13 +1,19 @@
-name: IG Publisher (on-demand render)
+name: IG Publisher (invariants + link integrity)
 
 # Full HL7 IG Publisher build: runs SUSHI, renders the narrative pages with
 # Jekyll, checks internal links, and produces the hostable site + a QA report.
 #
-# This is HEAVY (downloads the publisher jar + hundreds of MB of FHIR packages,
-# plus Jekyll) so it deliberately does NOT run on normal PRs — the lightweight
-# `ig.yml` (SUSHI only) covers those. Trigger this one ON DEMAND from the
-# Actions tab (Run workflow), or it self-tests automatically when this workflow
-# file itself changes.
+# This is the only check that evaluates FHIRPath invariants and narrative link
+# integrity. It used to run on demand only, which meant both were first
+# validated *after* merge, by the identical QA gate in deploy.yml — so an
+# IG-breaking PR went green, landed on main, and then blocked the Pages deploy,
+# surfacing as a silently stale site rather than a failed check. It now also
+# runs on PRs that touch the IG inputs or config.
+#
+# It is HEAVY (publisher jar + hundreds of MB of FHIR packages, plus Jekyll), so
+# the FHIR package cache and the jar are cached between runs, and superseded
+# runs on the same ref are cancelled. The lightweight `ig.yml` (SUSHI only)
+# still covers every other ig/ change.
 #
 # The rendered site + qa.html are uploaded as an artifact so you can preview the
 # IG and inspect any broken links / QA findings.
@@ -25,10 +31,24 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - 'ig/input/**'
+      - 'ig/sushi-config.yaml'
+      - 'ig/ig.ini'
       - '.github/workflows/ig-publish.yml'
+      # Deliberately excluded — see the CQL note above. input/cql is not
+      # translated by the publisher, so changes confined to it would buy a
+      # ~10 minute job that validates nothing. Negation must stay last: GitHub
+      # applies these in order, so a PR touching both fsh/ and cql/ still runs.
+      - '!ig/input/cql/**'
 
 permissions:
   contents: read
+
+# A new push to the same PR makes an in-flight render obsolete. Nothing here is
+# deployed, so cancelling is free.
+concurrency:
+  group: ig-publish-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   publish:
@@ -58,8 +78,41 @@ jobs:
       - name: Install SUSHI
         run: npm install -g fsh-sushi
 
+      # The bulk of the runtime is fetching FHIR packages (us.core, uv.sdc and
+      # their transitive deps). Keyed on sushi-config.yaml because that is where
+      # dependencies are declared; restore-keys lets an unrelated config edit
+      # still start from the previous cache instead of a cold fetch.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
+      # Resolve the release tag explicitly so the jar can be cached by version.
+      # Caching the "latest" URL would pin us to a stale publisher indefinitely.
+      - name: Resolve IG Publisher release
+        id: pub
+        run: |
+          tag=$(curl -sL https://api.github.com/repos/HL7/fhir-ig-publisher/releases/latest | jq -r .tag_name)
+          if [ -z "$tag" ] || [ "$tag" = "null" ]; then
+            echo "::error::could not resolve the latest fhir-ig-publisher release tag"
+            exit 1
+          fi
+          echo "resolved publisher release: $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Cache IG Publisher jar
+        id: jar
+        uses: actions/cache@v4
+        with:
+          path: publisher.jar
+          key: ig-publisher-${{ steps.pub.outputs.tag }}
+
       - name: Download IG Publisher
-        run: curl -sL -o publisher.jar https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar
+        if: steps.jar.outputs.cache-hit != 'true'
+        run: curl -sL -o publisher.jar "https://github.com/HL7/fhir-ig-publisher/releases/download/${{ steps.pub.outputs.tag }}/publisher.jar"
 
       - name: Run IG Publisher
         working-directory: ./ig
