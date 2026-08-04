@@ -1,12 +1,18 @@
 import { makeObservation, walkItems, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
+// Each entry also carried a `textLinkId` ('1-text' … '6-text') that nothing ever
+// read. '6-text' did not even exist in cams-ssf5-section-a.json — unlike ratings
+// 1–5, the SSF-5's overall-risk item has rating anchors rather than a "what I
+// mean by this is…" prompt. Six hand-duplicated linkIds with no consumer is the
+// drift risk CLAUDE.md warns about, so they are gone; the score↔text pairing is
+// recoverable from the Questionnaire's own naming.
 const CAMS_VITALS = [
-  { linkId: '1-score', code: 'psychological-pain', display: 'Psychological Pain', textLinkId: '1-text' },
-  { linkId: '2-score', code: 'stress', display: 'Stress', textLinkId: '2-text' },
-  { linkId: '3-score', code: 'agitation', display: 'Agitation', textLinkId: '3-text' },
-  { linkId: '4-score', code: 'hopelessness', display: 'Hopelessness', textLinkId: '4-text' },
-  { linkId: '5-score', code: 'self-hate', display: 'Self-Hate', textLinkId: '5-text' },
-  { linkId: '6-score', code: 'overall-risk', display: 'Overall Risk of Suicide', textLinkId: '6-text' },
+  { linkId: '1-score', code: 'psychological-pain', display: 'Psychological Pain' },
+  { linkId: '2-score', code: 'stress', display: 'Stress' },
+  { linkId: '3-score', code: 'agitation', display: 'Agitation' },
+  { linkId: '4-score', code: 'hopelessness', display: 'Hopelessness' },
+  { linkId: '5-score', code: 'self-hate', display: 'Self-Hate' },
+  { linkId: '6-score', code: 'overall-risk', display: 'Overall Risk of Suicide' },
 ]
 
 export function mapCAMSSectionA(response: QuestionnaireResponseResource): MapperResult {

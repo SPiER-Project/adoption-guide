@@ -34,7 +34,7 @@ import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rm
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
-import { dirname, join, relative, resolve } from 'node:path'
+import { basename, dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -139,8 +139,23 @@ function* walkJson(dir) {
 
 const excluded = []
 const targets = []
+/**
+ * Directories to hand to `-ig` so their contents populate the validation
+ * *context* (profiles, CodeSystems, ValueSets, and — critically —
+ * Questionnaires that a QuestionnaireResponse must be validated against).
+ *
+ * `-ig <folder>` does NOT recurse: pointing it at `FHIR-Resources` loads
+ * "0 resources" because every file sits one level down in a per-instrument
+ * subdirectory. That failure is silent and it degrades to a PASS — the
+ * validator emits "the questionnaire … could not be resolved, so no validation
+ * can be performed against the base questionnaire" as a *warning* and reports
+ * no errors. So every directory that directly holds .json is listed
+ * individually.
+ */
+const contextDirs = new Set()
 for (const dir of [GENERATED_DIR, AUTHORED_DIR]) {
   for (const full of walkJson(dir)) {
+    contextDirs.add(relative(root, dirname(full)))
     const rel = relative(root, full)
     const hit = EXCLUSIONS.find((e) => e.match(rel))
     if (hit) excluded.push({ rel, reason: hit.reason })
@@ -160,13 +175,10 @@ const args = [
   jar,
   '-version',
   FHIR_VERSION,
-  // Load the IG's own profiles/CodeSystems/ValueSets so instances can be
-  // validated against the SPiER profiles they claim conformance to.
+  // Load the IG's own profiles/CodeSystems/ValueSets/Questionnaires so instances
+  // can be validated against the definitions they claim conformance to.
   ...PACKAGE_DEPS.flatMap((p) => ['-ig', p]),
-  '-ig',
-  relative(root, GENERATED_DIR),
-  '-ig',
-  relative(root, AUTHORED_DIR),
+  ...[...contextDirs].sort().flatMap((d) => ['-ig', d]),
   '-tx',
   tx,
   '-output',
@@ -185,31 +197,62 @@ if (!existsSync(outFile)) {
 }
 
 // --- Report ----------------------------------------------------------------
-const bundle = JSON.parse(readFileSync(outFile, 'utf8'))
+const output = JSON.parse(readFileSync(outFile, 'utf8'))
 if (!keepJsonAt) rmSync(outFile, { force: true })
+
+/**
+ * `-output` shape depends on the number of sources: a Bundle of OperationOutcomes
+ * for several, a bare OperationOutcome for exactly one. Reading only `entry`
+ * would silently find zero issues in the single-source case and report a pass.
+ */
+let outcomes
+if (output?.resourceType === 'Bundle') {
+  outcomes = (output.entry ?? []).map((e) => e.resource).filter(Boolean)
+} else if (output?.resourceType === 'OperationOutcome') {
+  outcomes = [output]
+} else {
+  fail(`unexpected validator output: resourceType '${output?.resourceType}' is neither Bundle nor OperationOutcome`)
+}
+if (outcomes.length === 0) fail('validator returned no OperationOutcome — nothing was validated')
 
 const FILE_EXT = 'http://hl7.org/fhir/StructureDefinition/operationoutcome-file'
 const totals = { fatal: 0, error: 0, warning: 0, information: 0 }
 /** @type {{file: string, issues: {severity: string, path: string, text: string}[]}[]} */
 const offenders = []
 
-for (const entry of bundle.entry ?? []) {
-  const oo = entry.resource
+/**
+ * Warnings that mean "this resource was not actually checked". The validator
+ * reports an unresolvable Questionnaire/profile as a *warning* and then returns
+ * no errors — so a context-loading mistake degrades silently to a PASS, which is
+ * the one failure mode a gate must never have. Treated as blocking.
+ */
+const SILENT_PASS_PATTERNS = [
+  /could not be resolved, so no validation can be performed/i,
+  /Unable to resolve profile/i,
+]
+let silentPasses = 0
+
+for (const oo of outcomes) {
   const file = oo?.extension?.find((e) => e.url === FILE_EXT)?.valueString ?? '(unknown file)'
   const issues = []
   for (const issue of oo?.issue ?? []) {
     const severity = issue.severity ?? 'information'
     if (severity in totals) totals[severity]++
-    const keep = severity === 'error' || severity === 'fatal' || (showWarnings && severity === 'warning')
+    const text = issue.details?.text ?? issue.diagnostics ?? '(no detail)'
+    const silentPass = severity === 'warning' && SILENT_PASS_PATTERNS.some((re) => re.test(text))
+    if (silentPass) silentPasses++
+    const keep =
+      severity === 'error' || severity === 'fatal' || silentPass || (showWarnings && severity === 'warning')
     if (!keep) continue
     issues.push({
-      severity,
+      severity: silentPass ? 'error' : severity,
       path: issue.expression?.[0] ?? issue.location?.[0] ?? '(no path)',
-      text: issue.details?.text ?? issue.diagnostics ?? '(no detail)',
+      text: silentPass ? `${text}  [not validated — treated as a failure, not a pass]` : text,
     })
   }
   if (issues.length) offenders.push({ file, issues })
 }
+totals.error += silentPasses
 
 const blocking = totals.error + totals.fatal
 const inCi = Boolean(process.env.GITHUB_ACTIONS)
