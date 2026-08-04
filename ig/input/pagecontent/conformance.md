@@ -37,10 +37,25 @@ The instrument-to-tier crosswalks are at different stages of completion, and **n
 | Instrument | Tier-mapping artifact | Status |
 |---|---|---|
 | ASQ | [ConceptMap: ASQ Disposition → Risk Tier](ConceptMap-ASQDispositionToRiskTier.html) | Authored — pending clinical sign-off |
+| PSS-3 | [ConceptMap: PSS-3 Result → Risk Tier](ConceptMap-PSS3ResultToRiskTier.html) | Authored — pending clinical sign-off |
 | C-SSRS | [ConceptMap: C-SSRS Risk Level → Risk Tier](ConceptMap-CSSRSRiskLevelToRiskTier.html) | Authored — pending clinical sign-off |
+| BSSA | [ConceptMap: BSSA Disposition → Risk Tier](ConceptMap-BSSADispositionToRiskTier.html) | Authored — pending clinical sign-off |
+| CAMS (SSF overall risk) | [ConceptMap: CAMS SSF Overall Risk → Risk Tier](ConceptMap-CAMSOverallRiskToRiskTier.html) | Authored — pending clinical sign-off; clinician-overridable decision support (see below) |
 | PHQ-9 (Item 9) | Draft FHIR Mapping Language file (`ig/drafts/` in the repository) | Draft, unvalidated — targeted for the v0.2 release |
 | SBQ-R (total score) | Draft FHIR Mapping Language file (`ig/drafts/` in the repository) | Draft, unvalidated — targeted for the v0.2 release |
-| CAMS (SSF overall risk) | — | Not yet authored |
+
+Every ConceptMap above is published with `status = draft` and `experimental = true`.
+
+The CAMS map differs in kind from the others and adopters should treat it accordingly. CAMS is a **collaborative therapeutic process, not a predictive screener**, and no published psychometric stratification of the SSF Overall Risk rating exists. Its tier assignment is therefore explicitly clinician-overridable decision support: every row carries a `wider` equivalence, and **no rating maps to `imminent`** — escalation to the imminent tier is a separate clinical triage decision that a patient self-rating cannot make.
+
+### Egress: harmonized tier → LOINC
+
+One further ConceptMap handles egress rather than ingress. [SPiER Risk Tier → LOINC LL465-6](ConceptMap-SPiERRiskTierToLOINC.html) maps the instrument-agnostic tier onto the normative LOINC answer list for `93374-7`, so a consumer expecting the LOINC-coded value — for example the HL7 US Behavioral Health Profiles IG — can interpret a SPiER harmonized concept without understanding the SPiER-local vocabulary.
+
+Two lossy steps in that map are called out deliberately, and both are pending the same clinical sign-off:
+
+- **`imminent` collapses onto LOINC `High`.** LL465-6 provides no distinct "imminent" answer. A consumer reading only the LOINC value therefore cannot distinguish imminent from high risk, and SHOULD read the SPiER-local tier alongside it where the distinction matters clinically.
+- **`no-risk` is omitted**, having no LOINC equivalent.
 
 Until sign-off by suicide-prevention subject-matter experts, the tier assignments in these artifacts are **illustrative reference logic**, not clinical guidance. Adopters SHALL validate tier assignments against their own clinical protocols before using the harmonized tier to drive care decisions.
 
