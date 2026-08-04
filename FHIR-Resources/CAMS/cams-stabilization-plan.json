@@ -23,16 +23,8 @@
           "text": "Steps to reduce access:",
           "type": "string",
           "repeats": true,
-          "initial": [
-            {
-              "valueString": ""
-            }
-          ],
+          "required": true,
           "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-maxOccurs",
               "valueInteger": 3
@@ -51,16 +43,8 @@
           "text": "Coping strategies:",
           "type": "string",
           "repeats": true,
-          "initial": [
-            {
-              "valueString": ""
-            }
-          ],
+          "required": true,
           "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-maxOccurs",
               "valueInteger": 5
@@ -84,16 +68,8 @@
           "text": "Contact Name/Number:",
           "type": "string",
           "repeats": true,
-          "initial": [
-            {
-              "valueString": ""
-            }
-          ],
+          "required": true,
           "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-maxOccurs",
               "valueInteger": 3
@@ -112,11 +88,8 @@
           "text": "Potential Barrier and Solutions",
           "type": "group",
           "repeats": true,
+          "required": true,
           "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-maxOccurs",
               "valueInteger": 2
@@ -126,22 +99,12 @@
             {
               "linkId": "barrier",
               "text": "Potential Barrier:",
-              "type": "string",
-              "initial": [
-                {
-                  "valueString": ""
-                }
-              ]
+              "type": "string"
             },
             {
               "linkId": "solution",
               "text": "Solutions I will try:",
-              "type": "string",
-              "initial": [
-                {
-                  "valueString": ""
-                }
-              ]
+              "type": "string"
             }
           ]
         }

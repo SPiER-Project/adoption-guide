@@ -24,6 +24,10 @@ web/src/data/fhir/
 # TS modules generated alongside copy-fhir (e.g. care-plan-profiles.generated.ts)
 web/src/data/catalog/*.generated.ts
 
+# Cached HL7 validator_cli jar (~190MB), downloaded on demand by
+# scripts/validate-fhir.mjs
+.fhir-validator/
+
 # Local environment secrets
 .env
 .env.local

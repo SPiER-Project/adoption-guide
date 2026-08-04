@@ -30,12 +30,9 @@
           "text": "List personal warning signs that a crisis may be developing (3 or more recommended):",
           "type": "string",
           "repeats": true,
+          "required": true,
           "maxLength": 100,
           "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-maxOccurs",
               "valueInteger": 5
@@ -61,12 +58,9 @@
           "text": "List specific distracting strategies the individual can do on their own (3 or more recommended):",
           "type": "string",
           "repeats": true,
+          "required": true,
           "maxLength": 100,
           "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-maxOccurs",
               "valueInteger": 5
@@ -92,12 +86,7 @@
           "text": "Person/Place for Distraction (List at least 2 people and 2 social settings)",
           "type": "group",
           "repeats": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            }
-          ],
+          "required": true,
           "item": [
             {
               "linkId": "3-1-name-place",
@@ -130,12 +119,7 @@
           "text": "Person (List at least 3)",
           "type": "group",
           "repeats": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            }
-          ],
+          "required": true,
           "item": [
             {
               "linkId": "4-1-name",
@@ -168,12 +152,7 @@
           "text": "Clinician/Agency Contact",
           "type": "group",
           "repeats": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            }
-          ],
+          "required": true,
           "item": [
             {
               "linkId": "5-1-name",
@@ -233,12 +212,7 @@
           "text": "Describe the action plan(s) that will be taken to reduce access to lethal means (2 or more recommended):",
           "type": "string",
           "repeats": true,
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-minOccurs",
-              "valueInteger": 1
-            }
-          ],
+          "required": true,
           "maxLength": 100
         }
       ]

@@ -125,6 +125,36 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/PHQ-9"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T10:30:00Z"
+// q1–q9 are all `required` on the Questionnaire, so a partial response is not a
+// conformant example (checked by `node scripts/validate-fhir.mjs`). The answers
+// below sum to the 18 asserted by ExamplePHQ9TotalScore18 — a moderately severe
+// profile — with q9 = 2 matching ExamplePHQ9Item9Positive.
+* item[+].linkId = "q1"
+* item[=].text = "Little interest or pleasure in doing things"
+* item[=].answer.valueCoding = http://loinc.org#LA6571-9 "Nearly every day"
+* item[+].linkId = "q2"
+* item[=].text = "Feeling down, depressed, or hopeless"
+* item[=].answer.valueCoding = http://loinc.org#LA6571-9 "Nearly every day"
+* item[+].linkId = "q3"
+* item[=].text = "Trouble falling or staying asleep, or sleeping too much"
+* item[=].answer.valueCoding = http://loinc.org#LA6570-1 "More than half the days"
+* item[+].linkId = "q4"
+* item[=].text = "Feeling tired or having little energy"
+* item[=].answer.valueCoding = http://loinc.org#LA6570-1 "More than half the days"
+* item[+].linkId = "q5"
+* item[=].text = "Poor appetite or overeating"
+* item[=].answer.valueCoding = http://loinc.org#LA6570-1 "More than half the days"
+* item[+].linkId = "q6"
+* item[=].text = "Feeling bad about yourself — or that you are a failure or have let yourself or your family down"
+* item[=].answer.valueCoding = http://loinc.org#LA6570-1 "More than half the days"
+* item[+].linkId = "q7"
+* item[=].text = "Trouble concentrating on things, such as reading the newspaper or watching television"
+* item[=].answer.valueCoding = http://loinc.org#LA6569-3 "Several days"
+* item[+].linkId = "q8"
+* item[=].text = "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual"
+* item[=].answer.valueCoding = http://loinc.org#LA6569-3 "Several days"
 * item[+].linkId = "q9"
 * item[=].text = "Thoughts that you would be better off dead or of hurting yourself in some way"
 * item[=].answer.valueCoding = http://loinc.org#LA6570-1 "More than half the days"
+* item[+].linkId = "total-score"
+* item[=].answer.valueInteger = 18

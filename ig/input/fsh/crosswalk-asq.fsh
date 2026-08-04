@@ -41,21 +41,21 @@ Usage: #definition
 * group[0].target = "http://spier.org/CodeSystem/spier-suicide-risk-tier"
 
 * group[0].element[0].code = #negative
-* group[0].element[0].display = "Negative"
+* group[0].element[0].display = "Negative Screen"
 * group[0].element[0].target[0].code = #no-risk
 * group[0].element[0].target[0].display = "No risk identified"
 * group[0].element[0].target[0].equivalence = #equivalent
 * group[0].element[0].target[0].comment = "All ASQ items 1–4 'no'; no screening signal. Maps cleanly to no-risk."
 
 * group[0].element[1].code = #non-acute-positive
-* group[0].element[1].display = "Non-Acute Positive"
+* group[0].element[1].display = "Non-Acute Positive Screen"
 * group[0].element[1].target[0].code = #moderate
 * group[0].element[1].target[0].display = "Moderate risk"
 * group[0].element[1].target[0].equivalence = #relatedto
 * group[0].element[1].target[0].comment = "Any of items 1–4 'yes' AND item 5 'no' — ideation/history without acute features; brief safety assessment indicated. Mapped to moderate; relatedto rather than equivalent because the single ASQ disposition cannot distinguish low vs. moderate vs. high. PENDING SME sign-off."
 
 * group[0].element[2].code = #acute-positive
-* group[0].element[2].display = "Acute Positive"
+* group[0].element[2].display = "Acute Positive Screen"
 * group[0].element[2].target[0].code = #imminent
 * group[0].element[2].target[0].display = "Imminent risk"
 * group[0].element[2].target[0].equivalence = #relatedto

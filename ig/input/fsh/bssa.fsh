@@ -84,6 +84,17 @@ Description: "SPiER-local code system for the four BSSA dispositions a clinician
 * #emergency-psychiatric-evaluation "Emergency psychiatric evaluation" "Patient is at imminent risk for suicide (current suicidal thoughts). Send to emergency department for extensive mental health evaluation; do not leave alone."
 * #further-evaluation-necessary "Further evaluation of risk is necessary" "Elevated but not imminent. Review the safety plan and send home with a mental health referral, preferably within 72 hours."
 * #non-urgent-followup "Non-urgent mental health follow-up" "Patient might benefit from non-urgent mental health follow-up. Review the safety plan and send home with a mental health referral."
+
+// The BSSA Questionnaire's disposition answerOptions spell out the required
+// action, because "further evaluation is necessary" alone does not tell a
+// clinician what to do or by when. `Coding.display` must match the CodeSystem,
+// so the action-bearing labels are registered here as designations.
+* #emergency-psychiatric-evaluation ^designation[+].language = #en
+* #emergency-psychiatric-evaluation ^designation[=].value = "Emergency psychiatric evaluation (imminent risk — send to ED for evaluation)"
+* #further-evaluation-necessary ^designation[+].language = #en
+* #further-evaluation-necessary ^designation[=].value = "Further evaluation of risk is necessary (safety plan + mental health referral, preferably within 72 hours)"
+* #non-urgent-followup ^designation[+].language = #en
+* #non-urgent-followup ^designation[=].value = "Non-urgent mental health follow-up (safety plan + mental health referral)"
 * #no-intervention "No further intervention necessary at this time" "No ongoing concern warranting further intervention. For all positive screens, follow up at the next appointment."
 
 
@@ -215,15 +226,26 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/BSSA"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T14:20:00Z"
-* item[+].linkId = "current-ideation"
-* item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
-* item[+].linkId = "has-plan"
-* item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
-* item[+].linkId = "intent-scale"
-* item[=].answer.valueInteger = 3
-* item[+].linkId = "ever-attempt"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
-* item[+].linkId = "needs-help-to-be-safe"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
-* item[+].linkId = "disposition"
-* item[=].answer.valueCoding = http://spier.org/CodeSystem/bssa-disposition#further-evaluation-necessary "Further evaluation of risk is necessary"
+// Nesting mirrors the Questionnaire (assessment > frequency / plan /
+// past-behavior, then safety-plan and disposition-section). A flat item list
+// validates as "item … is in the wrong place".
+* item[+].linkId = "assessment"
+* item[=].item[+].linkId = "frequency"
+* item[=].item[=].item[+].linkId = "past-weeks-ideation"
+* item[=].item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[=].item[+].linkId = "current-ideation"
+* item[=].item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[=].item[+].linkId = "plan"
+* item[=].item[=].item[+].linkId = "has-plan"
+* item[=].item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[=].item[=].item[+].linkId = "intent-scale"
+* item[=].item[=].item[=].answer.valueInteger = 3
+* item[=].item[+].linkId = "past-behavior"
+* item[=].item[=].item[+].linkId = "ever-attempt"
+* item[=].item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "safety-plan"
+* item[=].item[+].linkId = "needs-help-to-be-safe"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "disposition-section"
+* item[=].item[+].linkId = "disposition"
+* item[=].item[=].answer.valueCoding = BSSADispositionCodes#further-evaluation-necessary "Further evaluation of risk is necessary"

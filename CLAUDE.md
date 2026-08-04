@@ -27,9 +27,16 @@ npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire J
 npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
 ```
 
-In `ig/`:
+In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
+thing and fails in a fresh worktree:
 ```
-npx sushi .            # compile FSH → fsh-generated/resources/ (validates the IG)
+npx fsh-sushi .        # compile FSH → fsh-generated/resources/
+```
+
+At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
+caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
+```
+node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/ + FHIR-Resources/
 ```
 
 In `services/cds-hooks/` — **easy to forget, and CI gates it:**
@@ -41,12 +48,27 @@ does. It imports the web catalog, so a change to `tool-ui-metadata.ts` (launch
 actions especially) or to the population scenarios can break its tests without
 anything in `web/` failing.
 
-⚠️ **`sushi` does not validate everything.** It reports 0 errors on FSH the IG
-Publisher rejects — FHIRPath invariants and narrative link integrity are only
-checked by a full IG Publisher run (`ig-publish.yml`, and the same gate inside
-`deploy.yml` on every push to main). After a substantial `ig/` change, dispatch
-it: `gh workflow run ig-publish.yml`. Nothing in the repo compiles the measure
-CQL at `ig/drafts/` — see `docs/plans/stage-8-measure-and-share.md`.
+⚠️ **`sushi` does not validate everything.** Three separate gates cover three
+different classes of problem, and a clean SUSHI run implies neither of the others:
+
+| Gate | Catches | Where |
+|---|---|---|
+| `npx fsh-sushi .` | FSH syntax, unresolved FSH references | `ig.yml` |
+| `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
+| IG Publisher | FHIRPath invariants, narrative link integrity | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
+
+The validator job is the only thing that checks `FHIR-Resources/` at all — the IG
+Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you can
+still dispatch the publisher directly: `gh workflow run ig-publish.yml`. Nothing
+in the repo compiles the measure CQL at `ig/drafts/` — see
+`docs/plans/stage-8-measure-and-share.md`.
+
+The validator runs without a terminology server (`-tx n/a`) so the gate stays
+fast and offline-reproducible. Consequence: codes from **external** systems
+(LOINC, SNOMED) are not verified there — the IG Publisher covers those. Codes
+from SPiER-local CodeSystems *are* fully checked, including that every
+`Coding.display` matches the CodeSystem's display or one of its designations.
+Pass `--tx https://tx.fhir.org` to check external terminology locally.
 
 ## Conventions
 
@@ -60,6 +82,13 @@ CQL at `ig/drafts/` — see `docs/plans/stage-8-measure-and-share.md`.
 - **Fresh worktrees need `npm install` in `web/`** before any npm script runs.
 - **`copy-fhir` is incremental:** it skips the ~30s SUSHI compile when `web/src/data/fhir/` is newer than every FSH input. `predev` runs it plain; `prebuild` runs it with `--force`. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
 - **Generated files must exist before `tsc -b`.** `web/src/data/fhir/*.json` and `web/src/data/catalog/care-plan-profiles.generated.ts` (both gitignored) are produced by `copy-fhir`. On a clean checkout, run `npm run copy-fhir` first or the typecheck/build fails on missing imports.
+- **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
+  ValueSets; `FHIR-Resources/` holds Questionnaires (plus a couple of CarePlan
+  templates) and the few local CodeSystems that have no FSH counterpart. Never
+  define the same canonical URL in both trees — three ASQ CodeSystems did, and
+  the `FHIR-Resources` copies silently shadowed the IG's with drifted `display`
+  values until `validate-fhir.mjs` caught it. `node scripts/validate-fhir.mjs`
+  loads both trees, so a fresh collision shows up as a display or binding error.
 - **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `web/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `web/src/data/population/` (e.g. `patients.json`). LOINC **per-item** codes additionally live in `web/src/lib/observationMappers/fallbackDispatch.ts` (`INSTRUMENT_SIGNATURES`, used to recognize foreign QRs) — guarded against the Questionnaire JSON by `npm run check:fallback`. When you change any such code, **grep the whole repo** for the old value and update every site.
 
 ## Skills (`.claude/skills/`)

@@ -86,12 +86,18 @@ Refusal is currently captured via the `patient-refused` boolean plus a `patient-
 
 | Asset | Path | Description |
 |-------|------|-------------|
-| Questionnaire | `fhir/questionnaires/questionnaire.json` | FHIR R4 Questionnaire with enableWhen conditional logic, SPiER-local `asq-item` per-item codes (no per-item LOINC exists), `observationExtract` on q1–q5, SNOMED-bound Yes/No answers |
-| ValueSet | `fhir/valuesets/yes-no.json` | SNOMED-bound Yes/No answer value set |
-| CodeSystem | `fhir/codesystems/asq-item.json` | Local codes for the five screening questions q1–q5 |
-| CodeSystem | `fhir/codesystems/asq-attempt-recency.json` | Local codes for recency of prior attempt |
-| CodeSystem | `fhir/codesystems/asq-screening-result.json` | Local codes for three-tier result stratification |
-| CodeSystem | `fhir/codesystems/asq-age-group.json` | Local codes for refusal-interpretation age group |
+| Questionnaire | `asq-questionnaire.json` | FHIR R4 Questionnaire with enableWhen conditional logic, SPiER-local `asq-item` per-item codes (no per-item LOINC exists), `observationExtract` on q1–q5, SNOMED-bound Yes/No answers |
+| ValueSet | `yes-no.json` | SNOMED-bound Yes/No answer value set |
+| CodeSystem | `asq-item.json` | Local codes for the five screening questions q1–q5 |
+| CodeSystem | `asq-panel.json` | Local panel code for the ASQ as a whole |
+
+Three CodeSystems that used to live here — `asq-screening-result`, `asq-attempt-recency`
+and `asq-age-group` — were **removed in favour of the IG's definitions**
+(`ig/input/fsh/asq.fsh`, `ig/input/fsh/questionnaire-answer-codesystems.fsh`).
+They were byte-level duplicates at the *same canonical URL*, and the
+`asq-screening-result` copy had drifted to different `display` values, so
+whichever loaded last silently won. `validator_cli` flagged the resulting
+display mismatches; see `scripts/validate-fhir.mjs`.
 
 Local code system URLs use the `http://spier.org/CodeSystem/...` namespace. Where a LOINC or SNOMED binding is preferred and available, the open-items list calls that out — the local codes are scaffolding for the pilot, not a final binding.
 

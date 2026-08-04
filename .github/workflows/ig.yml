@@ -1,10 +1,20 @@
 name: IG — Sushi compile + validate
 
-# Compile the FSH IG with Sushi on every push touching ig/ and on every PR.
-# A full IG Publisher run is deliberately not done in CI here — it pulls
-# ~500MB of dependencies and adds several minutes per run. Run it locally
-# (see ig/README.md) when authoring narrative pages or producing release
-# artifacts.
+# Compile the FSH IG with Sushi on every push touching ig/ and on every PR, then
+# run the official HL7 validator over every generated *and* hand-authored FHIR
+# resource.
+#
+# The full IG Publisher run lives in `ig-publish.yml` — it pulls ~500MB of
+# dependencies plus Jekyll and takes ~10 minutes, and it is the only check that
+# evaluates FHIRPath invariants and narrative link integrity. It is deliberately
+# NOT duplicated here.
+#
+# The two are complementary, not redundant:
+#   - ig-publish.yml is triggered by `ig/**` only, and gates on a coarse
+#     `err = N` / `Broken Links: N` parse of qa.txt.
+#   - this workflow additionally covers `FHIR-Resources/**` — the hand-authored
+#     Questionnaires the app imports at runtime, which nothing validated at all
+#     before — and reports per-resource conformance with inline PR annotations.
 
 on:
   push:
@@ -12,11 +22,15 @@ on:
       - main
     paths:
       - 'ig/**'
+      - 'FHIR-Resources/**'
+      - 'scripts/validate-fhir.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
       - '.github/workflows/ig.yml'
   pull_request:
     paths:
       - 'ig/**'
+      - 'FHIR-Resources/**'
+      - 'scripts/validate-fhir.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
       - '.github/workflows/ig.yml'
   workflow_dispatch:
@@ -53,3 +67,62 @@ jobs:
           path: ig/fsh-generated/
           if-no-files-found: error
           retention-days: 14
+
+  # Resource-level FHIR conformance. SUSHI reports 0 errors on resources the
+  # HL7 validator rejects — cardinality, extension context, required-item and
+  # local-terminology violations are all invisible to it.
+  validate:
+    name: FHIR resource validation
+    needs: sushi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Reuse the compile from the `sushi` job rather than paying for it twice.
+      - name: Download generated resources
+        uses: actions/download-artifact@v4
+        with:
+          name: fsh-generated
+          path: ig/fsh-generated/
+
+      # The validator jar is ~190MB. Keyed on the version pinned in the script
+      # so a bump fetches once and every later run is a cache hit.
+      - name: Read pinned validator version
+        id: validator
+        run: |
+          version=$(sed -n "s/^const VALIDATOR_VERSION = '\(.*\)'$/\1/p" scripts/validate-fhir.mjs)
+          if [ -z "$version" ]; then
+            echo "::error::could not read VALIDATOR_VERSION from scripts/validate-fhir.mjs"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Cache validator jar
+        uses: actions/cache@v4
+        with:
+          path: .fhir-validator
+          key: fhir-validator-${{ steps.validator.outputs.version }}
+
+      # Same cache the IG Publisher job uses: us.core, uv.sdc and their
+      # transitive deps, keyed on where those dependencies are declared.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
+      - name: Validate FHIR resources
+        run: node scripts/validate-fhir.mjs

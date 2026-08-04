@@ -65,6 +65,14 @@ Description: "SPiER-local codes for the CAMS SSF-5 Outcome/Disposition final-ses
 * #refer-adjunctive "Refer to other / adjunctive treatment" "Refer to or add adjunctive treatment (e.g., group therapy) alongside or after CAMS."
 * #higher-level-care "Step up to a higher level of care" "Escalate to a higher level of care (e.g., inpatient) due to increased risk or instability."
 
+// The SSF-5 outcome/disposition Questionnaire carries the worked example into
+// the answerOption label. `Coding.display` must match the CodeSystem, so those
+// labels are registered here as designations.
+* #refer-adjunctive ^designation[+].language = #en
+* #refer-adjunctive ^designation[=].value = "Refer to other / adjunctive treatment (e.g., group therapy)"
+* #higher-level-care ^designation[+].language = #en
+* #higher-level-care ^designation[=].value = "Step up to a higher level of care (e.g., inpatient)"
+
 
 ValueSet: CAMSDisposition
 Id: cams-disposition-vs

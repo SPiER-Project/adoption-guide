@@ -30,9 +30,21 @@
     {
       "linkId": "drivers-exploration",
       "text": "II. Drivers of Suicidality",
-      "description": "Now let us examine the factors underlying your suicidality (Drivers).",
       "type": "group",
       "item": [
+        {
+          "linkId": "drivers-exploration-instructions",
+          "text": "Now let us examine the factors underlying your suicidality (Drivers).",
+          "type": "display",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-displayCategory",
+              "valueCodeableConcept": {
+                "coding": [{ "system": "http://hl7.org/fhir/questionnaire-display-category", "code": "instructions" }]
+              }
+            }
+          ]
+        },
         {
           "linkId": "direct-drivers-analysis",
           "text": "Analysis of Direct Drivers (Problem #2)",
@@ -63,9 +75,21 @@
         {
           "linkId": "indirect-drivers-analysis",
           "text": "Analysis of Indirect Drivers (Problem #3)",
-          "description": "Underlying factors that contribute but do not necessarily lead to acute suicidal ideation (e.g., substance abuse, PTSD).",
           "type": "group",
           "item": [
+            {
+              "linkId": "indirect-drivers-analysis-instructions",
+              "text": "Underlying factors that contribute but do not necessarily lead to acute suicidal ideation (e.g., substance abuse, PTSD).",
+              "type": "display",
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-displayCategory",
+                  "valueCodeableConcept": {
+                    "coding": [{ "system": "http://hl7.org/fhir/questionnaire-display-category", "code": "instructions" }]
+                  }
+                }
+              ]
+            },
             {
               "linkId": "id-desc",
               "text": "Describe the indirect drivers:",
@@ -78,9 +102,21 @@
     {
       "linkId": "crisis-model",
       "text": "III. My Suicide Crisis Working Model",
-      "description": "Mapping what increases vs decreases risk at each stage.",
       "type": "group",
       "item": [
+        {
+          "linkId": "crisis-model-instructions",
+          "text": "Mapping what increases vs decreases risk at each stage.",
+          "type": "display",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-displayCategory",
+              "valueCodeableConcept": {
+                "coding": [{ "system": "http://hl7.org/fhir/questionnaire-display-category", "code": "instructions" }]
+              }
+            }
+          ]
+        },
         {
           "linkId": "stage-indirect",
           "text": "Stage 1: Indirect Drivers",
