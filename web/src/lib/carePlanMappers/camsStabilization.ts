@@ -1,6 +1,5 @@
 import {
   CAMS_SECTION_SYSTEM,
-  LOINC_SYSTEM,
   extractAnswers,
   extractPairs,
   makeSuicidePreventionCarePlan,
@@ -10,10 +9,8 @@ import {
 
 /**
  * Transform a CAMS Stabilization Plan QuestionnaireResponse into a
- * 5-activity CarePlan. LOINC codes for the first four activities are
- * reused from the Stanley-Brown panel where the concepts overlap;
- * the treatment-adherence step has no published LOINC and uses
- * text-only coding.
+ * 5-activity CarePlan. Every activity carries a SPiER-local section code
+ * from cams-careplan-section, which SPiERCAMSStabilizationPlan slices on.
  */
 export function generateStabilizationCarePlan(questionnaireResponse: QuestionnaireResponseResource): GeneratedCarePlan {
   const items = questionnaireResponse?.item || []
@@ -36,13 +33,15 @@ export function generateStabilizationCarePlan(questionnaireResponse: Questionnai
     // Section codes are required by SPiERCAMSStabilizationPlan, which slices
     // activity on detail.code — all five must be present and coded or the
     // CarePlan does not conform to the profile it declares in meta.profile.
+    // All five are SPiER-local: the LOINC codes previously used here for the
+    // first four sections do not exist in LOINC (see the CodeSystem comment in
+    // ig/input/fsh/cams.fsh).
     activities: [
-      { stepTitle: 'Lethal Means Reduction',   sectionCode: { system: LOINC_SYSTEM, code: '76694-1' }, description: lethalMeans     || 'No lethal means reduction steps provided.' },
-      { stepTitle: 'Coping Strategies',        sectionCode: { system: LOINC_SYSTEM, code: '76690-9' }, description: coping          || 'No coping strategies provided.' },
-      { stepTitle: 'Emergency Contact',        sectionCode: { system: LOINC_SYSTEM, code: '76693-3' }, description: emergencyContact || 'No emergency contact provided.' },
-      { stepTitle: 'Support Network',          sectionCode: { system: LOINC_SYSTEM, code: '76692-5' }, description: support         || 'No support contacts provided.' },
-      // No published LOINC for the treatment-adherence step — SPiER-local code.
-      { stepTitle: 'Treatment Adherence Plan', sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'treatment-adherence' }, description: barrierStr || 'No barriers/solutions identified.' },
+      { stepTitle: 'Lethal Means Reduction',   sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'lethal-means-reduction' }, description: lethalMeans     || 'No lethal means reduction steps provided.' },
+      { stepTitle: 'Coping Strategies',        sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'coping-strategies' },      description: coping          || 'No coping strategies provided.' },
+      { stepTitle: 'Emergency Contact',        sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'emergency-contact' },      description: emergencyContact || 'No emergency contact provided.' },
+      { stepTitle: 'Support Network',          sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'support-network' },        description: support         || 'No support contacts provided.' },
+      { stepTitle: 'Treatment Adherence Plan', sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'treatment-adherence' },   description: barrierStr || 'No barriers/solutions identified.' },
     ],
   })
 }

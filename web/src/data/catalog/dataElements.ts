@@ -546,7 +546,7 @@ export const DATA_ELEMENTS: DataElement[] = [
     name: 'Safety Plan Category',
     code: '735324008',
     codeSystem: 'SNOMED CT',
-    codeDisplay: 'Treatment plan for suicide prevention',
+    codeDisplay: 'Treatment escalation plan (record artifact)',
     fhirResource: 'CarePlan',
     fhirPath: 'category[0].coding[0]',
     // Cross-cutting: same SNOMED category is used by Stanley-Brown and CAMS Stabilization.

@@ -185,22 +185,35 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // strategies" without string-matching English prose, which is exactly the
 // machine-actionability SPiER exists to provide.
 //
-// Where LOINC already publishes a safety-plan section concept we reuse it —
-// these are generic safety-plan concepts rather than instrument-specific ones,
-// and the Stanley-Brown and Crisis Response Plan CarePlans already bind the
-// same codes (see FHIR-Resources/Stanley-Brown/README.md for the audit table
-// they were verified against). Only sections with no published equivalent get a
-// SPiER-local code.
+// All codes here are SPiER-local, deliberately.
+//
+// The obvious move was to reuse the LOINC codes the Stanley-Brown and Crisis
+// Response Plan CarePlans already emit for the equivalent safety-plan sections
+// (76689-1, 76690-9, 76691-7, 76692-5, 76693-3, 76694-1), listed as verified in
+// FHIR-Resources/Stanley-Brown/README.md's "Clinical Mapping Audit Table".
+// Those six codes DO NOT EXIST in LOINC — confirmed against LOINC 2.82 by both
+// the IG Publisher and tx.fhir.org's $validate-code. (81344-4, used for "Reason
+// for Living", is a real code meaning "Healthcare agent authority to inspect and
+// disclose mental and physical health information" — valid, but not that.)
+//
+// Reusing them would have published unresolvable codes in a required binding, so
+// every section gets a local code until real LOINC concepts are sourced. The
+// pre-existing runtime uses of those codes are a separate, wider problem — see
+// the follow-up issue referenced from PR #219.
 
 CodeSystem: CAMSCarePlanSectionCodes
 Id: cams-careplan-section
 Title: "CAMS CarePlan Section Codes"
-Description: "SPiER-local section codes for CAMS CarePlan activities that have no published LOINC equivalent."
+Description: "SPiER-local section codes identifying which section of a CAMS CarePlan an activity represents. Local rather than LOINC because no published LOINC concepts for these safety-plan and CAMS-framework sections could be verified."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true
 * ^content = #complete
 
+* #lethal-means-reduction "Lethal Means Reduction" "Steps agreed to reduce the patient's access to lethal means. Section 1 of the CAMS Stabilization Plan."
+* #coping-strategies "Coping Strategies" "What the patient can do differently to cope during a suicidal crisis. Section 2 of the CAMS Stabilization Plan."
+* #emergency-contact "Emergency Contact" "The life-or-death emergency contact number for this patient. Section 3 of the CAMS Stabilization Plan."
+* #support-network "Support Network" "People the patient can call for help or to decrease isolation. Section 4 of the CAMS Stabilization Plan."
 * #treatment-adherence "Treatment Adherence Plan" "Barriers to attending treatment as scheduled, each paired with the solution agreed for it. Section 5 of the CAMS Stabilization Plan."
 * #personal-narrative "Personal Story of Suicidality" "The patient's own account of how they came to be suicidal. Section I of the CAMS Therapeutic Worksheet."
 * #direct-drivers "Direct Drivers of Suicidality" "The problems the patient identifies as directly driving the suicidality. Section II of the CAMS Therapeutic Worksheet."
@@ -211,13 +224,13 @@ Description: "SPiER-local section codes for CAMS CarePlan activities that have n
 ValueSet: CAMSStabilizationPlanSection
 Id: cams-stabilization-plan-section
 Title: "CAMS Stabilization Plan Section"
-Description: "The five sections of a CAMS Stabilization Plan, as used in CarePlan.activity.detail.code. Four reuse published LOINC safety-plan concepts; treatment adherence has no LOINC equivalent and is SPiER-local."
+Description: "The five sections of a CAMS Stabilization Plan, as used in CarePlan.activity.detail.code."
 * ^status = #draft
 * ^experimental = true
-* http://loinc.org#76694-1 "Self-reported plan for lethal means safety"
-* http://loinc.org#76690-9 "Self-reported distraction strategies to take mind off problems"
-* http://loinc.org#76693-3 "Self-reported professionals or professional services"
-* http://loinc.org#76692-5 "Self-reported people whom I can ask for help during a crisis"
+* CAMSCarePlanSectionCodes#lethal-means-reduction
+* CAMSCarePlanSectionCodes#coping-strategies
+* CAMSCarePlanSectionCodes#emergency-contact
+* CAMSCarePlanSectionCodes#support-network
 * CAMSCarePlanSectionCodes#treatment-adherence
 
 
@@ -264,10 +277,10 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
     emergencyContact 1..1 and
     supportNetwork 1..1 and
     treatmentAdherence 1..1
-* activity[lethalMeans].detail.code = http://loinc.org#76694-1
-* activity[copingStrategies].detail.code = http://loinc.org#76690-9
-* activity[emergencyContact].detail.code = http://loinc.org#76693-3
-* activity[supportNetwork].detail.code = http://loinc.org#76692-5
+* activity[lethalMeans].detail.code = CAMSCarePlanSectionCodes#lethal-means-reduction
+* activity[copingStrategies].detail.code = CAMSCarePlanSectionCodes#coping-strategies
+* activity[emergencyContact].detail.code = CAMSCarePlanSectionCodes#emergency-contact
+* activity[supportNetwork].detail.code = CAMSCarePlanSectionCodes#support-network
 * activity[treatmentAdherence].detail.code = CAMSCarePlanSectionCodes#treatment-adherence
 * activity.detail.code 1..1
 * activity.detail.code from CAMSStabilizationPlanSection (required)
@@ -522,29 +535,29 @@ Usage: #example
 Instance: ExampleCAMSStabilizationPlan
 InstanceOf: SPiERCAMSStabilizationPlan
 Title: "Example — Completed CAMS Stabilization Plan"
-Description: "Sample CAMS Stabilization Plan CarePlan with all five sections populated. Each activity carries its section code — four published LOINC safety-plan concepts plus the SPiER-local treatment-adherence code — with the human label retained in detail.code.text."
+Description: "Sample CAMS Stabilization Plan CarePlan with all five sections populated. Each activity carries its SPiER-local section code, with the human label retained in detail.code.text."
 Usage: #example
 * status = #active
 * intent = #plan
 * category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * subject = Reference(Patient/example)
 * activity[+].detail
-  * code = http://loinc.org#76694-1 "Self-reported plan for lethal means safety"
+  * code = CAMSCarePlanSectionCodes#lethal-means-reduction "Lethal Means Reduction"
   * code.text = "Lethal Means Reduction"
   * status = #in-progress
   * description = "Locked medication box; firearm transferred to trusted family member; clinic gun-lock voucher accepted"
 * activity[+].detail
-  * code = http://loinc.org#76690-9 "Self-reported distraction strategies to take mind off problems"
+  * code = CAMSCarePlanSectionCodes#coping-strategies "Coping Strategies"
   * code.text = "Coping Strategies"
   * status = #in-progress
   * description = "Mindfulness breathing; grounding 5-4-3-2-1; calling crisis line BEFORE pain peaks"
 * activity[+].detail
-  * code = http://loinc.org#76693-3 "Self-reported professionals or professional services"
+  * code = CAMSCarePlanSectionCodes#emergency-contact "Emergency Contact"
   * code.text = "Emergency Contact"
   * status = #in-progress
   * description = "Dr. Chen (555-0200), pager 555-0299; 988 Suicide & Crisis Lifeline"
 * activity[+].detail
-  * code = http://loinc.org#76692-5 "Self-reported people whom I can ask for help during a crisis"
+  * code = CAMSCarePlanSectionCodes#support-network "Support Network"
   * code.text = "Support Network"
   * status = #in-progress
   * description = "Sister Maria (555-0143); best friend Joe (555-0188); NAMI peer support group Thursdays"

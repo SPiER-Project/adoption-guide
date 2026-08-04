@@ -197,7 +197,7 @@
       "meta": { "profile": ["http://hl7.org/fhir/us/ecareplan/StructureDefinition/us-ecareplan"] },
       "status": "active",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment plan for suicide prevention" }] }],
+      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }],
       "subject": { "reference": "Patient/patient-001" },
       "addresses": [{ "display": "Risk for suicide" }],
       "_savedAt": "2026-03-15T14:00:00Z",

@@ -160,7 +160,7 @@ export function makeSuicidePreventionCarePlan(options: {
           {
             system: 'http://snomed.info/sct',
             code: '735324008',
-            display: 'Treatment plan for suicide prevention',
+            display: 'Treatment escalation plan (record artifact)',
           },
         ],
       },

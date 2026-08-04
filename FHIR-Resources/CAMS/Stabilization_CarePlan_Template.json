@@ -18,7 +18,7 @@
         {
           "system": "http://snomed.info/sct",
           "code": "735324008",
-          "display": "Treatment plan for suicide prevention"
+          "display": "Treatment escalation plan (record artifact)"
         }
       ]
     }
@@ -39,9 +39,9 @@
         "code": {
           "coding": [
           {
-            "system": "http://loinc.org",
-            "code": "76694-1",
-            "display": "Self-reported plan for lethal means safety"
+            "system": "http://spier.org/CodeSystem/cams-careplan-section",
+            "code": "lethal-means-reduction",
+            "display": "Lethal Means Reduction"
           }
           ],
           "text": "Reduction of Lethal Means"
@@ -56,9 +56,9 @@
         "code": {
           "coding": [
           {
-            "system": "http://loinc.org",
-            "code": "76690-9",
-            "display": "Self-reported distraction strategies to take mind off problems"
+            "system": "http://spier.org/CodeSystem/cams-careplan-section",
+            "code": "coping-strategies",
+            "display": "Coping Strategies"
           }
           ],
           "text": "Coping Strategies"
@@ -73,9 +73,9 @@
         "code": {
           "coding": [
           {
-            "system": "http://loinc.org",
-            "code": "76692-5",
-            "display": "Self-reported people whom I can ask for help during a crisis"
+            "system": "http://spier.org/CodeSystem/cams-careplan-section",
+            "code": "support-network",
+            "display": "Support Network"
           }
           ],
           "text": "Support Network"
@@ -90,9 +90,9 @@
         "code": {
           "coding": [
           {
-            "system": "http://loinc.org",
-            "code": "76693-3",
-            "display": "Self-reported professionals or professional services"
+            "system": "http://spier.org/CodeSystem/cams-careplan-section",
+            "code": "emergency-contact",
+            "display": "Emergency Contact"
           }
           ],
           "text": "Emergency Contact"
