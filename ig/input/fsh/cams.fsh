@@ -176,6 +176,63 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * subject only Reference(Patient)
 
 
+// ─── CarePlan section codes ──────────────────────────────────
+// Both CAMS CarePlans are section-structured documents — the Stabilization Plan
+// has five fixed sections, the Therapeutic Worksheet four. Until now both
+// profiles said only `activity.detail.code 1..1`, which a CodeableConcept
+// carrying nothing but free text satisfies. Section identity was therefore
+// human-readable only: a consumer could not tell "lethal means" from "coping
+// strategies" without string-matching English prose, which is exactly the
+// machine-actionability SPiER exists to provide.
+//
+// Where LOINC already publishes a safety-plan section concept we reuse it —
+// these are generic safety-plan concepts rather than instrument-specific ones,
+// and the Stanley-Brown and Crisis Response Plan CarePlans already bind the
+// same codes (see FHIR-Resources/Stanley-Brown/README.md for the audit table
+// they were verified against). Only sections with no published equivalent get a
+// SPiER-local code.
+
+CodeSystem: CAMSCarePlanSectionCodes
+Id: cams-careplan-section
+Title: "CAMS CarePlan Section Codes"
+Description: "SPiER-local section codes for CAMS CarePlan activities that have no published LOINC equivalent."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+
+* #treatment-adherence "Treatment Adherence Plan" "Barriers to attending treatment as scheduled, each paired with the solution agreed for it. Section 5 of the CAMS Stabilization Plan."
+* #personal-narrative "Personal Story of Suicidality" "The patient's own account of how they came to be suicidal. Section I of the CAMS Therapeutic Worksheet."
+* #direct-drivers "Direct Drivers of Suicidality" "The problems the patient identifies as directly driving the suicidality. Section II of the CAMS Therapeutic Worksheet."
+* #indirect-drivers "Indirect Drivers of Suicidality" "Underlying factors that contribute to, but do not by themselves precipitate, acute suicidal ideation. Section II of the CAMS Therapeutic Worksheet."
+* #crisis-working-model "Suicide Crisis Working Model" "The patient's model of what raises and lowers risk at each stage of a suicidal crisis. Section III of the CAMS Therapeutic Worksheet."
+
+
+ValueSet: CAMSStabilizationPlanSection
+Id: cams-stabilization-plan-section
+Title: "CAMS Stabilization Plan Section"
+Description: "The five sections of a CAMS Stabilization Plan, as used in CarePlan.activity.detail.code. Four reuse published LOINC safety-plan concepts; treatment adherence has no LOINC equivalent and is SPiER-local."
+* ^status = #draft
+* ^experimental = true
+* http://loinc.org#76694-1 "Self-reported plan for lethal means safety"
+* http://loinc.org#76690-9 "Self-reported distraction strategies to take mind off problems"
+* http://loinc.org#76693-3 "Self-reported professionals or professional services"
+* http://loinc.org#76692-5 "Self-reported people whom I can ask for help during a crisis"
+* CAMSCarePlanSectionCodes#treatment-adherence
+
+
+ValueSet: CAMSTherapeuticWorksheetSection
+Id: cams-therapeutic-worksheet-section
+Title: "CAMS Therapeutic Worksheet Section"
+Description: "The four content sections of a CAMS Therapeutic Worksheet, as used in CarePlan.activity.detail.code. All SPiER-local — CAMS's narrative and driver constructs have no published LOINC equivalent."
+* ^status = #draft
+* ^experimental = true
+* CAMSCarePlanSectionCodes#personal-narrative
+* CAMSCarePlanSectionCodes#direct-drivers
+* CAMSCarePlanSectionCodes#indirect-drivers
+* CAMSCarePlanSectionCodes#crisis-working-model
+
+
 // ─── CarePlan profile: CAMS Stabilization Plan ───────────────
 
 Profile: SPiERCAMSStabilizationPlan
@@ -193,8 +250,27 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 * category.coding 1..*
 * subject 1..1
 * subject only Reference(Patient)
+// Every activity IS a named section, so the section code is the discriminator.
+// Slicing is declared `open` rather than `closed` as a style choice only: with a
+// required binding plus 1..1 on all five slices, the sections are already
+// exhaustive. If extra activities ever need to be allowed, relax the binding.
 * activity 1..*
+* activity ^slicing.discriminator.type = #pattern
+* activity ^slicing.discriminator.path = "detail.code"
+* activity ^slicing.rules = #open
+* activity contains
+    lethalMeans 1..1 and
+    copingStrategies 1..1 and
+    emergencyContact 1..1 and
+    supportNetwork 1..1 and
+    treatmentAdherence 1..1
+* activity[lethalMeans].detail.code = http://loinc.org#76694-1
+* activity[copingStrategies].detail.code = http://loinc.org#76690-9
+* activity[emergencyContact].detail.code = http://loinc.org#76693-3
+* activity[supportNetwork].detail.code = http://loinc.org#76692-5
+* activity[treatmentAdherence].detail.code = CAMSCarePlanSectionCodes#treatment-adherence
 * activity.detail.code 1..1
+* activity.detail.code from CAMSStabilizationPlanSection (required)
 * activity.detail.status 1..1
 * activity.detail.description 0..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
@@ -222,8 +298,25 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 * category.coding 1..*
 * subject 1..1
 * subject only Reference(Patient)
+// Four activities, not three: the Questionnaire's section II
+// (`drivers-exploration`) carries both the direct- and indirect-driver
+// analyses, and they are separate concepts downstream — so the CarePlan splits
+// them rather than collapsing the pair into one activity.
 * activity 1..*
+* activity ^slicing.discriminator.type = #pattern
+* activity ^slicing.discriminator.path = "detail.code"
+* activity ^slicing.rules = #open
+* activity contains
+    personalNarrative 1..1 and
+    directDrivers 1..1 and
+    indirectDrivers 1..1 and
+    crisisWorkingModel 1..1
+* activity[personalNarrative].detail.code = CAMSCarePlanSectionCodes#personal-narrative
+* activity[directDrivers].detail.code = CAMSCarePlanSectionCodes#direct-drivers
+* activity[indirectDrivers].detail.code = CAMSCarePlanSectionCodes#indirect-drivers
+* activity[crisisWorkingModel].detail.code = CAMSCarePlanSectionCodes#crisis-working-model
 * activity.detail.code 1..1
+* activity.detail.code from CAMSTherapeuticWorksheetSection (required)
 * activity.detail.status 1..1
 * activity.detail.description 0..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
@@ -429,32 +522,67 @@ Usage: #example
 Instance: ExampleCAMSStabilizationPlan
 InstanceOf: SPiERCAMSStabilizationPlan
 Title: "Example — Completed CAMS Stabilization Plan"
-Description: "Sample CAMS Stabilization Plan CarePlan with all five sections populated. Each activity names its section in detail.code.text (no validated LOINC panel applies to these safety-plan sections)."
+Description: "Sample CAMS Stabilization Plan CarePlan with all five sections populated. Each activity carries its section code — four published LOINC safety-plan concepts plus the SPiER-local treatment-adherence code — with the human label retained in detail.code.text."
 Usage: #example
 * status = #active
 * intent = #plan
 * category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * subject = Reference(Patient/example)
 * activity[+].detail
+  * code = http://loinc.org#76694-1 "Self-reported plan for lethal means safety"
   * code.text = "Lethal Means Reduction"
   * status = #in-progress
   * description = "Locked medication box; firearm transferred to trusted family member; clinic gun-lock voucher accepted"
 * activity[+].detail
+  * code = http://loinc.org#76690-9 "Self-reported distraction strategies to take mind off problems"
   * code.text = "Coping Strategies"
   * status = #in-progress
   * description = "Mindfulness breathing; grounding 5-4-3-2-1; calling crisis line BEFORE pain peaks"
 * activity[+].detail
+  * code = http://loinc.org#76693-3 "Self-reported professionals or professional services"
   * code.text = "Emergency Contact"
   * status = #in-progress
   * description = "Dr. Chen (555-0200), pager 555-0299; 988 Suicide & Crisis Lifeline"
 * activity[+].detail
+  * code = http://loinc.org#76692-5 "Self-reported people whom I can ask for help during a crisis"
   * code.text = "Support Network"
   * status = #in-progress
   * description = "Sister Maria (555-0143); best friend Joe (555-0188); NAMI peer support group Thursdays"
 * activity[+].detail
+  * code = CAMSCarePlanSectionCodes#treatment-adherence "Treatment Adherence Plan"
   * code.text = "Treatment Adherence Plan"
   * status = #in-progress
   * description = "Barrier: transportation → Solution: ride-share voucher from clinic. Barrier: medication cost → Solution: patient-assistance program."
+
+
+// The Therapeutic Worksheet profile had no example instance at all, so nothing
+// exercised its constraints — the gap that made #95's "example CarePlans should
+// validate meaningfully" impossible to demonstrate either way.
+Instance: ExampleCAMSTherapeuticWorksheet
+InstanceOf: SPiERCAMSTherapeuticWorksheet
+Title: "Example — Completed CAMS Therapeutic Worksheet"
+Description: "Sample CAMS Therapeutic Worksheet CarePlan from an interim session, with all four content sections populated: the personal narrative, the direct and indirect drivers, and the patient's own working model of their suicidal crisis."
+Usage: #example
+* status = #active
+* intent = #plan
+* category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
+* subject = Reference(Patient/example)
+* activity[+].detail
+  * code = CAMSCarePlanSectionCodes#personal-narrative "Personal Story of Suicidality"
+  * status = #in-progress
+  * description = "Began after the layoff in November; worsened when the marriage ended. Describes feeling 'replaceable at work and at home'."
+* activity[+].detail
+  * code = CAMSCarePlanSectionCodes#direct-drivers "Direct Drivers of Suicidality"
+  * status = #in-progress
+  * description = "Problem #1 — belief of being a burden to family. Problem #2 — unresolved job loss and loss of professional identity."
+* activity[+].detail
+  * code = CAMSCarePlanSectionCodes#indirect-drivers "Indirect Drivers of Suicidality"
+  * status = #in-progress
+  * description = "Escalating alcohol use in the evenings; chronic insomnia; untreated PTSD from a 2019 motor-vehicle collision."
+* activity[+].detail
+  * code = CAMSCarePlanSectionCodes#crisis-working-model "Suicide Crisis Working Model"
+  * status = #in-progress
+  * description = "Raises risk: drinking alone after 9pm, scrolling former colleagues' posts. Lowers risk: morning gym, calling sister, weekly group."
 
 
 Instance: ExampleCAMSOutcomeDispositionResolved

@@ -18,9 +18,19 @@ export type { QuestionnaireResponseItem, QuestionnaireResponseResource } from '.
 
 // ─── Public types ─────────────────────────────────────────────
 
+/** Terminology systems a CarePlan section code can come from. */
+export const LOINC_SYSTEM = 'http://loinc.org'
+export const CAMS_SECTION_SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-section'
+
 export interface CarePlanActivity {
   stepTitle: string
-  loincCode?: string
+  /**
+   * The section code that lands in `detail.code.coding`. Was `loincCode?: string`
+   * until the CAMS CarePlan profiles started slicing `activity` on `detail.code`
+   * (#95) — the CAMS sections with no published LOINC equivalent need a
+   * SPiER-local code, so the system can no longer be assumed.
+   */
+  sectionCode?: { system: string; code: string }
   description: string
 }
 
@@ -114,7 +124,7 @@ export function extractPairs(
 /**
  * Stamp out a uniform suicide-prevention CarePlan with the supplied
  * activities. Each activity becomes a CarePlan.activity entry; its
- * loincCode (if present) goes into detail.code.coding, stepTitle into
+ * sectionCode (if present) goes into detail.code.coding, stepTitle into
  * detail.code.text, description into detail.description.
  *
  * `hasAnyData` is supplied by the caller because the empty-state check
@@ -162,8 +172,8 @@ export function makeSuicidePreventionCarePlan(options: {
     addresses: [{ display: 'Risk for suicide' }],
     activity: options.activities.map(a => ({
       detail: {
-        code: a.loincCode
-          ? { coding: [{ system: 'http://loinc.org', code: a.loincCode }], text: a.stepTitle }
+        code: a.sectionCode
+          ? { coding: [{ system: a.sectionCode.system, code: a.sectionCode.code }], text: a.stepTitle }
           : { text: a.stepTitle },
         status: 'in-progress',
         description: a.description,

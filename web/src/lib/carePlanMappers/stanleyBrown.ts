@@ -1,4 +1,5 @@
 import {
+  LOINC_SYSTEM,
   extractAnswers,
   extractPairs,
   makeSuicidePreventionCarePlan,
@@ -57,13 +58,13 @@ export function generateCarePlan(questionnaireResponse: QuestionnaireResponseRes
     noteText: 'DEMO ONLY — This CarePlan was generated client-side for demonstration purposes. No patient data has been stored or transmitted. This CarePlan uses the Hybrid model where core safety data is embedded in activity.description fields for maximum interoperability.',
     hasAnyData,
     activities: [
-      { stepTitle: 'Step 1: Warning Signs',              loincCode: '76689-1', description: step1 || 'No warning signs provided.' },
-      { stepTitle: 'Step 2: Internal Coping Strategies', loincCode: '76690-9', description: step2 || 'No coping strategies provided.' },
-      { stepTitle: 'Step 3: Social Distractions',        loincCode: '76691-7', description: step3 || 'No distraction contacts provided.' },
-      { stepTitle: 'Step 4: Crisis Support Contacts',    loincCode: '76692-5', description: step4 || 'No crisis contacts provided.' },
-      { stepTitle: 'Step 5: Professional Support',       loincCode: '76693-3', description: step5 || 'No professional contacts provided.' },
-      { stepTitle: 'Step 6: Lethal Means Safety',        loincCode: '76694-1', description: step6 || 'No lethal means plan provided.' },
-      { stepTitle: 'Step 7: Reason for Living',          loincCode: '81344-4', description: step7 || 'No reason for living provided.' },
+      { stepTitle: 'Step 1: Warning Signs',              sectionCode: { system: LOINC_SYSTEM, code: '76689-1' }, description: step1 || 'No warning signs provided.' },
+      { stepTitle: 'Step 2: Internal Coping Strategies', sectionCode: { system: LOINC_SYSTEM, code: '76690-9' }, description: step2 || 'No coping strategies provided.' },
+      { stepTitle: 'Step 3: Social Distractions',        sectionCode: { system: LOINC_SYSTEM, code: '76691-7' }, description: step3 || 'No distraction contacts provided.' },
+      { stepTitle: 'Step 4: Crisis Support Contacts',    sectionCode: { system: LOINC_SYSTEM, code: '76692-5' }, description: step4 || 'No crisis contacts provided.' },
+      { stepTitle: 'Step 5: Professional Support',       sectionCode: { system: LOINC_SYSTEM, code: '76693-3' }, description: step5 || 'No professional contacts provided.' },
+      { stepTitle: 'Step 6: Lethal Means Safety',        sectionCode: { system: LOINC_SYSTEM, code: '76694-1' }, description: step6 || 'No lethal means plan provided.' },
+      { stepTitle: 'Step 7: Reason for Living',          sectionCode: { system: LOINC_SYSTEM, code: '81344-4' }, description: step7 || 'No reason for living provided.' },
     ],
   })
 }

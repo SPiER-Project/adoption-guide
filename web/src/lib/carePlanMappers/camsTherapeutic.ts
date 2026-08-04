@@ -1,4 +1,5 @@
 import {
+  CAMS_SECTION_SYSTEM,
   extractAnswer,
   makeSuicidePreventionCarePlan,
   type GeneratedCarePlan,
@@ -8,9 +9,10 @@ import {
 /**
  * Transform a CAMS Therapeutic Worksheet QuestionnaireResponse into a
  * 4-activity CarePlan capturing the patient's personal narrative,
- * suicide drivers, and crisis working model. No LOINC codes — all
- * activities are text-only since these CAMS-framework concepts have
- * no published LOINC equivalents.
+ * suicide drivers, and crisis working model. No LOINC codes — these
+ * CAMS-framework concepts have no published LOINC equivalents, so each
+ * section carries a SPiER-local code from cams-careplan-section instead
+ * of the text-only shape it used before #95.
  */
 export function generateTherapeuticCarePlan(questionnaireResponse: QuestionnaireResponseResource): GeneratedCarePlan {
   const items = questionnaireResponse?.item || []
@@ -54,11 +56,14 @@ export function generateTherapeuticCarePlan(questionnaireResponse: Questionnaire
     profileUrl: 'http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet',
     noteText: "DEMO ONLY — CAMS Therapeutic Worksheet CarePlan generated client-side. This captures the patient's suicide drivers and crisis working model to guide treatment planning. Uses the Hybrid model where core data is embedded in activity.description fields.",
     hasAnyData,
+    // Section codes are required by SPiERCAMSTherapeuticWorksheet, which slices
+    // activity on detail.code. All four are SPiER-local: CAMS's narrative and
+    // driver constructs have no published LOINC equivalent.
     activities: [
-      { stepTitle: 'Personal Narrative',                  description: narrative       || 'No personal narrative provided.' },
-      { stepTitle: 'Direct Drivers of Suicidality',       description: directDrivers   || 'No direct drivers identified.' },
-      { stepTitle: 'Indirect Drivers of Suicidality',     description: indirectDrivers || 'No indirect drivers identified.' },
-      { stepTitle: 'Suicide Crisis Working Model',        description: crisisModel     || 'No crisis model data provided.' },
+      { stepTitle: 'Personal Narrative',                  sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'personal-narrative' },   description: narrative       || 'No personal narrative provided.' },
+      { stepTitle: 'Direct Drivers of Suicidality',       sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'direct-drivers' },       description: directDrivers   || 'No direct drivers identified.' },
+      { stepTitle: 'Indirect Drivers of Suicidality',     sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'indirect-drivers' },     description: indirectDrivers || 'No indirect drivers identified.' },
+      { stepTitle: 'Suicide Crisis Working Model',        sectionCode: { system: CAMS_SECTION_SYSTEM, code: 'crisis-working-model' },  description: crisisModel     || 'No crisis model data provided.' },
     ],
   })
 }

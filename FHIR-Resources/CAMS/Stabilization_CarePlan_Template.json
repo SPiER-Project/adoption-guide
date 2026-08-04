@@ -3,7 +3,7 @@
   "id": "cams-stabilization-careplan-example",
   "meta": {
     "profile": [
-      "http://hl7.org/fhir/us/ecareplan/StructureDefinition/us-ecareplan"
+      "http://spier.org/StructureDefinition/spier-cams-stabilization-plan"
     ]
   },
   "text": {
@@ -37,6 +37,13 @@
     {
       "detail": {
         "code": {
+          "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "76694-1",
+            "display": "Self-reported plan for lethal means safety"
+          }
+          ],
           "text": "Reduction of Lethal Means"
         },
         "status": "in-progress",
@@ -47,6 +54,13 @@
     {
       "detail": {
         "code": {
+          "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "76690-9",
+            "display": "Self-reported distraction strategies to take mind off problems"
+          }
+          ],
           "text": "Coping Strategies"
         },
         "status": "in-progress",
@@ -57,6 +71,13 @@
     {
       "detail": {
         "code": {
+          "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "76692-5",
+            "display": "Self-reported people whom I can ask for help during a crisis"
+          }
+          ],
           "text": "Support Network"
         },
         "status": "in-progress",
@@ -67,6 +88,13 @@
     {
       "detail": {
         "code": {
+          "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "76693-3",
+            "display": "Self-reported professionals or professional services"
+          }
+          ],
           "text": "Emergency Contact"
         },
         "status": "in-progress",
@@ -77,6 +105,13 @@
     {
       "detail": {
         "code": {
+          "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/cams-careplan-section",
+            "code": "treatment-adherence",
+            "display": "Treatment Adherence Plan"
+          }
+          ],
           "text": "Treatment Attendance Plan"
         },
         "status": "in-progress",

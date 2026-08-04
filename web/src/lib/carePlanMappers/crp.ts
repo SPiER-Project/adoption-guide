@@ -1,4 +1,5 @@
 import {
+  LOINC_SYSTEM,
   extractAnswers,
   makeSuicidePreventionCarePlan,
   type GeneratedCarePlan,
@@ -27,11 +28,11 @@ export function generateCrisisResponseCarePlan(questionnaireResponse: Questionna
     noteText: 'DEMO ONLY — Crisis Response Plan (Bryan & Rudd) CarePlan generated client-side. No patient data has been stored or transmitted. Uses the Hybrid model where core plan content is embedded in activity.description fields. The patient should keep a copy of the plan.',
     hasAnyData,
     activities: [
-      { stepTitle: 'Warning Signs',                        loincCode: '76689-1', description: warningSigns        || 'No warning signs provided.' },
-      { stepTitle: 'Coping Strategies (Self-Management)',  loincCode: '76690-9', description: coping              || 'No coping strategies provided.' },
-      { stepTitle: 'Reasons for Living',                   loincCode: '81344-4', description: reasonsLiving       || 'No reasons for living provided.' },
-      { stepTitle: 'Social Support',                       loincCode: '76692-5', description: socialSupport       || 'No social supports provided.' },
-      { stepTitle: 'Professional & Crisis Support',        loincCode: '76693-3', description: professionalSupport || 'No professional/crisis supports provided.' },
+      { stepTitle: 'Warning Signs',                        sectionCode: { system: LOINC_SYSTEM, code: '76689-1' }, description: warningSigns        || 'No warning signs provided.' },
+      { stepTitle: 'Coping Strategies (Self-Management)',  sectionCode: { system: LOINC_SYSTEM, code: '76690-9' }, description: coping              || 'No coping strategies provided.' },
+      { stepTitle: 'Reasons for Living',                   sectionCode: { system: LOINC_SYSTEM, code: '81344-4' }, description: reasonsLiving       || 'No reasons for living provided.' },
+      { stepTitle: 'Social Support',                       sectionCode: { system: LOINC_SYSTEM, code: '76692-5' }, description: socialSupport       || 'No social supports provided.' },
+      { stepTitle: 'Professional & Crisis Support',        sectionCode: { system: LOINC_SYSTEM, code: '76693-3' }, description: professionalSupport || 'No professional/crisis supports provided.' },
     ],
   })
 }

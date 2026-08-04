@@ -53,6 +53,42 @@ describe('generateTherapeuticCarePlan', () => {
     )
   })
 
+  it('codes every section, since the profile slices activity on detail.code', () => {
+    // The section codes are structural — they do not depend on the answers, so
+    // even a single-answer response must emit all four, coded.
+    const response = {
+      resourceType: 'QuestionnaireResponse',
+      status: 'completed',
+      questionnaire: 'http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet',
+      item: [simple('story-narrative', 'Overwhelmed at work.')],
+    } as QuestionnaireResponseResource
+
+    const { activities, resource } = generateTherapeuticCarePlan(response)
+    const SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-section'
+
+    // All four are SPiER-local: CAMS's narrative and driver constructs have no
+    // published LOINC equivalent. A text-only detail.code no longer conforms to
+    // SPiERCAMSTherapeuticWorksheet, which this CarePlan declares in meta.profile.
+    expect(activities.map(a => a.sectionCode)).toEqual([
+      { system: SYSTEM, code: 'personal-narrative' },
+      { system: SYSTEM, code: 'direct-drivers' },
+      { system: SYSTEM, code: 'indirect-drivers' },
+      { system: SYSTEM, code: 'crisis-working-model' },
+    ])
+
+    const fhirActivities = resource.activity as Array<{
+      detail?: { code?: { coding?: Array<{ system?: string; code?: string }>; text?: string } }
+    }>
+    expect(fhirActivities.map(a => a.detail?.code?.coding?.[0])).toEqual([
+      { system: SYSTEM, code: 'personal-narrative' },
+      { system: SYSTEM, code: 'direct-drivers' },
+      { system: SYSTEM, code: 'indirect-drivers' },
+      { system: SYSTEM, code: 'crisis-working-model' },
+    ])
+    // The human label is retained alongside the code, not replaced by it.
+    expect(fhirActivities[0].detail?.code?.text).toBe('Personal Narrative')
+  })
+
   it('an empty response yields isEmpty=true and placeholder descriptions', () => {
     const empty: QuestionnaireResponseResource = {
       resourceType: 'QuestionnaireResponse',

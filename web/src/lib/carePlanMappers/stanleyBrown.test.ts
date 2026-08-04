@@ -57,7 +57,7 @@ describe('generateCarePlan (Stanley-Brown)', () => {
     const { activities, resource } = generateCarePlan(fullSafetyPlan())
 
     // Step 1: multiple warning signs joined
-    expect(activities[0].loincCode).toBe('76689-1')
+    expect(activities[0].sectionCode?.code).toBe('76689-1')
     expect(activities[0].description).toBe('Racing thoughts, Isolating')
 
     // Step 3: distraction pair rendered as "name (contact)"

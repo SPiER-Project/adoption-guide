@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { GeneratedCarePlan } from '../lib/carePlanMappers'
+import { LOINC_SYSTEM, type GeneratedCarePlan } from '../lib/carePlanMappers'
 
 export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
   const [showJson, setShowJson] = useState(false)
@@ -37,7 +37,11 @@ export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
           <div key={idx} className="careplan-step">
             <p className="careplan-step-title">
               {activity.stepTitle}
-              {activity.loincCode && <span className="careplan-step-loinc">LOINC: {activity.loincCode}</span>}
+              {activity.sectionCode && (
+                <span className="careplan-step-code">
+                  {activity.sectionCode.system === LOINC_SYSTEM ? 'LOINC' : 'SPiER'}: {activity.sectionCode.code}
+                </span>
+              )}
             </p>
             <p className={`careplan-step-description ${activity.description.includes('No ') && activity.description.includes('provided')
               ? 'careplan-step-empty' : ''
