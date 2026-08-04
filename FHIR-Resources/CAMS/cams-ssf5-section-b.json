@@ -405,9 +405,21 @@
     {
       "linkId": "drivers",
       "text": "Identification of Suicidal Drivers (Problems)",
-      "description": "Identify the top problems that are driving the suicidality. These will be tracked in future sessions.",
       "type": "group",
       "item": [
+        {
+          "linkId": "drivers-instructions",
+          "text": "Identify the top problems that are driving the suicidality. These will be tracked in future sessions.",
+          "type": "display",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-displayCategory",
+              "valueCodeableConcept": {
+                "coding": [{ "system": "http://hl7.org/fhir/questionnaire-display-category", "code": "instructions" }]
+              }
+            }
+          ]
+        },
         {
           "linkId": "driver-1",
           "text": "Problem #1 (The 'Primary Driver')",

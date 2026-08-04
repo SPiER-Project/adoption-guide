@@ -31,6 +31,17 @@ Description: "SPiER-local code system for the derived risk level from a C-SSRS s
 * #moderate "Moderate" "Active ideation with methods or some intent (items 3–4 positive)."
 * #high "High" "Active ideation with specific plan and intent (item 5), and/or any suicidal behavior (item 6)."
 
+// The C-SSRS Questionnaires label the risk-level answerOptions "Low Risk" /
+// "Moderate Risk" / "High Risk" — a bare "Low" is ambiguous next to the other
+// answer options on the form. `Coding.display` must match the CodeSystem, so
+// the qualified labels are registered here as designations.
+* #low ^designation[+].language = #en
+* #low ^designation[=].value = "Low Risk"
+* #moderate ^designation[+].language = #en
+* #moderate ^designation[=].value = "Moderate Risk"
+* #high ^designation[+].language = #en
+* #high ^designation[=].value = "High Risk"
+
 
 ValueSet: CSSRSRiskLevel
 Id: cssrs-risk-level
@@ -227,10 +238,25 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/C-SSRS-Screener"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T11:00:00Z"
-* item[+].linkId = "q1"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
-* item[+].linkId = "q5"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+// Nesting mirrors the Questionnaire (ideation-section > q1–q5,
+// behavior-section > q6, then risk-level at the root), and every `required`
+// item carries an answer — both checked by `node scripts/validate-fhir.mjs`.
+* item[+].linkId = "ideation-section"
+* item[=].item[+].linkId = "q1"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q2"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q3"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q4"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q5"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "behavior-section"
+* item[=].item[+].linkId = "q6"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "risk-level"
+* item[=].answer.valueCoding = CSSRSRiskLevelCodes#high "High Risk"
 
 
 Instance: ExampleCSSRSSinceLastContactModerateRisk
@@ -260,12 +286,22 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T12:00:00Z"
-* item[+].linkId = "q1"
-* item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
-* item[+].linkId = "q2"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
-* item[+].linkId = "q3"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "ideation-section"
+* item[=].item[+].linkId = "q1"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[=].item[+].linkId = "q2"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q3"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q4"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[=].item[+].linkId = "q5"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "behavior-section"
+* item[=].item[+].linkId = "q6"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "risk-level"
+* item[=].answer.valueCoding = CSSRSRiskLevelCodes#moderate "Moderate Risk"
 
 
 Instance: ExampleCSSRSPediatricLowRisk
@@ -295,7 +331,16 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/C-SSRS-Pediatric"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T13:30:00Z"
-* item[+].linkId = "q1"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
-* item[+].linkId = "q2"
-* item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "ideation-section"
+* item[=].item[+].linkId = "q1"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q2"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+// q3–q5 are gated `enableWhen q2 = Yes`. Answering a disabled item is itself a
+// conformance error, so a negative q2 correctly ends the ideation branch here —
+// which is also why q3–q5 being `required` does not apply.
+* item[+].linkId = "behavior-section"
+* item[=].item[+].linkId = "q6"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "risk-level"
+* item[=].answer.valueCoding = CSSRSRiskLevelCodes#low "Low Risk"

@@ -25,9 +25,20 @@ Description: "SPiER-local code system for the three possible outcomes of the NIM
 * ^experimental = true
 * ^caseSensitive = true
 * ^content = #complete
-* #negative "Negative" "All ASQ items 1–4 answered 'no'. No suicide-risk screening signal."
-* #non-acute-positive "Non-Acute Positive" "Any of items 1–4 answered 'yes' AND the acuity question (item 5) answered 'no'. Refer for further suicide-risk assessment within the same visit."
-* #acute-positive "Acute Positive" "The acuity question (item 5) answered 'yes'. Do not leave patient alone; initiate emergency safety procedures."
+* #negative "Negative Screen" "All ASQ items 1–4 answered 'no'. No suicide-risk screening signal."
+* #non-acute-positive "Non-Acute Positive Screen" "Any of items 1–4 answered 'yes' AND the acuity question (item 5) answered 'no'. Refer for further suicide-risk assessment within the same visit."
+* #acute-positive "Acute Positive Screen" "The acuity question (item 5) answered 'yes'. Do not leave patient alone; initiate emergency safety procedures."
+
+// The ASQ Questionnaire's disposition answerOptions (and the runtime mapper in
+// web/src/lib/observationMappers/asq.ts) label these tiers with the clinical
+// consequence appended, because the bare tier name is not self-explanatory to a
+// clinician picking an option. `Coding.display` must match the CodeSystem, so
+// the longer labels are registered here as designations rather than being
+// silently divergent display strings.
+* #non-acute-positive ^designation[+].language = #en
+* #non-acute-positive ^designation[=].value = "Non-Acute Positive Screen (potential risk identified)"
+* #acute-positive ^designation[+].language = #en
+* #acute-positive ^designation[=].value = "Acute Positive Screen (imminent/acute risk identified)"
 
 
 // ─── ValueSets ────────────────────────────────────────────────
@@ -127,7 +138,7 @@ Usage: #example
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
-* valueCodeableConcept = ASQResultCodes#non-acute-positive "Non-Acute Positive"
+* valueCodeableConcept = ASQResultCodes#non-acute-positive "Non-Acute Positive Screen"
 
 
 Instance: ExampleASQResultAcutePositive
@@ -140,7 +151,7 @@ Usage: #example
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
-* valueCodeableConcept = ASQResultCodes#acute-positive "Acute Positive"
+* valueCodeableConcept = ASQResultCodes#acute-positive "Acute Positive Screen"
 
 
 Instance: ExampleASQResponseNonAcute
@@ -152,7 +163,22 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/ASQ-Screening-Tool"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T10:35:00Z"
-* item[+].linkId = "q1"
-* item[=].answer.valueCoding = http://snomed.info/sct#373066001
-* item[+].linkId = "q5"
-* item[=].answer.valueCoding = http://snomed.info/sct#373067005
+// Item nesting mirrors the Questionnaire's groups: a QuestionnaireResponse item
+// must sit under the same parent as the Questionnaire item it answers, and every
+// `required` item must carry an answer. Both are checked by
+// `node scripts/validate-fhir.mjs`, not by SUSHI.
+* item[+].linkId = "screening-questions"
+* item[=].item[+].linkId = "q1"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "q2"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[=].item[+].linkId = "q3"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[=].item[+].linkId = "q4"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "acuity-section"
+* item[=].item[+].linkId = "q5"
+* item[=].item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
+* item[+].linkId = "screening-result"
+* item[=].item[+].linkId = "result-category"
+* item[=].item[=].answer.valueCoding = ASQResultCodes#non-acute-positive "Non-Acute Positive Screen (potential risk identified)"

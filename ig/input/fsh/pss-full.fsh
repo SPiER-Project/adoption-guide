@@ -101,7 +101,11 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/PSS-Full"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T09:40:00Z"
+* item[+].linkId = "q1-depression"
+* item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
 * item[+].linkId = "q2-ideation"
 * item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "q3-lifetime-attempt"
+* item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
 * item[+].linkId = "risk-level"
 * item[=].answer.valueCoding = http://spier.org/CodeSystem/spier-suicide-risk-tier#moderate "Moderate risk"

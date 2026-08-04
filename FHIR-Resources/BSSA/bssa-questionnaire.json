@@ -407,7 +407,7 @@
             { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "emergency-psychiatric-evaluation", "display": "Emergency psychiatric evaluation (imminent risk — send to ED for evaluation)" } },
             { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "further-evaluation-necessary", "display": "Further evaluation of risk is necessary (safety plan + mental health referral, preferably within 72 hours)" } },
             { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "non-urgent-followup", "display": "Non-urgent mental health follow-up (safety plan + mental health referral)" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "no-intervention", "display": "No further intervention is necessary at this time" } }
+            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "no-intervention", "display": "No further intervention necessary at this time" } }
           ],
           "extension": [
             {

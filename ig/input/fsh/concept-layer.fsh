@@ -47,6 +47,18 @@ Description: "Instrument-agnostic suicide-risk severity tiers. Every SPiER scree
 * #high "High risk" "Significant active ideation, intent, or recent behavior; full safety evaluation indicated."
 * #imminent "Imminent risk" "Active suicidal ideation right now, or intent/plan with means; STAT/urgent safety evaluation required and the patient should not be left alone."
 
+// SAFE-T asks the clinician to *assign* a tier rather than read one off a
+// score, so its Questionnaire answerOptions restate the tier's defining
+// features inline — the clinician is choosing between definitions, not labels.
+// `Coding.display` must match the CodeSystem, so those long-form labels are
+// registered here as designations.
+* #low ^designation[+].language = #en
+* #low ^designation[=].value = "Low — thoughts of death; no plan, intent, or behavior; manageable risk factors, strong protective factors"
+* #moderate ^designation[+].language = #en
+* #moderate ^designation[=].value = "Moderate — suicidal ideation with plan, but no intent or behavior; multiple risk factors, few protective factors"
+* #high ^designation[+].language = #en
+* #high ^designation[=].value = "High — suicidal ideation with plan, method, and intent to carry out; severe symptoms or acute precipitating event"
+
 
 ValueSet: SPiERSuicideRiskTierVS
 Id: spier-suicide-risk-tier-vs

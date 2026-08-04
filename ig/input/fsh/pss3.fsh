@@ -85,6 +85,11 @@ Description: "SPiER-local code system for the binary PSS-3 suicide-risk screenin
 * #negative "Negative Screen" "No active ideation in the past two weeks and no suicide attempt within the last six months."
 * #positive "Positive Screen" "Active ideation in the past two weeks (item 2 'yes') OR a suicide attempt within the last six months (item 3a). Warrants a secondary risk-stratification assessment."
 
+// The PSS-3 Questionnaire names what the screen was positive *for*.
+// `Coding.display` must match the CodeSystem, so that label is a designation.
+* #positive ^designation[+].language = #en
+* #positive ^designation[=].value = "Positive Screen (suicide risk)"
+
 
 // ─── ValueSets ────────────────────────────────────────────────
 

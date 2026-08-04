@@ -91,5 +91,17 @@ Usage: #example
 * questionnaire = "http://spier.org/Questionnaire/SBQ-R"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T10:45:00Z"
+// q1–q4 are all `required` on the Questionnaire. The answers below carry the
+// ordinals 4 + 2 + 2 + 1, which is the 9 asserted by ExampleSBQRTotalScore9:
+// a past attempt intending to die, rare ideation over the last year, having told
+// someone once, and no self-rated chance of a future attempt.
 * item[+].linkId = "q1"
 * item[=].answer.valueCoding = SBQRQ1Codes#4b
+* item[+].linkId = "q2"
+* item[=].answer.valueCoding = SBQRQ2Codes#2
+* item[+].linkId = "q3"
+* item[=].answer.valueCoding = SBQRQ3Codes#2b
+* item[+].linkId = "q4"
+* item[=].answer.valueCoding = SBQRQ4Codes#1
+* item[+].linkId = "total-score"
+* item[=].answer.valueInteger = 9

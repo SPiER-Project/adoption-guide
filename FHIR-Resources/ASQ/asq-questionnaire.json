@@ -397,12 +397,7 @@
               }
             }
           ],
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/maxLength",
-              "valueInteger": 500
-            }
-          ]
+          "maxLength": 500
         }
       ]
     },
