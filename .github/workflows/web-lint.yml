@@ -64,6 +64,12 @@ jobs:
       - name: Check population stage ids
         run: npm run check:stages
 
+      # Resolves scenario QuestionnaireResponses against the Questionnaires in
+      # FHIR-Resources/, which are checked in — so this needs no copy-fhir
+      # either and belongs in the fast job.
+      - name: Check scenario responses
+        run: npm run check:scenarios
+
   verify:
     runs-on: ubuntu-latest
     defaults:

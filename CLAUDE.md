@@ -13,7 +13,7 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, and all six drift checks in sequence. The individual pieces:
+In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, all seven drift checks, and the unit tests in sequence. The individual pieces:
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
@@ -24,7 +24,9 @@ npm run check:extract    # observation-extract validation
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions / questionnaire URLs)
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
+npm run check:scenarios  # scenario QuestionnaireResponses vs their Questionnaire (linkIds, nesting, answer options, ranges)
 npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
+npm test                 # vitest
 ```
 
 In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
@@ -62,6 +64,17 @@ Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you ca
 still dispatch the publisher directly: `gh workflow run ig-publish.yml`. Nothing
 in the repo compiles the measure CQL at `ig/drafts/` — see
 `docs/plans/stage-8-measure-and-share.md`.
+
+⚠️ **A validator warning can mean "nothing was checked".** If the HL7 validator
+cannot resolve a QuestionnaireResponse's Questionnaire (or a claimed profile), it
+says so as a *warning* and then reports zero errors — a context-loading mistake
+degrades to a PASS. Two traps caused this in practice, both now guarded in
+`validate-fhir.mjs`: `-ig <folder>` does **not** recurse, so `-ig FHIR-Resources`
+loads 0 resources (every file is one level down); and `-output` emits a bare
+`OperationOutcome` rather than a `Bundle` when given exactly one source. The
+script now treats those warnings as errors and understands both output shapes.
+When you touch it, re-run it against a deliberately broken input and confirm it
+*fails* — a green gate you have never seen go red is not evidence of anything.
 
 The validator runs without a terminology server (`-tx n/a`) so the gate stays
 fast and offline-reproducible. Consequence: codes from **external** systems

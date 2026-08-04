@@ -12,12 +12,12 @@
           {
             "linkId": "core-ratings",
             "item": [
-              { "linkId": "1-score", "answer": [{ "valueInteger": 4 }] },
-              { "linkId": "2-score", "answer": [{ "valueInteger": 3 }] },
-              { "linkId": "3-score", "answer": [{ "valueInteger": 3 }] },
-              { "linkId": "4-score", "answer": [{ "valueInteger": 4 }] },
-              { "linkId": "5-score", "answer": [{ "valueInteger": 3 }] },
-              { "linkId": "6-score", "answer": [{ "valueInteger": 3 }] }
+              { "linkId": "1-psychological-pain", "item": [{ "linkId": "1-score", "answer": [{ "valueInteger": 4 }] }] },
+              { "linkId": "2-stress", "item": [{ "linkId": "2-score", "answer": [{ "valueInteger": 3 }] }] },
+              { "linkId": "3-agitation", "item": [{ "linkId": "3-score", "answer": [{ "valueInteger": 3 }] }] },
+              { "linkId": "4-hopelessness", "item": [{ "linkId": "4-score", "answer": [{ "valueInteger": 4 }] }] },
+              { "linkId": "5-self-hate", "item": [{ "linkId": "5-score", "answer": [{ "valueInteger": 3 }] }] },
+              { "linkId": "6-overall-risk", "item": [{ "linkId": "6-score", "answer": [{ "valueInteger": 3 }] }] }
             ]
           }
         ]
