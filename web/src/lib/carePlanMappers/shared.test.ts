@@ -115,7 +115,7 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
       noteText: 'DEMO note',
       hasAnyData,
       activities: [
-        { stepTitle: 'Coded Step', loincCode: '76694-1', description: 'coded desc' },
+        { stepTitle: 'Coded Step', sectionCode: { system: 'http://loinc.org', code: '76694-1' }, description: 'coded desc' },
         { stepTitle: 'Text-only Step', description: 'text desc' },
       ],
     })
@@ -134,7 +134,7 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
     expect((resource.note as Array<{ text?: string }> | undefined)?.[0]?.text).toBe('DEMO note')
   })
 
-  it('maps a loincCode activity to detail.code.coding and a text-only activity to detail.code.text', () => {
+  it('maps a sectionCode activity to detail.code.coding and a text-only activity to detail.code.text', () => {
     const { resource } = build(true)
     const activity = resource.activity as Array<{
       detail?: { code?: { coding?: Array<{ system?: string; code?: string }>; text?: string }; description?: string; status?: string }

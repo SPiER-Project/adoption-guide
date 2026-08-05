@@ -3,7 +3,7 @@
   "id": "stanley-brown-safety-plan-hybrid-example",
   "meta": {
     "profile": [
-      "http://hl7.org/fhir/us/ecareplan/StructureDefinition/us-ecareplan"
+      "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
     ]
   },
   "text": {
@@ -18,7 +18,7 @@
         {
           "system": "http://snomed.info/sct",
           "code": "735324008",
-          "display": "Treatment plan for suicide prevention"
+          "display": "Treatment escalation plan (record artifact)"
         }
       ]
     }

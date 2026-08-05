@@ -18,7 +18,7 @@
       "id": "p007-stanley-brown",
       "status": "active",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment plan for suicide prevention" }] }],
+      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }],
       "subject": { "reference": "Patient/patient-007" },
       "addresses": [{ "display": "Risk for suicide" }],
       "_savedAt": "2026-05-06T16:30:00Z",

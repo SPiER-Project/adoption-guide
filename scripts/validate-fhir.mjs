@@ -229,6 +229,11 @@ const offenders = []
 const SILENT_PASS_PATTERNS = [
   /could not be resolved, so no validation can be performed/i,
   /Unable to resolve profile/i,
+  // A claimed profile that cannot be found. This one was live: two CarePlans
+  // declared conformance to `hl7.fhir.us.ecareplan`, a canonical that does not
+  // exist (404 in the FHIR package registry and on hl7.org), and the gate
+  // reported them clean because the miss is only a warning.
+  /has not been checked because it could not be found/i,
 ]
 let silentPasses = 0
 

@@ -52,32 +52,42 @@ describe('generateStabilizationCarePlan (CAMS)', () => {
     expect(category[0].coding?.[0]?.code).toBe('735324008')
   })
 
-  it('embeds patient content and LOINC codes on each activity', () => {
+  it('embeds patient content and a section code on each activity', () => {
     const { activities, resource } = generateStabilizationCarePlan(fullStabilizationPlan())
+    const SECTION_SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-section'
 
     // Step 1: Lethal Means Reduction
-    expect(activities[0].loincCode).toBe('76694-1')
+    expect(activities[0].sectionCode?.code).toBe('lethal-means-reduction')
     expect(activities[0].description).toBe('Remove firearms; Lock medications')
 
     // Step 2: Coping Strategies
-    expect(activities[1].loincCode).toBe('76690-9')
+    expect(activities[1].sectionCode?.code).toBe('coping-strategies')
     expect(activities[1].description).toBe('Deep breathing; Listen to music')
 
     // Step 3: Emergency Contact
-    expect(activities[2].loincCode).toBe('76693-3')
+    expect(activities[2].sectionCode?.code).toBe('emergency-contact')
     expect(activities[2].description).toBe('911, Local Crisis Center')
 
     // Step 4: Support Network
-    expect(activities[3].loincCode).toBe('76692-5')
+    expect(activities[3].sectionCode?.code).toBe('support-network')
     expect(activities[3].description).toBe('Wife; Best Friend')
 
-    // Step 5: Treatment Adherence Plan
-    expect(activities[4].loincCode).toBeUndefined()
+    // Step 5: Treatment Adherence Plan. Every section is coded — the profile
+    // slices activity on detail.code and requires all five.
+    expect(activities[4].sectionCode).toEqual({ system: SECTION_SYSTEM, code: 'treatment-adherence' })
     expect(activities[4].description).toBe('Transportation → Bus pass; Forgetting appointments → Phone alarm; No motivation')
 
-    // LOINC codes land on the FHIR activity detail.code
-    const fhirActivity = (resource.activity as Array<{ detail?: { code?: { coding?: Array<{ code?: string }> } } }>)[0]
-    expect(fhirActivity.detail?.code?.coding?.[0]?.code).toBe('76694-1')
+    // Section codes land on the FHIR activity detail.code — and every one of the
+    // five activities must carry a coding, or the CarePlan violates the profile
+    // it declares in meta.profile.
+    const fhirActivities = resource.activity as Array<{ detail?: { code?: { coding?: Array<{ system?: string; code?: string }> } } }>
+    expect(fhirActivities.map(a => a.detail?.code?.coding?.[0])).toEqual([
+      { system: SECTION_SYSTEM, code: 'lethal-means-reduction' },
+      { system: SECTION_SYSTEM, code: 'coping-strategies' },
+      { system: SECTION_SYSTEM, code: 'emergency-contact' },
+      { system: SECTION_SYSTEM, code: 'support-network' },
+      { system: SECTION_SYSTEM, code: 'treatment-adherence' },
+    ])
   })
 
   it('an empty response yields isEmpty=true and placeholder descriptions', () => {

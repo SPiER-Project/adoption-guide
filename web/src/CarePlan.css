@@ -98,7 +98,7 @@
     margin: 0 0 0.4rem 0;
 }
 
-.careplan-step-loinc {
+.careplan-step-code {
     font-size: var(--font-size-xs);
     color: var(--text-faint);
     font-weight: 400;

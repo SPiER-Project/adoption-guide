@@ -14,6 +14,7 @@
  */
 
 export type { CarePlanActivity, GeneratedCarePlan } from './shared'
+export { CAMS_SECTION_SYSTEM, LOINC_SYSTEM } from './shared'
 
 export { generateCarePlan } from './stanleyBrown'
 export { generateStabilizationCarePlan } from './camsStabilization'
