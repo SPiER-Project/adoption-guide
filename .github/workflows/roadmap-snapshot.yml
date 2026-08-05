@@ -41,8 +41,16 @@ on:
   workflow_dispatch:
 
 # The repo default is read-only, so these have to be requested explicitly.
+#
+# `issues: read` is load-bearing and easy to lose: declaring a `permissions:`
+# block at all resets every *unlisted* scope to `none`, and GITHUB_TOKEN without
+# issues access does not get a 403 from /repos/{owner}/{repo}/issues — it gets
+# HTTP 200 and an empty array. The first dispatched run of this workflow (run
+# 31025525042) omitted it and cheerfully fetched 0 issues; only the sanity check
+# below stopped it from proposing a PR that emptied the published roadmap.
 permissions:
   contents: write
+  issues: read
   pull-requests: write
 
 concurrency:
@@ -87,8 +95,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node web/scripts/fetch-roadmap.mjs
 
-      # Guard against a "successful" fetch that returned nothing. Without this,
-      # an empty or errored API response would open a PR that wipes the page.
+      # Guard against a "successful" fetch that returned nothing, or far less
+      # than it should have. fetch-roadmap.mjs treats an empty first page as a
+      # normal result, so an API that answers 200-with-[] (see the permissions
+      # note above) reaches this point looking like a legitimate refresh. Without
+      # these checks it would open a PR that empties the published page.
       - name: Sanity-check the new snapshot
         run: |
           if ! jq -e '.' "$SNAPSHOT" > /dev/null; then
@@ -104,7 +115,19 @@ jobs:
             echo "::error::fetch produced $count issues — refusing to propose an empty snapshot."
             exit 1
           fi
-          echo "snapshot holds $count issue(s)"
+          # A partial failure (scoped token, mid-pagination outage) can return
+          # *some* issues and still clear the >0 check, so also refuse an
+          # implausible drop. Issues are essentially never deleted here; the 10%
+          # slack covers the occasional transfer out of the repo. A legitimate
+          # larger drop needs a manual `npm run fetch-roadmap` and a hand-checked
+          # commit — deliberately, because it means the page loses content.
+          prior=$(jq '.issues | length' "$RUNNER_TEMP/before.json")
+          floor=$(( prior * 9 / 10 ))
+          if [ "$count" -lt "$floor" ]; then
+            echo "::error::fetch produced $count issues but the committed snapshot has $prior (floor $floor) — refusing a suspicious mass loss."
+            exit 1
+          fi
+          echo "snapshot holds $count issue(s); prior snapshot had $prior"
 
       - name: Detect content drift
         id: drift
