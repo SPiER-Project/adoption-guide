@@ -7,7 +7,7 @@ React + TypeScript + Vite.
 - `npm run dev` — local dev server. `predev` runs `copy-fhir` first.
 - `npm run build` — production build. `prebuild` runs `copy-fhir`.
 - `npm run copy-fhir` — compile FSH with sushi, copy generated JSON into `src/data/fhir/`, regenerate `src/data/catalog/care-plan-profiles.generated.ts`.
-- `npm run fetch-roadmap` — refresh `src/data/roadmap.generated.json` from GitHub Issues. Optional `GITHUB_TOKEN` env var for higher rate limit. The snapshot is committed so the build works offline.
+- `npm run fetch-roadmap` — refresh `src/data/roadmap.generated.json` from GitHub Issues. Optional `GITHUB_TOKEN` env var for higher rate limit. The snapshot is committed so the build works offline. A weekly workflow (`.github/workflows/roadmap-snapshot.yml`) runs this too and PRs the diff.
 - `npm run lint` — ESLint.
 - `npm run lint:css` — stylelint; enforces the design-token vocabulary (no raw hex / font-size / box-shadow outside `index.css`).
 

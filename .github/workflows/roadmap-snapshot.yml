@@ -1,0 +1,230 @@
+name: Roadmap — weekly snapshot refresh
+
+# The Roadmap page (/guide/roadmap) reads a *committed* snapshot at
+# web/src/data/roadmap.generated.json so the site always builds offline. Nothing
+# kept that snapshot in sync with GitHub Issues, and Roadmap.tsx derives each
+# tool's displayed build status from the snapshot's `status:` labels and renders
+# an excerpt of each issue's body — so label and body drift are both visible on
+# a published page (see issue #122).
+#
+# This workflow re-runs the fetch weekly and opens a PR when the *content*
+# changed. It deliberately does not commit on its own: the snapshot feeds a
+# published page, so a human sees the diff first.
+#
+# Three things worth knowing before you edit it:
+#
+# 1. Two timestamps move on their own and neither means the page changed:
+#    `fetchedAt` is rewritten on every single run, and each issue's `updatedAt`
+#    bumps on any activity including a comment. Both are normalized out of the
+#    drift key (see FINGERPRINT below) — when they are the only difference the
+#    file is reverted and the run is a green no-op. Consequence: the page's
+#    "snapshot fetched at" means "content captured at", not "last checked".
+#
+# 2. No `npm ci`. fetch-roadmap.mjs uses only Node builtins plus global fetch,
+#    so setup-node alone is the whole install.
+#
+# 3. The org forbids GitHub Actions from creating pull requests
+#    (`can_approve_pull_request_reviews: false`, enforced org-wide and not
+#    overridable per-repo). When that is the case the branch is still pushed and
+#    the job stays green with a warning plus a compare link in the run summary —
+#    but *only* for that specific refusal; any other `gh pr create` failure
+#    fails the job. To get real auto-PRs, either have an org admin allow it, or
+#    add a fine-grained PAT with contents+pull-requests write as the repo secret
+#    ROADMAP_PR_TOKEN — this workflow prefers it automatically, no code change.
+#    A PAT has a second benefit: pushes made with GITHUB_TOKEN do not trigger
+#    other workflows, so today's drift PR arrives with no web-lint run on it.
+
+on:
+  schedule:
+    # Mondays 13:17 UTC — off the hour, where the scheduler is less congested.
+    - cron: '17 13 * * 1'
+  workflow_dispatch:
+
+# The repo default is read-only, so these have to be requested explicitly.
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: roadmap-snapshot
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      SNAPSHOT: web/src/data/roadmap.generated.json
+      BRANCH: chore/roadmap-snapshot
+      # The drift key. Used for both the before and after fingerprints, so the
+      # later diff-summary step inherits the same normalization for free.
+      FINGERPRINT: '{repo, issues: (.issues | map(del(.updatedAt)))}'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Same token that pushes the branch below, so checkout persists
+          # credentials that can write.
+          token: ${{ secrets.ROADMAP_PR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Content fingerprint before the fetch, key-sorted so formatting can never
+      # register as drift. Two fields are normalized out — see note 1 above for
+      # `fetchedAt`, and note that `updatedAt` is typed in Roadmap.tsx but never
+      # rendered (only `closedAt` is), so a single comment on any issue would
+      # otherwise bump it and open a PR containing nothing user-visible. The
+      # committed file keeps both fields; they just don't get a vote on drift.
+      - name: Record snapshot content before fetch
+        run: jq -S "$FINGERPRINT" "$SNAPSHOT" > "$RUNNER_TEMP/before.json"
+
+      # Best-effort by design: the script preserves the prior snapshot when
+      # GitHub is unreachable, which then reads here as "no drift".
+      - name: Fetch roadmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node web/scripts/fetch-roadmap.mjs
+
+      # Guard against a "successful" fetch that returned nothing. Without this,
+      # an empty or errored API response would open a PR that wipes the page.
+      - name: Sanity-check the new snapshot
+        run: |
+          if ! jq -e '.' "$SNAPSHOT" > /dev/null; then
+            echo "::error::$SNAPSHOT is not valid JSON after the fetch."
+            exit 1
+          fi
+          if jq -e 'has("error")' "$SNAPSHOT" > /dev/null; then
+            echo "::error::snapshot carries an error field: $(jq -r '.error' "$SNAPSHOT")"
+            exit 1
+          fi
+          count=$(jq '.issues | length' "$SNAPSHOT")
+          if [ "$count" -lt 1 ]; then
+            echo "::error::fetch produced $count issues — refusing to propose an empty snapshot."
+            exit 1
+          fi
+          echo "snapshot holds $count issue(s)"
+
+      - name: Detect content drift
+        id: drift
+        run: |
+          jq -S "$FINGERPRINT" "$SNAPSHOT" > "$RUNNER_TEMP/after.json"
+          if diff -q "$RUNNER_TEMP/before.json" "$RUNNER_TEMP/after.json" > /dev/null; then
+            # Only the normalized-out timestamps moved — drop the churn so git
+            # history stays clean.
+            git checkout -- "$SNAPSHOT"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report no-op
+        if: steps.drift.outputs.changed == 'false'
+        run: |
+          {
+            echo "### Roadmap snapshot is current"
+            echo
+            echo "The tracker matches \`$SNAPSHOT\` (\`$(jq '.issues | length' "$SNAPSHOT")\` issues). No PR opened."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Which issues moved, so the reviewer can see the shape of the drift
+      # without reading a 3000-line JSON diff.
+      - name: Summarize the drift
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          jq -rn \
+            --slurpfile a "$RUNNER_TEMP/before.json" \
+            --slurpfile b "$RUNNER_TEMP/after.json" '
+            def listing($nums):
+              ($nums | length) as $n
+              | if $n > 25
+                then "\($n) — \($nums[0:25] | map("#\(.)") | join(", ")) … and \($n - 25) more"
+                else "\($n) — \($nums | map("#\(.)") | join(", "))"
+                end;
+            def section($label; $nums):
+              if ($nums | length) == 0 then empty
+              else "- **\($label):** \(listing($nums))" end;
+            ($a[0].issues | INDEX(.number | tostring)) as $A
+            | ($b[0].issues | INDEX(.number | tostring)) as $B
+            | ([$B | keys_unsorted[] | select($A[.] == null) | tonumber] | sort) as $added
+            | ([$A | keys_unsorted[] | select($B[.] == null) | tonumber] | sort) as $removed
+            | ([$A | keys_unsorted[]
+                 | select($B[.] != null and $B[.] != $A[.]) | tonumber] | sort) as $changed
+            | [ section("New issues"; $added),
+                section("No longer returned by the tracker"; $removed),
+                section("Updated (labels, title, state, or body)"; $changed) ]
+            | join("\n")
+          ' > "$RUNNER_TEMP/drift.md"
+
+          {
+            echo "The weekly roadmap fetch found drift between GitHub Issues and the"
+            echo "committed snapshot at \`$SNAPSHOT\`."
+            echo
+            cat "$RUNNER_TEMP/drift.md"
+            echo
+            echo "Labels drive the build status each tool renders with on \`/guide/roadmap\`, and"
+            echo "issue bodies are excerpted there, so both kinds of drift are user-visible."
+            echo
+            echo "Opened by [\`roadmap-snapshot.yml\`](../blob/main/.github/workflows/roadmap-snapshot.yml)"
+            echo "— run [\`$GITHUB_RUN_ID\`]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+            echo "Refs #122."
+            echo
+            echo "> Pushes made with \`GITHUB_TOKEN\` do not trigger other workflows, so this PR"
+            echo "> may arrive with no checks. Push an empty commit if you want \`web-lint\` on it."
+          } > "$RUNNER_TEMP/pr-body.md"
+
+          {
+            echo "### Roadmap snapshot drifted"
+            echo
+            cat "$RUNNER_TEMP/drift.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Push the refreshed snapshot
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -C "$BRANCH"
+          git add "$SNAPSHOT"
+          git commit -m 'chore: refresh roadmap snapshot from GitHub Issues' \
+                     -m "Regenerated by .github/workflows/roadmap-snapshot.yml (run $GITHUB_RUN_ID). Refs #122."
+          # This branch is machine-owned and always rebuilt from main, so a plain
+          # force-push is correct — there is never a human commit to lose.
+          git push --force origin "$BRANCH"
+
+      - name: Open or update the drift PR
+        if: steps.drift.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.ROADMAP_PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --body-file "$RUNNER_TEMP/pr-body.md"
+            echo "Updated existing PR #$existing." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if gh pr create --base main --head "$BRANCH" \
+               --title 'chore: refresh roadmap snapshot from GitHub Issues' \
+               --body-file "$RUNNER_TEMP/pr-body.md" 2> "$RUNNER_TEMP/pr-err.txt"; then
+            exit 0
+          fi
+          cat "$RUNNER_TEMP/pr-err.txt"
+
+          # The one tolerated failure: org policy forbidding Actions from
+          # opening PRs. The branch is pushed, so the work is not lost.
+          if grep -qi 'not permitted to create or approve pull requests' "$RUNNER_TEMP/pr-err.txt"; then
+            compare="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...$BRANCH?expand=1"
+            echo "::warning::GitHub Actions may not open PRs in this org. Branch $BRANCH is pushed — open the PR manually."
+            {
+              echo
+              echo "Branch \`$BRANCH\` is pushed, but this org forbids GitHub Actions from opening"
+              echo "pull requests. **[Open the PR manually]($compare)**, or add a \`ROADMAP_PR_TOKEN\`"
+              echo "secret to automate it."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "::error::gh pr create failed for an unexpected reason (see the output above)."
+          exit 1
