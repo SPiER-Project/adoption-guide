@@ -1,0 +1,327 @@
+name: Terminology — nightly external-code check
+
+# Verifies every LOINC and SNOMED CT code SPiER asserts against a live terminology
+# server, and opens (or updates) a single tracking issue when anything drifts.
+#
+# ─── Why this exists ─────────────────────────────────────────
+#
+# Issue #220: six LOINC codes the repo emitted for safety-plan sections did not
+# exist in LOINC, and a seventh (81344-4) resolved to healthcare-agent disclosure
+# authority rather than "reason for living". They survived for months because
+# nothing checked external terminology on the paths they lived on:
+#
+#   - `scripts/validate-fhir.mjs` runs with `-tx n/a` in ig.yml so the gate stays
+#     fast and offline-reproducible. That means LOINC and SNOMED are NOT checked
+#     there — only SPiER-local CodeSystems are.
+#   - The IG Publisher *does* check external terminology, but is triggered by
+#     `ig/**` alone. The offending codes lived in `FHIR-Resources/` and in
+#     TypeScript mappers, so it never saw them.
+#   - Nothing at all validated terminology written in TypeScript, even though the
+#     mappers build `Observation.code.coding` from hand-written literals at
+#     runtime. Fixing #220 turned up three further drifted displays that existed
+#     only in TS and no amount of resource validation would ever have caught.
+#
+# This workflow closes both halves nightly rather than per-PR, because both checks
+# need a terminology server and would otherwise make every PR depend on
+# tx.fhir.org being up.
+#
+# ─── Two things worth knowing before editing ─────────────────
+#
+# 1. Both checks are built to fail loudly when they verify *nothing*.
+#    check-codings.mjs exits non-zero if its extractor finds implausibly few
+#    codings, and treats an unreachable server as failure rather than as "no
+#    drift". validate-fhir.mjs has its own guards for the same class of bug (see
+#    the "a validator warning can mean nothing was checked" note in CLAUDE.md).
+#    Preserve that property: a nightly job nobody watches is worthless if its
+#    green can mean "did not look".
+#
+# 2. The issue-reporting step is best-effort and its failure never masks a drift
+#    failure. This org restricts what Actions may do — `roadmap-snapshot.yml`
+#    documents Actions being forbidden from opening *pull requests* org-wide. That
+#    restriction does not cover issues, but that has not been observed here yet:
+#    until the first dispatched run confirms it, treat the run summary as the
+#    reliable output and the issue as a convenience.
+
+on:
+  schedule:
+    # 04:41 UTC daily — off the hour, and after the US-evening push window.
+    - cron: '41 4 * * *'
+  workflow_dispatch:
+  # Also run when the checks themselves change, so a broken check is caught at
+  # PR time rather than at 04:41 the next morning.
+  pull_request:
+    paths:
+      - 'web/scripts/check-codings.mjs'
+      - 'scripts/validate-fhir.mjs'
+      - '.github/workflows/terminology-nightly.yml'
+
+# The repo default is read-only, and declaring this block at all resets every
+# *unlisted* scope to `none` — the trap that made roadmap-snapshot.yml fetch 0
+# issues on its first run. `issues: write` lets the report job file the tracking
+# issue, `contents: read` lets checkout work, and `actions: read` is what
+# download-artifact needs to pull the two logs across jobs. Dropping any one of
+# them degrades this workflow quietly rather than loudly.
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+concurrency:
+  group: terminology-nightly
+  cancel-in-progress: false
+
+env:
+  TX_SERVER: https://tx.fhir.org
+
+jobs:
+  # Terminology written in TypeScript. Nothing else in CI looks at this.
+  codings:
+    name: Codings in application code
+    runs-on: ubuntu-latest
+    outputs:
+      failed: ${{ steps.run.outcome == 'failure' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No `npm ci`. check-codings.mjs uses only Node builtins plus global fetch,
+      # so setup-node alone is the whole install.
+      - name: Check external codings
+        id: run
+        continue-on-error: true
+        run: |
+          node web/scripts/check-codings.mjs --tx "$TX_SERVER" 2>&1 | tee "$RUNNER_TEMP/codings.log"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Summarize
+        run: |
+          {
+            echo "### Codings in application code"
+            echo
+            if [ '${{ steps.run.outcome }}' = 'success' ]; then
+              echo 'No drift.'
+            else
+              echo '<details><summary>Drift found — full output</summary>'
+              echo
+              echo '```'
+              tail -c 40000 "$RUNNER_TEMP/codings.log"
+              echo '```'
+              echo
+              echo '</details>'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codings-log
+          path: ${{ runner.temp }}/codings.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  # Terminology in FHIR resources, this time WITH a terminology server — the
+  # coverage ig.yml deliberately gives up by running `-tx n/a`.
+  resources:
+    name: FHIR resources against the terminology server
+    runs-on: ubuntu-latest
+    outputs:
+      failed: ${{ steps.run.outcome == 'failure' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Sushi
+        run: npm install -g fsh-sushi
+
+      # Compiled here rather than reused from ig.yml: this workflow runs on a
+      # schedule, so there is no upstream job whose artifact it could download.
+      - name: Compile FSH
+        working-directory: ./ig
+        run: sushi .
+
+      - name: Read pinned validator version
+        id: validator
+        run: |
+          version=$(sed -n "s/^const VALIDATOR_VERSION = '\(.*\)'$/\1/p" scripts/validate-fhir.mjs)
+          if [ -z "$version" ]; then
+            echo "::error::could not read VALIDATOR_VERSION from scripts/validate-fhir.mjs"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Cache validator jar
+        uses: actions/cache@v4
+        with:
+          path: .fhir-validator
+          key: fhir-validator-${{ steps.validator.outputs.version }}
+
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
+      - name: Validate with terminology server
+        id: run
+        continue-on-error: true
+        run: |
+          node scripts/validate-fhir.mjs --tx "$TX_SERVER" 2>&1 | tee "$RUNNER_TEMP/resources.log"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Summarize
+        run: |
+          {
+            echo "### FHIR resources (with terminology server)"
+            echo
+            if [ '${{ steps.run.outcome }}' = 'success' ]; then
+              echo 'No drift.'
+            else
+              echo '<details><summary>Drift found — errors only</summary>'
+              echo
+              echo '```'
+              grep -B1 '\[error\]' "$RUNNER_TEMP/resources.log" | tail -c 40000 || tail -c 40000 "$RUNNER_TEMP/resources.log"
+              echo '```'
+              echo
+              echo '</details>'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resources-log
+          path: ${{ runner.temp }}/resources.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  # One tracking issue, reused across nights, so a persistent drift does not
+  # produce a new issue every morning.
+  #
+  # This job is also the ONLY place the run is failed. Both checks above use
+  # `continue-on-error` so that a failure in one still lets the other report — which
+  # means their own job status is always green, and something has to convert drift
+  # into a red run. It runs on pull_request too: gating it on schedule-only would
+  # have made a PR that breaks either check look like it passed.
+  report:
+    name: Report
+    needs: [codings, resources]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TITLE: 'Terminology drift: external codes no longer validate'
+      DRIFTED: ${{ needs.codings.outputs.failed == 'true' || needs.resources.outputs.failed == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download logs
+        if: env.DRIFTED == 'true' && github.event_name != 'pull_request'
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/logs
+          merge-multiple: true
+
+      # Issue bookkeeping is skipped on PRs — a PR should get a red check, not a
+      # tracking issue edited on its behalf.
+      - name: Find the existing tracking issue
+        id: existing
+        if: github.event_name != 'pull_request'
+        run: |
+          # Matched on exact title rather than a label, so the workflow does not
+          # depend on a label existing in the repo.
+          number=$(gh issue list --state open --limit 100 \
+                     --json number,title \
+                     --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          echo "existing issue: ${number:-none}"
+
+      - name: Compose the report
+        if: env.DRIFTED == 'true' && github.event_name != 'pull_request'
+        run: |
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          {
+            echo "The nightly terminology check found codes or displays that no longer"
+            echo "validate against \`$TX_SERVER\`."
+            echo
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| Codings in application code (\`web/scripts/check-codings.mjs\`) | ${{ needs.codings.outputs.failed == 'true' && 'drift' || 'clean' }} |"
+            echo "| FHIR resources (\`scripts/validate-fhir.mjs --tx\`) | ${{ needs.resources.outputs.failed == 'true' && 'drift' || 'clean' }} |"
+            echo
+            for log in "$RUNNER_TEMP"/logs/*.log; do
+              [ -f "$log" ] || continue
+              echo "<details><summary><code>$(basename "$log")</code></summary>"
+              echo
+              echo '```'
+              tail -c 20000 "$log"
+              echo '```'
+              echo
+              echo '</details>'
+              echo
+            done
+            echo "Full logs: [run \`$GITHUB_RUN_ID\`]($run_url)."
+            echo
+            echo "**Fix the code, not the expectation.** Every display must be one the"
+            echo "publishing authority actually allows — that is the discipline #220 was"
+            echo "about. Confirm replacements with \`\$validate-code\` before writing them."
+            echo
+            echo "Opened by [\`terminology-nightly.yml\`](../blob/main/.github/workflows/terminology-nightly.yml). Refs #220."
+          } > "$RUNNER_TEMP/body.md"
+
+      - name: Open or update the tracking issue
+        if: env.DRIFTED == 'true' && github.event_name != 'pull_request'
+        run: |
+          set +e
+          if [ -n '${{ steps.existing.outputs.number }}' ]; then
+            gh issue edit '${{ steps.existing.outputs.number }}' \
+              --body-file "$RUNNER_TEMP/body.md" 2> "$RUNNER_TEMP/err.txt"
+          else
+            gh issue create --title "$TITLE" \
+              --body-file "$RUNNER_TEMP/body.md" 2> "$RUNNER_TEMP/err.txt"
+          fi
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            cat "$RUNNER_TEMP/err.txt"
+            # Never let a reporting failure hide the drift: warn, and let the
+            # final gate below fail the run on the drift itself.
+            echo "::warning::could not file the tracking issue — see the run summary for the drift."
+            {
+              echo
+              echo "> Filing the tracking issue failed. If this org restricts Actions from"
+              echo "> creating issues, the run summary above is the report."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Close the loop so a fixed repo does not leave a stale open issue.
+      - name: Close the tracking issue when clean
+        if: env.DRIFTED != 'true' && steps.existing.outputs.number != '' && github.event_name != 'pull_request'
+        run: |
+          gh issue close '${{ steps.existing.outputs.number }}' \
+            --comment "All external codes validate against \`$TX_SERVER\` again as of run $GITHUB_RUN_ID. Closing." \
+            || echo "::warning::could not close the tracking issue."
+
+      # The job's own status is the signal a human sees on the Actions tab.
+      - name: Fail the run if anything drifted
+        if: env.DRIFTED == 'true'
+        run: |
+          echo "::error::terminology drift detected — see the tracking issue and the run summary."
+          exit 1

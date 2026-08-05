@@ -29,6 +29,13 @@ npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
 npm test                 # vitest
 ```
 
+Deliberately **not** in `verify`, because it needs a terminology server and so
+cannot be offline-reproducible — it runs nightly instead:
+```
+npm run check:codings    # every LOINC/SNOMED code+display literal in web/src, services/
+                         # and docs/terminology-manifest.json, checked against tx.fhir.org
+```
+
 In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
 thing and fails in a fresh worktree:
 ```
@@ -50,14 +57,24 @@ does. It imports the web catalog, so a change to `tool-ui-metadata.ts` (launch
 actions especially) or to the population scenarios can break its tests without
 anything in `web/` failing.
 
-⚠️ **`sushi` does not validate everything.** Three separate gates cover three
-different classes of problem, and a clean SUSHI run implies neither of the others:
+⚠️ **`sushi` does not validate everything.** Four separate gates cover four
+different classes of problem, and a clean SUSHI run implies none of the others:
 
 | Gate | Catches | Where |
 |---|---|---|
 | `npx fsh-sushi .` | FSH syntax, unresolved FSH references | `ig.yml` |
 | `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
 | IG Publisher | FHIRPath invariants, narrative link integrity | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
+| `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC/SNOMED codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
+
+That fourth row exists because of issue #220: seven LOINC codes SPiER emitted for
+safety-plan sections were fabricated or misused, and no gate could see them. Six
+did not exist in LOINC; `81344-4` resolved to healthcare-agent disclosure
+authority rather than "reason for living", so it validated cleanly while meaning
+the wrong thing. The blind spot had two halves — `validate-fhir.mjs` runs `-tx n/a`
+in CI so external codes go unchecked, and **nothing at all** validated the
+code+display literals in `web/src/lib/*Mappers/`, even though those land in
+`Observation.code.coding` on every generated resource at runtime.
 
 The validator job is the only thing that checks `FHIR-Resources/` at all — the IG
 Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you can
