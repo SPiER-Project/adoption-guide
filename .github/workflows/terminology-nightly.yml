@@ -178,12 +178,31 @@ jobs:
           restore-keys: |
             fhir-packages-
 
+      # Retried once, because tx.fhir.org does fail transiently under load: a run
+      # during development died with "validator produced no output (exit 1)" and
+      # the identical invocation succeeded moments later with 0 errors. Without a
+      # retry that becomes a spurious drift issue filed overnight, which is how a
+      # nightly check trains people to ignore it. Two consecutive failures still
+      # report — this narrows false positives, it does not suppress real ones.
       - name: Validate with terminology server
         id: run
         continue-on-error: true
         run: |
-          node scripts/validate-fhir.mjs --tx "$TX_SERVER" 2>&1 | tee "$RUNNER_TEMP/resources.log"
-          exit "${PIPESTATUS[0]}"
+          # NB: the pipeline's status must be read from PIPESTATUS[0], never by
+          # putting it in an `if`. `if node … | tee …; then` tests *tee*, which
+          # essentially always succeeds — a failing validator would read as a pass.
+          for attempt in 1 2; do
+            node scripts/validate-fhir.mjs --tx "$TX_SERVER" 2>&1 | tee "$RUNNER_TEMP/resources.log"
+            status="${PIPESTATUS[0]}"
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$attempt" = 1 ]; then
+              echo "::warning::validate-fhir failed (exit $status) — retrying once in 60s."
+              sleep 60
+            fi
+          done
+          exit "$status"
 
       - name: Summarize
         run: |
