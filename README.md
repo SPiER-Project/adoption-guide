@@ -65,6 +65,7 @@ Workflow:
 
 - Create and edit issues in GitHub directly — Issues is the source of truth. The label taxonomy already exists on the repo; there is no seed step.
 - Refresh the site's snapshot after editing issues: `node web/scripts/fetch-roadmap.mjs`. The result is committed.
+- Or let it catch up on its own: [`roadmap-snapshot.yml`](.github/workflows/roadmap-snapshot.yml) re-runs that fetch every Monday and opens a PR when the tracker and the snapshot disagree. Timestamp-only churn is discarded, so a PR means something actually changed. `gh workflow run roadmap-snapshot.yml` triggers it on demand.
 
 Label conventions: `tool:TL-XXX`, `priority:p1|p2|p3`, `status:built|planned|future`, `type:epic|task`, `stage:<slug>`, `area:<slug>`.
 
