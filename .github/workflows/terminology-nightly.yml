@@ -78,8 +78,6 @@ jobs:
   codings:
     name: Codings in application code
     runs-on: ubuntu-latest
-    outputs:
-      failed: ${{ steps.run.outcome == 'failure' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -92,12 +90,12 @@ jobs:
       # so setup-node alone is the whole install.
       - name: Check external codings
         id: run
-        continue-on-error: true
         run: |
           node web/scripts/check-codings.mjs --tx "$TX_SERVER" 2>&1 | tee "$RUNNER_TEMP/codings.log"
           exit "${PIPESTATUS[0]}"
 
       - name: Summarize
+        if: always()
         run: |
           {
             echo "### Codings in application code"
@@ -129,8 +127,6 @@ jobs:
   resources:
     name: FHIR resources against the terminology server
     runs-on: ubuntu-latest
-    outputs:
-      failed: ${{ steps.run.outcome == 'failure' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -186,7 +182,6 @@ jobs:
       # report — this narrows false positives, it does not suppress real ones.
       - name: Validate with terminology server
         id: run
-        continue-on-error: true
         run: |
           # NB: the pipeline's status must be read from PIPESTATUS[0], never by
           # putting it in an `if`. `if node … | tee …; then` tests *tee*, which
@@ -205,6 +200,7 @@ jobs:
           exit "$status"
 
       - name: Summarize
+        if: always()
         run: |
           {
             echo "### FHIR resources (with terminology server)"
@@ -234,11 +230,15 @@ jobs:
   # One tracking issue, reused across nights, so a persistent drift does not
   # produce a new issue every morning.
   #
-  # This job is also the ONLY place the run is failed. Both checks above use
-  # `continue-on-error` so that a failure in one still lets the other report — which
-  # means their own job status is always green, and something has to convert drift
-  # into a red run. It runs on pull_request too: gating it on schedule-only would
-  # have made a PR that breaks either check look like it passed.
+  # Both checks above fail their own job honestly, so the checks list shows *which*
+  # one drifted. An earlier version gave them `continue-on-error: true` and made this
+  # job the sole red signal — but that made the codings job report "pass" in the PR
+  # checks list while its own log showed six drifted codings. That is the same
+  # looks-green-verified-nothing problem these checks exist to catch, so it had to go.
+  #
+  # This job aggregates `needs.*.result`, and still fails the run itself so the
+  # summary and tracking issue are produced even when both checks fail. It runs on
+  # pull_request too: a PR breaking either check must not look like it passed.
   report:
     name: Report
     needs: [codings, resources]
@@ -247,7 +247,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TITLE: 'Terminology drift: external codes no longer validate'
-      DRIFTED: ${{ needs.codings.outputs.failed == 'true' || needs.resources.outputs.failed == 'true' }}
+      DRIFTED: ${{ needs.codings.result == 'failure' || needs.resources.result == 'failure' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -282,8 +282,8 @@ jobs:
             echo
             echo "| Check | Result |"
             echo "|---|---|"
-            echo "| Codings in application code (\`web/scripts/check-codings.mjs\`) | ${{ needs.codings.outputs.failed == 'true' && 'drift' || 'clean' }} |"
-            echo "| FHIR resources (\`scripts/validate-fhir.mjs --tx\`) | ${{ needs.resources.outputs.failed == 'true' && 'drift' || 'clean' }} |"
+            echo "| Codings in application code (\`web/scripts/check-codings.mjs\`) | ${{ needs.codings.result == 'failure' && 'drift' || 'clean' }} |"
+            echo "| FHIR resources (\`scripts/validate-fhir.mjs --tx\`) | ${{ needs.resources.result == 'failure' && 'drift' || 'clean' }} |"
             echo
             for log in "$RUNNER_TEMP"/logs/*.log; do
               [ -f "$log" ] || continue
