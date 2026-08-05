@@ -66,9 +66,13 @@ describe('walkItems', () => {
 
 describe('getCodingAnswer / getBooleanAnswer', () => {
   it('reads the first answer.valueCoding', () => {
+    // Synthetic code on an example system, not `http://loinc.org#LA1` — this test
+    // exercises answer traversal, not terminology, and a fixture that claims LOINC
+    // for a code LOINC does not publish is how a fabricated code starts to look
+    // legitimate. See issue #220.
     const item: QuestionnaireResponseItem = {
       linkId: 'x',
-      answer: [{ valueCoding: { system: 'http://loinc.org', code: 'LA1' } }],
+      answer: [{ valueCoding: { system: 'http://example.org/test-codes', code: 'LA1' } }],
     }
     expect(getCodingAnswer(item)?.code).toBe('LA1')
   })
@@ -137,7 +141,7 @@ describe('highestRiskLevel', () => {
 })
 
 describe('makeObservation', () => {
-  const baseCode = { system: 'http://loinc.org', code: '44261-6', display: 'PHQ-9 total' }
+  const baseCode = { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]' }
 
   it('stamps a uniform survey Observation shell', () => {
     const obs = makeObservation({
@@ -152,7 +156,7 @@ describe('makeObservation', () => {
     expect(obs.status).toBe('final')
     expect(view(obs).category?.[0]?.coding?.[0]?.code).toBe('survey')
     expect(obs.code?.coding?.[0]).toEqual(baseCode)
-    expect(obs.code?.text).toBe('PHQ-9 total')
+    expect(obs.code?.text).toBe('Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]')
     expect(view(obs).subject?.reference).toBe('Patient/demo-patient')
     expect(obs.effectiveDateTime).toBeDefined()
   })

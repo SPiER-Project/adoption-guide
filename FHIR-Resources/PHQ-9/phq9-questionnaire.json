@@ -19,7 +19,7 @@
     {
       "system": "http://loinc.org",
       "code": "44249-1",
-      "display": "PHQ-9 quick depression assessment panel"
+      "display": "PHQ-9 quick depression assessment panel [Reported.PHQ]"
     }
   ],
   "item": [
@@ -631,7 +631,7 @@
         {
           "system": "http://loinc.org",
           "code": "44261-6",
-          "display": "Patient Health Questionnaire 9 item total score"
+          "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
         }
       ],
       "extension": [
@@ -658,7 +658,7 @@
         {
           "system": "http://loinc.org",
           "code": "69722-7",
-          "display": "How difficult have these problems made it for you"
+          "display": "How difficult have these made it for you to do your work, take care of things at home, or get along with other people [Reported.PHQ]"
         }
       ],
       "answerOption": [

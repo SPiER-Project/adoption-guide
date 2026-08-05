@@ -90,7 +90,7 @@ const PHQ9_ITEM9_EXAMPLE = {
   id: 'phq9-item9-example',
   status: 'final',
   category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead or of hurting yourself' }] },
+  code: { coding: [{ system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' }] },
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-03-19T10:30:00Z',
   valueInteger: 2,

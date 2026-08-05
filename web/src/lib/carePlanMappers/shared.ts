@@ -21,6 +21,15 @@ export type { QuestionnaireResponseItem, QuestionnaireResponseResource } from '.
 /** Terminology systems a CarePlan section code can come from. */
 export const LOINC_SYSTEM = 'http://loinc.org'
 export const CAMS_SECTION_SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-section'
+/**
+ * Section codes shared by the Stanley-Brown Safety Plan and the Crisis Response
+ * Plan. SPiER-local: LOINC publishes nothing at safety-plan-section granularity.
+ * Replaced seven LOINC codes that were asserted here for months — six of which
+ * do not exist in LOINC, while 81344-4 resolves to healthcare-agent disclosure
+ * authority rather than "reason for living" (issue #220). See
+ * ig/input/fsh/safety-plan-section.fsh for the search behind that.
+ */
+export const SAFETY_PLAN_SECTION_SYSTEM = 'http://spier.org/CodeSystem/safety-plan-section'
 
 export interface CarePlanActivity {
   stepTitle: string
@@ -145,6 +154,17 @@ export function makeSuicidePreventionCarePlan(options: {
   noteText: string
   activities: CarePlanActivity[]
   hasAnyData: boolean
+  /**
+   * Extra `category` codings appended after the SNOMED treatment-escalation-plan
+   * code. The narrative safety plans (Stanley-Brown, CRP) pass LOINC 87626-8
+   * "Suicide prevention note" here — the one real, verified standard code that
+   * applies to these artifacts, at document rather than section level.
+   *
+   * Opt-in rather than unconditional: the CAMS CarePlans share this factory, and
+   * their IG examples (#219) do not carry 87626-8, so emitting it for everyone
+   * would put the runtime output out of step with the published examples.
+   */
+  extraCategories?: Array<{ system: string; code: string; display: string }>
 }): GeneratedCarePlan {
   const resource: CarePlanResource = {
     resourceType: 'CarePlan',
@@ -164,6 +184,7 @@ export function makeSuicidePreventionCarePlan(options: {
           },
         ],
       },
+      ...(options.extraCategories ?? []).map(c => ({ coding: [c] })),
     ],
     subject: {
       reference: 'Patient/demo-patient',

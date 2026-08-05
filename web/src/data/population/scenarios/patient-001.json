@@ -197,18 +197,18 @@
       "meta": { "profile": ["http://hl7.org/fhir/us/ecareplan/StructureDefinition/us-ecareplan"] },
       "status": "active",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }],
+      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }, { "coding": [{ "system": "http://loinc.org", "code": "87626-8", "display": "Suicide prevention note" }] }],
       "subject": { "reference": "Patient/patient-001" },
       "addresses": [{ "display": "Risk for suicide" }],
       "_savedAt": "2026-03-15T14:00:00Z",
       "activity": [
-        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76689-1" }], "text": "Step 1: Warning Signs" }, "status": "in-progress", "description": "Feeling trapped, chest tightness, racing thoughts at night, withdrawing from friends" } },
-        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76690-9" }], "text": "Step 2: Internal Coping Strategies" }, "status": "in-progress", "description": "Deep breathing exercises, going for a walk, listening to music, journaling" } },
-        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76691-7" }], "text": "Step 3: Social Distractions" }, "status": "in-progress", "description": "Call sister Maria, visit coffee shop on Main St, go to the gym" } },
-        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76692-5" }], "text": "Step 4: Crisis Support Contacts" }, "status": "in-progress", "description": "Maria Doe (555-0101), best friend Tom (555-0102)" } },
-        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76693-3" }], "text": "Step 5: Professional Support" }, "status": "in-progress", "description": "Dr. Sarah Chen (555-0200) / City General ED, 100 Hospital Dr (555-0300) / 988 Suicide & Crisis Lifeline" } },
-        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "76694-1" }], "text": "Step 6: Lethal Means Safety" }, "status": "in-progress", "description": "Gave prescription medications to sister Maria for safekeeping, removed sharp objects from bedroom" } },
-        { "detail": { "code": { "coding": [{ "system": "http://loinc.org", "code": "81344-4" }], "text": "Step 7: Reason for Living" }, "status": "in-progress", "description": "My niece Sofia — I want to see her grow up" } }
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "warning-signs" }], "text": "Step 1: Warning Signs" }, "status": "in-progress", "description": "Feeling trapped, chest tightness, racing thoughts at night, withdrawing from friends" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "internal-coping" }], "text": "Step 2: Internal Coping Strategies" }, "status": "in-progress", "description": "Deep breathing exercises, going for a walk, listening to music, journaling" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "social-distraction" }], "text": "Step 3: Social Distractions" }, "status": "in-progress", "description": "Call sister Maria, visit coffee shop on Main St, go to the gym" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "crisis-support" }], "text": "Step 4: Crisis Support Contacts" }, "status": "in-progress", "description": "Maria Doe (555-0101), best friend Tom (555-0102)" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "professional-support" }], "text": "Step 5: Professional Support" }, "status": "in-progress", "description": "Dr. Sarah Chen (555-0200) / City General ED, 100 Hospital Dr (555-0300) / 988 Suicide & Crisis Lifeline" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "lethal-means-safety" }], "text": "Step 6: Lethal Means Safety" }, "status": "in-progress", "description": "Gave prescription medications to sister Maria for safekeeping, removed sharp objects from bedroom" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "reason-for-living" }], "text": "Step 7: Reason for Living" }, "status": "in-progress", "description": "My niece Sofia — I want to see her grow up" } }
       ],
       "note": [{ "text": "DEMO SCENARIO — Safety plan created collaboratively during session 2." }]
     },

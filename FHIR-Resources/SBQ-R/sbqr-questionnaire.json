@@ -356,7 +356,7 @@
         {
           "system": "http://snomed.info/sct",
           "code": "225337009",
-          "display": "Suicide risk assessment score"
+          "display": "Suicide risk assessment (procedure)"
         }
       ],
       "extension": [

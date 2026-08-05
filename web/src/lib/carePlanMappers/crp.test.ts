@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { generateCrisisResponseCarePlan } from './crp'
 import type { QuestionnaireResponseResource } from '../../types/fhir'
 
-type Activity = { detail?: { code?: { text?: string; coding?: Array<{ code?: string }> }; description?: string } }
+type Activity = { detail?: { code?: { text?: string; coding?: Array<{ system?: string; code?: string }> }; description?: string } }
 
 function crpResponse(answers: Record<string, string[]>): QuestionnaireResponseResource {
   return {
@@ -39,8 +39,9 @@ describe('generateCrisisResponseCarePlan', () => {
     const activity = plan.resource.activity as Activity[]
     const warning = activity.find(a => a.detail?.code?.text === 'Warning Signs')
     expect(warning?.detail?.description).toBe('racing thoughts; skipping meals')
-    // reuses the Stanley-Brown warning-signs LOINC
-    expect(warning?.detail?.code?.coding?.[0]?.code).toBe('76689-1')
+    // shares the Stanley-Brown warning-signs section code
+    expect(warning?.detail?.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/safety-plan-section')
+    expect(warning?.detail?.code?.coding?.[0]?.code).toBe('warning-signs')
   })
 
   it('empty response → isEmpty true with placeholder descriptions', () => {

@@ -52,6 +52,57 @@ Description: "All four C-SSRS derived risk levels."
 * include codes from system CSSRSRiskLevelCodes
 
 
+// ─── Interval-scoped item codes (Since Last Visit/Contact) ───
+//
+// LOINC codes every C-SSRS item per *timeframe*: a Lifetime variant, a 1-month
+// variant for the ideation items and a 3-month variant for the behaviour items.
+// It publishes nothing for "since the patient's last visit or contact", which is
+// the whole point of the Since Last Visit administration — the interval is
+// whatever has elapsed, from days to many months.
+//
+// The Since Last Visit Questionnaire previously carried the 1-month ideation
+// codes (93246-7 … 93250-9) and the Lifetime preparatory-acts code (93267-3).
+// Those resolve, so no gate objected, but they assert a window the instrument
+// does not claim — a receiving system would read interval data as past-month
+// data. Issue #220.
+//
+// The only non-timeframed C-SSRS codes LOINC offers are the two section panels
+// (93278-0 "Suicidal ideation [C-SSRS]", 93304-4 "Suicidal behavior [C-SSRS]"),
+// which the Questionnaire now carries at group level. They cannot identify
+// individual items, so the six extracted per-item Observations bind here
+// instead. Every use is tagged #no-standard-binding.
+//
+// Item semantics are otherwise identical to the screener's, so a consumer that
+// needs to compare across administrations should read the LOINC panel code on
+// the section plus these item codes, or use the derived risk-level Observation,
+// which is timeframe-agnostic and shared by every C-SSRS variant.
+
+CodeSystem: CSSRSIntervalItemCodes
+Id: cssrs-interval-item
+Title: "C-SSRS Interval-Scoped Item Codes"
+Description: "SPiER-local per-item codes for the C-SSRS Since Last Visit / Since Last Contact administration, whose reference period is the interval since the patient's prior contact. Local because LOINC codes C-SSRS items only for Lifetime, 1-month and 3-month windows, none of which matches this administration; using a LOINC item code here would assert a reference period the instrument does not claim."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+
+* #wish-to-be-dead "Wish to be dead (since last contact)" "Item 1 — wished to be dead or to go to sleep and not wake up, during the interval since the patient's last visit or contact."
+* #non-specific-active-thoughts "Non-specific active suicidal thoughts (since last contact)" "Item 2 — had any thoughts of killing oneself, during the interval since the patient's last visit or contact."
+* #active-ideation-any-methods "Active suicidal ideation with any methods, without intent to act (since last contact)" "Item 3 — thought about how one might do it, without intent to act, during the interval since the patient's last visit or contact."
+* #active-ideation-some-intent "Active suicidal ideation with some intent to act, without specific plan (since last contact)" "Item 4 — had such thoughts with some intention of acting on them, during the interval since the patient's last visit or contact."
+* #active-ideation-plan-and-intent "Active suicidal ideation with specific plan and intent (since last contact)" "Item 5 — worked out details of a plan and intends to carry it out, during the interval since the patient's last visit or contact."
+* #suicidal-behavior "Suicidal behavior (since last contact)" "Item 6 — did anything, started to do anything, or prepared to do anything to end one's life, during the interval since the patient's last visit or contact. Covers the composite of actual, interrupted and aborted attempts and preparatory acts, as the screener's item 6 does."
+
+
+ValueSet: CSSRSIntervalItem
+Id: cssrs-interval-item
+Title: "C-SSRS Interval-Scoped Item"
+Description: "The six C-SSRS Since Last Visit / Since Last Contact items, as used in Questionnaire.item.code and the extracted per-item Observation.code."
+* ^status = #draft
+* ^experimental = true
+* include codes from system CSSRSIntervalItemCodes
+
+
 // ─── Shared Observation profile ──────────────────────────────
 
 Profile: SPiERCSSRSRiskLevel

@@ -30,7 +30,7 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
   observations.push(
     makeObservation({
       id: `phq9-total-${Date.now()}`,
-      code: { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item total score' },
+      code: { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]' },
       value: totalScore,
       valueType: 'integer',
       interpretation: {
@@ -49,7 +49,7 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
   observations.push(
     makeObservation({
       id: `phq9-item9-${Date.now()}`,
-      code: { system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead or of hurting yourself' },
+      code: { system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' },
       value: item9Score,
       valueType: 'integer',
       interpretation: item9Score > 0

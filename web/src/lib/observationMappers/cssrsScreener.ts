@@ -1,13 +1,51 @@
 import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
+/** The code that identifies one C-SSRS item in an extracted Observation. */
+export interface CSSRSItemCoding {
+  linkId: string
+  system: string
+  code: string
+  display: string
+}
+
 /**
- * The C-SSRS 6-item screener and the C-SSRS "Since Last Visit / Since Last
- * Contact" version share an identical item set (q1–q6, q6-recent), LOINC coding,
- * conditional logic, and three-tier risk stratification — the only difference is
- * the administration reference period. Both dispatch to this shared core; the
- * `toolLabel` distinguishes them in the emitted Observations and RiskAlert.
+ * Per-item codes for the past-month screener administrations (Screener and
+ * Pediatric). LOINC's C-SSRS item codes are timeframe-specific, and these are the
+ * 1-month ideation variants plus the Lifetime preparatory-acts code for the
+ * composite behaviour question — which is what those two forms actually ask.
+ *
+ * These displays land in Observation.code.coding[0].display, so they are LOINC's
+ * own strings verbatim, not friendly paraphrases. The abbreviated labels used here
+ * previously ("Suicidal behavior (ever)" for 93267-3, etc.) were the same class of
+ * silent drift as issue #220: runtime-only, so no gate ever saw them. Every pair
+ * was confirmed via $validate-code against LOINC 2.82.
  */
-export function mapCSSRSScreenerCore(response: QuestionnaireResponseResource, toolLabel: string): MapperResult {
+export const CSSRS_SCREENER_ITEM_CODES: CSSRSItemCoding[] = [
+  { linkId: 'q1', system: 'http://loinc.org', code: '93246-7', display: 'Wish to be dead 1 month' },
+  { linkId: 'q2', system: 'http://loinc.org', code: '93247-5', display: 'Non-specific active suicidal thoughts 1 month' },
+  { linkId: 'q3', system: 'http://loinc.org', code: '93248-3', display: 'Active suicidal ideation with any methods (not plan) without intent to act 1 month' },
+  { linkId: 'q4', system: 'http://loinc.org', code: '93249-1', display: 'Active suicidal ideation with some intent to act, without specific plan 1 month' },
+  { linkId: 'q5', system: 'http://loinc.org', code: '93250-9', display: 'Active suicidal ideation with specific plan and intent 1 month' },
+  { linkId: 'q6', system: 'http://loinc.org', code: '93267-3', display: 'Preparatory acts or suicidal behavior Lifetime' },
+]
+
+/**
+ * The C-SSRS 6-item screener, the Pediatric screener and the "Since Last Visit /
+ * Since Last Contact" version share an identical item set (q1–q6, q6-recent),
+ * conditional logic, and three-tier risk stratification. They differ in the
+ * administration reference period, which is exactly what LOINC's item codes
+ * encode — so the item coding is a parameter rather than shared: the interval
+ * version passes SPiER-local codes because LOINC publishes nothing for a
+ * "since last contact" window (see ig/input/fsh/cssrs.fsh, issue #220).
+ *
+ * The derived risk-level Observation is timeframe-agnostic and identical across
+ * all three, so it stays in the core.
+ */
+export function mapCSSRSScreenerCore(
+  response: QuestionnaireResponseResource,
+  toolLabel: string,
+  itemCodes: CSSRSItemCoding[] = CSSRS_SCREENER_ITEM_CODES,
+): MapperResult {
   const items = response?.item || []
   const observations: ObservationResource[] = []
 
@@ -39,23 +77,14 @@ export function mapCSSRSScreenerCore(response: QuestionnaireResponseResource, to
       : 'High Risk — lifetime suicidal behavior'
   }
 
-  // Individual item observations
-  const cssrsItems = [
-    { linkId: 'q1', code: '93246-7', display: 'Wish to be dead' },
-    { linkId: 'q2', code: '93247-5', display: 'Non-specific active suicidal thoughts' },
-    { linkId: 'q3', code: '93248-3', display: 'Active ideation with methods, no intent' },
-    { linkId: 'q4', code: '93249-1', display: 'Active ideation with some intent' },
-    { linkId: 'q5', code: '93250-9', display: 'Active ideation with specific plan and intent' },
-    { linkId: 'q6', code: '93267-3', display: 'Suicidal behavior (ever)' },
-  ]
-
-  for (const { linkId, code, display } of cssrsItems) {
+  // Individual item observations, coded for this administration's reference period.
+  for (const { linkId, system, code, display } of itemCodes) {
     const val = getBooleanAnswer(walkItems(items, linkId))
     if (val !== undefined) {
       observations.push(
         makeObservation({
           id: `cssrs-${linkId}-${Date.now()}`,
-          code: { system: 'http://loinc.org', code, display },
+          code: { system, code, display },
           value: val,
           valueType: 'boolean',
           questionnaireName: toolLabel,

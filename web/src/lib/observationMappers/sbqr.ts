@@ -22,7 +22,7 @@ export function mapSBQR(response: QuestionnaireResponseResource): MapperResult {
   observations.push(
     makeObservation({
       id: `sbqr-total-${Date.now()}`,
-      code: { system: 'http://snomed.info/sct', code: '225337009', display: 'Suicide risk assessment score' },
+      code: { system: 'http://snomed.info/sct', code: '225337009', display: 'Suicide risk assessment (procedure)' },
       value: totalScore,
       valueType: 'integer',
       interpretation: aboveGeneralCutoff

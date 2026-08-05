@@ -1,5 +1,6 @@
 import {
   LOINC_SYSTEM,
+  SAFETY_PLAN_SECTION_SYSTEM,
   extractAnswers,
   makeSuicidePreventionCarePlan,
   type GeneratedCarePlan,
@@ -8,8 +9,10 @@ import {
 
 /**
  * Transform a Crisis Response Plan (Bryan & Rudd) QuestionnaireResponse into a
- * 5-activity CarePlan. LOINC codes are reused from the Stanley-Brown safety-plan
- * panel where the concepts overlap; there is no validated CRP-specific panel.
+ * 5-activity CarePlan. Section codes come from the SPiER-local safety-plan
+ * section CodeSystem shared with Stanley-Brown — the CRP's five sections are a
+ * subset of Stanley-Brown's seven, and LOINC publishes nothing at this
+ * granularity for either instrument.
  */
 export function generateCrisisResponseCarePlan(questionnaireResponse: QuestionnaireResponseResource): GeneratedCarePlan {
   const items = questionnaireResponse?.item || []
@@ -27,12 +30,13 @@ export function generateCrisisResponseCarePlan(questionnaireResponse: Questionna
     profileUrl: 'http://spier.org/StructureDefinition/spier-crisis-response-plan',
     noteText: 'DEMO ONLY — Crisis Response Plan (Bryan & Rudd) CarePlan generated client-side. No patient data has been stored or transmitted. Uses the Hybrid model where core plan content is embedded in activity.description fields. The patient should keep a copy of the plan.',
     hasAnyData,
+    extraCategories: [{ system: LOINC_SYSTEM, code: '87626-8', display: 'Suicide prevention note' }],
     activities: [
-      { stepTitle: 'Warning Signs',                        sectionCode: { system: LOINC_SYSTEM, code: '76689-1' }, description: warningSigns        || 'No warning signs provided.' },
-      { stepTitle: 'Coping Strategies (Self-Management)',  sectionCode: { system: LOINC_SYSTEM, code: '76690-9' }, description: coping              || 'No coping strategies provided.' },
-      { stepTitle: 'Reasons for Living',                   sectionCode: { system: LOINC_SYSTEM, code: '81344-4' }, description: reasonsLiving       || 'No reasons for living provided.' },
-      { stepTitle: 'Social Support',                       sectionCode: { system: LOINC_SYSTEM, code: '76692-5' }, description: socialSupport       || 'No social supports provided.' },
-      { stepTitle: 'Professional & Crisis Support',        sectionCode: { system: LOINC_SYSTEM, code: '76693-3' }, description: professionalSupport || 'No professional/crisis supports provided.' },
+      { stepTitle: 'Warning Signs',                        sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'warning-signs' },        description: warningSigns        || 'No warning signs provided.' },
+      { stepTitle: 'Coping Strategies (Self-Management)',  sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'internal-coping' },      description: coping              || 'No coping strategies provided.' },
+      { stepTitle: 'Reasons for Living',                   sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'reason-for-living' },    description: reasonsLiving       || 'No reasons for living provided.' },
+      { stepTitle: 'Social Support',                       sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'crisis-support' },       description: socialSupport       || 'No social supports provided.' },
+      { stepTitle: 'Professional & Crisis Support',        sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'professional-support' }, description: professionalSupport || 'No professional/crisis supports provided.' },
     ],
   })
 }

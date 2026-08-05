@@ -1,5 +1,6 @@
 import {
   LOINC_SYSTEM,
+  SAFETY_PLAN_SECTION_SYSTEM,
   extractAnswers,
   extractPairs,
   makeSuicidePreventionCarePlan,
@@ -31,8 +32,8 @@ function extractStep5(items: QuestionnaireResponseItem[]): string {
 
 /**
  * Transform a Stanley-Brown Safety Plan QuestionnaireResponse into a
- * 7-activity CarePlan using the Hybrid model (LOINC codes on each
- * step + patient-authored content in detail.description).
+ * 7-activity CarePlan using the Hybrid model (a SPiER-local section code on
+ * each step + patient-authored content in detail.description).
  */
 export function generateCarePlan(questionnaireResponse: QuestionnaireResponseResource): GeneratedCarePlan {
   const items = questionnaireResponse?.item || []
@@ -57,14 +58,15 @@ export function generateCarePlan(questionnaireResponse: QuestionnaireResponseRes
     profileUrl: 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan',
     noteText: 'DEMO ONLY — This CarePlan was generated client-side for demonstration purposes. No patient data has been stored or transmitted. This CarePlan uses the Hybrid model where core safety data is embedded in activity.description fields for maximum interoperability.',
     hasAnyData,
+    extraCategories: [{ system: LOINC_SYSTEM, code: '87626-8', display: 'Suicide prevention note' }],
     activities: [
-      { stepTitle: 'Step 1: Warning Signs',              sectionCode: { system: LOINC_SYSTEM, code: '76689-1' }, description: step1 || 'No warning signs provided.' },
-      { stepTitle: 'Step 2: Internal Coping Strategies', sectionCode: { system: LOINC_SYSTEM, code: '76690-9' }, description: step2 || 'No coping strategies provided.' },
-      { stepTitle: 'Step 3: Social Distractions',        sectionCode: { system: LOINC_SYSTEM, code: '76691-7' }, description: step3 || 'No distraction contacts provided.' },
-      { stepTitle: 'Step 4: Crisis Support Contacts',    sectionCode: { system: LOINC_SYSTEM, code: '76692-5' }, description: step4 || 'No crisis contacts provided.' },
-      { stepTitle: 'Step 5: Professional Support',       sectionCode: { system: LOINC_SYSTEM, code: '76693-3' }, description: step5 || 'No professional contacts provided.' },
-      { stepTitle: 'Step 6: Lethal Means Safety',        sectionCode: { system: LOINC_SYSTEM, code: '76694-1' }, description: step6 || 'No lethal means plan provided.' },
-      { stepTitle: 'Step 7: Reason for Living',          sectionCode: { system: LOINC_SYSTEM, code: '81344-4' }, description: step7 || 'No reason for living provided.' },
+      { stepTitle: 'Step 1: Warning Signs',              sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'warning-signs' },       description: step1 || 'No warning signs provided.' },
+      { stepTitle: 'Step 2: Internal Coping Strategies', sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'internal-coping' },     description: step2 || 'No coping strategies provided.' },
+      { stepTitle: 'Step 3: Social Distractions',        sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'social-distraction' },  description: step3 || 'No distraction contacts provided.' },
+      { stepTitle: 'Step 4: Crisis Support Contacts',    sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'crisis-support' },      description: step4 || 'No crisis contacts provided.' },
+      { stepTitle: 'Step 5: Professional Support',       sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'professional-support' }, description: step5 || 'No professional contacts provided.' },
+      { stepTitle: 'Step 6: Lethal Means Safety',        sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'lethal-means-safety' }, description: step6 || 'No lethal means plan provided.' },
+      { stepTitle: 'Step 7: Reason for Living',          sectionCode: { system: SAFETY_PLAN_SECTION_SYSTEM, code: 'reason-for-living' },   description: step7 || 'No reason for living provided.' },
     ],
   })
 }
