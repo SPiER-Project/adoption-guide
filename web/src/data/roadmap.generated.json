@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-30T01:50:09.562Z",
+  "fetchedAt": "2026-08-05T16:36:20.186Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
@@ -55,7 +55,7 @@
         "tool:TL-004"
       ],
       "createdAt": "2026-05-21T14:22:02Z",
-      "updatedAt": "2026-07-04T16:57:05Z",
+      "updatedAt": "2026-08-04T14:40:09Z",
       "toolId": "TL-004",
       "status": "built",
       "type": "epic",
@@ -64,7 +64,7 @@
     {
       "number": 21,
       "title": "[TL-005] BSSA",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/21",
       "bodyMd": "**Tool:** NIMH Brief Suicide Safety Assessment (BSSA)\n**Stage:** clarify-risk\n**Current status:** built\n\n## Shipped\n\nQuestionnaire JSON plus a disposition Observation (LOINC 93374-7) carrying one of the four NIMH dispositions, and a disposition→risk-tier ConceptMap. Live at `/patient/assessments/bssa`. (#185)\n\n## Remaining\n\n- The disposition→risk-tier ConceptMap is still pending clinical SME sign-off.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-005` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -75,7 +75,8 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:03Z",
-      "updatedAt": "2026-07-29T14:40:26Z",
+      "updatedAt": "2026-08-04T14:39:58Z",
+      "closedAt": "2026-08-04T14:39:58Z",
       "toolId": "TL-005",
       "status": "built",
       "type": "epic",
@@ -84,7 +85,7 @@
     {
       "number": 22,
       "title": "[TL-006] SAFE-T",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/22",
       "bodyMd": "**Tool:** SAFE-T\n**Stage:** define-risk-picture\n**Current status:** built\n\n## Shipped\n\nThe five-step SAFE-T formulation as a Questionnaire, with a risk-level Observation whose value binds **directly** to the shared suicide-risk tier — no per-instrument crosswalk needed. Clinical-judgment override and rationale are captured and folded into the Observation note. Live at `/patient/assessments/safe-t`. (#187)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-006` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -95,7 +96,8 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:05Z",
-      "updatedAt": "2026-07-29T14:40:27Z",
+      "updatedAt": "2026-08-04T14:30:35Z",
+      "closedAt": "2026-08-04T14:30:35Z",
       "toolId": "TL-006",
       "status": "built",
       "type": "epic",
@@ -114,7 +116,7 @@
         "tool:TL-007"
       ],
       "createdAt": "2026-05-21T14:22:07Z",
-      "updatedAt": "2026-06-10T17:57:06Z",
+      "updatedAt": "2026-08-04T14:40:10Z",
       "toolId": "TL-007",
       "status": "built",
       "type": "epic",
@@ -125,7 +127,7 @@
       "title": "[TL-008] Lethal Means Safety Counseling",
       "state": "open",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/24",
-      "bodyMd": "**Tool:** Means Safety Counseling (Means Counseling)\n**Stage:** document-safety-actions\n**Current status:** planned\n\n## Next\n\nMeans counseling Questionnaire + Procedure resource generation per CALM model.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-008` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
+      "bodyMd": "**Tool:** Means Safety Counseling (Means Counseling)\n**Stage:** document-safety-actions\n**Current status:** planned — the only `status:planned` tool left in Stage 4\n\n## Built already\n\nThe FHIR artifact set is authored and in the validated build (`ig/input/fsh/lethal-means.fsh`), verified 2026-08-04:\n\n- `LethalMeansMethodCodes` + `MeansSafetyActionCodes` CodeSystems, with matching ValueSets.\n- `SPiERLethalMeansCounseling` — the counseling **Procedure** profile (carries a general SNOMED counseling code plus clarifying text).\n- `SPiERMeansSafetyAction` — the per-action **Observation** profile.\n- `ProvideMeansSafetyCounseling` ActivityDefinition.\n- Three example instances (counseling Procedure; firearm-secured and medication-locked actions).\n\nSo this epic's original \"Next\" — *\"Means counseling Questionnaire + Procedure resource generation per CALM model\"* — is **half stale**. Procedure/Observation generation is modelled. The Questionnaire half was superseded by a design decision: TL-008 is being built as a **workflow recorder** (in the style of the Stage-4/5 recorders such as `SafetyReferralView.tsx`), not as a Questionnaire, consistent with how TL-009/TL-017/TL-030–032 were done.\n\n## Remaining\n\nOne thing, and it is tracked as its own issue:\n\n- **#210 — Add a lethal-means counseling Procedure recorder.** TL-008 has `launchActions: []` in `tool-ui-metadata.ts`, so nothing in the app can write the Procedure. This makes `SPiERLethalMeansCounselingCompleted`'s numerator structurally unreachable (row 2 of the gap table in `docs/plans/stage-8-measure-and-share.md`).\n\nThis epic stays open only as the tool's **status tracker** — flip `status:planned` → `status:built` when #210 lands. Do not file duplicate work here.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-008` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration. Body refreshed 2026-08-04 in the milestone-hygiene pass (the original \"Next\" text predated the artifact work and the recorder design decision).\n",
       "labels": [
         "status:planned",
         "type:epic",
@@ -134,7 +136,7 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:09Z",
-      "updatedAt": "2026-07-15T14:33:50Z",
+      "updatedAt": "2026-08-04T14:40:12Z",
       "toolId": "TL-008",
       "status": "planned",
       "type": "epic",
@@ -154,7 +156,7 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:10Z",
-      "updatedAt": "2026-07-29T14:40:28Z",
+      "updatedAt": "2026-08-04T14:40:26Z",
       "toolId": "TL-009",
       "status": "built",
       "type": "epic",
@@ -174,7 +176,7 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:12Z",
-      "updatedAt": "2026-07-29T14:40:29Z",
+      "updatedAt": "2026-08-04T14:40:14Z",
       "toolId": "TL-010",
       "status": "built",
       "type": "epic",
@@ -183,7 +185,7 @@
     {
       "number": 27,
       "title": "[TL-011] PSS-3",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/27",
       "bodyMd": "**Tool:** Patient Safety Screener-3 (PSS-3)\n**Stage:** identify-possible-risk\n**Current status:** built\n\n## Shipped\n\nThree items plus attempt recency, a computed positive/negative result (LOINC 93374-7), and an `on-pss3-positive` trigger into the Clarify Risk stage. Crosswalk maps positive→moderate, negative→no-risk. Live at `/patient/assessments/pss-3`. (#186)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-011` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -193,7 +195,8 @@
         "tool:TL-011"
       ],
       "createdAt": "2026-05-21T14:22:20Z",
-      "updatedAt": "2026-07-29T14:40:30Z",
+      "updatedAt": "2026-08-04T14:30:44Z",
+      "closedAt": "2026-08-04T14:30:44Z",
       "toolId": "TL-011",
       "status": "built",
       "type": "epic",
@@ -223,7 +226,7 @@
     {
       "number": 29,
       "title": "[TL-013] Patient-Facing Crisis Resources",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/29",
       "bodyMd": "**Tool:** Patient-Facing Crisis Resources\n**Stage:** document-safety-actions\n**Current status:** built\n\n## Shipped\n\n`SPiERCrisisResourcesShared` (Communication) with payloads coded against a crisis-resource ValueSet, plus a recorder at `/patient/workflow/crisis-resources`. Absorbs the Now Matters Now territory this issue was originally filed for. (#195)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-013` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -233,7 +236,8 @@
         "tool:TL-013"
       ],
       "createdAt": "2026-05-21T14:22:24Z",
-      "updatedAt": "2026-07-29T14:40:32Z",
+      "updatedAt": "2026-08-04T14:30:46Z",
+      "closedAt": "2026-08-04T14:30:46Z",
       "toolId": "TL-013",
       "status": "built",
       "type": "epic",
@@ -242,7 +246,7 @@
     {
       "number": 30,
       "title": "[TL-014] PSS Full",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/30",
       "bodyMd": "**Tool:** Patient Safety Screener / Suicide Risk Screener (Full) (PSS Full)\n**Stage:** clarify-risk\n**Current status:** built\n\n## Shipped\n\nThe public PSS-3 items combined with a **site-defined** stratification step, producing a risk level that binds directly to the shared suicide-risk tier (same approach as SAFE-T, no crosswalk). Live at `/patient/assessments/pss-full`. (#193, re-landed #194)\n\n## Remaining\n\n- The stratification tier is site-defined by design; no proprietary secondary instrument is bundled.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-014` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -252,7 +256,8 @@
         "tool:TL-014"
       ],
       "createdAt": "2026-05-21T14:22:33Z",
-      "updatedAt": "2026-07-29T14:40:33Z",
+      "updatedAt": "2026-08-04T14:31:46Z",
+      "closedAt": "2026-08-04T14:31:46Z",
       "toolId": "TL-014",
       "status": "built",
       "type": "epic",
@@ -261,7 +266,7 @@
     {
       "number": 31,
       "title": "[TL-015] CRP",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/31",
       "bodyMd": "**Tool:** Crisis Response Planning (CRP)\n**Stage:** document-safety-actions\n**Current status:** built\n\n## Shipped\n\n`SPiERCrisisResponsePlan` (CarePlan) generated from a five-section Questionnaire, modelled on the Stanley-Brown plan. Live at `/patient/assessments/crisis-response-plan`. Licensing confirmed on file. (#191)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-015` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -271,7 +276,8 @@
         "tool:TL-015"
       ],
       "createdAt": "2026-05-21T14:22:34Z",
-      "updatedAt": "2026-07-29T14:40:34Z",
+      "updatedAt": "2026-08-04T14:30:56Z",
+      "closedAt": "2026-08-04T14:30:56Z",
       "toolId": "TL-015",
       "status": "built",
       "type": "epic",
@@ -339,7 +345,7 @@
     {
       "number": 35,
       "title": "[TL-019] C-SSRS Since Last",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/35",
       "bodyMd": "**Tool:** C-SSRS Since Last Contact (C-SSRS Since Last)\n**Stage:** clarify-risk\n**Current status:** built\n\n## Shipped\n\nThe six-item C-SSRS scoped to the interval since the prior contact, reusing the shared `SPiERCSSRSRiskLevel` profile and the extracted core mapper rather than duplicating either. Live at `/patient/assessments/cssrs-since-last-contact`. (#188)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-019` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -349,7 +355,8 @@
         "tool:TL-019"
       ],
       "createdAt": "2026-05-21T14:22:42Z",
-      "updatedAt": "2026-07-29T14:40:36Z",
+      "updatedAt": "2026-08-04T14:30:49Z",
+      "closedAt": "2026-08-04T14:30:49Z",
       "toolId": "TL-019",
       "status": "built",
       "type": "epic",
@@ -358,7 +365,7 @@
     {
       "number": 36,
       "title": "[TL-020] CAMS SSF-5",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/36",
       "bodyMd": "**Tool:** CAMS SSF-5 (Section A/B) (CAMS SSF-5)\n**Stage:** clarify-risk\n**Current status:** built\n\n## Next\n\nBuilt (Sections A/B). Next: link Section B drivers to FHIR Condition resources for problem-list tracking.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-020` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
@@ -368,7 +375,8 @@
         "tool:TL-020"
       ],
       "createdAt": "2026-05-21T14:22:45Z",
-      "updatedAt": "2026-07-15T14:34:42Z",
+      "updatedAt": "2026-08-04T14:31:16Z",
+      "closedAt": "2026-08-04T14:31:16Z",
       "toolId": "TL-020",
       "status": "built",
       "type": "epic",
@@ -377,7 +385,7 @@
     {
       "number": 37,
       "title": "[TL-021] CAMS Stabilization",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/37",
       "bodyMd": "**Tool:** CAMS Stabilization Plan (CAMS Stabilization)\n**Stage:** document-safety-actions\n**Current status:** built\n\n## Next\n\nSurface stabilization activities as discrete CarePlan.activity entries with codes.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-021` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
@@ -387,7 +395,8 @@
         "tool:TL-021"
       ],
       "createdAt": "2026-05-21T14:22:46Z",
-      "updatedAt": "2026-06-10T17:57:09Z",
+      "updatedAt": "2026-08-04T14:31:32Z",
+      "closedAt": "2026-08-04T14:31:32Z",
       "toolId": "TL-021",
       "status": "built",
       "type": "epic",
@@ -436,7 +445,7 @@
     {
       "number": 40,
       "title": "[TL-024] CAMS Worksheet",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/40",
       "bodyMd": "**Tool:** CAMS Therapeutic Worksheet (CAMS Worksheet)\n**Stage:** manage-active-risk\n**Current status:** built\n\n## Next\n\nLongitudinal SSF vital tracking via repeated Observations with consistent LOINC codes.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-024` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
@@ -446,7 +455,8 @@
         "tool:TL-024"
       ],
       "createdAt": "2026-05-21T14:22:52Z",
-      "updatedAt": "2026-07-15T14:33:55Z",
+      "updatedAt": "2026-08-04T14:31:21Z",
+      "closedAt": "2026-08-04T14:31:21Z",
       "toolId": "TL-024",
       "status": "built",
       "type": "epic",
@@ -455,7 +465,7 @@
     {
       "number": 41,
       "title": "[TL-025] SBQ-R",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/41",
       "bodyMd": "**Tool:** Suicide Behaviors Questionnaire-Revised (SBQ-R)\n**Stage:** flag-risk\n**Current status:** built\n\n## Next\n\nLOINC mapping for total score and clinical-cutoff Observation.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-025` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.",
       "labels": [
@@ -465,7 +475,8 @@
         "tool:TL-025"
       ],
       "createdAt": "2026-05-21T14:22:54Z",
-      "updatedAt": "2026-06-10T17:57:16Z",
+      "updatedAt": "2026-08-04T14:31:37Z",
+      "closedAt": "2026-08-04T14:31:37Z",
       "toolId": "TL-025",
       "status": "built",
       "type": "epic",
@@ -511,7 +522,7 @@
     {
       "number": 44,
       "title": "[P3] Automations & CDS hooks between stages — remaining: triggers + StructureMap promotion",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/44",
       "bodyMd": "Cross-cutting roadmap priority #3. Precondition: P2 (coding) is far enough along that triggers can reference real codes.\n\nWith structured, coded tools in place, the workflow logic between stages becomes machine-readable.\n\n## Status (re-scoped 2026-07-29 audit)\n\nThe CDS Hooks bullet is fully delivered and live. The other two are partially done and each is blocked on / duplicated by a more specific issue.\n\n### Delivered\n\n- [x] **CDS Hooks integration** — real CDS Hooks 2.0 Cards (`web/src/lib/cdsHooks/`, #139) served by a live Hono Worker at `/cds-services` (#141/#142/#143), documented in-app at `/guide/cds-service` (#144), with bearer-JWT verification and a `jku` SSRF allowlist (#147). Service id `spier-patient-view`.\n\n### Remaining\n\n- [ ] **Triggers between stages** — partially encoded. Verified 2026-07-29: only **3** `action.trigger` elements exist across the 8 stage PlanDefinitions in `ig/input/fsh/pathway-stages.fsh` (the ASQ / PHQ-9 Clarify-Risk cases). The generalized positive-screen → workflow trigger is still an explicit placeholder — see the `trigger-suicide-risk-workflow` action comment (\"trigger logic not yet FHIR-modelled here\") and **#164 (TL-026)**, which is the issue that should carry it.\n\n- [ ] **Care-plan auto-generation formalized as a defined transformation** — the behaviour exists in TypeScript (`web/src/lib/carePlanMappers/`) but the FHIR-native formalization does not. All **4** FML StructureMaps remain in `ig/drafts/` with **0** promoted into the validated build; that promotion is **#92**. Until then the transformation is app-internal, not portable.\n\nConsider whether this epic still earns its place now that its remaining scope lives in #164 and #92 — it may be better closed as a pointer than kept as a parent.\n",
       "labels": [
@@ -521,7 +532,8 @@
         "area:ig"
       ],
       "createdAt": "2026-05-21T14:22:58Z",
-      "updatedAt": "2026-07-30T01:39:23Z",
+      "updatedAt": "2026-08-04T14:33:06Z",
+      "closedAt": "2026-08-04T14:33:06Z",
       "priority": "p3",
       "type": "epic",
       "area": "catalog"
@@ -745,16 +757,17 @@
     },
     {
       "number": 91,
-      "title": "Concept layer: author CAMS SSF overall-risk → suicide-risk-tier ConceptMap",
-      "state": "open",
+      "title": "Fix the Conformance page harmonization table (stale CAMS row + 3 missing crosswalks)",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/91",
-      "bodyMd": "ASQ and C-SSRS have authored ConceptMaps into the harmonized tier (`spier-suicide-risk-tier`), and PHQ-9/SBQ-R have draft FML, but CAMS has no tier mapping at all. Author a ConceptMap (or FML) from the SSF overall-risk rating (1–5, `CAMSSSFMeasureCodes#overall-risk`) to the five-tier vocabulary, wire it into `scripts/check-concept-crosswalk.mjs`, and add it to the Harmonization Status table on the Conformance page. Parent epic: #77.",
+      "bodyMd": "Re-scoped 2026-08-04. The original framing — *\"CAMS has no tier mapping at all\"* — **is no longer accurate.** The ConceptMap is authored and already guarded. What remained was a false statement on a published page.\n\n## Done — the ConceptMap is authored\n\n`ig/input/fsh/crosswalk-cams.fsh` contains a complete `CAMSOverallRiskToRiskTier` ConceptMap:\n\n- Maps `cams-ssf-overall-risk` 1–5 → the five-tier vocabulary: **1–2 → low, 3 → moderate, 4–5 → high**.\n- Every row is `equivalence = #wider` (a single self-rating is coarser than the tier band) with a per-row `comment`.\n- **No row maps to `imminent`**, deliberately — escalation requires separate clinical triage a self-rating cannot perform.\n- Framed as clinician-overridable **decision support**, not an authoritative severity assignment, because CAMS is a collaborative therapeutic process and no published psychometric stratification of the SSF Overall Risk rating exists (verified July 2026, `docs/research/2026-07-terminology-crosswalk-research.md`).\n\nClinical sign-off is **#93's** scope (widened to all six crosswalks), not this issue's.\n\n## Done — it is already covered by `check:crosswalk`\n\nAn earlier revision of this issue claimed the map had \"no drift guard.\" **That was wrong** and is retracted. `web/scripts/check-concept-crosswalk.mjs` **discovers** ConceptMaps generically — it collects every `resourceType === 'ConceptMap'` from the generated resources rather than working from a list of instruments — so CAMS has been covered since it was authored. Verified by running it:\n\n```\n✓ ConceptMap CAMSOverallRiskToRiskTier: 5 element(s) checked\n```\n\nThat covers checks A (target codes are real tier codes), B (source codes exist in the source CodeSystem) and C (completeness — every code in `cams-ssf-overall-risk` maps to a tier).\n\nThe one hardcoded list in that script is `MAPPER_FOR_SOURCE`, which drives check F (runtime-mapper coverage). CAMS is deliberately **not** being added to it: the source codes are the bare integers `1`–`5`, and `camsSectionA.ts` emits the SSF rating as a `valueInteger`, not as a coded value — so check F's \"does this quoted code string appear in the mapper\" heuristic would be meaningless noise rather than a real guard. If the integer→code correspondence ever deserves a check, it needs a purpose-built assertion, not a `MAPPER_FOR_SOURCE` entry.\n\n## Remaining — the Conformance page (fixed on `claude/github-milestones-review-b882d2`)\n\n`ig/input/pagecontent/conformance.md` published **\"CAMS (SSF overall risk) | — | Not yet authored\"** — factually wrong and user-visible on the IG.\n\nAuditing that table turned up more than the CAMS row: it listed only ASQ, C-SSRS and the two draft FMLs, while **six** ConceptMaps exist. BSSA, PSS-3 and the tier→LOINC egress map were absent from the published harmonization status entirely — understating the concept layer by three artifacts, on the page that describes SPiER's flagship contribution.\n\nFixed in the same change:\n\n- CAMS row corrected to authored + pending sign-off, flagged as clinician-overridable decision support.\n- **BSSA** and **PSS-3** rows added.\n- New **\"Egress: harmonized tier → LOINC\"** section covering `SPiERRiskTierToLOINC`, calling out that `imminent` collapses onto LOINC `High` (LL465-6 has no imminent answer, so a consumer reading only the LOINC value cannot distinguish the two) and that `no-risk` is omitted.\n- Noted that all six ConceptMaps publish as `status = draft` / `experimental = true`.\n- Added the CAMS framing paragraph — collaborative process, not a predictive screener; no row maps to `imminent`.\n\nSUSHI compiles clean (0 errors, 0 warnings). Narrative link integrity is only checked by a full IG Publisher run, which #207 made PR-triggered on `ig/input/**` — this change is under that path, so it is gated. All four new link targets were confirmed present in `ig/fsh-generated/resources/`.\n\nCloses when that change merges. Parent epic: #77.\n",
       "labels": [
         "type:task",
         "area:ig"
       ],
       "createdAt": "2026-06-10T17:56:03Z",
-      "updatedAt": "2026-07-04T16:57:03Z",
+      "updatedAt": "2026-08-04T17:05:14Z",
+      "closedAt": "2026-08-04T17:05:14Z",
       "type": "task",
       "area": "ig"
     },
@@ -775,16 +788,16 @@
     },
     {
       "number": 93,
-      "title": "Obtain SME clinical sign-off on ASQ and C-SSRS risk-tier ConceptMaps",
+      "title": "Obtain SME clinical sign-off on all six risk-tier crosswalks (ASQ, PSS-3, C-SSRS, BSSA, CAMS, tier→LOINC)",
       "state": "open",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/93",
-      "bodyMd": "Both authored crosswalks carry 'pending clinical sign-off' caveats in source: the ASQ map sends non-acute-positive → moderate and acute-positive → imminent as `relatedto` (lossy; SME to confirm whether some acute-positive cases belong in high rather than imminent), and the C-SSRS high → high mapping notes that active intent + means may warrant escalation to imminent. Get suicide-prevention SME review (Zero Suicide co-authorship track), record decisions in the ConceptMap comments, and flip equivalences/caveats accordingly. Parent epic: #77.",
+      "bodyMd": "Every instrument→tier ConceptMap in the concept layer ships with pending-clinical-sign-off language in its FSH source, and all six are published `status = #draft` / `experimental = true`. Until an SME reviews them, **every** row is an unratified clinical-equivalence claim — which is the single largest credibility liability in an HL7 WG or federal-regulator conversation, because the concept layer is the artifact SPiER most wants to contribute.\n\nRe-scoped 2026-08-04: this issue originally named only ASQ and C-SSRS. **Six** maps carry the caveat. Consolidating them here so the SME review is *one* conversation with one agenda, rather than six issues surfacing the same ask at different times.\n\nVerified per-file (`* status = #draft`, `* experimental = true`, pending-sign-off language in all six):\n`crosswalk-asq.fsh` · `crosswalk-pss3.fsh` · `crosswalk-cssrs.fsh` · `crosswalk-bssa.fsh` · `crosswalk-cams.fsh` · `crosswalk-tier-to-loinc.fsh`\n\n## The six maps, and the specific clinical question each one needs answered\n\n### 1. ASQ → tier (`crosswalk-asq.fsh`)\n- `acute-positive` → **imminent** (`relatedto`). *SME to confirm whether some acute-positive cases belong in `high` rather than `imminent`.*\n- `non-acute-positive` → **moderate** (`relatedto`, lossy — a single ASQ disposition cannot distinguish low vs. moderate vs. high).\n\n### 2. PSS-3 → tier (`crosswalk-pss3.fsh`)\n- `positive` → **moderate**, `negative` → **no-risk**. Only two source results, so the map is coarse by construction. *SME to confirm that a positive PSS-3 warrants `moderate` rather than `high`, given the instrument also captures lifetime-attempt recency that the tier assignment discards.*\n\n### 3. C-SSRS → tier (`crosswalk-cssrs.fsh`) — shared by Screener and Full\n- `moderate` row (items 3–4: active ideation with methods or some intent). *SME to confirm equivalence to the moderate tier.*\n- `high` row (item 5 specific plan with intent, and/or item 6 any behavior) → **high** (`relatedto`). *Sign-off needed specifically on the high/imminent boundary: active intent + means may warrant escalation, a judgment the C-SSRS risk level does not itself encode.*\n\n### 4. BSSA → tier (`crosswalk-bssa.fsh`)\n- `emergency psychiatric evaluation` → **imminent**. *SME to confirm whether some cases belong in `high` instead.*\n- `further evaluation necessary` → **high** (`relatedto` — the single disposition cannot distinguish high from moderate).\n- `non-urgent follow-up` → **moderate**. *SME to confirm whether some cases are `low` rather than `moderate`.*\n\n### 5. CAMS SSF Overall Risk → tier (`crosswalk-cams.fsh`)\nDistinct from the others and needs framing before review: CAMS is a **collaborative therapeutic process, not a predictive screener**, and no published psychometric stratification of the SSF Overall Risk rating exists (verified July 2026 — `docs/research/2026-07-terminology-crosswalk-research.md`). The map is therefore explicitly **clinician-overridable decision support**, and every row is `wider` (lossy).\n- Proposed bands: **1–2 → low, 3 → moderate, 4–5 → high**. These align with the existing CAMS Section A runtime interpretation (≥4 high / 3 moderate / ≤2 low) but are not authoritative. *SME to ratify the band boundaries.*\n- **No rating maps to `imminent`**, deliberately — escalation requires separate clinical triage a self-rating cannot perform. *SME to confirm that omission is correct.*\n\n### 6. Tier → LOINC LL465-6 (`crosswalk-tier-to-loinc.fsh`) — egress, not ingress\nThe one map that runs the other way: it translates the harmonized tier out to the normative LOINC answer list for `93374-7`, for consumers expecting the LOINC-coded value (e.g. the HL7 US Behavioral Health Profiles IG).\n- `imminent` → LOINC **High**. LL465-6 has no distinct \"imminent\" answer, so this is a deliberate collapse. *SME to confirm the collapse is clinically safe for a consumer reading only the LOINC value — it cannot distinguish imminent from high.* This is the highest-consequence row in the whole set, because it is the one an external partner is most likely to consume.\n- `no-risk` has no LOINC equivalent and is omitted.\n\nAlso note `concept-layer.fsh` carries a blanket pending-sign-off statement (line 26) plus an illustrative example Observation whose caveat text (lines 140, 150) will need updating once decisions land.\n\n## Definition of done\n\n- SME review obtained via the suicide-prevention / Zero Suicide co-authorship track.\n- Decisions recorded **in the ConceptMap `comment` fields themselves**, not only in this issue — the caveats live in the artifacts, so the resolutions must too.\n- `equivalence` values corrected where the SME's answer changes them (`relatedto`/`wider` → `equivalent`, or a different target tier).\n- The pending-sign-off banners removed from all six files, and the blanket statement in `concept-layer.fsh` updated.\n- `status = #draft` / `experimental = true` reconsidered on all six ConceptMaps.\n- The Harmonization Status table on the Conformance page (`ig/input/pagecontent/conformance.md`) updated to ratified status.\n\n## Notes\n\n- Parent epic: #77.\n- **#21 (TL-005 BSSA) was closed into this issue** — its sole remaining item was BSSA sign-off, now section 4 above.\n- This is a long-lead, human-gated item with no code dependency. It should be kicked off early and in parallel with engineering work, not scheduled after it.\n",
       "labels": [
         "type:task",
         "area:ig"
       ],
       "createdAt": "2026-06-10T17:56:28Z",
-      "updatedAt": "2026-07-04T16:57:02Z",
+      "updatedAt": "2026-08-04T15:03:26Z",
       "type": "task",
       "area": "ig"
     },
@@ -807,7 +820,7 @@
     {
       "number": 95,
       "title": "Tighten CAMS CarePlan profiles to match the questionnaire section structure",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/95",
       "bodyMd": "`SPiERCAMSStabilizationPlan` and `SPiERCAMSTherapeuticWorksheet` (ig/input/fsh/cams.fsh) constrain `activity.detail.code` generically, while the source Questionnaires (e.g. Stabilization_Plan.json's five sections) have concrete section structure. Tighten the profile constraints (slicing/section bindings) so example CarePlans validate meaningfully against them, or document why the loose shape is intentional.",
       "labels": [
@@ -817,7 +830,8 @@
         "tool:TL-024"
       ],
       "createdAt": "2026-06-10T17:56:32Z",
-      "updatedAt": "2026-06-10T17:56:32Z",
+      "updatedAt": "2026-08-05T15:41:54Z",
+      "closedAt": "2026-08-05T15:41:54Z",
       "toolId": "TL-021",
       "type": "task",
       "area": "ig"
@@ -843,20 +857,21 @@
     {
       "number": 122,
       "title": "Automate the roadmap snapshot refresh (roadmap.generated.json)",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/122",
       "bodyMd": "The app's roadmap page (`/guide/roadmap`) reads a committed snapshot at `web/src/data/roadmap.generated.json`, produced by `web/scripts/fetch-roadmap.mjs`. The snapshot is committed deliberately so the site always builds offline — but nothing keeps it in sync with the tracker, so it can silently drift.\n\n**The refresh half of this issue is done.** Verified 2026-07-29: the snapshot reports `fetchedAt` `2026-07-29T14:41:02Z` with **73 issues** (the original complaint was a 2026-05-21 snapshot with 28). Refreshed as part of the roadmap housekeeping in #206.\n\n## Remaining: automate it\n\nAdd a lightweight scheduled GitHub Actions workflow (weekly cron + `workflow_dispatch`) that runs `node web/scripts/fetch-roadmap.mjs` and opens a PR when the snapshot changed. Verified 2026-07-29: `fetch-roadmap` is referenced in `docs/` but appears in **no** workflow under `.github/workflows/`.\n\nKeep the fetch best-effort — the script already preserves the prior snapshot on network failure.\n\n**Acceptance:** a scheduled workflow exists and has run green at least once, and a snapshot-drift PR has been opened (or a no-op run demonstrated).\n\n### Why this matters more than it looks\n\n`Roadmap.tsx` derives each tool's displayed build status from the snapshot's GitHub **labels** (`status: (epic.status ?? 'planned')`), and renders an excerpt of each issue's `bodyMd`. So label and body drift are both user-visible on a published page. The 2026-07-29 audit found TL-042/TL-043 rendering as \"FUTURE\" on the live roadmap while their dashboard shipped and worked (labels since corrected), plus 10 issues whose body prose still names pre-rename stage codes (`flag-risk`, `manage-active-risk`) — including open issues #40 and #41.\n\nAutomating the fetch closes the label-drift window but does **not** fix stale body prose; that needs the bodies themselves edited.\n",
       "labels": [
         "type:task"
       ],
       "createdAt": "2026-07-04T16:03:52Z",
-      "updatedAt": "2026-07-30T01:39:19Z",
+      "updatedAt": "2026-08-05T16:29:01Z",
+      "closedAt": "2026-08-05T16:29:01Z",
       "type": "task"
     },
     {
       "number": 123,
       "title": "Run the HL7 FHIR validator over generated IG resources in CI",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/123",
       "bodyMd": "SUSHI compiling clean does not guarantee valid FHIR: cardinality, binding-strength, and required-field violations in `ig/fsh-generated/resources/` (and the hand-authored Questionnaires in `FHIR-Resources/`) are not caught by `npx sushi .`.\n\n## Premise updated 2026-07-29\n\nThe original framing — \"currently only caught by the heavy on-demand IG Publisher run, not on PRs\" — **is no longer accurate.** #207 added a PR-time trigger to `ig-publish.yml` (paths-filtered on `ig/input/**`, `ig/sushi-config.yaml`, `ig/ig.ini`), and `deploy.yml` has always run the same gate on every push to main. So FHIRPath invariants and narrative link integrity now *are* gated at PR time.\n\nWhat the IG Publisher gate still does **not** give us:\n\n- It runs only when `ig/**` paths change, so a hand-edited Questionnaire under `FHIR-Resources/` — imported directly by the app at runtime — is never validated by it.\n- It is a ~10-minute job, so it is a poor fit for fast feedback on resource-level conformance.\n- Its QA gate is a coarse `err = N` / `Broken Links: N` parse, not a per-resource conformance report.\n\n## Scope\n\nAdd a CI step (extend `.github/workflows/ig.yml` or a sibling job) that runs the official HL7 `validator_cli` against the generated resources — at minimum Questionnaire, ActivityDefinition, PlanDefinition, ConceptMap, Measure, and the example instances — **plus the hand-authored Questionnaires in `FHIR-Resources/`**, which nothing currently validates at all. Cache the validator jar and FHIR packages between runs so the job stays fast. Failures gate the PR.\n\nThis protects the v0.2 publication and every downstream consumer from shipping malformed FHIR. Related: #124 covers content validation of the demo scenario QuestionnaireResponses, which `validator_cli` alone will not catch (linkId existence, answer-option membership).\n",
       "labels": [
@@ -864,14 +879,15 @@
         "area:ig"
       ],
       "createdAt": "2026-07-04T16:03:53Z",
-      "updatedAt": "2026-07-30T01:39:20Z",
+      "updatedAt": "2026-08-04T17:53:18Z",
+      "closedAt": "2026-08-04T17:53:18Z",
       "type": "task",
       "area": "ig"
     },
     {
       "number": 124,
       "title": "Validate population-scenario QuestionnaireResponses against their Questionnaires",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/124",
       "bodyMd": "The demo registry's scenario files (web/src/data/population/scenarios/patient-*.json) contain hand-authored QuestionnaireResponse resources with no validation: nothing checks that their linkIds exist in the referenced Questionnaire, that coded answers are members of the item's answer options/ValueSet, or that integer answers are in range (e.g. CAMS 0–5 ratings).\n\nAdd web/scripts/check-scenario-responses.mjs in the style of the existing drift checks (check-stage-ids.mjs, check-catalog-integrity.mjs): for each QuestionnaireResponse in a scenario, resolve its questionnaire URL to the canonical JSON (FHIR-Resources/ or web/src/data/fhir/), then verify linkId existence, answer-code membership, and basic type/range agreement. Wire it into web/package.json (check:scenarios), the verify chain, and .github/workflows/web-lint.yml.\n\nCompletes the drift-check family: stage IDs, catalog wiring, extract contracts, and crosswalks are covered; scenario content is the last hand-authored FHIR with no gate.",
       "labels": [
@@ -879,7 +895,8 @@
         "area:population-view"
       ],
       "createdAt": "2026-07-04T16:04:14Z",
-      "updatedAt": "2026-07-04T16:04:14Z",
+      "updatedAt": "2026-08-04T19:41:45Z",
+      "closedAt": "2026-08-04T19:41:45Z",
       "type": "task",
       "area": "population-view"
     },
@@ -974,7 +991,7 @@
         "tool:TL-026"
       ],
       "createdAt": "2026-07-15T14:33:57Z",
-      "updatedAt": "2026-07-15T14:33:57Z",
+      "updatedAt": "2026-08-04T14:32:13Z",
       "toolId": "TL-026",
       "status": "planned",
       "type": "epic",
@@ -983,7 +1000,7 @@
     {
       "number": 165,
       "title": "[TL-027] C-SSRS Pediatric / Adolescent Version",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/165",
       "bodyMd": "**Tool:** C-SSRS Pediatric / Adolescent Version\n**Stage:** identify-possible-risk\n**Current status:** built\n\n## Shipped\n\nPediatric/adolescent administration of the validated screener wording, reusing the shared risk-level profile and core mapper. Live at `/patient/assessments/cssrs-pediatric`. (#189, re-landed #194)\n\n## Remaining\n\n- Columbia's younger-child \"Children's\" simplified wording remains gated on written permission and is deliberately not authored.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-027` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -993,7 +1010,8 @@
         "tool:TL-027"
       ],
       "createdAt": "2026-07-15T14:33:59Z",
-      "updatedAt": "2026-07-29T14:40:37Z",
+      "updatedAt": "2026-08-04T14:31:49Z",
+      "closedAt": "2026-08-04T14:31:49Z",
       "toolId": "TL-027",
       "status": "built",
       "type": "epic",
@@ -1211,7 +1229,7 @@
     {
       "number": 177,
       "title": "[TL-039] Reassessment / Risk Review Schedule",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/177",
       "bodyMd": "**Tool:** Reassessment / Risk Review Schedule\n**Stage:** track-risk-over-time\n**Current status:** built\n\n## Shipped\n\n`SPiERSafetyTask` coded `reassessment-due`, with owner and due date (`restriction.period.end`), linked to the episode via `Task.basedOn`. Recorded at `/patient/workflow/safety-tasks`. Due/overdue is computed from the due date rather than stored, so the schedule cannot go stale. (#196, #197, implementation #198)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-039` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -1221,7 +1239,8 @@
         "tool:TL-039"
       ],
       "createdAt": "2026-07-15T14:34:14Z",
-      "updatedAt": "2026-07-29T14:40:47Z",
+      "updatedAt": "2026-08-04T14:30:58Z",
+      "closedAt": "2026-08-04T14:30:58Z",
       "toolId": "TL-039",
       "status": "built",
       "type": "epic",
@@ -1230,7 +1249,7 @@
     {
       "number": 178,
       "title": "[TL-040] Open Safety Actions / Care Gap Tracking",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/178",
       "bodyMd": "**Tool:** Open Safety Actions / Care Gap Tracking\n**Stage:** track-risk-over-time\n**Current status:** built\n\n## Shipped\n\nOne `SPiERSafetyTask` per open gap (safety plan needed, lethal-means action open, referral incomplete, appointment missing…), each with owner and due date, rolling up into the TL-037 work queue. Recorded at `/patient/workflow/safety-tasks`. (#196, #197, implementation #198)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-040` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -1240,7 +1259,8 @@
         "tool:TL-040"
       ],
       "createdAt": "2026-07-15T14:34:16Z",
-      "updatedAt": "2026-07-29T14:40:49Z",
+      "updatedAt": "2026-08-04T14:31:00Z",
+      "closedAt": "2026-08-04T14:31:00Z",
       "toolId": "TL-040",
       "status": "built",
       "type": "epic",
@@ -1249,7 +1269,7 @@
     {
       "number": 179,
       "title": "[TL-041] Risk Escalation / Overdue Workflow",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/179",
       "bodyMd": "**Tool:** Risk Escalation / Overdue Workflow\n**Stage:** track-risk-over-time\n**Current status:** built\n\n## Shipped\n\n`SPiERSafetyTask` coded `escalation` with a **repeating** escalation-trigger extension, since several triggers can fire at once; `Task.owner` routes it and `businessStatus` records the outcome. Recorded at `/patient/workflow/safety-tasks`. (#196, #197, implementation #198)\n\n## Remaining\n\n_None tracked — refinements only._\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-041` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -1259,7 +1279,8 @@
         "tool:TL-041"
       ],
       "createdAt": "2026-07-15T14:34:17Z",
-      "updatedAt": "2026-07-29T14:40:50Z",
+      "updatedAt": "2026-08-04T14:31:02Z",
+      "closedAt": "2026-08-04T14:31:02Z",
       "toolId": "TL-041",
       "status": "built",
       "type": "epic",
@@ -1268,9 +1289,9 @@
     {
       "number": 180,
       "title": "[TL-042] Suicide-Safer Care KPI / Measure Reporting",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/180",
-      "bodyMd": "**Tool:** Suicide-Safer Care KPI / Measure Reporting\n**Stage:** measure-and-share\n**Current status:** future\n\n## Next\n\nWave 6. Suggested shape: FHIR Measure resources for the SSC measure list (screen→assessment, safety plan before discharge, 7/30-day follow-up, …) + example MeasureReports.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-042` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "bodyMd": "**Tool:** Suicide-Safer Care KPI / Measure Reporting\n**Stage:** measure-and-share\n**Current status:** built\n\n## Shipped\n\nWave 6 part 2 (#208) made Stage 8 live: FHIR `Measure` resources for the SSC measure list in `ig/input/fsh/measure-and-share.fsh`, a measure engine in the app that computes them over the patient population, and a `npm run check:measures` drift guard that holds the Measure criteria and the engine in agreement.\n\n## Remaining\n\n- **#212 — Prove a CQL translator in CI, then publish a real measure Library.** The measures ship without a compiled `Library`: nothing in the repo translates CQL (the IG Publisher does not pick up `ig/input/cql`), and the measure CQL sits in `ig/drafts/` unreferenced. This is the credibility gap in an HL7 review.\n- Denominator seeding is a demo-data problem tracked at **#209**.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-042` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry. Body corrected 2026-08-04 — it had still read \"Current status: future / Wave 6\" after the work shipped in #208, which `Roadmap.tsx` renders on the published roadmap page.\n",
       "labels": [
         "status:built",
         "type:epic",
@@ -1278,7 +1299,8 @@
         "tool:TL-042"
       ],
       "createdAt": "2026-07-15T14:34:18Z",
-      "updatedAt": "2026-07-30T01:42:56Z",
+      "updatedAt": "2026-08-04T14:33:53Z",
+      "closedAt": "2026-08-04T14:33:53Z",
       "toolId": "TL-042",
       "status": "built",
       "type": "epic",
@@ -1287,9 +1309,9 @@
     {
       "number": 181,
       "title": "[TL-043] Reporting Dashboard / Aggregate View",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/181",
-      "bodyMd": "**Tool:** Reporting Dashboard / Aggregate View\n**Stage:** measure-and-share\n**Current status:** future\n\n## Next\n\nWave 6. Primarily app-side work (PopulationView aggregate); scope as a web feature rather than a FHIR artifact.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-043` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.",
+      "bodyMd": "**Tool:** Reporting Dashboard / Aggregate View\n**Stage:** measure-and-share\n**Current status:** built\n\n## Shipped\n\nWave 6 part 2 (#208) shipped the TL-043 dashboard — the aggregate Stage-8 view over the patient population, driven by the measure engine that landed alongside it. As anticipated when this epic was filed, it was app-side work (a web feature) rather than a new FHIR artifact.\n\n## Remaining\n\n- **#213 — Caveat the dashboard when every denominator is empty.** With no seeded Stage-5/6/7 cohort the measures compute to empty, and the dashboard currently presents that indistinguishably from genuine zero performance. Misleading in a live demo.\n- The cohort seeding itself is **#209**.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-043` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry. Body corrected 2026-08-04 — it had still read \"Current status: future / Wave 6\" after the dashboard shipped in #208, which `Roadmap.tsx` renders on the published roadmap page.\n",
       "labels": [
         "status:built",
         "type:epic",
@@ -1297,7 +1319,8 @@
         "tool:TL-043"
       ],
       "createdAt": "2026-07-15T14:34:20Z",
-      "updatedAt": "2026-07-30T01:42:57Z",
+      "updatedAt": "2026-08-04T14:33:56Z",
+      "closedAt": "2026-08-04T14:33:56Z",
       "toolId": "TL-043",
       "status": "built",
       "type": "epic",
@@ -1353,7 +1376,7 @@
         "area:population-view"
       ],
       "createdAt": "2026-07-30T01:45:36Z",
-      "updatedAt": "2026-07-30T01:45:36Z",
+      "updatedAt": "2026-08-04T14:32:02Z",
       "type": "task",
       "stage": "measure-and-share",
       "area": "population-view"
@@ -1371,7 +1394,7 @@
         "tool:TL-008"
       ],
       "createdAt": "2026-07-30T01:45:37Z",
-      "updatedAt": "2026-07-30T01:45:37Z",
+      "updatedAt": "2026-08-04T14:32:03Z",
       "toolId": "TL-008",
       "type": "task",
       "stage": "document-safety-actions",
@@ -1390,7 +1413,7 @@
         "tool:TL-010"
       ],
       "createdAt": "2026-07-30T01:45:39Z",
-      "updatedAt": "2026-07-30T01:45:39Z",
+      "updatedAt": "2026-08-04T14:32:05Z",
       "toolId": "TL-010",
       "type": "task",
       "stage": "track-follow-up",
@@ -1408,7 +1431,7 @@
         "area:ig"
       ],
       "createdAt": "2026-07-30T01:45:40Z",
-      "updatedAt": "2026-07-30T01:45:40Z",
+      "updatedAt": "2026-08-04T14:32:11Z",
       "type": "task",
       "stage": "measure-and-share",
       "area": "ig"
@@ -1425,10 +1448,25 @@
         "tool:TL-043"
       ],
       "createdAt": "2026-07-30T01:45:41Z",
-      "updatedAt": "2026-07-30T01:45:41Z",
+      "updatedAt": "2026-08-04T14:32:07Z",
       "toolId": "TL-043",
       "type": "task",
       "stage": "measure-and-share"
+    },
+    {
+      "number": 220,
+      "title": "Six LOINC codes used across Stanley-Brown, CRP and C-SSRS artifacts do not exist in LOINC",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/220",
+      "bodyMd": "Found while tightening the CAMS CarePlan profiles in [#95](https://github.com/SPiER-Project/adoption-guide/issues/95) / [PR #219](https://github.com/SPiER-Project/adoption-guide/pull/219). Reusing the repo's existing safety-plan LOINC codes put them into a required binding, and the IG Publisher rejected them.\n\n## The finding\n\nVerified twice — by the IG Publisher (LOINC 2.82) and independently by `tx.fhir.org`'s `$validate-code`:\n\n| Code | Used for | Reality |\n|---|---|---|\n| `76689-1` | Warning Signs | **does not exist in LOINC** |\n| `76690-9` | Coping Strategies | **does not exist** |\n| `76691-7` | Social Distractions | **does not exist** |\n| `76692-5` | Social/Crisis Support | **does not exist** |\n| `76693-3` | Professional Support | **does not exist** |\n| `76694-1` | Lethal Means Safety | **does not exist** |\n| `81344-4` | \"Reasons for Living\" | **real, but means something else entirely** — `Healthcare agent authority to inspect and disclose mental and physical health information Narrative - Reported` |\n\n`81344-4` is the most dangerous of the set: it resolves, so nothing flags it, and a receiving system would interpret reasons-for-living content as healthcare-agent disclosure authority.\n\nReproduce:\n\n```bash\nnode scripts/validate-fhir.mjs --tx https://tx.fhir.org\n```\n\n54 errors, all in artifacts PR #219 did not author.\n\n## Why CI never caught it\n\n`scripts/validate-fhir.mjs` runs `-tx n/a` so the gate stays fast and offline-reproducible, which means external terminology (LOINC, SNOMED) is not checked. The IG Publisher *does* check it, but is triggered by `ig/**` only — and these codes live in `FHIR-Resources/` and in TypeScript mappers, so neither gate ever saw them. They surfaced only when #95 pulled four of them into `ig/`.\n\n## Affected sites\n\n- `FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json` — `item.code` on steps 1–7\n- `FHIR-Resources/Stanley-Brown/Hybrid_CarePlan.json` — `activity.detail.code`\n- `FHIR-Resources/Stanley-Brown/README.md` — the \"Clinical Mapping Audit Table (LOINC)\", where the codes and their invented display names are documented as verified\n- `FHIR-Resources/CRP/README.md` — same table for the Crisis Response Plan\n- `web/src/lib/carePlanMappers/stanleyBrown.ts` and `crp.ts` — emitted at runtime on every generated CarePlan\n\nSeparately, `--tx` also reports code/display problems on the four C-SSRS Questionnaires (14/8/8/7 errors), PHQ-9 (3) and SBQ-R (1). Those need triage too, but are likely display-name drift rather than fabricated codes.\n\n## Suggested approach\n\n1. Decide per section whether a real LOINC concept exists. If one does, use it with its official display; if not, mint SPiER-local codes as PR #219 did for `cams-careplan-section`.\n2. Correct or delete the two README audit tables — they currently assert verification that did not happen, which is how these survived.\n3. Consider running the gate with `--tx` on a schedule (nightly, not per-PR) so external terminology drift is caught without making every PR depend on tx.fhir.org.\n\n⚠️ Do not guess replacement codes. Every code needs sourcing from LOINC itself, and displays must match exactly.",
+      "labels": [
+        "type:task",
+        "area:ig"
+      ],
+      "createdAt": "2026-08-04T20:22:30Z",
+      "updatedAt": "2026-08-04T20:22:30Z",
+      "type": "task",
+      "area": "ig"
     }
   ]
 }
