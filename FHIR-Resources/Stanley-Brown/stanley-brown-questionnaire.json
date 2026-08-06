@@ -17,9 +17,15 @@
       "linkId": "step-1-warning-signs",
       "code": [
         {
-          "system": "http://loinc.org",
-          "code": "76689-1",
-          "display": "Self-reported crisis warning signs"
+          "system": "http://spier.org/CodeSystem/safety-plan-section",
+          "code": "warning-signs",
+          "display": "Warning Signs",
+          "extension": [
+            {
+              "url": "http://spier.org/StructureDefinition/coding-verification-status",
+              "valueCode": "no-standard-binding"
+            }
+          ]
         }
       ],
       "text": "STEP 1: WARNING SIGNS (Thoughts, Images, Mood, Behavior)",
@@ -45,9 +51,15 @@
       "linkId": "step-2-internal-coping",
       "code": [
         {
-          "system": "http://loinc.org",
-          "code": "76690-9",
-          "display": "Self-reported distraction strategies to take mind off problems"
+          "system": "http://spier.org/CodeSystem/safety-plan-section",
+          "code": "internal-coping",
+          "display": "Internal Coping Strategies",
+          "extension": [
+            {
+              "url": "http://spier.org/StructureDefinition/coding-verification-status",
+              "valueCode": "no-standard-binding"
+            }
+          ]
         }
       ],
       "text": "STEP 2: INTERNAL COPING STRATEGIES (Things I can do to take my mind off my problems without contacting another person)",
@@ -73,9 +85,15 @@
       "linkId": "step-3-distraction-contacts",
       "code": [
         {
-          "system": "http://loinc.org",
-          "code": "76691-7",
-          "display": "Self-reported people and social settings that provide distraction"
+          "system": "http://spier.org/CodeSystem/safety-plan-section",
+          "code": "social-distraction",
+          "display": "Social Distractions",
+          "extension": [
+            {
+              "url": "http://spier.org/StructureDefinition/coding-verification-status",
+              "valueCode": "no-standard-binding"
+            }
+          ]
         }
       ],
       "text": "STEP 3: PEOPLE AND SOCIAL SETTINGS THAT PROVIDE DISTRACTION",
@@ -106,9 +124,15 @@
       "linkId": "step-4-crisis-support",
       "code": [
         {
-          "system": "http://loinc.org",
-          "code": "76692-5",
-          "display": "Self-reported people whom I can ask for help during a crisis"
+          "system": "http://spier.org/CodeSystem/safety-plan-section",
+          "code": "crisis-support",
+          "display": "Crisis Support Contacts",
+          "extension": [
+            {
+              "url": "http://spier.org/StructureDefinition/coding-verification-status",
+              "valueCode": "no-standard-binding"
+            }
+          ]
         }
       ],
       "text": "STEP 4: PEOPLE WHOM I CAN ASK FOR HELP DURING A CRISIS",
@@ -139,9 +163,15 @@
       "linkId": "step-5-professionals",
       "code": [
         {
-          "system": "http://loinc.org",
-          "code": "76693-3",
-          "display": "Self-reported professionals or professional services I can contact during a crisis"
+          "system": "http://spier.org/CodeSystem/safety-plan-section",
+          "code": "professional-support",
+          "display": "Professional Support",
+          "extension": [
+            {
+              "url": "http://spier.org/StructureDefinition/coding-verification-status",
+              "valueCode": "no-standard-binding"
+            }
+          ]
         }
       ],
       "text": "STEP 5: PROFESSIONALS OR PROFESSIONAL SERVICES I CAN CONTACT DURING A CRISIS",
@@ -199,9 +229,15 @@
       "linkId": "step-6-lethal-means",
       "code": [
         {
-          "system": "http://loinc.org",
-          "code": "76694-1",
-          "display": "Self-reported plan for lethal means safety"
+          "system": "http://spier.org/CodeSystem/safety-plan-section",
+          "code": "lethal-means-safety",
+          "display": "Lethal Means Safety",
+          "extension": [
+            {
+              "url": "http://spier.org/StructureDefinition/coding-verification-status",
+              "valueCode": "no-standard-binding"
+            }
+          ]
         }
       ],
       "text": "STEP 6: MAKING THE ENVIRONMENT SAFER (PLAN FOR LETHAL MEANS SAFETY)",
@@ -221,9 +257,15 @@
       "linkId": "step-7-reason-for-living",
       "code": [
         {
-          "system": "http://loinc.org",
-          "code": "81344-4",
-          "display": "Reasons for living"
+          "system": "http://spier.org/CodeSystem/safety-plan-section",
+          "code": "reason-for-living",
+          "display": "Reason for Living",
+          "extension": [
+            {
+              "url": "http://spier.org/StructureDefinition/coding-verification-status",
+              "valueCode": "no-standard-binding"
+            }
+          ]
         }
       ],
       "text": "STEP 7: THE ONE THING THAT IS MOST IMPORTANT TO ME AND WORTH LIVING FOR:",

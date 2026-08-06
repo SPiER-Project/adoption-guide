@@ -15,17 +15,37 @@ Actions). An alternative/complement to the Stanley-Brown Safety Plan (TL-007).
 
 ## Five CRP sections → CarePlan activities
 
-| Section | Reused LOINC (Stanley-Brown panel) |
+| Section | Section code (`safety-plan-section`) |
 |---|---|
-| 1. Warning signs | 76689-1 |
-| 2. Coping strategies (self-management) | 76690-9 |
-| 3. Reasons for living | 81344-4 |
-| 4. Social support | 76692-5 |
-| 5. Professional & crisis support (988, Crisis Text Line, ED) | 76693-3 |
+| 1. Warning signs | `warning-signs` |
+| 2. Coping strategies (self-management) | `internal-coping` |
+| 3. Reasons for living | `reason-for-living` |
+| 4. Social support | `crisis-support` |
+| 5. Professional & crisis support (988, Crisis Text Line, ED) | `professional-support` |
 
-There is no validated CRP-specific LOINC panel; codes are reused from the Stanley-Brown
-safety-plan panel where the concepts overlap, and each activity also names the section in
-`detail.code.text`.
+Section identity comes from the **SPiER-local** CodeSystem
+`http://spier.org/CodeSystem/safety-plan-section`, shared with the Stanley-Brown Safety
+Plan — the CRP's five sections are a subset of Stanley-Brown's seven. Each activity also
+names the section in `detail.code.text`, and at document level the CarePlan carries LOINC
+`87626-8` "Suicide prevention note" in `CarePlan.category`.
+
+There is no CRP-specific LOINC panel, and LOINC publishes nothing at safety-plan-section
+granularity for either template — see
+[`ig/input/fsh/safety-plan-section.fsh`](../../ig/input/fsh/safety-plan-section.fsh) for the
+search performed against LOINC 2.82.
+
+> ### ⚠️ Retracted: the former "Reused LOINC (Stanley-Brown panel)" column
+>
+> Until 2026-08-05 this table gave LOINC codes `76689-1`, `76690-9`, `81344-4`,
+> `76692-5` and `76693-3` for these five sections, described as reused from a
+> verified Stanley-Brown panel. **No such panel exists.** Four of those codes are
+> not in LOINC at all, and `81344-4` — used here for "Reasons for living" — means
+> "Healthcare agent authority to inspect and disclose mental and physical health
+> information Narrative - Reported".
+>
+> The codes reached this file by being copied from
+> `FHIR-Resources/Stanley-Brown/README.md`'s audit table, which asserted a
+> verification that never took place. See issue #220.
 
 ## FHIR Assets
 

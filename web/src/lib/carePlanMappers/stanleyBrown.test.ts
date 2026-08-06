@@ -53,11 +53,11 @@ describe('generateCarePlan (Stanley-Brown)', () => {
     expect(category[0].coding?.[0]?.code).toBe('735324008')
   })
 
-  it('embeds patient content and LOINC codes on each activity (Hybrid model)', () => {
+  it('embeds patient content and section codes on each activity (Hybrid model)', () => {
     const { activities, resource } = generateCarePlan(fullSafetyPlan())
 
     // Step 1: multiple warning signs joined
-    expect(activities[0].sectionCode?.code).toBe('76689-1')
+    expect(activities[0].sectionCode?.code).toBe('warning-signs')
     expect(activities[0].description).toBe('Racing thoughts, Isolating')
 
     // Step 3: distraction pair rendered as "name (contact)"
@@ -68,9 +68,14 @@ describe('generateCarePlan (Stanley-Brown)', () => {
     expect(activities[4].description).toContain('General Hospital ED')
     expect(activities[4].description).toContain('1 Main St')
 
-    // LOINC codes land on the FHIR activity detail.code
-    const fhirActivity = (resource.activity as Array<{ detail?: { code?: { coding?: Array<{ code?: string }> } } }>)[0]
-    expect(fhirActivity.detail?.code?.coding?.[0]?.code).toBe('76689-1')
+    // Section codes land on the FHIR activity detail.code
+    const fhirActivity = (resource.activity as Array<{ detail?: { code?: { coding?: Array<{ system?: string; code?: string }> } } }>)[0]
+    expect(fhirActivity.detail?.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/safety-plan-section')
+    expect(fhirActivity.detail?.code?.coding?.[0]?.code).toBe('warning-signs')
+
+    // The one real standard code that applies sits at document level on category.
+    const category = resource.category as Array<{ coding?: Array<{ system?: string; code?: string }> }>
+    expect(category.some(c => c.coding?.[0]?.system === 'http://loinc.org' && c.coding?.[0]?.code === '87626-8')).toBe(true)
   })
 
   it('an empty response yields isEmpty=true and placeholder descriptions', () => {

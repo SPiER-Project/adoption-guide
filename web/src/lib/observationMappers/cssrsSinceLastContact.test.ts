@@ -53,12 +53,32 @@ describe('mapCSSRSSinceLastContact', () => {
     expect(r.riskAlert.level).toBe('none')
   })
 
-  it('emits per-item LOINC Observations tagged with the Since Last Visit label', () => {
+  it('emits per-item Observations tagged with the Since Last Visit label', () => {
     const r = mapCSSRSSinceLastContact(slvResponse({ q1: true, q2: false }))
-    const q1Obs = r.observations.find(o => o.code?.coding?.[0]?.code === '93246-7') as
+    const q1Obs = r.observations.find(o => o.code?.coding?.[0]?.code === 'wish-to-be-dead') as
       | { valueBoolean?: boolean; note?: Array<{ text?: string }> }
       | undefined
     expect(q1Obs?.valueBoolean).toBe(true)
     expect(q1Obs?.note?.[0]?.text ?? '').toContain('C-SSRS Since Last Visit')
+  })
+
+  it('codes per-item Observations locally, never with a LOINC timeframe code', () => {
+    // LOINC's C-SSRS item codes all assert a window (Lifetime / 1 month / 3 months);
+    // none matches "since last contact", so reusing one here would misstate the
+    // reference period to a receiving system. Issue #220.
+    const r = mapCSSRSSinceLastContact(
+      slvResponse({ q1: true, q2: true, q3: true, q4: true, q5: true, q6: true }),
+    )
+    const perItem = r.observations.filter(o => o.code?.coding?.[0]?.code !== '93374-7')
+    expect(perItem).toHaveLength(6)
+    for (const obs of perItem) {
+      expect(obs.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/cssrs-interval-item')
+    }
+  })
+
+  it('still derives the shared timeframe-agnostic risk-level Observation', () => {
+    const r = mapCSSRSSinceLastContact(slvResponse({ q1: true, q2: true, q5: true }))
+    expect(riskObs(r)?.code?.coding?.[0]?.code).toBe('93374-7')
+    expect(riskObs(r)?.valueCodeableConcept?.coding?.[0]?.code).toBe('high')
   })
 })

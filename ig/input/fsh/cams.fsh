@@ -188,7 +188,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // All codes here are SPiER-local, deliberately.
 //
 // The obvious move was to reuse the LOINC codes the Stanley-Brown and Crisis
-// Response Plan CarePlans already emit for the equivalent safety-plan sections
+// Response Plan CarePlans then emitted for the equivalent safety-plan sections
 // (76689-1, 76690-9, 76691-7, 76692-5, 76693-3, 76694-1), listed as verified in
 // FHIR-Resources/Stanley-Brown/README.md's "Clinical Mapping Audit Table".
 // Those six codes DO NOT EXIST in LOINC — confirmed against LOINC 2.82 by both
@@ -197,9 +197,11 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // disclose mental and physical health information" — valid, but not that.)
 //
 // Reusing them would have published unresolvable codes in a required binding, so
-// every section gets a local code until real LOINC concepts are sourced. The
-// pre-existing runtime uses of those codes are a separate, wider problem — see
-// the follow-up issue referenced from PR #219.
+// every section gets a local code instead. Those seven codes have since been
+// withdrawn repo-wide and replaced by http://spier.org/CodeSystem/safety-plan-section
+// (issue #220) — see safety-plan-section.fsh, which also records the exhaustive
+// LOINC 2.82 search establishing that no published concepts exist at
+// safety-plan-section granularity for either template.
 
 CodeSystem: CAMSCarePlanSectionCodes
 Id: cams-careplan-section

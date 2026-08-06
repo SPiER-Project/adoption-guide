@@ -12,16 +12,9 @@
   ],
   "date": "2026-07-15",
   "publisher": "SPiER Project (FHIR translation)",
-  "description": "FHIR Questionnaire representation of the C-SSRS Since Last Visit / Since Last Contact version — a repeat suicide-risk assessment that covers only the interval since the patient's prior contact rather than lifetime/recent. Item set, LOINC coding, conditional logic, and three-tier risk stratification are identical to the C-SSRS Screener (Recent); the difference is the administration reference period, which is expressed in the instructions. Used to reassess risk over the interval and update the current risk workflow.",
+  "description": "FHIR Questionnaire representation of the C-SSRS Since Last Visit / Since Last Contact version — a repeat suicide-risk assessment that covers only the interval since the patient's prior contact rather than lifetime/recent. Item set, conditional logic, and three-tier risk stratification are identical to the C-SSRS Screener (Recent); the difference is the administration reference period, which is expressed in the instructions. Coding differs deliberately: LOINC publishes C-SSRS item codes only for Lifetime, 1-month and 3-month windows, none of which is \"since last contact\", so the per-item codes are omitted and the two non-timeframed C-SSRS panel codes (93278-0, 93304-4) are carried at section level instead. See issue #220. Used to reassess risk over the interval and update the current risk workflow.",
   "purpose": "Interval suicide-risk reassessment. Questions 1-2 are always asked; Questions 3-5 are conditional on Q2=Yes; Question 6 (suicidal behavior) is always asked — all framed to the period since the patient's last visit/contact. Risk tiers: Q1-Q2 positive = Low, Q3-Q4 positive = Moderate, Q5 or Q6 positive = High. Belongs to the Clarify Risk stage as a repeat assessment.",
   "copyright": "© 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. Used with registration; training required for administration. For inquiries and training: posnerk@nyspi.columbia.edu",
-  "code": [
-    {
-      "system": "http://loinc.org",
-      "code": "93373-9",
-      "display": "Columbia-suicide severity rating scale screener - recent"
-    }
-  ],
   "item": [
     {
       "linkId": "since-last-visit-instruction",
@@ -32,6 +25,9 @@
       "linkId": "ideation-section",
       "text": "Suicide Ideation (since last visit/contact)",
       "type": "group",
+      "code": [
+        { "system": "http://loinc.org", "code": "93278-0", "display": "Suicidal ideation [C-SSRS]" }
+      ],
       "item": [
         {
           "linkId": "q1",
@@ -39,7 +35,14 @@
           "type": "choice",
           "required": true,
           "code": [
-            { "system": "http://loinc.org", "code": "93246-7", "display": "Wish to be dead" }
+            {
+              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "code": "wish-to-be-dead",
+              "display": "Wish to be dead (since last contact)",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+              ]
+            }
           ],
           "extension": [
             { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
@@ -55,7 +58,14 @@
           "type": "choice",
           "required": true,
           "code": [
-            { "system": "http://loinc.org", "code": "93247-5", "display": "Non-specific active suicidal thoughts" }
+            {
+              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "code": "non-specific-active-thoughts",
+              "display": "Non-specific active suicidal thoughts (since last contact)",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+              ]
+            }
           ],
           "extension": [
             { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
@@ -70,11 +80,18 @@
           "text": "Have you been thinking about how you might do this?",
           "type": "choice",
           "required": true,
+          "code": [
+            {
+              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "code": "active-ideation-any-methods",
+              "display": "Active suicidal ideation with any methods, without intent to act (since last contact)",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+              ]
+            }
+          ],
           "enableWhen": [
             { "question": "q2", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
-          ],
-          "code": [
-            { "system": "http://loinc.org", "code": "93248-3", "display": "Active suicidal ideation with any methods (not plan) without intent to act" }
           ],
           "extension": [
             { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
@@ -89,11 +106,18 @@
           "text": "Have you had these thoughts and had some intention of acting on them?",
           "type": "choice",
           "required": true,
+          "code": [
+            {
+              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "code": "active-ideation-some-intent",
+              "display": "Active suicidal ideation with some intent to act, without specific plan (since last contact)",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+              ]
+            }
+          ],
           "enableWhen": [
             { "question": "q2", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
-          ],
-          "code": [
-            { "system": "http://loinc.org", "code": "93249-1", "display": "Active suicidal ideation with some intent to act without specific plan" }
           ],
           "extension": [
             { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
@@ -108,11 +132,18 @@
           "text": "Have you started to work out or worked out the details of how to kill yourself? Do you intend to carry out this plan?",
           "type": "choice",
           "required": true,
+          "code": [
+            {
+              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "code": "active-ideation-plan-and-intent",
+              "display": "Active suicidal ideation with specific plan and intent (since last contact)",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+              ]
+            }
+          ],
           "enableWhen": [
             { "question": "q2", "operator": "=", "answerCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }
-          ],
-          "code": [
-            { "system": "http://loinc.org", "code": "93250-9", "display": "Active suicidal ideation with specific plan and intent" }
           ],
           "extension": [
             { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
@@ -128,6 +159,9 @@
       "linkId": "behavior-section",
       "text": "Suicidal Behavior (since last visit/contact)",
       "type": "group",
+      "code": [
+        { "system": "http://loinc.org", "code": "93304-4", "display": "Suicidal behavior [C-SSRS]" }
+      ],
       "item": [
         {
           "linkId": "q6",
@@ -135,7 +169,14 @@
           "type": "choice",
           "required": true,
           "code": [
-            { "system": "http://loinc.org", "code": "93267-3", "display": "Have you ever done anything, started to do anything, or prepared to do anything to end your life" }
+            {
+              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "code": "suicidal-behavior",
+              "display": "Suicidal behavior (since last contact)",
+              "extension": [
+                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+              ]
+            }
           ],
           "extension": [
             { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }

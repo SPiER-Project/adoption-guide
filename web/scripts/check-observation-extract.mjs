@@ -37,11 +37,16 @@ const EXPECTED = {
   'FHIR-Resources/C-SSRS/cssrs-screener.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
-  // C-SSRS Since Last Visit shares the screener's 6-item set + LOINC codes; the
-  // interval-scoped version drops the "within past 3 months" recency sub-item.
-  // Matches web/src/lib/observationMappers/cssrsSinceLastContact.ts (shared core).
+  // C-SSRS Since Last Visit shares the screener's 6-item set but NOT its coding.
+  // LOINC codes C-SSRS items only per timeframe (Lifetime / 1 month / 3 months)
+  // and has nothing for "since last contact", so these bind to the SPiER-local
+  // http://spier.org/CodeSystem/cssrs-interval-item instead of reusing the
+  // screener's 1-month LOINC codes, which would assert a window the instrument
+  // does not claim (issue #220). These are NOT LOINC codes; they match
+  // web/src/lib/observationMappers/cssrsSinceLastContact.ts.
   'FHIR-Resources/C-SSRS/cssrs-since-last-contact.json': [
-    '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
+    'wish-to-be-dead', 'non-specific-active-thoughts', 'active-ideation-any-methods',
+    'active-ideation-some-intent', 'active-ideation-plan-and-intent', 'suicidal-behavior',
   ],
   // C-SSRS Pediatric / Adolescent reuses the validated screener item set + LOINC
   // codes. Matches web/src/lib/observationMappers/cssrsPediatric.ts (shared core).

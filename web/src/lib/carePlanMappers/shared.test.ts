@@ -115,7 +115,7 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
       noteText: 'DEMO note',
       hasAnyData,
       activities: [
-        { stepTitle: 'Coded Step', sectionCode: { system: 'http://loinc.org', code: '76694-1' }, description: 'coded desc' },
+        { stepTitle: 'Coded Step', sectionCode: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'lethal-means-safety' }, description: 'coded desc' },
         { stepTitle: 'Text-only Step', description: 'text desc' },
       ],
     })
@@ -132,6 +132,27 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
     expect(category[0].coding?.[0]?.system).toBe('http://snomed.info/sct')
     expect(category[0].coding?.[0]?.code).toBe('735324008')
     expect((resource.note as Array<{ text?: string }> | undefined)?.[0]?.text).toBe('DEMO note')
+    // No extraCategories passed → the SNOMED plan code is the only category.
+    expect(category).toHaveLength(1)
+  })
+
+  it('appends extraCategories after the SNOMED plan code', () => {
+    const { resource } = makeSuicidePreventionCarePlan({
+      id: 'cp-2',
+      profileUrl,
+      noteText: 'DEMO note',
+      hasAnyData: true,
+      activities: [{ stepTitle: 'Text-only Step', description: 'text desc' }],
+      extraCategories: [{ system: 'http://loinc.org', code: '87626-8', display: 'Suicide prevention note' }],
+    })
+    const category = resource.category as Array<{ coding?: Array<{ system?: string; code?: string; display?: string }> }>
+    expect(category).toHaveLength(2)
+    expect(category[0].coding?.[0]?.code).toBe('735324008')
+    expect(category[1].coding?.[0]).toEqual({
+      system: 'http://loinc.org',
+      code: '87626-8',
+      display: 'Suicide prevention note',
+    })
   })
 
   it('maps a sectionCode activity to detail.code.coding and a text-only activity to detail.code.text', () => {
@@ -139,9 +160,9 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
     const activity = resource.activity as Array<{
       detail?: { code?: { coding?: Array<{ system?: string; code?: string }>; text?: string }; description?: string; status?: string }
     }>
-    // Coded activity → LOINC coding + text label
-    expect(activity[0].detail?.code?.coding?.[0]?.system).toBe('http://loinc.org')
-    expect(activity[0].detail?.code?.coding?.[0]?.code).toBe('76694-1')
+    // Coded activity → section coding + text label
+    expect(activity[0].detail?.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/safety-plan-section')
+    expect(activity[0].detail?.code?.coding?.[0]?.code).toBe('lethal-means-safety')
     expect(activity[0].detail?.code?.text).toBe('Coded Step')
     expect(activity[0].detail?.description).toBe('coded desc')
     expect(activity[0].detail?.status).toBe('in-progress')
