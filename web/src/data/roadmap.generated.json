@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-05T16:36:20.186Z",
+  "fetchedAt": "2026-08-07T20:52:55.522Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
@@ -116,7 +116,7 @@
         "tool:TL-007"
       ],
       "createdAt": "2026-05-21T14:22:07Z",
-      "updatedAt": "2026-08-04T14:40:10Z",
+      "updatedAt": "2026-08-07T19:24:15Z",
       "toolId": "TL-007",
       "status": "built",
       "type": "epic",
@@ -156,7 +156,7 @@
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:10Z",
-      "updatedAt": "2026-08-04T14:40:26Z",
+      "updatedAt": "2026-08-07T19:24:10Z",
       "toolId": "TL-009",
       "status": "built",
       "type": "epic",
@@ -306,7 +306,7 @@
     {
       "number": 33,
       "title": "[TL-017] Rapid Referral",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/33",
       "bodyMd": "**Tool:** Referral / Next Provider Handoff\n**Stage:** coordinate-handoffs\n**Current status:** built\n\n## Shipped\n\n`SPiERSafetyReferral` (**ServiceRequest**, not Communication) plus a recorder at `/patient/workflow/referral` that tracks `draft → active → completed | revoked` **in place** — the same resource is upserted by id, so a closed referral cannot still read as outstanding. That round trip is what the readiness checklist scores and what a Communication cannot express. (#199, recorder + migration #202)\n\nThe recorder was migrated off the generic Communication view in #202; `/patient/workflow/rapid-referral` redirects to the new path.\n\n## Remaining\n\n- The referral is recorded, not transmitted: there is no receiving-system FHIR endpoint, so status advances by hand rather than from a partner's update.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-017` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration.\n",
       "labels": [
@@ -316,7 +316,8 @@
         "tool:TL-017"
       ],
       "createdAt": "2026-05-21T14:22:38Z",
-      "updatedAt": "2026-07-29T14:40:35Z",
+      "updatedAt": "2026-08-07T19:20:36Z",
+      "closedAt": "2026-08-07T19:20:36Z",
       "toolId": "TL-017",
       "status": "built",
       "type": "epic",
@@ -782,7 +783,7 @@
         "area:ig"
       ],
       "createdAt": "2026-06-10T17:56:26Z",
-      "updatedAt": "2026-06-10T17:56:26Z",
+      "updatedAt": "2026-08-07T19:24:20Z",
       "type": "task",
       "area": "ig"
     },
@@ -864,7 +865,7 @@
         "type:task"
       ],
       "createdAt": "2026-07-04T16:03:52Z",
-      "updatedAt": "2026-08-05T16:29:01Z",
+      "updatedAt": "2026-08-05T16:37:13Z",
       "closedAt": "2026-08-05T16:29:01Z",
       "type": "task"
     },
@@ -911,7 +912,7 @@
         "area:catalog"
       ],
       "createdAt": "2026-07-04T16:04:15Z",
-      "updatedAt": "2026-07-04T16:04:15Z",
+      "updatedAt": "2026-08-07T19:23:38Z",
       "type": "task",
       "area": "catalog"
     },
@@ -926,7 +927,7 @@
         "area:patient-view"
       ],
       "createdAt": "2026-07-04T16:04:17Z",
-      "updatedAt": "2026-07-30T01:39:21Z",
+      "updatedAt": "2026-08-07T19:23:39Z",
       "type": "task",
       "area": "patient-view"
     },
@@ -964,7 +965,7 @@
     {
       "number": 138,
       "title": "SMART on FHIR live read/write proven in sandbox — remaining path to a real EHR/HIE endpoint",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/138",
       "bodyMd": "Tracks the **app-side** SMART on FHIR live read/write capability and what's left to point it at a real endpoint. Makes this workstream visible on the milestone map — it was previously untracked.\n\n### Context / why M5\n\nEpic #60 (HIE Pilot) flags Phase 2 receiving-side write-back to discrete chart fields as *\"likely the highest-friction single technical step in the pilot … Needs its own milestone.\"* The July data-layer series (#133 → #136 → #137) built and proved the app side of exactly that pattern: a SMART-launched app that reads discrete `QuestionnaireResponse`/`Observation` data from a live FHIR server and writes submissions back as discrete resources. This is de-risking, not the pilot itself — but it's the concrete artifact to walk into the HIE/EHR conversation with.\n\n### Done (shipped in #137, verified against the SMART Health IT sandbox)\n\n- `SmartDataSource` reads the launch patient's real `QuestionnaireResponse` / `Observation` / `CarePlan` / `Communication` resources and writes back on submit (QR first, then derived Observations with `derivedFrom` rewritten to the server-assigned QR id, `subject` set to the launch patient).\n- OAuth flow works for the HashRouter + GitHub Pages static host (public client + PKCE, no backend); SMART session rehydrates on reload; write failures surface in the UI with no silent fallback to localStorage.\n- Round-trip evidence in #137: submitted PHQ-9 landed as QR `4739604` + Observations `4739605/6` on the sandbox server and rendered back on the chart.\n- How-to: `docs/smart-sandbox-testing.md`.\n\n### Remaining before this is pilot-usable\n\n- [ ] One human two-click pass through the launcher UI (the automated verification completed the two OAuth 302 hops out-of-band; the in-browser reads/writes are proven but the click-through wasn't).\n- [ ] Register the SPiER client with a real EHR/HIE sandbox endpoint (client id, redirect URI allow-list) — the public open sandbox accepts an unregistered `spier-client`; a real endpoint won't.\n- [ ] Decide the receiving-side story for the pilot: SPiER-as-SMART-app writing discrete data vs. the EHR's own native chart write-back (the epic's actual Phase 2 measurement). Clarify which this capability serves.\n- [ ] Known limitation to resolve for foreign data: observation mappers dispatch on `http://spier.org/Questionnaire/*` canonicals, so only SPiER-authored QRs produce risk alerts / derived Observations. Cross-EHR ASQ payloads using other canonicals render but don't auto-derive — the ASQ crosswalk work under M1/#77 is the lever here.\n\n### Out of scope\n\nThe HIE transport itself, receiving-EHR native integration, and the evaluation framework — those are #60's child tasks.",
       "labels": [
@@ -973,7 +974,8 @@
         "area:patient-view"
       ],
       "createdAt": "2026-07-04T22:10:32Z",
-      "updatedAt": "2026-07-04T22:10:32Z",
+      "updatedAt": "2026-08-07T19:23:52Z",
+      "closedAt": "2026-08-07T19:23:52Z",
       "status": "built",
       "type": "task",
       "area": "patient-view"
@@ -1068,7 +1070,7 @@
         "tool:TL-030"
       ],
       "createdAt": "2026-07-15T14:34:02Z",
-      "updatedAt": "2026-07-29T14:40:38Z",
+      "updatedAt": "2026-08-07T19:24:05Z",
       "toolId": "TL-030",
       "status": "built",
       "type": "epic",
@@ -1077,7 +1079,7 @@
     {
       "number": 169,
       "title": "[TL-031] Next Appointment / Follow-Up Visit Scheduling",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/169",
       "bodyMd": "**Tool:** Next Appointment / Follow-Up Visit Scheduling\n**Stage:** coordinate-handoffs\n**Current status:** built\n\n## Shipped\n\n`SPiERFollowUpAppointment` plus a recorder at `/patient/workflow/follow-up-appointment`. Note the patient rides as a `participant.actor`: Appointment has no `subject` **or** `patient` element, and writing one produces invalid FHIR a strict server rejects. (#199, recorder #202)\n\n## Remaining\n\n- No scheduling-system integration; the recorder documents an appointment that exists elsewhere rather than booking one.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-031` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -1087,7 +1089,8 @@
         "tool:TL-031"
       ],
       "createdAt": "2026-07-15T14:34:04Z",
-      "updatedAt": "2026-07-29T14:40:39Z",
+      "updatedAt": "2026-08-07T19:20:44Z",
+      "closedAt": "2026-08-07T19:20:44Z",
       "toolId": "TL-031",
       "status": "built",
       "type": "epic",
@@ -1106,7 +1109,7 @@
         "tool:TL-032"
       ],
       "createdAt": "2026-07-15T14:34:05Z",
-      "updatedAt": "2026-07-29T14:40:40Z",
+      "updatedAt": "2026-08-07T19:24:08Z",
       "toolId": "TL-032",
       "status": "built",
       "type": "epic",
@@ -1115,7 +1118,7 @@
     {
       "number": 171,
       "title": "[TL-033] Follow-Up Outreach / Contact Attempts",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/171",
       "bodyMd": "**Tool:** Follow-Up Outreach / Contact Attempts\n**Stage:** track-follow-up\n**Current status:** built\n\n## Shipped\n\n`SPiEROutreachAttempt` (Communication) plus a recorder at `/patient/workflow/outreach`. The outcome rides as a **required** extension because `Communication.status` only says a message was *sent*, never whether anyone answered; \"safety concern identified\" is a separate boolean axis, since a concern can surface on a successfully reached call. (#200, recorder #202)\n\n## Remaining\n\n- Nothing schedules the outreach cadence; attempts are recorded when a human opens the form. TL-039's Task cadence is the closest existing machinery.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-033` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -1125,7 +1128,8 @@
         "tool:TL-033"
       ],
       "createdAt": "2026-07-15T14:34:06Z",
-      "updatedAt": "2026-07-29T14:40:41Z",
+      "updatedAt": "2026-08-07T19:20:47Z",
+      "closedAt": "2026-08-07T19:20:47Z",
       "toolId": "TL-033",
       "status": "built",
       "type": "epic",
@@ -1153,7 +1157,7 @@
     {
       "number": 173,
       "title": "[TL-035] Missed Appointment / No-Show Follow-Up",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/173",
       "bodyMd": "**Tool:** Missed Appointment / No-Show Follow-Up\n**Stage:** track-follow-up\n**Current status:** built\n\n## Shipped\n\nThe **same** `SPiEROutreachAttempt` as routine outreach, distinguished only by `outreach-prompt` = no-show / missed-appointment. The recorder pre-sets that prompt when the patient's latest appointment was a no-show, and the Population Follow-Up column flags the case as outreach-due. (#200, implementation #202)\n\n## Remaining\n\n- Rescheduling is a new Appointment, created by hand; nothing proposes one automatically.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-035` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -1163,7 +1167,8 @@
         "tool:TL-035"
       ],
       "createdAt": "2026-07-15T14:34:09Z",
-      "updatedAt": "2026-07-29T14:40:43Z",
+      "updatedAt": "2026-08-07T19:20:49Z",
+      "closedAt": "2026-08-07T19:20:49Z",
       "toolId": "TL-035",
       "status": "built",
       "type": "epic",
@@ -1172,7 +1177,7 @@
     {
       "number": 174,
       "title": "[TL-036] Follow-Up Escalation Workflow",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/174",
       "bodyMd": "**Tool:** Follow-Up Escalation Workflow\n**Stage:** track-follow-up\n**Current status:** built\n\n## Shipped\n\nThe **same** `SPiERSafetyTask` (code = escalation) Stage 7 uses, so a case escalated because follow-up failed and one escalated from the risk registry land in the same work queue. The three triggers this stage needed (new safety concern, missed outreach window, failed contact sequence) were added to the existing `spier-escalation-trigger` CodeSystem rather than forking a parallel one. (#200)\n\n#202 fixed real drift here: those three codes existed in the IG but were missing from the app's copy of the trigger list, so they could not actually be recorded. The outreach recorder now also points at escalation once two consecutive attempts fail to reach the patient.\n\n## Remaining\n\n- `Task.owner` is a display string in the demo; routing to a real Practitioner/CareTeam is unconstrained for now.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-036` label.\n\nFiled during the July 2026 GitHub roadmap migration (Phase 1 of docs/plans/ssc-stage-tiles-rollout.md), created directly from the SSC stage-tile spec (docs/reference/ssc-stage-tiles-question-set.md) rather than migrated from an existing Roadmap.tsx entry.\n",
       "labels": [
@@ -1182,7 +1187,8 @@
         "tool:TL-036"
       ],
       "createdAt": "2026-07-15T14:34:10Z",
-      "updatedAt": "2026-07-29T14:40:44Z",
+      "updatedAt": "2026-08-07T19:20:51Z",
+      "closedAt": "2026-08-07T19:20:51Z",
       "toolId": "TL-036",
       "status": "built",
       "type": "epic",
@@ -1376,7 +1382,7 @@
         "area:population-view"
       ],
       "createdAt": "2026-07-30T01:45:36Z",
-      "updatedAt": "2026-08-04T14:32:02Z",
+      "updatedAt": "2026-08-07T19:24:03Z",
       "type": "task",
       "stage": "measure-and-share",
       "area": "population-view"
@@ -1448,7 +1454,7 @@
         "tool:TL-043"
       ],
       "createdAt": "2026-07-30T01:45:41Z",
-      "updatedAt": "2026-08-04T14:32:07Z",
+      "updatedAt": "2026-08-07T19:24:24Z",
       "toolId": "TL-043",
       "type": "task",
       "stage": "measure-and-share"
@@ -1456,7 +1462,7 @@
     {
       "number": 220,
       "title": "Six LOINC codes used across Stanley-Brown, CRP and C-SSRS artifacts do not exist in LOINC",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/220",
       "bodyMd": "Found while tightening the CAMS CarePlan profiles in [#95](https://github.com/SPiER-Project/adoption-guide/issues/95) / [PR #219](https://github.com/SPiER-Project/adoption-guide/pull/219). Reusing the repo's existing safety-plan LOINC codes put them into a required binding, and the IG Publisher rejected them.\n\n## The finding\n\nVerified twice — by the IG Publisher (LOINC 2.82) and independently by `tx.fhir.org`'s `$validate-code`:\n\n| Code | Used for | Reality |\n|---|---|---|\n| `76689-1` | Warning Signs | **does not exist in LOINC** |\n| `76690-9` | Coping Strategies | **does not exist** |\n| `76691-7` | Social Distractions | **does not exist** |\n| `76692-5` | Social/Crisis Support | **does not exist** |\n| `76693-3` | Professional Support | **does not exist** |\n| `76694-1` | Lethal Means Safety | **does not exist** |\n| `81344-4` | \"Reasons for Living\" | **real, but means something else entirely** — `Healthcare agent authority to inspect and disclose mental and physical health information Narrative - Reported` |\n\n`81344-4` is the most dangerous of the set: it resolves, so nothing flags it, and a receiving system would interpret reasons-for-living content as healthcare-agent disclosure authority.\n\nReproduce:\n\n```bash\nnode scripts/validate-fhir.mjs --tx https://tx.fhir.org\n```\n\n54 errors, all in artifacts PR #219 did not author.\n\n## Why CI never caught it\n\n`scripts/validate-fhir.mjs` runs `-tx n/a` so the gate stays fast and offline-reproducible, which means external terminology (LOINC, SNOMED) is not checked. The IG Publisher *does* check it, but is triggered by `ig/**` only — and these codes live in `FHIR-Resources/` and in TypeScript mappers, so neither gate ever saw them. They surfaced only when #95 pulled four of them into `ig/`.\n\n## Affected sites\n\n- `FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json` — `item.code` on steps 1–7\n- `FHIR-Resources/Stanley-Brown/Hybrid_CarePlan.json` — `activity.detail.code`\n- `FHIR-Resources/Stanley-Brown/README.md` — the \"Clinical Mapping Audit Table (LOINC)\", where the codes and their invented display names are documented as verified\n- `FHIR-Resources/CRP/README.md` — same table for the Crisis Response Plan\n- `web/src/lib/carePlanMappers/stanleyBrown.ts` and `crp.ts` — emitted at runtime on every generated CarePlan\n\nSeparately, `--tx` also reports code/display problems on the four C-SSRS Questionnaires (14/8/8/7 errors), PHQ-9 (3) and SBQ-R (1). Those need triage too, but are likely display-name drift rather than fabricated codes.\n\n## Suggested approach\n\n1. Decide per section whether a real LOINC concept exists. If one does, use it with its official display; if not, mint SPiER-local codes as PR #219 did for `cams-careplan-section`.\n2. Correct or delete the two README audit tables — they currently assert verification that did not happen, which is how these survived.\n3. Consider running the gate with `--tx` on a schedule (nightly, not per-PR) so external terminology drift is caught without making every PR depend on tx.fhir.org.\n\n⚠️ Do not guess replacement codes. Every code needs sourcing from LOINC itself, and displays must match exactly.",
       "labels": [
@@ -1464,9 +1470,128 @@
         "area:ig"
       ],
       "createdAt": "2026-08-04T20:22:30Z",
-      "updatedAt": "2026-08-04T20:22:30Z",
+      "updatedAt": "2026-08-06T01:55:49Z",
+      "closedAt": "2026-08-06T01:55:49Z",
       "type": "task",
       "area": "ig"
+    },
+    {
+      "number": 226,
+      "title": "Validate the non-QuestionnaireResponse resources in the population scenarios",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/226",
+      "bodyMd": "Filed from the 2026-08-07 milestone review. **Companion to #209 — this should land first, or alongside it.**\n\n## Problem\n\nNothing validates the non-QuestionnaireResponse resources inside `web/src/data/population/scenarios/patient-*.json`.\n\nCoverage today, verified 2026-08-07:\n\n- `web/scripts/check-scenario-responses.mjs` (#124/#218) checks **QuestionnaireResponses only** — linkId resolution, nesting, answerOption membership, min/max, value[x] type. Its own header says so.\n- `scripts/validate-fhir.mjs` (#123/#217) reads `ig/fsh-generated/resources` and `FHIR-Resources/`. It does **not** read `web/src/data/population/` at all.\n\nSo `observations`, `carePlans`, `communications`, `encounters`, and `riskAlerts` are already ungated hand-authored FHIR, and #209 is about to add five more resource types on top of them: `EpisodeOfCare`, `Appointment`, `ServiceRequest`, `Procedure`, and the Stage-5 packet `DocumentReference`.\n\nThat matters more than usual here because the Stage-8 measure engine reads exactly those buckets. A malformed `EpisodeOfCare.status`, a `ServiceRequest` missing `intent`, or an `Appointment` with the wrong `participant.status` would not fail any gate — it would silently produce a wrong measure score, which is worse than an empty one. The whole argument of #213 is that an empty denominator is honest; a wrong numerator is not.\n\n#209's own acceptance criteria say it should land \"ideally alongside or after #124, so the new hand-authored FHIR gets validated rather than adding more ungated scenario content.\" #124 turned out to cover only QRs, so that condition is not actually met yet. This issue is what would meet it.\n\n## Scope\n\nExtend validation to every resource in every scenario bucket, not just QRs. Two plausible shapes — pick whichever is cheaper to keep honest:\n\n1. **Extend the HL7 validator gate.** Have `scripts/validate-fhir.mjs` (or a sibling) unwrap the scenario JSON into standalone resources in a temp dir and run `validator_cli` over them, claiming the SPiER profile where the scenario declares one. Gives real conformance checking for free, at the cost of Java in the loop.\n2. **Extend `check-scenario-responses.mjs`** into a general `check:scenarios` that asserts the structural invariants the app and the measure engine actually depend on (required elements per resource type, status-code membership, reference targets resolving inside the slice, dates parseable).\n\nOption 1 catches more; option 2 stays offline and fast. A hybrid — structural checks in `verify`, full validator in CI — is also reasonable, but do not claim coverage the offline half does not have.\n\n## Guardrails\n\n- **Prove the gate can fail before trusting it.** Plant a deliberately broken scenario resource — a bad `EpisodeOfCare.status` code, a `ServiceRequest` with no `intent` — and confirm the gate goes red. This repo has now hit five separate silent-pass mechanisms (see `CLAUDE.md`, and the `-ig <folder>` / `-output` traps in `validate-fhir.mjs`); a green gate nobody has watched go red is not evidence.\n- If the checker resolves profiles or Questionnaires, an unresolvable reference must be an **error**, not a warning — that is the exact failure mode #218 had to fix.\n- Wire it into `web/`'s `npm run verify` and document it in `CLAUDE.md`'s verification table alongside the other drift checks.\n\n## Acceptance\n\n- Every resource in every scenario bucket is checked by something, and `CLAUDE.md` states accurately what that something does and does not cover.\n- A planted defect in a non-QR scenario resource fails the gate — demonstrated, not assumed.\n- `npm run verify` passes on the current scenario data (fix or document anything the new gate finds in the resources already there).\n",
+      "labels": [
+        "type:task",
+        "area:population-view"
+      ],
+      "createdAt": "2026-08-07T19:23:02Z",
+      "updatedAt": "2026-08-07T19:23:02Z",
+      "type": "task",
+      "area": "population-view"
+    },
+    {
+      "number": 227,
+      "title": "[TL-030/TL-032] Make the discharge packet respect the recorded sharing consent",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/227",
+      "bodyMd": "Filed from the 2026-08-07 milestone review. Consolidates the top \"Remaining\" bullet from **both** #168 (TL-030) and #170 (TL-032) — it is one piece of work, and neither epic can close without it.\n\n## Problem\n\nTL-032 records an information-sharing `Consent`, and nothing in the app ever consults it. From #170: *\"**Recorded, not enforced.** Nothing in the app consults a deny provision before showing or sharing data.\"* From #168, on the discharge packet: *\"The TL-032 sharing consent is not consulted when assembling the packet — consent is recorded but not enforced anywhere yet.\"*\n\nA consent resource that no code reads is a demo of data entry, not of consent. And of the remaining bullets across the built-tool epics, this is the one that demonstrates a capability an adopting system actually has to get right — every other open bullet is either an external integration or a scheduler SPiER has declined to build.\n\n## Scope\n\nMake the TL-030 discharge-safety-packet assembly consent-aware:\n\n- Read the patient's latest TL-032 `Consent` when assembling the packet.\n- Honor `provision.type = deny` — exclude the denied categories/recipients from what the packet asserts it contains, rather than assembling everything and annotating it.\n- Show the reader *why* something is absent. A packet silently missing a section is indistinguishable from a bug; a packet that says a section was withheld per the patient's sharing preference is the actual demonstration.\n- Handle \"no consent recorded\" explicitly and conservatively, and make the chosen default visible in the UI rather than implicit in the code.\n\nKeep it honest: SPiER is not claiming to be a consent-enforcement engine for arbitrary access. The claim is narrower and defensible — this one artifact, assembled at this one moment, respects the recorded preference.\n\n## Notes\n\n- Both #168 and #170 should be updated (and reassessed for closure) when this lands.\n- Design tokens only, kebab-case BEM (`CLAUDE.md`).\n- If the packet's `DocumentReference` ends up in the demo scenarios, it interacts with #209 and with the scenario-validation companion issue.\n\n## Acceptance\n\n- With a deny provision recorded via TL-032, the assembled TL-030 packet omits the denied content and the UI states that it was withheld by patient preference.\n- With no consent recorded, the behavior is explicit and visible.\n- `npm run verify` passes; `services/cds-hooks/` verify passes if anything the catalog exports changes.\n",
+      "labels": [
+        "type:task",
+        "stage:coordinate-handoffs",
+        "area:patient-view",
+        "tool:TL-030",
+        "tool:TL-032"
+      ],
+      "createdAt": "2026-08-07T19:23:10Z",
+      "updatedAt": "2026-08-07T19:23:10Z",
+      "toolId": "TL-030",
+      "type": "task",
+      "stage": "coordinate-handoffs",
+      "area": "patient-view"
+    },
+    {
+      "number": 228,
+      "title": "[TL-009] Write the handoff-content-item checklist from the transition recorder",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/228",
+      "bodyMd": "Filed from the 2026-08-07 milestone review. This is #25's remaining bullet, promoted to its own actionable issue.\n\n## Problem\n\nFrom #25: *\"The recorder does not yet write the `handoff-content-item` checklist, so the content vocabulary this tool shares with TL-030 goes unused on the handoff itself. Conformant (the profile is a low floor) but incomplete.\"*\n\n`SPiERSafetyHandoff` is a deliberately low floor — it requires only status/subject/sent — so the recorder at `/patient/workflow/transition` writing a plain stage-tagged `Communication` stays conformant. That was the right call for #199. But the consequence is that the handoff, which is the artifact a receiving clinician would actually read, carries no statement of *what was handed off*.\n\nThe `handoff-content-item` vocabulary already exists and is shared with TL-030. Right now only the packet uses it, so the two Stage-5 tools disagree about how much they say.\n\n## Scope\n\n- Add a content-item checklist to the transition/handoff recorder that writes `handoff-content-item` onto the `Communication`, using the same vocabulary TL-030 assembles from.\n- Render the recorded items back on the chart so the handoff reads as a handoff and not as a timestamp.\n- Confirm the profile still validates — the low floor stays a floor, this adds optional content rather than tightening the requirement. Do not raise the cardinality on `SPiERSafetyHandoff` without a separate decision; a partner writing a bare conformant handoff must not start failing.\n\n## Acceptance\n\n- A handoff recorded from the UI carries `handoff-content-item` entries and they render on the patient chart.\n- A handoff *without* content items is still conformant (the low floor is preserved) — verify explicitly, don't assume.\n- `node scripts/validate-fhir.mjs` and `npm run verify` pass.\n- #25's \"Remaining\" section is updated, and the epic reassessed for closure.\n",
+      "labels": [
+        "type:task",
+        "stage:coordinate-handoffs",
+        "area:patient-view",
+        "tool:TL-009"
+      ],
+      "createdAt": "2026-08-07T19:23:13Z",
+      "updatedAt": "2026-08-07T19:23:13Z",
+      "toolId": "TL-009",
+      "type": "task",
+      "stage": "coordinate-handoffs",
+      "area": "patient-view"
+    },
+    {
+      "number": 229,
+      "title": "[TL-007] Declare the Stanley-Brown CarePlan transformation as PlanDefinition.action.transform",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/229",
+      "bodyMd": "Filed from the 2026-08-07 milestone review. Picks up the half of #44 that was closed into #23, and pairs with #92.\n\n## Problem\n\nThe Stanley-Brown safety plan is transformed into a `CarePlan` by TypeScript in the app. Nothing declares that transformation as a FHIR artifact, so a partner cannot reproduce it.\n\nVerified: `transform` appears nowhere in `ig/input/fsh/`. #44's closing note (2026-08-04) recorded this precisely: *\"Care-plan auto-generation as a defined transformation — owned by #92 (promote the four draft FML StructureMaps out of `ig/drafts/`) in M1, plus #23 for the Stanley-Brown `PlanDefinition.action.transform` specifically. Verified 2026-08-04: `transform` appears nowhere in `ig/input/fsh/`, so that half is genuinely unbuilt.\"*\n\n#23's \"Next\" says the same thing: *\"CarePlan transformation formalized as a defined `PlanDefinition.action.transform`.\"*\n\n## Why pair it with #92\n\n#92 promotes four instrument→concept StructureMaps out of `ig/drafts/`. This is a fifth map with a different job — questionnaire→CarePlan rather than result→tier — but it needs the same machinery: a validated `.fml`, a `StructureMap` in the published build, and a canonical that resolves. Doing them together means solving the promotion path once.\n\nUseful precedent: `.github/workflows/fml-validate.yml` already compile-checks `ig/drafts/*.fml` with the HL7 validator, and it has gone both green and red in practice (runs on 2026-06-06), so it is a gate with evidence behind it — not one to re-prove from scratch.\n\n## Scope\n\n1. Author the Stanley-Brown → `CarePlan` map in FHIR Mapping Language, starting in `ig/drafts/` so `fml-validate.yml` covers it.\n2. Reference it from the Stanley-Brown `PlanDefinition.action.transform` once the canonical resolves in the build.\n3. Keep the TypeScript as the executable implementation for the demo — same arrangement as `measures.ts` under #212 — but the FHIR must describe what the TypeScript does. If they disagree, that is a drift-guard candidate (compare `check-observation-extract.mjs` / `check-measures.mjs` for the pattern).\n\n## Acceptance\n\n- `fml-validate.yml` is green on the new map.\n- `PlanDefinition.action.transform` on the Stanley-Brown action points at a canonical that resolves in the built IG.\n- The IG Publisher gate (`ig-publish.yml`) passes — that is the gate that sees FHIRPath invariants and link integrity, which SUSHI cannot.\n- The TS transformation and the declared map produce the same CarePlan shape, verified on at least one example.\n",
+      "labels": [
+        "type:task",
+        "stage:document-safety-actions",
+        "area:ig",
+        "tool:TL-007"
+      ],
+      "createdAt": "2026-08-07T19:23:16Z",
+      "updatedAt": "2026-08-07T19:23:16Z",
+      "toolId": "TL-007",
+      "type": "task",
+      "stage": "document-safety-actions",
+      "area": "ig"
+    },
+    {
+      "number": 230,
+      "title": "Extend the mapper dispatch fallback past PHQ-9 so foreign C-SSRS/ASQ payloads derive",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/230",
+      "bodyMd": "Filed from the 2026-08-07 milestone review, carrying forward the one engineering-actionable bullet from #138 (closed as a pointer into #60).\n\n## Problem\n\nFrom #138: *\"observation mappers dispatch on `http://spier.org/Questionnaire/*` canonicals, so only SPiER-authored QRs produce risk alerts / derived Observations. Cross-EHR ASQ payloads using other canonicals render but don't auto-derive.\"*\n\nThat is the crux of #60's Phase 1 claim. An HIE pilot demonstrating ASQ portability is not demonstrating much if a QuestionnaireResponse arriving from another EHR — with that EHR's own canonical — renders as inert text instead of producing a risk alert and a derived risk-tier Observation.\n\n#145 built the machinery to fix this: three-tier dispatch (canonical → LOINC item-code signature → shape heuristic, the last default-off), with `INSTRUMENT_SIGNATURES` in `web/src/lib/observationMappers/fallbackDispatch.ts` guarded against the Questionnaire JSON by `npm run check:fallback`. **Phase 1 covered PHQ-9 only.** The instrument the pilot is actually about is not covered.\n\n## The ASQ wrinkle — read before scoping\n\nASQ has **no published per-item LOINC codes**. That is the founding observation of #77: *\"some (ASQ item-level) have no published LOINC codes at all.\"* So tier 2 (LOINC item-code signature), which is exactly how PHQ-9 was recognized, does not transfer to ASQ as-is.\n\nOptions, in rough order of defensibility:\n\n1. Recognize a foreign ASQ by its **result** rather than its items — the ASQ result Observation does have a code, and `93374-7` is the harmonized concept code. Narrower, but honest.\n2. Recognize by answer-set shape (4 yes/no items + acuity question) via the tier-3 heuristic, which is default-off precisely because it can be wrong. Turning it on for ASQ needs an explicit argument and a false-positive story.\n3. Accept that item-level foreign ASQ needs the ConceptMap path (#77 / #92) rather than the fallback path, and scope this issue to C-SSRS — which *does* have per-item LOINC codes and is a clean tier-2 extension.\n\n**Do not fabricate LOINC codes for ASQ items to make tier 2 work.** #220 is exactly what that costs: six invented codes plus one (`81344-4`) that resolved to healthcare-agent disclosure authority and so validated cleanly while meaning the wrong thing.\n\nDeciding which option to take is part of this issue. Recording the decision and its reasoning is part of the deliverable — see #220's disposition: the difference between a reasoned decision and an asserted verification is the thing that went wrong there.\n\n## Scope\n\n- Extend `INSTRUMENT_SIGNATURES` to C-SSRS (per-item LOINC codes exist and are already in the Questionnaire JSON).\n- Decide and implement the ASQ recognition strategy per the above, or document why item-level ASQ recognition belongs to #77's ConceptMap path instead.\n- Keep `npm run check:fallback` passing — it exists to stop these signatures drifting from the Questionnaire JSON.\n- Add tests using a QR that carries a **foreign canonical** with SPiER-recognizable content, which is the actual pilot scenario.\n\n## Acceptance\n\n- A C-SSRS QuestionnaireResponse bearing a non-SPiER canonical produces derived Observations and risk alerts.\n- The ASQ decision is implemented or explicitly recorded here with its reasoning.\n- `npm run verify` passes, including `check:fallback`; the nightly `check:codings` gate stays green (no new unverified code literals).\n",
+      "labels": [
+        "type:task",
+        "area:patient-view",
+        "tool:TL-001",
+        "tool:TL-003",
+        "area:hie"
+      ],
+      "createdAt": "2026-08-07T19:23:18Z",
+      "updatedAt": "2026-08-07T19:23:18Z",
+      "toolId": "TL-001",
+      "type": "task",
+      "area": "patient-view"
+    },
+    {
+      "number": 231,
+      "title": "Decide the CDS service's auth posture: flip JWT validation to require, or document warn mode",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/231",
+      "bodyMd": "Filed from the 2026-08-07 milestone review. Nothing currently tracks this decision.\n\n## Problem\n\n#147 shipped `cdsJwt()` — jose-backed bearer signature + claims verification on the `invoke` and `feedback` endpoints (discovery deliberately open, `jku` SSRF-allowlisted) — but it runs in **warn mode**: a missing or invalid token is logged, not rejected.\n\nThat was the right call at the time, because the demo path is tokenless and flipping to `require` would have broken the live endpoint the guide page (#144) tells people to curl. But warn mode means the hosted service at `spier-adoption-guide.bbthorson.workers.dev` currently accepts unauthenticated `invoke` calls, and there is no issue saying so. An untracked \"temporary\" security posture is just a permanent one nobody chose.\n\n## Scope\n\nResolve it one way or the other, and make the resolution visible:\n\n**Option A — flip to require, with a demo path that still works.** Needs an answer for the tokenless demo: a signed demo token the guide page hands out, an allowlisted unauthenticated demo scope, or an environment split where the public sandbox stays warn and a \"real\" deployment requires. Whichever, the guide page's curl examples must keep working or be updated in the same change.\n\n**Option B — stay in warn, deliberately.** Then say so in `services/cds-hooks/`'s README and on the CDS Service guide page: this is a demonstration endpoint, it does not authenticate callers, and here is what a production deployment would have to change. An adopter reading the guide should not have to infer the posture from the code.\n\nOption B is a legitimate outcome for a demo service. What is not legitimate is leaving it undocumented.\n\n## Notes\n\n- `services/cds-hooks/` has its own CI-gated `npm run verify` that `web`'s does not cover — run it (`npm install && npm run verify` in that directory).\n- Whatever is chosen, the CDS Service guide page (#144) is the place an adopter looks, so it has to say the same thing the code does.\n- If Option A: verify the flip against the live Worker, not just locally.\n\n## Acceptance\n\n- The posture is a recorded decision, not a default.\n- The guide page and the service README agree with the code.\n- `services/cds-hooks/` verify passes; the live endpoint still serves discovery and the documented demo invoke.\n",
+      "labels": [
+        "type:task"
+      ],
+      "createdAt": "2026-08-07T19:23:25Z",
+      "updatedAt": "2026-08-07T19:23:25Z",
+      "type": "task"
+    },
+    {
+      "number": 232,
+      "title": "Prove the two scheduled workflows actually fire, and unblock the roadmap PR",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/232",
+      "bodyMd": "Filed from the 2026-08-07 milestone review.\n\n## Problem\n\nTwo automated workflows exist whose scheduled path has never been observed running, and one of them has a known-blocked step.\n\n**`roadmap-snapshot.yml` (#122, PRs #221/#222).** Run history as of 2026-08-07: three `workflow_dispatch` runs on 2026-08-05 (one failure, two success). Zero `schedule` runs. Beyond the schedule never having fired, the PR-opening step is blocked by org policy — GitHub Actions is not permitted to create pull requests in `SPiER-Project`. The workflow handles this gracefully (pushes the branch, writes a step-summary link, exits 0 with a warning), so the *failure is silent by design*: the snapshot goes stale and the only signal is a warning inside a run nobody opens. The workflow itself names the fix: a `ROADMAP_PR_TOKEN` secret.\n\n**`terminology-nightly.yml` (#220 follow-up, PR #225).** Merged 2026-08-07. Run history: three `pull_request` runs (two failures during development, one success). Zero `schedule` runs — the first nightly has not happened yet.\n\nThis is the same class of problem `CLAUDE.md` already warns about in another form: *\"a green gate you have never seen go red is not evidence of anything.\"* Here it is a gate nobody has seen run **at all** on the trigger that matters.\n\n## Scope\n\n1. **Confirm both schedules actually fire.** Check the run history on the `schedule` event after the first expected firing. Note that GitHub disables scheduled workflows in repos with no activity for 60 days, and that `schedule` only runs from the default branch — worth confirming both hold here.\n2. **Add `ROADMAP_PR_TOKEN`** (a PAT or GitHub App token with `contents:write` + `pull-requests:write`) so the weekly snapshot opens its own PR, or decide explicitly that a human will open it from the pushed branch and say where that expectation is written down. Note that adding an org-level secret needs an org admin — if that is a blocker, say so on this issue rather than leaving it implied.\n3. **Define the triage path for a red nightly.** `terminology-nightly.yml` failing means an external code or display drifted at LOINC/SNOMED, or `tx.fhir.org` is down. Those need different responses, and right now nobody is named as the person who looks. A failure nobody reads is the same as no gate.\n4. While in there, re-check the per-source floors in `check-codings.mjs`. They are load-bearing — a global floor previously let a dead scan pass silently — so confirm they still match what each source actually contains after #224 changed the safety-plan codes.\n\n## Acceptance\n\n- A `schedule`-triggered run of each workflow is visible in the run history and did what it was supposed to.\n- The roadmap snapshot's PR either opens itself, or the manual step is documented where someone will actually see it.\n- A deliberately-broken code literal fails `terminology-nightly.yml` — prove the gate goes red before relying on the nightly.\n- The triage expectation for a red nightly is written down.\n",
+      "labels": [
+        "type:task"
+      ],
+      "createdAt": "2026-08-07T19:23:26Z",
+      "updatedAt": "2026-08-07T19:23:27Z",
+      "type": "task"
     }
   ]
 }
