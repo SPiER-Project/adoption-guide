@@ -14,7 +14,6 @@ import {
   type FhirExample,
   type InclusionStatus,
   type LaunchAction,
-  type Licensing,
   type MaturityLevel,
   type RecordingPattern,
   type RecordingResource,
@@ -29,12 +28,45 @@ export type {
   FhirExample,
   InclusionStatus,
   LaunchAction,
-  Licensing,
   MaturityLevel,
   RecordingPattern,
   RecordingResource,
   WorkflowType,
 }
+
+/**
+ * Licensing status of the instrument (or workflow) behind a tool — what an
+ * adopter must do before deploying it, and where attribution, permission or
+ * fees apply.
+ *
+ * DERIVED, not hand-maintained. Every ActivityDefinition carries this as a
+ * coded `instrument-licensing-status` extension plus a full `copyright`
+ * notice; see ig/input/fsh/instrument-licensing.fsh, which also explains why
+ * an extension stands in for R5's `copyrightLabel`. Until issue #127 this
+ * field was typed by hand in tool-ui-metadata.ts with no link to any FHIR
+ * artifact, so the guide could disagree with the artifact it was describing.
+ * To change a tool's licensing, edit the FSH.
+ *
+ * `unknown` is a deliberate marker for "the #64 audit has not established
+ * this" — NOT a synonym for unrestricted. `spier-authored` means the activity
+ * reproduces no third-party instrument.
+ */
+export type Licensing =
+  | 'public-domain'
+  | 'registration'
+  | 'commercial'
+  | 'spier-authored'
+  | 'unknown'
+
+const LICENSING_STATUSES: readonly Licensing[] = [
+  'public-domain',
+  'registration',
+  'commercial',
+  'spier-authored',
+  'unknown',
+]
+
+const LICENSING_EXT_URL = 'http://spier.org/StructureDefinition/instrument-licensing-status'
 
 export interface Tool {
   id: string
@@ -58,7 +90,14 @@ export interface Tool {
   }
   recordingPattern?: RecordingPattern
   fhirExamples?: FhirExample[]
+  /** Derived from ActivityDefinition — see the `Licensing` doc comment. */
   licensing?: Licensing
+  /**
+   * The tool's full copyright notice, verbatim from `ActivityDefinition.copyright`.
+   * The pill in the UI is the summary; this is the text that actually tells an
+   * adopter what to do, including where the claim comes from.
+   */
+  copyright?: string
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -72,6 +111,8 @@ interface ActivityDefinitionDoc {
   description?: string
   purpose?: string
   kind?: string
+  copyright?: string
+  extension?: Array<{ url: string; valueCode?: string }>
   relatedArtifact?: Array<{ type?: string; display?: string; resource?: string }>
 }
 
@@ -238,6 +279,23 @@ function workflowTypeFromAD(ad: ActivityDefinitionDoc): WorkflowType {
   }
 }
 
+/**
+ * Read the coded licensing status off an ActivityDefinition. Returns undefined
+ * — rather than guessing a default — when the extension is absent or carries a
+ * code this build doesn't know, so a missing status shows in the UI as "not
+ * recorded" instead of quietly becoming a licensing claim. `npm run
+ * check:catalog` fails the build if any ActivityDefinition is missing it.
+ */
+function licensingFromAD(ad: ActivityDefinitionDoc): Licensing | undefined {
+  const code = ad.extension?.find((e) => e.url === LICENSING_EXT_URL)?.valueCode
+  if (!code) return undefined
+  if (!(LICENSING_STATUSES as readonly string[]).includes(code)) {
+    console.warn(`[catalog] ActivityDefinition ${ad.id}: unknown licensing status "${code}"`)
+    return undefined
+  }
+  return code as Licensing
+}
+
 function buildFhirBackedTools(): Tool[] {
   // Group ADs by Tool id so multi-AD tools (TL-020) collapse to one entry.
   const groups = new Map<string, ActivityDefinitionDoc[]>()
@@ -265,6 +323,17 @@ function buildFhirBackedTools(): Tool[] {
     // Dedupe: multi-AD tools can share a Questionnaire (CAMS Section A is
     // depended on by both the first-session and interim-session ADs).
     const questionnaireUrls = [...new Set(ads.flatMap(questionnaireUrlsFromAD))]
+    // A multi-AD tool is one instrument, so its ADs must agree on licensing —
+    // TL-020's four CAMS session forms are all governed by the one CAMS-care
+    // agreement. Disagreement means the FSH drifted; surface it rather than
+    // letting whichever AD happened to sort first decide.
+    const licensings = new Set(ads.map(licensingFromAD))
+    if (licensings.size > 1) {
+      console.warn(
+        `[catalog] tool ${toolId}: ActivityDefinitions disagree on licensing status ` +
+          `(${[...licensings].join(', ')}) — using ${licensingFromAD(primary)}`,
+      )
+    }
 
     tools.push({
       id: toolId,
@@ -274,6 +343,8 @@ function buildFhirBackedTools(): Tool[] {
       description: overrides.description ?? primary.description,
       questionnaireUrls: questionnaireUrls.length > 0 ? questionnaireUrls : undefined,
       workflowType: workflowTypeFromAD(primary),
+      licensing: licensingFromAD(primary),
+      copyright: primary.copyright,
       ...ui,
     })
   }

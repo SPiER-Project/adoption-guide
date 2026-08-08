@@ -21,7 +21,8 @@ npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:crosswalk  # concept-crosswalk validation
 npm run check:extract    # observation-extract validation
-npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions / questionnaire URLs)
+npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
+                         # questionnaire URLs / per-AD licensing metadata)
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
@@ -214,6 +215,22 @@ Pass `--tx https://tx.fhir.org` to check external terminology locally.
   (`scripts/lib/careplan-parity.mjs` and the test) because `tsconfig.app.json`
   includes only `src/`; the `.mjs` carries the rationale for every excluded
   field and the two must be edited together.
+- **Tool licensing lives in the FSH, and only there.** Every ActivityDefinition
+  carries `copyright` plus an `instrument-licensing-status` extension
+  (`ig/input/fsh/instrument-licensing.fsh`, issue #127); `Tool.licensing` in
+  `web/src/data/catalog/tools.ts` is *derived* from that extension. It used to
+  be hand-typed in `tool-ui-metadata.ts`, where the adoption guide could — and
+  did — state a licensing position no FHIR artifact backed. Do not reintroduce
+  a `licensing` field there. `npm run check:catalog` fails if any AD is missing
+  either half, if the code is not in the CodeSystem, or if a multi-AD tool's ADs
+  disagree. R4 has no `copyrightLabel`; the extension is the stand-in.
+  **A new tool with unsettled terms gets `#unknown`, not a permissive guess** —
+  the notice must name where its claim comes from (a filed
+  `FHIR-Resources/<tool>/licensing/MEMO.md`, or the Questionnaire's own recorded
+  notice, or nothing). **No status has been verified against the rights holder's
+  *current* published terms** — `docs/best-practices/licensing-verification-backlog.md`
+  is the standing list of what is owed, and of why a recorded notice is not a
+  verification.
 
 ## Skills (`.claude/skills/`)
 

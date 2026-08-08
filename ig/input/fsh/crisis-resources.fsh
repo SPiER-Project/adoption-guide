@@ -92,6 +92,10 @@ Usage: #definition
 * description = "Record that patient-facing crisis resources / coping supports were provided to the patient, as a stage-tagged Communication carrying the shared resources (SPiER crisis-resource codes)."
 * purpose = "Ensure the patient leaves with concrete, documented access to crisis support. Belongs to the Document Safety Actions stage."
 * kind = #CommunicationRequest
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #spier-authored
+* copyright = "SPiER-authored workflow content: this activity records which patient-facing crisis resources were shared, using a SPiER-local code system. It is published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). The resources the codes NAME — the 988 Suicide & Crisis Lifeline, Crisis Text Line, Now Matters Now, local crisis and warm lines — are third-party services whose names, branding and materials belong to their operators and are not licensed by SPiER. Naming a service in a code display is not a grant to reproduce its content."
 
 
 // ─── Example ─────────────────────────────────────────────────

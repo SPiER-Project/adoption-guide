@@ -99,6 +99,10 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Crisis Response Plan template"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CrisisResponsePlan|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #registration
+* copyright = "The Crisis Response Plan (CRP) is a published clinical intervention described by Craig J. Bryan and M. David Rudd. It is freely used in practice with attribution to Bryan & Rudd; there is no per-use instrument fee. SPiER publishes these artifacts under the permission/license held by the SPiER project — that permission covers SPiER, and does NOT transfer to an adopting system, which should confirm its own position and must attribute the CRP to Bryan & Rudd. Coded `registration` rather than `public-domain` for that reason. Basis: FHIR-Resources/CRP/licensing/MEMO.md (issue #64), maintainer-confirmed 2026-07-15."
 
 
 // ─── Example ─────────────────────────────────────────────────

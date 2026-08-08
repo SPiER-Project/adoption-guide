@@ -32,14 +32,6 @@ export type BadgeVariant =
   | 'monitoring'
 export type MaturityLevel = 0 | 1 | 2 | 3
 
-/**
- * Licensing status of the underlying validated instrument — what an adopter is
- * actually allowed to deploy, and where attribution or fees apply. Only set where
- * the status is documented (see Roadmap Priority 1); undefined means not yet
- * confirmed for this tool. Eventually sourced from `ActivityDefinition.copyright`.
- */
-export type Licensing = 'public-domain' | 'registration' | 'commercial'
-
 export interface LaunchAction {
   label: string
   path: string
@@ -76,7 +68,6 @@ export interface ToolUiMetadata {
   }
   recordingPattern?: RecordingPattern
   fhirExamples?: FhirExample[]
-  licensing?: Licensing
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -227,7 +218,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   // ── Identify Possible Risk ──
   'TL-001': {
     shortName: 'ASQ',
-    licensing: 'public-domain',
     inclusionStatus: 'core',
     settings: ['medical', 'ambulatory', 'acute care'],
     badge: { label: 'Screening', variant: 'screening' },
@@ -246,7 +236,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-002': {
     shortName: 'PHQ-9',
-    licensing: 'public-domain',
     inclusionStatus: 'core',
     settings: ['ambulatory', 'primary care', 'medical'],
     badge: { label: 'Screening', variant: 'screening' },
@@ -265,7 +254,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-003': {
     shortName: 'C-SSRS Screener',
-    licensing: 'registration',
     inclusionStatus: 'core',
     settings: ['acute care', 'ED', 'inpatient', 'ambulatory', 'behavioral health'],
     badge: { label: 'Screening', variant: 'screening' },
@@ -275,7 +263,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-011': {
     shortName: 'PSS-3',
-    licensing: 'public-domain',
     inclusionStatus: 'optional',
     settings: ['acute care', 'ED'],
     badge: { label: 'Screening', variant: 'screening' },
@@ -294,7 +281,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-014': {
     shortName: 'PSS / SRS Full',
-    licensing: 'public-domain',
     inclusionStatus: 'optional',
     settings: ['acute care', 'ED'],
     badge: { label: 'Screening', variant: 'screening' },
@@ -311,7 +297,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-025': {
     shortName: 'SBQ-R',
-    licensing: 'public-domain',
     inclusionStatus: 'optional',
     settings: ['ambulatory', 'behavioral health'],
     badge: { label: 'Screening', variant: 'screening' },
@@ -329,7 +314,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
 
   'TL-027': {
     shortName: 'C-SSRS Pediatric',
-    licensing: 'registration',
     inclusionStatus: 'optional',
     settings: ['pediatrics', 'ED', 'ambulatory'],
     badge: { label: 'Screening', variant: 'screening' },
@@ -359,7 +343,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   // ── Clarify Risk ──
   'TL-004': {
     shortName: 'C-SSRS Full',
-    licensing: 'registration',
     inclusionStatus: 'core',
     settings: ['acute care', 'ED', 'inpatient', 'ambulatory', 'behavioral health'],
     badge: { label: 'Assessment', variant: 'assessment' },
@@ -369,7 +352,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-019': {
     shortName: 'C-SSRS Since Last',
-    licensing: 'registration',
     inclusionStatus: 'core',
     settings: ['ambulatory', 'behavioral health'],
     badge: { label: 'Assessment', variant: 'assessment' },
@@ -388,7 +370,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-005': {
     shortName: 'BSSA',
-    licensing: 'public-domain',
     inclusionStatus: 'core',
     settings: ['medical', 'ambulatory', 'acute care'],
     badge: { label: 'Assessment', variant: 'assessment' },
@@ -407,7 +388,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-020': {
     shortName: 'CAMS SSF-5',
-    licensing: 'commercial',
     inclusionStatus: 'optional',
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
@@ -460,7 +440,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   // ── Define the Risk Picture ──
   'TL-006': {
     shortName: 'SAFE-T',
-    licensing: 'public-domain',
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Assessment', variant: 'assessment' },
@@ -478,7 +457,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-024': {
     shortName: 'CAMS Worksheet',
-    licensing: 'commercial',
     inclusionStatus: 'optional',
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
@@ -523,7 +501,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-021': {
     shortName: 'CAMS Stabilization',
-    licensing: 'commercial',
     inclusionStatus: 'optional',
     settings: ['behavioral health', 'outpatient'],
     badge: { label: 'CAMS', variant: 'cams' },
@@ -556,7 +533,6 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   },
   'TL-015': {
     shortName: 'CRP',
-    licensing: 'registration',
     inclusionStatus: 'optional',
     settings: ['military', 'VA', 'behavioral health'],
     badge: { label: 'Safety Plan', variant: 'safety' },

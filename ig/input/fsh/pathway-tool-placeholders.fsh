@@ -57,6 +57,8 @@ Usage: #definition
 * description = "Create a suicide-risk flag or start the suicide-risk workflow after a positive screen. Placeholder ActivityDefinition — the ASQ and PHQ-9 Item 9 cases are already FHIR-encoded as Clarify Risk stage triggers; this placeholder catalogues the generalized flag/workflow capability."
 * purpose = "Make positive screens actionable: chart flag, work-queue entry, notification, and next-step routing."
 * kind = #Task
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 // ─── Clarify Risk ────────────────────────────────────────────
@@ -94,6 +96,10 @@ Usage: #definition
 * description = "Administer the Cultural Assessment of Risk for Suicide (CARS-S). Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
 * purpose = "Capture cultural risk and protective factors, identity/community context, and barriers to disclosure that inform suicide-risk formulation."
 * kind = #ServiceRequest
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #commercial
+* copyright = "NO-GO — permission not obtained. The Cultural Assessment of Risk for Suicide (CARS/CARS-S, Chu et al., 2013, *Psychological Assessment*) is a copyrighted research measure held by the authors and/or the American Psychological Association. It is neither public domain nor a free-registration instrument: reproducing its items requires written permission from the authors/publisher, or purchase of the measure. No permission grant is on file, so this ActivityDefinition is a catalogued placeholder that deliberately reproduces NO CARS item content, and SPiER publishes no CARS Questionnaire. Attribution, modification and commercial-use conditions would all have to be captured from a future permission grant. Basis: FHIR-Resources/CARS-S/licensing/MEMO.md (issue #64)."
 
 
 Instance: AdministerLocalRiskAssessment
@@ -111,6 +117,10 @@ Usage: #definition
 * description = "Administer a site-defined full suicide-risk assessment. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
 * purpose = "Capture thoughts, plan, intent, behavior history, access to means, and risk/protective factors where a local assessment form is used instead of a named tool."
 * kind = #ServiceRequest
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #spier-authored
+* copyright = "SPiER-authored placeholder for a site's own locally-defined risk assessment. SPiER supplies only the workflow slot — no items, no scoring, no third-party content — published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). Whatever instrument a site plugs into this step carries ITS licensing, which the site must establish itself; this ActivityDefinition makes no claim about it."
 
 
 // AdministerCAMSOutcomeDisposition has been promoted out of this placeholder file

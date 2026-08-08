@@ -363,6 +363,8 @@ Usage: #definition
 * purpose = "Keep every active suicide-risk patient visible in one place with clear ownership and due dates. Belongs to the Track Risk Over Time stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: TrackRiskEpisodeStatus
@@ -381,6 +383,8 @@ Usage: #definition
 * purpose = "Give the active suicide-safer care episode a structured, reportable lifecycle from entry to resolution. Belongs to the Track Risk Over Time stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: ScheduleRiskReassessment
@@ -399,6 +403,8 @@ Usage: #definition
 * purpose = "Make reassessment cadence explicit and enforceable rather than dependent on memory. Belongs to the Track Risk Over Time stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: TrackOpenSafetyActions
@@ -417,6 +423,8 @@ Usage: #definition
 * purpose = "Keep unfinished safety work visible and assignable until completed. Belongs to the Track Risk Over Time stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: EscalateOverdueRisk
@@ -435,6 +443,8 @@ Usage: #definition
 * purpose = "Ensure worsening or stalled episodes are surfaced and acted on, not silently aged out. Belongs to the Track Risk Over Time stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 // ─── Examples ────────────────────────────────────────────────

@@ -158,6 +158,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Screener questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Screener|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCSSRS
 
 
 // ─── ActivityDefinition: C-SSRS Full ─────────────────────────
@@ -182,6 +184,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Full (Lifetime/Recent) questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCSSRS
 
 
 // ─── ActivityDefinition: C-SSRS Since Last Visit / Since Last Contact ─
@@ -211,6 +215,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Since Last Visit / Since Last Contact questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCSSRS
 
 
 // ─── ActivityDefinition: C-SSRS Pediatric / Adolescent ───────
@@ -242,6 +248,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Pediatric / Adolescent questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Pediatric|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCSSRS
 
 
 // ─── Examples ────────────────────────────────────────────────

@@ -614,6 +614,8 @@ Usage: #definition
 * purpose = "Turn pathway activity into numerators and denominators that quality improvement can act on. Belongs to the Measure and Share the Data stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: ProvideReportingDashboard
@@ -632,6 +634,8 @@ Usage: #definition
 * purpose = "Give clinicians, supervisors, and QI teams a routinely refreshed aggregate view of pathway performance. Belongs to the Measure and Share the Data stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: ExportSuicideSaferCareData
@@ -650,6 +654,8 @@ Usage: #definition
 * purpose = "Make the structured pathway data available to analytics and evaluation without manual chart abstraction. Belongs to the Measure and Share the Data stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: ShareSuicideSaferCareData
@@ -668,6 +674,8 @@ Usage: #definition
 * purpose = "Let a patient's suicide-risk signal follow them across facilities and platforms, within consent. Belongs to the Measure and Share the Data stage."
 * kind = #CommunicationRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 // ─── Examples ────────────────────────────────────────────────

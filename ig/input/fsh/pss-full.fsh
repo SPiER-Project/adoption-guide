@@ -73,6 +73,10 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Patient Safety Screener / Suicide Risk Screener (Full) questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/PSS-Full|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #public-domain
+* copyright = "The universal-screen portion reproduces the free, public ED-SAFE PSS-3 items distributed by SAMHSA and the Suicide Prevention Resource Center — no permission or fee required. The risk-stratification step is site-defined (local protocol and clinician judgement), not a reproduced proprietary instrument, so no third-party item content is carried. Attribute the screen to the ED-SAFE study / SAMHSA / SPRC. Basis: FHIR-Resources/PSS-Full/licensing/MEMO.md (issue #64), which records maintainer confirmation on 2026-07-15."
 
 
 // ─── Examples ────────────────────────────────────────────────

@@ -137,6 +137,10 @@ Usage: #definition
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://snomed.info/sct#409063005 "Counseling"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #spier-authored
+* copyright = "SPiER-authored workflow content: this activity records THAT lethal-means safety counseling happened and which per-method actions were agreed, using SPiER-local code systems. It reproduces no third-party curriculum or script, and is published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). A site that delivers the counseling using a named protocol — CALM (Counseling on Access to Lethal Means) or similar — takes that protocol training materials under the protocol's own terms, which SPiER has not audited."
 
 
 // ─── Examples ────────────────────────────────────────────────

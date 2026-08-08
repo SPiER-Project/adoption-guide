@@ -64,6 +64,10 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "SBQ-R questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/SBQ-R|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #unknown
+* copyright = "Licensing status UNKNOWN, pending the issue #64 audit. The SPiER SBQ-R Questionnaire records the notice “© Osman et al (1999) Revised. Permission for use granted by A. Osman, MD.” That establishes the instrument is copyrighted and that a permission exists, but it does not state what an adopting system must do to deploy it, to whom the permission was granted, or whether it transfers — and no licensing-audit memo is on file. Do NOT read this as free reuse: confirm terms with the author before deployment. Reference: Osman A, Bagge CL, Gutierrez PM, Konick LC, Kopper BA, Barrios FX. The Suicidal Behaviors Questionnaire-Revised (SBQ-R): Validation with clinical and nonclinical samples. Assessment. 2001;8(4):443-454."
 
 
 Instance: ExampleSBQRTotalScore9

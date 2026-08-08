@@ -31,6 +31,12 @@
  *   C. every Questionnaire canonical referenced by an ActivityDefinition
  *      (relatedArtifact or SDC sdc-questionnaire extension) resolves,
  *      version-stripped, to a Questionnaire JSON in FHIR-Resources/
+ *   D. every ActivityDefinition carries licensing metadata (issue #127):
+ *      a `copyright` notice AND an `instrument-licensing-status` extension
+ *      whose code is real, and the ADs of a multi-AD tool agree on it.
+ *      Without this a new tool silently ships with no licensing statement,
+ *      and the catalog's `Tool.licensing` — derived from this extension since
+ *      #127 — quietly becomes undefined
  *
  * Requires `npm run copy-fhir` to have run (reads web/src/data/fhir/).
  * Exits non-zero on drift so it can gate CI.
@@ -49,6 +55,7 @@ const questionnairesDir = join(root, 'FHIR-Resources')
 const STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
 const SDC_QUESTIONNAIRE_EXT =
   'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire'
+const LICENSING_EXT = 'http://spier.org/StructureDefinition/instrument-licensing-status'
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
@@ -81,7 +88,13 @@ for (const file of readdirSync(fhirDir)) {
         .filter((e) => e.url === SDC_QUESTIONNAIRE_EXT)
         .map((e) => e.valueCanonical),
     ].filter((u) => u && stripVersion(u).includes('/Questionnaire/'))
-    activityDefs.push({ id: res.id, url: res.url, questionnaireUrls })
+    activityDefs.push({
+      id: res.id,
+      url: res.url,
+      questionnaireUrls,
+      copyright: res.copyright,
+      licensing: (res.extension ?? []).find((e) => e.url === LICENSING_EXT)?.valueCode,
+    })
   } else if (res.resourceType === 'PlanDefinition') {
     // A: PD stage useContext must be a real stage code
     const stage = (res.useContext ?? [])
@@ -162,6 +175,52 @@ for (const ad of activityDefs) {
   }
 }
 console.log(`✓ questionnaires: ${qRefs} ActivityDefinition reference(s) checked against ${questionnaireUrls.size} Questionnaire(s)`)
+
+// ---- D: licensing metadata (issue #127) ------------------------------------
+// The status codes come from the generated CodeSystem, not a list retyped here
+// — adding a code to the FSH must not require editing this script, and a typo
+// in an AD's valueCode must not pass because the typo was also copied here.
+const licCsPath = join(fhirDir, 'CodeSystem-spier-instrument-licensing-status.json')
+if (!existsSync(licCsPath)) {
+  fail(`${licCsPath} not found — the instrument-licensing CodeSystem is missing from the IG build`)
+}
+const licensingCodes = existsSync(licCsPath)
+  ? new Set((JSON.parse(readFileSync(licCsPath, 'utf8')).concept ?? []).map((c) => c.code))
+  : new Set()
+
+for (const ad of activityDefs) {
+  if (!ad.licensing) {
+    fail(`ActivityDefinition ${ad.id}: no instrument-licensing-status extension — add one in ig/input/fsh/ (see instrument-licensing.fsh). Use #unknown if the #64 audit has not established it; do not omit it.`)
+  } else if (!licensingCodes.has(ad.licensing)) {
+    fail(`ActivityDefinition ${ad.id}: licensing status "${ad.licensing}" is not a code in spier-instrument-licensing-status`)
+  }
+  if (!ad.copyright) {
+    fail(`ActivityDefinition ${ad.id}: no copyright notice — the coded status alone does not tell an adopter what to do`)
+  }
+}
+
+// Multi-AD tools are ONE instrument, so their ADs must agree; tools.ts reads
+// the status off whichever AD sorts first and only console.warns on a split.
+const licensingByTool = new Map()
+for (const ad of activityDefs) {
+  const toolId = adToTool.find((m) => m.adId === ad.id)?.toolId
+  if (!toolId) continue
+  const seen = licensingByTool.get(toolId) ?? new Map()
+  seen.set(ad.licensing, [...(seen.get(ad.licensing) ?? []), ad.id])
+  licensingByTool.set(toolId, seen)
+}
+for (const [toolId, seen] of licensingByTool) {
+  if (seen.size > 1) {
+    const detail = [...seen].map(([code, ids]) => `${code}: ${ids.join(', ')}`).join(' | ')
+    fail(`tool ${toolId}: its ActivityDefinitions disagree on licensing status (${detail})`)
+  }
+}
+const licCounts = [...licensingCodes]
+  .map((code) => [code, activityDefs.filter((ad) => ad.licensing === code).length])
+  .filter(([, n]) => n > 0)
+  .map(([code, n]) => `${n} ${code}`)
+  .join(', ')
+console.log(`✓ licensing: ${activityDefs.length} ActivityDefinition(s) carry a status + copyright (${licCounts})`)
 
 if (failures) {
   console.error(`\ncatalog-integrity check FAILED (${failures} issue(s)).`)

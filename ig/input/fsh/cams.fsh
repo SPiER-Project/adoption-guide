@@ -405,6 +405,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Section A questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCAMS
 
 
 Instance: AdministerCAMSSectionB
@@ -426,6 +428,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Section B questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionB|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCAMS
 
 
 Instance: AdministerCAMSTherapeuticWorksheet
@@ -448,6 +452,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS Therapeutic Worksheet"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCAMS
 
 
 Instance: AdministerCAMSStabilizationPlan
@@ -470,6 +476,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS Stabilization Plan template"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-Stabilization-Plan|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCAMS
 
 
 Instance: AdministerCAMSInterimSession
@@ -492,6 +500,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Section A questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCAMS
 
 
 // Promoted out of pathway-tool-placeholders.fsh. The AD id and canonical URL
@@ -517,6 +527,8 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Outcome/Disposition questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingCAMS
 
 
 // ─── Examples ────────────────────────────────────────────────
