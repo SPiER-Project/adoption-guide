@@ -6,9 +6,9 @@
     "mrn": "12345",
     "gender": "Female",
     "recommendedNextStep": {
-      "stageId": "track-follow-up",
-      "label": "Schedule 7-day caring contact",
-      "rationale": "High-risk patient with active safety plan; caring contacts within 7 days reduce repeat attempts."
+      "stageId": "track-risk-over-time",
+      "label": "Review the open episode before stepping down",
+      "rationale": "Discharge packet, 48h outreach, 7-day follow-up visit and caring contact are all documented, but the suicide-safer care episode is still open with no closure reason. Reassess risk and either step down or record why it stays open."
     }
   },
   {
@@ -78,9 +78,9 @@
     "mrn": "78901",
     "gender": "Female",
     "recommendedNextStep": {
-      "stageId": "coordinate-handoffs",
-      "label": "Confirm outpatient appointment scheduled",
-      "rationale": "Referral sent 10 days ago; outpatient receipt not yet confirmed. High-risk handoff window closing."
+      "stageId": "track-follow-up",
+      "label": "Confirm the outpatient intake was attended",
+      "rationale": "Packet sent and intake booked, but the appointment is still `booked` rather than fulfilled and the referral is still `active` — the loop is open on both. No outreach has been attempted since discharge."
     }
   },
   {
@@ -126,9 +126,9 @@
     "mrn": "11011",
     "gender": "Female",
     "recommendedNextStep": {
-      "stageId": "coordinate-handoffs",
-      "label": "Confirm outpatient BH appointment + start caring-contact cadence",
-      "rationale": "ED suicide-care episode (Scenario 11): 28-year-old presenting with severe insomnia and anxiety, chronic pain and recent job loss. Positive triage screen, safety plan and lethal-means counseling completed in the ED. Discharged to outpatient BH — confirm receipt of the transition-of-care packet and begin the 24–48h caring-contact cadence."
+      "stageId": "track-risk-over-time",
+      "label": "Keep the episode current after a completed handoff",
+      "rationale": "ED suicide-care episode (Scenario 11): 28-year-old presenting with severe insomnia and anxiety, chronic pain and recent job loss. Positive triage screen, safety plan and lethal-means counseling completed in the ED. The transition-of-care packet, outpatient intake and first caring contact are all documented — the episode is still open, so reassess risk and set the next reassessment cadence."
     }
   }
 ]

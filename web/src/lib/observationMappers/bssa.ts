@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // The BSSA has NO published panel or per-item LOINC codes, so the discrete
 // interview findings bind to the SPiER-local http://spier.org/CodeSystem/bssa-item
@@ -66,8 +66,8 @@ export function mapBSSA(response: QuestionnaireResponseResource): MapperResult {
       },
       valueType: 'codeable',
       interpretation: alert.interpretation === 'A'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: dispositionDisplay }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'No further intervention necessary' },
+        ? interpretationOf('A', dispositionDisplay)
+        : interpretationOf('N', 'No further intervention necessary'),
       questionnaireName: 'BSSA',
     }),
   )

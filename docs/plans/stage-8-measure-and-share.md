@@ -315,6 +315,44 @@ Seeding a realistic cohort is deliberately NOT in this PR: population scenario
 data feeds Population View rows, pathway completion, and the journey timeline, so
 it has blast radius well beyond the dashboard and deserves its own change.
 
+### Update — the cohort landed (#209)
+
+Row 1 of that table is closed. Six patients (001, 007, 008, 009, 010, 011) now
+carry `EpisodeOfCare`, `DocumentReference` packets or handoff `Communication`s,
+`ServiceRequest` referrals, `Appointment`s, outreach and caring-contact
+`Communication`s, and two `Procedure`s, so every measure except #1 reports a
+non-zero denominator in all four measurement periods. Row 4 is untouched on
+purpose: measure 1 still reads "no denominator", because faking conformance to
+the concept-layer profile is the one thing the seed must not do.
+
+Three things about that cohort are worth knowing before editing it:
+
+- **Some dates are pinned to be recent, and will age.** Patients 009 and 010 sit
+  in July 2026 specifically so the trailing 30- and 90-day windows have content.
+  The measurement period is a rolling window off `new Date()`, so those two drop
+  out of the 30-day window some time after 2026-08-09 and the shorter periods go
+  empty again. That is a property of fixed demo data, not a bug — but if the
+  30-day window matters for a demo, re-date those two patients rather than
+  wondering why the tiles emptied.
+- **The exclusion paths are patient-010's job.** His episode closes
+  `administrative` and his one referral is `entered-in-error`, which is what
+  makes `Episode Closed Administratively`, `Excluded From Follow Up
+  Measurement` and `Referral Entered In Error` fire at all. Removing him takes
+  every exclusion count to zero.
+- **Three patients advanced a stage** (001 and 011 to Track Risk Over Time, 007
+  to Track Follow-Up) because `derivePathwayStatus` marks a stage complete as
+  soon as any artifact carries its tag. `patients.json` `recommendedNextStep`
+  was rewritten for those three to match; leaving it would have shown a
+  recommendation the patient had already satisfied. One visible consequence:
+  no patient sits at Coordinate Handoffs any more, so that chip is absent from
+  the Population View stage filter. Adding a twelfth patient there is the
+  obvious fix if the filter spread matters more than the caseload realism.
+
+The risk-status Observations seeded for 008/009/010 are tagged
+`define-risk-picture`, not `track-risk-over-time` — matching how patient-011's
+own walkthrough stages "Current risk level set" (step 11.4-1B), and avoiding
+pushing three more patients past their curated next step.
+
 ## Scope
 
 Definitional only: Measures, the CQL library, MeasureReport examples, the four
@@ -356,7 +394,7 @@ audit rather than left in this doc:
 
 | Gap | Issue |
 |---|---|
-| No seeded Stage-5/6/7 artifacts (episodes, appointments, referrals, packets) | #209 |
+| No seeded Stage-5/6/7 artifacts (episodes, appointments, referrals, packets) | #209 — **done**, see "the cohort landed" above |
 | TL-008 has no `Procedure` recorder | #210 |
 | TL-010 never writes `caring-contact-opt-out` | #211 |
 | Seeded `93374-7` Observations non-conformant to the concept-layer profile | #77 (upstream; #180 is marked `blocked_by` it) |

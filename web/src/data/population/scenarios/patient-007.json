@@ -45,5 +45,256 @@
       "sent": "2026-05-08T10:00:00Z",
       "_savedAt": "2026-05-08T10:00:00Z"
     }
+  ],
+  "episodes": [
+    {
+      "resourceType": "EpisodeOfCare",
+      "id": "p007-episode",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "active",
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "code": "suicide-safer-care",
+              "display": "Suicide-safer care episode"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "code": "elevated-assessment",
+                "display": "Elevated risk on assessment"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "code": "moderate",
+                "display": "Moderate risk"
+              }
+            ]
+          }
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-007"
+      },
+      "period": {
+        "start": "2026-05-06T13:00:00Z"
+      }
+    }
+  ],
+  "documentReferences": [
+    {
+      "resourceType": "DocumentReference",
+      "id": "p007-discharge-packet",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-discharge-safety-packet"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "current",
+      "type": {
+        "text": "Suicide-safety discharge packet"
+      },
+      "subject": {
+        "reference": "Patient/patient-007"
+      },
+      "date": "2026-05-08T16:30:00Z",
+      "content": [
+        {
+          "attachment": {
+            "contentType": "application/pdf",
+            "title": "Suicide-safety transition packet (PDF)"
+          }
+        }
+      ],
+      "context": {
+        "related": [
+          {
+            "reference": "CarePlan/p007-stanley-brown"
+          }
+        ]
+      },
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "current-risk-status",
+                "display": "Current risk status"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "safety-plan-copy",
+                "display": "Safety plan copy"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "crisis-resources",
+                "display": "Crisis contacts / resources"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "next-provider",
+                "display": "Next provider / team"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "referral-details",
+                "display": "Referral details"
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Transition packet prepared at discharge from the crisis stabilization unit."
+    }
+  ],
+  "serviceRequests": [
+    {
+      "resourceType": "ServiceRequest",
+      "id": "p007-referral",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-safety-referral"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "active",
+      "intent": "order",
+      "code": {
+        "text": "Referral to outpatient behavioral health"
+      },
+      "subject": {
+        "reference": "Patient/patient-007"
+      },
+      "authoredOn": "2026-05-08T16:40:00Z",
+      "reasonCode": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-referral-reason",
+              "code": "ongoing-treatment",
+              "display": "Ongoing behavioral health treatment"
+            }
+          ]
+        }
+      ],
+      "performer": [
+        {
+          "display": "Northside Counseling Center"
+        }
+      ],
+      "note": [
+        {
+          "text": "Accepted by the receiving team; intake not yet completed."
+        }
+      ]
+    }
+  ],
+  "appointments": [
+    {
+      "resourceType": "Appointment",
+      "id": "p007-follow-up",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-follow-up-appointment"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "booked",
+      "description": "Outpatient behavioral health intake",
+      "start": "2026-05-20T15:30:00Z",
+      "end": "2026-05-20T16:15:00.000Z",
+      "participant": [
+        {
+          "actor": {
+            "reference": "Patient/patient-007"
+          },
+          "status": "accepted"
+        },
+        {
+          "actor": {
+            "display": "Northside Counseling Center"
+          },
+          "status": "accepted"
+        }
+      ],
+      "comment": "Booked at discharge; attendance not yet recorded."
+    }
   ]
 }

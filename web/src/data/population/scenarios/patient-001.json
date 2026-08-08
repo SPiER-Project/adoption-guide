@@ -124,11 +124,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "PHQ-9 total score" }] },
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]" }], "text": "PHQ-9 total score" },
       "subject": { "reference": "Patient/patient-001" },
       "effectiveDateTime": "2026-03-13T10:15:00Z",
       "valueInteger": 18,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "HH", "display": "Moderately Severe depression (score 18/27)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "HH", "display": "Critical high" }], "text": "Moderately Severe depression (score 18/27)" }]
     },
     {
       "resourceType": "Observation",
@@ -136,11 +136,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts of death/self-harm" }] },
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]" }], "text": "Thoughts of death/self-harm" },
       "subject": { "reference": "Patient/patient-001" },
       "effectiveDateTime": "2026-03-13T10:15:00Z",
       "valueInteger": 2,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "A", "display": "Positive — suicide risk screening indicated" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "A", "display": "Abnormal" }], "text": "Positive — suicide risk screening indicated" }]
     },
     {
       "resourceType": "Observation",
@@ -159,11 +159,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "clarify-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "CAMS SSF: Psychological Pain" }] },
+      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "Psychological Pain" }], "text": "CAMS SSF: Psychological Pain" },
       "subject": { "reference": "Patient/patient-001" },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "Elevated (4/5)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "High" }], "text": "Elevated (4/5)" }]
     },
     {
       "resourceType": "Observation",
@@ -171,11 +171,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "clarify-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "hopelessness", "display": "CAMS SSF: Hopelessness" }] },
+      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "hopelessness", "display": "Hopelessness" }], "text": "CAMS SSF: Hopelessness" },
       "subject": { "reference": "Patient/patient-001" },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "Elevated (4/5)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "High" }], "text": "Elevated (4/5)" }]
     },
     {
       "resourceType": "Observation",
@@ -187,19 +187,20 @@
       "subject": { "reference": "Patient/patient-001" },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 3,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Moderate risk (3/5)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Normal" }], "text": "Moderate risk (3/5)" }]
     }
   ],
   "carePlans": [
     {
       "resourceType": "CarePlan",
       "id": "p001-stanley-brown",
-      "meta": { "profile": ["http://hl7.org/fhir/us/ecareplan/StructureDefinition/us-ecareplan"] },
+      "meta": { "profile": ["http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"] },
       "status": "active",
       "intent": "plan",
       "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }, { "coding": [{ "system": "http://loinc.org", "code": "87626-8", "display": "Suicide prevention note" }] }],
       "subject": { "reference": "Patient/patient-001" },
       "addresses": [{ "display": "Risk for suicide" }],
+      "created": "2026-03-15T14:00:00Z",
       "_savedAt": "2026-03-15T14:00:00Z",
       "activity": [
         { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "warning-signs" }], "text": "Step 1: Warning Signs" }, "status": "in-progress", "description": "Feeling trapped, chest tightness, racing thoughts at night, withdrawing from friends" } },
@@ -245,6 +246,425 @@
       "summary": "CAMS Vitals: Elevated scores (max 4/5)",
       "detail": "Psychological pain and hopelessness both rated 4/5. Stabilization plan completed. Follow-up scheduled.",
       "suggestedAction": { "label": "View Care Plan", "path": "/patient/chart#care-plans" }
+    }
+  ],
+  "episodes": [
+    {
+      "resourceType": "EpisodeOfCare",
+      "id": "p001-episode",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "active",
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "code": "suicide-safer-care",
+              "display": "Suicide-safer care episode"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "code": "positive-screen",
+                "display": "Positive screen"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "code": "high",
+                "display": "High risk"
+              }
+            ]
+          }
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-001"
+      },
+      "period": {
+        "start": "2026-03-13T11:00:00Z"
+      }
+    }
+  ],
+  "procedures": [
+    {
+      "resourceType": "Procedure",
+      "id": "p001-lethal-means",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-lethal-means-counseling"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions",
+            "display": "Document Safety Actions"
+          }
+        ]
+      },
+      "status": "completed",
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "409063005",
+            "display": "Counseling"
+          }
+        ],
+        "text": "Lethal means safety counseling (CALM)"
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "performedDateTime": "2026-03-15T14:20:00Z",
+      "note": [
+        {
+          "text": "Firearms transferred to brother for safekeeping; medications moved to a lockbox. Agreed at the safety-planning session."
+        }
+      ]
+    }
+  ],
+  "documentReferences": [
+    {
+      "resourceType": "DocumentReference",
+      "id": "p001-discharge-packet",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-discharge-safety-packet"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "current",
+      "type": {
+        "text": "Suicide-safety discharge packet"
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "date": "2026-03-16T15:00:00Z",
+      "content": [
+        {
+          "attachment": {
+            "contentType": "application/pdf",
+            "title": "Suicide-safety discharge packet (PDF)"
+          }
+        }
+      ],
+      "context": {
+        "related": [
+          {
+            "reference": "CarePlan/p001-stanley-brown"
+          },
+          {
+            "reference": "Observation/p001-asq-result"
+          }
+        ]
+      },
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "current-risk-status",
+                "display": "Current risk status"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "safety-plan-copy",
+                "display": "Safety plan copy"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "lethal-means-actions",
+                "display": "Lethal means safety actions"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "crisis-resources",
+                "display": "Crisis contacts / resources"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "follow-up-plan",
+                "display": "Follow-up plan"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "appointment-details",
+                "display": "Appointment details"
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Given to the patient at discharge; duplicate sent to the receiving outpatient team."
+    }
+  ],
+  "serviceRequests": [
+    {
+      "resourceType": "ServiceRequest",
+      "id": "p001-referral",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-safety-referral"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "completed",
+      "intent": "order",
+      "code": {
+        "text": "Referral to outpatient behavioral health"
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "authoredOn": "2026-03-16T15:05:00Z",
+      "reasonCode": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-referral-reason",
+              "code": "post-discharge-follow-up",
+              "display": "Post-discharge follow-up"
+            }
+          ]
+        }
+      ],
+      "performer": [
+        {
+          "display": "Riverside Behavioral Health"
+        }
+      ],
+      "note": [
+        {
+          "text": "Accepted same day; patient seen 2026-03-20."
+        }
+      ]
+    }
+  ],
+  "appointments": [
+    {
+      "resourceType": "Appointment",
+      "id": "p001-follow-up",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-follow-up-appointment"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "fulfilled",
+      "description": "Post-discharge behavioral health follow-up",
+      "start": "2026-03-20T14:00:00Z",
+      "end": "2026-03-20T14:45:00.000Z",
+      "participant": [
+        {
+          "actor": {
+            "reference": "Patient/patient-001"
+          },
+          "status": "accepted"
+        },
+        {
+          "actor": {
+            "display": "Riverside Behavioral Health"
+          },
+          "status": "accepted"
+        }
+      ]
+    }
+  ],
+  "communications": [
+    {
+      "resourceType": "Communication",
+      "id": "p001-outreach-48h",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-outreach-attempt"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up",
+            "display": "Track Follow-Up"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Follow-up outreach attempt"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "sent": "2026-03-17T10:30:00Z",
+      "medium": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationMode",
+              "code": "PHONE",
+              "display": "telephone"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/outreach-outcome",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-outreach-outcome",
+                "code": "patient-reached",
+                "display": "Patient reached"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/outreach-prompt",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-outreach-prompt",
+                "code": "post-discharge",
+                "display": "Post-discharge follow-up"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/safety-concern-identified",
+          "valueBoolean": false
+        }
+      ],
+      "note": [
+        {
+          "text": "Reached the patient the morning after discharge; safety plan in reach, no new concerns."
+        }
+      ]
+    },
+    {
+      "resourceType": "Communication",
+      "id": "p001-caring-contact-7d",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-caring-contact"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up",
+            "display": "Track Follow-Up"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Caring contact"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "sent": "2026-03-23T09:00:00Z",
+      "medium": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationMode",
+              "code": "WRITTEN",
+              "display": "written"
+            }
+          ]
+        }
+      ],
+      "payload": [
+        {
+          "contentString": "Thinking of you and glad you are part of our community. No reply needed — we are here if you want to talk."
+        }
+      ]
     }
   ]
 }

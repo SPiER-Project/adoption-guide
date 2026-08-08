@@ -94,7 +94,13 @@ const PHQ9_ITEM9_EXAMPLE = {
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-03-19T10:30:00Z',
   valueInteger: 2,
-  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Positive — suicide risk screening indicated' }] }],
+  // `display` is HL7's for code A; the instrument's own wording goes in `text`.
+  // These payloads are what the guide shows a reader as "this is the shape SPiER
+  // emits", so a drifted display here teaches the defect as well as shipping it.
+  interpretation: [{
+    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
+    text: 'Positive — suicide risk screening indicated',
+  }],
 }
 
 const ASQ_RESULT_EXAMPLE = {
@@ -121,7 +127,10 @@ const BSSA_DISPOSITION_EXAMPLE = {
   valueCodeableConcept: {
     coding: [{ system: 'http://spier.org/CodeSystem/bssa-disposition', code: 'further-evaluation-necessary', display: 'Further evaluation of risk is necessary' }],
   },
-  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Further evaluation of risk is necessary' }] }],
+  interpretation: [{
+    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
+    text: 'Further evaluation of risk is necessary',
+  }],
 }
 
 const PSS3_RESULT_EXAMPLE = {
@@ -135,7 +144,10 @@ const PSS3_RESULT_EXAMPLE = {
   valueCodeableConcept: {
     coding: [{ system: 'http://spier.org/CodeSystem/pss3-result', code: 'positive', display: 'Positive Screen (suicide risk)' }],
   },
-  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Positive suicide-risk screen' }] }],
+  interpretation: [{
+    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
+    text: 'Positive suicide-risk screen',
+  }],
 }
 
 const SAFET_RISK_LEVEL_EXAMPLE = {
@@ -149,7 +161,10 @@ const SAFET_RISK_LEVEL_EXAMPLE = {
   valueCodeableConcept: {
     coding: [{ system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', code: 'moderate', display: 'Moderate risk' }],
   },
-  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Moderate risk' }] }],
+  interpretation: [{
+    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
+    text: 'Moderate risk',
+  }],
   note: [{ text: 'Value binds directly to the shared suicide-risk tier — no per-instrument crosswalk. Rationale: ideation with plan but no intent; multiple risk factors, few protective factors.' }],
 }
 
@@ -178,13 +193,16 @@ const CAMS_VITAL_EXAMPLE = {
   status: 'final',
   category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
   code: {
-    coding: [{ system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'CAMS SSF: Psychological Pain' }],
-    text: 'Psychological Pain — local code pending LOINC submission',
+    coding: [{ system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' }],
+    text: 'CAMS SSF: Psychological Pain — local code pending LOINC submission',
   },
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-03-19T11:00:00Z',
   valueInteger: 4,
-  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: 'Elevated (4/5)' }] }],
+  interpretation: [{
+    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: 'High' }],
+    text: 'Elevated (4/5)',
+  }],
   note: [{ text: 'Track longitudinally across CAMS sessions to show trending.' }],
 }
 

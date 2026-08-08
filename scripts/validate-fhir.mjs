@@ -18,6 +18,14 @@
  * reporting errors grouped by file. It exits non-zero on any error or fatal
  * issue so it can gate CI.
  *
+ * It also covers a third tree that nothing validated at all (issue #226): the
+ * demo registry's scenario slices at `web/src/data/population/scenarios/`.
+ * Those hold hand-authored FHIR nested inside a `PatientSlice` wrapper rather
+ * than as standalone resource files, so they are unwrapped into a temp
+ * directory first (see `collectScenarioResources`). The Stage-8 measure engine
+ * reads exactly those resources, so a malformed one produces a wrong measure
+ * score rather than an empty one.
+ *
  * Usage:
  *   node scripts/validate-fhir.mjs [--tx <url|n/a>] [--jar <path>]
  *                                  [--json <path>] [--show-warnings]
@@ -30,7 +38,7 @@
  * `npx fsh-sushi .` inside `ig/`.
  */
 import { spawnSync } from 'node:child_process'
-import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { createWriteStream, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
@@ -57,6 +65,31 @@ const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
 
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
 const AUTHORED_DIR = join(root, 'FHIR-Resources')
+const SCENARIOS_DIR = join(root, 'web/src/data/population/scenarios')
+
+/**
+ * Scenario buckets that hold FHIR resources, and the resourceType each implies.
+ * Mirrors `FHIR_BUCKETS` in web/scripts/check-scenario-resources.mjs, which
+ * gates the same correspondence offline.
+ *
+ * Deliberately absent: `responses` (StoredResponse wrappers — the QRs inside
+ * them are already covered by `npm run check:scenarios`), `riskAlerts` (an app
+ * type, not FHIR) and `encounters` (ScenarioEncounter walkthrough narration,
+ * NOT a FHIR Encounter — feeding those to the validator would report garbage).
+ */
+const SCENARIO_FHIR_BUCKETS = {
+  observations: 'Observation',
+  carePlans: 'CarePlan',
+  communications: 'Communication',
+  episodes: 'EpisodeOfCare',
+  flags: 'Flag',
+  tasks: 'Task',
+  documentReferences: 'DocumentReference',
+  serviceRequests: 'ServiceRequest',
+  appointments: 'Appointment',
+  consents: 'Consent',
+  procedures: 'Procedure',
+}
 
 /**
  * Files excluded from validation, with the reason. Keep this list *short* and
@@ -163,7 +196,80 @@ for (const dir of [GENERATED_DIR, AUTHORED_DIR]) {
   }
 }
 
+/**
+ * Unwrap the population scenarios into standalone resource files the validator
+ * can read.
+ *
+ * Two deliberate transforms, and nothing else:
+ *
+ *  - `_savedAt` is dropped. It is SPiER's client-side persistence stamp, not
+ *    FHIR — `localDataSource.saveArtifact` adds it and `smartDataSource`
+ *    deletes it again before writing to a server (see its `_savedAt` handling).
+ *    Stripping it here mirrors exactly what the app does before the resource
+ *    becomes real FHIR; leaving it in would report a `_savedAt` error on a
+ *    field no server ever sees.
+ *  - `id` is filled from the scenario position where a resource has none. The
+ *    offline gate already fails an id-less scenario resource, so this only
+ *    keeps the temp filenames unique.
+ *
+ * Returns `{ paths, labels }` where `labels` maps each temp path back to a
+ * scenario-relative label, so a failure reads as
+ * `web/src/data/population/scenarios/patient-004.json episodes[0]` rather than
+ * as a path in /tmp that means nothing to the reader.
+ */
+function collectScenarioResources(dir) {
+  const paths = []
+  const labels = new Map()
+  let files
+  try {
+    files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort()
+  } catch {
+    return { paths, labels, tmpDir: null }
+  }
+  if (files.length === 0) return { paths, labels, tmpDir: null }
+
+  const tmpDir = mkdtempSync(join(tmpdir(), 'spier-scenarios-'))
+  for (const file of files) {
+    const scenario = JSON.parse(readFileSync(join(dir, file), 'utf8'))
+    for (const [bucket, type] of Object.entries(SCENARIO_FHIR_BUCKETS)) {
+      const entries = scenario[bucket]
+      if (!Array.isArray(entries)) continue
+      entries.forEach((resource, i) => {
+        if (!resource || typeof resource !== 'object') return
+        const clean = { ...resource }
+        delete clean._savedAt
+        if (!clean.id) clean.id = `${file.replace(/\.json$/, '')}-${bucket}-${i}`
+        const name = `${file.replace(/\.json$/, '')}--${bucket}-${i}--${type}-${clean.id}.json`
+        const full = join(tmpDir, name)
+        writeFileSync(full, JSON.stringify(clean, null, 2))
+        paths.push(full)
+        labels.set(full, {
+          label: `web/src/data/population/scenarios/${file} ${bucket}[${i}] (${clean.id})`,
+          repoFile: `web/src/data/population/scenarios/${file}`,
+        })
+      })
+    }
+  }
+  return { paths, labels, tmpDir }
+}
+
+const { paths: scenarioTargets, labels: scenarioLabels, tmpDir: scenarioTmpDir } =
+  collectScenarioResources(SCENARIOS_DIR)
+targets.push(...scenarioTargets)
+
 if (targets.length === 0) fail('no resources found to validate')
+/**
+ * A scenario tree that produced nothing is a silent pass, not an empty pass:
+ * the buckets could have been renamed, or the directory moved. Coverage that
+ * can quietly drop to zero is exactly the failure mode this gate exists to
+ * prevent, so a zero count is an error rather than a shrug.
+ */
+if (existsSync(SCENARIOS_DIR) && scenarioTargets.length === 0) {
+  fail(
+    `${relative(root, SCENARIOS_DIR)} exists but yielded 0 resources — ` +
+      'the scenario buckets may have been renamed. Update SCENARIO_FHIR_BUCKETS.',
+  )
+}
 
 // --- Run the validator -----------------------------------------------------
 const jar = await resolveJar()
@@ -199,6 +305,17 @@ if (!existsSync(outFile)) {
 // --- Report ----------------------------------------------------------------
 const output = JSON.parse(readFileSync(outFile, 'utf8'))
 if (!keepJsonAt) rmSync(outFile, { force: true })
+if (scenarioTmpDir) rmSync(scenarioTmpDir, { recursive: true, force: true })
+
+/**
+ * Unwrapped scenario resources live in a temp directory, so the validator
+ * reports them by a path that means nothing to a reader. Translate back to the
+ * scenario file and bucket index they came from.
+ */
+function describeFile(file) {
+  const hit = scenarioLabels.get(file)
+  return hit ? { display: hit.label, annotate: hit.repoFile } : { display: file, annotate: file }
+}
 
 /**
  * `-output` shape depends on the number of sources: a Bundle of OperationOutcomes
@@ -263,19 +380,21 @@ const blocking = totals.error + totals.fatal
 const inCi = Boolean(process.env.GITHUB_ACTIONS)
 
 for (const { file, issues } of offenders) {
-  console.log(`\n${file}`)
+  const { display, annotate } = describeFile(file)
+  console.log(`\n${display}`)
   for (const { severity, path, text } of issues) {
     console.log(`  [${severity}] ${path}\n    → ${text}`)
     // Inline PR annotation so a failure lands on the offending file.
     if (inCi && (severity === 'error' || severity === 'fatal')) {
       const clean = (s) => s.replace(/\r?\n/g, ' ').replace(/::/g, ':')
-      console.log(`::error file=${file},title=FHIR ${severity}::${clean(`${path}: ${text}`)}`)
+      console.log(`::error file=${annotate},title=FHIR ${severity}::${clean(`${path}: ${text}`)}`)
     }
   }
 }
 
 console.log(
-  `\n${targets.length} resources validated — ` +
+  `\n${targets.length} resources validated ` +
+    `(${scenarioTargets.length} unwrapped from the population scenarios) — ` +
     `${blocking} error(s), ${totals.warning} warning(s), ${totals.information} info`,
 )
 for (const { rel, reason } of excluded) console.log(`  skipped ${rel} — ${reason}`)
@@ -301,7 +420,7 @@ if (process.env.GITHUB_STEP_SUMMARY) {
     for (const { file, issues } of offenders) {
       const errs = issues.filter((i) => i.severity === 'error' || i.severity === 'fatal')
       if (!errs.length) continue
-      lines.push(`**${file}**`, '')
+      lines.push(`**${describeFile(file).display}**`, '')
       for (const { path, text } of errs) lines.push(`- \`${path}\` — ${text}`)
       lines.push('')
     }

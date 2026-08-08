@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 export function mapCSSRSFull(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
@@ -55,10 +55,10 @@ export function mapCSSRSFull(response: QuestionnaireResponseResource): MapperRes
       },
       valueType: 'codeable',
       interpretation: riskCode === 'high'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: riskDisplay }
+        ? interpretationOf('H', riskDisplay)
         : riskCode === 'moderate'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: riskDisplay }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'L', display: riskDisplay },
+        ? interpretationOf('A', riskDisplay)
+        : interpretationOf('L', riskDisplay),
       note: `C-SSRS Full: Highest recent ideation level ${highestRecent}/5, highest lifetime ${highestLifetime}/5. Most severe type: ${mostSevereType || 'N/A'}. Attempt history: lifetime=${attemptLife ? 'Yes' : 'No'}, recent=${attemptRecent ? 'Yes' : 'No'}.`,
       questionnaireName: 'C-SSRS Full',
     }),

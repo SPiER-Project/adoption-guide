@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // The CAMS Outcome/Disposition final session re-rates the six SSF Core Assessment
 // vitals (same cams-ssf codes as Section A) and records a disposition. The
@@ -29,14 +29,15 @@ export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResourc
     observations.push(
       makeObservation({
         id: `cams-${vital.code}-${Date.now()}`,
-        code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: vital.code, display: `CAMS SSF: ${vital.display}` },
+        // See camsSectionA.ts: the authority's display, "CAMS SSF: …" as `.text`.
+        code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: vital.code, display: vital.display, text: `CAMS SSF: ${vital.display}` },
         value: score,
         valueType: 'integer',
         interpretation: score >= 4
-          ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: `Elevated (${score}/5)` }
+          ? interpretationOf('H', `Elevated (${score}/5)`)
           : score >= 3
-          ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: `Moderate (${score}/5)` }
-          : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'L', display: `Low (${score}/5)` },
+          ? interpretationOf('N', `Moderate (${score}/5)`)
+          : interpretationOf('L', `Low (${score}/5)`),
         note: `CAMS SSF-5 Outcome/Disposition: ${vital.display} rated ${score}/5. Local code pending LOINC submission.`,
         questionnaireName: 'CAMS SSF-5: Outcome/Disposition',
       }),
@@ -56,8 +57,8 @@ export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResourc
         value: { coding: [{ system: CAMS_DISPOSITION_SYSTEM, code: dispositionCode, display: dispositionDisplay }], text: dispositionDisplay },
         valueType: 'codeable',
         interpretation: dispositionCode === 'resolved'
-          ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'CAMS resolved' }
-          : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: dispositionDisplay },
+          ? interpretationOf('N', 'CAMS resolved')
+          : interpretationOf('A', dispositionDisplay),
         note: 'CAMS SSF-5 Outcome/Disposition — final-session disposition decision.',
         questionnaireName: 'CAMS SSF-5: Outcome/Disposition',
       }),

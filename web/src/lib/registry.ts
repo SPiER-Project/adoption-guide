@@ -369,15 +369,20 @@ function deriveFollowUpRollup(slice: PatientSlice, now: Date) {
 }
 
 /**
- * Every Stage-5 resource type in one list — the `workflowArtifacts` bucket
- * patientPathway stages by `meta.tag`. Exported because the chart needs the
- * same list, and two independent copies would drift the moment a stage adds a
- * resource type.
+ * Every self-staging workflow resource type in one list — the
+ * `workflowArtifacts` bucket patientPathway stages by `meta.tag`. Exported
+ * because the chart needs the same list, and two independent copies would drift
+ * the moment a stage adds a resource type.
+ *
+ * `procedures` is here even though the four before it are Stage-5 and it is
+ * Stage-4: the lethal-means counseling Procedure is what the Stage-8 lethal
+ * means measure scores on, and leaving it out meant the measure reported a
+ * number computed from a resource that appeared nowhere in the chart.
  */
 export function workflowArtifactsOf(
   source: Pick<
     PatientSlice,
-    'documentReferences' | 'serviceRequests' | 'appointments' | 'consents'
+    'documentReferences' | 'serviceRequests' | 'appointments' | 'consents' | 'procedures'
   >,
 ): FhirResourceLike[] {
   return [
@@ -385,6 +390,7 @@ export function workflowArtifactsOf(
     ...(source.serviceRequests ?? []),
     ...(source.appointments ?? []),
     ...(source.consents ?? []),
+    ...(source.procedures ?? []),
   ]
 }
 

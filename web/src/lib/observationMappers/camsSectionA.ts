@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // Each entry also carried a `textLinkId` ('1-text' … '6-text') that nothing ever
 // read. '6-text' did not even exist in cams-ssf5-section-a.json — unlike ratings
@@ -30,18 +30,22 @@ export function mapCAMSSectionA(response: QuestionnaireResponseResource): Mapper
 
       const obs = makeObservation({
         id: `cams-${vital.code}-${Date.now()}`,
+        // `display` is the cams-ssf CodeSystem's own wording (ig/input/fsh/cams.fsh)
+        // — CAMS_VITALS[].display is kept identical to it on purpose. The "CAMS
+        // SSF:" prefix a reader wants is `.text`, not a redefinition of the code.
         code: {
           system: 'http://spier.org/CodeSystem/cams-ssf',
           code: vital.code,
-          display: `CAMS SSF: ${vital.display}`,
+          display: vital.display,
+          text: `CAMS SSF: ${vital.display}`,
         },
         value: score,
         valueType: 'integer',
         interpretation: score >= 4
-          ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: `Elevated (${score}/5)` }
+          ? interpretationOf('H', `Elevated (${score}/5)`)
           : score >= 3
-          ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: `Moderate (${score}/5)` }
-          : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'L', display: `Low (${score}/5)` },
+          ? interpretationOf('N', `Moderate (${score}/5)`)
+          : interpretationOf('L', `Low (${score}/5)`),
         note: `CAMS SSF-5 Section A: ${vital.display} rated ${score}/5 by patient. Code system is local (pending LOINC submission). EHRs should track these longitudinally across sessions to show trending.`,
         questionnaireName: 'CAMS SSF-5: Section A',
       })
@@ -61,10 +65,10 @@ export function mapCAMSSectionA(response: QuestionnaireResponseResource): Mapper
         value: overallScore,
         valueType: 'integer',
         interpretation: overallScore >= 4
-          ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: `High risk (${overallScore}/5)` }
+          ? interpretationOf('H', `High risk (${overallScore}/5)`)
           : overallScore >= 3
-          ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: `Moderate risk (${overallScore}/5)` }
-          : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'L', display: `Lower risk (${overallScore}/5)` },
+          ? interpretationOf('N', `Moderate risk (${overallScore}/5)`)
+          : interpretationOf('L', `Lower risk (${overallScore}/5)`),
         questionnaireName: 'CAMS SSF-5: Section A',
       }),
     )

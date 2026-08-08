@@ -135,16 +135,75 @@ export function getYesNoBoolean(item: QuestionnaireResponseItem | undefined): bo
 }
 
 /**
+ * The five HL7 v3-ObservationInterpretation codes SPiER emits, each paired with
+ * the display HL7 publishes for it.
+ *
+ * ── Why this table exists ────────────────────────────────────
+ *
+ * Until #236 every mapper wrote its own instrument-specific phrase into
+ * `Coding.display` — `H "Moderate depression (score 12/27)"`, `N "Negative
+ * screen"`, `A "Positive — suicide risk screening indicated"` — across ~33
+ * sites. A `display` the publishing authority does not allow is the #220 defect
+ * exactly, and it was invisible for the same reason: no gate read TypeScript for
+ * anything but LOINC and SNOMED. The phrase itself is worth keeping, so it moved
+ * one level up to `CodeableConcept.text`, which is the element FHIR provides for
+ * "what a human should read here" and which every SPiER view already prefers
+ * (`code?.text || code?.coding?.[0]?.display` in PatientChart, QuestionnaireView
+ * and registry). Rendered labels are unchanged; only the wire format is fixed.
+ *
+ * ── Why the system URL is repeated five times ────────────────
+ *
+ * `web/scripts/check-codings.mjs` reads these literals statically: it needs
+ * `system`, `code` and `display` as sibling *string literals* in one object, so
+ * hoisting the URL into a shared const would take this table right back out of
+ * the gate's view. Five repetitions buy the only automated proof that these
+ * displays are still what HL7 publishes. Verified against tx.fhir.org $lookup,
+ * August 2026.
+ */
+const INTERPRETATIONS = {
+  HH: { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'HH', display: 'Critical high' },
+  H: { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: 'High' },
+  L: { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'L', display: 'Low' },
+  N: { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'Normal' },
+  A: { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' },
+} as const
+
+export type InterpretationCode = keyof typeof INTERPRETATIONS
+
+/** A coding plus the human-readable phrase that belongs in the enclosing `.text`. */
+export interface CodedText {
+  system: string
+  code: string
+  display: string
+  text?: string
+}
+
+/**
+ * Interpretation coding for `code`, carrying `summary` as the sibling
+ * `CodeableConcept.text`.
+ *
+ * Pass the instrument's own wording as `summary` — "Moderate depression (score
+ * 12/27)", "Negative screen". It is what the UI shows; `display` stays HL7's.
+ */
+export function interpretationOf(code: InterpretationCode, summary: string): CodedText {
+  return { ...INTERPRETATIONS[code], text: summary }
+}
+
+/**
  * Build a survey-category Observation with the supplied code and value.
  * Centralizes status/category/subject/effectiveDateTime/note defaults so
  * every per-tool mapper emits Observations in a uniform shape.
+ *
+ * `code.text` / `interpretation.text` default to the coding's `display`. Set
+ * them when the phrase a clinician should read differs from what the code system
+ * publishes — the display must stay the authority's either way.
  */
 export function makeObservation(params: {
   id: string
-  code: { system: string; code: string; display: string }
+  code: CodedText
   value: unknown
   valueType: 'integer' | 'codeable' | 'boolean' | 'string'
-  interpretation?: { system: string; code: string; display: string }
+  interpretation?: CodedText
   note?: string
   questionnaireName: string
 }): ObservationResource {
@@ -163,9 +222,11 @@ export function makeObservation(params: {
         ],
       },
     ],
+    // `text` is destructured off rather than spread through: it belongs to the
+    // CodeableConcept, and a stray `text` inside a Coding is not a legal element.
     code: {
-      coding: [params.code],
-      text: params.code.display,
+      coding: [{ system: params.code.system, code: params.code.code, display: params.code.display }],
+      text: params.code.text ?? params.code.display,
     },
     subject: { reference: 'Patient/demo-patient' },
     effectiveDateTime: new Date().toISOString(),
@@ -185,9 +246,11 @@ export function makeObservation(params: {
   }
 
   if (params.interpretation) {
+    const { system, code, display, text } = params.interpretation
     obs.interpretation = [
       {
-        coding: [params.interpretation],
+        coding: [{ system, code, display }],
+        text: text ?? display,
       },
     ]
   }

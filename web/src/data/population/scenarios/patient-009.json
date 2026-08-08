@@ -11,7 +11,61 @@
       }
     }
   ],
-  "observations": [],
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "id": "p009-risk-status",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "define-risk-picture",
+            "display": "Define the Risk Picture"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ],
+        "text": "Current suicide risk status"
+      },
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "effectiveDateTime": "2026-07-15T10:30:00Z",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+            "code": "high",
+            "display": "High risk"
+          }
+        ]
+      },
+      "note": [
+        {
+          "text": "Re-presented in July; SSF vitals re-rated and overall risk documented as high."
+        }
+      ]
+    }
+  ],
   "carePlans": [
     {
       "resourceType": "CarePlan",
@@ -31,6 +85,417 @@
       "level": "high",
       "summary": "Risk status: High (active CAMS episode)",
       "detail": "High suicide risk maintained during active CAMS treatment episode; psychological pain remains elevated (3/5) per most recent SSF vitals. Continuing weekly sessions until resolution criteria met."
+    }
+  ],
+  "episodes": [
+    {
+      "resourceType": "EpisodeOfCare",
+      "id": "p009-episode",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "active",
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "code": "suicide-safer-care",
+              "display": "Suicide-safer care episode"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "code": "clinician-judgment",
+                "display": "Clinician judgment"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "code": "high",
+                "display": "High risk"
+              }
+            ]
+          }
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-009"
+      },
+      "period": {
+        "start": "2026-07-14T10:00:00Z"
+      }
+    }
+  ],
+  "procedures": [
+    {
+      "resourceType": "Procedure",
+      "id": "p009-lethal-means",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-lethal-means-counseling"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions",
+            "display": "Document Safety Actions"
+          }
+        ]
+      },
+      "status": "completed",
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "409063005",
+            "display": "Counseling"
+          }
+        ],
+        "text": "Lethal means safety counseling (CALM)"
+      },
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "performedDateTime": "2026-07-15T11:15:00Z",
+      "note": [
+        {
+          "text": "Medication supply reduced to a two-week fill and held by a family member."
+        }
+      ]
+    }
+  ],
+  "documentReferences": [
+    {
+      "resourceType": "DocumentReference",
+      "id": "p009-discharge-packet",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-discharge-safety-packet"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "current",
+      "type": {
+        "text": "Suicide-safety discharge packet"
+      },
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "date": "2026-07-20T16:00:00Z",
+      "content": [
+        {
+          "attachment": {
+            "contentType": "application/pdf",
+            "title": "Suicide-safety transition packet (PDF)"
+          }
+        }
+      ],
+      "context": {
+        "related": [
+          {
+            "reference": "Observation/p009-risk-status"
+          }
+        ]
+      },
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "current-risk-status",
+                "display": "Current risk status"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "recent-assessment",
+                "display": "Most recent suicide-risk assessment"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "safety-plan-copy",
+                "display": "Safety plan copy"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "lethal-means-actions",
+                "display": "Lethal means safety actions"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "crisis-resources",
+                "display": "Crisis contacts / resources"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "appointment-details",
+                "display": "Appointment details"
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Prepared at step-down from intensive outpatient back to weekly CAMS sessions."
+    }
+  ],
+  "serviceRequests": [
+    {
+      "resourceType": "ServiceRequest",
+      "id": "p009-referral",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-safety-referral"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "active",
+      "intent": "order",
+      "code": {
+        "text": "Referral to intensive outpatient program"
+      },
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "authoredOn": "2026-07-16T09:00:00Z",
+      "reasonCode": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-referral-reason",
+              "code": "higher-level-of-care",
+              "display": "Higher level of care"
+            }
+          ]
+        }
+      ],
+      "performer": [
+        {
+          "display": "Harbor Intensive Outpatient Program"
+        }
+      ]
+    }
+  ],
+  "appointments": [
+    {
+      "resourceType": "Appointment",
+      "id": "p009-follow-up-visit",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-follow-up-appointment"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "fulfilled",
+      "description": "CAMS session 5 — SSF re-rating",
+      "start": "2026-07-24T13:00:00Z",
+      "end": "2026-07-24T13:45:00.000Z",
+      "participant": [
+        {
+          "actor": {
+            "reference": "Patient/patient-009"
+          },
+          "status": "accepted"
+        },
+        {
+          "actor": {
+            "display": "Harbor Behavioral Health — CAMS clinician"
+          },
+          "status": "accepted"
+        }
+      ]
+    }
+  ],
+  "communications": [
+    {
+      "resourceType": "Communication",
+      "id": "p009-outreach-48h",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-outreach-attempt"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up",
+            "display": "Track Follow-Up"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Follow-up outreach attempt"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "sent": "2026-07-21T09:45:00Z",
+      "medium": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationMode",
+              "code": "PHONE",
+              "display": "telephone"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/outreach-outcome",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-outreach-outcome",
+                "code": "message-left",
+                "display": "Message left"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/outreach-prompt",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-outreach-prompt",
+                "code": "post-discharge",
+                "display": "Post-discharge follow-up"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/safety-concern-identified",
+          "valueBoolean": false
+        }
+      ],
+      "note": [
+        {
+          "text": "Voicemail left the day after the step-down; patient returned the call that afternoon."
+        }
+      ]
+    },
+    {
+      "resourceType": "Communication",
+      "id": "p009-caring-contact",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-caring-contact"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up",
+            "display": "Track Follow-Up"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Caring contact"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "sent": "2026-07-28T09:00:00Z",
+      "medium": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationMode",
+              "code": "SMSWRIT",
+              "display": "SMS message"
+            }
+          ]
+        }
+      ],
+      "payload": [
+        {
+          "contentString": "Just checking in — no reply needed. We are glad you are here."
+        }
+      ]
     }
   ]
 }

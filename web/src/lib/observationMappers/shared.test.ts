@@ -6,6 +6,7 @@ import {
   getYesNoBoolean,
   highestRiskLevel,
   makeObservation,
+  interpretationOf,
   RISK_LEVEL_ORDER,
   type RiskAlert,
 } from './shared'
@@ -207,5 +208,48 @@ describe('makeObservation', () => {
 
     const withoutInterp = makeObservation({ id: 'i', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'Q' })
     expect(withoutInterp.interpretation).toBeUndefined()
+  })
+})
+
+// The #236 contract. check:codings proves the five displays in
+// INTERPRETATIONS are still HL7's, but it runs nightly against a terminology
+// server and cannot see whether a mapper puts its own phrasing back into
+// `Coding.display`. These assertions are the offline half: they pin *where* each
+// string is allowed to land, which is the part a refactor is likely to undo.
+describe('interpretationOf', () => {
+  it('publishes HL7 display in the coding and the caller phrase in text', () => {
+    const interp = interpretationOf('H', 'Moderate depression (score 12/27)')
+    expect(interp.display).toBe('High')
+    expect(interp.text).toBe('Moderate depression (score 12/27)')
+  })
+
+  it('keeps the summary out of Coding.display once on a built Observation', () => {
+    const obs = makeObservation({
+      id: 'i',
+      code: { system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' },
+      value: 12,
+      valueType: 'integer',
+      interpretation: interpretationOf('A', 'Positive — suicide risk screening indicated'),
+      questionnaireName: 'PHQ-9',
+    })
+    const coding = obs.interpretation?.[0]?.coding?.[0]
+    expect(coding?.system).toBe('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation')
+    expect(coding?.display).toBe('Abnormal')
+    // A Coding has no `text` element; the phrase belongs to the CodeableConcept.
+    expect(coding).not.toHaveProperty('text')
+    expect(obs.interpretation?.[0]?.text).toBe('Positive — suicide risk screening indicated')
+  })
+
+  it('carries a code-level text override into CodeableConcept.text, not the coding', () => {
+    const obs = makeObservation({
+      id: 'i',
+      code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain', text: 'CAMS SSF: Psychological Pain' },
+      value: 4,
+      valueType: 'integer',
+      questionnaireName: 'CAMS SSF-5: Section A',
+    })
+    expect(obs.code?.coding?.[0]?.display).toBe('Psychological Pain')
+    expect(obs.code?.coding?.[0]).not.toHaveProperty('text')
+    expect(obs.code?.text).toBe('CAMS SSF: Psychological Pain')
   })
 })

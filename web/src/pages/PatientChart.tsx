@@ -210,6 +210,7 @@ function workflowArtifactDisplay(resource: FhirResourceLike): { icon: string; na
     dateTime?: string
     authoredOn?: string
     performer?: { display?: string }[]
+    performedDateTime?: string
     provision?: { type?: string }
   }
   const on = (iso?: string) => (iso ? ` · ${new Date(iso).toLocaleDateString()}` : '')
@@ -233,6 +234,12 @@ function workflowArtifactDisplay(resource: FhirResourceLike): { icon: string; na
         icon: '\u{1F4C5}',
         name: r.description ?? 'Follow-up appointment',
         meta: `Appointment · ${r.status ?? 'booked'}${on(r.start ?? r._savedAt)}`,
+      }
+    case 'Procedure':
+      return {
+        icon: '\u{1F6E1}',
+        name: r.code?.text ?? r.code?.coding?.[0]?.display ?? 'Safety procedure',
+        meta: `Procedure · ${r.status ?? 'completed'}${on(r.performedDateTime ?? r._savedAt)}`,
       }
     case 'Consent':
       return {
@@ -804,6 +811,7 @@ export function PatientChart() {
     serviceRequests,
     appointments,
     consents,
+    procedures,
     activePatientId,
     populationPatient,
     isSmartConnected,
@@ -817,8 +825,8 @@ export function PatientChart() {
   // Stage-5 artifacts all stage themselves through meta.tag, so they travel as
   // one bucket rather than a named field per resource type — see PatientArtifacts.
   const workflowArtifacts = useMemo(
-    () => workflowArtifactsOf({ documentReferences, serviceRequests, appointments, consents }),
-    [documentReferences, serviceRequests, appointments, consents],
+    () => workflowArtifactsOf({ documentReferences, serviceRequests, appointments, consents, procedures }),
+    [documentReferences, serviceRequests, appointments, consents, procedures],
   )
   const artifacts = useMemo(
     () => ({ responses, carePlans, observations, communications, workflowArtifacts }),

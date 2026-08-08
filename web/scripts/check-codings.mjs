@@ -25,9 +25,16 @@
  * ─── What it does ────────────────────────────────────────────
  *
  * Scans TypeScript under web/src and services/ plus docs/terminology-manifest.json
- * for object literals carrying an external system (LOINC or SNOMED CT), then asks
- * a terminology server to confirm each `code` exists and — where a `display` is
- * written — that the display is one the code actually allows.
+ * for object literals carrying an external system (LOINC, SNOMED CT, or any HL7
+ * terminology.hl7.org CodeSystem), then asks a terminology server to confirm each
+ * `code` exists and — where a `display` is written — that the display is one the
+ * code actually allows.
+ *
+ * Known blind spot, stated so it is not mistaken for coverage: a `display` built
+ * from a template literal cannot be read statically, so it is checked as
+ * code-only. That is why the #236 fix moved those phrases to
+ * `CodeableConcept.text` and left a fixed, checkable `display` behind, rather
+ * than trying to teach this scanner to evaluate TypeScript.
  *
  * It deliberately does NOT scan FHIR-Resources/ or ig/: those are resources, and
  * `node scripts/validate-fhir.mjs --tx <server>` already covers them. The nightly
@@ -52,26 +59,60 @@ import { dirname, resolve, join, relative } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..') // repo root
 
-const EXTERNAL_SYSTEMS = new Set(['http://loinc.org', 'http://snomed.info/sct'])
+/**
+ * Which systems count as "external" — i.e. published by someone other than SPiER,
+ * so the display is theirs to decide and ours to copy exactly.
+ *
+ * `http://terminology.hl7.org/CodeSystem/…` is matched as a family rather than
+ * listed code system by code system. HL7's THO covers dozens of small vocabularies
+ * (v3-ObservationInterpretation, observation-category, flag-category,
+ * condition-clinical, v3-ParticipationMode, …) and SPiER reaches for a new one
+ * every time a stage adds a resource type. An explicit list would have to be
+ * extended by hand on each of those, and the one nobody remembered to add is
+ * exactly the one that would drift.
+ *
+ * Widened in #236. Before that this was LOINC + SNOMED only, and the whole
+ * v3-ObservationInterpretation family went unchecked — which is how ~33 mapper
+ * sites came to write a free-text summary ("Moderate depression (score 12/27)")
+ * into `Coding.display` for code `H`, whose display HL7 publishes as "High".
+ * The same defect class as #220, invisible for the same reason: no gate read it.
+ */
+const EXTERNAL_FAMILIES = [
+  { name: 'loinc', pattern: 'http:\\/\\/loinc\\.org' },
+  { name: 'snomed', pattern: 'http:\\/\\/snomed\\.info\\/sct' },
+  { name: 'tho', pattern: 'http:\\/\\/terminology\\.hl7\\.org\\/CodeSystem\\/[A-Za-z0-9._-]+' },
+]
+
+const EXTERNAL_SYSTEM_RE = new RegExp(EXTERNAL_FAMILIES.map(f => f.pattern).join('|'), 'g')
+
+const familyOf = system =>
+  EXTERNAL_FAMILIES.find(f => new RegExp(`^(?:${f.pattern})$`).test(system))?.name
 
 // Scanned trees. FHIR-Resources/ and ig/ are excluded on purpose — validate-fhir.mjs
 // --tx covers those, and double-reporting would make this output harder to act on.
 //
-// `minCodings` is a per-source floor: if a source yields fewer than this, the
-// extractor is assumed broken (or the path moved) and the run fails rather than
-// reporting a pass on a scan that inspected almost nothing.
+// `minCodings` is a floor per source AND per vocabulary family: if a source
+// yields fewer than this, the extractor is assumed broken (or the path moved) and
+// the run fails rather than reporting a pass on a scan that inspected almost
+// nothing.
 //
-// The floor MUST be per-source, not a single total. A global floor was the first
-// version of this guard, and testing it found the hole: deleting both TypeScript
-// paths still left exactly enough codings in terminology-manifest.json to clear a
-// total-based floor, so a completely dead TS scan reported success. That is the
-// precise failure mode this script exists to prevent, reproduced in the guard
-// meant to prevent it. Floors are set well under the real counts at time of
-// writing (web/src 62 system literals, services 2, manifest 18) so ordinary
-// refactors do not trip them.
+// The floor MUST NOT be a single total. A global floor was the first version of
+// this guard, and testing it found the hole: deleting both TypeScript paths still
+// left exactly enough codings in terminology-manifest.json to clear a total-based
+// floor, so a completely dead TS scan reported success. That is the precise
+// failure mode this script exists to prevent, reproduced in the guard meant to
+// prevent it.
+//
+// #236 found the same hole one level down. Widening to THO doubled web/src from
+// 50 codings to 100, so a *per-source* floor of 15 would have been cleared by
+// either half alone — dropping the THO branch from EXTERNAL_FAMILIES entirely
+// would still have reported a healthy 50 and a green run. Hence the family
+// dimension: each vocabulary has to prove its own liveness. Floors are set well
+// under the real counts at time of writing (web/src loinc 40 / snomed 11 / tho 23;
+// manifest loinc 8 / snomed 10) so ordinary refactors do not trip them.
 const SCAN = [
-  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: 15 },
-  // A real zero, verified rather than assumed. The Worker reuses the web catalog
+  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 20, snomed: 5, tho: 10 } },
+  // Real zeros, verified rather than assumed. The Worker reuses the web catalog
   // instead of restating codes; its only two LOINC literals are in
   // services/cds-hooks/src/service.test.ts, where `code` is bound to a *variable*
   // rather than a string — which cannot be checked statically and so is counted
@@ -80,8 +121,10 @@ const SCAN = [
   // A floor of 0 cannot fail, so this entry contributes no protection against a
   // broken extractor; web/src and the manifest are what provide that. It stays in
   // SCAN so that terminology added to the Worker later is covered from day one.
-  { path: 'services', exts: ['.ts'], minCodings: 0 },
-  { path: 'docs/terminology-manifest.json', exts: ['.json'], minCodings: 5 },
+  { path: 'services', exts: ['.ts'], minCodings: { loinc: 0, snomed: 0, tho: 0 } },
+  // The manifest is a LOINC/SNOMED inventory; it names no THO code, so that floor
+  // is 0 here for the same "verified real zero" reason as `services`.
+  { path: 'docs/terminology-manifest.json', exts: ['.json'], minCodings: { loinc: 4, snomed: 5, tho: 0 } },
 ]
 
 const args = process.argv.slice(2)
@@ -146,33 +189,29 @@ const field = (objText, name) => {
 const found = new Map() // key -> {system, code, display, files:Set}
 let systemLiteralHits = 0
 const noCodeSites = []
-const perSource = new Map() // SCAN path -> count of codings extracted
+const perSource = new Map() // SCAN path -> { [family]: count of codings extracted }
 
 for (const entry of SCAN) {
-  let sourceCount = 0
+  const sourceCount = Object.fromEntries(EXTERNAL_FAMILIES.map(f => [f.name, 0]))
   for (const file of walkFiles(entry)) {
     const text = readFileSync(file, 'utf8')
     const rel = relative(root, file)
-    for (const system of EXTERNAL_SYSTEMS) {
-      let from = 0
-      for (;;) {
-        const at = text.indexOf(system, from)
-        if (at === -1) break
-        from = at + system.length
-        systemLiteralHits++
-        const obj = enclosingObject(text, at)
-        if (!obj) continue
-        // The object must actually name this system — guards against a literal that
-        // merely sits inside some larger unrelated object.
-        if (field(obj, 'system') !== system) continue
-        const code = field(obj, 'code')
-        if (!code) { noCodeSites.push(`${rel} (${system}, no sibling code)`); continue }
-        sourceCount++
-        const display = field(obj, 'display')
-        const key = `${system}|${code}|${display ?? ''}`
-        if (!found.has(key)) found.set(key, { system, code, display, files: new Set() })
-        found.get(key).files.add(rel)
-      }
+    for (const m of text.matchAll(EXTERNAL_SYSTEM_RE)) {
+      const system = m[0]
+      const at = m.index
+      systemLiteralHits++
+      const obj = enclosingObject(text, at)
+      if (!obj) continue
+      // The object must actually name this system — guards against a literal that
+      // merely sits inside some larger unrelated object.
+      if (field(obj, 'system') !== system) continue
+      const code = field(obj, 'code')
+      if (!code) { noCodeSites.push(`${rel} (${system}, no sibling code)`); continue }
+      sourceCount[familyOf(system)]++
+      const display = field(obj, 'display')
+      const key = `${system}|${code}|${display ?? ''}`
+      if (!found.has(key)) found.set(key, { system, code, display, files: new Set() })
+      found.get(key).files.add(rel)
     }
   }
   perSource.set(entry.path, sourceCount)
@@ -213,16 +252,32 @@ const codings = [...found.values()].sort((a, b) =>
 
 console.log(`terminology server: ${TX}`)
 for (const entry of SCAN) {
-  console.log(`scanned ${entry.path}: ${perSource.get(entry.path)} coding(s) (floor ${entry.minCodings})`)
+  const counts = perSource.get(entry.path)
+  const parts = Object.entries(entry.minCodings)
+    .map(([family, floor]) => `${family} ${counts[family] ?? 0} (floor ${floor})`)
+  console.log(`scanned ${entry.path}: ${parts.join(', ')}`)
 }
 console.log(`found ${codings.length} distinct external coding(s) from ${systemLiteralHits} system literal(s)\n`)
 
 // Guard 1: a source that yields almost nothing must never look like a pass. Checked
-// per source so a healthy source can never mask a dead one — see the SCAN comment.
-const starved = SCAN.filter(e => perSource.get(e.path) < e.minCodings)
+// per source AND per vocabulary family, so neither a healthy source nor a healthy
+// vocabulary can mask a dead one — see the SCAN comment.
+//
+// The loop is driven by the declared floors in SCAN, NOT by EXTERNAL_FAMILIES.
+// That distinction is the whole guard, and getting it wrong was this check's third
+// silent pass: with `EXTERNAL_FAMILIES.filter(…)`, deleting the THO family deleted
+// its floor along with it, so the edit the guard exists to catch made the guard
+// stop looking. Reading the floors instead means an undeclared family scores 0
+// against a floor that is still there, and the run fails. Adding a family to
+// EXTERNAL_FAMILIES therefore also means adding its floor to every SCAN entry.
+const starved = SCAN.flatMap(e =>
+  Object.entries(e.minCodings)
+    .filter(([family, floor]) => (perSource.get(e.path)[family] ?? 0) < floor)
+    .map(([family, floor]) => ({ path: e.path, family, got: perSource.get(e.path)[family] ?? 0, want: floor })),
+)
 if (starved.length) {
-  for (const e of starved) {
-    console.error(`✗ ${e.path} yielded ${perSource.get(e.path)} coding(s), expected at least ${e.minCodings}.`)
+  for (const s of starved) {
+    console.error(`✗ ${s.path} yielded ${s.got} ${s.family} coding(s), expected at least ${s.want}.`)
   }
   console.error('  The extractor is probably broken, or a scanned path moved.')
   console.error('  Refusing to report success on a scan that inspected almost nothing.')

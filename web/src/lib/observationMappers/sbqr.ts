@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 import { ordinalForAnswer } from '../../data/questionnaires'
 
 export function mapSBQR(response: QuestionnaireResponseResource): MapperResult {
@@ -26,8 +26,8 @@ export function mapSBQR(response: QuestionnaireResponseResource): MapperResult {
       value: totalScore,
       valueType: 'integer',
       interpretation: aboveGeneralCutoff
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: `Above general population cutoff (≥7). Score: ${totalScore}/18` }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: `Below cutoff. Score: ${totalScore}/18` },
+        ? interpretationOf('H', `Above general population cutoff (≥7). Score: ${totalScore}/18`)
+        : interpretationOf('N', `Below cutoff. Score: ${totalScore}/18`),
       note: `SBQ-R total score: ${totalScore}/18. General population cutoff: ≥7 (93% sensitivity, 95% specificity). Psychiatric inpatient cutoff: ≥8 (80% sensitivity, 91% specificity).`,
       questionnaireName: 'SBQ-R',
     }),

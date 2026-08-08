@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 /** The code that identifies one C-SSRS item in an extracted Observation. */
 export interface CSSRSItemCoding {
@@ -104,12 +104,12 @@ export function mapCSSRSScreenerCore(
       },
       valueType: 'codeable',
       interpretation: riskCode === 'high'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: riskDisplay }
+        ? interpretationOf('H', riskDisplay)
         : riskCode === 'moderate'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: riskDisplay }
+        ? interpretationOf('A', riskDisplay)
         : riskCode === 'low'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'L', display: riskDisplay }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'No risk identified' },
+        ? interpretationOf('L', riskDisplay)
+        : interpretationOf('N', 'No risk identified'),
       note: `${toolLabel}: Highest ideation level ${highestIdeation}/5. Behavior: ${q6 ? 'Yes' : 'No'}${q6Recent ? ' (within 3 months)' : ''}.`,
       questionnaireName: toolLabel,
     }),

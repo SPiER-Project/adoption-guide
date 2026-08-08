@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // SAFE-T lands DIRECTLY on the concept layer: the risk-level answer is already a
 // common suicide-risk tier code (http://spier.org/CodeSystem/spier-suicide-risk-tier),
@@ -53,8 +53,8 @@ export function mapSAFET(response: QuestionnaireResponseResource): MapperResult 
       },
       valueType: 'codeable',
       interpretation: level === 'none'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'No risk identified' }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: tierDisplay },
+        ? interpretationOf('N', 'No risk identified')
+        : interpretationOf('A', tierDisplay),
       note,
       questionnaireName: 'SAFE-T',
     }),
