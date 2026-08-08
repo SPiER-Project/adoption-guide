@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-08T22:42:58.237Z",
+  "fetchedAt": "2026-08-08T22:53:15.946Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
@@ -129,16 +129,16 @@
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/24",
       "bodyMd": "**Tool:** Means Safety Counseling (Means Counseling)\n**Stage:** document-safety-actions\n**Current status:** planned — the only `status:planned` tool left in Stage 4\n\n## Built already\n\nThe FHIR artifact set is authored and in the validated build (`ig/input/fsh/lethal-means.fsh`), verified 2026-08-04:\n\n- `LethalMeansMethodCodes` + `MeansSafetyActionCodes` CodeSystems, with matching ValueSets.\n- `SPiERLethalMeansCounseling` — the counseling **Procedure** profile (carries a general SNOMED counseling code plus clarifying text).\n- `SPiERMeansSafetyAction` — the per-action **Observation** profile.\n- `ProvideMeansSafetyCounseling` ActivityDefinition.\n- Three example instances (counseling Procedure; firearm-secured and medication-locked actions).\n\nSo this epic's original \"Next\" — *\"Means counseling Questionnaire + Procedure resource generation per CALM model\"* — is **half stale**. Procedure/Observation generation is modelled. The Questionnaire half was superseded by a design decision: TL-008 is being built as a **workflow recorder** (in the style of the Stage-4/5 recorders such as `SafetyReferralView.tsx`), not as a Questionnaire, consistent with how TL-009/TL-017/TL-030–032 were done.\n\n## Remaining\n\nOne thing, and it is tracked as its own issue:\n\n- **#210 — Add a lethal-means counseling Procedure recorder.** TL-008 has `launchActions: []` in `tool-ui-metadata.ts`, so nothing in the app can write the Procedure. This makes `SPiERLethalMeansCounselingCompleted`'s numerator structurally unreachable (row 2 of the gap table in `docs/plans/stage-8-measure-and-share.md`).\n\nThis epic stays open only as the tool's **status tracker** — flip `status:planned` → `status:built` when #210 lands. Do not file duplicate work here.\n\n---\n\nThis is the tracking epic for this tool. Concrete pieces of work should be opened as separate issues with the `tool:TL-008` label.\n\nSourced from `web/src/pages/Roadmap.tsx` `PLANS` map during the 2026-05 GitHub Issues migration. Body refreshed 2026-08-04 in the milestone-hygiene pass (the original \"Next\" text predated the artifact work and the recorder design decision).\n",
       "labels": [
-        "status:planned",
+        "status:built",
         "type:epic",
         "stage:document-safety-actions",
         "tool:TL-008",
         "bundle:ed-profile"
       ],
       "createdAt": "2026-05-21T14:22:09Z",
-      "updatedAt": "2026-08-04T14:40:12Z",
+      "updatedAt": "2026-08-08T22:49:25Z",
       "toolId": "TL-008",
-      "status": "planned",
+      "status": "built",
       "type": "epic",
       "stage": "document-safety-actions"
     },
