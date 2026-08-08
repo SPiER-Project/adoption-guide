@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // The PSS-3 has NO published panel or per-item LOINC codes, so the three
 // screening items bind to the SPiER-local http://spier.org/CodeSystem/pss3-item
@@ -46,8 +46,8 @@ export function mapPSS3(response: QuestionnaireResponseResource): MapperResult {
       },
       valueType: 'codeable',
       interpretation: positive
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: resultDisplay }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'Negative screen' },
+        ? interpretationOf('A', resultDisplay)
+        : interpretationOf('N', 'Negative screen'),
       questionnaireName: 'PSS-3',
     }),
   )

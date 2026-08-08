@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // PSS Full is a combined acute-care screen (public ED-SAFE PSS-3 items) whose
 // site-defined risk-stratification step yields a common suicide-risk tier
@@ -29,8 +29,8 @@ export function mapPSSFull(response: QuestionnaireResponseResource): MapperResul
       value: { coding: [{ system: RISK_TIER_SYSTEM, code: tierCode, display: tierDisplay }], text: tierDisplay },
       valueType: 'codeable',
       interpretation: level === 'none'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'No risk identified' }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: tierDisplay },
+        ? interpretationOf('N', 'No risk identified')
+        : interpretationOf('A', tierDisplay),
       note: 'Patient Safety Screener (Full): combined ED-SAFE PSS-3 universal screen + site-defined risk stratification. Value binds directly to the shared suicide-risk tier.',
       questionnaireName: 'PSS Full',
     }),

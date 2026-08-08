@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type InterpretationCode, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 import { ordinalForAnswer } from '../../data/questionnaires'
 
 export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
@@ -21,7 +21,7 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
 
   // Total score Observation
   let severity = 'Minimal'
-  let interpretationCode = 'N'
+  let interpretationCode: InterpretationCode = 'N'
   if (totalScore >= 20) { severity = 'Severe'; interpretationCode = 'HH' }
   else if (totalScore >= 15) { severity = 'Moderately Severe'; interpretationCode = 'H' }
   else if (totalScore >= 10) { severity = 'Moderate'; interpretationCode = 'H' }
@@ -33,11 +33,7 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
       code: { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]' },
       value: totalScore,
       valueType: 'integer',
-      interpretation: {
-        system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation',
-        code: interpretationCode,
-        display: `${severity} depression (score ${totalScore}/27)`,
-      },
+      interpretation: interpretationOf(interpretationCode, `${severity} depression (score ${totalScore}/27)`),
       questionnaireName: 'PHQ-9',
     }),
   )
@@ -53,8 +49,8 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
       value: item9Score,
       valueType: 'integer',
       interpretation: item9Score > 0
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Positive — suicide risk screening indicated' }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'Negative — no thoughts of death/self-harm endorsed' },
+        ? interpretationOf('A', 'Positive — suicide risk screening indicated')
+        : interpretationOf('N', 'Negative — no thoughts of death/self-harm endorsed'),
       questionnaireName: 'PHQ-9',
     }),
   )

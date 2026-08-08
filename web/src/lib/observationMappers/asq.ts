@@ -1,4 +1,4 @@
-import { makeObservation, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
@@ -33,8 +33,8 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
       },
       valueType: 'codeable',
       interpretation: resultCode !== 'negative'
-        ? { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: resultDisplay }
-        : { system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'N', display: 'Negative screen' },
+        ? interpretationOf('A', resultDisplay)
+        : interpretationOf('N', 'Negative screen'),
       questionnaireName: 'ASQ',
     }),
   )

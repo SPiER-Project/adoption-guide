@@ -38,9 +38,15 @@ npm test                 # vitest
 Deliberately **not** in `verify`, because it needs a terminology server and so
 cannot be offline-reproducible — it runs nightly instead:
 ```
-npm run check:codings    # every LOINC/SNOMED code+display literal in web/src, services/
-                         # and docs/terminology-manifest.json, checked against tx.fhir.org
+npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display
+                         # literal in web/src, services/ and
+                         # docs/terminology-manifest.json, checked against tx.fhir.org
 ```
+
+Its floors are per source **and** per vocabulary family, and the guard loop reads
+the declared floors rather than the family list — see the comment on `SCAN`. If
+you add a vocabulary to `EXTERNAL_FAMILIES`, add its floor to every `SCAN` entry
+too, or the new family is scanned with nothing asserting it stayed alive.
 
 In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
 thing and fails in a fresh worktree:
@@ -72,7 +78,7 @@ different classes of problem, and a clean SUSHI run implies none of the others:
 | `npx fsh-sushi .` | FSH syntax, unresolved FSH references | `ig.yml` |
 | `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
 | IG Publisher | FHIRPath invariants, narrative link integrity | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
-| `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC/SNOMED codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
+| `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC, SNOMED and terminology.hl7.org codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
 
 That fourth row exists because of issue #220: seven LOINC codes SPiER emitted for
 safety-plan sections were fabricated or misused, and no gate could see them. Six
