@@ -4,8 +4,9 @@
  * and writes a localStorage store, this source reads the launch patient's real
  * chart resources from the connected FHIR server — QuestionnaireResponses,
  * Observations, CarePlans, Communications, the Stage-7 episode/flag/task set,
- * and the Stage-5 handoff artifacts (DocumentReference, ServiceRequest,
- * Appointment, Consent) — and writes submissions back.
+ * the Stage-5 handoff artifacts (DocumentReference, ServiceRequest,
+ * Appointment, Consent), and the Stage-4 lethal-means counseling Procedure —
+ * and writes submissions back.
  *
  * Design notes:
  *  - Risk alerts are recomputed locally by running each QuestionnaireResponse
@@ -37,6 +38,7 @@ import type {
   DocumentReferenceResource,
   EpisodeOfCareResource,
   FlagResource,
+  ProcedureResource,
   ServiceRequestResource,
   TaskResource,
   FhirResource,
@@ -174,7 +176,8 @@ export class SmartDataSource implements FhirDataSource {
     // best-effort (a server may not grant those scopes) and degrade to empty.
     const [
       qrs,
-      observations,
+      surveyObservations,
+      procedureObservations,
       carePlans,
       communications,
       episodes,
@@ -184,9 +187,14 @@ export class SmartDataSource implements FhirDataSource {
       serviceRequests,
       appointments,
       consents,
+      procedures,
     ] = await Promise.all([
       this.search('QuestionnaireResponse', pid),
       this.search('Observation', pid, '&category=survey'),
+      // Stage-4 means-safety actions are category `procedure`, not `survey` —
+      // they record what was secured, not an instrument's answers. Best-effort
+      // so a server that rejects the second query still returns a usable chart.
+      this.search('Observation', pid, '&category=procedure').catch(() => [] as FhirResource[]),
       this.search('CarePlan', pid).catch(() => [] as FhirResource[]),
       this.search('Communication', pid).catch(() => [] as FhirResource[]),
       // Stage 7 (Track Risk Over Time). Best-effort like CarePlan/Communication:
@@ -199,7 +207,15 @@ export class SmartDataSource implements FhirDataSource {
       this.search('ServiceRequest', pid).catch(() => [] as FhirResource[]),
       this.search('Appointment', pid).catch(() => [] as FhirResource[]),
       this.search('Consent', pid).catch(() => [] as FhirResource[]),
+      // Stage 4 (Document Safety Actions) — the lethal-means counseling
+      // Procedure the Stage-8 measure counts. Best-effort for the same reason.
+      this.search('Procedure', pid).catch(() => [] as FhirResource[]),
     ])
+
+    // A server may return the same Observation under both category queries.
+    const observations = [...surveyObservations, ...procedureObservations].filter(
+      (o, i, all) => !o.id || all.findIndex(x => x.id === o.id) === i,
+    )
 
     const responses = qrs
       .map(qr => toStoredResponse(qr as QuestionnaireResponseResource))
@@ -226,6 +242,7 @@ export class SmartDataSource implements FhirDataSource {
       serviceRequests: serviceRequests as ServiceRequestResource[],
       appointments: appointments as AppointmentResource[],
       consents: consents as ConsentResource[],
+      procedures: procedures as ProcedureResource[],
       riskAlerts,
     }
   }

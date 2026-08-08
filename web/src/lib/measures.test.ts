@@ -22,7 +22,13 @@ import {
   PACKET_PROFILE,
   REFERRAL_PROFILE,
 } from './handoffs'
-import { CARING_CONTACT_PROFILE, OUTREACH_OUTCOME_EXT, OUTREACH_OUTCOME_SYSTEM } from './followUp'
+import {
+  buildCaringContact,
+  CARING_CONTACT_PROFILE,
+  OUTREACH_OUTCOME_EXT,
+  OUTREACH_OUTCOME_SYSTEM,
+} from './followUp'
+import { buildLethalMeansCounseling, buildMeansSafetyAction } from './lethalMeans'
 import { CLOSURE_REASON_EXT, EPISODE_PROFILE } from './riskEpisode'
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import type { PatientSlice } from '../types/fhir'
@@ -545,6 +551,46 @@ describe('caring contact adherence', () => {
     expect(g.populations['denominator-exclusion']).toBe(false)
     expect(g.inNumerator).toBe(true)
   })
+
+  // The fixtures above are hand-built, so they prove the criterion but not that
+  // anything in the app can produce a resource satisfying it. These two feed
+  // the TL-010 recorder's actual output in — which is what issue #211 was
+  // about: the exclusion was correct and unreachable at the same time.
+  describe('against what the TL-010 recorder actually writes', () => {
+    it('counts a recorded caring contact', () => {
+      const slice = base()
+      slice.communications = [
+        ...slice.communications!,
+        buildCaringContact({
+          id: 'cc-1',
+          patientId: 'patient-005',
+          sent: '2026-08-03T10:00:00.000Z',
+          channel: 'WRITTEN',
+          optOut: false,
+        }),
+      ]
+      expect(
+        groupOf(evaluateMeasure(spec, slice, PERIOD), 'caring-contact-within-30-days').inNumerator,
+      ).toBe(true)
+    })
+
+    it('excludes a patient the recorder marked as opted out', () => {
+      const slice = base()
+      slice.communications = [
+        ...slice.communications!,
+        buildCaringContact({
+          id: 'cc-1',
+          patientId: 'patient-005',
+          sent: '2026-07-21T10:00:00.000Z',
+          channel: 'WRITTEN',
+          optOut: true,
+        }),
+      ]
+      const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'caring-contact-within-30-days')
+      expect(g.populations['denominator-exclusion']).toBe(true)
+      expect(g.inDenominator).toBe(false)
+    })
+  })
 })
 
 // ─── Measure 7: referral loop closure ────────────────────────
@@ -590,7 +636,7 @@ describe('referral loop closure', () => {
   })
 })
 
-// ─── Measure 4: lethal means (no recorder yet) ────────────────
+// ─── Measure 4: lethal means counseling ───────────────────────
 
 describe('lethal means counseling', () => {
   const spec = specFor('LethalMeansCounseling')
@@ -613,12 +659,52 @@ describe('lethal means counseling', () => {
     ).toBe(true)
   })
 
-  it('is empty for a slice with no Procedures — the current demo reality', () => {
+  it('fails a patient in an episode with no counseling Procedure', () => {
     const slice = emptySlice()
     slice.episodes = [episode({ start: '2026-07-02' })]
     const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'lethal-means-counseling')
     expect(g.inDenominator).toBe(true)
     expect(g.inNumerator).toBe(false)
+  })
+
+  // As with the caring contact above: the fixture proves the criterion, this
+  // proves something in the app can satisfy it. Before the TL-008 recorder
+  // landed (#210) nothing could, so this numerator was structurally
+  // unreachable no matter what the demo data said.
+  it('counts what the TL-008 recorder actually writes', () => {
+    const slice = emptySlice()
+    slice.episodes = [episode({ start: '2026-07-02' })]
+    slice.procedures = [
+      buildLethalMeansCounseling({
+        id: 'counseling-1',
+        patientId: 'patient-005',
+        performed: '2026-07-05T10:00:00.000Z',
+      }),
+    ]
+    expect(
+      groupOf(evaluateMeasure(spec, slice, PERIOD), 'lethal-means-counseling').inNumerator,
+    ).toBe(true)
+  })
+
+  // The counseling is the process measure; the per-means Observations are
+  // richer detail a site reports separately. Securing a firearm without
+  // recording that counseling happened must not score.
+  it('does NOT count means-safety action Observations on their own', () => {
+    const slice = emptySlice()
+    slice.episodes = [episode({ start: '2026-07-02' })]
+    slice.observations = [
+      buildMeansSafetyAction({
+        id: 'action-1',
+        patientId: 'patient-005',
+        effective: '2026-07-05T10:00:00.000Z',
+        method: 'firearm',
+        action: 'safely-disposed',
+        completed: true,
+      }),
+    ]
+    expect(
+      groupOf(evaluateMeasure(spec, slice, PERIOD), 'lethal-means-counseling').inNumerator,
+    ).toBe(false)
   })
 })
 

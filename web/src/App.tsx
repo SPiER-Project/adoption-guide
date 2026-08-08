@@ -70,6 +70,8 @@ const SafetyReferralView = lazy(() => import('./components/SafetyReferralView').
 const FollowUpAppointmentView = lazy(() => import('./components/FollowUpAppointmentView').then(m => ({ default: m.FollowUpAppointmentView })))
 const SharingConsentView = lazy(() => import('./components/SharingConsentView').then(m => ({ default: m.SharingConsentView })))
 const OutreachAttemptView = lazy(() => import('./components/OutreachAttemptView').then(m => ({ default: m.OutreachAttemptView })))
+const CaringContactView = lazy(() => import('./components/CaringContactView').then(m => ({ default: m.CaringContactView })))
+const LethalMeansCounselingView = lazy(() => import('./components/LethalMeansCounselingView').then(m => ({ default: m.LethalMeansCounselingView })))
 
 function RouteFallback() {
   return (
@@ -185,9 +187,11 @@ function AppRoutes() {
             <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaire={pssFullQuestionnaire} persistName="PSS Full" />
           } />
           {/* Non-Questionnaire workflow recorders */}
-          <Route path="workflow/caring-contact" element={
-            <WorkflowActionView toolId="TL-010" title="Log a Caring Contact" actionNoun="caring contact" summaryPlaceholder="e.g. 7-day caring contact: check-in call" />
-          } />
+          {/* caring-contact used to render the generic Communication recorder,
+              which stamped neither the SPiERCaringContact profile nor the
+              opt-out extension — so the Stage-8 adherence measure could not see
+              its output and its opt-out exclusion could never fire. */}
+          <Route path="workflow/caring-contact" element={<CaringContactView />} />
           <Route path="workflow/transition" element={
             <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />
           } />
@@ -205,6 +209,8 @@ function AppRoutes() {
           {/* Stage 7 — Track Risk Over Time */}
           <Route path="workflow/risk-episode" element={<RiskEpisodeView />} />
           <Route path="workflow/safety-tasks" element={<SafetyTaskView />} />
+          {/* Stage 4 — Document Safety Actions */}
+          <Route path="workflow/lethal-means" element={<LethalMeansCounselingView />} />
           <Route path="workflow/crisis-resources" element={
             <WorkflowActionView toolId="TL-013" title="Record Crisis Resources Shared" actionNoun="crisis resources shared" summaryPlaceholder="e.g. 988 Lifeline + Crisis Text Line + safety-plan copy given to patient" />
           } />

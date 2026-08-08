@@ -33,6 +33,9 @@ export const OUTREACH_PROMPT_SYSTEM = 'http://spier.org/CodeSystem/spier-outreac
 export const OUTREACH_OUTCOME_EXT = 'http://spier.org/StructureDefinition/outreach-outcome'
 export const OUTREACH_PROMPT_EXT = 'http://spier.org/StructureDefinition/outreach-prompt'
 export const SAFETY_CONCERN_EXT = 'http://spier.org/StructureDefinition/safety-concern-identified'
+/** `CaringContactOptOut` in follow-up.fsh. Read by the Stage-8 adherence measure. */
+export const CARING_CONTACT_OPT_OUT_EXT =
+  'http://spier.org/StructureDefinition/caring-contact-opt-out'
 
 const PARTICIPATION_MODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode'
 
@@ -219,6 +222,93 @@ export function unreachedStreak(communications: CommunicationResource[]): number
     else break
   }
   return streak
+}
+
+// ─── TL-010 — Caring contact ──────────────────────────────────
+
+/**
+ * One caring contact.
+ *
+ * Deliberately NOT an outreach attempt: a caring contact asks nothing of the
+ * patient, so it has no reached/unreached outcome. What it does carry that
+ * outreach does not is the **opt-out**, and that is not a nicety — the Stage-8
+ * `SPiERCaringContactAdherence` measure uses it as a `denominator-exclusion`.
+ * Without a written opt-out, a site that correctly stops contacting a patient
+ * who asked it to stop is scored as having failed to send the contacts, which
+ * is pressure to ignore the patient. So the flag rides on the contact where the
+ * schedule stops rather than living only in a note.
+ *
+ * `optOut` is written whenever it is defined, including `false` — an explicitly
+ * recorded "still opted in" is a different (and more useful) claim than silence.
+ */
+export function buildCaringContact(params: {
+  id: string
+  patientId: string | null
+  sent: string
+  channel: string
+  /** The message actually sent — a caring contact IS its content. */
+  message?: string
+  optOut?: boolean
+  note?: string
+}): CommunicationResource {
+  const channel = OUTREACH_CHANNELS.find(c => c.code === params.channel) ?? OUTREACH_CHANNELS[0]
+  return {
+    resourceType: 'Communication',
+    id: params.id,
+    meta: { profile: [CARING_CONTACT_PROFILE], tag: stageTag() },
+    // `completed` even when the opt-out is set: the opt-out is the patient's
+    // standing preference stamped on the contact that carried it, not a claim
+    // that this message went unsent. That matches ExampleCaringContact, which
+    // writes `optOut = false` on a delivered contact — the flag is about the
+    // series, and it is what stops the next one.
+    status: 'completed',
+    category: [{ text: 'Caring contact' }],
+    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    sent: params.sent,
+    medium: [
+      { coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channel.code, display: channel.codingDisplay }] },
+    ],
+    ...(params.optOut === undefined
+      ? {}
+      : { extension: [{ url: CARING_CONTACT_OPT_OUT_EXT, valueBoolean: params.optOut }] }),
+    ...(params.message ? { payload: [{ contentString: params.message }] } : {}),
+    ...(params.note ? { note: [{ text: params.note }] } : {}),
+  }
+}
+
+/** True when this contact carries an explicit opt-out. */
+export function caringContactOptedOut(resource: CommunicationResource): boolean {
+  const exts = (resource as { extension?: { url?: string; valueBoolean?: boolean }[] }).extension
+  return exts?.some(e => e.url === CARING_CONTACT_OPT_OUT_EXT && e.valueBoolean === true) ?? false
+}
+
+/**
+ * Caring contacts on a chart, most recent first. Matched on the profile — a
+ * caring contact has no required distinguishing element the way an outreach
+ * attempt has its outcome extension, so there is nothing else to key on. The
+ * Stage-8 measure matches the same way.
+ */
+export function caringContacts(communications: CommunicationResource[]): CommunicationResource[] {
+  return communications
+    .filter(c =>
+      ((c as { meta?: { profile?: string[] } }).meta?.profile ?? []).includes(
+        CARING_CONTACT_PROFILE,
+      ),
+    )
+    .slice()
+    .sort((a, b) => {
+      const sa = (a as { sent?: string }).sent ?? ''
+      const sb = (b as { sent?: string }).sent ?? ''
+      return sb.localeCompare(sa)
+    })
+}
+
+/**
+ * True once any contact on the chart records an opt-out — the series has been
+ * stopped, so the recorder should say so rather than inviting another send.
+ */
+export function hasOptedOutOfCaringContacts(communications: CommunicationResource[]): boolean {
+  return caringContacts(communications).some(caringContactOptedOut)
 }
 
 // ─── TL-034 — Appointment tracking (a read, not a write) ──────

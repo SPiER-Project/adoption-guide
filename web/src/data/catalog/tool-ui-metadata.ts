@@ -510,7 +510,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Safety Plan', variant: 'safety' },
-    launchActions: [],
+    launchActions: [{ label: 'Record means safety counseling', path: '/patient/workflow/lethal-means' }],
     tags: ['means-safety actions', 'CALM protocol', 'Procedure + Observations'],
     targetMaturity: { electronic: 3, writeback: 3, triggering: 2 },
     recordingPattern: {
