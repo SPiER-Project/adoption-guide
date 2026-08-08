@@ -7,7 +7,7 @@ MeasureReports, conformance, #201) and part 2 makes it live (the measure engine,
 drift guard, and TL-043 dashboard). See *Implementation status* below.
 
 Artifacts: [`ig/input/fsh/measure-and-share.fsh`](../../ig/input/fsh/measure-and-share.fsh),
-[`ig/drafts/SPiERSuicideSaferCareMeasures.cql`](../../ig/drafts/SPiERSuicideSaferCareMeasures.cql),
+[`ig/input/cql/SPiERSuicideSaferCareMeasures.cql`](../../ig/input/cql/SPiERSuicideSaferCareMeasures.cql),
 [`ig/input/pagecontent/measurement.md`](../../ig/input/pagecontent/measurement.md).
 Requirements source: [`docs/reference/ssc-stage-tiles-question-set.md`](../reference/ssc-stage-tiles-question-set.md),
 Stage Tile 8.
@@ -184,6 +184,12 @@ an example whose arithmetic did not hold.
 the first revision of this PR shipped **66 IG Publisher errors**, and the
 lesson is worth recording because it changed the design.
 
+> **Superseded — read the correction below before acting on this paragraph.**
+> The conclusion recorded here ("the publisher does not translate CQL") is
+> false. It is left in place because the *reasoning* that produced it is the
+> instructive part. See
+> [*The correction: the publisher does translate CQL*](#the-correction-the-publisher-does-translate-cql).
+
 **The CQL claim was wrong.** The first revision put the CQL under
 `ig/input/cql/` and published a `Library` pointing at it, asserting that the IG
 Publisher translates `input/cql` and attaches the ELM — and that
@@ -201,6 +207,68 @@ content it does not carry is worse than not publishing one. Promoting the CQL
 back requires proving a translator in CI first, and `cqframework` publishes no
 fat jar on Maven Central, so that means resolving a classpath with Maven or
 Gradle.
+
+### The correction: the publisher DOES translate CQL
+
+Issue #212 re-tested the claim above and it does not survive. The capability was
+present the whole time; the configuration was not.
+
+**What was actually wrong.** `publisher.jar` bundles the complete cqframework
+translator — `org/hl7/fhir/igtools/publisher/CqlSubSystem.class` plus 900-odd
+`org/cqframework/**` classes. What activates it is an IG parameter that the
+first revision never set: `path-binary`, which the tools IG's `ig-parameters`
+CodeSystem defines as files "only used in the context of the CQL loader".
+Without it the publisher does not scan `input/cql`, does not translate, and —
+critically — **says nothing at all**. A silent log was read as evidence of
+absent capability when it was evidence of an unset switch.
+
+Adding two lines to `sushi-config.yaml`:
+
+```yaml
+parameters:
+  path-binary:
+    - input/cql
+```
+
+changes the log to:
+
+```
+Translating CQL source in folder .../ig/input/cql
+Translating CQL source in file .../SPiERSuicideSaferCareMeasures.cql
+Translation failed with (5) errors; see the error log for more information.
+```
+
+**The five errors were real**, and they are the strongest argument available for
+compiling the file rather than publishing it as prose. Every criterion that
+dated a resource used the fluent `.toInterval()`:
+
+```
+Could not resolve call to operator toInterval with signature
+  (choice<FHIR.dateTime,FHIR.Period,FHIR.Timing,FHIR.instant>)        <- Observation.effective[x]
+  (choice<FHIR.dateTime,FHIR.Period,FHIR.string,FHIR.Age,FHIR.Range>) <- Procedure.performed[x]
+```
+
+`FHIRHelpers.ToInterval` has no overload for the full R4 choice on either
+element. The library was unrunnable, and had been for as long as it sat in
+`drafts/` being described as the readable long form of the criteria. Fixed with
+two explicit `Effective Interval` / `Performed Interval` helpers; the publisher
+now reports `CQL translation completed successfully.`
+
+**The broken-link symptom resolves itself.** The 63 broken links were the
+publisher generating a link from each `criteria.expression` into rendered CQL
+that did not exist. With translation on, the rendered CQL exists, so the links
+land — which is why the `Library` and all seven `Measure.library` references
+could come back.
+
+**The process lesson, stated plainly.** The original entry did the right thing
+by checking the log instead of assuming, and still reached a false conclusion,
+because a silent gate and an absent gate look identical from the outside. That
+is the same failure shape as the four silent-pass mechanisms already catalogued
+in CLAUDE.md — a green check nobody has watched go red. The discipline that
+would have caught it is the one this repo already applies elsewhere: plant a
+defect and confirm the gate fails. Feeding a deliberately broken `.cql` and
+watching the publisher stay silent would have shown immediately that nothing was
+being checked.
 
 **Four other error classes, all real:**
 
@@ -249,8 +317,9 @@ happened with the Wave 5 `Consent` example. PR #207 addresses it directly by
 adding a `pull_request` trigger on `ig/input/**`, so the follow-up this document
 originally proposed is already in flight.
 
-`ig/input/cql/**` is deliberately excluded from that trigger — the publisher does
-not translate CQL, so including it would buy a heavy job that checks nothing.
+`ig/input/cql/**` was deliberately excluded from that trigger on the grounds
+that the publisher does not translate CQL. That was wrong; the exclusion is gone
+as of #212 (below), and `ig/input/**` now covers the CQL.
 
 ## Implementation status
 
@@ -371,12 +440,10 @@ of which is scheduled.
   registry, the TL-043 dashboard renders them, and `npm run check:measures`
   ties the TS criterion implementations to the FSH `Measure` ids (19 ↔ 19),
   following the `check:catalog` / `check:crosswalk` pattern.
-- **Prove a CQL translator in CI, then promote the draft CQL and publish a real
-  `Library`.** Needs a Maven/Gradle classpath for `cqframework` (no fat jar on
-  Maven Central), or a confirmed IG Publisher configuration — confirmed from a
-  publisher log that actually mentions CQL, not assumed. **Now tracked as
-  #212**, which also permits "prove it isn't feasible, then close" as an
-  outcome.
+- ~~**Prove a CQL translator in CI, then promote the draft CQL and publish a
+  real `Library`.**~~ **Done in #212** — and the answer was not the one this
+  bullet expected. See *The CQL claim was wrong — and so was the correction*
+  below.
 - ~~Decide whether `publish` should run on all `ig/**` changes.~~ **Merged as
   #207** — see the correction above. The gate was never absent (`deploy.yml`
   runs it on every push to main); it ran too late.

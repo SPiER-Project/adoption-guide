@@ -22,22 +22,41 @@
  *     one period, the define picks the most recent — stated in the Measure's
  *     population description too, so the rule is visible without reading CQL.
  *
- * ⚠️ THIS FILE IS NOT COMPILED BY ANYTHING IN THIS REPO. It lives in drafts/
- * for the same reason the StructureMap .fml drafts do: it is outside ig/input/,
- * so neither SUSHI nor the IG Publisher touches it.
+ * ─── THIS FILE IS COMPILED. Do not treat it as prose. ───────
  *
- * An earlier revision of #201 put this under ig/input/cql/ with a published
- * Library pointing at it, assuming the IG Publisher would translate input/cql
- * and attach the ELM. It does not — the publisher log never mentions CQL, and
- * the visible symptom was 63 broken narrative links from each
- * `criteria.expression` into a Library page that had no rendered CQL in it.
+ * The IG Publisher translates it to ELM on every run and attaches the result to
+ * Library/SPiERSuicideSaferCareMeasures, which all seven Measures reference via
+ * `Measure.library`. A translation error is a publisher error, and
+ * `ig-publish.yml` fails the build on it.
  *
- * Treat this as the READABLE LONG FORM of each population criterion. The
- * Measures name the definitions normatively; the executable reference
- * implementation is the TypeScript measure engine (Wave 6 part 2), which the
- * repo can actually unit-test. Before promoting this file to ig/input/cql/,
- * prove a CQL translator in CI — cqframework publishes no fat jar on Maven
- * Central, so that means resolving a classpath with Maven or Gradle.
+ * What makes that happen is ONE line in sushi-config.yaml:
+ *
+ *     parameters:
+ *       path-binary:
+ *         - input/cql
+ *
+ * `path-binary` is the CQL loader's activation switch — the IG-parameters
+ * CodeSystem defines it as "files ... only used in the context of the CQL
+ * loader". Without it the publisher walks straight past input/cql and says
+ * nothing at all, which is exactly what happened in #201: that revision
+ * published a Library with no `path-binary`, concluded from the silent log that
+ * the publisher cannot translate CQL, and moved this file to ig/drafts/. The
+ * conclusion was wrong — the capability was there, the switch was not. Issue
+ * #212 re-tested it and captured the log lines that prove it:
+ *
+ *     Translating CQL source in folder .../ig/input/cql
+ *     Translating CQL source in file .../SPiERSuicideSaferCareMeasures.cql
+ *     Translation failed with (5) errors; see the error log for more information.
+ *
+ * Those five errors were real defects in this file, invisible for as long as
+ * nothing compiled it. See the `Interval` helpers below.
+ *
+ * The TypeScript engine in web/src/lib/measures.ts remains the *executable
+ * reference implementation* — it is what the app runs and what `npm test`
+ * covers. This library is the portable, normative statement of the same
+ * criteria, so a consumer can evaluate the measures without reimplementing
+ * them. `npm run check:measures` ties the Measure criterion names to the TS
+ * implementations; the publisher ties them to this file.
  */
 
 library SPiERSuicideSaferCareMeasures version '1.0.0'
@@ -89,6 +108,50 @@ define "Handoff Content Extension": 'http://spier.org/StructureDefinition/handof
 define "Caring Contact Opt Out Extension": 'http://spier.org/StructureDefinition/caring-contact-opt-out'
 
 // ─── Helpers ─────────────────────────────────────────────────
+
+/* Turning a FHIR choice-typed date into an Interval<DateTime>.
+ *
+ * These two functions are the whole of what the first compile of this file
+ * caught (#212, 5 errors). Every site below used the fluent `.toInterval()`,
+ * which reads well and does not exist for these signatures:
+ *
+ *   Could not resolve call to operator toInterval with signature
+ *     (choice<FHIR.dateTime,FHIR.Period,FHIR.Timing,FHIR.instant>)   <- Observation.effective[x]
+ *     (choice<FHIR.dateTime,FHIR.Period,FHIR.string,FHIR.Age,FHIR.Range>)  <- Procedure.performed[x]
+ *
+ * FHIRHelpers.ToInterval covers Period and the QICore-style narrowed choices,
+ * not the full R4 choice for either element. So each branch is spelled out.
+ *
+ * A point in time becomes a degenerate interval [t, t] so that `during` behaves
+ * the same whether a producer wrote effectiveDateTime or effectivePeriod —
+ * which matters, because SPiER's own mappers write the former and other EHRs
+ * write the latter. The branches that cannot yield an interval (Timing, string,
+ * Age, Range) return null, and a null interval fails `during`, so those
+ * resources drop out of the population rather than being silently counted.
+ * That is the conservative direction for a quality measure. */
+define function "Effective Interval"(
+  value Choice<FHIR.dateTime, FHIR.Period, FHIR.Timing, FHIR.instant>
+):
+  case
+    when value is FHIR.dateTime then
+      Interval[FHIRHelpers.ToDateTime(value as FHIR.dateTime), FHIRHelpers.ToDateTime(value as FHIR.dateTime)]
+    when value is FHIR.instant then
+      Interval[FHIRHelpers.ToDateTime(value as FHIR.instant), FHIRHelpers.ToDateTime(value as FHIR.instant)]
+    when value is FHIR.Period then
+      FHIRHelpers.ToInterval(value as FHIR.Period)
+    else null
+  end
+
+define function "Performed Interval"(
+  value Choice<FHIR.dateTime, FHIR.Period, FHIR.string, FHIR.Age, FHIR.Range>
+):
+  case
+    when value is FHIR.dateTime then
+      Interval[FHIRHelpers.ToDateTime(value as FHIR.dateTime), FHIRHelpers.ToDateTime(value as FHIR.dateTime)]
+    when value is FHIR.Period then
+      FHIRHelpers.ToInterval(value as FHIR.Period)
+    else null
+  end
 
 define function ConformsTo(resource DomainResource, profileUrl String):
   exists (
@@ -155,7 +218,7 @@ define "Risk Concept Observations":
 define "Screens In Period":
   "Risk Concept Observations" O
     where TaggedStage(O, "Identify possible risk".code)
-      and O.effective.toInterval() during "Measurement Period"
+      and "Effective Interval"(O.effective) during "Measurement Period"
 
 define "Has A Suicide Risk Screen":
   exists "Screens In Period"
@@ -172,7 +235,7 @@ define "Has A Positive Screen":
 define "Index Positive Screen":
   Last(
     "Positive Screens In Period" O
-      sort by start of (effective.toInterval())
+      sort by start of "Effective Interval"(effective)
   )
 
 define "Assessments In Period":
@@ -183,10 +246,10 @@ define "Positive Screen Assessed Within 24 Hours":
   "Has A Positive Screen"
     and exists (
       "Assessments In Period" A
-        where start of A.effective.toInterval()
+        where start of "Effective Interval"(A.effective)
           during Interval[
-            start of "Index Positive Screen".effective.toInterval(),
-            start of "Index Positive Screen".effective.toInterval() + 24 hours
+            start of "Effective Interval"("Index Positive Screen".effective),
+            start of "Effective Interval"("Index Positive Screen".effective) + 24 hours
           ]
     )
 
@@ -198,7 +261,7 @@ define "Positive Screen Assessed Within 24 Hours":
 define "Risk Tier Documented During Episode":
   exists (
     "Risk Concept Observations" O
-      where O.effective.toInterval() during "Most Recent Episode".period
+      where "Effective Interval"(O.effective) during "Most Recent Episode".period
   )
 
 // ─── Shared index event: the documented care transition ──────
@@ -265,7 +328,7 @@ define "Lethal Means Counseling During Episode":
     [Procedure] P
       where ConformsTo(P, "Lethal Means Counseling Profile")
         and P.status = 'completed'
-        and P.performed.toInterval() during "Most Recent Episode".period
+        and "Performed Interval"(P.performed) during "Most Recent Episode".period
   )
 
 // ─── Measure 5 — Follow-up timeliness ────────────────────────

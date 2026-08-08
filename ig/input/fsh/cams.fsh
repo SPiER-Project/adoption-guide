@@ -166,6 +166,20 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * category 1..*
 * category.coding 1..*
 * code 1..1
+// The text stays required and the coding stays optional — reviewed under #43
+// and deliberately left as it was. A CAMS driver is idiographic: "relationship
+// conflict with spouse — feeling trapped and hopeless" is the clinical content,
+// and no terminology carries concepts at that granularity. A required coding
+// would force clinicians to replace what they and the patient identified with a
+// coarser label that means something else.
+//
+// The binding is `example` rather than `extensible` for the same reason. An
+// extensible binding would assert that a driver IS one of these concepts unless
+// no suitable one exists; the honest claim is weaker — most drivers are not in
+// any code set, and where one happens to align, this is the set to draw from so
+// the coded row matches SPiERSuicideRelatedCondition elsewhere on the problem
+// list. See suicide-related-conditions.fsh for the scoping rationale in full.
+* code from SPiERSuicideRelatedProblem (example)
 * code.text 1..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
 * clinicalStatus MS

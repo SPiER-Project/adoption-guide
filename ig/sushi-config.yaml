@@ -47,6 +47,18 @@ dependencies:
   # SDC: calculatedExpression (score totals) + observationExtract (declared
   # extraction contract) extensions used by the screening Questionnaires.
   hl7.fhir.uv.sdc: 3.0.0
+  # CRMI and CQF Common are BOTH consequences of compiling the measure CQL, not
+  # choices — nothing in the FSH references either by hand. Once a Measure has a
+  # `library` pointing at compiled CQL, the publisher infers the measure's data
+  # requirements, stamps a `crmi-effectiveDataRequirements` extension on the
+  # Measure and contains the inferred Library inside it. Without these two the
+  # publisher generates content it cannot then validate: 21 errors across the
+  # seven Measures, three each, for an undefined extension and an unresolvable
+  # FHIRHelpers canonical. 2.0.0 rather than 1.0.0 because its own dependency
+  # pins (hl7.terminology.r4 7.x, uv.extensions.r4 5.3.0) match what this IG
+  # already loads. Both are R4.
+  hl7.fhir.uv.crmi: 2.0.0
+  fhir.cqf.common: 4.0.1
 
 # IG Publisher parameters
 parameters:
@@ -61,6 +73,16 @@ parameters:
   # published StructureMaps (issues #92 / #229).
   path-resource:
     - input/resources/maps
+  # THE CQL LOADER'S ACTIVATION SWITCH. The IG-parameters CodeSystem defines
+  # path-binary as files "only used in the context of the CQL loader" — without
+  # this line the publisher walks past input/cql in total silence, translating
+  # nothing and saying nothing. #201 hit exactly that, read the silent log as
+  # proof that the publisher cannot translate CQL at all, and moved the measure
+  # CQL out of the build; #212 re-tested and found the capability had been there
+  # the whole time. With it set the log reads "Translating CQL source in folder
+  # …/input/cql", and the first compile immediately failed on five real defects.
+  path-binary:
+    - input/cql
 
 # Pages and menu structure
 pages:

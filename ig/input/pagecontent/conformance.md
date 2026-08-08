@@ -30,6 +30,45 @@ Must-Support identifies *what must be supported* — it does **not** constrain m
 
 The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived, unconfirmed** signal: it indicates a screen result warranting follow-up, not a confirmed clinical finding. Consumers SHOULD treat it as a triage/routing signal and preserve the `derivedFrom` link to the originating `QuestionnaireResponse`. See [How to Read This Guide](how-to-read.html#two-layer-model).
 
+## Suicide-related problems: what SPiER asserts, and what it refuses to
+
+The rule above has a direct consequence for the problem list, and it is a
+conformance statement rather than a style preference.
+
+**A screen never becomes a `Condition`.** A positive ASQ, C-SSRS, PHQ-9 item 9 or
+SBQ-R produces a [SPiER Suicide Risk Concept](StructureDefinition-spier-suicide-risk-concept.html)
+Observation and nothing else. Systems implementing this guide SHALL NOT derive a
+problem-list `Condition` from a screening or assessment result. A problem-list
+entry is a clinician's assertion about a patient; a screen is a signal that one
+may be warranted. Deriving the first from the second manufactures diagnostic
+precision the instrument cannot support — the same fabrication the crosswalks
+refuse when they map a low-fidelity instrument to the widest defensible tier
+rather than the most alarming one.
+
+**A CAMS driver stays narrative.** [SPiER CAMS Suicide Driver](StructureDefinition-spier-cams-suicide-driver.html)
+requires `code.text` and leaves `code.coding` optional, with an `example`
+binding. A driver is idiographic — *"relationship conflict with spouse — feeling
+trapped and hopeless"* — and no terminology carries concepts at that
+granularity. Requiring a code would replace what the clinician and patient
+identified with a coarser label meaning something else.
+
+**A clinician-asserted suicide-related problem is coded**, and that is what
+[SPiER Suicide-Related Condition](StructureDefinition-spier-suicide-related-condition.html)
+is for. It requires `verificationStatus`, so a consumer can tell a confirmed
+assertion from a provisional one without inferring it from context, and binds
+`code` extensibly to [SPiER Suicide-Related Problem](ValueSet-spier-suicide-related-problem-vs.html)
+— nine SNOMED CT concepts spanning risk status, ideation → plan → intent →
+behavior → attempt, history of attempt, and self-harm.
+
+Every SCTID in that set was verified against the publishing authority, and the
+guide says so because the alternative has a price. One example from this exact
+subject area: `86849004` is widely mis-cited as "suicide attempt". Its Fully
+Specified Name is *Suicidal poisoning (disorder)* — a real code that validates
+structurally while silently narrowing every attempt on the problem list to a
+poisoning. The correct code is `82313006`. SPiER publishes the verified set so
+that sites, the concept layer, and the Stage-7 registry all name the same
+finding the same way.
+
 ## Harmonization status
 
 Every crosswalk below is now an artifact in this guide, and **none have clinical sign-off yet**. Two things are being tracked separately here, and the distinction matters: whether the artifact is *published and machine-readable*, and whether its tier assignments are *clinically ratified*. The first column pair is now complete; the second is not.

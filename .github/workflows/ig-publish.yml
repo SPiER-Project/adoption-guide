@@ -18,14 +18,28 @@ name: IG Publisher (invariants + link integrity)
 # The rendered site + qa.html are uploaded as an artifact so you can preview the
 # IG and inspect any broken links / QA findings.
 #
-# NOTE ON CQL (learned in #201): this workflow is NOT a CQL compile gate, and an
-# earlier revision of that PR wrongly added ig/input/cql/** here on the
-# assumption that it was. The publisher run does not translate input/cql — its
-# log never mentions CQL — so the trigger bought a ~10 minute job and validated
-# nothing. SPiER's measure CQL therefore lives in ig/drafts/ alongside the
-# StructureMap drafts, outside ig/input/, until a translator is actually proven
-# in CI. Do not re-add a cql path filter here without first confirming, from a
-# publisher log, that translation happens.
+# NOTE ON CQL: this workflow IS a CQL compile gate, as of #212 — but it only
+# became one when `path-binary: input/cql` was added to ig/sushi-config.yaml.
+#
+# The history matters, because the obvious reading of this file was wrong for a
+# release. #201 added ig/input/cql/** to this filter, saw a publisher log that
+# never mentioned CQL, concluded the publisher cannot translate it, moved the
+# measure CQL to ig/drafts/, and left a comment here saying so. The capability
+# was there the whole time — publisher.jar bundles the full cqframework
+# translator — and what was missing was the loader's activation parameter,
+# which the IG-parameters CodeSystem documents as `path-binary`.
+#
+# #212 re-tested it and the log is unambiguous:
+#
+#   Translating CQL source in folder .../ig/input/cql
+#   Translating CQL source in file .../SPiERSuicideSaferCareMeasures.cql
+#   Translation failed with (5) errors; see the error log for more information.
+#
+# Those five were real defects. So the path filter below is earned rather than
+# assumed. The original guardrail still stands and is worth restating: do not
+# add a cql path here on the belief that translation happens — confirm it from a
+# log. The confirmation for THIS one is above, and re-confirming takes one run:
+# grep the publisher log for "Translating CQL source".
 
 on:
   workflow_dispatch:
@@ -35,11 +49,6 @@ on:
       - 'ig/sushi-config.yaml'
       - 'ig/ig.ini'
       - '.github/workflows/ig-publish.yml'
-      # Deliberately excluded — see the CQL note above. input/cql is not
-      # translated by the publisher, so changes confined to it would buy a
-      # ~10 minute job that validates nothing. Negation must stay last: GitHub
-      # applies these in order, so a PR touching both fsh/ and cql/ still runs.
-      - '!ig/input/cql/**'
 
 permissions:
   contents: read
@@ -117,6 +126,52 @@ jobs:
       - name: Run IG Publisher
         working-directory: ./ig
         run: java -jar ../publisher.jar -ig . | tee publisher.log
+
+      # The CQL gate asserts on the log rather than on qa.txt, because the
+      # failure mode that actually bit this repo was SILENCE, not a bad count.
+      # Drop `path-binary` from sushi-config.yaml and the publisher skips
+      # input/cql without a word — no translation, no error, a green build, and
+      # a published Library whose ELM is whatever was last committed. That is
+      # indistinguishable from success unless something checks that the work
+      # happened, so the liveness assertion below is the load-bearing half.
+      #
+      # Both branches were verified against real logs before this step was
+      # written (#212): a run with the parameter set and broken CQL emits
+      # "Translation failed with (5) errors", a run with it set and valid CQL
+      # emits "CQL translation completed successfully.", and a run without it
+      # emits neither. Each of the three is caught by exactly one arm here.
+      - name: CQL translation gate
+        if: always()
+        working-directory: ./ig
+        run: |
+          if [ ! -f publisher.log ]; then
+            echo "::error::no publisher.log — the IG Publisher did not run"
+            exit 1
+          fi
+          # 1. Liveness: the translator must have been invoked at all.
+          if ! grep -q 'Translating CQL source in folder' publisher.log; then
+            echo "::error::the IG Publisher never translated ig/input/cql. This is the silent-skip failure: check that `path-binary: input/cql` is still present in ig/sushi-config.yaml."
+            exit 1
+          fi
+          # 2. Every .cql under input/cql must have been picked up individually.
+          want=$(find input/cql -name '*.cql' | wc -l | tr -d ' ')
+          got=$(grep -c 'Translating CQL source in file' publisher.log || true)
+          echo "CQL → files on disk=${want} translated=${got}"
+          if [ "$want" != "$got" ]; then
+            echo "::error::${want} .cql file(s) in ig/input/cql but the publisher translated ${got} — a file is not being picked up"
+            exit 1
+          fi
+          # 3. Result.
+          if grep -qE 'Translation failed with|CQL Processing failed with' publisher.log; then
+            echo "::error::CQL translation failed — see the Library validation page in the ig-site artifact (temp/qa/Library-*-validation.html) for the messages"
+            grep -E 'Translation failed with|CQL Processing failed with' publisher.log
+            exit 1
+          fi
+          if ! grep -q 'CQL translation completed successfully' publisher.log; then
+            echo "::error::the publisher neither reported CQL success nor failure — the log format may have changed; re-read it before trusting this gate"
+            exit 1
+          fi
+          echo "CQL translation completed successfully."
 
       - name: QA summary report
         if: always()

@@ -66,26 +66,26 @@
 //
 // ─── On the CQL, and what is NOT verified ────────────────────
 //
-// `criteria.expression` names a CQL definition, and those definitions are
-// written out in full at ig/drafts/SPiERSuicideSaferCareMeasures.cql. That
-// file sits in `drafts/` for the same reason the StructureMap `.fml` drafts do:
-// it is outside ig/input/, so neither SUSHI nor the IG Publisher touches it,
-// because NOTHING IN THIS REPO CURRENTLY COMPILES IT.
+// `criteria.expression` names a CQL definition, and those definitions live in
+// ig/input/cql/SPiERSuicideSaferCareMeasures.cql, published as
+// Library/SPiERSuicideSaferCareMeasures and referenced from every
+// `Measure.library` below. The IG Publisher compiles that file to ELM on every
+// run, so a criterion naming a define that does not exist is a build error.
 //
-// That was established the hard way. An earlier revision of this PR put the
-// CQL under ig/input/cql/ and published a Library pointing at it, on the
-// assumption that the IG Publisher would translate input/cql and attach the
-// result. It does not — the publisher log never mentions CQL at all. The
-// visible symptom was 63 broken narrative links: the publisher generates a
-// link from each `criteria.expression` into the Library's rendered CQL, and
-// there was no rendered CQL for them to resolve against.
+// It took two attempts to get here, and the failed one is worth recording.
+// #201 put the CQL under ig/input/cql/ and published a Library pointing at it,
+// then concluded from a publisher log that never mentioned CQL that the
+// publisher cannot translate it — and moved the file to ig/drafts/. The
+// symptom was 63 broken narrative links, because the publisher generates a link
+// from each `criteria.expression` into the Library's rendered CQL and there was
+// no rendered CQL to land on.
 //
-// So there is deliberately NO `Measure.library` here. The criteria expressions
-// are a normative NAMING of each population; the draft CQL is the readable
-// long form; and the executable reference implementation is the TypeScript
-// measure engine in Wave 6 part 2, which the repo can actually test. Promoting
-// the CQL to ig/input/cql/ requires first proving a translator in CI — see
-// docs/plans/stage-8-measure-and-share.md.
+// The conclusion was wrong. The publisher bundles the full cqframework
+// translator; what was missing was the `path-binary: input/cql` parameter in
+// sushi-config.yaml, which the IG-parameters CodeSystem documents as the CQL
+// loader's switch. With it set, the log says so out loud and the broken links
+// resolve because the rendered CQL now exists. See #212, and the header of the
+// .cql file for the captured log lines.
 // =============================================================
 
 
@@ -129,6 +129,34 @@ Description: "Population groups within the SPiER suicide-safer care measures."
 * include codes from system MeasureGroupCodes
 
 
+// ─── The measure logic library ───────────────────────────────
+// `content.id = "ig-loader-<filename>"` is the IG Publisher's instruction to
+// load that file out of the IG source and attach it here — it is not a real
+// element id in the published output. Paired with `path-binary: input/cql` in
+// sushi-config.yaml, it is what makes the publisher translate the CQL and
+// attach both the source and the compiled ELM to this Library.
+//
+// The `-1.0.0` in the id is deliberate: the publisher resolves the loader
+// against the file name, so the file, this id, and `name` must stay in step.
+
+Instance: SPiERSuicideSaferCareMeasures
+InstanceOf: Library
+Title: "Library — SPiER Suicide-Safer Care Measure Logic"
+Description: "The population criteria for all seven SPiER suicide-safer care measures, in CQL. Every `Measure.criteria.expression` in this file names a definition from this library."
+Usage: #definition
+* url = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* name = "SPiERSuicideSaferCareMeasures"
+* version = "1.0.0"
+* title = "SPiER Suicide-Safer Care Measure Logic"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* type = http://terminology.hl7.org/CodeSystem/library-type#logic-library "Logic Library"
+* description = "CQL implementing every population criterion referenced by the seven SPiER suicide-safer care Measures. Retrieves filter on SPiER profiles rather than codes, because the stage-5/6/7 workflow artifacts are distinguished by conformance claim rather than by a code in a value set; the risk-concept Observations are the exception and match on LOINC 93374-7. Each definition returns a boolean, because every measure is patient-based."
+* purpose = "Makes the measures portable. Without a published library a consumer can read what each population means but must reimplement it, and two sites that reimplement independently produce numbers that are not comparable — the exact failure quality measurement exists to prevent."
+* content.id = "ig-loader-SPiERSuicideSaferCareMeasures.cql"
+
+
 // ─── TL-042 Measure 1 — Positive screen → assessment ─────────
 // The one measure anchored on the SCREEN rather than the episode: it asks
 // whether a positive screen was clarified, which by definition happens before
@@ -148,6 +176,7 @@ Usage: #definition
 * title = "Positive Screen Followed by Suicide-Risk Assessment"
 * status = #draft
 * experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a positive suicide-risk screen who received a clarifying suicide-risk assessment within 24 hours. Both the screen and the assessment are SPiERSuicideRiskConcept Observations; they are distinguished by the SPiER pathway-stage tag (identify-possible-risk vs clarify-risk) rather than by instrument, so substituting one screening tool for another does not break the measure."
 * purpose = "A positive screen with no follow-up assessment is the single most consequential gap in a suicide-safer care pathway — the patient has been identified and then dropped. This measures that gap directly."
@@ -189,6 +218,7 @@ Usage: #definition
 * title = "Current Risk Level Documented"
 * status = #draft
 * experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients in a suicide-safer care episode for whom a current suicide-risk level is documented as discrete, coded data. The numerator requires a SPiERSuicideRiskConcept Observation dated inside the episode — NOT merely the episode-current-risk-tier extension, which is a denormalized cache and could be stale or hand-set. Measuring the Observation measures the source of truth."
 * purpose = "Risk level recorded only in narrative cannot drive a work queue, a CDS card, or a handoff. This measures whether it exists as data."
@@ -242,6 +272,7 @@ Usage: #definition
 * title = "Safety Plan Completed Before Discharge"
 * status = #draft
 * experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "Two related proportions over the same denominator of patients with a documented care transition: (1) a safety plan — Stanley-Brown or Crisis Response Plan — existed and was active at or before the transition; (2) the patient's own copy is documented, evidenced by a discharge packet carrying the handoff-content item `safety-plan-copy`. They are separate groups because a completed plan the patient leaves without is a distinct and well-documented failure."
 * purpose = "Safety planning is only protective if the plan exists before the patient leaves and travels with them. This measures both halves."
@@ -312,6 +343,7 @@ Usage: #definition
 * title = "Lethal Means Counseling Completed"
 * status = #draft
 * experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients in a suicide-safer care episode for whom a SPiERLethalMeansCounseling Procedure was completed during the episode. Counts the counseling Procedure, not the per-method SPiERMeansSafetyAction Observations: whether counseling happened is the process measure, while which methods were addressed and secured is richer detail a site can report on separately."
 * purpose = "Means-safety counseling has among the strongest evidence bases of any suicide-prevention intervention and is among the least reliably delivered. Measuring it is the point of coding it."
@@ -372,6 +404,7 @@ Usage: #definition
 * title = "Follow-Up Timeliness After a Care Transition"
 * status = #draft
 * experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "Three timeliness proportions over one denominator of patients with a documented care transition: outreach attempted within 48 hours, and a follow-up visit COMPLETED within 7 days and within 30 days. The appointment groups require Appointment.status = fulfilled rather than booked — a scheduled visit the patient did not attend is not follow-up, and distinguishing the two is precisely what TL-034 (Follow-Up Appointment Tracking) exists to do. The 48-hour group counts an attempt rather than a successful contact, because the attempt is what the care team controls; a stricter reached-only variant is a one-line change to the CQL and is described on the measurement page."
 * purpose = "The days immediately after discharge carry the highest suicide risk of any period in the pathway. These three windows are the standard Zero Suicide follow-up expectations."
@@ -469,6 +502,7 @@ Usage: #definition
 * title = "Caring Contact Adherence"
 * status = #draft
 * experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a documented care transition who were sent at least one SPiERCaringContact within 30 days. Patients who have opted out of the caring-contacts series are a DENOMINATOR EXCLUSION rather than a numerator failure — honoring an opt-out is correct behavior, and a measure that punished it would push sites to ignore the patient's wish. This is the reason the caring-contact-opt-out extension exists on the contact resource."
 * purpose = "Caring contacts are one of the few interventions with direct randomized evidence for reducing repeat suicide attempts, and adherence to the sending schedule is the whole intervention."
@@ -519,6 +553,7 @@ Usage: #definition
 * title = "Suicide-Safety Referral Loop Closure"
 * status = #draft
 * experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a SPiERSafetyReferral authored during the measurement period whose referrals all reached status completed. This measure is only computable because TL-017 is modelled as a ServiceRequest: ServiceRequest.status carries draft → active → completed natively, whereas a Communication records only that a referral was sent. Referrals marked entered-in-error are excluded; revoked referrals are NOT excluded, because a referral withdrawn without an alternative being arranged is a genuine loop failure."
 * purpose = "A sent referral is not a received one. Loop closure is where suicide-safety handoffs most often fail silently."
