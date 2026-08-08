@@ -67,8 +67,14 @@ jobs:
       # Resolves scenario QuestionnaireResponses against the Questionnaires in
       # FHIR-Resources/, which are checked in — so this needs no copy-fhir
       # either and belongs in the fast job.
+      #
+      # The RESOURCES half of check:scenarios is deliberately NOT here: it reads
+      # the generated StructureDefinitions out of web/src/data/fhir/, which only
+      # exist after copy-fhir. It runs in the `verify` job below instead. (It
+      # fails loudly rather than passing vacuously when they are absent, which
+      # is how this split was found.)
       - name: Check scenario responses
-        run: npm run check:scenarios
+        run: npm run check:scenarios:responses
 
   verify:
     runs-on: ubuntu-latest
@@ -97,6 +103,13 @@ jobs:
       # so it runs after copy-fhir.
       - name: Check catalog integrity
         run: npm run check:catalog
+
+      # The other half of check:scenarios — every NON-QuestionnaireResponse
+      # resource in the population scenarios. Lives here rather than in the fast
+      # job because it derives its profile constraints from the generated
+      # StructureDefinitions, which copy-fhir produces.
+      - name: Check scenario resources
+        run: npm run check:scenarios:resources
 
       - name: Typecheck
         run: npx tsc -b
