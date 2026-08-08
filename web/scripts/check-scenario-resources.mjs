@@ -39,9 +39,11 @@
  *      StructureDefinitions, not hand-copied, so changing FSH changes this
  *      check.
  *   7. The same required-binding check for SPiER extensions, resolved through
- *      the extension's own StructureDefinition. `episode-closure-reason` is
- *      read directly by two measure exclusions, so a bad code there changes a
- *      score.
+ *      the extension's own StructureDefinition — and for COMPLEX extensions,
+ *      each sub-extension slice's cardinality and binding too.
+ *      `episode-closure-reason` is read directly by two measure exclusions, so
+ *      a bad code there changes a score; `handoff-withheld-item` is only
+ *      meaningful if the withheld item and its basis are both present.
  *   8. Date-bearing elements parse as FHIR date / dateTime.
  *   9. The two NON-FHIR buckets — `riskAlerts` (an app type) and `encounters`
  *      (`ScenarioEncounter` walkthrough narration, NOT a FHIR Encounter) — are
@@ -419,6 +421,70 @@ function checkAgainstProfile(resource, sd, where) {
   }
 }
 
+/** A required binding on one element of an extension's differential. */
+function requiredBinding(sd, elementId) {
+  const el = (sd.differential?.element ?? []).find((e) => (e.id ?? e.path) === elementId)
+  return el?.binding?.strength === 'required' ? el.binding : undefined
+}
+
+function checkBoundValue(ext, binding, label) {
+  const members = expandValueSet(String(binding.valueSet).split('|')[0])
+  if (!members) return
+  const values = choiceValues(ext, 'value[x]')
+  if (values.length === 0) {
+    fail(`${label} carries no value[x]`)
+    return
+  }
+  for (const coding of values.flatMap(codingsOf)) {
+    if (!coding?.code) continue
+    if (!members.has(`${coding.system ?? ''}|${coding.code}`)) {
+      fail(
+        `${label} — ${coding.system ?? '(no system)'}#${coding.code} is not in the required ` +
+          `binding ${binding.valueSet}`,
+      )
+    }
+  }
+}
+
+/**
+ * One extension against its own StructureDefinition: the required binding on a
+ * simple extension's value, or — for a COMPLEX extension — each sub-extension
+ * slice's own cardinality and binding.
+ *
+ * The complex half exists for `handoff-withheld-item`, whose whole point is
+ * that the withheld content code and the basis travel together. Nothing else
+ * offline looks inside a complex extension, so a packet claiming a withheld
+ * item with no basis (or a basis outside the vocabulary) would otherwise pass
+ * here and wait for the Java validator to notice.
+ */
+function checkExtensionAgainst(sd, ext, where) {
+  const elements = sd.differential?.element ?? []
+  const simple = requiredBinding(sd, 'Extension.value[x]')
+  if (simple) {
+    checkBoundValue(ext, simple, `${where}: extension ${ext.url}`)
+    return
+  }
+  for (const slice of elements.filter((e) => /^Extension\.extension:[^.]+$/.test(e.id ?? ''))) {
+    const name = String(slice.id).split(':')[1]
+    // The sub-extension's url is its slice name unless the SD fixes another.
+    const urlEl = elements.find((e) => (e.id ?? '') === `Extension.extension:${name}.url`)
+    const url = urlEl?.fixedUri ?? name
+    const children = (ext.extension ?? []).filter((s) => s?.url === url)
+    if ((slice.min ?? 0) > children.length) {
+      fail(
+        `${where}: extension ${ext.url} — sub-extension "${url}" is required (min ${slice.min}) ` +
+          `but ${children.length} present`,
+      )
+      continue
+    }
+    const binding = requiredBinding(sd, `Extension.extension:${name}.value[x]`)
+    if (!binding) continue
+    for (const child of children) {
+      checkBoundValue(child, binding, `${where}: extension ${ext.url} → ${url}`)
+    }
+  }
+}
+
 /** Required bindings on SPiER extensions, resolved through their own SD. */
 function checkExtensions(node, where, seen = new Set()) {
   if (Array.isArray(node)) {
@@ -432,24 +498,7 @@ function checkExtensions(node, where, seen = new Set()) {
     if (!sd || sd.type !== 'Extension') continue
     if (seen.has(ext)) continue
     seen.add(ext)
-    const el = (sd.differential?.element ?? []).find((e) => (e.id ?? e.path) === 'Extension.value[x]')
-    if (!el?.binding || el.binding.strength !== 'required') continue
-    const members = expandValueSet(String(el.binding.valueSet).split('|')[0])
-    if (!members) continue
-    const values = choiceValues(ext, 'value[x]')
-    if (values.length === 0) {
-      fail(`${where}: extension ${ext.url} carries no value[x]`)
-      continue
-    }
-    for (const coding of values.flatMap(codingsOf)) {
-      if (!coding?.code) continue
-      if (!members.has(`${coding.system ?? ''}|${coding.code}`)) {
-        fail(
-          `${where}: extension ${ext.url} — ${coding.system ?? '(no system)'}#${coding.code} is not ` +
-            `in the required binding ${el.binding.valueSet}`,
-        )
-      }
-    }
+    checkExtensionAgainst(sd, ext, where)
   }
   for (const value of Object.values(node)) {
     if (value && typeof value === 'object') checkExtensions(value, where, seen)
