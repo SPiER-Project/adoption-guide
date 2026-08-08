@@ -116,36 +116,58 @@ the real count without anything going red.
 
 ---
 
-## `roadmap-snapshot.yml` needs a hand
+## `roadmap-snapshot.yml` opens its own PR — until the PAT expires
 
 The snapshot behind `/guide/roadmap` is committed, so the page builds offline —
 and so it goes stale on its own. The Monday run re-fetches GitHub Issues and
 proposes a PR when the content actually changed.
 
-**This org forbids GitHub Actions from opening pull requests.** So a drift run
-pushes `chore/roadmap-snapshot`, exits 0 green, and files a reusable issue
-titled **"Roadmap snapshot: branch pushed, PR needs opening by hand"** with a
-compare link. Open that PR; that is the whole manual step.
+**This is working automatically as of 2026-08-08.** The org still forbids GitHub
+Actions from opening pull requests (`can_approve_pull_request_reviews: false`),
+but the repo now carries a fine-grained PAT as the `ROADMAP_PR_TOKEN` secret,
+added 2026-08-08 22:38 UTC, and `roadmap-snapshot.yml` prefers it over
+`GITHUB_TOKEN` wherever it needs write access. Verified the same evening: runs
+`31282321253` and `31282716568` opened PRs #243 and #244 themselves, three to
+twenty seconds after pushing the branch, with `File the manual-PR tracking issue`
+skipped rather than taken.
 
-Until #232 the blocked case produced only a warning inside a green run, which is
-why a fully green run on 2026-08-07 had silently not opened its PR and nobody
-knew. If you are reading this because the page looks stale and there is *no*
-such issue, check whether the schedule ran at all — see the two GitHub
-behaviours at the top.
+Both PRs also arrived with the full check suite — `verify`, `lint-css`,
+`cds-hooks`, Workers Builds. That is the PAT's second benefit and it is not
+cosmetic: pushes made with `GITHUB_TOKEN` do not trigger other workflows, so
+under the old path the snapshot PR was reviewed with **no checks on it at all**.
 
-### Making the manual step go away
+### When it goes back to needing a hand
 
-Either fix is permanent, and both are **org-owner** settings on `SPiER-Project`
-rather than repo settings:
+A fine-grained PAT expires — 366 days at the outside — and expiry is the failure
+mode this section now exists for. GitHub does not expose a secret's expiry date
+through the API, so nothing in this repo can read it back or warn you in advance.
+On expiry the workflow falls back to `GITHUB_TOKEN`, the org policy blocks the
+PR, and the run goes back to pushing `chore/roadmap-snapshot` and filing a
+reusable issue titled **"Roadmap snapshot: branch pushed, PR needs opening by
+hand"** with a compare link. Open that PR, then rotate the PAT.
 
-1. Org Settings → Actions → General → **Allow GitHub Actions to create and
-   approve pull requests**. One checkbox, nothing to rotate. The PR then arrives
-   with no checks on it, because pushes made with `GITHUB_TOKEN` do not trigger
-   other workflows — push an empty commit if you want `web-lint` to run.
-2. Or add a fine-grained PAT with `contents:write` + `pull-requests:write` as the
-   `ROADMAP_PR_TOKEN` secret. `roadmap-snapshot.yml` already prefers it with no
-   code change, and it does trigger `web-lint`. The cost is rotation: a PAT that
-   expires falls back to `GITHUB_TOKEN` and silently returns to the blocked path.
-   The tracking issue is what makes that recoverable rather than invisible.
+> **`ROADMAP_PR_TOKEN` expiry: not recorded.** Whoever rotates it next should
+> write the date here. Until then the tracking issue is the only notice you get,
+> and it arrives a week late by construction.
 
-Either way, keep the fallback. It is the regression detector for both.
+That fallback is now a **regression detector rather than the normal path** —
+keep it. It is what makes a silently-expired PAT recoverable instead of
+invisible, and it is the same shape the nightly uses. Until #232 the blocked case
+produced only a warning inside a green run, which is why a fully green run on
+2026-08-07 had silently not opened its PR and nobody knew.
+
+If the page looks stale and there is *no* such issue, the PAT is not the
+problem — check whether the schedule ran at all, per the two GitHub behaviours at
+the top.
+
+### The other permanent fix
+
+Org Settings → Actions → General → **Allow GitHub Actions to create and approve
+pull requests** removes the dependency on a PAT entirely: one checkbox, nothing
+to rotate, no expiry to track. The tradeoff is the checks — with `GITHUB_TOKEN`
+doing the push, the PR arrives with none, and you would need an empty commit to
+get `web-lint` on it.
+
+This is an **org-level** setting on `SPiER-Project`, not a repo one, but note
+that the repo's current maintainer (`bbthorson`) holds org `admin` — it is not
+blocked on anyone else.

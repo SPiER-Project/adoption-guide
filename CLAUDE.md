@@ -62,10 +62,12 @@ floor, so any recent nightly log tells you where the ratios stand.
 ⚠️ **The two timer-driven workflows have a named reader and a written triage
 path — `docs/scheduled-checks-triage.md`.** A red nightly has two causes needing
 opposite responses (real drift → fix the code; `tx.fhir.org` down → re-run), and
-`roadmap-snapshot.yml` needs a hand-opened PR for as long as the org forbids
-Actions from opening them. Both workflows link that doc from every issue they
-file. Note also that `schedule` runs only from the default branch, and GitHub
-disables scheduled workflows after 60 days of repo inactivity.
+`roadmap-snapshot.yml` opens its own PR only while the `ROADMAP_PR_TOKEN` PAT is
+live — the org still forbids Actions from opening PRs, so an expired PAT falls
+back to `GITHUB_TOKEN` and silently returns to the hand-opened path. Both
+workflows link that doc from every issue they file. Note also that `schedule`
+runs only from the default branch, and GitHub disables scheduled workflows after
+60 days of repo inactivity.
 
 In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
 thing and fails in a fresh worktree:

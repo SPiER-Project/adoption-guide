@@ -25,20 +25,30 @@ name: Roadmap — weekly snapshot refresh
 #
 # 3. The org forbids GitHub Actions from creating pull requests
 #    (`can_approve_pull_request_reviews: false`, enforced org-wide and not
-#    overridable per-repo). When that is the case the branch is still pushed and
-#    the job stays green — but *only* for that specific refusal; any other
-#    `gh pr create` failure fails the job. To get real auto-PRs, either have an
-#    org owner allow it, or add a fine-grained PAT with contents+pull-requests
-#    write as the repo secret ROADMAP_PR_TOKEN — this workflow prefers it
-#    automatically, no code change. A PAT has a second benefit: pushes made with
-#    GITHUB_TOKEN do not trigger other workflows, so today's drift PR arrives
-#    with no web-lint run on it.
+#    overridable per-repo) — but this workflow is NOT blocked by that today. The
+#    repo carries a fine-grained PAT with contents+pull-requests write as the
+#    secret ROADMAP_PR_TOKEN, added 2026-08-08, and every step below prefers it
+#    over GITHUB_TOKEN. Runs 31282321253 and 31282716568 opened PRs #243 and
+#    #244 themselves that evening, with the blocked-path step skipped. The PAT
+#    also gets the drift PR its checks: pushes made with GITHUB_TOKEN do not
+#    trigger other workflows, so under the old path the snapshot PR was reviewed
+#    with none.
 #
-#    Until then a blocked run files a reusable tracking issue rather than only
-#    warning into a run summary. That changed in #232, which found a green run
-#    on 2026-08-07 that had silently not opened its PR: the graceful handling was
+#    What to expect when the PAT expires — the failure mode that remains, since
+#    GitHub exposes no expiry date for a secret and nothing here can warn you:
+#    the token silently falls back to GITHUB_TOKEN, org policy refuses the PR,
+#    and the branch is still pushed while the job stays green. That stays green
+#    *only* for that specific refusal; any other `gh pr create` failure fails the
+#    job. A blocked run also files a reusable tracking issue rather than only
+#    warning into a run summary — added in #232, which found a green run on
+#    2026-08-07 that had silently not opened its PR: the graceful handling was
 #    working exactly as designed and was still indistinguishable, from outside,
-#    from a run with nothing to do.
+#    from a run with nothing to do. That fallback is now a regression detector
+#    for an expired PAT. Do not remove it because the happy path works.
+#
+#    The alternative permanent fix is the org checkbox (Org Settings → Actions →
+#    General), which needs no rotation but costs the PR its checks. See
+#    docs/scheduled-checks-triage.md.
 
 on:
   schedule:
@@ -203,8 +213,10 @@ jobs:
             echo "— run [\`$GITHUB_RUN_ID\`]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
             echo "Refs #122."
             echo
-            echo "> Pushes made with \`GITHUB_TOKEN\` do not trigger other workflows, so this PR"
-            echo "> may arrive with no checks. Push an empty commit if you want \`web-lint\` on it."
+            echo "> Checks run on this PR only because the push used the \`ROADMAP_PR_TOKEN\` PAT."
+            echo "> If it arrives with **no checks at all**, that PAT expired and the run fell back"
+            echo "> to \`GITHUB_TOKEN\`, whose pushes trigger no other workflows — rotate it, and"
+            echo "> push an empty commit here to get this PR verified."
           } > "$RUNNER_TEMP/pr-body.md"
 
           {
@@ -256,8 +268,8 @@ jobs:
             {
               echo
               echo "Branch \`$BRANCH\` is pushed, but this org forbids GitHub Actions from opening"
-              echo "pull requests. **[Open the PR manually]($compare)**, or add a \`ROADMAP_PR_TOKEN\`"
-              echo "secret to automate it."
+              echo "pull requests. **[Open the PR manually]($compare)**, then rotate the expired"
+              echo "\`ROADMAP_PR_TOKEN\` — reaching this path means the PAT is gone."
             } >> "$GITHUB_STEP_SUMMARY"
             echo "blocked=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -285,9 +297,11 @@ jobs:
       # check trains people to ignore it. The issue is the durable signal; green
       # here means "the snapshot work completed", which it did.
       #
-      # This stays useful after the policy is relaxed or ROADMAP_PR_TOKEN is added:
-      # if either is later undone, or the PAT quietly expires and falls back to
-      # GITHUB_TOKEN, the block returns and so does the issue.
+      # Since 2026-08-08 this is the regression detector rather than the normal
+      # path: ROADMAP_PR_TOKEN makes the happy path work, so reaching here means
+      # the PAT expired (or was revoked) and the run fell back to GITHUB_TOKEN.
+      # That is the whole reason to keep the step — GitHub exposes no expiry date
+      # for a secret, so this issue is the only notice anyone gets.
       - name: File the manual-PR tracking issue
         if: steps.pr.outputs.blocked == 'true'
         env:
@@ -300,6 +314,10 @@ jobs:
             echo "\`roadmap-snapshot.yml\` found drift and pushed \`$BRANCH\`, but this org"
             echo "forbids GitHub Actions from opening pull requests, so the PR was not created."
             echo
+            echo "**This worked automatically until now.** The \`ROADMAP_PR_TOKEN\` PAT is what"
+            echo "made it work, so seeing this issue at all means that token expired or was"
+            echo "revoked and the run fell back to \`GITHUB_TOKEN\`. Rotating it is the fix."
+            echo
             echo "**→ [Open the PR]($compare)**"
             echo
             cat "$RUNNER_TEMP/drift.md"
@@ -310,13 +328,15 @@ jobs:
             echo
             echo "### Making this stop"
             echo
-            echo "Either fix is permanent; both are org-owner settings, not repo settings."
-            echo
-            echo "1. Org Settings → Actions → General → **Allow GitHub Actions to create and"
-            echo "   approve pull requests**. One checkbox, nothing to rotate."
-            echo "2. Or add a fine-grained PAT with \`contents:write\` + \`pull-requests:write\` as"
-            echo "   the \`ROADMAP_PR_TOKEN\` secret — this workflow already prefers it with no"
-            echo "   code change, and it has the side benefit of triggering \`web-lint\` on the PR."
+            echo "1. Reissue the fine-grained PAT with \`contents:write\` + \`pull-requests:write\`"
+            echo "   and set it as the \`ROADMAP_PR_TOKEN\` secret again — this workflow prefers"
+            echo "   it with no code change, and it is what gets this PR its checks (a push made"
+            echo "   with \`GITHUB_TOKEN\` triggers no other workflows). Record the new expiry"
+            echo "   date in \`docs/scheduled-checks-triage.md\` while you have it."
+            echo "2. Or remove the dependency entirely: Org Settings → Actions → General →"
+            echo "   **Allow GitHub Actions to create and approve pull requests**. One checkbox,"
+            echo "   nothing to rotate — but then the PR arrives with no checks on it. This is an"
+            echo "   org-level setting, though the repo maintainer currently holds org admin."
             echo
             echo "This issue is reused, not reopened per run, and closes itself once a run"
             echo "manages to open its own PR. Background and the wider triage path for both"
