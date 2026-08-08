@@ -100,14 +100,17 @@ jobs:
           name: fsh-generated
           path: ig/fsh-generated/
 
-      # The validator jar is ~190MB. Keyed on the version pinned in the script
-      # so a bump fetches once and every later run is a cache hit.
+      # The validator jar is ~190MB. Keyed on the version pinned in
+      # scripts/lib/validator-jar.mjs — shared with check-fml.mjs since #92/#229,
+      # so both gates judge resources with the same validator. The empty-version
+      # guard below is load-bearing: it is what caught the constant moving out
+      # of validate-fhir.mjs. terminology-nightly.yml scrapes the same line.
       - name: Read pinned validator version
         id: validator
         run: |
-          version=$(sed -n "s/^const VALIDATOR_VERSION = '\(.*\)'$/\1/p" scripts/validate-fhir.mjs)
+          version=$(sed -n "s/^export const VALIDATOR_VERSION = '\(.*\)'$/\1/p" scripts/lib/validator-jar.mjs)
           if [ -z "$version" ]; then
-            echo "::error::could not read VALIDATOR_VERSION from scripts/validate-fhir.mjs"
+            echo "::error::could not read VALIDATOR_VERSION from scripts/lib/validator-jar.mjs"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"

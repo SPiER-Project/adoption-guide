@@ -150,12 +150,16 @@ jobs:
         working-directory: ./ig
         run: sushi .
 
+      # The pin moved out of validate-fhir.mjs into scripts/lib/validator-jar.mjs
+      # when check-fml.mjs started needing the same jar (#92/#229). This step's
+      # guard is what caught the move — keep it: a scrape that silently yields
+      # an empty version would cache-key on "" and quietly stop being a pin.
       - name: Read pinned validator version
         id: validator
         run: |
-          version=$(sed -n "s/^const VALIDATOR_VERSION = '\(.*\)'$/\1/p" scripts/validate-fhir.mjs)
+          version=$(sed -n "s/^export const VALIDATOR_VERSION = '\(.*\)'$/\1/p" scripts/lib/validator-jar.mjs)
           if [ -z "$version" ]; then
-            echo "::error::could not read VALIDATOR_VERSION from scripts/validate-fhir.mjs"
+            echo "::error::could not read VALIDATOR_VERSION from scripts/lib/validator-jar.mjs"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
