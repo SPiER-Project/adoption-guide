@@ -1,0 +1,55 @@
+map "http://spier.org/StructureMap/SBQRTotalScoreToSuicideRiskConcept" = "SBQRTotalScoreToSuicideRiskConcept"
+
+// Derives a harmonized SPiER Suicide Risk Concept Observation from an SBQ-R
+// Total Score Observation (an integer 3-18, coded SNOMED 225337009).
+//
+// This crosswalk is a StructureMap rather than a ConceptMap because the SBQ-R
+// produces a numeric total rather than a coded disposition, so the mapping is
+// a set of thresholds against the instrument's validated cutoffs. The concept
+// Observation is re-coded to the generic LOINC 93374-7.
+//
+// Score to tier:
+//   < 7  below the general-population cutoff       -> no-risk  (NEG)
+//   = 7  at the general-population cutoff          -> moderate (POS)
+//   >= 8 at the psychiatric-inpatient cutoff       -> high     (POS)
+//
+// Published cutoffs: >= 7 for the general population (93% sensitivity, 95%
+// specificity); >= 8 for psychiatric inpatients (80% / 91%).
+//
+// These assignments are illustrative reference logic pending sign-off by
+// suicide-prevention subject-matter experts — in particular whether a
+// sub-cutoff score that nonetheless endorses lifetime suicidal behaviour
+// warrants `low` rather than `no-risk`. Adopters SHALL validate them against
+// their own clinical protocols before using the harmonized tier to drive care
+// decisions.
+
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias SBQRTotal as source
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+
+// ─── Implementation notes (not published — see README.md) ────────────
+//
+// Source profile: spier-sbqr-total-score (ig/input/fsh/sbqr.fsh).
+// Runtime counterpart: web/src/lib/observationMappers/sbqr.ts — the bands
+// below mirror its thresholds, so the FHIR map and the runtime stay in
+// lockstep. Change one and you must change the other.
+
+group sbqrTotalToConcept(source src : SBQRTotal, target tgt : Concept) {
+  // --- fixed shape ---
+  src -> tgt.status = 'final' "set-status";
+  // Re-code to the generic concept LOINC (source carries SNOMED 225337009).
+  src -> tgt.code = cc('http://loinc.org', '93374-7') "concept-code";
+  src.subject as subj -> tgt.subject = subj "carry-subject";
+  src.effective as eff -> tgt.effective = eff "carry-effective";
+  src -> tgt.derivedFrom = reference(src) "derived-from";
+  src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
+  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
+
+  // --- value: total score band -> common tier ---
+  src.value : integer as v where (v < 7) -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'no-risk') "tier-below";
+  src.value : integer as v where (v >= 7 and v < 8) -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'moderate') "tier-general";
+  src.value : integer as v where (v >= 8) -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'high') "tier-inpatient";
+
+  // --- interpretation: NEG below cutoff, POS at/above ---
+  src.value : integer as v where (v < 7) -> tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
+  src.value : integer as v where (v >= 7) -> tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
+}

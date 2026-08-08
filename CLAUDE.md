@@ -61,6 +61,13 @@ node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/, FHI
                                  # and web/src/data/population/scenarios/ (unwrapped)
 ```
 
+Also at the repo root, the FHIR Mapping Language gate (same Java + jar; the
+`--tx` half needs the network, because the FML transform engine refuses to run
+without a terminology server):
+```
+node scripts/check-fml.mjs --tx https://tx.fhir.org
+```
+
 In `services/cds-hooks/` — **easy to forget, and CI gates it:**
 ```
 npm install && npm run verify   # typecheck + eslint + vitest for the Worker
@@ -70,15 +77,26 @@ does. It imports the web catalog, so a change to `tool-ui-metadata.ts` (launch
 actions especially) or to the population scenarios can break its tests without
 anything in `web/` failing.
 
-⚠️ **`sushi` does not validate everything.** Four separate gates cover four
+⚠️ **`sushi` does not validate everything.** Five separate gates cover five
 different classes of problem, and a clean SUSHI run implies none of the others:
 
 | Gate | Catches | Where |
 |---|---|---|
 | `npx fsh-sushi .` | FSH syntax, unresolved FSH references | `ig.yml` |
 | `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
-| IG Publisher | FHIRPath invariants, narrative link integrity | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
+| IG Publisher | FHIRPath invariants, narrative link integrity, **and everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types) | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
+| `node scripts/check-fml.mjs` | FML syntax + the Stanley-Brown map still producing the CarePlan the runtime produces | `fml-validate.yml` |
 | `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC, SNOMED and terminology.hl7.org codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
+
+⚠️ **`check-fml.mjs` is a parser, not a profile checker.** It catches FML syntax
+and header mistakes; it does *not* catch a misspelled target element, an
+untypeable FHIRPath expression, or an `import` pointing at the wrong resource
+type. Promoting the four draft maps in #92 surfaced sixteen such errors that
+were all invisible to it and all fatal to `ig-publish.yml`. After touching an
+`.fml`, a green `fml-validate` is necessary and not sufficient — let the
+publisher run. `ig/input/resources/maps/README.md` has the specifics, including
+the two FHIRPath spellings (`repeat()` and `answer.valueString`) that execute
+correctly but fail the publisher's static analyser.
 
 That fourth row exists because of issue #220: seven LOINC codes SPiER emitted for
 safety-plan sections were fabricated or misused, and no gate could see them. Six
@@ -94,6 +112,15 @@ Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you ca
 still dispatch the publisher directly: `gh workflow run ig-publish.yml`. Nothing
 in the repo compiles the measure CQL at `ig/drafts/` — see
 `docs/plans/stage-8-measure-and-share.md`.
+
+Running the IG Publisher locally is worth it before a substantial `ig/` change,
+and has two traps: it **refuses any path containing a space**, which this
+worktree's path has (`public health`), so copy `ig/` to a space-free directory
+first; and it shells out to `sushi` and `jekyll`, so pass `-no-sushi` if
+`fsh-generated/` is already built, and expect it to fail at the Jekyll step if
+Jekyll is absent. The per-resource QA results are written before Jekyll runs, in
+`temp/qa/*-validation.html` — that is where the StructureMap errors above were
+found.
 
 ⚠️ **The population scenarios are hand-authored FHIR, and are gated by two
 things that cover different amounts.** `web/src/data/population/scenarios/patient-*.json`
@@ -163,6 +190,19 @@ Pass `--tx https://tx.fhir.org` to check external terminology locally.
   values until `validate-fhir.mjs` caught it. `node scripts/validate-fhir.mjs`
   loads both trees, so a fresh collision shows up as a display or binding error.
 - **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `web/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `web/src/data/population/` (e.g. `patients.json`). LOINC **per-item** codes additionally live in `web/src/lib/observationMappers/fallbackDispatch.ts` (`INSTRUMENT_SIGNATURES`, used to recognize foreign QRs) — guarded against the Questionnaire JSON by `npm run check:fallback`. When you change any such code, **grep the whole repo** for the old value and update every site.
+- **The Stanley-Brown CarePlan transformation exists twice on purpose.**
+  `ig/input/resources/maps/StanleyBrownQRToCarePlan.fml` declares it (and is
+  what `PlanDefinition.action.transform` points at);
+  `web/src/lib/carePlanMappers/stanleyBrown.ts` executes it in the demo. Both
+  are compared against one golden file,
+  `scripts/fixtures/stanley-brown/careplan-expected.json` — the FML side by
+  `scripts/check-fml.mjs` (Java + network, in `fml-validate.yml`), the
+  TypeScript side by `stanleyBrown.parity.test.ts` (offline, in `verify`).
+  Change the transformation and you must change both. The normalizer that
+  decides which fields are compared is itself duplicated
+  (`scripts/lib/careplan-parity.mjs` and the test) because `tsconfig.app.json`
+  includes only `src/`; the `.mjs` carries the rationale for every excluded
+  field and the two must be edited together.
 
 ## Skills (`.claude/skills/`)
 

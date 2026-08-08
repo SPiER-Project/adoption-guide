@@ -1,0 +1,190 @@
+map "http://spier.org/StructureMap/StanleyBrownQRToCarePlan" = "StanleyBrownQRToCarePlan"
+
+// Transforms a completed Stanley-Brown Safety Plan QuestionnaireResponse
+// (http://spier.org/Questionnaire/StanleyBrownSafetyPlan) into a safety-plan
+// CarePlan conforming to SPiERStanleyBrownSafetyPlan.
+//
+// The Document Safety Actions stage names this map in
+// PlanDefinition.action.transform on its `administer-stanley-brown` action, so
+// an implementer can see not just that a safety plan yields a CarePlan but how.
+//
+// Each of the seven Stanley-Brown steps becomes one CarePlan.activity carrying
+// its SPiER-local safety-plan section code in detail.code, the human step label
+// in detail.code.text, and the patient-authored content in detail.description.
+// Repeating answers within a step are joined with ", "; the contact steps
+// render each entry as "name (contact info)"; step 5 appends the local
+// emergency department after the clinician list, separated by " / ". A step
+// with no content receives an explicit "No … provided." description rather
+// than being omitted, because the profile requires all seven activities.
+//
+// A conforming implementation may assign resource identity and add its own
+// notes; neither is part of this transformation.
+
+uses "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse" alias QR as source
+uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias SafetyPlan as target
+
+// ─── Implementation notes (not published — see README.md) ────────────
+//
+// Everything above the `uses` lines becomes StructureMap.description in the
+// built IG, so repo mechanics belong here rather than there.
+//
+// RELATIONSHIP TO THE RUNTIME (issue #229)
+//
+// web/src/lib/carePlanMappers/stanleyBrown.ts is the executable
+// implementation the demo runs; this map is the declaration of what it does —
+// the same arrangement as the Stage-8 measure engine under #212. Both are
+// compared against scripts/fixtures/stanley-brown/careplan-expected.json:
+// this side by `node scripts/check-fml.mjs --tx …`, the TypeScript side by
+// stanleyBrown.parity.test.ts. Three fields are excluded from that comparison
+// (`id`, `note`, `subject`) — scripts/lib/careplan-parity.mjs explains why for
+// each, and `subject` in particular is a real divergence a partner lifting the
+// TypeScript must fix.
+//
+// QUESTIONNAIRERESPONSE SHAPE
+//
+// SPiER's repeating pair groups (steps 3, 4 and 5) capture their two child
+// fields under `answer.item`, not `item.item` — see the `pairGroup` helper in
+// stanleyBrown.test.ts. Pair children are therefore reached relatively, inside
+// `select()`.
+//
+// Every other lookup goes through
+// `(src.item | src.item.item | src.item.item.item)`, which reaches an item at
+// any depth the Stanley-Brown Questionnaire actually nests to: a field at the
+// top level (the shape the demo emits), a field inside its step group, or the
+// local-ED fields inside `5-3-emergency-dept` inside `step-5-professionals`.
+// So these expressions do not care whether the step-level group items
+// (`step-1-warning-signs` etc.) are present.
+//
+// TWO SPELLINGS THAT LOOK WRONG AND ARE NOT
+//
+// 1. `(src.item | src.item.item | src.item.item.item)` rather than
+//    `src.repeat(item | answer.item)`. The `repeat()` form mirrors the
+//    runtime's recursive walk, executes correctly, and compiles clean — but
+//    the IG Publisher's static analyser cannot type the result of `repeat()`
+//    and reports `The name 'item' is not valid for any of the possible types:
+//    []` as an ERROR on every rule that uses it. Enumerating the depths keeps
+//    every step of the path typed.
+//
+// 2. `answer.value.ofType(string)` rather than `answer.valueString`.
+//    `valueString` is the JSON element name, not FHIRPath; the runtime engine
+//    accepts it but the static analyser rejects it against
+//    QuestionnaireResponse.item.answer.
+//
+// Both were found by running the publisher locally, and neither is visible to
+// `validator_cli … compile`. Do not "simplify" either one back.
+//
+// Relatedly, the descriptions use the single-parameter `( … )` shorthand for
+// `evaluate` rather than `evaluate(src, … )`. R4's mapping-language page
+// documents the two-parameter form, but the validator checks `evaluate`
+// against the R5 definition and rejects two parameters. The shorthand
+// satisfies both, and the R4 spec's requirement that the expression
+// "reference one of the defined variables" is met by anchoring each to `src`.
+
+group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
+  // --- resource-level shape ---
+  src -> tgt.meta as meta then {
+    src -> meta.profile = 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan' "profile";
+  } "meta";
+
+  src -> tgt.status = 'active' "set-status";
+  src -> tgt.intent = 'plan' "set-intent";
+
+  // SNOMED treatment-escalation-plan, then the one real LOINC code that
+  // applies at document level (87626-8 — see safety-plan-section.fsh).
+  src -> tgt.category = cc('http://snomed.info/sct', '735324008', 'Treatment escalation plan (record artifact)') "cat-snomed";
+  src -> tgt.category = cc('http://loinc.org', '87626-8', 'Suicide prevention note') "cat-loinc";
+
+  src.subject as subject -> tgt.subject = subject "carry-subject";
+
+  src -> tgt.addresses as addresses then {
+    src -> addresses.display = 'Risk for suicide' "addresses-display";
+  } "addresses";
+
+  // --- Step 1: Warning Signs ---
+  src -> tgt.activity as activity then {
+    src -> activity.detail as detail then {
+      src -> detail.code = create('CodeableConcept') as code then {
+        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'warning-signs') "coding";
+        src -> code.text = 'Step 1: Warning Signs' "text";
+      } "code";
+      src -> detail.status = 'in-progress' "status";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '1-1-warning-sign').answer.value.ofType(string).exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '1-1-warning-sign').answer.value.ofType(string).join(', '), 'No warning signs provided.')) "description";
+    } "detail";
+  } "step-1";
+
+  // --- Step 2: Internal Coping Strategies ---
+  src -> tgt.activity as activity then {
+    src -> activity.detail as detail then {
+      src -> detail.code = create('CodeableConcept') as code then {
+        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'internal-coping') "coding";
+        src -> code.text = 'Step 2: Internal Coping Strategies' "text";
+      } "code";
+      src -> detail.status = 'in-progress' "status";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '2-1-coping-strategy').answer.value.ofType(string).exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '2-1-coping-strategy').answer.value.ofType(string).join(', '), 'No coping strategies provided.')) "description";
+    } "detail";
+  } "step-2";
+
+  // --- Step 3: Social Distractions ---
+  // Pair group: "Name or Place (contact info)", contact info optional.
+  src -> tgt.activity as activity then {
+    src -> activity.detail as detail then {
+      src -> detail.code = create('CodeableConcept') as code then {
+        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'social-distraction') "coding";
+        src -> code.text = 'Step 3: Social Distractions' "text";
+      } "code";
+      src -> detail.status = 'in-progress' "status";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').answer.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').answer.select(item.where(linkId = '3-1-name-place').answer.value.ofType(string) + iif(item.where(linkId = '3-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '3-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), 'No distraction contacts provided.')) "description";
+    } "detail";
+  } "step-3";
+
+  // --- Step 4: Crisis Support Contacts ---
+  src -> tgt.activity as activity then {
+    src -> activity.detail as detail then {
+      src -> detail.code = create('CodeableConcept') as code then {
+        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'crisis-support') "coding";
+        src -> code.text = 'Step 4: Crisis Support Contacts' "text";
+      } "code";
+      src -> detail.status = 'in-progress' "status";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').answer.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').answer.select(item.where(linkId = '4-1-name').answer.value.ofType(string) + iif(item.where(linkId = '4-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '4-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), 'No crisis contacts provided.')) "description";
+    } "detail";
+  } "step-4";
+
+  // --- Step 5: Professional Support ---
+  // Two sources merged with ' / ': the repeating clinician/agency pairs,
+  // then the single local-emergency-department block (name, address,
+  // phone) — matching extractStep5() in stanleyBrown.ts.
+  src -> tgt.activity as activity then {
+    src -> activity.detail as detail then {
+      src -> detail.code = create('CodeableConcept') as code then {
+        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'professional-support') "coding";
+        src -> code.text = 'Step 5: Professional Support' "text";
+      } "code";
+      src -> detail.status = 'in-progress' "status";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').answer.exists() or (src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).exists(), ((src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').answer.select(item.where(linkId = '5-1-name').answer.value.ofType(string) + iif(item.where(linkId = '5-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '5-2-contact-info').answer.value.ofType(string) + ')', '')).join(', ') | iif((src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).exists(), ((src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).first() | (src.item | src.item.item | src.item.item.item).where(linkId = '5-4-address').answer.value.ofType(string).first() | (src.item | src.item.item | src.item.item.item).where(linkId = '5-5-phone').answer.value.ofType(string).first()).join(', '), {})).where($this != '').join(' / '), 'No professional contacts provided.')) "description";
+    } "detail";
+  } "step-5";
+
+  // --- Step 6: Lethal Means Safety ---
+  src -> tgt.activity as activity then {
+    src -> activity.detail as detail then {
+      src -> detail.code = create('CodeableConcept') as code then {
+        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'lethal-means-safety') "coding";
+        src -> code.text = 'Step 6: Lethal Means Safety' "text";
+      } "code";
+      src -> detail.status = 'in-progress' "status";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '6-1-safety-action').answer.value.ofType(string).exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '6-1-safety-action').answer.value.ofType(string).join(', '), 'No lethal means plan provided.')) "description";
+    } "detail";
+  } "step-6";
+
+  // --- Step 7: Reason for Living ---
+  src -> tgt.activity as activity then {
+    src -> activity.detail as detail then {
+      src -> detail.code = create('CodeableConcept') as code then {
+        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'reason-for-living') "coding";
+        src -> code.text = 'Step 7: Reason for Living' "text";
+      } "code";
+      src -> detail.status = 'in-progress' "status";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '7-1-worth-living').answer.value.ofType(string).exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '7-1-worth-living').answer.value.ofType(string).join(', '), 'No reason for living provided.')) "description";
+    } "detail";
+  } "step-7";
+}

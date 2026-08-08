@@ -11,9 +11,23 @@ ig/
 ├── sushi-config.yaml           # IG metadata (id, canonical URL, dependencies)
 ├── input/
 │   ├── fsh/                    # FSH sources for profiles, ValueSets, CodeSystems, instances
+│   ├── resources/maps/         # FHIR Mapping Language (.fml) → published StructureMaps
 │   └── pagecontent/            # Narrative IG pages (Markdown)
+├── drafts/                     # NOT in the build — see below
 └── README.md                   # This file
 ```
+
+`input/resources/maps/` is scanned only because `sushi-config.yaml` declares
+`path-resource: input/resources/maps` — the IG Publisher's default scan of
+`input/resources` does not recurse. See that folder's README for the authoring
+rules and for what each gate does and does not check.
+
+`drafts/` holds sources that are deliberately outside the build. Today that is
+the Stage-8 measure CQL, which nothing in this repo compiles (see
+`docs/plans/stage-8-measure-and-share.md`). The four StructureMap drafts that
+used to live there were promoted in #92 / #229. `scripts/check-fml.mjs` still
+compiles any `.fml` parked in `drafts/`, so a map being written there is gated
+before it moves.
 
 ## Local compile
 

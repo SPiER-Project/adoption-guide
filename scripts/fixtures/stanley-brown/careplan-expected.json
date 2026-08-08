@@ -1,0 +1,140 @@
+{
+  "activity": [
+    {
+      "detail": {
+        "code": {
+          "coding": [
+            {
+              "code": "warning-signs",
+              "system": "http://spier.org/CodeSystem/safety-plan-section"
+            }
+          ],
+          "text": "Step 1: Warning Signs"
+        },
+        "description": "Racing thoughts, Isolating",
+        "status": "in-progress"
+      }
+    },
+    {
+      "detail": {
+        "code": {
+          "coding": [
+            {
+              "code": "internal-coping",
+              "system": "http://spier.org/CodeSystem/safety-plan-section"
+            }
+          ],
+          "text": "Step 2: Internal Coping Strategies"
+        },
+        "description": "Go for a walk",
+        "status": "in-progress"
+      }
+    },
+    {
+      "detail": {
+        "code": {
+          "coding": [
+            {
+              "code": "social-distraction",
+              "system": "http://spier.org/CodeSystem/safety-plan-section"
+            }
+          ],
+          "text": "Step 3: Social Distractions"
+        },
+        "description": "Local gym (555-0100)",
+        "status": "in-progress"
+      }
+    },
+    {
+      "detail": {
+        "code": {
+          "coding": [
+            {
+              "code": "crisis-support",
+              "system": "http://spier.org/CodeSystem/safety-plan-section"
+            }
+          ],
+          "text": "Step 4: Crisis Support Contacts"
+        },
+        "description": "Sister Jane (555-0111)",
+        "status": "in-progress"
+      }
+    },
+    {
+      "detail": {
+        "code": {
+          "coding": [
+            {
+              "code": "professional-support",
+              "system": "http://spier.org/CodeSystem/safety-plan-section"
+            }
+          ],
+          "text": "Step 5: Professional Support"
+        },
+        "description": "Dr. Lee (555-0122) / General Hospital ED, 1 Main St, 555-0133",
+        "status": "in-progress"
+      }
+    },
+    {
+      "detail": {
+        "code": {
+          "coding": [
+            {
+              "code": "lethal-means-safety",
+              "system": "http://spier.org/CodeSystem/safety-plan-section"
+            }
+          ],
+          "text": "Step 6: Lethal Means Safety"
+        },
+        "description": "Store medications with a friend",
+        "status": "in-progress"
+      }
+    },
+    {
+      "detail": {
+        "code": {
+          "coding": [
+            {
+              "code": "reason-for-living",
+              "system": "http://spier.org/CodeSystem/safety-plan-section"
+            }
+          ],
+          "text": "Step 7: Reason for Living"
+        },
+        "description": "My children",
+        "status": "in-progress"
+      }
+    }
+  ],
+  "addresses": [
+    {
+      "display": "Risk for suicide"
+    }
+  ],
+  "category": [
+    {
+      "coding": [
+        {
+          "code": "735324008",
+          "system": "http://snomed.info/sct"
+        }
+      ]
+    },
+    {
+      "coding": [
+        {
+          "code": "87626-8",
+          "system": "http://loinc.org"
+        }
+      ]
+    }
+  ],
+  "intent": "plan",
+  "meta": {
+    "profile": [
+      "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
+    ]
+  },
+  "resourceType": "CarePlan",
+  "status": "active"
+}
