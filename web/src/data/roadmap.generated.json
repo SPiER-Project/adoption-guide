@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-07T20:52:55.522Z",
+  "fetchedAt": "2026-08-08T22:42:58.237Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
@@ -505,7 +505,7 @@
     {
       "number": 43,
       "title": "[P2] Use LOINC / SNOMED codes where available — remaining: SNOMED Conditions",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/43",
       "bodyMd": "Cross-cutting roadmap priority #2. Precondition: P1 (FHIR shapes) is far enough along that there are concrete elements to code.\n\nOnce tools are FHIR shapes, every coded element should reference a standard terminology rather than a local string.\n\n## Status (re-scoped 2026-07-29 audit)\n\nMost of this epic was delivered incidentally by the Phase-2 tool-encoding waves (#185–#208). SNOMED now appears across 16 FSH files and LOINC across 11. Remaining scope is **one bullet**.\n\n### Delivered\n\n- [x] **Questionnaire item codes → LOINC** where published — PHQ-9, ASQ result, C-SSRS items. Per-item LOINC codes are additionally guarded against the Questionnaire JSON by `npm run check:fallback` (`INSTRUMENT_SIGNATURES` in `web/src/lib/observationMappers/fallbackDispatch.ts`).\n- [x] **Observation codes → LOINC** for survey results and vitals-style measures — incl. the harmonized `93374-7` risk concept and CAMS SSF measures.\n- [x] **Procedure / intervention codes → SNOMED** — `ig/input/fsh/lethal-means.fsh` carries a general SNOMED counseling code plus clarifying text.\n- [x] **Local code systems documented** where no published LOINC exists (CAMS SSF measures, ASQ disposition, handoff content items).\n\n### Remaining\n\n- [ ] **Condition / Problem codes → SNOMED CT** (suicidal ideation, suicide attempt, self-harm, depression).\n\n  Verified 2026-07-29: this is currently unaddressed. The only `Condition` profile in the IG is the CAMS suicide-driver (`ig/input/fsh/cams.fsh`), which constrains `code.text 1..1` and identifies itself with the local marker category `http://spier.org/CodeSystem/cams-driver-category#suicide-driver`. There are **no** SNOMED SCTIDs for suicidal ideation, suicide attempt, or self-harm anywhere in `ig/input/fsh/`.\n\n  Note the overlap with #77, which lists \"Verify SNOMED SCTIDs for any clinical-finding concepts used (suicidal ideation, at risk for suicide)\" as a child task. Coordinate so the SCTIDs are chosen once — the concept layer and the problem-list Condition should not pick different codes for the same finding.\n\n  Free-text `code.text` is a defensible choice for a *narrative* CAMS driver, so part of the decision here is scoping: which suicide-related Conditions SPiER asserts at all, and which of those warrant a coded problem-list entry vs. narrative.\n",
       "labels": [
@@ -515,7 +515,8 @@
         "area:ig"
       ],
       "createdAt": "2026-05-21T14:22:57Z",
-      "updatedAt": "2026-07-30T01:39:22Z",
+      "updatedAt": "2026-08-08T22:00:12Z",
+      "closedAt": "2026-08-08T22:00:12Z",
       "priority": "p2",
       "type": "epic",
       "area": "catalog"
@@ -741,7 +742,7 @@
       "title": "[Epic] Cross-instrument concept layer: common suicide-risk-tier harmonization",
       "state": "open",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/77",
-      "bodyMd": "## Goal\n\nBuild SPiER's **cross-instrument concept layer**: the instrument-agnostic, actionable representation that disparate suicide-risk tools (ASQ, C-SSRS, PHQ-9 Item 9, SBQ-R, CAMS) all map into, so a partner system can consume a result without understanding the originating instrument.\n\n## Why this matters\n\nPartners in a care network do not all run the same instruments — and some (ASQ item-level) have no published LOINC codes at all. Today SPiER codes each instrument well at the **capture layer** but has no shared **concept layer**: the ASQ mapper emits `asq-screening-result` codes while the alert layer uses a separate `none/moderate/acute` set, and the response→concept logic lives only in TypeScript, so it isn't interoperable.\n\nThis is the \"translation layer to a universally known code set\" the Big Sky Care Connect pilot surfaced as a requirement. It is also SPiER's most contributable HL7 artifact — directly modeled on the Gravity Project's harmonization of ~135 SDOH instruments and built on HL7 SDC extraction mechanics.\n\n## Approach\n\nTwo-layer model (capture preserved, concept derived from it and linked back via `derivedFrom`). Concept layer = one common risk-tier ValueSet carried on the generic LOINC `93374-7` (\"Suicide risk level\") with a universal `interpretation` flag, populated per-instrument via portable FHIR ConceptMap/StructureMap. Lower-fidelity instruments map to the widest defensible tier, recorded with an honest equivalence (`narrower`/`relatedto`, not `wider`) — never fabricated precision. Derived concept = unconfirmed screen warranting follow-up, not a diagnosis.\n\nSee `docs/best-practices/concept-harmonization.md` and the `concept-harmonization` skill for the full conformance rules.\n\n## Progress (2026-06-05)\n\nFoundation + first two crosswalks drafted (`ig/input/fsh/concept-layer.fsh`, `crosswalk-asq.fsh`, `crosswalk-cssrs.fsh`; draft StructureMaps in `ig/drafts/`; FML compile-check CI in `.github/workflows/fml-validate.yml`). All FSH compiles clean. Outstanding before these crosswalks are authoritative: **clinical SME sign-off** on the disposition→tier rows, and **FML validation** of the draft StructureMaps.\n\n## Child tasks\n\n- [x] **Define the common risk-tier CodeSystem + ValueSet** (`no-risk | low | moderate | high | imminent`) in FSH. Interpretation decision settled on `POS`/`NEG`.\n- [x] **Author the harmonized derived-Observation profile** — `code` (93374-7), `value` (tier VS), `interpretation`, `category` (required binding to a suicide-risk domain VS), `derivedFrom`, status/subject/effective.\n- [ ] **ASQ → common-tier crosswalk** — ConceptMap drafted (`crosswalk-asq.fsh`) + draft StructureMap. Pending: SME sign-off + FML validation.\n- [ ] **C-SSRS → common-tier crosswalk** — ConceptMap drafted (`crosswalk-cssrs.fsh`) + draft StructureMap. Pending: SME sign-off + FML validation.\n- [ ] **PHQ-9 Item 9 / SBQ-R → common-tier crosswalks**.\n- [ ] **Grouping ValueSet** (parent → per-instrument source value sets), mirroring Gravity's VSAC hierarchy.\n- [ ] **Verify SNOMED SCTIDs** for any clinical-finding concepts used (suicidal ideation, at risk for suicide).\n- [ ] **Pilot validation** — exercise cross-instrument consumption in the Big Sky Care Connect pilot.\n- [ ] **VSAC publication** of the tier + grouping ValueSets (follow-on).\n\n## Out of scope\n\n- Deciding clinical equivalence unilaterally — every crosswalk row needs SME sign-off.\n- Minting new LOINC or asserting unverified SNOMED codes.\n- Executing HL7 balloting — this epic prepares publication-ready assets and names the contribution path; the Work Group process is separate.\n\n## Risks / open questions\n\n- `A`/`N` vs `POS`/`NEG` interpretation harmonization — pick one and apply everywhere.\n- Clinical equivalence claims (ASQ \"non-acute positive\" ≈ which C-SSRS tier?) are the highest-judgment step and gate the crosswalks.\n- Keeping the FHIR maps and the TS mappers in agreement — needs a drift guard analogous to `check-observation-extract.mjs`.\n\n## Suggested labels\n\n`type:epic`, `priority:p2`, `area:ig`, `area:hie`, `stage:measure-and-share`\n",
+      "bodyMd": "## Goal\n\nBuild SPiER's **cross-instrument concept layer**: the instrument-agnostic, actionable representation that disparate suicide-risk tools (ASQ, C-SSRS, PHQ-9 Item 9, SBQ-R, CAMS) all map into, so a partner system can consume a result without understanding the originating instrument.\n\n## Why this matters\n\nPartners in a care network do not all run the same instruments — and some (ASQ item-level) have no published LOINC codes at all. Today SPiER codes each instrument well at the **capture layer** but has no shared **concept layer**: the ASQ mapper emits `asq-screening-result` codes while the alert layer uses a separate `none/moderate/acute` set, and the response→concept logic lives only in TypeScript, so it isn't interoperable.\n\nThis is the \"translation layer to a universally known code set\" the Big Sky Care Connect pilot surfaced as a requirement. It is also SPiER's most contributable HL7 artifact — directly modeled on the Gravity Project's harmonization of ~135 SDOH instruments and built on HL7 SDC extraction mechanics.\n\n## Approach\n\nTwo-layer model (capture preserved, concept derived from it and linked back via `derivedFrom`). Concept layer = one common risk-tier ValueSet carried on the generic LOINC `93374-7` (\"Suicide risk level\") with a universal `interpretation` flag, populated per-instrument via portable FHIR ConceptMap/StructureMap. Lower-fidelity instruments map to the widest defensible tier, recorded with an honest equivalence (`narrower`/`relatedto`, not `wider`) — never fabricated precision. Derived concept = unconfirmed screen warranting follow-up, not a diagnosis.\n\nSee `docs/best-practices/concept-harmonization.md` and the `concept-harmonization` skill for the full conformance rules.\n\n## Progress (2026-06-05)\n\nFoundation + first two crosswalks drafted (`ig/input/fsh/concept-layer.fsh`, `crosswalk-asq.fsh`, `crosswalk-cssrs.fsh`; draft StructureMaps in `ig/drafts/`; FML compile-check CI in `.github/workflows/fml-validate.yml`). All FSH compiles clean. Outstanding before these crosswalks are authoritative: **clinical SME sign-off** on the disposition→tier rows, and **FML validation** of the draft StructureMaps.\n\n## Child tasks\n\n- [x] **Define the common risk-tier CodeSystem + ValueSet** (`no-risk | low | moderate | high | imminent`) in FSH. Interpretation decision settled on `POS`/`NEG`.\n- [x] **Author the harmonized derived-Observation profile** — `code` (93374-7), `value` (tier VS), `interpretation`, `category` (required binding to a suicide-risk domain VS), `derivedFrom`, status/subject/effective.\n- [ ] **ASQ → common-tier crosswalk** — ConceptMap drafted (`crosswalk-asq.fsh`) + draft StructureMap. Pending: SME sign-off + FML validation.\n- [ ] **C-SSRS → common-tier crosswalk** — ConceptMap drafted (`crosswalk-cssrs.fsh`) + draft StructureMap. Pending: SME sign-off + FML validation.\n- [ ] **PHQ-9 Item 9 / SBQ-R → common-tier crosswalks**.\n- [ ] **Grouping ValueSet** (parent → per-instrument source value sets), mirroring Gravity's VSAC hierarchy.\n- [x] **Verify SNOMED SCTIDs** for any clinical-finding concepts used (suicidal ideation, at risk for suicide). **Done in #239** — nine concepts verified against tx.fhir.org and published as the `SPiERSuicideRelatedProblem` ValueSet, shared with #43 so both layers use one set. See the comment below for the table and for the `86849004` trap.\n- [ ] **Pilot validation** — exercise cross-instrument consumption in the Big Sky Care Connect pilot.\n- [ ] **VSAC publication** of the tier + grouping ValueSets (follow-on).\n\n## Out of scope\n\n- Deciding clinical equivalence unilaterally — every crosswalk row needs SME sign-off.\n- Minting new LOINC or asserting unverified SNOMED codes.\n- Executing HL7 balloting — this epic prepares publication-ready assets and names the contribution path; the Work Group process is separate.\n\n## Risks / open questions\n\n- `A`/`N` vs `POS`/`NEG` interpretation harmonization — pick one and apply everywhere.\n- Clinical equivalence claims (ASQ \"non-acute positive\" ≈ which C-SSRS tier?) are the highest-judgment step and gate the crosswalks.\n- Keeping the FHIR maps and the TS mappers in agreement — needs a drift guard analogous to `check-observation-extract.mjs`.\n\n## Suggested labels\n\n`type:epic`, `priority:p2`, `area:ig`, `area:hie`, `stage:measure-and-share`\n\n",
       "labels": [
         "type:epic",
         "priority:p2",
@@ -750,7 +751,7 @@
         "area:hie"
       ],
       "createdAt": "2026-06-05T22:05:18Z",
-      "updatedAt": "2026-07-30T01:42:58Z",
+      "updatedAt": "2026-08-08T21:54:50Z",
       "priority": "p2",
       "type": "epic",
       "stage": "measure-and-share",
@@ -775,7 +776,7 @@
     {
       "number": 92,
       "title": "Promote the four draft FML StructureMaps from ig/drafts/ into the validated build",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/92",
       "bodyMd": "Four FHIR Mapping Language files (`ASQResultToSuicideRiskConcept`, `CSSRSRiskLevelToSuicideRiskConcept`, `PHQ9Item9ToSuicideRiskConcept`, `SBQRTotalScoreToSuicideRiskConcept`) live in `ig/drafts/` deliberately outside the SUSHI compile and are marked DRAFT — UNVALIDATED. Promote them into the IG build (validate with the FHIR validator / map compiler), include them in the published artifact list, and update the Conformance Harmonization Status table from 'draft, unvalidated' to authored. Parent epic: #77.",
       "labels": [
@@ -783,7 +784,8 @@
         "area:ig"
       ],
       "createdAt": "2026-06-10T17:56:26Z",
-      "updatedAt": "2026-08-07T19:24:20Z",
+      "updatedAt": "2026-08-08T21:17:13Z",
+      "closedAt": "2026-08-08T21:17:13Z",
       "type": "task",
       "area": "ig"
     },
@@ -934,7 +936,7 @@
     {
       "number": 127,
       "title": "Add licensing metadata (copyright/copyrightLabel) to all ActivityDefinitions",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/127",
       "bodyMd": "First concrete task under the tool-licensing-audit epic #64, and the remaining licensing bullet from the now-closed P1 epic #42.\n\nNo ActivityDefinition in ig/input/fsh/ currently carries copyright, copyrightLabel, or related licensing fields (verified July 2026). For each of the 26 tools, capture the instrument's licensing status — public domain (e.g. PHQ-9, ASQ), permission-required (e.g. C-SSRS training requirements, CAMS licensing), or unknown-pending-audit — using ActivityDefinition.copyright / copyrightLabel, so an adopting system can see usage constraints directly in the FHIR artifact.\n\nDo not guess license terms: where the epic #64 audit hasn't confirmed a tool's status, state that explicitly in the copyright text rather than inventing terms. Compile with SUSHI and run the verify chain.",
       "labels": [
@@ -943,7 +945,8 @@
         "area:ig"
       ],
       "createdAt": "2026-07-04T16:04:34Z",
-      "updatedAt": "2026-07-04T16:57:06Z",
+      "updatedAt": "2026-08-08T22:34:12Z",
+      "closedAt": "2026-08-08T22:34:12Z",
       "type": "task",
       "area": "catalog"
     },
@@ -1373,7 +1376,7 @@
     {
       "number": 209,
       "title": "Seed a Stage-5/6/7 demo cohort so the Stage-8 measures can compute",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/209",
       "bodyMd": "Filed from the 2026-07-29 audit. Corresponds to row 1 of the gap table in `docs/plans/stage-8-measure-and-share.md` (\"What the dashboard revealed\"), which deliberately deferred this out of #208: *\"population scenario data feeds Population View rows, pathway completion, and the journey timeline, so it has blast radius well beyond the dashboard and deserves its own change.\"*\n\n## Problem\n\nThe Stage-8 measure engine (#180) and dashboard (#181) shipped and are correct, but **six of the seven measures can never produce a non-zero denominator against the demo registry**, because the resource types their criteria read are absent from every scenario file.\n\nAudited all 11 files in `web/src/data/population/scenarios/`:\n\n| Bucket | Scenario files containing it |\n|---|---|\n| `riskAlerts` | 10 |\n| `responses` | 8 |\n| `observations` | 7 |\n| `carePlans` | 6 |\n| `communications` | 3 |\n| `encounters` | 1 |\n| **`episodes`** | **0** |\n| **`appointments`** | **0** |\n| **`serviceRequests`** | **0** |\n| **`procedures`** | **0** |\n| `consents`, `tasks`, `flags`, `documentReferences` | 0 |\n\nConsequences, traced through `web/src/lib/measures.ts`:\n\n- No `episodes` → `ctx.latestEpisode` is always undefined → `Has An Active Suicide Safer Care Episode` false → **`SPiERRiskStatusDocumented`** and **`SPiERLethalMeansCounselingCompleted`** have empty denominators.\n- No documented care transition → `ctx.indexTransition` undefined → **`SPiERSafetyPlanBeforeDischarge`**, **`SPiERFollowUpTimeliness`**, **`SPiERCaringContactAdherence`** all empty (six of the ten groups read this one value).\n- No `serviceRequests` → `ctx.referrals` empty → **`SPiERReferralCompletion`** empty. Note the TL-017 recorder already writes `ServiceRequest` as of #202, so this is purely a seed-data gap, not a recorder gap.\n- No `appointments` → the 7-day and 30-day follow-up groups cannot compute even if a transition existed.\n\nVerified in-browser: `/guide/measures` renders \"no denominator\" for **all 10 groups in all 4 measurement periods**, including the default 3650-day \"All time\" window.\n\n## Scope\n\nSeed a realistic cohort across the existing 11 scenarios (or add patients) covering `EpisodeOfCare`, `Appointment`, `ServiceRequest`, `Procedure`, and the Stage-5 packet/`DocumentReference` artifacts, with dates that place at least some patients inside a trailing 30-day window so the shorter periods are also exercisable.\n\nMind the blast radius the plan doc warns about — scenario data also drives Population View rows, pathway completion, and the journey timeline. Changes there must not regress those views.\n\n**Out of scope:** measure 1 (`SPiERScreenToAssessment`) is blocked by a different cause — the seeded `93374-7` Observations are non-conformant to the concept-layer profile. That is #77's chain (#180 is marked blocked by it) and should not be papered over by seeding data that fakes conformance.\n\n## Acceptance\n\n- At least one measure group in each of the six affected measures reports a non-zero denominator on the default period.\n- `npm run verify` passes, including the six drift checks.\n- Population View, pathway completion, and the journey timeline are visually unchanged for existing patients (or changes are intentional and noted).\n- Ideally landed alongside or after #124, so the new hand-authored FHIR gets validated rather than adding more ungated scenario content.\n",
       "labels": [
@@ -1382,7 +1385,8 @@
         "area:population-view"
       ],
       "createdAt": "2026-07-30T01:45:36Z",
-      "updatedAt": "2026-08-07T19:24:03Z",
+      "updatedAt": "2026-08-08T19:23:16Z",
+      "closedAt": "2026-08-08T19:23:16Z",
       "type": "task",
       "stage": "measure-and-share",
       "area": "population-view"
@@ -1390,7 +1394,7 @@
     {
       "number": 210,
       "title": "[TL-008] Add a lethal-means counseling Procedure recorder",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/210",
       "bodyMd": "Filed from the 2026-07-29 audit. Row 2 of the gap table in `docs/plans/stage-8-measure-and-share.md`: *\"TL-008 has no recorder and there was no `Procedure` bucket → measure 4's numerator can never fire. Bucket added here; recorder still missing.\"*\n\n## Problem\n\n`SPiERLethalMeansCounselingCompleted`'s numerator criterion is `Lethal Means Counseling During Episode`, which reads `ctx.procedures`. The plumbing for that now exists:\n\n- `PatientSlice.procedures?: ProcedureResource[]` — `web/src/types/fhir.ts:162`\n- `SPiERLethalMeansSafetyCounselingProcedure` profile — `ig/input/fsh/lethal-means.fsh:71` (carries a general SNOMED counseling code plus clarifying text)\n\nWhat is missing is the recorder. Verified 2026-07-29: TL-008 has `launchActions: []` in `web/src/data/catalog/tool-ui-metadata.ts`, so there is no UI affordance anywhere in the app that writes a lethal-means counseling `Procedure`. The measure's numerator is structurally unreachable.\n\nThis is also why TL-008 is the only `status:planned` tool left in Stage 4 — see its epic #24.\n\n## Scope\n\nAdd a recorder view for TL-008 (in the style of the existing Stage-4/5 workflow recorders under `web/src/components/`, e.g. `SafetyReferralView.tsx`) that writes a `Procedure` conforming to `SPiERLethalMeansSafetyCounselingProcedure`, wire a `launchAction` for TL-008 in `tool-ui-metadata.ts`, and register the route in `App.tsx`.\n\nNote `npm run check:catalog` gates catalog wiring, and `services/cds-hooks/` has its own CI-gated `npm run verify` that imports the web catalog — a `launchActions` change can break its tests with `web` green. Run both.\n\n## Acceptance\n\n- A lethal-means counseling `Procedure` can be recorded from the UI and appears in the patient's slice.\n- With an episode seeded (see the Stage-5/6/7 cohort issue), `SPiERLethalMeansCounselingCompleted` reports a non-zero numerator.\n- `web` verify and `services/cds-hooks` verify both pass.\n- TL-008's status label on #24 flips from `status:planned` to `status:built`.\n",
       "labels": [
@@ -1400,7 +1404,8 @@
         "tool:TL-008"
       ],
       "createdAt": "2026-07-30T01:45:37Z",
-      "updatedAt": "2026-08-04T14:32:03Z",
+      "updatedAt": "2026-08-08T19:57:15Z",
+      "closedAt": "2026-08-08T19:57:15Z",
       "toolId": "TL-008",
       "type": "task",
       "stage": "document-safety-actions",
@@ -1409,7 +1414,7 @@
     {
       "number": 211,
       "title": "[TL-010] Write caring-contact-opt-out so the caring-contact exclusion can fire",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/211",
       "bodyMd": "Filed from the 2026-07-29 audit. Row 3 of the gap table in `docs/plans/stage-8-measure-and-share.md`: *\"TL-010 caring contacts use the generic recorder, so `caring-contact-opt-out` is never written → the exclusion can never fire from the UI.\"*\n\n## Problem\n\n`SPiERCaringContactAdherence` defines a `denominator-exclusion` population whose criterion is `Excluded From Caring Contact Measurement`. It fires on any of: a caring contact carrying the `caring-contact-opt-out` extension, or an episode closed `administrative` / `deceased`.\n\nVerified 2026-07-29 — `CARING_CONTACT_OPT_OUT_EXT` (`http://spier.org/StructureDefinition/caring-contact-opt-out`) appears in exactly **one** non-test file in the app, `web/src/lib/measures.ts`, where it is only ever *read*:\n\n- line 64 — the constant\n- line 523 — `ctx.caringContacts.some(c => extensionBoolean(c, CARING_CONTACT_OPT_OUT_EXT))`\n\nNothing writes it. TL-010 uses the generic caring-contact recorder, which has no opt-out affordance, so the exclusion is unreachable from the UI. `measures.ts:517-520` already carries a `NOTE:` comment saying exactly this.\n\n## Why it matters beyond coverage\n\nThe engine's own comment states the clinical rationale: *\"honoring an opt-out is correct behaviour, and scoring it as a miss would pressure sites to ignore the patient.\"* An adherence measure with an unreachable exclusion penalizes sites for respecting a patient's wishes. That makes this a correctness concern about what the measure incentivizes, not just a demo-completeness gap.\n\n## Scope\n\nAdd an opt-out affordance to the caring-contact recorder that stamps the `caring-contact-opt-out` extension on the `Communication`, and confirm the extension is defined in `ig/input/fsh/follow-up.fsh` alongside the caring-contact profile (add it if the StructureDefinition is not yet published — the app references a canonical URL that must resolve).\n\n## Acceptance\n\n- An opt-out can be recorded from the UI and round-trips into the patient slice.\n- With an episode + transition seeded (see the Stage-5/6/7 cohort issue), `SPiERCaringContactAdherence` reports a non-zero `denominator-exclusion` — i.e. the pattern the plan doc verified against an injected cohort (denominator 2, excluded 1, score 1/1) becomes reproducible from the UI.\n- `npm run verify` passes.\n",
       "labels": [
@@ -1419,7 +1424,8 @@
         "tool:TL-010"
       ],
       "createdAt": "2026-07-30T01:45:39Z",
-      "updatedAt": "2026-08-04T14:32:05Z",
+      "updatedAt": "2026-08-08T19:57:15Z",
+      "closedAt": "2026-08-08T19:57:15Z",
       "toolId": "TL-010",
       "type": "task",
       "stage": "track-follow-up",
@@ -1428,7 +1434,7 @@
     {
       "number": 212,
       "title": "Prove a CQL translator in CI, then publish a real measure Library",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/212",
       "bodyMd": "Filed from the 2026-07-29 audit. Carries forward the standing follow-up in `docs/plans/stage-8-measure-and-share.md`: *\"Prove a CQL translator in CI, then promote the draft CQL and publish a real `Library`.\"*\n\n## Problem\n\nThe seven Stage-8 `Measure` resources reference named criteria expressions, and the executable implementation of those expressions is the TypeScript engine in `web/src/lib/measures.ts` — tied to the FSH by `npm run check:measures` (19 criterion references ↔ 19 implementations, verified passing).\n\nWhat does not exist is a published CQL `Library`. The measure CQL lives in `ig/drafts/` and **nothing in the repo compiles it**: the IG Publisher does not translate `ig/input/cql`, and its log never mentions CQL. `ig-publish.yml` deliberately excludes `input/cql` from its path filter with a comment explaining that changes confined to it would buy a ~10-minute job validating nothing.\n\nSo the measures are definitionally complete and executably correct, but not *portable* — a consumer cannot evaluate them without reimplementing the criteria.\n\n## Scope\n\nTwo steps, in order, and the first gates the second:\n\n1. **Prove a CQL translator in CI.** Needs either a Maven/Gradle classpath for `cqframework` (there is no fat jar on Maven Central), or a confirmed IG Publisher configuration that actually translates CQL. Confirm from a publisher log that mentions CQL — do not assume it. If neither is achievable, say so on this issue and close it; that is a legitimate outcome and better than a permanently open aspiration.\n2. **Promote the draft CQL and publish a real `Library`**, referenced from each `Measure.library`, and re-add the `input/cql` path to the `ig-publish.yml` filter once it demonstrably validates something.\n\n## Guardrails\n\n- Do not re-add a `cql` path filter to any workflow without a publisher log proving translation happens — that mistake has been made before.\n- `check:measures` must keep passing; the TypeScript stays the reference implementation either way.\n",
       "labels": [
@@ -1437,7 +1443,8 @@
         "area:ig"
       ],
       "createdAt": "2026-07-30T01:45:40Z",
-      "updatedAt": "2026-08-04T14:32:11Z",
+      "updatedAt": "2026-08-08T22:00:11Z",
+      "closedAt": "2026-08-08T22:00:11Z",
       "type": "task",
       "stage": "measure-and-share",
       "area": "ig"
@@ -1445,7 +1452,7 @@
     {
       "number": 213,
       "title": "[TL-043] Caveat the Measures dashboard when every denominator is empty",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/213",
       "bodyMd": "Filed from the 2026-07-29 audit. Not from the plan doc's gap table — this is the *presentation* half of the same situation, small and independently shippable.\n\n## Problem\n\n`/guide/measures` currently renders seven measures with **\"no denominator\" in all 10 groups, across all four measurement periods** (verified in-browser; the default is the 3650-day \"All time\" window). Meanwhile the page's own description reads:\n\n> Aggregate view of the seven suicide-safer care measures, computed live over the 11-patient registry. Nothing on this page is stored — each tile is a query over the artifacts stages 1–7 already produce, which is the point of Stage 8.\n\nThat copy is accurate and the underlying engine is correct — the seeded data genuinely cannot exercise the measures (see the Stage-5/6/7 cohort issue and #77). But to anyone being shown the app, \"computed live over the 11-patient registry\" above seven empty tables reads as broken software rather than as the capture-completeness audit the plan doc convincingly argues it is:\n\n> **The measure is right and the data is incomplete** — which is the useful thing a measure layer does: it audits capture completeness rather than asserting numbers the data cannot support.\n\nThat is a genuinely good story. The page just doesn't tell it.\n\n## Scope\n\nWhen every group in every measure has an empty denominator (or per-measure, when that measure has none), surface a short inline explanation instead of leaving the reader to infer breakage — e.g. that the measure definitions are live and executable, that the demo registry does not yet seed the Stage-5/6/7 artifacts they read, and a pointer to what would populate them.\n\nKeep it honest and specific: do not fabricate sample numbers, and do not hide the empty tables — the zeros are the finding. This is a copy-and-affordance change, not a data change.\n\nDesign tokens only (stylelint rejects raw hex and enforces `var(--…)`), kebab-case BEM class selectors, per `CLAUDE.md`.\n\n## Acceptance\n\n- With the current seed data, a first-time viewer of `/guide/measures` can tell the difference between \"not yet measurable\" and \"measured zero\".\n- Once the Stage-5/6/7 cohort lands, the explanation disappears for measures that now compute.\n- `npm run verify` passes, including `npm run lint:css`.\n",
       "labels": [
@@ -1454,7 +1461,8 @@
         "tool:TL-043"
       ],
       "createdAt": "2026-07-30T01:45:41Z",
-      "updatedAt": "2026-08-07T19:24:24Z",
+      "updatedAt": "2026-08-08T17:42:03Z",
+      "closedAt": "2026-08-08T17:42:03Z",
       "toolId": "TL-043",
       "type": "task",
       "stage": "measure-and-share"
@@ -1478,7 +1486,7 @@
     {
       "number": 226,
       "title": "Validate the non-QuestionnaireResponse resources in the population scenarios",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/226",
       "bodyMd": "Filed from the 2026-08-07 milestone review. **Companion to #209 — this should land first, or alongside it.**\n\n## Problem\n\nNothing validates the non-QuestionnaireResponse resources inside `web/src/data/population/scenarios/patient-*.json`.\n\nCoverage today, verified 2026-08-07:\n\n- `web/scripts/check-scenario-responses.mjs` (#124/#218) checks **QuestionnaireResponses only** — linkId resolution, nesting, answerOption membership, min/max, value[x] type. Its own header says so.\n- `scripts/validate-fhir.mjs` (#123/#217) reads `ig/fsh-generated/resources` and `FHIR-Resources/`. It does **not** read `web/src/data/population/` at all.\n\nSo `observations`, `carePlans`, `communications`, `encounters`, and `riskAlerts` are already ungated hand-authored FHIR, and #209 is about to add five more resource types on top of them: `EpisodeOfCare`, `Appointment`, `ServiceRequest`, `Procedure`, and the Stage-5 packet `DocumentReference`.\n\nThat matters more than usual here because the Stage-8 measure engine reads exactly those buckets. A malformed `EpisodeOfCare.status`, a `ServiceRequest` missing `intent`, or an `Appointment` with the wrong `participant.status` would not fail any gate — it would silently produce a wrong measure score, which is worse than an empty one. The whole argument of #213 is that an empty denominator is honest; a wrong numerator is not.\n\n#209's own acceptance criteria say it should land \"ideally alongside or after #124, so the new hand-authored FHIR gets validated rather than adding more ungated scenario content.\" #124 turned out to cover only QRs, so that condition is not actually met yet. This issue is what would meet it.\n\n## Scope\n\nExtend validation to every resource in every scenario bucket, not just QRs. Two plausible shapes — pick whichever is cheaper to keep honest:\n\n1. **Extend the HL7 validator gate.** Have `scripts/validate-fhir.mjs` (or a sibling) unwrap the scenario JSON into standalone resources in a temp dir and run `validator_cli` over them, claiming the SPiER profile where the scenario declares one. Gives real conformance checking for free, at the cost of Java in the loop.\n2. **Extend `check-scenario-responses.mjs`** into a general `check:scenarios` that asserts the structural invariants the app and the measure engine actually depend on (required elements per resource type, status-code membership, reference targets resolving inside the slice, dates parseable).\n\nOption 1 catches more; option 2 stays offline and fast. A hybrid — structural checks in `verify`, full validator in CI — is also reasonable, but do not claim coverage the offline half does not have.\n\n## Guardrails\n\n- **Prove the gate can fail before trusting it.** Plant a deliberately broken scenario resource — a bad `EpisodeOfCare.status` code, a `ServiceRequest` with no `intent` — and confirm the gate goes red. This repo has now hit five separate silent-pass mechanisms (see `CLAUDE.md`, and the `-ig <folder>` / `-output` traps in `validate-fhir.mjs`); a green gate nobody has watched go red is not evidence.\n- If the checker resolves profiles or Questionnaires, an unresolvable reference must be an **error**, not a warning — that is the exact failure mode #218 had to fix.\n- Wire it into `web/`'s `npm run verify` and document it in `CLAUDE.md`'s verification table alongside the other drift checks.\n\n## Acceptance\n\n- Every resource in every scenario bucket is checked by something, and `CLAUDE.md` states accurately what that something does and does not cover.\n- A planted defect in a non-QR scenario resource fails the gate — demonstrated, not assumed.\n- `npm run verify` passes on the current scenario data (fix or document anything the new gate finds in the resources already there).\n",
       "labels": [
@@ -1486,7 +1494,8 @@
         "area:population-view"
       ],
       "createdAt": "2026-08-07T19:23:02Z",
-      "updatedAt": "2026-08-07T19:23:02Z",
+      "updatedAt": "2026-08-08T19:23:16Z",
+      "closedAt": "2026-08-08T19:23:16Z",
       "type": "task",
       "area": "population-view"
     },
@@ -1532,7 +1541,7 @@
     {
       "number": 229,
       "title": "[TL-007] Declare the Stanley-Brown CarePlan transformation as PlanDefinition.action.transform",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/229",
       "bodyMd": "Filed from the 2026-08-07 milestone review. Picks up the half of #44 that was closed into #23, and pairs with #92.\n\n## Problem\n\nThe Stanley-Brown safety plan is transformed into a `CarePlan` by TypeScript in the app. Nothing declares that transformation as a FHIR artifact, so a partner cannot reproduce it.\n\nVerified: `transform` appears nowhere in `ig/input/fsh/`. #44's closing note (2026-08-04) recorded this precisely: *\"Care-plan auto-generation as a defined transformation — owned by #92 (promote the four draft FML StructureMaps out of `ig/drafts/`) in M1, plus #23 for the Stanley-Brown `PlanDefinition.action.transform` specifically. Verified 2026-08-04: `transform` appears nowhere in `ig/input/fsh/`, so that half is genuinely unbuilt.\"*\n\n#23's \"Next\" says the same thing: *\"CarePlan transformation formalized as a defined `PlanDefinition.action.transform`.\"*\n\n## Why pair it with #92\n\n#92 promotes four instrument→concept StructureMaps out of `ig/drafts/`. This is a fifth map with a different job — questionnaire→CarePlan rather than result→tier — but it needs the same machinery: a validated `.fml`, a `StructureMap` in the published build, and a canonical that resolves. Doing them together means solving the promotion path once.\n\nUseful precedent: `.github/workflows/fml-validate.yml` already compile-checks `ig/drafts/*.fml` with the HL7 validator, and it has gone both green and red in practice (runs on 2026-06-06), so it is a gate with evidence behind it — not one to re-prove from scratch.\n\n## Scope\n\n1. Author the Stanley-Brown → `CarePlan` map in FHIR Mapping Language, starting in `ig/drafts/` so `fml-validate.yml` covers it.\n2. Reference it from the Stanley-Brown `PlanDefinition.action.transform` once the canonical resolves in the build.\n3. Keep the TypeScript as the executable implementation for the demo — same arrangement as `measures.ts` under #212 — but the FHIR must describe what the TypeScript does. If they disagree, that is a drift-guard candidate (compare `check-observation-extract.mjs` / `check-measures.mjs` for the pattern).\n\n## Acceptance\n\n- `fml-validate.yml` is green on the new map.\n- `PlanDefinition.action.transform` on the Stanley-Brown action points at a canonical that resolves in the built IG.\n- The IG Publisher gate (`ig-publish.yml`) passes — that is the gate that sees FHIRPath invariants and link integrity, which SUSHI cannot.\n- The TS transformation and the declared map produce the same CarePlan shape, verified on at least one example.\n",
       "labels": [
@@ -1542,7 +1551,8 @@
         "tool:TL-007"
       ],
       "createdAt": "2026-08-07T19:23:16Z",
-      "updatedAt": "2026-08-07T19:23:16Z",
+      "updatedAt": "2026-08-08T21:17:14Z",
+      "closedAt": "2026-08-08T21:17:14Z",
       "toolId": "TL-007",
       "type": "task",
       "stage": "document-safety-actions",
@@ -1583,15 +1593,37 @@
     {
       "number": 232,
       "title": "Prove the two scheduled workflows actually fire, and unblock the roadmap PR",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/232",
       "bodyMd": "Filed from the 2026-08-07 milestone review.\n\n## Problem\n\nTwo automated workflows exist whose scheduled path has never been observed running, and one of them has a known-blocked step.\n\n**`roadmap-snapshot.yml` (#122, PRs #221/#222).** Run history as of 2026-08-07: three `workflow_dispatch` runs on 2026-08-05 (one failure, two success). Zero `schedule` runs. Beyond the schedule never having fired, the PR-opening step is blocked by org policy — GitHub Actions is not permitted to create pull requests in `SPiER-Project`. The workflow handles this gracefully (pushes the branch, writes a step-summary link, exits 0 with a warning), so the *failure is silent by design*: the snapshot goes stale and the only signal is a warning inside a run nobody opens. The workflow itself names the fix: a `ROADMAP_PR_TOKEN` secret.\n\n**`terminology-nightly.yml` (#220 follow-up, PR #225).** Merged 2026-08-07. Run history: three `pull_request` runs (two failures during development, one success). Zero `schedule` runs — the first nightly has not happened yet.\n\nThis is the same class of problem `CLAUDE.md` already warns about in another form: *\"a green gate you have never seen go red is not evidence of anything.\"* Here it is a gate nobody has seen run **at all** on the trigger that matters.\n\n## Scope\n\n1. **Confirm both schedules actually fire.** Check the run history on the `schedule` event after the first expected firing. Note that GitHub disables scheduled workflows in repos with no activity for 60 days, and that `schedule` only runs from the default branch — worth confirming both hold here.\n2. **Add `ROADMAP_PR_TOKEN`** (a PAT or GitHub App token with `contents:write` + `pull-requests:write`) so the weekly snapshot opens its own PR, or decide explicitly that a human will open it from the pushed branch and say where that expectation is written down. Note that adding an org-level secret needs an org admin — if that is a blocker, say so on this issue rather than leaving it implied.\n3. **Define the triage path for a red nightly.** `terminology-nightly.yml` failing means an external code or display drifted at LOINC/SNOMED, or `tx.fhir.org` is down. Those need different responses, and right now nobody is named as the person who looks. A failure nobody reads is the same as no gate.\n4. While in there, re-check the per-source floors in `check-codings.mjs`. They are load-bearing — a global floor previously let a dead scan pass silently — so confirm they still match what each source actually contains after #224 changed the safety-plan codes.\n\n## Acceptance\n\n- A `schedule`-triggered run of each workflow is visible in the run history and did what it was supposed to.\n- The roadmap snapshot's PR either opens itself, or the manual step is documented where someone will actually see it.\n- A deliberately-broken code literal fails `terminology-nightly.yml` — prove the gate goes red before relying on the nightly.\n- The triage expectation for a red nightly is written down.\n",
       "labels": [
         "type:task"
       ],
       "createdAt": "2026-08-07T19:23:26Z",
-      "updatedAt": "2026-08-07T19:23:27Z",
+      "updatedAt": "2026-08-08T22:32:26Z",
+      "closedAt": "2026-08-08T22:32:26Z",
       "type": "task"
+    },
+    {
+      "number": 236,
+      "title": "Free-text summaries in Coding.display for v3-ObservationInterpretation (#220 class)",
+      "state": "open",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/236",
+      "bodyMd": "## Summary\n\n`web/src/lib/observationMappers/*.ts` write free-text summaries into\n`Coding.display` for `http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation`\ncodes — a `display` the publishing authority does not allow. This is the same\ndefect class as #220, across roughly 33 sites.\n\n## Examples\n\n| File | Emitted | HL7 publishes |\n|---|---|---|\n| `phq9.ts` | `H \"Moderate depression (score 12/27)\"` | `H \"High\"` |\n| `phq9.ts` | `A \"Positive — suicide risk screening indicated\"` | `A \"Abnormal\"` |\n| `camsSectionA.ts` | `H \"Elevated (4/5)\"`, `N \"Moderate (4/5)\"` | `H \"High\"`, `N \"Normal\"` |\n| `bssa.ts` | `N \"No further intervention necessary\"` | `N \"Normal\"` |\n| `safet.ts`, `pssFull.ts`, `cssrsScreener.ts` | `N \"No risk identified\"` | `N \"Normal\"` |\n\nSame shape in `asq.ts`, `pss3.ts`, `cssrsFull.ts`, `sbqr.ts`,\n`camsOutcomeDisposition.ts`, and in the sample payloads in\n`web/src/data/catalog/tool-ui-metadata.ts`.\n\nRelated but distinct: `camsSectionA.ts` / `camsOutcomeDisposition.ts` also write\n`display: \"CAMS SSF: ${vital.display}\"` for `http://spier.org/CodeSystem/cams-ssf`\ncodes, whose CodeSystem display (`ig/input/fsh/cams.fsh`) is just\n`\"Psychological Pain\"`.\n\n## Why no gate caught it\n\nTwo independent blind spots:\n\n1. `web/scripts/check-codings.mjs` scanned only `http://loinc.org` and\n   `http://snomed.info/sct`. `terminology.hl7.org` was never in `EXTERNAL_SYSTEMS`,\n   so the entire v3-ObservationInterpretation family went unread.\n2. Even with the system in scope, the scanner reads *string literals*. Displays\n   built from template literals (`` `Elevated (${score}/5)` ``) cannot be resolved\n   statically and are checked as code-only.\n\n`validate-fhir.mjs` runs `-tx n/a` in CI, and nothing validates TypeScript\ncodings at all — the exact gap #220 exposed.\n\n## Fix\n\nPut the authority's display in `Coding.display` and move the human-readable\nphrase to the sibling `CodeableConcept.text`. Every SPiER view already prefers\n`.text` (`PatientChart.tsx`, `QuestionnaireView.tsx`, `registry.ts` all do\n`code?.text || code?.coding?.[0]?.display`), so rendered labels are unchanged.\nBlind spot 2 stops mattering once the `display` is a fixed, checkable string.\n\nWiden `EXTERNAL_SYSTEMS` to cover the `terminology.hl7.org/CodeSystem/*` family\nso the nightly catches this class going forward, and re-derive the per-source\nfloors in that file — they are load-bearing.\n",
+      "labels": [],
+      "createdAt": "2026-08-08T19:14:47Z",
+      "updatedAt": "2026-08-08T19:14:47Z"
+    },
+    {
+      "number": 240,
+      "title": "Terminology drift: external codes no longer validate",
+      "state": "closed",
+      "url": "https://github.com/SPiER-Project/adoption-guide/issues/240",
+      "bodyMd": "The nightly terminology check found codes or displays that no longer\nvalidate against `https://tx.fhir.org`.\n\n| Check | Result |\n|---|---|\n| Codings in application code (`web/scripts/check-codings.mjs`) | drift |\n| FHIR resources (`scripts/validate-fhir.mjs --tx`) | clean |\n\n<details><summary><code>codings.log</code></summary>\n\n```\nterminology server: https://tx.fhir.org\nscanned web/src: loinc 41 (floor 20), snomed 12 (floor 5), tho 25 (floor 10)\nscanned services: loinc 0 (floor 0), snomed 0 (floor 0), tho 0 (floor 0)\nscanned docs/terminology-manifest.json: loinc 8 (floor 4), snomed 20 (floor 5), tho 0 (floor 0)\nfound 57 distinct external coding(s) from 137 system literal(s)\n\n✓ 44249-1 (code only)\n✓ 44250-9 (code only)\n✓ 44251-7 (code only)\n✓ 44252-5 (code only)\n✓ 44253-3 (code only)\n✓ 44254-1 (code only)\n✓ 44255-8 (code only)\n✓ 44258-2 (code only)\n✓ 44259-0 (code only)\n✓ 44260-8 \"Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]\"\n✓ 44260-8 (code only)\n✓ 44261-6 \"Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]\"\n✓ 44261-6 (code only)\n✓ 87626-8 \"Suicide prevention note\"\n✓ 93246-7 \"Wish to be dead 1 month\"\n✓ 93247-5 \"Non-specific active suicidal thoughts 1 month\"\n✓ 93248-3 \"Active suicidal ideation with any methods (not plan) without intent to act 1 month\"\n✓ 93249-1 \"Active suicidal ideation with some intent to act, without specific plan 1 month\"\n✓ 93250-9 \"Active suicidal ideation with specific plan and intent 1 month\"\n✓ 93267-3 \"Preparatory acts or suicidal behavior Lifetime\"\n✓ 93374-7 \"Suicide risk level\"\n✓ 93374-7 (code only)\n✓ LA6570-1 (code only)\n✓ LA6751-7 \"Moderate\"\n✓ 171207006 (code only)\n✓ 225337009 (code only)\n✓ 225444004 (code only)\n✓ 23233009 (code only)\n✓ 247650009 (code only)\n✓ 248062006 (code only)\n✓ 276853009 (code only)\n✓ 304594002 (code only)\n✓ 35489007 (code only)\n✓ 373066001 (code only)\n✓ 373066001 \"Yes\"\n✓ 373067005 \"No\"\n✓ 373067005 (code only)\n✓ 409063005 \"Counseling\"\n✓ 425104003 (code only)\n✓ 6471006 (code only)\n✓ 735324008 \"Treatment escalation plan (record artifact)\"\n✓ 735324008 (code only)\n✓ 82313006 (code only)\n✗ 86849004 \"Suicide attempt\"\n    → Wrong Display Name 'Suicide attempt' for http://snomed.info/sct#86849004. Valid display is one of 4 choices: 'Suicidal poisoning' (en), 'Suicidal deliberate poisoning' (en), 'Suicidal deliberate poisoning (disorder)' (en) or 'Suicidal poisoning (disorder)' (en) (for the language(s) '')\n    in web/src/lib/observationMappers/sbqr.ts\n✓ active \"Active\"\n✓ active (code only)\n✓ hipaa-auth (code only)\n✓ safety \"Safety\"\n✓ procedure (code only)\n✓ survey \"Survey\"\n✓ survey (code only)\n✓ A \"Abnormal\"\n✓ H \"High\"\n✓ HH \"Critical high\"\n✓ L \"Low\"\n✓ N \"Normal\"\n✓ WRITTEN \"written\"\n\nnote: 10 system literal(s) not statically checkable — no literal sibling `code`\n      (system constants, comparisons, or a code bound to a variable):\n        services/cds-hooks/src/service.test.ts (http://loinc.org, no sibling code)\n        web/src/lib/measures.test.ts (http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation, no sibling code)\n        web/src/lib/observationMappers/fallbackDispatch.test.ts (http://loinc.org, no sibling code)\n        web/src/lib/observationMappers/phq9.test.ts (http://loinc.org, no sibling code)\n\n✗ 1 coding(s) drift from https://tx.fhir.org.\n  Fix the literal in code — do not change the expectation here.\n```\n\n</details>\n\n<details><summary><code>resources.log</code></summary>\n\n```\nValidating 346 resources against FHIR 4.0.1 (validator 6.10.0, tx=https://tx.fhir.org)…\n\n346 resources validated (60 unwrapped from the population scenarios) — 0 error(s), 457 warning(s), 46 info\n  skipped ig/fsh-generated/resources/ImplementationGuide-spier.ig.json — SUSHI build artifact; parameter codes are IG-Publisher extensions to R4 guide-parameter-code\n✓ no FHIR conformance errors\n```\n\n</details>\n\nFull logs: [run `31281293599`](https://github.com/SPiER-Project/adoption-guide/actions/runs/31281293599).\n\n**Fix the code, not the expectation.** Every display must be one the\npublishing authority actually allows — that is the discipline #220 was\nabout. Confirm replacements with `$validate-code` before writing them.\n\nOpened by [`terminology-nightly.yml`](../blob/main/.github/workflows/terminology-nightly.yml). Refs #220.\n",
+      "labels": [],
+      "createdAt": "2026-08-08T22:18:26Z",
+      "updatedAt": "2026-08-08T22:20:02Z",
+      "closedAt": "2026-08-08T22:20:02Z"
     }
   ]
 }
