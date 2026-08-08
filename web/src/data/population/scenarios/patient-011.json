@@ -65,13 +65,24 @@
     {
       "resourceType": "CarePlan",
       "id": "p011-stanley-brown",
+      "meta": { "profile": ["http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"] },
       "status": "active",
       "intent": "plan",
       "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }],
       "subject": { "reference": "Patient/patient-011" },
       "addresses": [{ "display": "Risk for suicide" }],
+      "created": "2026-05-21T15:10:00Z",
       "_savedAt": "2026-05-21T15:10:00Z",
       "title": "Stanley-Brown Safety Plan",
+      "activity": [
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "warning-signs" }], "text": "Step 1: Warning Signs" }, "status": "in-progress", "description": "Racing thoughts at 3am, replaying the argument, chest tight, avoiding my phone" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "internal-coping" }], "text": "Step 2: Internal Coping Strategies" }, "status": "in-progress", "description": "Cold shower, walk the dog around the block, the breathing app" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "social-distraction" }], "text": "Step 3: People and Social Settings That Provide Distraction" }, "status": "in-progress", "description": "Sit in the café on 5th; call my cousin Rosa just to talk about anything else" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "crisis-support" }], "text": "Step 4: People I Can Ask for Help" }, "status": "in-progress", "description": "Rosa (sister), Elena (neighbour) — both know about the plan" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "professional-support" }], "text": "Step 5: Professionals or Agencies I Can Contact" }, "status": "in-progress", "description": "Valley Outpatient BH intake line; 988 Suicide & Crisis Lifeline; this ED" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "lethal-means-safety" }], "text": "Step 6: Making the Environment Safe" }, "status": "in-progress", "description": "Sleeping medication left with Rosa; kitchen knives moved to the locked toolbox" } },
+        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "reason-for-living" }], "text": "Reasons for Living" }, "status": "in-progress", "description": "Rosa and the kids; finishing the certification I started in March" } }
+      ],
       "note": [{ "text": "Collaborative ED safety plan with lethal-means counseling. Copy provided to patient at discharge; included in transition-of-care packet to outpatient BH." }]
     }
   ],
@@ -94,12 +105,138 @@
     {
       "resourceType": "Communication",
       "id": "p011-transition-packet",
+      "meta": {
+        "profile": ["http://spier.org/StructureDefinition/spier-safety-handoff"],
+        "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "coordinate-handoffs", "display": "Coordinate Handoffs" }]
+      },
       "status": "completed",
       "category": [{ "text": "Transition of care" }],
       "reasonCode": [{ "text": "ED discharge — transition-of-care packet sent" }],
       "subject": { "reference": "Patient/patient-011" },
       "sent": "2026-05-22T12:00:00Z",
-      "_savedAt": "2026-05-22T12:00:00Z"
+      "_savedAt": "2026-05-22T12:00:00Z",
+      "extension": [
+        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "current-risk-status", "display": "Current risk status" }] } },
+        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "recent-assessment", "display": "Most recent suicide-risk assessment" }] } },
+        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "safety-plan-status", "display": "Safety plan status" }] } },
+        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "lethal-means-actions", "display": "Lethal means safety actions" }] } },
+        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "follow-up-plan", "display": "Follow-up plan" }] } },
+        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "next-provider", "display": "Next provider / team" }] } }
+      ]
+    },
+    {
+      "resourceType": "Communication",
+      "id": "p011-outreach-48h",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-outreach-attempt"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up",
+            "display": "Track Follow-Up"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Follow-up outreach attempt"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "sent": "2026-05-23T10:00:00Z",
+      "medium": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationMode",
+              "code": "PHONE",
+              "display": "telephone"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/outreach-outcome",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-outreach-outcome",
+                "code": "patient-reached",
+                "display": "Patient reached"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/outreach-prompt",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-outreach-prompt",
+                "code": "post-discharge",
+                "display": "Post-discharge follow-up"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/safety-concern-identified",
+          "valueBoolean": false
+        }
+      ],
+      "note": [
+        {
+          "text": "Reached the next day; confirmed she had the packet and the appointment."
+        }
+      ]
+    },
+    {
+      "resourceType": "Communication",
+      "id": "p011-caring-contact",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-caring-contact"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up",
+            "display": "Track Follow-Up"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Caring contact"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "sent": "2026-05-30T09:00:00Z",
+      "medium": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationMode",
+              "code": "WRITTEN",
+              "display": "written"
+            }
+          ]
+        }
+      ],
+      "payload": [
+        {
+          "contentString": "A short note to say we are thinking of you. Nothing needed in return."
+        }
+      ]
     }
   ],
   "encounters": [
@@ -391,6 +528,283 @@
       "notes": "If a follow-up attempt is missed, the task transitions to overdue and a supervisor alert plus an escalated follow-up Flag fire automatically.",
       "fhirArtifacts": ["Task", "Communication", "Flag"],
       "profileGap": true
+    }
+  ],
+  "episodes": [
+    {
+      "resourceType": "EpisodeOfCare",
+      "id": "p011-episode",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "active",
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "code": "suicide-safer-care",
+              "display": "Suicide-safer care episode"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "code": "positive-screen",
+                "display": "Positive screen"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "code": "high",
+                "display": "High risk"
+              }
+            ]
+          }
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-011"
+      },
+      "period": {
+        "start": "2026-05-21T08:15:00Z"
+      }
+    }
+  ],
+  "documentReferences": [
+    {
+      "resourceType": "DocumentReference",
+      "id": "p011-discharge-packet",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-discharge-safety-packet"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "current",
+      "type": {
+        "text": "Suicide-safety discharge packet"
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "date": "2026-05-22T12:10:00Z",
+      "content": [
+        {
+          "attachment": {
+            "contentType": "application/pdf",
+            "title": "ED transition-of-care packet (PDF)"
+          }
+        }
+      ],
+      "context": {
+        "related": [
+          {
+            "reference": "CarePlan/p011-stanley-brown"
+          },
+          {
+            "reference": "Observation/p011-asq-result"
+          }
+        ]
+      },
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "current-risk-status",
+                "display": "Current risk status"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "recent-assessment",
+                "display": "Most recent suicide-risk assessment"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "safety-plan-copy",
+                "display": "Safety plan copy"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "lethal-means-actions",
+                "display": "Lethal means safety actions"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "crisis-resources",
+                "display": "Crisis contacts / resources"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "appointment-details",
+                "display": "Appointment details"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "patient-instructions",
+                "display": "Patient instructions"
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Assembled at ED discharge; copy to the patient and to outpatient BH."
+    }
+  ],
+  "serviceRequests": [
+    {
+      "resourceType": "ServiceRequest",
+      "id": "p011-referral",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-safety-referral"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "completed",
+      "intent": "order",
+      "code": {
+        "text": "Referral to outpatient behavioral health"
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "authoredOn": "2026-05-22T12:05:00Z",
+      "reasonCode": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-referral-reason",
+              "code": "post-discharge-follow-up",
+              "display": "Post-discharge follow-up"
+            }
+          ]
+        }
+      ],
+      "performer": [
+        {
+          "display": "Valley Outpatient Behavioral Health"
+        }
+      ],
+      "note": [
+        {
+          "text": "Intake completed 2026-05-27."
+        }
+      ]
+    }
+  ],
+  "appointments": [
+    {
+      "resourceType": "Appointment",
+      "id": "p011-follow-up",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-follow-up-appointment"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "fulfilled",
+      "description": "Outpatient behavioral health intake",
+      "start": "2026-05-27T10:00:00Z",
+      "end": "2026-05-27T10:45:00.000Z",
+      "participant": [
+        {
+          "actor": {
+            "reference": "Patient/patient-011"
+          },
+          "status": "accepted"
+        },
+        {
+          "actor": {
+            "display": "Valley Outpatient Behavioral Health"
+          },
+          "status": "accepted"
+        }
+      ]
     }
   ]
 }

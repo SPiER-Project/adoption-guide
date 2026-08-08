@@ -29,11 +29,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "Patient Health Questionnaire 9 item total score" }] },
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]" }], "text": "Patient Health Questionnaire 9 item total score" },
       "subject": { "reference": "Patient/patient-003" },
       "effectiveDateTime": "2026-05-15T09:30:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Minimal depression (score 4/27)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Normal" }], "text": "Minimal depression (score 4/27)" }]
     },
     {
       "resourceType": "Observation",
@@ -41,11 +41,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts that you would be better off dead or of hurting yourself" }] },
+      "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]" }], "text": "Thoughts that you would be better off dead or of hurting yourself" },
       "subject": { "reference": "Patient/patient-003" },
       "effectiveDateTime": "2026-05-15T09:30:00Z",
       "valueInteger": 1,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "A", "display": "Positive — suicide risk screening indicated" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "A", "display": "Abnormal" }], "text": "Positive — suicide risk screening indicated" }]
     }
   ],
   "carePlans": [],

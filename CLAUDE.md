@@ -24,7 +24,13 @@ npm run check:extract    # observation-extract validation
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions / questionnaire URLs)
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
-npm run check:scenarios  # scenario QuestionnaireResponses vs their Questionnaire (linkIds, nesting, answer options, ranges)
+npm run check:scenarios  # BOTH halves of the population-scenario gate:
+                         #  check-scenario-responses.mjs — QuestionnaireResponses vs their
+                         #    Questionnaire (linkIds, nesting, answer options, ranges)
+                         #  check-scenario-resources.mjs — every OTHER bucket (Observation,
+                         #    CarePlan, Communication, EpisodeOfCare, Appointment,
+                         #    ServiceRequest, Procedure, DocumentReference, Consent, Flag,
+                         #    Task) — see the scenario-gate note below for what it does NOT do
 npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
 npm test                 # vitest
 ```
@@ -45,7 +51,8 @@ npx fsh-sushi .        # compile FSH → fsh-generated/resources/
 At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
 caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
 ```
-node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/ + FHIR-Resources/
+node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/
+                                 # and web/src/data/population/scenarios/ (unwrapped)
 ```
 
 In `services/cds-hooks/` — **easy to forget, and CI gates it:**
@@ -81,6 +88,36 @@ Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you ca
 still dispatch the publisher directly: `gh workflow run ig-publish.yml`. Nothing
 in the repo compiles the measure CQL at `ig/drafts/` — see
 `docs/plans/stage-8-measure-and-share.md`.
+
+⚠️ **The population scenarios are hand-authored FHIR, and are gated by two
+things that cover different amounts.** `web/src/data/population/scenarios/patient-*.json`
+holds Observations, CarePlans, Communications, EpisodeOfCares, Appointments,
+ServiceRequests, Procedures and DocumentReferences that the Stage-8 measure
+engine reads directly, so a malformed one produces a *wrong* measure score
+rather than an empty one (issue #226). Be precise about which gate sees what:
+
+| | `npm run check:scenarios` (offline, in `verify`) | `node scripts/validate-fhir.mjs` (Java, `ig.yml`) |
+|---|---|---|
+| Runs | every `web/` verify | PR + push touching `ig/`, `FHIR-Resources/`, or the scenarios |
+| QuestionnaireResponses | linkIds, nesting, answerOption, ranges, value[x] type | full conformance against the Questionnaire |
+| Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
+| Misses | cardinality *counts*, slices, invariants, unknown elements, external codes | nothing structural — but runs `-tx n/a`, so LOINC/SNOMED displays wait for the nightly |
+
+The offline half's base-R4 required-element and status-code tables are
+hand-maintained (`BASE_REQUIRED` / `STATUS_CODES` in
+`check-scenario-resources.mjs`) because the base R4 StructureDefinitions are not
+vendored here. An omission there costs offline coverage only — the validator
+still catches the underlying defect. Everything profile-derived is read from
+`web/src/data/fhir/StructureDefinition-*.json`, so changing FSH changes the
+check.
+
+`validate-fhir.mjs` unwraps the scenario buckets into a temp directory first
+(`collectScenarioResources`), dropping only `_savedAt` — SPiER's client-side
+persistence stamp, which `smartDataSource` also strips before writing to a real
+server. `riskAlerts` and `encounters` are deliberately not fed to the validator:
+neither is FHIR (`encounters` is `ScenarioEncounter` walkthrough narration, not
+a FHIR Encounter), and the offline half checks both against their TypeScript
+shapes instead.
 
 ⚠️ **A validator warning can mean "nothing was checked".** If the HL7 validator
 cannot resolve a QuestionnaireResponse's Questionnaire (or a claimed profile), it
