@@ -107,9 +107,26 @@ const familyOf = system =>
 // 50 codings to 100, so a *per-source* floor of 15 would have been cleared by
 // either half alone — dropping the THO branch from EXTERNAL_FAMILIES entirely
 // would still have reported a healthy 50 and a green run. Hence the family
-// dimension: each vocabulary has to prove its own liveness. Floors are set well
-// under the real counts at time of writing (web/src loinc 40 / snomed 11 / tho 23;
-// manifest loinc 8 / snomed 10) so ordinary refactors do not trip them.
+// dimension: each vocabulary has to prove its own liveness.
+//
+// A floor proves *liveness*, not completeness. It answers "did this scan still
+// look at this vocabulary in this source", and nothing more — a legitimate edit
+// removing codes is allowed to lower the count. So the convention is roughly
+// HALF the real count, rounded down: high enough that a dead or rerouted scan
+// cannot clear it, low enough that ordinary refactors do not trip it.
+//
+// That convention has to be re-checked when a source grows, because nothing
+// re-checks it on its own. #43 doubled the manifest's SNOMED inventory from 10
+// codings to 20 while its floor sat at 5, quietly dropping that floor from ~50%
+// of the real count to 25% (issue #232). Raised to 10 here. Counts at the time
+// of writing, 2026-08-08:
+//
+//   web/src    loinc 41 / snomed 12 / tho 25
+//   manifest   loinc  8 / snomed 20 / tho  0
+//
+// The run prints the live count next to each floor on every invocation, so the
+// figures above are checkable against any recent nightly log rather than taken
+// on trust.
 const SCAN = [
   { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 20, snomed: 5, tho: 10 } },
   // Real zeros, verified rather than assumed. The Worker reuses the web catalog
@@ -124,8 +141,29 @@ const SCAN = [
   { path: 'services', exts: ['.ts'], minCodings: { loinc: 0, snomed: 0, tho: 0 } },
   // The manifest is a LOINC/SNOMED inventory; it names no THO code, so that floor
   // is 0 here for the same "verified real zero" reason as `services`.
-  { path: 'docs/terminology-manifest.json', exts: ['.json'], minCodings: { loinc: 4, snomed: 5, tho: 0 } },
+  { path: 'docs/terminology-manifest.json', exts: ['.json'], minCodings: { loinc: 4, snomed: 10, tho: 0 } },
 ]
+
+// The contract between EXTERNAL_FAMILIES and SCAN, enforced rather than asked for.
+//
+// The starvation guard below is driven by the declared floors, which is what makes
+// *deleting* a family from EXTERNAL_FAMILIES fail loudly (see the comment there).
+// The opposite direction had no such protection: a family could be ADDED, scanned,
+// and counted, with no SCAN entry declaring a floor for it — so nothing asserted it
+// stayed alive, and the day its extraction broke the run would still be green. That
+// was written down as an instruction to the next editor, in this file and in
+// CLAUDE.md, which is the weakest form a load-bearing invariant can take. Checking
+// both directions here costs one loop and removes the chance to forget.
+const undeclared = SCAN.flatMap(e =>
+  EXTERNAL_FAMILIES.filter(f => typeof e.minCodings[f.name] !== 'number')
+    .map(f => `${e.path} declares no floor for the '${f.name}' family`))
+if (undeclared.length) {
+  for (const line of undeclared) console.error(`✗ ${line}`)
+  console.error('  Every family in EXTERNAL_FAMILIES needs a floor in every SCAN entry —')
+  console.error('  a real zero is declared as 0, never left out. Without one, that family')
+  console.error('  is scanned with nothing asserting the scan still works.')
+  process.exit(1)
+}
 
 const args = process.argv.slice(2)
 const txIndex = args.indexOf('--tx')
@@ -207,7 +245,17 @@ for (const entry of SCAN) {
       if (field(obj, 'system') !== system) continue
       const code = field(obj, 'code')
       if (!code) { noCodeSites.push(`${rel} (${system}, no sibling code)`); continue }
-      sourceCount[familyOf(system)]++
+      // A system matched by the union regex must anchor-match exactly one family.
+      // If a future pattern breaks that (one family matching a prefix of another,
+      // say), the miscount would land under the key `undefined` and every real
+      // family would look starved — or worse, not. Fail on the ambiguity instead.
+      const family = familyOf(system)
+      if (!family) {
+        console.error(`✗ ${rel}: '${system}' matched an external family pattern but no single family.`)
+        console.error('  EXTERNAL_FAMILIES patterns must be mutually exclusive and individually anchorable.')
+        process.exit(1)
+      }
+      sourceCount[family]++
       const display = field(obj, 'display')
       const key = `${system}|${code}|${display ?? ''}`
       if (!found.has(key)) found.set(key, { system, code, display, files: new Set() })

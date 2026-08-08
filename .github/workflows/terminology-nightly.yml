@@ -38,9 +38,18 @@ name: Terminology — nightly external-code check
 # 2. The issue-reporting step is best-effort and its failure never masks a drift
 #    failure. This org restricts what Actions may do — `roadmap-snapshot.yml`
 #    documents Actions being forbidden from opening *pull requests* org-wide. That
-#    restriction does not cover issues, but that has not been observed here yet:
-#    until the first dispatched run confirms it, treat the run summary as the
-#    reliable output and the issue as a convenience.
+#    restriction does not cover issues, and as of #232 that is observed rather
+#    than assumed: run 31281293599 planted a drifted display on a disposable
+#    branch, and this job filed issue #240 under GITHUB_TOKEN. The same run
+#    confirmed the two checks fail independently — the codings job went red while
+#    the resources job stayed green, because the planted defect lived only in
+#    TypeScript, which is precisely the gap check-codings.mjs exists to close.
+#
+# 3. Triage when this goes red is written down in
+#    docs/scheduled-checks-triage.md, linked from every issue this job files.
+#    The two causes need opposite responses (a real drift is a code fix; an
+#    unreachable tx.fhir.org is a re-run), and a nightly whose failures nobody
+#    knows how to read decays into one nobody looks at.
 
 on:
   schedule:
@@ -305,6 +314,11 @@ jobs:
             echo "**Fix the code, not the expectation.** Every display must be one the"
             echo "publishing authority actually allows — that is the discipline #220 was"
             echo "about. Confirm replacements with \`\$validate-code\` before writing them."
+            echo
+            echo "Two different things make this red and they need opposite responses:"
+            echo "a code that actually drifted is a fix in this repo, an unreachable"
+            echo "\`$TX_SERVER\` is a re-run. **[Triage steps for both](../blob/main/docs/scheduled-checks-triage.md)**"
+            echo "— which one you are looking at is decided by the table above."
             echo
             echo "Opened by [\`terminology-nightly.yml\`](../blob/main/.github/workflows/terminology-nightly.yml). Refs #220."
           } > "$RUNNER_TEMP/body.md"
