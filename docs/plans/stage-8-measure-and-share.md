@@ -363,4 +363,12 @@ audit rather than left in this doc:
 
 The dependency chain is recorded on GitHub as real `blocked_by` links:
 #93 + #92 → #77 → #180 → #181, with #209/#210/#211 also blocking #180.
-Presentation of the all-empty state is #213.
+
+Presentation of the all-empty state was #213, **done**. The dashboard now says
+which artifact each empty measure is waiting on, and this table is the source of
+that copy — `web/src/lib/measureGaps.ts` keys the same four gaps by `Measure.id`.
+The explanations are derived from the tally rather than hard-coded, so a measure
+stops explaining itself the moment it computes; when #209 seeds a cohort, the
+notes for the measures it unblocks disappear on their own. `measureGaps.test.ts`
+asserts the mapping covers `MEASURE_SPECS` in both directions, so a Measure added
+in FSH fails the test rather than silently falling back to generic copy.
