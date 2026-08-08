@@ -14,10 +14,18 @@
  * function under exactly that name. A mismatch is a runtime throw on a page
  * nobody may visit in review, so it is worth a build gate.
  *
- * This matters more than usual here because NOTHING COMPILES THE CQL. The CQL
- * at ig/drafts/SPiERSuicideSaferCareMeasures.cql is documentation; measures.ts
- * is the only tested implementation. This check is what keeps the published
- * Measures and that implementation honest about each other.
+ * Since #212 the CQL at ig/input/cql/SPiERSuicideSaferCareMeasures.cql IS
+ * compiled — the IG Publisher translates it to ELM and fails the build on a
+ * translation error. That covers a different half of the problem than this
+ * check does, and neither subsumes the other:
+ *
+ *   the publisher   the CQL is valid CQL and its defines resolve
+ *   this check      the FSH criterion names and the TS engine agree
+ *
+ * A `criteria.expression` naming a define that exists in CQL but has no
+ * implementation in measures.ts still throws at runtime, and the publisher
+ * cannot see that. measures.ts remains the executable reference implementation
+ * — it is what the app runs and what vitest covers.
  *
  * Asserts:
  *

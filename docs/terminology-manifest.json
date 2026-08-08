@@ -2,48 +2,146 @@
   "tools": {
     "ASQ": {
       "items": {
-        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" },
-        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" },
-        "answer_positive": { "system": "http://snomed.info/sct", "code": "373066001" },
-        "answer_negative": { "system": "http://snomed.info/sct", "code": "373067005" }
+        "suicide_risk_level": {
+          "system": "http://loinc.org",
+          "code": "93374-7"
+        },
+        "suicide_risk_assessment_procedure": {
+          "system": "http://snomed.info/sct",
+          "code": "225337009"
+        },
+        "answer_positive": {
+          "system": "http://snomed.info/sct",
+          "code": "373066001"
+        },
+        "answer_negative": {
+          "system": "http://snomed.info/sct",
+          "code": "373067005"
+        }
       }
     },
     "C-SSRS": {
       "items": {
-        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" },
-        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" }
+        "suicide_risk_level": {
+          "system": "http://loinc.org",
+          "code": "93374-7"
+        },
+        "suicide_risk_assessment_procedure": {
+          "system": "http://snomed.info/sct",
+          "code": "225337009"
+        }
       }
     },
     "CAMS": {
       "items": {
-        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" },
-        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" },
-        "treatment_escalation_plan": { "system": "http://snomed.info/sct", "code": "735324008" }
+        "suicide_risk_assessment_procedure": {
+          "system": "http://snomed.info/sct",
+          "code": "225337009"
+        },
+        "suicide_risk_level": {
+          "system": "http://loinc.org",
+          "code": "93374-7"
+        },
+        "treatment_escalation_plan": {
+          "system": "http://snomed.info/sct",
+          "code": "735324008"
+        }
       }
     },
     "PHQ-9": {
       "items": {
-        "phq9_quick_depression_assessment": { "system": "http://loinc.org", "code": "44249-1" },
-        "phq9_total_score": { "system": "http://loinc.org", "code": "44261-6" },
-        "item_9": { "system": "http://loinc.org", "code": "44260-8" },
-        "depression_screening_procedure": { "system": "http://snomed.info/sct", "code": "171207006" },
-        "more_than_half_days": { "system": "http://loinc.org", "code": "LA6570-1" }
+        "phq9_quick_depression_assessment": {
+          "system": "http://loinc.org",
+          "code": "44249-1"
+        },
+        "phq9_total_score": {
+          "system": "http://loinc.org",
+          "code": "44261-6"
+        },
+        "item_9": {
+          "system": "http://loinc.org",
+          "code": "44260-8"
+        },
+        "depression_screening_procedure": {
+          "system": "http://snomed.info/sct",
+          "code": "171207006"
+        },
+        "more_than_half_days": {
+          "system": "http://loinc.org",
+          "code": "LA6570-1"
+        }
       }
     },
     "SBQ-R": {
       "items": {
-        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" }
+        "suicide_risk_assessment_procedure": {
+          "system": "http://snomed.info/sct",
+          "code": "225337009"
+        }
       }
     },
     "Stanley-Brown": {
       "items": {
-        "suicide_risk_assessment_procedure": { "system": "http://snomed.info/sct", "code": "225337009" },
-        "treatment_escalation_plan": { "system": "http://snomed.info/sct", "code": "735324008" }
+        "suicide_risk_assessment_procedure": {
+          "system": "http://snomed.info/sct",
+          "code": "225337009"
+        },
+        "treatment_escalation_plan": {
+          "system": "http://snomed.info/sct",
+          "code": "735324008"
+        }
       }
     },
     "ConceptLayer": {
       "items": {
-        "suicide_risk_level": { "system": "http://loinc.org", "code": "93374-7" }
+        "suicide_risk_level": {
+          "system": "http://loinc.org",
+          "code": "93374-7"
+        }
+      }
+    },
+    "ProblemList": {
+      "items": {
+        "at_increased_risk_for_suicide": {
+          "system": "http://snomed.info/sct",
+          "code": "225444004"
+        },
+        "suicidal_thoughts": {
+          "system": "http://snomed.info/sct",
+          "code": "6471006"
+        },
+        "planning_suicide": {
+          "system": "http://snomed.info/sct",
+          "code": "247650009"
+        },
+        "suicidal_intent": {
+          "system": "http://snomed.info/sct",
+          "code": "304594002"
+        },
+        "suicidal_behavior": {
+          "system": "http://snomed.info/sct",
+          "code": "425104003"
+        },
+        "suicide_attempt": {
+          "system": "http://snomed.info/sct",
+          "code": "82313006"
+        },
+        "previous_known_suicide_attempt": {
+          "system": "http://snomed.info/sct",
+          "code": "23233009"
+        },
+        "self_injurious_behavior": {
+          "system": "http://snomed.info/sct",
+          "code": "248062006"
+        },
+        "self_inflicted_injury": {
+          "system": "http://snomed.info/sct",
+          "code": "276853009"
+        },
+        "depressive_disorder": {
+          "system": "http://snomed.info/sct",
+          "code": "35489007"
+        }
       }
     }
   }

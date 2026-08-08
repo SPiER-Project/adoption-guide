@@ -22,12 +22,17 @@ ig/
 `input/resources` does not recurse. See that folder's README for the authoring
 rules and for what each gate does and does not check.
 
-`drafts/` holds sources that are deliberately outside the build. Today that is
-the Stage-8 measure CQL, which nothing in this repo compiles (see
-`docs/plans/stage-8-measure-and-share.md`). The four StructureMap drafts that
-used to live there were promoted in #92 / #229. `scripts/check-fml.mjs` still
-compiles any `.fml` parked in `drafts/`, so a map being written there is gated
-before it moves.
+`input/cql/` is compiled — the IG Publisher translates it to ELM and attaches
+the result to `Library/SPiERSuicideSaferCareMeasures`. As with `maps/`, that
+happens only because `sushi-config.yaml` says so: `path-binary: input/cql` is
+the CQL loader's activation switch, and without it the publisher skips the
+folder without a word. Both folders are one config line away from silently not
+being built, which is why each carries the same warning.
+
+`drafts/` is now empty. It holds sources deliberately outside the build; the
+four StructureMap drafts were promoted in #92 / #229 and the Stage-8 measure CQL
+in #212. `scripts/check-fml.mjs` still compiles any `.fml` parked there, so a
+map being written in `drafts/` is gated before it moves.
 
 ## Local compile
 

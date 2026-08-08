@@ -84,7 +84,7 @@ different classes of problem, and a clean SUSHI run implies none of the others:
 |---|---|---|
 | `npx fsh-sushi .` | FSH syntax, unresolved FSH references | `ig.yml` |
 | `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
-| IG Publisher | FHIRPath invariants, narrative link integrity, **and everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types) | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
+| IG Publisher | FHIRPath invariants, narrative link integrity, **everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types), **and CQL→ELM translation** of `ig/input/cql` (gated on `path-binary` — see below) | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
 | `node scripts/check-fml.mjs` | FML syntax + the Stanley-Brown map still producing the CarePlan the runtime produces | `fml-validate.yml` |
 | `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC, SNOMED and terminology.hl7.org codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
 
@@ -109,9 +109,20 @@ code+display literals in `web/src/lib/*Mappers/`, even though those land in
 
 The validator job is the only thing that checks `FHIR-Resources/` at all — the IG
 Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you can
-still dispatch the publisher directly: `gh workflow run ig-publish.yml`. Nothing
-in the repo compiles the measure CQL at `ig/drafts/` — see
-`docs/plans/stage-8-measure-and-share.md`.
+still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
+
+⚠️ **The IG Publisher compiles the measure CQL, and only because of one config
+line.** `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` is translated to ELM
+and attached to `Library/SPiERSuicideSaferCareMeasures`; a translation error
+fails the build. What turns it on is `path-binary: input/cql` in
+`ig/sushi-config.yaml` — the CQL loader's activation switch. **Remove that line
+and the publisher walks past `input/cql` in silence**, translating nothing and
+reporting nothing, which reads exactly like a passing gate. That silence is what
+made #201 conclude the publisher *cannot* translate CQL (it bundles the full
+cqframework translator) and move the file out of the build for a release; #212
+re-tested it, and the first real compile failed on five defects that had been
+invisible the whole time. To confirm the gate is alive, grep a publisher log for
+`Translating CQL source` — see `docs/plans/stage-8-measure-and-share.md`.
 
 Running the IG Publisher locally is worth it before a substantial `ig/` change,
 and has two traps: it **refuses any path containing a space**, which this

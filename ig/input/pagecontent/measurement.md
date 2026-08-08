@@ -18,10 +18,13 @@ measurement is a read.
 | [Caring Contact Adherence](Measure-SPiERCaringContactAdherence.html) | Caring contacts; the opt-out extension | Patients with a documented transition |
 | [Referral Loop Closure](Measure-SPiERReferralCompletion.html) | Referral ServiceRequest status | Patients with a referral |
 
-Each `Measure.group.population.criteria` names one definition. The definitions
-are written out in full as CQL in `ig/drafts/SPiERSuicideSaferCareMeasures.cql`
-— see *What is and isn't verified* at the end of this page for why that file is
-a draft rather than a published `Library`.
+Each `Measure.group.population.criteria` names one definition, and every
+`Measure.library` points at
+[Library/SPiERSuicideSaferCareMeasures](Library-SPiERSuicideSaferCareMeasures.html),
+which carries the CQL and the ELM the IG Publisher compiles from it. So the
+measures are portable: you can evaluate them without reimplementing the
+criteria. See *What is and isn't verified* at the end of this page for what that
+does and does not prove.
 
 ### Why the episode is the denominator
 
@@ -150,20 +153,36 @@ per-patient.
 ### What is and isn't verified
 
 The `Measure` resources are validated by SUSHI and by the IG Publisher's QA
-run. The **CQL is not compiled by anything in this repo**, and it is worth being
-plain about that rather than implying a rigour that isn't there.
+run, and the **CQL is compiled** — the publisher translates it to ELM on every
+build and fails on a translation error.
 
-An earlier revision of this work put the CQL under `ig/input/cql/` with a
-published `Library` pointing at it, on the assumption that the IG Publisher
-translates `input/cql` and attaches the ELM. It does not — the publisher log
-never mentions CQL. The visible symptom was 63 broken narrative links, because
-the publisher generates a link from every `criteria.expression` into the
-Library's rendered CQL, and there was no rendered CQL to land on.
+That is a recent correction, and the earlier state of this page was wrong in a
+way worth recording. It said the publisher does not translate `input/cql`,
+citing a publisher log that never mentioned CQL. The log was accurate; the
+inference was not. The publisher bundles the full cqframework translator, and
+what was missing was the CQL loader's activation parameter — `path-binary:
+input/cql` in `sushi-config.yaml`. Without it the publisher walks past the
+folder silently, which is indistinguishable from not supporting CQL at all. With
+it set, the log says:
 
-So the CQL now sits in `ig/drafts/`, the same place the draft StructureMap
-`.fml` files live, outside `ig/input/` where neither SUSHI nor the publisher
-touches it. Read it as the **readable long form** of each criterion. The
-`Measure` resources name the populations normatively; the executable reference
-implementation will be the TypeScript measure engine, which the repo can
-unit-test. Promoting the CQL into `ig/input/cql/` requires proving a translator
-in CI first.
+```
+Translating CQL source in folder .../ig/input/cql
+Translating CQL source in file .../SPiERSuicideSaferCareMeasures.cql
+Translation failed with (5) errors; see the error log for more information.
+```
+
+Those five errors were real. Every criterion that dated a resource used the
+fluent `.toInterval()` on `Observation.effective[x]` and
+`Procedure.performed[x]`, which has no overload for the full R4 choice types —
+so the library, had anyone tried to run it, would not have compiled. That is the
+argument for compiling artifacts rather than publishing them as prose, made at
+SPiER's own expense.
+
+What this still does **not** prove is that the CQL computes the right answer.
+Translation checks that the logic is well-formed and that its definitions
+resolve; it does not execute it against data. The executable reference
+implementation remains the TypeScript engine in `web/src/lib/measures.ts`, which
+vitest covers and which `npm run check:measures` ties to these `Measure`
+resources name by name. Two measures being equivalent — the CQL and the TS — is
+asserted, not yet tested. A cross-engine parity test, on the model of the
+Stanley-Brown FML/TypeScript golden-file comparison, is the honest next step.
