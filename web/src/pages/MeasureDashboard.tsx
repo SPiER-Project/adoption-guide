@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import registryPatientsData from '../data/population/patients.json'
+import roadmapSnapshot from '../data/roadmap.generated.json'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import {
   MEASURE_SPECS,
@@ -10,6 +11,7 @@ import {
   type MeasureTally,
   type MeasurementPeriod,
 } from '../lib/measures'
+import { emptinessOf, type Emptiness } from '../lib/measureGaps'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import type { RegistryPatient } from '../lib/registry'
 import type { PatientSlice } from '../types/fhir'
@@ -25,6 +27,79 @@ const WINDOWS: { days: number; label: string }[] = [
   { days: 365, label: 'Last 12 months' },
   { days: 3650, label: 'All time' },
 ]
+
+/** The longest selectable period, used as the "does this ever compute?" baseline. */
+const WIDEST_WINDOW_DAYS = Math.max(...WINDOWS.map(w => w.days))
+
+const REPO_URL = `https://github.com/${(roadmapSnapshot as { repo: string }).repo}`
+
+/** Tally every measure across the whole registry for one measurement period. */
+function tallyRegistry(period: MeasurementPeriod): MeasureTally[] {
+  return tallyAll(
+    REGISTRY_PATIENTS.map(p =>
+      evaluateAllMeasures(localDataSource.getSliceSync?.(p.id) ?? EMPTY_SLICE, period),
+    ),
+  )
+}
+
+function IssueLinks({ issues }: { issues: number[] }) {
+  return (
+    <>
+      {issues.map((n, i) => (
+        <span key={n}>
+          {i > 0 && ', '}
+          <a
+            className="md-gap-link"
+            href={`${REPO_URL}/issues/${n}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            #{n}
+          </a>
+        </span>
+      ))}
+    </>
+  )
+}
+
+/**
+ * The sentence that separates "not yet measurable" from "measured zero".
+ *
+ * Renders nothing once the measure computes, so it retires itself when a seeded
+ * cohort lands rather than becoming a stale caveat someone has to remember to
+ * delete.
+ */
+function EmptyExplanation({ emptiness }: { emptiness: Emptiness }) {
+  if (emptiness.kind === 'none') return null
+
+  if (emptiness.kind === 'all-excluded') {
+    return (
+      <p className="md-gap">
+        <strong className="md-gap-lead">Nothing left to score.</strong> Patients met the cohort
+        criteria, but every one of them fell into a denominator exclusion — so the effective
+        denominator is empty. That is a valid result, not a missing one.
+      </p>
+    )
+  }
+
+  if (emptiness.kind === 'window') {
+    return (
+      <p className="md-gap">
+        <strong className="md-gap-lead">No qualifying activity in this period.</strong> This measure
+        does compute over a longer measurement period — widen the window above to see it.
+      </p>
+    )
+  }
+
+  const { gap } = emptiness
+  return (
+    <p className="md-gap">
+      <strong className="md-gap-lead">Not yet measurable.</strong> The denominator counts{' '}
+      {gap.denominator}, and no patient in the demo registry qualifies. {gap.missing} Tracked as{' '}
+      <IssueLinks issues={gap.issues} />.
+    </p>
+  )
+}
 
 /**
  * TL-043 — Reporting Dashboard / Aggregate View.
@@ -50,12 +125,23 @@ export function MeasureDashboard() {
     [windowDays, tick],
   )
 
-  const tallies: MeasureTally[] = useMemo(() => {
-    const perPatient = REGISTRY_PATIENTS.map(p =>
-      evaluateAllMeasures(localDataSource.getSliceSync?.(p.id) ?? EMPTY_SLICE, period),
-    )
-    return tallyAll(perPatient)
-  }, [period])
+  const tallies: MeasureTally[] = useMemo(() => tallyRegistry(period), [period])
+
+  // The same measures over the widest window. Only used to tell "this measure
+  // never computes on the demo data" apart from "nothing happened in the last
+  // 30 days" — two different findings that both render as "no denominator".
+  const widestTallies: MeasureTally[] = useMemo(
+    () =>
+      windowDays === WIDEST_WINDOW_DAYS ? tallies : tallyRegistry(trailingPeriod(WIDEST_WINDOW_DAYS)),
+    [windowDays, tallies],
+  )
+
+  const emptiness: Emptiness[] = useMemo(
+    () => tallies.map((t, i) => emptinessOf(t, widestTallies[i] ?? t)),
+    [tallies, widestTallies],
+  )
+
+  const emptyCount = emptiness.filter(e => e.kind !== 'none').length
 
   const reportedAt = useMemo(() => new Date().toISOString(), [period])
 
@@ -87,6 +173,30 @@ export function MeasureDashboard() {
           {period.start.slice(0, 10)} → {period.end.slice(0, 10)}
         </span>
       </div>
+
+      {emptyCount > 0 && (
+        <aside className="md-caveat" aria-label="Why some measures have no denominator">
+          <h2 className="md-caveat-title">
+            {emptyCount} of {tallies.length} measures have no denominator in this period
+          </h2>
+          <p className="md-caveat-body">
+            An empty denominator is not a score of zero. It means no patient in the registry meets
+            that measure&rsquo;s cohort criteria, so there is nothing to score — a different finding
+            from &ldquo;we measured, and the answer was none.&rdquo;
+          </p>
+          {/* Deliberately says nothing about WHICH artifacts are missing: that
+              belongs on each measure, where it stops rendering as soon as that
+              measure computes. A list up here would outlive the gap it names. */}
+          <p className="md-caveat-body">
+            The definitions below are live — every table is computed and every MeasureReport is
+            assembled at render time. What is missing is the data they read: the demo registry does
+            not yet contain conforming artifacts for every stage these measures query. Each empty
+            measure says below exactly which artifact it is waiting on. Auditing capture
+            completeness that way is what a measure layer is for, so the zeros are the finding
+            rather than a bug.
+          </p>
+        </aside>
+      )}
 
       {tallies.map((tally, i) => {
         const spec = MEASURE_SPECS[i]
@@ -136,6 +246,8 @@ export function MeasureDashboard() {
                 })}
               </tbody>
             </table>
+
+            <EmptyExplanation emptiness={emptiness[i] ?? { kind: 'none' }} />
 
             <FhirJsonViewer
               data={buildSummaryMeasureReport(tally, spec, period, reportedAt, 'SPiER demo registry')}

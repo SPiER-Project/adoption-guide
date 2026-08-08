@@ -45,6 +45,61 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── "Not yet measurable" caveat ──
+   The page-level framing for a dashboard whose tables are all empty. It is
+   rendered only while at least one measure has no denominator, so it retires
+   itself when a seeded cohort lands rather than lingering as stale copy. */
+.md-caveat {
+  border: 1px solid var(--accent-info-border);
+  border-left: 4px solid var(--accent-info-mid);
+  border-radius: var(--radius-lg);
+  background-color: var(--accent-info-soft-bg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.md-caveat-title {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--accent-info-text-deep);
+}
+
+.md-caveat-body {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+.md-caveat-body:last-child {
+  margin-bottom: 0;
+}
+
+/* Per-measure counterpart: names the one artifact this measure is waiting on.
+   Sits under its table — the empty rows stay visible, since they are the
+   finding this note is explaining. */
+.md-gap {
+  margin: 0 0 var(--space-3) 0;
+  padding: var(--space-3);
+  border-left: 3px solid var(--accent-info-border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+.md-gap-lead {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.md-gap-link {
+  color: var(--accent-info-text);
+  font-variant-numeric: tabular-nums;
+}
+
 .md-measure {
   margin-bottom: var(--space-6);
   padding: var(--space-4);
