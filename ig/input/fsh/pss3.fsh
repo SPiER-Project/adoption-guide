@@ -177,6 +177,10 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Patient Safety Screener 3 questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/PSS-3|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #public-domain
+* copyright = "The Patient Safety Screener (PSS-3) was developed through the ED-SAFE study, funded by the National Institute of Mental Health, and is distributed as a free public resource by SAMHSA and the Suicide Prevention Resource Center. No permission or fee is required for use. The tip sheet instructs administering the three questions exactly as worded; the SPiER Questionnaire reproduces the wording, recency options and positive-screen rule verbatim. Basis: FHIR-Resources/PSS-3/licensing/MEMO.md (issue #64)."
 
 
 // ─── Examples ────────────────────────────────────────────────

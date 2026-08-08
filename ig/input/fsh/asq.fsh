@@ -124,6 +124,10 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "ASQ Screening Tool questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #public-domain
+* copyright = "The ASQ (Ask Suicide-Screening Questions) is a public domain instrument developed by the National Institute of Mental Health (NIMH). No permission is required for use. The audit memo asks that use attribute the instrument to NIMH and cite the canonical publication. Basis: FHIR-Resources/ASQ/licensing/MEMO.md (issue #64). Open items recorded there: the permission letter it references is still to be filed in-repo, and whether item wording may be modified is not yet settled — the SPiER Questionnaire reproduces the five core items verbatim."
 
 
 // ─── Examples ────────────────────────────────────────────────

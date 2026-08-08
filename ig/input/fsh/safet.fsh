@@ -148,6 +148,10 @@ Usage: #definition
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "SAFE-T questionnaire"
 * relatedArtifact[=].resource = "http://spier.org/Questionnaire/SAFE-T|1.0.0"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #public-domain
+* copyright = "The SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) pocket card is a public resource of the Substance Abuse and Mental Health Services Administration (SAMHSA), developed with Screening for Mental Health, Inc. and Douglas Jacobs, MD. It is distributed free by SAMHSA; no permission or fee is required for use. SAFE-T is a clinician guide rather than a scored instrument, and its risk-level/intervention chart is, in the card's own words, an example range rather than a determination. Basis: FHIR-Resources/SAFE-T/licensing/MEMO.md (issue #64)."
 
 
 // ─── Examples ────────────────────────────────────────────────

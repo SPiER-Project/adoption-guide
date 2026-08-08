@@ -45,6 +45,8 @@
 - Output: `SPiERCrisisResponsePlan` CarePlan profile (one activity per section); LOINC reused from the Stanley-Brown panel where concepts overlap.
 - FSH source attribution: `ig/input/fsh/crp.fsh` header documents authorship, licensing basis, and the maintainer confirmation date.
 
+- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AuthorCrisisResponsePlan` (status `registration`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `web/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
+
 ## Open questions
 
 - If a written permission/license grant exists, file it in this directory for the record.

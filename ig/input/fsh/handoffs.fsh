@@ -260,6 +260,8 @@ Usage: #definition
 * purpose = "Make sure suicide-safety context survives a transition of care. Belongs to the Coordinate Handoffs stage."
 * kind = #CommunicationRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: GenerateDischargeSafetyPacket
@@ -278,6 +280,8 @@ Usage: #definition
 * purpose = "Give the patient and the next provider one retrievable bundle of the suicide-safety essentials. Belongs to the Coordinate Handoffs stage."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: SendRapidReferral
@@ -296,6 +300,8 @@ Usage: #definition
 * purpose = "Close the loop on referrals rather than assuming a sent referral was received. Belongs to the Coordinate Handoffs stage."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: ScheduleFollowUpAppointment
@@ -314,6 +320,8 @@ Usage: #definition
 * purpose = "Ensure the patient leaves with a follow-up already in place rather than an instruction to call. Belongs to the Coordinate Handoffs stage."
 * kind = #Appointment
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: RecordConsentSharingStatus
@@ -332,6 +340,8 @@ Usage: #definition
 * purpose = "Let the EHR decide what may be sent or withheld at a handoff, instead of guessing. Belongs to the Coordinate Handoffs stage."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 // ─── Examples ────────────────────────────────────────────────

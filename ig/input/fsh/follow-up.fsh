@@ -205,6 +205,8 @@ Usage: #definition
 * purpose = "Make follow-up contact auditable attempt-by-attempt rather than as a vague 'we tried'. Belongs to the Track Follow-Up stage."
 * kind = #CommunicationRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: SendCaringContact
@@ -223,6 +225,10 @@ Usage: #definition
 * purpose = "Sustain low-burden supportive contact after an episode of risk — one of the few interventions with direct evidence for reducing repeat attempts. Belongs to the Track Follow-Up stage."
 * kind = #CommunicationRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[=].valueCode = #spier-authored
+* copyright = "SPiER-authored workflow content: this activity records that a caring contact was sent and how the patient responded. Caring contacts are a published intervention pattern rather than a proprietary instrument, and SPiER ships no message text of its own here. The activity and its SPiER profiles are published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). Message templates a site adopts from a published caring-contacts program carry that program's own terms, which SPiER has not audited."
 
 
 Instance: TrackFollowUpAppointment
@@ -241,6 +247,8 @@ Usage: #definition
 * purpose = "Know whether follow-up actually happened, not just that it was booked. Belongs to the Track Follow-Up stage."
 * kind = #Appointment
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: FollowUpMissedAppointment
@@ -259,6 +267,8 @@ Usage: #definition
 * purpose = "Treat a missed appointment by a high-risk patient as a safety event rather than an empty slot. Belongs to the Track Follow-Up stage."
 * kind = #CommunicationRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 Instance: EscalateFollowUp
@@ -277,6 +287,8 @@ Usage: #definition
 * purpose = "Ensure failed follow-up is surfaced and acted on rather than quietly aging out. Belongs to the Track Follow-Up stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
+// Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
+* insert LicensingSpiERAuthored
 
 
 // ─── Examples ────────────────────────────────────────────────

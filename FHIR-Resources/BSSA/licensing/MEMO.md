@@ -48,6 +48,8 @@
 - IG page attribution block: not yet authored (no dedicated `ig/input/pagecontent/bssa.md` in this PR); provenance is carried in the FSH header and this memo.
 - FSH source attribution: `ig/input/fsh/bssa.fsh` header documents NIMH provenance and public-domain status; `AdministerBSSA.publisher = "SPiER (HTD Health)"`.
 
+- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerBSSA` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `web/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
+
 ## Open questions
 
 - Whether a dedicated IG narrative page (`ig/input/pagecontent/bssa.md`) should be authored to carry the full attribution and the disposition-guidance context; deferred from this PR.

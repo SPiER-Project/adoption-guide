@@ -52,6 +52,11 @@ If permission cannot be obtained, TL-028 stays a catalogued placeholder (the too
 **Commercial use permitted?** Unknown — must be confirmed.
 **Other constraints:** To be captured from the permission grant.
 
+## FHIR artifact metadata reflection
+
+- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerCARSS` (status `commercial`), stating the NO-GO explicitly — permission not obtained, no CARS item content reproduced, and this memo named as the basis. Added by issue #127; see `ig/input/fsh/instrument-licensing.fsh`.
+- No `Questionnaire` exists, deliberately. That is the point of the NO-GO.
+
 ## Open questions
 
 - Obtain written permission or a license from the CARS authors / APA before any authoring.

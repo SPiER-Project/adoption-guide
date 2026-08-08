@@ -75,16 +75,24 @@ const MATURITY_DIMENSIONS = [
 
 const MATURITY_LEVEL_LABELS = ['None', 'Basic', 'Partial', 'Full'] as const
 
+// Both maps mirror the codes in ig/input/fsh/instrument-licensing.fsh, which is
+// where a tool's status is actually set. The pill is the summary; the full
+// notice — including where the claim comes from — is `tool.copyright`, shown on
+// hover and read straight from ActivityDefinition.copyright.
 const LICENSING_LABELS: Record<Licensing, string> = {
   'public-domain': 'Public domain',
   registration: 'Registration',
   commercial: 'Commercial',
+  'spier-authored': 'SPiER-authored',
+  unknown: 'Unknown',
 }
 
 const LICENSING_BLURB: Record<Licensing, string> = {
-  'public-domain': 'Free to use and embed without permission or fees (e.g. ASQ, PHQ-9, SBQ-R, BSSA). Attribution still good practice.',
-  registration: 'Free but gated — requires registering with the instrument owner and accepting usage terms before deployment (e.g. C-SSRS).',
-  commercial: 'Requires a paid license, training, or both from the instrument owner (e.g. CAMS). Confirm terms before deploying.',
+  'public-domain': 'Free to use and embed without permission or fees (e.g. ASQ, PHQ-9, BSSA). Attribution still good practice.',
+  registration: 'Free but gated — requires registering with the rights holder, obtaining written permission, and/or training before deployment (e.g. C-SSRS, Stanley-Brown).',
+  commercial: 'Requires a paid license, a purchased instrument, or a negotiated agreement with the rights holder (e.g. CAMS). Confirm terms before deploying.',
+  'spier-authored': 'No third-party instrument is reproduced — SPiER workflow content, published with the IG under CC0-1.0. Anything you substitute into the step carries its own terms.',
+  unknown: 'Not established by the licensing audit (#64). Confirm terms with the rights holder before deploying — this is an open question, not a green light.',
 }
 
 interface ReadinessRow {
@@ -249,8 +257,12 @@ export function AdoptionReadiness() {
               </div>
             ))}
             <div className="ar-legend-row">
-              <span className="ar-lic ar-lic--unknown">—</span>
-              <span className="ar-legend-text">Licensing not yet documented for this tool.</span>
+              <span className="ar-lic ar-lic--not-recorded">—</span>
+              <span className="ar-legend-text">
+                No licensing status on the tool&rsquo;s ActivityDefinition. Every one carries a status
+                today, so this should not appear &mdash; <code>npm run check:catalog</code> fails the
+                build if one is missing.
+              </span>
             </div>
           </div>
         </details>
@@ -288,11 +300,14 @@ export function AdoptionReadiness() {
                     </td>
                     <td>
                       {tool.licensing ? (
-                        <span className={`ar-lic ar-lic--${tool.licensing}`} title={LICENSING_BLURB[tool.licensing]}>
+                        <span
+                          className={`ar-lic ar-lic--${tool.licensing}`}
+                          title={tool.copyright ?? LICENSING_BLURB[tool.licensing]}
+                        >
                           {LICENSING_LABELS[tool.licensing]}
                         </span>
                       ) : (
-                        <span className="ar-lic ar-lic--unknown" title="Licensing not yet documented">—</span>
+                        <span className="ar-lic ar-lic--not-recorded" title="No licensing status on this tool's ActivityDefinition">—</span>
                       )}
                     </td>
                     <td>

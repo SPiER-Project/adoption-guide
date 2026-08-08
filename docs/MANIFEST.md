@@ -9,6 +9,8 @@ This manifest provides a computer-readable and human-readable index of the asset
 *   **`docs/best-practices/consent-vs-ds4p.md`**: Educational guide on FHIR Consent and data segmentation standards.
 *   **`docs/best-practices/validation-guide.md`**: Instructions for technical and clinical validation of assets.
 *   **`docs/best-practices/concept-harmonization.md`**: Conformance rationale for the cross-instrument concept layer — mapping disparate instruments (ASQ, C-SSRS, PHQ-9) to one common suicide-risk-tier representation, modeled on HL7 Gravity + SDC. Pairs with the `concept-harmonization` skill.
+*   **`docs/best-practices/licensing-audit-template.md`**: Per-tool licensing-audit memo template. Instantiated as `FHIR-Resources/<tool>/licensing/MEMO.md`.
+*   **`docs/best-practices/licensing-verification-backlog.md`**: What is still owed on instrument licensing — every status published by [#127](https://github.com/SPiER-Project/adoption-guide/issues/127) is traceable in-repo but **none is verified against the rights holder's current terms**. Standing list under epic [#64](https://github.com/SPiER-Project/adoption-guide/issues/64), which gates the org transfer.
 *   **`docs/repo-audit.md`**: Move 6d structural audit.
 *   **`docs/scheduled-checks-triage.md`**: The two timer-driven workflows (`terminology-nightly.yml`, `roadmap-snapshot.yml`) — their schedules, the named reader for each, and what to do when one goes red. Distinguishes real terminology drift (fix the code) from a `tx.fhir.org` outage (re-run), and carries the manual-PR step the org's no-Actions-PRs policy forces. Linked from every issue either workflow files.
 

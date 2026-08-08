@@ -53,6 +53,8 @@ How are the above conditions reflected in the published FHIR resources?
 - `Questionnaire.useContext`: `<any relevant context bindings, or "n/a">`
 - IG page attribution block: `<reference to ig/input/pagecontent/<tool>.md section, or "not yet authored">`
 - FSH source attribution: `<reference to ig/input/fsh/<tool>.fsh declaration, or "not yet authored">`
+- `ActivityDefinition.copyright`: `<exact string — the notice an adopter reads, ending with where the claim comes from: this memo, the Questionnaire notice, or "not established">`
+- `instrument-licensing-status` extension: `<public-domain | registration | commercial | spier-authored | unknown>` — REQUIRED on every ActivityDefinition; `npm run check:catalog` fails without it. Use `unknown` when this memo has not settled the terms; never leave it off, and never pick a permissive code to fill the gap. Vocabulary and rationale: `ig/input/fsh/instrument-licensing.fsh`.
 
 ## Open questions
 
