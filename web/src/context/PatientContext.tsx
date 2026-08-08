@@ -27,6 +27,7 @@ import type {
   FhirResource,
   ObservationResource,
   PatientResource,
+  ProcedureResource,
   PatientSlice,
   QuestionnaireResponseResource,
   ScenarioEncounter,
@@ -144,6 +145,8 @@ interface PatientContextType {
   serviceRequests: ServiceRequestResource[]
   appointments: AppointmentResource[]
   consents: ConsentResource[]
+  /** Stage-4 lethal-means counseling Procedures — read by the Stage-8 measure. */
+  procedures: ProcedureResource[]
   riskAlerts: RiskAlert[]
   /**
    * Append a non-Questionnaire workflow artifact, routing it into the right
@@ -435,6 +438,7 @@ export function PatientProvider({
       serviceRequests: slice.serviceRequests ?? [],
       appointments: slice.appointments ?? [],
       consents: slice.consents ?? [],
+      procedures: slice.procedures ?? [],
       riskAlerts: slice.riskAlerts,
       addArtifact,
       isSliceLoading: sliceState.isLoading,

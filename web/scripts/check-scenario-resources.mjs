@@ -1,0 +1,695 @@
+#!/usr/bin/env node
+/**
+ * Anti-drift check for the demo registry's hand-authored NON-QuestionnaireResponse
+ * resources — the other half of `npm run check:scenarios`.
+ *
+ * `check-scenario-responses.mjs` validates the `responses` bucket only (its own
+ * header says so). `scripts/validate-fhir.mjs` historically did not read
+ * `web/src/data/population/` at all. So every Observation, CarePlan,
+ * Communication, EpisodeOfCare, Appointment, ServiceRequest, Procedure and
+ * DocumentReference in `scenarios/patient-*.json` was ungated hand-authored
+ * FHIR (issue #226).
+ *
+ * That matters because the Stage-8 measure engine (`src/lib/measures.ts`) reads
+ * exactly those buckets. A malformed `EpisodeOfCare.status`, a `ServiceRequest`
+ * missing `intent`, or a profile claim that resolves to nothing does not fail —
+ * it silently produces a WRONG measure score, which is worse than an empty one.
+ *
+ * ── What this checks (offline, in `npm run verify`) ──────────────────────────
+ *
+ *   1. Every top-level scenario key is a bucket something actually reads. A
+ *      typo (`serviceRequest`) is otherwise invisible: the app reads
+ *      `slice.serviceRequests ?? []` and quietly sees nothing.
+ *   2. Every entry in a FHIR bucket has the `resourceType` that bucket implies,
+ *      and an `id` unique within the scenario (localDataSource upserts by id).
+ *   3. Every resource points at THIS scenario's patient — a copy-pasted
+ *      resource carrying the wrong `subject` would be counted for the wrong
+ *      patient by the measure engine and never look wrong on screen.
+ *   4. Base FHIR R4 required elements are present, and `status` is a member of
+ *      the R4 status ValueSet for that type.
+ *   5. `meta.profile` canonicals RESOLVE to a real StructureDefinition. An
+ *      unresolvable profile is an ERROR, not a warning — that is the exact
+ *      silent-pass mode #218 had to fix in validate-fhir.mjs, and it was live
+ *      here: patient-001's safety plan claimed `hl7.fhir.us.ecareplan`, a
+ *      canonical that does not exist.
+ *   6. For each claimed SPiER profile, the constraints its differential
+ *      actually states: `min >= 1` elements present, `fixedCode` /
+ *      `pattern[x]` values matching, and required bindings to SPiER-local
+ *      ValueSets satisfied. These are DERIVED from the generated
+ *      StructureDefinitions, not hand-copied, so changing FSH changes this
+ *      check.
+ *   7. The same required-binding check for SPiER extensions, resolved through
+ *      the extension's own StructureDefinition. `episode-closure-reason` is
+ *      read directly by two measure exclusions, so a bad code there changes a
+ *      score.
+ *   8. Date-bearing elements parse as FHIR date / dateTime.
+ *   9. The two NON-FHIR buckets — `riskAlerts` (an app type) and `encounters`
+ *      (`ScenarioEncounter` walkthrough narration, NOT a FHIR Encounter) — are
+ *      checked against their TypeScript shapes instead.
+ *
+ * ── What this does NOT check ────────────────────────────────────────────────
+ *
+ * Everything else full FHIR conformance means: base cardinalities beyond the
+ * hand-listed table below, invariants, extension context, slicing, reference
+ * target types, and codes from external systems (LOINC / SNOMED). Those are
+ * covered by `node scripts/validate-fhir.mjs`, which now unwraps these same
+ * scenario resources and runs the HL7 validator over them in CI. This script is
+ * the fast offline half of that pair — it is deliberately not a reimplementation
+ * of the validator, and must not be described as one.
+ *
+ * Requires `npm run copy-fhir` (reads the generated StructureDefinitions,
+ * ValueSets and CodeSystems out of web/src/data/fhir/).
+ * Exits non-zero on drift so it can gate CI.
+ */
+import { readFileSync, readdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join, resolve } from 'node:path'
+
+const here = dirname(fileURLToPath(import.meta.url))
+const webRoot = resolve(here, '..')
+const scenariosDir = join(webRoot, 'src/data/population/scenarios')
+const fhirDir = join(webRoot, 'src/data/fhir')
+
+let failures = 0
+const fail = (msg) => {
+  console.error(`✗ ${msg}`)
+  failures++
+}
+
+// ─────────────────────────────────────────────────────────────
+// Bucket → resource type
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * The FHIR buckets of `PatientSlice` (src/types/fhir.ts), each mapped to the
+ * one resourceType localDataSource routes into it. Keep in step with
+ * `LocalDataSource.saveArtifact`'s switch.
+ */
+const FHIR_BUCKETS = {
+  observations: 'Observation',
+  carePlans: 'CarePlan',
+  communications: 'Communication',
+  episodes: 'EpisodeOfCare',
+  flags: 'Flag',
+  tasks: 'Task',
+  documentReferences: 'DocumentReference',
+  serviceRequests: 'ServiceRequest',
+  appointments: 'Appointment',
+  consents: 'Consent',
+  procedures: 'Procedure',
+}
+
+/** Buckets that are not FHIR at all, handled separately below. */
+const NON_FHIR_BUCKETS = new Set([
+  'responses', // StoredResponse wrappers — check-scenario-responses.mjs owns these
+  'riskAlerts', // the app's RiskAlert type
+  'encounters', // ScenarioEncounter narration, NOT a FHIR Encounter
+])
+
+// ─────────────────────────────────────────────────────────────
+// FHIR R4 base facts
+// ─────────────────────────────────────────────────────────────
+// Hand-maintained, because the base R4 StructureDefinitions are not vendored
+// into this repo. These are spec constants, not SPiER choices, so they do not
+// drift — but the table can be INCOMPLETE, and an omission here means less
+// offline coverage rather than a silent overall pass: validate-fhir.mjs checks
+// the real cardinalities against the published base definitions.
+
+/** Elements with min=1 in base R4, for the types a scenario can carry. */
+const BASE_REQUIRED = {
+  Observation: ['status', 'code'],
+  CarePlan: ['status', 'intent', 'subject'],
+  Communication: ['status'],
+  EpisodeOfCare: ['status', 'patient'],
+  Flag: ['status', 'code', 'subject'],
+  Task: ['status', 'intent'],
+  DocumentReference: ['status', 'content'],
+  ServiceRequest: ['status', 'intent', 'subject'],
+  Appointment: ['status', 'participant'],
+  Consent: ['status', 'scope', 'category'],
+  Procedure: ['status', 'subject'],
+}
+
+/** The required-bound `status` ValueSet for each type. */
+const STATUS_CODES = {
+  Observation: ['registered', 'preliminary', 'final', 'amended', 'corrected', 'cancelled', 'entered-in-error', 'unknown'],
+  CarePlan: ['draft', 'active', 'on-hold', 'revoked', 'completed', 'entered-in-error', 'unknown'],
+  Communication: ['preparation', 'in-progress', 'not-done', 'on-hold', 'stopped', 'completed', 'entered-in-error', 'unknown'],
+  EpisodeOfCare: ['planned', 'waitlist', 'active', 'onhold', 'finished', 'cancelled', 'entered-in-error'],
+  Flag: ['active', 'inactive', 'entered-in-error'],
+  Task: ['draft', 'requested', 'received', 'accepted', 'rejected', 'ready', 'cancelled', 'in-progress', 'on-hold', 'failed', 'completed', 'entered-in-error'],
+  DocumentReference: ['current', 'superseded', 'entered-in-error'],
+  ServiceRequest: ['draft', 'active', 'on-hold', 'revoked', 'completed', 'entered-in-error', 'unknown'],
+  Appointment: ['proposed', 'pending', 'booked', 'arrived', 'fulfilled', 'cancelled', 'noshow', 'entered-in-error', 'checked-in', 'waitlist'],
+  Consent: ['draft', 'proposed', 'active', 'rejected', 'inactive', 'entered-in-error'],
+  Procedure: ['preparation', 'in-progress', 'not-done', 'on-hold', 'stopped', 'completed', 'entered-in-error', 'unknown'],
+}
+
+/** `ServiceRequest.intent`, `Task.intent`, `CarePlan.intent` — all required-bound. */
+const INTENT_CODES = {
+  ServiceRequest: ['proposal', 'plan', 'directive', 'order', 'original-order', 'reflex-order', 'filler-order', 'instance-order', 'option'],
+  Task: ['unknown', 'proposal', 'plan', 'order', 'original-order', 'reflex-order', 'filler-order', 'instance-order', 'option'],
+  CarePlan: ['proposal', 'plan', 'order', 'option'],
+}
+
+const PARTICIPANT_STATUS_CODES = ['accepted', 'declined', 'tentative', 'needs-action']
+
+/**
+ * Where each type carries its patient link. `Appointment` is the odd one out —
+ * the patient is a participant, not a dedicated element.
+ */
+const PATIENT_ELEMENT = {
+  Observation: 'subject',
+  CarePlan: 'subject',
+  Communication: 'subject',
+  EpisodeOfCare: 'patient',
+  Flag: 'subject',
+  Task: 'for',
+  DocumentReference: 'subject',
+  ServiceRequest: 'subject',
+  Consent: 'patient',
+  Procedure: 'subject',
+}
+
+/**
+ * Element names whose string value is a FHIR date / dateTime / instant in every
+ * type above. Checked wherever they appear in the resource tree, which reaches
+ * `Period.start` / `Period.end` and `Appointment.start` alike.
+ */
+const DATE_KEYS = new Set([
+  'date', 'dateTime', 'sent', 'received', 'authoredOn', 'created', 'issued',
+  'lastModified', 'effectiveDateTime', 'occurrenceDateTime', 'performedDateTime',
+  'start', 'end',
+])
+
+// FHIR R4 date | dateTime, per the published regexes (union, loosened only in
+// that a bare date is accepted wherever a dateTime is).
+const FHIR_DATE_RE =
+  /^([0-9]{4})(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|[+-]((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$/
+
+/**
+ * External canonicals a scenario resource is allowed to claim even though no
+ * StructureDefinition for them is loaded here. Keep this EMPTY unless there is
+ * a reason: an entry is a hole in check 5.
+ */
+const EXTERNAL_PROFILE_ALLOWLIST = new Set([])
+
+// ─────────────────────────────────────────────────────────────
+// Load the generated conformance resources
+// ─────────────────────────────────────────────────────────────
+
+let generatedFiles
+try {
+  generatedFiles = readdirSync(fhirDir)
+} catch {
+  console.error(`[check:scenario-resources] ${fhirDir} not found — run \`npm run copy-fhir\` first.`)
+  process.exit(1)
+}
+
+/** canonical url → StructureDefinition */
+const structureDefs = new Map()
+/** canonical url → CodeSystem */
+const codeSystems = new Map()
+/** canonical url → ValueSet */
+const valueSets = new Map()
+
+for (const name of generatedFiles) {
+  if (!name.endsWith('.json')) continue
+  let doc
+  try {
+    doc = JSON.parse(readFileSync(join(fhirDir, name), 'utf8'))
+  } catch {
+    continue
+  }
+  if (typeof doc?.url !== 'string') continue
+  if (doc.resourceType === 'StructureDefinition') structureDefs.set(doc.url, doc)
+  else if (doc.resourceType === 'CodeSystem') codeSystems.set(doc.url, doc)
+  else if (doc.resourceType === 'ValueSet') valueSets.set(doc.url, doc)
+}
+
+if (structureDefs.size === 0) {
+  console.error(
+    '[check:scenario-resources] no StructureDefinitions found in web/src/data/fhir/ — ' +
+      'run `npm run copy-fhir -- --force`. Without them checks 5–7 would pass vacuously.',
+  )
+  process.exit(1)
+}
+
+/** Every code in a CodeSystem, including nested concepts. */
+function codeSystemCodes(cs, into = new Set(), concepts = cs?.concept) {
+  for (const c of concepts ?? []) {
+    if (c.code) into.add(c.code)
+    if (c.concept) codeSystemCodes(cs, into, c.concept)
+  }
+  return into
+}
+
+/**
+ * Expand a ValueSet to `system|code` pairs. Returns `null` when any include
+ * draws on a system this repo does not publish (LOINC, SNOMED) — membership is
+ * then unknowable offline, and claiming otherwise would be the silent pass this
+ * whole gate exists to avoid.
+ */
+const expansionCache = new Map()
+function expandValueSet(url) {
+  if (expansionCache.has(url)) return expansionCache.get(url)
+  const vs = valueSets.get(url)
+  let result = null
+  if (vs && !vs.compose?.exclude) {
+    const members = new Set()
+    let complete = (vs.compose?.include ?? []).length > 0
+    for (const inc of vs.compose?.include ?? []) {
+      if (inc.valueSet || !inc.system) {
+        complete = false
+        break
+      }
+      if (inc.concept) {
+        for (const c of inc.concept) members.add(`${inc.system}|${c.code}`)
+        continue
+      }
+      const cs = codeSystems.get(inc.system)
+      if (!cs) {
+        complete = false // e.g. LOINC / SNOMED — not published here
+        break
+      }
+      for (const code of codeSystemCodes(cs)) members.add(`${inc.system}|${code}`)
+    }
+    if (complete) result = members
+  }
+  expansionCache.set(url, result)
+  return result
+}
+
+// ─────────────────────────────────────────────────────────────
+// Path helpers
+// ─────────────────────────────────────────────────────────────
+
+/** Resolve a dotted FHIR path, flattening arrays. Returns the values found. */
+function valuesAt(node, path) {
+  let current = Array.isArray(node) ? node : [node]
+  for (const segment of path.split('.')) {
+    const next = []
+    for (const item of current) {
+      if (item === null || item === undefined || typeof item !== 'object') continue
+      const value = item[segment]
+      if (value === undefined || value === null) continue
+      if (Array.isArray(value)) next.push(...value)
+      else next.push(value)
+    }
+    current = next
+  }
+  return current
+}
+
+/**
+ * Does `path` have a value? Handles a `[x]` choice tail by accepting any
+ * `<base><Type>` key (`performed[x]` → `performedDateTime` | `performedPeriod`).
+ */
+function hasElement(resource, path) {
+  if (!path.endsWith('[x]')) return valuesAt(resource, path).length > 0
+  const dot = path.lastIndexOf('.')
+  const parentPath = dot === -1 ? null : path.slice(0, dot)
+  const base = path.slice(dot + 1, path.length - 3)
+  const parents = parentPath ? valuesAt(resource, parentPath) : [resource]
+  return parents.some(
+    (p) =>
+      p &&
+      typeof p === 'object' &&
+      Object.keys(p).some((k) => k.startsWith(base) && k.length > base.length && /^[A-Z]/.test(k[base.length])),
+  )
+}
+
+/** The value(s) of a possibly-choice path. */
+function choiceValues(resource, path) {
+  if (!path.endsWith('[x]')) return valuesAt(resource, path)
+  const dot = path.lastIndexOf('.')
+  const parentPath = dot === -1 ? null : path.slice(0, dot)
+  const base = path.slice(dot + 1, path.length - 3)
+  const parents = parentPath ? valuesAt(resource, parentPath) : [resource]
+  const out = []
+  for (const p of parents) {
+    if (!p || typeof p !== 'object') continue
+    for (const [k, v] of Object.entries(p)) {
+      if (k.startsWith(base) && k.length > base.length && /^[A-Z]/.test(k[base.length])) out.push(v)
+    }
+  }
+  return out
+}
+
+/** Every Coding inside a CodeableConcept | Coding | code value. */
+function codingsOf(value) {
+  if (value === null || value === undefined) return []
+  if (typeof value === 'string') return [{ code: value }]
+  if (Array.isArray(value)) return value.flatMap(codingsOf)
+  if (typeof value !== 'object') return []
+  if (Array.isArray(value.coding)) return value.coding
+  if ('code' in value || 'system' in value) return [value]
+  return []
+}
+
+// ─────────────────────────────────────────────────────────────
+// Profile-derived checks
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Apply the constraints a StructureDefinition's DIFFERENTIAL actually states.
+ * Deliberately partial (see the header): min-cardinality, fixed/pattern values,
+ * and required bindings to locally-expandable ValueSets. Sliced elements
+ * (`id` containing `:`) are skipped — resolving a slice needs a discriminator
+ * evaluator, which is validate-fhir.mjs's job.
+ */
+function checkAgainstProfile(resource, sd, where) {
+  const typePrefix = `${sd.type}.`
+  for (const el of sd.differential?.element ?? []) {
+    const id = el.id ?? el.path
+    if (typeof id !== 'string' || !id.startsWith(typePrefix)) continue
+    if (id.includes(':')) continue // slice — out of scope, see above
+    const path = id.slice(typePrefix.length)
+
+    if ((el.min ?? 0) >= 1 && !hasElement(resource, path)) {
+      fail(`${where}: ${sd.type}.${path} is required by ${sd.url} but is absent`)
+      continue
+    }
+
+    const values = choiceValues(resource, path)
+
+    // Fixed / pattern values. SUSHI writes `fixedCode` for `= #x (exactly)` and
+    // `patternCodeableConcept` / `patternCoding` for a pattern assignment.
+    for (const [key, expected] of Object.entries(el)) {
+      if (!key.startsWith('fixed') && !key.startsWith('pattern')) continue
+      if (values.length === 0) {
+        fail(`${where}: ${sd.type}.${path} is fixed by ${sd.url} but is absent`)
+        continue
+      }
+      if (typeof expected === 'string') {
+        if (!values.some((v) => v === expected)) {
+          fail(
+            `${where}: ${sd.type}.${path} must be "${expected}" per ${sd.url}, found ` +
+              JSON.stringify(values.length === 1 ? values[0] : values),
+          )
+        }
+        continue
+      }
+      const wanted = codingsOf(expected)
+      if (wanted.length === 0) continue
+      const found = values.flatMap(codingsOf)
+      for (const w of wanted) {
+        if (!found.some((f) => f.system === w.system && f.code === w.code)) {
+          fail(`${where}: ${sd.type}.${path} must include ${w.system}#${w.code} per ${sd.url}`)
+        }
+      }
+    }
+
+    // Required bindings, where the ValueSet is expandable from local content.
+    if (el.binding?.strength === 'required' && typeof el.binding.valueSet === 'string' && values.length) {
+      const members = expandValueSet(el.binding.valueSet.split('|')[0])
+      if (members) {
+        for (const coding of values.flatMap(codingsOf)) {
+          if (!coding?.code) continue
+          const key = `${coding.system ?? ''}|${coding.code}`
+          if (!members.has(key)) {
+            fail(
+              `${where}: ${sd.type}.${path} — ${coding.system ?? '(no system)'}#${coding.code} is not ` +
+                `in the required binding ${el.binding.valueSet}`,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+/** Required bindings on SPiER extensions, resolved through their own SD. */
+function checkExtensions(node, where, seen = new Set()) {
+  if (Array.isArray(node)) {
+    for (const item of node) checkExtensions(item, where, seen)
+    return
+  }
+  if (!node || typeof node !== 'object') return
+  for (const ext of node.extension ?? []) {
+    if (typeof ext?.url !== 'string') continue
+    const sd = structureDefs.get(ext.url)
+    if (!sd || sd.type !== 'Extension') continue
+    if (seen.has(ext)) continue
+    seen.add(ext)
+    const el = (sd.differential?.element ?? []).find((e) => (e.id ?? e.path) === 'Extension.value[x]')
+    if (!el?.binding || el.binding.strength !== 'required') continue
+    const members = expandValueSet(String(el.binding.valueSet).split('|')[0])
+    if (!members) continue
+    const values = choiceValues(ext, 'value[x]')
+    if (values.length === 0) {
+      fail(`${where}: extension ${ext.url} carries no value[x]`)
+      continue
+    }
+    for (const coding of values.flatMap(codingsOf)) {
+      if (!coding?.code) continue
+      if (!members.has(`${coding.system ?? ''}|${coding.code}`)) {
+        fail(
+          `${where}: extension ${ext.url} — ${coding.system ?? '(no system)'}#${coding.code} is not ` +
+            `in the required binding ${el.binding.valueSet}`,
+        )
+      }
+    }
+  }
+  for (const value of Object.values(node)) {
+    if (value && typeof value === 'object') checkExtensions(value, where, seen)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Per-resource checks
+// ─────────────────────────────────────────────────────────────
+
+function checkDates(node, where, path = '') {
+  if (Array.isArray(node)) {
+    node.forEach((item, i) => checkDates(item, where, `${path}[${i}]`))
+    return
+  }
+  if (!node || typeof node !== 'object') return
+  for (const [key, value] of Object.entries(node)) {
+    const at = path ? `${path}.${key}` : key
+    if (DATE_KEYS.has(key) && typeof value === 'string') {
+      if (!FHIR_DATE_RE.test(value) || (value.includes('T') && !Number.isFinite(Date.parse(value)))) {
+        fail(`${where}: ${at} = "${value}" is not a valid FHIR date/dateTime`)
+      }
+    }
+    if (value && typeof value === 'object') checkDates(value, where, at)
+  }
+}
+
+function checkResource(resource, expectedType, patientId, where) {
+  if (!resource || typeof resource !== 'object' || Array.isArray(resource)) {
+    fail(`${where}: not a FHIR resource object`)
+    return
+  }
+  if (resource.resourceType !== expectedType) {
+    fail(`${where}: resourceType "${resource.resourceType}" — this bucket holds ${expectedType}`)
+    return
+  }
+  if (typeof resource.id !== 'string' || resource.id.length === 0) {
+    fail(`${where}: no id (localDataSource upserts by id; an id-less scenario resource can never be updated)`)
+  }
+
+  // 4 — base required elements + status/intent membership
+  for (const path of BASE_REQUIRED[expectedType] ?? []) {
+    if (!hasElement(resource, path)) {
+      fail(`${where}: ${expectedType}.${path} is required by base FHIR R4 but is absent`)
+    }
+  }
+  const statuses = STATUS_CODES[expectedType]
+  if (statuses && typeof resource.status === 'string' && !statuses.includes(resource.status)) {
+    fail(`${where}: status "${resource.status}" is not a valid ${expectedType}.status code`)
+  }
+  const intents = INTENT_CODES[expectedType]
+  if (intents && typeof resource.intent === 'string' && !intents.includes(resource.intent)) {
+    fail(`${where}: intent "${resource.intent}" is not a valid ${expectedType}.intent code`)
+  }
+  if (expectedType === 'Appointment') {
+    for (const [i, p] of (resource.participant ?? []).entries()) {
+      if (typeof p?.status !== 'string') {
+        fail(`${where}: participant[${i}] has no status (required 1..1 in base R4)`)
+      } else if (!PARTICIPANT_STATUS_CODES.includes(p.status)) {
+        fail(`${where}: participant[${i}].status "${p.status}" is not a participation-status code`)
+      }
+    }
+  }
+
+  // 3 — the patient link points at THIS scenario's patient
+  const wanted = `Patient/${patientId}`
+  const element = PATIENT_ELEMENT[expectedType]
+  if (element) {
+    const refs = valuesAt(resource, `${element}.reference`).filter((r) => typeof r === 'string')
+    if (refs.length && !refs.includes(wanted)) {
+      fail(`${where}: ${expectedType}.${element} references ${refs.join(', ')}, not ${wanted}`)
+    }
+  } else if (expectedType === 'Appointment') {
+    const refs = valuesAt(resource, 'participant.actor.reference').filter((r) => typeof r === 'string')
+    if (refs.length && !refs.includes(wanted)) {
+      fail(`${where}: Appointment has no participant.actor referencing ${wanted} (found ${refs.join(', ') || 'none'})`)
+    }
+  }
+
+  // 5/6 — profile claims must resolve, then constrain
+  for (const url of resource.meta?.profile ?? []) {
+    const bare = String(url).split('|')[0]
+    const sd = structureDefs.get(bare)
+    if (!sd) {
+      if (EXTERNAL_PROFILE_ALLOWLIST.has(bare)) continue
+      fail(
+        `${where}: meta.profile "${bare}" does not resolve to any known StructureDefinition — ` +
+          'nothing would validate this resource against it [treated as a failure, not a pass]',
+      )
+      continue
+    }
+    if (sd.type !== expectedType) {
+      fail(`${where}: meta.profile "${bare}" profiles ${sd.type}, not ${expectedType}`)
+      continue
+    }
+    checkAgainstProfile(resource, sd, where)
+  }
+
+  // 7 + 8
+  checkExtensions(resource, where)
+  checkDates(resource, where)
+}
+
+// ─────────────────────────────────────────────────────────────
+// The two non-FHIR buckets
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * `RiskAlert['level']` parsed out of the mapper source rather than copied, so
+ * adding a tier there cannot leave this check rejecting valid data. (The same
+ * trick check-measures.mjs uses on the CRITERIA map.)
+ */
+const RISK_LEVELS = (() => {
+  const src = readFileSync(join(webRoot, 'src/lib/observationMappers/shared.ts'), 'utf8')
+  const block = src.match(/export interface RiskAlert \{[\s\S]*?\n\}/)?.[0]
+  const union = block?.match(/^\s*level:\s*(.+)$/m)?.[1]
+  const levels = [...(union ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1])
+  if (levels.length === 0) {
+    console.error(
+      '[check:scenario-resources] could not parse RiskAlert["level"] out of ' +
+        'src/lib/observationMappers/shared.ts. If it was renamed or retyped, update this ' +
+        'script — do not delete the check.',
+    )
+    process.exit(1)
+  }
+  return new Set(levels)
+})()
+
+function checkRiskAlert(alert, where) {
+  if (!alert || typeof alert !== 'object') return fail(`${where}: not an object`)
+  for (const field of ['tool', 'level', 'summary', 'detail']) {
+    if (typeof alert[field] !== 'string' || !alert[field]) {
+      fail(`${where}: RiskAlert.${field} must be a non-empty string`)
+    }
+  }
+  if (typeof alert.level === 'string' && !RISK_LEVELS.has(alert.level)) {
+    fail(`${where}: RiskAlert.level "${alert.level}" is not one of ${[...RISK_LEVELS].join(' | ')}`)
+  }
+  if (alert.suggestedAction !== undefined) {
+    const a = alert.suggestedAction
+    if (!a || typeof a.label !== 'string' || typeof a.path !== 'string') {
+      fail(`${where}: RiskAlert.suggestedAction needs both a label and a path`)
+    } else if (!a.path.startsWith('/')) {
+      fail(`${where}: RiskAlert.suggestedAction.path "${a.path}" is not an app route`)
+    }
+  }
+}
+
+function checkEncounter(step, where) {
+  if (!step || typeof step !== 'object') return fail(`${where}: not an object`)
+  for (const field of ['id', 'date', 'title', 'notes']) {
+    if (typeof step[field] !== 'string' || !step[field]) {
+      fail(`${where}: ScenarioEncounter.${field} must be a non-empty string`)
+    }
+  }
+  if (typeof step.date === 'string' && !FHIR_DATE_RE.test(step.date)) {
+    fail(`${where}: ScenarioEncounter.date "${step.date}" is not a valid date`)
+  }
+  if (step.status !== 'completed' && step.status !== 'scheduled') {
+    fail(`${where}: ScenarioEncounter.status "${step.status}" must be completed | scheduled`)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Walk the scenarios
+// ─────────────────────────────────────────────────────────────
+
+const scenarioFiles = readdirSync(scenariosDir).filter((f) => f.endsWith('.json')).sort()
+if (scenarioFiles.length === 0) {
+  console.error(`[check:scenario-resources] no scenarios found in ${scenariosDir}`)
+  process.exit(1)
+}
+
+let resourcesChecked = 0
+
+for (const file of scenarioFiles) {
+  const patientId = file.replace(/\.json$/, '')
+  let scenario
+  try {
+    scenario = JSON.parse(readFileSync(join(scenariosDir, file), 'utf8'))
+  } catch (err) {
+    fail(`scenarios/${file}: not parseable JSON — ${err.message}`)
+    continue
+  }
+
+  const ids = new Map()
+  let n = 0
+
+  for (const [bucket, value] of Object.entries(scenario)) {
+    // 1 — an unknown bucket is read by nothing and would vanish silently.
+    if (!(bucket in FHIR_BUCKETS) && !NON_FHIR_BUCKETS.has(bucket)) {
+      fail(
+        `scenarios/${file}: unknown bucket "${bucket}" — nothing reads it. ` +
+          `Known: ${[...Object.keys(FHIR_BUCKETS), ...NON_FHIR_BUCKETS].sort().join(', ')}`,
+      )
+      continue
+    }
+    if (!Array.isArray(value)) {
+      fail(`scenarios/${file}: "${bucket}" must be an array`)
+      continue
+    }
+    if (bucket === 'responses') continue // sibling script owns these
+
+    if (bucket === 'riskAlerts') {
+      value.forEach((a, i) => checkRiskAlert(a, `scenarios/${file} riskAlerts[${i}]`))
+      continue
+    }
+    if (bucket === 'encounters') {
+      value.forEach((e, i) => checkEncounter(e, `scenarios/${file} encounters[${i}]`))
+      continue
+    }
+
+    const expectedType = FHIR_BUCKETS[bucket]
+    value.forEach((resource, i) => {
+      const where = `scenarios/${file} ${bucket}[${i}] (${resource?.id ?? 'no id'})`
+      n++
+      resourcesChecked++
+      checkResource(resource, expectedType, patientId, where)
+      if (typeof resource?.id === 'string') {
+        // Stricter than FHIR, deliberately: FHIR scopes ids per resource type,
+        // but these ids are hand-authored and patient-prefixed, so the same id
+        // on two resources in one scenario is a copy-paste, and `context.related`
+        // references read as ambiguous to a human even where `Type/id` resolves.
+        const prior = ids.get(resource.id)
+        if (prior) fail(`scenarios/${file}: id "${resource.id}" is used by both ${prior} and ${bucket}[${i}]`)
+        else ids.set(resource.id, `${bucket}[${i}]`)
+      }
+    })
+  }
+
+  if (n > 0) console.log(`✓ scenarios/${file}: ${n} FHIR resource(s) checked`)
+}
+
+console.log(
+  `\n${resourcesChecked} non-QuestionnaireResponse scenario resource(s) checked against ` +
+    `${structureDefs.size} StructureDefinition(s).`,
+)
+
+if (failures) {
+  console.error(`\nscenario-resource check FAILED (${failures} issue(s)).`)
+  process.exit(1)
+}
+console.log('scenario-resource check passed.')

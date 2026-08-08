@@ -31,11 +31,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "clarify-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "CAMS SSF: Psychological Pain" }] },
+      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "Psychological Pain" }], "text": "CAMS SSF: Psychological Pain" },
       "subject": { "reference": "Patient/patient-006" },
       "effectiveDateTime": "2026-05-16T10:00:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "Elevated (4/5)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "High" }], "text": "Elevated (4/5)" }]
     },
     {
       "resourceType": "Observation",
@@ -43,11 +43,11 @@
       "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "clarify-risk" }] },
       "status": "final",
       "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "hopelessness", "display": "CAMS SSF: Hopelessness" }] },
+      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "hopelessness", "display": "Hopelessness" }], "text": "CAMS SSF: Hopelessness" },
       "subject": { "reference": "Patient/patient-006" },
       "effectiveDateTime": "2026-05-16T10:00:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "Elevated (4/5)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "High" }], "text": "Elevated (4/5)" }]
     },
     {
       "resourceType": "Observation",
@@ -59,7 +59,7 @@
       "subject": { "reference": "Patient/patient-006" },
       "effectiveDateTime": "2026-05-16T10:00:00Z",
       "valueInteger": 3,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Moderate risk (3/5)" }] }]
+      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Normal" }], "text": "Moderate risk (3/5)" }]
     }
   ],
   "carePlans": [],

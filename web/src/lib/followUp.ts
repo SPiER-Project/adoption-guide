@@ -56,12 +56,22 @@ export const OUTREACH_PROMPTS: CodedOption[] = [
   { code: 'open-care-gap', display: 'Open care gap' },
 ]
 
-/** HL7 v3 ParticipationMode codes for how the contact was made. */
-export const OUTREACH_CHANNELS: CodedOption[] = [
-  { code: 'PHONE', display: 'Telephone call' },
-  { code: 'WRITTEN', display: 'Letter / card' },
-  { code: 'SMSWRIT', display: 'Text message' },
-  { code: 'EMAILWRIT', display: 'Email' },
+/**
+ * HL7 v3 ParticipationMode codes for how the contact was made.
+ *
+ * Two displays on purpose. `display` is the label the recorder's picker shows;
+ * `codingDisplay` is what v3-ParticipationMode actually publishes for the code,
+ * and is the only one that may be written into `Communication.medium`. Until
+ * #226 they were the same field, so every outreach the app recorded carried
+ * `PHONE "Telephone call"` — a display the publishing authority does not allow,
+ * which is exactly the #220 defect. "telephone" / "written" read as jargon in a
+ * picker, hence the split rather than just using the authority's wording.
+ */
+export const OUTREACH_CHANNELS: (CodedOption & { codingDisplay: string })[] = [
+  { code: 'PHONE', display: 'Telephone call', codingDisplay: 'telephone' },
+  { code: 'WRITTEN', display: 'Letter / card', codingDisplay: 'written' },
+  { code: 'SMSWRIT', display: 'Text message', codingDisplay: 'SMS message' },
+  { code: 'EMAILWRIT', display: 'Email', codingDisplay: 'email' },
 ]
 
 /** Outcomes that mean this attempt did not make contact with the patient. */
@@ -114,7 +124,7 @@ export function buildOutreachAttempt(params: {
     subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
     sent: params.sent,
     medium: [
-      { coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channel.code, display: channel.display }] },
+      { coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channel.code, display: channel.codingDisplay }] },
     ],
     extension: [
       {
