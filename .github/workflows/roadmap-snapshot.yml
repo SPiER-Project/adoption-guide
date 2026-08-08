@@ -26,13 +26,19 @@ name: Roadmap — weekly snapshot refresh
 # 3. The org forbids GitHub Actions from creating pull requests
 #    (`can_approve_pull_request_reviews: false`, enforced org-wide and not
 #    overridable per-repo). When that is the case the branch is still pushed and
-#    the job stays green with a warning plus a compare link in the run summary —
-#    but *only* for that specific refusal; any other `gh pr create` failure
-#    fails the job. To get real auto-PRs, either have an org admin allow it, or
-#    add a fine-grained PAT with contents+pull-requests write as the repo secret
-#    ROADMAP_PR_TOKEN — this workflow prefers it automatically, no code change.
-#    A PAT has a second benefit: pushes made with GITHUB_TOKEN do not trigger
-#    other workflows, so today's drift PR arrives with no web-lint run on it.
+#    the job stays green — but *only* for that specific refusal; any other
+#    `gh pr create` failure fails the job. To get real auto-PRs, either have an
+#    org owner allow it, or add a fine-grained PAT with contents+pull-requests
+#    write as the repo secret ROADMAP_PR_TOKEN — this workflow prefers it
+#    automatically, no code change. A PAT has a second benefit: pushes made with
+#    GITHUB_TOKEN do not trigger other workflows, so today's drift PR arrives
+#    with no web-lint run on it.
+#
+#    Until then a blocked run files a reusable tracking issue rather than only
+#    warning into a run summary. That changed in #232, which found a green run
+#    on 2026-08-07 that had silently not opened its PR: the graceful handling was
+#    working exactly as designed and was still indistinguishable, from outside,
+#    from a run with nothing to do.
 
 on:
   schedule:
@@ -50,7 +56,11 @@ on:
 # below stopped it from proposing a PR that emptied the published roadmap.
 permissions:
   contents: write
-  issues: read
+  # `read` fetches the roadmap; `write` is what lets the blocked-PR fallback below
+  # file its tracking issue. Actions are forbidden from opening pull requests in
+  # this org, but not from opening issues — terminology-nightly.yml relies on the
+  # same distinction.
+  issues: write
   pull-requests: write
 
 concurrency:
@@ -217,6 +227,7 @@ jobs:
           git push --force origin "$BRANCH"
 
       - name: Open or update the drift PR
+        id: pr
         if: steps.drift.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.ROADMAP_PR_TOKEN || secrets.GITHUB_TOKEN }}
@@ -225,12 +236,14 @@ jobs:
           if [ -n "$existing" ]; then
             gh pr edit "$existing" --body-file "$RUNNER_TEMP/pr-body.md"
             echo "Updated existing PR #$existing." >> "$GITHUB_STEP_SUMMARY"
+            echo "blocked=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           if gh pr create --base main --head "$BRANCH" \
                --title 'chore: refresh roadmap snapshot from GitHub Issues' \
                --body-file "$RUNNER_TEMP/pr-body.md" 2> "$RUNNER_TEMP/pr-err.txt"; then
+            echo "blocked=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           cat "$RUNNER_TEMP/pr-err.txt"
@@ -246,8 +259,100 @@ jobs:
               echo "pull requests. **[Open the PR manually]($compare)**, or add a \`ROADMAP_PR_TOKEN\`"
               echo "secret to automate it."
             } >> "$GITHUB_STEP_SUMMARY"
+            echo "blocked=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           echo "::error::gh pr create failed for an unexpected reason (see the output above)."
           exit 1
+
+      # ─── The blocked-PR case, made visible ───────────────────
+      #
+      # Until now the branch above was the entire output of a blocked run: pushed,
+      # warned about in a step summary, and exit 0 GREEN. Issue #232 caught what
+      # that costs — a fully green run on 2026-08-07 had silently not opened its
+      # PR, and a stale snapshot on a published page produces no signal anyone
+      # sees. A warning inside a green run nobody opens is not a signal.
+      #
+      # So the fallback files an issue instead. One reusable issue, matched on
+      # exact title, so a policy that stays in place does not produce a new issue
+      # every Monday. This is the same shape as terminology-nightly.yml's report
+      # job, and rests on the same distinction: the org blocks Actions from
+      # opening *pull requests*, not issues.
+      #
+      # The run still exits 0. Org policy is a fact about the org, not a defect in
+      # this repo, and a red build nobody can fix by editing the repo is how a
+      # check trains people to ignore it. The issue is the durable signal; green
+      # here means "the snapshot work completed", which it did.
+      #
+      # This stays useful after the policy is relaxed or ROADMAP_PR_TOKEN is added:
+      # if either is later undone, or the PAT quietly expires and falls back to
+      # GITHUB_TOKEN, the block returns and so does the issue.
+      - name: File the manual-PR tracking issue
+        if: steps.pr.outputs.blocked == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: 'Roadmap snapshot: branch pushed, PR needs opening by hand'
+        run: |
+          compare="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...$BRANCH?expand=1"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          {
+            echo "\`roadmap-snapshot.yml\` found drift and pushed \`$BRANCH\`, but this org"
+            echo "forbids GitHub Actions from opening pull requests, so the PR was not created."
+            echo
+            echo "**→ [Open the PR]($compare)**"
+            echo
+            cat "$RUNNER_TEMP/drift.md"
+            echo
+            echo "Until that PR merges, \`/guide/roadmap\` keeps rendering the older snapshot —"
+            echo "issue labels drive each tool's displayed build status and bodies are excerpted,"
+            echo "so the drift above is user-visible on a published page."
+            echo
+            echo "### Making this stop"
+            echo
+            echo "Either fix is permanent; both are org-owner settings, not repo settings."
+            echo
+            echo "1. Org Settings → Actions → General → **Allow GitHub Actions to create and"
+            echo "   approve pull requests**. One checkbox, nothing to rotate."
+            echo "2. Or add a fine-grained PAT with \`contents:write\` + \`pull-requests:write\` as"
+            echo "   the \`ROADMAP_PR_TOKEN\` secret — this workflow already prefers it with no"
+            echo "   code change, and it has the side benefit of triggering \`web-lint\` on the PR."
+            echo
+            echo "This issue is reused, not reopened per run, and closes itself once a run"
+            echo "manages to open its own PR. Background and the wider triage path for both"
+            echo "scheduled checks: [\`docs/scheduled-checks-triage.md\`](../blob/main/docs/scheduled-checks-triage.md)."
+            echo
+            echo "Refreshed by [run \`$GITHUB_RUN_ID\`]($run_url). Refs #122, #232."
+          } > "$RUNNER_TEMP/issue-body.md"
+
+          number=$(gh issue list --state open --limit 100 --json number,title \
+                     --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file "$RUNNER_TEMP/issue-body.md" \
+              && echo "Refreshed tracking issue #$number." >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/issue-body.md" \
+              && echo "Filed a tracking issue." >> "$GITHUB_STEP_SUMMARY"
+          fi || {
+            # If issues are blocked too, the step summary is all that is left —
+            # say so loudly rather than letting a second silent failure stack up.
+            echo "::error::could not file the manual-PR tracking issue, and the PR was already blocked."
+            echo "::error::this run produced NO durable signal — open $compare by hand."
+            exit 1
+          }
+
+      # Close the loop, so a fixed policy does not leave a stale issue asking for a
+      # PR that already exists. Runs on the no-drift path too (where `blocked` is
+      # empty): if the snapshot no longer drifts, the manual PR was merged.
+      - name: Close the manual-PR tracking issue
+        if: steps.pr.outputs.blocked != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: 'Roadmap snapshot: branch pushed, PR needs opening by hand'
+        run: |
+          number=$(gh issue list --state open --limit 100 --json number,title \
+                     --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          [ -n "$number" ] || exit 0
+          gh issue close "$number" \
+            --comment "Run $GITHUB_RUN_ID no longer needs a hand-opened PR. Closing." \
+            || echo "::warning::could not close tracking issue #$number."

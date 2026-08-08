@@ -44,9 +44,27 @@ npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+displ
 ```
 
 Its floors are per source **and** per vocabulary family, and the guard loop reads
-the declared floors rather than the family list — see the comment on `SCAN`. If
-you add a vocabulary to `EXTERNAL_FAMILIES`, add its floor to every `SCAN` entry
-too, or the new family is scanned with nothing asserting it stayed alive.
+the declared floors rather than the family list — see the comment on `SCAN`. Both
+directions of that contract are now enforced rather than requested: deleting a
+family from `EXTERNAL_FAMILIES` leaves its floor behind and starves, and *adding*
+one without a floor in every `SCAN` entry fails at startup. Declare a real zero
+as `0`; never leave it out.
+
+A floor asserts **liveness, not completeness** — "did this scan still look at
+this vocabulary in this source" — so the convention is roughly half the real
+count. That needs a deliberate re-check whenever a source grows, because nothing
+re-checks it on its own: #43 doubled the manifest's SNOMED inventory from 10
+codings to 20 while its floor sat at 5, dropping it to a quarter of the real
+count with nothing going red (#232). Every run prints the live count beside each
+floor, so any recent nightly log tells you where the ratios stand.
+
+⚠️ **The two timer-driven workflows have a named reader and a written triage
+path — `docs/scheduled-checks-triage.md`.** A red nightly has two causes needing
+opposite responses (real drift → fix the code; `tx.fhir.org` down → re-run), and
+`roadmap-snapshot.yml` needs a hand-opened PR for as long as the org forbids
+Actions from opening them. Both workflows link that doc from every issue they
+file. Note also that `schedule` runs only from the default branch, and GitHub
+disables scheduled workflows after 60 days of repo inactivity.
 
 In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
 thing and fails in a fresh worktree:
