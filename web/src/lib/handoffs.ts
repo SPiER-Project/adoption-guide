@@ -16,6 +16,10 @@
  *   TL-031 Next Appointment → Appointment
  *   TL-032 Consent / Sharing Status → Consent
  *
+ * The four are not independent: `applySharingConsent()` at the foot of this
+ * file is where the TL-032 consent stops being a record and starts being a
+ * rule, deciding what the TL-030 packet may assert it carries.
+ *
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
@@ -38,8 +42,11 @@ export const CONSENT_PROFILE = 'http://spier.org/StructureDefinition/spier-infor
 export const HANDOFF_CONTENT_SYSTEM = 'http://spier.org/CodeSystem/spier-handoff-content'
 export const REFERRAL_REASON_SYSTEM = 'http://spier.org/CodeSystem/spier-referral-reason'
 export const CONSENT_CATEGORY_SYSTEM = 'http://spier.org/CodeSystem/spier-consent-category'
+export const WITHHOLDING_BASIS_SYSTEM = 'http://spier.org/CodeSystem/spier-withholding-basis'
 
 export const HANDOFF_CONTENT_ITEM_EXT = 'http://spier.org/StructureDefinition/handoff-content-item'
+export const HANDOFF_WITHHELD_ITEM_EXT =
+  'http://spier.org/StructureDefinition/handoff-withheld-item'
 
 /** HL7 code systems the profiles bind to natively rather than SPiER-locally. */
 const CONSENT_SCOPE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/consentscope'
@@ -116,6 +123,20 @@ export const CONSENT_DECISIONS: CodedOption[] = [
   { code: 'deny', display: 'Deny — patient declined sharing' },
 ]
 
+/**
+ * Why an item is NOT in the packet. Displays must match spier-withholding-basis
+ * in ig/input/fsh/handoffs.fsh exactly — `validate-fhir.mjs` compares every
+ * `Coding.display` against the SPiER CodeSystem it names.
+ */
+export const WITHHOLDING_BASES: CodedOption[] = [
+  { code: 'patient-declined-sharing', display: 'Patient declined sharing' },
+  { code: 'category-excluded', display: 'Category excluded by the patient' },
+  { code: 'recipient-excluded', display: 'Recipient excluded by the patient' },
+  { code: 'recipient-not-authorised', display: 'Recipient not authorised by the consent' },
+  { code: 'consent-expired', display: 'Sharing consent expired' },
+  { code: 'no-consent-recorded', display: 'No sharing consent on file' },
+]
+
 export function displayFor(options: CodedOption[], code: string): string {
   return options.find(o => o.code === code)?.display ?? code
 }
@@ -151,6 +172,61 @@ export function handoffContentCodes(resource: FhirResource): string[] {
     .filter((c): c is string => !!c)
 }
 
+/**
+ * The complex counterpart of contentItemExtensions: each withheld item carries
+ * the content code AND the basis, as two sub-extensions. Pairing them is the
+ * point — a packet that merely dropped the code would be indistinguishable
+ * from one assembled before anybody asked the patient.
+ */
+function withheldItemExtensions(items: WithheldItem[]) {
+  return items.map(({ code, basis }) => ({
+    url: HANDOFF_WITHHELD_ITEM_EXT,
+    extension: [
+      {
+        url: 'item',
+        valueCodeableConcept: {
+          coding: [
+            {
+              system: HANDOFF_CONTENT_SYSTEM,
+              code,
+              display: displayFor(HANDOFF_CONTENT_ITEMS, code),
+            },
+          ],
+        },
+      },
+      {
+        url: 'basis',
+        valueCodeableConcept: {
+          coding: [
+            {
+              system: WITHHOLDING_BASIS_SYSTEM,
+              code: basis,
+              display: displayFor(WITHHOLDING_BASES, basis),
+            },
+          ],
+        },
+      },
+    ],
+  }))
+}
+
+/** Items a packet records as deliberately left out, with the basis for each. */
+export function handoffWithheldItems(resource: FhirResource): WithheldItem[] {
+  const exts = (resource as {
+    extension?: {
+      url?: string
+      extension?: { url?: string; valueCodeableConcept?: { coding?: { code?: string }[] } }[]
+    }[]
+  }).extension
+  return (exts ?? [])
+    .filter(e => e.url === HANDOFF_WITHHELD_ITEM_EXT)
+    .map(e => ({
+      code: e.extension?.find(s => s.url === 'item')?.valueCodeableConcept?.coding?.[0]?.code,
+      basis: e.extension?.find(s => s.url === 'basis')?.valueCodeableConcept?.coding?.[0]?.code,
+    }))
+    .filter((w): w is WithheldItem => !!w.code && !!w.basis)
+}
+
 // ─── TL-030 — Discharge safety packet (DocumentReference) ─────
 
 export function buildDischargePacket(params: {
@@ -161,9 +237,22 @@ export function buildDischargePacket(params: {
   contentCodes: string[]
   /** Live resources the packet was assembled from, as `Type/id` references. */
   relatedReferences?: string[]
+  /** What the sharing consent kept out of it, and why. See applySharingConsent. */
+  withheldItems?: WithheldItem[]
+  /**
+   * The consent that governed assembly, as `Consent/id`. Joins `context.related`
+   * so the omissions above are traceable to the preference that caused them —
+   * DocumentReference has no element for "the authority this was released under",
+   * and inventing one would say more than the resource can back.
+   */
+  consentReference?: string
   note?: string
 }): DocumentReferenceResource {
-  const related = params.relatedReferences ?? []
+  const withheld = params.withheldItems ?? []
+  const related = [...(params.relatedReferences ?? [])]
+  if (params.consentReference && !related.includes(params.consentReference)) {
+    related.push(params.consentReference)
+  }
   return {
     resourceType: 'DocumentReference',
     id: params.id,
@@ -189,7 +278,10 @@ export function buildDischargePacket(params: {
     ...(related.length
       ? { context: { related: related.map(reference => ({ reference })) } }
       : {}),
-    extension: contentItemExtensions(params.contentCodes),
+    extension: [
+      ...contentItemExtensions(params.contentCodes),
+      ...withheldItemExtensions(withheld),
+    ],
     ...(params.note ? { description: params.note } : {}),
   }
 }
@@ -342,7 +434,14 @@ export function buildSharingConsent(params: {
   expiry?: string
   /** Named actor explicitly excluded even when the top-level decision permits. */
   deniedActor?: string
+  /**
+   * Handoff-content categories the patient excluded — the same vocabulary the
+   * discharge packet checks itself against, which is what lets one resource
+   * gate the other without SPiER-specific logic.
+   */
+  deniedContentCodes?: string[]
 }): ConsentResource {
+  const deniedCodes = params.deniedContentCodes ?? []
   const start = params.dateTime.slice(0, 10)
   return {
     resourceType: 'Consent',
@@ -397,26 +496,50 @@ export function buildSharingConsent(params: {
             ],
           }
         : {}),
-      ...(params.deniedActor?.trim()
+      // Two nested denies rather than one combined provision. Within a single
+      // provision the criteria are ANDed, so actor + code together would say
+      // "deny these categories *to this person*" — narrower than what the
+      // patient stated. Independent preferences stay independent provisions.
+      ...(params.deniedActor?.trim() || deniedCodes.length
         ? {
             provision: [
-              {
-                type: 'deny',
-                actor: [
-                  {
-                    role: {
-                      coding: [
+              ...(params.deniedActor?.trim()
+                ? [
+                    {
+                      type: 'deny',
+                      actor: [
                         {
-                          system: PARTICIPATION_TYPE_SYSTEM,
-                          code: 'IRCP',
-                          display: 'information recipient',
+                          role: {
+                            coding: [
+                              {
+                                system: PARTICIPATION_TYPE_SYSTEM,
+                                code: 'IRCP',
+                                display: 'information recipient',
+                              },
+                            ],
+                          },
+                          reference: { display: params.deniedActor.trim() },
                         },
                       ],
                     },
-                    reference: { display: params.deniedActor.trim() },
-                  },
-                ],
-              },
+                  ]
+                : []),
+              ...(deniedCodes.length
+                ? [
+                    {
+                      type: 'deny',
+                      code: deniedCodes.map(code => ({
+                        coding: [
+                          {
+                            system: HANDOFF_CONTENT_SYSTEM,
+                            code,
+                            display: displayFor(HANDOFF_CONTENT_ITEMS, code),
+                          },
+                        ],
+                      })),
+                    },
+                  ]
+                : []),
             ],
           }
         : {}),
@@ -450,4 +573,164 @@ export function currentSharingConsent(consents: ConsentResource[]): ConsentResou
       const db = (b as { dateTime?: string }).dateTime ?? ''
       return db.localeCompare(da)
     })[0]
+}
+
+/** Nested deny provisions — where the exclusions live. */
+function denyProvisions(consent: ConsentResource) {
+  const nested = (consent as {
+    provision?: {
+      provision?: {
+        type?: string
+        actor?: { reference?: { display?: string } }[]
+        code?: { coding?: { code?: string }[] }[]
+      }[]
+    }
+  }).provision?.provision
+  return (nested ?? []).filter(p => p.type === 'deny')
+}
+
+/**
+ * Recipients the root provision names. In FHIR a provision's `actor` NARROWS
+ * it, so a permit naming one clinic authorises that clinic — not everyone.
+ * An empty list is an unrestricted permit.
+ */
+export function permittedRecipients(consent: ConsentResource): string[] {
+  const actors = (consent as {
+    provision?: { actor?: { reference?: { display?: string } }[] }
+  }).provision?.actor
+  return (actors ?? []).map(a => a.reference?.display).filter((d): d is string => !!d)
+}
+
+/** Recipients the patient excluded by name, even where the decision permits. */
+export function deniedRecipients(consent: ConsentResource): string[] {
+  return denyProvisions(consent)
+    .flatMap(p => p.actor ?? [])
+    .map(a => a.reference?.display)
+    .filter((d): d is string => !!d)
+}
+
+/** Handoff-content categories the patient excluded. */
+export function deniedContentCodes(consent: ConsentResource): string[] {
+  return denyProvisions(consent)
+    .flatMap(p => p.code ?? [])
+    .flatMap(c => c.coding ?? [])
+    .map(c => c.code)
+    .filter((c): c is string => !!c)
+}
+
+/** The end of the consent's authorising period, if it carries one. */
+export function consentExpiry(consent: ConsentResource): string | undefined {
+  return (consent as { provision?: { period?: { end?: string } } }).provision?.period?.end
+}
+
+/** Expiry is relative to when release happens, not to today. */
+function isConsentExpired(consent: ConsentResource, asOf: string): boolean {
+  const end = consentExpiry(consent)
+  return !!end && end.slice(0, 10) < asOf.slice(0, 10)
+}
+
+/** Free-text party names, compared the only way free text can be. */
+function sameParty(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase()
+}
+
+export type WithholdingBasis =
+  | 'patient-declined-sharing'
+  | 'category-excluded'
+  | 'recipient-excluded'
+  | 'recipient-not-authorised'
+  | 'consent-expired'
+  | 'no-consent-recorded'
+
+export interface WithheldItem {
+  code: string
+  basis: WithholdingBasis
+}
+
+export interface SharingDecision {
+  /** Content codes the packet may assert it carries. */
+  included: string[]
+  /** Codes it may not, each with the basis it was withheld on. */
+  withheld: WithheldItem[]
+  /** The governing consent, expired or not — undefined when none is on file. */
+  consent?: ConsentResource
+  /** True when `consent` exists but its period ended before the release date. */
+  expired: boolean
+  /** No recipient named: the packet is the patient's own copy. */
+  patientCopyOnly: boolean
+  /** Set when one rule withheld everything, rather than per-category exclusions. */
+  blanketBasis?: WithholdingBasis
+}
+
+/**
+ * The consent gate — the one place in SPiER where a recorded patient preference
+ * changes what an artifact contains (issues #227 / #168 / #170).
+ *
+ * Deliberately narrow, and the narrowness is the honest part: SPiER is not a
+ * consent-enforcement engine for arbitrary access. This decides one thing — what
+ * THIS packet, assembled at THIS moment for THIS recipient, may assert it
+ * carries — and it decides it from native Consent provisions, so a real consent
+ * engine would reach the same answer without reading SPiER's code.
+ *
+ * Two rules worth stating out loud, because both are choices rather than
+ * consequences of FHIR:
+ *
+ *  1. **No recipient means no gate.** A sharing consent governs disclosure to a
+ *     third party. Handing patients their own safety material is not a
+ *     disclosure, so a packet with no recipient named goes out whole — including
+ *     when a deny is on file. Reading a deny as "the patient may not have their
+ *     own safety plan" would invert what they asked for.
+ *  2. **No consent on file withholds everything from a third party.** The
+ *     conservative direction, and the reason the basis vocabulary has a code for
+ *     it: an adopting site can see the default was applied rather than inferring
+ *     permission from silence. Sites that decide otherwise are changing a
+ *     documented default, not discovering an undocumented one.
+ */
+export function applySharingConsent(params: {
+  contentCodes: string[]
+  /** Who the packet is being released to. Empty ⇒ the patient's own copy. */
+  recipient?: string
+  consents: ConsentResource[]
+  /** The packet's own date — an expiry is judged against the release, not today. */
+  asOf: string
+}): SharingDecision {
+  const recipient = params.recipient?.trim() ?? ''
+  const consent = currentSharingConsent(params.consents)
+  const expired = consent ? isConsentExpired(consent, params.asOf) : false
+  const base = { consent, expired, patientCopyOnly: recipient === '' }
+
+  if (recipient === '') {
+    return { ...base, included: [...params.contentCodes], withheld: [] }
+  }
+
+  const blanket = (basis: WithholdingBasis): SharingDecision => ({
+    ...base,
+    included: [],
+    withheld: params.contentCodes.map(code => ({ code, basis })),
+    blanketBasis: basis,
+  })
+
+  if (!consent) return blanket('no-consent-recorded')
+  if (expired) return blanket('consent-expired')
+  if (consentDecision(consent) === 'deny') return blanket('patient-declined-sharing')
+  if (deniedRecipients(consent).some(a => sameParty(a, recipient))) {
+    return blanket('recipient-excluded')
+  }
+  // A permit that names recipients permits THOSE recipients. Reading it as
+  // blanket permission is the quiet failure this whole gate exists to prevent:
+  // one consent to share with the receiving clinic would become authority to
+  // send the same packet anywhere.
+  const permitted = permittedRecipients(consent)
+  if (permitted.length > 0 && !permitted.some(a => sameParty(a, recipient))) {
+    return blanket('recipient-not-authorised')
+  }
+
+  const denied = new Set(deniedContentCodes(consent))
+  return {
+    ...base,
+    included: params.contentCodes.filter(code => !denied.has(code)),
+    withheld: params.contentCodes
+      .filter(code => denied.has(code))
+      .map(code => ({ code, basis: 'category-excluded' as const })),
+  }
 }

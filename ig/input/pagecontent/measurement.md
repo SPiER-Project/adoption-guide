@@ -141,7 +141,17 @@ of them is a new kind of data:
   is the minimum viable payload. Sharing restrictions are enforced from the
   [SPiERInformationSharingConsent](StructureDefinition-spier-information-sharing-consent.html)
   recorded at TL-032 — a deny provision naming a recipient is what withholds
-  data from that recipient.
+  data from that recipient, and a deny provision naming a
+  [content category](CodeSystem-spier-handoff-content.html) is what withholds
+  one part of a payload from an otherwise permitted recipient. The
+  [discharge safety packet](StructureDefinition-spier-discharge-safety-packet.html)
+  is the worked example: it is assembled *after* reading the consent, carries
+  only what the consent allows, and records anything it left out as a
+  handoff-withheld-item extension with a
+  [basis](CodeSystem-spier-withholding-basis.html). Note the scope of that
+  claim — it covers what this artifact asserts at assembly time. Enforcing
+  consent on arbitrary reads of the record is a server responsibility SPiER
+  does not profile.
 
 What these three *do* require is that the workflow resources are readable,
 searchable, and movable. That is a conformance requirement rather than a

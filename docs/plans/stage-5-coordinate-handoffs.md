@@ -149,6 +149,61 @@ Delivered:
   stage-tagged Communication with no `handoff-content-item` extensions. That is
   conformant (the profile is a low floor by design) but under-uses the shared
   vocabulary the discharge packet now populates.
-- **Consent is recorded, not enforced.** Nothing in the app consults a deny
-  provision before showing or sharing data. Making the packet recorder respect
-  it would be the first real demonstration of consent-aware sharing.
+- ~~**Consent is recorded, not enforced.**~~ **Done** — issue #227, see below.
+
+## The consent gate (issue #227)
+
+The packet recorder now reads the TL-032 consent before asserting what the
+packet carries. `applySharingConsent()` in `web/src/lib/handoffs.ts` is the
+whole rule set; `DischargePacketView` only renders its answer.
+
+**What made this more than plumbing** is that the TL-032 recorder could express
+*who* was excluded but not *what*. A consent that can only say "deny everything"
+gates nothing interesting — the demonstration worth having is a packet that
+carries the safety plan and the crisis numbers while leaving out the assessment
+detail the patient did not want forwarded. So the recorder gained
+`deniedContentCodes`, written as a **second nested deny provision** carrying
+`provision.code` from the same `spier-handoff-content` vocabulary the packet
+uses. Two provisions rather than one combined: criteria within a provision are
+ANDed, so actor + code together would say "deny this category *to this person*",
+which is narrower than what the patient stated.
+
+Three findings worth carrying forward:
+
+1. **`Consent.provision.provision` cannot be profiled.** It is a
+   `contentReference` back to `Consent.provision`, and a contentReference takes
+   no constraints — so the nested slice where every exclusion actually lives is
+   unbindable. The profile binds the root `provision.code` to document the
+   vocabulary; what enforces it on nested provisions is TypeScript and its unit
+   tests. Same shape of gap as the FHIRPath invariants above: the artifact
+   cannot state the rule, so the rule has to be tested somewhere else.
+2. **A permit naming one recipient is not a permit naming any recipient.** This
+   surfaced only while exercising the finished UI: a consent permitting release
+   to the receiving clinic was authorising release to a clinic nobody had
+   mentioned, because the code checked deny provisions and stopped there. In
+   FHIR, `provision.actor` *narrows* a provision. The `recipient-not-authorised`
+   basis code exists because of that bug.
+3. **Two defaults are choices, not consequences**, and both are visible in the
+   UI rather than buried:
+   - *No recipient ⇒ no gate.* A sharing consent governs disclosure to a third
+     party. Withholding patients' own safety material because they declined to
+     have it forwarded would invert what they asked for.
+   - *No consent on file ⇒ withhold from a third party.* Silence is not
+     permission. `no-consent-recorded` is a real basis code so an adopting site
+     can see the default fired, rather than inferring permission from an empty
+     result.
+
+The `handoff-withheld-item` extension pairs the withheld content code with its
+basis, and the governing Consent joins the packet's `context.related`.
+DocumentReference has no element for "the authority this was released under",
+and inventing one would claim more than the resource can back — so the recipient
+stays an assembly-time input, and the Consent reference is what makes an
+omission traceable.
+
+`web/scripts/check-scenario-resources.mjs` learned to look *inside* complex
+extensions for this (sub-extension cardinality and bindings); before that, a
+withheld item with no basis, or a basis outside the vocabulary, passed the
+offline gate. Both defects were planted and confirmed failing before the change
+was trusted. Mei Lin (`patient-009`) carries the worked example in scenario
+data: a consent permitting Harbor IOP while excluding the assessment detail, and
+a packet that withheld it and says so.

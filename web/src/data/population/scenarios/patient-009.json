@@ -223,6 +223,9 @@
         "related": [
           {
             "reference": "Observation/p009-risk-status"
+          },
+          {
+            "reference": "Consent/p009-sharing-consent"
           }
         ]
       },
@@ -235,18 +238,6 @@
                 "system": "http://spier.org/CodeSystem/spier-handoff-content",
                 "code": "current-risk-status",
                 "display": "Current risk status"
-              }
-            ]
-          }
-        },
-        {
-          "url": "http://spier.org/StructureDefinition/handoff-content-item",
-          "valueCodeableConcept": {
-            "coding": [
-              {
-                "system": "http://spier.org/CodeSystem/spier-handoff-content",
-                "code": "recent-assessment",
-                "display": "Most recent suicide-risk assessment"
               }
             ]
           }
@@ -298,9 +289,38 @@
               }
             ]
           }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-withheld-item",
+          "extension": [
+            {
+              "url": "item",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                    "code": "recent-assessment",
+                    "display": "Most recent suicide-risk assessment"
+                  }
+                ]
+              }
+            },
+            {
+              "url": "basis",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://spier.org/CodeSystem/spier-withholding-basis",
+                    "code": "category-excluded",
+                    "display": "Category excluded by the patient"
+                  }
+                ]
+              }
+            }
+          ]
         }
       ],
-      "description": "Prepared at step-down from intensive outpatient back to weekly CAMS sessions."
+      "description": "Prepared at step-down from intensive outpatient back to weekly CAMS sessions. Assembled under the sharing consent recorded minutes earlier: the assessment detail the patient excluded is recorded as withheld rather than quietly dropped."
     }
   ],
   "serviceRequests": [
@@ -380,6 +400,116 @@
           "status": "accepted"
         }
       ]
+    }
+  ],
+  "consents": [
+    {
+      "resourceType": "Consent",
+      "id": "p009-sharing-consent",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-information-sharing-consent"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "active",
+      "scope": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/consentscope",
+            "code": "patient-privacy",
+            "display": "Privacy Consent"
+          }
+        ]
+      },
+      "policyRule": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/consentpolicycodes",
+            "code": "hipaa-auth",
+            "display": "HIPAA Authorization"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-consent-category",
+              "code": "suicide-safety-sharing",
+              "display": "Suicide-safety information sharing"
+            }
+          ]
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-009"
+      },
+      "dateTime": "2026-07-20T15:45:00Z",
+      "provision": {
+        "type": "permit",
+        "period": {
+          "start": "2026-07-20",
+          "end": "2027-07-20"
+        },
+        "actor": [
+          {
+            "role": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                  "code": "IRCP",
+                  "display": "information recipient"
+                }
+              ]
+            },
+            "reference": {
+              "display": "Harbor Intensive Outpatient Program"
+            }
+          }
+        ],
+        "provision": [
+          {
+            "type": "deny",
+            "actor": [
+              {
+                "role": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                      "code": "IRCP",
+                      "display": "information recipient"
+                    }
+                  ]
+                },
+                "reference": {
+                  "display": "Family contact — declined by patient"
+                }
+              }
+            ]
+          },
+          {
+            "type": "deny",
+            "code": [
+              {
+                "coding": [
+                  {
+                    "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                    "code": "recent-assessment",
+                    "display": "Most recent suicide-risk assessment"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "communications": [

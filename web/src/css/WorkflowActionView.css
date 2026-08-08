@@ -105,3 +105,69 @@
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
 }
+
+/* ===========================
+   Consent gate (TL-030 honouring TL-032 — issue #227)
+
+   Three tones, because the reader needs to tell three states apart at a
+   glance: nothing is being disclosed, disclosure is authorised, or something
+   was withheld. An omission the UI does not explain reads as a bug.
+   =========================== */
+
+.consent-gate {
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  font-size: var(--font-size-sm);
+}
+
+.consent-gate--neutral {
+  border-left-color: var(--border-strong);
+}
+
+.consent-gate--permitted {
+  background: var(--accent-success-bg);
+  border-color: var(--accent-success);
+  color: var(--accent-success-text);
+}
+
+.consent-gate--withheld {
+  background: var(--accent-warning-bg);
+  border-color: var(--accent-warning-edge);
+  color: var(--accent-warning-text);
+}
+
+.consent-gate__title {
+  margin: 0 0 var(--space-1) 0;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+.consent-gate__detail {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.consent-gate__list {
+  margin: var(--space-2) 0 0 0;
+  padding-left: var(--space-4);
+}
+
+/* A checked item the gate removed. Struck rather than hidden: the clinician
+   chose it, and seeing the choice overridden is the demonstration. */
+.withheld-option {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.withheld-option__tag {
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-warning-bg);
+  color: var(--accent-warning-text);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
