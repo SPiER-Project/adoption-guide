@@ -1,0 +1,42 @@
+{
+  "resourceType": "QuestionnaireResponse",
+  "id": "stanley-brown-parity-example",
+  "status": "completed",
+  "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+  "subject": { "reference": "Patient/example" },
+  "authored": "2026-08-08T14:30:00Z",
+  "item": [
+    { "linkId": "1-1-warning-sign", "answer": [
+      { "valueString": "Racing thoughts" },
+      { "valueString": "Isolating" }
+    ] },
+    { "linkId": "2-1-coping-strategy", "answer": [
+      { "valueString": "Go for a walk" }
+    ] },
+    { "linkId": "3-1-distraction-contact-group", "answer": [
+      { "item": [
+        { "linkId": "3-1-name-place", "answer": [{ "valueString": "Local gym" }] },
+        { "linkId": "3-2-contact-info", "answer": [{ "valueString": "555-0100" }] }
+      ] }
+    ] },
+    { "linkId": "4-1-support-person-group", "answer": [
+      { "item": [
+        { "linkId": "4-1-name", "answer": [{ "valueString": "Sister Jane" }] },
+        { "linkId": "4-2-contact-info", "answer": [{ "valueString": "555-0111" }] }
+      ] }
+    ] },
+    { "linkId": "5-1-clinician-agency-group", "answer": [
+      { "item": [
+        { "linkId": "5-1-name", "answer": [{ "valueString": "Dr. Lee" }] },
+        { "linkId": "5-2-contact-info", "answer": [{ "valueString": "555-0122" }] }
+      ] }
+    ] },
+    { "linkId": "5-3-name", "answer": [{ "valueString": "General Hospital ED" }] },
+    { "linkId": "5-4-address", "answer": [{ "valueString": "1 Main St" }] },
+    { "linkId": "5-5-phone", "answer": [{ "valueString": "555-0133" }] },
+    { "linkId": "6-1-safety-action", "answer": [
+      { "valueString": "Store medications with a friend" }
+    ] },
+    { "linkId": "7-1-worth-living", "answer": [{ "valueString": "My children" }] }
+  ]
+}

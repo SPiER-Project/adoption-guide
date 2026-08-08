@@ -1,0 +1,62 @@
+map "http://spier.org/StructureMap/PHQ9Item9ToSuicideRiskConcept" = "PHQ9Item9ToSuicideRiskConcept"
+
+// Derives a harmonized SPiER Suicide Risk Concept Observation from a PHQ-9
+// Item 9 Observation (LOINC 44260-8, an ordinal integer 0-3).
+//
+// This crosswalk is a StructureMap rather than a ConceptMap because the PHQ-9
+// publishes no coded suicide-risk disposition. Its suicide-relevant signal is
+// a single ordinal item, and a ConceptMap maps code to code — it cannot
+// express an ordinal-to-tier threshold. The ASQ and C-SSRS, which do have
+// coded dispositions, use ConceptMaps instead.
+//
+// The concept Observation is re-coded to the generic LOINC 93374-7. The
+// item-9 code is a capture-layer code and must not surface as the code of the
+// harmonized concept.
+//
+// Only Item 9 contributes. The PHQ-9 total score is a depression-severity
+// measure, not a suicide-risk measure, and is deliberately not mapped.
+//
+// Ordinal to tier:
+//   0 (not at all)          -> no-risk  (interpretation NEG)
+//   1 (several days)        -> low      (POS)
+//   2 (more than half days) -> moderate (POS)
+//   3 (nearly every day)    -> high     (POS)
+//
+// These assignments are illustrative reference logic pending sign-off by
+// suicide-prevention subject-matter experts — in particular the boundary
+// between 2 -> moderate and 3 -> high. Adopters SHALL validate them against
+// their own clinical protocols before using the harmonized tier to drive care
+// decisions.
+
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias PHQ9Item9 as source
+uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+
+// ─── Implementation notes (not published — see README.md) ────────────
+//
+// Source profile: spier-phq9-item9 (ig/input/fsh/phq9.fsh).
+// Runtime counterpart: web/src/lib/observationMappers/phq9.ts, which escalates
+// its alert urgency at score >= 2. That is an alert heuristic, not a tier
+// claim, and is why the runtime's threshold and this map's bands differ
+// without either being wrong.
+
+group phq9Item9ToConcept(source src : PHQ9Item9, target tgt : Concept) {
+  // --- fixed shape ---
+  src -> tgt.status = 'final' "set-status";
+  // Re-code to the generic concept LOINC (source carries item-9 code 44260-8).
+  src -> tgt.code = cc('http://loinc.org', '93374-7') "concept-code";
+  src.subject as subj -> tgt.subject = subj "carry-subject";
+  src.effective as eff -> tgt.effective = eff "carry-effective";
+  src -> tgt.derivedFrom = reference(src) "derived-from";
+  src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
+  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
+
+  // --- value: Item-9 ordinal -> common tier ---
+  src.value : integer as v where (v = 0) -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'no-risk') "tier-0";
+  src.value : integer as v where (v = 1) -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'low') "tier-1";
+  src.value : integer as v where (v = 2) -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'moderate') "tier-2";
+  src.value : integer as v where (v = 3) -> tgt.value = cc('http://spier.org/CodeSystem/spier-suicide-risk-tier', 'high') "tier-3";
+
+  // --- interpretation: NEG only for 0, POS for any endorsement ---
+  src.value : integer as v where (v = 0) -> tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
+  src.value : integer as v where (v > 0) -> tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
+}

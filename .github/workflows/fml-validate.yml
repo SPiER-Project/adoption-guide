@@ -1,28 +1,78 @@
-name: FML — StructureMap compile check
+name: FML — StructureMap compile + transform parity
 
-# Compile-checks the draft StructureMaps in ig/drafts/*.fml with the
-# official HL7 FHIR validator. These maps are NOT under ig/input/ (so the
-# SUSHI build and the IG Publisher never touch them); this workflow is the
-# gate that must go green before a draft is promoted to ig/input/fml/.
+# Gates SPiER's FHIR Mapping Language sources: every `.fml` compiles, and the
+# one map with a TypeScript twin still produces the same CarePlan the runtime
+# does. The logic lives in `scripts/check-fml.mjs`; read its header for what
+# each phase covers.
 #
-# Runs only when a draft .fml (or this workflow) changes, so it doesn't add
-# Java/validator overhead to the main FSH compile in ig.yml.
+# ─── The "best-effort flags" caveat this replaces ───────────────────────────
 #
-# NOTE: the validator's -compile invocation/flags below are best-effort and
-# may need a one-time tweak on the first CI run; adjust here once confirmed.
+# Until 2026-08-08 this workflow ran the validator inline and carried a note
+# saying the `-compile` invocation was "best-effort and may need a one-time
+# tweak on the first CI run; adjust here once confirmed". It was never
+# confirmed, and the flags were wrong in three compounding ways — see the
+# header of scripts/check-fml.mjs. The net effect: the job had been green since
+# 2026-06-06 while compiling nothing, because the validator prints
+# "Successfully compiled" and exits 0 after failing to locate the map.
+#
+# The run history looked like evidence and was not. Of the eight runs on
+# 2026-06-06, the seven green ones all logged `Unable to locate map`, and the
+# single red one (27072266152) was a SocketException reaching tx.fhir.org —
+# proof that the job can fail, not that the check can detect a bad map. The
+# fix for that flake, `-tx n/a`, is kept for the compile phase.
+#
+# So this workflow now asserts on the validator's *output artifact* rather than
+# its exit code, and the four defect classes it claims to catch — a syntax
+# error, an R5-style header, a name/filename mismatch, and a map whose output
+# no longer matches its golden CarePlan — were each planted and observed to
+# fail before this was committed.
+#
+# ─── Why the parity phase needs the network ─────────────────────────────────
+#
+# The FML transform engine refuses to run without a terminology server
+# ("Must provide a terminology server when doing a transform"), so that half
+# cannot be offline-reproducible. It runs here rather than in `npm run verify`,
+# the same treatment `check:codings` gets. The offline half of the same
+# contract — the runtime mapper against the same golden file — is asserted by
+# web/src/lib/carePlanMappers/stanleyBrown.parity.test.ts in `verify`.
+#
+# ─── What this does NOT cover ───────────────────────────────────────────────
+#
+# `validator_cli … compile` is a parser, not a profile checker. Wrong element
+# names, untypeable FHIRPath and wrongly-typed `import` targets all compile
+# clean and are caught only by the full IG Publisher run (`ig-publish.yml`),
+# which triggers on `ig/input/**` and therefore also sees changes to these
+# maps. A green run here is necessary, not sufficient.
 
 on:
   push:
     branches:
       - main
     paths:
+      - 'ig/input/resources/maps/**'
       - 'ig/drafts/**.fml'
+      - 'scripts/check-fml.mjs'
+      - 'scripts/lib/validator-jar.mjs'
+      - 'scripts/lib/careplan-parity.mjs'
+      - 'scripts/fixtures/stanley-brown/**'
       - '.github/workflows/fml-validate.yml'
   pull_request:
     paths:
+      - 'ig/input/resources/maps/**'
       - 'ig/drafts/**.fml'
+      - 'scripts/check-fml.mjs'
+      - 'scripts/lib/validator-jar.mjs'
+      - 'scripts/lib/careplan-parity.mjs'
+      - 'scripts/fixtures/stanley-brown/**'
       - '.github/workflows/fml-validate.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fml-validate-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   fml:
@@ -41,47 +91,22 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Install Sushi
+      - name: Install SUSHI
         run: npm install -g fsh-sushi
 
-      # Generate the SPiER resources so the validator can resolve the
-      # canonical ConceptMaps / profiles the maps reference.
-      - name: Compile FSH (for canonical resolution)
+      # The maps resolve the ConceptMaps they translate through out of the
+      # generated resources, so the FSH has to be compiled first.
+      - name: Compile FSH
         working-directory: ./ig
         run: sushi .
 
-      - name: Download FHIR validator
-        run: curl -sL -o validator_cli.jar https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar
-
-      - name: Compile each draft StructureMap
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          found=0
-          for f in ig/drafts/*.fml; do
-            found=1
-            url=$(grep -m1 -oP '(?<=/// url = ")[^"]+' "$f")
-            echo "::group::Compiling $f  ($url)"
-            # -tx n/a: no terminology server. FML->StructureMap compilation
-            # doesn't need one, and contacting tx.fhir.org made the job flaky
-            # (java.net.SocketException). Keeps the check hermetic.
-            java -jar validator_cli.jar "$f" \
-              -compile "$url" \
-              -version 4.0.1 \
-              -tx n/a \
-              -ig hl7.fhir.us.core#6.1.0 \
-              -ig hl7.fhir.uv.sdc#3.0.0 \
-              -ig ig/fsh-generated \
-              -output "${f%.fml}.compiled.json"
-            echo "::endgroup::"
-          done
-          if [ "$found" = "0" ]; then echo "No .fml drafts to compile."; fi
-
-      - name: Upload compiled StructureMaps
-        if: always()
-        uses: actions/upload-artifact@v4
+      # Keyed on the pinned version in scripts/lib/validator-jar.mjs, so a
+      # version bump invalidates the cache on its own.
+      - name: Cache validator jar
+        uses: actions/cache@v4
         with:
-          name: compiled-structuremaps
-          path: ig/drafts/*.compiled.json
-          if-no-files-found: ignore
-          retention-days: 14
+          path: .fhir-validator
+          key: fhir-validator-${{ hashFiles('scripts/lib/validator-jar.mjs') }}
+
+      - name: Compile StructureMaps + check transform parity
+        run: node scripts/check-fml.mjs --tx https://tx.fhir.org

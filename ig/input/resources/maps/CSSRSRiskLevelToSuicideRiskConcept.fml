@@ -1,32 +1,32 @@
-/// url = "http://spier.org/StructureMap/CSSRSRiskLevelToSuicideRiskConcept"
-/// name = "CSSRSRiskLevelToSuicideRiskConcept"
-/// title = "C-SSRS Risk Level → SPiER Suicide Risk Concept"
-/// status = draft
+map "http://spier.org/StructureMap/CSSRSRiskLevelToSuicideRiskConcept" = "CSSRSRiskLevelToSuicideRiskConcept"
 
-// =============================================================
-// DRAFT — UNVALIDATED. FHIR Mapping Language (R4 / FHIRPath).
+// Derives a harmonized SPiER Suicide Risk Concept Observation from a C-SSRS
+// Risk Level Observation, so a consumer that does not know the C-SSRS can
+// still read the patient's risk tier.
 //
-// Lives in ig/drafts/ (OUTSIDE ig/input/) on purpose: SUSHI does not
-// compile .fml and the IG Publisher would try to compile anything under
-// ig/input/, so this cannot break the IG build until validated.
+// The C-SSRS counterpart of ASQResultToSuicideRiskConcept, and split the same
+// way. The multi-item inference (items 1-6 -> none / low / moderate / high) is
+// computed by SPiER's tested runtime mapper and persisted as a C-SSRS Risk
+// Level Observation; this map does the declarative resource shaping and the
+// ConceptMap translate() of that risk level to the instrument-agnostic tier,
+// with provenance carried in derivedFrom.
 //
-// BEFORE PROMOTING to ig/input/fml/:
-//   1. Validate it compiles (.github/workflows/fml-validate.yml runs the
-//      HL7 validator in -compile mode on each draft).
-//   2. Confirm the ConceptMap crosswalk has clinical sign-off
-//      (ig/input/fsh/crosswalk-cssrs.fsh — epic #77).
-// =============================================================
-//
-// Mirror of ASQResultToSuicideRiskConcept.fml for the C-SSRS instrument.
-// The multi-item C-SSRS inference (items 1–6 -> none/low/moderate/high)
-// is computed by the runtime mapper and persisted as a SPiERCSSRSRiskLevel
-// Observation; THIS map performs the declarative resource shaping and the
-// ConceptMap translate() of the risk level to the common tier.
+// The tier assignments this map translates through are illustrative reference
+// logic pending sign-off by suicide-prevention subject-matter experts.
+// Adopters SHALL validate them against their own clinical protocols before
+// using the harmonized tier to drive care decisions.
 
 uses "http://hl7.org/fhir/StructureDefinition/Observation" alias CSSRSRiskLevel as source
 uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
 
-imports "http://spier.org/ConceptMap/CSSRSRiskLevelToRiskTier"
+// ─── Implementation notes (not published — see README.md) ────────────
+//
+// Runtime counterpart: web/src/lib/observationMappers/cssrs.ts.
+// Crosswalk under clinical review: ig/input/fsh/crosswalk-cssrs.fsh (#77/#93).
+//
+// No `imports` for the ConceptMap — see ASQResultToSuicideRiskConcept.fml.
+// `StructureMap.import` is canonical(StructureMap); `translate()` resolves the
+// ConceptMap from its own argument.
 
 group cssrsRiskLevelToConcept(source src : CSSRSRiskLevel, target tgt : Concept) {
   // --- fixed / carried-through shape ---
@@ -48,8 +48,8 @@ group cssrsRiskLevelToConcept(source src : CSSRSRiskLevel, target tgt : Concept)
   } "map-value";
 
   // --- interpretation: NEG for a 'none' risk level, POS otherwise ---
-  src.value : CodeableConcept as level where coding.code = 'none' ->
+  src.value : CodeableConcept as level where (coding.code = 'none') ->
     tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'NEG') "interp-neg";
-  src.value : CodeableConcept as level where coding.code != 'none' ->
+  src.value : CodeableConcept as level where (coding.code != 'none') ->
     tgt.interpretation = cc('http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', 'POS') "interp-pos";
 }

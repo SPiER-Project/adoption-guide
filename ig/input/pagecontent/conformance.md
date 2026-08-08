@@ -32,21 +32,27 @@ The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived, uncon
 
 ## Harmonization status
 
-The instrument-to-tier crosswalks are at different stages of completion, and **none have clinical sign-off yet**:
+Every crosswalk below is now an artifact in this guide, and **none have clinical sign-off yet**. Two things are being tracked separately here, and the distinction matters: whether the artifact is *published and machine-readable*, and whether its tier assignments are *clinically ratified*. The first column pair is now complete; the second is not.
 
-| Instrument | Tier-mapping artifact | Status |
-|---|---|---|
-| ASQ | [ConceptMap: ASQ Disposition → Risk Tier](ConceptMap-ASQDispositionToRiskTier.html) | Authored — pending clinical sign-off |
-| PSS-3 | [ConceptMap: PSS-3 Result → Risk Tier](ConceptMap-PSS3ResultToRiskTier.html) | Authored — pending clinical sign-off |
-| C-SSRS | [ConceptMap: C-SSRS Risk Level → Risk Tier](ConceptMap-CSSRSRiskLevelToRiskTier.html) | Authored — pending clinical sign-off |
-| BSSA | [ConceptMap: BSSA Disposition → Risk Tier](ConceptMap-BSSADispositionToRiskTier.html) | Authored — pending clinical sign-off |
-| CAMS (SSF overall risk) | [ConceptMap: CAMS SSF Overall Risk → Risk Tier](ConceptMap-CAMSOverallRiskToRiskTier.html) | Authored — pending clinical sign-off; clinician-overridable decision support (see below) |
-| PHQ-9 (Item 9) | Draft FHIR Mapping Language file (`ig/drafts/` in the repository) | Draft, unvalidated — targeted for the v0.2 release |
-| SBQ-R (total score) | Draft FHIR Mapping Language file (`ig/drafts/` in the repository) | Draft, unvalidated — targeted for the v0.2 release |
+| Instrument | Tier-mapping artifact | Kind | Status |
+|---|---|---|---|
+| ASQ | [ConceptMap: ASQ Disposition → Risk Tier](ConceptMap-ASQDispositionToRiskTier.html) · [StructureMap: ASQ Result → Concept](StructureMap-ASQResultToSuicideRiskConcept.html) | Coded disposition | Published — pending clinical sign-off |
+| PSS-3 | [ConceptMap: PSS-3 Result → Risk Tier](ConceptMap-PSS3ResultToRiskTier.html) | Coded disposition | Published — pending clinical sign-off |
+| C-SSRS | [ConceptMap: C-SSRS Risk Level → Risk Tier](ConceptMap-CSSRSRiskLevelToRiskTier.html) · [StructureMap: C-SSRS Risk Level → Concept](StructureMap-CSSRSRiskLevelToSuicideRiskConcept.html) | Coded disposition | Published — pending clinical sign-off |
+| BSSA | [ConceptMap: BSSA Disposition → Risk Tier](ConceptMap-BSSADispositionToRiskTier.html) | Coded disposition | Published — pending clinical sign-off |
+| CAMS (SSF overall risk) | [ConceptMap: CAMS SSF Overall Risk → Risk Tier](ConceptMap-CAMSOverallRiskToRiskTier.html) | Coded disposition | Published — pending clinical sign-off; clinician-overridable decision support (see below) |
+| PHQ-9 (Item 9) | [StructureMap: PHQ-9 Item 9 → Concept](StructureMap-PHQ9Item9ToSuicideRiskConcept.html) | Ordinal threshold | Published — pending clinical sign-off |
+| SBQ-R (total score) | [StructureMap: SBQ-R Total Score → Concept](StructureMap-SBQRTotalScoreToSuicideRiskConcept.html) | Numeric cutoff | Published — pending clinical sign-off |
 
-Every ConceptMap above is published with `status = draft` and `experimental = true`.
+**Why some crosswalks are ConceptMaps and others are StructureMaps.** A ConceptMap maps code to code. Instruments that publish a coded disposition (ASQ, PSS-3, C-SSRS, BSSA, CAMS) therefore use one. The PHQ-9's suicide-relevant signal is Item 9, an ordinal integer 0–3, and the SBQ-R produces a numeric total against validated cutoffs; neither is a code-to-code mapping, so both are expressed as StructureMaps keyed on the value. The ASQ and C-SSRS carry a StructureMap *as well as* a ConceptMap because deriving the harmonized Observation involves resource shaping — provenance via `derivedFrom`, category codings, interpretation — around the ConceptMap `translate()` call.
+
+Every ConceptMap and StructureMap above is published with `status = draft` and `experimental = true`.
 
 The CAMS map differs in kind from the others and adopters should treat it accordingly. CAMS is a **collaborative therapeutic process, not a predictive screener**, and no published psychometric stratification of the SSF Overall Risk rating exists. Its tier assignment is therefore explicitly clinician-overridable decision support: every row carries a `wider` equivalence, and **no rating maps to `imminent`** — escalation to the imminent tier is a separate clinical triage decision that a patient self-rating cannot make.
+
+### Declared transformations
+
+One further StructureMap has a different job. [Stanley-Brown QuestionnaireResponse → CarePlan](StructureMap-StanleyBrownQRToCarePlan.html) describes how a completed safety-plan questionnaire becomes a safety-plan `CarePlan`, and the Document Safety Actions stage names it in `PlanDefinition.action.transform` on its `administer-stanley-brown` action. An implementer can therefore see not only that a safety plan yields a `CarePlan`, but how each of the seven Stanley-Brown steps lands in it.
 
 ### Egress: harmonized tier → LOINC
 

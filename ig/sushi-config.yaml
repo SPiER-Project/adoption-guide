@@ -54,6 +54,13 @@ parameters:
   apply-contact: true
   apply-jurisdiction: true
   apply-publisher: true
+  # FHIR Mapping Language sources. SUSHI does not compile .fml — the IG
+  # Publisher does, but only for folders it is told to scan, and the default
+  # scan of input/resources does not recurse into subfolders. Naming the
+  # subfolder explicitly is what makes ig/input/resources/maps/*.fml become
+  # published StructureMaps (issues #92 / #229).
+  path-resource:
+    - input/resources/maps
 
 # Pages and menu structure
 pages:

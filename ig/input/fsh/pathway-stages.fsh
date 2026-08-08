@@ -295,11 +295,23 @@ Usage: #definition
 * type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
 * useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
 * useContext[=].valueCodeableConcept = SPiERPathwayStage#document-safety-actions
+// The only action in the pathway that declares its transformation. The
+// safety plan is captured as a QuestionnaireResponse and has to become a
+// CarePlan; until #229 that step existed only as TypeScript in the demo app
+// (web/src/lib/carePlanMappers/stanleyBrown.ts), so a partner could read the
+// Questionnaire and the CarePlan profile and still not know how one becomes
+// the other. `transform` names the StructureMap that says.
 * action[+]
   * id = "administer-stanley-brown"
   * title = "Author Stanley-Brown Safety Plan / Safety Planning Intervention"
-  * description = "Collaboratively complete a Stanley-Brown Safety Plan with the patient."
+  * description = "Collaboratively complete a Stanley-Brown Safety Plan with the patient. The completed QuestionnaireResponse is transformed into the safety-plan CarePlan by StanleyBrownQRToCarePlan."
   * definitionCanonical = "http://spier.org/ActivityDefinition/AdministerStanleyBrown"
+  // Declared so `transform` is unambiguous: it consumes the QuestionnaireResponse
+  // for http://spier.org/Questionnaire/StanleyBrownSafetyPlan, which the
+  // ActivityDefinition names as its depends-on relatedArtifact.
+  * input[+]
+    * type = #QuestionnaireResponse
+  * transform = "http://spier.org/StructureMap/StanleyBrownQRToCarePlan"
   * output[+]
     * type = #CarePlan
     * profile = "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"

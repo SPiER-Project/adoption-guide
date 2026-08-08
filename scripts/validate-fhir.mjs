@@ -38,27 +38,20 @@
  * `npx fsh-sushi .` inside `ig/`.
  */
 import { spawnSync } from 'node:child_process'
-import { createWriteStream, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
-import { Readable } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
+import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 
 /**
- * Pinned deliberately. `ig-publish.yml` resolves the *latest* IG Publisher
- * because that job is informational-until-it-fails and tracking upstream is
- * desirable there. This job is a hard PR gate, so a new validator release must
- * never be able to turn a PR red on its own. Bump this constant in its own PR,
- * with the new findings triaged.
+ * Validator version and jar resolution are shared with `scripts/check-fml.mjs`
+ * — see `scripts/lib/validator-jar.mjs` for why the version is pinned and where
+ * to bump it.
  */
-const VALIDATOR_VERSION = '6.10.0'
-const VALIDATOR_URL = `https://github.com/hapifhir/org.hl7.fhir.core/releases/download/${VALIDATOR_VERSION}/validator_cli.jar`
-
-const FHIR_VERSION = '4.0.1'
 
 /** IG dependencies, mirroring `ig/sushi-config.yaml`. */
 const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
@@ -140,25 +133,11 @@ if (!existsSync(GENERATED_DIR)) {
 
 // --- Resolve the validator jar (download + cache on first use) -------------
 async function resolveJar() {
-  const fromEnv = process.env.SPIER_VALIDATOR_JAR ?? argValue('--jar')
-  if (fromEnv) {
-    if (!existsSync(fromEnv)) fail(`validator jar not found at ${fromEnv}`)
-    return fromEnv
+  try {
+    return await resolveValidatorJar({ explicitPath: argValue('--jar') })
+  } catch (err) {
+    fail(err.message)
   }
-
-  const cacheDir = join(root, '.fhir-validator')
-  const jar = join(cacheDir, `validator_cli-${VALIDATOR_VERSION}.jar`)
-  if (existsSync(jar)) return jar
-
-  mkdirSync(cacheDir, { recursive: true })
-  console.log(`Downloading validator_cli ${VALIDATOR_VERSION} (~190 MB, one time)…`)
-  const res = await fetch(VALIDATOR_URL, { redirect: 'follow' })
-  if (!res.ok) fail(`download failed: ${res.status} ${res.statusText} — ${VALIDATOR_URL}`)
-  const partial = `${jar}.partial`
-  await pipeline(Readable.fromWeb(res.body), createWriteStream(partial))
-  const { renameSync } = await import('node:fs')
-  renameSync(partial, jar)
-  return jar
 }
 
 // --- Collect targets -------------------------------------------------------
