@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-08T22:53:15.946Z",
+  "fetchedAt": "2026-08-08T23:13:29.370Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
@@ -1607,12 +1607,13 @@
     {
       "number": 236,
       "title": "Free-text summaries in Coding.display for v3-ObservationInterpretation (#220 class)",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/236",
       "bodyMd": "## Summary\n\n`web/src/lib/observationMappers/*.ts` write free-text summaries into\n`Coding.display` for `http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation`\ncodes — a `display` the publishing authority does not allow. This is the same\ndefect class as #220, across roughly 33 sites.\n\n## Examples\n\n| File | Emitted | HL7 publishes |\n|---|---|---|\n| `phq9.ts` | `H \"Moderate depression (score 12/27)\"` | `H \"High\"` |\n| `phq9.ts` | `A \"Positive — suicide risk screening indicated\"` | `A \"Abnormal\"` |\n| `camsSectionA.ts` | `H \"Elevated (4/5)\"`, `N \"Moderate (4/5)\"` | `H \"High\"`, `N \"Normal\"` |\n| `bssa.ts` | `N \"No further intervention necessary\"` | `N \"Normal\"` |\n| `safet.ts`, `pssFull.ts`, `cssrsScreener.ts` | `N \"No risk identified\"` | `N \"Normal\"` |\n\nSame shape in `asq.ts`, `pss3.ts`, `cssrsFull.ts`, `sbqr.ts`,\n`camsOutcomeDisposition.ts`, and in the sample payloads in\n`web/src/data/catalog/tool-ui-metadata.ts`.\n\nRelated but distinct: `camsSectionA.ts` / `camsOutcomeDisposition.ts` also write\n`display: \"CAMS SSF: ${vital.display}\"` for `http://spier.org/CodeSystem/cams-ssf`\ncodes, whose CodeSystem display (`ig/input/fsh/cams.fsh`) is just\n`\"Psychological Pain\"`.\n\n## Why no gate caught it\n\nTwo independent blind spots:\n\n1. `web/scripts/check-codings.mjs` scanned only `http://loinc.org` and\n   `http://snomed.info/sct`. `terminology.hl7.org` was never in `EXTERNAL_SYSTEMS`,\n   so the entire v3-ObservationInterpretation family went unread.\n2. Even with the system in scope, the scanner reads *string literals*. Displays\n   built from template literals (`` `Elevated (${score}/5)` ``) cannot be resolved\n   statically and are checked as code-only.\n\n`validate-fhir.mjs` runs `-tx n/a` in CI, and nothing validates TypeScript\ncodings at all — the exact gap #220 exposed.\n\n## Fix\n\nPut the authority's display in `Coding.display` and move the human-readable\nphrase to the sibling `CodeableConcept.text`. Every SPiER view already prefers\n`.text` (`PatientChart.tsx`, `QuestionnaireView.tsx`, `registry.ts` all do\n`code?.text || code?.coding?.[0]?.display`), so rendered labels are unchanged.\nBlind spot 2 stops mattering once the `display` is a fixed, checkable string.\n\nWiden `EXTERNAL_SYSTEMS` to cover the `terminology.hl7.org/CodeSystem/*` family\nso the nightly catches this class going forward, and re-derive the per-source\nfloors in that file — they are load-bearing.\n",
       "labels": [],
       "createdAt": "2026-08-08T19:14:47Z",
-      "updatedAt": "2026-08-08T19:14:47Z"
+      "updatedAt": "2026-08-08T23:05:14Z",
+      "closedAt": "2026-08-08T23:05:14Z"
     },
     {
       "number": 240,
