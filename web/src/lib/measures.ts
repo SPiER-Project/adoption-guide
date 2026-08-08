@@ -31,7 +31,12 @@ import {
   PACKET_PROFILE,
   REFERRAL_PROFILE,
 } from './handoffs'
-import { CARING_CONTACT_PROFILE, attendedWithinDays, isOutreachAttempt } from './followUp'
+import {
+  CARING_CONTACT_OPT_OUT_EXT,
+  CARING_CONTACT_PROFILE,
+  attendedWithinDays,
+  isOutreachAttempt,
+} from './followUp'
 import {
   CLOSURE_REASON_EXT,
   EPISODE_PROFILE,
@@ -61,7 +66,9 @@ export const SAFETY_HANDOFF_PROFILE = 'http://spier.org/StructureDefinition/spie
 export const LETHAL_MEANS_PROFILE = 'http://spier.org/StructureDefinition/spier-lethal-means-counseling'
 export const STANLEY_BROWN_PROFILE = 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'
 export const CRISIS_RESPONSE_PLAN_PROFILE = 'http://spier.org/StructureDefinition/spier-crisis-response-plan'
-export const CARING_CONTACT_OPT_OUT_EXT = 'http://spier.org/StructureDefinition/caring-contact-opt-out'
+// Defined in followUp.ts next to the caring-contact profile it rides on, and
+// re-exported here because this engine is where its consequence lives.
+export { CARING_CONTACT_OPT_OUT_EXT }
 export const HANDOFF_CONTENT_SYSTEM = 'http://spier.org/CodeSystem/spier-handoff-content'
 /** The generic concept-layer code the risk-concept profile mandates. */
 export const RISK_CONCEPT_LOINC = '93374-7'
@@ -477,10 +484,10 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   },
 
   // ── Measure 4: lethal means counseling ──
-  // NOTE: the app has no Procedure recorder yet (TL-008 launchActions is
-  // empty), so this returns false for every demo patient. The criterion is
-  // written against the real profile so it starts working the moment a recorder
-  // lands — see docs/plans/stage-8-measure-and-share.md.
+  // Written by the TL-008 recorder (components/LethalMeansCounselingView.tsx).
+  // Counts the counseling Procedure only — the per-means SPiERMeansSafetyAction
+  // Observations the same recorder writes are richer detail a site reports
+  // separately, not part of this numerator.
   'Lethal Means Counseling During Episode': ctx => {
     if (!ctx.latestEpisode) return false
     const { start, end } = episodePeriod(ctx.latestEpisode)
@@ -516,9 +523,9 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   // ── Measure 6: caring contact adherence ──
   // The opt-out exclusion is why caring-contact-opt-out exists on the profile:
   // honoring an opt-out is correct behaviour, and scoring it as a miss would
-  // pressure sites to ignore the patient. NOTE: the demo caring-contact
-  // recorder never writes the extension, so this exclusion cannot currently
-  // fire against demo data — tracked in the Stage-6 doc.
+  // pressure sites to ignore the patient. The TL-010 recorder
+  // (components/CaringContactView.tsx) writes the extension, so the exclusion
+  // is reachable from the UI rather than only from injected data.
   'Excluded From Caring Contact Measurement': ctx => {
     const optedOut = ctx.caringContacts.some(c => extensionBoolean(c, CARING_CONTACT_OPT_OUT_EXT))
     const reason = closureReason(ctx)

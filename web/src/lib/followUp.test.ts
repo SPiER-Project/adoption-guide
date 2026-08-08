@@ -1,14 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import {
   attendedWithinDays,
+  buildCaringContact,
   buildOutreachAttempt,
+  caringContactOptedOut,
+  caringContacts,
   deriveAppointmentTracking,
+  hasOptedOutOfCaringContacts,
   isOutreachAttempt,
   outreachAttempts,
   outreachOutcome,
   outreachPrompt,
   outreachSafetyConcern,
   unreachedStreak,
+  CARING_CONTACT_OPT_OUT_EXT,
+  CARING_CONTACT_PROFILE,
   OUTREACH_OUTCOME_EXT,
   OUTREACH_OUTCOME_SYSTEM,
   OUTREACH_PROMPT_EXT,
@@ -122,6 +128,105 @@ describe('outreach attempt (TL-033 / TL-035)', () => {
       attempt({ id: 'b', sent: '2026-07-28T10:00:00.000Z', outcome: 'patient-reached' }),
     ])
     expect(listed.map(a => a.id)).toEqual(['b', 'a'])
+  })
+})
+
+describe('caring contact (TL-010)', () => {
+  const contact = buildCaringContact({
+    id: 'caring-contact-1',
+    patientId: 'patient-005',
+    sent: '2026-08-03T10:00:00.000Z',
+    channel: 'WRITTEN',
+    message: 'Thinking of you. No reply needed.',
+    optOut: false,
+  })
+
+  it('is a Communication on the caring-contact profile, staged to Track Follow-Up', () => {
+    expect(contact.resourceType).toBe('Communication')
+    expect(contact.status).toBe('completed')
+    expect((contact.meta as { profile?: string[] }).profile).toEqual([CARING_CONTACT_PROFILE])
+    expect(contact.sent).toBe('2026-08-03T10:00:00.000Z')
+    expect(stageForArtifact(contact)).toBe('track-follow-up')
+  })
+
+  it('is NOT an outreach attempt — it has no outcome to record', () => {
+    // The distinction the profile exists for: a caring contact asks nothing of
+    // the patient, so "was anyone reached" is not a question it can answer.
+    expect(isOutreachAttempt(contact)).toBe(false)
+    expect(outreachOutcome(contact)).toBeUndefined()
+  })
+
+  it('carries the message as payload, not as a note', () => {
+    expect(contact.payload).toEqual([{ contentString: 'Thinking of you. No reply needed.' }])
+  })
+
+  it('writes the medium display the publishing authority actually uses', () => {
+    // v3-ParticipationMode publishes "written", not the picker's "Letter / card".
+    const medium = contact.medium as { coding?: { code?: string; display?: string }[] }[]
+    expect(medium[0].coding?.[0]).toEqual({
+      system: 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode',
+      code: 'WRITTEN',
+      display: 'written',
+    })
+  })
+
+  it('stamps the opt-out extension — the whole point of issue #211', () => {
+    const optedOut = buildCaringContact({
+      id: 'caring-contact-2',
+      patientId: 'patient-005',
+      sent: '2026-08-10T10:00:00.000Z',
+      channel: 'WRITTEN',
+      optOut: true,
+    })
+    expect(optedOut.extension).toEqual([
+      { url: CARING_CONTACT_OPT_OUT_EXT, valueBoolean: true },
+    ])
+    expect(caringContactOptedOut(optedOut)).toBe(true)
+  })
+
+  it('records an explicit opt-IN rather than staying silent', () => {
+    // `false` is a different claim from "nothing recorded", and it is the one
+    // ExampleCaringContact makes.
+    expect(contact.extension).toEqual([{ url: CARING_CONTACT_OPT_OUT_EXT, valueBoolean: false }])
+    expect(caringContactOptedOut(contact)).toBe(false)
+  })
+
+  it('omits the extension entirely when opt-out was never asked', () => {
+    const silent = buildCaringContact({
+      id: 'caring-contact-3',
+      patientId: 'p',
+      sent: '2026-08-03T10:00:00.000Z',
+      channel: 'PHONE',
+    })
+    expect(silent.extension).toBeUndefined()
+    expect(caringContactOptedOut(silent)).toBe(false)
+  })
+})
+
+describe('reading caring contacts off a chart', () => {
+  const older = buildCaringContact({
+    id: 'cc-1',
+    patientId: 'p',
+    sent: '2026-07-27T10:00:00.000Z',
+    channel: 'WRITTEN',
+    optOut: false,
+  })
+  const newer = buildCaringContact({
+    id: 'cc-2',
+    patientId: 'p',
+    sent: '2026-08-03T10:00:00.000Z',
+    channel: 'WRITTEN',
+    optOut: true,
+  })
+  const anAttempt = attempt({ id: 'o-1', sent: '2026-08-01T10:00:00.000Z', outcome: 'no-answer' })
+
+  it('separates caring contacts from outreach attempts, newest first', () => {
+    expect(caringContacts([older, anAttempt, newer]).map(c => c.id)).toEqual(['cc-2', 'cc-1'])
+  })
+
+  it('reports the series as stopped once any contact records an opt-out', () => {
+    expect(hasOptedOutOfCaringContacts([older, anAttempt])).toBe(false)
+    expect(hasOptedOutOfCaringContacts([older, anAttempt, newer])).toBe(true)
   })
 })
 

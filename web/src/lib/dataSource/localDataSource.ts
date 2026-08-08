@@ -27,6 +27,7 @@ import type {
   FlagResource,
   ObservationResource,
   PatientSlice,
+  ProcedureResource,
   ServiceRequestResource,
   StoredResponse,
   TaskResource,
@@ -51,6 +52,7 @@ const EMPTY_SLICE: PatientSlice = {
   serviceRequests: [],
   appointments: [],
   consents: [],
+  procedures: [],
 }
 
 /**
@@ -196,6 +198,15 @@ export class LocalDataSource implements FhirDataSource {
           return { ...prev, observations: [...prev.observations, stamped as ObservationResource] }
         case 'CarePlan':
           return { ...prev, carePlans: [...prev.carePlans, stamped as CarePlanResource] }
+        // Stage 4 (Document Safety Actions). Appended, not upserted: the
+        // lethal-means counseling Procedure is a completed point-in-time act
+        // with no later lifecycle, like the Observation above it. A second
+        // counseling session is a second Procedure, not an edit of the first.
+        case 'Procedure':
+          return {
+            ...prev,
+            procedures: [...(prev.procedures ?? []), stamped as ProcedureResource],
+          }
         // Stage 7 (Track Risk Over Time). The episode is upserted by id rather
         // than appended: opening an episode and later closing it are two saves
         // of the SAME episode, and appending would leave a stale open copy in

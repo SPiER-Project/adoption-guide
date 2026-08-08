@@ -79,8 +79,8 @@ export const MEASURE_GAPS: Record<string, MeasureGap> = {
   SPiERLethalMeansCounselingCompleted: {
     denominator: 'patients in an open suicide-safer care episode',
     missing:
-      'The registry seeds no EpisodeOfCare, so the cohort is empty. The numerator is separately unreachable today: TL-008 has no recorder, so nothing writes the lethal-means counseling Procedure this measure looks for.',
-    issues: [209, 210],
+      'No patient in the registry is in an EpisodeOfCare on the SPiER episode profile, so the cohort is empty. TL-008 does record the lethal-means counseling Procedure this measure counts — the numerator has somewhere to come from as soon as a patient enters the cohort.',
+    issues: [209],
   },
   SPiERReferralCompletion: {
     denominator: 'patients with a suicide-safety referral',
@@ -97,8 +97,8 @@ export const MEASURE_GAPS: Record<string, MeasureGap> = {
   SPiERCaringContactAdherence: {
     denominator: 'patients with a documented care transition',
     missing:
-      'The 30-day clock starts at a documented care transition, which the registry does not seed. The opt-out exclusion is separately unreachable: the demo caring-contact recorder never writes the caring-contact-opt-out extension.',
-    issues: [209, 211],
+      'The 30-day clock starts at a documented care transition — a safety-handoff Communication or a handoff packet — and no patient in the registry has one, so there is no index date for the window to run from. The opt-out exclusion is reachable: the TL-010 recorder writes the caring-contact-opt-out extension.',
+    issues: [209],
   },
 }
 

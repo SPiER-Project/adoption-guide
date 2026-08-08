@@ -52,6 +52,15 @@
   color: var(--text-muted);
 }
 
+/* A sentence of explanation under a control, for the few fields whose meaning
+   is not self-evident from the label — e.g. what the caring-contact opt-out
+   actually does to the Stage-8 adherence measure. */
+.workflow-field-help {
+  font-weight: 400;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
 .workflow-input {
   padding: var(--space-2) var(--space-3);
   font: inherit;

@@ -61,12 +61,9 @@ export type DocumentReferenceResource = FhirResource & { resourceType: 'Document
 export type ServiceRequestResource = FhirResource & { resourceType: 'ServiceRequest' }
 export type ConsentResource = FhirResource & { resourceType: 'Consent' }
 
-// From ig/input/fsh/lethal-means.fsh (Stage 4). Added for the Stage-8 lethal
-// means counseling measure, which reads the counseling Procedure. There is no
-// Procedure recorder in the app yet (TL-008 has no launch action), so this
-// bucket is currently only ever empty — but the measure criterion is written
-// against the real profile so it starts working when a recorder lands, rather
-// than needing the measure rewritten later.
+// From ig/input/fsh/lethal-means.fsh (Stage 4). Read by the Stage-8 lethal
+// means counseling measure, and written by the TL-008 recorder
+// (components/LethalMeansCounselingView.tsx → lib/lethalMeans.ts).
 export type ProcedureResource = FhirResource & { resourceType: 'Procedure' }
 
 // ─── Stage 7 (Track Risk Over Time) ──────────────────────────
