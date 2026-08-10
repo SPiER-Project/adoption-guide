@@ -2,8 +2,15 @@
   background: var(--surface-banner);
   border-bottom: 1px solid var(--border-strong);
   padding: 0.5rem 1.5rem;
-  /* Stick to the top of .ehr-content as the page scrolls so identifiers + risk
-     stay in view. z-index sits below .ehr-header (z-index: 100). */
+  /* Stick to the top of the viewport as the page scrolls so identifiers + risk
+     stay in view. The scrollport is the document, NOT .ehr-content — that
+     element must not declare an overflow, or it becomes the scrollport and this
+     never sticks, which is exactly what it used to do (see the note there).
+     z-index sits below .ehr-header (z-index: 100).
+
+     The banner's measured height is published as --patient-banner-height by
+     PatientBanner, so anchor scrolling can clear it; see --anchor-scroll-offset
+     in index.css. */
   position: sticky;
   top: 0;
   z-index: 50;
