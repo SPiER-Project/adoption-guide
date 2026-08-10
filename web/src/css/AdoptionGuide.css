@@ -26,6 +26,21 @@
   margin: 0;
 }
 
+/* Keep the title on one line. A wrapped title makes `.ig-header` 111px instead
+   of 82px, and since the header sits above `.ig-content`, that pushes the body
+   down on that page alone — the subpages stop lining up with each other again,
+   which is the same class of inconsistency the body padding above fixes.
+   The longest label, "Adoption Readiness", measures 247px at 24px Poppins.
+   Below 768px the sidebar collapses to a drawer and the header's content box
+   is the viewport minus 80px of chrome, so 247px runs out at a 327px viewport
+   — narrower than any mainstream phone (360 and 375 both clear it). Step the
+   size down just below that rather than let it wrap. */
+@media (max-width: 340px) {
+  .ig-title {
+    font-size: var(--font-size-2xl);
+  }
+}
+
 .ig-content {
   flex: 1;
   padding: 0;
