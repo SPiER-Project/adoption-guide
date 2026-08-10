@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   DEFAULT_PRESET,
   PRESETS,
@@ -7,9 +7,12 @@ import {
   type ActivePreset,
   type PresetId,
 } from '../data/toolPresets'
+import { ToolConfigContext, type ToolConfigContextValue } from './ToolConfigContext'
 
 // Which tools this implementation has turned on. The preset *definitions* live
-// in data/toolPresets.ts; this file is only the provider and its persistence.
+// in data/toolPresets.ts and the context object plus its hook in
+// ToolConfigContext.ts; this file is only the provider and its persistence, so
+// it stays component-only and Fast Refresh works.
 
 // Bumped when the meaning of a preset changes, so a returning browser is not
 // left labelled "Common Mid-Tier" while holding the previous definition's tools.
@@ -41,17 +44,6 @@ function loadInitial(): PersistedState {
   }
   return { enabledToolIds: presetEnabled(DEFAULT_PRESET), activePreset: DEFAULT_PRESET }
 }
-
-interface ToolConfigContextValue {
-  enabledToolIds: Record<string, boolean>
-  activePreset: ActivePreset
-  isToolEnabled: (toolId: string) => boolean
-  setPreset: (presetId: PresetId) => void
-  toggleTool: (toolId: string) => void
-  resetToDefault: () => void
-}
-
-const ToolConfigContext = createContext<ToolConfigContextValue | undefined>(undefined)
 
 export function ToolConfigProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PersistedState>(loadInitial)
@@ -97,12 +89,4 @@ export function ToolConfigProvider({ children }: { children: ReactNode }) {
   )
 
   return <ToolConfigContext.Provider value={value}>{children}</ToolConfigContext.Provider>
-}
-
-// Hook co-located with its provider by design (idiomatic context module).
-// eslint-disable-next-line react-refresh/only-export-components
-export function useToolConfig() {
-  const ctx = useContext(ToolConfigContext)
-  if (!ctx) throw new Error('useToolConfig must be used inside ToolConfigProvider')
-  return ctx
 }

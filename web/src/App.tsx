@@ -32,7 +32,7 @@ import { generateCrisisResponseCarePlan } from './lib/carePlanMappers'
 // Context Providers
 import { SmartProvider } from './context/SmartContext'
 import { PatientProvider } from './context/PatientContext'
-import { ToolConfigProvider } from './context/ToolConfigContext'
+import { ToolConfigProvider } from './context/ToolConfigProvider'
 
 // SMART on FHIR
 import { SmartLaunch } from './components/SmartLaunch'
