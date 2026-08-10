@@ -340,7 +340,7 @@
    =========================== */
 .chart-section {
   margin: 2rem 0;
-  scroll-margin-top: 1rem;
+  scroll-margin-top: var(--anchor-scroll-offset);
 }
 
 .chart-section-header {

@@ -52,6 +52,49 @@
 }
 
 /* ===========================
+   Header actions (right side)
+   =========================== */
+
+/* `margin-left: auto` rather than `justify-content: space-between` on the
+   parent, so the hamburger and brand keep their own gap on mobile. */
+.ehr-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Outlined pill: reads as a call to action on the brand-primary bar without
+   competing with the wordmark beside it.
+   `--brand-accent-light`, not `--brand-accent`: the latter is only 3.3:1 against
+   --brand-primary, below AA for text this size. The light variant is 4.83:1 and
+   keeps the same brand hue. */
+.ehr-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--brand-accent-faint);
+  border-radius: var(--radius-pill);
+  color: var(--brand-accent-light);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.ehr-header-action:hover {
+  border-color: var(--brand-accent);
+  background: var(--brand-accent-soft);
+}
+
+.ehr-header-action-short {
+  display: none;
+}
+
+/* ===========================
    Mobile Sidebar Toggle
    =========================== */
 .ehr-sidebar-toggle {
@@ -92,9 +135,28 @@
 /* ===========================
    Content Area
    =========================== */
+/* Deliberately NOT a scroll container.
+ *
+ * This used to carry `overflow-y: auto`, which never scrolled: `.ehr-shell` is
+ * `min-height: 100vh`, so the grid grows with its content and the *document*
+ * scrolls instead. The overflow was inert in its own right — but any overflow
+ * value other than `visible` makes an element the sticky scrollport for its
+ * descendants, and that scrollport never moved. So `.patient-banner`'s
+ * `position: sticky; top: 0` silently did nothing and the identifiers it exists
+ * to keep in view scrolled away with the page. (`.sidebar` uses the same
+ * declaration and has always worked, because it sits outside this element and
+ * resolves against the viewport.)
+ *
+ * Removing it hands the banner the viewport as its scrollport. Nothing is lost:
+ * measured at 1400px and at mobile width, on the population page (the widest
+ * content) and the patient chart, this element scrolls on neither axis, and
+ * document scrollWidth is identical with and without the declaration.
+ *
+ * `min-width: 0` stays — that is what lets the grid column shrink below its
+ * content's intrinsic width, and it is doing real work.
+ */
 .ehr-content {
   grid-area: content;
-  overflow-y: auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -145,6 +207,16 @@
 
   .ehr-sidebar-toggle {
     display: block;
+  }
+
+  /* The brand subtitle already wraps at this width, so the action label drops
+     to "IG". The anchor's aria-label carries the full name at every width. */
+  .ehr-header-action-full {
+    display: none;
+  }
+
+  .ehr-header-action-short {
+    display: inline;
   }
 
   .ehr-content-body {
