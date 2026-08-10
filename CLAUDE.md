@@ -40,8 +40,7 @@ Deliberately **not** in `verify`, because it needs a terminology server and so
 cannot be offline-reproducible — it runs nightly instead:
 ```
 npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display
-                         # literal in web/src, services/ and
-                         # docs/terminology-manifest.json, checked against tx.fhir.org
+                         # literal in web/src and services/, checked against tx.fhir.org
 ```
 
 Its floors are per source **and** per vocabulary family, and the guard loop reads
@@ -58,6 +57,17 @@ re-checks it on its own: #43 doubled the manifest's SNOMED inventory from 10
 codings to 20 while its floor sat at 5, dropping it to a quarter of the real
 count with nothing going red (#232). Every run prints the live count beside each
 floor, so any recent nightly log tells you where the ratios stand.
+
+⚠️ **A floor only protects the source as a whole, so `SCAN` entries deliberately
+overlap.** When one path holds two independent contributors, a whole-path floor
+cannot tell them apart and losing either one stays green. #261 measured this:
+reverting the data dictionary to its old un-gated shape dropped `web/src` LOINC
+from 69 to 41, still clearing a floor of 34, while ~28 codings silently left the
+scan. The fix is a second, narrower `SCAN` entry (`web/src/data/catalog`) that
+overlaps the first — safe, because `found` is keyed by system|code|display and
+`perSource` is tallied per entry. **When you add a substantial new source of
+codings inside an already-scanned tree, give it its own entry** rather than
+assuming the parent floor covers it.
 
 ⚠️ **The two timer-driven workflows have a named reader and a written triage
 path — `docs/scheduled-checks-triage.md`.** A red nightly has two causes needing

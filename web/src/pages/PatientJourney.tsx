@@ -5,6 +5,7 @@ import {
   toolsByStage,
   triggersFromStage,
   elementsUsedByTool,
+  systemLabel,
   type Tool,
 } from '../data/catalog'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
@@ -86,10 +87,13 @@ function ToolDetail({ tool }: ToolDetailProps) {
             {elements.map(el => (
               <li key={el.id}>
                 <span className="tool-detail-element-name">{el.name}</span>
-                {el.code !== 'N/A' && el.code !== 'TBD' && (
-                  <code className="tool-detail-element-code">{el.codeSystem}: {el.code}</code>
+                {el.coding && (
+                  <code className="tool-detail-element-code">
+                    {systemLabel(el.coding.system)}: {el.coding.code}
+                  </code>
                 )}
-                <span className="tool-detail-element-path">{el.fhirResource}.{el.fhirPath}</span>
+                {/* fhirPath is resource-qualified already — don't prefix it again. */}
+                <span className="tool-detail-element-path">{el.fhirPath}</span>
               </li>
             ))}
           </ul>
