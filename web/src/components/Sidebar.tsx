@@ -41,10 +41,13 @@ interface Lens {
 function buildLenses(patientBase: string): Lens[] {
   return [
     {
-      to: '/',
-      label: 'Home',
+      // The front door. `/` redirects here, so this is the durable target —
+      // pointing the lens at `/` would leave it un-highlighted on arrival,
+      // since the redirect lands the router on /overview.
+      to: '/overview',
+      label: 'Overview',
       icon: '⌂', // house
-      matchPrefix: '__exact__', // never matches via prefix; uses `end` instead
+      matchPrefix: '/overview',
     },
     {
       to: '/guide',
@@ -115,10 +118,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [isOpen, onClose])
 
-  const isLensActive = (lens: Lens) => {
-    if (lens.to === '/') return location.pathname === '/'
-    return location.pathname.startsWith(lens.matchPrefix)
-  }
+  // Every lens now has a real path prefix. The Home lens used to be the
+  // exception — it pointed at `/`, which prefix-matches everything — and needed
+  // an exact-match branch plus NavLink's `end`. It is now /overview.
+  const isLensActive = (lens: Lens) => location.pathname.startsWith(lens.matchPrefix)
 
   // Anchor children share the chart route, so NavLink's default isActive would
   // highlight all of them. Match on the section anchor instead: React Router's
@@ -146,7 +149,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       isActive || isLensActive(lens) ? 'active' : ''
                     }`
                   }
-                  end={lens.to === '/'}
                   onClick={onClose}
                 >
                   <span className="sidebar-icon">{lens.icon}</span>

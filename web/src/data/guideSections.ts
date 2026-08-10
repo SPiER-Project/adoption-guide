@@ -6,8 +6,8 @@
 // lazy-loaded page component); keep the `path` values here aligned with those
 // route paths under /guide.
 //
-// Sections are additionally bucketed into three GUIDE_GROUPS, because the nine
-// sections are not nine of the same kind of thing: some explain concepts, two
+// Sections are additionally bucketed into three GUIDE_GROUPS, because the eight
+// sections are not eight of the same kind of thing: some explain concepts, two
 // carry live state that changes what *another lens* does, and the rest score an
 // organization's readiness. The sidebar renders a heading per group and the page
 // header names the active section's group.
@@ -33,7 +33,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
 ]
 
 export interface GuideSection {
-  /** Route segment under /guide, e.g. 'overview' → /guide/overview. */
+  /** Route segment under /guide, e.g. 'pathway' → /guide/pathway. */
   path: string
   /** Label shown in the sidebar, the page title, and the pager. */
   label: string
@@ -41,10 +41,16 @@ export interface GuideSection {
   group: GuideGroupId
 }
 
-/** Reading order of the guide, top to bottom. Grouped-contiguous — see above. */
+/**
+ * Reading order of the guide, top to bottom. Grouped-contiguous — see above.
+ *
+ * 'overview' is deliberately absent. It used to open the Learn group, but it
+ * merged with the old standalone front door and moved up to the top-level
+ * /overview lens, so it is no longer a section of the guide. /guide and
+ * /guide/overview both still resolve — see the routes in App.tsx.
+ */
 export const GUIDE_SECTIONS: GuideSection[] = [
   // Learn — read-only concepts and reference. Nothing here has side effects.
-  { path: 'overview', label: 'Overview', group: 'learn' },
   { path: 'pathway', label: 'Pathway', group: 'learn' },
   { path: 'data-dictionary', label: 'Data Dictionary', group: 'learn' },
   { path: 'measures', label: 'Measures', group: 'learn' },

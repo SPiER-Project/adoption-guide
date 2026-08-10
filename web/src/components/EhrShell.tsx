@@ -15,8 +15,22 @@ import '../css/EhrShell.css'
 // It used to sit in the sidebar, which is a switcher for in-app lenses: it was
 // the one entry that could never be "active", because it's the one entry that
 // isn't a place you can be. The header's action cluster is where an outbound
-// link to the normative spec belongs, and it mirrors Home's own top nav.
+// link to the normative spec belongs.
 const IG_HREF = `${import.meta.env.BASE_URL}ig/`
+
+// The outbound links. They lived in the standalone front door's top nav until
+// that page merged into /overview and lost its own chrome; the app bar is now
+// the only place they can live, and the only place they need to.
+//
+// A flat list on purpose: a right-hand overflow menu is coming, and it should
+// be able to consume this array as-is rather than unpick three hand-written
+// anchors. `short` is the label below 768px, where the brand subtitle already
+// wraps and three full labels do not fit.
+const HEADER_LINKS = [
+  { key: 'ig', href: IG_HREF, label: 'Implementation Guide', short: 'IG' },
+  { key: 'site', href: 'https://thespierproject.org', label: 'thespierproject.org', short: 'Site' },
+  { key: 'repo', href: 'https://github.com/SPiER-Project/adoption-guide', label: 'GitHub', short: 'GitHub' },
+]
 
 export function EhrShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -41,24 +55,26 @@ export function EhrShell() {
             <SpierLogo className="ehr-brand-logo" />
             <span className="ehr-brand-subtitle">Suicide Prevention in Electronic Records</span>
           </Link>
-          {/* Right-side action cluster. One link today; the natural slot for a
-              SMART-connection indicator later. */}
-          <div className="ehr-header-actions">
-            <a
-              href={IG_HREF}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ehr-header-action"
-              aria-label="Implementation Guide (opens in a new tab)"
-            >
-              {/* The label shortens below 768px, where the brand subtitle
-                  already wraps; the aria-label above carries the full name
-                  either way. */}
-              <span className="ehr-header-action-full">Implementation Guide</span>
-              <span className="ehr-header-action-short">IG</span>
-              <span aria-hidden>&#8599;</span>
-            </a>
-          </div>
+          {/* Right-side action cluster: the app's outbound links, and the
+              natural slot for a SMART-connection indicator later. */}
+          <nav className="ehr-header-actions" aria-label="Project links">
+            {HEADER_LINKS.map(link => (
+              <a
+                key={link.key}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ehr-header-action"
+                aria-label={`${link.label} (opens in a new tab)`}
+              >
+                {/* Labels shorten below 768px, where the brand subtitle already
+                    wraps; the aria-label carries the full name at every width. */}
+                <span className="ehr-header-action-full">{link.label}</span>
+                <span className="ehr-header-action-short">{link.short}</span>
+                <span aria-hidden>&#8599;</span>
+              </a>
+            ))}
+          </nav>
         </div>
       </header>
 
