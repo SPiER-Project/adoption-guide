@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, launchableTools } from '../data/catalog'
-import { PRESETS, presetToolIds, useToolConfig, type PresetId } from '../context/ToolConfigContext'
+import { useToolConfig } from '../context/ToolConfigContext'
+import { PRESETS, presetToolIds, type PresetId } from '../data/toolPresets'
 import { usePatient } from '../context/PatientContext'
 import '../css/ToolConfiguration.css'
 

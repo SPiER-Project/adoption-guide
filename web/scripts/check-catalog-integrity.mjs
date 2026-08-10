@@ -234,20 +234,30 @@ console.log(`✓ licensing: ${activityDefs.length} ActivityDefinition(s) carry a
 // marks core, covering 2 of 8 pathway stages, and still calling itself a
 // typical site. Nothing caught that, because nothing compared the two. This
 // asserts the derivation is still in force.
-const presetSrc = readFileSync(join(webRoot, 'src/context/ToolConfigContext.tsx'), 'utf8')
+const PRESET_FILE = 'src/data/toolPresets.ts'
+const presetSrc = readFileSync(join(webRoot, PRESET_FILE), 'utf8')
 const DERIVED_PRESETS = ['common-mid-tier', 'maximalist']
+
+// The regexes below are the whole check, so a rename or a move would turn this
+// into a silent pass. Assert the shape it depends on before relying on it.
+if (!/export const PRESETS/.test(presetSrc) || !/export function presetToolIds/.test(presetSrc)) {
+  fail(
+    `${PRESET_FILE}: PRESETS / presetToolIds not found — this check greps for them, so a rename ` +
+      `silently disables it. Update the patterns below along with the code.`,
+  )
+}
 
 for (const id of DERIVED_PRESETS) {
   // The preset's own object literal, from its id up to the closing brace.
   const block = presetSrc.match(new RegExp(`id:\\s*'${id}'[\\s\\S]*?\\n\\s*\\},`))?.[0]
   if (!block) {
-    fail(`ToolConfigContext.tsx: preset "${id}" not found — has the PRESETS shape changed?`)
+    fail(`${PRESET_FILE}: preset "${id}" not found — has the PRESETS shape changed?`)
     continue
   }
   const listed = [...block.matchAll(/'(TL-\d+)'/g)].map((m) => m[1])
   if (listed.length > 0) {
     fail(
-      `ToolConfigContext.tsx: preset "${id}" hand-lists ${listed.join(', ')} in toolIds. ` +
+      `${PRESET_FILE}: preset "${id}" hand-lists ${listed.join(', ')} in toolIds. ` +
         `It must stay derived from the catalog in presetToolIds() — a hand-listed copy is a second ` +
         `source of truth and goes stale as tools are added (that is exactly how mid-tier came to ` +
         `exclude 17 core tools).`,
@@ -258,7 +268,7 @@ for (const id of DERIVED_PRESETS) {
 // The derivations themselves must still be the ones the descriptions claim.
 if (!/case 'common-mid-tier':[\s\S]*?inclusionStatus === 'core'/.test(presetSrc)) {
   fail(
-    `ToolConfigContext.tsx: presetToolIds() no longer derives "common-mid-tier" from ` +
+    `${PRESET_FILE}: presetToolIds() no longer derives "common-mid-tier" from ` +
       `inclusionStatus === 'core'. Its preset description tells adopters it is every core tool; ` +
       `update both together or the UI states a coverage claim the code does not implement.`,
   )
@@ -270,7 +280,7 @@ const knownToolIds = new Set(adToTool.map((m) => m.toolId))
 const presetsBlock = presetSrc.match(/export const PRESETS[\s\S]*?\n\]/)?.[0] ?? ''
 for (const [, toolId] of presetsBlock.matchAll(/'(TL-\d+)'/g)) {
   if (!knownToolIds.has(toolId)) {
-    fail(`ToolConfigContext.tsx: preset references "${toolId}", which is not a catalogued tool id`)
+    fail(`${PRESET_FILE}: preset references "${toolId}", which is not a catalogued tool id`)
   }
 }
 
