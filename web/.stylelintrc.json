@@ -6,8 +6,9 @@
       ["color", "background-color", "border-color", "fill", "font-size", "box-shadow"],
       {
         "ignoreValues": [
-          "transparent", "inherit", "currentColor", "none", "white", "unset",
-          "/^var\\(--/"
+          "transparent", "inherit", "none", "white", "unset",
+          "/^var\\(--/",
+          "currentcolor"
         ],
         "disableFix": true
       }
