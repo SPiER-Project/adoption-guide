@@ -113,16 +113,15 @@
   }
 }
 
-/* Narrow: the hamburger appears and the short cluster no longer fits beside
-   the wordmark, so it takes its own row instead of overflowing horizontally. */
+/* Narrow: even the short labels stop fitting beside the wordmark once the
+   hamburger appears. The pills used to take their own header row here, which
+   cost a second line on every phone; they now hand over to the overflow menu
+   instead (`.header-menu`, shown at this same breakpoint — the two rules are a
+   pair, so move them together). Measured at 375px, the remaining row is
+   48 padding + 44 toggle + 118 wordmark + 44 trigger + gaps = 278px. */
 @media (max-width: 639px) {
-  .ehr-header-content {
-    flex-wrap: wrap;
-  }
-
   .ehr-header-actions {
-    width: 100%;
-    margin-left: 0;
+    display: none;
   }
 }
 
