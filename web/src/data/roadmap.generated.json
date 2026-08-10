@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-08T23:13:29.370Z",
+  "fetchedAt": "2026-08-10T14:32:10.176Z",
   "repo": "SPiER-Project/adoption-guide",
   "issues": [
     {
@@ -1073,7 +1073,7 @@
         "tool:TL-030"
       ],
       "createdAt": "2026-07-15T14:34:02Z",
-      "updatedAt": "2026-08-07T19:24:05Z",
+      "updatedAt": "2026-08-08T23:27:16Z",
       "toolId": "TL-030",
       "status": "built",
       "type": "epic",
@@ -1112,7 +1112,7 @@
         "tool:TL-032"
       ],
       "createdAt": "2026-07-15T14:34:05Z",
-      "updatedAt": "2026-08-07T19:24:08Z",
+      "updatedAt": "2026-08-08T23:27:17Z",
       "toolId": "TL-032",
       "status": "built",
       "type": "epic",
@@ -1502,7 +1502,7 @@
     {
       "number": 227,
       "title": "[TL-030/TL-032] Make the discharge packet respect the recorded sharing consent",
-      "state": "open",
+      "state": "closed",
       "url": "https://github.com/SPiER-Project/adoption-guide/issues/227",
       "bodyMd": "Filed from the 2026-08-07 milestone review. Consolidates the top \"Remaining\" bullet from **both** #168 (TL-030) and #170 (TL-032) — it is one piece of work, and neither epic can close without it.\n\n## Problem\n\nTL-032 records an information-sharing `Consent`, and nothing in the app ever consults it. From #170: *\"**Recorded, not enforced.** Nothing in the app consults a deny provision before showing or sharing data.\"* From #168, on the discharge packet: *\"The TL-032 sharing consent is not consulted when assembling the packet — consent is recorded but not enforced anywhere yet.\"*\n\nA consent resource that no code reads is a demo of data entry, not of consent. And of the remaining bullets across the built-tool epics, this is the one that demonstrates a capability an adopting system actually has to get right — every other open bullet is either an external integration or a scheduler SPiER has declined to build.\n\n## Scope\n\nMake the TL-030 discharge-safety-packet assembly consent-aware:\n\n- Read the patient's latest TL-032 `Consent` when assembling the packet.\n- Honor `provision.type = deny` — exclude the denied categories/recipients from what the packet asserts it contains, rather than assembling everything and annotating it.\n- Show the reader *why* something is absent. A packet silently missing a section is indistinguishable from a bug; a packet that says a section was withheld per the patient's sharing preference is the actual demonstration.\n- Handle \"no consent recorded\" explicitly and conservatively, and make the chosen default visible in the UI rather than implicit in the code.\n\nKeep it honest: SPiER is not claiming to be a consent-enforcement engine for arbitrary access. The claim is narrower and defensible — this one artifact, assembled at this one moment, respects the recorded preference.\n\n## Notes\n\n- Both #168 and #170 should be updated (and reassessed for closure) when this lands.\n- Design tokens only, kebab-case BEM (`CLAUDE.md`).\n- If the packet's `DocumentReference` ends up in the demo scenarios, it interacts with #209 and with the scenario-validation companion issue.\n\n## Acceptance\n\n- With a deny provision recorded via TL-032, the assembled TL-030 packet omits the denied content and the UI states that it was withheld by patient preference.\n- With no consent recorded, the behavior is explicit and visible.\n- `npm run verify` passes; `services/cds-hooks/` verify passes if anything the catalog exports changes.\n",
       "labels": [
@@ -1513,7 +1513,8 @@
         "tool:TL-032"
       ],
       "createdAt": "2026-08-07T19:23:10Z",
-      "updatedAt": "2026-08-07T19:23:10Z",
+      "updatedAt": "2026-08-08T23:43:50Z",
+      "closedAt": "2026-08-08T23:43:50Z",
       "toolId": "TL-030",
       "type": "task",
       "stage": "coordinate-handoffs",
