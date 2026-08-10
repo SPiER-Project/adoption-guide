@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react'
+import { Fragment, useEffect, useMemo } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { GUIDE_SECTIONS, guideHref } from '../data/guideSections'
+import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
 
@@ -19,6 +19,13 @@ interface LensChild {
    * share the same path.
    */
   anchor?: string
+  /**
+   * Optional category heading. Rendered above this child whenever it differs
+   * from the previous child's group, so a grouped child list (the guide's
+   * sections) gets headings while a flat one (the patient lens) gets none.
+   * Requires the children to be grouped-contiguous, which GUIDE_SECTIONS is.
+   */
+  group?: string
 }
 
 interface Lens {
@@ -49,9 +56,12 @@ function buildLenses(patientBase: string): Lens[] {
       matchPrefix: '/guide',
       // Children mirror the canonical guide section list so the sidebar can never
       // drift from the routes or the in-page pager (see data/guideSections.ts).
+      // Group labels come from the same list, so adding a section places its
+      // heading automatically.
       children: GUIDE_SECTIONS.map(section => ({
         to: guideHref(section.path),
         label: section.label,
+        group: guideGroupLabel(section.group),
       })),
     },
     {
@@ -144,7 +154,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <span className="sidebar-icon">{lens.icon}</span>
                   {lens.label}
                 </NavLink>
-                {expanded && lens.children!.map(child => {
+                {expanded && lens.children!.map((child, i) => {
+                  // A group heading is emitted whenever this child opens a new
+                  // category, which for a grouped-contiguous list means once
+                  // per group. Children with no `group` never produce one.
+                  const prevGroup = i > 0 ? lens.children![i - 1].group : undefined
+                  const heading =
+                    child.group && child.group !== prevGroup ? (
+                      <p className="sidebar-group-heading">{child.group}</p>
+                    ) : null
+
+
                   // Anchor children combine a route path with a section
                   // anchor (`/patient/chart#recommendations`). React Router's
                   // <Link>/<NavLink> strip the second '#' since they navigate
@@ -157,27 +177,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   if (child.anchor) {
                     const active = isChildActive(child)
                     return (
-                      <a
-                        key={child.to}
-                        href={`#${child.to}`}
-                        className={`sidebar-link sidebar-link--child ${active ? 'active' : ''}`}
-                        onClick={onClose}
-                      >
-                        {child.label}
-                      </a>
+                      <Fragment key={child.to}>
+                        {heading}
+                        <a
+                          href={`#${child.to}`}
+                          className={`sidebar-link sidebar-link--child ${active ? 'active' : ''}`}
+                          onClick={onClose}
+                        >
+                          {child.label}
+                        </a>
+                      </Fragment>
                     )
                   }
                   return (
-                    <NavLink
-                      key={child.to}
-                      to={child.to}
-                      className={({ isActive }) =>
-                        `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
-                      }
-                      onClick={onClose}
-                    >
-                      {child.label}
-                    </NavLink>
+                    <Fragment key={child.to}>
+                      {heading}
+                      <NavLink
+                        to={child.to}
+                        className={({ isActive }) =>
+                          `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
+                        }
+                        onClick={onClose}
+                      >
+                        {child.label}
+                      </NavLink>
+                    </Fragment>
                   )
                 })}
               </div>

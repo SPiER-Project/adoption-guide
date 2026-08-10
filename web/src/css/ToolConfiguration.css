@@ -31,6 +31,35 @@
   color: var(--text-strong);
 }
 
+/* ===========================
+   Cross-lens effect callout
+   =========================== */
+.tool-config-effect {
+  margin-bottom: var(--space-7);
+  padding: var(--space-4);
+  max-width: 720px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--brand-accent);
+  border-radius: var(--radius-md);
+}
+
+.tool-config-effect__body {
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--font-size-md);
+  line-height: 1.55;
+}
+
+.tool-config-effect__body strong {
+  color: var(--text-strong);
+}
+
+.tool-config-effect__link {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .tool-config-section-title {
   font-size: var(--font-size-base);
   font-weight: 700;
@@ -90,6 +119,14 @@
   font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-strong);
+}
+
+.preset-card-count {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
 }
 
 .preset-card-desc {

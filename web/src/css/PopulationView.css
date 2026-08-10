@@ -27,38 +27,31 @@
   margin: 0;
 }
 
+.population-meta-filters {
+  color: var(--text-body);
+  font-weight: 600;
+}
+
+.population-clear-filters {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-md);
+  color: var(--accent-info);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /* ===========================
    Filters
+   ---------------------------
+   Stage and Risk are filtered from their own column headers (see
+   .caseload-filter-* below), so this page no longer renders a chip toolbar.
+   `.filter-chip` survives because PatientChart's document filters still use it
+   and never had rules of their own — deleting it here breaks that page.
    =========================== */
-.population-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-5);
-  margin-bottom: var(--space-5);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border-default);
-}
-
-.filter-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.filter-group--sort {
-  margin-left: auto;
-}
-
-.filter-group-label {
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  margin-right: 0.35rem;
-}
-
 .filter-chip {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -82,32 +75,163 @@
   color: var(--text-on-brand);
 }
 
-.filter-chip--risk-acute.filter-chip--active {
-  background: var(--risk-acute);
-  border-color: var(--risk-acute);
-}
-.filter-chip--risk-high.filter-chip--active {
-  background: var(--risk-high);
-  border-color: var(--risk-high);
-}
-.filter-chip--risk-moderate.filter-chip--active {
-  background: var(--risk-moderate);
-  border-color: var(--risk-moderate);
-}
-.filter-chip--risk-low.filter-chip--active {
-  background: var(--risk-low);
-  border-color: var(--risk-low);
+/* Only rendered while the table overflows its wrapper — see the ResizeObserver
+   in PopulationView.tsx. Borrows the <th> label treatment so the two triggers
+   read as the same controls that live in the header row. */
+.population-compact-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
 }
 
-.filter-sort-select {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  color: var(--text-body);
-  padding: 0.3rem 0.55rem;
+/* ===========================
+   Column-header controls
+   =========================== */
+.caseload-th-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+/* Both header controls inherit the <th>'s uppercase micro-label styling so the
+   header row still reads as one row of labels, not a row of widgets. */
+.caseload-sort-button,
+.caseload-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 0;
+  padding: 0.1rem 0.2rem;
+  margin: -0.1rem -0.2rem;
   font: inherit;
-  font-size: var(--font-size-base);
-  border-radius: var(--radius-md);
+  color: inherit;
+  text-align: left;
+  /* The UA stylesheet sets `text-transform: none` on <button>, which `font:
+     inherit` does not undo — without this the interactive headers lose the
+     uppercase treatment and stop matching the plain ones. */
+  text-transform: inherit;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+}
+
+.caseload-sort-button:hover,
+.caseload-filter-trigger:hover {
+  color: var(--text-strong);
+  background: var(--border-default);
+}
+
+.caseload-sort-button:focus-visible,
+.caseload-filter-trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
+}
+
+.caseload-sort-button--active,
+.caseload-filter-trigger--active {
+  color: var(--text-strong);
+}
+
+.caseload-sort-icon {
+  flex: none;
+  width: 0.5rem;
+  height: 0.75rem;
+  fill: currentcolor;
+}
+
+/* Inactive: both arrows faint, advertising the column as sortable. Active: the
+   arrow for the current direction goes solid and the other drops away. */
+.caseload-sort-icon-up,
+.caseload-sort-icon-down {
+  opacity: 0.35;
+}
+
+.caseload-sort-icon--asc .caseload-sort-icon-up,
+.caseload-sort-icon--desc .caseload-sort-icon-down {
+  opacity: 1;
+}
+
+.caseload-sort-icon--asc .caseload-sort-icon-down,
+.caseload-sort-icon--desc .caseload-sort-icon-up {
+  opacity: 0;
+}
+
+.caseload-funnel-icon {
+  flex: none;
+  width: 0.6rem;
+  height: 0.6rem;
+  fill: currentcolor;
+  opacity: 0.45;
+}
+
+.caseload-filter-trigger--active .caseload-funnel-icon {
+  fill: var(--accent-info);
+  opacity: 1;
+}
+
+/* Fixed, not absolute: see the positioning comment in PopulationView.tsx. */
+.caseload-filter-menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 11rem;
+  max-width: 18rem;
+  padding: var(--space-1);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.caseload-filter-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0.3rem 0.45rem;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--font-size-md);
+  color: var(--text-body);
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.caseload-filter-option:hover,
+.caseload-filter-option:focus-visible {
+  outline: none;
+  background: var(--surface-muted);
+}
+
+.caseload-filter-option[aria-checked='true'] {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.caseload-filter-option-check {
+  flex: none;
+  width: 0.75rem;
+  color: var(--accent-info);
+}
+
+/* Pushed right rather than growing the label, so a risk option's .risk-pill
+   keeps its natural pill width instead of stretching across the row. */
+.caseload-filter-option-count {
+  flex: none;
+  margin-left: auto;
+  padding-left: var(--space-3);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ===========================
@@ -142,6 +266,20 @@
   letter-spacing: 0.06em;
   color: var(--text-muted);
   padding: 0.7rem 0.9rem;
+  white-space: nowrap;
+}
+
+/* Shrink-to-fit around the widest risk pill; the auto table layout then hands
+   the slack to the two columns that actually wrap. */
+.caseload-table-risk-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* The recommendation is the longest text in the row and the reason rows used to
+   run five lines tall, so it gets first claim on the available width. */
+.caseload-table-next-col {
+  width: 32%;
 }
 
 .caseload-row {
@@ -178,9 +316,12 @@
   text-decoration: underline;
 }
 
+/* One line per name. Two-line names were the second-biggest driver of row
+   height after the recommendation rationale. */
 .caseload-patient-name {
   font-weight: 600;
   color: var(--text-strong);
+  white-space: nowrap;
 }
 
 .caseload-patient-meta {
@@ -207,28 +348,30 @@
   margin-top: 0.1rem;
 }
 
+/* Work state and follow-up state share one cell; the gap is what tells a reader
+   they are two facts rather than one four-line sentence. */
+.caseload-cell-group + .caseload-cell-group {
+  margin-top: 0.35rem;
+}
+
 .caseload-next-label {
   color: var(--text-strong);
   font-weight: 500;
   font-size: var(--font-size-base);
 }
 
+/* Capped at three lines: one row's rationale runs 392 characters, which alone
+   made its row 334px tall. The full text stays in the `title` tooltip and on the
+   patient's chart — see the comment in PopulationView.tsx. */
 .caseload-next-rationale {
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   line-height: 1.4;
   margin-top: 0.15rem;
-}
-
-.caseload-table-action-col {
-  width: 1%;
-  white-space: nowrap;
-}
-
-.caseload-open-cta {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--accent-info);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .caseload-empty {
@@ -247,17 +390,4 @@
   border-left: 3px solid var(--border-strong);
   padding: var(--space-3);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  /* stylelint-disable-next-line property-no-deprecated -- clip is the canonical sr-only hack; kept for broad screen-reader support */
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
