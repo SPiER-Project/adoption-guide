@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
+import { HeaderMenu } from './HeaderMenu'
 import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from './SpierLogo'
@@ -56,7 +57,12 @@ export function EhrShell() {
             <span className="ehr-brand-subtitle">Suicide Prevention in Electronic Records</span>
           </Link>
           {/* Right-side action cluster: the app's outbound links, and the
-              natural slot for a SMART-connection indicator later. */}
+              natural slot for a SMART-connection indicator later.
+
+              Two renderings of the same list, swapped by CSS at 640px — pills
+              where there is room, an overflow menu where there is not. Both are
+              always in the DOM and exactly one is ever displayed, so only one
+              is in the tab order and accessibility tree at any width. */}
           <nav className="ehr-header-actions" aria-label="Project links">
             {HEADER_LINKS.map(link => (
               <a
@@ -67,19 +73,19 @@ export function EhrShell() {
                 className="ehr-header-action"
                 aria-label={`${link.label} (opens in a new tab)`}
               >
-                {/* Labels shorten below 768px, where the brand subtitle already
-                    wraps; the aria-label carries the full name at every width. */}
+                {/* Labels shorten below 1024px, where the brand subtitle also
+                    drops; the aria-label carries the full name at every width. */}
                 <span className="ehr-header-action-full">{link.label}</span>
                 <span className="ehr-header-action-short">{link.short}</span>
-                {/* Classed so the narrow breakpoint can drop it: the glyph plus
-                    its gap is ~23px per pill, and reclaiming that is what lets
-                    all three sit beside the wordmark instead of taking their
-                    own row. The aria-label keeps "opens in a new tab" at every
-                    width, so only the sighted cue is lost, and only on phones. */}
-                <span className="ehr-header-action-ext" aria-hidden>&#8599;</span>
+                {/* #258 classed this so the narrow breakpoint could drop it and
+                    reclaim ~23px per pill. The pills no longer render below
+                    640px — the overflow menu does — so nothing styles the class
+                    any more and the glyph now shows wherever a pill does. */}
+                <span aria-hidden>&#8599;</span>
               </a>
             ))}
           </nav>
+          <HeaderMenu links={HEADER_LINKS} />
         </div>
       </header>
 
