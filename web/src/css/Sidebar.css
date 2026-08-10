@@ -70,6 +70,19 @@
   color: var(--border-default);
 }
 
+/* Category heading above a group of child links (the guide's Learn / Configure /
+   Evaluate buckets). Non-interactive, so it is indented less than the links it
+   labels and carries no hover or active state. */
+.sidebar-group-heading {
+  margin: var(--space-4) 0 var(--space-1) 0;
+  padding-left: 2.25rem;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
 .sidebar-link--child {
   padding-left: 3rem;
   font-size: var(--font-size-base);

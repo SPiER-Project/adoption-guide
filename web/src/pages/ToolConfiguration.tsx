@@ -1,10 +1,14 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, launchableTools } from '../data/catalog'
-import { PRESETS, useToolConfig } from '../context/ToolConfigContext'
+import { useToolConfig } from '../context/ToolConfigContext'
+import { PRESETS, presetToolIds, type PresetId } from '../data/toolPresets'
+import { usePatient } from '../context/PatientContext'
 import '../css/ToolConfiguration.css'
 
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
+  const { activePatientId } = usePatient()
 
   const toolsByStage = useMemo(() => groupToolsByStage(TOOLS, { skipEmpty: true }), [])
   const launchable = useMemo(() => launchableTools(), [])
@@ -13,15 +17,26 @@ export function ToolConfiguration() {
     () => launchable.filter(t => isToolEnabled(t.id)).length,
     [isToolEnabled, launchable],
   )
+  const presetCounts = useMemo(
+    () =>
+      Object.fromEntries(PRESETS.map(p => [p.id, presetToolIds(p.id).length])) as Record<
+        PresetId,
+        number
+      >,
+    [],
+  )
+
+  // Mirrors the sidebar: keep the loaded patient rather than dropping the
+  // reader onto the blank chart.
+  const patientBase = activePatientId ? `/patient/chart/${activePatientId}` : '/patient/chart'
 
   return (
     <div className="tool-config">
       <header className="tool-config-header">
         <p className="tool-config-intro">
-          Choose which suicide-prevention tools your implementation supports. The Patient View's
-          recommendation cards will only offer launch options for tools you enable here &mdash;
-          mirroring how different EHRs and sites vary in what they're set up to do. Tools that
-          aren't yet built in SPiER are listed but cannot be toggled.
+          Choose which suicide-prevention tools your implementation supports &mdash; mirroring how
+          different EHRs and sites vary in what they're set up to do. Tools that aren't yet built in
+          SPiER are listed but cannot be toggled.
         </p>
         <p className="tool-config-meta">
           <span className="tool-config-meta-count">
@@ -43,6 +58,21 @@ export function ToolConfiguration() {
         </p>
       </header>
 
+      {/* This is the only guide section whose state leaves the guide, and
+          nothing else in the UI says so. The link carries the active patient so
+          the reader lands on the chart they were already looking at. */}
+      <aside className="tool-config-effect">
+        <p className="tool-config-effect__body">
+          <strong>Changes here take effect in the Patient View.</strong> Recommendation cards only
+          offer launch actions for enabled tools, so this page decides what the chart can offer at
+          each pathway stage &mdash; a narrower profile models a site with less tooling in place, not
+          a gap to close.{' '}
+          <Link to={patientBase} className="tool-config-effect__link">
+            Open the Patient View &rarr;
+          </Link>
+        </p>
+      </aside>
+
       <section className="tool-config-presets">
         <h3 className="tool-config-section-title">Presets</h3>
         <div className="preset-grid">
@@ -57,6 +87,11 @@ export function ToolConfiguration() {
                 aria-pressed={isActive}
               >
                 <span className="preset-card-label">{preset.label}</span>
+                {/* Counted from the resolved preset rather than typed into the
+                    description, so the two can't disagree. */}
+                <span className="preset-card-count">
+                  {presetCounts[preset.id]} of {launchableCount} tools
+                </span>
                 <span className="preset-card-desc">{preset.description}</span>
               </button>
             )
