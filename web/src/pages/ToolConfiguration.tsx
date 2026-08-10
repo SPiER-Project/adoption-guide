@@ -1,10 +1,13 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, launchableTools } from '../data/catalog'
 import { PRESETS, useToolConfig } from '../context/ToolConfigContext'
+import { usePatient } from '../context/PatientContext'
 import '../css/ToolConfiguration.css'
 
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
+  const { activePatientId } = usePatient()
 
   const toolsByStage = useMemo(() => groupToolsByStage(TOOLS, { skipEmpty: true }), [])
   const launchable = useMemo(() => launchableTools(), [])
@@ -13,15 +16,19 @@ export function ToolConfiguration() {
     () => launchable.filter(t => isToolEnabled(t.id)).length,
     [isToolEnabled, launchable],
   )
+  const disabledCount = launchableCount - enabledCount
+
+  // Mirrors the sidebar: keep the loaded patient rather than dropping the
+  // reader onto the blank chart.
+  const patientBase = activePatientId ? `/patient/chart/${activePatientId}` : '/patient/chart'
 
   return (
     <div className="tool-config">
       <header className="tool-config-header">
         <p className="tool-config-intro">
-          Choose which suicide-prevention tools your implementation supports. The Patient View's
-          recommendation cards will only offer launch options for tools you enable here &mdash;
-          mirroring how different EHRs and sites vary in what they're set up to do. Tools that
-          aren't yet built in SPiER are listed but cannot be toggled.
+          Choose which suicide-prevention tools your implementation supports &mdash; mirroring how
+          different EHRs and sites vary in what they're set up to do. Tools that aren't yet built in
+          SPiER are listed but cannot be toggled.
         </p>
         <p className="tool-config-meta">
           <span className="tool-config-meta-count">
@@ -42,6 +49,27 @@ export function ToolConfiguration() {
           </span>
         </p>
       </header>
+
+      {/* This is the only guide section whose state leaves the guide, and
+          nothing else in the UI says so. The link carries the active patient so
+          the reader lands on the chart they were already looking at. */}
+      <aside className="tool-config-effect">
+        <p className="tool-config-effect__body">
+          <strong>Changes here take effect in the Patient View.</strong> Recommendation cards only
+          offer launch actions for enabled tools, so a disabled tool disappears from the chart even
+          at a pathway stage that calls for it.{' '}
+          {disabledCount > 0 && (
+            <>
+              {disabledCount === 1
+                ? 'One buildable tool is currently off.'
+                : `${disabledCount} buildable tools are currently off.`}{' '}
+            </>
+          )}
+          <Link to={patientBase} className="tool-config-effect__link">
+            Open the Patient View &rarr;
+          </Link>
+        </p>
+      </aside>
 
       <section className="tool-config-presets">
         <h3 className="tool-config-section-title">Presets</h3>

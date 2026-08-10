@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { GUIDE_SECTIONS, guideHref } from '../data/guideSections'
+import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import '../css/AdoptionGuide.css'
 
 export function AdoptionGuide() {
@@ -21,7 +21,16 @@ export function AdoptionGuide() {
   return (
     <div className="implementation-guide">
       <header className="ig-header">
-        <p className="ig-eyebrow">Adoption Guide</p>
+        <p className="ig-eyebrow">
+          {/* The slash is decoration; the surrounding spaces are real so the
+              eyebrow reads as "Adoption Guide Configure" to a screen reader
+              rather than running the two words together. */}
+          Adoption Guide{' '}
+          <span className="ig-eyebrow__sep" aria-hidden="true">
+            /
+          </span>{' '}
+          {guideGroupLabel(active.group)}
+        </p>
         <h2 className="ig-title">{active.label}</h2>
       </header>
 

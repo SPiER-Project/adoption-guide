@@ -19,6 +19,13 @@
   margin: 0 0 4px 0;
 }
 
+/* Separator between the lens name and the active section's group
+   ("Adoption Guide / Configure"). */
+.ig-eyebrow__sep {
+  margin: 0 0.25em;
+  opacity: 0.5;
+}
+
 .ig-title {
   font-size: var(--font-size-3xl);
   font-weight: 700;
