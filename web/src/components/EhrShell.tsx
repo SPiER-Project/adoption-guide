@@ -71,7 +71,12 @@ export function EhrShell() {
                     wraps; the aria-label carries the full name at every width. */}
                 <span className="ehr-header-action-full">{link.label}</span>
                 <span className="ehr-header-action-short">{link.short}</span>
-                <span aria-hidden>&#8599;</span>
+                {/* Classed so the narrow breakpoint can drop it: the glyph plus
+                    its gap is ~23px per pill, and reclaiming that is what lets
+                    all three sit beside the wordmark instead of taking their
+                    own row. The aria-label keeps "opens in a new tab" at every
+                    width, so only the sighted cue is lost, and only on phones. */}
+                <span className="ehr-header-action-ext" aria-hidden>&#8599;</span>
               </a>
             ))}
           </nav>
