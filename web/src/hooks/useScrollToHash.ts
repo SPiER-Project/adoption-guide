@@ -73,3 +73,31 @@ export function useScrollToHash() {
 
   return { jumpTo }
 }
+
+/**
+ * Returns to the top of the page whenever the route changes. Without this a
+ * deep scroll carries over into the next route — leaving the Population table
+ * halfway down lands you halfway down a patient chart.
+ *
+ * Keyed on pathname + search, not the whole location: a route reached *with* a
+ * section anchor belongs to `useScrollToHash`, and scrolling to the top first
+ * would fight it.
+ *
+ * `useLayoutEffect` so the reset lands before paint. Lazily-routed pages render
+ * their Suspense fallback first, so this fires against the fallback — which is
+ * exactly right, since the real content then mounts at the top.
+ */
+export function useScrollToTopOnNavigate() {
+  const location = useLocation()
+  const routeKey = `${location.pathname}${location.search}`
+
+  useLayoutEffect(() => {
+    if (location.hash) return
+    // Which element actually scrolls depends on content height: `.ehr-content`
+    // declares `overflow-y: auto` but often lets the document scroll instead
+    // (see the note on scrollToAnchor). Zeroing both is safe — on whichever one
+    // isn't scrolling it's a no-op.
+    document.querySelector<HTMLElement>('.ehr-content')?.scrollTo(0, 0)
+    window.scrollTo(0, 0)
+  }, [routeKey, location.hash])
+}

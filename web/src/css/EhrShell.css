@@ -52,6 +52,49 @@
 }
 
 /* ===========================
+   Header actions (right side)
+   =========================== */
+
+/* `margin-left: auto` rather than `justify-content: space-between` on the
+   parent, so the hamburger and brand keep their own gap on mobile. */
+.ehr-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Outlined pill: reads as a call to action on the brand-primary bar without
+   competing with the wordmark beside it.
+   `--brand-accent-light`, not `--brand-accent`: the latter is only 3.3:1 against
+   --brand-primary, below AA for text this size. The light variant is 4.83:1 and
+   keeps the same brand hue. */
+.ehr-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--brand-accent-faint);
+  border-radius: var(--radius-pill);
+  color: var(--brand-accent-light);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.ehr-header-action:hover {
+  border-color: var(--brand-accent);
+  background: var(--brand-accent-soft);
+}
+
+.ehr-header-action-short {
+  display: none;
+}
+
+/* ===========================
    Mobile Sidebar Toggle
    =========================== */
 .ehr-sidebar-toggle {
@@ -145,6 +188,16 @@
 
   .ehr-sidebar-toggle {
     display: block;
+  }
+
+  /* The brand subtitle already wraps at this width, so the action label drops
+     to "IG". The anchor's aria-label carries the full name at every width. */
+  .ehr-header-action-full {
+    display: none;
+  }
+
+  .ehr-header-action-short {
+    display: inline;
   }
 
   .ehr-content-body {
