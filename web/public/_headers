@@ -1,0 +1,20 @@
+# Cache policy for the Cloudflare Workers deployment.
+#
+# Cloudflare Workers static assets reads this file from the assets directory;
+# Vite copies everything in web/public/ into web/dist/, so it ships with the
+# build. GitHub Pages ignores the file, which is harmless — it serves the same
+# bundle under its own (unconfigurable) cache policy.
+#
+# Measured before this file existed: every response, including content-hashed
+# assets, came back `public, max-age=0, must-revalidate`. So each page load
+# re-validated every JS and CSS chunk over the network to be told "not
+# modified". Vite fingerprints those filenames by content, which is exactly the
+# condition `immutable` is for — a changed file gets a changed name, so the
+# cached copy can never be wrong.
+#
+# index.html is deliberately NOT cached: it is the one file that must be
+# re-fetched to learn the current asset hashes after a deploy. Leaving it on
+# `max-age=0, must-revalidate` is correct and stays the default.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
