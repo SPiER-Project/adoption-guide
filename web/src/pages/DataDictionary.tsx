@@ -155,7 +155,12 @@ export function DataDictionary() {
                           </div>
                         )}
                       </td>
-                      <td className="dd-cell-code">{el.code}</td>
+                      <td className="dd-cell-code">
+                        {el.code}
+                        {el.codeDisplay && el.codeDisplay !== 'N/A' && (
+                          <span className="dd-code-display">{el.codeDisplay}</span>
+                        )}
+                      </td>
                       <td className="dd-cell-system">{el.codeSystem}</td>
                       <td>
                         <span className={`dd-resource-badge dd-resource-badge--${el.fhirResource.toLowerCase()}`}>

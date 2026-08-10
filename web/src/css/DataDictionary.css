@@ -107,6 +107,21 @@
   white-space: nowrap;
 }
 
+/*
+ * The code's official display, verbatim from the publishing authority. Rendered
+ * rather than merely stored: it sat unrendered for the dictionary's whole life,
+ * which is exactly why fifteen LOINC displays drifted without anyone noticing.
+ */
+.dd-code-display {
+  display: block;
+  margin-top: var(--space-1);
+  max-width: 22rem;
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: normal;
+}
+
 .dd-cell-system {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
