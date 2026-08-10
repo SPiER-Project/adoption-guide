@@ -35,8 +35,20 @@
 
 .ig-content {
   flex: 1;
-  padding: 0; /* Sub-pages carry their own body padding. */
+  padding: 0;
   overflow-y: auto;
+}
+
+/* Body padding lives here, not on each sub-page root. It used to be the
+   sub-page's job, and three of the nine never did it — MeasureDashboard and
+   AdoptionReadiness were never added to the opt-in list, and EhrAdoptionRubric
+   was listed under a class it does not render (`.ehr-adoption-rubric` vs the
+   actual `.ehr-rubric`), so its rule silently matched nothing. All three sat
+   flush against the chrome. Padding the container instead means a new sub-page
+   is correct by default. The pager is excluded: it spans the full width so its
+   border-top meets both edges, and it pads itself. */
+.ig-content > :not(.guide-pager) {
+  padding: 24px;
 }
 
 /* Bottom-of-page prev/next navigation between guide sections. Order mirrors the
@@ -85,15 +97,8 @@
   color: var(--accent-info);
 }
 
-.implementation-guide .patient-journey,
-.implementation-guide .data-dictionary,
-.implementation-guide .ehr-adoption-rubric {
-  padding: 24px;
-}
-
-/* Shared placeholder used by ToolConfiguration, Roadmap, PopulationView */
+/* Placeholder body used by Roadmap. Padding comes from `.ig-content`. */
 .page-placeholder {
-  padding: 24px;
   max-width: 760px;
 }
 

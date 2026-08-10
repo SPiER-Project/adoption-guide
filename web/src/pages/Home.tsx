@@ -4,8 +4,10 @@ import { SpierLogo } from '../components/SpierLogo'
 import '../css/Home.css'
 
 // The published HL7 IG is a sibling static site (web/dist/ig/), not a hash route —
-// link to it with a plain anchor built from the Vite base path. Resolves to
-// `/adoption-guide/ig/` in the production build and `/ig/` in local dev (not served by `npm run dev`).
+// link to it with a plain anchor built from the Vite base path, so it follows
+// whichever base is active: `/ig/` on Cloudflare and in local dev (where `npm run
+// dev` does not serve it), `/adoption-guide/ig/` on the legacy GitHub Pages deploy,
+// whose workflow sets VITE_BASE. See the note in vite.config.ts.
 const IG_HREF = `${import.meta.env.BASE_URL}ig/`
 const MARKETING_URL = 'https://thespierproject.org'
 const REPO_URL = 'https://github.com/SPiER-Project/adoption-guide'

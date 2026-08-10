@@ -4,9 +4,6 @@ import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSection
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
 
-// Published HL7 IG — a sibling static site (not a hash route), linked via the Vite base path.
-const IG_HREF = `${import.meta.env.BASE_URL}ig/`
-
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
@@ -37,8 +34,6 @@ interface Lens {
   icon: string
   matchPrefix: string
   children?: LensChild[]
-  /** External link (e.g. the published HL7 IG) — rendered as a plain anchor, no active state. */
-  external?: boolean
 }
 
 // The patient lens links depend on the active patient, so the lens list is
@@ -65,13 +60,6 @@ function buildLenses(patientBase: string): Lens[] {
         label: section.label,
         group: guideGroupLabel(section.group),
       })),
-    },
-    {
-      to: IG_HREF,
-      label: 'Implementation Guide ↗', // published HL7 IG (external)
-      icon: '\u{1F4C4}', // page facing up
-      matchPrefix: '__external__', // never active
-      external: true,
     },
     {
       to: '/population',
@@ -151,18 +139,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             const expanded = isLensActive(lens) && !!lens.children?.length
             return (
               <div key={lens.to} className="sidebar-section">
-                {lens.external ? (
-                  <a
-                    href={lens.to}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="sidebar-link sidebar-link--lens"
-                    onClick={onClose}
-                  >
-                    <span className="sidebar-icon">{lens.icon}</span>
-                    {lens.label}
-                  </a>
-                ) : (
                 <NavLink
                   to={lens.to}
                   className={({ isActive }) =>
@@ -176,7 +152,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <span className="sidebar-icon">{lens.icon}</span>
                   {lens.label}
                 </NavLink>
-                )}
                 {expanded && lens.children!.map((child, i) => {
                   // A group heading is emitted whenever this child opens a new
                   // category, which for a grouped-contiguous list means once
@@ -186,6 +161,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     child.group && child.group !== prevGroup ? (
                       <p className="sidebar-group-heading">{child.group}</p>
                     ) : null
+
 
                   // Anchor children combine a route path with a section
                   // anchor (`/patient/chart#recommendations`). React Router's
