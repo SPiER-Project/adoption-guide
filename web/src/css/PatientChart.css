@@ -93,147 +93,387 @@
 }
 
 /* ===========================
-   Pathway tracker
+   Vertical pathway rail
+
+   One rail replaces what used to be three parallel retellings of the same
+   eight stages (horizontal stepper, detached recommendation stack, stage
+   activity list). Each node carries its own status, actions and records, so
+   "what do I do next" is answered where the reader is already looking.
    =========================== */
-.pathway-tracker {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: var(--space-3);
-  margin-bottom: var(--space-6);
-  overflow-x: auto;
+.pathway {
+  margin-bottom: var(--space-8);
 }
 
-.pathway-tracker-list {
-  display: flex;
-  gap: 0.4rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.pathway-step {
-  flex: 1 1 0;
-  min-width: 110px;
-}
-
-.pathway-step-btn {
-  width: 100%;
-  background: transparent;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 0.55rem 0.4rem;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-  font: inherit;
-  text-align: center;
-  transition: all 0.15s ease;
-}
-
-.pathway-step-btn:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-muted);
-}
-
-.pathway-step-index {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: var(--radius-circle);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  border: 1px solid var(--border-default);
-}
-
-.pathway-step-label {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-}
-
-.pathway-step--complete .pathway-step-btn {
-  background: var(--risk-low-soft-bg);
-  border-color: var(--risk-low-faded);
-}
-
-.pathway-step--complete .pathway-step-index {
-  background: var(--risk-low);
-  color: var(--text-on-brand);
-  border-color: var(--risk-low);
-}
-
-.pathway-step--complete .pathway-step-label {
-  color: var(--risk-low-soft-text);
-}
-
-.pathway-step--active .pathway-step-btn {
-  background: var(--accent-info-soft);
-  border-color: var(--accent-info);
-  border-width: 2px;
-  padding: calc(0.55rem - 1px) calc(0.4rem - 1px);
-}
-
-.pathway-step--active .pathway-step-index {
-  background: var(--accent-info);
-  color: var(--text-on-brand);
-  border-color: var(--accent-info);
-}
-
-.pathway-step--active .pathway-step-label {
-  color: var(--accent-info);
-}
-
-/* ===========================
-   CDS card stack
-   =========================== */
-.cds-stack {
-  margin-bottom: var(--space-6);
-}
-
-.cds-stack-header {
+.pathway-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: var(--space-3);
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
-.cds-stack-title {
+.pathway-title {
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--text-strong);
   margin: 0;
+  white-space: nowrap;
 }
 
-.cds-stack-subtitle {
+.pathway-subtitle {
   font-size: var(--font-size-sm);
   color: var(--text-faint);
+  text-align: right;
+}
+
+.pathway-subtitle a {
+  color: inherit;
 }
 
 /* On narrow screens the long subtitle collides with the title under
    space-between; stack them instead. */
 @media (max-width: 768px) {
-  .cds-stack-header {
+  .pathway-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
+
+  .pathway-subtitle {
+    text-align: left;
+  }
 }
 
-.cds-stack-list {
+.pathway-progress {
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.pathway-progress strong {
+  color: var(--text-strong);
+}
+
+.pathway-progress-actions {
+  color: var(--accent-info);
+  font-weight: 600;
+}
+
+/* Cards whose stage id doesn't resolve — surfaced above the rail rather than
+   dropped, since a recommendation is the one thing this page must not lose. */
+.pathway-orphan-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.pathway-rail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Marker column + card, with the connecting spine drawn behind the marker. */
+.pathway-node {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem 1fr;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  scroll-margin-top: 1rem;
+}
+
+/* The spine runs from just under this node's marker to the next node's. */
+.pathway-node::before {
+  content: '';
+  position: absolute;
+  left: 0.875rem;
+  top: 1.9rem;
+  bottom: -0.15rem;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--border-default);
+}
+
+.pathway-node:last-child::before {
+  display: none;
+}
+
+.pathway-node--done::before {
+  background: var(--risk-low-faded);
+}
+
+.pathway-node-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-circle);
+  border: 1px solid var(--border-default);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.pathway-node--done .pathway-node-marker {
+  background: var(--risk-low);
+  border-color: var(--risk-low);
+  color: var(--text-on-brand);
+}
+
+.pathway-node--active .pathway-node-marker {
+  background: var(--accent-info);
+  border-color: var(--accent-info);
+  color: var(--text-on-brand);
+  box-shadow: var(--shadow-card-outline);
+}
+
+.pathway-node--passed .pathway-node-marker {
+  background: var(--surface-card);
+  border-color: var(--border-strong);
+}
+
+.pathway-node-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  min-width: 0;
+}
+
+.pathway-node--active .pathway-node-card {
+  border-color: var(--accent-info);
+  box-shadow: var(--shadow-card-outline);
+}
+
+/* A stage carrying a live recommendation — including one the pathway has
+   already passed — must read as "there is something to do here". */
+.pathway-node--attention .pathway-node-card {
+  border-color: var(--accent-info);
+}
+
+.pathway-node--upcoming .pathway-node-card {
+  background: var(--surface-muted);
+}
+
+.pathway-node--upcoming .pathway-node-title {
+  color: var(--text-muted);
+}
+
+/* Invisible target for the chart's legacy #recommendations anchor, which now
+   follows the actions to whichever node hosts them. */
+.pathway-node-anchor {
+  display: block;
+  height: 0;
+  scroll-margin-top: 1rem;
+}
+
+.pathway-node-heading {
+  margin: 0;
+  font: inherit;
+}
+
+.pathway-node-toggle {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.pathway-node-main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.pathway-node-aside {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Narrow screens can't fit the title and the status pills on one line; the
+   default wrap strands the title under the pills, so stack them deliberately. */
+@media (max-width: 600px) {
+  .pathway-node-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .pathway-node-aside {
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+}
+
+.pathway-node-step {
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.pathway-node-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+/* The one useful fact about a collapsed stage: its score, or its record count. */
+.pathway-node-summary {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pathway-node-status {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.pathway-node-status--done     { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
+.pathway-node-status--active   { background: var(--accent-info-soft); color: var(--accent-info); }
+.pathway-node-status--passed   { background: var(--surface-muted); color: var(--text-muted); }
+.pathway-node-status--upcoming { background: var(--surface-muted); color: var(--text-faint); }
+
+.pathway-node-flag {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent-info);
+  color: var(--text-on-brand);
+  white-space: nowrap;
+}
+
+.pathway-node-chevron {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+}
+
+.pathway-node-body {
+  margin-top: var(--space-3);
+}
+
+.pathway-node-desc {
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 var(--space-3) 0;
+}
+
+.pathway-node-section-title {
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pathway-node-actions,
+.pathway-node-records,
+.pathway-node-tools {
+  margin-bottom: var(--space-3);
+}
+
+.pathway-node-tools:last-child,
+.pathway-node-records:last-child,
+.pathway-node-actions:last-child {
+  margin-bottom: 0;
+}
+
+.pathway-node-cards {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
+.pathway-node-empty {
+  font-size: var(--font-size-base);
+  color: var(--text-faint);
+  margin: 0;
+}
+
+.pathway-node-empty a {
+  color: var(--accent-info);
+  text-decoration: underline;
+}
+
+/* "Potential actions" — the tools that would satisfy a stage. Secondary to a
+   real recommendation, so they read as chips rather than buttons. */
+.pathway-node-tool-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pathway-tool-chip {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  color: var(--text-body);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.pathway-tool-chip:hover {
+  border-color: var(--accent-info);
+  color: var(--accent-info);
+}
+
+/* What the pathway offers here that this implementation hasn't turned on. */
+.pathway-node-tools-note {
+  font-size: var(--font-size-sm);
+  color: var(--text-faint);
+  margin: var(--space-2) 0 0 0;
+}
+
+.pathway-node-tools-note a {
+  color: var(--accent-info);
+  text-decoration: underline;
+}
+
+/* Unstaged bucket — off the rail, so it gets no marker or spine. */
+.pathway-other {
+  background: var(--surface-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+/* ===========================
+   CDS cards (rendered inside their pathway stage)
+   =========================== */
 .cds-card {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -266,14 +506,6 @@
 .cds-card-pill--critical { background: var(--risk-acute); }
 .cds-card-pill--warning  { background: var(--risk-moderate); }
 .cds-card-pill--info     { background: var(--accent-info); }
-
-.cds-card-stage-tag {
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-faint);
-  font-weight: 600;
-}
 
 .cds-card-title {
   font-size: var(--font-size-xl);
@@ -327,139 +559,8 @@
 }
 
 /* ===========================
-   Activity section
+   Artifact cards (shared by stage nodes and the unstaged bucket)
    =========================== */
-.activity-section {
-  margin-bottom: var(--space-8);
-}
-
-.stage-sections {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.stage-section {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  scroll-margin-top: 1rem;
-}
-
-.stage-section--active {
-  border-color: var(--accent-info);
-  box-shadow: var(--shadow-card-outline);
-}
-
-.stage-section--complete {
-  background: var(--surface-card);
-}
-
-/* Future / not-started stages: faded, read-only roadmap rows. */
-.stage-section--not-started {
-  background: var(--surface-muted);
-  border-color: var(--border-default);
-  opacity: 0.6;
-}
-
-.stage-section-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: 0.3rem;
-}
-
-.stage-section-title {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--text-strong);
-  margin: 0;
-}
-
-.stage-section-status {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-pill);
-}
-
-.stage-section-status--complete    { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
-.stage-section-status--active      { background: var(--accent-info-soft); color: var(--accent-info); }
-.stage-section-status--not-started { background: var(--surface-muted); color: var(--text-muted); }
-.stage-section-status--other       { background: var(--surface-muted); color: var(--text-muted); }
-
-/* Unstaged "Other activity" bucket — muted like a roadmap row but interactive. */
-.stage-section--other {
-  background: var(--surface-muted);
-}
-
-/* Heading wrapper for a collapsible completed stage: keeps <h4> semantics but
-   defers all sizing to the inner title span so the button can fill the row. */
-.stage-section-toggle-heading {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  font: inherit;
-}
-
-/* Clickable header for a collapsible completed stage. */
-.stage-section-toggle {
-  display: flex;
-  width: 100%;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.stage-section-toggle-main {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-.stage-section-toggle-aside {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-/* At-a-glance clinical score(s) for a completed stage, e.g. "PHQ-9: 14". */
-.stage-section-score {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.stage-section-toggle-hint {
-  font-size: var(--font-size-2xs);
-  color: var(--text-muted);
-}
-
-.stage-section-desc {
-  font-size: var(--font-size-base);
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin: 0 0 var(--space-3) 0;
-}
-
-.stage-section-empty {
-  font-size: var(--font-size-base);
-  color: var(--text-faint);
-  font-style: italic;
-  margin: 0;
-}
-
 .stage-section-artifacts {
   display: flex;
   flex-direction: column;

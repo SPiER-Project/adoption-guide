@@ -1,46 +1,27 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useScrollToHash } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
-import { STAGES, stageById } from '../data/catalog'
+import { PatientPathway } from '../components/PatientPathway'
+import { ArtifactCards } from '../components/ChartArtifacts'
+import {
+  artifactCount,
+  carePlanDisplayName,
+  type RenderableResource,
+} from '../lib/chartDisplay'
+import { stageById } from '../data/catalog'
 import {
   derivePathwayStatus,
   groupArtifactsByStage,
   unstagedArtifacts,
   stageForResponse,
-  type StageStatus,
   type FhirResourceLike,
   type StoredResponseLike,
 } from '../lib/patientPathway'
 import { workflowArtifactsOf } from '../lib/registry'
-import { displayFor, outreachOutcome, OUTREACH_OUTCOMES } from '../lib/followUp'
-import { buildCdsCards, type Card, type CdsIndicator } from '../lib/cdsHooks'
-import type {
-  CarePlanResource,
-  CodeableConcept,
-  CommunicationResource,
-  ScenarioEncounter,
-  StoredResponse,
-} from '../types/fhir'
-
-// The chart renders stored FHIR resources that arrive (via patientPathway) as
-// loose FhirResourceLike — typed only for stage resolution. This is the set of
-// extra fields the rendering reads off them; `_savedAt` is SPiER's client-side
-// capture stamp (demo only, no server persistence).
-interface RenderableResource {
-  id?: string
-  status?: string
-  code?: CodeableConcept
-  effectiveDateTime?: string
-  valueInteger?: number
-  valueQuantity?: { value?: number }
-  reasonCode?: CodeableConcept[]
-  category?: CodeableConcept[]
-  sent?: string
-  _savedAt?: string
-}
+import { buildCdsCards } from '../lib/cdsHooks'
+import type { CarePlanResource, ScenarioEncounter, StoredResponse } from '../types/fhir'
 import '../css/Dashboard.css'
 import '../css/PatientChart.css'
 
@@ -50,439 +31,6 @@ import '../css/PatientChart.css'
 // Keeps date-driven memos deterministic and pushes undated rows to the bottom
 // when sorting newest-first.
 const UNDATED_SENTINEL = '1970-01-01T00:00:00.000Z'
-
-function formatDateTime(iso: string): string {
-  const d = new Date(iso)
-  return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-}
-
-/* ---------- Pathway tracker ---------- */
-function PathwayTracker({ statuses, onJump }: {
-  statuses: Record<string, StageStatus>
-  onJump: (stageId: string) => void
-}) {
-  return (
-    <nav className="pathway-tracker" aria-label="Suicide-safer care pathway">
-      <ol className="pathway-tracker-list">
-        {STAGES.map((stage, idx) => {
-          const status = statuses[stage.id]
-          return (
-            <li key={stage.id} className={`pathway-step pathway-step--${status}`}>
-              <button
-                type="button"
-                className="pathway-step-btn"
-                onClick={() => onJump(`stage-${stage.id}`)}
-                title={stage.description}
-              >
-                <span className="pathway-step-index">
-                  {status === 'complete' ? '✓' : idx + 1}
-                </span>
-                <span className="pathway-step-label">{stage.title}</span>
-              </button>
-            </li>
-          )
-        })}
-      </ol>
-    </nav>
-  )
-}
-
-/* ---------- CDS recommendation cards ---------- */
-// The chart's "Recommendations" are real CDS Hooks 2.0 Cards, built by the
-// shared, React-free builder in lib/cdsHooks. This UI renders those Card objects
-// and exposes the raw wire payload via a per-card JSON toggle.
-
-// CDS indicator → clinician-facing pill label and BEM modifier.
-const INDICATOR_LABEL: Record<CdsIndicator, string> = {
-  critical: 'Urgent',
-  warning: 'Recommended',
-  info: 'Routine',
-}
-
-function CdsCardView({ card }: { card: Card }) {
-  const ext = card.extension
-  const stageId = ext?.['spier-stage-id']
-  const stage = stageId ? stageById(stageId) : undefined
-  const narrativeOnly = ext?.['spier-narrative-only'] === true
-  const routerPaths = ext?.['spier-router-paths'] ?? {}
-  const links = card.links ?? []
-  return (
-    <article className={`cds-card cds-card--${card.indicator}`}>
-      <header className="cds-card-header">
-        <span className={`cds-card-pill cds-card-pill--${card.indicator}`}>
-          {INDICATOR_LABEL[card.indicator]}
-        </span>
-        {stage && <span className="cds-card-stage-tag">{stage.title}</span>}
-      </header>
-      <h4 className="cds-card-title">{card.summary}</h4>
-      {card.detail && <p className="cds-card-rationale">{card.detail}</p>}
-      {links.length > 0 ? (
-        <div className="cds-card-actions">
-          {links.map(link => {
-            // Deep links carry an in-app router path in the extension so the SPA
-            // can navigate client-side; fall back to the absolute url otherwise.
-            const to = routerPaths[link.url]
-            return to ? (
-              <Link key={link.url} to={to} className="cds-card-action-btn">
-                {link.label}
-              </Link>
-            ) : (
-              <a
-                key={link.url}
-                href={link.url}
-                className="cds-card-action-btn"
-                target="_blank"
-                rel="noreferrer"
-              >
-                {link.label}
-              </a>
-            )
-          })}
-        </div>
-      ) : narrativeOnly ? null : (
-        <p className="cds-card-no-options">
-          No tools enabled for this stage in your implementation.{' '}
-          <Link to="/guide/tool-configuration">Configure tools</Link>.
-        </p>
-      )}
-      <div className="cds-card-json">
-        <FhirJsonViewer data={card} title="View CDS Hooks card JSON" />
-      </div>
-    </article>
-  )
-}
-
-function CdsCardStack({ cards }: { cards: Card[] }) {
-  if (cards.length === 0) return null
-  return (
-    <section id="recommendations" className="cds-stack">
-      <header className="cds-stack-header">
-        <h3 className="cds-stack-title">Recommendations</h3>
-        <span className="cds-stack-subtitle">
-          Generated from this patient's pathway state &middot; real CDS Hooks 2.0 cards &middot;{' '}
-          <Link to="/guide/cds-service">also served over the wire by SPiER's hosted CDS service</Link>
-        </span>
-      </header>
-      <div className="cds-stack-list">
-        {cards.map(card => (
-          <CdsCardView key={card.extension?.['spier-card-id'] ?? card.uuid} card={card} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Stage-grouped activity ---------- */
-// Short labels for the per-stage score chip — full LOINC/SNOMED display names
-// are too long to read inline.
-const SCORE_CHIP_LABELS: Record<string, string> = {
-  '44261-6': 'PHQ-9 total',
-  '44260-8': 'PHQ-9 item 9',
-  '225337009': 'SBQ-R total',
-}
-
-// CarePlan display name: the resource's own title when present (scenario and
-// foreign-EHR plans carry one), else the legacy id-convention fallbacks for
-// tool-emitted plans that predate titles.
-function carePlanDisplayName(cp: RenderableResource & { title?: unknown }): string {
-  if (typeof cp.title === 'string' && cp.title) return cp.title
-  if (cp.id?.includes('stanley-brown')) return 'Stanley-Brown Safety Plan'
-  if (cp.id?.includes('cams-stabilization')) return 'CAMS Stabilization Plan'
-  if (cp.id?.includes('cams-therapeutic')) return 'CAMS Therapeutic Worksheet'
-  return 'Care plan'
-}
-
-/**
- * Label + icon for a Stage-5 workflow artifact. These types describe themselves
- * through different elements (a packet's attachment title, a referral's code, an
- * appointment's description), and the lifecycle state matters as much as the
- * name — a referral that has completed and one still outstanding are the same
- * resource at two points, and a card that couldn't tell them apart would
- * undercut the tracking the stage exists to demonstrate.
- */
-function workflowArtifactDisplay(resource: FhirResourceLike): { icon: string; name: string; meta: string } {
-  const r = resource as RenderableResource & {
-    type?: { text?: string }
-    content?: { attachment?: { title?: string } }[]
-    description?: string
-    start?: string
-    date?: string
-    dateTime?: string
-    authoredOn?: string
-    performer?: { display?: string }[]
-    performedDateTime?: string
-    provision?: { type?: string }
-  }
-  const on = (iso?: string) => (iso ? ` · ${new Date(iso).toLocaleDateString()}` : '')
-  switch (resource.resourceType) {
-    case 'DocumentReference':
-      return {
-        icon: '\u{1F4E6}',
-        name: r.content?.[0]?.attachment?.title ?? r.type?.text ?? 'Discharge safety packet',
-        meta: `DocumentReference · ${r.status ?? 'current'}${on(r.date ?? r._savedAt)}`,
-      }
-    case 'ServiceRequest':
-      return {
-        icon: '\u{1F500}',
-        name: r.code?.text ?? 'Suicide-safety referral',
-        meta: `ServiceRequest · ${r.status ?? 'active'}${
-          r.performer?.[0]?.display ? ` → ${r.performer[0].display}` : ''
-        }${on(r.authoredOn ?? r._savedAt)}`,
-      }
-    case 'Appointment':
-      return {
-        icon: '\u{1F4C5}',
-        name: r.description ?? 'Follow-up appointment',
-        meta: `Appointment · ${r.status ?? 'booked'}${on(r.start ?? r._savedAt)}`,
-      }
-    case 'Procedure':
-      return {
-        icon: '\u{1F6E1}',
-        name: r.code?.text ?? r.code?.coding?.[0]?.display ?? 'Safety procedure',
-        meta: `Procedure · ${r.status ?? 'completed'}${on(r.performedDateTime ?? r._savedAt)}`,
-      }
-    case 'Consent':
-      return {
-        icon: '\u{1F510}',
-        name:
-          r.provision?.type === 'deny'
-            ? 'Information sharing declined'
-            : 'Information sharing permitted',
-        meta: `Consent · ${r.status ?? 'active'}${on(r.dateTime ?? r._savedAt)}`,
-      }
-    default:
-      return {
-        icon: '\u{1F4C4}',
-        name: resource.resourceType ?? 'Resource',
-        meta: `${resource.resourceType ?? 'Resource'}${on(r._savedAt)}`,
-      }
-  }
-}
-
-/** The artifact-card lists shared by stage sections and the unstaged
- *  "Other activity" bucket. */
-function ArtifactCards({
-  responses,
-  carePlans,
-  observations,
-  communications,
-  workflowArtifacts,
-}: {
-  responses: StoredResponseLike[]
-  carePlans: FhirResourceLike[]
-  observations: FhirResourceLike[]
-  communications: FhirResourceLike[]
-  workflowArtifacts: FhirResourceLike[]
-}) {
-  return (
-    <div className="stage-section-artifacts">
-      {responses.map(rawR => {
-        const r = rawR as StoredResponse
-        return (
-        <div key={r.id} className="stage-artifact stage-artifact--response">
-          <span className="stage-artifact-icon" aria-hidden>{'\u{1F4DD}'}</span>
-          <div className="stage-artifact-body">
-            <span className="stage-artifact-name">{r.questionnaireName}</span>
-            <span className="stage-artifact-meta">QuestionnaireResponse &middot; {formatDateTime(r.completedAt)}</span>
-          </div>
-        </div>
-        )
-      })}
-      {carePlans.map((rawCp, idx) => {
-        const cp = rawCp as RenderableResource
-        const savedAt = cp._savedAt ? new Date(cp._savedAt).toLocaleDateString() : null
-        return (
-          <div key={`${cp.id}-${idx}`} className="stage-artifact stage-artifact--careplan">
-            <span className="stage-artifact-icon" aria-hidden>{'\u{1F4CB}'}</span>
-            <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{carePlanDisplayName(cp)}</span>
-              <span className="stage-artifact-meta">
-                CarePlan &middot; {cp.status ?? 'active'}
-                {savedAt && ` · ${savedAt}`}
-              </span>
-            </div>
-          </div>
-        )
-      })}
-      {observations.map((rawObs, idx) => {
-        const obs = rawObs as RenderableResource
-        const name = obs.code?.text || obs.code?.coding?.[0]?.display || 'Observation'
-        const when = obs.effectiveDateTime ?? obs._savedAt
-        return (
-          <div key={obs.id ?? `obs-${idx}`} className="stage-artifact stage-artifact--observation">
-            <span className="stage-artifact-icon" aria-hidden>{'\u{1F4CA}'}</span>
-            <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{name}</span>
-              <span className="stage-artifact-meta">
-                Observation
-                {when && ` · ${new Date(when).toLocaleDateString()}`}
-              </span>
-            </div>
-          </div>
-        )
-      })}
-      {communications.map((rawComm, idx) => {
-        const c = rawComm as RenderableResource
-        const name =
-          c.reasonCode?.[0]?.text ||
-          c.category?.[0]?.text ||
-          c.category?.[0]?.coding?.[0]?.display ||
-          'Communication'
-        const when = c.sent ?? c._savedAt
-        // For a Stage-6 outreach attempt the outcome is the defining fact —
-        // without it two attempts on the same day read as duplicates.
-        const outcome = outreachOutcome(rawComm as CommunicationResource)
-        return (
-          <div key={c.id ?? `comm-${idx}`} className="stage-artifact stage-artifact--communication">
-            <span className="stage-artifact-icon" aria-hidden>{'\u{1F4DE}'}</span>
-            <div className="stage-artifact-body">
-              <span className="stage-artifact-name">
-                {name}
-                {outcome && ` — ${displayFor(OUTREACH_OUTCOMES, outcome)}`}
-              </span>
-              <span className="stage-artifact-meta">
-                Communication &middot; {c.status ?? 'completed'}
-                {when && ` · ${new Date(when).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${new Date(when).toLocaleDateString()}`}
-              </span>
-            </div>
-          </div>
-        )
-      })}
-      {workflowArtifacts.map((raw, idx) => {
-        const w = raw as RenderableResource
-        const { icon, name, meta } = workflowArtifactDisplay(raw)
-        return (
-          <div key={w.id ?? `workflow-${idx}`} className="stage-artifact stage-artifact--workflow">
-            <span className="stage-artifact-icon" aria-hidden>{icon}</span>
-            <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{name}</span>
-              <span className="stage-artifact-meta">{meta}</span>
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function StageActivitySection({
-  stageId,
-  status,
-  responses,
-  carePlans,
-  observations,
-  communications,
-  workflowArtifacts,
-}: {
-  stageId: string
-  status: StageStatus
-  responses: StoredResponseLike[]
-  carePlans: FhirResourceLike[]
-  observations: FhirResourceLike[]
-  communications: FhirResourceLike[]
-  workflowArtifacts: FhirResourceLike[]
-}) {
-  const stage = stageById(stageId)
-  const [open, setOpen] = useState(false)
-  const empty =
-    responses.length === 0 &&
-    carePlans.length === 0 &&
-    observations.length === 0 &&
-    communications.length === 0 &&
-    workflowArtifacts.length === 0
-
-  // Future stages (always empty, since any artifact would mark the stage complete)
-  // render as a faded, read-only roadmap row so the full 8-stage journey stays visible.
-  if (status === 'not-started') {
-    return (
-      <section
-        id={`stage-${stageId}`}
-        className="stage-section stage-section--not-started"
-        aria-label={`${stage?.title} stage`}
-      >
-        <header className="stage-section-header">
-          <h4 className="stage-section-title">{stage?.title}</h4>
-          <span className="stage-section-status stage-section-status--not-started">Not started</span>
-        </header>
-        <p className="stage-section-desc">{stage?.description}</p>
-      </section>
-    )
-  }
-
-  // Completed stages with activity collapse to a one-line summary that expands on click.
-  const collapsible = status === 'complete' && !empty
-  const showArtifacts = !empty && (!collapsible || open)
-  const showDesc = !collapsible || open
-
-  // Surface the clinical score(s) for this stage from its Observations, e.g. "PHQ-9: 14".
-  // Read straight off the persisted resource value; omit when no scored observation exists.
-  const scoreSummary = observations
-    .map(rawObs => {
-      const o = rawObs as RenderableResource
-      const value = o.valueInteger ?? o.valueQuantity?.value
-      if (value === undefined || value === null) return null
-      // Full LOINC display names are long and clutter the chip — prefer a short
-      // label for known scored codes, falling back to the resource's own text.
-      const code = o.code?.coding?.[0]?.code
-      const label =
-        (code && SCORE_CHIP_LABELS[code]) || o.code?.text || o.code?.coding?.[0]?.display || 'Score'
-      return `${label}: ${value}`
-    })
-    .filter(Boolean)
-    .join(' · ')
-
-  return (
-    <section
-      id={`stage-${stageId}`}
-      className={`stage-section stage-section--${status}`}
-      aria-label={`${stage?.title} stage`}
-    >
-      <header className="stage-section-header">
-        {collapsible ? (
-          // Accordion pattern: heading wraps the toggle button so the stage title
-          // keeps its <h4> heading semantics while staying fully clickable.
-          <h4 className="stage-section-toggle-heading">
-            <button
-              type="button"
-              className="stage-section-toggle"
-              onClick={() => setOpen(v => !v)}
-              aria-expanded={open}
-            >
-              <span className="stage-section-toggle-main">
-                <span className="stage-section-title">{stage?.title}</span>
-                {scoreSummary && <span className="stage-section-score">{scoreSummary}</span>}
-              </span>
-              <span className="stage-section-toggle-aside">
-                <span className="stage-section-status stage-section-status--complete">Complete</span>
-                <span className="stage-section-toggle-hint" aria-hidden>{open ? '▲' : '▼'}</span>
-              </span>
-            </button>
-          </h4>
-        ) : (
-          <>
-            <h4 className="stage-section-title">{stage?.title}</h4>
-            <span className={`stage-section-status stage-section-status--${status}`}>
-              {status === 'complete' ? 'Complete' : 'Active'}
-            </span>
-          </>
-        )}
-      </header>
-      {showDesc && <p className="stage-section-desc">{stage?.description}</p>}
-
-      {empty ? (
-        <p className="stage-section-empty">No activity at this stage yet.</p>
-      ) : showArtifacts ? (
-        <ArtifactCards
-          responses={responses}
-          carePlans={carePlans}
-          observations={observations}
-          communications={communications}
-          workflowArtifacts={workflowArtifacts}
-        />
-      ) : null}
-    </section>
-  )
-}
 
 /* ---------- Unstaged ("Other activity") bucket ---------- */
 // Artifacts that resolve to no pathway stage — typically foreign EHR data
@@ -504,42 +52,38 @@ function OtherActivitySection({
   workflowArtifacts: FhirResourceLike[]
 }) {
   const [open, setOpen] = useState(false)
-  const count =
-    responses.length +
-    carePlans.length +
-    observations.length +
-    communications.length +
-    workflowArtifacts.length
+  const count = artifactCount({
+    responses,
+    carePlans,
+    observations,
+    communications,
+    workflowArtifacts,
+  })
   if (count === 0) return null
   return (
-    <section
-      id="stage-other"
-      className="stage-section stage-section--other"
-      aria-label="Other activity"
-    >
-      <header className="stage-section-header">
-        <h4 className="stage-section-toggle-heading">
-          <button
-            type="button"
-            className="stage-section-toggle"
-            onClick={() => setOpen(v => !v)}
-            aria-expanded={open}
-          >
-            <span className="stage-section-toggle-main">
-              <span className="stage-section-title">Other activity</span>
+    <section id="stage-other" className="pathway-other" aria-label="Other activity">
+      <h4 className="pathway-node-heading">
+        <button
+          type="button"
+          className="pathway-node-toggle"
+          onClick={() => setOpen(v => !v)}
+          aria-expanded={open}
+        >
+          <span className="pathway-node-main">
+            <span className="pathway-node-step">Off pathway</span>
+            <span className="pathway-node-title">Other activity</span>
+          </span>
+          <span className="pathway-node-aside">
+            <span className="pathway-node-status pathway-node-status--upcoming">
+              {count} {count === 1 ? 'item' : 'items'}
             </span>
-            <span className="stage-section-toggle-aside">
-              <span className="stage-section-status stage-section-status--other">
-                {count} {count === 1 ? 'item' : 'items'}
-              </span>
-              <span className="stage-section-toggle-hint" aria-hidden>{open ? '▲' : '▼'}</span>
-            </span>
-          </button>
-        </h4>
-      </header>
+            <span className="pathway-node-chevron" aria-hidden>{open ? '▲' : '▼'}</span>
+          </span>
+        </button>
+      </h4>
       {open && (
-        <>
-          <p className="stage-section-desc">
+        <div className="pathway-node-body">
+          <p className="pathway-node-desc">
             Captured resources that don't map to a SPiER pathway stage — for example, records
             written by other systems on a connected EHR.
           </p>
@@ -550,7 +94,7 @@ function OtherActivitySection({
             communications={communications}
             workflowArtifacts={workflowArtifacts}
           />
-        </>
+        </div>
       )}
     </section>
   )
@@ -568,6 +112,10 @@ function EncountersTimeline({
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
+  // Most patients carry no scenario walkthrough. An empty "Encounters / 0 steps"
+  // heading is pure noise between the pathway and the documents list.
+  if (encounters.length === 0) return null
+
   return (
     <section id="encounters" className="encounters-timeline-section">
       <header className="chart-section-header">
@@ -576,9 +124,7 @@ function EncountersTimeline({
           {encounters.length} {encounters.length === 1 ? 'step' : 'steps'}
         </span>
       </header>
-      {encounters.length === 0 ? (
-        <p className="encounters-note">No encounters recorded for this patient yet.</p>
-      ) : (
+      {(
         <>
           <p className="encounters-note">
             Scenario walkthrough — each step links to the FHIR artifact it produces. Steps
@@ -820,7 +366,7 @@ export function PatientChart() {
     dataSourceError,
   } = usePatient()
   const { isToolEnabled } = useToolConfig()
-  const { jumpTo } = useScrollToHash()
+  useScrollToHash()
 
   // Stage-5 artifacts all stage themselves through meta.tag, so they travel as
   // one bucket rather than a named field per resource type — see PatientArtifacts.
@@ -888,39 +434,20 @@ export function PatientChart() {
         </div>
       )}
 
-      <PathwayTracker statuses={statuses} onJump={jumpTo} />
+      <PatientPathway
+        stageGroups={stageGroups}
+        statuses={statuses}
+        cards={cdsCards}
+        isToolEnabled={isToolEnabled}
+      />
 
-      <CdsCardStack cards={cdsCards} />
-
-      <section id="activity" className="activity-section">
-        <header className="chart-section-header">
-          <h3 className="chart-section-title">Activity by pathway stage</h3>
-          <span className="chart-section-count">
-            {STAGES.reduce((acc, s) => acc + (statuses[s.id] === 'complete' ? 1 : 0), 0)} of {STAGES.length} stages with activity
-          </span>
-        </header>
-        <div className="stage-sections">
-          {stageGroups.map(group => (
-            <StageActivitySection
-              key={group.stageId}
-              stageId={group.stageId}
-              status={statuses[group.stageId]}
-              responses={group.responses}
-              carePlans={group.carePlans}
-              observations={group.observations}
-              communications={group.communications}
-              workflowArtifacts={group.workflowArtifacts}
-            />
-          ))}
-          <OtherActivitySection
-            responses={unstaged.responses}
-            carePlans={unstaged.carePlans}
-            observations={unstaged.observations}
-            communications={unstaged.communications}
-            workflowArtifacts={unstaged.workflowArtifacts}
-          />
-        </div>
-      </section>
+      <OtherActivitySection
+        responses={unstaged.responses}
+        carePlans={unstaged.carePlans}
+        observations={unstaged.observations}
+        communications={unstaged.communications}
+        workflowArtifacts={unstaged.workflowArtifacts}
+      />
 
       <EncountersTimeline encounters={encounters} responses={responses} carePlans={carePlans} />
 
