@@ -1,7 +1,8 @@
 import { useCallback, useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
-function scrollToAnchor(anchor: string) {
+/** Exported for tests — the scroll arithmetic is the part worth pinning. */
+export function scrollToAnchor(anchor: string) {
   if (!anchor) return
   const el = document.getElementById(anchor)
   if (!el) return
