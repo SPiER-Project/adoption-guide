@@ -113,16 +113,41 @@
   }
 }
 
-/* Narrow: the hamburger appears and the short cluster no longer fits beside
-   the wordmark, so it takes its own row instead of overflowing horizontally. */
+/* Narrow: the hamburger appears and the cluster stops fitting beside the
+   wordmark at full size. It used to take its own row, which cost a second
+   header line on every phone. Instead the pills are made small enough to stay
+   on the one line.
+   The budget at 375px: 327px of content box, of which the toggle (44) and
+   wordmark (129) plus the row gap take 185, leaving 142 for three pills and
+   their gaps. At full size they need 221. Dropping the ↗ glyph and its gap
+   recovers ~23px each, and the tighter padding, smaller label and narrower
+   header inset cover the rest.
+   `flex-wrap` deliberately stays `wrap`. It is the fallback, not the layout:
+   below ~340px, or when the user scales text up, the cluster drops to its own
+   row again rather than overflowing off-screen — the failure mode the original
+   comment was guarding against. */
 @media (max-width: 639px) {
   .ehr-header-content {
     flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .ehr-header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .ehr-header-action {
+    padding: 0.25rem 0.45rem;
+    font-size: var(--font-size-sm);
+  }
+
+  .ehr-header-action-ext {
+    display: none;
   }
 
   .ehr-header-actions {
-    width: 100%;
-    margin-left: 0;
+    gap: 5px;
   }
 }
 
