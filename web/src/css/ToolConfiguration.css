@@ -122,6 +122,14 @@
   color: var(--text-strong);
 }
 
+.preset-card-count {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
 .preset-card-desc {
   font-size: var(--font-size-base);
   color: var(--text-muted);

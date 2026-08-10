@@ -8,6 +8,11 @@ export interface Preset {
   id: PresetId
   label: string
   description: string
+  /**
+   * Explicit tool ids, for presets that are a hand-picked floor. Presets that
+   * are *defined* by a catalog property leave this empty and are resolved in
+   * `presetToolIds` instead, so the catalog stays the single source of truth.
+   */
   toolIds: string[]
 }
 
@@ -23,18 +28,23 @@ export const PRESETS: Preset[] = [
   {
     id: 'common-mid-tier',
     label: 'Common Mid-Tier',
-    description: 'ASQ + PHQ-9 + C-SSRS Screener for flagging, plus Stanley-Brown for safety planning. Representative of a typical ambulatory EHR setup.',
-    toolIds: ['TL-001', 'TL-002', 'TL-003', 'TL-007'],
+    description: 'Every tool the catalog marks core — at least one at each of the eight pathway stages. Representative of a site that carries risk through to follow-up rather than only screening for it.',
+    toolIds: [], // derived from inclusionStatus — see presetToolIds()
   },
   {
     id: 'maximalist',
     label: 'Maximalist',
-    description: 'Every launchable tool enabled. A reference implementation with full pathway coverage end-to-end.',
-    toolIds: [], // populated lazily as "all launchable" below
+    description: 'Every launchable tool enabled, including the optional alternates. A reference implementation with full pathway coverage end-to-end.',
+    toolIds: [], // derived as "all launchable" — see presetToolIds()
   },
 ]
 
-const STORAGE_KEY = 'spier.toolConfig'
+// Bumped when the meaning of a preset changes, so a returning browser is not
+// left labelled "Common Mid-Tier" while holding the previous definition's tools.
+// Mid-tier went from four hand-listed ids to the catalog's 21 launchable core
+// tools.
+const STORAGE_KEY = 'spier.toolConfig.v2'
+const LEGACY_STORAGE_KEYS = ['spier.toolConfig']
 const DEFAULT_PRESET: PresetId = 'common-mid-tier'
 
 interface PersistedState {
@@ -46,11 +56,34 @@ function getAllLaunchableIds(): string[] {
   return launchableTools().map(t => t.id)
 }
 
+/**
+ * The tools a preset turns on.
+ *
+ * Only Minimum Viable is a hand-picked list; the other two are *derived from the
+ * catalog* so they cannot drift as tools are added. Mid-tier used to hand-list
+ * four ids (TL-001/002/003/007) and was never revisited as the catalog grew to
+ * 34 launchable tools — it ended up excluding 17 of the 21 launchable tools the
+ * catalog itself marks `core`, covering 2 of the 8 pathway stages while
+ * describing itself as a typical site. Deriving it from `inclusionStatus` removes the
+ * second source of truth; `check-catalog.mjs` enforces that it stays derived.
+ */
+// Preset resolution is co-located with PRESETS and the provider by design.
+// eslint-disable-next-line react-refresh/only-export-components
+export function presetToolIds(presetId: PresetId): string[] {
+  const launchable = launchableTools()
+  switch (presetId) {
+    case 'maximalist':
+      return launchable.map(t => t.id)
+    case 'common-mid-tier':
+      return launchable.filter(t => t.inclusionStatus === 'core').map(t => t.id)
+    default:
+      return PRESETS.find(p => p.id === presetId)!.toolIds
+  }
+}
+
 function presetEnabled(presetId: PresetId): Record<string, boolean> {
-  const preset = PRESETS.find(p => p.id === presetId)!
-  const ids = presetId === 'maximalist' ? getAllLaunchableIds() : preset.toolIds
-  const all = getAllLaunchableIds()
-  return Object.fromEntries(all.map(id => [id, ids.includes(id)]))
+  const ids = new Set(presetToolIds(presetId))
+  return Object.fromEntries(getAllLaunchableIds().map(id => [id, ids.has(id)]))
 }
 
 function loadInitial(): PersistedState {
@@ -58,6 +91,9 @@ function loadInitial(): PersistedState {
     return { enabledToolIds: presetEnabled(DEFAULT_PRESET), activePreset: DEFAULT_PRESET }
   }
   try {
+    // Drop superseded keys rather than leaving a stale toolset in every
+    // returning browser's storage.
+    for (const key of LEGACY_STORAGE_KEYS) window.localStorage.removeItem(key)
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as PersistedState

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, launchableTools } from '../data/catalog'
-import { PRESETS, useToolConfig } from '../context/ToolConfigContext'
+import { PRESETS, presetToolIds, useToolConfig, type PresetId } from '../context/ToolConfigContext'
 import { usePatient } from '../context/PatientContext'
 import '../css/ToolConfiguration.css'
 
@@ -16,7 +16,14 @@ export function ToolConfiguration() {
     () => launchable.filter(t => isToolEnabled(t.id)).length,
     [isToolEnabled, launchable],
   )
-  const disabledCount = launchableCount - enabledCount
+  const presetCounts = useMemo(
+    () =>
+      Object.fromEntries(PRESETS.map(p => [p.id, presetToolIds(p.id).length])) as Record<
+        PresetId,
+        number
+      >,
+    [],
+  )
 
   // Mirrors the sidebar: keep the loaded patient rather than dropping the
   // reader onto the blank chart.
@@ -56,15 +63,9 @@ export function ToolConfiguration() {
       <aside className="tool-config-effect">
         <p className="tool-config-effect__body">
           <strong>Changes here take effect in the Patient View.</strong> Recommendation cards only
-          offer launch actions for enabled tools, so a disabled tool disappears from the chart even
-          at a pathway stage that calls for it.{' '}
-          {disabledCount > 0 && (
-            <>
-              {disabledCount === 1
-                ? 'One buildable tool is currently off.'
-                : `${disabledCount} buildable tools are currently off.`}{' '}
-            </>
-          )}
+          offer launch actions for enabled tools, so this page decides what the chart can offer at
+          each pathway stage &mdash; a narrower profile models a site with less tooling in place, not
+          a gap to close.{' '}
           <Link to={patientBase} className="tool-config-effect__link">
             Open the Patient View &rarr;
           </Link>
@@ -85,6 +86,11 @@ export function ToolConfiguration() {
                 aria-pressed={isActive}
               >
                 <span className="preset-card-label">{preset.label}</span>
+                {/* Counted from the resolved preset rather than typed into the
+                    description, so the two can't disagree. */}
+                <span className="preset-card-count">
+                  {presetCounts[preset.id]} of {launchableCount} tools
+                </span>
                 <span className="preset-card-desc">{preset.description}</span>
               </button>
             )

@@ -37,6 +37,10 @@
  *      Without this a new tool silently ships with no licensing statement,
  *      and the catalog's `Tool.licensing` — derived from this extension since
  *      #127 — quietly becomes undefined
+ *   E. the Tool Configuration presets that are DEFINED by a catalog property
+ *      (Common Mid-Tier = every `core` tool; Maximalist = all launchable) have
+ *      not been re-frozen into hand-listed ids, and their derivations still
+ *      match what the UI tells adopters they mean
  *
  * Requires `npm run copy-fhir` to have run (reads web/src/data/fhir/).
  * Exits non-zero on drift so it can gate CI.
@@ -221,6 +225,75 @@ const licCounts = [...licensingCodes]
   .map(([code, n]) => `${n} ${code}`)
   .join(', ')
 console.log(`✓ licensing: ${activityDefs.length} ActivityDefinition(s) carry a status + copyright (${licCounts})`)
+
+// ---- E: tool-config presets stay derived from the catalog -------------------
+// Common Mid-Tier and Maximalist are DEFINED by catalog properties
+// (inclusionStatus === 'core', and "all launchable"), not by hand-listed ids.
+// They used to be hand-listed, and mid-tier was never revisited as the catalog
+// grew: it ended up naming four tools while excluding 17 of the 20 the catalog
+// marks core, covering 2 of 8 pathway stages, and still calling itself a
+// typical site. Nothing caught that, because nothing compared the two. This
+// asserts the derivation is still in force.
+const presetSrc = readFileSync(join(webRoot, 'src/context/ToolConfigContext.tsx'), 'utf8')
+const DERIVED_PRESETS = ['common-mid-tier', 'maximalist']
+
+for (const id of DERIVED_PRESETS) {
+  // The preset's own object literal, from its id up to the closing brace.
+  const block = presetSrc.match(new RegExp(`id:\\s*'${id}'[\\s\\S]*?\\n\\s*\\},`))?.[0]
+  if (!block) {
+    fail(`ToolConfigContext.tsx: preset "${id}" not found — has the PRESETS shape changed?`)
+    continue
+  }
+  const listed = [...block.matchAll(/'(TL-\d+)'/g)].map((m) => m[1])
+  if (listed.length > 0) {
+    fail(
+      `ToolConfigContext.tsx: preset "${id}" hand-lists ${listed.join(', ')} in toolIds. ` +
+        `It must stay derived from the catalog in presetToolIds() — a hand-listed copy is a second ` +
+        `source of truth and goes stale as tools are added (that is exactly how mid-tier came to ` +
+        `exclude 17 core tools).`,
+    )
+  }
+}
+
+// The derivations themselves must still be the ones the descriptions claim.
+if (!/case 'common-mid-tier':[\s\S]*?inclusionStatus === 'core'/.test(presetSrc)) {
+  fail(
+    `ToolConfigContext.tsx: presetToolIds() no longer derives "common-mid-tier" from ` +
+      `inclusionStatus === 'core'. Its preset description tells adopters it is every core tool; ` +
+      `update both together or the UI states a coverage claim the code does not implement.`,
+  )
+}
+
+// Hand-listed ids anywhere in PRESETS must be real tools, or the preset
+// silently enables nothing for that entry.
+const knownToolIds = new Set(adToTool.map((m) => m.toolId))
+const presetsBlock = presetSrc.match(/export const PRESETS[\s\S]*?\n\]/)?.[0] ?? ''
+for (const [, toolId] of presetsBlock.matchAll(/'(TL-\d+)'/g)) {
+  if (!knownToolIds.has(toolId)) {
+    fail(`ToolConfigContext.tsx: preset references "${toolId}", which is not a catalogued tool id`)
+  }
+}
+
+// Informational: a core tool with no launch action cannot be enabled at all, so
+// mid-tier silently omits it. Not a failure — that is the normal state for a
+// core tool that is catalogued but not yet built — but it should be visible.
+const coreIds = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)]
+  .filter((m) => /inclusionStatus:\s*'core'/.test(m[2]))
+  .map((m) => m[1])
+const launchableIds = new Set(
+  [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)]
+    .filter((m) => /launchActions:\s*\[\s*\{/.test(m[2]))
+    .map((m) => m[1]),
+)
+const coreNotLaunchable = coreIds.filter((id) => !launchableIds.has(id))
+console.log(
+  `✓ presets: "common-mid-tier" and "maximalist" stay derived from the catalog ` +
+    `(${coreIds.length} core tool(s)${
+      coreNotLaunchable.length
+        ? `, ${coreNotLaunchable.length} not yet launchable so omitted: ${coreNotLaunchable.join(', ')}`
+        : ''
+    })`,
+)
 
 if (failures) {
   console.error(`\ncatalog-integrity check FAILED (${failures} issue(s)).`)
