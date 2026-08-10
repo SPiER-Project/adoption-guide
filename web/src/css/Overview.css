@@ -1,0 +1,291 @@
+/* ===========================
+   Overview — the site's front page.
+   Lives inside the EHR shell at /overview (the old standalone portal at `/`
+   redirects here), so it brings no chrome of its own: .ehr-content-body
+   supplies the outer padding.
+   =========================== */
+.overview {
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/* ===========================
+   Hero
+   =========================== */
+/* The app bar already carries the SPiER wordmark and its subtitle, so the hero
+   leads with the tagline rather than repeating the brand at display size. */
+.overview__eyebrow {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-accent);
+}
+
+.overview__title {
+  margin: 0;
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--brand-primary);
+}
+
+.overview__accent-line {
+  height: 4px;
+  width: 100%;
+  max-width: 300px;
+  margin: var(--space-4) 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand-accent), var(--brand-accent-light));
+}
+
+.overview__lede {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+/* ===========================
+   Sections
+   =========================== */
+.overview__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.overview__section > p,
+.overview__section > li {
+  margin: 0;
+  font-size: var(--font-size-md);
+  line-height: 1.65;
+  color: var(--text-body);
+}
+
+.overview__h3 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--brand-primary);
+}
+
+.overview__note {
+  padding: var(--space-4);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+
+/* ===========================
+   Capture / Translate / Act — at a glance
+   =========================== */
+.overview__section--steps {
+  padding: var(--space-6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-2xl);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.overview__lead {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+.overview__steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .overview__steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.overview__step-card {
+  padding: var(--space-5);
+  border-left: 3px solid var(--brand-accent);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+
+.overview__step-index {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-accent);
+}
+
+.overview__step-name {
+  margin: 0 0 0.5rem;
+  font-size: var(--font-size-lg);
+  color: var(--brand-primary);
+}
+
+.overview__step-body {
+  margin: 0;
+  font-size: var(--font-size-md);
+  line-height: 1.55;
+  color: var(--text-body);
+}
+
+/* ===========================
+   The eight-stage pathway
+   =========================== */
+/* Rendered from the pathway-stage CodeSystem (see data/catalog/stages.ts), not
+   typed out, so the nav vocabulary cannot drift from the canonical FSH. */
+.overview__pathway {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid var(--brand-accent);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  list-style: none;
+  counter-reset: none;
+}
+
+@media (min-width: 640px) {
+  .overview__pathway {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.overview__pathway-stage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-md);
+  line-height: 1.4;
+  color: var(--text-body);
+}
+
+.overview__pathway-index {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.overview__pathway-title {
+  font-weight: 500;
+}
+
+/* ===========================
+   Vignette
+   =========================== */
+.overview__vignette {
+  padding: var(--space-5);
+  border-left: 3px solid var(--accent-info);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+
+.overview__vignette h4 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+  color: var(--brand-primary);
+}
+
+.overview__vignette p {
+  margin: 0;
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+/* ===========================
+   Where to go next
+   =========================== */
+.overview__lens-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 640px) {
+  .overview__lens-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.overview__lens-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6);
+  border: 1px solid var(--border-default);
+  border-top: 4px solid transparent;
+  border-radius: var(--radius-2xl);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.overview__lens-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.overview__lens-card--guide { border-top-color: var(--brand-cyan-strong); }
+.overview__lens-card--population { border-top-color: var(--text-faint); }
+.overview__lens-card--patient { border-top-color: var(--brand-accent); }
+.overview__lens-card--ig { border-top-color: var(--brand-primary); }
+
+.overview__lens-badge {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.overview__lens-card h4 {
+  margin: 0 0 0.5rem;
+  font-size: var(--font-size-xl);
+  line-height: 1.3;
+  color: var(--brand-primary);
+}
+
+.overview__lens-card p {
+  flex-grow: 1;
+  margin: 0 0 1rem;
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.overview__lens-cta {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--brand-accent);
+}
+
+.overview__lens-card--guide .overview__lens-cta { color: var(--brand-cyan-strong); }
+.overview__lens-card--population .overview__lens-cta { color: var(--text-muted); }
+.overview__lens-card--ig .overview__lens-cta { color: var(--brand-primary); }

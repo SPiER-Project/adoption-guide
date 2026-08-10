@@ -54,7 +54,8 @@ Compose a **size** (optional) with a **severity** modifier:
 
 The canonical button family lives in [`src/App.css`](src/App.css) (search
 `.btn-primary`). Do **not** redefine buttons in per-page CSS — earlier
-duplicates in `Home.css` were removed so the family has one home.
+duplicates in the since-deleted `Home.css` were removed so the family has one
+home.
 
 - `.btn-primary` — maroon-filled primary action.
 - `.btn-secondary` — bordered secondary action (icon + label).
