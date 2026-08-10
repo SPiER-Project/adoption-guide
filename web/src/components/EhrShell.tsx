@@ -77,6 +77,10 @@ export function EhrShell() {
                     drops; the aria-label carries the full name at every width. */}
                 <span className="ehr-header-action-full">{link.label}</span>
                 <span className="ehr-header-action-short">{link.short}</span>
+                {/* #258 classed this so the narrow breakpoint could drop it and
+                    reclaim ~23px per pill. The pills no longer render below
+                    640px — the overflow menu does — so nothing styles the class
+                    any more and the glyph now shows wherever a pill does. */}
                 <span aria-hidden>&#8599;</span>
               </a>
             ))}

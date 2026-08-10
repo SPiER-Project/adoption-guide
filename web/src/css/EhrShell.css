@@ -114,12 +114,28 @@
 }
 
 /* Narrow: even the short labels stop fitting beside the wordmark once the
-   hamburger appears. The pills used to take their own header row here, which
-   cost a second line on every phone; they now hand over to the overflow menu
-   instead (`.header-menu`, shown at this same breakpoint — the two rules are a
-   pair, so move them together). Measured at 375px, the remaining row is
-   48 padding + 44 toggle + 118 wordmark + 44 trigger + gaps = 278px. */
+   hamburger appears.
+   #258 solved that by shrinking the pills — tighter padding, smaller label,
+   no ↗ glyph — so all three stayed on one row. They now hand over to the
+   overflow menu instead (`.header-menu`, shown at this same breakpoint: the
+   two rules are a pair, so move them together), which leaves those shrink
+   rules with nothing to act on, and they are gone with the pills.
+   What survives from #258 is about the bar rather than the pills: the
+   narrower phone inset, and `flex-wrap` as a guard rather than a layout.
+   Measured at 375px the row is 32 padding + 44 toggle + 118 wordmark +
+   44 trigger + gaps = 262px, so wrapping should never trigger — it stays for
+   the case it was really guarding, a user scaling text well up. */
 @media (max-width: 639px) {
+  .ehr-header-content {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .ehr-header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
   .ehr-header-actions {
     display: none;
   }
