@@ -1,45 +1,33 @@
-import React, { createContext, useContext, useMemo, useCallback, useEffect, useRef, useState } from 'react'
+import React, { useMemo, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { formatPatientDisplay } from '../data/demoPatient'
-import type { PatientDisplay } from '../data/demoPatient'
 import { useSmart } from './SmartContext'
-import type { RiskAlert } from '../lib/observationMappers'
+import {
+  PatientContext,
+  type PatientContextType,
+  type PopulationPatient,
+} from './PatientContext'
 import { makeId } from '../lib/id'
 import { deriveFromResponse } from '../lib/deriveFromResponse'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import { SmartDataSource } from '../lib/dataSource/smartDataSource'
 import type { FhirDataSource } from '../lib/dataSource/types'
-import type { RegistryPatient } from '../lib/registry'
 import { publishPatientOpen, shouldPublishOnActivation } from '../lib/fhircast'
 import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
-  AppointmentResource,
   CarePlanResource,
-  CommunicationResource,
-  ConsentResource,
-  DocumentReferenceResource,
-  EpisodeOfCareResource,
-  FlagResource,
-  ServiceRequestResource,
-  TaskResource,
   FhirResource,
-  ObservationResource,
   PatientResource,
-  ProcedureResource,
   PatientSlice,
   QuestionnaireResponseResource,
   ScenarioEncounter,
   StoredResponse,
 } from '../types/fhir'
 
-/**
- * A population patient's static demographics + curated next-step rationale.
- * Live pathway/risk/activity state is derived from FHIR data (see
- * `lib/registry.ts`) rather than read off this record.
- */
-export type PopulationPatient = RegistryPatient
+// PopulationPatient, PatientContextType, the context object and usePatient all
+// live in PatientContext.ts so this module stays component-only.
 
 const POPULATION_PATIENTS = populationPatientsData as PopulationPatient[]
 const POPULATION_BY_ID = new Map(POPULATION_PATIENTS.map(p => [p.id, p]))
@@ -114,59 +102,6 @@ function isAllowedPatientId(id: string): boolean {
   return POPULATION_BY_ID.has(id)
 }
 
-interface PatientContextType {
-  patient: PatientResource
-  patientDisplay: PatientDisplay
-  isSmartConnected: boolean
-  /** Null when no patient is selected (blank "play with forms" state). */
-  activePatientId: string | null
-  populationPatient: PopulationPatient | null
-  /** The full population registry, for patient-switcher UIs. */
-  populationPatients: PopulationPatient[]
-  /**
-   * Read-only scenario walkthrough timeline for the active patient. Sourced
-   * directly from the static scenario (not the mutable store) so submitted
-   * assessments never alter it. Empty for blank/SMART patients or scenarios
-   * without an authored timeline.
-   */
-  encounters: ScenarioEncounter[]
-  carePlans: CarePlanResource[]
-  addCarePlan: (carePlan: CarePlanResource) => void
-  responses: StoredResponse[]
-  addResponse: (name: string, resource: QuestionnaireResponseResource) => void
-  observations: ObservationResource[]
-  communications: CommunicationResource[]
-  /** Stage-7 (Track Risk Over Time) artifacts — see lib/riskEpisode.ts helpers. */
-  episodes: EpisodeOfCareResource[]
-  flags: FlagResource[]
-  tasks: TaskResource[]
-  /** Stage-5 (Coordinate Handoffs) artifacts — see lib/handoffs.ts helpers. */
-  documentReferences: DocumentReferenceResource[]
-  serviceRequests: ServiceRequestResource[]
-  appointments: AppointmentResource[]
-  consents: ConsentResource[]
-  /** Stage-4 lethal-means counseling Procedures — read by the Stage-8 measure. */
-  procedures: ProcedureResource[]
-  riskAlerts: RiskAlert[]
-  /**
-   * Append a non-Questionnaire workflow artifact, routing it into the right
-   * slice array by `resourceType`. Stamps `_savedAt`. (QuestionnaireResponses
-   * go through `addResponse`, which also derives Observations.)
-   */
-  addArtifact: (resource: FhirResource) => void
-  /**
-   * True while an async data source (SMART) is fetching the chart slice.
-   * Always false for the synchronous local source.
-   */
-  isSliceLoading: boolean
-  /**
-   * Read or write failure from the data source — SMART server errors surface
-   * here instead of silently falling back to local storage. Null when healthy.
-   */
-  dataSourceError: string | null
-}
-
-const PatientContext = createContext<PatientContextType | undefined>(undefined)
 
 // Build a FHIR-ish Patient resource that represents the blank state, so
 // downstream code (formatPatientDisplay) still gets a defined shape.
@@ -462,14 +397,4 @@ export function PatientProvider({
   )
 
   return <PatientContext.Provider value={value}>{children}</PatientContext.Provider>
-}
-
-// Hook co-located with its provider by design (idiomatic context module).
-// eslint-disable-next-line react-refresh/only-export-components
-export function usePatient() {
-  const context = useContext(PatientContext)
-  if (context === undefined) {
-    throw new Error('usePatient must be used within a PatientProvider')
-  }
-  return context
 }

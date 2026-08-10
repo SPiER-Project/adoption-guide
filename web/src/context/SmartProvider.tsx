@@ -1,17 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import FHIR from 'fhirclient'
 import type Client from 'fhirclient/lib/Client'
 import { readSmartPatientSummary, type SmartPatientSummary } from '../lib/smartPatient'
+import { SmartContext } from './SmartContext'
 
-interface SmartContextType {
-    client: Client | null;
-    patient: SmartPatientSummary | null;
-    error: Error | null;
-    setSmartData: (client: Client, patient: SmartPatientSummary) => void;
-    setError: (error: Error) => void;
-}
-
-const SmartContext = createContext<SmartContextType | undefined>(undefined)
+// Provider only, so this module is component-only and Fast Refresh works. The
+// context object and the useSmart hook live in SmartContext.ts.
 
 export function SmartProvider({ children }: { children: React.ReactNode }) {
     const [client, setClient] = useState<Client | null>(null)
@@ -61,14 +55,4 @@ export function SmartProvider({ children }: { children: React.ReactNode }) {
             {children}
         </SmartContext.Provider>
     )
-}
-
-// Hook co-located with its provider by design (idiomatic context module).
-// eslint-disable-next-line react-refresh/only-export-components
-export function useSmart() {
-    const context = useContext(SmartContext)
-    if (context === undefined) {
-        throw new Error('useSmart must be used within a SmartProvider')
-    }
-    return context
 }

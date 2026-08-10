@@ -29,9 +29,12 @@ import { generateStabilizationCarePlan } from './lib/carePlanMappers'
 import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
 import { generateCrisisResponseCarePlan } from './lib/carePlanMappers'
 
-// Context Providers
-import { SmartProvider } from './context/SmartContext'
-import { PatientProvider } from './context/PatientContext'
+// Context Providers. Patient and Smart are each split in two — the provider
+// component in *Provider.tsx, its context object and hook in *Context.ts — so
+// the provider module stays component-only and Fast Refresh preserves state on
+// edit. ToolConfig still pairs the two; it is split the same way in #251.
+import { SmartProvider } from './context/SmartProvider'
+import { PatientProvider } from './context/PatientProvider'
 import { ToolConfigProvider } from './context/ToolConfigContext'
 
 // SMART on FHIR
