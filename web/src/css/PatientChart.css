@@ -102,7 +102,7 @@
    =========================== */
 .pathway {
   margin-bottom: var(--space-8);
-  scroll-margin-top: var(--space-4);
+  scroll-margin-top: var(--anchor-scroll-offset);
 }
 
 .pathway-header {
@@ -182,7 +182,7 @@
   grid-template-columns: 1.75rem 1fr;
   gap: var(--space-3);
   padding-bottom: var(--space-3);
-  scroll-margin-top: var(--space-4);
+  scroll-margin-top: var(--anchor-scroll-offset);
 }
 
 /* The spine runs from just under this node's marker to the next node's. */
@@ -280,7 +280,7 @@
   left: 0;
   width: 0;
   height: 0;
-  scroll-margin-top: var(--space-4);
+  scroll-margin-top: var(--anchor-scroll-offset);
 }
 
 .pathway-node-heading {
@@ -474,7 +474,7 @@
 
 /* Unstaged bucket — off the rail, so it gets no marker or spine. */
 .pathway-other {
-  scroll-margin-top: var(--space-4);
+  scroll-margin-top: var(--anchor-scroll-offset);
   background: var(--surface-muted);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
@@ -615,7 +615,7 @@
    =========================== */
 .encounters-timeline-section {
   margin-bottom: var(--space-8);
-  scroll-margin-top: var(--space-4);
+  scroll-margin-top: var(--anchor-scroll-offset);
 }
 
 .encounters-note {
@@ -793,7 +793,7 @@
    =========================== */
 .documents-section {
   margin-bottom: var(--space-8);
-  scroll-margin-top: var(--space-4);
+  scroll-margin-top: var(--anchor-scroll-offset);
 }
 
 .documents-note {

@@ -135,9 +135,28 @@
 /* ===========================
    Content Area
    =========================== */
+/* Deliberately NOT a scroll container.
+ *
+ * This used to carry `overflow-y: auto`, which never scrolled: `.ehr-shell` is
+ * `min-height: 100vh`, so the grid grows with its content and the *document*
+ * scrolls instead. The overflow was inert in its own right — but any overflow
+ * value other than `visible` makes an element the sticky scrollport for its
+ * descendants, and that scrollport never moved. So `.patient-banner`'s
+ * `position: sticky; top: 0` silently did nothing and the identifiers it exists
+ * to keep in view scrolled away with the page. (`.sidebar` uses the same
+ * declaration and has always worked, because it sits outside this element and
+ * resolves against the viewport.)
+ *
+ * Removing it hands the banner the viewport as its scrollport. Nothing is lost:
+ * measured at 1400px and at mobile width, on the population page (the widest
+ * content) and the patient chart, this element scrolls on neither axis, and
+ * document scrollWidth is identical with and without the declaration.
+ *
+ * `min-width: 0` stays — that is what lets the grid column shrink below its
+ * content's intrinsic width, and it is doing real work.
+ */
 .ehr-content {
   grid-area: content;
-  overflow-y: auto;
   min-width: 0;
   display: flex;
   flex-direction: column;

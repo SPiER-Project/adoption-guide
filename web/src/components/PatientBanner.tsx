@@ -1,6 +1,42 @@
+import { useLayoutEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import '../css/PatientBanner.css'
+
+/**
+ * Publishes the banner's live height as `--patient-banner-height`, which
+ * `--anchor-scroll-offset` folds into every anchor target's
+ * `scroll-margin-top`. Without it a scrolled-to section lands underneath the
+ * sticky banner.
+ *
+ * Measured rather than hard-coded because the banner wraps to two lines on
+ * narrow screens. Held in state rather than a ref so the effect re-runs when
+ * the node itself changes — the unassigned and assigned states render
+ * different root elements.
+ */
+function useBannerHeightVar() {
+  const [bannerEl, setBannerEl] = useState<HTMLDivElement | null>(null)
+
+  useLayoutEffect(() => {
+    if (!bannerEl) return
+    const publish = () =>
+      document.documentElement.style.setProperty(
+        '--patient-banner-height',
+        `${Math.round(bannerEl.getBoundingClientRect().height)}px`,
+      )
+    publish()
+    const observer = new ResizeObserver(publish)
+    observer.observe(bannerEl)
+    return () => {
+      observer.disconnect()
+      // The banner renders only on patient routes; elsewhere the offset must
+      // fall back to 0 rather than to a stale height.
+      document.documentElement.style.removeProperty('--patient-banner-height')
+    }
+  }, [bannerEl])
+
+  return setBannerEl
+}
 
 type RiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
 
@@ -31,11 +67,12 @@ export function PatientBanner() {
     populationPatients,
   } = usePatient()
   const navigate = useNavigate()
+  const bannerRef = useBannerHeightVar()
 
   // Unassigned (blank) state — no patient selected.
   if (activePatientId === null && !isSmartConnected) {
     return (
-      <div className="patient-banner patient-banner--unassigned">
+      <div ref={bannerRef} className="patient-banner patient-banner--unassigned">
         <div className="patient-banner-content">
           <span className="patient-banner-name patient-banner-name--unassigned">
             No patient selected
@@ -55,7 +92,7 @@ export function PatientBanner() {
   const risk = highestRiskLevel(riskAlerts.map(a => a.level))
 
   return (
-    <div className="patient-banner">
+    <div ref={bannerRef} className="patient-banner">
       <div className="patient-banner-content">
         <span className="patient-banner-name">{patientDisplay.fullName}</span>
         <span className="patient-banner-divider">|</span>

@@ -118,6 +118,13 @@
   --space-7: 1.75rem;
   --space-8: 2rem;
 
+  /* Breathing room above an element scrolled to via an in-page anchor. Folds in
+     the sticky patient banner, whose live height PatientBanner publishes as
+     --patient-banner-height (0 on routes without a banner). Anchor scrolling is
+     done by hand in useScrollToHash, which reads the computed scroll-margin-top
+     and subtracts it. */
+  --anchor-scroll-offset: calc(var(--patient-banner-height, 0px) + var(--space-4));
+
   /* ── Radius scale ───────────────────────────────────────── */
   --radius-xs:  3px;
   --radius-sm:  4px;
