@@ -94,6 +94,38 @@
   display: none;
 }
 
+/* Measured at 1400px: logo 118 + subtitle 257 + the three full-label pills 458,
+   plus padding and gaps, needs ~903px of header. Below that the subtitle wraps
+   to two lines and the header grows — so drop the subtitle and shorten the
+   labels together at one breakpoint, rather than degrading in two stages. The
+   wordmark still carries the brand, and /overview states the full name. */
+@media (max-width: 1023px) {
+  .ehr-brand-subtitle {
+    display: none;
+  }
+
+  .ehr-header-action-full {
+    display: none;
+  }
+
+  .ehr-header-action-short {
+    display: inline;
+  }
+}
+
+/* Narrow: the hamburger appears and the short cluster no longer fits beside
+   the wordmark, so it takes its own row instead of overflowing horizontally. */
+@media (max-width: 639px) {
+  .ehr-header-content {
+    flex-wrap: wrap;
+  }
+
+  .ehr-header-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
 /* ===========================
    Mobile Sidebar Toggle
    =========================== */
@@ -207,16 +239,6 @@
 
   .ehr-sidebar-toggle {
     display: block;
-  }
-
-  /* The brand subtitle already wraps at this width, so the action label drops
-     to "IG". The anchor's aria-label carries the full name at every width. */
-  .ehr-header-action-full {
-    display: none;
-  }
-
-  .ehr-header-action-short {
-    display: inline;
   }
 
   .ehr-content-body {

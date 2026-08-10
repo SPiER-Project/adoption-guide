@@ -7,15 +7,21 @@
 // route paths under /guide.
 
 export interface GuideSection {
-  /** Route segment under /guide, e.g. 'overview' → /guide/overview. */
+  /** Route segment under /guide, e.g. 'pathway' → /guide/pathway. */
   path: string
   /** Label shown in the sidebar, the page title, and the pager. */
   label: string
 }
 
-/** Reading order of the guide, top to bottom. */
+/**
+ * Reading order of the guide, top to bottom.
+ *
+ * 'overview' is deliberately absent: it merged with the old standalone front
+ * door and moved up to the top-level /overview lens, so it is no longer a
+ * section of the guide. /guide and /guide/overview both still resolve — see
+ * the routes in App.tsx.
+ */
 export const GUIDE_SECTIONS: GuideSection[] = [
-  { path: 'overview', label: 'Overview' },
   { path: 'pathway', label: 'Pathway' },
   { path: 'tool-configuration', label: 'Tool Configuration' },
   { path: 'data-dictionary', label: 'Data Dictionary' },

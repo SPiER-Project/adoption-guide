@@ -6,7 +6,7 @@ export function AdoptionGuide() {
   const location = useLocation()
 
   // The active section is the last path segment under /guide. The index route
-  // redirects /guide → /guide/overview, so a bare /guide falls back to the
+  // redirects /guide → /guide/pathway, so a bare /guide falls back to the
   // first section rather than rendering a titleless header.
   const segment = location.pathname.replace(/^\/guide\/?/, '').split('/')[0]
   const activeIndex = Math.max(

@@ -47,9 +47,8 @@ import { FhircastListener } from './components/FhircastListener'
 
 // Route pages and views are code-split (React.lazy) so each lens loads on
 // demand. Named exports are adapted to lazy()'s default-export contract.
-const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })))
+const Overview = lazy(() => import('./pages/Overview').then(m => ({ default: m.Overview })))
 const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide })))
-const IgOverview = lazy(() => import('./pages/IgOverview').then(m => ({ default: m.IgOverview })))
 const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney })))
 const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
@@ -109,15 +108,22 @@ function AppRoutes() {
       <Route path="/launch" element={<SmartLaunch />} />
       <Route path="/redirect" element={<SmartRedirect />} />
 
-      {/* Front door — a standalone portal above the apps, outside the EHR shell */}
-      <Route path="/" element={<Home />} />
+      {/* The front door used to be a standalone portal outside the shell, with
+          its own header, footer and nav. It said the same thing the guide's
+          Overview said, from a second chrome the rest of the app never showed —
+          two front doors a visitor had to choose between. The two pages are now
+          one, inside the shell, and `/` lands on it. */}
+      <Route path="/" element={<Navigate to="/overview" replace />} />
 
       {/* EHR Shell wraps the demo lenses */}
       <Route element={<EhrShell />}>
+        {/* Overview — the front door, a top-level lens rather than a guide
+            section (the sidebar lists it above the Adoption Guide). */}
+        <Route path="/overview" element={<Overview />} />
+
         {/* Adoption Guide lens */}
         <Route path="/guide" element={<AdoptionGuide />}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<IgOverview />} />
+          <Route index element={<Navigate to="pathway" replace />} />
           <Route path="pathway" element={<PatientJourney />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
@@ -234,6 +240,13 @@ function AppRoutes() {
         <Route path="/chart/ehr-rubric" element={<Navigate to="/guide/adoption-rubric" replace />} />
         <Route path="/chart/data-dictionary" element={<Navigate to="/guide/data-dictionary" replace />} />
         <Route path="/chart/tools" element={<Navigate to="/guide/pathway" replace />} />
+
+        {/* The guide's Overview merged with the old standalone front door and
+            moved up to /overview. Declared here rather than as a child of
+            /guide so the redirect doesn't first paint the guide's header and
+            pager. LegacyGuideRedirect funnels /adoption-guide/overview and
+            /implementation-guide/overview through this same hop. */}
+        <Route path="/guide/overview" element={<Navigate to="/overview" replace />} />
 
         {/* Legacy guide routes → /guide/* (lens renamed from /implementation-guide, then /adoption-guide) */}
         <Route path="/implementation-guide" element={<LegacyGuideRedirect />} />
