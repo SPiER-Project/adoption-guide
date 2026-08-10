@@ -82,10 +82,13 @@ function buildLenses(patientBase: string): Lens[] {
       // Anchor children carry the active patient id so a deep-linked section
       // URL stays shareable mid-session (e.g. /patient/chart/patient-001#activity).
       children: [
-        { to: `${patientBase}#recommendations`, label: 'Recommendations', anchor: 'recommendations' },
-        { to: `${patientBase}#activity`,        label: 'Activity',        anchor: 'activity' },
-        { to: `${patientBase}#encounters`,      label: 'Encounters',      anchor: 'encounters' },
-        { to: `${patientBase}#documents`,       label: 'Documents',       anchor: 'documents' },
+        // #activity and #recommendations are load-bearing ids (eleven "View in
+        // chart" links target #activity), so the labels move with the merged
+        // pathway section but the anchors themselves stay put.
+        { to: `${patientBase}#activity`,        label: 'Pathway',      anchor: 'activity' },
+        { to: `${patientBase}#recommendations`, label: 'Next actions', anchor: 'recommendations' },
+        { to: `${patientBase}#encounters`,      label: 'Encounters',   anchor: 'encounters' },
+        { to: `${patientBase}#documents`,       label: 'Documents',    anchor: 'documents' },
       ],
     },
   ]
