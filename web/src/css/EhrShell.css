@@ -129,12 +129,23 @@
 /* ===========================
    Mobile Sidebar Toggle
    =========================== */
+/* 44x44 hit area. The bar inside is 20x2px, and `padding: var(--space-2)`
+   around it produced a 36x18 target — under the 24x24 minimum in WCAG 2.5.8 on
+   the short axis, for the only control that opens navigation on mobile.
+   Sized explicitly rather than by padding, so the bar's own dimensions can
+   change without silently resizing the target; the flex centering is what
+   keeps the bar in the middle of the larger box. `display` stays `none` here
+   and becomes `inline-flex` in the mobile media query below. */
 .ehr-sidebar-toggle {
   display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
   background: none;
   border: none;
   cursor: pointer;
-  padding: var(--space-2);
 }
 
 .ehr-hamburger {
@@ -237,8 +248,9 @@
       "footer";
   }
 
+  /* inline-flex, not block — the base rule centers the bar with flexbox. */
   .ehr-sidebar-toggle {
-    display: block;
+    display: inline-flex;
   }
 
   .ehr-content-body {
