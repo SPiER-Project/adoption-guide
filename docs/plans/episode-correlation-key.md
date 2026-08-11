@@ -1,11 +1,20 @@
 # EpisodeOfCare as the correlation key for all eight stages
 
-Design proposal for issue #263. **Nothing here is implemented.** The issue itself
-says the ordering question "is the real design work here and should be settled
-before any FSH is written", so this document settles it — and corrects the issue's
-proposal table, which does not survive contact with R4.
+Design proposal for issue #263. The issue itself says the ordering question "is
+the real design work here and should be settled before any FSH is written", so
+this document settles it — and corrects the issue's proposal table, which does not
+survive contact with R4.
 
-Decision needed from a human on two points, both marked **DECISION** below.
+## Status
+
+| Decision | State |
+|---|---|
+| **2 — mechanism** | **ACCEPTED 2026-08-11: Option B, the Encounter path.** |
+| **1 — ordering** | **Still open.** Not required for phase 1; needed before phase 3. |
+
+Phase 1 (an `Encounter` profile plus scenario fixtures, no runtime change) is
+unblocked. Phases 3–4 are not: they depend on Decision 1, and the recommendation
+in §5 has not been ratified.
 
 ---
 
@@ -204,7 +213,12 @@ Consequences, stated plainly:
   membership* is new. The CarePlan id regex can be deleted once membership is
   explicit, which is the win the issue actually wants.
 
-## 6. **DECISION 2** — which option
+## 6. **DECISION 2** — which option — **ACCEPTED: Option B**
+
+**Accepted 2026-08-11: Option B, the Encounter path.** Option A is rejected rather
+than deferred; Option C is rejected outright.
+
+Original recommendation, kept for the record:
 
 **Recommendation: Option B, phased**, with Option A explicitly rejected rather
 than deferred.
@@ -225,6 +239,26 @@ one-PR job.
    `ScenarioEncounter` step in the six episode-bearing scenarios;
    `Encounter.episodeOfCare` set. No runtime change. Gated by
    `check:scenarios` + `validate-fhir.mjs`.
+
+   **Naming collision to settle first.** The scenario JSON already has an
+   `encounters` key, and it is registered as a **non-FHIR** bucket in three
+   places: `PatientSlice` in `web/src/types/fhir.ts`, `NON_FHIR_BUCKETS` in
+   `web/scripts/check-scenario-resources.mjs` (commented "ScenarioEncounter
+   narration, NOT a FHIR Encounter"), and the bucket map in
+   `scripts/validate-fhir.mjs`. Two ways out:
+
+   - **Rename the narration bucket** (e.g. `encounters` → `walkthrough`) and give
+     real FHIR Encounters the `encounters` name. Correct — a bucket called
+     `encounters` that is not `Encounter` is the sort of misleading naming this
+     epic keeps deleting — but it touches all 11 scenario files plus the UI that
+     renders the walkthrough.
+   - **Name the new bucket `fhirEncounters`** and leave narration alone. A much
+     smaller diff, at the cost of keeping the misleading name and adding an
+     awkward one beside it.
+
+   Both gates fail loudly on an unknown bucket (`check-scenario-resources.mjs:692`
+   lists the known set), so whichever is chosen, forgetting a registry is caught
+   rather than silently skipped.
 2. **Stamp `.encounter` on the artifacts** in those fixtures. Measurable, with an
    honest target: of the 61 scenario resources, 6 are the `EpisodeOfCare`s
    themselves and 6 are `Appointment` (5) + `Consent` (1) awaiting the separate
