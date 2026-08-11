@@ -15,11 +15,32 @@ two forms from **one file**: a web page to link, and a PDF to attach.
 
 Published by both hosts:
 
-- `https://spier-adoption-guide.bbthorson.workers.dev/SPiER-Overview-Care-Pathway.html`
-- `<GitHub Pages host>/adoption-guide/SPiER-Overview-Care-Pathway.html`
+| Host | Page |
+|---|---|
+| Cloudflare (primary) | `https://spier-adoption-guide.bbthorson.workers.dev/SPiER-Overview-Care-Pathway` |
+| GitHub Pages | `https://spier-project.github.io/adoption-guide/SPiER-Overview-Care-Pathway` |
 
-…and the same paths with `.pdf`. The page carries a "Download PDF" link, so a
-recipient of either form can get to the other.
+The PDF sits at the same path with `.pdf` on the end; only `.html` gets rewritten,
+so that extension always stays.
+
+**Share the page without the `.html`.** Both forms resolve on both hosts, but
+Cloudflare Workers static assets defaults to `html_handling:
+auto-trailing-slash`, which 307-redirects `/SPiER-Overview-Care-Pathway.html` to
+the extensionless path; GitHub Pages serves either directly with no redirect. So
+the extensionless URL is the one that behaves identically everywhere and costs no
+extra round trip. Measured on both hosts, 2026-08-11.
+
+The page carries a "Download PDF" link, so a recipient of either form can reach
+the other.
+
+⚠️ **A `200` from these paths does not prove a deploy landed.** `wrangler.jsonc`
+sets `not_found_handling: "single-page-application"`, so any path the Worker
+cannot resolve returns the SPA's `index.html` with a `200` — about 820 bytes.
+While the responsive page was mid-deploy, requesting it returned exactly that:
+a success status carrying the wrong document. Check a marker string in the body
+(or the PDF's byte length) rather than the status code, and follow redirects —
+a bare `curl` without `-L` reports `0` bytes for the page and looks like a
+failure when nothing is wrong.
 
 ### Editing it
 
