@@ -1,4 +1,5 @@
 import { STAGES, TOOLS, toolForQuestionnaireUrl, type Tool } from '../data/catalog'
+import type { CarePlanProfileUrl } from '../data/catalog/care-plan-profiles.generated'
 
 export type StageStatus = 'not-started' | 'active' | 'complete'
 
@@ -28,15 +29,35 @@ export function stageForResponse(qr: QuestionnaireResponseLike | undefined): str
 export const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
 
 /**
- * Legacy fallback: tool-emitted CarePlans whose stage is implicit in the id
- * convention (predate the category.coding tagging mechanism).
+ * Which pathway stage each CarePlan profile belongs to (#263 phase 5).
+ *
+ * This replaces an id-substring regex (`/stanley-brown/i` and three siblings) that
+ * resolved stage by pattern-matching `CarePlan.id`. Keying on the profile
+ * canonical instead is better in three ways: an id is a local convention while a
+ * profile is a declared claim, the value is already present on every CarePlan the
+ * app emits, and — because the key type is the GENERATED union from
+ * `care-plan-profiles.generated.ts` — adding a CarePlan profile in FSH fails the
+ * typecheck until someone assigns it a stage. The regex silently returned
+ * `undefined` for anything it had not been taught.
+ *
+ * ⚠️ This mapping lives only here. No FHIR artifact records it: the IG's four
+ * CarePlan examples carry no pathway-stage tag, and neither does the runtime
+ * builder in `lib/carePlanMappers/shared.ts`. Stamping it onto the resources
+ * would be the more FHIR-native answer, but the Stanley-Brown CarePlan is
+ * compared byte-for-byte against a golden file shared with its FML map
+ * (`scripts/fixtures/stanley-brown/careplan-expected.json`), and the parity
+ * normalizer does not exclude `meta` — so adding a tag there is a change to the
+ * declared transformation, not a display detail. Worth doing deliberately, not as
+ * a side effect of deleting a regex.
  */
-const CAREPLAN_ID_PATTERNS: { pattern: RegExp; stageId: string }[] = [
-  { pattern: /stanley-brown/i, stageId: 'document-safety-actions' },
-  { pattern: /cams-stabilization/i, stageId: 'document-safety-actions' },
-  { pattern: /crisis-response-plan/i, stageId: 'document-safety-actions' },
-  { pattern: /cams-therapeutic/i, stageId: 'define-risk-picture' },
-]
+const CAREPLAN_PROFILE_STAGES: Record<CarePlanProfileUrl, string> = {
+  'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan':
+    'document-safety-actions',
+  'http://spier.org/StructureDefinition/spier-cams-stabilization-plan':
+    'document-safety-actions',
+  'http://spier.org/StructureDefinition/spier-crisis-response-plan': 'document-safety-actions',
+  'http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet': 'define-risk-picture',
+}
 
 const STAGE_IDS = new Set(STAGES.map((s) => s.id))
 
@@ -45,7 +66,7 @@ export interface FhirResourceLike {
   resourceType?: string
   id?: string
   questionnaire?: string
-  meta?: { tag?: { system?: string; code?: string }[] }
+  meta?: { tag?: { system?: string; code?: string }[]; profile?: string[] }
   category?: { coding?: { system?: string; code?: string }[] }[]
   [k: string]: unknown
 }
@@ -72,8 +93,9 @@ function stageFromCodings(
  *  2. `category.coding` against the same CodeSystem — the CarePlan mechanism
  *     introduced by PR #48 (placeholder CarePlans for stages 4-7).
  *  3. QuestionnaireResponse → its source Questionnaire's tool → stageId.
- *  4. Legacy CarePlan id-regex fallback (Stanley-Brown / CAMS Stabilization /
- *     CAMS Therapeutic) for tool-emitted plans without an explicit stage tag.
+ *  4. `meta.profile` against CAREPLAN_PROFILE_STAGES — tool-emitted CarePlans
+ *     carry their profile canonical but no stage tag. Replaced the id-substring
+ *     regex in #263 phase 5.
  */
 export function stageForArtifact(resource: FhirResourceLike | undefined): string | undefined {
   if (!resource) return undefined
@@ -91,9 +113,9 @@ export function stageForArtifact(resource: FhirResourceLike | undefined): string
     if (fromQr) return fromQr
   }
 
-  if (resource.id) {
-    const match = CAREPLAN_ID_PATTERNS.find((p) => p.pattern.test(resource.id!))
-    if (match) return match.stageId
+  for (const profile of resource.meta?.profile ?? []) {
+    const stage = CAREPLAN_PROFILE_STAGES[profile as CarePlanProfileUrl]
+    if (stage) return stage
   }
 
   return undefined

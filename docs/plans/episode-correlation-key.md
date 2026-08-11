@@ -18,7 +18,8 @@ survive contact with R4.
 | 2 — stamp `.encounter` on artifacts | **Done.** 50 direct + 5 reverse + 1 exempt = 56, gated. |
 | 3 — episode → trigger reference | **Done.** `episode-trigger` extension + the IG's first FHIRPath invariant. |
 | 4 — runtime (recorder stamps encounter, episode opens on positive screen) | **Done.** lib/encounters.ts + the three write funnels; episode auto-opens with its trigger. |
-| 5 — retire the heuristics | Next. The CarePlan id regex and `relatedResponseNames` string matching can now go. |
+| 5a — retire the CarePlan id regex | **Done.** Replaced by a profile → stage map keyed on the generated `CarePlanProfileUrl` union. |
+| 5b — retire the walkthrough string matching | **Not started.** `relatedResponseNames` / `relatedCarePlanIdSubstrings` still match by name and id substring. |
 | 6 — document the retrieval path in the IG | Not started. |
 
 Two facts found while implementing phase 1 change what is written below, and are
@@ -298,6 +299,32 @@ one-PR job.
    `relatedCarePlanIdSubstrings` to real references.
 6. **Document the real retrieval path** in the IG, with the two-query shape and no
    `_revinclude=*` promise.
+
+### Phase 5 turned out to be two jobs, not one
+
+Retiring the id regex was **not** the pure deletion this plan assumed. Two things
+surfaced:
+
+  * **No FHIR artifact records which stage a CarePlan belongs to.** The IG's four
+    CarePlan examples carry no pathway-stage tag, and neither does the runtime
+    builder. The regex was the only place that knowledge lived, so it had to be
+    *replaced*, not removed. It now keys on `meta.profile` against the generated
+    `CarePlanProfileUrl` union — which at least fails the typecheck when a new
+    CarePlan profile appears without a stage.
+  * **Stamping the stage onto the resources would be the more FHIR-native fix, and
+    is blocked on a real decision.** The Stanley-Brown CarePlan is compared
+    byte-for-byte against a golden file shared with its FML map, and the parity
+    normalizer does not exclude `meta` — so adding a tag there changes the
+    *declared transformation*, which needs the FML side changed with it. Worth
+    doing deliberately; not as a side effect.
+
+`p007-stanley-brown` is the case that proved the point: a stub CarePlan with no
+`activity`, no profile and no stage tag, which the regex had been staging purely
+because its id contained "stanley-brown". Adding the profile it appeared to claim
+failed the gate immediately (`CarePlan.activity is required by
+…spier-stanley-brown-safety-plan but is absent`). It now carries an explicit stage
+category instead. **The fixture is still a stub** — worth filling in or renaming,
+separately.
 
 Phases 1–3 are FSH and fixtures and can land independently. Phase 4 is where the
 demo's behaviour changes and deserves its own review.
