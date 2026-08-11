@@ -8,6 +8,7 @@ import type {
   CommunicationResource,
   ConsentResource,
   DocumentReferenceResource,
+  EncounterResource,
   EpisodeOfCareResource,
   FlagResource,
   ServiceRequestResource,
@@ -61,6 +62,13 @@ export interface PatientContextType {
   episodes: EpisodeOfCareResource[]
   flags: FlagResource[]
   tasks: TaskResource[]
+  /**
+   * Real FHIR Encounters — the #263 correlation hinge. Surfaced so a consumer can
+   * group artifacts by episode (`lib/episodeRecord.ts`); phase 4 added the bucket
+   * to `PatientSlice` but never exposed it here, which is part of why the read
+   * side did not exist.
+   */
+  encounters: EncounterResource[]
   /** Stage-5 (Coordinate Handoffs) artifacts — see lib/handoffs.ts helpers. */
   documentReferences: DocumentReferenceResource[]
   serviceRequests: ServiceRequestResource[]

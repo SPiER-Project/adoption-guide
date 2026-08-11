@@ -500,6 +500,7 @@ export function PatientProvider({
       observations: slice.observations,
       communications: slice.communications ?? [],
       episodes: slice.episodes ?? [],
+      encounters: slice.encounters ?? [],
       flags: slice.flags ?? [],
       tasks: slice.tasks ?? [],
       documentReferences: slice.documentReferences ?? [],

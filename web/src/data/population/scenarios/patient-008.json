@@ -584,11 +584,6 @@
       "subject": {
         "reference": "Patient/patient-008"
       },
-      "appointment": [
-        {
-          "reference": "Appointment/p008-follow-up"
-        }
-      ],
       "period": {
         "start": "2026-07-25T10:00:00.000Z",
         "end": "2026-07-25T11:00:00.000Z"
@@ -688,6 +683,11 @@
       "subject": {
         "reference": "Patient/patient-008"
       },
+      "appointment": [
+        {
+          "reference": "Appointment/p008-follow-up"
+        }
+      ],
       "period": {
         "start": "2026-08-07T10:00:00.000Z",
         "end": "2026-08-07T10:45:00.000Z"
