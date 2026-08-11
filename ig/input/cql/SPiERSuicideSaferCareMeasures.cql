@@ -103,6 +103,7 @@ define "Caring Contact Profile": 'http://spier.org/StructureDefinition/spier-car
 define "Suicide Risk Episode Profile": 'http://spier.org/StructureDefinition/spier-suicide-risk-episode'
 
 define "Pathway Stage System": 'http://spier.org/CodeSystem/spier-pathway-stage'
+define "Risk Tier System": 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
 define "Closure Reason Extension": 'http://spier.org/StructureDefinition/episode-closure-reason'
 define "Handoff Content Extension": 'http://spier.org/StructureDefinition/handoff-content-item'
 define "Caring Contact Opt Out Extension": 'http://spier.org/StructureDefinition/caring-contact-opt-out'
@@ -425,3 +426,90 @@ define "All Referrals Completed":
       "Valid Safety Referrals" R
         where R.status != 'completed'
     )
+
+// ─── Measure 8 — Reassessment on time ────────────────────────
+//
+// The only measure here whose window is DATA rather than a constant: the
+// interval comes from PlanDefinition/SPiERReassessmentSchedule.
+//
+// ⚠️ This library does NOT read that PlanDefinition, and cannot usefully. The
+// library is `context Patient`, so every retrieve is patient-scoped clinical
+// data; a definitional resource is not reachable that way. #296 assumed
+// otherwise. So the intervals are restated in ReassessmentIntervalDays below,
+// and `npm run check:reassessment` asserts that this function, the TypeScript
+// engine and the PlanDefinition all agree — three representations, one gate. If
+// you change a number here, change it in the FSH too, and watch that gate go red
+// first if you want to know it works.
+
+/* The published per-tier cadence. Restated, not derived — see above.
+ * A tier with no cadence returns null, and a null interval makes the numerator
+ * unaskable, which is why those patients are a denominator EXCLUSION rather than
+ * a miss. */
+define function ReassessmentIntervalDays(tier String):
+  case tier
+    when 'high' then 7
+    when 'moderate' then 14
+    when 'low' then 30
+    else null
+  end
+
+/* The risk tier recorded on a risk-concept Observation, as a plain code. */
+define function RecordedTier(observation Observation):
+  singleton from (
+    ((observation.value as FHIR.CodeableConcept).coding) C
+      where C.system.value = "Risk Tier System"
+      return C.code.value
+  )
+
+/* Risk-concept Observations dated inside the period, oldest first, so the last
+ * two are the most recent completed interval. */
+define "Risk Assessments In Period":
+  "Risk Concept Observations" O
+    where "Effective Interval"(O.effective) during "Measurement Period"
+
+/* Sorted in a second define rather than inline: a `sort by` clause needs a
+   query source it can alias, and a parenthesised query is not one. */
+define "Dated Assessments":
+  "Risk Assessments In Period" A
+    sort by start of "Effective Interval"(effective)
+
+/* A patient needs TWO assessments before an interval exists. One assessment is
+ * not a late reassessment; it is a patient who has not been reassessed yet, and
+ * whether they are currently OVERDUE is a question for the work queue rather
+ * than for a measure, which scores what happened. */
+define "Has A Reassessment Interval":
+  Count("Dated Assessments") >= 2
+
+define "Latest Assessment":
+  Last("Dated Assessments")
+
+/* The assessment the clock started from — the latest one strictly before the
+ * most recent. Ties (two assessments at the same instant) drop out rather than
+ * producing an arbitrary winner. */
+define "Preceding Assessment":
+  Last(
+    "Dated Assessments" A
+      where start of "Effective Interval"(A.effective)
+        < start of "Effective Interval"("Latest Assessment".effective)
+  )
+
+/* Read off the EARLIER assessment: the interval a site owed is the one that
+ * applied when the clock started, not the patient's tier today. */
+define "Applicable Interval Days":
+  ReassessmentIntervalDays(RecordedTier("Preceding Assessment"))
+
+/* Excluded, not failed: imminent risk is escalated rather than scheduled, and a
+ * no-risk patient is off the pathway. Neither has a cadence to be late against,
+ * and scoring them as misses would penalise correct escalation. */
+define "Reassessment Not On A Published Cadence":
+  "Has A Reassessment Interval"
+    and ("Applicable Interval Days" is null or "Episode Closed Administratively")
+
+define "Days Between Last Two Assessments":
+  days between start of "Effective Interval"("Preceding Assessment".effective)
+    and start of "Effective Interval"("Latest Assessment".effective)
+
+define "Most Recent Reassessment Was On Time":
+  "Has A Reassessment Interval"
+    and "Applicable Interval Days" is not null
+    and "Days Between Last Two Assessments" <= "Applicable Interval Days"

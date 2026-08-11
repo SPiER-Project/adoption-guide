@@ -198,9 +198,12 @@ function groupOf(evaluation: ReturnType<typeof evaluateMeasure>, code: string) {
 // ─── The FSH ↔ TS contract ───────────────────────────────────
 
 describe('measure specs derived from the generated FHIR', () => {
-  it('loads all seven measures and ten groups', () => {
-    expect(MEASURE_SPECS).toHaveLength(7)
-    expect(MEASURE_SPECS.flatMap(m => m.groups)).toHaveLength(10)
+  it('loads all eight measures and eleven groups', () => {
+    // Eight since #296 added SPiERReassessmentOnTime. A bare count is a weak
+    // assertion on its own, which is why check:measures ties every criterion
+    // reference to an implementation in both directions.
+    expect(MEASURE_SPECS).toHaveLength(8)
+    expect(MEASURE_SPECS.flatMap(m => m.groups)).toHaveLength(11)
   })
 
   it('implements every criterion the Measures reference', () => {
@@ -784,8 +787,8 @@ describe('tally and report assembly', () => {
   it('evaluates and tallies every measure across a cohort without throwing', () => {
     const cohort = [emptySlice(), emptySlice()].map(s => evaluateAllMeasures(s, PERIOD))
     const tallies = tallyAll(cohort)
-    expect(tallies).toHaveLength(7)
-    expect(tallies.flatMap(t => t.groups)).toHaveLength(10)
+    expect(tallies).toHaveLength(8)
+    expect(tallies.flatMap(t => t.groups)).toHaveLength(11)
   })
 })
 
@@ -795,5 +798,124 @@ describe('trailingPeriod', () => {
     const period = trailingPeriod(30, now)
     expect(period.end).toBe('2026-07-31T00:00:00.000Z')
     expect(period.start).toBe('2026-07-01T00:00:00.000Z')
+  })
+})
+
+// ─── Measure 8 — reassessment on time ────────────────────────
+
+describe('reassessment on time', () => {
+  const spec = specFor('ReassessmentOnTime')
+  const GROUP = 'reassessment-on-time'
+
+  /** Two assessments `gapDays` apart, the earlier one at `tier`. */
+  // NOTE: the period is July only, so both assessments must land inside it —
+  // an earlier assessment that falls outside simply is not in the denominator,
+  // which silently turns an interval test into an eligibility test.
+  function pair(gapDays: number, tier: string, latest = '2026-07-29T09:00:00.000Z'): PatientSlice {
+    const latestMs = Date.parse(latest)
+    const earlier = new Date(latestMs - gapDays * 86400000).toISOString()
+    const slice = emptySlice()
+    slice.observations = [
+      riskConcept({ id: 'a1', effective: earlier, stage: 'clarify-risk', tier }),
+      riskConcept({ id: 'a2', effective: latest, stage: 'clarify-risk', tier }),
+    ]
+    return slice
+  }
+
+  it('excludes a patient with only one assessment — no gap exists yet', () => {
+    // Not a late reassessment: a patient who has not been reassessed. Whether
+    // they are currently OVERDUE is the work queue's question, not a measure's.
+    const slice = emptySlice()
+    slice.observations = [
+      riskConcept({ id: 'a1', effective: '2026-07-10T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+    ]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), GROUP)
+    expect(g.inDenominator).toBe(false)
+  })
+
+  it('counts a high-risk gap of exactly 7 days as on time', () => {
+    const g = groupOf(evaluateMeasure(spec, pair(7, 'high'), PERIOD), GROUP)
+    expect(g.inDenominator).toBe(true)
+    expect(g.inNumerator).toBe(true)
+  })
+
+  it('counts a high-risk gap of 8 days as late', () => {
+    const g = groupOf(evaluateMeasure(spec, pair(8, 'high'), PERIOD), GROUP)
+    expect(g.inDenominator).toBe(true)
+    expect(g.inNumerator).toBe(false)
+  })
+
+  it('uses the tier’s own interval, not one global window', () => {
+    // 20 days is late for high (7) and moderate (14) but on time for low (30).
+    expect(groupOf(evaluateMeasure(spec, pair(20, 'high'), PERIOD), GROUP).inNumerator).toBe(false)
+    expect(groupOf(evaluateMeasure(spec, pair(20, 'moderate'), PERIOD), GROUP).inNumerator).toBe(false)
+    expect(groupOf(evaluateMeasure(spec, pair(20, 'low'), PERIOD), GROUP).inNumerator).toBe(true)
+  })
+
+  it('reads the interval off the EARLIER assessment, not the patient’s tier today', () => {
+    // Was low (30 days owed), stepped up to high. A 20-day gap met the 30 days
+    // the site actually owed; judging it on today's high tier would fail a site
+    // for care it delivered correctly.
+    const slice = emptySlice()
+    slice.observations = [
+      riskConcept({ id: 'a1', effective: '2026-07-01T09:00:00.000Z', stage: 'clarify-risk', tier: 'low' }),
+      riskConcept({ id: 'a2', effective: '2026-07-21T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+    ]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), GROUP)
+    expect(g.inNumerator).toBe(true)
+  })
+
+  it('excludes rather than fails a tier with no published cadence', () => {
+    // imminent is escalated, not scheduled; scoring it as a miss would penalise
+    // a site for correctly escalating.
+    for (const tier of ['imminent', 'no-risk']) {
+      const g = groupOf(evaluateMeasure(spec, pair(10, tier), PERIOD), GROUP)
+      expect(g.populations['denominator-exclusion'], tier).toBe(true)
+      expect(g.inDenominator, tier).toBe(false)
+    }
+  })
+
+  it('excludes an administratively closed episode', () => {
+    const slice = pair(21, 'high')
+    slice.episodes = [
+      episode({ start: '2026-07-01T00:00:00.000Z', end: '2026-07-25T00:00:00.000Z', status: 'finished', closure: 'administrative' }),
+    ]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), GROUP)
+    expect(g.inDenominator).toBe(false)
+  })
+
+  it('indexes on the most recent gap, not the worst one', () => {
+    // A late gap early in the period followed by an on-time one scores as on
+    // time — the measure reports current practice, not permanent history.
+    const slice = emptySlice()
+    slice.observations = [
+      riskConcept({ id: 'a1', effective: '2026-07-01T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+      riskConcept({ id: 'a2', effective: '2026-07-14T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+      riskConcept({ id: 'a3', effective: '2026-07-19T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+    ]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), GROUP)
+    expect(g.inNumerator).toBe(true)
+  })
+
+  it('ignores assessments outside the measurement period', () => {
+    const slice = emptySlice()
+    slice.observations = [
+      riskConcept({ id: 'old', effective: '2026-05-01T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+      riskConcept({ id: 'a1', effective: '2026-07-20T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+    ]
+    // Only one assessment falls inside the period, so there is no measurable gap.
+    expect(groupOf(evaluateMeasure(spec, slice, PERIOD), GROUP).inDenominator).toBe(false)
+  })
+
+  it('drops a pair recorded at the same instant rather than scoring it', () => {
+    const slice = emptySlice()
+    slice.observations = [
+      riskConcept({ id: 'a1', effective: '2026-07-20T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+      riskConcept({ id: 'a2', effective: '2026-07-20T09:00:00.000Z', stage: 'clarify-risk', tier: 'high' }),
+    ]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), GROUP)
+    // Two assessments exist, so the denominator criterion is met, but no
+    // preceding assessment can be identified — so it cannot be called on time.
+    expect(g.inNumerator).toBe(false)
   })
 })

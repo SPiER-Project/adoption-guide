@@ -105,6 +105,17 @@ const GROUP_ALERTS: Record<
     label: 'Referral loop not closed',
     detail: 'A suicide-safety referral was made and has not been recorded as completed.',
   },
+  'SPiERReassessmentOnTime/reassessment-on-time': {
+    severity: 'yellow',
+    // Distinct from the row-derived "Reassessment overdue by N days" alert below,
+    // and both can be true. This one is historical — the LAST reassessment was
+    // late — while the row-derived one is about the NEXT one being overdue now. A
+    // patient can have caught up (this fires, that does not) or be currently
+    // adrift after an on-time history (that fires, this does not).
+    label: 'Last reassessment was late',
+    detail:
+      'The most recent gap between risk assessments was longer than the cadence published for the tier the patient was in at the time.',
+  },
   'SPiERScreenToAssessment/screen-to-assessment': {
     severity: 'red',
     label: 'Positive screen not clarified within 24 hours',

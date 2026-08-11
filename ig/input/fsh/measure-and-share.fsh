@@ -118,6 +118,7 @@ Description: "Identifies each population group inside a SPiER suicide-safer care
 * #follow-up-within-30-days "Follow-up visit attended within 30 days"
 * #caring-contact-within-30-days "Caring contact sent within 30 days"
 * #referral-completion "Referral tracked through to completed"
+* #reassessment-on-time "Reassessment completed within the tier's published interval"
 
 
 ValueSet: MeasureGroup
@@ -585,6 +586,88 @@ Usage: #definition
     * description = "Patients with no referral left incomplete — every non-erroneous referral authored in the period reached status completed."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "All Referrals Completed"
+
+
+// ─── Measure 8 — Reassessment on time ────────────────────────
+//
+// The deck's panel 9 asks for "Risk Reassessment On Time >90%". It is the only
+// SPiER measure whose window is DATA rather than a constant: the interval comes
+// from PlanDefinition/SPiERReassessmentSchedule (high 7d / moderate 14d / low
+// 30d), published by #279.
+//
+// ⚠️ The CQL does NOT read that PlanDefinition. #296 assumed it could; it cannot
+// usefully — this library is `context Patient`, every retrieve is patient-scoped
+// clinical data, and a definitional resource is not reachable that way. So the
+// intervals are restated as a CQL function, and `npm run check:reassessment`
+// asserts the CQL, the TypeScript engine and the PlanDefinition all agree. Three
+// representations, one gate.
+//
+// ─── Three modelling decisions worth reviewing ───────────────
+//
+// 1. THE INTERVAL IS THE ONE IN FORCE WHEN THE CLOCK STARTED, so the tier is
+//    read off the EARLIER assessment of a pair, not the patient's tier today. A
+//    patient who was moderate (14 days) and is now high is judged on the 14 days
+//    they were actually owed.
+//
+// 2. INDEXED ON THE MOST RECENT COMPLETED GAP, matching this file's convention
+//    for every other measure ("where there is more than one, the most recent in
+//    the period is the index"). The alternative — every gap in the period must
+//    have been on time — makes one late reassessment a permanent failure, which
+//    reads as punishing history rather than measuring current practice.
+//
+// 3. TIERS WITH NO PUBLISHED CADENCE ARE A DENOMINATOR EXCLUSION, not a failure.
+//    `imminent` is handled by escalation rather than a schedule and `no-risk`
+//    patients are off the pathway, so neither has an interval to be late against.
+//    Scoring them as misses would penalise sites for correctly escalating.
+//
+// A patient with only ONE assessment is not in the denominator at all: there is
+// no gap yet, so there is nothing to be on time for. Whether they are currently
+// OVERDUE is a different question, and the Population view's tracker answers it —
+// a measure scores what happened, not what is pending.
+
+Instance: SPiERReassessmentOnTime
+InstanceOf: Measure
+Title: "Measure — Risk Reassessment On Time"
+Description: "Proportion of patients whose most recent suicide-risk reassessment happened within the interval published for the risk tier they were in."
+Usage: #definition
+* url = "http://spier.org/Measure/SPiERReassessmentOnTime"
+* name = "SPiERReassessmentOnTime"
+* version = "1.0.0"
+* title = "Risk Reassessment On Time"
+* status = #draft
+* experimental = true
+* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* publisher = "SPiER (HTD Health)"
+* description = "The proportion of patients with at least two SPiERSuicideRiskConcept Observations in the measurement period whose most recent interval between assessments was no longer than the cadence published for the tier recorded on the EARLIER of the two — high 7 days, moderate 14 days, low 30 days, per PlanDefinition/SPiERReassessmentSchedule. Reading the tier off the earlier assessment is deliberate: the interval a site owed is the one that applied when the clock started, not the patient's tier today. Patients whose earlier assessment records a tier with no published cadence (imminent, no-risk) are a denominator exclusion rather than a failure — imminent risk is handled by escalation, and a no-risk patient is not on the pathway."
+* purpose = "Reassessment cadence is the one pathway obligation that is invisible without a schedule: nothing about a patient's chart says a review was late. This measure makes lateness reportable, and is the reason PlanDefinition/SPiERReassessmentSchedule exists as data rather than as documentation."
+* scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
+* type[+] = http://terminology.hl7.org/CodeSystem/measure-type#process "Process"
+* improvementNotation = http://terminology.hl7.org/CodeSystem/measure-improvement-notation#increase "Increased score indicates improvement"
+* subjectCodeableConcept = http://hl7.org/fhir/resource-types#Patient
+* group[+]
+  * id = "reassessment-on-time"
+  * code = MeasureGroupCodes#reassessment-on-time "Reassessment completed within the tier's published interval"
+  * description = "Patients whose most recent reassessment interval was within the published cadence."
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#initial-population "Initial Population"
+    * description = "Patients with at least two SPiERSuicideRiskConcept Observations dated in the measurement period, so that a reassessment interval exists to measure."
+    * criteria.language = #text/cql-identifier
+    * criteria.expression = "Has A Reassessment Interval"
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator "Denominator"
+    * description = "Same as the initial population."
+    * criteria.language = #text/cql-identifier
+    * criteria.expression = "Has A Reassessment Interval"
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exclusion "Denominator Exclusion"
+    * description = "Patients whose earlier assessment records a risk tier with no published reassessment cadence (imminent, no-risk), plus the standard administrative-closure exclusion."
+    * criteria.language = #text/cql-identifier
+    * criteria.expression = "Reassessment Not On A Published Cadence"
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
+    * description = "Patients whose most recent gap between assessments was no longer than the interval published for the tier on the earlier assessment."
+    * criteria.language = #text/cql-identifier
+    * criteria.expression = "Most Recent Reassessment Was On Time"
 
 
 // ─── ActivityDefinitions ─────────────────────────────────────
