@@ -324,12 +324,47 @@ console.log(
 // alongside the other drift checks.
 const SPIER_CS_PREFIX = 'http://spier.org/CodeSystem/'
 const dictSrc = readFileSync(join(catalogDir, 'dataElements.ts'), 'utf8')
+// `system:` covers both a Concept/Binding `code` and a Binding `value`, since
+// #260 gave the value side its own `{ system, valueSet }` slot rather than the
+// interim `answerSystem` field. Kept as a source scrape rather than an import
+// because this script is plain Node and the catalog is TypeScript.
 const dictSystems = new Set(
-  [...dictSrc.matchAll(/(?:system|answerSystem): '([^']+)'/g)].map((m) => m[1]),
+  [...dictSrc.matchAll(/\bsystem: '([^']+)'/g)].map((m) => m[1]),
 )
 if (dictSystems.size === 0) {
-  fail('dataElements.ts: no systems parsed — has the DataElement shape changed?')
+  fail('dataElements.ts: no systems parsed — has the Binding shape changed?')
 }
+
+// ValueSet canonicals are claims too, and they resolve to a DIFFERENT generated
+// file than CodeSystems do. A `valueSet` pointing at nothing would render as a
+// bindable set on the page while the IG published no such set — the same class
+// of unbacked claim as a dead code link, so it is gated the same way.
+const dictValueSets = new Set(
+  [...dictSrc.matchAll(/\bvalueSet: '([^']+)'/g)].map((m) => m[1]),
+)
+const SPIER_VS_PREFIX = 'http://spier.org/ValueSet/'
+const generatedVsIds = new Set(
+  readdirSync(fhirDir)
+    .filter((f) => f.startsWith('ValueSet-') && f.endsWith('.json'))
+    .map((f) => f.slice('ValueSet-'.length, -'.json'.length)),
+)
+let vsLinkable = 0
+for (const vs of [...dictValueSets].sort()) {
+  if (!vs.startsWith(SPIER_VS_PREFIX)) continue
+  const id = vs.slice(SPIER_VS_PREFIX.length)
+  if (generatedVsIds.has(id)) {
+    vsLinkable++
+    continue
+  }
+  fail(
+    `dataElements.ts references ${vs}, but no ValueSet-${id}.json is generated — ` +
+      `the dictionary would present a bindable value set the IG does not publish. ` +
+      `Define it in ig/input/fsh/.`,
+  )
+}
+console.log(
+  `✓ data dictionary: all ${vsLinkable} SPiER-local ValueSet(s) referenced have a generated definition`,
+)
 
 const generatedCsIds = new Set(
   readdirSync(fhirDir)

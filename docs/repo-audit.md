@@ -157,7 +157,7 @@ Currently four files:
 | `stages.ts` | ~60 | `STAGES[]` array of 8 stages | `SPiERPathwayStage` CodeSystem ✓ |
 | `tools.ts` | ~503 | `TOOLS[]` array of 25 tools with rich metadata | ActivityDefinitions (10 launchable) + Profiles |
 | `triggers.ts` | 153 | `TRIGGERS[]` array of stage-transition rules | `PlanDefinition.action.trigger` (2 encoded) |
-| `dataElements.ts` | ? | `DATA_ELEMENTS[]` per-tool data dictionary | No FHIR equivalent yet |
+| `dataElements.ts` | ? | `CONCEPTS[]` + `BINDINGS[]` two-layer data dictionary (#260) | CodeSystems / ValueSets, gated by `check:catalog` |
 | `index.ts` | 4 | Re-exports | — |
 
 ### What `tools.ts` carries that FSH does not (yet)
