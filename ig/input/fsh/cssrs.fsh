@@ -115,6 +115,9 @@ Description: "Derived risk-level Observation produced by either the C-SSRS Scree
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * code = http://loinc.org#93374-7
 * subject 1..1
 * subject only Reference(Patient)
@@ -261,6 +264,7 @@ Description: "Sample risk-level Observation from a C-SSRS screener with item 5 (
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
@@ -278,6 +282,7 @@ Description: "Sample risk-level Observation from a full C-SSRS with item 3 (acti
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:15:00Z"
@@ -325,6 +330,7 @@ Description: "Sample risk-level Observation from a C-SSRS Since Last Visit asses
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-07-15T12:00:00Z"
@@ -370,6 +376,7 @@ Description: "Sample risk-level Observation from a pediatric/adolescent C-SSRS s
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-07-15T13:30:00Z"

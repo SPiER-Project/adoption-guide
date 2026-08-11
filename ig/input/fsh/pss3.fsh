@@ -136,6 +136,9 @@ Description: "An Observation representing the binary suicide-risk result of a Pa
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
 * subject only Reference(Patient)
@@ -192,6 +195,7 @@ Description: "Sample Observation showing a positive PSS-3 suicide-risk screen fo
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-07-15T09:10:00Z"

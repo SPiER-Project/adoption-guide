@@ -70,6 +70,9 @@ Description: "A Communication recording that one or more patient-facing crisis r
 * subject MS
 * sent MS
 * payload MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 
 
 // ─── ActivityDefinition ──────────────────────────────────────
@@ -107,6 +110,7 @@ Description: "Sample Communication recording that the 988 Lifeline, Crisis Text 
 Usage: #example
 * status = #completed
 * category[+].text = "Crisis resources shared"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * sent = "2026-07-15T16:45:00Z"
 * payload[+].contentString = "988 Suicide & Crisis Lifeline (call/text/chat 988)"

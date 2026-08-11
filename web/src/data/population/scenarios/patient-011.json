@@ -12,16 +12,71 @@
           {
             "linkId": "screening-questions",
             "item": [
-              { "linkId": "q1", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }] },
-              { "linkId": "q2", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }] },
-              { "linkId": "q3", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] },
-              { "linkId": "q4", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] }
+              {
+                "linkId": "q1",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q2",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q3",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
             ]
           },
           {
             "linkId": "acuity-section",
             "item": [
-              { "linkId": "q5", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] }
+              {
+                "linkId": "q5",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
             ]
           }
         ]
@@ -52,38 +107,203 @@
     {
       "resourceType": "Observation",
       "id": "p011-asq-result",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }] },
-      "subject": { "reference": "Patient/patient-011" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
       "effectiveDateTime": "2026-05-21T08:40:00Z",
-      "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/asq-screening-result", "code": "non-acute-positive", "display": "Non-Acute Positive Screen" }] }
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/asq-screening-result",
+            "code": "non-acute-positive",
+            "display": "Non-Acute Positive Screen"
+          }
+        ]
+      }
     }
   ],
   "carePlans": [
     {
       "resourceType": "CarePlan",
       "id": "p011-stanley-brown",
-      "meta": { "profile": ["http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"] },
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
+        ]
+      },
       "status": "active",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }],
-      "subject": { "reference": "Patient/patient-011" },
-      "addresses": [{ "display": "Risk for suicide" }],
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "735324008",
+              "display": "Treatment escalation plan (record artifact)"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "addresses": [
+        {
+          "display": "Risk for suicide"
+        }
+      ],
       "created": "2026-05-21T15:10:00Z",
       "_savedAt": "2026-05-21T15:10:00Z",
       "title": "Stanley-Brown Safety Plan",
       "activity": [
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "warning-signs" }], "text": "Step 1: Warning Signs" }, "status": "in-progress", "description": "Racing thoughts at 3am, replaying the argument, chest tight, avoiding my phone" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "internal-coping" }], "text": "Step 2: Internal Coping Strategies" }, "status": "in-progress", "description": "Cold shower, walk the dog around the block, the breathing app" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "social-distraction" }], "text": "Step 3: People and Social Settings That Provide Distraction" }, "status": "in-progress", "description": "Sit in the café on 5th; call my cousin Rosa just to talk about anything else" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "crisis-support" }], "text": "Step 4: People I Can Ask for Help" }, "status": "in-progress", "description": "Rosa (sister), Elena (neighbour) — both know about the plan" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "professional-support" }], "text": "Step 5: Professionals or Agencies I Can Contact" }, "status": "in-progress", "description": "Valley Outpatient BH intake line; 988 Suicide & Crisis Lifeline; this ED" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "lethal-means-safety" }], "text": "Step 6: Making the Environment Safe" }, "status": "in-progress", "description": "Sleeping medication left with Rosa; kitchen knives moved to the locked toolbox" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "reason-for-living" }], "text": "Reasons for Living" }, "status": "in-progress", "description": "Rosa and the kids; finishing the certification I started in March" } }
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "warning-signs"
+                }
+              ],
+              "text": "Step 1: Warning Signs"
+            },
+            "status": "in-progress",
+            "description": "Racing thoughts at 3am, replaying the argument, chest tight, avoiding my phone"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "internal-coping"
+                }
+              ],
+              "text": "Step 2: Internal Coping Strategies"
+            },
+            "status": "in-progress",
+            "description": "Cold shower, walk the dog around the block, the breathing app"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "social-distraction"
+                }
+              ],
+              "text": "Step 3: People and Social Settings That Provide Distraction"
+            },
+            "status": "in-progress",
+            "description": "Sit in the café on 5th; call my cousin Rosa just to talk about anything else"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "crisis-support"
+                }
+              ],
+              "text": "Step 4: People I Can Ask for Help"
+            },
+            "status": "in-progress",
+            "description": "Rosa (sister), Elena (neighbour) — both know about the plan"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "professional-support"
+                }
+              ],
+              "text": "Step 5: Professionals or Agencies I Can Contact"
+            },
+            "status": "in-progress",
+            "description": "Valley Outpatient BH intake line; 988 Suicide & Crisis Lifeline; this ED"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "lethal-means-safety"
+                }
+              ],
+              "text": "Step 6: Making the Environment Safe"
+            },
+            "status": "in-progress",
+            "description": "Sleeping medication left with Rosa; kitchen knives moved to the locked toolbox"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "reason-for-living"
+                }
+              ],
+              "text": "Reasons for Living"
+            },
+            "status": "in-progress",
+            "description": "Rosa and the kids; finishing the certification I started in March"
+          }
+        }
       ],
-      "note": [{ "text": "Collaborative ED safety plan with lethal-means counseling. Copy provided to patient at discharge; included in transition-of-care packet to outpatient BH." }]
+      "note": [
+        {
+          "text": "Collaborative ED safety plan with lethal-means counseling. Copy provided to patient at discharge; included in transition-of-care packet to outpatient BH."
+        }
+      ]
     }
   ],
   "riskAlerts": [
@@ -92,7 +312,10 @@
       "level": "moderate",
       "summary": "ASQ: Non-Acute Positive Screen",
       "detail": "Patient endorsed suicidal ideation or history. Brief suicide safety assessment recommended to determine if full mental health evaluation is needed.",
-      "suggestedAction": { "label": "Start Safety Plan", "path": "/patient/assessments/stanley-and-brown" }
+      "suggestedAction": {
+        "label": "Start Safety Plan",
+        "path": "/patient/assessments/stanley-and-brown"
+      }
     },
     {
       "tool": "Risk Status",
@@ -106,22 +329,115 @@
       "resourceType": "Communication",
       "id": "p011-transition-packet",
       "meta": {
-        "profile": ["http://spier.org/StructureDefinition/spier-safety-handoff"],
-        "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "coordinate-handoffs", "display": "Coordinate Handoffs" }]
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-safety-handoff"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
       },
       "status": "completed",
-      "category": [{ "text": "Transition of care" }],
-      "reasonCode": [{ "text": "ED discharge — transition-of-care packet sent" }],
-      "subject": { "reference": "Patient/patient-011" },
+      "category": [
+        {
+          "text": "Transition of care"
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "reasonCode": [
+        {
+          "text": "ED discharge — transition-of-care packet sent"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
       "sent": "2026-05-22T12:00:00Z",
       "_savedAt": "2026-05-22T12:00:00Z",
       "extension": [
-        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "current-risk-status", "display": "Current risk status" }] } },
-        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "recent-assessment", "display": "Most recent suicide-risk assessment" }] } },
-        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "safety-plan-status", "display": "Safety plan status" }] } },
-        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "lethal-means-actions", "display": "Lethal means safety actions" }] } },
-        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "follow-up-plan", "display": "Follow-up plan" }] } },
-        { "url": "http://spier.org/StructureDefinition/handoff-content-item", "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/spier-handoff-content", "code": "next-provider", "display": "Next provider / team" }] } }
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "current-risk-status",
+                "display": "Current risk status"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "recent-assessment",
+                "display": "Most recent suicide-risk assessment"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "safety-plan-status",
+                "display": "Safety plan status"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "lethal-means-actions",
+                "display": "Lethal means safety actions"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "follow-up-plan",
+                "display": "Follow-up plan"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "code": "next-provider",
+                "display": "Next provider / team"
+              }
+            ]
+          }
+        }
       ]
     },
     {
@@ -143,6 +459,15 @@
       "category": [
         {
           "text": "Follow-up outreach attempt"
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ],
       "subject": {
@@ -215,6 +540,15 @@
       "category": [
         {
           "text": "Caring contact"
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ],
       "subject": {
@@ -249,8 +583,12 @@
       "actor": "Triage Nurse / Screener",
       "status": "completed",
       "notes": "28-year-old presents to a general medical ED with severe insomnia and anxiety; chronic pain and recent job loss. Triage-time ASQ administered and captured as discrete data.",
-      "fhirArtifacts": ["QuestionnaireResponse"],
-      "relatedResponseNames": ["ASQ Screening"]
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
+      "relatedResponseNames": [
+        "ASQ Screening"
+      ]
     },
     {
       "id": "ed-11-2-2a",
@@ -261,7 +599,9 @@
       "actor": "EHR System / Analyzer",
       "status": "completed",
       "notes": "Screen classified as non-acute positive (wish to be dead + thoughts of suicide, no current ideation/plan). Risk tier surfaced on the trackboard.",
-      "fhirArtifacts": ["Observation"],
+      "fhirArtifacts": [
+        "Observation"
+      ],
       "profileGap": true
     },
     {
@@ -273,7 +613,9 @@
       "actor": "EHR System / Status Visibility Manager",
       "status": "completed",
       "notes": "Suicide-screening-status flag set so the positive screen is visible across the care team and downstream views.",
-      "fhirArtifacts": ["Flag"],
+      "fhirArtifacts": [
+        "Flag"
+      ],
       "profileGap": true
     },
     {
@@ -285,7 +627,11 @@
       "actor": "EHR System / CDS Workflow Router",
       "status": "completed",
       "notes": "Positive screen fires the Identify Possible Risk → Clarify Risk transition: a role-routed task and behavioral-health consult request are generated from the pathway PlanDefinition.",
-      "fhirArtifacts": ["Task", "ServiceRequest", "PlanDefinition"],
+      "fhirArtifacts": [
+        "Task",
+        "ServiceRequest",
+        "PlanDefinition"
+      ],
       "profileGap": true
     },
     {
@@ -297,7 +643,10 @@
       "actor": "ED Nurse / Implementer",
       "status": "completed",
       "notes": "Environmental-safety mitigation checklist completed; patient moved to a ligature-resistant room.",
-      "fhirArtifacts": ["Task", "Procedure"],
+      "fhirArtifacts": [
+        "Task",
+        "Procedure"
+      ],
       "profileGap": true
     },
     {
@@ -309,7 +658,9 @@
       "actor": "ED Provider / Orderer",
       "status": "completed",
       "notes": "Observation-level suicide precautions ordered with required provider signature.",
-      "fhirArtifacts": ["ServiceRequest"],
+      "fhirArtifacts": [
+        "ServiceRequest"
+      ],
       "profileGap": true
     },
     {
@@ -321,7 +672,10 @@
       "actor": "Nurse / Tech / Security",
       "status": "completed",
       "notes": "Room clearance checklist documented; personal belongings inventoried and secured.",
-      "fhirArtifacts": ["Observation", "List"],
+      "fhirArtifacts": [
+        "Observation",
+        "List"
+      ],
       "profileGap": true
     },
     {
@@ -333,7 +687,10 @@
       "actor": "Sitter / Continuous Observer",
       "status": "completed",
       "notes": "1:1 continuous observation initiated with time-stamped observation log and a documented observer assignment.",
-      "fhirArtifacts": ["Observation", "CareTeam"],
+      "fhirArtifacts": [
+        "Observation",
+        "CareTeam"
+      ],
       "profileGap": true
     },
     {
@@ -345,7 +702,9 @@
       "actor": "ED / BH Clinician / Assessor",
       "status": "completed",
       "notes": "BSSA performed after the positive ASQ to clarify whether a full risk assessment is needed. (Tool TL-005 is planned — not yet a built SPiER Questionnaire.)",
-      "fhirArtifacts": ["QuestionnaireResponse"],
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
       "profileGap": true
     },
     {
@@ -357,8 +716,12 @@
       "actor": "BH Clinician / Assessor",
       "status": "completed",
       "notes": "Full risk assessment completed using the C-SSRS Full (Lifetime/Recent) within a SAFE-T framing. (C-SSRS Full is built; SAFE-T framing TL-006 is planned.)",
-      "fhirArtifacts": ["QuestionnaireResponse"],
-      "relatedResponseNames": ["C-SSRS Full (Lifetime/Recent)"]
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
+      "relatedResponseNames": [
+        "C-SSRS Full (Lifetime/Recent)"
+      ]
     },
     {
       "id": "ed-11-4-1b",
@@ -369,7 +732,11 @@
       "actor": "EHR System / Analyzer + Persister",
       "status": "completed",
       "notes": "Current suicide risk level set to high; a coded suicide-risk Condition and a longitudinal risk Flag are persisted.",
-      "fhirArtifacts": ["Observation", "Condition", "Flag"],
+      "fhirArtifacts": [
+        "Observation",
+        "Condition",
+        "Flag"
+      ],
       "profileGap": true
     },
     {
@@ -381,7 +748,10 @@
       "actor": "EHR System / Task Scheduler",
       "status": "completed",
       "notes": "Patient boards in the ED awaiting an inpatient bed; a time-based reassessment cadence is scheduled from the reassessment PlanDefinition.",
-      "fhirArtifacts": ["Task", "PlanDefinition"],
+      "fhirArtifacts": [
+        "Task",
+        "PlanDefinition"
+      ],
       "profileGap": true
     },
     {
@@ -393,7 +763,10 @@
       "actor": "ED Clinician / Reassessor",
       "status": "completed",
       "notes": "Scheduled reassessment performed; updated risk recorded and precautions maintained, preserving prior values.",
-      "fhirArtifacts": ["Observation", "ServiceRequest"],
+      "fhirArtifacts": [
+        "Observation",
+        "ServiceRequest"
+      ],
       "profileGap": true
     },
     {
@@ -405,9 +778,16 @@
       "actor": "ED Clinician / Enterer",
       "status": "completed",
       "notes": "Collaborative Stanley-Brown safety plan completed with the patient and stored as a CarePlan.",
-      "fhirArtifacts": ["QuestionnaireResponse", "CarePlan"],
-      "relatedResponseNames": ["Stanley-Brown Safety Plan"],
-      "relatedCarePlanIdSubstrings": ["stanley-brown"]
+      "fhirArtifacts": [
+        "QuestionnaireResponse",
+        "CarePlan"
+      ],
+      "relatedResponseNames": [
+        "Stanley-Brown Safety Plan"
+      ],
+      "relatedCarePlanIdSubstrings": [
+        "stanley-brown"
+      ]
     },
     {
       "id": "ed-11-6-1b",
@@ -418,7 +798,10 @@
       "actor": "EHR System / Retainer + Versioner",
       "status": "completed",
       "notes": "Safety plan retained with version history and Provenance for each revision.",
-      "fhirArtifacts": ["CarePlan", "Provenance"],
+      "fhirArtifacts": [
+        "CarePlan",
+        "Provenance"
+      ],
       "profileGap": true
     },
     {
@@ -430,7 +813,10 @@
       "actor": "ED Clinician / Educator",
       "status": "completed",
       "notes": "Lethal-means counseling delivered and documented; means-safety actions (who/what/when/where) added to the care plan. (Tool TL-008 is planned.)",
-      "fhirArtifacts": ["Procedure", "CarePlan"],
+      "fhirArtifacts": [
+        "Procedure",
+        "CarePlan"
+      ],
       "profileGap": true
     },
     {
@@ -442,7 +828,10 @@
       "actor": "EHR System / Discharge Checklist Manager",
       "status": "completed",
       "notes": "Discharge readiness checklist completed; a blocking alert would have prevented discharge until safety planning and means counseling were on file.",
-      "fhirArtifacts": ["Task", "Flag"],
+      "fhirArtifacts": [
+        "Task",
+        "Flag"
+      ],
       "profileGap": true
     },
     {
@@ -454,7 +843,10 @@
       "actor": "EHR System / Patient Materials Generator",
       "status": "completed",
       "notes": "Suicide-specific after-visit summary generated; printed/portal-delivered safety plan and discharge instructions provided to the patient.",
-      "fhirArtifacts": ["Composition", "DocumentReference"],
+      "fhirArtifacts": [
+        "Composition",
+        "DocumentReference"
+      ],
       "profileGap": true
     },
     {
@@ -466,7 +858,11 @@
       "actor": "ED Clinician / Orderer",
       "status": "completed",
       "notes": "Urgent outpatient behavioral-health referral placed with an appointment request and a communication to the receiving provider. (Tool TL-009 is planned.)",
-      "fhirArtifacts": ["ServiceRequest", "Appointment", "Communication"],
+      "fhirArtifacts": [
+        "ServiceRequest",
+        "Appointment",
+        "Communication"
+      ],
       "profileGap": true
     },
     {
@@ -478,7 +874,11 @@
       "actor": "EHR System / Transmitter",
       "status": "completed",
       "notes": "Suicide-specific transition-of-care packet (safety plan + risk summary + follow-up plan) transmitted to outpatient BH, with Provenance for delivery.",
-      "fhirArtifacts": ["Bundle", "Composition", "Provenance"],
+      "fhirArtifacts": [
+        "Bundle",
+        "Composition",
+        "Provenance"
+      ],
       "profileGap": true
     },
     {
@@ -490,7 +890,9 @@
       "actor": "Care Team / Coordinator",
       "status": "scheduled",
       "notes": "Awaiting confirmation that the receiving outpatient BH program received the transition packet and scheduled the appointment.",
-      "fhirArtifacts": ["Communication"],
+      "fhirArtifacts": [
+        "Communication"
+      ],
       "profileGap": true
     },
     {
@@ -502,7 +904,11 @@
       "actor": "EHR System / Follow-Up Protocol Manager",
       "status": "scheduled",
       "notes": "First caring contact (24–48h post-discharge phone call) scheduled per the follow-up PlanDefinition; patient enrolled in the caring-contacts registry. (Tools TL-010 / TL-033 are planned.)",
-      "fhirArtifacts": ["Task", "CommunicationRequest", "PlanDefinition"],
+      "fhirArtifacts": [
+        "Task",
+        "CommunicationRequest",
+        "PlanDefinition"
+      ],
       "profileGap": true
     },
     {
@@ -514,7 +920,11 @@
       "actor": "Care Team / Outreach + Monitor",
       "status": "scheduled",
       "notes": "7-day follow-up outreach attempt with an updated risk check and care-plan review.",
-      "fhirArtifacts": ["Communication", "Observation", "CarePlan"],
+      "fhirArtifacts": [
+        "Communication",
+        "Observation",
+        "CarePlan"
+      ],
       "profileGap": true
     },
     {
@@ -526,7 +936,11 @@
       "actor": "EHR System / Exception + Escalation Manager",
       "status": "scheduled",
       "notes": "If a follow-up attempt is missed, the task transitions to overdue and a supervisor alert plus an escalated follow-up Flag fire automatically.",
-      "fhirArtifacts": ["Task", "Communication", "Flag"],
+      "fhirArtifacts": [
+        "Task",
+        "Communication",
+        "Flag"
+      ],
       "profileGap": true
     }
   ],
@@ -720,7 +1134,18 @@
           }
         }
       ],
-      "description": "Assembled at ED discharge; copy to the patient and to outpatient BH."
+      "description": "Assembled at ED discharge; copy to the patient and to outpatient BH.",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceRequests": [
@@ -767,6 +1192,17 @@
       "note": [
         {
           "text": "Intake completed 2026-05-27."
+        }
+      ],
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ]
     }

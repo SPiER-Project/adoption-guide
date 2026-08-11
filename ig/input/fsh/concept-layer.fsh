@@ -94,6 +94,82 @@ Description: "Bindable set of SPiER concept-domain categories."
 * include codes from system SPiERConceptDomain
 
 
+// --- The domain category, as a reusable rule (#262) -----------------
+//
+// Gravity's leverage does not come from having a domain list. It comes from
+// the SAME domain code riding on `.category` of every resource in the chain,
+// so a consumer can ask each resource type the same question and assemble the
+// whole record without understanding which instrument produced any of it.
+//
+// SPiER defined the domain here and then applied it in exactly one place — the
+// harmonized concept Observation below — so a domain query returned concept
+// Observations and nothing else: not the safety plan, not the driver
+// Conditions, not the referral, not the caring contact.
+//
+// This RuleSet is that slice, written once. It is inserted by every profile
+// whose resource type has a native `category` element. Repeating the block per
+// profile would have been ~28 copies of a discriminator that must stay
+// identical to be queryable at all, which is the kind of duplication that
+// drifts silently — the same failure this epic keeps finding.
+//
+// Shape notes, all deliberate:
+//  * `#pattern` discriminator on `$this`, slicing `#open` — the US Core vitals
+//    idiom, already used by SPiERSuicideRiskConcept. Open slicing is what lets
+//    standard categories (`survey`, `encounter-diagnosis`, a LOINC document
+//    type) sit alongside the domain code instead of competing with it. A
+//    blanket extensible binding on the whole array would raise validator
+//    warnings for exactly those legitimate neighbours.
+//  * `1..1` on the slice, not `0..1`. An optional domain tag answers "some of
+//    the record, sometimes", which is not a queryable guarantee — a consumer
+//    could not tell a missing tag from an absent resource.
+//  * The rule is ADDITIVE. No profile loses a category it already had, and the
+//    pathway-stage `meta.tag` is untouched. The two axes are orthogonal on
+//    purpose: stage says where in the pathway, domain says what it is about.
+// Split in two so a profile that ALREADY slices `category` can take the slice
+// without re-declaring the slicing — re-declaring would either duplicate the
+// discriminator or fight the existing one. SPiERInformationSharingConsent is
+// that case: it slices category for its own consent-category code, so it
+// inserts only the second half.
+RuleSet: SuicideRiskDomainSlicing
+* category 1..*
+* category ^slicing.discriminator.type = #pattern
+* category ^slicing.discriminator.path = "$this"
+* category ^slicing.rules = #open
+* category ^slicing.description = "Open slicing so resource-specific categories coexist with the SPiER concept-domain tag."
+
+RuleSet: SuicideRiskDomainSlice
+* category contains suicideRisk 1..1
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
+* category[suicideRisk] ^short = "SPiER concept domain — suicide risk"
+* category[suicideRisk] ^definition = "Marks this resource as part of the suicide-safer care record, so a consumer can retrieve the whole chain by domain without knowing which instrument or workflow step produced it. Screening-level: it indicates the domain addressed, not a confirmed clinical finding."
+
+// The common case — a profile whose `category` is not yet sliced.
+RuleSet: SuicideRiskDomainCategory
+* insert SuicideRiskDomainSlicing
+* insert SuicideRiskDomainSlice
+
+// EXPECTED SUSHI WARNINGS, so the next reader does not "fix" them.
+//
+// Slicing `category` makes SUSHI advise slice names for every rule that reaches
+// the element by numeric index — so each example Instance that sets its own
+// category (`* category[+] = …#survey`) now emits:
+//
+//   Sliced element Observation.category is being accessed via numeric index.
+//
+// Those entries are the UNSLICED neighbours the open slicing exists to permit;
+// they have no slice name because they are deliberately not slices. The warning
+// is advisory and the resources validate cleanly — `validate-fhir.mjs` reports
+// 0 errors across all 353.
+//
+// The way to silence it would be to declare a named slice for every standard
+// category too (a `survey` slice on each Observation profile, and so on). That
+// is a real option, but it means constraining ~28 profiles further in order to
+// quiet a linter rather than because the constraint is wanted — and it would
+// pin instances to one standard category each, which several do not have. If a
+// future change wants those slices for their own sake, add them; do not add
+// them for the warning count.
+
+
 // --- Harmonized concept Observation profile ------------------------
 
 Profile: SPiERSuicideRiskConcept
@@ -106,16 +182,11 @@ Description: "The instrument-agnostic, actionable suicide-risk concept derived f
 * status = #final (exactly)
 // Generic concept code — NOT an instrument item code.
 * code = http://loinc.org#93374-7
-// Require a suicide-risk domain category (Gravity pattern) via a sliced,
-// pattern-discriminated slice (US Core vitals style) so standard categories
-// like `survey` coexist without the validator warnings a blanket extensible
-// binding on the whole array would raise.
-* category 1..*
-* category ^slicing.discriminator.type = #pattern
-* category ^slicing.discriminator.path = "$this"
-* category ^slicing.rules = #open
-* category contains suicideRisk 1..1
-* category[suicideRisk] = SPiERConceptDomain#suicide-risk
+// Require a suicide-risk domain category (Gravity pattern). The slice itself
+// now lives in the SuicideRiskDomainCategory RuleSet above, shared with every
+// other profile in the chain — see #262. This profile is where the pattern
+// started; it is no longer the only place it applies.
+* insert SuicideRiskDomainCategory
 // Value is the common, ordered risk tier.
 * value[x] 1..1
 * value[x] only CodeableConcept

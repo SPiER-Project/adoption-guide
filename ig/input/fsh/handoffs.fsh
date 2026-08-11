@@ -195,6 +195,9 @@ Description: "A documented suicide-safety handoff at a transition of care: who i
 * status MS
 * subject MS
 * sent MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 
 
 // ─── TL-030 — Discharge Safety Packet / Transition Bundle ────
@@ -222,6 +225,9 @@ Description: "The bundle of suicide-safety material given to a patient (and/or t
 * subject MS
 * date MS
 * content MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 
 
 // ─── TL-017 — Referral or Next Provider Handoff ──────────────
@@ -247,6 +253,9 @@ Description: "A referral or handoff to the next provider/team for suicide-safety
 * subject MS
 * authoredOn MS
 * reasonCode MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 
 
 // ─── TL-031 — Next Appointment / Follow-Up Scheduling ────────
@@ -297,6 +306,10 @@ Description: "Whether suicide-safety information may be shared with another prov
 * category ^slicing.rules = #open
 * category contains suicideSafety 1..1
 * category[suicideSafety] = ConsentCategoryCodes#suicide-safety-sharing
+// Gravity-pattern domain tag (#262). Only the SLICE half of the RuleSet is
+// inserted here: this profile already declares the slicing above, and
+// re-declaring the discriminator would either duplicate it or fight it.
+* insert SuicideRiskDomainSlice
 * patient 1..1
 * patient only Reference(Patient)
 * dateTime 1..1
@@ -421,6 +434,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#coordinate-handoffs
 * status = #completed
 * category[+].text = "Suicide-safety handoff"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * sent = "2026-07-20T15:00:00Z"
 * extension[contentItem][+].valueCodeableConcept = HandoffContentCodes#current-risk-status "Current risk status"
@@ -435,6 +449,7 @@ InstanceOf: SPiERDischargeSafetyPacket
 Title: "Example — Discharge safety packet assembled under a sharing consent"
 Description: "The packet given to the patient at discharge: what it contains, the live safety plan it was built from, and — because the patient's consent excluded that category — the one thing it deliberately does not contain."
 Usage: #example
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * meta.tag[+] = SPiERPathwayStage#coordinate-handoffs
 * status = #current
 * type.text = "Suicide-safety discharge packet"
@@ -459,6 +474,7 @@ InstanceOf: SPiERSafetyReferral
 Title: "Example — Referral accepted by the receiving team"
 Description: "A suicide-safety referral tracked past 'sent': status active means the receiving team has taken it up."
 Usage: #example
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * meta.tag[+] = SPiERPathwayStage#coordinate-handoffs
 * status = #active
 * intent = #order
@@ -494,6 +510,7 @@ Usage: #example
 * status = #active
 * scope = http://terminology.hl7.org/CodeSystem/consentscope#patient-privacy
 * category[suicideSafety] = ConsentCategoryCodes#suicide-safety-sharing
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * patient = Reference(Patient/example)
 * dateTime = "2026-07-20T14:55:00Z"
 // Required by the base Consent invariant ppc-1 ("Either a Policy or

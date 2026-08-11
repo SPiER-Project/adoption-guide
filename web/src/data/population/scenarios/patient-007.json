@@ -18,12 +18,32 @@
       "id": "p007-stanley-brown",
       "status": "active",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }],
-      "subject": { "reference": "Patient/patient-007" },
-      "addresses": [{ "display": "Risk for suicide" }],
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "735324008",
+              "display": "Treatment escalation plan (record artifact)"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-007"
+      },
+      "addresses": [
+        {
+          "display": "Risk for suicide"
+        }
+      ],
       "_savedAt": "2026-05-06T16:30:00Z",
       "title": "Stanley-Brown Safety Plan",
-      "note": [{ "text": "Outpatient referral sent — awaiting receipt confirmation." }]
+      "note": [
+        {
+          "text": "Outpatient referral sent — awaiting receipt confirmation."
+        }
+      ]
     }
   ],
   "riskAlerts": [
@@ -39,9 +59,19 @@
       "resourceType": "Communication",
       "id": "p007-referral-sent",
       "status": "completed",
-      "category": [{ "text": "Referral" }],
-      "reasonCode": [{ "text": "Outpatient referral sent" }],
-      "subject": { "reference": "Patient/patient-007" },
+      "category": [
+        {
+          "text": "Referral"
+        }
+      ],
+      "reasonCode": [
+        {
+          "text": "Outpatient referral sent"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-007"
+      },
       "sent": "2026-05-08T10:00:00Z",
       "_savedAt": "2026-05-08T10:00:00Z"
     }
@@ -209,7 +239,18 @@
           }
         }
       ],
-      "description": "Transition packet prepared at discharge from the crisis stabilization unit."
+      "description": "Transition packet prepared at discharge from the crisis stabilization unit.",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceRequests": [
@@ -256,6 +297,17 @@
       "note": [
         {
           "text": "Accepted by the receiving team; intake not yet completed."
+        }
+      ],
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ]
     }

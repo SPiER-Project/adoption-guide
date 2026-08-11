@@ -163,6 +163,9 @@ Description: "One follow-up contact attempt and what came of it. Serves BOTH rou
 * status MS
 * subject MS
 * sent MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 
 
 // ─── TL-010 — Caring contact ─────────────────────────────────
@@ -183,6 +186,9 @@ Description: "A caring contact: a brief, non-demanding supportive message sent o
 * status MS
 * subject MS
 * sent MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 
 
 // ─── ActivityDefinitions ─────────────────────────────────────
@@ -301,6 +307,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#track-follow-up
 * status = #completed
 * category[+].text = "Follow-up outreach attempt"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * sent = "2026-07-27T16:30:00Z"
 * medium[+] = http://terminology.hl7.org/CodeSystem/v3-ParticipationMode#PHONE "Telephone"
@@ -317,6 +324,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#track-follow-up
 * status = #completed
 * category[+].text = "No-show follow-up"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * sent = "2026-07-28T09:15:00Z"
 * medium[+] = http://terminology.hl7.org/CodeSystem/v3-ParticipationMode#PHONE "Telephone"
@@ -334,6 +342,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#track-follow-up
 * status = #completed
 * category[+].text = "Caring contact"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * sent = "2026-08-03T10:00:00Z"
 * medium[+] = http://terminology.hl7.org/CodeSystem/v3-ParticipationMode#WRITTEN "Written"

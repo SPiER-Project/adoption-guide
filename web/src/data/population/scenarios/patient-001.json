@@ -9,15 +9,114 @@
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
         "item": [
-          { "linkId": "q1", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6571-9", "display": "Nearly every day" } }] },
-          { "linkId": "q2", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] },
-          { "linkId": "q3", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6571-9", "display": "Nearly every day" } }] },
-          { "linkId": "q4", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] },
-          { "linkId": "q5", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
-          { "linkId": "q6", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] },
-          { "linkId": "q7", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
-          { "linkId": "q8", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
-          { "linkId": "q9", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6570-1", "display": "More than half the days" } }] }
+          {
+            "linkId": "q1",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6571-9",
+                  "display": "Nearly every day"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q2",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6570-1",
+                  "display": "More than half the days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q3",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6571-9",
+                  "display": "Nearly every day"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q4",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6570-1",
+                  "display": "More than half the days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q5",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q6",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6570-1",
+                  "display": "More than half the days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q7",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q8",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q9",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6570-1",
+                  "display": "More than half the days"
+                }
+              }
+            ]
+          }
         ]
       }
     },
@@ -33,16 +132,71 @@
           {
             "linkId": "screening-questions",
             "item": [
-              { "linkId": "q1", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }] },
-              { "linkId": "q2", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373066001", "display": "Yes" } }] },
-              { "linkId": "q3", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] },
-              { "linkId": "q4", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] }
+              {
+                "linkId": "q1",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q2",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q3",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
             ]
           },
           {
             "linkId": "acuity-section",
             "item": [
-              { "linkId": "q5", "answer": [{ "valueCoding": { "system": "http://snomed.info/sct", "code": "373067005", "display": "No" } }] }
+              {
+                "linkId": "q5",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
             ]
           }
         ]
@@ -63,42 +217,119 @@
               {
                 "linkId": "1-psychological-pain",
                 "item": [
-                  { "linkId": "1-score", "answer": [{ "valueInteger": 4 }] },
-                  { "linkId": "1-text", "answer": [{ "valueString": "Constant ache in my chest, feeling of dread that won't go away" }] }
+                  {
+                    "linkId": "1-score",
+                    "answer": [
+                      {
+                        "valueInteger": 4
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "1-text",
+                    "answer": [
+                      {
+                        "valueString": "Constant ache in my chest, feeling of dread that won't go away"
+                      }
+                    ]
+                  }
                 ]
               },
               {
                 "linkId": "2-stress",
                 "item": [
-                  { "linkId": "2-score", "answer": [{ "valueInteger": 4 }] },
-                  { "linkId": "2-text", "answer": [{ "valueString": "Work pressure, relationship problems, financial strain" }] }
+                  {
+                    "linkId": "2-score",
+                    "answer": [
+                      {
+                        "valueInteger": 4
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "2-text",
+                    "answer": [
+                      {
+                        "valueString": "Work pressure, relationship problems, financial strain"
+                      }
+                    ]
+                  }
                 ]
               },
               {
                 "linkId": "3-agitation",
                 "item": [
-                  { "linkId": "3-score", "answer": [{ "valueInteger": 3 }] },
-                  { "linkId": "3-text", "answer": [{ "valueString": "Can't sit still, pacing at night" }] }
+                  {
+                    "linkId": "3-score",
+                    "answer": [
+                      {
+                        "valueInteger": 3
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "3-text",
+                    "answer": [
+                      {
+                        "valueString": "Can't sit still, pacing at night"
+                      }
+                    ]
+                  }
                 ]
               },
               {
                 "linkId": "4-hopelessness",
                 "item": [
-                  { "linkId": "4-score", "answer": [{ "valueInteger": 4 }] },
-                  { "linkId": "4-text", "answer": [{ "valueString": "Nothing will ever get better" }] }
+                  {
+                    "linkId": "4-score",
+                    "answer": [
+                      {
+                        "valueInteger": 4
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "4-text",
+                    "answer": [
+                      {
+                        "valueString": "Nothing will ever get better"
+                      }
+                    ]
+                  }
                 ]
               },
               {
                 "linkId": "5-self-hate",
                 "item": [
-                  { "linkId": "5-score", "answer": [{ "valueInteger": 3 }] },
-                  { "linkId": "5-text", "answer": [{ "valueString": "I'm a burden to everyone around me" }] }
+                  {
+                    "linkId": "5-score",
+                    "answer": [
+                      {
+                        "valueInteger": 3
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "5-text",
+                    "answer": [
+                      {
+                        "valueString": "I'm a burden to everyone around me"
+                      }
+                    ]
+                  }
                 ]
               },
               {
                 "linkId": "6-overall-risk",
                 "item": [
-                  { "linkId": "6-score", "answer": [{ "valueInteger": 3 }] }
+                  {
+                    "linkId": "6-score",
+                    "answer": [
+                      {
+                        "valueInteger": 3
+                      }
+                    ]
+                  }
                 ]
               }
             ]
@@ -121,108 +352,487 @@
     {
       "resourceType": "Observation",
       "id": "p001-phq9-total",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]" }], "text": "PHQ-9 total score" },
-      "subject": { "reference": "Patient/patient-001" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "44261-6",
+            "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
+          }
+        ],
+        "text": "PHQ-9 total score"
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
       "effectiveDateTime": "2026-03-13T10:15:00Z",
       "valueInteger": 18,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "HH", "display": "Critical high" }], "text": "Moderately Severe depression (score 18/27)" }]
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "HH",
+              "display": "Critical high"
+            }
+          ],
+          "text": "Moderately Severe depression (score 18/27)"
+        }
+      ]
     },
     {
       "resourceType": "Observation",
       "id": "p001-phq9-item9",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]" }], "text": "Thoughts of death/self-harm" },
-      "subject": { "reference": "Patient/patient-001" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "44260-8",
+            "display": "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]"
+          }
+        ],
+        "text": "Thoughts of death/self-harm"
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
       "effectiveDateTime": "2026-03-13T10:15:00Z",
       "valueInteger": 2,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "A", "display": "Abnormal" }], "text": "Positive — suicide risk screening indicated" }]
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "A",
+              "display": "Abnormal"
+            }
+          ],
+          "text": "Positive — suicide risk screening indicated"
+        }
+      ]
     },
     {
       "resourceType": "Observation",
       "id": "p001-asq-result",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }] },
-      "subject": { "reference": "Patient/patient-001" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
       "effectiveDateTime": "2026-03-13T10:35:00Z",
-      "valueCodeableConcept": { "coding": [{ "system": "http://spier.org/CodeSystem/asq-screening-result", "code": "non-acute-positive", "display": "Non-Acute Positive Screen" }] }
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/asq-screening-result",
+            "code": "non-acute-positive",
+            "display": "Non-Acute Positive Screen"
+          }
+        ]
+      }
     },
     {
       "resourceType": "Observation",
       "id": "p001-cams-pain",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "clarify-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "clarify-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "Psychological Pain" }], "text": "CAMS SSF: Psychological Pain" },
-      "subject": { "reference": "Patient/patient-001" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/cams-ssf",
+            "code": "psychological-pain",
+            "display": "Psychological Pain"
+          }
+        ],
+        "text": "CAMS SSF: Psychological Pain"
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "High" }], "text": "Elevated (4/5)" }]
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "H",
+              "display": "High"
+            }
+          ],
+          "text": "Elevated (4/5)"
+        }
+      ]
     },
     {
       "resourceType": "Observation",
       "id": "p001-cams-hopelessness",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "clarify-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "clarify-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://spier.org/CodeSystem/cams-ssf", "code": "hopelessness", "display": "Hopelessness" }], "text": "CAMS SSF: Hopelessness" },
-      "subject": { "reference": "Patient/patient-001" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/cams-ssf",
+            "code": "hopelessness",
+            "display": "Hopelessness"
+          }
+        ],
+        "text": "CAMS SSF: Hopelessness"
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "H", "display": "High" }], "text": "Elevated (4/5)" }]
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "H",
+              "display": "High"
+            }
+          ],
+          "text": "Elevated (4/5)"
+        }
+      ]
     },
     {
       "resourceType": "Observation",
       "id": "p001-cams-risk",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "clarify-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "clarify-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }] },
-      "subject": { "reference": "Patient/patient-001" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 3,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Normal" }], "text": "Moderate risk (3/5)" }]
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "N",
+              "display": "Normal"
+            }
+          ],
+          "text": "Moderate risk (3/5)"
+        }
+      ]
     }
   ],
   "carePlans": [
     {
       "resourceType": "CarePlan",
       "id": "p001-stanley-brown",
-      "meta": { "profile": ["http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"] },
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
+        ]
+      },
       "status": "active",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://snomed.info/sct", "code": "735324008", "display": "Treatment escalation plan (record artifact)" }] }, { "coding": [{ "system": "http://loinc.org", "code": "87626-8", "display": "Suicide prevention note" }] }],
-      "subject": { "reference": "Patient/patient-001" },
-      "addresses": [{ "display": "Risk for suicide" }],
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "735324008",
+              "display": "Treatment escalation plan (record artifact)"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "87626-8",
+              "display": "Suicide prevention note"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "addresses": [
+        {
+          "display": "Risk for suicide"
+        }
+      ],
       "created": "2026-03-15T14:00:00Z",
       "_savedAt": "2026-03-15T14:00:00Z",
       "activity": [
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "warning-signs" }], "text": "Step 1: Warning Signs" }, "status": "in-progress", "description": "Feeling trapped, chest tightness, racing thoughts at night, withdrawing from friends" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "internal-coping" }], "text": "Step 2: Internal Coping Strategies" }, "status": "in-progress", "description": "Deep breathing exercises, going for a walk, listening to music, journaling" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "social-distraction" }], "text": "Step 3: Social Distractions" }, "status": "in-progress", "description": "Call sister Maria, visit coffee shop on Main St, go to the gym" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "crisis-support" }], "text": "Step 4: Crisis Support Contacts" }, "status": "in-progress", "description": "Maria Doe (555-0101), best friend Tom (555-0102)" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "professional-support" }], "text": "Step 5: Professional Support" }, "status": "in-progress", "description": "Dr. Sarah Chen (555-0200) / City General ED, 100 Hospital Dr (555-0300) / 988 Suicide & Crisis Lifeline" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "lethal-means-safety" }], "text": "Step 6: Lethal Means Safety" }, "status": "in-progress", "description": "Gave prescription medications to sister Maria for safekeeping, removed sharp objects from bedroom" } },
-        { "detail": { "code": { "coding": [{ "system": "http://spier.org/CodeSystem/safety-plan-section", "code": "reason-for-living" }], "text": "Step 7: Reason for Living" }, "status": "in-progress", "description": "My niece Sofia — I want to see her grow up" } }
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "warning-signs"
+                }
+              ],
+              "text": "Step 1: Warning Signs"
+            },
+            "status": "in-progress",
+            "description": "Feeling trapped, chest tightness, racing thoughts at night, withdrawing from friends"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "internal-coping"
+                }
+              ],
+              "text": "Step 2: Internal Coping Strategies"
+            },
+            "status": "in-progress",
+            "description": "Deep breathing exercises, going for a walk, listening to music, journaling"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "social-distraction"
+                }
+              ],
+              "text": "Step 3: Social Distractions"
+            },
+            "status": "in-progress",
+            "description": "Call sister Maria, visit coffee shop on Main St, go to the gym"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "crisis-support"
+                }
+              ],
+              "text": "Step 4: Crisis Support Contacts"
+            },
+            "status": "in-progress",
+            "description": "Maria Doe (555-0101), best friend Tom (555-0102)"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "professional-support"
+                }
+              ],
+              "text": "Step 5: Professional Support"
+            },
+            "status": "in-progress",
+            "description": "Dr. Sarah Chen (555-0200) / City General ED, 100 Hospital Dr (555-0300) / 988 Suicide & Crisis Lifeline"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "lethal-means-safety"
+                }
+              ],
+              "text": "Step 6: Lethal Means Safety"
+            },
+            "status": "in-progress",
+            "description": "Gave prescription medications to sister Maria for safekeeping, removed sharp objects from bedroom"
+          }
+        },
+        {
+          "detail": {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://spier.org/CodeSystem/safety-plan-section",
+                  "code": "reason-for-living"
+                }
+              ],
+              "text": "Step 7: Reason for Living"
+            },
+            "status": "in-progress",
+            "description": "My niece Sofia — I want to see her grow up"
+          }
+        }
       ],
-      "note": [{ "text": "DEMO SCENARIO — Safety plan created collaboratively during session 2." }]
+      "note": [
+        {
+          "text": "DEMO SCENARIO — Safety plan created collaboratively during session 2."
+        }
+      ]
     },
     {
       "resourceType": "CarePlan",
       "id": "p001-handoff",
       "status": "completed",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "coordinate-handoffs", "display": "Coordinate Handoffs" }] }],
-      "subject": { "reference": "Patient/patient-001" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+              "code": "coordinate-handoffs",
+              "display": "Coordinate Handoffs"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
       "_savedAt": "2026-03-17T09:00:00Z",
       "title": "Outpatient referral sent",
-      "note": [{ "text": "Referral sent to outpatient behavioral health following the safety plan; caring-contact cadence to begin once receipt is confirmed." }]
+      "note": [
+        {
+          "text": "Referral sent to outpatient behavioral health following the safety plan; caring-contact cadence to begin once receipt is confirmed."
+        }
+      ]
     }
   ],
   "riskAlerts": [
@@ -231,21 +841,30 @@
       "level": "high",
       "summary": "PHQ-9 Item 9 positive (score: 2/3)",
       "detail": "Patient endorsed thoughts of death or self-harm on more than half the days. Total PHQ-9 score: 18/27 (Moderately Severe). Further suicide risk assessment completed.",
-      "suggestedAction": { "label": "View ASQ Results", "path": "/patient/assessments" }
+      "suggestedAction": {
+        "label": "View ASQ Results",
+        "path": "/patient/assessments"
+      }
     },
     {
       "tool": "ASQ",
       "level": "moderate",
       "summary": "ASQ: Non-Acute Positive Screen",
       "detail": "Patient endorsed passive death wish and perceived burdensomeness. No active plan or current ideation. CAMS assessment initiated.",
-      "suggestedAction": { "label": "View CAMS Assessment", "path": "/patient/assessments" }
+      "suggestedAction": {
+        "label": "View CAMS Assessment",
+        "path": "/patient/assessments"
+      }
     },
     {
       "tool": "CAMS Section A",
       "level": "high",
       "summary": "CAMS Vitals: Elevated scores (max 4/5)",
       "detail": "Psychological pain and hopelessness both rated 4/5. Stabilization plan completed. Follow-up scheduled.",
-      "suggestedAction": { "label": "View Care Plan", "path": "/patient/chart#care-plans" }
+      "suggestedAction": {
+        "label": "View Care Plan",
+        "path": "/patient/chart#care-plans"
+      }
     }
   ],
   "episodes": [
@@ -345,7 +964,16 @@
         {
           "text": "Firearms transferred to brother for safekeeping; medications moved to a lockbox. Agreed at the safety-planning session."
         }
-      ]
+      ],
+      "category": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-concept-domain",
+            "code": "suicide-risk",
+            "display": "Suicide risk"
+          }
+        ]
+      }
     }
   ],
   "documentReferences": [
@@ -464,7 +1092,18 @@
           }
         }
       ],
-      "description": "Given to the patient at discharge; duplicate sent to the receiving outpatient team."
+      "description": "Given to the patient at discharge; duplicate sent to the receiving outpatient team.",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceRequests": [
@@ -511,6 +1150,17 @@
       "note": [
         {
           "text": "Accepted same day; patient seen 2026-03-20."
+        }
+      ],
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ]
     }
@@ -571,6 +1221,15 @@
       "category": [
         {
           "text": "Follow-up outreach attempt"
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ],
       "subject": {
@@ -643,6 +1302,15 @@
       "category": [
         {
           "text": "Caring contact"
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ],
       "subject": {

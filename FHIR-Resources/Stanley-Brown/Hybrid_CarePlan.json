@@ -30,6 +30,15 @@
           "display": "Suicide prevention note"
         }
       ]
+    },
+    {
+      "coding": [
+        {
+          "system": "http://spier.org/CodeSystem/spier-concept-domain",
+          "code": "suicide-risk",
+          "display": "Suicide risk"
+        }
+      ]
     }
   ],
   "subject": {

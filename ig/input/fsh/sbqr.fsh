@@ -19,6 +19,9 @@ Description: "Integer total score (3–18) derived from a completed SBQ-R Questi
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 // TERMINOLOGY NOTE (LOINC recheck, July 2026):
 //   As of July 2026 there is still no published LOINC panel, item, or
 //   total-score code for the SBQ-R (see
@@ -77,6 +80,7 @@ Description: "Sample SBQ-R total-score Observation indicating a score above both
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:45:00Z"
