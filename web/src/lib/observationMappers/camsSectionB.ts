@@ -26,11 +26,17 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
         clinicalStatus: {
           coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-clinical', code: 'active', display: 'Active' }],
         },
+        // Both categories are SPiER-local and canonical (#265). The demo used to
+        // emit http://cams-care.com/… here — a vendor marketing-site URL that is
+        // not a resolvable terminology server, and which disagreed with the IG
+        // this app is meant to demonstrate. `ig/` is canonical for CodeSystems;
+        // see SPiERCAMSSuicideDriver in ig/input/fsh/cams.fsh, where each of
+        // these is now a named, bound slice on Condition.category.
         category: [
           {
             coding: [
               {
-                system: 'http://cams-care.com/driver-category',
+                system: 'http://spier.org/CodeSystem/cams-driver-category',
                 code: 'suicide-driver',
                 display: 'Suicide Driver',
               },
@@ -38,7 +44,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
           },
           ...(driverType ? [{
             coding: [{
-              system: 'http://cams-care.com/driver-type',
+              system: 'http://spier.org/CodeSystem/cams-driver-type',
               code: driverType.code,
               display: driverType.display,
             }],

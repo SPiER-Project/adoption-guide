@@ -12,8 +12,15 @@ The core of CAMS is identifying and treating specific "Drivers" (problems) that 
     *   `driver-1-type` (Direct vs Indirect)
 *   **Action:** The EHR backend MUST extract these answers and create **FHIR Condition** resources.
     *   `Condition.code.text` = `driver-1-desc`
-    *   `Condition.category` = `suicide-driver` (System: `http://cams-care.com/driver-category`)
+    *   `Condition.category` = `suicide-driver` (System: `http://spier.org/CodeSystem/cams-driver-category`) — required, `1..1`
+    *   `Condition.category` = `direct` / `indirect` from `driver-1-type` (System: `http://spier.org/CodeSystem/cams-driver-type`) — optional, `0..1`, required-bound when present
     *   `Condition.clinicalStatus` = `active`
+
+    Both systems are SPiER-local and defined in `ig/input/fsh/cams.fsh`; see the
+    `SPiERCAMSSuicideDriver` profile, where each is a named slice on
+    `Condition.category`. Earlier revisions of this file and of the demo mapper
+    named `http://cams-care.com/…` URLs, which are not resolvable terminology
+    (#265).
 
 ### Step 2: Exploration (Interim Sessions)
 *   **Source:** `Condition` resources (Query: `category=suicide-driver&status=active`)

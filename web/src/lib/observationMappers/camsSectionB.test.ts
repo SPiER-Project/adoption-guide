@@ -13,7 +13,7 @@ function camsBResponse(opts: {
   ;(opts.drivers ?? []).forEach((d, i) => {
     const n = i + 1
     if (d.desc !== undefined) item.push({ linkId: `driver-${n}-desc`, answer: [{ valueString: d.desc }] })
-    if (d.type) item.push({ linkId: `driver-${n}-type`, answer: [{ valueCoding: { system: 'http://cams-care.com/driver-type', code: d.type.code, display: d.type.display } }] })
+    if (d.type) item.push({ linkId: `driver-${n}-type`, answer: [{ valueCoding: { system: 'http://spier.org/CodeSystem/cams-driver-type', code: d.type.code, display: d.type.display } }] })
   })
   if (opts.ideationPresent !== undefined) item.push({ linkId: 'ideation-present', answer: [{ valueBoolean: opts.ideationPresent }] })
   if (opts.planPresent !== undefined) item.push({ linkId: 'plan-present', answer: [{ valueBoolean: opts.planPresent }] })
