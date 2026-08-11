@@ -122,6 +122,24 @@
   white-space: normal;
 }
 
+/* An element that genuinely carries no code of its own. */
+.dd-code-none {
+  color: var(--text-faint);
+}
+
+/*
+ * Marks a system as a value-side vocabulary rather than the element's own code
+ * — the distinction the flat schema could not express, and the reason
+ * `asq-result` once documented its value system in the code column.
+ */
+.dd-system-note {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-style: italic;
+  color: var(--text-faint);
+}
+
 .dd-cell-system {
   font-size: var(--font-size-sm);
   color: var(--text-muted);

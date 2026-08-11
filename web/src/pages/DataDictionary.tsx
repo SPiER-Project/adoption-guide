@@ -3,6 +3,7 @@ import {
   STAGES,
   TOOLS,
   DATA_ELEMENTS,
+  systemLabel,
   type DataElement,
   type Tool,
 } from '../data/catalog'
@@ -74,10 +75,15 @@ export function DataDictionary() {
     return DATA_ELEMENTS.filter(el => {
       if (resourceFilter !== 'All' && el.fhirResource !== resourceFilter) return false
       if (!q) return true
+      // Systems are searchable by BOTH the full URL and the short label, so a
+      // query for "LOINC" and one for "loinc.org" both land.
+      const system = el.coding?.system ?? el.answerSystem
       return (
         el.name.toLowerCase().includes(q) ||
-        el.code.toLowerCase().includes(q) ||
-        el.codeDisplay.toLowerCase().includes(q) ||
+        (el.coding?.code.toLowerCase().includes(q) ?? false) ||
+        (el.coding?.display.toLowerCase().includes(q) ?? false) ||
+        (system?.toLowerCase().includes(q) ?? false) ||
+        (system ? systemLabel(system).toLowerCase().includes(q) : false) ||
         el.description.toLowerCase().includes(q) ||
         el.fhirPath.toLowerCase().includes(q) ||
         el.usedBy.some(tid => toolIndex.get(tid)?.name.toLowerCase().includes(q))
@@ -156,12 +162,27 @@ export function DataDictionary() {
                         )}
                       </td>
                       <td className="dd-cell-code">
-                        {el.code}
-                        {el.codeDisplay && el.codeDisplay !== 'N/A' && (
-                          <span className="dd-code-display">{el.codeDisplay}</span>
+                        {el.coding ? (
+                          <>
+                            {el.coding.code}
+                            <span className="dd-code-display">{el.coding.display}</span>
+                          </>
+                        ) : (
+                          <span className="dd-code-none" title="This element carries no code of its own">—</span>
                         )}
                       </td>
-                      <td className="dd-cell-system">{el.codeSystem}</td>
+                      <td className="dd-cell-system">
+                        {el.coding ? (
+                          <span title={el.coding.system}>{systemLabel(el.coding.system)}</span>
+                        ) : el.answerSystem ? (
+                          <span title={el.answerSystem}>
+                            {systemLabel(el.answerSystem)}
+                            <span className="dd-system-note">answer values</span>
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                       <td>
                         <span className={`dd-resource-badge dd-resource-badge--${el.fhirResource.toLowerCase()}`}>
                           {el.fhirResource}

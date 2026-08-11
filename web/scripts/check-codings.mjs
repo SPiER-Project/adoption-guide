@@ -24,7 +24,7 @@
  *
  * ─── What it does ────────────────────────────────────────────
  *
- * Scans TypeScript under web/src and services/ plus docs/terminology-manifest.json
+ * Scans TypeScript under web/src and services/
  * for object literals carrying an external system (LOINC, SNOMED CT, or any HL7
  * terminology.hl7.org CodeSystem), then asks a terminology server to confirm each
  * `code` exists and — where a `display` is written — that the display is one the
@@ -118,17 +118,64 @@ const familyOf = system =>
 // That convention has to be re-checked when a source grows, because nothing
 // re-checks it on its own. #43 doubled the manifest's SNOMED inventory from 10
 // codings to 20 while its floor sat at 5, quietly dropping that floor from ~50%
-// of the real count to 25% (issue #232). Raised to 10 here. Counts at the time
-// of writing, 2026-08-08:
+// of the real count to 25% (issue #232).
 //
-//   web/src    loinc 41 / snomed 12 / tho 25
-//   manifest   loinc  8 / snomed 20 / tho  0
+// ─── docs/terminology-manifest.json, and why it is gone ──────
+//
+// #261 removed it. It was a hand-maintained JSON inventory of 20 distinct
+// codings, scanned here as a third source. Every one of those 20 was verified
+// to also live in `ig/` or `FHIR-Resources/` — where `validate-fhir.mjs --tx`
+// checks them at RESOURCE level (binding, context, cardinality, and the
+// display), which is strictly stronger than the code+display check here. So it
+// was a shadow copy, not independent coverage, and a second place to forget to
+// update.
+//
+// Losing a source does cost something, and it is worth naming: SCAN now has one
+// entry with non-zero floors instead of two. But the manifest was never
+// corroboration — re-read the total-floor paragraph above and note that the
+// manifest is what *masked* a completely dead TypeScript scan. Its presence was
+// a hazard the per-source floors had to work around, and per-source-per-family
+// floors on web/src still fail loudly if the extractor breaks or the path moves.
+//
+// Counts at the time of writing, 2026-08-10, after #261 brought the data
+// dictionary (web/src/data/catalog/dataElements.ts) inside the scan — it had
+// been invisible because it spelled its system `codeSystem: 'LOINC'` rather
+// than as a URL, so ~70 codings on the page an implementer is most likely to
+// copy from had never been checked at all:
+//
+//   web/src    loinc 69 / snomed 15 / tho 25
 //
 // The run prints the live count next to each floor on every invocation, so the
 // figures above are checkable against any recent nightly log rather than taken
 // on trust.
 const SCAN = [
-  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 20, snomed: 5, tho: 10 } },
+  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 34, snomed: 7, tho: 12 } },
+  // ─── Deliberately OVERLAPS web/src above ───────────────────
+  //
+  // Two independent contributors sit inside web/src — the runtime mappers
+  // (web/src/lib) and the data dictionary (this path) — and a whole-tree floor
+  // cannot tell them apart. #261 proved that with a break-test: reverting the
+  // dictionary to its old un-gated shape drops web/src LOINC from 69 to 41,
+  // which still clears a floor of 34, so the run stayed GREEN while ~28 codings
+  // silently left the scan. That is the same "one half masks the other" hole
+  // #236 found when THO was added, one level further down.
+  //
+  // Overlapping scans are safe: `found` is keyed by system|code|display so a
+  // coding seen twice collapses to one entry (gaining a second path in `files`),
+  // and `perSource` is tallied per entry. The cost is one extra tree walk; the
+  // benefit is that the dictionary has to prove its own liveness.
+  //
+  // Counts 2026-08-10: loinc 35 / snomed 3 / tho 14. Note the catalog directory
+  // is not only the dictionary — the THO codings are all from
+  // tool-ui-metadata.ts, and dataElements.ts contributes none. (The two
+  // terminology.hl7.org literals inside `systemLabel()` are prefix tests, not
+  // codings, and are correctly skipped: their enclosing block has no `system`
+  // field for the extractor to match.)
+  {
+    path: 'web/src/data/catalog',
+    exts: ['.ts', '.tsx'],
+    minCodings: { loinc: 17, snomed: 1, tho: 7 },
+  },
   // Real zeros, verified rather than assumed. The Worker reuses the web catalog
   // instead of restating codes; its only two LOINC literals are in
   // services/cds-hooks/src/service.test.ts, where `code` is bound to a *variable*
@@ -136,12 +183,9 @@ const SCAN = [
   // under "not validated" below, not here.
   //
   // A floor of 0 cannot fail, so this entry contributes no protection against a
-  // broken extractor; web/src and the manifest are what provide that. It stays in
-  // SCAN so that terminology added to the Worker later is covered from day one.
+  // broken extractor; web/src is what provides that. It stays in SCAN so that
+  // terminology added to the Worker later is covered from day one.
   { path: 'services', exts: ['.ts'], minCodings: { loinc: 0, snomed: 0, tho: 0 } },
-  // The manifest is a LOINC/SNOMED inventory; it names no THO code, so that floor
-  // is 0 here for the same "verified real zero" reason as `services`.
-  { path: 'docs/terminology-manifest.json', exts: ['.json'], minCodings: { loinc: 4, snomed: 10, tho: 0 } },
 ]
 
 // The contract between EXTERNAL_FAMILIES and SCAN, enforced rather than asked for.
