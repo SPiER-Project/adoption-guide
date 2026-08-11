@@ -125,7 +125,10 @@ of them is a new kind of data:
   MeasureReports; operational counts (screening volume, active episodes,
   overdue items) read the same registry query TL-037 defines,
   `EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on`.
-  The SSC's filter list maps onto search parameters over those two reads.
+  The SSC's filter list maps onto search parameters over those two reads. Note that
+  `_revinclude` support is optional in FHIR — see *Do not assume `_revinclude`* in
+  [Quick Starts](quick-starts.html); a server without it needs a second read of
+  `Task?encounter=` or `Task?based-on=`.
 - **TL-044 Data Export** is a *serialization*. The SSC's real requirement is
   that an extract carry structured fields **and the timestamps needed for
   measurement** — which the profiles already guarantee, since every one

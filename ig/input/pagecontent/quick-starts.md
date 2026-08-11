@@ -45,12 +45,105 @@ Three profiled resource types have no `category` element in R4, and are therefor
 | Resource | R4 reality | Retrieve instead by |
 |---|---|---|
 | `EpisodeOfCare` | no `category`; has `type` | `GET [base]/EpisodeOfCare?type=http://spier.org/CodeSystem/spier-episode-type\|suicide-safer-care` |
-| `Appointment` | no `category`; has `serviceCategory` | the episode it belongs to, or `Appointment?service-category=` |
+| `Appointment` | no `category`; has `serviceCategory` | the Encounter that names it (`Encounter.appointment`) — see *Retrieving one episode's record* below |
 | `Task` | no `category`; `Task.code` is already load-bearing | `Task.basedOn` → the episode (`GET [base]/EpisodeOfCare/[id]?_revinclude=Task:based-on`) |
 
 Extending the domain tag to these three needs a different element per type (and, for `Task`, either a custom SearchParameter or acceptance that an extension is not searchable). That is deliberately **not** done here — see the follow-up issue linked from the SPiER repo — because putting a domain code into `serviceCategory` or `Task.code` without settling the search story would look like coverage while providing none.
 
 `Procedure` is a partial case worth knowing about: R4 gives `Procedure.category` a maximum of 1 (it becomes `0..*` only in R5), so `SPiERLethalMeansCounseling` spends its single category slot on the domain code. The counselling act itself is identified by `Procedure.code`.
+
+## Retrieving one episode's record
+
+The domain category above answers "everything about suicide risk for this patient".
+It does **not** answer "everything that happened in *this* episode" — a patient may
+have several episodes over time, and the domain tag cannot tell them apart.
+
+Episode membership is carried through `Encounter`. Each artifact references the
+contact it was produced at, via the native `.encounter` element it already has, and
+each `Encounter` references the episode:
+
+```
+artifact.encounter → Encounter.episodeOfCare → EpisodeOfCare
+```
+
+So assembling one episode's record is **two hops**, both using stock search
+parameters:
+
+```
+GET [base]/Encounter?episode-of-care=EpisodeOfCare/[episode-id]
+GET [base]/Observation?encounter=Encounter/[encounter-id]&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?encounter=Encounter/[encounter-id]
+GET [base]/CarePlan?encounter=Encounter/[encounter-id]
+GET [base]/ServiceRequest?encounter=Encounter/[encounter-id]
+GET [base]/Procedure?encounter=Encounter/[encounter-id]
+GET [base]/Communication?encounter=Encounter/[encounter-id]
+GET [base]/DocumentReference?encounter=Encounter/[encounter-id]
+GET [base]/Flag?encounter=Encounter/[encounter-id]
+GET [base]/Task?encounter=Encounter/[encounter-id]
+```
+
+### Why not one query
+
+R4 provides no universal "belongs to this episode" pointer, and most of the
+plausible candidates cannot reference an `EpisodeOfCare` at all — checked against
+the R4 base definitions:
+
+| Element | Can it point at an EpisodeOfCare? |
+|---|---|
+| `Observation.partOf` | no — Medication\*, `Procedure`, `Immunization`, `ImagingStudy` only |
+| `CarePlan.addresses` | no — `Condition` only in R4 (widened in R5) |
+| `ServiceRequest.basedOn` | no — `CarePlan`, `ServiceRequest`, `MedicationRequest` |
+| `Procedure.partOf` | no — `Procedure`, `Observation`, `MedicationAdministration` |
+| `Appointment.basedOn` | no — `ServiceRequest` only |
+| `Communication.partOf`, `Task.basedOn` | yes — both are `Reference(Any)` |
+| `DocumentReference.context.encounter` | yes — accepts `Encounter` **or** `EpisodeOfCare` |
+| `Encounter.episodeOfCare` | yes — this is the element R4 built for it |
+
+Nine of the eleven resource types SPiER profiles carry a native `.encounter`, and
+all nine are reachable by the **standard** `encounter` search parameter — including
+`DocumentReference`, whose element is nested at `context.encounter` but is covered
+by R4's shared `clinical-encounter` parameter. `Encounter?episode-of-care=` is
+standard too. That is why the Encounter hop is the portable answer rather than a
+SPiER-specific extension. An extension would need a published `SearchParameter` *and* server
+support to be queryable at all — coverage on paper, not in practice.
+
+### Do not assume `_revinclude`
+
+A single-query form is tempting:
+
+```
+GET [base]/EpisodeOfCare/[id]?_revinclude=*
+```
+
+**Support for `_include` / `_revinclude` is optional in FHIR, and the `*` wildcard
+is not something a client can assume.** Where a server does support a specific
+reverse include, the narrow form is the safer bet — for example the registry query
+in [Measurement](measurement.html) uses `_revinclude=Task:based-on`. Treat any
+`_revinclude` in this IG as an optimisation to verify against your server, not a
+guarantee; the per-type reads above are the portable path.
+
+### The two exceptions, and the artifact that opened the episode
+
+| Resource | How it joins the episode |
+|---|---|
+| `Appointment` | no `.encounter` in R4. The Encounter names it instead: `Encounter.appointment` → `Appointment`. |
+| `Consent` | no `.encounter` and no indirect route. A sharing consent plausibly scopes to the patient and the receiving organisation rather than to one episode, so SPiER does not claim episode membership for it. |
+| `Encounter` | has no `category` element either, so it is not reachable by the domain query above — only via `episode-of-care`. |
+
+One artifact is deliberately reached in the opposite direction. An episode is opened
+*because* a screen came back positive, so at screening time the episode does not yet
+exist and the screen cannot reference it. The episode therefore points back at its
+own trigger:
+
+```
+EpisodeOfCare.extension[episode-trigger].valueReference → Observation | QuestionnaireResponse
+```
+
+`SPiERSuicideRiskEpisode` carries a FHIRPath invariant requiring that reference
+whenever `episode-entry-reason` is `positive-screen` — an episode cannot claim a
+positive screen it cannot evidence. Entry reasons with no structured artifact
+(`clinician-judgment`, `transition-discharge`, `manual-add`) carry no trigger, by
+design.
 
 ## ASQ (Ask Suicide-Screening Questions)
 
