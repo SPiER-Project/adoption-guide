@@ -709,16 +709,19 @@ export const DATA_ELEMENTS: DataElement[] = [
     fhirResource: 'Condition',
     fhirPath: 'Condition.code.text',
     usedBy: ['TL-020', 'TL-024'],
-    description: 'A problem identified by patient/clinician as driving suicidal thoughts. The narrative sits in Condition.code.text (a CAMS driver is idiographic and deliberately uncoded); the marker category above identifies the resource as a CAMS driver. Tracked on the problem list until resolved at CAMS disposition. NOTE: the demo mapper currently emits the vendor URL http://cams-care.com/driver-category instead of this canonical SPiER system — the IG is authoritative.',
+    description: 'A problem identified by patient/clinician as driving suicidal thoughts. The narrative sits in Condition.code.text (a CAMS driver is idiographic and deliberately uncoded); the marker category above identifies the resource as a CAMS driver. Tracked on the problem list until resolved at CAMS disposition. Required on the profile (Condition.category:driverCategory 1..1).',
   },
   {
     id: 'cams-driver-type',
     name: 'Driver Type',
-    answerSystem: 'http://cams-care.com/driver-type',
+    // `answerSystem`, not `coding`: this element's value is one of two codes, and
+    // naming either one as "the" code would be wrong half the time. The schema
+    // has no ValueSet slot yet — that is #260.
+    answerSystem: 'http://spier.org/CodeSystem/cams-driver-type',
     fhirResource: 'Condition',
     fhirPath: 'Condition.category.coding',
     usedBy: ['TL-020', 'TL-024'],
-    description: 'Classification of whether a driver directly causes suicidal ideation or indirectly contributes. UNHARMONIZED: this is the only vocabulary the demo emits that has no SPiER CodeSystem behind it — the URL shown is a vendor website, not a resolvable terminology server. Do not treat it as bindable. The IG expresses the same distinction only as CarePlan section codes (cams-careplan-section#direct-drivers / #indirect-drivers).',
+    description: 'Classification of whether a driver directly causes suicidal ideation (#direct) or indirectly contributes to it (#indirect). Optional on the profile (Condition.category:driverType 0..1) — present only when the clinician classified the driver — but required-bound when present, so the slot cannot carry an arbitrary code. Minted under #265; the demo previously emitted a vendor website URL here that no SPiER artifact defined.',
   },
 
   // ── CAMS Stabilization Plan ──

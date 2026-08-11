@@ -202,8 +202,8 @@ const CAMS_DRIVER_EXAMPLE = {
   id: 'cams-driver-example',
   clinicalStatus: { coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-clinical', code: 'active' }] },
   category: [
-    { coding: [{ system: 'http://cams-care.com/driver-category', code: 'suicide-driver', display: 'Suicide Driver' }] },
-    { coding: [{ system: 'http://cams-care.com/driver-type', code: 'direct', display: 'Direct Driver' }] },
+    { coding: [{ system: 'http://spier.org/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' }] },
+    { coding: [{ system: 'http://spier.org/CodeSystem/cams-driver-type', code: 'direct', display: 'Direct Driver' }] },
   ],
   code: { text: 'Relationship conflict with spouse — feeling trapped and hopeless' },
   subject: { reference: 'Patient/123' },

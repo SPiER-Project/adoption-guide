@@ -38,12 +38,47 @@ Description: "SPiER-local codes for the six Suicide Status Form (SSF) Core Asses
 CodeSystem: CAMSDriverCategoryCodes
 Id: cams-driver-category
 Title: "CAMS Driver Category Codes"
-Description: "Marker category used on Condition resources that represent CAMS-identified suicide drivers. Mirrors http://cams-care.com/driver-category for SPiER artifacts that need to surface drivers on the FHIR problem list."
+Description: "Marker category used on Condition resources that represent CAMS-identified suicide drivers, so they surface on the FHIR problem list. The concept originates with CAMS-care, which refers to it as http://cams-care.com/driver-category — a website rather than a resolvable terminology server, so SPiER defines the code here and this system is the canonical one (#265)."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true
 * ^content = #complete
 * #suicide-driver "Suicide Driver" "Condition is a CAMS-identified driver of the patient's suicidality. Surface on the problem list and track until resolved at CAMS disposition."
+
+
+// ─── CodeSystem / ValueSet: CAMS Driver Type ─────────────────
+// Minted under #265. The demo emitted this distinction as
+// `http://cams-care.com/driver-type`, a vendor marketing-site URL that is not a
+// resolvable terminology server and that no SPiER artifact defined — the only
+// vocabulary in the demo with nothing canonical behind it.
+//
+// Three options were on the table. Reusing the CarePlan section codes
+// (`cams-careplan-section#direct-drivers` / `#indirect-drivers`) was rejected:
+// those identify a *section of a document*, and overloading them onto
+// `Condition.category` is exactly the modelling shortcut safety-plan-section.fsh
+// declined when it kept the CAMS and Stanley-Brown section vocabularies apart.
+// Dropping the classification entirely would have discarded information the
+// clinician actually recorded. Minting is what every other CAMS vocabulary here
+// already does.
+CodeSystem: CAMSDriverTypeCodes
+Id: cams-driver-type
+Title: "CAMS Driver Type Codes"
+Description: "Whether a CAMS-identified driver of suicidality acts directly or indirectly. Used on Condition.category alongside the cams-driver-category marker."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+* #direct "Direct Driver" "A problem the patient identifies as directly driving the suicidality — removing or resolving it would reduce suicidal ideation. Section II of the CAMS Therapeutic Worksheet treats these as the primary treatment targets."
+* #indirect "Indirect Driver" "An underlying factor that contributes to suicidality without by itself precipitating acute ideation. Addressed in treatment, but not the acute target."
+
+
+ValueSet: CAMSDriverType
+Id: cams-driver-type-vs
+Title: "CAMS Driver Type"
+Description: "Bindable set of CAMS driver types, for Condition.category on a CAMS suicide-driver Condition and for the driver-type answer options on SSF-5 Section B."
+* ^status = #draft
+* ^experimental = true
+* include codes from system CAMSDriverTypeCodes
 
 
 // ─── CodeSystem / ValueSet: CAMS Outcome Disposition ─────────
@@ -166,7 +201,32 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * ^status = #draft
 * ^experimental = true
 * clinicalStatus 1..1
-* category 1..*
+// `category` carries three independent things here, so all three are named
+// slices (#265): the CAMS driver marker, the direct/indirect classification the
+// clinician recorded, and the Gravity domain tag. Naming them is what lets the
+// direct/indirect slot carry a real binding rather than sit as an untyped extra
+// repetition — which is how it went unnoticed that the demo was filling it from
+// a vendor URL no SPiER artifact defined.
+//
+// The marker moves to 1..1. The profile's own Description already asserts that
+// this category "identifies the resource as a CAMS driver", but nothing enforced
+// it: a Condition carrying only the domain tag conformed. The slice makes the
+// stated contract true.
+//
+// `driverType` fixes the system and binds the code, rather than binding alone. A
+// `#pattern` discriminator on `$this` cannot tell one repetition from another
+// using a two-code binding — the fixed system is what makes the slice
+// discriminable, and the required binding is what constrains it to direct or
+// indirect.
+* insert SuicideRiskDomainSlicing
+* category contains driverCategory 1..1 and driverType 0..1
+* category[driverCategory] = CAMSDriverCategoryCodes#suicide-driver
+* category[driverCategory] ^short = "CAMS suicide-driver marker"
+* category[driverType].coding 1..1
+* category[driverType].coding.system = "http://spier.org/CodeSystem/cams-driver-type" (exactly)
+* category[driverType] from CAMSDriverType (required)
+* category[driverType] ^short = "Direct or indirect driver, when the clinician classified it"
+* insert SuicideRiskDomainSlice
 * category.coding 1..*
 * code 1..1
 // The text stays required and the coding stays optional — reviewed under #43
@@ -188,9 +248,6 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * clinicalStatus MS
 * subject MS
 * category MS
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
 * code MS
 * subject 1..1
 * subject only Reference(Patient)
@@ -570,7 +627,8 @@ Title: "Example — CAMS Suicide Driver: Relationship Conflict"
 Description: "Sample Condition representing a CAMS-identified driver of suicidality. Surfaces on the patient's problem list with the marker category set."
 Usage: #example
 * clinicalStatus = http://terminology.hl7.org/CodeSystem/condition-clinical#active "Active"
-* category[+] = CAMSDriverCategoryCodes#suicide-driver "Suicide Driver"
+* category[driverCategory] = CAMSDriverCategoryCodes#suicide-driver "Suicide Driver"
+* category[driverType] = CAMSDriverTypeCodes#direct "Direct Driver"
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code.text = "Relationship conflict with spouse — feeling trapped and hopeless"
 * subject = Reference(Patient/example)
