@@ -17,6 +17,45 @@
 // by web/src/observationMappers.ts so the IG matches runtime
 // data. Replace with published LOINC codes if/when they exist.
 
+// ─── Per-item codes ──────────────────────────────────────────
+// Moved here from FHIR-Resources/ASQ/asq-item.json (#261 follow-up).
+//
+// It was the last SPiER-local CodeSystem the dictionary references that lived
+// only under FHIR-Resources/, and that had two consequences worth stating,
+// because neither was visible from the JSON:
+//
+//  1. The IG Publisher is triggered by `ig/**` alone, so it never built a page
+//     for it — `/ig/CodeSystem-asq-item.html` was a 404 while every sibling
+//     CodeSystem resolved. Once the data dictionary links a code to its
+//     definition, that 404 becomes a broken promise on the page an implementer
+//     is most likely to trust.
+//  2. Living outside `ig/` also kept it outside the publisher's terminology
+//     validation, which is the gate that catches display drift in the IG tree.
+//
+// Concepts, displays and definitions are carried over verbatim; the ASQ
+// Questionnaire, `web/src/lib/observationMappers/asq.ts`, the data dictionary
+// and `check:extract` all bind to these exact codes, and the canonical URL is
+// unchanged (http://spier.org/CodeSystem/asq-item), so this is a move rather
+// than a redefinition. The JSON is deleted in the same change — per CLAUDE.md,
+// the same canonical must never be defined in both trees.
+
+CodeSystem: ASQItemCodes
+Id: asq-item
+Title: "ASQ Screening Item Codes (local)"
+Description: "SPiER-local codes for the five NIMH ASQ screening questions (q1–q5). Used because the ASQ has NO published per-item LOINC codes: verification against LOINC (June 2026) confirmed that (a) the codes previously placed on these items (93246-7, 93247-5, 93248-3, 93249-1) are members of the C-SSRS screener panel 93373-9, not ASQ, and (b) the codes previously emitted by the observation mapper (93267-4, 93266-6, 93265-8, 93264-1, 93263-3) do not exist in LOINC at all (failed check-digits of C-SSRS suicidal-behavior codes). The ASQ is documented at the encounter level as an overall screening result; no authoritative per-question LOINC binding exists. These local codes give the items stable identifiers so the Questionnaire, the observation mapper, and the observationExtract anti-drift check can agree. Replace with published LOINC concepts if/when NIMH/Regenstrief assign them."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+* ^version = "1.0.0"
+* ^publisher = "SPiER Project"
+* #wished-dead "Wished you were dead" "ASQ Q1 — In the past few weeks, have you wished you were dead? (passive death wish)"
+* #family-better-off-dead "Family better off if dead" "ASQ Q2 — In the past few weeks, have you felt that you or your family would be better off if you were dead? (perceived burdensomeness)"
+* #thoughts-killing-self "Thoughts about killing yourself" "ASQ Q3 — In the past week, have you been having thoughts about killing yourself? (active ideation)"
+* #ever-attempted "Ever tried to kill yourself" "ASQ Q4 — Have you ever tried to kill yourself? (lifetime attempt history)"
+* #acute-ideation-now "Killing yourself right now (acuity)" "ASQ Q5 (acuity) — Are you having thoughts of killing yourself right now? Asked only when any of Q1–Q4 is 'yes'."
+
+
 CodeSystem: ASQResultCodes
 Id: asq-screening-result
 Title: "ASQ Suicide Risk Screening Result Codes"

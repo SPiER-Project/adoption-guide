@@ -53,6 +53,42 @@ const SYSTEM_LABELS: Record<string, string> = {
   'http://snomed.info/sct': 'SNOMED CT',
 }
 
+const SPIER_CS_PREFIX = 'http://spier.org/CodeSystem/'
+const THO_PREFIX = 'http://terminology.hl7.org/CodeSystem/'
+
+/**
+ * Where a reader can go to read the definition of a code.
+ *
+ * Derived from `system` + `code`, never hand-written — a link is a claim, and
+ * this page's whole recent history (#220, #266) is about unbacked claims on it.
+ * The one canonical that is NOT resolvable is SPiER's own: `spier.org` does not
+ * serve its CodeSystems, so SPiER-local codes point at the IG **we publish**,
+ * whose per-concept anchors the IG Publisher generates as `<csId>-<code>`.
+ *
+ * `import.meta.env.BASE_URL` keeps that following whichever base is active —
+ * `/ig/` on Cloudflare, `/adoption-guide/ig/` on the legacy Pages deploy — the
+ * same idiom the header's IG link uses (see EhrShell.tsx).
+ *
+ * Returns undefined when there is nowhere honest to point. `check:catalog`
+ * fails the build if a SPiER-local system has no published CodeSystem, so an
+ * absent link means "no code", never "we lost track of it".
+ */
+export function codeHref(system: string, code: string): string | undefined {
+  if (system === 'http://loinc.org') return `https://loinc.org/${code}/`
+  if (system === 'http://snomed.info/sct') {
+    return `https://browser.ihtsdotools.org/?perspective=full&conceptId1=${code}`
+  }
+  if (system.startsWith(THO_PREFIX)) {
+    const id = system.slice(THO_PREFIX.length)
+    return `https://terminology.hl7.org/CodeSystem-${id}.html#${id}-${code}`
+  }
+  if (system.startsWith(SPIER_CS_PREFIX)) {
+    const id = system.slice(SPIER_CS_PREFIX.length)
+    return `${import.meta.env.BASE_URL}ig/CodeSystem-${id}.html#${id}-${code}`
+  }
+  return undefined
+}
+
 /**
  * Short label for a system URL. External vocabularies get their common name;
  * SPiER-local CodeSystems get their id (the URL itself stays available for the
@@ -61,12 +97,8 @@ const SYSTEM_LABELS: Record<string, string> = {
 export function systemLabel(system: string): string {
   const known = SYSTEM_LABELS[system]
   if (known) return known
-  if (system.startsWith('http://terminology.hl7.org/CodeSystem/')) {
-    return `HL7 ${system.slice('http://terminology.hl7.org/CodeSystem/'.length)}`
-  }
-  if (system.startsWith('http://spier.org/CodeSystem/')) {
-    return `SPiER ${system.slice('http://spier.org/CodeSystem/'.length)}`
-  }
+  if (system.startsWith(THO_PREFIX)) return `HL7 ${system.slice(THO_PREFIX.length)}`
+  if (system.startsWith(SPIER_CS_PREFIX)) return `SPiER ${system.slice(SPIER_CS_PREFIX.length)}`
   return system
 }
 
