@@ -4,6 +4,8 @@ import {
   TOOLS,
   DATA_ELEMENTS,
   systemLabel,
+  codeHref,
+  type Coding,
   type DataElement,
   type Tool,
 } from '../data/catalog'
@@ -56,6 +58,32 @@ function stagesReferencedBy(el: DataElement, toolIndex: Map<string, Tool>): stri
     el.usedBy.map(tid => toolIndex.get(tid)?.stageId).filter((s): s is string => !!s)
   )
   return [...stageIds]
+}
+
+/**
+ * The code, linked to its definition where one is reachable.
+ *
+ * SPiER-local codes resolve inside our own published IG, so they open in the
+ * same tab like any other internal navigation; external terminology opens in a
+ * new tab, since leaving the guide to read LOINC is a detour, not a
+ * destination. `rel="noreferrer"` on the outbound ones keeps the referrer off
+ * third-party servers — this page is a clinical-terminology surface and there
+ * is no reason to tell loinc.org which SPiER page a reader came from.
+ */
+function CodeLink({ coding }: { coding: Coding }) {
+  const href = codeHref(coding.system, coding.code)
+  if (!href) return <>{coding.code}</>
+  const external = href.startsWith('http')
+  return (
+    <a
+      className="dd-code-link"
+      href={href}
+      title={`${coding.system}#${coding.code}`}
+      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
+    >
+      {coding.code}
+    </a>
+  )
 }
 
 export function DataDictionary() {
@@ -164,7 +192,12 @@ export function DataDictionary() {
                       <td className="dd-cell-code">
                         {el.coding ? (
                           <>
-                            {el.coding.code}
+                            {/*
+                              Only the code itself is a link — the display stays plain
+                              text so the code remains easy to select and copy, which is
+                              what people actually do with this column.
+                            */}
+                            <CodeLink coding={el.coding} />
                             <span className="dd-code-display">{el.coding.display}</span>
                           </>
                         ) : (

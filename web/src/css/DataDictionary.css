@@ -122,6 +122,23 @@
   white-space: normal;
 }
 
+/*
+ * The code, linked to its definition. Underline-on-hover rather than always-on:
+ * every populated row has one, and 60-odd permanently underlined codes read as
+ * noise in a dense table.
+ */
+.dd-code-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--border-default);
+}
+
+.dd-code-link:hover,
+.dd-code-link:focus-visible {
+  border-bottom-style: solid;
+  text-decoration: none;
+}
+
 /* An element that genuinely carries no code of its own. */
 .dd-code-none {
   color: var(--text-faint);

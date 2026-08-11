@@ -34,7 +34,7 @@ The per-item LOINC codes were verified against LOINC in June 2026. **Neither** p
 - The codes that had been placed on q1, q3, q4, q5 (`93246-7`, `93247-5`, `93248-3`, `93249-1`) are confirmed members of the **C-SSRS screener panel `93373-9`** (e.g. `93246-7` = "Wish to be dead 1 month"), not ASQ. They were copy-pasted from C-SSRS.
 - The codes the observation mapper / data dictionary emitted (`93267-4`, `93266-6`, `93265-8`, `93264-1`, `93263-3`, and the result code `93243-5`) **do not exist in LOINC at all** — each fails its check digit and resolves to a neighboring C-SSRS suicidal-behavior code. They were fabricated.
 
-The ASQ has **no published per-item LOINC codes**; it is documented at the encounter level as an overall screening result. Accordingly, q1–q5 now bind to the SPiER-local CodeSystem **`http://spier.org/CodeSystem/asq-item`** (`fhir/codesystems/asq-item.json`), with each coding marked `no-standard-binding`. The Questionnaire item codes, the observation mapper (`web/src/lib/observationMappers/asq.ts`), the data dictionary (`web/src/data/catalog/dataElements.ts`), and the anti-drift check (`web/scripts/check-observation-extract.mjs`) all agree on these local codes, and q1–q5 now declare `sdc-questionnaire-observationExtract`.
+The ASQ has **no published per-item LOINC codes**; it is documented at the encounter level as an overall screening result. Accordingly, q1–q5 now bind to the SPiER-local CodeSystem **`http://spier.org/CodeSystem/asq-item`** (defined in `ig/input/fsh/asq.fsh`), with each coding marked `no-standard-binding`. The Questionnaire item codes, the observation mapper (`web/src/lib/observationMappers/asq.ts`), the data dictionary (`web/src/data/catalog/dataElements.ts`), and the anti-drift check (`web/scripts/check-observation-extract.mjs`) all agree on these local codes, and q1–q5 now declare `sdc-questionnaire-observationExtract`.
 
 **Root panel and result codes — also reconciled (June 2026):**
 
@@ -88,7 +88,7 @@ Refusal is currently captured via the `patient-refused` boolean plus a `patient-
 |-------|------|-------------|
 | Questionnaire | `asq-questionnaire.json` | FHIR R4 Questionnaire with enableWhen conditional logic, SPiER-local `asq-item` per-item codes (no per-item LOINC exists), `observationExtract` on q1–q5, SNOMED-bound Yes/No answers |
 | ValueSet | `yes-no.json` | SNOMED-bound Yes/No answer value set |
-| CodeSystem | `asq-item.json` | Local codes for the five screening questions q1–q5 |
+| CodeSystem | `ig/input/fsh/asq.fsh` (`ASQItemCodes`) | Local codes for the five screening questions q1–q5. Moved out of this folder so the IG Publisher builds a page for it — see the note in the FSH. |
 | CodeSystem | `asq-panel.json` | Local panel code for the ASQ as a whole |
 
 Three CodeSystems that used to live here — `asq-screening-result`, `asq-attempt-recency`
