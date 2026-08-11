@@ -54,7 +54,7 @@ export function EhrShell() {
           </button>
           <Link to="/" className="ehr-brand">
             <SpierLogo className="ehr-brand-logo" />
-            <span className="ehr-brand-subtitle">Suicide Prevention in Electronic Records</span>
+            <span className="ehr-brand-subtitle">The SPiER Project</span>
           </Link>
           {/* Right-side action cluster: the app's outbound links, and the
               natural slot for a SMART-connection indicator later.
