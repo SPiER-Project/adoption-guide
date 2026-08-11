@@ -52,13 +52,17 @@ describe('mapCSSRSScreener', () => {
     const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: true, q3: true, q4: false, q5: false, q6: true }))
     expect(riskCoding(r)).toBe('high')
     const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
-    expect(riskObs?.valueCodeableConcept?.coding?.[0]?.display).toContain('lifetime')
+    // The narrative moved from `coding.display` to `text` (#302): a SPiER-local
+    // `Coding.display` must match the CodeSystem, and the validator checks it.
+    expect(riskObs?.valueCodeableConcept?.text).toContain('lifetime')
   })
 
   it('q6 with q6-recent → high risk flagged within past 3 months', () => {
     const r = mapCSSRSScreener(cssrsResponse({ q1: false, q2: false, q3: false, q4: false, q5: false, q6: true, 'q6-recent': true }))
     const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
-    expect(riskObs?.valueCodeableConcept?.coding?.[0]?.display).toContain('past 3 months')
+    // The narrative moved from `coding.display` to `text` (#302): a SPiER-local
+    // `Coding.display` must match the CodeSystem, and the validator checks it.
+    expect(riskObs?.valueCodeableConcept?.text).toContain('past 3 months')
   })
 
   it('all negative → no risk identified', () => {

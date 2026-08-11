@@ -14,6 +14,32 @@ import type {
   ObservationResource,
   QuestionnaireResponseItem,
 } from '../../types/fhir'
+import { suicideRiskCategory } from '../conceptDomain'
+
+/** The C-SSRS risk-level system, and its CANONICAL displays. */
+export const CSSRS_RISK_LEVEL_SYSTEM = 'http://spier.org/CodeSystem/cssrs-risk-level'
+
+/**
+ * `Coding.display` on a SPiER-local system must match the CodeSystem — the
+ * validator checks it, and #302's gate caught both C-SSRS mappers putting a
+ * narrative label ("No risk identified", "High Risk — specific plan with intent")
+ * here instead. That is the #220 mistake in a different place: a human sentence
+ * where a coded display belongs.
+ *
+ * The narrative is not lost — it belongs in `CodeableConcept.text`, which is
+ * exactly the element for a human-readable rendering.
+ */
+export const CSSRS_RISK_LEVEL_DISPLAY: Record<string, string> = {
+  none: 'None',
+  low: 'Low',
+  moderate: 'Moderate',
+  high: 'High',
+}
+
+/** Canonical display for a C-SSRS risk-level code, falling back to the code. */
+export function cssrsRiskLevelDisplay(code: string): string {
+  return CSSRS_RISK_LEVEL_DISPLAY[code] ?? code
+}
 
 // Re-export the FHIR resource shapes the per-tool mappers need, so they can
 // import everything from './shared'.
@@ -221,6 +247,9 @@ export function makeObservation(params: {
           },
         ],
       },
+      // #271 made this slice REQUIRED on every Observation profile; #302's gate
+      // found that the runtime had never emitted it.
+      suicideRiskCategory(),
     ],
     // `text` is destructured off rather than spread through: it belongs to the
     // CodeableConcept, and a stray `text` inside a Coding is not a legal element.

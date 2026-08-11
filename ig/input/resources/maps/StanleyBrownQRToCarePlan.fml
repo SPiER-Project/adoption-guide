@@ -93,6 +93,11 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   // applies at document level (87626-8 — see safety-plan-section.fsh).
   src -> tgt.category = cc('http://snomed.info/sct', '735324008', 'Treatment escalation plan (record artifact)') "cat-snomed";
   src -> tgt.category = cc('http://loinc.org', '87626-8', 'Suicide prevention note') "cat-loinc";
+  // #271 made this slice required on SPiERStanleyBrownSafetyPlan. Added here with
+  // the TypeScript side and the golden file together — the transformation is
+  // declared in this map and executed in carePlanMappers/stanleyBrown.ts, and
+  // CLAUDE.md requires both to move at once (#302).
+  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk', 'Suicide risk') "cat-domain";
 
   src.subject as subject -> tgt.subject = subject "carry-subject";
 

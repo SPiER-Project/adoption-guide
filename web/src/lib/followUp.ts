@@ -20,6 +20,7 @@
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import { appointmentStart, appointmentStatus, type CodedOption } from './handoffs'
 import type { AppointmentResource, CommunicationResource } from '../types/fhir'
+import { suicideRiskCategory } from './conceptDomain'
 
 export const STAGE_ID = 'track-follow-up'
 const STAGE_TITLE = 'Track Follow-Up'
@@ -123,7 +124,7 @@ export function buildOutreachAttempt(params: {
     id: params.id,
     meta: { profile: [OUTREACH_PROFILE], tag: stageTag() },
     status: 'completed',
-    category: [{ text: isNoShowFollowUp ? 'No-show follow-up' : 'Follow-up outreach attempt' }],
+    category: [{ text: isNoShowFollowUp ? 'No-show follow-up' : 'Follow-up outreach attempt' }, suicideRiskCategory()],
     subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
     sent: params.sent,
     medium: [
@@ -262,7 +263,7 @@ export function buildCaringContact(params: {
     // writes `optOut = false` on a delivered contact — the flag is about the
     // series, and it is what stops the next one.
     status: 'completed',
-    category: [{ text: 'Caring contact' }],
+    category: [{ text: 'Caring contact' }, suicideRiskCategory()],
     subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
     sent: params.sent,
     medium: [

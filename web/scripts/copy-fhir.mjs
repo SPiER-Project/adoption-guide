@@ -11,7 +11,7 @@
 // (see the "Staleness check" section below). `--force` always recompiles.
 
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, readdirSync, copyFileSync, readFileSync, writeFileSync, rmSync, statSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -206,6 +206,30 @@ function writeCarePlanProfileTypes() {
 }
 
 const force = process.argv.includes('--force')
+/**
+ * Copy an ALREADY-COMPILED ig/fsh-generated into web/src/data/fhir/, without
+ * invoking sushi.
+ *
+ * For CI jobs that download `fsh-generated` as an artifact — ig.yml's `validate`
+ * job does exactly that, and its own comment says the point is to "reuse the
+ * compile from the `sushi` job rather than paying for it twice". Added for #302,
+ * whose runtime emitter imports the generated CodeSystems and so needs the copy
+ * step, but has no reason to recompile.
+ */
+const noCompile = process.argv.includes('--no-compile')
+if (noCompile) {
+  if (!existsSync(generatedDir)) {
+    console.error(
+      `[copy-fhir] --no-compile needs ${generatedDir.replace(repoRoot + '/', '')} to exist ` +
+        'already (download the fsh-generated artifact, or drop --no-compile).',
+    )
+    process.exit(1)
+  }
+  clearDest()
+  copyResources()
+  writeCarePlanProfileTypes()
+  process.exit(0)
+}
 if (!force && isUpToDate()) {
   log('FHIR artifacts are up to date with FSH sources — skipping SUSHI compile.')
   log('(Edit any .fsh or sushi-config.yaml to trigger a rebuild, or run with --force.)')

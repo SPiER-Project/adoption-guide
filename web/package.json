@@ -28,7 +28,8 @@
     "check:codings": "node scripts/check-codings.mjs",
     "check:reassessment": "node scripts/check-reassessment.mjs",
     "check:dates": "node scripts/shift-scenario-dates.mjs",
-    "shift-dates": "node scripts/shift-scenario-dates.mjs --apply"
+    "shift-dates": "node scripts/shift-scenario-dates.mjs --apply",
+    "emit:runtime-fhir": "vitest run src/lib/runtimeFhir.emit.test.ts"
   },
   "dependencies": {
     "@formbox/hs-theme": "^0.2.1",

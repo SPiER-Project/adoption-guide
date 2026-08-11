@@ -12,6 +12,7 @@
 
 import type { CarePlanProfileUrl } from '../../data/catalog/care-plan-profiles.generated'
 import type { CarePlanResource, QuestionnaireResponseItem } from '../../types/fhir'
+import { suicideRiskCategory } from '../conceptDomain'
 
 // Re-export the QuestionnaireResponse shapes the per-tool mappers need.
 export type { QuestionnaireResponseItem, QuestionnaireResponseResource } from '../../types/fhir'
@@ -185,6 +186,7 @@ export function makeSuicidePreventionCarePlan(options: {
         ],
       },
       ...(options.extraCategories ?? []).map(c => ({ coding: [c] })),
+      suicideRiskCategory(),
     ],
     subject: {
       reference: 'Patient/demo-patient',

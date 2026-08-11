@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Resources emitted by the production builders for the #302 validator gate
+# (npm run emit:runtime-fhir). Disposable; regenerated on demand.
+.runtime-fhir/
