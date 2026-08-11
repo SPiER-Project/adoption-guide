@@ -112,6 +112,17 @@ const argValue = (flag) => {
   return i === -1 ? undefined : argv[i + 1]
 }
 const showWarnings = argv.includes('--show-warnings')
+/**
+ * Extra directories of standalone resource JSON to validate, repeatable:
+ *   --also web/.runtime-fhir
+ *
+ * Added for #302, whose subject is `web/.runtime-fhir` — the resources the APP
+ * emits, produced by `npm --prefix web run emit:runtime-fhir`. Kept as a generic
+ * flag rather than a hardcoded path because the directory is gitignored and only
+ * exists after the emitter runs; hardcoding it would make a normal local run fail
+ * or, worse, silently validate nothing.
+ */
+const alsoDirs = argv.flatMap((a, i) => (a === '--also' && argv[i + 1] ? [argv[i + 1]] : []))
 const tx = argValue('--tx') ?? process.env.SPIER_FHIR_TX ?? 'n/a'
 const keepJsonAt = argValue('--json')
 
@@ -236,6 +247,28 @@ function collectScenarioResources(dir) {
 const { paths: scenarioTargets, labels: scenarioLabels, tmpDir: scenarioTmpDir } =
   collectScenarioResources(SCENARIOS_DIR)
 targets.push(...scenarioTargets)
+
+/**
+ * `--also` directories. A named-but-empty directory is an error for the same
+ * reason a zero-resource scenario tree is: coverage that can quietly drop to
+ * nothing is the failure mode this gate exists to prevent.
+ */
+let alsoCount = 0
+for (const dir of alsoDirs) {
+  const abs = resolve(root, dir)
+  if (!existsSync(abs)) {
+    fail(
+      `--also ${dir} does not exist. For the runtime corpus, run ` +
+        `\`npm --prefix web run emit:runtime-fhir\` first.`,
+    )
+  }
+  const found = walkJson(abs)
+  if (found.length === 0) fail(`--also ${dir} exists but holds no .json resources`)
+  for (const full of found) {
+    targets.push(relative(root, full))
+    alsoCount++
+  }
+}
 
 if (targets.length === 0) fail('no resources found to validate')
 /**
@@ -374,7 +407,9 @@ for (const { file, issues } of offenders) {
 
 console.log(
   `\n${targets.length} resources validated ` +
-    `(${scenarioTargets.length} unwrapped from the population scenarios) — ` +
+    `(${scenarioTargets.length} unwrapped from the population scenarios${
+      alsoCount ? `, ${alsoCount} emitted by the app` : ''
+    }) — ` +
     `${blocking} error(s), ${totals.warning} warning(s), ${totals.information} info`,
 )
 for (const { rel, reason } of excluded) console.log(`  skipped ${rel} — ${reason}`)

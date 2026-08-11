@@ -18,6 +18,7 @@ import type {
   ObservationResource,
   TaskResource,
 } from '../types/fhir'
+import { suicideRiskCategory } from './conceptDomain'
 
 export const STAGE_ID = 'track-risk-over-time'
 
@@ -303,6 +304,7 @@ export function buildFlag(params: { id: string; patientId: string | null; startD
     status: 'active',
     category: [
       { coding: [{ system: 'http://terminology.hl7.org/CodeSystem/flag-category', code: 'safety', display: 'Safety' }] },
+      suicideRiskCategory(),
     ],
     code: {
       coding: [

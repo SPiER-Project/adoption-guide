@@ -28,6 +28,12 @@ on:
       - 'web/src/data/population/scenarios/**'
       - 'scripts/validate-fhir.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
+      # The runtime corpus (#302) is produced by the app's own builders, so a
+      # builder change has to re-run the validator. Without these the gate would
+      # exist but sit idle exactly when the code it protects moves.
+      - 'web/src/lib/**'
+      - 'web/src/types/**'
+      - 'web/package.json'
       - '.github/workflows/ig.yml'
   pull_request:
     paths:
@@ -36,6 +42,12 @@ on:
       - 'web/src/data/population/scenarios/**'
       - 'scripts/validate-fhir.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
+      # The runtime corpus (#302) is produced by the app's own builders, so a
+      # builder change has to re-run the validator. Without these the gate would
+      # exist but sit idle exactly when the code it protects moves.
+      - 'web/src/lib/**'
+      - 'web/src/types/**'
+      - 'web/package.json'
       - '.github/workflows/ig.yml'
   workflow_dispatch:
 
@@ -131,5 +143,18 @@ jobs:
           restore-keys: |
             fhir-packages-
 
+      # #302: the FHIR the APP emits was gated by nothing. The emitter runs the
+      # real production builders (vitest is the only TS runtime in this package)
+      # and writes to web/.runtime-fhir, which the validator then reads via
+      # --also. On its first run this found 118 errors, including every profile's
+      # required concept-domain category missing from every builder.
+      - name: Install web dependencies
+        run: npm ci
+        working-directory: ./web
+
+      - name: Emit the runtime FHIR corpus
+        run: npm run emit:runtime-fhir
+        working-directory: ./web
+
       - name: Validate FHIR resources
-        run: node scripts/validate-fhir.mjs
+        run: node scripts/validate-fhir.mjs --also web/.runtime-fhir

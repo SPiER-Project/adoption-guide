@@ -52,7 +52,9 @@ describe('mapCSSRSFull', () => {
     const r = mapCSSRSFull(fullResponse({ 'actual-attempt-lifetime': true, 'q3-lifetime': true }))
     expect(riskCoding(r)).toBe('low')
     const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
-    expect(riskObs?.valueCodeableConcept?.coding?.[0]?.display).toContain('historical')
+    // The narrative moved from `coding.display` to `text` (#302): a SPiER-local
+    // `Coding.display` must match the CodeSystem, and the validator checks it.
+    expect(riskObs?.valueCodeableConcept?.text).toContain('historical')
   })
 
   it('all negative → no risk identified', () => {

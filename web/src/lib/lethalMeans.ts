@@ -27,6 +27,7 @@
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import type { CodedOption } from './handoffs'
 import type { ObservationResource, ProcedureResource } from '../types/fhir'
+import { suicideRiskCategory } from './conceptDomain'
 
 export const STAGE_ID = 'document-safety-actions'
 const STAGE_TITLE = 'Document Safety Actions'
@@ -98,6 +99,9 @@ export function buildLethalMeansCounseling(params: {
     id: params.id,
     meta: { profile: [COUNSELING_PROFILE], tag: stageTag() },
     status: 'completed',
+    // R4 caps Procedure.category at 0..1, so the single slot carries the domain
+    // code; the counselling act itself is identified by Procedure.code below.
+    category: suicideRiskCategory(),
     code: {
       coding: [{ ...COUNSELING_CODE }],
       text: params.text?.trim() || COUNSELING_TEXT,
@@ -136,7 +140,10 @@ export function buildMeansSafetyAction(params: {
     id: params.id,
     meta: { profile: [MEANS_SAFETY_ACTION_PROFILE], tag: stageTag() },
     status: params.completed ? 'final' : 'preliminary',
-    category: [{ coding: [{ system: OBSERVATION_CATEGORY_SYSTEM, code: 'procedure' }] }],
+    category: [
+      { coding: [{ system: OBSERVATION_CATEGORY_SYSTEM, code: 'procedure' }] },
+      suicideRiskCategory(),
+    ],
     code: {
       coding: [
         {

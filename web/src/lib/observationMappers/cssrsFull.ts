@@ -1,4 +1,4 @@
-import { makeObservation, interpretationOf, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { makeObservation, interpretationOf, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, CSSRS_RISK_LEVEL_SYSTEM, cssrsRiskLevelDisplay } from './shared'
 
 export function mapCSSRSFull(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
@@ -50,7 +50,14 @@ export function mapCSSRSFull(response: QuestionnaireResponseResource): MapperRes
       id: `cssrs-full-risk-${Date.now()}`,
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
-        coding: [{ system: 'http://spier.org/CodeSystem/cssrs-risk-level', code: riskCode, display: riskDisplay }],
+        // display = the CodeSystem's display; the narrative goes in `text`.
+        coding: [
+          {
+            system: CSSRS_RISK_LEVEL_SYSTEM,
+            code: riskCode,
+            display: cssrsRiskLevelDisplay(riskCode),
+          },
+        ],
         text: riskDisplay,
       },
       valueType: 'codeable',

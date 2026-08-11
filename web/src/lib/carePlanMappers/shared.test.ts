@@ -132,8 +132,14 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
     expect(category[0].coding?.[0]?.system).toBe('http://snomed.info/sct')
     expect(category[0].coding?.[0]?.code).toBe('735324008')
     expect((resource.note as Array<{ text?: string }> | undefined)?.[0]?.text).toBe('DEMO note')
-    // No extraCategories passed → the SNOMED plan code is the only category.
-    expect(category).toHaveLength(1)
+    // No extraCategories passed → the SNOMED plan code plus the #271 domain
+    // category, which every CarePlan profile requires. The runtime omitted it
+    // until #302's validator gate caught it.
+    expect(category).toHaveLength(2)
+    expect(category[1].coding?.[0]).toMatchObject({
+      system: 'http://spier.org/CodeSystem/spier-concept-domain',
+      code: 'suicide-risk',
+    })
   })
 
   it('appends extraCategories after the SNOMED plan code', () => {
@@ -146,13 +152,15 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
       extraCategories: [{ system: 'http://loinc.org', code: '87626-8', display: 'Suicide prevention note' }],
     })
     const category = resource.category as Array<{ coding?: Array<{ system?: string; code?: string; display?: string }> }>
-    expect(category).toHaveLength(2)
+    // SNOMED plan code, the extra category, then the #271 domain category last.
+    expect(category).toHaveLength(3)
     expect(category[0].coding?.[0]?.code).toBe('735324008')
     expect(category[1].coding?.[0]).toEqual({
       system: 'http://loinc.org',
       code: '87626-8',
       display: 'Suicide prevention note',
     })
+    expect(category[2].coding?.[0]?.code).toBe('suicide-risk')
   })
 
   it('maps a sectionCode activity to detail.code.coding and a text-only activity to detail.code.text', () => {

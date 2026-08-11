@@ -127,6 +127,14 @@
           "system": "http://loinc.org"
         }
       ]
+    },
+    {
+      "coding": [
+        {
+          "code": "suicide-risk",
+          "system": "http://spier.org/CodeSystem/spier-concept-domain"
+        }
+      ]
     }
   ],
   "intent": "plan",

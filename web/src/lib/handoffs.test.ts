@@ -179,14 +179,20 @@ describe('follow-up appointment (TL-031)', () => {
     expect(appointment.end).toBe('2026-08-04T18:45:00.000Z')
   })
 
-  it('omits end when no duration was given', () => {
+  it('still emits an end when no duration was given — app-2 requires both or neither', () => {
     const open = buildFollowUpAppointment({
       id: 'appointment-2',
       patientId: 'patient-005',
       status: 'booked',
       start: '2026-08-04T18:00:00.000Z',
     })
-    expect(open.end).toBeUndefined()
+    // This assertion used to be `toBeUndefined()`. Emitting `start` without
+    // `end` violates base FHIR `app-2` ("Either start and end are specified, or
+    // neither") and `app-3`, which permits a missing start/end only on a proposed
+    // or cancelled appointment. The UI passes
+    // `Number(duration) || undefined`, so an empty duration field produced
+    // exactly that invalid resource until #302's validator gate caught it.
+    expect(open.end).toBe('2026-08-04T18:30:00.000Z')
     // No provider named ⇒ patient is the only participant, and the profile's
     // participant 1..* still holds.
     expect((open.participant as unknown[]).length).toBe(1)

@@ -30,6 +30,7 @@ import type {
   FhirResource,
   ServiceRequestResource,
 } from '../types/fhir'
+import { suicideRiskCategory } from './conceptDomain'
 
 export const STAGE_ID = 'coordinate-handoffs'
 const STAGE_TITLE = 'Coordinate Handoffs'
@@ -109,6 +110,12 @@ const OPEN_REFERRAL_STATUSES = new Set(['draft', 'active', 'on-hold'])
  * cancelled` is exactly the lifecycle the Stage-6 no-show workflow reads, which
  * is why TL-034 needs no second resource type.
  */
+/**
+ * Fallback appointment length. Any value satisfies `app-2`; 30 minutes is the
+ * conventional outpatient behavioural-health slot.
+ */
+export const DEFAULT_APPOINTMENT_MINUTES = 30
+
 export const APPOINTMENT_STATUSES: CodedOption[] = [
   { code: 'proposed', display: 'Proposed' },
   { code: 'booked', display: 'Booked' },
@@ -257,6 +264,7 @@ export function buildDischargePacket(params: {
     resourceType: 'DocumentReference',
     id: params.id,
     meta: { profile: [PACKET_PROFILE], tag: stageTag() },
+    category: [suicideRiskCategory()],
     status: 'current',
     type: { text: 'Suicide-safety discharge packet' },
     subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
@@ -302,6 +310,7 @@ export function buildSafetyReferral(params: {
     resourceType: 'ServiceRequest',
     id: params.id,
     meta: { profile: [REFERRAL_PROFILE], tag: stageTag() },
+    category: [suicideRiskCategory()],
     status: params.status,
     // Fixed by the profile: this is an order, not a proposal or a plan.
     intent: 'order',
@@ -362,17 +371,24 @@ export function buildFollowUpAppointment(params: {
   patientId: string | null
   status: string
   start: string
-  /** Minutes; the profile requires only `start`, but an end reads better. */
+  /**
+   * Minutes. Defaults to DEFAULT_APPOINTMENT_MINUTES because base FHIR `app-2`
+   * requires start and end together or neither, and `app-3` allows a missing
+   * start/end only on a proposed or cancelled appointment — so emitting `start`
+   * alone produces an invalid Appointment. The UI passes
+   * `Number(duration) || undefined`, so an empty duration field reached exactly
+   * that state until #302's gate caught it.
+   */
   durationMinutes?: number
   provider?: string
   description?: string
   note?: string
 }): AppointmentResource {
   const startMs = new Date(params.start).getTime()
-  const end =
-    Number.isFinite(startMs) && params.durationMinutes
-      ? new Date(startMs + params.durationMinutes * 60_000).toISOString()
-      : undefined
+  const minutes = params.durationMinutes ?? DEFAULT_APPOINTMENT_MINUTES
+  const end = Number.isFinite(startMs)
+    ? new Date(startMs + minutes * 60_000).toISOString()
+    : undefined
   return {
     resourceType: 'Appointment',
     id: params.id,
@@ -472,6 +488,9 @@ export function buildSharingConsent(params: {
           },
         ],
       },
+      // Appended, not prepended: #271's slicing is open so the resource's own
+      // category stays primary and index-based readers keep working.
+      suicideRiskCategory(),
     ],
     patient: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
     dateTime: params.dateTime,
