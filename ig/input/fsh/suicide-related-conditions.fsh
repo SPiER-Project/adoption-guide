@@ -154,6 +154,9 @@ Description: "A suicide-related finding asserted by a clinician and carried on t
 * clinicalStatus MS
 * verificationStatus MS
 * category MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * code MS
 * subject MS
 * subject 1..1
@@ -170,6 +173,7 @@ Usage: #example
 * clinicalStatus = http://terminology.hl7.org/CodeSystem/condition-clinical#active "Active"
 * verificationStatus = http://terminology.hl7.org/CodeSystem/condition-ver-status#confirmed "Confirmed"
 * category[+] = http://terminology.hl7.org/CodeSystem/condition-category#problem-list-item "Problem List Item"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://snomed.info/sct#6471006 "Suicidal thoughts"
 * subject = Reference(Patient/example)
 * recordedDate = "2026-03-14"
@@ -184,6 +188,7 @@ Usage: #example
 * clinicalStatus = http://terminology.hl7.org/CodeSystem/condition-clinical#active "Active"
 * verificationStatus = http://terminology.hl7.org/CodeSystem/condition-ver-status#confirmed "Confirmed"
 * category[+] = http://terminology.hl7.org/CodeSystem/condition-category#problem-list-item "Problem List Item"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://snomed.info/sct#23233009 "Previous known suicide attempt"
 * subject = Reference(Patient/example)
 * recordedDate = "2026-03-14"

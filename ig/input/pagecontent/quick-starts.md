@@ -14,6 +14,44 @@ GET [base]/Observation?code=http://loinc.org|93374-7&category=http://spier.org/C
 
 `Observation.derivedFrom` on each result links back to the source `QuestionnaireResponse` and any instrument-specific Observations.
 
+## Retrieving the whole suicide-safer care record by domain
+
+Every SPiER resource with a native `category` element carries the same domain coding — `http://spier.org/CodeSystem/spier-concept-domain#suicide-risk` — **in addition to** whatever clinical category it already had. This is the [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) pattern: one code, applied across resource types, so a consumer can assemble the record without knowing which instrument or workflow step produced any part of it.
+
+```
+GET [base]/Observation?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Condition?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/CarePlan?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/ServiceRequest?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Communication?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Procedure?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/DocumentReference?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Consent?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
+GET [base]/Flag?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+```
+
+**It is a repeated query, not a single one — and that is a property of R4, not of SPiER.** FHIR has no cross-type search on a common parameter; `category` is defined per resource type. A server that supports system-level search with `_type` can collapse the list:
+
+```
+GET [base]?_type=Observation,Condition,CarePlan,ServiceRequest,Communication,Procedure,DocumentReference,Consent,Flag&category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
+```
+
+but `_type` is optional, so the per-type form above is the portable one. What the domain tag buys is that **the parameter value is identical across every type** — the consumer needs one code, not a per-resource-type mapping table.
+
+### Types that do not carry the domain category
+
+Three profiled resource types have no `category` element in R4, and are therefore **not** reachable by the queries above:
+
+| Resource | R4 reality | Retrieve instead by |
+|---|---|---|
+| `EpisodeOfCare` | no `category`; has `type` | `GET [base]/EpisodeOfCare?type=http://spier.org/CodeSystem/spier-episode-type\|suicide-safer-care` |
+| `Appointment` | no `category`; has `serviceCategory` | the episode it belongs to, or `Appointment?service-category=` |
+| `Task` | no `category`; `Task.code` is already load-bearing | `Task.basedOn` → the episode (`GET [base]/EpisodeOfCare/[id]?_revinclude=Task:based-on`) |
+
+Extending the domain tag to these three needs a different element per type (and, for `Task`, either a custom SearchParameter or acceptance that an extension is not searchable). That is deliberately **not** done here — see the follow-up issue linked from the SPiER repo — because putting a domain code into `serviceCategory` or `Task.code` without settling the search story would look like coverage while providing none.
+
+`Procedure` is a partial case worth knowing about: R4 gives `Procedure.category` a maximum of 1 (it becomes `0..*` only in R5), so `SPiERLethalMeansCounseling` spends its single category slot on the domain code. The counselling act itself is identified by `Procedure.code`.
+
 ## ASQ (Ask Suicide-Screening Questions)
 
 - Questionnaire: `http://spier.org/Questionnaire/ASQ-Screening-Tool` (v1.1.0-pilot)

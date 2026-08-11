@@ -69,6 +69,9 @@ Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan Ques
 * status MS
 * subject MS
 * category MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * activity MS
 * activity.detail.code MS
 
@@ -112,6 +115,7 @@ Usage: #example
 * intent = #plan
 * category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * category[+] = http://loinc.org#87626-8 "Suicide prevention note"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * addresses[+].display = "Risk for suicide"
 * activity[+].detail

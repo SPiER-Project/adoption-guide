@@ -85,6 +85,18 @@ Description: "A Procedure recording that lethal-means safety counseling (e.g., C
 * code MS
 * subject MS
 * performed[x] MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest of
+// the suicide-safer care record by category alone (#262).
+//
+// Assigned directly rather than via the SuicideRiskDomainCategory RuleSet the
+// other profiles insert: R4 gives `Procedure.category` a max of 1 (it only
+// becomes 0..* in R5), and FHIR does not allow slicing an element whose max is
+// 1. The single slot is uncontested here — this profile constrained no category
+// before, and the counselling act itself is identified by `Procedure.code` —
+// so spending it on the domain tag costs nothing and keeps
+// `GET /Procedure?category=…|suicide-risk` working like every other type.
+* category 1..1
+* category = SPiERConceptDomain#suicide-risk
 
 
 // ─── Observation profile: per-method means-safety action ─────
@@ -99,6 +111,9 @@ Description: "One means-safety action for a specific lethal means. Observation.c
 * status 1..1
 * category 1..*
 * category.coding 1..*
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * code 1..1
 * code from LethalMeansMethod (required)
 * subject 1..1
@@ -150,6 +165,7 @@ InstanceOf: SPiERLethalMeansCounseling
 Title: "Example — Lethal Means Safety Counseling Procedure"
 Description: "Sample Procedure recording that means-safety counseling was provided."
 Usage: #example
+* category = SPiERConceptDomain#suicide-risk
 * status = #completed
 * code = http://snomed.info/sct#409063005 "Counseling"
 * code.text = "Lethal means safety counseling (CALM)"
@@ -164,6 +180,7 @@ Description: "Sample means-safety action Observation: the patient's firearm was 
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#procedure
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = LethalMeansMethodCodes#firearm "Firearm"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-07-15T16:30:00Z"
@@ -178,6 +195,7 @@ Description: "Sample means-safety action Observation: medications locked in a lo
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#procedure
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = LethalMeansMethodCodes#medication "Medication"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-07-15T16:30:00Z"

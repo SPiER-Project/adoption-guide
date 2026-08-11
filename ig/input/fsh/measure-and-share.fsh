@@ -702,6 +702,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#track-follow-up
 * status = #completed
 * category[+].text = "Post-discharge follow-up outreach"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * sent = "2026-07-21T10:00:00Z"
 * medium[+] = http://terminology.hl7.org/CodeSystem/v3-ParticipationMode#PHONE "Telephone"

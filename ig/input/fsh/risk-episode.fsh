@@ -291,8 +291,15 @@ Description: "The chart banner announcing an open suicide-safer care episode. De
 * ^status = #draft
 * ^experimental = true
 * status 1..1
-* category 1..*
-* category = http://terminology.hl7.org/CodeSystem/flag-category#safety
+// Flag.category carried a single fixed value, which is a pattern applied to
+// EVERY repetition — so adding the Gravity domain tag (#262) alongside it was
+// not possible without slicing. Both codes are now named slices: the standard
+// HL7 safety category the chart banner needs, and the SPiER domain tag that
+// makes the Flag retrievable with the rest of the record.
+* insert SuicideRiskDomainSlicing
+* category contains safety 1..1
+* category[safety] = http://terminology.hl7.org/CodeSystem/flag-category#safety
+* insert SuicideRiskDomainSlice
 * code 1..1
 * code from SuicideRiskFlagCode (required)
 * subject 1..1
@@ -492,6 +499,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#track-risk-over-time
 * status = #active
 * category[+] = http://terminology.hl7.org/CodeSystem/flag-category#safety
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = SuicideRiskFlagCodes#active-suicide-risk-episode "Active suicide-safer care episode"
 * subject = Reference(Patient/example)
 * period.start = "2026-07-02"

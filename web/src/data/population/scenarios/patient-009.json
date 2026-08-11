@@ -72,11 +72,27 @@
       "id": "p009-follow-up",
       "status": "completed",
       "intent": "plan",
-      "category": [{ "coding": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "track-follow-up", "display": "Track Follow-Up" }] }],
-      "subject": { "reference": "Patient/patient-009" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+              "code": "track-follow-up",
+              "display": "Track Follow-Up"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
       "_savedAt": "2026-05-07T14:00:00Z",
       "title": "Caring contacts series complete",
-      "note": [{ "text": "7-day and 30-day caring contacts complete. Patient enrolled in active CAMS episode." }]
+      "note": [
+        {
+          "text": "7-day and 30-day caring contacts complete. Patient enrolled in active CAMS episode."
+        }
+      ]
     }
   ],
   "riskAlerts": [
@@ -184,7 +200,16 @@
         {
           "text": "Medication supply reduced to a two-week fill and held by a family member."
         }
-      ]
+      ],
+      "category": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-concept-domain",
+            "code": "suicide-risk",
+            "display": "Suicide risk"
+          }
+        ]
+      }
     }
   ],
   "documentReferences": [
@@ -320,7 +345,18 @@
           ]
         }
       ],
-      "description": "Prepared at step-down from intensive outpatient back to weekly CAMS sessions. Assembled under the sharing consent recorded minutes earlier: the assessment detail the patient excluded is recorded as withheld rather than quietly dropped."
+      "description": "Prepared at step-down from intensive outpatient back to weekly CAMS sessions. Assembled under the sharing consent recorded minutes earlier: the assessment detail the patient excluded is recorded as withheld rather than quietly dropped.",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ]
     }
   ],
   "serviceRequests": [
@@ -362,6 +398,17 @@
       "performer": [
         {
           "display": "Harbor Intensive Outpatient Program"
+        }
+      ],
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ]
     }
@@ -444,6 +491,15 @@
               "system": "http://spier.org/CodeSystem/spier-consent-category",
               "code": "suicide-safety-sharing",
               "display": "Suicide-safety information sharing"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
             }
           ]
         }
@@ -532,6 +588,15 @@
       "category": [
         {
           "text": "Follow-up outreach attempt"
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ],
       "subject": {
@@ -604,6 +669,15 @@
       "category": [
         {
           "text": "Caring contact"
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
         }
       ],
       "subject": {

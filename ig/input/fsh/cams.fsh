@@ -95,6 +95,9 @@ Description: "Integer rating (1–5) for one of the six Suicide Status Form (SSF
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * code from CAMSSSFMeasure (required)
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
 * status MS
@@ -185,6 +188,9 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * clinicalStatus MS
 * subject MS
 * category MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * code MS
 * subject 1..1
 * subject only Reference(Patient)
@@ -306,6 +312,9 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 * status MS
 * subject MS
 * category MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * activity MS
 * activity.detail.code MS
 
@@ -352,6 +361,9 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 * status MS
 * subject MS
 * category MS
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * activity MS
 * activity.detail.code MS
 
@@ -370,6 +382,9 @@ Description: "The disposition decision from the CAMS SSF-5 Outcome/Disposition f
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
+// Gravity-pattern domain tag, so this resource is retrievable with the rest
+// of the suicide-safer care record by category alone (#262).
+* insert SuicideRiskDomainCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
 * subject only Reference(Patient)
@@ -540,6 +555,7 @@ Description: "Sample SSF Vital Observation showing elevated psychological pain r
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = CAMSSSFMeasureCodes#psychological-pain "Psychological Pain"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
@@ -555,6 +571,7 @@ Description: "Sample Condition representing a CAMS-identified driver of suicidal
 Usage: #example
 * clinicalStatus = http://terminology.hl7.org/CodeSystem/condition-clinical#active "Active"
 * category[+] = CAMSDriverCategoryCodes#suicide-driver "Suicide Driver"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code.text = "Relationship conflict with spouse — feeling trapped and hopeless"
 * subject = Reference(Patient/example)
 * note[+].text = "Identified during CAMS Section B assessment. Track on problem list until resolved at CAMS disposition."
@@ -568,6 +585,7 @@ Usage: #example
 * status = #active
 * intent = #plan
 * category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * activity[+].detail
   * code = CAMSCarePlanSectionCodes#lethal-means-reduction "Lethal Means Reduction"
@@ -607,6 +625,7 @@ Usage: #example
 * status = #active
 * intent = #plan
 * category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * activity[+].detail
   * code = CAMSCarePlanSectionCodes#personal-narrative "Personal Story of Suicidality"
@@ -633,6 +652,7 @@ Description: "Sample disposition Observation from a CAMS final session where res
 Usage: #example
 * status = #final
 * category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
 * effectiveDateTime = "2026-07-15T16:00:00Z"
