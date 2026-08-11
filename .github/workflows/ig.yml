@@ -34,6 +34,7 @@ on:
       - 'web/src/lib/**'
       - 'web/src/types/**'
       - 'web/package.json'
+      - 'web/scripts/copy-fhir.mjs'
       - '.github/workflows/ig.yml'
   pull_request:
     paths:
@@ -48,6 +49,7 @@ on:
       - 'web/src/lib/**'
       - 'web/src/types/**'
       - 'web/package.json'
+      - 'web/scripts/copy-fhir.mjs'
       - '.github/workflows/ig.yml'
   workflow_dispatch:
 
@@ -150,6 +152,14 @@ jobs:
       # required concept-domain category missing from every builder.
       - name: Install web dependencies
         run: npm ci
+        working-directory: ./web
+
+      # The emitter imports the generated CodeSystems out of web/src/data/fhir/,
+      # which is gitignored. `--no-compile` copies the fsh-generated artifact
+      # downloaded above instead of re-running sushi — this job already exists to
+      # avoid paying for that compile twice.
+      - name: Copy generated FHIR into the web app
+        run: npm run copy-fhir -- --no-compile
         working-directory: ./web
 
       - name: Emit the runtime FHIR corpus
