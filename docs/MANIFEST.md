@@ -14,6 +14,11 @@ This manifest provides a computer-readable and human-readable index of the asset
 *   **`docs/repo-audit.md`**: Move 6d structural audit.
 *   **`docs/scheduled-checks-triage.md`**: The two timer-driven workflows (`terminology-nightly.yml`, `roadmap-snapshot.yml`) — their schedules, the named reader for each, and what to do when one goes red. Distinguishes real terminology drift (fix the code) from a `tx.fhir.org` outage (re-run), and carries the manual-PR step the org's no-Actions-PRs policy forces. Linked from every issue either workflow files.
 
+## Requirements Sources & Plans
+*   **`docs/reference/ssc-stage-tiles-question-set.md`**: Source spec for the eight-tile pathway stage/tool structure adopted July 2026. The stage PlanDefinitions and the tool catalog mirror its tiles.
+*   **`docs/reference/suicide-care-dashboard-spec.md`**: The *Suicide Care Dashboard* deck (2026-08-11) transcribed as a durable spec — 12 dashboard panels, per-tier reassessment intervals, and 17 requested EHR data elements. A **Collaborative Care Model** registry: three panels and four filters are scoped by the PCP / BH care manager / psychiatric consultant triad, which SPiER has no role model for. ⚠️ Carries a terminology-verification finding: the deck's `Z91.82` is *personal history of military deployment*, not self-harm history — do not propagate it (same failure mode as [#220](https://github.com/SPiER-Project/adoption-guide/issues/220)).
+*   **`docs/plans/suicide-care-dashboard.md`**: Implementation analysis of the above, tracked under epic [#277](https://github.com/SPiER-Project/adoption-guide/issues/277) with phases 1–2 filed as [#278](https://github.com/SPiER-Project/adoption-guide/issues/278) / [#279](https://github.com/SPiER-Project/adoption-guide/issues/279) — five modeling gaps (no care-team roles, unencoded reassessment intervals, the historical-risk axis, the consultant approval gate, outcome measures), a panel-by-panel disposition, the Population-view redesign, and a five-phase order that front-loads everything needing no new FHIR.
+
 ## Pilot Plans
 *   **`docs/pilot-plans/hie-asq-portability.md`**: Sanitized two-phase pilot plan for cross-EHR ASQ portability via a state HIE. Anchors epic [#60](https://github.com/SPiER-Project/adoption-guide/issues/60). The named-partner version of this plan is kept private.
 *   **`web/src/data/pilot-plans/asq.md`**: Per-tool pilot-prep notes for the ASQ Questionnaire (LOINC binding verification, SNOMED bindings, conditional-logic preservation).
@@ -37,7 +42,7 @@ This manifest provides a computer-readable and human-readable index of the asset
 
 ## FHIR Implementation Guide
 *   **Location:** `ig/`
-*   **FSH sources:** `ig/input/fsh/` — one file per tool plus `pathway-stages.fsh` for the 5 implemented stage PlanDefinitions (of 8 total pathway stages; stages 5, 6, 8 pending authoring) and `spier-codesystem.fsh` for the pathway-stage CodeSystem.
+*   **FSH sources:** `ig/input/fsh/` — one file per tool plus `pathway-stages.fsh` for all 8 stage PlanDefinitions (`identify-possible-risk`, `clarify-risk`, `define-risk-picture`, `document-safety-actions`, `coordinate-handoffs`, `track-follow-up`, `track-risk-over-time`, `measure-and-share`) and `spier-codesystem.fsh` for the pathway-stage CodeSystem.
 *   **Generated FHIR JSON:** `ig/fsh-generated/resources/` (sushi output, gitignored). A subset is copied to `web/src/data/fhir/` by `npm run copy-fhir` for the React app.
 *   **CI:** `.github/workflows/ig.yml` compiles FSH on every PR.
 
@@ -59,16 +64,16 @@ This manifest provides a computer-readable and human-readable index of the asset
     *   `FHIR-Resources/CAMS/cams-stabilization-plan.json`: Safety Planning.
     *   `FHIR-Resources/CAMS/Stabilization_CarePlan_Template.json`: Persistence model.
     *   `FHIR-Resources/CAMS/cams-therapeutic-worksheet.json`: Interim session tool.
-*   **Primary pathway stages:** Clarify Risk (2), Set Risk Status (3), Document Safety Actions (4), Manage Active Risk (7).
+*   **Primary pathway stages:** Clarify Risk (2), Define the Risk Picture (3), Document Safety Actions (4), Track Risk Over Time (7).
 
 ## Other Clinical Frameworks
-*   **ASQ (Ask Suicide-Screening Questions):** `FHIR-Resources/ASQ/` — primary stage: Flag Risk (1).
-*   **C-SSRS (Columbia-Suicide Severity Rating Scale):** `FHIR-Resources/C-SSRS/` — primary stages: Flag Risk (1), Clarify Risk (2).
-*   **PHQ-9 (Patient Health Questionnaire — 9-item):** `FHIR-Resources/PHQ-9/` — primary stage: Flag Risk (1).
-*   **SBQ-R (Suicide Behaviors Questionnaire-Revised):** `FHIR-Resources/SBQ-R/` — primary stage: Flag Risk (1).
+*   **ASQ (Ask Suicide-Screening Questions):** `FHIR-Resources/ASQ/` — primary stage: Identify Possible Risk (1).
+*   **C-SSRS (Columbia-Suicide Severity Rating Scale):** `FHIR-Resources/C-SSRS/` — primary stages: Identify Possible Risk (1), Clarify Risk (2).
+*   **PHQ-9 (Patient Health Questionnaire — 9-item):** `FHIR-Resources/PHQ-9/` — primary stage: Identify Possible Risk (1).
+*   **SBQ-R (Suicide Behaviors Questionnaire-Revised):** `FHIR-Resources/SBQ-R/` — primary stage: Identify Possible Risk (1).
 
 ## Evaluation
 *   **Evaluation:** `Evaluation/SPiER Evaluation Plan_12.23.2025.docx` (Placeholders - pending addition).
 
 ---
-*Last Updated: 2026-06-05*
+*Last Updated: 2026-08-11*
