@@ -1,4 +1,4 @@
-# SPiER — Suicide Prevention in Electronic Records
+# The SPiER Project
 
 | | |
 |---|---|

@@ -12,7 +12,7 @@ id: spier.ig
 # systems. Keep the IG and runtime data in the same namespace.
 canonical: http://spier.org
 name: SPiER
-title: SPiER — Suicide Prevention in Electronic Records
+title: The SPiER Project
 status: draft
 version: 0.1.0
 fhirVersion: 4.0.1

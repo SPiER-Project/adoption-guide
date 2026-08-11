@@ -38,7 +38,7 @@ export function Overview() {
       <header className="overview__hero">
         <p className="overview__eyebrow">SPiER</p>
         <h2 className="overview__title">
-          Setting priorities for technology-enabled suicide-safer care in Electronic Records
+          Setting priorities for technology-enabled suicide-safer care
         </h2>
         <div className="overview__accent-line" />
         <p className="overview__lede">
