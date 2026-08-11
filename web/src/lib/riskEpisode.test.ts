@@ -1,22 +1,26 @@
 import { describe, it, expect } from 'vitest'
 import {
+  CLOSURE_REASON_EXT,
+  CURRENT_TIER_EXT,
+  TRIGGER_EXT,
   buildEpisode,
   buildFlag,
   buildSafetyTask,
+  canClaimPositiveScreen,
   clearFlag,
   closeEpisode,
   completeTask,
   episodeCurrentTier,
   findOpenEpisode,
   isEpisodeOpen,
+  isPositiveScreen,
   isTaskOpen,
   isTaskOverdue,
+  pickEpisodeTrigger,
   taskDueDate,
   tasksForEpisode,
-  CURRENT_TIER_EXT,
-  CLOSURE_REASON_EXT,
 } from './riskEpisode'
-import type { EpisodeOfCareResource, TaskResource } from '../types/fhir'
+import type { EpisodeOfCareResource, ObservationResource, TaskResource } from '../types/fhir'
 
 const openEpisode = () =>
   buildEpisode({
@@ -166,5 +170,76 @@ describe('safety tasks', () => {
 
   it('tasksForEpisode returns nothing when there is no open episode', () => {
     expect(tasksForEpisode([task()], undefined)).toEqual([])
+  })
+})
+
+// ─── #263 Decision 1: episode opens on a positive screen ─────
+
+describe('isPositiveScreen', () => {
+  it('treats any identified risk as positive, matching the CDS card threshold', () => {
+    expect(isPositiveScreen('low')).toBe(true)
+    expect(isPositiveScreen('moderate')).toBe(true)
+    expect(isPositiveScreen('high')).toBe(true)
+    expect(isPositiveScreen('acute')).toBe(true)
+  })
+
+  it('does not open an episode when the screen found nothing', () => {
+    expect(isPositiveScreen('none')).toBe(false)
+  })
+})
+
+describe('pickEpisodeTrigger', () => {
+  const obs = (id: string, code?: string) =>
+    ({
+      resourceType: 'Observation',
+      id,
+      ...(code ? { code: { coding: [{ system: 'http://loinc.org', code }] } } : {}),
+    }) as ObservationResource
+
+  it('prefers the harmonized risk-concept Observation over an instrument-specific one', () => {
+    const picked = pickEpisodeTrigger([obs('item9', '44260-8'), obs('concept', '93374-7')], 'qr1')
+    expect(picked).toBe('Observation/concept')
+  })
+
+  it('falls back to the first Observation when no concept-layer result exists', () => {
+    expect(pickEpisodeTrigger([obs('item9', '44260-8')], 'qr1')).toBe('Observation/item9')
+  })
+
+  it('falls back to the QuestionnaireResponse, which the extension also accepts', () => {
+    expect(pickEpisodeTrigger([], 'qr1')).toBe('QuestionnaireResponse/qr1')
+  })
+
+  it('returns undefined when there is nothing to evidence the screen with', () => {
+    expect(pickEpisodeTrigger([], undefined)).toBeUndefined()
+  })
+})
+
+describe('buildEpisode trigger extension', () => {
+  it('emits episode-trigger when given a reference, satisfying the profile invariant', () => {
+    const ep = buildEpisode({
+      id: 'ep1',
+      patientId: 'patient-001',
+      entryReason: 'positive-screen',
+      startDate: '2026-08-11',
+      triggerRef: 'Observation/o1',
+    }) as { extension?: { url: string; valueReference?: { reference?: string } }[] }
+    const trigger = ep.extension?.find(e => e.url === TRIGGER_EXT)
+    expect(trigger?.valueReference?.reference).toBe('Observation/o1')
+  })
+
+  it('omits it when no trigger is given — several entry reasons have no structured artifact', () => {
+    const ep = buildEpisode({
+      id: 'ep1',
+      patientId: 'patient-001',
+      entryReason: 'manual-add',
+      startDate: '2026-08-11',
+    }) as { extension?: { url: string }[] }
+    expect(ep.extension?.some(e => e.url === TRIGGER_EXT)).toBe(false)
+  })
+
+  it('canClaimPositiveScreen gates the manual recorder', () => {
+    expect(canClaimPositiveScreen('Observation/o1')).toBe(true)
+    expect(canClaimPositiveScreen('')).toBe(false)
+    expect(canClaimPositiveScreen(undefined)).toBe(false)
   })
 })

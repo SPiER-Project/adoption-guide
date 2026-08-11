@@ -21,6 +21,7 @@ import type {
   CarePlanResource,
   CommunicationResource,
   ConsentResource,
+  EncounterResource,
   DocumentReferenceResource,
   EpisodeOfCareResource,
   FhirResource,
@@ -246,6 +247,13 @@ export class LocalDataSource implements FhirDataSource {
           }
         case 'Consent':
           return { ...prev, consents: upsertById(prev.consents, stamped as ConsentResource) }
+        // The #263 correlation hinge. Upserted by id, not appended: an Encounter
+        // is opened, gains an episode reference when one opens, gains Appointment
+        // references as they are booked, and is closed — all saves of the SAME
+        // resource. Appending would leave a stale copy that still reads
+        // in-progress, so `findOpenEncounter` would keep filing artifacts into it.
+        case 'Encounter':
+          return { ...prev, encounters: upsertById(prev.encounters, stamped as EncounterResource) }
         default:
           console.warn(
             `[LocalDataSource] saveArtifact: unhandled resourceType "${resource.resourceType}"`,

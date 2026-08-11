@@ -11,6 +11,7 @@ import {
   displayFor,
   episodeCurrentTier,
   findOpenEpisode,
+  pickEpisodeTrigger,
   CLOSURE_REASONS,
   ENTRY_REASONS,
   RISK_TIERS,
@@ -40,12 +41,32 @@ function todayIso(): string {
 }
 
 export function RiskEpisodeView() {
-  const { addArtifact, activePatientId, episodes, flags } = usePatient()
+  const { addArtifact, activePatientId, episodes, flags, observations, responses } = usePatient()
 
   const openEpisode = useMemo(() => findOpenEpisode(episodes), [episodes])
   const activeFlag = useMemo(
     () => flags.find(f => (f as { status?: string }).status === 'active'),
     [flags],
+  )
+
+  // Candidate triggers for a positive-screen entry: the patient's screening
+  // Observations, most recent first. `positive-screen` carries a profile
+  // invariant requiring the episode to name the artifact that evidenced it
+  // (#263), and this dropdown is the default option — so before phase 4 the
+  // recorder produced a non-conformant episode on every unmodified submit.
+  const triggerCandidates = useMemo(
+    () =>
+      [...observations]
+        .reverse()
+        .filter(o => typeof o.id === 'string')
+        .map(o => ({
+          ref: `Observation/${o.id}`,
+          label:
+            (o as { code?: { text?: string; coding?: { display?: string }[] } }).code?.text ??
+            (o as { code?: { coding?: { display?: string }[] } }).code?.coding?.[0]?.display ??
+            String(o.id),
+        })),
+    [observations],
   )
 
   const [entryReason, setEntryReason] = useState(ENTRY_REASONS[0].code)
@@ -54,6 +75,14 @@ export function RiskEpisodeView() {
   const [closureReason, setClosureReason] = useState(CLOSURE_REASONS[0].code)
   const [endDate, setEndDate] = useState(todayIso())
   const [notice, setNotice] = useState<string | null>(null)
+  // Default to whatever the concept layer would pick, so the common case is
+  // one click rather than a required decision.
+  const [triggerRef, setTriggerRef] = useState<string>(
+    () => pickEpisodeTrigger(observations, responses[responses.length - 1]?.id) ?? '',
+  )
+
+  const requiresTrigger = entryReason === 'positive-screen'
+  const triggerMissing = requiresTrigger && !triggerRef
 
   // Live preview of what will be written: the episode plus, on open, its flag.
   const draft = useMemo(() => {
@@ -63,15 +92,32 @@ export function RiskEpisodeView() {
     }
     const id = 'episode-preview'
     return [
-      buildEpisode({ id, patientId: activePatientId, entryReason, currentTier, startDate }),
+      buildEpisode({
+        id,
+        patientId: activePatientId,
+        entryReason,
+        currentTier,
+        startDate,
+        triggerRef: requiresTrigger ? triggerRef || undefined : undefined,
+      }),
       buildFlag({ id: `flag-${id}`, patientId: activePatientId, startDate }),
     ]
-  }, [openEpisode, activeFlag, closureReason, endDate, entryReason, currentTier, startDate, activePatientId])
+  }, [openEpisode, activeFlag, closureReason, endDate, entryReason, currentTier, startDate, activePatientId, requiresTrigger, triggerRef])
 
   function handleOpen(e: React.FormEvent) {
     e.preventDefault()
+    if (triggerMissing) return
     const id = `episode-${makeId()}`
-    addArtifact(buildEpisode({ id, patientId: activePatientId, entryReason, currentTier, startDate }))
+    addArtifact(
+      buildEpisode({
+        id,
+        patientId: activePatientId,
+        entryReason,
+        currentTier,
+        startDate,
+        triggerRef: requiresTrigger ? triggerRef : undefined,
+      }),
+    )
     addArtifact(buildFlag({ id: `flag-${id}`, patientId: activePatientId, startDate }))
     setNotice('Episode opened and chart banner raised.')
   }
@@ -160,6 +206,25 @@ export function RiskEpisodeView() {
                 ))}
               </select>
             </label>
+            {requiresTrigger && (
+              <label className="workflow-field">
+                <span className="workflow-field-label">Screening artifact that evidenced it</span>
+                <select
+                  className="workflow-input"
+                  value={triggerRef}
+                  onChange={e => setTriggerRef(e.target.value)}
+                >
+                  <option value="">— select the screen —</option>
+                  {triggerCandidates.map(c => (
+                    <option key={c.ref} value={c.ref}>{c.label}</option>
+                  ))}
+                </select>
+                <span className="workflow-field-help">
+                  A positive-screen entry SHALL name the artifact that evidenced it
+                  (<code>episode-trigger</code>). Pick another reason if no screen is on file.
+                </span>
+              </label>
+            )}
             <label className="workflow-field">
               <span className="workflow-field-label">Current risk tier</span>
               <select
@@ -181,7 +246,16 @@ export function RiskEpisodeView() {
                 onChange={e => setStartDate(e.target.value)}
               />
             </label>
-            <button type="submit" className="workflow-submit-btn">Open episode</button>
+            <button type="submit" className="workflow-submit-btn" disabled={triggerMissing}>
+              Open episode
+            </button>
+            {triggerMissing && (
+              <p className="workflow-field-help">
+                {triggerCandidates.length === 0
+                  ? 'This patient has no screening Observation on file, so a positive screen cannot be evidenced. Choose a different reason for entry.'
+                  : 'Select the screening artifact before opening the episode.'}
+              </p>
+            )}
           </form>
         )}
 

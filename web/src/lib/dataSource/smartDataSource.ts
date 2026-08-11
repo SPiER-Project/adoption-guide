@@ -36,6 +36,7 @@ import type {
   CommunicationResource,
   ConsentResource,
   DocumentReferenceResource,
+  EncounterResource,
   EpisodeOfCareResource,
   FlagResource,
   ProcedureResource,
@@ -139,6 +140,9 @@ const LIFECYCLE_RESOURCE_TYPES = new Set([
   'ServiceRequest',
   'Appointment',
   'Consent',
+  // #263: an Encounter is opened, gains its episode reference when one opens,
+  // gains Appointment references as they are booked, and is closed.
+  'Encounter',
 ])
 
 export class SmartDataSource implements FhirDataSource {
@@ -188,6 +192,7 @@ export class SmartDataSource implements FhirDataSource {
       appointments,
       consents,
       procedures,
+      encounters,
     ] = await Promise.all([
       this.search('QuestionnaireResponse', pid),
       this.search('Observation', pid, '&category=survey'),
@@ -210,6 +215,9 @@ export class SmartDataSource implements FhirDataSource {
       // Stage 4 (Document Safety Actions) — the lethal-means counseling
       // Procedure the Stage-8 measure counts. Best-effort for the same reason.
       this.search('Procedure', pid).catch(() => [] as FhirResource[]),
+      // #263 correlation hinge. Best-effort like the rest: without it the chart
+      // still renders, it just cannot group artifacts by contact.
+      this.search('Encounter', pid).catch(() => [] as FhirResource[]),
     ])
 
     // A server may return the same Observation under both category queries.
@@ -243,6 +251,7 @@ export class SmartDataSource implements FhirDataSource {
       appointments: appointments as AppointmentResource[],
       consents: consents as ConsentResource[],
       procedures: procedures as ProcedureResource[],
+      encounters: encounters as EncounterResource[],
       riskAlerts,
     }
   }

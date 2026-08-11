@@ -17,8 +17,8 @@ survive contact with R4.
 | 1 — profile + fixtures | **Done.** `SPiEREncounter`, 24 scenario Encounters, both gates extended. |
 | 2 — stamp `.encounter` on artifacts | **Done.** 50 direct + 5 reverse + 1 exempt = 56, gated. |
 | 3 — episode → trigger reference | **Done.** `episode-trigger` extension + the IG's first FHIRPath invariant. |
-| 4 — runtime (recorder stamps encounter, episode opens on positive screen) | Next. |
-| 5 — retire the heuristics | Unblocked; wants phase 4 first. |
+| 4 — runtime (recorder stamps encounter, episode opens on positive screen) | **Done.** lib/encounters.ts + the three write funnels; episode auto-opens with its trigger. |
+| 5 — retire the heuristics | Next. The CarePlan id regex and `relatedResponseNames` string matching can now go. |
 | 6 — document the retrieval path in the IG | Not started. |
 
 Two facts found while implementing phase 1 change what is written below, and are
