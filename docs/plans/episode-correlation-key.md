@@ -15,7 +15,7 @@ survive contact with R4.
 | Phase | State |
 |---|---|
 | 1 — profile + fixtures | **Done.** `SPiEREncounter`, 24 scenario Encounters, both gates extended. |
-| 2 — stamp `.encounter` on artifacts | Next. Target 49 of 49 linkable resources. |
+| 2 — stamp `.encounter` on artifacts | **Done.** 50 direct + 5 reverse + 1 exempt = 56, gated. |
 | 3–6 | Blocked on Decision 1 (phase 3 onward). |
 
 Two facts found while implementing phase 1 change what is written below, and are
@@ -273,6 +273,20 @@ one-PR job.
    decision above — so the target is **49 of 49 linkable resources**, not 61.
    Any check added here must count the exclusions explicitly rather than quietly
    passing on a smaller denominator.
+
+   **Corrected after doing it.** The 61/49 figures came from the tally across all
+   eleven scenarios; only six have an episode, and QuestionnaireResponses were left
+   out of both numbers. The real denominator is **56** artifacts in the six
+   episode-bearing scenarios: 50 linked directly (`.encounter`, or
+   `context.encounter` on DocumentReference), 5 Appointments linked in reverse by
+   `Encounter.appointment`, and 1 Consent exempt. QRs are included — they are the
+   screening artifacts that trigger an episode, so excluding them would have missed
+   the point of the phase.
+
+   The exclusion discipline held: `CORRELATION_EXEMPT` in
+   `check-scenario-resources.mjs` names Consent with its reason, and the check
+   prints `50 linked / 5 reverse / 1 exempt` on every run rather than reporting a
+   bare pass.
 3. **Episode → trigger reference** (Decision 1) on `SPiERSuicideRiskEpisode`.
 4. **Runtime.** The recorder stamps the active encounter; the episode opens on
    first positive screen.

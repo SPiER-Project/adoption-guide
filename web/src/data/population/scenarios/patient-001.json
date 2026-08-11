@@ -8,6 +8,9 @@
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
+        "encounter": {
+          "reference": "Encounter/p001-enc-index"
+        },
         "item": [
           {
             "linkId": "q1",
@@ -128,6 +131,9 @@
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "encounter": {
+          "reference": "Encounter/p001-enc-index"
+        },
         "item": [
           {
             "linkId": "screening-questions",
@@ -210,6 +216,9 @@
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
+        "encounter": {
+          "reference": "Encounter/p001-enc-index"
+        },
         "item": [
           {
             "linkId": "core-ratings",
@@ -344,7 +353,10 @@
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan"
+        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+        "encounter": {
+          "reference": "Encounter/p001-enc-index"
+        }
       }
     }
   ],
@@ -383,6 +395,9 @@
       },
       "subject": {
         "reference": "Patient/patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
       },
       "effectiveDateTime": "2026-03-13T10:15:00Z",
       "valueInteger": 18,
@@ -434,6 +449,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
       "effectiveDateTime": "2026-03-13T10:15:00Z",
       "valueInteger": 2,
       "interpretation": [
@@ -483,6 +501,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
       "effectiveDateTime": "2026-03-13T10:35:00Z",
       "valueCodeableConcept": {
         "coding": [
@@ -528,6 +549,9 @@
       },
       "subject": {
         "reference": "Patient/patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
       },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 4,
@@ -579,6 +603,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 4,
       "interpretation": [
@@ -627,6 +654,9 @@
       },
       "subject": {
         "reference": "Patient/patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
       },
       "effectiveDateTime": "2026-03-14T11:00:00Z",
       "valueInteger": 3,
@@ -686,6 +716,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
       },
       "addresses": [
         {
@@ -826,6 +859,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
       "_savedAt": "2026-03-17T09:00:00Z",
       "title": "Outpatient referral sent",
       "note": [
@@ -959,6 +995,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
       "performedDateTime": "2026-03-15T14:20:00Z",
       "note": [
         {
@@ -999,6 +1038,21 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "context": {
+        "related": [
+          {
+            "reference": "CarePlan/p001-stanley-brown"
+          },
+          {
+            "reference": "Observation/p001-asq-result"
+          }
+        ],
+        "encounter": [
+          {
+            "reference": "Encounter/p001-enc-index"
+          }
+        ]
+      },
       "date": "2026-03-16T15:00:00Z",
       "content": [
         {
@@ -1008,16 +1062,6 @@
           }
         }
       ],
-      "context": {
-        "related": [
-          {
-            "reference": "CarePlan/p001-stanley-brown"
-          },
-          {
-            "reference": "Observation/p001-asq-result"
-          }
-        ]
-      },
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/handoff-content-item",
@@ -1130,6 +1174,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
       "authoredOn": "2026-03-16T15:05:00Z",
       "reasonCode": [
         {
@@ -1235,6 +1282,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-outreach-48h"
+      },
       "sent": "2026-03-17T10:30:00Z",
       "medium": [
         {
@@ -1316,6 +1366,9 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "encounter": {
+        "reference": "Encounter/p001-enc-caring-contact"
+      },
       "sent": "2026-03-23T09:00:00Z",
       "medium": [
         {
@@ -1364,6 +1417,11 @@
       "subject": {
         "reference": "Patient/patient-001"
       },
+      "appointment": [
+        {
+          "reference": "Appointment/p001-follow-up"
+        }
+      ],
       "period": {
         "start": "2026-03-13T10:00:00Z",
         "end": "2026-03-16T15:30:00Z"

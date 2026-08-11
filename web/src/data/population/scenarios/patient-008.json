@@ -38,6 +38,9 @@
       "subject": {
         "reference": "Patient/patient-008"
       },
+      "encounter": {
+        "reference": "Encounter/p008-enc-index"
+      },
       "effectiveDateTime": "2026-04-21T10:00:00Z",
       "valueCodeableConcept": {
         "coding": [
@@ -74,6 +77,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-008"
+      },
+      "encounter": {
+        "reference": "Encounter/p008-enc-transition"
       },
       "_savedAt": "2026-04-21T11:00:00Z",
       "title": "Outpatient referral & receipt confirmed",
@@ -142,6 +148,9 @@
       "subject": {
         "reference": "Patient/patient-008"
       },
+      "encounter": {
+        "reference": "Encounter/p008-enc-caring-contact"
+      },
       "sent": "2026-04-28T15:30:00Z",
       "_savedAt": "2026-04-28T15:30:00Z",
       "payload": [
@@ -182,6 +191,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-008"
+      },
+      "encounter": {
+        "reference": "Encounter/p008-enc-transition"
       },
       "sent": "2026-04-28T10:00:00Z",
       "extension": [
@@ -272,6 +284,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-008"
+      },
+      "encounter": {
+        "reference": "Encounter/p008-enc-outreach-48h"
       },
       "sent": "2026-04-29T09:15:00Z",
       "medium": [
@@ -431,6 +446,9 @@
       "subject": {
         "reference": "Patient/patient-008"
       },
+      "encounter": {
+        "reference": "Encounter/p008-enc-transition"
+      },
       "authoredOn": "2026-04-28T10:15:00Z",
       "reasonCode": [
         {
@@ -560,6 +578,11 @@
       "subject": {
         "reference": "Patient/patient-008"
       },
+      "appointment": [
+        {
+          "reference": "Appointment/p008-follow-up"
+        }
+      ],
       "period": {
         "start": "2026-04-28T10:00:00Z",
         "end": "2026-04-28T11:00:00Z"

@@ -8,6 +8,9 @@
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "encounter": {
+          "reference": "Encounter/p011-enc-ed"
+        },
         "item": [
           {
             "linkId": "screening-questions",
@@ -89,7 +92,10 @@
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent"
+        "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent",
+        "encounter": {
+          "reference": "Encounter/p011-enc-ed"
+        }
       }
     },
     {
@@ -99,7 +105,10 @@
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan"
+        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+        "encounter": {
+          "reference": "Encounter/p011-enc-ed"
+        }
       }
     }
   ],
@@ -137,6 +146,9 @@
       },
       "subject": {
         "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
       },
       "effectiveDateTime": "2026-05-21T08:40:00Z",
       "valueCodeableConcept": {
@@ -183,6 +195,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
       },
       "addresses": [
         {
@@ -363,6 +378,9 @@
       "subject": {
         "reference": "Patient/patient-011"
       },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
       "sent": "2026-05-22T12:00:00Z",
       "_savedAt": "2026-05-22T12:00:00Z",
       "extension": [
@@ -473,6 +491,9 @@
       "subject": {
         "reference": "Patient/patient-011"
       },
+      "encounter": {
+        "reference": "Encounter/p011-enc-outreach-48h"
+      },
       "sent": "2026-05-23T10:00:00Z",
       "medium": [
         {
@@ -553,6 +574,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-caring-contact"
       },
       "sent": "2026-05-30T09:00:00Z",
       "medium": [
@@ -658,6 +682,21 @@
       "subject": {
         "reference": "Patient/patient-011"
       },
+      "context": {
+        "related": [
+          {
+            "reference": "CarePlan/p011-stanley-brown"
+          },
+          {
+            "reference": "Observation/p011-asq-result"
+          }
+        ],
+        "encounter": [
+          {
+            "reference": "Encounter/p011-enc-ed"
+          }
+        ]
+      },
       "date": "2026-05-22T12:10:00Z",
       "content": [
         {
@@ -667,16 +706,6 @@
           }
         }
       ],
-      "context": {
-        "related": [
-          {
-            "reference": "CarePlan/p011-stanley-brown"
-          },
-          {
-            "reference": "Observation/p011-asq-result"
-          }
-        ]
-      },
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/handoff-content-item",
@@ -800,6 +829,9 @@
       },
       "subject": {
         "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
       },
       "authoredOn": "2026-05-22T12:05:00Z",
       "reasonCode": [
@@ -1272,6 +1304,11 @@
       "subject": {
         "reference": "Patient/patient-011"
       },
+      "appointment": [
+        {
+          "reference": "Appointment/p011-follow-up"
+        }
+      ],
       "period": {
         "start": "2026-05-21T08:15:00Z",
         "end": "2026-05-22T12:15:00Z"

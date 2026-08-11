@@ -7,7 +7,10 @@
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan"
+        "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+        "encounter": {
+          "reference": "Encounter/p007-enc-index"
+        }
       }
     }
   ],
@@ -31,6 +34,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-007"
+      },
+      "encounter": {
+        "reference": "Encounter/p007-enc-index"
       },
       "addresses": [
         {
@@ -71,6 +77,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-007"
+      },
+      "encounter": {
+        "reference": "Encounter/p007-enc-index"
       },
       "sent": "2026-05-08T10:00:00Z",
       "_savedAt": "2026-05-08T10:00:00Z"
@@ -161,6 +170,18 @@
       "subject": {
         "reference": "Patient/patient-007"
       },
+      "context": {
+        "related": [
+          {
+            "reference": "CarePlan/p007-stanley-brown"
+          }
+        ],
+        "encounter": [
+          {
+            "reference": "Encounter/p007-enc-index"
+          }
+        ]
+      },
       "date": "2026-05-08T16:30:00Z",
       "content": [
         {
@@ -170,13 +191,6 @@
           }
         }
       ],
-      "context": {
-        "related": [
-          {
-            "reference": "CarePlan/p007-stanley-brown"
-          }
-        ]
-      },
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/handoff-content-item",
@@ -276,6 +290,9 @@
       },
       "subject": {
         "reference": "Patient/patient-007"
+      },
+      "encounter": {
+        "reference": "Encounter/p007-enc-index"
       },
       "authoredOn": "2026-05-08T16:40:00Z",
       "reasonCode": [
@@ -378,6 +395,11 @@
       "subject": {
         "reference": "Patient/patient-007"
       },
+      "appointment": [
+        {
+          "reference": "Appointment/p007-follow-up"
+        }
+      ],
       "period": {
         "start": "2026-05-06T13:00:00Z",
         "end": "2026-05-08T16:45:00Z"

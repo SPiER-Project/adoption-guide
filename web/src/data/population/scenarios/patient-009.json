@@ -7,7 +7,10 @@
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet"
+        "questionnaire": "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet",
+        "encounter": {
+          "reference": "Encounter/p009-enc-caring-contact"
+        }
       }
     }
   ],
@@ -49,6 +52,9 @@
       "subject": {
         "reference": "Patient/patient-009"
       },
+      "encounter": {
+        "reference": "Encounter/p009-enc-index"
+      },
       "effectiveDateTime": "2026-07-15T10:30:00Z",
       "valueCodeableConcept": {
         "coding": [
@@ -85,6 +91,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-009"
+      },
+      "encounter": {
+        "reference": "Encounter/p009-enc-caring-contact"
       },
       "_savedAt": "2026-05-07T14:00:00Z",
       "title": "Caring contacts series complete",
@@ -195,6 +204,9 @@
       "subject": {
         "reference": "Patient/patient-009"
       },
+      "encounter": {
+        "reference": "Encounter/p009-enc-index"
+      },
       "performedDateTime": "2026-07-15T11:15:00Z",
       "note": [
         {
@@ -235,6 +247,21 @@
       "subject": {
         "reference": "Patient/patient-009"
       },
+      "context": {
+        "related": [
+          {
+            "reference": "Observation/p009-risk-status"
+          },
+          {
+            "reference": "Consent/p009-sharing-consent"
+          }
+        ],
+        "encounter": [
+          {
+            "reference": "Encounter/p009-enc-transition"
+          }
+        ]
+      },
       "date": "2026-07-20T16:00:00Z",
       "content": [
         {
@@ -244,16 +271,6 @@
           }
         }
       ],
-      "context": {
-        "related": [
-          {
-            "reference": "Observation/p009-risk-status"
-          },
-          {
-            "reference": "Consent/p009-sharing-consent"
-          }
-        ]
-      },
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/handoff-content-item",
@@ -382,6 +399,9 @@
       },
       "subject": {
         "reference": "Patient/patient-009"
+      },
+      "encounter": {
+        "reference": "Encounter/p009-enc-referral"
       },
       "authoredOn": "2026-07-16T09:00:00Z",
       "reasonCode": [
@@ -602,6 +622,9 @@
       "subject": {
         "reference": "Patient/patient-009"
       },
+      "encounter": {
+        "reference": "Encounter/p009-enc-outreach-48h"
+      },
       "sent": "2026-07-21T09:45:00Z",
       "medium": [
         {
@@ -682,6 +705,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-009"
+      },
+      "encounter": {
+        "reference": "Encounter/p009-enc-caring-contact"
       },
       "sent": "2026-07-28T09:00:00Z",
       "medium": [
@@ -797,6 +823,11 @@
       "subject": {
         "reference": "Patient/patient-009"
       },
+      "appointment": [
+        {
+          "reference": "Appointment/p009-follow-up-visit"
+        }
+      ],
       "period": {
         "start": "2026-07-20T15:30:00Z",
         "end": "2026-07-20T16:30:00Z"
