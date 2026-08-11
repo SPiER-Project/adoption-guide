@@ -173,8 +173,11 @@ Monthly trends: Suicide attempts · Emergency department visits · Psychiatric
 hospitalizations · 988 referrals · Crisis interventions · Patients discharged
 from pathway · Average days in each risk tier.
 
-**Every SPiER measure today is a process measure.** This panel is a new family,
-and it needs both resources SPiER does not emit and a time-series report shape.
+**Every SPiER measure today is a process measure.** This panel is a new family.
+ED visits are countable from the `class = EMER` Encounters added by
+[#285](https://github.com/SPiER-Project/adoption-guide/pull/285); what it still
+needs is a way to mark a *psychiatric* admission (no seeded Encounter carries
+`type` or `reasonCode`) and a time-series report shape. See the plan's gap 5.
 
 ## Panel 11 — Population Health View
 
