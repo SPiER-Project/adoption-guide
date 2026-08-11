@@ -11,7 +11,13 @@
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
-import type { EpisodeOfCareResource, FlagResource, TaskResource } from '../types/fhir'
+import type { RiskAlert } from './observationMappers'
+import type {
+  EpisodeOfCareResource,
+  FlagResource,
+  ObservationResource,
+  TaskResource,
+} from '../types/fhir'
 
 export const STAGE_ID = 'track-risk-over-time'
 
@@ -30,6 +36,7 @@ export const RISK_TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-
 export const ENTRY_REASON_EXT = 'http://spier.org/StructureDefinition/episode-entry-reason'
 export const CLOSURE_REASON_EXT = 'http://spier.org/StructureDefinition/episode-closure-reason'
 export const CURRENT_TIER_EXT = 'http://spier.org/StructureDefinition/episode-current-risk-tier'
+export const TRIGGER_EXT = 'http://spier.org/StructureDefinition/episode-trigger'
 export const ESCALATION_TRIGGER_EXT = 'http://spier.org/StructureDefinition/escalation-trigger'
 
 /** EpisodeOfCare.status values that mean the episode is still open. */
@@ -187,12 +194,25 @@ function stageTag() {
   return [{ system: PATHWAY_STAGE_SYSTEM, code: STAGE_ID, display: 'Track Risk Over Time' }]
 }
 
+/**
+ * `triggerRef` is REQUIRED when `entryReason` is `positive-screen`: the profile
+ * carries a FHIRPath invariant (`spier-episode-trigger-on-positive-screen`) that
+ * fails without it. Passing the reason without the reference produces an episode
+ * the IG rejects — which the manual recorder used to do, since `positive-screen`
+ * is the first option in its dropdown.
+ *
+ * Deliberately not enforced in the type system: several other entry reasons have
+ * no structured artifact to name, so a discriminated union here would make the
+ * common cases awkward to satisfy. The invariant is the enforcement, and the
+ * caller-side guard is `canClaimPositiveScreen`.
+ */
 export function buildEpisode(params: {
   id: string
   patientId: string | null
   entryReason: string
   currentTier?: string
   startDate: string
+  triggerRef?: string
 }): EpisodeOfCareResource {
   return {
     resourceType: 'EpisodeOfCare',
@@ -215,6 +235,9 @@ export function buildEpisode(params: {
           ],
         },
       },
+      ...(params.triggerRef
+        ? [{ url: TRIGGER_EXT, valueReference: { reference: params.triggerRef } }]
+        : []),
       ...(params.currentTier
         ? [
             {
@@ -348,4 +371,57 @@ export function buildSafetyTask(params: {
 /** Mark a task complete. Same id ⇒ upsert replaces it. */
 export function completeTask(task: TaskResource): TaskResource {
   return { ...task, status: 'completed' } as TaskResource
+}
+
+// ─── Opening an episode from a screen (#263, Decision 1) ─────
+//
+// The approved ordering: an episode opens on the first positive screen and points
+// back at the artifact that evidenced it. It cannot open *before* the screen,
+// because a suicide-safer-care episode asserts the patient is in suicide-safer
+// care — and Stage 1 screens everyone, most of them negative.
+
+/** The generic suicide-risk-level LOINC code the concept layer derives. */
+const RISK_CONCEPT_CODE = '93374-7'
+
+/**
+ * Whether a derived screen result should open an episode.
+ *
+ * `!== 'none'` deliberately, matching the threshold the CDS card builder already
+ * uses for "actionable" (`lib/cdsHooks/cards.ts`). Aligning with the existing line
+ * rather than inventing a second one: a screen that identified any risk is a
+ * positive screen. Raising this to moderate-and-above is a clinical call, not a
+ * technical one, and should be made deliberately rather than by drift.
+ */
+export function isPositiveScreen(level: RiskAlert['level']): boolean {
+  return level !== 'none'
+}
+
+/**
+ * The artifact to name as the episode's trigger.
+ *
+ * Prefers the harmonized risk-concept Observation — it is the instrument-agnostic,
+ * actionable result, and the one a consumer can interpret without knowing which
+ * tool produced it. Falls back to any derived Observation, then to the
+ * QuestionnaireResponse itself, which the extension also accepts.
+ */
+export function pickEpisodeTrigger(
+  observations: ObservationResource[],
+  responseId: string | undefined,
+): string | undefined {
+  const concept = observations.find(o => {
+    const code = (o as { code?: { coding?: { code?: string }[] } }).code
+    return code?.coding?.some(c => c?.code === RISK_CONCEPT_CODE)
+  })
+  const chosen = concept ?? observations[0]
+  if (chosen?.id) return `Observation/${chosen.id}`
+  return responseId ? `QuestionnaireResponse/${responseId}` : undefined
+}
+
+/**
+ * Guard for the manual recorder: `positive-screen` may only be claimed when there
+ * is an artifact to name, because the profile invariant requires one. Without
+ * this the default dropdown selection produced a non-conformant episode.
+ */
+export function canClaimPositiveScreen(triggerRef: string | undefined): boolean {
+  return typeof triggerRef === 'string' && triggerRef.length > 0
 }

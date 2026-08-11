@@ -10,6 +10,19 @@ import {
 } from './PatientContext'
 import { makeId } from '../lib/id'
 import { deriveFromResponse } from '../lib/deriveFromResponse'
+import {
+  buildEpisode,
+  findOpenEpisode,
+  isPositiveScreen,
+  pickEpisodeTrigger,
+} from '../lib/riskEpisode'
+import {
+  attachAppointment,
+  attachEpisode,
+  buildEncounter,
+  findOpenEncounter,
+  stampEncounter,
+} from '../lib/encounters'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import { SmartDataSource } from '../lib/dataSource/smartDataSource'
 import type { FhirDataSource } from '../lib/dataSource/types'
@@ -18,7 +31,10 @@ import populationPatientsData from '../data/population/patients.json'
 import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import type {
   CarePlanResource,
+  EncounterResource,
+  EpisodeOfCareResource,
   FhirResource,
+  ObservationResource,
   PatientResource,
   PatientSlice,
   QuestionnaireResponseResource,
@@ -306,13 +322,87 @@ export function PatientProvider({
     [activePatient],
   )
 
+  // ── #263 phase 4: the correlation hinge at runtime ──────────
+  //
+  // Every artifact the app records is filed against an Encounter, and that
+  // Encounter names the episode. Two things make this less trivial than it looks:
+  //
+  //  * `slice` is React state, so two saves in the same tick would both read the
+  //    same (encounter-less) slice and each mint an Encounter. The ref below is
+  //    the within-tick memory that prevents that; `slice.encounters` is the
+  //    across-render source of truth.
+  //  * The Encounter is created lazily and does not claim the SPiEREncounter
+  //    profile until an episode exists — see the note in lib/encounters.ts.
+  const openEncounterRef = useRef<EncounterResource | null>(null)
+
+  // A cached Encounter belongs to one patient. Clearing on key change stops an
+  // artifact for patient B being filed against patient A's contact.
+  useEffect(() => {
+    openEncounterRef.current = null
+  }, [sliceKey])
+
+  const ensureEncounter = useCallback(async (): Promise<EncounterResource> => {
+    const nowIso = new Date().toISOString()
+
+    const cached = openEncounterRef.current
+    if (cached && findOpenEncounter([cached], nowIso)) return cached
+
+    const existing = findOpenEncounter(slice.encounters ?? [], nowIso)
+    if (existing) {
+      openEncounterRef.current = existing
+      return existing
+    }
+
+    const created = buildEncounter({ patientId: sliceKey, startIso: nowIso })
+    openEncounterRef.current = created
+    await activeSource.saveArtifact(sliceKey, created)
+    return created
+  }, [activeSource, sliceKey, slice.encounters])
+
+  /**
+   * Save one artifact against the active Encounter, handling the two types that
+   * need something other than a plain `.encounter`:
+   *
+   *  * `Appointment` has no `.encounter` in R4, so the Encounter names it back.
+   *  * `EpisodeOfCare` is what the Encounter points at, so saving one attaches
+   *    it to the Encounter — which is also when the Encounter starts claiming
+   *    the SPiER profile. This covers the manual recorder (RiskEpisodeView) and
+   *    the automatic positive-screen path with one piece of code.
+   */
+  const saveAgainstEncounter = useCallback(
+    async (resource: FhirResource) => {
+      // An Encounter is not filed against itself.
+      if (resource.resourceType === 'Encounter') {
+        await activeSource.saveArtifact(sliceKey, resource)
+        return
+      }
+
+      const encounter = await ensureEncounter()
+      const encounterId = String(encounter.id)
+      await activeSource.saveArtifact(sliceKey, stampEncounter(resource, encounterId))
+
+      let updated = encounter
+      if (resource.resourceType === 'Appointment' && typeof resource.id === 'string') {
+        updated = attachAppointment(updated, resource.id)
+      }
+      if (resource.resourceType === 'EpisodeOfCare') {
+        updated = attachEpisode(updated, resource as EpisodeOfCareResource)
+      }
+      if (updated !== encounter) {
+        openEncounterRef.current = updated
+        await activeSource.saveArtifact(sliceKey, updated)
+      }
+    },
+    [activeSource, ensureEncounter, sliceKey],
+  )
+
   const addCarePlan = useCallback(
     (carePlan: CarePlanResource) => {
       // CarePlans are non-QR artifacts — the source routes them into the
       // carePlans array and stamps _savedAt, same as any other artifact.
-      trackSave(activeSource.saveArtifact(sliceKey, carePlan))
+      trackSave(saveAgainstEncounter(carePlan))
     },
-    [activeSource, sliceKey, trackSave],
+    [saveAgainstEncounter, trackSave],
   )
 
   const addResponse = useCallback(
@@ -335,9 +425,52 @@ export function PatientProvider({
       // (e.g. Stanley-Brown / CAMS plans), in which case only the response is
       // persisted.
       const derived = deriveFromResponse(storedResource)
-      trackSave(activeSource.saveResponse(sliceKey, entry, derived))
+      trackSave(
+        (async () => {
+          // The QR and everything derived from it happened at the same contact,
+          // so they share one Encounter (#263). The QR is stamped too — it is the
+          // artifact that most often triggers the episode, and
+          // `QuestionnaireResponse.encounter` is a native R4 element.
+          const encounter = await ensureEncounter()
+          const encounterId = String(encounter.id)
+          const stampedEntry: StoredResponse = {
+            ...entry,
+            resource: stampEncounter(entry.resource, encounterId),
+          }
+          const stampedDerived = derived
+            ? {
+                ...derived,
+                observations: derived.observations.map(o =>
+                  stampEncounter(o as ObservationResource, encounterId),
+                ),
+              }
+            : null
+          await activeSource.saveResponse(sliceKey, stampedEntry, stampedDerived)
+
+          // Decision 1 (#263): a positive screen opens the episode, and the
+          // episode names the screen that opened it. Only when none is already
+          // open — a second positive screen belongs to the episode already
+          // running, not to a new one.
+          if (!stampedDerived || !isPositiveScreen(stampedDerived.riskAlert.level)) return
+          if (findOpenEpisode(slice.episodes ?? [])) return
+
+          const triggerRef = pickEpisodeTrigger(stampedDerived.observations, stampedEntry.id)
+          if (!triggerRef) return // nothing to evidence it with; do not claim a positive screen
+
+          const episode = buildEpisode({
+            id: `episode-${makeId()}`,
+            patientId: sliceKey,
+            entryReason: 'positive-screen',
+            startDate: new Date().toISOString(),
+            triggerRef,
+          })
+          // Routed through saveAgainstEncounter so the Encounter gains the episode
+          // reference — and with it the SPiER profile claim — in one place.
+          await saveAgainstEncounter(episode)
+        })(),
+      )
     },
-    [activeSource, sliceKey, trackSave],
+    [activeSource, ensureEncounter, saveAgainstEncounter, slice.episodes, sliceKey, trackSave],
   )
 
   // Generic adder for non-Questionnaire workflow artifacts. The source routes
@@ -346,9 +479,9 @@ export function PatientProvider({
   // additionally derives Observations.
   const addArtifact = useCallback(
     (resource: FhirResource) => {
-      trackSave(activeSource.saveArtifact(sliceKey, resource))
+      trackSave(saveAgainstEncounter(resource))
     },
-    [activeSource, sliceKey, trackSave],
+    [saveAgainstEncounter, trackSave],
   )
 
   const value = useMemo<PatientContextType>(
