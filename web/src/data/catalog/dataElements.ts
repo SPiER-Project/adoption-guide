@@ -1,8 +1,27 @@
+/**
+ * Every R4 resource type SPiER actually emits somewhere in the pathway.
+ *
+ * This was a closed four-member union (QuestionnaireResponse, Observation,
+ * Condition, CarePlan) until #260, which meant most of what Stages 5–8 produce
+ * — and everything the Stage-8 measure engine reads — could not be documented at
+ * all. The list below is not aspirational: each type has at least one profile in
+ * `ig/input/fsh/`, and `check:catalog` fails if a binding names a system with no
+ * generated CodeSystem behind it.
+ */
 export type FhirResourceType =
   | 'QuestionnaireResponse'
   | 'Observation'
   | 'Condition'
   | 'CarePlan'
+  | 'EpisodeOfCare'
+  | 'Task'
+  | 'Flag'
+  | 'ServiceRequest'
+  | 'Communication'
+  | 'Appointment'
+  | 'Procedure'
+  | 'DocumentReference'
+  | 'Consent'
 
 /**
  * A FHIR Coding, written the way FHIR writes one.
@@ -25,23 +44,67 @@ export interface Coding {
   display: string
 }
 
-export interface DataElement {
+/**
+ * A concept that more than one instrument expresses — the shared, actionable
+ * meaning that `concept-layer.fsh` defines and that several instruments map into.
+ *
+ * Deliberately sparse. #260 sketched a Concept for every row, which would have
+ * produced ~56 concepts wrapping a single binding each: ceremony that duplicates
+ * the binding's own id, name and code while asserting a "shared" concept that
+ * nothing shares. A concept earns an entry here when two or more bindings point
+ * at it. Today exactly one does — the suicide-risk tier, which five instruments
+ * reach by five different routes — and that one case is the whole reason the flat
+ * list read as five unrelated rows carrying the same LOINC code.
+ *
+ * Adding the next one is a single entry plus a `conceptId` on its bindings.
+ */
+export interface Concept {
+  id: string
+  name: string
+  /** SPiERConceptDomain code — the Gravity-style domain tag (#262). */
+  domain: 'suicide-risk'
+  /** The concept's own code, as it appears on every binding's resource. */
+  code: Coding
+  /** Canonical of the ValueSet the harmonized value is drawn from. */
+  valueSet?: string
+  description: string
+}
+
+/**
+ * One instrument's or workflow step's expression of a concept in FHIR.
+ *
+ * `code` and `value` are separate fields, which is the point of the #260 split.
+ * The old flat shape had one `code` + `codeSystem` slot, so an Observation coded
+ * with one concept and *valued* from a different vocabulary — which is what SPiER
+ * does most often — had to pick which of the two to show. Both readings were
+ * defensible, which is what made it a bug rather than a preference: `asq-result`
+ * put the value system in the code column while `bssa-disposition` put the code
+ * there and explained the value in prose.
+ */
+export interface Binding {
   id: string                          // stable slug, 'phq9-item9'
   name: string                        // human label, 'Thoughts of death/self-harm (Item 9)'
+  /** Set only when this binding is one of several expressions of a shared Concept. */
+  conceptId?: string
   /**
-   * The code identifying this element. Absent when the element genuinely has
-   * none — an instrument whose items carry no item code, or a row that
-   * documents something other than a coded concept.
+   * The code identifying the resource — `Observation.code`, `Task.code`, an
+   * item code. Absent when the element genuinely has none: an instrument whose
+   * items carry no item code, or a resource recognised by its profile rather
+   * than by a code (several Stage 5–7 types are, and say so).
    */
-  coding?: Coding
+  code?: Coding
   /**
-   * For an item with no item code: the CodeSystem its *answers* are drawn
-   * from. This is a value-side vocabulary, deliberately kept in its own field
-   * rather than smuggled into `coding` — conflating an element's code with its
-   * value is the defect the accuracy pass removed, and the full separation is
-   * the Concept/Binding split in #260.
+   * The vocabulary the element's *value* draws from, when the value is coded.
+   * Replaces the interim `answerSystem` field: same job, honest name, and now
+   * able to sit alongside `code` on the same row rather than instead of it.
+   *
+   * `system` is the CodeSystem the codes come from; `valueSet` is the bindable
+   * ValueSet when one exists. Both are canonicals, so a gate can resolve them.
    */
-  answerSystem?: string
+  value?: {
+    system: string
+    valueSet?: string
+  }
   fhirResource: FhirResourceType
   fhirPath: string
   usedBy: string[]                    // tool IDs — ['TL-002', 'TL-020', ...]
@@ -126,12 +189,27 @@ const TOOLS_CAMS_SSF = ['TL-020']
  */
 const TOOLS_CSSRS_PAST_MONTH = ['TL-003', 'TL-027']
 
-export const DATA_ELEMENTS: DataElement[] = [
+/**
+ * Shared concepts. See the `Concept` doc comment for why there is only one.
+ */
+export const CONCEPTS: Concept[] = [
+  {
+    id: 'suicide-risk-tier',
+    name: 'Suicide risk tier',
+    domain: 'suicide-risk',
+    code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs',
+    description:
+      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Five instruments reach it by five different routes: C-SSRS and CAMS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. All five carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as five unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet; that is #264.',
+  },
+]
+
+export const BINDINGS: Binding[] = [
   // ── C-SSRS ──
   {
     id: 'cssrs-screener-panel',
     name: 'C-SSRS Screener Panel',
-    coding: { system: 'http://loinc.org', code: '93373-9', display: 'Columbia - suicide severity rating scale screener - recent [C-SSRS]' },
+    code: { system: 'http://loinc.org', code: '93373-9', display: 'Columbia - suicide severity rating scale screener - recent [C-SSRS]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: 'QuestionnaireResponse.questionnaire',
     usedBy: ['TL-003'],
@@ -140,7 +218,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-full-panel',
     name: 'C-SSRS Full Panel',
-    coding: { system: 'http://loinc.org', code: '93245-9', display: 'Columbia - suicide severity rating scale - lifetime recent [C-SSRS]' },
+    code: { system: 'http://loinc.org', code: '93245-9', display: 'Columbia - suicide severity rating scale - lifetime recent [C-SSRS]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: 'QuestionnaireResponse.questionnaire',
     usedBy: ['TL-004'],
@@ -149,7 +227,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-wish-dead',
     name: 'Wish to be dead',
-    coding: { system: 'http://loinc.org', code: '93246-7', display: 'Wish to be dead 1 month' },
+    code: { system: 'http://loinc.org', code: '93246-7', display: 'Wish to be dead 1 month' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
@@ -158,7 +236,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-nonspecific-active',
     name: 'Non-specific active suicidal thoughts',
-    coding: { system: 'http://loinc.org', code: '93247-5', display: 'Non-specific active suicidal thoughts 1 month' },
+    code: { system: 'http://loinc.org', code: '93247-5', display: 'Non-specific active suicidal thoughts 1 month' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
@@ -167,7 +245,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-methods-no-intent',
     name: 'Ideation with methods, no intent',
-    coding: { system: 'http://loinc.org', code: '93248-3', display: 'Active suicidal ideation with any methods (not plan) without intent to act 1 month' },
+    code: { system: 'http://loinc.org', code: '93248-3', display: 'Active suicidal ideation with any methods (not plan) without intent to act 1 month' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
@@ -176,7 +254,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-some-intent',
     name: 'Ideation with some intent',
-    coding: { system: 'http://loinc.org', code: '93249-1', display: 'Active suicidal ideation with some intent to act, without specific plan 1 month' },
+    code: { system: 'http://loinc.org', code: '93249-1', display: 'Active suicidal ideation with some intent to act, without specific plan 1 month' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
@@ -185,7 +263,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-plan-intent',
     name: 'Ideation with specific plan and intent',
-    coding: { system: 'http://loinc.org', code: '93250-9', display: 'Active suicidal ideation with specific plan and intent 1 month' },
+    code: { system: 'http://loinc.org', code: '93250-9', display: 'Active suicidal ideation with specific plan and intent 1 month' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
@@ -194,7 +272,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-behavior-ever',
     name: 'Preparatory acts or suicidal behavior (lifetime)',
-    coding: { system: 'http://loinc.org', code: '93267-3', display: 'Preparatory acts or suicidal behavior Lifetime' },
+    code: { system: 'http://loinc.org', code: '93267-3', display: 'Preparatory acts or suicidal behavior Lifetime' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
@@ -202,8 +280,10 @@ export const DATA_ELEMENTS: DataElement[] = [
   },
   {
     id: 'suicide-risk-level',
+    conceptId: 'suicide-risk-tier',
     name: 'Suicide risk level',
-    coding: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    value: { system: 'http://spier.org/CodeSystem/cssrs-risk-level', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     // Cross-cutting: derived from C-SSRS (Screener, Full, Since Last Visit, Pediatric) and reused as CAMS overall risk.
@@ -213,7 +293,8 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cssrs-actual-lethality',
     name: 'Actual lethality/medical damage',
-    coding: { system: 'http://loinc.org', code: '93271-5', display: 'Actual lethality/medical damage most lethal suicide attempt Lifetime [C-SSRS]' },
+    code: { system: 'http://loinc.org', code: '93271-5', display: 'Actual lethality/medical damage most lethal suicide attempt Lifetime [C-SSRS]' },
+    value: { system: 'http://spier.org/CodeSystem/cssrs-lethality' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='behavior-section').item.where(linkId='lethality-section').item.where(linkId='actual-lethality').answer.valueCoding",
     usedBy: ['TL-004'],
@@ -224,7 +305,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-panel',
     name: 'PHQ-9 Panel',
-    coding: { system: 'http://loinc.org', code: '44249-1', display: 'PHQ-9 quick depression assessment panel [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44249-1', display: 'PHQ-9 quick depression assessment panel [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: 'QuestionnaireResponse.questionnaire',
     usedBy: ['TL-002'],
@@ -235,7 +316,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item1',
     name: 'Little interest or pleasure',
-    coding: { system: 'http://loinc.org', code: '44250-9', display: 'Little interest or pleasure in doing things in last 2 weeks' },
+    code: { system: 'http://loinc.org', code: '44250-9', display: 'Little interest or pleasure in doing things in last 2 weeks' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q1').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -244,7 +325,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item2',
     name: 'Feeling down/depressed',
-    coding: { system: 'http://loinc.org', code: '44255-8', display: 'Feeling down, depressed, or hopeless in last 2 weeks' },
+    code: { system: 'http://loinc.org', code: '44255-8', display: 'Feeling down, depressed, or hopeless in last 2 weeks' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q2').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -253,7 +334,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item3',
     name: 'Sleep disturbance',
-    coding: { system: 'http://loinc.org', code: '44259-0', display: 'Trouble falling or staying asleep, or sleeping too much in last 2 weeks [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44259-0', display: 'Trouble falling or staying asleep, or sleeping too much in last 2 weeks [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q3').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -262,7 +343,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item4',
     name: 'Fatigue / low energy',
-    coding: { system: 'http://loinc.org', code: '44254-1', display: 'Feeling tired or having little energy in last 2 weeks [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44254-1', display: 'Feeling tired or having little energy in last 2 weeks [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q4').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -271,7 +352,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item5',
     name: 'Appetite change',
-    coding: { system: 'http://loinc.org', code: '44251-7', display: 'Poor appetite or overeating in last 2 weeks [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44251-7', display: 'Poor appetite or overeating in last 2 weeks [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q5').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -280,7 +361,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item6',
     name: 'Feeling bad about yourself',
-    coding: { system: 'http://loinc.org', code: '44258-2', display: 'Feeling bad about yourself - or that you are a failure or have let yourself or your family down in last 2 weeks [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44258-2', display: 'Feeling bad about yourself - or that you are a failure or have let yourself or your family down in last 2 weeks [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q6').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -289,7 +370,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item7',
     name: 'Trouble concentrating',
-    coding: { system: 'http://loinc.org', code: '44252-5', display: 'Trouble concentrating on things, such as reading the newspaper or watching television in last 2 weeks [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44252-5', display: 'Trouble concentrating on things, such as reading the newspaper or watching television in last 2 weeks [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q7').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -298,7 +379,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item8',
     name: 'Psychomotor change',
-    coding: { system: 'http://loinc.org', code: '44253-3', display: 'Moving or speaking so slowly that other people could have noticed. Or the opposite - being so fidgety or restless that you have been moving around a lot more than usual in last 2 weeks [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44253-3', display: 'Moving or speaking so slowly that other people could have noticed. Or the opposite - being so fidgety or restless that you have been moving around a lot more than usual in last 2 weeks [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q8').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -307,7 +388,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-item9',
     name: 'Thoughts of death/self-harm (Item 9)',
-    coding: { system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q9').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -316,7 +397,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-total',
     name: 'PHQ-9 Total Score',
-    coding: { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]' },
+    code: { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: ['TL-002'],
@@ -325,7 +406,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'phq9-functional',
     name: 'Functional Difficulty',
-    coding: { system: 'http://loinc.org', code: '69722-7', display: 'How difficult have these made it for you to do your work, take care of things at home, or get along with other people [Reported.PHQ]' },
+    code: { system: 'http://loinc.org', code: '69722-7', display: 'How difficult have these made it for you to do your work, take care of things at home, or get along with other people [Reported.PHQ]' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='difficulty').answer.valueCoding",
     usedBy: ['TL-002'],
@@ -340,7 +421,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sbqr-q1',
     name: 'Lifetime ideation/attempt',
-    answerSystem: 'http://spier.org/CodeSystem/sbqr-q1',
+    value: { system: 'http://spier.org/CodeSystem/sbqr-q1' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q1').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -349,7 +430,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sbqr-q2',
     name: 'Past-year ideation frequency',
-    answerSystem: 'http://spier.org/CodeSystem/sbqr-q2',
+    value: { system: 'http://spier.org/CodeSystem/sbqr-q2' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q2').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -358,7 +439,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sbqr-q3',
     name: 'Threat of suicide attempt',
-    answerSystem: 'http://spier.org/CodeSystem/sbqr-q3',
+    value: { system: 'http://spier.org/CodeSystem/sbqr-q3' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q3').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -367,7 +448,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sbqr-q4',
     name: 'Future likelihood of attempt',
-    answerSystem: 'http://spier.org/CodeSystem/sbqr-q4',
+    value: { system: 'http://spier.org/CodeSystem/sbqr-q4' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q4').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -377,7 +458,7 @@ export const DATA_ELEMENTS: DataElement[] = [
     id: 'sbqr-total',
     name: 'SBQ-R Total Score',
     // SNOMED FSN, matching the item code in sbqr-questionnaire.json.
-    coding: { system: 'http://snomed.info/sct', code: '225337009', display: 'Suicide risk assessment (procedure)' },
+    code: { system: 'http://snomed.info/sct', code: '225337009', display: 'Suicide risk assessment (procedure)' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: ['TL-025'],
@@ -391,7 +472,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'asq-q1-wished-dead',
     name: 'Wished you were dead',
-    coding: { system: 'http://spier.org/CodeSystem/asq-item', code: 'wished-dead', display: 'Wished you were dead' },
+    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'wished-dead', display: 'Wished you were dead' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q1').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -400,7 +481,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'asq-q2-family',
     name: 'Family better off if dead',
-    coding: { system: 'http://spier.org/CodeSystem/asq-item', code: 'family-better-off-dead', display: 'Family better off if dead' },
+    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'family-better-off-dead', display: 'Family better off if dead' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q2').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -409,7 +490,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'asq-q3-thoughts',
     name: 'Thoughts about killing yourself',
-    coding: { system: 'http://spier.org/CodeSystem/asq-item', code: 'thoughts-killing-self', display: 'Thoughts about killing yourself' },
+    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'thoughts-killing-self', display: 'Thoughts about killing yourself' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q3').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -418,7 +499,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'asq-q4-ever-tried',
     name: 'Ever tried to kill yourself',
-    coding: { system: 'http://spier.org/CodeSystem/asq-item', code: 'ever-attempted', display: 'Ever tried to kill yourself' },
+    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'ever-attempted', display: 'Ever tried to kill yourself' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q4').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -427,7 +508,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'asq-q4-recent-attempt',
     name: 'Most recent attempt (recency)',
-    answerSystem: 'http://spier.org/CodeSystem/asq-attempt-recency',
+    value: { system: 'http://spier.org/CodeSystem/asq-attempt-recency' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q4-recent-attempt').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -436,7 +517,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'asq-q5-acuity',
     name: 'Acuity: Killing yourself right now',
-    coding: { system: 'http://spier.org/CodeSystem/asq-item', code: 'acute-ideation-now', display: 'Killing yourself right now (acuity)' },
+    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'acute-ideation-now', display: 'Killing yourself right now (acuity)' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='acuity-section').item.where(linkId='q5').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -444,8 +525,10 @@ export const DATA_ELEMENTS: DataElement[] = [
   },
   {
     id: 'asq-result',
+    conceptId: 'suicide-risk-tier',
     name: 'ASQ Screening Result',
-    coding: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    value: { system: 'http://spier.org/CodeSystem/asq-screening-result', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-001'],
@@ -455,8 +538,10 @@ export const DATA_ELEMENTS: DataElement[] = [
   // ── BSSA (Brief Suicide Safety Assessment) ──
   {
     id: 'bssa-disposition',
+    conceptId: 'suicide-risk-tier',
     name: 'BSSA Disposition',
-    coding: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    value: { system: 'http://spier.org/CodeSystem/bssa-disposition', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -465,7 +550,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'bssa-current-ideation',
     name: 'Current suicidal ideation (right now)',
-    coding: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'current-ideation', display: 'Current suicidal ideation (right now)' },
+    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'current-ideation', display: 'Current suicidal ideation (right now)' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -474,7 +559,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'bssa-suicide-plan',
     name: 'Has a suicide plan',
-    coding: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'suicide-plan', display: 'Has a suicide plan' },
+    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'suicide-plan', display: 'Has a suicide plan' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -483,7 +568,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'bssa-intent-scale',
     name: 'Intent to die (0–10 self-rating)',
-    coding: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'intent-scale', display: 'Intent to die (0–10 self-rating)' },
+    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'intent-scale', display: 'Intent to die (0–10 self-rating)' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: ['TL-005'],
@@ -492,7 +577,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'bssa-past-attempt',
     name: 'History of suicide attempt',
-    coding: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'past-suicide-attempt', display: 'History of suicide attempt' },
+    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'past-suicide-attempt', display: 'History of suicide attempt' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -501,7 +586,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'bssa-needs-help-to-be-safe',
     name: 'Reports needing help to stay safe',
-    coding: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'needs-help-to-be-safe', display: 'Reports needing help to stay safe' },
+    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'needs-help-to-be-safe', display: 'Reports needing help to stay safe' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -511,8 +596,10 @@ export const DATA_ELEMENTS: DataElement[] = [
   // ── PSS-3 (Patient Safety Screener 3) ──
   {
     id: 'pss3-result',
+    conceptId: 'suicide-risk-tier',
     name: 'PSS-3 Screening Result',
-    coding: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    value: { system: 'http://spier.org/CodeSystem/pss3-result', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -521,7 +608,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'pss3-depression',
     name: 'Depression (past two weeks)',
-    coding: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'depression-2wk', display: 'Depression in the past two weeks' },
+    code: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'depression-2wk', display: 'Depression in the past two weeks' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -530,7 +617,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'pss3-active-ideation',
     name: 'Active suicidal ideation (past two weeks)',
-    coding: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'active-ideation-2wk', display: 'Active suicidal ideation in the past two weeks' },
+    code: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'active-ideation-2wk', display: 'Active suicidal ideation in the past two weeks' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -539,7 +626,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'pss3-lifetime-attempt',
     name: 'Lifetime suicide attempt',
-    coding: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'lifetime-attempt', display: 'Lifetime suicide attempt' },
+    code: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'lifetime-attempt', display: 'Lifetime suicide attempt' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -549,8 +636,10 @@ export const DATA_ELEMENTS: DataElement[] = [
   // ── SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) ──
   {
     id: 'safet-risk-level',
+    conceptId: 'suicide-risk-tier',
     name: 'SAFE-T Risk Level',
-    coding: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    value: { system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-006'],
@@ -561,7 +650,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sb-warning-signs',
     name: 'Warning Signs',
-    coding: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'warning-signs', display: 'Warning Signs' },
+    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'warning-signs', display: 'Warning Signs' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='warning-signs').exists()).detail.description",
     usedBy: ['TL-007'],
@@ -570,7 +659,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sb-internal-coping',
     name: 'Internal Coping Strategies',
-    coding: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'internal-coping', display: 'Internal Coping Strategies' },
+    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'internal-coping', display: 'Internal Coping Strategies' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='internal-coping').exists()).detail.description",
     usedBy: ['TL-007'],
@@ -579,7 +668,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sb-social-distraction',
     name: 'Social Distraction Contacts',
-    coding: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'social-distraction', display: 'Social Distractions' },
+    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'social-distraction', display: 'Social Distractions' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='social-distraction').exists()).detail.description",
     usedBy: ['TL-007'],
@@ -588,7 +677,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sb-crisis-support',
     name: 'Crisis Support Contacts',
-    coding: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'crisis-support', display: 'Crisis Support Contacts' },
+    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'crisis-support', display: 'Crisis Support Contacts' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='crisis-support').exists()).detail.description",
     usedBy: ['TL-007'],
@@ -597,7 +686,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sb-professional-support',
     name: 'Professional Support',
-    coding: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'professional-support', display: 'Professional Support' },
+    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'professional-support', display: 'Professional Support' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='professional-support').exists()).detail.description",
     usedBy: ['TL-007'],
@@ -606,7 +695,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sb-lethal-means',
     name: 'Lethal Means Safety',
-    coding: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'lethal-means-safety', display: 'Lethal Means Safety' },
+    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'lethal-means-safety', display: 'Lethal Means Safety' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='lethal-means-safety').exists()).detail.description",
     usedBy: ['TL-007'],
@@ -615,7 +704,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'sb-reason-for-living',
     name: 'Reason for Living',
-    coding: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'reason-for-living', display: 'Reason for Living' },
+    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'reason-for-living', display: 'Reason for Living' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='reason-for-living').exists()).detail.description",
     usedBy: ['TL-007'],
@@ -626,7 +715,7 @@ export const DATA_ELEMENTS: DataElement[] = [
     name: 'Safety Plan Category',
     // SNOMED FSN, matching what `carePlanMappers/shared.ts` actually emits.
     // Both the FSN and the preferred term validate against tx.fhir.org.
-    coding: { system: 'http://snomed.info/sct', code: '735324008', display: 'Treatment escalation plan (record artifact)' },
+    code: { system: 'http://snomed.info/sct', code: '735324008', display: 'Treatment escalation plan (record artifact)' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.category.coding.where(system='http://snomed.info/sct' and code='735324008')",
     // Cross-cutting: same SNOMED category is used by Stanley-Brown and CAMS Stabilization.
@@ -636,7 +725,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'careplan-suicide-prevention-note',
     name: 'Suicide Prevention Note Category',
-    coding: { system: 'http://loinc.org', code: '87626-8', display: 'Suicide prevention note' },
+    code: { system: 'http://loinc.org', code: '87626-8', display: 'Suicide prevention note' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.category.coding.where(system='http://loinc.org' and code='87626-8')",
     // Opt-in, not universal: the CAMS CarePlans share the same factory but their
@@ -649,7 +738,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-psych-pain',
     name: 'Psychological Pain Rating',
-    coding: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' },
+    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -658,7 +747,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-stress',
     name: 'Stress Rating',
-    coding: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'stress', display: 'Stress' },
+    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'stress', display: 'Stress' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -667,7 +756,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-agitation',
     name: 'Agitation Rating',
-    coding: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'agitation', display: 'Agitation' },
+    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'agitation', display: 'Agitation' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -676,7 +765,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-hopelessness',
     name: 'Hopelessness Rating',
-    coding: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'hopelessness', display: 'Hopelessness' },
+    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'hopelessness', display: 'Hopelessness' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -685,7 +774,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-self-hate',
     name: 'Self-Hate Rating',
-    coding: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'self-hate', display: 'Self-Hate' },
+    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'self-hate', display: 'Self-Hate' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -694,7 +783,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-overall-risk',
     name: 'Overall Risk Rating',
-    coding: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'overall-risk', display: 'Overall Risk of Suicide' },
+    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'overall-risk', display: 'Overall Risk of Suicide' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -705,7 +794,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-driver',
     name: 'Suicide Driver',
-    coding: { system: 'http://spier.org/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' },
+    code: { system: 'http://spier.org/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' },
     fhirResource: 'Condition',
     fhirPath: 'Condition.code.text',
     usedBy: ['TL-020', 'TL-024'],
@@ -714,10 +803,11 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-driver-type',
     name: 'Driver Type',
-    // `answerSystem`, not `coding`: this element's value is one of two codes, and
-    // naming either one as "the" code would be wrong half the time. The schema
-    // has no ValueSet slot yet — that is #260.
-    answerSystem: 'http://spier.org/CodeSystem/cams-driver-type',
+    // `value`, not `code`: this element's value is one of two codes, and naming
+    // either one as "the" code would be wrong half the time. Under the old flat
+    // schema this had to sit in the interim `answerSystem` field; it now has a
+    // proper value slot with its bindable ValueSet.
+    value: { system: 'http://spier.org/CodeSystem/cams-driver-type', valueSet: 'http://spier.org/ValueSet/cams-driver-type-vs' },
     fhirResource: 'Condition',
     fhirPath: 'Condition.category.coding',
     usedBy: ['TL-020', 'TL-024'],
@@ -731,7 +821,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-stab-lethal-means',
     name: 'Lethal Means Reduction',
-    coding: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'lethal-means-reduction', display: 'Lethal Means Reduction' },
+    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'lethal-means-reduction', display: 'Lethal Means Reduction' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='lethal-means-reduction').exists()).detail.description",
     usedBy: ['TL-021'],
@@ -740,7 +830,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-stab-coping',
     name: 'Coping Strategies',
-    coding: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'coping-strategies', display: 'Coping Strategies' },
+    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'coping-strategies', display: 'Coping Strategies' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='coping-strategies').exists()).detail.description",
     usedBy: ['TL-021'],
@@ -749,7 +839,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-stab-emergency-contact',
     name: 'Emergency Contact',
-    coding: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'emergency-contact', display: 'Emergency Contact' },
+    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'emergency-contact', display: 'Emergency Contact' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='emergency-contact').exists()).detail.description",
     usedBy: ['TL-021'],
@@ -758,7 +848,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-stab-support-network',
     name: 'Support Network',
-    coding: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'support-network', display: 'Support Network' },
+    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'support-network', display: 'Support Network' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='support-network').exists()).detail.description",
     usedBy: ['TL-021'],
@@ -767,7 +857,7 @@ export const DATA_ELEMENTS: DataElement[] = [
   {
     id: 'cams-stab-treatment-adherence',
     name: 'Treatment Adherence Plan',
-    coding: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'treatment-adherence', display: 'Treatment Adherence Plan' },
+    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'treatment-adherence', display: 'Treatment Adherence Plan' },
     fhirResource: 'CarePlan',
     fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='treatment-adherence').exists()).detail.description",
     usedBy: ['TL-021'],
@@ -783,34 +873,238 @@ export const DATA_ELEMENTS: DataElement[] = [
     usedBy: ['TL-007', 'TL-015', 'TL-021', 'TL-024'],
     description: 'Every SPiER CarePlan declares its SPiER profile canonical in meta.profile — spier-stanley-brown-safety-plan (TL-007), spier-crisis-response-plan (TL-015), spier-cams-stabilization-plan (TL-021), spier-cams-therapeutic-worksheet (TL-024). meta.profile holds canonical URLs, not Codings, so this row has no code. No SPiER CarePlan currently claims conformance to an external care-plan IG.',
   },
+
+  // ══ Stages 5–8 ══════════════════════════════════════════════
+  //
+  // Everything below became documentable only when `FhirResourceType` was
+  // opened (#260). Each row was read off the profile in `ig/input/fsh/` rather
+  // than inferred from the app, and every system and ValueSet named here was
+  // checked to resolve to a generated definition.
+  //
+  // One shape recurs and is worth stating once: several of these resources
+  // carry NO distinguishing code of their own. R4 gives Communication,
+  // DocumentReference and Appointment no natural slot for "this is a
+  // suicide-safety one", so SPiER identifies them by profile canonical plus the
+  // `suicide-risk` domain category from #262, and puts the workflow detail in
+  // extensions. Those rows say so rather than inventing a code column.
+
+  // ── Coordinate Handoffs (Stage 5) ──
+  {
+    id: 'handoff-content-item',
+    name: 'Handoff Content Item',
+    value: { system: 'http://spier.org/CodeSystem/spier-handoff-content', valueSet: 'http://spier.org/ValueSet/spier-handoff-content-vs' },
+    fhirResource: 'Communication',
+    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/handoff-content-item').valueCodeableConcept",
+    usedBy: ['TL-009', 'TL-030'],
+    description: 'Which piece of safety context actually travelled with the patient at a transition — current risk status, most recent assessment, safety-plan status or copy, means-safety actions, crisis resources, follow-up plan, next provider, appointment or referral details, care-team contact, patient instructions, pending tasks. Repeats: one extension per item included. The row has no code because Communication has no coded slot for this; the checklist lives in the extension.',
+  },
+  {
+    id: 'handoff-withheld-item',
+    name: 'Withheld Handoff Item (and why)',
+    value: { system: 'http://spier.org/CodeSystem/spier-withholding-basis', valueSet: 'http://spier.org/ValueSet/spier-withholding-basis-vs' },
+    fhirResource: 'DocumentReference',
+    fhirPath: "DocumentReference.extension.where(url='http://spier.org/StructureDefinition/handoff-withheld-item')",
+    usedBy: ['TL-030'],
+    description: 'A packet item that was deliberately NOT shared, paired with the basis: patient declined sharing outright, this category excluded, this recipient excluded, recipient not among those the consent permits, consent expired, or no consent on file with the withholding default applied. A complex extension — the item code and the basis are separate sub-extensions — so the value vocabulary shown here is the basis; the item is drawn from spier-handoff-content. Recording why something was withheld is what distinguishes a consent-respecting packet from an incomplete one.',
+  },
+  {
+    id: 'discharge-packet-content',
+    name: 'Discharge Safety Packet',
+    fhirResource: 'DocumentReference',
+    fhirPath: 'DocumentReference.content.attachment',
+    usedBy: ['TL-030'],
+    description: 'The packet artifact itself, with the live resources it was assembled from in context.related. status is fixed to #current. No code: the SPiER profile carries a type.text rather than a document-type coding, so the resource is recognised by its profile canonical (spier-discharge-safety-packet) plus the suicide-risk domain category.',
+  },
+  {
+    id: 'referral-reason',
+    name: 'Referral Reason',
+    value: { system: 'http://spier.org/CodeSystem/spier-referral-reason', valueSet: 'http://spier.org/ValueSet/spier-referral-reason-vs' },
+    fhirResource: 'ServiceRequest',
+    fhirPath: 'ServiceRequest.reasonCode',
+    usedBy: ['TL-017'],
+    description: 'Why the suicide-safety referral was sent: elevated risk, safety planning, ongoing treatment, higher level of care, specialty assessment, or post-discharge follow-up. Binding is extensible, so a site can add a local reason. intent is fixed to #order and the receiving provider or team is the performer, which is what lets a handoff be tracked past "sent" to accepted and completed.',
+  },
+  {
+    id: 'follow-up-appointment',
+    name: 'Follow-Up Appointment',
+    fhirResource: 'Appointment',
+    fhirPath: 'Appointment.start',
+    usedBy: ['TL-031', 'TL-034'],
+    description: 'The next visit, booked before the patient leaves. No code and no SPiER-local vocabulary: R4 Appointment has no category element at all, and Appointment.status already carries booked / fulfilled / cancelled / noshow. Attended, no-show and the 7- and 30-day completion windows are all computed from status plus start rather than stored, which is why the Stage-8 measures can read them without a separate resource. Recognised by profile canonical; see #272 for why the domain tag is not on it.',
+  },
+  {
+    id: 'consent-category-suicide-safety',
+    name: 'Suicide-Safety Sharing Consent',
+    code: { system: 'http://spier.org/CodeSystem/spier-consent-category', code: 'suicide-safety-sharing', display: 'Suicide-safety information sharing' },
+    fhirResource: 'Consent',
+    fhirPath: 'Consent.category',
+    usedBy: ['TL-032'],
+    description: 'Marks a Consent as governing whether suicide-safety information may be shared with another provider, team, or support person. Required (Consent.category:suicideSafety 1..1). scope is patient-privacy. The decision itself is native FHIR rather than a SPiER invention: permit or deny on the provision, the recipient as provision.actor, any expiry as provision.period — so a patient declining is a deny provision, not a missing one.',
+  },
+  {
+    id: 'consent-provision-content',
+    name: 'Consented / Denied Content Category',
+    value: { system: 'http://spier.org/CodeSystem/spier-handoff-content', valueSet: 'http://spier.org/ValueSet/spier-handoff-content-vs' },
+    fhirResource: 'Consent',
+    fhirPath: 'Consent.provision.code',
+    usedBy: ['TL-032'],
+    description: 'Which categories of safety information a provision covers, drawn from the same vocabulary as the handoff checklist so a consent and a packet can be compared directly. That shared vocabulary is the point: it is what lets the EHR decide what may be sent or withheld at a handoff instead of guessing.',
+  },
+
+  // ── Track Follow-Up (Stage 6) ──
+  {
+    id: 'outreach-outcome',
+    name: 'Outreach Outcome',
+    value: { system: 'http://spier.org/CodeSystem/spier-outreach-outcome', valueSet: 'http://spier.org/ValueSet/spier-outreach-outcome-vs' },
+    fhirResource: 'Communication',
+    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/outreach-outcome').valueCodeableConcept",
+    usedBy: ['TL-033', 'TL-035'],
+    description: 'What came of a follow-up contact attempt — reached, no answer, message left, unable to reach, and so on. Recorded per attempt, which is what makes follow-up auditable attempt-by-attempt rather than as a single vague "we tried".',
+  },
+  {
+    id: 'outreach-prompt',
+    name: 'Outreach Prompt',
+    value: { system: 'http://spier.org/CodeSystem/spier-outreach-prompt', valueSet: 'http://spier.org/ValueSet/spier-outreach-prompt-vs' },
+    fhirResource: 'Communication',
+    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/outreach-prompt').valueCodeableConcept",
+    usedBy: ['TL-033', 'TL-035'],
+    description: 'What triggered the outreach — a scheduled follow-up, a missed appointment, a no-show. This is the only thing distinguishing missed-appointment follow-up (TL-035) from routine outreach (TL-033): the same artifact, differing in the prompt, rather than two parallel resources.',
+  },
+  {
+    id: 'outreach-safety-concern',
+    name: 'Safety Concern Identified',
+    fhirResource: 'Communication',
+    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/safety-concern-identified').valueBoolean",
+    usedBy: ['TL-033', 'TL-035'],
+    description: 'Whether the outreach surfaced a new safety concern. A boolean, so no code and no vocabulary — but load-bearing: a true here is what escalates an outreach attempt into a SPiERSafetyTask.',
+  },
+  {
+    id: 'caring-contact-opt-out',
+    name: 'Caring Contact Opt-Out',
+    fhirResource: 'Communication',
+    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/caring-contact-opt-out').valueBoolean",
+    usedBy: ['TL-010'],
+    description: 'Whether the patient has opted out of caring contacts. Deliberately has no outcome vocabulary, unlike outreach: a caring contact asks nothing of the patient, so "reached" and "unreachable" do not apply to it. Opt-out is the only response it can have.',
+  },
+  {
+    id: 'crisis-resource-shared',
+    name: 'Crisis Resource Shared',
+    value: { system: 'http://spier.org/CodeSystem/spier-crisis-resource', valueSet: 'http://spier.org/ValueSet/spier-crisis-resource-vs' },
+    fhirResource: 'Communication',
+    fhirPath: "Communication.payload.extension.where(url='http://spier.org/StructureDefinition/crisis-resource-code').valueCoding",
+    usedBy: ['TL-013'],
+    description: 'Which patient-facing crisis resource or coping support was given to the patient (988 and the like). The extension exists because Communication.payload has no native coded slot — its context is Communication.payload specifically, so the code sits on the payload entry rather than on the Communication.',
+  },
+
+  // ── Reduce Access to Means ──
+  {
+    id: 'lethal-means-counseling',
+    name: 'Lethal Means Counseling',
+    fhirResource: 'Procedure',
+    fhirPath: 'Procedure.code',
+    usedBy: ['TL-008'],
+    description: 'The counselling act itself, as a completed Procedure with performed[x] as a dateTime or Period. Procedure.code is required (1..1) but deliberately UNBOUND — SPiER mints no code for it and names no external one, so this row shows no code rather than implying a vocabulary that does not exist. Note the domain category here is 1..1 and assigned directly rather than sliced: R4 caps Procedure.category at 1 (it becomes 0..* only in R5), and FHIR forbids slicing an element whose max is 1.',
+  },
+  {
+    id: 'lethal-means-method',
+    name: 'Lethal Means Method',
+    code: { system: 'http://spier.org/CodeSystem/spier-lethal-means-method', code: 'firearm', display: 'Firearm' },
+    value: { system: 'http://spier.org/CodeSystem/spier-means-safety-action', valueSet: 'http://spier.org/ValueSet/spier-means-safety-action-vs' },
+    fhirResource: 'Observation',
+    fhirPath: 'Observation.code',
+    usedBy: ['TL-008'],
+    description: 'One Observation per method discussed, the method as Observation.code (required binding, 6 codes — firearm shown as the example) and the action agreed as the value (required binding, 6 codes: secured, removed, disposed and so on). This is the row the old flat schema could least express — the code and the value come from different vocabularies and both matter, which is exactly the conflation #260 set out to make unrepresentable.',
+  },
+
+  // ── Track Risk Over Time (Stage 7) ──
+  {
+    id: 'episode-type',
+    name: 'Suicide-Safer Care Episode',
+    code: { system: 'http://spier.org/CodeSystem/spier-episode-type', code: 'suicide-safer-care', display: 'Suicide-safer care episode' },
+    fhirResource: 'EpisodeOfCare',
+    fhirPath: 'EpisodeOfCare.type',
+    usedBy: ['TL-038'],
+    description: 'The anchor resource for the whole Track Risk Over Time stage, and the correlation key the rest of the pathway is expected to hang off: reassessment, care-gap and escalation Tasks all reference it via Task.basedOn. EpisodeOfCare has no category element in R4, so the domain tag rides on `type` instead — one of the three exceptions documented in #272. Extending that correlation to Stages 1–6 is #263.',
+  },
+  {
+    id: 'episode-entry-reason',
+    name: 'Episode Entry Reason',
+    value: { system: 'http://spier.org/CodeSystem/spier-episode-entry-reason', valueSet: 'http://spier.org/ValueSet/spier-episode-entry-reason-vs' },
+    fhirResource: 'EpisodeOfCare',
+    fhirPath: "EpisodeOfCare.extension.where(url='http://spier.org/StructureDefinition/episode-entry-reason').valueCodeableConcept",
+    usedBy: ['TL-038'],
+    description: 'Why the episode was opened — a positive screen, a disclosure, an attempt, and so on (8 codes, required binding). Recorded rather than inferred, so a reportable episode lifecycle starts with a stated reason.',
+  },
+  {
+    id: 'episode-closure-reason',
+    name: 'Episode Closure Reason',
+    value: { system: 'http://spier.org/CodeSystem/spier-episode-closure-reason', valueSet: 'http://spier.org/ValueSet/spier-episode-closure-reason-vs' },
+    fhirResource: 'EpisodeOfCare',
+    fhirPath: "EpisodeOfCare.extension.where(url='http://spier.org/StructureDefinition/episode-closure-reason').valueCodeableConcept",
+    usedBy: ['TL-038'],
+    description: 'Why the episode was closed — risk resolved, transferred, lost to follow-up, died, and so on (7 codes, required binding). Closure records both a reason and a final status, so an episode cannot quietly stop being tracked.',
+  },
+  {
+    id: 'episode-current-risk-tier',
+    name: 'Episode Current Risk Tier',
+    conceptId: 'suicide-risk-tier',
+    value: { system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
+    fhirResource: 'EpisodeOfCare',
+    fhirPath: "EpisodeOfCare.extension.where(url='http://spier.org/StructureDefinition/episode-current-risk-tier').valueCodeableConcept",
+    usedBy: ['TL-037', 'TL-038'],
+    description: 'The episode’s current tier, kept on the episode so a work queue can sort and filter by risk without re-reading every Observation. A binding of the shared suicide-risk-tier concept — the only one that carries no LOINC 93374-7, because it sits in an extension rather than on Observation.code. Same tier vocabulary, different slot.',
+  },
+  {
+    id: 'risk-flag-code',
+    name: 'Active Risk Episode Flag',
+    code: { system: 'http://spier.org/CodeSystem/spier-risk-flag', code: 'active-suicide-risk-episode', display: 'Active suicide-safer care episode' },
+    fhirResource: 'Flag',
+    fhirPath: 'Flag.code',
+    usedBy: ['TL-038'],
+    description: 'The chart banner raised while an episode is open (required binding, currently one code). Flag.category is a named slice carrying the standard HL7 safety category alongside the SPiER domain tag — it had to be sliced under #262 because R4 fixes a single value there, which blocked adding a second code.',
+  },
+  {
+    id: 'safety-task-type',
+    name: 'Safety Task Type',
+    code: { system: 'http://spier.org/CodeSystem/spier-safety-task-type', code: 'reassessment-due', display: 'Reassessment due' },
+    fhirResource: 'Task',
+    fhirPath: 'Task.code',
+    usedBy: ['TL-036', 'TL-037', 'TL-039', 'TL-040', 'TL-041'],
+    description: 'Which piece of safety work is outstanding: assessment needed, reassessment due, safety plan needed or in need of update, an open lethal-means action, follow-up outreach due, an incomplete referral, a missing appointment, or an escalation (9 codes, required binding — reassessment-due shown as the example). intent is fixed to #plan. One Task per gap, each with an owner and a due date on restriction.period.end, each linked to its episode via Task.basedOn. Task has no category element in R4 and no searchable slot for a domain tag at all, which is why #272 left it out rather than tagging it unretrievably.',
+  },
+  {
+    id: 'safety-task-escalation-trigger',
+    name: 'Escalation Trigger',
+    value: { system: 'http://spier.org/CodeSystem/spier-escalation-trigger', valueSet: 'http://spier.org/ValueSet/spier-escalation-trigger-vs' },
+    fhirResource: 'Task',
+    fhirPath: "Task.extension.where(url='http://spier.org/StructureDefinition/escalation-trigger').valueCodeableConcept",
+    usedBy: ['TL-036', 'TL-041'],
+    description: 'Why a case was escalated — high-risk status, worsening or missed reassessment, missed follow-up or appointment, an overdue safety action, unable to reach, or a manual clinician escalation (11 codes, required binding). Repeats, deliberately: the SSC allows several triggers at once. Follow-up escalation reuses this same Task rather than defining a parallel resource, so a case escalated from follow-up and one escalated from the risk registry land in the same work queue.',
+  },
+  {
+    id: 'safety-task-due',
+    name: 'Safety Task Due Date',
+    fhirResource: 'Task',
+    fhirPath: 'Task.restriction.period.end',
+    usedBy: ['TL-039', 'TL-040'],
+    description: 'When the task is due. No code — it is a dateTime. Worth a row because due and overdue are computed from this rather than stored as a status, which is what stops a reassessment schedule from silently going stale, and because the Stage-8 measures read it directly.',
+  },
 ]
 
-// Utility functions
-import { TOOLS, toolById } from './tools'
+// ─── Lookups ────────────────────────────────────────────────
+//
+// `primaryStageFor` and `toolsForElement` used to live here. Both were exported,
+// neither was imported anywhere, and `primaryStageFor`'s own comment conceded it
+// did not sort the way its name implied — it returned the first tool in catalog
+// order, not the earliest stage. Deleted under #260 rather than fixed: a
+// misleading helper nothing calls is worse than no helper, and the page does its
+// own stage grouping (see `stagesReferencedBy` in DataDictionary.tsx).
 
-export const elementsUsedByTool = (toolId: string) =>
-  DATA_ELEMENTS.filter(e => e.usedBy.includes(toolId))
+export const bindingsUsedByTool = (toolId: string) =>
+  BINDINGS.filter(b => b.usedBy.includes(toolId))
 
-/**
- * Primary stage for a data element — the earliest-ordered stage among its using tools.
- * Returns stage id or undefined if no using tool is found.
- */
-export const primaryStageFor = (el: DataElement): string | undefined => {
-  const stages = el.usedBy
-    .map(toolId => toolById(toolId)?.stageId)
-    .filter((s): s is string => !!s)
-  if (stages.length === 0) return undefined
-  // Lower orderIndex wins — but we don't import STAGES here to avoid cycles.
-  // Caller is expected to sort; here we just pick the first referenced stage in tool order.
-  const toolOrder = new Map(TOOLS.map((t, i) => [t.id, i]))
-  const sortedToolIds = [...el.usedBy].sort((a, b) => (toolOrder.get(a) ?? 0) - (toolOrder.get(b) ?? 0))
-  return toolById(sortedToolIds[0])?.stageId
-}
+export const conceptById = (id: string) => CONCEPTS.find(c => c.id === id)
 
-/**
- * All tools referenced by a data element, in catalog order.
- */
-export const toolsForElement = (el: DataElement) =>
-  el.usedBy
-    .map(toolId => toolById(toolId))
-    .filter((t): t is NonNullable<ReturnType<typeof toolById>> => !!t)
+/** The bindings that express a shared concept, in dictionary order. */
+export const bindingsForConcept = (conceptId: string) =>
+  BINDINGS.filter(b => b.conceptId === conceptId)

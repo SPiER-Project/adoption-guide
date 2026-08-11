@@ -4,7 +4,7 @@ import {
   STAGES,
   toolsByStage,
   triggersFromStage,
-  elementsUsedByTool,
+  bindingsUsedByTool,
   systemLabel,
   type Tool,
 } from '../data/catalog'
@@ -24,7 +24,7 @@ interface ToolDetailProps {
 }
 
 function ToolDetail({ tool }: ToolDetailProps) {
-  const elements = elementsUsedByTool(tool.id)
+  const bindings = bindingsUsedByTool(tool.id)
 
   return (
     <div className="tool-detail">
@@ -80,20 +80,29 @@ function ToolDetail({ tool }: ToolDetailProps) {
         </section>
       )}
 
-      {elements.length > 0 && (
+      {bindings.length > 0 && (
         <section className="tool-detail-section">
-          <h4 className="tool-detail-heading">Data Elements ({elements.length})</h4>
+          <h4 className="tool-detail-heading">Data Elements ({bindings.length})</h4>
           <ul className="tool-detail-elements">
-            {elements.map(el => (
-              <li key={el.id}>
-                <span className="tool-detail-element-name">{el.name}</span>
-                {el.coding && (
+            {bindings.map(b => (
+              <li key={b.id}>
+                <span className="tool-detail-element-name">{b.name}</span>
+                {b.code ? (
                   <code className="tool-detail-element-code">
-                    {systemLabel(el.coding.system)}: {el.coding.code}
+                    {systemLabel(b.code.system)}: {b.code.code}
                   </code>
-                )}
+                ) : b.value ? (
+                  /*
+                    No code of its own, but the value is coded — name the value
+                    vocabulary rather than showing nothing. Before #260 these rows
+                    had nowhere to put this and appeared bare here.
+                  */
+                  <code className="tool-detail-element-code">
+                    {systemLabel(b.value.system)} (values)
+                  </code>
+                ) : null}
                 {/* fhirPath is resource-qualified already — don't prefix it again. */}
-                <span className="tool-detail-element-path">{el.fhirPath}</span>
+                <span className="tool-detail-element-path">{b.fhirPath}</span>
               </li>
             ))}
           </ul>

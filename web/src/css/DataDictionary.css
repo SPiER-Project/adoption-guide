@@ -274,3 +274,94 @@
   color: var(--brand-accent-text);
   border: 1px solid var(--accent-orange-mid);
 }
+
+/* ── Shared concepts (#260) ─────────────────────────────────
+   One concept, several routes into it. The section sits above the stage
+   tables; each concept collapses to a single line so the page does not grow a
+   second full table's worth of height by default. */
+
+.dd-system {
+  display: block;
+}
+
+.dd-concept-intro {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.dd-concept {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+}
+
+.dd-concept-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: var(--surface-muted);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dd-concept-toggle:hover {
+  background: var(--surface-elevated);
+}
+
+.dd-concept-caret {
+  flex: none;
+  color: var(--text-faint);
+}
+
+.dd-concept-name {
+  font-weight: 700;
+}
+
+.dd-concept-code {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dd-concept-count {
+  flex: none;
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+.dd-concept-body {
+  padding: var(--space-3);
+  border-top: 1px solid var(--border-default);
+}
+
+.dd-concept-valueset {
+  margin: var(--space-2) 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dd-concept-ref {
+  margin-top: var(--space-1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.dd-concept-chip {
+  font-size: var(--font-size-xs);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-body);
+  border: 1px solid var(--border-default);
+}
