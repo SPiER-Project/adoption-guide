@@ -1,6 +1,10 @@
 # Sushi build output — regenerated on every `sushi .` run
 fsh-generated/
 
+# Captured compile output, tee'd by ig.yml so check-sushi-output.mjs can gate
+# the shape of SUSHI's warnings (#273)
+sushi-output.log
+
 # IG Publisher output and caches
 output/
 temp/

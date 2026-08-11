@@ -71,8 +71,26 @@ jobs:
       - name: Install Sushi
         run: npm install -g fsh-sushi
 
+      # Tee'd so the next step can gate the SHAPE of SUSHI's warnings. The
+      # capture is scoped to this one command on purpose: the `npm install -g
+      # fsh-sushi` step above prints its own `npm warn deprecated …` lines, and
+      # a whole-job grep for "warn" false-positives on every one of them.
+      # GitHub's default shell runs with pipefail, so a failing compile still
+      # fails this step rather than being masked by tee.
       - name: Compile FSH
-        run: sushi .
+        run: sushi . 2>&1 | tee sushi-output.log
+
+      # #273: "SUSHI is quiet" stopped being a usable signal when #271 took the
+      # repo from 0 to 31 expected advisory warnings — the 32nd, real one now
+      # arrives invisible in that field. This asserts the SHAPE of every warning
+      # against a reasoned allowlist, never a count: pinning the number would
+      # churn on each new example Instance and train people to bump it without
+      # reading it, which is what a stale check:codings floor already did (#232).
+      # It also reconciles its own parse against SUSHI's summary, so a change to
+      # SUSHI's output format fails loudly instead of passing vacuously.
+      - name: Gate the shape of SUSHI's warnings
+        working-directory: ${{ github.workspace }}
+        run: node scripts/check-sushi-output.mjs ig/sushi-output.log
 
       - name: Check concept-layer crosswalks
         working-directory: ${{ github.workspace }}
