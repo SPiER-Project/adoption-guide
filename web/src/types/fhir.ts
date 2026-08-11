@@ -74,6 +74,16 @@ export type FlagResource = FhirResource & { resourceType: 'Flag' }
 export type TaskResource = FhirResource & { resourceType: 'Task' }
 
 /**
+ * The correlation hinge from ig/input/fsh/risk-episode.fsh (SPiEREncounter,
+ * issue #263). R4 gives most resource types no way to reference an
+ * `EpisodeOfCare` directly, but nearly all of them carry a native `.encounter`
+ * — so an artifact points at its Encounter and the Encounter points at the
+ * episode. NOT to be confused with `ScenarioEncounter` below, which is
+ * walkthrough narration and lives in the `walkthrough` bucket.
+ */
+export type EncounterResource = FhirResource & { resourceType: 'Encounter' }
+
+/**
  * Minimal QuestionnaireResponse item shapes (loose FHIR R4) used by the
  * observation/care-plan mappers to walk captured answers. Intentionally small,
  * every field optional — matching the loose-JSON convention above.
@@ -157,6 +167,16 @@ export interface PatientSlice {
    * means measure; nothing writes them yet (TL-008 has no recorder).
    */
   procedures?: ProcedureResource[]
+  /**
+   * Real FHIR `Encounter`s — the correlation hinge for #263. Optional for the
+   * same back-compat reason as the buckets above; always read with `?? []`.
+   *
+   * This bucket holds `Encounter` resources. The scenario *walkthrough* timeline
+   * (`ScenarioEncounter`) used to occupy this key and now lives under
+   * `walkthrough`, because a bucket named `encounters` that was not an
+   * `Encounter` was exactly the kind of misleading name this repo keeps removing.
+   */
+  encounters?: EncounterResource[]
 }
 
 /**
@@ -169,8 +189,14 @@ export interface PatientSlice {
  * stage it belongs to. Steps whose real-world artifact has no SPiER profile yet
  * are marked `profileGap` (see issue #52 for the non-Questionnaire workflow work).
  *
- * Encounters are read-only scenario metadata, kept out of the mutable
+ * Walkthrough steps are read-only scenario metadata, kept out of the mutable
  * `PatientSlice` store so they're never overwritten by submitted assessments.
+ *
+ * These are NARRATION, not FHIR. They live in the scenario JSON's `walkthrough`
+ * bucket; `encounters` holds real `Encounter` resources (`EncounterResource`).
+ * The roadmap issue that introduced these steps already anticipated the
+ * successor — "Promote to FHIR. Model real `Encounter` resources alongside
+ * scenarios and derive the timeline from them" — which is what #263 begins.
  */
 export interface ScenarioEncounter {
   id: string

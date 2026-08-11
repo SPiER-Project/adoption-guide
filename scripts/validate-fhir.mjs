@@ -67,7 +67,7 @@ const SCENARIOS_DIR = join(root, 'web/src/data/population/scenarios')
  *
  * Deliberately absent: `responses` (StoredResponse wrappers — the QRs inside
  * them are already covered by `npm run check:scenarios`), `riskAlerts` (an app
- * type, not FHIR) and `encounters` (ScenarioEncounter walkthrough narration,
+ * type, not FHIR) and `walkthrough` (ScenarioEncounter narration,
  * NOT a FHIR Encounter — feeding those to the validator would report garbage).
  */
 const SCENARIO_FHIR_BUCKETS = {
@@ -75,6 +75,7 @@ const SCENARIO_FHIR_BUCKETS = {
   carePlans: 'CarePlan',
   communications: 'Communication',
   episodes: 'EpisodeOfCare',
+  encounters: 'Encounter',
   flags: 'Flag',
   tasks: 'Task',
   documentReferences: 'DocumentReference',

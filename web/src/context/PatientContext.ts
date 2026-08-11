@@ -50,7 +50,7 @@ export interface PatientContextType {
    * assessments never alter it. Empty for blank/SMART patients or scenarios
    * without an authored timeline.
    */
-  encounters: ScenarioEncounter[]
+  walkthrough: ScenarioEncounter[]
   carePlans: CarePlanResource[]
   addCarePlan: (carePlan: CarePlanResource) => void
   responses: StoredResponse[]

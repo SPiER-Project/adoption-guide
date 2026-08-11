@@ -41,7 +41,7 @@
       "title": "Stanley-Brown Safety Plan",
       "note": [
         {
-          "text": "Outpatient referral sent — awaiting receipt confirmation."
+          "text": "Outpatient referral sent \u2014 awaiting receipt confirmation."
         }
       ]
     }
@@ -347,6 +347,74 @@
         }
       ],
       "comment": "Booked at discharge; attendance not yet recorded."
+    }
+  ],
+  "encounters": [
+    {
+      "resourceType": "Encounter",
+      "id": "p007-enc-index",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p007-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-007"
+      },
+      "period": {
+        "start": "2026-05-06T13:00:00Z",
+        "end": "2026-05-08T16:45:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p007-enc-follow-up",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "AMB",
+        "display": "ambulatory"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p007-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-007"
+      },
+      "period": {
+        "start": "2026-05-20T15:30:00Z",
+        "end": "2026-05-20T16:15:00Z"
+      }
     }
   ]
 }
