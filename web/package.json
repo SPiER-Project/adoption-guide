@@ -22,11 +22,13 @@
     "check:scenarios:resources": "node scripts/check-scenario-resources.mjs",
     "pretest": "npm run copy-fhir",
     "test": "vitest run",
-    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm run check:scenarios && npm run check:measures && npm run check:reassessment && npm test",
+    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm run check:scenarios && npm run check:dates && npm run check:measures && npm run check:reassessment && npm test",
     "preview": "vite preview",
     "check:measures": "node scripts/check-measures.mjs",
     "check:codings": "node scripts/check-codings.mjs",
-    "check:reassessment": "node scripts/check-reassessment.mjs"
+    "check:reassessment": "node scripts/check-reassessment.mjs",
+    "check:dates": "node scripts/shift-scenario-dates.mjs",
+    "shift-dates": "node scripts/shift-scenario-dates.mjs --apply"
   },
   "dependencies": {
     "@formbox/hs-theme": "^0.2.1",

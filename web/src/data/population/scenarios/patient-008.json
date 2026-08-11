@@ -41,7 +41,7 @@
       "encounter": {
         "reference": "Encounter/p008-enc-index"
       },
-      "effectiveDateTime": "2026-04-21T10:00:00Z",
+      "effectiveDateTime": "2026-07-18T10:00:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -81,7 +81,7 @@
       "encounter": {
         "reference": "Encounter/p008-enc-transition"
       },
-      "_savedAt": "2026-04-21T11:00:00Z",
+      "_savedAt": "2026-07-18T11:00:00.000Z",
       "title": "Outpatient referral & receipt confirmed",
       "note": [
         {
@@ -151,8 +151,8 @@
       "encounter": {
         "reference": "Encounter/p008-enc-caring-contact"
       },
-      "sent": "2026-04-28T15:30:00Z",
-      "_savedAt": "2026-04-28T15:30:00Z",
+      "sent": "2026-07-25T15:30:00.000Z",
+      "_savedAt": "2026-07-25T15:30:00.000Z",
       "payload": [
         {
           "contentString": "Brief supportive check-in call. Patient engaged, safety plan reviewed, attending outpatient appointment as scheduled."
@@ -195,7 +195,7 @@
       "encounter": {
         "reference": "Encounter/p008-enc-transition"
       },
-      "sent": "2026-04-28T10:00:00Z",
+      "sent": "2026-07-25T10:00:00.000Z",
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/handoff-content-item",
@@ -288,7 +288,7 @@
       "encounter": {
         "reference": "Encounter/p008-enc-outreach-48h"
       },
-      "sent": "2026-04-29T09:15:00Z",
+      "sent": "2026-07-26T09:15:00.000Z",
       "medium": [
         {
           "coding": [
@@ -408,21 +408,21 @@
         "reference": "Patient/patient-008"
       },
       "period": {
-        "start": "2026-04-21T09:30:00Z",
-        "end": "2026-05-20T17:00:00Z"
+        "start": "2026-07-18T09:30:00.000Z",
+        "end": "2026-08-16T17:00:00.000Z"
       },
       "statusHistory": [
         {
           "status": "active",
           "period": {
-            "start": "2026-04-21T09:30:00Z",
-            "end": "2026-05-20T17:00:00Z"
+            "start": "2026-07-18T09:30:00.000Z",
+            "end": "2026-08-16T17:00:00.000Z"
           }
         },
         {
           "status": "finished",
           "period": {
-            "start": "2026-05-20T17:00:00Z"
+            "start": "2026-08-16T17:00:00.000Z"
           }
         }
       ]
@@ -455,7 +455,7 @@
       "encounter": {
         "reference": "Encounter/p008-enc-transition"
       },
-      "authoredOn": "2026-04-28T10:15:00Z",
+      "authoredOn": "2026-07-25T10:15:00.000Z",
       "reasonCode": [
         {
           "coding": [
@@ -469,7 +469,7 @@
       ],
       "performer": [
         {
-          "display": "Lakeside Primary Care \u2014 integrated BH"
+          "display": "Lakeside Primary Care — integrated BH"
         }
       ],
       "category": [
@@ -503,8 +503,8 @@
       },
       "status": "fulfilled",
       "description": "Integrated behavioral health follow-up",
-      "start": "2026-05-11T10:00:00Z",
-      "end": "2026-05-11T10:45:00.000Z",
+      "start": "2026-08-07T10:00:00.000Z",
+      "end": "2026-08-07T10:45:00.000Z",
       "participant": [
         {
           "actor": {
@@ -514,7 +514,7 @@
         },
         {
           "actor": {
-            "display": "Lakeside Primary Care \u2014 integrated BH"
+            "display": "Lakeside Primary Care — integrated BH"
           },
           "status": "accepted"
         }
@@ -552,8 +552,8 @@
         "reference": "Patient/patient-008"
       },
       "period": {
-        "start": "2026-04-21T09:30:00Z",
-        "end": "2026-04-21T12:00:00Z"
+        "start": "2026-07-18T09:30:00.000Z",
+        "end": "2026-07-18T12:00:00.000Z"
       }
     },
     {
@@ -590,8 +590,8 @@
         }
       ],
       "period": {
-        "start": "2026-04-28T10:00:00Z",
-        "end": "2026-04-28T11:00:00Z"
+        "start": "2026-07-25T10:00:00.000Z",
+        "end": "2026-07-25T11:00:00.000Z"
       }
     },
     {
@@ -623,8 +623,8 @@
         "reference": "Patient/patient-008"
       },
       "period": {
-        "start": "2026-04-28T15:30:00Z",
-        "end": "2026-04-28T15:40:00Z"
+        "start": "2026-07-25T15:30:00.000Z",
+        "end": "2026-07-25T15:40:00.000Z"
       }
     },
     {
@@ -656,8 +656,8 @@
         "reference": "Patient/patient-008"
       },
       "period": {
-        "start": "2026-04-29T09:15:00Z",
-        "end": "2026-04-29T09:35:00Z"
+        "start": "2026-07-26T09:15:00.000Z",
+        "end": "2026-07-26T09:35:00.000Z"
       }
     },
     {
@@ -689,8 +689,8 @@
         "reference": "Patient/patient-008"
       },
       "period": {
-        "start": "2026-05-11T10:00:00Z",
-        "end": "2026-05-11T10:45:00Z"
+        "start": "2026-08-07T10:00:00.000Z",
+        "end": "2026-08-07T10:45:00.000Z"
       }
     }
   ]

@@ -3,7 +3,7 @@
     {
       "id": "p006-cams-a",
       "questionnaireName": "CAMS SSF-5: Section A",
-      "completedAt": "2026-05-16T10:00:00Z",
+      "completedAt": "2026-08-06T10:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p006-cams-a",
@@ -133,7 +133,7 @@
       "subject": {
         "reference": "Patient/patient-006"
       },
-      "effectiveDateTime": "2026-05-16T10:00:00Z",
+      "effectiveDateTime": "2026-08-06T10:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -183,7 +183,7 @@
       "subject": {
         "reference": "Patient/patient-006"
       },
-      "effectiveDateTime": "2026-05-16T10:00:00Z",
+      "effectiveDateTime": "2026-08-06T10:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -232,7 +232,7 @@
       "subject": {
         "reference": "Patient/patient-006"
       },
-      "effectiveDateTime": "2026-05-16T10:00:00Z",
+      "effectiveDateTime": "2026-08-06T10:00:00.000Z",
       "valueInteger": 3,
       "interpretation": [
         {

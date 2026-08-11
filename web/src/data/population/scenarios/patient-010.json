@@ -41,7 +41,7 @@
       "encounter": {
         "reference": "Encounter/p010-enc-index"
       },
-      "effectiveDateTime": "2026-07-11T09:00:00Z",
+      "effectiveDateTime": "2026-07-24T09:00:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -81,8 +81,8 @@
       "encounter": {
         "reference": "Encounter/p010-enc-handoff"
       },
-      "_savedAt": "2026-04-02T09:00:00Z",
-      "title": "Active risk episode \u2014 resolution documented",
+      "_savedAt": "2026-04-15T09:00:00.000Z",
+      "title": "Active risk episode — resolution documented",
       "note": [
         {
           "text": "CAMS episode resolved (3 consecutive sessions meeting criteria). Eligible for Q2 zero-suicide outcome report."
@@ -168,21 +168,21 @@
         "reference": "Patient/patient-010"
       },
       "period": {
-        "start": "2026-07-10T08:00:00Z",
-        "end": "2026-07-25T12:00:00Z"
+        "start": "2026-07-23T08:00:00.000Z",
+        "end": "2026-08-07T12:00:00.000Z"
       },
       "statusHistory": [
         {
           "status": "active",
           "period": {
-            "start": "2026-07-10T08:00:00Z",
-            "end": "2026-07-25T12:00:00Z"
+            "start": "2026-07-23T08:00:00.000Z",
+            "end": "2026-08-07T12:00:00.000Z"
           }
         },
         {
           "status": "finished",
           "period": {
-            "start": "2026-07-25T12:00:00Z"
+            "start": "2026-08-07T12:00:00.000Z"
           }
         }
       ]
@@ -215,7 +215,7 @@
       "encounter": {
         "reference": "Encounter/p010-enc-referral"
       },
-      "authoredOn": "2026-07-12T14:00:00Z",
+      "authoredOn": "2026-07-25T14:00:00.000Z",
       "reasonCode": [
         {
           "coding": [
@@ -287,7 +287,7 @@
       "encounter": {
         "reference": "Encounter/p010-enc-handoff"
       },
-      "sent": "2026-07-24T11:00:00Z",
+      "sent": "2026-08-06T11:00:00.000Z",
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/handoff-content-item",
@@ -316,7 +316,7 @@
       ],
       "payload": [
         {
-          "contentString": "Records forwarded at the patient\u2019s request; care transferred out of the service area."
+          "contentString": "Records forwarded at the patient’s request; care transferred out of the service area."
         }
       ]
     }
@@ -351,8 +351,8 @@
         "reference": "Patient/patient-010"
       },
       "period": {
-        "start": "2026-07-10T08:00:00Z",
-        "end": "2026-07-11T10:00:00Z"
+        "start": "2026-07-23T08:00:00.000Z",
+        "end": "2026-07-24T10:00:00.000Z"
       }
     },
     {
@@ -384,8 +384,8 @@
         "reference": "Patient/patient-010"
       },
       "period": {
-        "start": "2026-07-12T14:00:00Z",
-        "end": "2026-07-12T14:30:00Z"
+        "start": "2026-07-25T14:00:00.000Z",
+        "end": "2026-07-25T14:30:00.000Z"
       }
     },
     {
@@ -417,8 +417,8 @@
         "reference": "Patient/patient-010"
       },
       "period": {
-        "start": "2026-07-24T11:00:00Z",
-        "end": "2026-07-24T11:20:00Z"
+        "start": "2026-08-06T11:00:00.000Z",
+        "end": "2026-08-06T11:20:00.000Z"
       }
     }
   ]

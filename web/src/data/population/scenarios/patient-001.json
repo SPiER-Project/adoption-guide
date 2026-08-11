@@ -3,7 +3,7 @@
     {
       "id": "p001-phq9",
       "questionnaireName": "PHQ-9",
-      "completedAt": "2026-03-13T10:15:00Z",
+      "completedAt": "2026-07-31T10:15:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-phq9",
@@ -127,7 +127,7 @@
     {
       "id": "p001-asq",
       "questionnaireName": "ASQ Screening",
-      "completedAt": "2026-03-13T10:35:00Z",
+      "completedAt": "2026-07-31T10:35:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-asq",
@@ -213,7 +213,7 @@
     {
       "id": "p001-cams-a",
       "questionnaireName": "CAMS SSF-5: Section A",
-      "completedAt": "2026-03-14T11:00:00Z",
+      "completedAt": "2026-08-01T11:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-cams-a",
@@ -352,7 +352,7 @@
     {
       "id": "p001-sb",
       "questionnaireName": "Stanley-Brown Safety Plan",
-      "completedAt": "2026-03-15T14:00:00Z",
+      "completedAt": "2026-08-02T14:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-sb",
@@ -403,7 +403,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-03-13T10:15:00Z",
+      "effectiveDateTime": "2026-07-31T10:15:00.000Z",
       "valueInteger": 18,
       "interpretation": [
         {
@@ -456,7 +456,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-03-13T10:15:00Z",
+      "effectiveDateTime": "2026-07-31T10:15:00.000Z",
       "valueInteger": 2,
       "interpretation": [
         {
@@ -467,7 +467,7 @@
               "display": "Abnormal"
             }
           ],
-          "text": "Positive \u2014 suicide risk screening indicated"
+          "text": "Positive — suicide risk screening indicated"
         }
       ]
     },
@@ -508,7 +508,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-03-13T10:35:00Z",
+      "effectiveDateTime": "2026-07-31T10:35:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -557,7 +557,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-03-14T11:00:00Z",
+      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -610,7 +610,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-03-14T11:00:00Z",
+      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -662,7 +662,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-03-14T11:00:00Z",
+      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
       "valueInteger": 3,
       "interpretation": [
         {
@@ -729,8 +729,8 @@
           "display": "Risk for suicide"
         }
       ],
-      "created": "2026-03-15T14:00:00Z",
-      "_savedAt": "2026-03-15T14:00:00Z",
+      "created": "2026-08-02T14:00:00.000Z",
+      "_savedAt": "2026-08-02T14:00:00.000Z",
       "activity": [
         {
           "detail": {
@@ -834,13 +834,13 @@
               "text": "Step 7: Reason for Living"
             },
             "status": "in-progress",
-            "description": "My niece Sofia \u2014 I want to see her grow up"
+            "description": "My niece Sofia — I want to see her grow up"
           }
         }
       ],
       "note": [
         {
-          "text": "DEMO SCENARIO \u2014 Safety plan created collaboratively during session 2."
+          "text": "DEMO SCENARIO — Safety plan created collaboratively during session 2."
         }
       ]
     },
@@ -866,7 +866,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "_savedAt": "2026-03-17T09:00:00Z",
+      "_savedAt": "2026-08-04T09:00:00.000Z",
       "title": "Outpatient referral sent",
       "note": [
         {
@@ -971,7 +971,7 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-03-13T11:00:00Z"
+        "start": "2026-07-31T11:00:00.000Z"
       }
     }
   ],
@@ -1008,7 +1008,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "performedDateTime": "2026-03-15T14:20:00Z",
+      "performedDateTime": "2026-08-02T14:20:00.000Z",
       "note": [
         {
           "text": "Firearms transferred to brother for safekeeping; medications moved to a lockbox. Agreed at the safety-planning session."
@@ -1063,7 +1063,7 @@
           }
         ]
       },
-      "date": "2026-03-16T15:00:00Z",
+      "date": "2026-08-03T15:00:00.000Z",
       "content": [
         {
           "attachment": {
@@ -1187,7 +1187,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "authoredOn": "2026-03-16T15:05:00Z",
+      "authoredOn": "2026-08-03T15:05:00.000Z",
       "reasonCode": [
         {
           "coding": [
@@ -1240,8 +1240,8 @@
       },
       "status": "fulfilled",
       "description": "Post-discharge behavioral health follow-up",
-      "start": "2026-03-20T14:00:00Z",
-      "end": "2026-03-20T14:45:00.000Z",
+      "start": "2026-08-07T14:00:00.000Z",
+      "end": "2026-08-07T14:45:00.000Z",
       "participant": [
         {
           "actor": {
@@ -1295,7 +1295,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-outreach-48h"
       },
-      "sent": "2026-03-17T10:30:00Z",
+      "sent": "2026-08-04T10:30:00.000Z",
       "medium": [
         {
           "coding": [
@@ -1379,7 +1379,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-caring-contact"
       },
-      "sent": "2026-03-23T09:00:00Z",
+      "sent": "2026-08-10T09:00:00.000Z",
       "medium": [
         {
           "coding": [
@@ -1393,7 +1393,7 @@
       ],
       "payload": [
         {
-          "contentString": "Thinking of you and glad you are part of our community. No reply needed \u2014 we are here if you want to talk."
+          "contentString": "Thinking of you and glad you are part of our community. No reply needed — we are here if you want to talk."
         }
       ]
     }
@@ -1433,8 +1433,8 @@
         }
       ],
       "period": {
-        "start": "2026-03-13T10:00:00Z",
-        "end": "2026-03-16T15:30:00Z"
+        "start": "2026-07-31T10:00:00.000Z",
+        "end": "2026-08-03T15:30:00.000Z"
       }
     },
     {
@@ -1466,8 +1466,8 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-03-17T10:30:00Z",
-        "end": "2026-03-17T10:50:00Z"
+        "start": "2026-08-04T10:30:00.000Z",
+        "end": "2026-08-04T10:50:00.000Z"
       }
     },
     {
@@ -1499,8 +1499,8 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-03-20T14:00:00Z",
-        "end": "2026-03-20T14:45:00Z"
+        "start": "2026-08-07T14:00:00.000Z",
+        "end": "2026-08-07T14:45:00.000Z"
       }
     },
     {
@@ -1532,8 +1532,8 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-03-23T09:00:00Z",
-        "end": "2026-03-23T09:10:00Z"
+        "start": "2026-08-10T09:00:00.000Z",
+        "end": "2026-08-10T09:10:00.000Z"
       }
     }
   ]

@@ -3,7 +3,7 @@
     {
       "id": "p011-asq",
       "questionnaireName": "ASQ Screening",
-      "completedAt": "2026-05-21T08:40:00Z",
+      "completedAt": "2026-08-02T08:40:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p011-asq",
@@ -89,7 +89,7 @@
     {
       "id": "p011-cssrs-full",
       "questionnaireName": "C-SSRS Full (Lifetime/Recent)",
-      "completedAt": "2026-05-21T11:20:00Z",
+      "completedAt": "2026-08-02T11:20:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p011-cssrs-full",
@@ -103,7 +103,7 @@
     {
       "id": "p011-sb",
       "questionnaireName": "Stanley-Brown Safety Plan",
-      "completedAt": "2026-05-21T15:10:00Z",
+      "completedAt": "2026-08-02T15:10:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p011-sb",
@@ -153,7 +153,7 @@
       "encounter": {
         "reference": "Encounter/p011-enc-ed"
       },
-      "effectiveDateTime": "2026-05-21T08:40:00Z",
+      "effectiveDateTime": "2026-08-02T08:40:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -207,8 +207,8 @@
           "display": "Risk for suicide"
         }
       ],
-      "created": "2026-05-21T15:10:00Z",
-      "_savedAt": "2026-05-21T15:10:00Z",
+      "created": "2026-08-02T15:10:00.000Z",
+      "_savedAt": "2026-08-02T15:10:00.000Z",
       "title": "Stanley-Brown Safety Plan",
       "activity": [
         {
@@ -253,7 +253,7 @@
               "text": "Step 3: People and Social Settings That Provide Distraction"
             },
             "status": "in-progress",
-            "description": "Sit in the caf\u00e9 on 5th; call my cousin Rosa just to talk about anything else"
+            "description": "Sit in the café on 5th; call my cousin Rosa just to talk about anything else"
           }
         },
         {
@@ -268,7 +268,7 @@
               "text": "Step 4: People I Can Ask for Help"
             },
             "status": "in-progress",
-            "description": "Rosa (sister), Elena (neighbour) \u2014 both know about the plan"
+            "description": "Rosa (sister), Elena (neighbour) — both know about the plan"
           }
         },
         {
@@ -375,7 +375,7 @@
       ],
       "reasonCode": [
         {
-          "text": "ED discharge \u2014 transition-of-care packet sent"
+          "text": "ED discharge — transition-of-care packet sent"
         }
       ],
       "subject": {
@@ -384,8 +384,8 @@
       "encounter": {
         "reference": "Encounter/p011-enc-ed"
       },
-      "sent": "2026-05-22T12:00:00Z",
-      "_savedAt": "2026-05-22T12:00:00Z",
+      "sent": "2026-08-03T12:00:00.000Z",
+      "_savedAt": "2026-08-03T12:00:00.000Z",
       "extension": [
         {
           "url": "http://spier.org/StructureDefinition/handoff-content-item",
@@ -497,7 +497,7 @@
       "encounter": {
         "reference": "Encounter/p011-enc-outreach-48h"
       },
-      "sent": "2026-05-23T10:00:00Z",
+      "sent": "2026-08-04T10:00:00.000Z",
       "medium": [
         {
           "coding": [
@@ -581,7 +581,7 @@
       "encounter": {
         "reference": "Encounter/p011-enc-caring-contact"
       },
-      "sent": "2026-05-30T09:00:00Z",
+      "sent": "2026-08-11T09:00:00.000Z",
       "medium": [
         {
           "coding": [
@@ -664,7 +664,7 @@
         "reference": "Patient/patient-011"
       },
       "period": {
-        "start": "2026-05-21T08:15:00Z"
+        "start": "2026-08-02T08:15:00.000Z"
       }
     }
   ],
@@ -706,7 +706,7 @@
           }
         ]
       },
-      "date": "2026-05-22T12:10:00Z",
+      "date": "2026-08-03T12:10:00.000Z",
       "content": [
         {
           "attachment": {
@@ -842,7 +842,7 @@
       "encounter": {
         "reference": "Encounter/p011-enc-ed"
       },
-      "authoredOn": "2026-05-22T12:05:00Z",
+      "authoredOn": "2026-08-03T12:05:00.000Z",
       "reasonCode": [
         {
           "coding": [
@@ -895,8 +895,8 @@
       },
       "status": "fulfilled",
       "description": "Outpatient behavioral health intake",
-      "start": "2026-05-27T10:00:00Z",
-      "end": "2026-05-27T10:45:00.000Z",
+      "start": "2026-08-08T10:00:00.000Z",
+      "end": "2026-08-08T10:45:00.000Z",
       "participant": [
         {
           "actor": {
@@ -917,7 +917,7 @@
     {
       "id": "ed-11-2-1a",
       "step": "11.2-1A",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Triage suicide screen (ASQ)",
       "stageId": "identify-possible-risk",
       "actor": "Triage Nurse / Screener",
@@ -933,8 +933,8 @@
     {
       "id": "ed-11-2-2a",
       "step": "11.2-2A",
-      "date": "2026-05-21",
-      "title": "Derived risk tier \u2014 non-acute positive",
+      "date": "2026-08-02",
+      "title": "Derived risk tier — non-acute positive",
       "stageId": "identify-possible-risk",
       "actor": "EHR System / Analyzer",
       "status": "completed",
@@ -950,7 +950,7 @@
     {
       "id": "ed-11-2-2b",
       "step": "11.2-2B",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Suicide-screening-status flag raised",
       "stageId": "identify-possible-risk",
       "actor": "EHR System / Status Visibility Manager",
@@ -964,12 +964,12 @@
     {
       "id": "ed-11-2-2c",
       "step": "11.2-2C",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Role-routed task: BH consult / brief assessment",
       "stageId": "identify-possible-risk",
       "actor": "EHR System / CDS Workflow Router",
       "status": "completed",
-      "notes": "Positive screen fires the Identify Possible Risk \u2192 Clarify Risk transition: a role-routed task and behavioral-health consult request are generated from the pathway PlanDefinition.",
+      "notes": "Positive screen fires the Identify Possible Risk → Clarify Risk transition: a role-routed task and behavioral-health consult request are generated from the pathway PlanDefinition.",
       "fhirArtifacts": [
         "Task",
         "ServiceRequest",
@@ -980,8 +980,8 @@
     {
       "id": "ed-11-3-1a",
       "step": "11.3-1A",
-      "date": "2026-05-21",
-      "title": "Mitigation checklist \u2014 patient relocated to safe room",
+      "date": "2026-08-02",
+      "title": "Mitigation checklist — patient relocated to safe room",
       "stageId": "track-risk-over-time",
       "actor": "ED Nurse / Implementer",
       "status": "completed",
@@ -995,7 +995,7 @@
     {
       "id": "ed-11-3-1b",
       "step": "11.3-1B",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Suicide-precautions order signed",
       "stageId": "track-risk-over-time",
       "actor": "ED Provider / Orderer",
@@ -1009,7 +1009,7 @@
     {
       "id": "ed-11-3-1c",
       "step": "11.3-1C",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Room cleared + belongings secured",
       "stageId": "track-risk-over-time",
       "actor": "Nurse / Tech / Security",
@@ -1024,7 +1024,7 @@
     {
       "id": "ed-11-3-1d",
       "step": "11.3-1D",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Continuous 1:1 observation started",
       "stageId": "track-risk-over-time",
       "actor": "Sitter / Continuous Observer",
@@ -1039,12 +1039,12 @@
     {
       "id": "ed-11-4-0a",
       "step": "11.4-0A",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Brief Suicide Safety Assessment (BSSA)",
       "stageId": "clarify-risk",
       "actor": "ED / BH Clinician / Assessor",
       "status": "completed",
-      "notes": "BSSA performed after the positive ASQ to clarify whether a full risk assessment is needed. (Tool TL-005 is planned \u2014 not yet a built SPiER Questionnaire.)",
+      "notes": "BSSA performed after the positive ASQ to clarify whether a full risk assessment is needed. (Tool TL-005 is planned — not yet a built SPiER Questionnaire.)",
       "fhirArtifacts": [
         "QuestionnaireResponse"
       ],
@@ -1053,8 +1053,8 @@
     {
       "id": "ed-11-4-1a",
       "step": "11.4-1A",
-      "date": "2026-05-21",
-      "title": "Full risk assessment \u2014 C-SSRS Full + SAFE-T framing",
+      "date": "2026-08-02",
+      "title": "Full risk assessment — C-SSRS Full + SAFE-T framing",
       "stageId": "clarify-risk",
       "actor": "BH Clinician / Assessor",
       "status": "completed",
@@ -1069,7 +1069,7 @@
     {
       "id": "ed-11-4-1b",
       "step": "11.4-1B",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Current risk level set (high) + risk condition coded",
       "stageId": "define-risk-picture",
       "actor": "EHR System / Analyzer + Persister",
@@ -1085,7 +1085,7 @@
     {
       "id": "ed-11-5-1a",
       "step": "11.5-1A",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Boarding reassessment cadence scheduled",
       "stageId": "track-risk-over-time",
       "actor": "EHR System / Task Scheduler",
@@ -1100,8 +1100,8 @@
     {
       "id": "ed-11-5-1b",
       "step": "11.5-1B",
-      "date": "2026-05-21",
-      "title": "Reassessment \u2014 risk updated, precautions maintained",
+      "date": "2026-08-02",
+      "title": "Reassessment — risk updated, precautions maintained",
       "stageId": "track-risk-over-time",
       "actor": "ED Clinician / Reassessor",
       "status": "completed",
@@ -1115,7 +1115,7 @@
     {
       "id": "ed-11-6-1a",
       "step": "11.6-1A",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Collaborative Stanley-Brown safety plan",
       "stageId": "document-safety-actions",
       "actor": "ED Clinician / Enterer",
@@ -1133,7 +1133,7 @@
     {
       "id": "ed-11-6-1b",
       "step": "11.6-1B",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Safety plan versioned + provenance",
       "stageId": "document-safety-actions",
       "actor": "EHR System / Retainer + Versioner",
@@ -1148,7 +1148,7 @@
     {
       "id": "ed-11-6-2a",
       "step": "11.6-2A",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Lethal-means counseling delivered",
       "stageId": "document-safety-actions",
       "actor": "ED Clinician / Educator",
@@ -1163,7 +1163,7 @@
     {
       "id": "ed-11-6-2b",
       "step": "11.6-2B",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "Discharge-readiness checklist (gating)",
       "stageId": "document-safety-actions",
       "actor": "EHR System / Discharge Checklist Manager",
@@ -1178,7 +1178,7 @@
     {
       "id": "ed-11-6-3a",
       "step": "11.6-3A",
-      "date": "2026-05-21",
+      "date": "2026-08-02",
       "title": "After-visit summary + safety plan to patient",
       "stageId": "document-safety-actions",
       "actor": "EHR System / Patient Materials Generator",
@@ -1196,7 +1196,7 @@
     {
       "id": "ed-11-7-1a",
       "step": "11.7-1A",
-      "date": "2026-05-22",
+      "date": "2026-08-03",
       "title": "Urgent outpatient BH referral + appointment request",
       "stageId": "coordinate-handoffs",
       "actor": "ED Clinician / Orderer",
@@ -1216,7 +1216,7 @@
     {
       "id": "ed-11-7-1b",
       "step": "11.7-1B",
-      "date": "2026-05-22",
+      "date": "2026-08-03",
       "title": "Transition-of-care packet transmitted",
       "stageId": "coordinate-handoffs",
       "actor": "EHR System / Transmitter",
@@ -1235,7 +1235,7 @@
     {
       "id": "ed-11-7-1c",
       "step": "11.7-1A-confirm",
-      "date": "2026-05-23",
+      "date": "2026-08-04",
       "title": "Confirm outpatient receipt of packet",
       "stageId": "coordinate-handoffs",
       "actor": "Care Team / Coordinator",
@@ -1249,12 +1249,12 @@
     {
       "id": "ed-11-7-2a",
       "step": "11.7-2A",
-      "date": "2026-05-23",
-      "title": "24\u201348h caring-contact call scheduled",
+      "date": "2026-08-04",
+      "title": "24–48h caring-contact call scheduled",
       "stageId": "track-follow-up",
       "actor": "EHR System / Follow-Up Protocol Manager",
       "status": "scheduled",
-      "notes": "First caring contact (24\u201348h post-discharge phone call) scheduled per the follow-up PlanDefinition; patient enrolled in the caring-contacts registry. (Tools TL-010 / TL-033 are planned.)",
+      "notes": "First caring contact (24–48h post-discharge phone call) scheduled per the follow-up PlanDefinition; patient enrolled in the caring-contacts registry. (Tools TL-010 / TL-033 are planned.)",
       "fhirArtifacts": [
         "Task",
         "CommunicationRequest",
@@ -1268,7 +1268,7 @@
     {
       "id": "ed-11-7-2b",
       "step": "11.7-2B",
-      "date": "2026-05-29",
+      "date": "2026-08-10",
       "title": "7-day follow-up outreach + risk recheck",
       "stageId": "track-follow-up",
       "actor": "Care Team / Outreach + Monitor",
@@ -1287,7 +1287,7 @@
     {
       "id": "ed-11-7-2c",
       "step": "11.7-2C",
-      "date": "2026-05-29",
+      "date": "2026-08-10",
       "title": "Overdue-follow-up escalation guard",
       "stageId": "track-follow-up",
       "actor": "EHR System / Exception + Escalation Manager",
@@ -1336,8 +1336,8 @@
         }
       ],
       "period": {
-        "start": "2026-05-21T08:15:00Z",
-        "end": "2026-05-22T12:15:00Z"
+        "start": "2026-08-02T08:15:00.000Z",
+        "end": "2026-08-03T12:15:00.000Z"
       }
     },
     {
@@ -1369,8 +1369,8 @@
         "reference": "Patient/patient-011"
       },
       "period": {
-        "start": "2026-05-23T10:00:00Z",
-        "end": "2026-05-23T10:20:00Z"
+        "start": "2026-08-04T10:00:00.000Z",
+        "end": "2026-08-04T10:20:00.000Z"
       }
     },
     {
@@ -1402,8 +1402,8 @@
         "reference": "Patient/patient-011"
       },
       "period": {
-        "start": "2026-05-27T10:00:00Z",
-        "end": "2026-05-27T10:45:00Z"
+        "start": "2026-08-08T10:00:00.000Z",
+        "end": "2026-08-08T10:45:00.000Z"
       }
     },
     {
@@ -1435,8 +1435,8 @@
         "reference": "Patient/patient-011"
       },
       "period": {
-        "start": "2026-05-30T09:00:00Z",
-        "end": "2026-05-30T09:10:00Z"
+        "start": "2026-08-11T09:00:00.000Z",
+        "end": "2026-08-11T09:10:00.000Z"
       }
     }
   ]

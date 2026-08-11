@@ -3,7 +3,7 @@
     {
       "id": "p009-cams-therapeutic-s4",
       "questionnaireName": "CAMS Therapeutic Worksheet \u2014 Session 4",
-      "completedAt": "2026-05-14T10:00:00Z",
+      "completedAt": "2026-05-28T10:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p009-cams-therapeutic-s4",
@@ -56,7 +56,7 @@
       "encounter": {
         "reference": "Encounter/p009-enc-index"
       },
-      "effectiveDateTime": "2026-07-15T10:30:00Z",
+      "effectiveDateTime": "2026-07-29T10:30:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -96,7 +96,7 @@
       "encounter": {
         "reference": "Encounter/p009-enc-caring-contact"
       },
-      "_savedAt": "2026-05-07T14:00:00Z",
+      "_savedAt": "2026-05-21T14:00:00.000Z",
       "title": "Caring contacts series complete",
       "note": [
         {
@@ -171,7 +171,7 @@
         "reference": "Patient/patient-009"
       },
       "period": {
-        "start": "2026-07-14T10:00:00Z"
+        "start": "2026-07-28T10:00:00.000Z"
       }
     }
   ],
@@ -208,7 +208,7 @@
       "encounter": {
         "reference": "Encounter/p009-enc-index"
       },
-      "performedDateTime": "2026-07-15T11:15:00Z",
+      "performedDateTime": "2026-07-29T11:15:00.000Z",
       "note": [
         {
           "text": "Medication supply reduced to a two-week fill and held by a family member."
@@ -263,7 +263,7 @@
           }
         ]
       },
-      "date": "2026-07-20T16:00:00Z",
+      "date": "2026-08-03T16:00:00.000Z",
       "content": [
         {
           "attachment": {
@@ -404,7 +404,7 @@
       "encounter": {
         "reference": "Encounter/p009-enc-referral"
       },
-      "authoredOn": "2026-07-16T09:00:00Z",
+      "authoredOn": "2026-07-30T09:00:00.000Z",
       "reasonCode": [
         {
           "coding": [
@@ -452,8 +452,42 @@
       },
       "status": "fulfilled",
       "description": "CAMS session 5 \u2014 SSF re-rating",
-      "start": "2026-07-24T13:00:00Z",
-      "end": "2026-07-24T13:45:00.000Z",
+      "start": "2026-08-07T13:00:00.000Z",
+      "end": "2026-08-07T13:45:00.000Z",
+      "participant": [
+        {
+          "actor": {
+            "reference": "Patient/patient-009"
+          },
+          "status": "accepted"
+        },
+        {
+          "actor": {
+            "display": "Harbor Behavioral Health \u2014 CAMS clinician"
+          },
+          "status": "accepted"
+        }
+      ]
+    },
+    {
+      "resourceType": "Appointment",
+      "id": "p009-next-session",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-follow-up-appointment"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "booked",
+      "description": "CAMS session 6 \u2014 SSF re-rating",
+      "start": "2026-08-19T13:00:00.000Z",
+      "end": "2026-08-19T13:45:00.000Z",
       "participant": [
         {
           "actor": {
@@ -528,12 +562,12 @@
       "patient": {
         "reference": "Patient/patient-009"
       },
-      "dateTime": "2026-07-20T15:45:00Z",
+      "dateTime": "2026-08-03T15:45:00.000Z",
       "provision": {
         "type": "permit",
         "period": {
-          "start": "2026-07-20",
-          "end": "2027-07-20"
+          "start": "2026-08-03",
+          "end": "2027-08-03"
         },
         "actor": [
           {
@@ -626,7 +660,7 @@
       "encounter": {
         "reference": "Encounter/p009-enc-outreach-48h"
       },
-      "sent": "2026-07-21T09:45:00Z",
+      "sent": "2026-08-04T09:45:00.000Z",
       "medium": [
         {
           "coding": [
@@ -710,7 +744,7 @@
       "encounter": {
         "reference": "Encounter/p009-enc-caring-contact"
       },
-      "sent": "2026-07-28T09:00:00Z",
+      "sent": "2026-08-11T09:00:00.000Z",
       "medium": [
         {
           "coding": [
@@ -759,8 +793,8 @@
         "reference": "Patient/patient-009"
       },
       "period": {
-        "start": "2026-07-14T10:00:00Z",
-        "end": "2026-07-15T12:00:00Z"
+        "start": "2026-07-28T10:00:00.000Z",
+        "end": "2026-07-29T12:00:00.000Z"
       }
     },
     {
@@ -792,8 +826,8 @@
         "reference": "Patient/patient-009"
       },
       "period": {
-        "start": "2026-07-16T09:00:00Z",
-        "end": "2026-07-16T09:30:00Z"
+        "start": "2026-07-30T09:00:00.000Z",
+        "end": "2026-07-30T09:30:00.000Z"
       }
     },
     {
@@ -830,8 +864,8 @@
         }
       ],
       "period": {
-        "start": "2026-07-20T15:30:00Z",
-        "end": "2026-07-20T16:30:00Z"
+        "start": "2026-08-03T15:30:00.000Z",
+        "end": "2026-08-03T16:30:00.000Z"
       }
     },
     {
@@ -863,8 +897,8 @@
         "reference": "Patient/patient-009"
       },
       "period": {
-        "start": "2026-07-21T09:45:00Z",
-        "end": "2026-07-21T10:05:00Z"
+        "start": "2026-08-04T09:45:00.000Z",
+        "end": "2026-08-04T10:05:00.000Z"
       }
     },
     {
@@ -896,8 +930,8 @@
         "reference": "Patient/patient-009"
       },
       "period": {
-        "start": "2026-07-24T13:00:00Z",
-        "end": "2026-07-24T13:45:00Z"
+        "start": "2026-08-07T13:00:00.000Z",
+        "end": "2026-08-07T13:45:00.000Z"
       }
     },
     {
@@ -929,8 +963,8 @@
         "reference": "Patient/patient-009"
       },
       "period": {
-        "start": "2026-07-28T09:00:00Z",
-        "end": "2026-07-28T09:10:00Z"
+        "start": "2026-08-11T09:00:00.000Z",
+        "end": "2026-08-11T09:10:00.000Z"
       }
     }
   ]
