@@ -5,6 +5,7 @@ import { useToolConfig } from '../context/ToolConfigContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import { PatientPathway } from '../components/PatientPathway'
 import { ArtifactCards } from '../components/ChartArtifacts'
+import { EpisodeRecordView } from '../components/EpisodeRecordView'
 import {
   artifactCount,
   buildWalkthroughRefIndex,
@@ -353,6 +354,8 @@ export function PatientChart() {
     appointments,
     consents,
     procedures,
+    episodes,
+    encounters,
     activePatientId,
     populationPatient,
     isSmartConnected,
@@ -461,6 +464,20 @@ export function PatientChart() {
         observations={unstaged.observations}
         communications={unstaged.communications}
         workflowArtifacts={unstaged.workflowArtifacts}
+      />
+
+      <EpisodeRecordView
+        episodes={episodes}
+        encounters={encounters}
+        responses={responses}
+        observations={observations}
+        carePlans={carePlans}
+        communications={communications}
+        serviceRequests={serviceRequests}
+        procedures={procedures}
+        documentReferences={documentReferences}
+        appointments={appointments}
+        consents={consents}
       />
 
       <EncountersTimeline walkthrough={walkthrough} refIndex={walkthroughRefIndex} />

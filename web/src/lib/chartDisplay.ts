@@ -3,7 +3,12 @@
  * dating and counting. Pure and React-free; the components that use them live
  * in components/ChartArtifacts.tsx.
  */
-import type { FhirResourceLike, StoredResponseLike } from './patientPathway'
+import { toolForResponse } from './patientPathway'
+import type {
+  FhirResourceLike,
+  QuestionnaireResponseLike,
+  StoredResponseLike,
+} from './patientPathway'
 import type { CodeableConcept } from '../types/fhir'
 
 // The chart renders stored FHIR resources that arrive (via patientPathway) as
@@ -181,17 +186,25 @@ export interface RelatedArtifact {
  * `resource.id = entry.id`, and the scenario fixtures now match.
  */
 /**
- * A label for one referenced artifact.
+ * A human label for one artifact, whatever its type.
  *
  * `workflowArtifactDisplay` has no `Observation` or `Communication` case and its
  * default returns the bare resourceType, which reads as "Observation ·
  * Observation" in the walkthrough list. Handled here rather than by widening that
  * function, which other chart surfaces already depend on.
  */
-function refLabel(resource: FhirResourceLike): string {
+export function artifactLabel(resource: FhirResourceLike): string {
   const r = resource as RenderableResource & {
     category?: CodeableConcept[]
     reasonCode?: CodeableConcept[]
+  }
+  if (resource.resourceType === 'CarePlan') {
+    return carePlanDisplayName(resource as RenderableResource & { title?: unknown })
+  }
+  if (resource.resourceType === 'QuestionnaireResponse') {
+    // The StoredResponse wrapper carries `questionnaireName`, but a bare resource
+    // does not — so resolve the instrument from its own canonical instead.
+    return toolForResponse(resource as QuestionnaireResponseLike)?.name ?? 'Questionnaire response'
   }
   if (resource.resourceType === 'Observation') {
     return (
@@ -232,11 +245,11 @@ export function buildWalkthroughRefIndex(buckets: ArtifactBuckets): Map<string, 
     add('CarePlan', cp.id, carePlanDisplayName(cp as RenderableResource))
   }
   for (const o of buckets.observations) {
-    add('Observation', o.id, refLabel(o))
+    add('Observation', o.id, artifactLabel(o))
   }
   for (const resource of [...buckets.communications, ...buckets.workflowArtifacts]) {
     if (!resource.resourceType) continue
-    add(resource.resourceType, resource.id, refLabel(resource))
+    add(resource.resourceType, resource.id, artifactLabel(resource))
   }
   return index
 }

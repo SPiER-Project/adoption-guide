@@ -653,7 +653,7 @@ function checkRiskAlert(alert, where) {
   }
 }
 
-function checkEncounter(step, where) {
+function checkEncounter(step, where, artifactIds) {
   if (!step || typeof step !== 'object') return fail(`${where}: not an object`)
   for (const field of ['id', 'date', 'title', 'notes']) {
     if (typeof step[field] !== 'string' || !step[field]) {
@@ -666,6 +666,67 @@ function checkEncounter(step, where) {
   if (step.status !== 'completed' && step.status !== 'scheduled') {
     fail(`${where}: ScenarioEncounter.status "${step.status}" must be completed | scheduled`)
   }
+
+  // ⚠️ RESTORED. This block landed in #298 (#263 phase 5b) and was removed by
+  // #300, which rewrote this file from a pre-#298 base — so between those two
+  // merges the scenarios' `relatedRefs` were unguarded and the retired fields
+  // could have come back unnoticed. Re-added here; see PR #305.
+  //
+  // `relatedRefs` replaced two string-matching fields: a QuestionnaireResponse
+  // matched by display NAME and a CarePlan by id SUBSTRING. Renaming either broke
+  // the link with nothing going red, which is why they are gone. A reference is
+  // only better than a substring if something checks it resolves.
+  for (const legacy of ['relatedResponseNames', 'relatedCarePlanIdSubstrings']) {
+    if (legacy in step) {
+      fail(
+        `${where}: ScenarioEncounter.${legacy} was retired in #263 phase 5b — ` +
+          `use relatedRefs with FHIR references (Type/id) instead`,
+      )
+    }
+  }
+  if (step.relatedRefs !== undefined) {
+    if (!Array.isArray(step.relatedRefs)) {
+      fail(`${where}: ScenarioEncounter.relatedRefs must be an array of "Type/id" strings`)
+    } else {
+      for (const ref of step.relatedRefs) {
+        if (typeof ref !== 'string' || !/^[A-Za-z]+\/[\w-]+$/.test(ref)) {
+          fail(`${where}: relatedRefs entry ${JSON.stringify(ref)} is not a "Type/id" reference`)
+          continue
+        }
+        if (!artifactIds.has(ref)) {
+          fail(
+            `${where}: relatedRefs "${ref}" does not resolve to an artifact in this scenario — ` +
+              `the step claims it produced that artifact, so it has to be here`,
+          )
+        } else {
+          walkthroughRefs.resolved++
+        }
+      }
+    }
+  }
+}
+
+/** Counter so the summary states how many walkthrough links are live. */
+const walkthroughRefs = { resolved: 0 }
+
+/** Every `Type/id` a walkthrough step could legitimately reference. */
+function artifactIdsOf(scenario) {
+  const ids = new Set()
+  for (const [bucket, value] of Object.entries(scenario)) {
+    if (!Array.isArray(value)) continue
+    if (bucket === 'riskAlerts' || bucket === 'walkthrough') continue
+    if (bucket === 'responses') {
+      for (const sr of value) {
+        const qr = sr?.resource
+        if (qr?.resourceType && qr?.id) ids.add(`${qr.resourceType}/${qr.id}`)
+      }
+      continue
+    }
+    for (const r of value) {
+      if (r?.resourceType && r?.id) ids.add(`${r.resourceType}/${r.id}`)
+    }
+  }
+  return ids
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -838,6 +899,27 @@ function checkEpisodeCorrelation(scenario, file) {
     }
 
     if (rt in CORRELATION_REVERSE) {
+      // The naming Encounter must be the one the artifact actually happened at.
+      // Without this, a reverse link is satisfied by ANY Encounter in the
+      // scenario — which is how all five Appointments ended up on the wrong
+      // contact (#263 phase 2 placed them by pathway-stage tag because its
+      // date-key list omitted `Appointment.start`). The read side surfaced it as
+      // an appointment under one contact and an empty contact where it belonged.
+      const owner = encounters.find((e) =>
+        (e?.appointment ?? []).some((a) => a?.reference === `${rt}/${r.id}`),
+      )
+      const start = typeof r.start === 'string' ? r.start : undefined
+      if (owner && start) {
+        const from = owner.period?.start
+        const to = owner.period?.end ?? from
+        if (from && !(from <= start && start <= to)) {
+          fail(
+            `${where}: named by Encounter/${owner.id}, whose period ` +
+              `(${from} – ${to}) does not cover ${rt}.start ${start} — a reverse link has to ` +
+              `point at the contact the artifact happened at, not merely at some contact`,
+          )
+        }
+      }
       if (!reverseNamed.has(`${rt}/${r.id}`)) {
         fail(
           `${where}: ${rt} has no .encounter in R4, so it must be named by ` +
@@ -907,7 +989,10 @@ for (const file of scenarioFiles) {
       continue
     }
     if (bucket === 'walkthrough') {
-      value.forEach((e, i) => checkEncounter(e, `scenarios/${file} walkthrough[${i}]`))
+      const artifactIds = artifactIdsOf(scenario)
+      value.forEach((e, i) =>
+        checkEncounter(e, `scenarios/${file} walkthrough[${i}]`, artifactIds),
+      )
       continue
     }
 
@@ -942,7 +1027,8 @@ console.log(
   `episode correlation: ${correlation.linked} artifact(s) linked to an Encounter, ` +
     `${correlation.reverse} via Encounter.appointment, ${correlation.exempt} exempt ` +
     `(${[...correlation.exemptTypes].sort().join(', ') || 'none'}); ` +
-    `${correlation.triggers} episode trigger(s) resolve.`,
+    `${correlation.triggers} episode trigger(s) resolve; ` +
+    `${walkthroughRefs.resolved} walkthrough ref(s) resolve.`,
 )
 
 if (failures) {

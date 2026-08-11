@@ -21,6 +21,7 @@ survive contact with R4.
 | 5a — retire the CarePlan id regex | **Done.** Replaced by a profile → stage map keyed on the generated `CarePlanProfileUrl` union. |
 | 5b — retire the walkthrough string matching | **Done.** `relatedRefs` (FHIR `Type/id`), gated; the two retired fields are now a build failure. |
 | 6 — document the retrieval path in the IG | **Done.** quick-starts.md gained *Retrieving one episode's record*; the `_revinclude` caveat is stated on both pages. |
+| 7 — the read side | **Done.** `lib/episodeRecord.ts` + an Episode record section on the chart. Found and fixed five mis-attached Appointments. |
 
 Two facts found while implementing phase 1 change what is written below, and are
 corrected in place: **`Encounter` has no `category` element** (so it cannot carry
