@@ -180,8 +180,8 @@ export interface PatientSlice {
 }
 
 /**
- * One step in a scenario walkthrough timeline. JSON-safe (no RegExp): artifact
- * linking is by string match against the patient's captured resources.
+ * One step in a scenario walkthrough timeline. JSON-safe: artifact linking is by
+ * FHIR reference (`relatedRefs`) into the same scenario.
  *
  * Used by the ED suicide-care scenario (issue #51) to render the 24-step
  * walkthrough mapped in `docs/use-cases/ed-scenario-11.md`. Each step ties an
@@ -215,8 +215,21 @@ export interface ScenarioEncounter {
   fhirArtifacts?: string[]
   /** True when no SPiER profile exists yet for this step's artifact. */
   profileGap?: boolean
-  /** Link to captured QuestionnaireResponses by their display name. */
-  relatedResponseNames?: string[]
-  /** Link to captured CarePlans by substring match on CarePlan.id. */
-  relatedCarePlanIdSubstrings?: string[]
+  /**
+   * The artifacts this step produced, as FHIR references (`Type/id`) into the
+   * same scenario — e.g. `QuestionnaireResponse/p011-asq`.
+   *
+   * Replaces two string-matching fields (#263 phase 5b): `relatedResponseNames`
+   * matched a QuestionnaireResponse by its *display name* and
+   * `relatedCarePlanIdSubstrings` matched a CarePlan by an id *substring*. Both
+   * were the same class of heuristic as the CarePlan id regex phase 5a deleted —
+   * renaming a questionnaire or an id silently broke the link with nothing going
+   * red. These references are checked by check-scenario-resources.mjs.
+   *
+   * A step legitimately has none: most of the 24 ED-scenario steps name resource
+   * types in `fhirArtifacts` that the demo does not yet emit (Task, Flag,
+   * Provenance, Composition…). `fhirArtifacts` is narrative — what a real system
+   * would produce. This field is only what is actually on file.
+   */
+  relatedRefs?: string[]
 }

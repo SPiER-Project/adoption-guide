@@ -6,6 +6,7 @@
       "completedAt": "2026-05-21T08:40:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p011-asq",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
         "encounter": {
@@ -91,6 +92,7 @@
       "completedAt": "2026-05-21T11:20:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p011-cssrs-full",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent",
         "encounter": {
@@ -104,6 +106,7 @@
       "completedAt": "2026-05-21T15:10:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p011-sb",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
         "encounter": {
@@ -923,8 +926,8 @@
       "fhirArtifacts": [
         "QuestionnaireResponse"
       ],
-      "relatedResponseNames": [
-        "ASQ Screening"
+      "relatedRefs": [
+        "QuestionnaireResponse/p011-asq"
       ]
     },
     {
@@ -939,7 +942,10 @@
       "fhirArtifacts": [
         "Observation"
       ],
-      "profileGap": true
+      "profileGap": true,
+      "relatedRefs": [
+        "Observation/p011-asq-result"
+      ]
     },
     {
       "id": "ed-11-2-2b",
@@ -1056,8 +1062,8 @@
       "fhirArtifacts": [
         "QuestionnaireResponse"
       ],
-      "relatedResponseNames": [
-        "C-SSRS Full (Lifetime/Recent)"
+      "relatedRefs": [
+        "QuestionnaireResponse/p011-cssrs-full"
       ]
     },
     {
@@ -1119,11 +1125,9 @@
         "QuestionnaireResponse",
         "CarePlan"
       ],
-      "relatedResponseNames": [
-        "Stanley-Brown Safety Plan"
-      ],
-      "relatedCarePlanIdSubstrings": [
-        "stanley-brown"
+      "relatedRefs": [
+        "QuestionnaireResponse/p011-sb",
+        "CarePlan/p011-stanley-brown"
       ]
     },
     {
@@ -1184,7 +1188,10 @@
         "Composition",
         "DocumentReference"
       ],
-      "profileGap": true
+      "profileGap": true,
+      "relatedRefs": [
+        "DocumentReference/p011-discharge-packet"
+      ]
     },
     {
       "id": "ed-11-7-1a",
@@ -1200,7 +1207,11 @@
         "Appointment",
         "Communication"
       ],
-      "profileGap": true
+      "profileGap": true,
+      "relatedRefs": [
+        "ServiceRequest/p011-referral",
+        "Appointment/p011-follow-up"
+      ]
     },
     {
       "id": "ed-11-7-1b",
@@ -1216,7 +1227,10 @@
         "Composition",
         "Provenance"
       ],
-      "profileGap": true
+      "profileGap": true,
+      "relatedRefs": [
+        "Communication/p011-transition-packet"
+      ]
     },
     {
       "id": "ed-11-7-1c",
@@ -1246,7 +1260,10 @@
         "CommunicationRequest",
         "PlanDefinition"
       ],
-      "profileGap": true
+      "profileGap": true,
+      "relatedRefs": [
+        "Communication/p011-outreach-48h"
+      ]
     },
     {
       "id": "ed-11-7-2b",
@@ -1262,7 +1279,10 @@
         "Observation",
         "CarePlan"
       ],
-      "profileGap": true
+      "profileGap": true,
+      "relatedRefs": [
+        "Communication/p011-caring-contact"
+      ]
     },
     {
       "id": "ed-11-7-2c",

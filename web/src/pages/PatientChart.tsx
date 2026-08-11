@@ -7,7 +7,10 @@ import { PatientPathway } from '../components/PatientPathway'
 import { ArtifactCards } from '../components/ChartArtifacts'
 import {
   artifactCount,
+  buildWalkthroughRefIndex,
   carePlanDisplayName,
+  resolveRelatedRefs,
+  type RelatedArtifact,
   type RenderableResource,
 } from '../lib/chartDisplay'
 import { stageById } from '../data/catalog'
@@ -21,7 +24,7 @@ import {
 } from '../lib/patientPathway'
 import { workflowArtifactsOf } from '../lib/registry'
 import { buildCdsCards } from '../lib/cdsHooks'
-import type { CarePlanResource, ScenarioEncounter, StoredResponse } from '../types/fhir'
+import type { ScenarioEncounter, StoredResponse } from '../types/fhir'
 import '../css/Dashboard.css'
 import '../css/PatientChart.css'
 
@@ -103,12 +106,11 @@ function OtherActivitySection({
 /* ---------- Encounters / scenario-walkthrough timeline with inline drill-in ---------- */
 function EncountersTimeline({
   walkthrough,
-  responses,
-  carePlans,
+  refIndex,
 }: {
   walkthrough: ScenarioEncounter[]
-  responses: StoredResponse[]
-  carePlans: CarePlanResource[]
+  /** `Type/id` → display, built by the caller from every artifact bucket. */
+  refIndex: Map<string, RelatedArtifact>
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -134,14 +136,10 @@ function EncountersTimeline({
           </p>
           <ol className="encounters-list">
             {walkthrough.map(enc => {
-              const relatedResponses = responses.filter(r =>
-                (enc.relatedResponseNames ?? []).includes(r.questionnaireName),
-              )
-              const relatedCarePlans = carePlans.filter(cp =>
-                (enc.relatedCarePlanIdSubstrings ?? []).some(
-                  sub => cp.id && cp.id.includes(sub),
-                ),
-              )
+              // Resolve by reference (#263 phase 5b). A ref that resolves to
+              // nothing is dropped here rather than rendered as a dead row —
+              // check-scenario-resources.mjs is what makes that impossible to ship.
+              const related = resolveRelatedRefs(enc.relatedRefs, refIndex)
               const stage = enc.stageId ? stageById(enc.stageId) : undefined
               const isExpanded = expandedId === enc.id
               return (
@@ -190,20 +188,16 @@ function EncountersTimeline({
                           ))}
                         </div>
                       )}
-                      {(relatedResponses.length > 0 || relatedCarePlans.length > 0) && (
+                      {related.length > 0 && (
                         <div className="encounter-related">
                           <h5 className="encounter-related-title">Captured in this patient's chart</h5>
                           <ul className="encounter-related-list">
-                            {relatedResponses.map(r => (
-                              <li key={r.id}>
-                                <strong>{r.questionnaireName}</strong>
-                                <span className="encounter-related-meta"> &middot; QuestionnaireResponse</span>
-                              </li>
-                            ))}
-                            {relatedCarePlans.map((cp, idx) => (
-                              <li key={`${cp.id}-${idx}`}>
-                                <strong>{carePlanDisplayName(cp as RenderableResource)}</strong>
-                                <span className="encounter-related-meta"> &middot; CarePlan</span>
+                            {related.map(a => (
+                              <li key={a.ref}>
+                                <strong>{a.name}</strong>
+                                <span className="encounter-related-meta">
+                                  {' '}&middot; {a.resourceType}
+                                </span>
                               </li>
                             ))}
                           </ul>
@@ -369,6 +363,25 @@ export function PatientChart() {
   const { isToolEnabled } = useToolConfig()
   useScrollToHash()
 
+  // `Type/id` → display for every artifact a walkthrough step can reference
+  // (#263 phase 5b). Built from all the buckets rather than just responses and
+  // CarePlans, which is all the retired string matching could reach.
+  const walkthroughRefIndex = useMemo(
+    () =>
+      buildWalkthroughRefIndex({
+        responses,
+        carePlans,
+        observations,
+        communications: communications ?? [],
+        workflowArtifacts: [
+          ...(documentReferences ?? []),
+          ...(serviceRequests ?? []),
+          ...(appointments ?? []),
+        ],
+      }),
+    [responses, carePlans, observations, communications, documentReferences, serviceRequests, appointments],
+  )
+
   // Stage-5 artifacts all stage themselves through meta.tag, so they travel as
   // one bucket rather than a named field per resource type — see PatientArtifacts.
   const workflowArtifacts = useMemo(
@@ -450,7 +463,7 @@ export function PatientChart() {
         workflowArtifacts={unstaged.workflowArtifacts}
       />
 
-      <EncountersTimeline walkthrough={walkthrough} responses={responses} carePlans={carePlans} />
+      <EncountersTimeline walkthrough={walkthrough} refIndex={walkthroughRefIndex} />
 
       <PatientDocuments responses={responses} carePlans={carePlans} observations={observations} />
     </div>

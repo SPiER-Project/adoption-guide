@@ -653,7 +653,7 @@ function checkRiskAlert(alert, where) {
   }
 }
 
-function checkEncounter(step, where) {
+function checkEncounter(step, where, artifactIds) {
   if (!step || typeof step !== 'object') return fail(`${where}: not an object`)
   for (const field of ['id', 'date', 'title', 'notes']) {
     if (typeof step[field] !== 'string' || !step[field]) {
@@ -666,6 +666,64 @@ function checkEncounter(step, where) {
   if (step.status !== 'completed' && step.status !== 'scheduled') {
     fail(`${where}: ScenarioEncounter.status "${step.status}" must be completed | scheduled`)
   }
+
+  // `relatedRefs` replaced two string-matching fields in #263 phase 5b — a
+  // QuestionnaireResponse matched by display NAME and a CarePlan by id
+  // SUBSTRING. Renaming either silently broke the link with nothing going red,
+  // which is the whole reason those fields are gone. A reference is only better
+  // if it is checked, so: every ref must resolve to an artifact in this same
+  // scenario, and the retired fields must not come back.
+  for (const legacy of ['relatedResponseNames', 'relatedCarePlanIdSubstrings']) {
+    if (legacy in step) {
+      fail(
+        `${where}: ScenarioEncounter.${legacy} was retired in #263 phase 5b — ` +
+          `use relatedRefs with FHIR references (Type/id) instead`,
+      )
+    }
+  }
+  if (step.relatedRefs !== undefined) {
+    if (!Array.isArray(step.relatedRefs)) {
+      fail(`${where}: ScenarioEncounter.relatedRefs must be an array of "Type/id" strings`)
+    } else {
+      for (const ref of step.relatedRefs) {
+        if (typeof ref !== 'string' || !/^[A-Za-z]+\/[\w-]+$/.test(ref)) {
+          fail(`${where}: relatedRefs entry ${JSON.stringify(ref)} is not a "Type/id" reference`)
+          continue
+        }
+        if (!artifactIds.has(ref)) {
+          fail(
+            `${where}: relatedRefs "${ref}" does not resolve to an artifact in this scenario — ` +
+              `the step claims it produced that artifact, so it has to be here`,
+          )
+        } else {
+          walkthroughRefs.resolved++
+        }
+      }
+    }
+  }
+}
+
+/** Counter so the summary states how many walkthrough links are live. */
+const walkthroughRefs = { resolved: 0 }
+
+/** Every `Type/id` a walkthrough step could legitimately reference. */
+function artifactIdsOf(scenario) {
+  const ids = new Set()
+  for (const [bucket, value] of Object.entries(scenario)) {
+    if (!Array.isArray(value)) continue
+    if (bucket === 'riskAlerts' || bucket === 'walkthrough') continue
+    if (bucket === 'responses') {
+      for (const sr of value) {
+        const qr = sr?.resource
+        if (qr?.resourceType && qr?.id) ids.add(`${qr.resourceType}/${qr.id}`)
+      }
+      continue
+    }
+    for (const r of value) {
+      if (r?.resourceType && r?.id) ids.add(`${r.resourceType}/${r.id}`)
+    }
+  }
+  return ids
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -881,7 +939,10 @@ for (const file of scenarioFiles) {
       continue
     }
     if (bucket === 'walkthrough') {
-      value.forEach((e, i) => checkEncounter(e, `scenarios/${file} walkthrough[${i}]`))
+      const artifactIds = artifactIdsOf(scenario)
+      value.forEach((e, i) =>
+        checkEncounter(e, `scenarios/${file} walkthrough[${i}]`, artifactIds),
+      )
       continue
     }
 
@@ -916,7 +977,8 @@ console.log(
   `episode correlation: ${correlation.linked} artifact(s) linked to an Encounter, ` +
     `${correlation.reverse} via Encounter.appointment, ${correlation.exempt} exempt ` +
     `(${[...correlation.exemptTypes].sort().join(', ') || 'none'}); ` +
-    `${correlation.triggers} episode trigger(s) resolve.`,
+    `${correlation.triggers} episode trigger(s) resolve; ` +
+    `${walkthroughRefs.resolved} walkthrough ref(s) resolve.`,
 )
 
 if (failures) {

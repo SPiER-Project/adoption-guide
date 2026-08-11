@@ -137,6 +137,13 @@ interface DerivedPathway {
 
 export interface StoredResponseLike {
   resource: QuestionnaireResponseLike
+  /**
+   * Wrapper-level display metadata from `StoredResponse`. Optional because stage
+   * resolution never needs them — but the walkthrough reference index does, and
+   * casting them back in at every read site would be worse than declaring them.
+   */
+  id?: string
+  questionnaireName?: string
 }
 
 /**
