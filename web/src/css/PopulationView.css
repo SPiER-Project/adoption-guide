@@ -391,3 +391,465 @@
   padding: var(--space-3);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
+
+/* ===========================================================
+   Zone 1 — summary strip (deck panels 1–2)
+
+   Compact and collapsible on purpose. The caseload table below is
+   the page's actual job; a summary tall enough to push the first
+   patient row off-screen would trade triage for reporting.
+   =========================================================== */
+
+.pop-summary {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.pop-summary-head,
+.pop-alerts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.pop-summary-title,
+.pop-alerts-title {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.pop-summary-toggle {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-md);
+  color: var(--accent-info-text);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.pop-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.pop-tile {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-page-alt);
+  padding: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+
+.pop-tile--breached {
+  border-color: var(--risk-high);
+  background: var(--risk-high-soft-bg);
+}
+
+.pop-tile--blocked {
+  border-style: dashed;
+  background: var(--surface-muted);
+}
+
+.pop-tile-label {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.pop-tile-value {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--text-strong);
+  line-height: 1.2;
+  margin-top: var(--space-1);
+}
+
+.pop-tile-value--blocked {
+  color: var(--text-faint);
+  cursor: help;
+}
+
+.pop-tile-foot {
+  min-height: 1rem;
+  margin-top: var(--space-1);
+}
+
+.pop-tile-goal,
+.pop-tile-blocked-tag {
+  font-size: var(--font-size-2xs);
+  color: var(--text-faint);
+}
+
+.pop-tile--breached .pop-tile-goal {
+  color: var(--risk-high-soft-text);
+  font-weight: 700;
+}
+
+.pop-tile-blocked-tag {
+  font-style: italic;
+}
+
+/* Tier census — one bar, segments sized by patient count. */
+
+.pop-census {
+  margin-top: var(--space-3);
+}
+
+.pop-census-bar {
+  display: flex;
+  height: 0.5rem;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-muted);
+}
+
+.pop-census-seg {
+  min-width: 0.125rem;
+}
+
+.pop-census-seg--acute { background: var(--risk-acute); }
+.pop-census-seg--high { background: var(--risk-high); }
+.pop-census-seg--moderate { background: var(--risk-moderate); }
+.pop-census-seg--low { background: var(--risk-low); }
+.pop-census-seg--none { background: var(--border-default); }
+
+.pop-census-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  list-style: none;
+  margin: var(--space-2) 0 0 0;
+  padding: 0;
+}
+
+.pop-census-key-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-2xs);
+  color: var(--text-body);
+}
+
+.pop-census-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-circle);
+  flex: none;
+}
+
+.pop-census-share {
+  color: var(--text-faint);
+}
+
+.pop-summary-note {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: var(--space-3) 0 0 0;
+}
+
+/* ===========================================================
+   Zone 2 — alerts panel (deck panel 8)
+   =========================================================== */
+
+.pop-alerts {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.pop-alerts-count {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+}
+
+.pop-alerts-empty {
+  font-size: var(--font-size-md);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: var(--space-3) 0 0 0;
+}
+
+.pop-alerts-list {
+  list-style: none;
+  margin: var(--space-3) 0 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+
+  /* Scrolls inside a cap so an unusually bad day cannot reintroduce the
+     buried-table problem the two-column zone layout fixed. */
+  max-height: 17rem;
+  overflow-y: auto;
+}
+
+.pop-alert-group {
+  border: 1px solid var(--border-default);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-page-alt);
+  cursor: pointer;
+}
+
+.pop-alert-group--red { border-left-color: var(--risk-high); }
+.pop-alert-group--yellow { border-left-color: var(--accent-warning-edge); }
+
+.pop-alert-group-head {
+  /* A <summary>: the count badge sits in column 1, the name and the
+     comma-joined labels stack in column 2. */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--space-2);
+  align-items: baseline;
+
+  /* The disclosure marker is redundant beside the count badge. */
+  list-style: none;
+}
+
+.pop-alert-group-head::-webkit-details-marker {
+  display: none;
+}
+
+.pop-alert-patient {
+  font-weight: 700;
+  color: var(--accent-info-text);
+  text-decoration: none;
+}
+
+.pop-alert-patient:hover {
+  text-decoration: underline;
+}
+
+.pop-alert-badge {
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-2);
+  color: var(--text-on-brand);
+}
+
+.pop-alert-badge--red { background: var(--risk-high); }
+
+.pop-alert-badge--yellow {
+  background: var(--accent-warning-bg);
+  color: var(--accent-warning-text-deep);
+}
+
+.pop-alert-items {
+  list-style: none;
+  margin: var(--space-2) 0 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.pop-alert {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.pop-alert-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: var(--radius-circle);
+  flex: none;
+  margin-top: 0.4rem;
+}
+
+.pop-alert--red .pop-alert-dot { background: var(--risk-high); }
+.pop-alert--yellow .pop-alert-dot { background: var(--accent-warning-edge); }
+
+.pop-alert-body {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.pop-alert-label {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.pop-alert-detail {
+  font-size: var(--font-size-2xs);
+  color: var(--text-body);
+  line-height: 1.45;
+}
+
+.pop-alert-source {
+  font-size: var(--font-size-2xs);
+  color: var(--text-faint);
+  font-family: ui-monospace, monospace;
+}
+
+.pop-alerts-unwatched {
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--border-default);
+  padding-top: var(--space-2);
+}
+
+.pop-alerts-unwatched-summary {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.pop-alerts-unwatched-list {
+  margin: var(--space-2) 0 0 0;
+  padding-left: var(--space-4);
+  font-size: var(--font-size-2xs);
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+/* ===========================================================
+   Zone 3 — view switcher
+   =========================================================== */
+
+.population-table-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.population-views {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.population-view-tab {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  font: inherit;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.population-view-tab:hover {
+  color: var(--text-strong);
+  background: var(--surface-muted);
+}
+
+.population-view-tab--active {
+  background: var(--accent-info-soft-bg);
+  border-color: var(--accent-info-border);
+  color: var(--accent-info-text-deep);
+}
+
+.population-view-description {
+  font-size: var(--font-size-2xs);
+  color: var(--text-faint);
+  margin: var(--space-1) 0 var(--space-2) 0;
+}
+
+@media (max-width: 767px) {
+  /* Below the tablet break the tiles get two columns rather than shrinking
+     toward unreadable, and the summary collapses tighter so the first table
+     row still clears the fold on a phone. */
+  .pop-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pop-summary,
+  .pop-alerts {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .population-table-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .population-views {
+    overflow-x: auto;
+  }
+}
+
+/* ===========================================================
+   Zone layout
+
+   Stacked, the summary and the alerts panel cost ~640px before the
+   caseload table begins, against an 800px laptop viewport — the
+   first patient row landed at y=1825 in the first cut. Two columns
+   make the vertical cost the taller of the pair rather than the sum.
+   =========================================================== */
+
+.population-zones {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  align-items: start;
+}
+
+@media (min-width: 1100px) {
+  .population-zones {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+  }
+}
+
+.population-zones > .pop-summary,
+.population-zones > .pop-alerts {
+  margin-bottom: 0;
+}
+
+.pop-alert-group-name {
+  font-weight: 700;
+  color: var(--text-strong);
+  font-size: var(--font-size-md);
+}
+
+.pop-alert-group-labels {
+  grid-column: 2;
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.pop-alert-group[open] .pop-alert-group-labels {
+  display: none;
+}
+
+.pop-alert-group .pop-alert-patient {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+}
+
+/* Blocked metrics are named in one line rather than given four identical
+   dash tiles — same honesty, one grid row cheaper. */
+
+.pop-summary-note-lead {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.pop-summary-blocked {
+  color: var(--text-body);
+  text-decoration: underline dotted;
+  cursor: help;
+}
