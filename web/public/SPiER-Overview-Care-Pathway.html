@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>SPiER Overview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The SPiER Project — suicide-safer care built natively into the EHR. Overview of the approach, what SPiER provides at no cost, licensing, and the eight-stage care pathway.">
+<title>The SPiER Project — Overview &amp; Care Pathway</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -20,6 +22,11 @@
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @page { size: letter; margin: 0; }
   html, body { font-family: 'Poppins', system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--paper); }
+  /* Must live in the print layer, not the screen one: the footer URLs are real
+     anchors so they work on the web version and stay clickable in the PDF, and
+     without this the UA's blue-and-underlined default paints into the print
+     output. The colour comes from the `strong` inside each link. */
+  a { color: inherit; text-decoration: none; }
   .page {
     width: 8.5in; height: 11in;
     page-break-after: always;
@@ -188,9 +195,159 @@
   }
   .interop p { font-size: 7.9pt; line-height: 1.35; color: #e8d9e2; }
   .interop p strong { color: #fff; }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCREEN LAYER
+     ══════════════════════════════════════════════════════════════════════════
+
+     Everything ABOVE this line is the print document, and is what the PDF is
+     rendered from. Nothing below it reaches the PDF: `--print-to-pdf` resolves
+     `print` media, so these `screen` rules are dropped at export time. That is
+     the whole reason this file can be both a handout and a web page without
+     the two fighting each other.
+
+     Two consequences worth knowing before you edit:
+
+       · To change the handout, change the rules above. Editing this layer can
+         never fix the PDF, no matter how wrong it looks on screen.
+       · `.web-only` is `display: none` by default and only revealed inside
+         `@media screen`, so screen-only chrome (the download bar) cannot leak
+         into the printed pages. Verify page count after touching it anyway —
+         `build-onepager.mjs` asserts 2 pages and will tell you.
+
+     The page keeps its exact print geometry on a wide screen (8.5in × 11in,
+     centred, shadowed — it should read as the document it is). Below 900px —
+     one 8.5in page is 816px, plus breathing room — it stops pretending to be
+     paper: heights go auto, every multi-column arrangement stacks, and the
+     7–10pt print type is restated in px, because 7.8pt is 10px on a phone and
+     nobody is reading that.
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  .web-only { display: none; }
+
+  @media screen {
+    :root { --desk: #ece3e8; }
+
+    html, body { background: var(--desk); }
+    body { padding: 16px 16px 44px; -webkit-text-size-adjust: 100%; }
+
+    .page {
+      margin: 0 auto 20px;
+      background: var(--paper);
+      border-radius: 4px;
+      box-shadow: 0 2px 18px rgba(52, 21, 40, 0.18);
+      overflow: hidden; /* keeps content off the rounded corners */
+    }
+
+    .web-only { display: flex; }
+
+    .footer .link a:hover { text-decoration: underline; }
+
+    /* Slim bar above the document: says what this is, and offers the handout
+       to forward on. Matches the page width so it reads as part of the sheet. */
+    .web-bar {
+      width: 8.5in; max-width: 100%;
+      margin: 0 auto 14px;
+      align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      font-size: 13px; color: var(--ink-soft);
+    }
+    .web-bar strong { color: var(--plum); font-weight: 600; }
+    .web-bar .pdf {
+      background: var(--plum); color: #fff;
+      font-size: 13px; font-weight: 600;
+      padding: 8px 15px; border-radius: 999px;
+      white-space: nowrap;
+    }
+    .web-bar .pdf:hover { background: var(--raspberry); }
+  }
+
+  @media screen and (max-width: 900px) {
+    body { padding: 10px 10px 30px; }
+
+    .page { width: 100%; height: auto; }
+
+    /* Print padding is in inches to match the trim; px reads better on a phone. */
+    .band { padding: 20px 18px 16px; }
+    .band.compact { padding: 17px 18px 14px; }
+    .body { padding: 17px 18px 0; }
+    .footer {
+      padding: 14px 18px;
+      flex-direction: column; align-items: flex-start; gap: 8px;
+      font-size: 13px;
+    }
+    .footer .link { text-align: left; white-space: normal; }
+
+    /* Type, restated for screen reading distance. */
+    .band .kicker { font-size: 11px; letter-spacing: 0.18em; }
+    .band h1 { font-size: 27px; }
+    .band.compact h1 { font-size: 22px; }
+    .band .tagline, .band.compact .tagline { font-size: 15px; margin-top: 8px; }
+    h2 { font-size: 13px; margin-bottom: 9px; }
+    h2::after { width: 36px; height: 3px; margin-top: 5px; }
+    p, li { font-size: 15px; }
+    .lead { font-size: 16px; margin-bottom: 18px; }
+
+    /* Every multi-column arrangement stacks. */
+    .cols { flex-direction: column; gap: 22px; }
+    .col { gap: 18px; }
+    .stages { grid-template-columns: 1fr; gap: 10px; }
+    .interop { flex-direction: column; gap: 16px; padding: 14px 16px; margin-bottom: 14px; }
+    .legend { flex-wrap: wrap; gap: 10px 16px; font-size: 12px; padding: 8px 0 10px; }
+
+    .pillars { gap: 10px; }
+    .pillar { padding: 11px 13px; gap: 11px; border-left-width: 4px; border-radius: 0 8px 8px 0; }
+    .pillar .num { width: 21px; height: 21px; font-size: 12px; margin-top: 1px; }
+    .pillar h3 { font-size: 15px; margin-bottom: 3px; }
+    .pillar p { font-size: 14px; }
+
+    ul.checks { gap: 9px; }
+    ul.checks li { font-size: 14px; padding-left: 21px; }
+    ul.checks li::before { font-size: 15px; }
+
+    .license-box { padding: 14px 15px 15px; border-radius: 10px; }
+    .license-box p { font-size: 14px; margin-bottom: 12px; }
+    /* The 92pt tag column is far too wide a bite out of a phone: label above value. */
+    .license-row { flex-direction: column; gap: 2px; margin-bottom: 10px; }
+    .license-tag { width: auto; font-size: 11px; }
+    .license-row span:last-child { font-size: 14px; line-height: 1.45; }
+
+    .stage { padding: 13px 15px 14px; border-radius: 10px; }
+    .stage-head { gap: 9px; margin-bottom: 5px; }
+    .stage-num { width: 23px; height: 23px; font-size: 13px; }
+    .stage h3 { font-size: 16px; }
+    .stage .desc { font-size: 14px; line-height: 1.4; margin-bottom: 9px; }
+    .chips { gap: 5px; }
+    .chip { font-size: 11.5px; padding: 5px 10px; border-radius: 999px; white-space: normal; }
+    .chip.roadmap { border-width: 1px; }
+
+    .flow-note { font-size: 14px; padding: 11px 13px; gap: 10px; border-radius: 10px; }
+    .flow-note .bolt { width: 22px; height: 22px; font-size: 12px; }
+
+    .interop h4 { font-size: 12px; margin-bottom: 5px; }
+    .interop p { font-size: 14px; line-height: 1.45; }
+  }
+
+  /* Tablet band: still too narrow for the 8.5in sheet, so the fluid rules above
+     apply — but wide enough that one column of stage cards leaves an
+     uncomfortably long measure. The two-column pathway grid comes back; the
+     prose columns stay stacked, because splitting them here would put the body
+     copy at roughly 45 characters. */
+  @media screen and (min-width: 620px) and (max-width: 900px) {
+    .stages { grid-template-columns: 1fr 1fr; }
+  }
 </style>
 </head>
 <body>
+
+<!-- Screen-only chrome. `.web-only` is display:none outside `@media screen`, so
+     none of this reaches the PDF. The PDF href is relative on purpose: the two
+     files sit side by side in web/public/, which keeps the link correct under
+     Cloudflare's root and GitHub Pages' /adoption-guide/ alike. -->
+<div class="web-bar web-only">
+  <div><strong>The SPiER Project</strong> &nbsp;·&nbsp; Overview &amp; care pathway</div>
+  <a class="pdf" href="SPiER-Overview-Care-Pathway.pdf">Download PDF ↓</a>
+</div>
 
 <!-- ══════════════════ PAGE 1 · FRONT ══════════════════ -->
 <div class="page">
@@ -257,7 +414,7 @@
 
   <div class="footer">
     <div class="orgs">Funded by the <strong>Four Pines Foundation</strong> · Administered through <strong>Zero Overdose</strong> · Evaluation by <strong>JG Research &amp; Evaluation</strong> · Protocols aligned to the <strong>Zero Suicide</strong> framework</div>
-    <div class="link">Interactive adoption guide &amp; live demo<br><strong>spier-adoption-guide.bbthorson.workers.dev</strong></div>
+    <div class="link">Interactive adoption guide &amp; live demo<br><a href="https://spier-adoption-guide.bbthorson.workers.dev"><strong>spier-adoption-guide.bbthorson.workers.dev</strong></a></div>
   </div>
 </div>
 
@@ -348,7 +505,7 @@
 
   <div class="footer">
     <div class="orgs"><strong>The SPiER Project</strong> · Free tooling, training, and implementation support for participating sites</div>
-    <div class="link">Explore every tool, spec, and code set<br><strong>spier-adoption-guide.bbthorson.workers.dev</strong></div>
+    <div class="link">Explore every tool, spec, and code set<br><a href="https://spier-adoption-guide.bbthorson.workers.dev"><strong>spier-adoption-guide.bbthorson.workers.dev</strong></a></div>
   </div>
 </div>
 

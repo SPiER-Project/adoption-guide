@@ -69,12 +69,18 @@
  *   node scripts/build-onepager.mjs           # render, verify, write PDF + manifest
  *   node scripts/build-onepager.mjs --check    # verify the committed pair (no Chrome)
  *
- * The output lives in `web/public/` on purpose: Vite copies that directory into
+ * Both files live in `web/public/` on purpose: Vite copies that directory into
  * `web/dist/`, the Worker's `stage:assets` copies `web/dist` wholesale into
- * `web-dist/`, and `services/cds-hooks/wrangler.jsonc` serves it. One committed
- * file is therefore published at a stable URL by both hosts with no extra
- * deploy wiring — and, because it is committed rather than generated during the
- * build, neither deploy path needs a browser.
+ * `web-dist/`, and `services/cds-hooks/wrangler.jsonc` serves it. So the pair is
+ * published at stable URLs by both hosts with no extra deploy wiring — the HTML
+ * as the responsive web version, the PDF as the handout — and, because the PDF
+ * is committed rather than generated during the build, neither deploy path needs
+ * a browser.
+ *
+ * ⚠️ The HTML's `@media screen` layer is invisible to this script by design:
+ * Chrome resolves `print` media for `--print-to-pdf`. A screen-only regression
+ * therefore cannot be caught here, and a print regression cannot be caught by
+ * looking at the page in a browser. Check both when you touch the stylesheet.
  */
 
 import { spawn } from 'node:child_process'
@@ -86,7 +92,11 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-const SOURCE = 'docs/outreach/spier-onepager-source.html'
+// The HTML lives in web/public/ beside the PDF because it is *also* a served
+// page — it carries a screen layer that `print` media never sees. One file is
+// therefore both the handout's source and the web version, which is the only
+// arrangement where the two cannot drift apart. See docs/outreach/README.md.
+const SOURCE = 'web/public/SPiER-Overview-Care-Pathway.html'
 const OUTPUT = 'web/public/SPiER-Overview-Care-Pathway.pdf'
 const MANIFEST = 'docs/outreach/onepager.build.json'
 

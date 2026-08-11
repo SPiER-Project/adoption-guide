@@ -33,12 +33,14 @@ on:
       - main
     paths:
       - 'docs/outreach/**'
+      - 'web/public/SPiER-Overview-Care-Pathway.html'
       - 'web/public/SPiER-Overview-Care-Pathway.pdf'
       - 'scripts/build-onepager.mjs'
       - '.github/workflows/onepager.yml'
   pull_request:
     paths:
       - 'docs/outreach/**'
+      - 'web/public/SPiER-Overview-Care-Pathway.html'
       - 'web/public/SPiER-Overview-Care-Pathway.pdf'
       - 'scripts/build-onepager.mjs'
       - '.github/workflows/onepager.yml'
