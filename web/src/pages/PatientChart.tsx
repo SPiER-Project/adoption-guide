@@ -102,37 +102,38 @@ function OtherActivitySection({
 
 /* ---------- Encounters / scenario-walkthrough timeline with inline drill-in ---------- */
 function EncountersTimeline({
-  encounters,
+  walkthrough,
   responses,
   carePlans,
 }: {
-  encounters: ScenarioEncounter[]
+  walkthrough: ScenarioEncounter[]
   responses: StoredResponse[]
   carePlans: CarePlanResource[]
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  // Most patients carry no scenario walkthrough. An empty "Encounters / 0 steps"
-  // heading is pure noise between the pathway and the documents list.
-  if (encounters.length === 0) return null
+  // Most patients carry no scenario walkthrough. An empty "Scenario walkthrough /
+  // 0 steps" heading is pure noise between the pathway and the documents list.
+  if (walkthrough.length === 0) return null
 
   return (
     <section id="encounters" className="encounters-timeline-section">
       <header className="chart-section-header">
-        <h3 className="chart-section-title">Encounters</h3>
+        <h3 className="chart-section-title">Scenario walkthrough</h3>
         <span className="chart-section-count">
-          {encounters.length} {encounters.length === 1 ? 'step' : 'steps'}
+          {walkthrough.length} {walkthrough.length === 1 ? 'step' : 'steps'}
         </span>
       </header>
       {(
         <>
           <p className="encounters-note">
-            Scenario walkthrough — each step links to the FHIR artifact it produces. Steps
+            Narrative steps, not FHIR resources — each links to the FHIR artifact it
+            produces. Steps
             marked <em>profile gap</em> map to resource types that don't yet have a SPiER
             profile (tracked in issue&nbsp;#52).
           </p>
           <ol className="encounters-list">
-            {encounters.map(enc => {
+            {walkthrough.map(enc => {
               const relatedResponses = responses.filter(r =>
                 (enc.relatedResponseNames ?? []).includes(r.questionnaireName),
               )
@@ -361,7 +362,7 @@ export function PatientChart() {
     activePatientId,
     populationPatient,
     isSmartConnected,
-    encounters,
+    walkthrough,
     isSliceLoading,
     dataSourceError,
   } = usePatient()
@@ -449,7 +450,7 @@ export function PatientChart() {
         workflowArtifacts={unstaged.workflowArtifacts}
       />
 
-      <EncountersTimeline encounters={encounters} responses={responses} carePlans={carePlans} />
+      <EncountersTimeline walkthrough={walkthrough} responses={responses} carePlans={carePlans} />
 
       <PatientDocuments responses={responses} carePlans={carePlans} observations={observations} />
     </div>

@@ -281,6 +281,63 @@ Description: "An active episode of suicide-safer care, tracked from entry to res
 * period MS
 
 
+// ─── Profile: the contact, and the correlation hinge (#263) ──
+//
+// R4 has no universal "this belongs to that episode" pointer. Most of the
+// obvious candidates cannot reference an EpisodeOfCare at all:
+// Observation.partOf takes Medication*/Procedure/Immunization/ImagingStudy,
+// CarePlan.addresses takes Condition (R5 widened it; R4 did not),
+// ServiceRequest.basedOn takes CarePlan/ServiceRequest/MedicationRequest, and
+// Procedure.partOf takes Procedure/Observation/MedicationAdministration.
+//
+// What R4 *does* provide is Encounter as the hinge: nine of the eleven resource
+// types SPiER emits carry a native `.encounter`, and Encounter.episodeOfCare
+// points at the episode. So correlation is two standard hops — no SPiER
+// extension, and searchable with stock parameters (`Observation?encounter=…`,
+// `Encounter?episode-of-care=…`) on servers SPiER does not control. That is the
+// deciding property: a custom extension would need a published SearchParameter
+// and server support to be queryable at all, which is the appearance of
+// correlation rather than correlation.
+//
+// See docs/plans/episode-correlation-key.md for the full comparison and the
+// verified element table. Two notes that belong next to the profile:
+//
+//  * `Encounter` itself has NO `category` element, so it cannot carry the
+//    concept-domain tag from #262 — same constraint as Appointment,
+//    EpisodeOfCare and Task in #272. It is reached through episodeOfCare, not
+//    by a domain query.
+//  * `Encounter.appointment` is a native Reference(Appointment). That is how
+//    Appointments — which have no `.encounter` of their own — join the chain,
+//    and it is cleaner than routing through basedOn → ServiceRequest.
+
+Profile: SPiEREncounter
+Parent: Encounter
+Id: spier-encounter
+Title: "SPiER Encounter"
+Description: "A contact during which suicide-safer care happened. This is the correlation hinge for the whole pathway: artifacts reference their Encounter through the native `.encounter` element they already have, and this Encounter references the episode, so a consumer can assemble one episode's record with standard search parameters rather than a SPiER-specific extension. Instances SHOULD carry meta.tag = SPiERPathwayStage#<stage> where the contact maps to a single pathway stage."
+* ^status = #draft
+* ^experimental = true
+* status 1..1
+* status MS
+// `class` is already 1..1 in R4 and keeps its base binding (v3-ActCode):
+// an ED visit, an ambulatory visit and a telephone contact are all in scope,
+// and SPiER has no reason to narrow that.
+* class MS
+// The reason this profile exists. 1..* rather than 1..1 because a single
+// contact can legitimately belong to more than one programme's episode; the
+// requirement is that a suicide-safer-care contact names at least one.
+* episodeOfCare 1..*
+* episodeOfCare MS
+* subject 1..1
+* subject only Reference(Patient)
+* subject MS
+* period 1..1
+* period.start 1..1
+* period MS
+// How Appointments reach the episode — see the note above.
+* appointment MS
+
+
 // ─── Profile: the chart banner ───────────────────────────────
 
 Profile: SPiERSuicideRiskFlag
@@ -489,6 +546,34 @@ Usage: #example
 * patient = Reference(Patient/example)
 * period.start = "2026-07-02"
 * period.end = "2026-09-30"
+
+
+Instance: ExampleEdEncounter
+InstanceOf: SPiEREncounter
+Title: "Example — ED contact where the risk episode began"
+Description: "The emergency-department visit at which the positive screen happened, referencing the episode it belongs to. Artifacts produced during this visit (the QuestionnaireResponse, its Observations, the safety plan) set `.encounter` to this resource, which is how they are retrieved as one episode's record without a SPiER-specific extension."
+Usage: #example
+* meta.tag[+] = SPiERPathwayStage#identify-possible-risk
+* status = #finished
+* class = http://terminology.hl7.org/CodeSystem/v3-ActCode#EMER "emergency"
+* episodeOfCare[+] = Reference(ExampleActiveSuicideRiskEpisode)
+* subject = Reference(Patient/example)
+* period.start = "2026-07-02T08:15:00Z"
+* period.end = "2026-07-02T16:40:00Z"
+
+
+Instance: ExampleFollowUpEncounter
+InstanceOf: SPiEREncounter
+Title: "Example — Post-discharge follow-up contact"
+Description: "A telephone follow-up during the same episode, showing that a second contact correlates to the same EpisodeOfCare. This is what makes two episodes six months apart distinguishable: membership is carried by reference, not inferred from resource ids or dates."
+Usage: #example
+* meta.tag[+] = SPiERPathwayStage#track-risk-over-time
+* status = #finished
+* class = http://terminology.hl7.org/CodeSystem/v3-ActCode#VR "virtual"
+* episodeOfCare[+] = Reference(ExampleActiveSuicideRiskEpisode)
+* subject = Reference(Patient/example)
+* period.start = "2026-07-09T14:00:00Z"
+* period.end = "2026-07-09T14:20:00Z"
 
 
 Instance: ExampleSuicideRiskFlag

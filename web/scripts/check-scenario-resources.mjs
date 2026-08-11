@@ -45,8 +45,8 @@
  *      a bad code there changes a score; `handoff-withheld-item` is only
  *      meaningful if the withheld item and its basis are both present.
  *   8. Date-bearing elements parse as FHIR date / dateTime.
- *   9. The two NON-FHIR buckets — `riskAlerts` (an app type) and `encounters`
- *      (`ScenarioEncounter` walkthrough narration, NOT a FHIR Encounter) — are
+ *   9. The two NON-FHIR buckets — `riskAlerts` (an app type) and `walkthrough`
+ *      (`ScenarioEncounter` narration; real Encounters ARE a FHIR bucket) — are
  *      checked against their TypeScript shapes instead.
  *
  * ── What this does NOT check ────────────────────────────────────────────────
@@ -99,13 +99,16 @@ const FHIR_BUCKETS = {
   appointments: 'Appointment',
   consents: 'Consent',
   procedures: 'Procedure',
+  // Real FHIR Encounters — the #263 correlation hinge. NOT the walkthrough
+  // narration, which moved to the `walkthrough` bucket for exactly this reason.
+  encounters: 'Encounter',
 }
 
 /** Buckets that are not FHIR at all, handled separately below. */
 const NON_FHIR_BUCKETS = new Set([
   'responses', // StoredResponse wrappers — check-scenario-responses.mjs owns these
   'riskAlerts', // the app's RiskAlert type
-  'encounters', // ScenarioEncounter narration, NOT a FHIR Encounter
+  'walkthrough', // ScenarioEncounter narration; real Encounters are a FHIR bucket above
 ])
 
 // ─────────────────────────────────────────────────────────────
@@ -130,6 +133,7 @@ const BASE_REQUIRED = {
   Appointment: ['status', 'participant'],
   Consent: ['status', 'scope', 'category'],
   Procedure: ['status', 'subject'],
+  Encounter: ['status', 'class'],
 }
 
 /** The required-bound `status` ValueSet for each type. */
@@ -145,6 +149,7 @@ const STATUS_CODES = {
   Appointment: ['proposed', 'pending', 'booked', 'arrived', 'fulfilled', 'cancelled', 'noshow', 'entered-in-error', 'checked-in', 'waitlist'],
   Consent: ['draft', 'proposed', 'active', 'rejected', 'inactive', 'entered-in-error'],
   Procedure: ['preparation', 'in-progress', 'not-done', 'on-hold', 'stopped', 'completed', 'entered-in-error', 'unknown'],
+  Encounter: ['planned', 'arrived', 'triaged', 'in-progress', 'onleave', 'finished', 'cancelled', 'entered-in-error', 'unknown'],
 }
 
 /** `ServiceRequest.intent`, `Task.intent`, `CarePlan.intent` — all required-bound. */
@@ -171,6 +176,7 @@ const PATIENT_ELEMENT = {
   ServiceRequest: 'subject',
   Consent: 'patient',
   Procedure: 'subject',
+  Encounter: 'subject',
 }
 
 /**
@@ -706,8 +712,8 @@ for (const file of scenarioFiles) {
       value.forEach((a, i) => checkRiskAlert(a, `scenarios/${file} riskAlerts[${i}]`))
       continue
     }
-    if (bucket === 'encounters') {
-      value.forEach((e, i) => checkEncounter(e, `scenarios/${file} encounters[${i}]`))
+    if (bucket === 'walkthrough') {
+      value.forEach((e, i) => checkEncounter(e, `scenarios/${file} walkthrough[${i}]`))
       continue
     }
 

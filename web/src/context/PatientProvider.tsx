@@ -285,10 +285,10 @@ export function PatientProvider({
   // Read-only scenario walkthrough timeline. Sourced from the static scenario,
   // not the mutable store, so submitted assessments never overwrite it.
   // Suppressed under SMART, where the connected EHR's real chart is authoritative.
-  const encounters = useMemo<ScenarioEncounter[]>(
+  const walkthrough = useMemo<ScenarioEncounter[]>(
     () =>
       !isSmartConnected && activePatientId !== null
-        ? POPULATION_SCENARIOS[activePatientId]?.encounters ?? []
+        ? POPULATION_SCENARIOS[activePatientId]?.walkthrough ?? []
         : [],
     [isSmartConnected, activePatientId],
   )
@@ -359,7 +359,7 @@ export function PatientProvider({
       activePatientId,
       populationPatient,
       populationPatients: POPULATION_PATIENTS,
-      encounters,
+      walkthrough,
       carePlans: slice.carePlans,
       addCarePlan,
       responses: slice.responses,
@@ -385,7 +385,7 @@ export function PatientProvider({
       isSmartConnected,
       activePatientId,
       populationPatient,
-      encounters,
+      walkthrough,
       slice,
       sliceState.isLoading,
       sliceState.error,

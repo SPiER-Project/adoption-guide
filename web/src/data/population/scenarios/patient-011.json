@@ -235,7 +235,7 @@
               "text": "Step 3: People and Social Settings That Provide Distraction"
             },
             "status": "in-progress",
-            "description": "Sit in the café on 5th; call my cousin Rosa just to talk about anything else"
+            "description": "Sit in the caf\u00e9 on 5th; call my cousin Rosa just to talk about anything else"
           }
         },
         {
@@ -250,7 +250,7 @@
               "text": "Step 4: People I Can Ask for Help"
             },
             "status": "in-progress",
-            "description": "Rosa (sister), Elena (neighbour) — both know about the plan"
+            "description": "Rosa (sister), Elena (neighbour) \u2014 both know about the plan"
           }
         },
         {
@@ -357,7 +357,7 @@
       ],
       "reasonCode": [
         {
-          "text": "ED discharge — transition-of-care packet sent"
+          "text": "ED discharge \u2014 transition-of-care packet sent"
         }
       ],
       "subject": {
@@ -571,377 +571,6 @@
           "contentString": "A short note to say we are thinking of you. Nothing needed in return."
         }
       ]
-    }
-  ],
-  "encounters": [
-    {
-      "id": "ed-11-2-1a",
-      "step": "11.2-1A",
-      "date": "2026-05-21",
-      "title": "Triage suicide screen (ASQ)",
-      "stageId": "identify-possible-risk",
-      "actor": "Triage Nurse / Screener",
-      "status": "completed",
-      "notes": "28-year-old presents to a general medical ED with severe insomnia and anxiety; chronic pain and recent job loss. Triage-time ASQ administered and captured as discrete data.",
-      "fhirArtifacts": [
-        "QuestionnaireResponse"
-      ],
-      "relatedResponseNames": [
-        "ASQ Screening"
-      ]
-    },
-    {
-      "id": "ed-11-2-2a",
-      "step": "11.2-2A",
-      "date": "2026-05-21",
-      "title": "Derived risk tier — non-acute positive",
-      "stageId": "identify-possible-risk",
-      "actor": "EHR System / Analyzer",
-      "status": "completed",
-      "notes": "Screen classified as non-acute positive (wish to be dead + thoughts of suicide, no current ideation/plan). Risk tier surfaced on the trackboard.",
-      "fhirArtifacts": [
-        "Observation"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-2-2b",
-      "step": "11.2-2B",
-      "date": "2026-05-21",
-      "title": "Suicide-screening-status flag raised",
-      "stageId": "identify-possible-risk",
-      "actor": "EHR System / Status Visibility Manager",
-      "status": "completed",
-      "notes": "Suicide-screening-status flag set so the positive screen is visible across the care team and downstream views.",
-      "fhirArtifacts": [
-        "Flag"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-2-2c",
-      "step": "11.2-2C",
-      "date": "2026-05-21",
-      "title": "Role-routed task: BH consult / brief assessment",
-      "stageId": "identify-possible-risk",
-      "actor": "EHR System / CDS Workflow Router",
-      "status": "completed",
-      "notes": "Positive screen fires the Identify Possible Risk → Clarify Risk transition: a role-routed task and behavioral-health consult request are generated from the pathway PlanDefinition.",
-      "fhirArtifacts": [
-        "Task",
-        "ServiceRequest",
-        "PlanDefinition"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-3-1a",
-      "step": "11.3-1A",
-      "date": "2026-05-21",
-      "title": "Mitigation checklist — patient relocated to safe room",
-      "stageId": "track-risk-over-time",
-      "actor": "ED Nurse / Implementer",
-      "status": "completed",
-      "notes": "Environmental-safety mitigation checklist completed; patient moved to a ligature-resistant room.",
-      "fhirArtifacts": [
-        "Task",
-        "Procedure"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-3-1b",
-      "step": "11.3-1B",
-      "date": "2026-05-21",
-      "title": "Suicide-precautions order signed",
-      "stageId": "track-risk-over-time",
-      "actor": "ED Provider / Orderer",
-      "status": "completed",
-      "notes": "Observation-level suicide precautions ordered with required provider signature.",
-      "fhirArtifacts": [
-        "ServiceRequest"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-3-1c",
-      "step": "11.3-1C",
-      "date": "2026-05-21",
-      "title": "Room cleared + belongings secured",
-      "stageId": "track-risk-over-time",
-      "actor": "Nurse / Tech / Security",
-      "status": "completed",
-      "notes": "Room clearance checklist documented; personal belongings inventoried and secured.",
-      "fhirArtifacts": [
-        "Observation",
-        "List"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-3-1d",
-      "step": "11.3-1D",
-      "date": "2026-05-21",
-      "title": "Continuous 1:1 observation started",
-      "stageId": "track-risk-over-time",
-      "actor": "Sitter / Continuous Observer",
-      "status": "completed",
-      "notes": "1:1 continuous observation initiated with time-stamped observation log and a documented observer assignment.",
-      "fhirArtifacts": [
-        "Observation",
-        "CareTeam"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-4-0a",
-      "step": "11.4-0A",
-      "date": "2026-05-21",
-      "title": "Brief Suicide Safety Assessment (BSSA)",
-      "stageId": "clarify-risk",
-      "actor": "ED / BH Clinician / Assessor",
-      "status": "completed",
-      "notes": "BSSA performed after the positive ASQ to clarify whether a full risk assessment is needed. (Tool TL-005 is planned — not yet a built SPiER Questionnaire.)",
-      "fhirArtifacts": [
-        "QuestionnaireResponse"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-4-1a",
-      "step": "11.4-1A",
-      "date": "2026-05-21",
-      "title": "Full risk assessment — C-SSRS Full + SAFE-T framing",
-      "stageId": "clarify-risk",
-      "actor": "BH Clinician / Assessor",
-      "status": "completed",
-      "notes": "Full risk assessment completed using the C-SSRS Full (Lifetime/Recent) within a SAFE-T framing. (C-SSRS Full is built; SAFE-T framing TL-006 is planned.)",
-      "fhirArtifacts": [
-        "QuestionnaireResponse"
-      ],
-      "relatedResponseNames": [
-        "C-SSRS Full (Lifetime/Recent)"
-      ]
-    },
-    {
-      "id": "ed-11-4-1b",
-      "step": "11.4-1B",
-      "date": "2026-05-21",
-      "title": "Current risk level set (high) + risk condition coded",
-      "stageId": "define-risk-picture",
-      "actor": "EHR System / Analyzer + Persister",
-      "status": "completed",
-      "notes": "Current suicide risk level set to high; a coded suicide-risk Condition and a longitudinal risk Flag are persisted.",
-      "fhirArtifacts": [
-        "Observation",
-        "Condition",
-        "Flag"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-5-1a",
-      "step": "11.5-1A",
-      "date": "2026-05-21",
-      "title": "Boarding reassessment cadence scheduled",
-      "stageId": "track-risk-over-time",
-      "actor": "EHR System / Task Scheduler",
-      "status": "completed",
-      "notes": "Patient boards in the ED awaiting an inpatient bed; a time-based reassessment cadence is scheduled from the reassessment PlanDefinition.",
-      "fhirArtifacts": [
-        "Task",
-        "PlanDefinition"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-5-1b",
-      "step": "11.5-1B",
-      "date": "2026-05-21",
-      "title": "Reassessment — risk updated, precautions maintained",
-      "stageId": "track-risk-over-time",
-      "actor": "ED Clinician / Reassessor",
-      "status": "completed",
-      "notes": "Scheduled reassessment performed; updated risk recorded and precautions maintained, preserving prior values.",
-      "fhirArtifacts": [
-        "Observation",
-        "ServiceRequest"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-6-1a",
-      "step": "11.6-1A",
-      "date": "2026-05-21",
-      "title": "Collaborative Stanley-Brown safety plan",
-      "stageId": "document-safety-actions",
-      "actor": "ED Clinician / Enterer",
-      "status": "completed",
-      "notes": "Collaborative Stanley-Brown safety plan completed with the patient and stored as a CarePlan.",
-      "fhirArtifacts": [
-        "QuestionnaireResponse",
-        "CarePlan"
-      ],
-      "relatedResponseNames": [
-        "Stanley-Brown Safety Plan"
-      ],
-      "relatedCarePlanIdSubstrings": [
-        "stanley-brown"
-      ]
-    },
-    {
-      "id": "ed-11-6-1b",
-      "step": "11.6-1B",
-      "date": "2026-05-21",
-      "title": "Safety plan versioned + provenance",
-      "stageId": "document-safety-actions",
-      "actor": "EHR System / Retainer + Versioner",
-      "status": "completed",
-      "notes": "Safety plan retained with version history and Provenance for each revision.",
-      "fhirArtifacts": [
-        "CarePlan",
-        "Provenance"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-6-2a",
-      "step": "11.6-2A",
-      "date": "2026-05-21",
-      "title": "Lethal-means counseling delivered",
-      "stageId": "document-safety-actions",
-      "actor": "ED Clinician / Educator",
-      "status": "completed",
-      "notes": "Lethal-means counseling delivered and documented; means-safety actions (who/what/when/where) added to the care plan. (Tool TL-008 is planned.)",
-      "fhirArtifacts": [
-        "Procedure",
-        "CarePlan"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-6-2b",
-      "step": "11.6-2B",
-      "date": "2026-05-21",
-      "title": "Discharge-readiness checklist (gating)",
-      "stageId": "document-safety-actions",
-      "actor": "EHR System / Discharge Checklist Manager",
-      "status": "completed",
-      "notes": "Discharge readiness checklist completed; a blocking alert would have prevented discharge until safety planning and means counseling were on file.",
-      "fhirArtifacts": [
-        "Task",
-        "Flag"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-6-3a",
-      "step": "11.6-3A",
-      "date": "2026-05-21",
-      "title": "After-visit summary + safety plan to patient",
-      "stageId": "document-safety-actions",
-      "actor": "EHR System / Patient Materials Generator",
-      "status": "completed",
-      "notes": "Suicide-specific after-visit summary generated; printed/portal-delivered safety plan and discharge instructions provided to the patient.",
-      "fhirArtifacts": [
-        "Composition",
-        "DocumentReference"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-7-1a",
-      "step": "11.7-1A",
-      "date": "2026-05-22",
-      "title": "Urgent outpatient BH referral + appointment request",
-      "stageId": "coordinate-handoffs",
-      "actor": "ED Clinician / Orderer",
-      "status": "completed",
-      "notes": "Urgent outpatient behavioral-health referral placed with an appointment request and a communication to the receiving provider. (Tool TL-009 is planned.)",
-      "fhirArtifacts": [
-        "ServiceRequest",
-        "Appointment",
-        "Communication"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-7-1b",
-      "step": "11.7-1B",
-      "date": "2026-05-22",
-      "title": "Transition-of-care packet transmitted",
-      "stageId": "coordinate-handoffs",
-      "actor": "EHR System / Transmitter",
-      "status": "completed",
-      "notes": "Suicide-specific transition-of-care packet (safety plan + risk summary + follow-up plan) transmitted to outpatient BH, with Provenance for delivery.",
-      "fhirArtifacts": [
-        "Bundle",
-        "Composition",
-        "Provenance"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-7-1c",
-      "step": "11.7-1A-confirm",
-      "date": "2026-05-23",
-      "title": "Confirm outpatient receipt of packet",
-      "stageId": "coordinate-handoffs",
-      "actor": "Care Team / Coordinator",
-      "status": "scheduled",
-      "notes": "Awaiting confirmation that the receiving outpatient BH program received the transition packet and scheduled the appointment.",
-      "fhirArtifacts": [
-        "Communication"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-7-2a",
-      "step": "11.7-2A",
-      "date": "2026-05-23",
-      "title": "24–48h caring-contact call scheduled",
-      "stageId": "track-follow-up",
-      "actor": "EHR System / Follow-Up Protocol Manager",
-      "status": "scheduled",
-      "notes": "First caring contact (24–48h post-discharge phone call) scheduled per the follow-up PlanDefinition; patient enrolled in the caring-contacts registry. (Tools TL-010 / TL-033 are planned.)",
-      "fhirArtifacts": [
-        "Task",
-        "CommunicationRequest",
-        "PlanDefinition"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-7-2b",
-      "step": "11.7-2B",
-      "date": "2026-05-29",
-      "title": "7-day follow-up outreach + risk recheck",
-      "stageId": "track-follow-up",
-      "actor": "Care Team / Outreach + Monitor",
-      "status": "scheduled",
-      "notes": "7-day follow-up outreach attempt with an updated risk check and care-plan review.",
-      "fhirArtifacts": [
-        "Communication",
-        "Observation",
-        "CarePlan"
-      ],
-      "profileGap": true
-    },
-    {
-      "id": "ed-11-7-2c",
-      "step": "11.7-2C",
-      "date": "2026-05-29",
-      "title": "Overdue-follow-up escalation guard",
-      "stageId": "track-follow-up",
-      "actor": "EHR System / Exception + Escalation Manager",
-      "status": "scheduled",
-      "notes": "If a follow-up attempt is missed, the task transitions to overdue and a supervisor alert plus an escalated follow-up Flag fire automatically.",
-      "fhirArtifacts": [
-        "Task",
-        "Communication",
-        "Flag"
-      ],
-      "profileGap": true
     }
   ],
   "episodes": [
@@ -1241,6 +870,511 @@
           "status": "accepted"
         }
       ]
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "ed-11-2-1a",
+      "step": "11.2-1A",
+      "date": "2026-05-21",
+      "title": "Triage suicide screen (ASQ)",
+      "stageId": "identify-possible-risk",
+      "actor": "Triage Nurse / Screener",
+      "status": "completed",
+      "notes": "28-year-old presents to a general medical ED with severe insomnia and anxiety; chronic pain and recent job loss. Triage-time ASQ administered and captured as discrete data.",
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
+      "relatedResponseNames": [
+        "ASQ Screening"
+      ]
+    },
+    {
+      "id": "ed-11-2-2a",
+      "step": "11.2-2A",
+      "date": "2026-05-21",
+      "title": "Derived risk tier \u2014 non-acute positive",
+      "stageId": "identify-possible-risk",
+      "actor": "EHR System / Analyzer",
+      "status": "completed",
+      "notes": "Screen classified as non-acute positive (wish to be dead + thoughts of suicide, no current ideation/plan). Risk tier surfaced on the trackboard.",
+      "fhirArtifacts": [
+        "Observation"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-2-2b",
+      "step": "11.2-2B",
+      "date": "2026-05-21",
+      "title": "Suicide-screening-status flag raised",
+      "stageId": "identify-possible-risk",
+      "actor": "EHR System / Status Visibility Manager",
+      "status": "completed",
+      "notes": "Suicide-screening-status flag set so the positive screen is visible across the care team and downstream views.",
+      "fhirArtifacts": [
+        "Flag"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-2-2c",
+      "step": "11.2-2C",
+      "date": "2026-05-21",
+      "title": "Role-routed task: BH consult / brief assessment",
+      "stageId": "identify-possible-risk",
+      "actor": "EHR System / CDS Workflow Router",
+      "status": "completed",
+      "notes": "Positive screen fires the Identify Possible Risk \u2192 Clarify Risk transition: a role-routed task and behavioral-health consult request are generated from the pathway PlanDefinition.",
+      "fhirArtifacts": [
+        "Task",
+        "ServiceRequest",
+        "PlanDefinition"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-3-1a",
+      "step": "11.3-1A",
+      "date": "2026-05-21",
+      "title": "Mitigation checklist \u2014 patient relocated to safe room",
+      "stageId": "track-risk-over-time",
+      "actor": "ED Nurse / Implementer",
+      "status": "completed",
+      "notes": "Environmental-safety mitigation checklist completed; patient moved to a ligature-resistant room.",
+      "fhirArtifacts": [
+        "Task",
+        "Procedure"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-3-1b",
+      "step": "11.3-1B",
+      "date": "2026-05-21",
+      "title": "Suicide-precautions order signed",
+      "stageId": "track-risk-over-time",
+      "actor": "ED Provider / Orderer",
+      "status": "completed",
+      "notes": "Observation-level suicide precautions ordered with required provider signature.",
+      "fhirArtifacts": [
+        "ServiceRequest"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-3-1c",
+      "step": "11.3-1C",
+      "date": "2026-05-21",
+      "title": "Room cleared + belongings secured",
+      "stageId": "track-risk-over-time",
+      "actor": "Nurse / Tech / Security",
+      "status": "completed",
+      "notes": "Room clearance checklist documented; personal belongings inventoried and secured.",
+      "fhirArtifacts": [
+        "Observation",
+        "List"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-3-1d",
+      "step": "11.3-1D",
+      "date": "2026-05-21",
+      "title": "Continuous 1:1 observation started",
+      "stageId": "track-risk-over-time",
+      "actor": "Sitter / Continuous Observer",
+      "status": "completed",
+      "notes": "1:1 continuous observation initiated with time-stamped observation log and a documented observer assignment.",
+      "fhirArtifacts": [
+        "Observation",
+        "CareTeam"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-4-0a",
+      "step": "11.4-0A",
+      "date": "2026-05-21",
+      "title": "Brief Suicide Safety Assessment (BSSA)",
+      "stageId": "clarify-risk",
+      "actor": "ED / BH Clinician / Assessor",
+      "status": "completed",
+      "notes": "BSSA performed after the positive ASQ to clarify whether a full risk assessment is needed. (Tool TL-005 is planned \u2014 not yet a built SPiER Questionnaire.)",
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-4-1a",
+      "step": "11.4-1A",
+      "date": "2026-05-21",
+      "title": "Full risk assessment \u2014 C-SSRS Full + SAFE-T framing",
+      "stageId": "clarify-risk",
+      "actor": "BH Clinician / Assessor",
+      "status": "completed",
+      "notes": "Full risk assessment completed using the C-SSRS Full (Lifetime/Recent) within a SAFE-T framing. (C-SSRS Full is built; SAFE-T framing TL-006 is planned.)",
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
+      "relatedResponseNames": [
+        "C-SSRS Full (Lifetime/Recent)"
+      ]
+    },
+    {
+      "id": "ed-11-4-1b",
+      "step": "11.4-1B",
+      "date": "2026-05-21",
+      "title": "Current risk level set (high) + risk condition coded",
+      "stageId": "define-risk-picture",
+      "actor": "EHR System / Analyzer + Persister",
+      "status": "completed",
+      "notes": "Current suicide risk level set to high; a coded suicide-risk Condition and a longitudinal risk Flag are persisted.",
+      "fhirArtifacts": [
+        "Observation",
+        "Condition",
+        "Flag"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-5-1a",
+      "step": "11.5-1A",
+      "date": "2026-05-21",
+      "title": "Boarding reassessment cadence scheduled",
+      "stageId": "track-risk-over-time",
+      "actor": "EHR System / Task Scheduler",
+      "status": "completed",
+      "notes": "Patient boards in the ED awaiting an inpatient bed; a time-based reassessment cadence is scheduled from the reassessment PlanDefinition.",
+      "fhirArtifacts": [
+        "Task",
+        "PlanDefinition"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-5-1b",
+      "step": "11.5-1B",
+      "date": "2026-05-21",
+      "title": "Reassessment \u2014 risk updated, precautions maintained",
+      "stageId": "track-risk-over-time",
+      "actor": "ED Clinician / Reassessor",
+      "status": "completed",
+      "notes": "Scheduled reassessment performed; updated risk recorded and precautions maintained, preserving prior values.",
+      "fhirArtifacts": [
+        "Observation",
+        "ServiceRequest"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-6-1a",
+      "step": "11.6-1A",
+      "date": "2026-05-21",
+      "title": "Collaborative Stanley-Brown safety plan",
+      "stageId": "document-safety-actions",
+      "actor": "ED Clinician / Enterer",
+      "status": "completed",
+      "notes": "Collaborative Stanley-Brown safety plan completed with the patient and stored as a CarePlan.",
+      "fhirArtifacts": [
+        "QuestionnaireResponse",
+        "CarePlan"
+      ],
+      "relatedResponseNames": [
+        "Stanley-Brown Safety Plan"
+      ],
+      "relatedCarePlanIdSubstrings": [
+        "stanley-brown"
+      ]
+    },
+    {
+      "id": "ed-11-6-1b",
+      "step": "11.6-1B",
+      "date": "2026-05-21",
+      "title": "Safety plan versioned + provenance",
+      "stageId": "document-safety-actions",
+      "actor": "EHR System / Retainer + Versioner",
+      "status": "completed",
+      "notes": "Safety plan retained with version history and Provenance for each revision.",
+      "fhirArtifacts": [
+        "CarePlan",
+        "Provenance"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-6-2a",
+      "step": "11.6-2A",
+      "date": "2026-05-21",
+      "title": "Lethal-means counseling delivered",
+      "stageId": "document-safety-actions",
+      "actor": "ED Clinician / Educator",
+      "status": "completed",
+      "notes": "Lethal-means counseling delivered and documented; means-safety actions (who/what/when/where) added to the care plan. (Tool TL-008 is planned.)",
+      "fhirArtifacts": [
+        "Procedure",
+        "CarePlan"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-6-2b",
+      "step": "11.6-2B",
+      "date": "2026-05-21",
+      "title": "Discharge-readiness checklist (gating)",
+      "stageId": "document-safety-actions",
+      "actor": "EHR System / Discharge Checklist Manager",
+      "status": "completed",
+      "notes": "Discharge readiness checklist completed; a blocking alert would have prevented discharge until safety planning and means counseling were on file.",
+      "fhirArtifacts": [
+        "Task",
+        "Flag"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-6-3a",
+      "step": "11.6-3A",
+      "date": "2026-05-21",
+      "title": "After-visit summary + safety plan to patient",
+      "stageId": "document-safety-actions",
+      "actor": "EHR System / Patient Materials Generator",
+      "status": "completed",
+      "notes": "Suicide-specific after-visit summary generated; printed/portal-delivered safety plan and discharge instructions provided to the patient.",
+      "fhirArtifacts": [
+        "Composition",
+        "DocumentReference"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-7-1a",
+      "step": "11.7-1A",
+      "date": "2026-05-22",
+      "title": "Urgent outpatient BH referral + appointment request",
+      "stageId": "coordinate-handoffs",
+      "actor": "ED Clinician / Orderer",
+      "status": "completed",
+      "notes": "Urgent outpatient behavioral-health referral placed with an appointment request and a communication to the receiving provider. (Tool TL-009 is planned.)",
+      "fhirArtifacts": [
+        "ServiceRequest",
+        "Appointment",
+        "Communication"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-7-1b",
+      "step": "11.7-1B",
+      "date": "2026-05-22",
+      "title": "Transition-of-care packet transmitted",
+      "stageId": "coordinate-handoffs",
+      "actor": "EHR System / Transmitter",
+      "status": "completed",
+      "notes": "Suicide-specific transition-of-care packet (safety plan + risk summary + follow-up plan) transmitted to outpatient BH, with Provenance for delivery.",
+      "fhirArtifacts": [
+        "Bundle",
+        "Composition",
+        "Provenance"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-7-1c",
+      "step": "11.7-1A-confirm",
+      "date": "2026-05-23",
+      "title": "Confirm outpatient receipt of packet",
+      "stageId": "coordinate-handoffs",
+      "actor": "Care Team / Coordinator",
+      "status": "scheduled",
+      "notes": "Awaiting confirmation that the receiving outpatient BH program received the transition packet and scheduled the appointment.",
+      "fhirArtifacts": [
+        "Communication"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-7-2a",
+      "step": "11.7-2A",
+      "date": "2026-05-23",
+      "title": "24\u201348h caring-contact call scheduled",
+      "stageId": "track-follow-up",
+      "actor": "EHR System / Follow-Up Protocol Manager",
+      "status": "scheduled",
+      "notes": "First caring contact (24\u201348h post-discharge phone call) scheduled per the follow-up PlanDefinition; patient enrolled in the caring-contacts registry. (Tools TL-010 / TL-033 are planned.)",
+      "fhirArtifacts": [
+        "Task",
+        "CommunicationRequest",
+        "PlanDefinition"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-7-2b",
+      "step": "11.7-2B",
+      "date": "2026-05-29",
+      "title": "7-day follow-up outreach + risk recheck",
+      "stageId": "track-follow-up",
+      "actor": "Care Team / Outreach + Monitor",
+      "status": "scheduled",
+      "notes": "7-day follow-up outreach attempt with an updated risk check and care-plan review.",
+      "fhirArtifacts": [
+        "Communication",
+        "Observation",
+        "CarePlan"
+      ],
+      "profileGap": true
+    },
+    {
+      "id": "ed-11-7-2c",
+      "step": "11.7-2C",
+      "date": "2026-05-29",
+      "title": "Overdue-follow-up escalation guard",
+      "stageId": "track-follow-up",
+      "actor": "EHR System / Exception + Escalation Manager",
+      "status": "scheduled",
+      "notes": "If a follow-up attempt is missed, the task transitions to overdue and a supervisor alert plus an escalated follow-up Flag fire automatically.",
+      "fhirArtifacts": [
+        "Task",
+        "Communication",
+        "Flag"
+      ],
+      "profileGap": true
+    }
+  ],
+  "encounters": [
+    {
+      "resourceType": "Encounter",
+      "id": "p011-enc-ed",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p011-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "period": {
+        "start": "2026-05-21T08:15:00Z",
+        "end": "2026-05-22T12:15:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p011-enc-outreach-48h",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "VR",
+        "display": "virtual"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p011-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "period": {
+        "start": "2026-05-23T10:00:00Z",
+        "end": "2026-05-23T10:20:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p011-enc-follow-up",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "AMB",
+        "display": "ambulatory"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p011-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "period": {
+        "start": "2026-05-27T10:00:00Z",
+        "end": "2026-05-27T10:45:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p011-enc-caring-contact",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "VR",
+        "display": "virtual"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p011-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "period": {
+        "start": "2026-05-30T09:00:00Z",
+        "end": "2026-05-30T09:10:00Z"
+      }
     }
   ]
 }

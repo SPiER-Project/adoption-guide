@@ -2,7 +2,7 @@
   "responses": [
     {
       "id": "p009-cams-therapeutic-s4",
-      "questionnaireName": "CAMS Therapeutic Worksheet — Session 4",
+      "questionnaireName": "CAMS Therapeutic Worksheet \u2014 Session 4",
       "completedAt": "2026-05-14T10:00:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
@@ -430,7 +430,7 @@
         ]
       },
       "status": "fulfilled",
-      "description": "CAMS session 5 — SSF re-rating",
+      "description": "CAMS session 5 \u2014 SSF re-rating",
       "start": "2026-07-24T13:00:00Z",
       "end": "2026-07-24T13:45:00.000Z",
       "participant": [
@@ -442,7 +442,7 @@
         },
         {
           "actor": {
-            "display": "Harbor Behavioral Health — CAMS clinician"
+            "display": "Harbor Behavioral Health \u2014 CAMS clinician"
           },
           "status": "accepted"
         }
@@ -545,7 +545,7 @@
                   ]
                 },
                 "reference": {
-                  "display": "Family contact — declined by patient"
+                  "display": "Family contact \u2014 declined by patient"
                 }
               }
             ]
@@ -697,9 +697,209 @@
       ],
       "payload": [
         {
-          "contentString": "Just checking in — no reply needed. We are glad you are here."
+          "contentString": "Just checking in \u2014 no reply needed. We are glad you are here."
         }
       ]
+    }
+  ],
+  "encounters": [
+    {
+      "resourceType": "Encounter",
+      "id": "p009-enc-index",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p009-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "period": {
+        "start": "2026-07-14T10:00:00Z",
+        "end": "2026-07-15T12:00:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p009-enc-referral",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "AMB",
+        "display": "ambulatory"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p009-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "period": {
+        "start": "2026-07-16T09:00:00Z",
+        "end": "2026-07-16T09:30:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p009-enc-transition",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "AMB",
+        "display": "ambulatory"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p009-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "period": {
+        "start": "2026-07-20T15:30:00Z",
+        "end": "2026-07-20T16:30:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p009-enc-outreach-48h",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "VR",
+        "display": "virtual"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p009-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "period": {
+        "start": "2026-07-21T09:45:00Z",
+        "end": "2026-07-21T10:05:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p009-enc-follow-up",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "AMB",
+        "display": "ambulatory"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p009-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "period": {
+        "start": "2026-07-24T13:00:00Z",
+        "end": "2026-07-24T13:45:00Z"
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "p009-enc-caring-contact",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "VR",
+        "display": "virtual"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p009-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-009"
+      },
+      "period": {
+        "start": "2026-07-28T09:00:00Z",
+        "end": "2026-07-28T09:10:00Z"
+      }
     }
   ]
 }

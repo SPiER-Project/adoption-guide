@@ -12,9 +12,17 @@ survive contact with R4.
 | **2 — mechanism** | **ACCEPTED 2026-08-11: Option B, the Encounter path.** |
 | **1 — ordering** | **Still open.** Not required for phase 1; needed before phase 3. |
 
-Phase 1 (an `Encounter` profile plus scenario fixtures, no runtime change) is
-unblocked. Phases 3–4 are not: they depend on Decision 1, and the recommendation
-in §5 has not been ratified.
+| Phase | State |
+|---|---|
+| 1 — profile + fixtures | **Done.** `SPiEREncounter`, 24 scenario Encounters, both gates extended. |
+| 2 — stamp `.encounter` on artifacts | Next. Target 49 of 49 linkable resources. |
+| 3–6 | Blocked on Decision 1 (phase 3 onward). |
+
+Two facts found while implementing phase 1 change what is written below, and are
+corrected in place: **`Encounter` has no `category` element** (so it cannot carry
+the #262 domain tag either), and **`Encounter.appointment` is a native
+`Reference(Appointment)`** — a better answer for Appointment than the chain
+originally proposed in §3. `Consent` remains the one type with no path.
 
 ---
 
@@ -95,11 +103,11 @@ snapshots:
 So the Encounter path covers 9 of 11, not all. `Appointment` and `Consent` need a
 separate answer, and pretending otherwise would repeat the issue's own error:
 
-- **`Appointment`** — reachable indirectly as `Appointment.basedOn → ServiceRequest`,
-  and `ServiceRequest.encounter` exists. Three hops, and only when the appointment
-  was ordered by a ServiceRequest. In SPiER's Stage 5–6 handoffs a referral
-  ServiceRequest usually does precede the appointment, so this mostly holds — but
-  it is a chain, not a guarantee.
+- **`Appointment`** — **superseded during phase 1.** `Encounter.appointment` is a
+  native `Reference(Appointment)`, so an Encounter names its Appointment directly.
+  That is one hop from the Encounter and needs no chain. The original suggestion
+  here (`Appointment.basedOn → ServiceRequest → encounter`) worked only when a
+  referral ServiceRequest preceded the appointment; prefer `Encounter.appointment`.
 - **`Consent`** — no `.encounter`, no usable `basedOn`. Worth asking whether a
   consent to share information is episode-scoped at all: it plausibly scopes to
   the patient and the receiving organisation, and outlives any one episode. The
@@ -240,25 +248,25 @@ one-PR job.
    `Encounter.episodeOfCare` set. No runtime change. Gated by
    `check:scenarios` + `validate-fhir.mjs`.
 
-   **Naming collision to settle first.** The scenario JSON already has an
-   `encounters` key, and it is registered as a **non-FHIR** bucket in three
-   places: `PatientSlice` in `web/src/types/fhir.ts`, `NON_FHIR_BUCKETS` in
-   `web/scripts/check-scenario-resources.mjs` (commented "ScenarioEncounter
-   narration, NOT a FHIR Encounter"), and the bucket map in
-   `scripts/validate-fhir.mjs`. Two ways out:
+   **Naming collision — SETTLED.** The narration bucket was renamed
+   `encounters` → `walkthrough`, and `encounters` now holds real `Encounter`
+   resources. The cost estimate below was wrong and is corrected for the record:
 
-   - **Rename the narration bucket** (e.g. `encounters` → `walkthrough`) and give
-     real FHIR Encounters the `encounters` name. Correct — a bucket called
-     `encounters` that is not `Encounter` is the sort of misleading naming this
-     epic keeps deleting — but it touches all 11 scenario files plus the UI that
-     renders the walkthrough.
-   - **Name the new bucket `fhirEncounters`** and leave narration alone. A much
-     smaller diff, at the cost of keeping the misleading name and adding an
-     awkward one beside it.
+   > it touches all 11 scenario files plus the UI that renders the walkthrough
 
-   Both gates fail loudly on an unknown bucket (`check-scenario-resources.mjs:692`
-   lists the known set), so whichever is chosen, forgetting a registry is caught
-   rather than silently skipped.
+   It touched **one** scenario file — only `patient-011` has narration. The
+   alternative (`fhirEncounters` beside the misleading `encounters`) was rejected.
+   Deciding evidence: the roadmap issue that introduced `ScenarioEncounter` already
+   named the successor — *"Promote to FHIR. Model real `Encounter` resources
+   alongside scenarios and derive the timeline from them"* — so the narration key
+   was always temporary.
+
+   Registries updated: `PatientSlice` in `web/src/types/fhir.ts`, `FHIR_BUCKETS` /
+   `NON_FHIR_BUCKETS` / `PATIENT_ELEMENT` / `BASE_REQUIRED` / `STATUS_CODES` in
+   `web/scripts/check-scenario-resources.mjs`, and the bucket map in
+   `scripts/validate-fhir.mjs`. Both gates fail loudly on an unknown bucket
+   (`check-scenario-resources.mjs` lists the known set), so a forgotten registry is
+   caught rather than silently skipped.
 2. **Stamp `.encounter` on the artifacts** in those fixtures. Measurable, with an
    honest target: of the 61 scenario resources, 6 are the `EpisodeOfCare`s
    themselves and 6 are `Appointment` (5) + `Consent` (1) awaiting the separate
