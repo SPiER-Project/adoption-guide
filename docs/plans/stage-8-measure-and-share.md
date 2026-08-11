@@ -435,15 +435,25 @@ patients get better — and lists suicide attempts, ED visits, psychiatric
 hospitalizations, 988 referrals, crisis interventions, discharges, and average
 days per risk tier, as *monthly trends*.
 
-None of that is authorable from what stages 1–7 produce, which breaks the core
-insight at the top of this doc in one specific way: **"every measure is a query
-over artifacts stages 1–7 already produce" is true of process measures and false
-of outcome measures.** ED visits and hospitalizations need `Encounter`, which
-SPiER emits nowhere (the scenarios' `encounters` key is walkthrough narration,
-deliberately not FHIR). Attempts must come from a clinician-asserted `Condition`
-or an Encounter, because `suicide-related-conditions.fsh` refuses to derive a
-Condition from a screen. And monthly trends need either N `MeasureReport`s or a
-different report shape than the single-period snapshot this stage emits.
+None of that is authorable from the *measure* layer as it stands, which breaks the
+core insight at the top of this doc in one specific way: **"every measure is a
+query over artifacts stages 1–7 already produce" is true of process measures and
+false of outcome measures.**
+
+Attempts must come from a clinician-asserted `Condition` or an Encounter, because
+`suicide-related-conditions.fsh` refuses to derive a Condition from a screen. And
+monthly trends need either N `MeasureReport`s or a different report shape than the
+single-period snapshot this stage emits.
+
+**Corrected the same day this section was written:** it originally said ED visits
+and hospitalizations need `Encounter`, "which SPiER emits nowhere." That had just
+stopped being true — [#285](https://github.com/SPiER-Project/adoption-guide/pull/285)
+added the `SPiEREncounter` profile and 24 scenario Encounters, including 5 with
+`class = EMER`, so **ED-visit counts are derivable now**. The residual gap is
+narrower: none of the 24 carries `Encounter.type` or `reasonCode`, so `class = IMP`
+counts inpatient stays in general and nothing marks a *psychiatric* admission,
+which is what panel 10 asks for. See
+[`suicide-care-dashboard.md`](suicide-care-dashboard.md) gap 5.
 
 So the honest status is: **Stage 8's process half is built; its outcome half is
 unmodeled and unscheduled.** That is not a defect in the work above — outcome

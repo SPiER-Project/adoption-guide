@@ -115,20 +115,40 @@ Which one is right depends on spec question 3 (how hard is the gate). Do not pic
 before that answer arrives — this is the one gap where guessing wrong means
 building a constraint that either does nothing or blocks real clinical work.
 
-### Gap 5 — Outcome measures need resources SPiER does not emit *(largest scope)*
+### Gap 5 — Outcome measures need a visit *classification* SPiER does not carry
+
+> **Revised.** This gap was first written as "outcome measures need resources
+> SPiER does not emit," on an inventory taken before
+> [#285](https://github.com/SPiER-Project/adoption-guide/pull/285) landed. That
+> PR added the `SPiEREncounter` profile and 24 scenario Encounters, so the
+> premise was already false when this plan merged. The gap is real but
+> **narrower and more actionable** than first described — see below.
 
 All seven current Measures are process measures. Panel 10 wants attempts, ED
 visits, psychiatric hospitalizations, 988 referrals, crisis interventions,
 discharges, and average days per tier — as **monthly trends**.
 
-Three separate obstacles, worth naming individually:
+`Encounter` now exists, and its shape helps: `SPiEREncounter` deliberately keeps
+`class` on the base v3-ActCode binding rather than narrowing it, with the stated
+rationale that ED, ambulatory and telephone contacts are all in scope. The 24
+seeded instances break down as:
 
-1. **No `Encounter`.** The scenario inventory is Observation ×18, QR ×13,
-   Communication ×12, CarePlan ×7, ServiceRequest ×6, EpisodeOfCare ×6,
-   Appointment ×5, DocumentReference ×4, Procedure ×2, Consent ×1 — no
-   `Encounter` at all. The scenarios' `encounters` key is `ScenarioEncounter`
-   walkthrough narration and deliberately not FHIR (see CLAUDE.md). ED-visit and
-   hospitalization counts need real Encounters.
+| `class` | Count | Panel-10 relevance |
+|---|---|---|
+| `AMB` ambulatory | 9 | — |
+| `VR` virtual | 9 | — |
+| `EMER` emergency | 5 | **ED visits — countable today** |
+| `IMP` inpatient | 1 | hospitalizations, but see below |
+
+So **ED-visit counts are derivable now**. What is left:
+
+1. **Nothing distinguishes a *psychiatric* admission from any inpatient stay.**
+   None of the 24 Encounters carries `Encounter.type` or `reasonCode` — only
+   `status`, `class`, `episodeOfCare`, `subject` and `period` — and
+   `SPiEREncounter` requires neither. `class = IMP` counts hospitalizations in
+   general; panel 10 asks specifically for psychiatric ones. This is the real
+   residual gap, and it is a small one: a `type` or `reasonCode` binding on the
+   profile, plus seeding it.
 2. **Attempts cannot come from instrument data.**
    `suicide-related-conditions.fsh` carries a written refusal to derive a
    `Condition` from a screen. So an attempt count must come from a
@@ -137,6 +157,9 @@ Three separate obstacles, worth naming individually:
    close.
 3. **`MeasureReport` is a period snapshot, not a series.** "Monthly trends"
    needs either N reports or a different report shape.
+4. **988 referrals and crisis interventions are not Encounter-shaped anyway** —
+   they land closer to the existing crisis-resources and outreach artifacts, and
+   were never blocked on this gap.
 
 ---
 
@@ -240,10 +263,16 @@ Tracked under epic
 | 2 | Reassessment interval rule → tracker view, Next Due, on-time measure, 2 alert rules | one small artifact | [#279](https://github.com/SPiER-Project/adoption-guide/issues/279) |
 | 3 | Historical-risk axis | concept-layer decision first | not filed |
 | 4 | `CareTeam` / `PractitionerRole` → consultant + care-manager views, role filters, approval gate | yes | not filed |
-| 5 | Outcome measures · `Encounter` · time series | yes, largest | not filed |
+| 5 | Outcome measures · visit classification · time series | yes | not filed |
 
 Phases 3–5 are deliberately unfiled: each needs an answer from the deck's author
 before it can be scoped without guessing.
+
+Phase 5 was originally labelled "largest scope." It is no longer clearly the
+largest — #285 supplied the `Encounter` layer it was mostly waiting on, leaving a
+visit-classification gap plus the time-series shape. **Phase 4 is now the biggest
+piece of the deck**, and if phase 5 gets re-estimated before it is filed, start
+from the revised gap 5 above rather than from this table's original wording.
 
 Phase 1 is deliberately sized to be shippable without answering any open
 question. Phase 2 needs only the interval table, which the deck already states.
@@ -251,8 +280,8 @@ Phases 3 and 4 need spec answers 5/6 and 3/4 respectively.
 
 ### Gate costs that are easy to forget
 
-- **Phases 4–5 add new `resourceType`s** (`Encounter`, `CareTeam`,
-  `PractitionerRole`, `Coverage`). Each needs its entries in `BASE_REQUIRED` and
+- **Phase 4 adds new `resourceType`s** (`CareTeam`, `PractitionerRole`,
+  `Coverage`). Each needs its entries in `BASE_REQUIRED` and
   `STATUS_CODES` in `web/scripts/check-scenario-resources.mjs` — those tables are
   hand-maintained because base R4 StructureDefinitions are not vendored here.
 - **New measures need CQL** in `ig/input/cql/`, which the IG Publisher *does*

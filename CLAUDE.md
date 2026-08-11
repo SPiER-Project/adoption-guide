@@ -189,10 +189,19 @@ check.
 `validate-fhir.mjs` unwraps the scenario buckets into a temp directory first
 (`collectScenarioResources`), dropping only `_savedAt` — SPiER's client-side
 persistence stamp, which `smartDataSource` also strips before writing to a real
-server. `riskAlerts` and `encounters` are deliberately not fed to the validator:
-neither is FHIR (`encounters` is `ScenarioEncounter` walkthrough narration, not
-a FHIR Encounter), and the offline half checks both against their TypeScript
-shapes instead.
+server. `riskAlerts` and `walkthrough` are deliberately not fed to the validator:
+neither is FHIR (`walkthrough` is `ScenarioEncounter` narration, not a FHIR
+Encounter), and the offline half checks both against their TypeScript shapes
+instead.
+
+⚠️ **`encounters` used to be that narration bucket and no longer is.** #285 made
+it real FHIR `Encounter`s — the correlation hinge every other artifact reaches
+the episode through — and moved the walkthrough narration to `walkthrough`. Both
+gates now cover it (`encounters: 'Encounter'` in `check-scenario-resources.mjs`
+*and* `validate-fhir.mjs`), so an Encounter defect fails offline and in the
+validator. If you are reasoning about what SPiER does or does not emit, check the
+bucket map in those two scripts rather than trusting a doc — this line was itself
+stale for a day, and a plan doc merged on top of the stale version.
 
 ⚠️ **A validator warning can mean "nothing was checked".** If the HL7 validator
 cannot resolve a QuestionnaireResponse's Questionnaire (or a claimed profile), it
