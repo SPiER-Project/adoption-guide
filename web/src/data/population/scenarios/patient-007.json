@@ -30,6 +30,15 @@
               "display": "Treatment escalation plan (record artifact)"
             }
           ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+              "code": "document-safety-actions",
+              "display": "Document Safety Actions"
+            }
+          ]
         }
       ],
       "subject": {

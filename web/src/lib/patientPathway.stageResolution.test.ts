@@ -9,6 +9,8 @@ import {
 } from './patientPathway'
 import { deriveFromResponse } from './deriveFromResponse'
 import { stampLaunchStage } from './launchStage'
+import { CAREPLAN_PROFILE_URLS } from '../data/catalog/care-plan-profiles.generated'
+import { POPULATION_SCENARIOS } from '../data/population/scenarios'
 import { STAGES, TOOLS, toolForQuestionnaireUrl } from '../data/catalog'
 import type { QuestionnaireResponseResource } from '../types/fhir'
 
@@ -26,8 +28,9 @@ import type { QuestionnaireResponseResource } from '../types/fhir'
 // hand-duplicated stage IDs per CLAUDE.md). Rather than re-hardcode those
 // stage IDs (which would just duplicate the drift), these tests assert the
 // resolution *wiring* is intact: a QR for a tool resolves to that same tool's
-// stageId. Tier-4 (legacy id-regex) is the exception — those stage IDs are
-// hardcoded in patientPathway.ts, so we anchor them explicitly.
+// stageId. Tier-4 (the CarePlan profile map) is the exception — those stage IDs
+// are hardcoded in patientPathway.ts because no FHIR artifact records them, so we
+// anchor them explicitly.
 
 const STAGE_ID_SET = new Set(STAGES.map((s) => s.id))
 const toolsWithQuestionnaire = TOOLS.filter((t) => (t.questionnaireUrls?.length ?? 0) > 0)
@@ -255,41 +258,65 @@ describe('stageForArtifact — tier 2: category.coding', () => {
   })
 })
 
-describe('stageForArtifact — tier 4: legacy CarePlan id-regex', () => {
-  // These stage IDs are hardcoded in patientPathway.ts (CAREPLAN_ID_PATTERNS),
-  // so we anchor them explicitly — and assert they still name real stages.
+describe('stageForArtifact — tier 4: CarePlan meta.profile', () => {
+  // #263 phase 5 replaced an id-substring regex with a profile → stage map keyed
+  // on the GENERATED CarePlanProfileUrl union, so a new CarePlan profile in FSH
+  // cannot compile without being assigned a stage. These stage IDs live only in
+  // patientPathway.ts (no FHIR artifact records them), so they are anchored here.
   const cases: Array<[string, string]> = [
-    ['stanley-brown-careplan-123', 'document-safety-actions'],
-    ['cams-stabilization-careplan-123', 'document-safety-actions'],
-    ['cams-therapeutic-careplan-123', 'define-risk-picture'],
+    ['http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan', 'document-safety-actions'],
+    ['http://spier.org/StructureDefinition/spier-cams-stabilization-plan', 'document-safety-actions'],
+    ['http://spier.org/StructureDefinition/spier-crisis-response-plan', 'document-safety-actions'],
+    ['http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet', 'define-risk-picture'],
   ]
 
-  it.each(cases)('resolves id %s to stage %s', (id, expectedStage) => {
+  it.each(cases)('resolves profile %s to stage %s', (profile, expectedStage) => {
     expect(STAGE_ID_SET.has(expectedStage)).toBe(true)
-    const plan: FhirResourceLike = { resourceType: 'CarePlan', id }
+    const plan: FhirResourceLike = { resourceType: 'CarePlan', meta: { profile: [profile] } }
     expect(stageForArtifact(plan)).toBe(expectedStage)
   })
 
-  it('leaves an id that matches no pattern unresolved', () => {
-    expect(stageForArtifact({ resourceType: 'CarePlan', id: 'some-other-plan-999' })).toBeUndefined()
+  it('covers every generated CarePlan profile — an unmapped one would resolve to nothing', () => {
+    for (const url of CAREPLAN_PROFILE_URLS) {
+      expect(
+        stageForArtifact({ resourceType: 'CarePlan', meta: { profile: [url] } }),
+      ).toBeTruthy()
+    }
+  })
+
+  it('no longer infers a stage from the id — that heuristic was retired', () => {
+    expect(
+      stageForArtifact({ resourceType: 'CarePlan', id: 'stanley-brown-careplan-123' }),
+    ).toBeUndefined()
+  })
+
+  it('leaves an unknown profile unresolved', () => {
+    expect(
+      stageForArtifact({ resourceType: 'CarePlan', meta: { profile: ['http://example.org/nope'] } }),
+    ).toBeUndefined()
   })
 })
 
 describe('stageForArtifact — resolution precedence', () => {
-  it('prefers meta.tag over category.coding over the id-regex fallback', () => {
+  it('prefers meta.tag over category.coding over the profile map', () => {
     const tagStage = STAGES[3]!.id
     const categoryStage = STAGES[2]!.id
     const artifact: FhirResourceLike = {
       resourceType: 'CarePlan',
-      id: 'stanley-brown-careplan-1', // id-regex would say document-safety-actions
+      // The profile map would say document-safety-actions.
+      meta: {
+        tag: [{ system: PATHWAY_STAGE_SYSTEM, code: tagStage }],
+        profile: ['http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'],
+      },
       category: [{ coding: [{ system: PATHWAY_STAGE_SYSTEM, code: categoryStage }] }],
-      meta: { tag: [{ system: PATHWAY_STAGE_SYSTEM, code: tagStage }] },
     }
     // meta.tag wins.
     expect(stageForArtifact(artifact)).toBe(tagStage)
 
-    // Drop the tag: category wins over the id-regex.
-    delete artifact.meta
+    // Drop the tag: category wins over the profile map.
+    artifact.meta = {
+      profile: ['http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'],
+    }
     expect(stageForArtifact(artifact)).toBe(categoryStage)
   })
 
@@ -320,5 +347,24 @@ describe('groupArtifactsByStage / unstagedArtifacts', () => {
   it('surfaces unstaged artifacts in the "Other activity" bucket (never silently dropped)', () => {
     const other = unstagedArtifacts({ responses: [], observations: [mapped, unmapped] })
     expect(other.observations.map((o) => o.id)).toEqual(['unmapped'])
+  })
+})
+
+// The guard that matters most for phase 5. The four unit tests above prove the
+// map works; this proves nothing SHIPPED lost its stage when the id regex went.
+// It earned its place immediately: the swap silently dropped
+// `p007-stanley-brown`, a stub carrying neither a profile nor a stage tag, which
+// the regex had been staging purely from its id.
+describe('every CarePlan in every shipped scenario resolves to a stage', () => {
+  it('has no unstaged CarePlan', () => {
+    const unresolved: string[] = []
+    for (const [patientId, scenario] of Object.entries(POPULATION_SCENARIOS)) {
+      for (const plan of scenario.carePlans ?? []) {
+        if (!stageForArtifact(plan as FhirResourceLike)) {
+          unresolved.push(`${patientId}:${(plan as { id?: string }).id}`)
+        }
+      }
+    }
+    expect(unresolved).toEqual([])
   })
 })
