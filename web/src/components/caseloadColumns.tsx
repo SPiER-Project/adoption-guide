@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom'
 import { stageTitleById } from '../data/catalog'
 import { ageOf } from '../lib/populationFilters'
 import { RISK_LABEL } from '../lib/populationSummary'
+import { reassessmentStatusLabel } from '../lib/reassessment'
 import { formatDaysAgo } from '../lib/relativeTime'
 import type { FilterKey, SortCol } from '../lib/caseloadViews'
 import type { DerivedRegistryRow } from '../lib/registry'
@@ -173,6 +174,59 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
         {row.openReferralCount > 0 ? `${row.openReferralCount} open` : 'None open'}
       </div>
     ),
+  },
+  lastAssessment: {
+    header: 'Last Assessment',
+    render: row => (
+      <>
+        <div className="caseload-activity-label">
+          {row.lastAssessment ? row.lastAssessment.slice(0, 10) : 'None on record'}
+        </div>
+        <div className="caseload-activity-date">
+          {row.reassessment.kind === 'no-cadence'
+            ? '—'
+            : `Every ${row.reassessment.intervalDays} days`}
+        </div>
+      </>
+    ),
+  },
+  nextReassessment: {
+    header: 'Next Due',
+    sortCol: 'nextDue',
+    render: row =>
+      row.reassessment.kind === 'scheduled' ? (
+        <>
+          <div className="caseload-activity-label">{row.reassessment.dueDate}</div>
+          <div className="caseload-activity-date">
+            {row.reassessment.intervalDays}-day cadence
+          </div>
+        </>
+      ) : (
+        <div className="caseload-activity-label">—</div>
+      ),
+  },
+  reassessmentStatus: {
+    header: 'Status',
+    render: row => {
+      const r = row.reassessment
+      // The pill is the triage cue; the tone comes from how late it is, not from
+      // the tier — an overdue low-risk reassessment is still overdue.
+      const tone =
+        r.kind !== 'scheduled'
+          ? 'none'
+          : r.status === 'overdue'
+            ? 'overdue'
+            : r.status === 'due-today'
+              ? 'due-today'
+              : r.status === 'due-soon'
+                ? 'due-soon'
+                : 'ok'
+      return (
+        <span className={`reassess-pill reassess-pill--${tone}`}>
+          {reassessmentStatusLabel(r)}
+        </span>
+      )
+    },
   },
   activity: {
     header: 'Last Activity',

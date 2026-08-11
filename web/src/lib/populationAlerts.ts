@@ -118,8 +118,6 @@ const GROUP_ALERTS: Record<
  * the panel so "4 alerts" cannot be misread as "everything else is fine".
  */
 export const UNAVAILABLE_RULES: Array<{ rule: string; waitingOn: string }> = [
-  { rule: 'High-risk patient not contacted in 7 days', waitingOn: 'the per-tier reassessment interval (#279)' },
-  { rule: 'Reassessment due in 48 hours', waitingOn: 'the per-tier reassessment interval (#279)' },
   { rule: 'Safety plan due for review', waitingOn: 'a safety-plan review interval, which the deck does not state' },
   { rule: 'Psychiatric consultation overdue', waitingOn: 'the care-team role model (phase 4)' },
   { rule: 'PCP review overdue', waitingOn: 'the care-team role model (phase 4)' },
@@ -197,6 +195,36 @@ export function alertsForPatient(
       source: null,
     })
   }
+  // Reassessment cadence (#279). Both of these were UNAVAILABLE_RULES until the
+  // interval rule existed; they are row-derived rather than measure-derived
+  // because "due in two days" is not a thing a measure can express — a measure
+  // scores what already happened.
+  if (row.reassessment.kind === 'scheduled') {
+    if (row.reassessment.status === 'overdue') {
+      const late = Math.abs(row.reassessment.daysUntilDue)
+      alerts.push({
+        patientId: row.id,
+        patientName: row.displayName,
+        severity: 'red',
+        label: `Reassessment overdue by ${late} day${late === 1 ? '' : 's'}`,
+        detail: `Due ${row.reassessment.dueDate} on the ${row.reassessment.intervalDays}-day cadence published for this risk tier.`,
+        source: null,
+      })
+    } else if (row.reassessment.status === 'due-today' || row.reassessment.status === 'due-soon') {
+      alerts.push({
+        patientId: row.id,
+        patientName: row.displayName,
+        severity: 'yellow',
+        label:
+          row.reassessment.status === 'due-today'
+            ? 'Reassessment due today'
+            : `Reassessment due in ${row.reassessment.daysUntilDue} day${row.reassessment.daysUntilDue === 1 ? '' : 's'}`,
+        detail: `Due ${row.reassessment.dueDate} on the ${row.reassessment.intervalDays}-day cadence published for this risk tier.`,
+        source: null,
+      })
+    }
+  }
+
   if (row.awaitingNoShowFollowUp) {
     alerts.push({
       patientId: row.id,

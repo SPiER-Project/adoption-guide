@@ -36,7 +36,16 @@ import {
   unreachedStreak,
   OUTREACH_OUTCOME_EXT,
 } from './followUp'
+// The risk-concept LOINC is defined once, by the measure engine that matches on
+// it. Importing it here rather than re-typing '93374-7' keeps the two consumers
+// of that code from drifting; measures.ts does not import this module, so there
+// is no cycle.
+import { RISK_CONCEPT_LOINC } from './measures'
+import { reassessmentState, type ReassessmentState } from './reassessment'
 import type { PatientSlice } from '../types/fhir'
+
+/** Just enough of an Observation to find the risk-concept ones. */
+type ObservationLike = { code?: { coding?: Array<{ code?: string }> } }
 
 export interface RegistryPatient {
   id: string
@@ -87,6 +96,15 @@ export interface DerivedRegistryRow extends RegistryPatient {
   unreachedStreak: number
   /** Open referrals (ServiceRequest not yet completed or revoked). */
   openReferralCount: number
+  /**
+   * Reassessment cadence (TL-039, #279). Like the rollups above these are a
+   * QUERY: the interval comes from the published PlanDefinition and the due date
+   * is recomputed on read, so it cannot disagree with the clock or with a tier
+   * that changed a moment ago.
+   */
+  /** Date of the most recent risk-concept Observation, or null. */
+  lastAssessment: string | null
+  reassessment: ReassessmentState
 }
 
 function bestArtifactDate(resource: FhirResourceLike): string | undefined {
@@ -346,6 +364,37 @@ function deriveEpisodeRollup(slice: PatientSlice, now: Date) {
 }
 
 /**
+ * Reassessment cadence rollup (TL-039, #279).
+ *
+ * `lastAssessment` is the most recent risk-concept Observation — the thing the
+ * deck's tracker calls "Last C-SSRS", generalised to any instrument, because at
+ * the population level what matters is that a risk level was established, not
+ * which tool established it.
+ *
+ * The interval itself comes from the published PlanDefinition, so nothing here
+ * knows that high risk means 7 days. Like every other rollup in this file it
+ * stores nothing: the due date is recomputed on read.
+ */
+function deriveReassessmentRollup(
+  slice: PatientSlice,
+  level: RiskAlert['level'],
+  now: Date,
+) {
+  const dates = (slice.observations ?? [])
+    .filter(o =>
+      (o as ObservationLike).code?.coding?.some(c => c.code === RISK_CONCEPT_LOINC),
+    )
+    .map(o => bestArtifactDate(o))
+    .filter((d): d is string => !!d)
+    .sort()
+  const lastAssessment = dates.at(-1) ?? null
+  return {
+    lastAssessment,
+    reassessment: reassessmentState(level, lastAssessment, now),
+  }
+}
+
+/**
  * Stage-6 follow-up rollup (TL-034 / TL-035). Reads the Stage-5 Appointments
  * and the outreach Communications; stores nothing.
  */
@@ -408,14 +457,16 @@ export function deriveRegistryRow(
   }
   const { statuses, activeStageId } = derivePathwayStatus(artifacts)
   const completedStages = STAGES.filter(s => statuses[s.id] === 'complete').map(s => s.id)
+  const currentRiskLevel = highestRiskLevel(slice.riskAlerts)
 
   return {
     ...patient,
     currentStage: activeStageId,
     completedStages,
-    currentRiskLevel: highestRiskLevel(slice.riskAlerts),
+    currentRiskLevel,
     lastActivity: deriveLastActivity(slice, now),
     ...deriveEpisodeRollup(slice, now),
     ...deriveFollowUpRollup(slice, now),
+    ...deriveReassessmentRollup(slice, currentRiskLevel, now),
   }
 }

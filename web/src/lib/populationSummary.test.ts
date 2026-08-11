@@ -25,8 +25,13 @@ function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
     awaitingNoShowFollowUp: false,
     unreachedStreak: 0,
     openReferralCount: 0,
+    lastAssessment: null,
+    // A row fixture must carry every field, so the cast below is gone: an added
+    // DerivedRegistryRow field should fail the typecheck here, not blow up at
+    // runtime the way `as DerivedRegistryRow` let it.
+    reassessment: { kind: 'no-cadence', reason: 'test fixture' },
     ...over,
-  } as DerivedRegistryRow
+  }
 }
 
 const EMPTY: PatientSlice = {
@@ -61,13 +66,29 @@ describe('summaryTiles', () => {
     // The whole point of the type split: a tile SPiER cannot compute must not
     // reach the page as a number, because "0 overdue" reads as an all-clear.
     const blocked = tiles([row()]).filter(t => t.state === 'blocked')
+    // `cssrs-due` was on this list until #279 published the reassessment
+    // interval. Three remain, each waiting on a named piece of modeling.
     expect(blocked.map(t => t.id)).toEqual([
       'historical-risk',
-      'cssrs-due',
       'plans-needing-update',
       'consults-overdue',
     ])
     for (const t of blocked) expect(t.waitingOn).toBeTruthy()
+  })
+
+  it('computes the reassessment tiles now that a cadence is published', () => {
+    const rows = [
+      row({ reassessment: { kind: 'scheduled', intervalDays: 7, dueDate: '2026-08-11', daysUntilDue: 0, status: 'due-today' } }),
+      row({ reassessment: { kind: 'scheduled', intervalDays: 7, dueDate: '2026-08-01', daysUntilDue: -10, status: 'overdue' } }),
+      row({ reassessment: { kind: 'scheduled', intervalDays: 30, dueDate: '2026-09-01', daysUntilDue: 21, status: 'scheduled' } }),
+      row(),
+    ]
+    expect(tile(rows, 'cssrs-due')).toMatchObject({ state: 'value', value: '1' })
+    expect(tile(rows, 'reassessments-overdue')).toMatchObject({ state: 'value', value: '1', breached: true })
+  })
+
+  it('does not flag an overdue breach when nothing is overdue', () => {
+    expect(tile([row()], 'reassessments-overdue')).toMatchObject({ value: '0', breached: false })
   })
 
   it('counts only patients with an open episode as on the pathway', () => {

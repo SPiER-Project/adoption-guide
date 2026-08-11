@@ -21,7 +21,7 @@ import type { RiskAlert } from './observationMappers'
 
 type RiskLevel = RiskAlert['level']
 
-export type SortCol = 'patient' | 'risk' | 'activity' | 'nextVisit'
+export type SortCol = 'patient' | 'risk' | 'activity' | 'nextVisit' | 'nextDue'
 export type SortDir = 'asc' | 'desc'
 export interface SortState {
   col: SortCol
@@ -46,6 +46,9 @@ export const DEFAULT_DIR: Record<SortCol, SortDir> = {
   risk: 'desc',
   activity: 'desc',
   nextVisit: 'asc',
+  // Soonest-due first, which puts the most overdue reassessment at the top —
+  // the one end of this column a triage reader ever wants.
+  nextDue: 'asc',
 }
 
 function activityTime(row: DerivedRegistryRow): number | null {
@@ -56,10 +59,17 @@ function nextVisitTime(row: DerivedRegistryRow): number | null {
   return row.nextAppointment ? new Date(row.nextAppointment.date).getTime() : null
 }
 
+function nextDueTime(row: DerivedRegistryRow): number | null {
+  return row.reassessment.kind === 'scheduled'
+    ? new Date(row.reassessment.dueDate).getTime()
+    : null
+}
+
 /** Columns whose value can be absent, and the accessor that says so. */
 const NULLABLE_TIME: Partial<Record<SortCol, (row: DerivedRegistryRow) => number | null>> = {
   activity: activityTime,
   nextVisit: nextVisitTime,
+  nextDue: nextDueTime,
 }
 
 // Comparators are written for each column's DEFAULT_DIR and negated for the
@@ -75,6 +85,8 @@ function compareInDefaultDir(col: SortCol, a: DerivedRegistryRow, b: DerivedRegi
       return (activityTime(b) ?? 0) - (activityTime(a) ?? 0)
     case 'nextVisit':
       return (nextVisitTime(a) ?? 0) - (nextVisitTime(b) ?? 0)
+    case 'nextDue':
+      return (nextDueTime(a) ?? 0) - (nextDueTime(b) ?? 0)
   }
 }
 
@@ -107,7 +119,6 @@ export interface CaseloadView {
  * The views the current data supports.
  *
  * Deliberately absent, with what each waits on:
- *  - **Reassessment tracker** (panel 5) — the per-tier interval rule, #279.
  *  - **Care manager work queue** (panel 7) — Task codes rich enough to pivot by
  *    work type, plus the role model for the "whose queue" part.
  *  - **Consultant queue** (panel 6) — the phase-4 role model and approval gate.
@@ -126,6 +137,14 @@ export const CASELOAD_VIEWS: CaseloadView[] = [
     description: 'Booked visits, failed outreach and open referrals — soonest visit first.',
     columns: ['patient', 'risk', 'nextVisit', 'outreach', 'referrals', 'activity'],
     defaultSort: { col: 'nextVisit', dir: 'asc' },
+  },
+  {
+    id: 'reassessment',
+    label: 'Reassessment',
+    description:
+      'Deck panel 5 — when each patient is next due, on the cadence their tier publishes. Most overdue first.',
+    columns: ['patient', 'risk', 'lastAssessment', 'nextReassessment', 'reassessmentStatus'],
+    defaultSort: { col: 'nextDue', dir: 'asc' },
   },
 ]
 

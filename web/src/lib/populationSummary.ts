@@ -181,11 +181,27 @@ export function summaryTiles(input: SummaryInput): SummaryTile[] {
       goal: 'Daily',
     },
     {
-      state: 'blocked',
+      // Unblocked by #279: the interval now comes from
+      // PlanDefinition-SPiERReassessmentSchedule, so "due today" is computable.
+      // Counts reassessments due today across every tier that publishes a
+      // cadence — the deck names C-SSRS, but at population level what matters is
+      // that a reassessment is due, not which instrument will be used.
+      state: 'value',
       id: 'cssrs-due',
-      label: 'C-SSRS due today',
+      label: 'Reassessments due today',
+      value: String(rows.filter(r => r.reassessment.kind === 'scheduled' && r.reassessment.status === 'due-today').length),
       goal: '100%',
-      waitingOn: 'the per-tier reassessment interval (#279), which nothing in SPiER encodes yet.',
+    },
+    {
+      // Not in the deck's tile list, but the reassessment rule makes it free and
+      // it is the number a care manager actually acts on: due-today is a task,
+      // overdue is a failure.
+      state: 'value',
+      id: 'reassessments-overdue',
+      label: 'Reassessments overdue',
+      value: String(rows.filter(r => r.reassessment.kind === 'scheduled' && r.reassessment.status === 'overdue').length),
+      goal: '0',
+      breached: rows.some(r => r.reassessment.kind === 'scheduled' && r.reassessment.status === 'overdue'),
     },
     {
       state: 'blocked',

@@ -30,8 +30,13 @@ function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
     awaitingNoShowFollowUp: false,
     unreachedStreak: 0,
     openReferralCount: 0,
+    lastAssessment: null,
+    // A row fixture must carry every field, so the cast below is gone: an added
+    // DerivedRegistryRow field should fail the typecheck here, not blow up at
+    // runtime the way `as DerivedRegistryRow` let it.
+    reassessment: { kind: 'no-cadence', reason: 'test fixture' },
     ...over,
-  } as DerivedRegistryRow
+  }
 }
 
 /** One evaluation with a single group at the given membership. */

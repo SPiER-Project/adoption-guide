@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CASELOAD_VIEWS, DEFAULT_DIR, sortRows, viewById, type SortCol } from './caseloadViews'
+import { COLUMNS } from '../components/caseloadColumns'
 import type { DerivedRegistryRow } from './registry'
 
 function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
@@ -24,8 +25,13 @@ function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
     awaitingNoShowFollowUp: false,
     unreachedStreak: 0,
     openReferralCount: 0,
+    lastAssessment: null,
+    // A row fixture must carry every field, so the cast below is gone: an added
+    // DerivedRegistryRow field should fail the typecheck here, not blow up at
+    // runtime the way `as DerivedRegistryRow` let it.
+    reassessment: { kind: 'no-cadence', reason: 'test fixture' },
     ...over,
-  } as DerivedRegistryRow
+  }
 }
 
 const visit = (date: string) => ({ date, status: 'booked', provider: null })
@@ -100,18 +106,25 @@ describe('sortRows', () => {
 describe('CASELOAD_VIEWS', () => {
   it('gives every view a sort column that view actually renders', () => {
     // A table sorted by an invisible column is a table nobody can tell is
-    // sorted, so a view's default sort must name one of its own columns. The
-    // column registry keys the sort col through `sortCol`, so this checks the
-    // view's column list carries a column with that sortCol.
-    const sortColOf: Record<string, SortCol> = {
-      patient: 'patient',
-      risk: 'risk',
-      activity: 'activity',
-      nextVisit: 'nextVisit',
-    }
+    // sorted, so a view's default sort must name one of its own columns.
+    // The available sort columns are read from COLUMNS rather than restated
+    // here: a hand-copied map is the thing that drifts, and it did — this test
+    // failed on its own hardcoded list the first time a view was added.
     for (const view of CASELOAD_VIEWS) {
-      const available = view.columns.map(k => sortColOf[k]).filter(Boolean)
+      const available = view.columns
+        .map(k => COLUMNS[k]?.sortCol)
+        .filter((c): c is SortCol => c !== undefined)
       expect(available, `${view.id} default sort`).toContain(view.defaultSort.col)
+    }
+  })
+
+  it('names only columns that exist in the registry', () => {
+    // A typo'd column key renders one fewer column rather than crashing, which
+    // is deliberate but silent — so it is caught here instead.
+    for (const view of CASELOAD_VIEWS) {
+      for (const key of view.columns) {
+        expect(COLUMNS[key], `${view.id} column "${key}"`).toBeDefined()
+      }
     }
   })
 
