@@ -708,7 +708,7 @@ const CORRELATION_REVERSE = {
   Appointment: 'Encounter.appointment',
 }
 
-const correlation = { linked: 0, reverse: 0, exempt: 0, exemptTypes: new Set() }
+const correlation = { linked: 0, reverse: 0, exempt: 0, triggers: 0, exemptTypes: new Set() }
 
 /** `.encounter` lives under `context` on DocumentReference and nowhere else. */
 function encounterRefsOf(resource) {
@@ -737,6 +737,42 @@ function checkEpisodeCorrelation(scenario, file) {
             `does not resolve to an EpisodeOfCare in this scenario ` +
             `(have: ${[...episodeIds].join(', ') || 'none'})`,
         )
+      }
+    }
+  }
+
+  // Decision 1 (#263): an episode names the artifact that opened it. The profile
+  // invariant makes the extension REQUIRED when entry reason is positive-screen —
+  // but a FHIRPath `exists()` cannot check that the reference resolves, and the
+  // validator runs without the scenario as a bundle, so a trigger pointing at a
+  // deleted or misspelled id would satisfy the invariant and mean nothing.
+  const artifactIds = new Set()
+  for (const [bucket, value] of Object.entries(scenario)) {
+    if (!Array.isArray(value)) continue
+    if (bucket === 'riskAlerts' || bucket === 'walkthrough') continue
+    if (bucket === 'responses') {
+      value.forEach((sr) => {
+        const qr = sr?.resource
+        if (qr?.resourceType && qr?.id) artifactIds.add(`${qr.resourceType}/${qr.id}`)
+      })
+      continue
+    }
+    value.forEach((r) => {
+      if (r?.resourceType && r?.id) artifactIds.add(`${r.resourceType}/${r.id}`)
+    })
+  }
+  for (const [i, ep] of (scenario.episodes ?? []).entries()) {
+    for (const ext of ep?.extension ?? []) {
+      if (!String(ext?.url ?? '').endsWith('/episode-trigger')) continue
+      const ref = ext?.valueReference?.reference
+      if (!artifactIds.has(ref)) {
+        fail(
+          `scenarios/${file} episodes[${i}] (${ep?.id}): episode-trigger "${ref}" does not ` +
+            `resolve to an artifact in this scenario — the episode claims an artifact evidenced ` +
+            `its opening, so that artifact has to be here (#263, Decision 1)`,
+        )
+      } else {
+        correlation.triggers++
       }
     }
   }
@@ -879,7 +915,8 @@ console.log(
 console.log(
   `episode correlation: ${correlation.linked} artifact(s) linked to an Encounter, ` +
     `${correlation.reverse} via Encounter.appointment, ${correlation.exempt} exempt ` +
-    `(${[...correlation.exemptTypes].sort().join(', ') || 'none'}).`,
+    `(${[...correlation.exemptTypes].sort().join(', ') || 'none'}); ` +
+    `${correlation.triggers} episode trigger(s) resolve.`,
 )
 
 if (failures) {
