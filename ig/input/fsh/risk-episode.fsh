@@ -520,6 +520,102 @@ Usage: #definition
 * insert LicensingSpiERAuthored
 
 
+// ─── The cadence itself (#279) ────────────────────────────────
+//
+// The ActivityDefinition above says reassessment has a due date. It does NOT
+// say what the due date should be, and until this PlanDefinition existed nothing
+// in SPiER did: `Task.restriction.period.end` came from a date picker that
+// defaulted to today, so the interval lived in a clinician's head. The Suicide
+// Care Dashboard deck states one (High 7d / Moderate 14d / Low 30d) and calls it
+// "automatically calculated" — this is where that calculation comes from.
+//
+// ─── Why a PlanDefinition and not the ActivityDefinition ─────
+//
+// The obvious home is `ActivityDefinition.timing`, and it does not work:
+// `timing[x]` is 0..1 in R4, so one AD cannot carry four per-tier durations.
+// The alternatives were a `CodeSystem.property` on SPiERSuicideRiskTier, and
+// this. The property was rejected because an interval is not a fact about the
+// concept — "high risk" means the same thing at a site that reassesses weekly
+// and one that reassesses daily. It is a policy of THIS pathway, and a
+// PlanDefinition is where FHIR puts conditional policy.
+//
+// ─── Why each action carries BOTH a code and a condition ─────
+//
+// `condition[applicability]` is the FHIRPath a real CDS engine evaluates.
+// `action.code` restates the same tier as a plain Coding, because the demo app
+// cannot evaluate arbitrary FHIRPath and should not have to: it reads
+// (code, timingDuration) pairs straight off the generated JSON. Two spellings of
+// one rule is a real duplication cost, accepted so that neither consumer has to
+// reimplement the other's job — and `npm run check:reassessment` fails if they
+// disagree.
+//
+// ─── The two tiers deliberately absent ──────────────────────
+//
+// `imminent` has NO interval, and that is not an omission. A patient at imminent
+// risk is not on a routine outpatient cadence; they are in active escalation
+// (see EscalateOverdueRisk). The deck's tiers stop at High and it is an open
+// question with the deck's author whether imminent risk routes out of the
+// registry entirely — inventing a 7-day cadence here would answer that question
+// by accident. `no-risk` has none because such a patient is not on the pathway.
+//
+// The deck's fourth tier, "Historical — as indicated", has no SPiER tier to hang
+// off at all; see the historical-risk axis question in
+// docs/plans/suicide-care-dashboard.md.
+Instance: SPiERReassessmentSchedule
+InstanceOf: PlanDefinition
+Title: "SPiER Reassessment Schedule"
+Description: "Per-tier suicide-risk reassessment cadence: how long after the last assessment the next one is due, as a function of the patient's current risk tier."
+Usage: #definition
+* url = "http://spier.org/PlanDefinition/SPiERReassessmentSchedule"
+* name = "SPiERReassessmentSchedule"
+* version = "1.0.0"
+* title = "SPiER Reassessment Schedule"
+* status = #draft
+* experimental = true
+* publisher = "SPiER (HTD Health)"
+* description = "The reassessment interval for each suicide-risk tier, so that a reassessment due date is derived from the patient's tier rather than typed by hand. Each action names its tier twice on purpose: as `condition[applicability]` FHIRPath for a CDS engine, and as `action.code` for consumers that read the schedule as data. Tiers with no action have no routine cadence — imminent risk is handled by escalation rather than a schedule, and no-risk patients are not on the pathway."
+* purpose = "Make the reassessment interval machine-readable. Before this existed the interval was implicit, so SPiER could not tell a clinician when a reassessment was due, could not alert on one coming due, and could not measure whether reassessments happened on time."
+* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
+* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
+* useContext[=].valueCodeableConcept = SPiERPathwayStage#track-risk-over-time
+
+* action[+]
+  * id = "reassess-high"
+  * title = "Reassess high-risk patients every 7 days"
+  * description = "A patient whose current suicide-risk tier is high is reassessed every 7 days."
+  * code[+] = SPiERSuicideRiskTier#high "High risk"
+  * condition[+]
+    * kind = #applicability
+    * expression.language = #text/fhirpath
+    * expression.expression = "%episode.extension('http://spier.org/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://spier.org/CodeSystem/spier-suicide-risk-tier').code = 'high'"
+  * timingDuration = 7 'd' "day"
+  * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+
+* action[+]
+  * id = "reassess-moderate"
+  * title = "Reassess moderate-risk patients every 14 days"
+  * description = "A patient whose current suicide-risk tier is moderate is reassessed every 14 days."
+  * code[+] = SPiERSuicideRiskTier#moderate "Moderate risk"
+  * condition[+]
+    * kind = #applicability
+    * expression.language = #text/fhirpath
+    * expression.expression = "%episode.extension('http://spier.org/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://spier.org/CodeSystem/spier-suicide-risk-tier').code = 'moderate'"
+  * timingDuration = 14 'd' "day"
+  * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+
+* action[+]
+  * id = "reassess-low"
+  * title = "Reassess low-risk patients every 30 days"
+  * description = "A patient whose current suicide-risk tier is low is reassessed every 30 days."
+  * code[+] = SPiERSuicideRiskTier#low "Low risk"
+  * condition[+]
+    * kind = #applicability
+    * expression.language = #text/fhirpath
+    * expression.expression = "%episode.extension('http://spier.org/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://spier.org/CodeSystem/spier-suicide-risk-tier').code = 'low'"
+  * timingDuration = 30 'd' "day"
+  * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+
+
 Instance: TrackOpenSafetyActions
 InstanceOf: ActivityDefinition
 Title: "Track Open Safety Actions / Care Gaps"

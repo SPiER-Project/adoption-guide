@@ -853,3 +853,43 @@
   text-decoration: underline dotted;
   cursor: help;
 }
+
+/* Reassessment status pill (deck panel 5). Tone tracks how late the
+   reassessment is, not the patient's tier — an overdue low-risk
+   reassessment is still overdue. */
+
+.reassess-pill {
+  display: inline-block;
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reassess-pill--overdue {
+  background: var(--risk-high);
+  color: var(--text-on-brand);
+}
+
+.reassess-pill--due-today {
+  background: var(--accent-warning-bg);
+  color: var(--accent-warning-text-deep);
+}
+
+.reassess-pill--due-soon {
+  background: var(--accent-warning-bg);
+  color: var(--accent-warning-text);
+}
+
+.reassess-pill--ok {
+  background: var(--risk-low-faded);
+  color: var(--accent-success-text);
+}
+
+.reassess-pill--none {
+  background: var(--border-default);
+  color: var(--text-body);
+  font-weight: 400;
+  font-style: italic;
+}
