@@ -639,6 +639,12 @@
           }
         },
         {
+          "url": "http://spier.org/StructureDefinition/episode-trigger",
+          "valueReference": {
+            "reference": "Observation/p011-asq-result"
+          }
+        },
+        {
           "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
           "valueCodeableConcept": {
             "coding": [

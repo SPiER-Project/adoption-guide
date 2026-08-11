@@ -10,13 +10,16 @@ survive contact with R4.
 | Decision | State |
 |---|---|
 | **2 — mechanism** | **ACCEPTED 2026-08-11: Option B, the Encounter path.** |
-| **1 — ordering** | **Still open.** Not required for phase 1; needed before phase 3. |
+| **1 — ordering** | **ACCEPTED 2026-08-11: episode opens on first positive screen and points back at its trigger.** |
 
 | Phase | State |
 |---|---|
 | 1 — profile + fixtures | **Done.** `SPiEREncounter`, 24 scenario Encounters, both gates extended. |
 | 2 — stamp `.encounter` on artifacts | **Done.** 50 direct + 5 reverse + 1 exempt = 56, gated. |
-| 3–6 | Blocked on Decision 1 (phase 3 onward). |
+| 3 — episode → trigger reference | **Done.** `episode-trigger` extension + the IG's first FHIRPath invariant. |
+| 4 — runtime (recorder stamps encounter, episode opens on positive screen) | Next. |
+| 5 — retire the heuristics | Unblocked; wants phase 4 first. |
+| 6 — document the retrieval path in the IG | Not started. |
 
 Two facts found while implementing phase 1 change what is written below, and are
 corrected in place: **`Encounter` has no `category` element** (so it cannot carry
@@ -187,7 +190,7 @@ Less elegant on the page, actually works in the field. Whatever is chosen, the I
 should state the real retrieval path, as `quick-starts.md` now does for the
 category gap.
 
-## 5. **DECISION 1** — the ordering question
+## 5. **DECISION 1** — the ordering question — **ACCEPTED**
 
 The issue notes the episode must exist before Stage 1 completes if every artifact
 is to reference it, and flags this as the crux. It is, and the naive reading is
@@ -204,7 +207,7 @@ Stage 1's **output**. So:
 - **Back-stamping the triggering artifacts after the fact** means mutating records
   that have already been filed, and in a real EHR they may be immutable.
 
-**Recommendation: the episode opens on the first positive screen, and points
+**ACCEPTED 2026-08-11. The episode opens on the first positive screen, and points
 back at its own trigger.** Artifacts created *after* the open carry the episode
 forward; the one or two artifacts that *caused* it are reached from the episode,
 not the reverse. `SPiERSuicideRiskEpisode` already carries an

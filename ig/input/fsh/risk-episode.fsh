@@ -235,6 +235,49 @@ Description: "The episode's CURRENT suicide-risk tier, on the shared instrument-
 * valueCodeableConcept from SPiERSuicideRiskTierVS (required)
 
 
+// The artifact that CAUSED the episode to open (#263, Decision 1).
+//
+// An episode is opened *because* a screen came back positive — which is Stage 1's
+// output, not its input. So the episode cannot be the thing every Stage-1 artifact
+// points at: at screening time it does not exist, and minting one per screen would
+// assert suicide-safer care for every negative screen in the system.
+//
+// Hence the direction here. Artifacts created AFTER the episode opens carry it
+// forward through their Encounter; the one artifact that caused the open is
+// reached FROM the episode. Nothing already filed has to be back-stamped, which
+// matters because in a real EHR those records may be immutable.
+//
+// `episode-entry-reason` says *why*; this says *which artifact*. The two are
+// complementary and the invariant below ties them together.
+Extension: EpisodeTriggerExtension
+Id: episode-trigger
+Title: "Suicide-Risk Episode Trigger"
+Description: "The artifact whose result caused this episode to be opened — a screening/assessment Observation, or the QuestionnaireResponse it was derived from. Read with episode-entry-reason: that records why the patient entered, this records what evidenced it. Screening-level: it identifies the triggering record, not a confirmed clinical finding."
+* ^status = #draft
+* ^experimental = true
+* ^context[+].type = #element
+* ^context[=].expression = "EpisodeOfCare"
+* value[x] only Reference(Observation or QuestionnaireResponse)
+
+
+// First invariant in this IG, so a note on what checks it: FHIRPath constraints
+// are evaluated by the IG Publisher and by the HL7 validator against instances —
+// NOT by sushi. A green `npx fsh-sushi .` says nothing about whether this holds.
+//
+// Scoped deliberately to `positive-screen` rather than every artifact-driven
+// reason. `elevated-assessment` ought to carry a trigger too, but the demo data
+// cannot satisfy it yet: patient-007 enters on `elevated-assessment` and has no
+// assessment artifact recorded at all — only a Stanley-Brown safety plan, which is
+// not an assessment. Widening this invariant before that scenario has a real
+// assessment would either fail the build or invite a fabricated artifact to
+// satisfy it. `manual-add` is explicitly "without a structured triggering event"
+// and must never require one.
+Invariant: spier-episode-trigger-on-positive-screen
+Description: "An episode entered on a positive screen SHALL name the artifact that evidenced it, via the episode-trigger extension."
+Severity: #error
+Expression: "extension('http://spier.org/StructureDefinition/episode-entry-reason').value.ofType(CodeableConcept).coding.where(system = 'http://spier.org/CodeSystem/spier-episode-entry-reason' and code = 'positive-screen').exists() implies extension('http://spier.org/StructureDefinition/episode-trigger').exists()"
+
+
 Extension: EscalationTriggerExtension
 Id: escalation-trigger
 Title: "Risk Escalation Trigger"
@@ -274,7 +317,13 @@ Description: "An active episode of suicide-safer care, tracked from entry to res
 * extension contains
     EpisodeEntryReasonExtension named entryReason 1..1 MS and
     EpisodeClosureReasonExtension named closureReason 0..1 MS and
-    EpisodeCurrentRiskTierExtension named currentRiskTier 0..1 MS
+    EpisodeCurrentRiskTierExtension named currentRiskTier 0..1 MS and
+    EpisodeTriggerExtension named trigger 0..1 MS
+// 0..1 rather than 1..1: several entry reasons are not evidenced by a structured
+// artifact at all (`clinician-judgment`, `manual-add`, `transition-discharge`), and
+// requiring one would invite a fabricated reference to satisfy the profile. The
+// invariant makes it required exactly where it is knowable.
+* obeys spier-episode-trigger-on-positive-screen
 * status MS
 * type MS
 * patient MS
@@ -522,6 +571,9 @@ Usage: #example
 * status = #active
 * type[+] = SuicideRiskEpisodeTypeCodes#suicide-safer-care "Suicide-safer care episode"
 * extension[entryReason].valueCodeableConcept = EpisodeEntryReasonCodes#positive-screen "Positive screen"
+// Decision 1: the episode names the artifact that opened it, rather than that
+// artifact naming an episode which did not exist when it was filed.
+* extension[trigger].valueReference = Reference(ExampleSuicideRiskConceptFromASQ)
 * extension[currentRiskTier].valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"
 * patient = Reference(Patient/example)
 * period.start = "2026-07-02"
@@ -541,6 +593,7 @@ Usage: #example
 * statusHistory[=].period.start = "2026-09-30"
 * type[+] = SuicideRiskEpisodeTypeCodes#suicide-safer-care "Suicide-safer care episode"
 * extension[entryReason].valueCodeableConcept = EpisodeEntryReasonCodes#positive-screen "Positive screen"
+* extension[trigger].valueReference = Reference(ExampleSuicideRiskConceptFromASQ)
 * extension[closureReason].valueCodeableConcept = EpisodeClosureReasonCodes#risk-resolved "Risk resolved"
 * extension[currentRiskTier].valueCodeableConcept = SPiERSuicideRiskTier#no-risk "No risk identified"
 * patient = Reference(Patient/example)

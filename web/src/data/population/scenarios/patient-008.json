@@ -374,6 +374,12 @@
           }
         },
         {
+          "url": "http://spier.org/StructureDefinition/episode-trigger",
+          "valueReference": {
+            "reference": "Observation/p008-risk-status"
+          }
+        },
+        {
           "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
           "valueCodeableConcept": {
             "coding": [
