@@ -56,6 +56,13 @@ jobs:
       - name: Lint CSS
         run: npm run lint:css
 
+      # The other half of the design-token rule. `lint:css` enforces that a
+      # colour/size/shadow declaration uses `var(--…)`; it cannot tell whether
+      # the token exists, so `color: var(--made-up)` passes it (issue #280).
+      # Reads only web/src, so it belongs in this fast job.
+      - name: Check CSS token references
+        run: npm run check:tokens
+
       - name: Check observationExtract contract
         run: npm run check:extract
 
