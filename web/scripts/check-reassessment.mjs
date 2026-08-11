@@ -12,13 +12,21 @@
  * neither consumer has to reimplement the other's job — and accepting it is only
  * defensible if something fails when they disagree. That is this script.
  *
- * It checks four things:
+ * It also ties in the CQL. `ig/input/cql/SPiERSuicideSaferCareMeasures.cql`
+ * RESTATES the intervals in `ReassessmentIntervalDays`, because that library is
+ * `context Patient` and cannot retrieve a definitional resource — #296 assumed it
+ * could. So there are THREE representations of one rule (PlanDefinition, the app,
+ * the CQL) and this is the one place that asserts they agree.
+ *
+ * It checks five things:
  *   1. Every action's `code` names a tier that exists in SPiERSuicideRiskTier.
  *   2. Every action's FHIRPath mentions that same tier code.
  *   3. Every action carries a usable `timingDuration` in a unit the app reads.
  *   4. No tier gets two actions, and the tiers deliberately left out stay out —
  *      an interval quietly appearing for `imminent` would answer an open
  *      clinical question by accident (see the FSH comment).
+ *   5. The CQL's ReassessmentIntervalDays agrees with the PlanDefinition, tier
+ *      for tier and in both directions.
  *
  * Run from web/ as `npm run check:reassessment`. Reads generated FHIR, so
  * `copy-fhir` must have run first (verify does that).
@@ -32,6 +40,7 @@ const fhirDir = resolve(here, '../src/data/fhir')
 
 const SCHEDULE = resolve(fhirDir, 'PlanDefinition-SPiERReassessmentSchedule.json')
 const TIER_CS = resolve(fhirDir, 'CodeSystem-spier-suicide-risk-tier.json')
+const CQL = resolve(here, '../../ig/input/cql/SPiERSuicideSaferCareMeasures.cql')
 
 const TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
 
@@ -148,6 +157,51 @@ for (const action of actions) {
   }
 }
 
+/* ─── The CQL's restatement of the same intervals ───────────── */
+
+let cqlPairs = null
+if (!existsSync(CQL)) {
+  fail(`${CQL} is missing — the CQL library restates these intervals and cannot be compared`)
+} else {
+  const cql = readFileSync(CQL, 'utf8')
+  const fn = cql.match(/define function ReassessmentIntervalDays\(tier String\):([\s\S]*?)\n\s*end/)
+  if (!fn) {
+    fail(
+      'could not find `define function ReassessmentIntervalDays(tier String)` in the CQL. ' +
+        'If it was renamed, update this check — the intervals must stay comparable.',
+    )
+  } else {
+    cqlPairs = new Map()
+    for (const m of fn[1].matchAll(/when\s+'([^']+)'\s+then\s+(\d+)/g)) {
+      cqlPairs.set(m[1], Number(m[2]))
+    }
+    if (cqlPairs.size === 0) fail('ReassessmentIntervalDays has no `when <tier> then <days>` branches')
+
+    for (const [tier, days] of cqlPairs) {
+      if (!seen.has(tier)) {
+        fail(
+          `CQL ReassessmentIntervalDays gives tier "${tier}" a ${days}-day cadence, but the ` +
+            `PlanDefinition publishes none — the measure would score against an interval no site was told about`,
+        )
+      }
+    }
+    for (const [tier, actionId] of seen) {
+      const planDays = actions.find((a) => a.id === actionId)?.timingDuration?.value
+      if (!cqlPairs.has(tier)) {
+        fail(
+          `the PlanDefinition publishes a ${planDays}-day cadence for tier "${tier}" but the CQL ` +
+            `has no branch for it — SPiERReassessmentOnTime would silently exclude those patients`,
+        )
+      } else if (cqlPairs.get(tier) !== planDays) {
+        fail(
+          `tier "${tier}": PlanDefinition says ${planDays} days, CQL says ${cqlPairs.get(tier)} — ` +
+            `the measure and the work queue would disagree about the same patient`,
+        )
+      }
+    }
+  }
+}
+
 if (errors.length > 0) {
   console.error('✗ reassessment schedule check failed:\n')
   for (const e of errors) console.error(`  - ${e}`)
@@ -161,5 +215,9 @@ const summary = [...seen.entries()]
 console.log(`✓ reassessment: ${actions.length} tier cadence(s) — ${summary}`)
 console.log(
   `  ${Object.keys(MUST_HAVE_NO_INTERVAL).length} tier(s) correctly carry no cadence: ${Object.keys(MUST_HAVE_NO_INTERVAL).join(', ')}`,
+)
+console.log(
+  `  CQL ReassessmentIntervalDays agrees on all ${cqlPairs?.size ?? 0} tier(s) — ` +
+    'PlanDefinition, app and measure logic in step',
 )
 console.log('\nreassessment schedule check passed.')

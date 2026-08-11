@@ -43,6 +43,10 @@ import {
   RISK_TIER_SYSTEM,
 } from './riskEpisode'
 import { stageForArtifact, type FhirResourceLike } from './patientPathway'
+// The per-tier cadence, read from PlanDefinition-SPiERReassessmentSchedule.
+// reassessment.ts imports RISK_TIER_SYSTEM from riskEpisode.ts, not from here,
+// so this direction introduces no cycle.
+import { REASSESSMENT_INTERVAL_DAYS } from './reassessment'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -126,6 +130,10 @@ const PATHWAY_ORDER = [
   'SPiERReferralCompletion',
   'SPiERFollowUpTimeliness',
   'SPiERCaringContactAdherence',
+  // Stage 7: ongoing tracking comes after the stage-6 follow-up measures, so
+  // reading top to bottom still walks the pathway. It would sort here anyway by
+  // the id fallback, but relying on that would make the position accidental.
+  'SPiERReassessmentOnTime',
 ]
 
 function pathwayRank(id: string): number {
@@ -326,6 +334,13 @@ function isPositive(o: ObservationResource): boolean {
     .valueCodeableConcept?.coding
   const tier = value?.find(c => c.system === RISK_TIER_SYSTEM)?.code
   return !!tier && tier !== 'no-risk'
+}
+
+/** The risk tier coded on a risk-concept Observation, or undefined. */
+function recordedTier(o: ObservationResource): string | undefined {
+  const coding = (o as { valueCodeableConcept?: { coding?: Array<{ system?: string; code?: string }> } })
+    .valueCodeableConcept?.coding
+  return coding?.find(c => c.system === RISK_TIER_SYSTEM)?.code
 }
 
 function episodePeriod(e: EpisodeOfCareResource | undefined): { start: number; end: number } {
@@ -545,6 +560,67 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   'All Referrals Completed': ctx =>
     ctx.validReferrals.length > 0 &&
     ctx.validReferrals.every(r => (r as { status?: string }).status === 'completed'),
+
+  // ── Measure 8: reassessment on time ──
+  // The one measure whose window is data. `REASSESSMENT_INTERVAL_DAYS` is read
+  // from PlanDefinition-SPiERReassessmentSchedule; the CQL restates the same
+  // numbers because a patient-context library cannot retrieve a definitional
+  // resource, and check:reassessment asserts all three agree.
+  'Has A Reassessment Interval': ctx => datedAssessments(ctx).length >= 2,
+  'Reassessment Not On A Published Cadence': ctx => {
+    const pair = assessmentPair(ctx)
+    if (!pair) return false
+    return applicableIntervalDays(pair) === undefined || closureReason(ctx) === 'administrative'
+  },
+  'Most Recent Reassessment Was On Time': ctx => {
+    const pair = assessmentPair(ctx)
+    if (!pair) return false
+    const interval = applicableIntervalDays(pair)
+    if (interval === undefined) return false
+    const gapDays = (pair.latest - pair.preceding) / DAY_MS
+    return gapDays <= interval
+  },
+}
+
+/** Risk-concept Observations dated inside the period, oldest first. */
+function datedAssessments(ctx: Ctx): ObservationResource[] {
+  return ctx.riskConcepts
+    .map(o => ({ o, t: ms(observationEffective(o)) }))
+    .filter(x => inPeriod(ctx, x.t))
+    .sort((a, b) => a.t - b.t)
+    .map(x => x.o)
+}
+
+/**
+ * The most recent completed interval: the last two assessments.
+ *
+ * Returns undefined when there is no gap to measure. Ties at the same instant
+ * drop out rather than producing an arbitrary winner — matching the CQL, which
+ * takes the latest assessment strictly before the most recent.
+ */
+function assessmentPair(
+  ctx: Ctx,
+): { preceding: number; latest: number; precedingTier: string | undefined } | undefined {
+  const dated = datedAssessments(ctx)
+  if (dated.length < 2) return undefined
+  const latest = ms(observationEffective(dated[dated.length - 1]))
+  const earlier = [...dated]
+    .reverse()
+    .find(o => ms(observationEffective(o)) < latest)
+  if (!earlier) return undefined
+  return {
+    preceding: ms(observationEffective(earlier)),
+    latest,
+    // Read off the EARLIER assessment: the interval a site owed is the one that
+    // applied when the clock started, not the patient's tier today.
+    precedingTier: recordedTier(earlier),
+  }
+}
+
+function applicableIntervalDays(pair: {
+  precedingTier: string | undefined
+}): number | undefined {
+  return pair.precedingTier ? REASSESSMENT_INTERVAL_DAYS[pair.precedingTier] : undefined
 }
 
 /** Criterion names this engine implements. Used by check:measures. */

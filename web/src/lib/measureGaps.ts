@@ -94,6 +94,12 @@ export const MEASURE_GAPS: Record<string, MeasureGap> = {
       'Timeliness is measured forward from a transition — a safety-handoff Communication or a handoff packet — and the registry seeds none, so there is no index date for the 48-hour, 7-day, and 30-day windows to run from.',
     issues: [209],
   },
+  SPiERReassessmentOnTime: {
+    denominator: 'patients with at least two risk assessments in the period',
+    missing:
+      'A reassessment interval needs two dated SPiERSuicideRiskConcept Observations inside the measurement period; a patient assessed once has no gap to be late on. Narrow periods therefore empty this measure legitimately — widen the window before reading anything into a blank score.',
+    issues: [279],
+  },
   SPiERCaringContactAdherence: {
     denominator: 'patients with a documented care transition',
     missing:
