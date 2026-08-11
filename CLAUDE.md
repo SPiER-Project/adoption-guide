@@ -99,6 +99,23 @@ without a terminology server):
 node scripts/check-fml.mjs --tx https://tx.fhir.org
 ```
 
+And the outreach one-pager, whose PDF is generated from HTML rather than
+hand-exported (needs Chrome to build; `--check` needs nothing but Node):
+```
+node scripts/build-onepager.mjs           # re-render web/public/SPiER-Overview-Care-Pathway.pdf
+node scripts/build-onepager.mjs --check   # gate: is that PDF current with its HTML?
+```
+⚠️ **Edit `docs/outreach/spier-onepager-source.html`, never the PDF**, then
+re-export and commit the HTML, the PDF, and `onepager.build.json` together —
+`onepager.yml` fails otherwise. The check compares *recorded hashes* and never
+re-renders, because Chrome's PDF bytes are not reproducible even between two
+runs of the same version; the structural assertions that need a browser (2
+pages, letter MediaBox, Poppins embedded in four weights — which is also the
+"did the webfont actually load" check) run at export time instead. Note the PDF
+lives under `web/public/` so both hosts serve it at a stable URL; it stays
+committed because the Cloudflare build is dashboard-configured and can't be
+given a browser. `docs/outreach/README.md` has the full rationale.
+
 In `services/cds-hooks/` — **easy to forget, and CI gates it:**
 ```
 npm install && npm run verify   # typecheck + eslint + vitest for the Worker
