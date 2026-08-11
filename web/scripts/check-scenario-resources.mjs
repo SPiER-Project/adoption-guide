@@ -678,6 +678,138 @@ if (scenarioFiles.length === 0) {
   process.exit(1)
 }
 
+// ─────────────────────────────────────────────────────────────
+// Episode correlation (#263, phase 2)
+// ─────────────────────────────────────────────────────────────
+//
+// Phase 1 added the Encounters; phase 2 pointed every artifact at one. Nothing
+// verified either, and both this gate and validate-fhir.mjs passed identically
+// before and after the links were added — `.encounter` is optional in base R4,
+// so a dropped reference is invisible to conformance checking. That is precisely
+// the shape of an unguarded claim: the plan asserts a queryable record, and only
+// this check makes that true.
+//
+// Deliberately counts its exclusions out loud rather than shrinking the
+// denominator (the #232 lesson): a type that legitimately cannot be linked is
+// named here, and a type that stops being linkable has to be added on purpose.
+
+/** Types with no route to an EpisodeOfCare in R4. Each needs a written reason. */
+const CORRELATION_EXEMPT = {
+  // Consent has no `.encounter` and no usable basedOn/partOf. Arguably right:
+  // a consent to share information scopes to the patient and the receiving
+  // organisation, and outlives any single episode. Revisit under #263.
+  Consent: 'no .encounter and no indirect route in R4',
+}
+
+/** Types linked in reverse, by Encounter naming them. */
+const CORRELATION_REVERSE = {
+  // Appointment has no `.encounter`; Encounter.appointment is a native
+  // Reference(Appointment), which is how it joins the chain.
+  Appointment: 'Encounter.appointment',
+}
+
+const correlation = { linked: 0, reverse: 0, exempt: 0, exemptTypes: new Set() }
+
+/** `.encounter` lives under `context` on DocumentReference and nowhere else. */
+function encounterRefsOf(resource) {
+  if (resource.resourceType === 'DocumentReference') {
+    return (resource.context?.encounter ?? []).map((e) => e?.reference).filter(Boolean)
+  }
+  const ref = resource.encounter?.reference
+  return ref ? [ref] : []
+}
+
+function checkEpisodeCorrelation(scenario, file) {
+  const encounters = Array.isArray(scenario.encounters) ? scenario.encounters : []
+  if (encounters.length === 0) return // scenarios with no episode have nothing to correlate
+
+  const encounterIds = new Set(encounters.map((e) => e?.id).filter(Boolean))
+  const episodeIds = new Set((scenario.episodes ?? []).map((e) => e?.id).filter(Boolean))
+
+  // Every Encounter must name an episode that exists in THIS scenario. The
+  // profile requires episodeOfCare to be present; this adds that it resolves.
+  for (const [i, enc] of encounters.entries()) {
+    for (const ref of enc?.episodeOfCare ?? []) {
+      const id = String(ref?.reference ?? '').replace(/^EpisodeOfCare\//, '')
+      if (!episodeIds.has(id)) {
+        fail(
+          `scenarios/${file} encounters[${i}] (${enc?.id}): episodeOfCare "${ref?.reference}" ` +
+            `does not resolve to an EpisodeOfCare in this scenario ` +
+            `(have: ${[...episodeIds].join(', ') || 'none'})`,
+        )
+      }
+    }
+  }
+
+  // Anything named by Encounter.appointment, for the reverse-linked types.
+  const reverseNamed = new Set()
+  for (const enc of encounters) {
+    for (const ref of enc?.appointment ?? []) {
+      if (typeof ref?.reference === 'string') reverseNamed.add(ref.reference)
+    }
+  }
+
+  const artifacts = []
+  for (const [bucket, value] of Object.entries(scenario)) {
+    if (!Array.isArray(value)) continue
+    if (bucket === 'riskAlerts' || bucket === 'walkthrough') continue
+    if (bucket === 'episodes' || bucket === 'encounters') continue
+    if (bucket === 'responses') {
+      value.forEach((sr, i) => {
+        if (sr?.resource?.resourceType) artifacts.push([`responses[${i}].resource`, sr.resource])
+      })
+      continue
+    }
+    value.forEach((r, i) => {
+      if (r?.resourceType) artifacts.push([`${bucket}[${i}]`, r])
+    })
+  }
+
+  for (const [path, r] of artifacts) {
+    const where = `scenarios/${file} ${path} (${r.id ?? 'no id'})`
+    const rt = r.resourceType
+
+    if (rt in CORRELATION_EXEMPT) {
+      correlation.exempt++
+      correlation.exemptTypes.add(rt)
+      continue
+    }
+
+    if (rt in CORRELATION_REVERSE) {
+      if (!reverseNamed.has(`${rt}/${r.id}`)) {
+        fail(
+          `${where}: ${rt} has no .encounter in R4, so it must be named by ` +
+            `${CORRELATION_REVERSE[rt]} — no Encounter in this scenario references ${rt}/${r.id}`,
+        )
+      } else {
+        correlation.reverse++
+      }
+      continue
+    }
+
+    const refs = encounterRefsOf(r)
+    if (refs.length === 0) {
+      fail(
+        `${where}: no Encounter reference — every artifact in a scenario with an episode must ` +
+          `correlate to one (#263). ${rt === 'DocumentReference' ? 'Set context.encounter' : 'Set .encounter'}, ` +
+          `or add ${rt} to CORRELATION_EXEMPT with a reason.`,
+      )
+      continue
+    }
+    for (const ref of refs) {
+      const id = String(ref).replace(/^Encounter\//, '')
+      if (!encounterIds.has(id)) {
+        fail(
+          `${where}: encounter reference "${ref}" does not resolve to an Encounter in this ` +
+            `scenario (have: ${[...encounterIds].join(', ')})`,
+        )
+      } else {
+        correlation.linked++
+      }
+    }
+  }
+}
+
 let resourcesChecked = 0
 
 for (const file of scenarioFiles) {
@@ -736,11 +868,18 @@ for (const file of scenarioFiles) {
   }
 
   if (n > 0) console.log(`✓ scenarios/${file}: ${n} FHIR resource(s) checked`)
+
+  checkEpisodeCorrelation(scenario, file)
 }
 
 console.log(
   `\n${resourcesChecked} non-QuestionnaireResponse scenario resource(s) checked against ` +
     `${structureDefs.size} StructureDefinition(s).`,
+)
+console.log(
+  `episode correlation: ${correlation.linked} artifact(s) linked to an Encounter, ` +
+    `${correlation.reverse} via Encounter.appointment, ${correlation.exempt} exempt ` +
+    `(${[...correlation.exemptTypes].sort().join(', ') || 'none'}).`,
 )
 
 if (failures) {

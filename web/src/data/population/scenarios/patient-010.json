@@ -38,6 +38,9 @@
       "subject": {
         "reference": "Patient/patient-010"
       },
+      "encounter": {
+        "reference": "Encounter/p010-enc-index"
+      },
       "effectiveDateTime": "2026-07-11T09:00:00Z",
       "valueCodeableConcept": {
         "coding": [
@@ -74,6 +77,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-010"
+      },
+      "encounter": {
+        "reference": "Encounter/p010-enc-handoff"
       },
       "_savedAt": "2026-04-02T09:00:00Z",
       "title": "Active risk episode \u2014 resolution documented",
@@ -206,6 +212,9 @@
       "subject": {
         "reference": "Patient/patient-010"
       },
+      "encounter": {
+        "reference": "Encounter/p010-enc-referral"
+      },
       "authoredOn": "2026-07-12T14:00:00Z",
       "reasonCode": [
         {
@@ -274,6 +283,9 @@
       ],
       "subject": {
         "reference": "Patient/patient-010"
+      },
+      "encounter": {
+        "reference": "Encounter/p010-enc-handoff"
       },
       "sent": "2026-07-24T11:00:00Z",
       "extension": [
