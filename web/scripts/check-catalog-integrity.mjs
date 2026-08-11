@@ -305,6 +305,57 @@ console.log(
     })`,
 )
 
+// ─── Data-dictionary links resolve ──────────────────────────
+//
+// The dictionary renders each code as a link to its definition, and for a
+// SPiER-local code that target is a page in OUR OWN IG
+// (`/ig/CodeSystem-<id>.html`), which the IG Publisher generates from
+// `ig/input/fsh/`. So a SPiER-local system with no generated CodeSystem is a
+// link that 404s on the page an implementer is most likely to trust.
+//
+// That was not hypothetical: `asq-item` lived only in
+// FHIR-Resources/ASQ/asq-item.json, which the publisher never builds (it is
+// triggered by `ig/**` alone), so `/ig/CodeSystem-asq-item.html` returned 404
+// while every sibling resolved. It has since moved into asq.fsh; this check is
+// what stops the next one.
+//
+// Offline by construction — it compares against the generated files in
+// src/data/fhir/ rather than fetching anything, so it belongs in `verify`
+// alongside the other drift checks.
+const SPIER_CS_PREFIX = 'http://spier.org/CodeSystem/'
+const dictSrc = readFileSync(join(catalogDir, 'dataElements.ts'), 'utf8')
+const dictSystems = new Set(
+  [...dictSrc.matchAll(/(?:system|answerSystem): '([^']+)'/g)].map((m) => m[1]),
+)
+if (dictSystems.size === 0) {
+  fail('dataElements.ts: no systems parsed — has the DataElement shape changed?')
+}
+
+const generatedCsIds = new Set(
+  readdirSync(fhirDir)
+    .filter((f) => f.startsWith('CodeSystem-') && f.endsWith('.json'))
+    .map((f) => f.slice('CodeSystem-'.length, -'.json'.length)),
+)
+
+let linkable = 0
+for (const system of [...dictSystems].sort()) {
+  if (!system.startsWith(SPIER_CS_PREFIX)) continue
+  const id = system.slice(SPIER_CS_PREFIX.length)
+  if (generatedCsIds.has(id)) {
+    linkable++
+    continue
+  }
+  fail(
+    `dataElements.ts references ${system}, but no CodeSystem-${id}.json is generated — ` +
+      `the data dictionary would link to /ig/CodeSystem-${id}.html, which the IG Publisher ` +
+      `will not have built. Define it in ig/input/fsh/, not FHIR-Resources/.`,
+  )
+}
+console.log(
+  `✓ data dictionary: all ${linkable} SPiER-local CodeSystem(s) referenced have a generated ` +
+    `definition, so their IG links resolve`,
+)
+
 if (failures) {
   console.error(`\ncatalog-integrity check FAILED (${failures} issue(s)).`)
   process.exit(1)
