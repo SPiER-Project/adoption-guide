@@ -422,6 +422,45 @@ The risk-status Observations seeded for 008/009/010 are tagged
 own walkthrough stages "Current risk level set" (step 11.4-1B), and avoiding
 pushing three more patients past their curated next step.
 
+## Update — the deck adds an outcome half (2026-08-11)
+
+The *Suicide Care Dashboard* deck
+([spec](../reference/suicide-care-dashboard-spec.md),
+[plan](suicide-care-dashboard.md)) reframes what "Stage 8 complete" means, and
+the reframing is worth recording here rather than only in the new plan.
+
+**Everything above is the process half.** All seven measures ask whether the
+pathway was followed. The deck's panel 10 asks a different question — did
+patients get better — and lists suicide attempts, ED visits, psychiatric
+hospitalizations, 988 referrals, crisis interventions, discharges, and average
+days per risk tier, as *monthly trends*.
+
+None of that is authorable from what stages 1–7 produce, which breaks the core
+insight at the top of this doc in one specific way: **"every measure is a query
+over artifacts stages 1–7 already produce" is true of process measures and false
+of outcome measures.** ED visits and hospitalizations need `Encounter`, which
+SPiER emits nowhere (the scenarios' `encounters` key is walkthrough narration,
+deliberately not FHIR). Attempts must come from a clinician-asserted `Condition`
+or an Encounter, because `suicide-related-conditions.fsh` refuses to derive a
+Condition from a screen. And monthly trends need either N `MeasureReport`s or a
+different report shape than the single-period snapshot this stage emits.
+
+So the honest status is: **Stage 8's process half is built; its outcome half is
+unmodeled and unscheduled.** That is not a defect in the work above — outcome
+measurement genuinely needs resources outside the pathway — but "Stage 8 done"
+should not be read as "measurement done."
+
+Two smaller corrections the deck also forces:
+
+- **Panel 9 states a numeric goal for all eight of its measures; SPiER encodes
+  targets on none.** R4 `Measure` has no target element, so this needs an
+  extension or a display-layer table.
+- **"Positive PHQ-9 with Same-Day C-SSRS" is not `SPiERScreenToAssessment`.**
+  The deck means a calendar-day boundary; measure 1 implements a rolling 24
+  hours. They disagree for a 9pm screen, and the deck's version is the stricter
+  one. A same-day variant is a small change to the CQL and the criterion, but it
+  is a change, not a reuse.
+
 ## Scope
 
 Definitional only: Measures, the CQL library, MeasureReport examples, the four
