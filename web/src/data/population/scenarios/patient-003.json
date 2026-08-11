@@ -6,18 +6,118 @@
       "completedAt": "2026-05-15T09:30:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p003-phq9",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
         "item": [
-          { "linkId": "q1", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
-          { "linkId": "q2", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
-          { "linkId": "q3", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
-          { "linkId": "q4", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] },
-          { "linkId": "q5", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
-          { "linkId": "q6", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
-          { "linkId": "q7", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
-          { "linkId": "q8", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6568-5", "display": "Not at all" } }] },
-          { "linkId": "q9", "answer": [{ "valueCoding": { "system": "http://loinc.org", "code": "LA6569-3", "display": "Several days" } }] }
+          {
+            "linkId": "q1",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q2",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q3",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6568-5",
+                  "display": "Not at all"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q4",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q5",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6568-5",
+                  "display": "Not at all"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q6",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6568-5",
+                  "display": "Not at all"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q7",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6568-5",
+                  "display": "Not at all"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q8",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6568-5",
+                  "display": "Not at all"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "q9",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          }
         ]
       }
     }
@@ -26,26 +126,102 @@
     {
       "resourceType": "Observation",
       "id": "p003-phq9-total",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44261-6", "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]" }], "text": "Patient Health Questionnaire 9 item total score" },
-      "subject": { "reference": "Patient/patient-003" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "44261-6",
+            "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
+          }
+        ],
+        "text": "Patient Health Questionnaire 9 item total score"
+      },
+      "subject": {
+        "reference": "Patient/patient-003"
+      },
       "effectiveDateTime": "2026-05-15T09:30:00Z",
       "valueInteger": 4,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "N", "display": "Normal" }], "text": "Minimal depression (score 4/27)" }]
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "N",
+              "display": "Normal"
+            }
+          ],
+          "text": "Minimal depression (score 4/27)"
+        }
+      ]
     },
     {
       "resourceType": "Observation",
       "id": "p003-phq9-item9",
-      "meta": { "tag": [{ "system": "http://spier.org/CodeSystem/spier-pathway-stage", "code": "identify-possible-risk" }] },
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
       "status": "final",
-      "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "survey" }] }],
-      "code": { "coding": [{ "system": "http://loinc.org", "code": "44260-8", "display": "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]" }], "text": "Thoughts that you would be better off dead or of hurting yourself" },
-      "subject": { "reference": "Patient/patient-003" },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "44260-8",
+            "display": "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]"
+          }
+        ],
+        "text": "Thoughts that you would be better off dead or of hurting yourself"
+      },
+      "subject": {
+        "reference": "Patient/patient-003"
+      },
       "effectiveDateTime": "2026-05-15T09:30:00Z",
       "valueInteger": 1,
-      "interpretation": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "A", "display": "Abnormal" }], "text": "Positive — suicide risk screening indicated" }]
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "A",
+              "display": "Abnormal"
+            }
+          ],
+          "text": "Positive \u2014 suicide risk screening indicated"
+        }
+      ]
     }
   ],
   "carePlans": [],
@@ -55,7 +231,10 @@
       "level": "moderate",
       "summary": "PHQ-9 Item 9 positive (score: 1/3)",
       "detail": "Patient endorsed thoughts of death or self-harm. Total PHQ-9 score: 4/27 (Minimal). Further suicide risk assessment recommended.",
-      "suggestedAction": { "label": "Start ASQ Screening", "path": "/patient/assessments/asq" }
+      "suggestedAction": {
+        "label": "Start ASQ Screening",
+        "path": "/patient/assessments/asq"
+      }
     }
   ]
 }

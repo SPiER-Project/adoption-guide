@@ -6,6 +6,7 @@
       "completedAt": "2026-03-13T10:15:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p001-phq9",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
         "encounter": {
@@ -129,6 +130,7 @@
       "completedAt": "2026-03-13T10:35:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p001-asq",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
         "encounter": {
@@ -214,6 +216,7 @@
       "completedAt": "2026-03-14T11:00:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p001-cams-a",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
         "encounter": {
@@ -352,6 +355,7 @@
       "completedAt": "2026-03-15T14:00:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p001-sb",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
         "encounter": {

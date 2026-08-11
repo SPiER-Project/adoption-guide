@@ -158,3 +158,97 @@ export function artifactCount(b: ArtifactBuckets): number {
   )
 }
 
+
+// ─── Walkthrough artifact references (#263 phase 5b) ─────────
+
+/** One artifact a walkthrough step produced, resolved for display. */
+export interface RelatedArtifact {
+  ref: string
+  name: string
+  resourceType: string
+}
+
+/**
+ * `Type/id` → display, for every artifact a walkthrough step can reference.
+ *
+ * Extracted from PatientChart so it can be tested: the string matching this
+ * replaced (`relatedResponseNames` by display name, `relatedCarePlanIdSubstrings`
+ * by id substring) reached only responses and CarePlans, and broke silently when
+ * either was renamed.
+ *
+ * QuestionnaireResponses are keyed by the StoredResponse wrapper id, which is the
+ * identity the app gives them — `PatientProvider.addResponse` sets
+ * `resource.id = entry.id`, and the scenario fixtures now match.
+ */
+/**
+ * A label for one referenced artifact.
+ *
+ * `workflowArtifactDisplay` has no `Observation` or `Communication` case and its
+ * default returns the bare resourceType, which reads as "Observation ·
+ * Observation" in the walkthrough list. Handled here rather than by widening that
+ * function, which other chart surfaces already depend on.
+ */
+function refLabel(resource: FhirResourceLike): string {
+  const r = resource as RenderableResource & {
+    category?: CodeableConcept[]
+    reasonCode?: CodeableConcept[]
+  }
+  if (resource.resourceType === 'Observation') {
+    return (
+      r.code?.text ??
+      r.code?.coding?.[0]?.display ??
+      scoreSummaryOf([resource]) ??
+      'Observation'
+    )
+  }
+  if (resource.resourceType === 'Communication') {
+    // The first category with prose; the #262 concept-domain category is coded
+    // only, so it is skipped rather than shown as the name.
+    return (
+      r.category?.find((c) => c?.text)?.text ??
+      r.reasonCode?.find((c) => c?.text)?.text ??
+      'Communication'
+    )
+  }
+  return workflowArtifactDisplay(resource).name
+}
+
+export function buildWalkthroughRefIndex(buckets: ArtifactBuckets): Map<string, RelatedArtifact> {
+  const index = new Map<string, RelatedArtifact>()
+  const add = (resourceType: string, id: unknown, name: string) => {
+    if (typeof id !== 'string' || !id) return
+    const ref = `${resourceType}/${id}`
+    index.set(ref, { ref, name, resourceType })
+  }
+
+  for (const r of buckets.responses) {
+    // Prefer the QR's own id — that is what a `QuestionnaireResponse/<id>`
+    // reference resolves against — falling back to the wrapper id for a
+    // persisted slice authored before the two were kept in step.
+    const qrId = (r.resource as { id?: string })?.id ?? r.id
+    add('QuestionnaireResponse', qrId, r.questionnaireName ?? 'QuestionnaireResponse')
+  }
+  for (const cp of buckets.carePlans) {
+    add('CarePlan', cp.id, carePlanDisplayName(cp as RenderableResource))
+  }
+  for (const o of buckets.observations) {
+    add('Observation', o.id, refLabel(o))
+  }
+  for (const resource of [...buckets.communications, ...buckets.workflowArtifacts]) {
+    if (!resource.resourceType) continue
+    add(resource.resourceType, resource.id, refLabel(resource))
+  }
+  return index
+}
+
+/**
+ * Resolve a step's references, dropping any that point at nothing rather than
+ * rendering a dead row. `check-scenario-resources.mjs` is what stops an
+ * unresolvable reference shipping in the first place.
+ */
+export function resolveRelatedRefs(
+  refs: string[] | undefined,
+  index: Map<string, RelatedArtifact>,
+): RelatedArtifact[] {
+  return (refs ?? []).map((ref) => index.get(ref)).filter((a): a is RelatedArtifact => !!a)
+}

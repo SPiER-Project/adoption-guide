@@ -6,6 +6,7 @@
       "completedAt": "2026-05-14T10:00:00Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
+        "id": "p009-cams-therapeutic-s4",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet",
         "encounter": {

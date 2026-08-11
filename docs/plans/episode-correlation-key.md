@@ -19,7 +19,7 @@ survive contact with R4.
 | 3 — episode → trigger reference | **Done.** `episode-trigger` extension + the IG's first FHIRPath invariant. |
 | 4 — runtime (recorder stamps encounter, episode opens on positive screen) | **Done.** lib/encounters.ts + the three write funnels; episode auto-opens with its trigger. |
 | 5a — retire the CarePlan id regex | **Done.** Replaced by a profile → stage map keyed on the generated `CarePlanProfileUrl` union. |
-| 5b — retire the walkthrough string matching | **Not started.** `relatedResponseNames` / `relatedCarePlanIdSubstrings` still match by name and id substring. |
+| 5b — retire the walkthrough string matching | **Done.** `relatedRefs` (FHIR `Type/id`), gated; the two retired fields are now a build failure. |
 | 6 — document the retrieval path in the IG | Not started. |
 
 Two facts found while implementing phase 1 change what is written below, and are
