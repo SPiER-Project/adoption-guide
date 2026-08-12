@@ -124,11 +124,26 @@ narrates it. `--check` asserts that declaration in both directions:
 
 It is an allowlist with reasons, not a coverage count — a pinned number churns
 and trains people to bump it, which is what a stale `check:codings` floor
-already did in #232. Declared un-narrated today: the four original steps 11.2-1B,
-11.3-1E, 11.4-0B and 11.5-1C, plus every proposed step (the demo cannot narrate
-a step the scenario has not adopted). Each carries its reason in the JSON.
-Closing one means deleting its `walkthroughGapReason` and adding the narration;
-the gate then requires the two to move together.
+already did in #232.
+
+A gap declares a `walkthroughGapKind`, because two very different things were
+being conflated and the backlog could never converge:
+
+- `not-narrated` — a to-do on patient-011. Four today: 11.2-1B, 11.3-1E,
+  11.4-0B, 11.5-1C. Closing one means deleting its `walkthroughGapReason` and
+  adding the narration; the gate requires the two to move together.
+- `branch-exclusive` — **cannot** be closed on patient-011 at any point,
+  because the step describes a course Maria did not take. Five today: she was
+  staff-screened (11.2-1C), completed the screener (11.2-1D), screened positive
+  (11.2-2D), and was discharged home rather than admitted (11.5-1D) or eloping
+  (11.5-1E). Narrating these needs a **second ED patient**.
+
+`--check` prints the split on every run.
+
+A narrated proposal must also agree with the chart: the walkthrough entry needs
+`proposed: true` wherever the scenario step is `spier-proposed`, so the running
+demo cannot present a SPiER proposal as settled. The chart shows it as a
+`proposed step` tag beside the existing `profile gap` tag.
 
 This drift was real and invisible before the gate existed: 24 of 27 steps were
 narrated, and one walkthrough step (`11.7-1A-confirm`) belonged to no scenario.
