@@ -86,6 +86,24 @@ thing and fails in a fresh worktree:
 npx fsh-sushi .        # compile FSH → fsh-generated/resources/
 ```
 
+⚠️ **A clean SUSHI run is not a quiet one, and has not been since #271.** That PR
+sliced `.category` on 28 profiles, so every example Instance setting a standard
+category by numeric index emits an advisory warning — 31 of them today,
+deliberately, for reasons argued in `ig/input/fsh/concept-layer.fsh`. Do not
+silence them. The cost is that the 32nd, *real* warning arrives invisible, so
+from the repo root:
+```
+node scripts/check-sushi-output.mjs        # compile ig/ and gate the warning SHAPE
+node scripts/check-sushi-output.mjs <log>  # gate an already-captured compile log
+```
+It asserts the **shape** of every warning against a reasoned allowlist, never a
+count (a pinned number churns on each new Instance and trains people to bump it
+— what a stale `check:codings` floor already did in #232), and reconciles its own
+parse against SUSHI's `N Errors / N Warnings` summary so a change in SUSHI's
+output format fails loudly instead of passing vacuously. `ig.yml` runs it on the
+tee'd output of its compile step; a new expected warning belongs in `ALLOWED`,
+with the reason it is expected.
+
 At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
 caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
 ```
@@ -143,7 +161,7 @@ different classes of problem, and a clean SUSHI run implies none of the others:
 
 | Gate | Catches | Where |
 |---|---|---|
-| `npx fsh-sushi .` | FSH syntax, unresolved FSH references | `ig.yml` |
+| `npx fsh-sushi .` | FSH syntax, unresolved FSH references — plus, via `scripts/check-sushi-output.mjs`, any warning that is not the one expected advisory | `ig.yml` |
 | `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
 | IG Publisher | FHIRPath invariants, narrative link integrity, **everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types), **and CQL→ELM translation** of `ig/input/cql` (gated on `path-binary` — see below) | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
 | `node scripts/check-fml.mjs` | FML syntax + the Stanley-Brown map still producing the CarePlan the runtime produces | `fml-validate.yml` |
