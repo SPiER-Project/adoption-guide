@@ -15,6 +15,13 @@
  * So this gate asserts the two invariants that keep it from happening again:
  * one header implementation, and one owner of the page inset.
  *
+ * Two families are covered, and they are found in different ways. The lenses
+ * (src/pages) are a declared allowlist, because which pages own a header is a
+ * decision. The form views (src/components — every assessment and workflow
+ * recorder) are *derived* from the form layout they render, because "is this a
+ * drill-in page" is a fact about the markup, and deriving it means a new view is
+ * covered without anyone remembering to list it.
+ *
  * It reads source text — no bundler, no DOM. That buys it a place in `verify`
  * (offline, sub-second) at the cost of the limits called out on RULE 4 below.
  *
@@ -29,9 +36,11 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const PAGES_DIR = join(ROOT, 'src/pages')
-const CSS_DIR = join(ROOT, 'src/css')
+const SRC_DIR = join(ROOT, 'src')
 const HEADER_TSX = 'src/components/PageHeader.tsx'
-const HEADER_CSS = 'PageHeader.css'
+// Paths are relative to src/, since the CSS walk covers all of it (App.css and
+// index.css included) rather than src/css/ alone.
+const HEADER_CSS = 'css/PageHeader.css'
 
 /**
  * The pages that own a page header, and why only these.
@@ -94,9 +103,8 @@ function outletWrapperClasses(src) {
 /** Page-root and layout-wrapper classes: the containers the shell's inset owns. */
 const containers = new Map() // class → the file that declares it
 
-for (const file of pageFiles) {
-  const src = readFileSync(join(PAGES_DIR, file), 'utf8')
-
+/** Rules every templated page obeys, whichever family it belongs to. */
+function checkSharedRules(file, src) {
   // RULE 1 — one header implementation. The markup lives in PageHeader.tsx, so
   // nowhere else may name its classes; a hand-rolled copy is how a "variant"
   // gets in without touching the component.
@@ -117,6 +125,11 @@ for (const file of pageFiles) {
     const line = src.slice(0, h2.index).split('\n').length
     fail(`${file}:${line}: renders a raw <h2> — the page title comes from <PageHeader>; section headings start at <h3>`)
   }
+}
+
+for (const file of pageFiles) {
+  const src = readFileSync(join(PAGES_DIR, file), 'utf8')
+  checkSharedRules(file, src)
 
   // RULE 3 — exactly the declared lenses render a header.
   const rendersHeader = /<PageHeader\b/.test(src)
@@ -135,6 +148,47 @@ for (const file of pageFiles) {
 
 for (const file of Object.keys(LENSES)) {
   if (!pageFiles.includes(file)) fail(`LENSES names ${file}, which no longer exists under src/pages`)
+}
+
+// ── The form views ────────────────────────────────────────────────────────────
+//
+// The drill-in pages under the Patient View lens — every assessment and every
+// workflow recorder — live in src/components rather than src/pages, because the
+// routes point straight at them. They are recognized by the layout they render
+// (`.form-wrapper`, the card-beside-debug-sidebar row) rather than by a list:
+// membership is *derived*, so a thirteenth view is covered the day it is written
+// and there is no allowlist to forget to add it to.
+//
+// All twelve used to render a `.breadcrumb` trail above a card whose header held
+// the page title — a second trail implementation and a third place a title could
+// live. RULE 4 says a view that uses the form layout must sit in a `.form-view`
+// root and take its header from the template.
+const COMPONENTS_DIR = join(ROOT, 'src/components')
+const FORM_LAYOUT = 'form-wrapper'
+const FORM_ROOT = 'form-view'
+
+const formViews = readdirSync(COMPONENTS_DIR)
+  .filter(f => f.endsWith('.tsx') && !f.endsWith('.test.tsx'))
+  .filter(f => readFileSync(join(COMPONENTS_DIR, f), 'utf8').includes(`className="${FORM_LAYOUT}"`))
+  .sort()
+
+if (formViews.length === 0) {
+  fail(`no form views found (nothing renders className="${FORM_LAYOUT}") — either they were renamed, in which case fix this check, or nothing here was verified`)
+}
+
+for (const file of formViews) {
+  const src = readFileSync(join(COMPONENTS_DIR, file), 'utf8')
+  checkSharedRules(file, src)
+
+  const roots = rootClasses(file, src)
+  if (!roots.includes(FORM_ROOT)) {
+    fail(`${file}: renders the form layout but its root is \`${roots.join(' ') || '(none)'}\` — a form view's root is \`${FORM_ROOT}\`, so the header can sit above the layout instead of becoming a flex item in it`)
+  }
+  if (!/<PageHeader\b/.test(src)) {
+    fail(`${file}: is a form view but renders no <PageHeader> — every drill-in page states where it is and how to get back out`)
+  }
+
+  for (const cls of roots) containers.set(cls, file)
 }
 
 // ── CSS walking ───────────────────────────────────────────────────────────────
@@ -179,11 +233,30 @@ function* styleRules(css, offset = 0, nested = false) {
 const PADDING = /(^|[;{\s])padding(-(top|right|bottom|left|inline|block)(-(start|end))?)?\s*:/
 const lineOf = (src, index) => src.slice(0, index).split('\n').length
 
-const cssFiles = readdirSync(CSS_DIR).filter(f => f.endsWith('.css')).sort()
+/**
+ * Every stylesheet under src/, not just src/css/.
+ *
+ * This walked `src/css/*.css` alone at first, and a planted
+ * `.form-view { padding: … }` — padding on a page root, the exact defect RULE 4b
+ * exists for — passed green, because `.form-view` is declared in `src/App.css`
+ * and App.css and index.css sit *beside* that directory rather than in it. Two
+ * of the app's largest stylesheets were never read.
+ */
+function cssFilesUnder(dir, prefix = '') {
+  const out = []
+  for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name
+    if (entry.isDirectory()) out.push(...cssFilesUnder(join(dir, entry.name), rel))
+    else if (entry.name.endsWith('.css')) out.push(rel)
+  }
+  return out
+}
+
+const cssFiles = cssFilesUnder(SRC_DIR)
 let shellPadsThePage = false
 
 for (const file of cssFiles) {
-  const src = readFileSync(join(CSS_DIR, file), 'utf8')
+  const src = readFileSync(join(SRC_DIR, file), 'utf8')
   for (const rule of styleRules(src)) {
     const selectors = rule.selector.split(',').map(s => s.trim())
     const pads = PADDING.test(rule.body)
@@ -197,7 +270,12 @@ for (const file of cssFiles) {
 
       // RULE 1 (CSS half) — no page-header rules outside PageHeader.css, so a
       // per-page override cannot reintroduce a variant from the stylesheet side.
-      if (/\.page-header\b/.test(selector) && file !== HEADER_CSS) {
+      // No trailing `\b`, for the same reason as the TSX half above: it would
+      // miss `.page-header__title`, since `_` is a word character. A planted
+      // `.population-view .page-header__title { color: … }` — a per-page
+      // override of the shared header, exactly what this forbids — passed green
+      // until the boundary came off.
+      if (/\.page-header/.test(selector) && file !== HEADER_CSS) {
         fail(`${at}: \`${selector}\` styles the shared header from outside ${HEADER_CSS} — the template has no per-page variants`)
       }
 
@@ -239,6 +317,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `✓ page template: ${pageFiles.length} pages, ${Object.keys(LENSES).length} lens headers, ` +
+  `✓ page template: ${pageFiles.length} pages (${Object.keys(LENSES).length} lens headers), ` +
+    `${formViews.length} form views, ` +
     `${containers.size} containers checked against ${cssFiles.length} stylesheets`,
 )

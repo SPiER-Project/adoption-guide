@@ -3,21 +3,14 @@
    (non-Questionnaire entry surface — issue #52)
    =========================== */
 
-.workflow-form-header {
-  margin-bottom: var(--space-4);
-}
-
+/* Heading for a list of existing records inside the card ("Caring contacts on
+   this chart"). It used to double as the card's own page-level title, above a
+   `.workflow-form-subtitle` — both of those are the shared PageHeader's job now,
+   and the `.workflow-form-header` wrapper that held them is gone with them. */
 .workflow-form-title {
   margin: 0 0 var(--space-2) 0;
   font-size: var(--font-size-lg);
   color: var(--text-strong);
-}
-
-.workflow-form-subtitle {
-  margin: 0;
-  font-size: var(--font-size-md);
-  color: var(--text-muted);
-  line-height: 1.5;
 }
 
 .workflow-form-hint {
