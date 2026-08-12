@@ -1,8 +1,8 @@
 # Handoff — next session
 
-Rewritten 2026-08-11, after the gate-hardening pass, #272 and #304. `main` was at
-**fb5e5cb** when this was written — and moved four times during the session, so
-check rather than trust that.
+Rewritten 2026-08-11, after the gate-hardening pass, #272, #304 and #281. `main`
+was at **cb777fa** when this was written — and moved six times during the session,
+so check rather than trust that.
 
 ⚠️ **The previous version of this file was never committed.** It sat in one
 worktree, on an already-merged branch, and no fresh session could see it — a
@@ -40,13 +40,15 @@ Closed: #260, #262, #263, #265, #302.
 | #309 (9e24ab1) | #273 | The *shape* of SUSHI's warnings, so the next real one is not invisible |
 | #311 (411eeae) | #272 | The concept-domain tag on `Appointment.serviceCategory`; `EpisodeOfCare` and `Task` deliberately untouched |
 | #314 (78f546e) | #304 | The 11.7-2A/2B naming swap — step titles moved, artifacts left alone |
+| #317 (cb777fa) | #281 | Dictionary ValueSet canonicals rendered as links; `Binding.value.valueSet` shown at all |
 
-All four merged, all four issues closed, and each gate was seen *running* on
+All five merged, all five issues closed, and each gate was seen *running* on
 merged `main` rather than merely present: `lint-css` prints `116 defined … 115
-distinct referenced … css-token check passed`, and the `sushi` job prints
-`31 × sliced-category-numeric-index — expected`.
+distinct referenced … css-token check passed`, the `sushi` job prints
+`31 × sliced-category-numeric-index — expected`, and `check:catalog` prints
+`all 12 SPiER-local ValueSet(s) referenced have a generated definition`.
 
-⚠️ **Four PRs landed from other sessions while this one ran**, none reviewed here:
+⚠️ **Five PRs landed from other sessions while this one ran**, none reviewed here:
 
 - **#310** — "Stop re-rendering an IG that did not change on every deploy", a keyed
   cache around `deploy.yml`'s IG render. #311 merged on top of it and the combined
@@ -61,13 +63,27 @@ distinct referenced … css-token check passed`, and the `sushi` job prints
   spier-proposed` marking came from).
 - **#315** — narrated five of those proposed steps in `patient-011` and classified
   the rest; the walkthrough went 24 → 29 steps.
+- **#316** — the four guide lenses became one page template, with a new
+  `check:template` gate (`verify` is now **nine** drift checks; CLAUDE.md is
+  current on this). It landed *between* #317's CI run and #317's merge, so those
+  green checks had tested a merge with the older `main` — see the concurrency note
+  below.
 
 ⚠️ **`patient-011.json` and `ed-scenario-11.json` are under concurrent edit by
-other sessions** — three of those four PRs touched one or both, and two landed
+other sessions** — three of those five PRs touched one or both, and two landed
 *during* #304's review. #315 was purely additive so #304's titles survived, but I
 checked rather than assumed, and #300 is the precedent for why: it silently
 reverted a merged gate by rewriting a file from a stale base. **Diff against the
 merge-base before trusting any edit to those two files.**
+
+⚠️ **A PR's green checks are only as current as the run.** `pull_request` CI tests
+the merge with `main` **as it stood when the run happened** — not at merge time. So
+a PR that sits through review is not tested against whatever landed meanwhile:
+#316 added a new gate (`check:template`) over the very page #317 was editing, and
+#317's checks predated it. Nothing broke, and the **post-merge** run on `main` is
+what established that — it exercised the new gate against the new page and printed
+`✓ page template: 12 pages, 4 lens headers, 13 containers`. **Watch the post-merge
+run, not just the PR's, whenever anything landed during review.**
 
 **#308 — `web/scripts/check-css-tokens.mjs`, wired into `npm run verify` (now
 **eight** drift checks) and `web-lint.yml`'s fast `lint-css` job.** `lint:css`
@@ -139,6 +155,25 @@ The rationale per row lives in `docs/plans/episode-correlation-key.md` §7 under
   own step text was never swapped. An issue's premises go stale in both directions
   — this one had become *easier*, the same way #273's count had drifted.
 
+**#317 — the dictionary's ValueSet canonicals are links now.** `valueSetHref` /
+`valueSetLabel` in `dataElements.ts` are siblings of `codeHref` / `systemLabel` and
+carry the same contract: derived from the canonical, never hand-written, and
+`undefined` when there is nowhere honest to point (external ValueSets return
+undefined rather than guessing another publisher's URL pattern). Three notes:
+
+- **`check:catalog` became load-bearing rather than aspirational.** Its comment had
+  justified the gate by a rendering that did not exist; now that both
+  `Concept.valueSet` and `Binding.value.valueSet` are links, that gate is the only
+  thing between a renamed ValueSet id and a 404 in the published IG. The comment
+  says so.
+- **The `ig/<Type>-<id>.html` convention was checked against the live IG**, not
+  assumed from `codeHref`'s parity — two canonicals fetched, both serving real
+  expansions. Do the same before adding a third link type.
+- **`dataElements.test.ts` is new** and sweeps *every* canonical in the catalog for
+  a resolvable href, because one that yields none degrades silently to plain text —
+  the exact defect #281 closed. Add an external ValueSet and it goes red on
+  purpose, forcing a decision about how to link it.
+
 ## Three things to know before touching the correlation area
 
 1. **`ig.yml`'s `validate` job now validates runtime output.** It runs
@@ -160,29 +195,29 @@ The rationale per row lives in `docs/plans/episode-correlation-key.md` §7 under
 
 ## Open issues, with my read on each
 
-**There is no obvious next pick left.** #272, #273, #280 and #304 are all merged,
-and nothing in the remaining list is both unblocked and substantial. What follows
-is the honest inventory; picking from it is a prioritisation call, not a discovery
-one. Note that **#303 is the one item that is explicitly not mine to decide** — it
-is a scenario-authoring judgement about what `p007-stanley-brown` is supposed to
-represent.
+**The unblocked list is empty of code work.** #272, #273, #280, #281 and #304 are
+all merged. What is left is one decision that is not an agent's to make, one item
+blocked on clinical sign-off, and three nobody has triaged — so the next session
+either takes a decision to Brad, or works up a read on the untriaged three. That is
+a prioritisation call, not a discovery one.
 
-### Small data/doc cleanups
+### Needs a human decision, not a patch
 
 - **#303 — `p007-stanley-brown` is a stub** (no `activity`) named after a profile it
-  doesn't conform to. Currently *limits* how strong #289's invariant can be: it's
-  why `spier-episode-trigger-on-positive-screen` covers only `positive-screen` and
-  not `elevated-assessment`. Renaming is probably right, but it's a scenario-authoring
-  call.
-- **#281 — dictionary ValueSet canonicals are gated but barely rendered.** Pairs
-  naturally with #264 since it's the same table.
+  doesn't conform to. It *limits* how strong #289's invariant can be: it is why
+  `spier-episode-trigger-on-positive-screen` covers only `positive-screen` and not
+  `elevated-assessment`. Renaming is probably right, but which way depends on what
+  that fixture is meant to represent — a scenario-authoring judgement. **Do not
+  guess it; ask.**
 
 ### Blocked
 
 - **#264 — crosswalk fidelity in the data dictionary.** Needs #77's clinical
   sign-off, which is not a code task. The `fidelity`-derived-from-ConceptMap part
   could land early, but presenting fidelity as settled is the failure mode the issue
-  warns about.
+  warns about. #317 left it the obvious landing spot: the value cell in both binding
+  tables now carries the system and the bindable set, and fidelity qualifies exactly
+  that pair. No column was stubbed for it — an empty column is a claim of its own.
 
 ### Open but not assessed in this pass
 
