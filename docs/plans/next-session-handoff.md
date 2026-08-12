@@ -1,7 +1,7 @@
 # Handoff — next session
 
 Rewritten 2026-08-11, after the gate-hardening pass that followed the first
-version of this file. `main` is at **d4c8a8e** plus this commit.
+version of this file. `main` is at **9e24ab1**.
 
 ⚠️ **The previous version of this file was never committed.** It sat in one
 worktree, on an already-merged branch, and no fresh session could see it — a
@@ -31,15 +31,18 @@ the corrections to #263's original premises).
 
 Closed: #260, #262, #263, #265, #302.
 
-## In flight — two gates, both green, both awaiting review
+## Two gates that just landed
 
 | PR | Issue | What it gates |
 |---|---|---|
-| #308 | #280 | Every `var(--token)` under `web/src` resolves to a real definition |
-| #309 | #273 | The *shape* of SUSHI's warnings, so the next real one is not invisible |
+| #308 (b429a67) | #280 | Every `var(--token)` under `web/src` resolves to a real definition |
+| #309 (9e24ab1) | #273 | The *shape* of SUSHI's warnings, so the next real one is not invisible |
 
-Neither touches app behaviour, FSH, or CSS. If they are merged, the notes below
-are already true; if not, they describe what those branches do.
+Both merged, both issues closed. Neither touched app behaviour, FSH, or CSS.
+Verified running on merged `main`, not merely present: `lint-css` prints
+`116 defined … 115 distinct referenced … css-token check passed`, and the `sushi`
+job prints `31 × sliced-category-numeric-index — expected`. So everything below
+is current.
 
 **#308 — `web/scripts/check-css-tokens.mjs`, wired into `npm run verify` (now
 **eight** drift checks) and `web-lint.yml`'s fast `lint-css` job.** `lint:css`
