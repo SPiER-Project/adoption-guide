@@ -7,6 +7,8 @@ import {
   bindingsForConcept,
   systemLabel,
   codeHref,
+  valueSetHref,
+  valueSetLabel,
   type Coding,
   type Binding,
   type Concept,
@@ -109,6 +111,33 @@ function SystemCell({ system, note }: { system: string; note?: string }) {
 }
 
 /**
+ * The bindable ValueSet a coded value is drawn from (#281).
+ *
+ * A system says which vocabulary the codes come from; the ValueSet says which
+ * subset of it is *allowed here*, which is the question an implementer building a
+ * picker actually has. 18 of the 24 value blocks name one and none of them
+ * reached the page before this.
+ *
+ * SPiER-local canonicals resolve inside our own published IG, so — like a
+ * SPiER-local code — this opens in the same tab. `check:catalog` proves the
+ * target exists, so an absent link means "no ValueSet named", never a broken one.
+ */
+function ValueSetLine({ canonical }: { canonical: string }) {
+  const href = valueSetHref(canonical)
+  const label = valueSetLabel(canonical)
+  return (
+    <span className="dd-valueset">
+      <span className="dd-valueset-label">bindable set</span>
+      {href ? (
+        <a className="dd-code-link" href={href} title={canonical}>{label}</a>
+      ) : (
+        <span title={canonical}>{label}</span>
+      )}
+    </span>
+  )
+}
+
+/**
  * Shared concepts, rendered above the stage tables.
  *
  * This section exists because of one concrete reading failure: LOINC 93374-7
@@ -171,7 +200,23 @@ function SharedConcepts({
                 <p className="dd-cell-desc">{concept.description}</p>
                 {concept.valueSet && (
                   <p className="dd-concept-valueset">
-                    Harmonized value set: <code>{concept.valueSet}</code>
+                    Harmonized value set:{' '}
+                    {/*
+                      Linked rather than printed as bare text (#281). The canonical
+                      stays in the title, because the URL is what someone pastes
+                      into their own terminology tooling.
+                    */}
+                    {valueSetHref(concept.valueSet) ? (
+                      <a
+                        className="dd-code-link"
+                        href={valueSetHref(concept.valueSet)}
+                        title={concept.valueSet}
+                      >
+                        {valueSetLabel(concept.valueSet)}
+                      </a>
+                    ) : (
+                      <code>{concept.valueSet}</code>
+                    )}
                   </p>
                 )}
                 <div className="dd-table-wrapper">
@@ -191,6 +236,7 @@ function SharedConcepts({
                           <td className="dd-cell-field">{b.name}</td>
                           <td className="dd-cell-system">
                             {b.value ? <SystemCell system={b.value.system} /> : '—'}
+                            {b.value?.valueSet && <ValueSetLine canonical={b.value.valueSet} />}
                           </td>
                           <td>
                             <span className={`dd-resource-badge dd-resource-badge--${b.fhirResource.toLowerCase()}`}>
@@ -371,6 +417,13 @@ export function DataDictionary() {
                         */}
                         {b.code && <SystemCell system={b.code.system} note={b.value ? 'code' : undefined} />}
                         {b.value && <SystemCell system={b.value.system} note="values" />}
+                        {/*
+                          The bindable set sits under the value system it narrows,
+                          not in a column of its own: only 18 of 24 value blocks
+                          name one, and an empty column reads as a missing set
+                          rather than as an unbound value.
+                        */}
+                        {b.value?.valueSet && <ValueSetLine canonical={b.value.valueSet} />}
                         {!b.code && !b.value && '—'}
                       </td>
                       <td>

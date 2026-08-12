@@ -339,6 +339,13 @@ if (dictSystems.size === 0) {
 // file than CodeSystems do. A `valueSet` pointing at nothing would render as a
 // bindable set on the page while the IG published no such set — the same class
 // of unbacked claim as a dead code link, so it is gated the same way.
+//
+// That sentence described a rendering that did not exist until #281: the page
+// showed `Concept.valueSet` as plain text and `Binding.value.valueSet` not at
+// all, so a stale canonical could not have misled anyone. Both are now LINKS
+// (`valueSetHref` in dataElements.ts → `ig/ValueSet-<id>.html`), which is what
+// makes this gate load-bearing rather than aspirational: it is the only thing
+// standing between a renamed ValueSet id and a 404 in the published IG.
 const dictValueSets = new Set(
   [...dictSrc.matchAll(/\bvalueSet: '([^']+)'/g)].map((m) => m[1]),
 )
