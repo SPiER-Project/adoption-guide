@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { PageHeader } from './PageHeader'
 import { makeId } from '../lib/id'
 import {
   buildSafetyReferral,
@@ -89,156 +90,156 @@ export function SafetyReferralView() {
   }
 
   return (
-    <div className="form-wrapper">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/chart">← Patient chart</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">Referral / Next Provider Handoff</span>
-      </nav>
-
-      <div className="form-card">
-        <header className="workflow-form-header">
-          <h2 className="workflow-form-title">Referral / Next Provider Handoff</h2>
-          <p className="workflow-form-subtitle">
+    <div className="form-view">
+      <PageHeader
+        eyebrow={['Patient View', 'Workflow']}
+        up="/patient/chart"
+        title="Referral / Next Provider Handoff"
+        lede={
+          <>
             Records a <strong>ServiceRequest</strong> tagged to the{' '}
             <strong>Coordinate Handoffs</strong> stage — trackable past <em>sent</em> through to
             accepted and completed, which is what the readiness checklist scores and what a
             Communication cannot express.
-          </p>
-        </header>
-
-        {activePatientId === null && (
-          <p className="workflow-form-hint">
-            No patient selected — this will be recorded in the scratch chart. Pick a patient from the
-            Population view to attach it to a specific record.
-          </p>
-        )}
-
-        <form className="workflow-form" onSubmit={handleSubmit}>
-          <label className="workflow-field">
-            <span className="workflow-field-label">Reason for referral</span>
-            <select
-              className="workflow-input"
-              value={reason}
-              onChange={e => setReason(e.target.value)}
-            >
-              {REFERRAL_REASONS.map(r => (
-                <option key={r.code} value={r.code}>{r.display}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="workflow-field">
-            <span className="workflow-field-label">Receiving provider / team</span>
-            <input
-              type="text"
-              className="workflow-input"
-              placeholder="e.g. Riverside Behavioral Health"
-              value={performer}
-              onChange={e => setPerformer(e.target.value)}
-            />
-          </label>
-
-          <label className="workflow-field">
-            <span className="workflow-field-label">
-              What is being requested{' '}
-              <span className="workflow-field-optional">(optional)</span>
-            </span>
-            <input
-              type="text"
-              className="workflow-input"
-              placeholder="e.g. Referral to outpatient behavioral health"
-              value={serviceText}
-              onChange={e => setServiceText(e.target.value)}
-            />
-          </label>
-
-          <label className="workflow-field">
-            <span className="workflow-field-label">Status</span>
-            <select
-              className="workflow-input"
-              value={status}
-              onChange={e => setStatus(e.target.value)}
-            >
-              {REFERRAL_STATUSES.map(s => (
-                <option key={s.code} value={s.code}>{s.display}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="workflow-field">
-            <span className="workflow-field-label">
-              Notes <span className="workflow-field-optional">(optional)</span>
-            </span>
-            <textarea
-              className="workflow-input workflow-textarea"
-              rows={3}
-              placeholder="Warm-handoff detail, accepting clinician, how contact was confirmed."
-              value={note}
-              onChange={e => setNote(e.target.value)}
-            />
-          </label>
-
-          <button type="submit" className="workflow-submit-btn">Record referral</button>
-        </form>
-
-        {notice && (
-          <div className="workflow-success-notice">
-            {notice} <Link to="/patient/chart#activity">View in chart</Link>
-          </div>
-        )}
-
-        {serviceRequests.length > 0 && (
-          <>
-            <h3 className="workflow-form-title">
-              Referrals on this chart
-              {openReferrals.length > 0 ? ` — ${openReferrals.length} open` : ''}
-            </h3>
-            <ul>
-              {serviceRequests.map((raw, idx) => {
-                const referral = raw as ServiceRequestResource & {
-                  status?: string
-                  authoredOn?: string
-                  code?: { text?: string }
-                }
-                const open = isReferralOpen(referral)
-                return (
-                  <li key={referral.id ?? idx}>
-                    {referral.code?.text ?? 'Suicide-safety referral'}
-                    {referralPerformer(referral) ? ` → ${referralPerformer(referral)}` : ''}
-                    {referral.authoredOn ? ` · sent ${referral.authoredOn.slice(0, 10)}` : ''}
-                    {' · '}
-                    {displayFor(REFERRAL_STATUSES, referral.status ?? 'draft')}
-                    {open && (
-                      <>
-                        {' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => advance(referral, 'completed')}
-                        >
-                          Mark completed
-                        </button>{' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => advance(referral, 'revoked')}
-                        >
-                          Revoke
-                        </button>
-                      </>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
           </>
-        )}
-      </div>
+        }
+      />
 
-      <aside className="debug-sidebar">
-        <FhirJsonViewer data={draft} title="Live FHIR ServiceRequest" defaultOpen />
-      </aside>
+      <div className="form-wrapper">
+        <div className="form-card">
+          {activePatientId === null && (
+            <p className="workflow-form-hint">
+              No patient selected — this will be recorded in the scratch chart. Pick a patient from the
+              Population view to attach it to a specific record.
+            </p>
+          )}
+
+          <form className="workflow-form" onSubmit={handleSubmit}>
+            <label className="workflow-field">
+              <span className="workflow-field-label">Reason for referral</span>
+              <select
+                className="workflow-input"
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+              >
+                {REFERRAL_REASONS.map(r => (
+                  <option key={r.code} value={r.code}>{r.display}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="workflow-field">
+              <span className="workflow-field-label">Receiving provider / team</span>
+              <input
+                type="text"
+                className="workflow-input"
+                placeholder="e.g. Riverside Behavioral Health"
+                value={performer}
+                onChange={e => setPerformer(e.target.value)}
+              />
+            </label>
+
+            <label className="workflow-field">
+              <span className="workflow-field-label">
+                What is being requested{' '}
+                <span className="workflow-field-optional">(optional)</span>
+              </span>
+              <input
+                type="text"
+                className="workflow-input"
+                placeholder="e.g. Referral to outpatient behavioral health"
+                value={serviceText}
+                onChange={e => setServiceText(e.target.value)}
+              />
+            </label>
+
+            <label className="workflow-field">
+              <span className="workflow-field-label">Status</span>
+              <select
+                className="workflow-input"
+                value={status}
+                onChange={e => setStatus(e.target.value)}
+              >
+                {REFERRAL_STATUSES.map(s => (
+                  <option key={s.code} value={s.code}>{s.display}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="workflow-field">
+              <span className="workflow-field-label">
+                Notes <span className="workflow-field-optional">(optional)</span>
+              </span>
+              <textarea
+                className="workflow-input workflow-textarea"
+                rows={3}
+                placeholder="Warm-handoff detail, accepting clinician, how contact was confirmed."
+                value={note}
+                onChange={e => setNote(e.target.value)}
+              />
+            </label>
+
+            <button type="submit" className="workflow-submit-btn">Record referral</button>
+          </form>
+
+          {notice && (
+            <div className="workflow-success-notice">
+              {notice} <Link to="/patient/chart#activity">View in chart</Link>
+            </div>
+          )}
+
+          {serviceRequests.length > 0 && (
+            <>
+              <h3 className="workflow-form-title">
+                Referrals on this chart
+                {openReferrals.length > 0 ? ` — ${openReferrals.length} open` : ''}
+              </h3>
+              <ul>
+                {serviceRequests.map((raw, idx) => {
+                  const referral = raw as ServiceRequestResource & {
+                    status?: string
+                    authoredOn?: string
+                    code?: { text?: string }
+                  }
+                  const open = isReferralOpen(referral)
+                  return (
+                    <li key={referral.id ?? idx}>
+                      {referral.code?.text ?? 'Suicide-safety referral'}
+                      {referralPerformer(referral) ? ` → ${referralPerformer(referral)}` : ''}
+                      {referral.authoredOn ? ` · sent ${referral.authoredOn.slice(0, 10)}` : ''}
+                      {' · '}
+                      {displayFor(REFERRAL_STATUSES, referral.status ?? 'draft')}
+                      {open && (
+                        <>
+                          {' '}
+                          <button
+                            type="button"
+                            className="workflow-submit-btn"
+                            onClick={() => advance(referral, 'completed')}
+                          >
+                            Mark completed
+                          </button>{' '}
+                          <button
+                            type="button"
+                            className="workflow-submit-btn"
+                            onClick={() => advance(referral, 'revoked')}
+                          >
+                            Revoke
+                          </button>
+                        </>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
+          )}
+        </div>
+
+        <aside className="debug-sidebar">
+          <FhirJsonViewer data={draft} title="Live FHIR ServiceRequest" defaultOpen />
+        </aside>
+      </div>
     </div>
   )
 }

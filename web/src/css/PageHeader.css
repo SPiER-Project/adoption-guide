@@ -31,6 +31,20 @@
   opacity: 0.5;
 }
 
+/* The back-link on a drill-in page (`up`). Inherits the eyebrow's color, so the
+   trail reads as one object; the underline is what says the first segment is the
+   part you can click. */
+.page-header__up {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--brand-accent-faint);
+  text-underline-offset: 2px;
+}
+
+.page-header__up:hover {
+  text-decoration-color: var(--brand-accent);
+}
+
 /* Plum, not --text-strong: three of the four lenses used the neutral heading
    color and the front door used the brand. One of them had to win, and the
    brand is the one that makes a page title recognizable as a page title. */
@@ -63,14 +77,19 @@
   color: var(--text-body);
 }
 
-/* Keep the title on one line. A wrapped title makes the header taller on that
-   page alone, so the lenses stop lining up with each other — the same class of
-   inconsistency this file exists to remove. The longest title, "Adoption
-   Readiness", measures 247px at 24px Poppins; below 768px the sidebar collapses
-   to a drawer and the header's content box is the viewport minus 80px of chrome,
-   so 247px runs out at a 327px viewport — narrower than any mainstream phone
-   (360 and 375 both clear it). Step the size down just below that rather than
-   let it wrap. */
+/* Keeps the *lens* titles on one line. A wrapped title makes the header taller
+   on that page alone, and the eight guide sub-pages have to line up with each
+   other — that is the case this breakpoint is for. The longest of those titles,
+   "Adoption Readiness", measures 247px at 24px Poppins; below 768px the sidebar
+   collapses to a drawer and the header's content box is the viewport minus 80px
+   of chrome, so 247px runs out at a 327px viewport — narrower than any
+   mainstream phone (360 and 375 both clear it). Step the size down just below
+   that rather than let it wrap.
+
+   It does NOT keep every title on one line, and is not meant to: the form views
+   carry titles like "Safety Tasks — reassessment, care gaps, escalation", which
+   wraps to three lines at 375px. That is fine where this is not — each form view
+   is its own page with no sibling to line up against. */
 @media (max-width: 340px) {
   .page-header__title {
     font-size: var(--font-size-2xl);

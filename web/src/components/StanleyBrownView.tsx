@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
 import { generateCarePlan } from '../lib/carePlanMappers'
 import type { GeneratedCarePlan } from '../lib/carePlanMappers'
 import { CarePlanDisplay } from './CarePlanDisplay'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { PageHeader } from './PageHeader'
 import { usePatient } from '../context/PatientContext'
 import type { QuestionnaireResponseResource } from '../types/fhir'
 
@@ -33,37 +33,36 @@ export function StanleyBrownView() {
   }
 
   return (
-    <div className="form-wrapper">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/chart">← Patient chart</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">Stanley-Brown Safety Plan</span>
-      </nav>
-      <div className="form-card">
-        <Renderer
-          fhirVersion="r4"
-          // Renderer is generic over formbox's strict FHIR types; the raw imported
-          // Questionnaire JSON doesn't structurally match, so cast at this boundary.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          questionnaire={stanleyBrownQuestionnaire as any}
-          theme={theme}
-          onChange={(newResponse) => setResponse(newResponse as unknown as QuestionnaireResponseResource)}
-          onSubmit={(r) => handleSubmit(r as unknown as QuestionnaireResponseResource)}
-        />
-      </div>
+    <div className="form-view">
+      <PageHeader eyebrow={['Patient View', 'Assessment']} up="/patient/chart" title="Stanley-Brown Safety Plan" />
 
-      {carePlan && (
+      <div className="form-wrapper">
         <div className="form-card">
-          <CarePlanDisplay carePlan={carePlan} />
+          <Renderer
+            fhirVersion="r4"
+            // Renderer is generic over formbox's strict FHIR types; the raw imported
+            // Questionnaire JSON doesn't structurally match, so cast at this boundary.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            questionnaire={stanleyBrownQuestionnaire as any}
+            theme={theme}
+            onChange={(newResponse) => setResponse(newResponse as unknown as QuestionnaireResponseResource)}
+            onSubmit={(r) => handleSubmit(r as unknown as QuestionnaireResponseResource)}
+          />
         </div>
-      )}
 
-      <aside className="debug-sidebar">
-        <FhirJsonViewer data={stanleyBrownQuestionnaire} title="FHIR Questionnaire Definition" />
-        {response && !carePlan && (
-          <FhirJsonViewer data={response} title="Live FHIR QuestionnaireResponse" defaultOpen />
+        {carePlan && (
+          <div className="form-card">
+            <CarePlanDisplay carePlan={carePlan} />
+          </div>
         )}
-      </aside>
+
+        <aside className="debug-sidebar">
+          <FhirJsonViewer data={stanleyBrownQuestionnaire} title="FHIR Questionnaire Definition" />
+          {response && !carePlan && (
+            <FhirJsonViewer data={response} title="Live FHIR QuestionnaireResponse" defaultOpen />
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

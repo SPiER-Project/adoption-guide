@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import '../css/PageHeader.css'
 
 /**
@@ -30,6 +31,18 @@ interface PageHeaderProps {
    * three: an absent eyebrow is a layout difference, not just a missing label.
    */
   eyebrow: string | string[]
+  /**
+   * Route to the page's parent. Turns the *first* eyebrow segment into a link
+   * back to it, arrow included — so a drill-in page's way out is part of the
+   * trail that already names where it is, rather than a second component
+   * alongside it.
+   *
+   * The form views each carried their own `.breadcrumb` nav for this: a second
+   * trail implementation, sitting above the card whose header was a third place
+   * a title could live. A `to` rather than a free ReactNode segment on purpose —
+   * the trail stays text, and a caller cannot smuggle arbitrary markup into it.
+   */
+  up?: string
   /** The page title. Rendered as the page's only `<h2>`. */
   title: ReactNode
   /**
@@ -39,7 +52,7 @@ interface PageHeaderProps {
   lede?: ReactNode
 }
 
-export function PageHeader({ eyebrow, title, lede }: PageHeaderProps) {
+export function PageHeader({ eyebrow, up, title, lede }: PageHeaderProps) {
   const trail = Array.isArray(eyebrow) ? eyebrow : [eyebrow]
 
   return (
@@ -58,7 +71,16 @@ export function PageHeader({ eyebrow, title, lede }: PageHeaderProps) {
                 </span>{' '}
               </>
             )}
-            {part}
+            {i === 0 && up !== undefined ? (
+              <Link to={up} className="page-header__up">
+                {/* The arrow is inside the link so the whole affordance is one
+                    target, and aria-hidden so the accessible name stays the
+                    destination's name. */}
+                <span aria-hidden="true">←</span> {part}
+              </Link>
+            ) : (
+              part
+            )}
           </span>
         ))}
       </p>

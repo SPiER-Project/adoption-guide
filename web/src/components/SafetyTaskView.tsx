@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { PageHeader } from './PageHeader'
 import { makeId } from '../lib/id'
 import {
   buildSafetyTask,
@@ -95,139 +96,139 @@ export function SafetyTaskView() {
   }
 
   return (
-    <div className="form-wrapper">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/chart">← Patient chart</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">Safety Tasks</span>
-      </nav>
-
-      <div className="form-card">
-        <header className="workflow-form-header">
-          <h2 className="workflow-form-title">Safety Tasks — reassessment, care gaps, escalation</h2>
-          <p className="workflow-form-subtitle">
+    <div className="form-view">
+      <PageHeader
+        eyebrow={['Patient View', 'Workflow']}
+        up="/patient/chart"
+        title="Safety Tasks — reassessment, care gaps, escalation"
+        lede={
+          <>
             Records a <strong>Task</strong> tagged to the <strong>Track Risk Over Time</strong>{' '}
             stage. One shape serves all three tools; <em>Task.code</em> says which.
-          </p>
-        </header>
+          </>
+        }
+      />
 
-        {!openEpisode && (
-          <p className="workflow-form-hint">
-            No open episode — the task will be recorded without an episode link. Open one from{' '}
-            <Link to="/patient/workflow/risk-episode">Suicide-Risk Episode</Link> first so it rolls
-            up into the registry work queue.
-          </p>
-        )}
-
-        <form className="workflow-form" onSubmit={handleSubmit}>
-          <label className="workflow-field">
-            <span className="workflow-field-label">Task type</span>
-            <select className="workflow-input" value={taskType} onChange={e => setTaskType(e.target.value)}>
-              {SAFETY_TASK_TYPES.map(t => (
-                <option key={t.code} value={t.code}>{t.display}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="workflow-field">
-            <span className="workflow-field-label">Due date</span>
-            <input
-              type="date"
-              className="workflow-input"
-              value={dueDate}
-              onChange={e => setDueDate(e.target.value)}
-            />
-          </label>
-
-          <label className="workflow-field">
-            <span className="workflow-field-label">
-              Owner <span className="workflow-field-optional">(person or team)</span>
-            </span>
-            <input
-              type="text"
-              className="workflow-input"
-              placeholder="e.g. Care manager — J. Rivera"
-              value={owner}
-              onChange={e => setOwner(e.target.value)}
-            />
-          </label>
-
-          {isEscalation && (
-            <fieldset className="workflow-field">
-              <legend className="workflow-field-label">
-                Escalation triggers <span className="workflow-field-optional">(several may apply)</span>
-              </legend>
-              {ESCALATION_TRIGGERS.map(t => (
-                <label key={t.code}>
-                  <input
-                    type="checkbox"
-                    checked={triggers.includes(t.code)}
-                    onChange={() => toggleTrigger(t.code)}
-                  />{' '}
-                  {t.display}
-                </label>
-              ))}
-            </fieldset>
+      <div className="form-wrapper">
+        <div className="form-card">
+          {!openEpisode && (
+            <p className="workflow-form-hint">
+              No open episode — the task will be recorded without an episode link. Open one from{' '}
+              <Link to="/patient/workflow/risk-episode">Suicide-Risk Episode</Link> first so it rolls
+              up into the registry work queue.
+            </p>
           )}
 
-          <label className="workflow-field">
-            <span className="workflow-field-label">
-              Notes <span className="workflow-field-optional">(optional)</span>
-            </span>
-            <textarea
-              className="workflow-input workflow-textarea"
-              rows={3}
-              value={note}
-              onChange={e => setNote(e.target.value)}
-            />
-          </label>
+          <form className="workflow-form" onSubmit={handleSubmit}>
+            <label className="workflow-field">
+              <span className="workflow-field-label">Task type</span>
+              <select className="workflow-input" value={taskType} onChange={e => setTaskType(e.target.value)}>
+                {SAFETY_TASK_TYPES.map(t => (
+                  <option key={t.code} value={t.code}>{t.display}</option>
+                ))}
+              </select>
+            </label>
 
-          <button type="submit" className="workflow-submit-btn">Record task</button>
-        </form>
+            <label className="workflow-field">
+              <span className="workflow-field-label">Due date</span>
+              <input
+                type="date"
+                className="workflow-input"
+                value={dueDate}
+                onChange={e => setDueDate(e.target.value)}
+              />
+            </label>
 
-        {notice && (
-          <div className="workflow-success-notice">
-            {notice} <Link to="/patient/chart#activity">View in chart</Link>
-          </div>
-        )}
+            <label className="workflow-field">
+              <span className="workflow-field-label">
+                Owner <span className="workflow-field-optional">(person or team)</span>
+              </span>
+              <input
+                type="text"
+                className="workflow-input"
+                placeholder="e.g. Care manager — J. Rivera"
+                value={owner}
+                onChange={e => setOwner(e.target.value)}
+              />
+            </label>
 
-        {episodeTasks.length > 0 && (
-          <>
-            <h3 className="workflow-form-title">Open work on this episode</h3>
-            <ul>
-              {episodeTasks.map(t => {
-                const overdue = isTaskOverdue(t)
-                const due = taskDueDate(t)
-                const label = (t as { code?: { text?: string } }).code?.text ?? 'Safety task'
-                return (
-                  <li key={t.id}>
-                    {label}
-                    {due ? ` — due ${due.slice(0, 10)}` : ' — no due date'}
-                    {overdue ? ' · OVERDUE' : ''}
-                    {!isTaskOpen(t) ? ' · completed' : ''}
-                    {isTaskOpen(t) && (
-                      <>
-                        {' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => addArtifact(completeTask(t))}
-                        >
-                          Mark complete
-                        </button>
-                      </>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </>
-        )}
+            {isEscalation && (
+              <fieldset className="workflow-field">
+                <legend className="workflow-field-label">
+                  Escalation triggers <span className="workflow-field-optional">(several may apply)</span>
+                </legend>
+                {ESCALATION_TRIGGERS.map(t => (
+                  <label key={t.code}>
+                    <input
+                      type="checkbox"
+                      checked={triggers.includes(t.code)}
+                      onChange={() => toggleTrigger(t.code)}
+                    />{' '}
+                    {t.display}
+                  </label>
+                ))}
+              </fieldset>
+            )}
+
+            <label className="workflow-field">
+              <span className="workflow-field-label">
+                Notes <span className="workflow-field-optional">(optional)</span>
+              </span>
+              <textarea
+                className="workflow-input workflow-textarea"
+                rows={3}
+                value={note}
+                onChange={e => setNote(e.target.value)}
+              />
+            </label>
+
+            <button type="submit" className="workflow-submit-btn">Record task</button>
+          </form>
+
+          {notice && (
+            <div className="workflow-success-notice">
+              {notice} <Link to="/patient/chart#activity">View in chart</Link>
+            </div>
+          )}
+
+          {episodeTasks.length > 0 && (
+            <>
+              <h3 className="workflow-form-title">Open work on this episode</h3>
+              <ul>
+                {episodeTasks.map(t => {
+                  const overdue = isTaskOverdue(t)
+                  const due = taskDueDate(t)
+                  const label = (t as { code?: { text?: string } }).code?.text ?? 'Safety task'
+                  return (
+                    <li key={t.id}>
+                      {label}
+                      {due ? ` — due ${due.slice(0, 10)}` : ' — no due date'}
+                      {overdue ? ' · OVERDUE' : ''}
+                      {!isTaskOpen(t) ? ' · completed' : ''}
+                      {isTaskOpen(t) && (
+                        <>
+                          {' '}
+                          <button
+                            type="button"
+                            className="workflow-submit-btn"
+                            onClick={() => addArtifact(completeTask(t))}
+                          >
+                            Mark complete
+                          </button>
+                        </>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
+          )}
+        </div>
+
+        <aside className="debug-sidebar">
+          <FhirJsonViewer data={draft} title="Live FHIR Task" defaultOpen />
+        </aside>
       </div>
-
-      <aside className="debug-sidebar">
-        <FhirJsonViewer data={draft} title="Live FHIR Task" defaultOpen />
-      </aside>
     </div>
   )
 }

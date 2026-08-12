@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { PageHeader } from './PageHeader'
 import { makeId } from '../lib/id'
 import {
   buildEpisode,
@@ -135,146 +136,146 @@ export function RiskEpisodeView() {
   const tier = episodeCurrentTier(openEpisode)
 
   return (
-    <div className="form-wrapper">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/chart">← Patient chart</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">Suicide-Risk Episode</span>
-      </nav>
-
-      <div className="form-card">
-        <header className="workflow-form-header">
-          <h2 className="workflow-form-title">Suicide-Risk Episode / Pathway Status</h2>
-          <p className="workflow-form-subtitle">
+    <div className="form-view">
+      <PageHeader
+        eyebrow={['Patient View', 'Workflow']}
+        up="/patient/chart"
+        title="Suicide-Risk Episode / Pathway Status"
+        lede={
+          <>
             Records an <strong>EpisodeOfCare</strong> plus its <strong>Flag</strong> chart banner,
             tagged to the <strong>Track Risk Over Time</strong> stage. The episode is the anchor
             safety tasks attach to.
-          </p>
-        </header>
+          </>
+        }
+      />
 
-        {activePatientId === null && (
-          <p className="workflow-form-hint">
-            No patient selected — this will be recorded in the scratch chart. Pick a patient from
-            the Population view to attach it to a specific record.
-          </p>
-        )}
-
-        {openEpisode ? (
-          <>
+      <div className="form-wrapper">
+        <div className="form-card">
+          {activePatientId === null && (
             <p className="workflow-form-hint">
-              <strong>Episode open</strong> since{' '}
-              {(openEpisode as { period?: { start?: string } }).period?.start ?? 'unknown'}
-              {tier ? ` · current tier: ${displayFor(RISK_TIERS, tier)}` : ''}. Only one episode can
-              be open at a time, so close this one before opening another.
+              No patient selected — this will be recorded in the scratch chart. Pick a patient from
+              the Population view to attach it to a specific record.
             </p>
-            <form className="workflow-form" onSubmit={handleClose}>
+          )}
+
+          {openEpisode ? (
+            <>
+              <p className="workflow-form-hint">
+                <strong>Episode open</strong> since{' '}
+                {(openEpisode as { period?: { start?: string } }).period?.start ?? 'unknown'}
+                {tier ? ` · current tier: ${displayFor(RISK_TIERS, tier)}` : ''}. Only one episode can
+                be open at a time, so close this one before opening another.
+              </p>
+              <form className="workflow-form" onSubmit={handleClose}>
+                <label className="workflow-field">
+                  <span className="workflow-field-label">Closure reason</span>
+                  <select
+                    className="workflow-input"
+                    value={closureReason}
+                    onChange={e => setClosureReason(e.target.value)}
+                  >
+                    {CLOSURE_REASONS.map(r => (
+                      <option key={r.code} value={r.code}>{r.display}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="workflow-field">
+                  <span className="workflow-field-label">Closure date</span>
+                  <input
+                    type="date"
+                    className="workflow-input"
+                    value={endDate}
+                    onChange={e => setEndDate(e.target.value)}
+                  />
+                </label>
+                <button type="submit" className="workflow-submit-btn">Close episode</button>
+              </form>
+            </>
+          ) : (
+            <form className="workflow-form" onSubmit={handleOpen}>
               <label className="workflow-field">
-                <span className="workflow-field-label">Closure reason</span>
+                <span className="workflow-field-label">Reason for entry</span>
                 <select
                   className="workflow-input"
-                  value={closureReason}
-                  onChange={e => setClosureReason(e.target.value)}
+                  value={entryReason}
+                  onChange={e => setEntryReason(e.target.value)}
                 >
-                  {CLOSURE_REASONS.map(r => (
+                  {ENTRY_REASONS.map(r => (
                     <option key={r.code} value={r.code}>{r.display}</option>
                   ))}
                 </select>
               </label>
+              {requiresTrigger && (
+                <label className="workflow-field">
+                  <span className="workflow-field-label">Screening artifact that evidenced it</span>
+                  <select
+                    className="workflow-input"
+                    value={triggerRef}
+                    onChange={e => setTriggerRef(e.target.value)}
+                  >
+                    <option value="">— select the screen —</option>
+                    {triggerCandidates.map(c => (
+                      <option key={c.ref} value={c.ref}>{c.label}</option>
+                    ))}
+                  </select>
+                  <span className="workflow-field-help">
+                    A positive-screen entry SHALL name the artifact that evidenced it
+                    (<code>episode-trigger</code>). Pick another reason if no screen is on file.
+                  </span>
+                </label>
+              )}
               <label className="workflow-field">
-                <span className="workflow-field-label">Closure date</span>
+                <span className="workflow-field-label">Current risk tier</span>
+                <select
+                  className="workflow-input"
+                  value={currentTier}
+                  onChange={e => setCurrentTier(e.target.value)}
+                >
+                  {RISK_TIERS.map(t => (
+                    <option key={t.code} value={t.code}>{t.display}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="workflow-field">
+                <span className="workflow-field-label">Episode start date</span>
                 <input
                   type="date"
                   className="workflow-input"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
                 />
               </label>
-              <button type="submit" className="workflow-submit-btn">Close episode</button>
+              <button type="submit" className="workflow-submit-btn" disabled={triggerMissing}>
+                Open episode
+              </button>
+              {triggerMissing && (
+                <p className="workflow-field-help">
+                  {triggerCandidates.length === 0
+                    ? 'This patient has no screening Observation on file, so a positive screen cannot be evidenced. Choose a different reason for entry.'
+                    : 'Select the screening artifact before opening the episode.'}
+                </p>
+              )}
             </form>
-          </>
-        ) : (
-          <form className="workflow-form" onSubmit={handleOpen}>
-            <label className="workflow-field">
-              <span className="workflow-field-label">Reason for entry</span>
-              <select
-                className="workflow-input"
-                value={entryReason}
-                onChange={e => setEntryReason(e.target.value)}
-              >
-                {ENTRY_REASONS.map(r => (
-                  <option key={r.code} value={r.code}>{r.display}</option>
-                ))}
-              </select>
-            </label>
-            {requiresTrigger && (
-              <label className="workflow-field">
-                <span className="workflow-field-label">Screening artifact that evidenced it</span>
-                <select
-                  className="workflow-input"
-                  value={triggerRef}
-                  onChange={e => setTriggerRef(e.target.value)}
-                >
-                  <option value="">— select the screen —</option>
-                  {triggerCandidates.map(c => (
-                    <option key={c.ref} value={c.ref}>{c.label}</option>
-                  ))}
-                </select>
-                <span className="workflow-field-help">
-                  A positive-screen entry SHALL name the artifact that evidenced it
-                  (<code>episode-trigger</code>). Pick another reason if no screen is on file.
-                </span>
-              </label>
-            )}
-            <label className="workflow-field">
-              <span className="workflow-field-label">Current risk tier</span>
-              <select
-                className="workflow-input"
-                value={currentTier}
-                onChange={e => setCurrentTier(e.target.value)}
-              >
-                {RISK_TIERS.map(t => (
-                  <option key={t.code} value={t.code}>{t.display}</option>
-                ))}
-              </select>
-            </label>
-            <label className="workflow-field">
-              <span className="workflow-field-label">Episode start date</span>
-              <input
-                type="date"
-                className="workflow-input"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-              />
-            </label>
-            <button type="submit" className="workflow-submit-btn" disabled={triggerMissing}>
-              Open episode
-            </button>
-            {triggerMissing && (
-              <p className="workflow-field-help">
-                {triggerCandidates.length === 0
-                  ? 'This patient has no screening Observation on file, so a positive screen cannot be evidenced. Choose a different reason for entry.'
-                  : 'Select the screening artifact before opening the episode.'}
-              </p>
-            )}
-          </form>
-        )}
+          )}
 
-        {notice && (
-          <div className="workflow-success-notice">
-            {notice} <Link to="/patient/chart#activity">View in chart</Link>
-            {' · '}
-            <Link to="/population">Open the risk registry</Link>
-          </div>
-        )}
+          {notice && (
+            <div className="workflow-success-notice">
+              {notice} <Link to="/patient/chart#activity">View in chart</Link>
+              {' · '}
+              <Link to="/population">Open the risk registry</Link>
+            </div>
+          )}
+        </div>
+
+        <aside className="debug-sidebar">
+          <FhirJsonViewer
+            data={draft}
+            title={openEpisode ? 'Live FHIR (close episode)' : 'Live FHIR (open episode + flag)'}
+            defaultOpen
+          />
+        </aside>
       </div>
-
-      <aside className="debug-sidebar">
-        <FhirJsonViewer
-          data={draft}
-          title={openEpisode ? 'Live FHIR (close episode)' : 'Live FHIR (open episode + flag)'}
-          defaultOpen
-        />
-      </aside>
     </div>
   )
 }

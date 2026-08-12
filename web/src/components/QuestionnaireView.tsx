@@ -4,6 +4,7 @@ import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { PageHeader } from './PageHeader'
 import { CarePlanDisplay } from './CarePlanDisplay'
 import { mapResponseToObservations } from '../lib/observationMappers'
 import { stampLaunchStage } from '../lib/launchStage'
@@ -86,77 +87,76 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
   }
 
   return (
-    <div className="form-wrapper">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/chart">← Patient chart</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">{title}</span>
-      </nav>
-      <div className="form-card">
-        <Renderer
-          fhirVersion="r4"
-          // Renderer is generic over formbox's strict FHIR types; the raw imported
-          // Questionnaire JSON doesn't structurally match, so cast at this boundary.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          questionnaire={questionnaire as any}
-          theme={theme}
-          onChange={(newResponse) => setResponse(newResponse as unknown as QuestionnaireResponseResource)}
-          onSubmit={persistName ? (r => handleSubmit(r as unknown as QuestionnaireResponseResource)) : undefined}
-        />
-        {submitted && !carePlan && submitResult && (
-          <div className={`submit-result-summary ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>
-            <div className="submit-result-header">
-              <span className={`risk-pill risk-pill--sm risk-pill--${submitResult.riskAlert.level}`}>
-                {LEVEL_CONFIG[submitResult.riskAlert.level].label}
-              </span>
-              <span className="submit-result-title">{submitResult.riskAlert.summary}</span>
-            </div>
-            <p className="submit-result-detail">{submitResult.riskAlert.detail}</p>
-            {submitResult.observations.length > 0 && (
-              <div className="submit-result-obs">
-                {submitResult.observations.slice(0, 6).map((obs, idx) => (
-                  <span key={idx} className="submit-result-obs-chip">
-                    <span className="chip-label">{obs.code?.text || obs.code?.coding?.[0]?.display}:</span>
-                    <span className="chip-value">
-                      {obs.valueInteger !== undefined && obs.valueInteger}
-                      {obs.valueBoolean !== undefined && (obs.valueBoolean ? 'Yes' : 'No')}
-                      {obs.valueString !== undefined && obs.valueString}
-                      {obs.valueCodeableConcept && (obs.valueCodeableConcept.text || obs.valueCodeableConcept.coding?.[0]?.display)}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="submit-result-actions">
-              <Link to="/patient/chart#activity" className="submit-result-link">View in chart</Link>
-              {submitResult.riskAlert.suggestedAction && (
-                <Link to={submitResult.riskAlert.suggestedAction.path} className="submit-result-action-btn">
-                  {submitResult.riskAlert.suggestedAction.label} &rarr;
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
-        {submitted && !carePlan && !submitResult && (
-          <div className="submit-success-notice">
-            Response saved to patient chart.{' '}
-            <Link to="/patient/chart#activity">View in chart</Link>
-          </div>
-        )}
-      </div>
+    <div className="form-view">
+      <PageHeader eyebrow={['Patient View', 'Assessment']} up="/patient/chart" title={title} />
 
-      {carePlan && (
+      <div className="form-wrapper">
         <div className="form-card">
-          <CarePlanDisplay carePlan={carePlan} />
+          <Renderer
+            fhirVersion="r4"
+            // Renderer is generic over formbox's strict FHIR types; the raw imported
+            // Questionnaire JSON doesn't structurally match, so cast at this boundary.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            questionnaire={questionnaire as any}
+            theme={theme}
+            onChange={(newResponse) => setResponse(newResponse as unknown as QuestionnaireResponseResource)}
+            onSubmit={persistName ? (r => handleSubmit(r as unknown as QuestionnaireResponseResource)) : undefined}
+          />
+          {submitted && !carePlan && submitResult && (
+            <div className={`submit-result-summary ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>
+              <div className="submit-result-header">
+                <span className={`risk-pill risk-pill--sm risk-pill--${submitResult.riskAlert.level}`}>
+                  {LEVEL_CONFIG[submitResult.riskAlert.level].label}
+                </span>
+                <span className="submit-result-title">{submitResult.riskAlert.summary}</span>
+              </div>
+              <p className="submit-result-detail">{submitResult.riskAlert.detail}</p>
+              {submitResult.observations.length > 0 && (
+                <div className="submit-result-obs">
+                  {submitResult.observations.slice(0, 6).map((obs, idx) => (
+                    <span key={idx} className="submit-result-obs-chip">
+                      <span className="chip-label">{obs.code?.text || obs.code?.coding?.[0]?.display}:</span>
+                      <span className="chip-value">
+                        {obs.valueInteger !== undefined && obs.valueInteger}
+                        {obs.valueBoolean !== undefined && (obs.valueBoolean ? 'Yes' : 'No')}
+                        {obs.valueString !== undefined && obs.valueString}
+                        {obs.valueCodeableConcept && (obs.valueCodeableConcept.text || obs.valueCodeableConcept.coding?.[0]?.display)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="submit-result-actions">
+                <Link to="/patient/chart#activity" className="submit-result-link">View in chart</Link>
+                {submitResult.riskAlert.suggestedAction && (
+                  <Link to={submitResult.riskAlert.suggestedAction.path} className="submit-result-action-btn">
+                    {submitResult.riskAlert.suggestedAction.label} &rarr;
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+          {submitted && !carePlan && !submitResult && (
+            <div className="submit-success-notice">
+              Response saved to patient chart.{' '}
+              <Link to="/patient/chart#activity">View in chart</Link>
+            </div>
+          )}
         </div>
-      )}
 
-      <aside className="debug-sidebar">
-        <FhirJsonViewer data={questionnaire} title="FHIR Questionnaire Definition" />
-        {response && !carePlan && (
-          <FhirJsonViewer data={response} title="Live FHIR QuestionnaireResponse" defaultOpen />
+        {carePlan && (
+          <div className="form-card">
+            <CarePlanDisplay carePlan={carePlan} />
+          </div>
         )}
-      </aside>
+
+        <aside className="debug-sidebar">
+          <FhirJsonViewer data={questionnaire} title="FHIR Questionnaire Definition" />
+          {response && !carePlan && (
+            <FhirJsonViewer data={response} title="Live FHIR QuestionnaireResponse" defaultOpen />
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

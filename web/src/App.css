@@ -18,40 +18,30 @@
   color: var(--text-error);
 }
 
-/* ===========================
-   Breadcrumb
-   =========================== */
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-5);
-  font-size: var(--font-size-md);
-  width: 100%;
-}
-
-.breadcrumb a {
-  color: var(--brand-accent);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.breadcrumb a:hover {
-  color: var(--brand-accent-hover);
-}
-
-.breadcrumb-sep {
-  color: var(--text-faint);
-}
-
-.breadcrumb-current {
-  color: var(--text-muted);
-}
+/* The `.breadcrumb` family lived here: a second trail implementation, rendered
+   by all 12 form views above their card. `PageHeader`'s eyebrow is that trail
+   now — its `up` prop carries the back-link the breadcrumb existed for — so the
+   rules are gone rather than left to be picked up by a thirteenth view.
+   Its `width: 100%` was load-bearing, and says what the old shape really was:
+   the trail was a flex *item* of the form layout, claiming a whole row of it. */
 
 /* ===========================
    Form Layout
+   ---------------------------
+   The drill-in pages under the Patient View lens: every assessment
+   (/patient/assessments/*) and every workflow recorder
+   (/patient/workflow/*). `.form-view` is the page root — a plain block whose
+   only job is to let the shared PageHeader sit *above* the form layout rather
+   than inside it. It has to exist: `.form-wrapper` is a flex row (card beside
+   the FHIR debug sidebar), so a header placed in it became a third flex item.
+
+   No padding here. `.ehr-content-body` owns the page inset, same as every lens
+   — `npm run check:template` gates it, and treats these views as page roots.
    =========================== */
+.form-view {
+  max-width: var(--page-width-wide);
+}
+
 .form-wrapper {
   display: flex;
   flex-wrap: wrap;

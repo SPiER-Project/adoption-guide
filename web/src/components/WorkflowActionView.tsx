@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { PageHeader } from './PageHeader'
 import { TOOLS, stageById } from '../data/catalog'
 import { PATHWAY_STAGE_SYSTEM } from '../lib/patientPathway'
 import { makeId } from '../lib/id'
@@ -108,89 +109,89 @@ export function WorkflowActionView({
   }
 
   return (
-    <div className="form-wrapper">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/patient/chart">← Patient chart</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">{heading}</span>
-      </nav>
-
-      <div className="form-card">
-        <header className="workflow-form-header">
-          <h2 className="workflow-form-title">{heading}</h2>
-          <p className="workflow-form-subtitle">
+    <div className="form-view">
+      <PageHeader
+        eyebrow={['Patient View', 'Workflow']}
+        up="/patient/chart"
+        title={heading}
+        lede={
+          <>
             Records a <strong>Communication</strong> tagged to the{' '}
             <strong>{stage?.title ?? stageId}</strong> pathway stage. {tool?.purpose}
-          </p>
-        </header>
+          </>
+        }
+      />
 
-        {activePatientId === null && (
-          <p className="workflow-form-hint">
-            No patient selected — this will be recorded in the scratch chart. Pick a patient from the
-            Population view to attach it to a specific record.
-          </p>
-        )}
+      <div className="form-wrapper">
+        <div className="form-card">
+          {activePatientId === null && (
+            <p className="workflow-form-hint">
+              No patient selected — this will be recorded in the scratch chart. Pick a patient from the
+              Population view to attach it to a specific record.
+            </p>
+          )}
 
-        <form className="workflow-form" onSubmit={handleSubmit}>
-          <label className="workflow-field">
-            <span className="workflow-field-label">Contact method</span>
-            <select
-              className="workflow-input"
-              value={channel}
-              onChange={e => setChannel(e.target.value)}
-            >
-              {CHANNELS.map(c => (
-                <option key={c.code} value={c.code}>{c.display}</option>
-              ))}
-            </select>
-          </label>
+          <form className="workflow-form" onSubmit={handleSubmit}>
+            <label className="workflow-field">
+              <span className="workflow-field-label">Contact method</span>
+              <select
+                className="workflow-input"
+                value={channel}
+                onChange={e => setChannel(e.target.value)}
+              >
+                {CHANNELS.map(c => (
+                  <option key={c.code} value={c.code}>{c.display}</option>
+                ))}
+              </select>
+            </label>
 
-          <label className="workflow-field">
-            <span className="workflow-field-label">Date of contact</span>
-            <input
-              type="date"
-              className="workflow-input"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-            />
-          </label>
+            <label className="workflow-field">
+              <span className="workflow-field-label">Date of contact</span>
+              <input
+                type="date"
+                className="workflow-input"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+              />
+            </label>
 
-          <label className="workflow-field">
-            <span className="workflow-field-label">Summary</span>
-            <input
-              type="text"
-              className="workflow-input"
-              placeholder={summaryPlaceholder ?? `e.g. ${capitalize(actionNoun)} — brief summary`}
-              value={summary}
-              onChange={e => setSummary(e.target.value)}
-            />
-          </label>
+            <label className="workflow-field">
+              <span className="workflow-field-label">Summary</span>
+              <input
+                type="text"
+                className="workflow-input"
+                placeholder={summaryPlaceholder ?? `e.g. ${capitalize(actionNoun)} — brief summary`}
+                value={summary}
+                onChange={e => setSummary(e.target.value)}
+              />
+            </label>
 
-          <label className="workflow-field">
-            <span className="workflow-field-label">Notes <span className="workflow-field-optional">(optional)</span></span>
-            <textarea
-              className="workflow-input workflow-textarea"
-              rows={3}
-              placeholder={`Brief free-text note about the ${actionNoun}.`}
-              value={note}
-              onChange={e => setNote(e.target.value)}
-            />
-          </label>
+            <label className="workflow-field">
+              <span className="workflow-field-label">Notes <span className="workflow-field-optional">(optional)</span></span>
+              <textarea
+                className="workflow-input workflow-textarea"
+                rows={3}
+                placeholder={`Brief free-text note about the ${actionNoun}.`}
+                value={note}
+                onChange={e => setNote(e.target.value)}
+              />
+            </label>
 
-          <button type="submit" className="workflow-submit-btn">Record {actionNoun}</button>
-        </form>
+            <button type="submit" className="workflow-submit-btn">Record {actionNoun}</button>
+          </form>
 
-        {submitted && (
-          <div className="workflow-success-notice">
-            {capitalize(actionNoun)} recorded to the patient chart under <strong>{stage?.title ?? stageId}</strong>.{' '}
-            <Link to="/patient/chart#activity">View in chart</Link>
-          </div>
-        )}
+          {submitted && (
+            <div className="workflow-success-notice">
+              {capitalize(actionNoun)} recorded to the patient chart under <strong>{stage?.title ?? stageId}</strong>.{' '}
+              <Link to="/patient/chart#activity">View in chart</Link>
+            </div>
+          )}
+        </div>
+
+        <aside className="debug-sidebar">
+          <FhirJsonViewer data={draft} title="Live FHIR Communication" defaultOpen />
+        </aside>
       </div>
-
-      <aside className="debug-sidebar">
-        <FhirJsonViewer data={draft} title="Live FHIR Communication" defaultOpen />
-      </aside>
     </div>
   )
 }
