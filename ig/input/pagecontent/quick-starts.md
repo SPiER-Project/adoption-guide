@@ -30,6 +30,14 @@ GET [base]/Consent?category=http://spier.org/CodeSystem/spier-concept-domain|sui
 GET [base]/Flag?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
 ```
 
+`Appointment` carries the same coding, but R4 gives it no `category` element — its
+slot is `serviceCategory`, so the parameter **name** differs while the value stays
+identical:
+
+```
+GET [base]/Appointment?service-category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
+```
+
 **It is a repeated query, not a single one — and that is a property of R4, not of SPiER.** FHIR has no cross-type search on a common parameter; `category` is defined per resource type. A server that supports system-level search with `_type` can collapse the list:
 
 ```
@@ -38,17 +46,32 @@ GET [base]?_type=Observation,Condition,CarePlan,ServiceRequest,Communication,Pro
 
 but `_type` is optional, so the per-type form above is the portable one. What the domain tag buys is that **the parameter value is identical across every type** — the consumer needs one code, not a per-resource-type mapping table.
 
-### Types that do not carry the domain category
+### The three types with no `category` element
 
-Three profiled resource types have no `category` element in R4, and are therefore **not** reachable by the queries above:
+Three profiled resource types have no `category` in R4, so none of them can answer
+the `category=` queries above. Each was settled on its own merits rather than given
+the same answer — the R4 realities differ, and so do the fixes. Every search
+parameter named here was checked against the R4 base definitions; an element
+existing does **not** mean a search parameter exists.
 
-| Resource | R4 reality | Retrieve instead by |
+| Resource | R4 reality | How the domain is reachable |
 |---|---|---|
-| `EpisodeOfCare` | no `category`; has `type` | `GET [base]/EpisodeOfCare?type=http://spier.org/CodeSystem/spier-episode-type\|suicide-safer-care` |
-| `Appointment` | no `category`; has `serviceCategory` | the Encounter that names it (`Encounter.appointment`) — see *Retrieving one episode's record* below |
-| `Task` | no `category`; `Task.code` is already load-bearing | `Task.basedOn` → the episode (`GET [base]/EpisodeOfCare/[id]?_revinclude=Task:based-on`) |
+| `Appointment` | no `category`; `serviceCategory` is `0..*` with an **example** binding, and `service-category` is a real search parameter | **Tagged.** `GET [base]/Appointment?service-category=http://spier.org/CodeSystem/spier-concept-domain\|suicide-risk&patient=Patient/[id]` |
+| `EpisodeOfCare` | no `category`; `type` is `1..*` here and searchable via R4's shared `clinical-type` parameter | **Already equivalent** — `SPiERSuicideRiskEpisode` requires `type` from the SPiER episode-type ValueSet: `GET [base]/EpisodeOfCare?type=http://spier.org/CodeSystem/spier-episode-type\|suicide-safer-care` |
+| `Task` | no `category`; `Task.code` is load-bearing for the safety-task vocabulary. `code`, `encounter` and `based-on` are all real parameters | **Deliberately untagged** — already reachable by two standard paths: `GET [base]/Task?encounter=Encounter/[id]`, or `Task.basedOn` → the episode |
 
-Extending the domain tag to these three needs a different element per type (and, for `Task`, either a custom SearchParameter or acceptance that an extension is not searchable). That is deliberately **not** done here — see the follow-up issue linked from the SPiER repo — because putting a domain code into `serviceCategory` or `Task.code` without settling the search story would look like coverage while providing none.
+Why `Appointment` is the only one that gained a tag: it was the sole type where R4
+offers a searchable slot SPiER was not already using. `EpisodeOfCare` would have
+been double-tagged for no retrieval gain, and a domain code on `Task` would either
+collide with the vocabulary `Task.code` carries or sit in an extension — and an
+extension is not queryable without SPiER publishing a `SearchParameter` *and* the
+server supporting it, which is coverage on paper only.
+
+Note what the `Appointment` row costs: the parameter **name** is
+`service-category`, so a consumer needs one exception in its mapping. The value is
+unchanged. That is a smaller ask than a per-type value table, and it is why
+`Appointment` is listed separately from the uniform list above rather than folded
+into it.
 
 `Procedure` is a partial case worth knowing about: R4 gives `Procedure.category` a maximum of 1 (it becomes `0..*` only in R5), so `SPiERLethalMeansCounseling` spends its single category slot on the domain code. The counselling act itself is identified by `Procedure.code`.
 
@@ -126,7 +149,7 @@ guarantee; the per-type reads above are the portable path.
 
 | Resource | How it joins the episode |
 |---|---|
-| `Appointment` | no `.encounter` in R4. The Encounter names it instead: `Encounter.appointment` → `Appointment`. |
+| `Appointment` | no `.encounter` in R4. The Encounter names it instead: `Encounter.appointment` → `Appointment`. This is still the only *episode-scoped* path; the `service-category` query above is patient-scoped and cannot tell one episode from another. |
 | `Consent` | no `.encounter` and no indirect route. A sharing consent plausibly scopes to the patient and the receiving organisation rather than to one episode, so SPiER does not claim episode membership for it. |
 | `Encounter` | has no `category` element either, so it is not reachable by the domain query above — only via `episode-of-care`. |
 

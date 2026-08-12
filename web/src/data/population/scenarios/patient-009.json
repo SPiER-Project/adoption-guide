@@ -450,6 +450,17 @@
           }
         ]
       },
+      "serviceCategory": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
       "status": "fulfilled",
       "description": "CAMS session 5 \u2014 SSF re-rating",
       "start": "2026-08-07T13:00:00.000Z",
@@ -484,6 +495,17 @@
           }
         ]
       },
+      "serviceCategory": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
       "status": "booked",
       "description": "CAMS session 6 \u2014 SSF re-rating",
       "start": "2026-08-19T13:00:00.000Z",

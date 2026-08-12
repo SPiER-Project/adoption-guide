@@ -271,9 +271,16 @@ Description: "The next follow-up visit scheduled before transition or discharge.
 * start 1..1
 * participant 1..*
 * participant.status 1..1
+// #272 — the domain tag, in the only slot R4 Appointment offers. Appointment has
+// no `category`; `serviceCategory` is the searchable equivalent
+// (`Appointment?service-category=…`), so this is a one-hop query rather than
+// reading the episode's Encounters and following `Encounter.appointment`. Both
+// paths stay valid; this one does not require knowing the episode first.
+* insert SuicideRiskDomainServiceCategory
 * status MS
 * start MS
 * participant MS
+* serviceCategory[suicideRisk] MS
 
 
 // ─── TL-032 — Consent / Information-Sharing Status ───────────

@@ -893,6 +893,17 @@
           }
         ]
       },
+      "serviceCategory": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
       "status": "fulfilled",
       "description": "Outpatient behavioral health intake",
       "start": "2026-08-08T10:00:00.000Z",
