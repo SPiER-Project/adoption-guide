@@ -12,10 +12,12 @@ ed-scenario-11.json          ← source of truth, hand-edited
         ▼
 dist/HL7_BH_USE_CASES-ED-Scenario-11.xlsx   ← what the working group gets
 dist/HL7_BH_USE_CASES-ED-Scenario-11.csv    ← same sheet, flat
+ed-scenario-11.md                           ← the FHIR / functional mapping
 ```
 
-⚠️ **Never hand-edit anything in `dist/`.** Same rule as `web/src/data/fhir/`:
-the next build silently discards your change. Edit the JSON and rebuild.
+⚠️ **Never hand-edit `dist/` or `ed-scenario-11.md`.** Same rule as
+`web/src/data/fhir/`: the next build silently discards your change. Edit the
+JSON and rebuild.
 
 ```bash
 node scripts/build-use-case-workbook.mjs
@@ -69,6 +71,42 @@ Instead, notes live in the source JSON:
 and are rendered into a visible column on sheet 2. **A comment typed into the
 generated workbook is lost on the next build**, so put it in the JSON or in the
 PR.
+
+## The mapping document
+
+[`ed-scenario-11.md`](ed-scenario-11.md) is the third output, and the one a
+human reads to answer "what FHIR does step 11.3-1B need, and do we have it".
+
+Markdown is the **authoritative** form of the mapping prose in the JSON —
+`fhirText`, `profileBinding`, `cdsHook` all hold markdown — because it is the
+only form that can carry a link to the artifact it describes. The spreadsheet
+gets that flattened at build time. Storing the flattened text and re-adding
+links for the document would lose them with nowhere to recover them from.
+
+Three things in that document are **derived**, not restated:
+
+- the **FHIR resource list** on the mapping sheet, picked out of `fhirText` by
+  the backticks already around each type. `encounter` and `restriction.period`
+  are elements, not resources, and drop out on the leading-capital test;
+  `CarePlan.activity` contributes `CarePlan`. Extracted names are checked
+  against `KNOWN_RESOURCES` in the script, so a typo fails instead of quietly
+  becoming a resource type.
+- the **consolidated profile-gap list** (22 items), concatenated from each
+  step's `profileGaps` in step order.
+- the **gating tool promotions** (6 issues), de-duplicated from each step's
+  `gatingIssues`.
+
+Those last two used to be hand-maintained tallies of the tables above them.
+`--check` now also asserts they stay honest: a step whose binding says `**gap**`
+must name either a `profileGaps` entry or a `gatingIssues` entry, and a step
+that names `profileGaps` must actually be marked as a gap.
+
+One deliberate change when this document became generated: the old single
+`Actor / Role` column is now two columns matching the workbook. It had been a
+third hand-written variant of the same fact and had drifted from both others —
+`ED Provider / Orderer` for what the scenario calls `ED Provider (MD/APP)` /
+`Orderer / Authorizer`, `EHR System / Transmitter` for `Transmitter / Care
+Transition Packager`, and four more like them.
 
 ## The demo linkage
 

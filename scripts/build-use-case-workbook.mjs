@@ -88,8 +88,41 @@ const SCENARIOS = [
     source: join(USE_CASES, 'ed-scenario-11.json'),
     xlsx: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-ED-Scenario-11.xlsx'),
     csv: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-ED-Scenario-11.csv'),
+    md: join(USE_CASES, 'ed-scenario-11.md'),
   },
 ]
+
+/**
+ * FHIR resource types the mapping is allowed to name. The list is an allowlist
+ * rather than the full R4 set on purpose: `fhirResources()` below picks type
+ * names out of free prose by shape, so without a check a typo (`Questionaire`)
+ * or a stray capitalised backtick term would silently become a "resource type"
+ * on the mapping sheet. Add a row when a step legitimately needs a new type.
+ */
+const KNOWN_RESOURCES = new Set([
+  'Appointment',
+  'Bundle',
+  'CarePlan',
+  'CareTeam',
+  'Communication',
+  'CommunicationRequest',
+  'Composition',
+  'Condition',
+  'Consent',
+  'DocumentReference',
+  'Encounter',
+  'EpisodeOfCare',
+  'Flag',
+  'List',
+  'Observation',
+  'PlanDefinition',
+  'Procedure',
+  'Provenance',
+  'Questionnaire',
+  'QuestionnaireResponse',
+  'ServiceRequest',
+  'Task',
+])
 
 const SCENARIO_DIR = join(ROOT, 'web', 'src', 'data', 'population', 'scenarios')
 
@@ -118,6 +151,51 @@ function fail(messages) {
 
 function allSteps(doc) {
   return doc.sections.flatMap(section => section.steps.map(step => ({ section, step })))
+}
+
+/**
+ * Markdown is the authoritative form of the mapping prose, because it is the
+ * only one that can carry a link to the artifact it is talking about. The
+ * spreadsheet gets this flattened — the reverse would lose those links with
+ * nowhere to recover them from.
+ */
+function stripMarkdown(text) {
+  return String(text)
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*/g, '')
+    .replace(/`/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * The FHIR resource types a step names, picked out of its prose by the
+ * backticks already around them. `encounter` and `restriction.period` are
+ * elements, not resources, and are excluded by the leading-capital test;
+ * `CarePlan.activity` contributes CarePlan.
+ */
+function fhirResources(step) {
+  const found = []
+  for (const [, token] of String(step.fhirText).matchAll(/`([^`]+)`/g)) {
+    const type = token.split('.')[0]
+    if (/^[A-Z][A-Za-z]+$/.test(type) && !found.includes(type)) found.push(type)
+  }
+  return found
+}
+
+/** A step is a gap when its binding says so — one source for the fact. */
+function isGap(step) {
+  return /\*\*gap\*\*/.test(step.profileBinding)
+}
+
+function issueUrl(number) {
+  return `https://github.com/SPiER-Project/adoption-guide/issues/${number}`
+}
+
+/** "Scenario 11.2 – Screening and Identification" -> "11.2 — Screening and Identification" */
+function sectionTitle(section) {
+  const name = section.heading.split(/\s+[–—]\s+/).slice(1).join(' — ')
+  return `${section.id} — ${name}`
 }
 
 /* ── Sheet 1: the working group's format, verbatim ──────────────────────────
@@ -185,11 +263,11 @@ function mappingSheet(doc) {
     rows.push({
       cells: [
         { value: step.step, style: STYLE.bodyMono },
-        { value: step.fhir.join('; '), style: STYLE.body },
-        { value: step.profileBinding, style: STYLE.body },
+        { value: fhirResources(step).join('; '), style: STYLE.body },
+        { value: stripMarkdown(step.profileBinding), style: STYLE.body },
         { value: step.ehrsFm.join('; '), style: STYLE.body },
-        { value: step.profileGap ? 'gap' : 'built', style: STYLE.body },
-        { value: step.cdsHook ?? '', style: STYLE.body },
+        { value: isGap(step) ? 'gap' : 'built', style: STYLE.body },
+        { value: stripMarkdown(step.cdsHook ?? ''), style: STYLE.body },
         { value: demo, style: STYLE.body },
         { value: notes, style: STYLE.body },
       ],
@@ -232,6 +310,91 @@ function wgCsv(doc) {
   return toCsv(rows)
 }
 
+/* ── The mapping document ───────────────────────────────────────────────────
+ *
+ * Same source, third output. This document is the one a human reads to answer
+ * "what FHIR does step 11.3-1B need, and do we have it" — and before it was
+ * generated, its EHR-S FM column was the only place those references existed
+ * while the working group's own column H sat empty. Deriving both from one
+ * file is the whole point.
+ *
+ * Two lists at the foot are derived rather than restated: the consolidated
+ * profile gaps come from each step's `profileGaps` in step order, and the
+ * gating-tool promotions from each step's `gatingIssues`, de-duplicated. They
+ * used to be hand-maintained tallies of the tables above them, which is the
+ * classic place for a count to go quietly stale.
+ */
+const MD_COLUMNS = [
+  'Step',
+  'Actor',
+  'Actor Role',
+  'FHIR resources',
+  'Profile bindings',
+  'HL7 EHR functional model',
+  'CDS Hooks',
+]
+
+function markdownRow(cells) {
+  for (const cell of cells) {
+    // An unescaped pipe silently splits the row into extra columns, and the
+    // table still renders — just wrongly, and only in the published view.
+    if (cell.includes('|')) throw new Error(`Table cell contains an unescaped pipe: ${cell}`)
+  }
+  return `| ${cells.join(' | ')} |`
+}
+
+function renderMarkdown(doc) {
+  const m = doc.mapping
+  const out = [`# ${m.title}`, '']
+
+  out.push(m.preamble.map(p => `> ${p}`).join('\n>\n'), '', '---', '')
+
+  out.push('## Scenario summary', '', m.summaryIntro, '')
+  doc.sections.forEach((section, i) => out.push(`${i + 1}. ${section.summary}`))
+  out.push('', '---', '')
+
+  for (const section of doc.sections) {
+    out.push(`## ${sectionTitle(section)}`, '')
+    out.push(markdownRow(MD_COLUMNS))
+    out.push(markdownRow(MD_COLUMNS.map(() => '---')))
+    for (const step of section.steps) {
+      out.push(
+        markdownRow([
+          step.step,
+          step.actor,
+          step.actorRole,
+          step.fhirText,
+          step.profileBinding,
+          step.ehrsFm.join('; '),
+          step.cdsHook ?? 'n/a',
+        ]),
+      )
+    }
+    out.push('')
+    if (section.note) out.push(section.note, '')
+    out.push('---', '')
+  }
+
+  out.push('## Profile gaps consolidated', '', m.gapsIntro, '')
+  let n = 0
+  for (const { step } of allSteps(doc)) {
+    for (const gap of step.profileGaps ?? []) out.push(`${++n}. ${gap}`)
+  }
+  out.push('', m.gapsFooter, '')
+
+  out.push('## Gating tool promotions', '', m.gatingIntro, '')
+  const seen = new Set()
+  for (const { step } of allSteps(doc)) {
+    for (const issue of step.gatingIssues ?? []) {
+      if (seen.has(issue.number)) continue
+      seen.add(issue.number)
+      out.push(`- [#${issue.number} ${issue.label}](${issueUrl(issue.number)})`)
+    }
+  }
+
+  return out.join('\n').replace(/\n{3,}/g, '\n\n') + '\n'
+}
+
 /* ── Content assertions ─────────────────────────────────────────────────────
  *
  * These hold regardless of whether the artifacts are current, so they run in
@@ -272,6 +435,27 @@ function checkContent(doc, label) {
     }
     if (step.walkthrough && step.walkthroughGapReason) {
       problems.push(`${at}: has both a walkthrough id and a gap reason`)
+    }
+
+    if (!step.fhirText || !step.profileBinding) {
+      problems.push(`${at}: missing fhirText or profileBinding`)
+    }
+
+    for (const type of fhirResources(step)) {
+      if (!KNOWN_RESOURCES.has(type)) {
+        problems.push(`${at}: "${type}" is not in KNOWN_RESOURCES — typo, or add it`)
+      }
+    }
+
+    // A step whose binding says **gap** owes the reader a way to track it:
+    // either a named profile for the consolidated list, or the tool epic that
+    // has to be promoted first. Without this the two foot-lists drift from the
+    // tables they summarise, which is how they were maintained before.
+    if (isGap(step) && !(step.profileGaps?.length || step.gatingIssues?.length)) {
+      problems.push(`${at}: marked **gap** but names no profileGaps and no gatingIssues`)
+    }
+    if (!isGap(step) && step.profileGaps?.length) {
+      problems.push(`${at}: names profileGaps but its binding is not marked **gap**`)
     }
   }
 
@@ -360,11 +544,13 @@ function main() {
 
     const xlsx = buildXlsx([wgSheet(doc), mappingSheet(doc)])
     const csv = Buffer.from(wgCsv(doc), 'utf8')
+    const md = Buffer.from(renderMarkdown(doc), 'utf8')
 
     if (check) {
       for (const [path, fresh] of [
         [scenario.xlsx, xlsx],
         [scenario.csv, csv],
+        [scenario.md, md],
       ]) {
         const rel = relative(ROOT, path)
         if (!existsSync(path)) {
@@ -379,10 +565,14 @@ function main() {
       const steps = allSteps(doc).length
       console.log(`  ${label}: ${steps} steps, ${doc.sections.length} sections`)
     } else {
-      writeFileSync(scenario.xlsx, xlsx)
-      writeFileSync(scenario.csv, csv)
-      console.log(`  ${relative(ROOT, scenario.xlsx)}  ${xlsx.length} bytes`)
-      console.log(`  ${relative(ROOT, scenario.csv)}  ${csv.length} bytes`)
+      for (const [path, fresh] of [
+        [scenario.xlsx, xlsx],
+        [scenario.csv, csv],
+        [scenario.md, md],
+      ]) {
+        writeFileSync(path, fresh)
+        console.log(`  ${relative(ROOT, path)}  ${fresh.length} bytes`)
+      }
       built++
     }
   }
