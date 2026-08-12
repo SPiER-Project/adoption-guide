@@ -150,7 +150,12 @@ jobs:
           fi
           # 1. Liveness: the translator must have been invoked at all.
           if ! grep -q 'Translating CQL source in folder' publisher.log; then
-            echo "::error::the IG Publisher never translated ig/input/cql. This is the silent-skip failure: check that `path-binary: input/cql` is still present in ig/sushi-config.yaml."
+            # Single-quoted deliberately: in double quotes bash treats the
+            # backticked `path-binary: input/cql` as a command substitution, runs
+            # it, and prints the message with the one instruction the reader
+            # needs removed from it. This arm has never fired, so the defect was
+            # invisible — a reminder that an error path is code too.
+            echo '::error::the IG Publisher never translated ig/input/cql. This is the silent-skip failure: check that `path-binary: input/cql` is still present in ig/sushi-config.yaml.'
             exit 1
           fi
           # 2. Every .cql under input/cql must have been picked up individually.

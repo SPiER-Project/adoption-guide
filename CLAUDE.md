@@ -163,7 +163,7 @@ different classes of problem, and a clean SUSHI run implies none of the others:
 |---|---|---|
 | `npx fsh-sushi .` | FSH syntax, unresolved FSH references — plus, via `scripts/check-sushi-output.mjs`, any warning that is not the one expected advisory | `ig.yml` |
 | `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
-| IG Publisher | FHIRPath invariants, narrative link integrity, **everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types), **and CQL→ELM translation** of `ig/input/cql` (gated on `path-binary` — see below) | `ig-publish.yml`, and the same gate in `deploy.yml` on every push to main |
+| IG Publisher | FHIRPath invariants, narrative link integrity, **everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types), **and CQL→ELM translation** of `ig/input/cql` (gated on `path-binary` — see below) | `ig-publish.yml`, and the same gates in `deploy.yml` on every push to main |
 | `node scripts/check-fml.mjs` | FML syntax + the Stanley-Brown map still producing the CarePlan the runtime produces | `fml-validate.yml` |
 | `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC, SNOMED and terminology.hl7.org codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
 
@@ -202,6 +202,27 @@ cqframework translator) and move the file out of the build for a release; #212
 re-tested it, and the first real compile failed on five defects that had been
 invisible the whole time. To confirm the gate is alive, grep a publisher log for
 `Translating CQL source` — see `docs/plans/stage-8-measure-and-share.md`.
+
+⚠️ **`deploy.yml` caches the rendered IG, so a push to main usually does not
+re-render it.** Pages replaces the whole site with one artifact, so the SPA
+cannot ship without a rendered IG under `dist/ig` — the two cannot be
+decoupled, and a failed render still blocks the deploy. What *is* skipped is
+re-rendering an IG that did not change: the render is cached under
+`ig-render-<hash of ig/input + sushi-config + ig.ini>-<publisher version>-<run
+id>`, and on a hit the whole Java/Ruby/Jekyll/publisher half of the job is
+skipped. Two properties hold that up, and both must survive any edit there:
+
+- the cache is written with an explicit `cache/save` **after** both gates pass,
+  never by the combined `actions/cache` action (whose post-step saves even when
+  a later step failed, which would make a broken render the cached answer);
+- `publisher.log` is cached beside `output/`, so the CQL and QA gates re-run
+  identically on the hit path. Skipping the render never skips the checks.
+
+The one input the key cannot see is `template = fhir.base.template#current` in
+`ig/ig.ini` — `#current` moves without any change here, so a template release is
+not picked up until some `ig/` input changes. `gh workflow run deploy.yml -f
+force_ig_render=true` forces it. Every run prints whether it rendered or reused,
+plus the rendered size, to the job summary.
 
 Running the IG Publisher locally is worth it before a substantial `ig/` change,
 and has two traps: it **refuses any path containing a space**, which this
