@@ -29,7 +29,7 @@
  * .xlsx and .csv are build outputs; and the demo linkage is asserted rather
  * than assumed.
  *
- * ⚠️ **Never hand-edit the generated .xlsx or .csv** — same rule as
+ * ⚠️ **Never hand-edit the generated .xlsx, .csv or .md** — same rule as
  * `web/src/data/fhir/`. A comment typed into the workbook is lost on the next
  * build with nothing going red, which is exactly the failure that motivated
  * this script. Review notes belong in the source JSON's `reviewNotes`, where
@@ -37,7 +37,7 @@
  *
  * ─── Usage ──────────────────────────────────────────────────────────────────
  *
- *   node scripts/build-use-case-workbook.mjs            # write .xlsx + .csv
+ *   node scripts/build-use-case-workbook.mjs            # write .xlsx + .csv + .md
  *   node scripts/build-use-case-workbook.mjs --check    # gate, write nothing
  *
  * ─── What --check actually gates ────────────────────────────────────────────
@@ -64,9 +64,15 @@
  *
  * The demo half is an allowlist-with-reasons, not a completeness count, for the
  * reason argued at length in check-sushi-output.mjs: a pinned number churns and
- * trains people to bump it. Four gaps are declared today. Closing one means
- * deleting its `walkthroughGapReason` and adding the narration — the gate then
- * requires them to stay in step.
+ * trains people to bump it. Closing a declared gap means deleting its
+ * `walkthroughGapReason` and adding the narration — the gate then requires them
+ * to stay in step.
+ *
+ *   proposed  — a step SPiER is adding rather than one the working group wrote
+ *               must be marked `origin: "spier-proposed"` and give a
+ *               `rationale`, and is rendered "(proposed)" everywhere its id
+ *               appears. Presenting a SPiER proposal unmarked inside their own
+ *               document would misrepresent what they authored.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
@@ -104,6 +110,9 @@ const KNOWN_RESOURCES = new Set([
   'Bundle',
   'CarePlan',
   'CareTeam',
+  'Organization',
+  'Patient',
+  'RelatedPerson',
   'Communication',
   'CommunicationRequest',
   'Composition',
@@ -128,7 +137,7 @@ const SCENARIO_DIR = join(ROOT, 'web', 'src', 'data', 'population', 'scenarios')
 
 /** Column widths, in Excel's character units, matching the circulated workbook. */
 const WG_WIDTHS = [12, 17, 19, 30, 34, 34, 40, 34]
-const MAP_WIDTHS = [12, 26, 34, 40, 11, 20, 22, 46]
+const MAP_WIDTHS = [16, 26, 34, 40, 11, 20, 22, 40, 52]
 
 const MAP_COLUMNS = [
   'Event Step',
@@ -139,7 +148,28 @@ const MAP_COLUMNS = [
   'CDS Hooks hook',
   'Demo walkthrough step',
   'Review notes',
+  'Proposed — rationale',
 ]
+
+/**
+ * Steps SPiER is proposing, as distinct from the ones the clinical lead wrote.
+ *
+ * The circulated scenario has 27 steps. Anything added here is a SPiER
+ * proposal that the working group has not seen, and presenting it unmarked
+ * inside their own document would misrepresent what they authored — so every
+ * such step is labelled "(proposed)" wherever its id is rendered, and owes a
+ * `rationale` explaining the gap it closes.
+ */
+const PROPOSED = 'spier-proposed'
+
+function isProposed(step) {
+  return step.origin === PROPOSED
+}
+
+/** The id as a reader sees it. `step.step` itself stays clean, for joins and gates. */
+function displayStep(step) {
+  return isProposed(step) ? `${step.step} (proposed)` : step.step
+}
 
 const STEP_ID = /^\d+\.\d+-\d+[A-Z]$/
 
@@ -226,7 +256,7 @@ function wgSheet(doc) {
     for (const step of section.steps) {
       rows.push({
         cells: [
-          step.step,
+          displayStep(step),
           step.actor,
           step.actorRole,
           step.event,
@@ -262,7 +292,7 @@ function mappingSheet(doc) {
 
     rows.push({
       cells: [
-        { value: step.step, style: STYLE.bodyMono },
+        { value: displayStep(step), style: STYLE.bodyMono },
         { value: fhirResources(step).join('; '), style: STYLE.body },
         { value: stripMarkdown(step.profileBinding), style: STYLE.body },
         { value: step.ehrsFm.join('; '), style: STYLE.body },
@@ -270,6 +300,7 @@ function mappingSheet(doc) {
         { value: stripMarkdown(step.cdsHook ?? ''), style: STYLE.body },
         { value: demo, style: STYLE.body },
         { value: notes, style: STYLE.body },
+        { value: isProposed(step) ? step.rationale : '', style: STYLE.body },
       ],
     })
   }
@@ -295,7 +326,7 @@ function wgCsv(doc) {
     rows.push(pad(`${section.heading}\n${section.narrative}`))
     for (const step of section.steps) {
       rows.push([
-        step.step,
+        displayStep(step),
         step.actor,
         step.actorRole,
         step.event,
@@ -360,7 +391,7 @@ function renderMarkdown(doc) {
     for (const step of section.steps) {
       out.push(
         markdownRow([
-          step.step,
+          displayStep(step),
           step.actor,
           step.actorRole,
           step.fhirText,
@@ -373,6 +404,16 @@ function renderMarkdown(doc) {
     out.push('')
     if (section.note) out.push(section.note, '')
     out.push('---', '')
+  }
+
+  const proposed = allSteps(doc).filter(({ step }) => isProposed(step))
+  if (proposed.length) {
+    out.push('## Proposed additions', '', m.proposedIntro, '')
+    for (const { step } of proposed) {
+      out.push(`- **${step.step} — ${step.event}** (${step.actor} / ${step.actorRole})`)
+      out.push(`  ${step.rationale}`)
+    }
+    out.push('', '---', '')
   }
 
   out.push('## Profile gaps consolidated', '', m.gapsIntro, '')
@@ -456,6 +497,18 @@ function checkContent(doc, label) {
     }
     if (!isGap(step) && step.profileGaps?.length) {
       problems.push(`${at}: names profileGaps but its binding is not marked **gap**`)
+    }
+
+    // A proposal the working group has not seen must say what gap it closes,
+    // or it is indistinguishable from the scenario they actually wrote.
+    if (isProposed(step) && !step.rationale) {
+      problems.push(`${at}: origin is ${PROPOSED} but it gives no rationale`)
+    }
+    if (!isProposed(step) && step.rationale) {
+      problems.push(`${at}: has a rationale but is not marked as proposed`)
+    }
+    if (step.origin && step.origin !== PROPOSED) {
+      problems.push(`${at}: unknown origin "${step.origin}"`)
     }
   }
 
