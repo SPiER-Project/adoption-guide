@@ -1,6 +1,8 @@
 # ED Suicide-Care Scenario — FHIR & Functional Profile Mapping (Skeleton)
 
-> **First-pass skeleton.** Source scenario authored by the SPiER clinical lead as an external CSV. This document captures the structure plus an initial draft mapping of each event step to FHIR resources, profile bindings, and HL7 EHR System Functional Model references. Cells marked *TBD* are open work; cells marked *gap* indicate no SPiER profile exists yet for that artifact.
+> **First-pass skeleton.** This document captures the structure plus an initial draft mapping of each event step to FHIR resources, profile bindings, and HL7 EHR System Functional Model references. Cells marked *TBD* are open work; cells marked *gap* indicate no SPiER profile exists yet for that artifact.
+>
+> **The scenario itself now lives in [`ed-scenario-11.json`](ed-scenario-11.json)**, which is the source of truth for the working group's workbook (generated into [`dist/`](dist/)) and is gated against the `patient-011` demo walkthrough. It was originally authored by the SPiER clinical lead as an external spreadsheet; the EHR-S FM references in the tables below were lifted into that JSON, since the circulated workbook left column H empty in all 27 rows. See [`README.md`](README.md).
 >
 > **Tracking epic:** [#61 — ED Functional Profile](https://github.com/SPiER-Project/adoption-guide/issues/61).
 >

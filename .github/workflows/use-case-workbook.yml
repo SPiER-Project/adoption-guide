@@ -1,0 +1,61 @@
+name: Use-case workbook — freshness and demo linkage
+
+# The HL7 BH working group's deliverable is a spreadsheet, and spreadsheets are
+# where hand-maintained data goes to drift. This job runs the generator's
+# --check, which asserts three separate things:
+#
+#   1. the committed .xlsx and .csv are exactly what the source JSON produces;
+#   2. every event step has all eight columns — including the EHR-S FM column
+#      that was empty in all 27 rows of the workbook originally circulated;
+#   3. the scenario's declared linkage to the patient-011 demo walkthrough is
+#      true in both directions.
+#
+# Unlike onepager.yml — whose gate compares recorded hashes because Chrome's PDF
+# bytes are not reproducible — this one really does rebuild and diff. The writer
+# in scripts/lib/xlsx-writer.mjs stores every ZIP entry uncompressed with a
+# fixed timestamp precisely so that comparison is meaningful. If you ever make
+# it deflate, this gate starts flaking against zlib versions.
+#
+# Needs no npm install: the script and its two helpers use Node builtins only,
+# so this stays a sub-second job on a bare checkout.
+#
+# The path filter includes the population scenario, because half of what this
+# gate covers lives there — an edit to patient-011's walkthrough can break the
+# linkage without anything under docs/ changing. web-lint.yml also triggers on
+# web/**, but it does not run this script.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/use-cases/**'
+      - 'scripts/build-use-case-workbook.mjs'
+      - 'scripts/lib/xlsx-writer.mjs'
+      - 'scripts/lib/crc32.mjs'
+      - 'web/src/data/population/scenarios/patient-011.json'
+      - '.github/workflows/use-case-workbook.yml'
+  pull_request:
+    paths:
+      - 'docs/use-cases/**'
+      - 'scripts/build-use-case-workbook.mjs'
+      - 'scripts/lib/xlsx-writer.mjs'
+      - 'scripts/lib/crc32.mjs'
+      - 'web/src/data/population/scenarios/patient-011.json'
+      - '.github/workflows/use-case-workbook.yml'
+  workflow_dispatch:
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check the use-case workbooks match their source
+        run: node scripts/build-use-case-workbook.mjs --check
