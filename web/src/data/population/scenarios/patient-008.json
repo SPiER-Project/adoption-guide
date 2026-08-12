@@ -501,6 +501,17 @@
           }
         ]
       },
+      "serviceCategory": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
       "status": "fulfilled",
       "description": "Integrated behavioral health follow-up",
       "start": "2026-08-07T10:00:00.000Z",

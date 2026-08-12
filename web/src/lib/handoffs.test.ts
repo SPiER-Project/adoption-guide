@@ -26,6 +26,7 @@ import {
   WITHHOLDING_BASIS_SYSTEM,
   REFERRAL_REASON_SYSTEM,
 } from './handoffs'
+import { CONCEPT_DOMAIN_SYSTEM } from './conceptDomain'
 import { PATHWAY_STAGE_SYSTEM, stageForArtifact } from './patientPathway'
 import type { ConsentResource } from '../types/fhir'
 
@@ -209,6 +210,21 @@ describe('follow-up appointment (TL-031)', () => {
   it('stages itself to Coordinate Handoffs', () => {
     const tag = (appointment.meta as { tag?: { system?: string; code?: string }[] }).tag
     expect(tag?.[0]).toMatchObject({ system: PATHWAY_STAGE_SYSTEM, code: 'coordinate-handoffs' })
+  })
+
+  it('carries the concept-domain tag on serviceCategory, not category (#272)', () => {
+    // Appointment is the one profiled type with no `category` element, so the
+    // domain tag rides on `serviceCategory` — which is what
+    // `Appointment?service-category=…|suicide-risk` searches. `category` here
+    // would be silently dropped by a server and unreachable by any query.
+    expect(appointment.category).toBeUndefined()
+    const serviceCategory = appointment.serviceCategory as {
+      coding?: { system?: string; code?: string }[]
+    }[]
+    expect(serviceCategory?.[0]?.coding?.[0]).toMatchObject({
+      system: CONCEPT_DOMAIN_SYSTEM,
+      code: 'suicide-risk',
+    })
   })
 })
 

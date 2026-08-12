@@ -346,6 +346,25 @@ story" — appealing but dependent on this landing. Under Option B it splits:
 So #272 should be re-read *after* Decision 2, and its three rows may not get the
 same answer.
 
+### RESOLVED — #272 split exactly as predicted
+
+Re-read after Decision 2 and settled per row, with every search parameter checked
+against `hl7.fhir.r4.core#4.0.1` rather than assumed:
+
+| Row | Outcome | Why |
+|---|---|---|
+| `Appointment` | **Tagged** — `serviceCategory` sliced like the other 28 | `service-category` is a real R4 parameter and `serviceCategory` is `0..*` with an *example* binding, so the tag is conformant and genuinely queryable. The only one of the three where R4 offered a searchable slot SPiER was not already using. |
+| `EpisodeOfCare` | **No change** | Already equivalent: `SPiERSuicideRiskEpisode` requires `type 1..*` from `SuicideRiskEpisodeType`, whose only code is `suicide-safer-care`, and `type` is searchable for EpisodeOfCare through R4's shared `clinical-type` parameter (base list checked; expression `EpisodeOfCare.type`). A domain code in `type` would double-tag for no retrieval gain. |
+| `Task` | **No change** | Three real parameters already reach it — `code`, `encounter`, `based-on`. `Task.code` is load-bearing for the safety-task vocabulary, and an extension is not queryable without a published SearchParameter plus server support. |
+
+The issue's premise that "the value is identical across every type" survives:
+`Appointment` searches on the same code, only under a different parameter *name*.
+That exception is now stated in `quick-starts.md` rather than implied.
+
+One thing this pass fixed on the way: the gap table used to send readers to
+`EpisodeOfCare/[id]?_revinclude=Task:based-on` while the same page's *Do not assume
+`_revinclude`* section told them not to rely on it. `Task?encounter=` leads now.
+
 ## 8. Open questions
 
 - Does SPiER want `Encounter` in the catalog and data dictionary as a first-class

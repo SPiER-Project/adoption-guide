@@ -393,6 +393,12 @@ export function buildFollowUpAppointment(params: {
     resourceType: 'Appointment',
     id: params.id,
     meta: { profile: [APPOINTMENT_PROFILE], tag: stageTag() },
+    // #272 — the domain tag. Appointment has no `category`, so it rides on
+    // `serviceCategory`, which is what `Appointment?service-category=` searches.
+    // Required 1..1 by the profile, exactly like `category:suicideRisk` on the
+    // other 28 — and required for the same reason #271's slice is: an optional
+    // tag cannot be told apart from an absent resource.
+    serviceCategory: [suicideRiskCategory()],
     status: params.status,
     description: params.description?.trim() || 'Suicide-safety follow-up visit',
     start: params.start,

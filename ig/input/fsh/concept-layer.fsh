@@ -130,23 +130,44 @@ Description: "Bindable set of SPiER concept-domain categories."
 // discriminator or fight the existing one. SPiERInformationSharingConsent is
 // that case: it slices category for its own consent-category code, so it
 // inserts only the second half.
+// Parameterized on the element name because not every resource type spells the
+// slot `category` (#272): R4 `Appointment` has no `category` at all and carries
+// `serviceCategory` instead. One discriminator, applied to whichever element the
+// resource type provides — duplicating these rules per element name is exactly
+// the silent drift the paragraph above is about, and a domain query only works
+// while every discriminator stays identical.
+RuleSet: SuicideRiskDomainSlicingOn(element)
+* {element} 1..*
+* {element} ^slicing.discriminator.type = #pattern
+* {element} ^slicing.discriminator.path = "$this"
+* {element} ^slicing.rules = #open
+* {element} ^slicing.description = "Open slicing so resource-specific categories coexist with the SPiER concept-domain tag."
+
+RuleSet: SuicideRiskDomainSliceOn(element)
+* {element} contains suicideRisk 1..1
+* {element}[suicideRisk] = SPiERConceptDomain#suicide-risk
+* {element}[suicideRisk] ^short = "SPiER concept domain — suicide risk"
+* {element}[suicideRisk] ^definition = "Marks this resource as part of the suicide-safer care record, so a consumer can retrieve the whole chain by domain without knowing which instrument or workflow step produced it. Screening-level: it indicates the domain addressed, not a confirmed clinical finding."
+
 RuleSet: SuicideRiskDomainSlicing
-* category 1..*
-* category ^slicing.discriminator.type = #pattern
-* category ^slicing.discriminator.path = "$this"
-* category ^slicing.rules = #open
-* category ^slicing.description = "Open slicing so resource-specific categories coexist with the SPiER concept-domain tag."
+* insert SuicideRiskDomainSlicingOn(category)
 
 RuleSet: SuicideRiskDomainSlice
-* category contains suicideRisk 1..1
-* category[suicideRisk] = SPiERConceptDomain#suicide-risk
-* category[suicideRisk] ^short = "SPiER concept domain — suicide risk"
-* category[suicideRisk] ^definition = "Marks this resource as part of the suicide-safer care record, so a consumer can retrieve the whole chain by domain without knowing which instrument or workflow step produced it. Screening-level: it indicates the domain addressed, not a confirmed clinical finding."
+* insert SuicideRiskDomainSliceOn(category)
 
 // The common case — a profile whose `category` is not yet sliced.
 RuleSet: SuicideRiskDomainCategory
 * insert SuicideRiskDomainSlicing
 * insert SuicideRiskDomainSlice
+
+// `Appointment` only (#272). Its slot is `serviceCategory` 0..*, whose binding is
+// `example`, so adding a SPiER code is conformant rather than a violation of a
+// stronger binding. The value a consumer searches for is unchanged — what differs
+// is the parameter NAME (`service-category`, not `category`), which is why
+// quick-starts.md lists Appointment separately instead of in the uniform list.
+RuleSet: SuicideRiskDomainServiceCategory
+* insert SuicideRiskDomainSlicingOn(serviceCategory)
+* insert SuicideRiskDomainSliceOn(serviceCategory)
 
 // EXPECTED SUSHI WARNINGS, so the next reader does not "fix" them.
 //
