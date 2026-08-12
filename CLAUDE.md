@@ -162,10 +162,16 @@ rendered onto the mapping sheet.
 Markdown is the authoritative form of the mapping prose in that JSON
 (`fhirText`, `profileBinding`, `cdsHook`), because only it can carry a link to
 the artifact it describes; the spreadsheet gets it flattened at build time. The
-document's FHIR-resource lists, its 22-item consolidated gap list and its 6
-gating-tool promotions are all **derived** from the per-step fields rather than
-restated, and `--check` asserts the two directions of that (a `**gap**` binding
-must name a `profileGaps` or `gatingIssues` entry, and vice versa).
+document's FHIR-resource lists, its consolidated gap list and its gating-tool
+promotions are all **derived** from the per-step fields rather than restated,
+and `--check` asserts the two directions of that (a `**gap**` binding must name
+a `profileGaps` or `gatingIssues` entry, and vice versa).
+
+⚠️ **Ten of the 37 steps are SPiER proposals, not the scenario the working group
+circulated** — `origin: "spier-proposed"`, rendered `11.2-1C (proposed)`
+everywhere the id appears, each owing a `rationale`. Do not drop the marker to
+tidy a table, and do not renumber the original 27: a proposal takes the next
+free letter in its group. `docs/use-cases/README.md` explains what each closes.
 
 Unlike the one-pager above, this `--check` really does rebuild and byte-compare,
 because the writer (`scripts/lib/xlsx-writer.mjs`) is deterministic on purpose —

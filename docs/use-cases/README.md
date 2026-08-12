@@ -32,8 +32,9 @@ is announced by a merged full-width banner. Those seven merges are the only ones
 in the document, and nothing inside the data grid is merged — which is why a CSV
 export of it round-trips without losing structure.
 
-Verified fidelity: the generator reproduces every one of the 253 populated cells
-of the circulated workbook exactly, with two deliberate differences.
+Verified fidelity: for the 27 steps the working group circulated, the generator
+reproduces every populated cell of columns A-G exactly, in the same layout.
+Three deliberate differences.
 
 1. **Column H is filled.** `HL7 EHR System Functional Model` was empty in all 27
    rows of the original — the one column that makes this an HL7 deliverable
@@ -45,6 +46,8 @@ of the circulated workbook exactly, with two deliberate differences.
    identical to `-`, and enough to defeat exact-match search and any join
    against the rest of the repo. Curly quotes likewise. En dashes and bullets
    are left alone; see `textPolicy` in the JSON.
+3. **Ten SPiER-proposed steps are interleaved**, each labelled `(proposed)` in
+   the Event Step cell. See below.
 
 **Sheet 2 — SPiER's mapping.** FHIR resources, profile binding, whether a SPiER
 profile exists yet, the CDS Hooks hook, the demo walkthrough step, and review
@@ -91,10 +94,9 @@ Three things in that document are **derived**, not restated:
   `CarePlan.activity` contributes `CarePlan`. Extracted names are checked
   against `KNOWN_RESOURCES` in the script, so a typo fails instead of quietly
   becoming a resource type.
-- the **consolidated profile-gap list** (22 items), concatenated from each
-  step's `profileGaps` in step order.
-- the **gating tool promotions** (6 issues), de-duplicated from each step's
-  `gatingIssues`.
+- the **consolidated profile-gap list**, concatenated from each step's
+  `profileGaps` in step order — so it renumbers itself when a step is added.
+- the **gating tool promotions**, de-duplicated from each step's `gatingIssues`.
 
 Those last two used to be hand-maintained tallies of the tables above them.
 `--check` now also asserts they stay honest: a step whose binding says `**gap**`
@@ -122,13 +124,40 @@ narrates it. `--check` asserts that declaration in both directions:
 
 It is an allowlist with reasons, not a coverage count — a pinned number churns
 and trains people to bump it, which is what a stale `check:codings` floor
-already did in #232. Four steps are declared un-narrated today (11.2-1B,
-11.3-1E, 11.4-0B, 11.5-1C), each with the reason in the JSON. Closing one means
-deleting its `walkthroughGapReason` and adding the narration; the gate then
-requires the two to move together.
+already did in #232. Declared un-narrated today: the four original steps 11.2-1B,
+11.3-1E, 11.4-0B and 11.5-1C, plus every proposed step (the demo cannot narrate
+a step the scenario has not adopted). Each carries its reason in the JSON.
+Closing one means deleting its `walkthroughGapReason` and adding the narration;
+the gate then requires the two to move together.
 
 This drift was real and invisible before the gate existed: 24 of 27 steps were
 narrated, and one walkthrough step (`11.7-1A-confirm`) belonged to no scenario.
+
+## Proposed steps
+
+The circulated scenario has 27 steps. SPiER proposes 10 more, closing three gaps
+in the original: **the patient is never an actor** (self-report screening,
+co-authoring the safety plan, committing to means-safety actions, responding to
+outreach); **there are no alternate or exception flows** (declined screen,
+negative screen, psychiatric admission or transfer, elopement); and **consent
+appears as an input but never as a step** (disclosure authorization before the
+transition packet, release rules before portal delivery).
+
+They are marked `origin: "spier-proposed"` in the JSON and rendered
+`11.2-1C (proposed)` wherever the id appears, so a reviewer can accept or reject
+each one. Every proposal owes a `rationale`, and `--check` enforces that in both
+directions. **Do not drop the marker to tidy the table** — presenting a SPiER
+proposal unmarked inside the working group's own document would misrepresent
+what they authored.
+
+Nothing renumbers. A proposal takes the next free letter in its group
+(`11.2-1C`, `11.5-1E`), because the original ids are already referenced by the
+demo walkthrough, by this repo's docs, and by whoever holds the circulated copy.
+That is why `11.7-0A` uses a `0` group, following the `11.4-0A` precedent.
+
+The EHR-S FM references on proposed steps are drafts and need checking against
+the published function list — as, in fairness, does every other reference in
+that document, which still describes itself as a first-pass skeleton.
 
 ## Adding the next scenario
 

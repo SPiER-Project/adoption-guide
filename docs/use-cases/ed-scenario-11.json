@@ -56,6 +56,53 @@
           "cdsHook": null
         },
         {
+          "step": "11.2-1C",
+          "actor": "Patient (or caregiver)",
+          "actorRole": "Respondent",
+          "event": "Complete a self-administered suicide risk screener on a patient-facing device",
+          "inputs": "Age-appropriate screening instrument; a private space and device (tablet, kiosk, or portal); language and reading-level preference; interpreter when needed; whether a support person is present",
+          "outputs": "QuestionnaireResponse authored by the patient (author and source = Patient); language used; whether the patient answered privately; interpreter identity when one was used",
+          "actions": "The patient completes the screener directly; the EHR records the patient rather than the nurse as author, notes whether anyone else was present, and routes the result into the same classification path as a staff-administered screen",
+          "ehrsFm": [
+            "DC.1.7.1 Capture Standardized Assessments",
+            "DC.3.2 Support Patient Education and Self-Care"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "The scenario permits patient self-report in 11.2-1A but never gives the patient an Actor row, so nothing distinguishes a self-completed screen — including whether the patient was alone when answering, which changes how the answers should be read.",
+          "fhirText": "`QuestionnaireResponse` (author = `Patient`) + `Provenance` (self-reported source)",
+          "profileBinding": "Reuses the ASQ / C-SSRS Screener Questionnaires (11.2-1A); **gap** — no convention yet for self-report authorship",
+          "cdsHook": null,
+          "profileGaps": [
+            "Self-report screening authorship convention (QuestionnaireResponse.author + Provenance)"
+          ]
+        },
+        {
+          "step": "11.2-1D",
+          "actor": "Triage Nurse",
+          "actorRole": "Screener",
+          "event": "Document a declined, deferred, or incompletable screen",
+          "inputs": "Reason the screen did not happen (patient declines, altered mental status, intoxication, acute medical instability, communication barrier); local policy on when to re-attempt",
+          "outputs": "Discrete \"screening not performed\" record with a coded reason; re-attempt Task with a due time; metadata supporting measure exclusion",
+          "actions": "Staff record why the screen did not happen as discrete data rather than leaving it blank, and schedule a re-attempt, so that an absent result stays distinguishable from a negative one",
+          "ehrsFm": [
+            "DC.1.7.1 Capture Standardized Assessments",
+            "DC.2.3.1 Standard Assessments and Outcomes",
+            "IN.2.2 Auditable Records"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "A blank is currently indistinguishable from a negative screen. That difference drives both the clinical follow-up and the denominator of every screening measure.",
+          "fhirText": "`QuestionnaireResponse` (status `stopped`) or `Observation` (screening not performed, with reason) + `Task` (re-attempt)",
+          "profileBinding": "**gap** — Screening-Not-Performed Observation with a coded reason, and the convention separating it from a negative screen",
+          "cdsHook": null,
+          "profileGaps": [
+            "Screening-Not-Performed Observation (coded reason, distinct from a negative result)"
+          ]
+        },
+        {
           "step": "11.2-2A",
           "actor": "EHR System",
           "actorRole": "Analyzer",
@@ -119,6 +166,29 @@
           "fhirText": "`Task` (role-routed) + `ServiceRequest` (BH consult / BSSA) + `PlanDefinition` reference",
           "profileBinding": "SPiER PlanDefinition for stage-1 → stage-2 transition ([`pathway-stages.fsh`](../../ig/input/fsh/pathway-stages.fsh))",
           "cdsHook": "`order-select` / advisory"
+        },
+        {
+          "step": "11.2-2D",
+          "actor": "EHR System",
+          "actorRole": "Router",
+          "event": "Close the loop on a negative screen",
+          "inputs": "Negative screening outcome; local re-screen interval by setting and presentation; clinician override capability",
+          "outputs": "Recorded negative result with instrument and timestamp; next re-screen due date; no protocol Tasks created; an escalation path that remains open to clinician judgment",
+          "actions": "The EHR records the negative outcome, suppresses protocol tasking, sets the next re-screen interval, and keeps an explicit path for a clinician to escalate on judgment despite the negative result",
+          "ehrsFm": [
+            "DC.2.3.1 Standard Assessments and Outcomes",
+            "IN.5.1 Support Decision Logic"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "11.2-2A defines three outcomes but only the positive ones are consumed anywhere. A negative screen still has consequences: a re-screen interval, and the standing ability of a clinician to escalate anyway.",
+          "fhirText": "`Observation` (negative screening outcome) + `Task` (re-screen at interval)",
+          "profileBinding": "Reuses the screening outcome Observation (11.2-2A); **gap** — negative-result handling and re-screen interval are unspecified",
+          "cdsHook": null,
+          "profileGaps": [
+            "Negative-screen handling: re-screen interval and clinician-override-despite-negative path"
+          ]
         }
       ],
       "summary": "**Screening and identification** — triage-time ASQ or C-SSRS ED screener, captured as discrete data, classified, surfaced on the trackboard, and routed via role-based tasks.",
@@ -388,6 +458,54 @@
           "fhirText": "New instance of Room Clearance Checklist (11.3-1C) + updated `CareTeam` for observer handoff",
           "profileBinding": "Reuses 11.3-1C and 11.3-1D profiles",
           "cdsHook": null
+        },
+        {
+          "step": "11.5-1D",
+          "actor": "ED Provider (MD/APP)",
+          "actorRole": "Disposition Manager",
+          "event": "Arrange psychiatric admission or transfer when ED discharge is not appropriate",
+          "inputs": "Risk determination; level of care needed and bed availability; receiving facility acceptance; authorization status; transport requirements; EMTALA obligations",
+          "outputs": "Admission or transfer order; accepting facility and clinician recorded; per-attempt placement log including refusals; transfer packet; transport arranged with precautions maintained en route",
+          "actions": "The care team pursues placement, documents each attempt and refusal, records the accepting facility and clinician, and ensures precautions and observation continue through transport",
+          "ehrsFm": [
+            "DC.1.6.1 Order Entry",
+            "DC.2.5 Order Entry — Referrals",
+            "IN.4 Manage Health Information Sharing"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "11.5's own preamble describes patients awaiting psychiatric placement or transfer, but every step after it follows the discharge-home branch. The placement itself — and the log of failed attempts that explains a long boarding stay — is unmodelled.",
+          "fhirText": "`ServiceRequest` (admission or transfer) + `Encounter` (disposition and boarding period) + `Organization` (receiving facility) + `Communication` (acceptance)",
+          "profileBinding": "**gap** — Psychiatric Admission/Transfer Disposition profile, including the per-attempt placement log",
+          "cdsHook": null,
+          "profileGaps": [
+            "Psychiatric Admission/Transfer Disposition (with per-attempt placement log)"
+          ]
+        },
+        {
+          "step": "11.5-1E",
+          "actor": "ED Nurse / Charge Nurse",
+          "actorRole": "Safety Monitor",
+          "event": "Manage elopement or departure against advice by a patient at risk",
+          "inputs": "Observation status; last known location and time; risk tier; emergency contacts and any consent to contact them; local policy on notification and welfare checks",
+          "outputs": "Time-stamped elopement event; escalation notifications; documented search and contact attempts; encounter disposition updated; crisis resources sent by a permitted channel where possible",
+          "actions": "Staff escalate per policy, document the search and notification steps taken, update the encounter disposition, and attempt outreach with crisis resources rather than closing the encounter silently",
+          "ehrsFm": [
+            "DC.1.1.3 Manage Encounter Information",
+            "DC.1.3.1 Manage Alerts",
+            "IN.5.1 Support Decision Logic"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "A patient on suicide precautions who leaves is among the highest-risk events an ED sees, and the scenario has no path for it. With no modelled event the encounter simply closes, and the follow-up protocol in 11.7 never fires.",
+          "fhirText": "`Encounter` (disposition: left without completing treatment) + `Flag` (elopement) + `Communication` (notification and outreach attempts) + `Task` (follow-up)",
+          "profileBinding": "**gap** — Elopement / left-against-advice handling for an at-risk patient, including the notification and outreach chain",
+          "cdsHook": null,
+          "profileGaps": [
+            "Elopement / left-against-advice handling for an at-risk patient"
+          ]
         }
       ],
       "summary": "**Boarding and reassessment** — time-based reassessment during ED boarding."
@@ -432,6 +550,30 @@
           "cdsHook": null,
           "profileGaps": [
             "CarePlan versioning extension for Stanley-Brown safety plan"
+          ]
+        },
+        {
+          "step": "11.6-1C",
+          "actor": "Patient (with support person, if present)",
+          "actorRole": "Collaborator",
+          "event": "Review, contribute to, and accept the safety plan",
+          "inputs": "Draft safety plan; the patient's own words for warning signs and coping strategies; who the patient agrees may be named as a support; preferred delivery method and language",
+          "outputs": "Patient-confirmed safety plan with authorship attributed; recorded agreement to name each support person; chosen delivery method; declined elements recorded rather than omitted",
+          "actions": "The patient reviews and revises the plan in their own words, confirms which supports may be named and contacted, and accepts or declines each element; declines are recorded so the next clinician knows what was already discussed",
+          "ehrsFm": [
+            "DC.2.4 Manage Care Plans",
+            "DC.3.2 Support Patient Education and Self-Care",
+            "IN.2.2 Auditable Records"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "The scenario calls the plan collaborative but models only the clinician side. A safety plan the patient did not actually agree to is a documented artifact rather than an intervention — and naming a support person the patient has not agreed to name is itself a disclosure.",
+          "fhirText": "`CarePlan` (patient-confirmed) + `Provenance` (patient as author) + `RelatedPerson` (named support, with agreement)",
+          "profileBinding": "Reuses the Stanley-Brown CarePlan (11.6-1A); **gap** — patient authorship and per-element accept/decline are unmodelled",
+          "cdsHook": null,
+          "profileGaps": [
+            "Patient authorship and per-element accept/decline on the safety plan"
           ]
         },
         {
@@ -482,6 +624,29 @@
           ]
         },
         {
+          "step": "11.6-2C",
+          "actor": "Patient and/or caregiver",
+          "actorRole": "Means-Safety Participant",
+          "event": "Commit to and carry out the agreed means-safety actions",
+          "inputs": "Agreed storage or removal plan; who is responsible for each action; timeframe; caregiver availability; lock boxes, medication disposal, or off-site storage options",
+          "outputs": "Named responsible party per action with a due date; confirmation as each action completes; barriers recorded; a follow-up Task for anything still outstanding at discharge",
+          "actions": "The patient and any participating caregiver commit to specific, time-bound actions, and the EHR tracks each one to completion rather than recording only that counseling occurred",
+          "ehrsFm": [
+            "DC.1.7 Patient Education",
+            "DC.2.4 Manage Care Plans"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "11.6-2A documents that counseling happened and what was agreed, but nothing owns the actions or closes them out. Means-safety is the intervention with the strongest evidence base here, and \"agreed\" is not \"done\".",
+          "fhirText": "`CarePlan.activity` (per-action owner and due date) + `RelatedPerson` (caregiver) + `Task` (outstanding action)",
+          "profileBinding": "**gap** — Means-safety actions need a responsible party, a due date, and a completion state, not just a counseling record",
+          "cdsHook": null,
+          "profileGaps": [
+            "Means-safety action tracking: responsible party, due date, completion state"
+          ]
+        },
+        {
           "step": "11.6-3A",
           "actor": "EHR System",
           "actorRole": "Patient Materials Generator",
@@ -500,6 +665,30 @@
           "profileGaps": [
             "Suicide-Specific Discharge AVS Composition"
           ]
+        },
+        {
+          "step": "11.6-3B",
+          "actor": "EHR System",
+          "actorRole": "Release Manager",
+          "event": "Apply release and confidentiality rules before portal delivery",
+          "inputs": "Patient age and applicable minor-consent law; proxy or guardian portal access configuration; whether the safety plan names a support person or carries sensitive content; the patient's stated preference; sensitive-content suppression rules",
+          "outputs": "Release decision per document with the rule that produced it; suppressed or redacted items with a reason; an alternative delivery route where portal release is withheld; audit entry",
+          "actions": "Before the automatic release in 11.6-3A, the EHR evaluates who will actually be able to see each document — including a guardian holding proxy access — and withholds, redacts, or re-routes rather than releasing by default",
+          "ehrsFm": [
+            "IN.1.9 Manage Patient Privacy and Confidentiality",
+            "DC.1.9 Manage Patient Education",
+            "IN.2.2 Auditable Records"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "For an adolescent whose guardian holds proxy access, or a plan naming a member of the household the patient is unsafe with, automatic portal release can be the harm. Real deployments gate this, and the scenario should say so rather than describing release as automatic.",
+          "fhirText": "`DocumentReference` (with security labels) + `Consent` (release directives)",
+          "profileBinding": "**gap** — Release / confidentiality rule evaluation, including adolescent proxy access",
+          "cdsHook": null,
+          "profileGaps": [
+            "Release and confidentiality rule evaluation before portal delivery (incl. proxy access)"
+          ]
         }
       ],
       "summary": "**Safety planning and discharge planning** — collaborative safety plan, lethal means counseling, discharge readiness gating.",
@@ -510,6 +699,30 @@
       "heading": "Scenario 11.7 – Care Transitions and Follow-Up",
       "narrative": "The EHR supports closed-loop care transitions from the ED by transmitting key suicide-related information (as permitted) to next providers, arranging rapid follow-up, and initiating post-discharge contacts (caring contacts and phone follow-up) with monitoring and escalation.",
       "steps": [
+        {
+          "step": "11.7-0A",
+          "actor": "ED Clinician",
+          "actorRole": "Consent and Privacy Manager",
+          "event": "Capture consent and privacy directives before any disclosure",
+          "inputs": "Patient or guardian authorization preferences; applicability of 42 CFR Part 2 and state minor-consent law; emergency-exception provisions; which categories of information may go to which recipients",
+          "outputs": "Consent record with scope, recipients, and expiry; recorded basis where disclosure proceeds under an emergency exception; restrictions attached to the transition packet and to follow-up outreach",
+          "actions": "The clinician records what the patient authorizes, to whom, and for how long, before 11.7-1B assembles a packet; where an emergency exception is relied on instead, the basis for it is recorded as discrete data",
+          "ehrsFm": [
+            "IN.1.9 Manage Patient Privacy and Confidentiality",
+            "IN.4 Manage Health Information Sharing",
+            "IN.2.2 Auditable Records"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "Consent appears only as an input to 11.7-1A and 11.7-1B. Whether the packet may lawfully be sent is a decision with an actor, a timestamp, and a record — and for a minor or a Part 2 program it can forbid the transmission the scenario assumes.",
+          "fhirText": "`Consent` (scope, recipients, expiry) + `Provenance` (basis for an emergency disclosure)",
+          "profileBinding": "**gap** — Suicide-Care Disclosure Consent profile, covering Part 2 programs, minor consent, and the emergency exception",
+          "cdsHook": null,
+          "profileGaps": [
+            "Suicide-Care Disclosure Consent (42 CFR Part 2, minor consent, emergency-exception basis)"
+          ]
+        },
         {
           "step": "11.7-1A",
           "actor": "ED Clinician",
@@ -622,6 +835,29 @@
           "profileGaps": [
             "Follow-Up Overdue Escalation"
           ]
+        },
+        {
+          "step": "11.7-2D",
+          "actor": "Patient (or caregiver)",
+          "actorRole": "Follow-Up Participant",
+          "event": "Respond to post-discharge outreach, or not",
+          "inputs": "Outreach attempt on the consented channel; safety plan in hand; current supports and stressors",
+          "outputs": "Response state recorded (reached, no answer, declined further contact, consent withdrawn); patient-reported status; updated channel preference",
+          "actions": "The patient engages with the caring contact or follow-up call; the EHR records non-response and withdrawal as states distinct from \"not attempted\", which is what 11.7-2C escalates on",
+          "ehrsFm": [
+            "DC.2.4 Manage Care Plans",
+            "DC.1.3.1 Manage Alerts"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "origin": "spier-proposed",
+          "rationale": "11.7-2C escalates on missed follow-up, but nothing models the patient side of the contact. \"No answer\" and \"asked us to stop\" are clinically and legally different, and only one of them should escalate.",
+          "fhirText": "`Communication` (received, with outcome) + `Consent` (withdrawal or channel change)",
+          "profileBinding": "**gap** — Outreach response states distinguishing no-answer, declined, and withdrawn",
+          "cdsHook": null,
+          "profileGaps": [
+            "Outreach response states: reached, no answer, declined, consent withdrawn"
+          ]
         }
       ],
       "summary": "**Care transitions and follow-up** — transition-of-care packet, post-discharge caring contacts with overdue escalation.",
@@ -638,12 +874,14 @@
     "preamble": [
       "**First-pass skeleton.** This document captures the structure plus an initial draft mapping of each event step to FHIR resources, profile bindings, and HL7 EHR System Functional Model references. Cells marked *TBD* are open work; cells marked *gap* indicate no SPiER profile exists yet for that artifact.",
       "**Generated** from [`ed-scenario-11.json`](ed-scenario-11.json) by `scripts/build-use-case-workbook.mjs`, alongside the working group's workbook in [`dist/`](dist/). Edit the JSON, not this file. See [`README.md`](README.md).",
+      "**27 of the steps below are the scenario as circulated; 10 are SPiER proposals** marked \"(proposed)\" and listed with their rationale under [Proposed additions](#proposed-additions). Nothing renumbers the original steps — proposals take the next free letter in their group.",
       "**Tracking epic:** [#61 — ED Functional Profile](https://github.com/SPiER-Project/adoption-guide/issues/61).",
       "The clinical scenario itself stays generic — no real patient, no named site, no named vendor. The pseudonymous patient (\"Maria, 28, chronic pain and recent job loss\") is a scenario archetype, not a real person."
     ],
     "summaryIntro": "A 28-year-old woman with chronic pain and recent job loss presents to a general medical Emergency Department with severe insomnia and anxiety. The EHR-supported workflow covers:",
     "gapsIntro": "Profiles that do not yet exist in the SPiER IG and are required by the ED scenario:",
     "gapsFooter": "These map to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52) (non-Questionnaire workflows) for catalog modeling and to issue [#53](https://github.com/SPiER-Project/adoption-guide/issues/53) for IG profile-page publication.",
-    "gatingIntro": "Existing tool epics that must advance from `status:planned` to `status:built` for the ED profile to be complete:"
+    "gatingIntro": "Existing tool epics that must advance from `status:planned` to `status:built` for the ED profile to be complete:",
+    "proposedIntro": "Steps SPiER proposes adding to the scenario. They are **not** part of the workbook the working group circulated, and are marked \"(proposed)\" wherever they appear so a reviewer can accept or reject each one. They close three gaps in the original: the patient is never an actor, there are no alternate or exception flows, and consent appears as an input but never as a step. Their EHR-S FM references are drafts and need checking against the published EHR-S FM function list, like every other reference in this document."
   }
 }
