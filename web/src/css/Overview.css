@@ -3,50 +3,22 @@
    Lives inside the EHR shell at /overview (the old standalone portal at `/`
    redirects here), so it brings no chrome of its own: .ehr-content-body
    supplies the outer padding.
+
+   The hero used to live here — eyebrow, title, accent rule, lede — and was the
+   most designed of the four lens headers. It is now the shared one, in
+   PageHeader.css, and the other three lenses adopted it rather than the reverse.
    =========================== */
 .overview {
-  max-width: 900px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-7);
+  max-width: var(--page-width-prose);
 }
 
-/* ===========================
-   Hero
-   =========================== */
-/* The app bar already carries the SPiER wordmark and its subtitle, so the hero
-   leads with the tagline rather than repeating the brand at display size. */
-.overview__eyebrow {
-  margin: 0 0 var(--space-2);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--brand-accent);
-}
-
-.overview__title {
-  margin: 0;
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--brand-primary);
-}
-
-.overview__accent-line {
-  height: 4px;
-  width: 100%;
-  max-width: 300px;
-  margin: var(--space-4) 0;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--brand-accent), var(--brand-accent-light));
-}
-
-.overview__lede {
-  margin: 0;
-  font-size: var(--font-size-lg);
-  line-height: 1.6;
-  color: var(--text-body);
+/* Block flow with sibling margins, not flex + `gap`: `.page-header` carries its
+   own `margin-bottom`, and in a flex container that margin would *add* to the
+   gap, making the front door's header sit further from its body than every
+   other lens's. In normal flow the two margins collapse to the larger, so the
+   header spacing is the template's and the section rhythm is this page's. */
+.overview > * + * {
+  margin-top: var(--space-7);
 }
 
 /* ===========================

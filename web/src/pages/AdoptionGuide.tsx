@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
+import { PageHeader } from '../components/PageHeader'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import '../css/AdoptionGuide.css'
 
@@ -20,21 +21,12 @@ export function AdoptionGuide() {
 
   return (
     <div className="implementation-guide">
-      <header className="ig-header">
-        <p className="ig-eyebrow">
-          {/* The slash is decoration; the surrounding spaces are real so the
-              eyebrow reads as "Adoption Guide Configure" to a screen reader
-              rather than running the two words together. */}
-          Adoption Guide{' '}
-          <span className="ig-eyebrow__sep" aria-hidden="true">
-            /
-          </span>{' '}
-          {guideGroupLabel(active.group)}
-        </p>
-        <h2 className="ig-title">{active.label}</h2>
-      </header>
+      <PageHeader eyebrow={['Adoption Guide', guideGroupLabel(active.group)]} title={active.label} />
 
-      <main className="ig-content">
+      {/* A `<div>`, not a `<main>`: EhrShell already renders the document's one
+          `<main>` around this outlet, and a second one nested inside it is not a
+          landmark a screen reader can make sense of. */}
+      <div className="ig-content">
         <Outlet />
 
         <nav className="guide-pager" aria-label="Guide sections">
@@ -55,7 +47,7 @@ export function AdoptionGuide() {
             <span />
           )}
         </nav>
-      </main>
+      </div>
     </div>
   )
 }

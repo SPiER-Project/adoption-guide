@@ -1,0 +1,78 @@
+/* ===========================
+   Page header — the shared template for every lens's title block.
+   ---------------------------
+   The only definition of page-title typography in the app. Four pages used to
+   carry their own; see the note in components/PageHeader.tsx for what that cost.
+
+   No padding here, and none on any page root: `.ehr-content-body` owns the
+   page inset (EhrShell.css) and `npm run check:template` keeps it that way.
+   `margin-bottom` is the header's own — it is the gap between the header and
+   whatever the page puts under it, and it is the same gap on every lens.
+   =========================== */
+.page-header {
+  margin-bottom: var(--space-6);
+}
+
+/* Uppercase micro-trail: what the page sits inside. Always present — see the
+   prop docs in PageHeader.tsx for why it is not optional. Raspberry rather
+   than muted grey — it is the brand's accent and reads as a label rather than
+   as demoted body copy. 4.93:1 on --surface-page, so it clears AA at this size. */
+.page-header__eyebrow {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-accent);
+}
+
+.page-header__eyebrow-sep {
+  margin: 0 0.25em;
+  opacity: 0.5;
+}
+
+/* Plum, not --text-strong: three of the four lenses used the neutral heading
+   color and the front door used the brand. One of them had to win, and the
+   brand is the one that makes a page title recognizable as a page title. */
+.page-header__title {
+  margin: 0;
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--brand-primary);
+}
+
+/* The brand's accent rule, and the header's only separator. It replaces the
+   guide's card band + border-bottom, which was invisible anyway (--surface-card
+   against --surface-page is #fff on #fafaf9) while costing the whole guide body
+   a 24px indent that no other lens had. */
+.page-header__rule {
+  height: 4px;
+  width: 100%;
+  max-width: 300px;
+  margin: var(--space-4) 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand-accent), var(--brand-accent-light));
+}
+
+.page-header__lede {
+  margin: 0;
+  max-width: 760px;
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+/* Keep the title on one line. A wrapped title makes the header taller on that
+   page alone, so the lenses stop lining up with each other — the same class of
+   inconsistency this file exists to remove. The longest title, "Adoption
+   Readiness", measures 247px at 24px Poppins; below 768px the sidebar collapses
+   to a drawer and the header's content box is the viewport minus 80px of chrome,
+   so 247px runs out at a 327px viewport — narrower than any mainstream phone
+   (360 and 375 both clear it). Step the size down just below that rather than
+   let it wrap. */
+@media (max-width: 340px) {
+  .page-header__title {
+    font-size: var(--font-size-2xl);
+  }
+}

@@ -176,9 +176,11 @@ export function MeasureDashboard() {
 
       {emptyCount > 0 && (
         <aside className="md-caveat" aria-label="Why some measures have no denominator">
-          <h2 className="md-caveat-title">
+          {/* h3, not h2: the guide's page header owns this page's only h2
+              ("Measures"), and these sit under it. */}
+          <h3 className="md-caveat-title">
             {emptyCount} of {tallies.length} measures have no denominator in this period
-          </h2>
+          </h3>
           <p className="md-caveat-body">
             An empty denominator is not a score of zero. It means no patient in the registry meets
             that measure&rsquo;s cohort criteria, so there is nothing to score — a different finding
@@ -203,7 +205,7 @@ export function MeasureDashboard() {
         return (
           <section className="md-measure" key={tally.measureId}>
             <header className="md-measure-header">
-              <h2 className="md-measure-title">{tally.title}</h2>
+              <h3 className="md-measure-title">{tally.title}</h3>
             </header>
 
             <table className="md-table">

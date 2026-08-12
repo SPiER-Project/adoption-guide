@@ -3,6 +3,7 @@ import { useScrollToHash } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import { PageHeader } from '../components/PageHeader'
 import { PatientPathway } from '../components/PatientPathway'
 import { ArtifactCards } from '../components/ChartArtifacts'
 import { EpisodeRecordView } from '../components/EpisodeRecordView'
@@ -429,9 +430,7 @@ export function PatientChart() {
 
   return (
     <div className="patient-chart">
-      <header className="patient-chart-titlebar">
-        <h2 className="patient-chart-title">Patient Chart</h2>
-      </header>
+      <PageHeader eyebrow="Patient View" title="Patient Chart" />
 
       {dataSourceError && (
         <div className="chart-data-error" role="alert">

@@ -1,40 +1,9 @@
+/* The title block that used to live here (`.patient-chart-titlebar`,
+   `.patient-chart-title`) is the shared PageHeader now. `.patient-chart-reset`
+   went with it: it styled a button this page stopped rendering, and the rules
+   had outlived their element. */
 .patient-chart {
-  max-width: 1100px;
-}
-
-/* ===========================
-   Titlebar
-   =========================== */
-.patient-chart-titlebar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-.patient-chart-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--text-strong);
-  margin: 0;
-  flex: 1;
-}
-
-.patient-chart-reset {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  color: var(--text-body);
-  padding: 0.35rem 0.7rem;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.patient-chart-reset:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-muted);
+  max-width: var(--page-width-wide);
 }
 
 .risk-summary {
