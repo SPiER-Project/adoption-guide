@@ -1,0 +1,649 @@
+{
+  "id": "ed-scenario-11",
+  "title": "Behavioral Health Scenario 11 – Emergency Department Suicide Identification, Assessment, Safety, and Follow-Up",
+  "sheetName": "ED Scenario 11",
+  "demoPatient": "patient-011",
+  "narrative": "Scenario 11.1 – Patient Narrative\nMaria, a 28-year-old with chronic pain and recent job loss, presents to a general medical emergency department (ED) for severe insomnia and anxiety. During triage, the nurse administers an ED-appropriate suicide risk screener (e.g., C-SSRS ED Screener with Triage Points or ASQ). Maria endorses suicidal ideation and reports a recent self-harm behavior.\n\nThe EHR captures screener responses as discrete structured data, derives an outcome (negative / non-acute positive / acute positive) using configurable rules, and then:\n• Communicates status to the whole ED team via a visible ED trackboard / chart banner indicator, and\n• Separately routes time-sensitive protocol work via role-based Tasks and a clinician-facing advisory that provides one-click access to the appropriate order set/checklists.\n\nFor positive screens, the EHR supports rapid mitigation (environment/room clearance checklist, belongings documentation, and observation/1:1 sitter workflow with appropriate provider authorization), followed by brief assessment and/or full suicide risk assessment (e.g., Brief Suicide Safety Assessment when ASQ is used; SAFE-T with C-SSRS when indicated).\n\nFollowing assessment, the care team determines Maria can be discharged with collaborative safety planning, lethal means counseling, and rapid follow-up. At discharge, the EHR automatically includes (and prints or portal-delivers) a patient-facing safety plan and suicide-specific discharge instructions with crisis resources, and transmits a transition-of-care packet to outpatient providers while initiating post-discharge caring contacts/follow-up calls.",
+  "columns": [
+    "Event Step",
+    "Actor",
+    "Actor Role",
+    "Event",
+    "Data Requirements – Input(s)",
+    "Data Requirements – Output(s)",
+    "Action(s) Taken",
+    "HL7 EHR System Functional Model"
+  ],
+  "sections": [
+    {
+      "id": "11.2",
+      "heading": "Scenario 11.2 – Screening and Identification",
+      "narrative": "In the ED, suicide risk screening is performed early (often at triage) using a validated tool appropriate to age and setting. The EHR supports fast capture of structured screening results, applies rules to identify positive/acute screens, and (a) communicates screening status via visible indicators and (b) routes the next required steps as time-sensitive tasks/advisories without relying on clinician memory.",
+      "steps": [
+        {
+          "step": "11.2-1A",
+          "actor": "Triage Nurse",
+          "actorRole": "Screener / Enterer",
+          "event": "Administer suicide risk screener at triage (staff-administered or patient self-report)",
+          "inputs": "Validated suicide screening instrument (e.g., C-SSRS ED Screener or ASQ); respondent identity; encounter context",
+          "outputs": "QuestionnaireResponse with discrete item responses; completion timestamp; screener type/version; respondent identity",
+          "actions": "Nurse administers the ED-appropriate suicide screener; responses are captured as discrete values and submitted to the EHR",
+          "ehrsFm": [
+            "DC.1.5 Manage Patient History",
+            "DC.1.7.1 Capture Standardized Assessments"
+          ],
+          "walkthrough": "ed-11-2-1a",
+          "fhirText": "`QuestionnaireResponse`",
+          "profileBinding": "SPiER ASQ Questionnaire ([built](../../FHIR-Resources/ASQ/)) or C-SSRS Screener ([built](../../FHIR-Resources/C-SSRS/))",
+          "cdsHook": null
+        },
+        {
+          "step": "11.2-1B",
+          "actor": "EHR System",
+          "actorRole": "Retainer / Persister",
+          "event": "Retain suicide screening result as structured data",
+          "inputs": "Suicide screening QuestionnaireResponse (item-level responses)",
+          "outputs": "Persisted QuestionnaireResponse linked to ED Encounter; provenance/audit metadata",
+          "actions": "EHR validates and persists the structured QuestionnaireResponse; links it to the encounter and applies access controls",
+          "ehrsFm": [
+            "IN.1.1 Entity Authentication",
+            "IN.2.2 Auditable Records"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "Persistence has no separate narration in the demo: the QuestionnaireResponse referenced by 11.2-1A is the persisted resource.",
+          "fhirText": "`QuestionnaireResponse` with `encounter` reference + `Provenance`",
+          "profileBinding": "Encounter linkage + audit",
+          "cdsHook": null
+        },
+        {
+          "step": "11.2-2A",
+          "actor": "EHR System",
+          "actorRole": "Analyzer",
+          "event": "Auto-classify screening outcome (negative / non-acute positive / acute positive) and derive configurable risk tier",
+          "inputs": "Screening item responses; local stratification rules by setting/age; clinician override (if allowed)",
+          "outputs": "Discrete screening outcome + risk tier with timestamp; reason/override metadata (if clinician overrides)",
+          "actions": "EHR applies configurable rules to derive an outcome/risk tier from screener responses and records the result as discrete data",
+          "ehrsFm": [
+            "DC.2.3.1 Standard Assessments and Outcomes",
+            "DC.2.4.1 Support for Standard Care Plans"
+          ],
+          "walkthrough": "ed-11-2-2a",
+          "fhirText": "`Observation` (derived risk tier)",
+          "profileBinding": "**gap** — needs a SPiER ASQ Outcome Observation profile (low/non-acute positive/acute positive)",
+          "cdsHook": "`patient-view`",
+          "profileGaps": [
+            "ASQ Outcome Observation"
+          ]
+        },
+        {
+          "step": "11.2-2B",
+          "actor": "EHR System",
+          "actorRole": "Status / Visibility Manager",
+          "event": "Communicate suicide screening status to the ED team (trackboard + chart banner)",
+          "inputs": "Screening outcome/risk tier; patient context; local display rules",
+          "outputs": "Visible ED trackboard icon and/or chart banner indicator reflecting screening status; audit trail of status changes",
+          "actions": "EHR displays a prominent indicator (separate from workflow tasking) so all ED roles can recognize current screening status at a glance",
+          "ehrsFm": [
+            "DC.1.3.1 Manage Alerts",
+            "IN.5 Clinical Decision Support"
+          ],
+          "walkthrough": "ed-11-2-2b",
+          "reviewNotes": [
+            {
+              "author": "Kelly Samuelson",
+              "date": "2026-02-19",
+              "column": "event",
+              "text": "storyboard - need the vendor agnostic version of this and then EHR specialist can translate this per EHR"
+            }
+          ],
+          "fhirText": "`Flag` (suicide screening status)",
+          "profileBinding": "**gap** — SPiER Suicide-Screening-Status Flag profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Suicide-Screening-Status Flag"
+          ]
+        },
+        {
+          "step": "11.2-2C",
+          "actor": "EHR System",
+          "actorRole": "CDS / Workflow Router",
+          "event": "Route protocol work via Tasks/advisories and provide one-click access to relevant order set/checklists",
+          "inputs": "Screening outcome/risk tier; local ED protocol rules; staffing/role assignments; patient location",
+          "outputs": "Role-routed Tasks/notifications (e.g., notify ED provider, initiate safety mitigation checklist, request BH consult, schedule BSSA when applicable); acceptance/override reason capture",
+          "actions": "EHR creates role-based Tasks and, where configured, launches a staff advisory that links directly to the appropriate protocol order set/checklists",
+          "ehrsFm": [
+            "DC.2.4.3 Support for Standard Care Plans, Guidelines, Protocols",
+            "IN.5.1 Support Decision Logic"
+          ],
+          "walkthrough": "ed-11-2-2c",
+          "fhirText": "`Task` (role-routed) + `ServiceRequest` (BH consult / BSSA) + `PlanDefinition` reference",
+          "profileBinding": "SPiER PlanDefinition for stage-1 → stage-2 transition ([`pathway-stages.fsh`](../../ig/input/fsh/pathway-stages.fsh))",
+          "cdsHook": "`order-select` / advisory"
+        }
+      ],
+      "summary": "**Screening and identification** — triage-time ASQ or C-SSRS ED screener, captured as discrete data, classified, surfaced on the trackboard, and routed via role-based tasks.",
+      "note": "**Open profile work:** ASQ Outcome Observation, Suicide-Screening-Status Flag. Both feed back to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52) as non-Questionnaire workflow artifacts."
+    },
+    {
+      "id": "11.3",
+      "heading": "Scenario 11.3 – Immediate Safety / Mitigation",
+      "narrative": "For acute positive or otherwise high-risk presentations, the ED must rapidly mitigate environmental and procedural risks. The EHR supports a standardized mitigation checklist/order set, documents observation level and environmental safety actions, and ensures provider authorization/countersignature where required.",
+      "steps": [
+        {
+          "step": "11.3-1A",
+          "actor": "ED Nurse",
+          "actorRole": "Implementer / Initiator",
+          "event": "Initiate immediate safety mitigation (keep patient in sight; move to room; start mitigation checklist)",
+          "inputs": "Positive screen/risk tier; local ED suicide safety protocol; current bed/room assignment",
+          "outputs": "Started mitigation checklist/Tasks; documentation that patient moved to a safer setting and not left unattended (when indicated)",
+          "actions": "Nurse initiates immediate mitigation per protocol and opens the mitigation checklist in the EHR to track required actions and handoffs",
+          "ehrsFm": [
+            "DC.2.4.3 Support for Standard Care Plans",
+            "DC.1.1.3 Manage Encounter Information"
+          ],
+          "walkthrough": "ed-11-3-1a",
+          "fhirText": "`Task` (mitigation checklist) + `Procedure` (patient relocation)",
+          "profileBinding": "**gap** — Mitigation Checklist Task profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Mitigation Checklist Task"
+          ]
+        },
+        {
+          "step": "11.3-1B",
+          "actor": "ED Provider (MD/APP)",
+          "actorRole": "Orderer / Authorizer",
+          "event": "Authorize and tailor suicide precaution / observation orders (with required signature/countersignature)",
+          "inputs": "Risk tier; nursing mitigation status; local order set defaults; patient-specific medical needs (lines, monitoring, imaging, etc.)",
+          "outputs": "Signed orders for precautions (including observation level and parameters); ordered consults; order modifications with rationale",
+          "actions": "Provider reviews recommended protocol orders, tailors parameters to the patient, and signs/countersigns as required (EHR enforces role-based ordering and captures rationale for deviations)",
+          "ehrsFm": [
+            "DC.1.6.1 Order Entry",
+            "IN.2.2 Auditable Records"
+          ],
+          "walkthrough": "ed-11-3-1b",
+          "fhirText": "`ServiceRequest` (suicide precautions, observation level) with required signature",
+          "profileBinding": "**gap** — Suicide Precaution ServiceRequest profile",
+          "cdsHook": "`order-sign`",
+          "profileGaps": [
+            "Suicide Precaution ServiceRequest (with required countersignature)"
+          ]
+        },
+        {
+          "step": "11.3-1C",
+          "actor": "ED Nurse / Tech / Security",
+          "actorRole": "Safety Implementer",
+          "event": "Complete and document environmental safety / room clearance checklist and belongings security",
+          "inputs": "Room clearance checklist content; patient belongings inventory; local ligature/sharps risk guidance",
+          "outputs": "Completed checklist (time, performer, verifier); belongings secured record; exceptions documented with mitigation plan",
+          "actions": "Team completes room clearance and belongings safety steps (remove/secure potentially harmful items, cords/tubing not needed for care, sharps containers, etc.) and documents completion in a structured checklist",
+          "ehrsFm": [
+            "DC.1.6.2 Order Documents and Reports"
+          ],
+          "walkthrough": "ed-11-3-1c",
+          "fhirText": "`Observation` (room clearance result) + `List` (belongings inventory)",
+          "profileBinding": "**gap** — Room Clearance Checklist profile; Belongings Inventory profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Room Clearance Checklist",
+            "Belongings Inventory"
+          ]
+        },
+        {
+          "step": "11.3-1D",
+          "actor": "Observer (Sitter)",
+          "actorRole": "Continuous Observer",
+          "event": "Begin continuous observation when indicated; document observations and safety checks",
+          "inputs": "Observation order/level; patient location; observer role assignment; documentation frequency rules",
+          "outputs": "Observation documentation record (time-stamped entries); observer identity/competency; handoff log",
+          "actions": "A qualified observer provides continuous visual observation per policy when the patient is high-risk in an environment with safety hazards; the observer documents at the required interval and escalates concerns immediately",
+          "ehrsFm": [
+            "DC.2.4 Manage Care Plans",
+            "DC.1.3.1 Manage Alerts"
+          ],
+          "walkthrough": "ed-11-3-1d",
+          "fhirText": "`Observation` series (time-stamped observations) + `CareTeam` (observer assignment)",
+          "profileBinding": "**gap** — Continuous Observation Log profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Continuous Observation Log"
+          ]
+        },
+        {
+          "step": "11.3-1E",
+          "actor": "EHR System",
+          "actorRole": "Status / Visibility Manager",
+          "event": "Persist and display active safety precautions (incl. observation level, checklist completion, and observer assignment)",
+          "inputs": "Orders/Tasks for mitigation; completed checklist; observation order/level; observer assignment",
+          "outputs": "Active precaution status indicator (e.g., \"Suicide precautions ON\" + observation level) + checklist/observer status on trackboard/banner; audit trail",
+          "actions": "EHR stores active precautions and their current parameters, displays them on ED views, and maintains an audit trail of when precautions were started/changed/ended",
+          "ehrsFm": [
+            "DC.1.3.1 Manage Alerts",
+            "IN.5 Clinical Decision Support"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "The demo emits no Flag resource, so there is no active-precautions indicator to narrate.",
+          "fhirText": "`Flag` (active precautions) with current parameters",
+          "profileBinding": "**gap** — Active Precautions Flag profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Active Precautions Flag"
+          ]
+        }
+      ],
+      "summary": "**Immediate safety / mitigation** — environmental safety, observation/sitter, belongings security.",
+      "note": "**Open profile work:** Mitigation Checklist, Suicide Precaution Order, Room Clearance Checklist, Belongings Inventory, Continuous Observation Log, Active Precautions Flag. All flow to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52)."
+    },
+    {
+      "id": "11.4",
+      "heading": "Scenario 11.4 – Brief Assessment and Suicide Risk Assessment",
+      "narrative": "After a positive screen, a trained clinician completes a brief suicide safety assessment (especially when ASQ is used and the screen is non-acute positive) to determine next steps. When indicated, the care team completes a structured suicide risk assessment (e.g., SAFE-T with C-SSRS). The EHR captures key assessment elements as discrete data and supports disposition decision-making.",
+      "steps": [
+        {
+          "step": "11.4-0A",
+          "actor": "ED Clinician / Behavioral Health Clinician",
+          "actorRole": "Assessor",
+          "event": "Complete Brief Suicide Safety Assessment (BSSA) after positive screen (as applicable)",
+          "inputs": "Screening results (incl. acuity); relevant history; current presentation; collateral info when available",
+          "outputs": "Structured BSSA record (discrete elements + narrative) including frequency of suicidal thoughts, plan/intent, past behavior, symptoms, supports/stressors, and means access; recommended next step",
+          "actions": "Clinician completes a brief assessment to triage next steps (e.g., urgent full mental health evaluation vs proceed with ED discharge planning with interventions) and documents key elements as structured data",
+          "ehrsFm": [
+            "DC.1.7.1 Capture Standardized Assessments"
+          ],
+          "walkthrough": "ed-11-4-0a",
+          "fhirText": "`QuestionnaireResponse` (BSSA)",
+          "profileBinding": "**gap** — needs FSH for BSSA ([TL-005](https://github.com/SPiER-Project/adoption-guide/issues/21), status:planned, promote priority)",
+          "cdsHook": null,
+          "gatingIssues": [
+            {
+              "number": 21,
+              "label": "BSSA"
+            }
+          ]
+        },
+        {
+          "step": "11.4-0B",
+          "actor": "EHR System",
+          "actorRole": "Analyzer / Router",
+          "event": "Record BSSA outcome and route next steps (full evaluation vs proceed to discharge pathway)",
+          "inputs": "BSSA findings; clinician determination; local clinical pathway rules",
+          "outputs": "Disposition routing Tasks (e.g., STAT mental health evaluation, BH consult); updated risk status indicator; documentation of \"cannot leave until evaluated\" status when applicable",
+          "actions": "EHR persists the BSSA, updates ED-visible indicators, and triggers the next protocol stage based on the clinician's determination and local pathway rules",
+          "ehrsFm": [
+            "DC.2.3.1 Standard Assessments and Outcomes",
+            "DC.2.4.3 Care Plans Protocols"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "The demo records the BSSA (11.4-0A) but emits no routing Task, so there is no artifact for this step.",
+          "fhirText": "`Observation` (BSSA outcome) + `Task` (next-step routing) + `Flag` (cannot leave until evaluated)",
+          "profileBinding": "**gap** — BSSA Outcome Observation; \"Hold for Evaluation\" Flag",
+          "cdsHook": "`patient-view`",
+          "profileGaps": [
+            "BSSA Outcome Observation",
+            "\"Hold for Evaluation\" Flag"
+          ]
+        },
+        {
+          "step": "11.4-1A",
+          "actor": "Behavioral Health Clinician",
+          "actorRole": "Assessor",
+          "event": "Complete structured suicide risk assessment (e.g., SAFE-T with C-SSRS) when indicated",
+          "inputs": "Screening + BSSA results (if performed); relevant prior history (prior attempts, diagnoses, substance use, meds); current presentation",
+          "outputs": "Structured risk assessment record (discrete elements + clinician narrative) including ideation severity, intent/plan, recent behavior, protective factors, and means access",
+          "actions": "Clinician completes a structured assessment in the EHR and documents key elements as discrete data to support risk determination and disposition planning",
+          "ehrsFm": [
+            "DC.1.7.1 Capture Standardized Assessments"
+          ],
+          "walkthrough": "ed-11-4-1a",
+          "fhirText": "`QuestionnaireResponse` (C-SSRS Full + SAFE-T framing)",
+          "profileBinding": "C-SSRS Full ([built — `cssrs-full-lifetime-recent.json`](../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json)); SAFE-T ([TL-006](https://github.com/SPiER-Project/adoption-guide/issues/22), status:planned, promote)",
+          "cdsHook": null,
+          "gatingIssues": [
+            {
+              "number": 22,
+              "label": "SAFE-T"
+            }
+          ]
+        },
+        {
+          "step": "11.4-1B",
+          "actor": "EHR System",
+          "actorRole": "Analyzer / Persister",
+          "event": "Record suicide risk level/status and update ED-visible and longitudinal indicators",
+          "inputs": "Structured assessment data; clinician determination",
+          "outputs": "Discrete current suicide risk level/status (e.g., low/moderate/high/imminent) with timestamp; persistent risk indicator; optional coded diagnosis/problem entry",
+          "actions": "EHR persists the risk level as a longitudinal data element, updates ED banner/trackboard indicators, and triggers downstream workflows per policy",
+          "ehrsFm": [
+            "DC.1.3.1 Manage Alerts",
+            "DC.2.4 Manage Care Plans"
+          ],
+          "walkthrough": "ed-11-4-1b",
+          "fhirText": "`Observation` (current suicide risk level) + `Condition` (suicide-risk condition, coded) + `Flag` (longitudinal risk indicator)",
+          "profileBinding": "**gap** — Current Suicide Risk Level Observation; Longitudinal Risk Flag",
+          "cdsHook": null,
+          "profileGaps": [
+            "Current Suicide Risk Level Observation",
+            "Longitudinal Suicide Risk Flag"
+          ]
+        }
+      ],
+      "summary": "**Brief assessment and risk assessment** — BSSA (after positive ASQ) and SAFE-T with C-SSRS when indicated.",
+      "note": "**Gating tools:** BSSA (#21) and SAFE-T (#22) must move from `status:planned` to `status:built` to satisfy this section."
+    },
+    {
+      "id": "11.5",
+      "heading": "Scenario 11.5 – Boarding and Reassessment",
+      "narrative": "When patients board in the ED awaiting psychiatric placement or transfer, risk status and precautions may change over time. The EHR supports time-based reassessment tasks (screening/assessment checkpoints), precaution updates, and continuity during handoffs across ED shifts.",
+      "steps": [
+        {
+          "step": "11.5-1A",
+          "actor": "EHR System",
+          "actorRole": "Task Scheduler",
+          "event": "Generate reassessment tasks/checkpoints while patient remains in ED (risk, precautions, environment, and observer status)",
+          "inputs": "Time since last assessment; boarding status; observation level; last room clearance time; protocol rules by risk tier",
+          "outputs": "Scheduled reassessment Tasks (due time + responsible role); reminders/escalations; completion tracking",
+          "actions": "EHR schedules reassessment checkpoints (e.g., every X hours, prior to shift change, or before disposition) and escalates if overdue; includes prompts for room re-sweep and observer/precaution review where required",
+          "ehrsFm": [
+            "DC.2.4.3 Care Plans Protocols",
+            "IN.5.1 Support Decision Logic"
+          ],
+          "walkthrough": "ed-11-5-1a",
+          "fhirText": "`Task` series with `restriction.period` + `PlanDefinition` (reassessment cadence)",
+          "profileBinding": "**gap** — Reassessment Cadence PlanDefinition + Reassessment Task profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Reassessment Cadence PlanDefinition + Reassessment Task"
+          ]
+        },
+        {
+          "step": "11.5-1B",
+          "actor": "ED Clinician",
+          "actorRole": "Reassessor",
+          "event": "Reassess suicide risk and update orders/precautions as clinically indicated",
+          "inputs": "Prior screening/assessment results; current symptoms; new events (agitation, elopement risk); protocol guidance",
+          "outputs": "Updated risk level/status (discrete); updated precaution orders/parameters; updated safety plan if appropriate",
+          "actions": "Clinician completes reassessment and updates risk status and precaution orders; EHR makes it easy to modify/discontinue/tailor orders while retaining prior values for audit/longitudinal tracking",
+          "ehrsFm": [
+            "DC.2.3.1 Standard Assessments",
+            "DC.1.6.1 Order Entry"
+          ],
+          "walkthrough": "ed-11-5-1b",
+          "fhirText": "`Observation` (updated risk) + `ServiceRequest` (updated precautions) with prior-value preservation",
+          "profileBinding": "Reuses Current Suicide Risk Level Observation (11.4-1B) + Suicide Precaution ServiceRequest (11.3-1B)",
+          "cdsHook": null
+        },
+        {
+          "step": "11.5-1C",
+          "actor": "ED Nurse / Charge Nurse",
+          "actorRole": "Safety Monitor",
+          "event": "Re-check environmental safety (room clearance) and confirm observer assignment at shift change / room move",
+          "inputs": "Current room assignment; last room clearance checklist; observation order/level; staffing assignments",
+          "outputs": "Updated checklist record (if repeated); updated observer assignment/handoff log; exceptions documented",
+          "actions": "When the patient remains in the ED or changes rooms, staff repeat the environmental safety sweep per policy and confirm continuous observation coverage (if ordered), documenting completion and any exceptions",
+          "ehrsFm": [
+            "DC.1.6.2 Order Documents and Reports"
+          ],
+          "walkthrough": null,
+          "walkthroughGapReason": "The demo has a single room-clearance event and no shift-change repeat.",
+          "fhirText": "New instance of Room Clearance Checklist (11.3-1C) + updated `CareTeam` for observer handoff",
+          "profileBinding": "Reuses 11.3-1C and 11.3-1D profiles",
+          "cdsHook": null
+        }
+      ],
+      "summary": "**Boarding and reassessment** — time-based reassessment during ED boarding."
+    },
+    {
+      "id": "11.6",
+      "heading": "Scenario 11.6 – Safety Planning and Discharge Planning",
+      "narrative": "Before ED discharge of a patient with suicide risk, best practice is to create or update a collaborative safety plan, provide lethal means counseling (a distinct intervention), and arrange rapid follow-up. The EHR supports structured, versioned safety plans; structured lethal means safety actions; and discharge-step completion with automatic inclusion/printing of required patient materials.",
+      "steps": [
+        {
+          "step": "11.6-1A",
+          "actor": "ED Clinician",
+          "actorRole": "Enterer",
+          "event": "Develop structured safety plan with patient prior to discharge",
+          "inputs": "Current suicide risk level/status; patient-identified warning signs, coping strategies, supports; crisis resources preferences",
+          "outputs": "Structured safety plan (versioned) including warning signs, internal coping, supports, professional/crisis resources (incl. 988), and follow-up contacts",
+          "actions": "Clinician collaborates with patient to complete a structured safety plan template and confirms preferred access method (print and/or portal)",
+          "ehrsFm": [
+            "DC.2.4 Manage Care Plans",
+            "DC.1.7.1 Capture Standardized Assessments"
+          ],
+          "walkthrough": "ed-11-6-1a",
+          "fhirText": "`QuestionnaireResponse` (Stanley-Brown safety plan) + `CarePlan`",
+          "profileBinding": "Stanley-Brown ([built](../../FHIR-Resources/Stanley-Brown/))",
+          "cdsHook": null
+        },
+        {
+          "step": "11.6-1B",
+          "actor": "EHR System",
+          "actorRole": "Retainer / Versioner",
+          "event": "Store, version, and make safety plan retrievable across settings",
+          "inputs": "Structured safety plan data",
+          "outputs": "Versioned safety plan stored in dedicated chart location; audit trail; linkage to risk status; patient-facing copy-ready artifact",
+          "actions": "EHR persists and versions the safety plan; supports rapid retrieval for ED and downstream teams; retains prior versions with timestamps",
+          "ehrsFm": [
+            "DC.2.4 Manage Care Plans",
+            "IN.2.2 Auditable Records"
+          ],
+          "walkthrough": "ed-11-6-1b",
+          "fhirText": "`CarePlan` with version history + `Provenance` for each version",
+          "profileBinding": "Reuses Stanley-Brown CarePlan profile; **gap** — versioning extension",
+          "cdsHook": null,
+          "profileGaps": [
+            "CarePlan versioning extension for Stanley-Brown safety plan"
+          ]
+        },
+        {
+          "step": "11.6-2A",
+          "actor": "ED Clinician",
+          "actorRole": "Educator",
+          "event": "Provide lethal means counseling and document agreed actions (stand-alone intervention)",
+          "inputs": "Means access details (firearms, medications, other); patient/caregiver participants; agreed storage/removal plan",
+          "outputs": "Discrete lethal-means safety action plan (what/who/where/when) linked to encounter and/or safety plan; education/handout delivery record",
+          "actions": "Clinician provides lethal means counseling and documents agreed, time-bound means-safety actions; provides education materials and involves supports when appropriate",
+          "ehrsFm": [
+            "DC.1.7 Patient Education",
+            "DC.2.4 Manage Care Plans"
+          ],
+          "walkthrough": "ed-11-6-2a",
+          "fhirText": "`Procedure` (lethal means counseling delivered) + `CarePlan.activity` (means-safety actions, who/what/when/where)",
+          "profileBinding": "**gap** — Lethal Means Counseling Procedure + Means-Safety Action profile ([TL-008](https://github.com/SPiER-Project/adoption-guide/issues/24), status:planned, promote)",
+          "cdsHook": null,
+          "profileGaps": [
+            "Lethal Means Counseling Procedure",
+            "Means-Safety Action (who/what/when/where)"
+          ],
+          "gatingIssues": [
+            {
+              "number": 24,
+              "label": "Means Counseling"
+            }
+          ]
+        },
+        {
+          "step": "11.6-2B",
+          "actor": "EHR System",
+          "actorRole": "Discharge Checklist Manager",
+          "event": "Ensure ED discharge requirements are complete for patients with suicide risk",
+          "inputs": "Risk level/status; completion status of assessment, safety plan, lethal means counseling, and follow-up arrangements",
+          "outputs": "Discharge readiness checklist status; blocking alerts (if requirements incomplete); compiled AVS package",
+          "actions": "EHR enforces (or strongly prompts) completion of required elements before discharge and compiles required documents into the AVS/after-visit packet",
+          "ehrsFm": [
+            "DC.1.6.1 Order Entry",
+            "IN.5.1 Support Decision Logic"
+          ],
+          "walkthrough": "ed-11-6-2b",
+          "fhirText": "`Task` (discharge readiness) + `Flag` (blocking alert if incomplete)",
+          "profileBinding": "**gap** — Discharge Readiness Checklist profile",
+          "cdsHook": "`encounter-discharge`",
+          "profileGaps": [
+            "Discharge Readiness Checklist with blocking behavior"
+          ]
+        },
+        {
+          "step": "11.6-3A",
+          "actor": "EHR System",
+          "actorRole": "Patient Materials Generator",
+          "event": "Auto-generate and auto-deliver/print safety plan and suicide-specific discharge instructions",
+          "inputs": "Final safety plan version; local crisis resource directory; patient language/reading level needs; follow-up appointments; patient preferred delivery (print/portal)",
+          "outputs": "Printed and/or portal-delivered safety plan copy; discharge instructions with psychoeducation and crisis resources; delivery/receipt documentation",
+          "actions": "At discharge, the EHR automatically includes the safety plan and suicide-specific discharge instructions (including crisis resources and local supports) in the AVS; prints and/or releases to portal per patient preference, and records that materials were delivered",
+          "ehrsFm": [
+            "DC.1.9 Manage Patient Education",
+            "DC.2.7.2 Patient Discharge Summary"
+          ],
+          "walkthrough": "ed-11-6-3a",
+          "fhirText": "`Composition` (after-visit summary) + `DocumentReference` (printed/portal-delivered safety plan + discharge instructions)",
+          "profileBinding": "**gap** — Suicide-Specific Discharge AVS Composition profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Suicide-Specific Discharge AVS Composition"
+          ]
+        }
+      ],
+      "summary": "**Safety planning and discharge planning** — collaborative safety plan, lethal means counseling, discharge readiness gating.",
+      "note": "**Gating tools:** Means Counseling (#24) — promote priority."
+    },
+    {
+      "id": "11.7",
+      "heading": "Scenario 11.7 – Care Transitions and Follow-Up",
+      "narrative": "The EHR supports closed-loop care transitions from the ED by transmitting key suicide-related information (as permitted) to next providers, arranging rapid follow-up, and initiating post-discharge contacts (caring contacts and phone follow-up) with monitoring and escalation.",
+      "steps": [
+        {
+          "step": "11.7-1A",
+          "actor": "ED Clinician",
+          "actorRole": "Orderer",
+          "event": "Place urgent outpatient follow-up / referral and document disposition plan",
+          "inputs": "Risk level/status; patient preferences; referral destination; consent/privacy directives",
+          "outputs": "Referral/AppointmentRequest with urgency; discharge disposition plan; tasks for outreach and follow-up",
+          "actions": "Clinician places an urgent follow-up request/referral and documents disposition plan, including timeframe and responsible role for scheduling/outreach",
+          "ehrsFm": [
+            "DC.2.5 Order Entry — Referrals",
+            "DC.1.6.1 Order Entry"
+          ],
+          "walkthrough": "ed-11-7-1a",
+          "fhirText": "`ServiceRequest` (urgent outpatient referral) + `Appointment` request + `Communication` to receiving provider",
+          "profileBinding": "**gap** — Urgent BH Follow-Up Referral profile ([TL-009 Transition](https://github.com/SPiER-Project/adoption-guide/issues/25), status:planned, promote)",
+          "cdsHook": "`order-select`",
+          "profileGaps": [
+            "Urgent BH Follow-Up Referral"
+          ],
+          "gatingIssues": [
+            {
+              "number": 25,
+              "label": "Transition"
+            }
+          ]
+        },
+        {
+          "step": "11.7-1B",
+          "actor": "EHR System",
+          "actorRole": "Transmitter / Care Transition Packager",
+          "event": "Generate and transmit ED transition-of-care packet",
+          "inputs": "Screening/assessment outputs; safety plan; lethal-means action plan; demographics; consent/privacy directives",
+          "outputs": "Transition-of-care packet (electronic); notifications to receiving providers; delivery acknowledgements (when available)",
+          "actions": "EHR packages and transmits relevant structured information; notifies receiving providers and stores delivery status/acknowledgements when supported",
+          "ehrsFm": [
+            "DC.2.7.1 Care Plan, Guideline, Protocol Generation",
+            "IN.4 Manage Health Information Sharing"
+          ],
+          "walkthrough": "ed-11-7-1b",
+          "fhirText": "`Bundle` (transition-of-care packet) + `Composition` + `Provenance` for delivery acknowledgement",
+          "profileBinding": "**gap** — Suicide-Specific Transition-of-Care Bundle profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Suicide-Specific Transition-of-Care Bundle"
+          ]
+        },
+        {
+          "step": "11.7-2A",
+          "actor": "EHR System",
+          "actorRole": "Follow-Up Protocol Manager",
+          "event": "Initiate post-discharge follow-up protocol (caring contacts and phone calls)",
+          "inputs": "ED discharge event; risk tier; configured follow-up rules and cadence; patient contact info",
+          "outputs": "Follow-up Task set (e.g., 24–48h call, 7-day visit); caring contacts schedule; registry/dashboard enrollment",
+          "actions": "EHR generates protocol-driven follow-up tasks, schedules caring contacts, enrolls patient in a registry/dashboard, and tracks completion and outcomes",
+          "ehrsFm": [
+            "DC.2.4.3 Care Plans Protocols",
+            "DC.2.4 Manage Care Plans"
+          ],
+          "walkthrough": "ed-11-7-2a",
+          "fhirText": "`Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment",
+          "profileBinding": "**gap** — Caring Contacts PlanDefinition + Caring Contact Task profile ([TL-010](https://github.com/SPiER-Project/adoption-guide/issues/26), status:planned, promote); ED-SAFE telephone follow-up profile ([TL-012](https://github.com/SPiER-Project/adoption-guide/issues/28), status:planned, promote) — ED-SAFE specifies the phone-call protocol that Caring Contacts envelopes; both are needed for an ED-anchored follow-up program",
+          "cdsHook": null,
+          "profileGaps": [
+            "Caring Contacts PlanDefinition + Caring Contact Task"
+          ],
+          "gatingIssues": [
+            {
+              "number": 26,
+              "label": "Caring Contacts"
+            },
+            {
+              "number": 28,
+              "label": "ED-SAFE"
+            }
+          ]
+        },
+        {
+          "step": "11.7-2B",
+          "actor": "Care Team",
+          "actorRole": "Outreach / Monitor",
+          "event": "Conduct follow-up outreach and document outcomes",
+          "inputs": "Assigned follow-up tasks; patient contact information; safety plan; current risk status",
+          "outputs": "Outreach documentation; updated risk status (as needed); updated safety plan; next scheduled follow-up",
+          "actions": "Care team completes outreach per protocol, documents outcomes, updates risk status/safety plan as needed, and schedules next steps",
+          "ehrsFm": [
+            "DC.2.4 Manage Care Plans",
+            "DC.1.3.1 Manage Alerts"
+          ],
+          "walkthrough": "ed-11-7-2b",
+          "fhirText": "`Communication` (outreach attempt) + updated `Observation` (current risk) + updated `CarePlan`",
+          "profileBinding": "Reuses earlier profiles",
+          "cdsHook": null
+        },
+        {
+          "step": "11.7-2C",
+          "actor": "EHR System",
+          "actorRole": "Exception / Escalation Manager",
+          "event": "Detect missed follow-up and escalate care coordination",
+          "inputs": "Task status; no-response indicators; missed appointment status; escalation rules",
+          "outputs": "Escalation alerts; reassigned tasks; documentation of attempted contacts; updated registry status",
+          "actions": "EHR detects overdue tasks or missed appointments for elevated-risk patients and escalates per protocol (e.g., supervisor alert, additional outreach, welfare check guidance)",
+          "ehrsFm": [
+            "IN.5.1 Support Decision Logic",
+            "DC.1.3.1 Manage Alerts"
+          ],
+          "walkthrough": "ed-11-7-2c",
+          "fhirText": "`Task` status transitions to overdue + `Communication` (supervisor alert) + `Flag` (escalated follow-up status)",
+          "profileBinding": "**gap** — Follow-Up Overdue Escalation profile",
+          "cdsHook": null,
+          "profileGaps": [
+            "Follow-Up Overdue Escalation"
+          ]
+        }
+      ],
+      "summary": "**Care transitions and follow-up** — transition-of-care packet, post-discharge caring contacts with overdue escalation.",
+      "note": "**Gating tools:** Transition (#25), Caring Contacts (#26) — promote priority."
+    }
+  ],
+  "extraWalkthroughSteps": {
+    "11.7-1A-confirm": "Demo-only closed-loop step: a scheduled confirmation that the receiving outpatient BH program got the transition packet. Not in the HL7 scenario, which ends at 11.7-2C."
+  },
+  "textPolicy": "Source text is normalized ASCII punctuation: U+2011 NON-BREAKING HYPHEN -> \"-\", curly quotes -> straight. The workbook the working group circulated used U+2011 inside \"C-SSRS\", \"SAFE-T\" and \"non-acute\", which is invisible on screen and defeats exact-match search and joins against every other SPiER document. En dashes and bullets are left alone.",
+  "mapping": {
+    "path": "ed-scenario-11.md",
+    "title": "ED Suicide-Care Scenario — FHIR & Functional Profile Mapping (Skeleton)",
+    "preamble": [
+      "**First-pass skeleton.** This document captures the structure plus an initial draft mapping of each event step to FHIR resources, profile bindings, and HL7 EHR System Functional Model references. Cells marked *TBD* are open work; cells marked *gap* indicate no SPiER profile exists yet for that artifact.",
+      "**Generated** from [`ed-scenario-11.json`](ed-scenario-11.json) by `scripts/build-use-case-workbook.mjs`, alongside the working group's workbook in [`dist/`](dist/). Edit the JSON, not this file. See [`README.md`](README.md).",
+      "**Tracking epic:** [#61 — ED Functional Profile](https://github.com/SPiER-Project/adoption-guide/issues/61).",
+      "The clinical scenario itself stays generic — no real patient, no named site, no named vendor. The pseudonymous patient (\"Maria, 28, chronic pain and recent job loss\") is a scenario archetype, not a real person."
+    ],
+    "summaryIntro": "A 28-year-old woman with chronic pain and recent job loss presents to a general medical Emergency Department with severe insomnia and anxiety. The EHR-supported workflow covers:",
+    "gapsIntro": "Profiles that do not yet exist in the SPiER IG and are required by the ED scenario:",
+    "gapsFooter": "These map to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52) (non-Questionnaire workflows) for catalog modeling and to issue [#53](https://github.com/SPiER-Project/adoption-guide/issues/53) for IG profile-page publication.",
+    "gatingIntro": "Existing tool epics that must advance from `status:planned` to `status:built` for the ED profile to be complete:"
+  }
+}

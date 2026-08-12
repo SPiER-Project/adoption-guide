@@ -147,6 +147,39 @@ Both files live under `web/public/` so both hosts serve them at stable URLs (Vit
 Cloudflare build is dashboard-configured and can't be given a browser.
 `docs/outreach/README.md` has the full rationale.
 
+And the HL7 working-group use-case workbook, which is generated rather than
+hand-maintained (Node builtins only — no install, sub-second):
+```
+node scripts/build-use-case-workbook.mjs           # <id>.json → dist/*.xlsx + *.csv + <id>.md
+node scripts/build-use-case-workbook.mjs --check   # gate, in use-case-workbook.yml
+```
+⚠️ **Edit `docs/use-cases/ed-scenario-11.json`, never `docs/use-cases/dist/` and
+never `ed-scenario-11.md`** — all three are outputs, same rule as
+`web/src/data/fhir/`. In particular a review comment typed into the workbook is
+discarded by the next build; notes go in the JSON's `reviewNotes` and are
+rendered onto the mapping sheet.
+
+Markdown is the authoritative form of the mapping prose in that JSON
+(`fhirText`, `profileBinding`, `cdsHook`), because only it can carry a link to
+the artifact it describes; the spreadsheet gets it flattened at build time. The
+document's FHIR-resource lists, its 22-item consolidated gap list and its 6
+gating-tool promotions are all **derived** from the per-step fields rather than
+restated, and `--check` asserts the two directions of that (a `**gap**` binding
+must name a `profileGaps` or `gatingIssues` entry, and vice versa).
+
+Unlike the one-pager above, this `--check` really does rebuild and byte-compare,
+because the writer (`scripts/lib/xlsx-writer.mjs`) is deterministic on purpose —
+every ZIP entry stored, never deflated, with a fixed timestamp. **Make it
+deflate and the gate starts flaking against zlib versions.** Do not unify the
+two patterns in either direction.
+
+The same `--check` gates the scenario's linkage to the `patient-011` demo
+walkthrough in both directions, as an allowlist with reasons rather than a
+coverage count. Four steps are declared un-narrated; closing one means deleting
+its `walkthroughGapReason` *and* adding the narration, and the gate requires
+both. `docs/use-cases/README.md` has the rationale, including why review notes
+are not emitted as Excel cell comments.
+
 In `services/cds-hooks/` — **easy to forget, and CI gates it:**
 ```
 npm install && npm run verify   # typecheck + eslint + vitest for the Worker
