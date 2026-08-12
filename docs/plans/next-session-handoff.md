@@ -1,7 +1,7 @@
 # Handoff — next session
 
-Rewritten 2026-08-11, after the gate-hardening pass that followed the first
-version of this file. `main` is at **9e24ab1**.
+Rewritten 2026-08-11, after the gate-hardening pass and #272. `main` is at
+**411eeae**.
 
 ⚠️ **The previous version of this file was never committed.** It sat in one
 worktree, on an already-merged branch, and no fresh session could see it — a
@@ -31,18 +31,31 @@ the corrections to #263's original premises).
 
 Closed: #260, #262, #263, #265, #302.
 
-## Two gates that just landed
+## What landed in this pass
 
-| PR | Issue | What it gates |
+| PR | Issue | What |
 |---|---|---|
-| #308 (b429a67) | #280 | Every `var(--token)` under `web/src` resolves to a real definition |
+| #308 (b429a67) | #280 | Every `var(--token)` under `web/src` must resolve to a real definition |
 | #309 (9e24ab1) | #273 | The *shape* of SUSHI's warnings, so the next real one is not invisible |
+| #311 (411eeae) | #272 | The concept-domain tag on `Appointment.serviceCategory`; `EpisodeOfCare` and `Task` deliberately untouched |
 
-Both merged, both issues closed. Neither touched app behaviour, FSH, or CSS.
-Verified running on merged `main`, not merely present: `lint-css` prints
-`116 defined … 115 distinct referenced … css-token check passed`, and the `sushi`
-job prints `31 × sliced-category-numeric-index — expected`. So everything below
-is current.
+All three merged, all three issues closed, and each gate was seen *running* on
+merged `main` rather than merely present: `lint-css` prints `116 defined … 115
+distinct referenced … css-token check passed`, and the `sushi` job prints
+`31 × sliced-category-numeric-index — expected`.
+
+⚠️ **Two PRs landed from other sessions while this one ran**, neither reviewed
+here:
+
+- **#310** — "Stop re-rendering an IG that did not change on every deploy", a keyed
+  cache around `deploy.yml`'s IG render. #311 merged on top of it and the combined
+  deploy run passed. `CLAUDE.md` carries its rules: the explicit `cache/save` after
+  both gates, `publisher.log` cached beside `output/`, and `force_ig_render=true`
+  for a `#current` template bump.
+- **#312** — the HL7 use-case workbook is now generated from
+  `docs/use-cases/ed-scenario-11.json`, with `ed-scenario-11.md` and the `dist/`
+  workbook as outputs. **This moved the file #304 tells you to check** — see that
+  entry below.
 
 **#308 — `web/scripts/check-css-tokens.mjs`, wired into `npm run verify` (now
 **eight** drift checks) and `web-lint.yml`'s fast `lint-css` job.** `lint:css`
@@ -78,6 +91,28 @@ output and a second step gates it.** Two facts that correct the issue text:
   expected**; that field is required precisely because adding an entry is a
   decision to stop reading a class of warning.
 
+**#311 — the concept-domain tag reached `Appointment`, and only `Appointment`.**
+The rationale per row lives in `docs/plans/episode-correlation-key.md` §7 under
+*RESOLVED*; three things from it that will matter to the next person:
+
+- **The FSH rule sets are now parameterized on the element name** —
+  `SuicideRiskDomainSlicingOn(element)` / `SuicideRiskDomainSliceOn(element)`, with
+  the `category` pair delegating to them. **If another resource type ever needs the
+  domain tag in a differently-named slot, insert those instead of copying the
+  block** — one discriminator is what makes the domain query work at all. Proof
+  the refactor was inert: `fsh-generated/` was diffed against the prior build and
+  only the Appointment profile plus its two examples changed, the latter populated
+  by SUSHI itself from the fixed value on the required slice.
+- **A missing tag and a *wrong* tag are caught by different gates.** Deleting
+  `serviceCategory` from a scenario Appointment fails `check:scenarios:resources`
+  offline (it reads `min` off the generated StructureDefinition — no gate edit was
+  needed); a wrong *code* passes that check and is caught only by the HL7
+  validator. Both confirmed by planting them. That is the split CLAUDE.md
+  documents, now measured on a real case.
+- **`Appointment?service-category=` is patient-scoped, not episode-scoped.** It
+  cannot tell one episode from another; `Encounter.appointment` is still the only
+  episode path, because R4 gives `Appointment` no `.encounter`.
+
 ## Three things to know before touching the correlation area
 
 1. **`ig.yml`'s `validate` job now validates runtime output.** It runs
@@ -99,17 +134,11 @@ output and a second step gates it.** Two facts that correct the issue text:
 
 ## Open issues, with my read on each
 
-### Best next pick
-
-- **#272 — extend the concept-domain tag to Appointment, EpisodeOfCare, Task.**
-  The remaining pick from the last pass, and it is not purely a code task: phase 7
-  changed the calculus. `Task` has both a native `.encounter` and `Task.basedOn` →
-  episode, so the case for tagging it is weaker than the issue assumes;
-  `Appointment` is reached via `Encounter.appointment`; `EpisodeOfCare` stays
-  findable by `type`. **Re-read the issue against
-  `docs/plans/episode-correlation-key.md` §7 before starting** — its three rows may
-  not want the same answer any more, and the honest outcome may be option 3
-  (leave all three to the episode) plus a `quick-starts.md` update.
+**There is no obvious next pick left.** #272, #273 and #280 — the three the last
+handoff nominated — are all merged, and nothing in the remaining list is both
+unblocked and substantial. What follows is the honest inventory; picking from it
+is a prioritisation call, not a discovery one, and the cleanups below are small
+enough that a session could take several.
 
 ### Small data/doc cleanups
 
@@ -120,8 +149,13 @@ output and a second step gates it.** Two facts that correct the issue text:
   call.
 - **#304 — walkthrough steps 11.7-2A/2B** use "caring contact" and "follow-up
   outreach" the opposite way round from the artifacts they reference. The references
-  are correct (dates decide it); the titles are loose. **Check
-  `docs/use-cases/ed-scenario-11.md` before renaming** or the two drift.
+  are correct (dates decide it); the titles are loose. ⚠️ **#312 changed where to
+  fix this:** `docs/use-cases/ed-scenario-11.md` is now *generated* from
+  `docs/use-cases/ed-scenario-11.json` by `scripts/build-use-case-workbook.mjs`, so
+  edit the JSON — and note that PR also gated scenario-step ↔ `patient-011`
+  walkthrough correspondence in both directions, which is the drift this issue is
+  about. Re-read #304 against that gate before touching anything; it may already be
+  narrower than it reads.
 - **#281 — dictionary ValueSet canonicals are gated but barely rendered.** Pairs
   naturally with #264 since it's the same table.
 
@@ -149,12 +183,20 @@ form your own.
   call; #309 was proved end to end by planting an empty `Description:` on
   `ExampleStanleyBrownSafetyPlan`, which made SUSHI emit a real 32nd warning of a
   different kind. #289's invariant found three real violations on its first run
-  without needing a planted one.
+  without needing a planted one. #311 was proved three ways — tag deleted from a
+  fixture (offline gate red), tag given a bogus code (validator red, offline
+  green), tag dropped from the runtime builder (validator red on the emitted
+  corpus).
 - **Verify against the source, not memory.** #263's proposed element table was six-
   eighths wrong about R4; the fix came from reading
   `~/.fhir/packages/hl7.fhir.r4.core#4.0.1`. Same for search parameters in #299 —
-  an element existing does not mean a search parameter exists. Same lesson, smaller
-  scale, in #273: the warning count in the issue text was already stale.
+  an element existing does not mean a search parameter exists. Twice more in this
+  pass: #273's issue text had the warning count stale before anyone started, and
+  #272's table would have had `EpisodeOfCare` tagged a second time and `Task`
+  tagged unsearchably. What settled #272 was enumerating the real `SearchParameter`
+  files in that package, **including the shared `clinical-*` ones** — a per-type
+  `ls` misses them, which is how "EpisodeOfCare has no `type` parameter" almost
+  became a finding.
 - **Stop hand-checking design tokens.** I checked 23 by hand across two sessions
   because no gate existed; `npm run check:tokens` is that gate now.
 - **`services/cds-hooks` has its own verify** that `web`'s does not cover.
