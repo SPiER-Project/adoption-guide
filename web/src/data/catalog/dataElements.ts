@@ -152,6 +152,45 @@ export function codeHref(system: string, code: string): string | undefined {
   return undefined
 }
 
+const SPIER_VS_PREFIX = 'http://spier.org/ValueSet/'
+
+/**
+ * Where a reader can go to read the *bindable set* a coded value is drawn from.
+ *
+ * The sibling of `codeHref`, and the same contract: derived, never hand-written,
+ * and undefined when there is nowhere honest to point. `check:catalog` proves
+ * every SPiER-local `valueSet:` canonical here has a generated
+ * `ValueSet-<id>.json`, which the IG Publisher renders at `ValueSet-<id>.html`,
+ * so for SPiER-local canonicals the link is exactly as backed as a code link.
+ *
+ * Issue #281: that gate's rationale said an unresolvable canonical "would render
+ * as a bindable set on the page", and nothing rendered it — `Concept.valueSet`
+ * was plain text and `Binding.value.valueSet` was not shown at all. A gate
+ * justified by a rendering that does not exist cannot be checked by the person
+ * reading it, so the page caught up rather than the comment being trimmed.
+ *
+ * External canonicals return undefined for now: SPiER's dictionary names none,
+ * and guessing a URL pattern for someone else's ValueSet is the kind of unbacked
+ * claim this file's history is about. Add them here when one appears.
+ */
+export function valueSetHref(canonical: string): string | undefined {
+  if (canonical.startsWith(SPIER_VS_PREFIX)) {
+    const id = canonical.slice(SPIER_VS_PREFIX.length)
+    return `${import.meta.env.BASE_URL}ig/ValueSet-${id}.html`
+  }
+  return undefined
+}
+
+/**
+ * Short label for a ValueSet canonical — its id, which is what a reader scans
+ * for. The full canonical stays in the `title`, exactly as `systemLabel` does
+ * for systems.
+ */
+export function valueSetLabel(canonical: string): string {
+  if (canonical.startsWith(SPIER_VS_PREFIX)) return canonical.slice(SPIER_VS_PREFIX.length)
+  return canonical
+}
+
 /**
  * Short label for a system URL. External vocabularies get their common name;
  * SPiER-local CodeSystems get their id (the URL itself stays available for the
