@@ -9,12 +9,52 @@ name: Deploy to GitHub Pages
 # so this runs only on pushes to main and manual dispatch — not on every PR. The
 # lightweight ig.yml (SUSHI only) covers PRs. The on-demand ig-publish.yml stays
 # as a way to preview the rendered IG as an artifact without deploying.
+#
+# ─── Why the IG render is cached rather than unconditional ──────────────────
+#
+# GitHub Pages replaces the whole site with one artifact, so the SPA cannot be
+# deployed without a rendered IG sitting under dist/ig — the two genuinely
+# cannot be decoupled, and a failed render must keep blocking the deploy (the
+# alternative is serving a silently stale IG, which is the exact failure mode
+# ig-publish.yml was created to prevent). What CAN be decoupled is re-rendering
+# an IG that did not change: before this, every push to main — a CSS tweak
+# included — paid a cold publisher download, `gem install jekyll`, a full FHIR
+# package fetch and a ~6-minute render. Deploys ran 7–11 minutes against ~2
+# minutes for the web build alone.
+#
+# So the rendered output is cached, keyed on everything that determines it, and
+# the entire Java/Ruby/publisher half of the job is skipped on a hit.
+#
+# ⚠️ The safety property that makes the skip sound: **the cache is written only
+# after both gates below have passed**, using explicit cache/restore + cache/save
+# rather than the combined `actions/cache` action (whose post-step would save
+# even when a later step failed, poisoning the cache with a broken render). A hit
+# therefore means "this exact IG input, rendered by this exact publisher version,
+# already passed the CQL and QA gates".
+#
+# ⚠️ And the belt-and-braces half: `publisher.log` is cached alongside `output/`
+# so both gates re-run identically on the hit path. Skipping the render does not
+# skip the checks — they read restored bytes instead of fresh ones. That matters
+# because a green gate you never see run is the failure mode this repo keeps
+# rediscovering (see the fml-validate.yml and ig-publish.yml headers).
+#
+# ⚠️ One input the key cannot see: `ig/ig.ini` pins
+# `template = fhir.base.template#current`, and `#current` moves without any
+# change here. A template release therefore does NOT invalidate the cache; the
+# deployed IG keeps the older template's rendering until some ig/ input changes.
+# That is cosmetic rather than a conformance risk, and `workflow_dispatch` takes
+# a `force_ig_render` input for when you want it picked up immediately.
 
 on:
   push:
     branches:
       - main # Or your default branch
   workflow_dispatch:
+    inputs:
+      force_ig_render:
+        description: 'Re-render the IG even if the cached render is current (picks up a fhir.base.template#current update)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,6 +77,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Install web dependencies
         working-directory: ./web
@@ -49,29 +91,173 @@ jobs:
           VITE_BASE: /adoption-guide/ # GitHub Pages serves under this subpath; Cloudflare/dev default to root (/)
 
       # ── Rendered HL7 IG (IG Publisher → ig/output) ────────────────────────
+      #
+      # Resolved before the cache lookup because the publisher version is part of
+      # the render's identity: a new publisher can render differently and can
+      # report errors the previous one did not, so a release must force a
+      # re-render rather than silently reuse output built by an older jar.
+      # Retried, because this is a new network dependency on the deploy path (the
+      # old `releases/latest/download` URL needed no API call) and a single
+      # GitHub API hiccup should not fail a deploy.
+      - name: Resolve IG Publisher release
+        id: pub
+        run: |
+          # `run` steps execute under `bash -e`, so both the fetch and the parse
+          # are guarded with `|| true`. Without them the loop only retries the
+          # failure mode that happens to be harmless: a curl timeout yields empty
+          # output, jq exits 0, and the retry works — but an HTML error body (a
+          # GitHub API 502, the likelier flake) makes jq exit 5, which aborts the
+          # step on attempt 1 and the loop never runs a second time. Both
+          # behaviours were confirmed at a shell before this was written.
+          for attempt in 1 2 3; do
+            body=$(curl -sL --max-time 30 https://api.github.com/repos/HL7/fhir-ig-publisher/releases/latest || true)
+            tag=$(printf '%s' "$body" | jq -r '.tag_name // empty' 2>/dev/null || true)
+            if [ -n "$tag" ]; then
+              echo "resolved publisher release: $tag (attempt $attempt)"
+              echo "tag=$tag" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "attempt $attempt could not resolve the release tag; retrying"
+            sleep 5
+          done
+          echo "::error::could not resolve the latest fhir-ig-publisher release tag after 3 attempts"
+          exit 1
+
+      # Keyed on every input that determines the render: the IG sources, the
+      # SUSHI config (canonical, version, dependencies), ig.ini (template +
+      # entry point) and the publisher version. The key carries the run id so
+      # every render saves successfully; `restore-keys` does the actual matching
+      # on the prefix. Consequence to keep in mind: a match is a *prefix* match,
+      # so the newest render for this (inputs, publisher) pair wins.
+      # `github.event.inputs` rather than the `inputs` context: this workflow's
+      # main trigger is `push`, where only the former is reliably defined (it
+      # evaluates to null, so the restore runs). A boolean dispatch input arrives
+      # here as the string "true".
+      - name: Restore rendered IG
+        id: ig-cache
+        if: ${{ github.event.inputs.force_ig_render != 'true' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ig/output
+            ig/publisher.log
+          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+          restore-keys: |
+            ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini') }}-${{ steps.pub.outputs.tag }}-
+
+      # A restored render is only usable if it is actually complete. A truncated
+      # or partially-uploaded cache entry would otherwise deploy a broken IG, so
+      # a hit that fails this check falls back to rendering instead of trusting
+      # the bytes.
+      - name: Decide whether to render
+        id: plan
+        run: |
+          matched='${{ steps.ig-cache.outputs.cache-matched-key }}'
+          if [ -z "$matched" ]; then
+            echo "no cached render for these inputs + publisher ${{ steps.pub.outputs.tag }} — rendering"
+            echo "render=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          missing=''
+          for f in ig/output/index.html ig/output/qa.txt ig/publisher.log; do
+            [ -s "$f" ] || missing="$missing $f"
+          done
+          if [ -n "$missing" ]; then
+            echo "::warning::cached render $matched is incomplete (missing or empty:$missing) — rendering instead of trusting it"
+            echo "render=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "reusing cached render $matched — skipping the publisher, Java, Ruby and Jekyll"
+            echo "render=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Everything below to the render step runs only on a cache miss ──────
       - name: Setup Java
+        if: steps.plan.outputs.render == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
       - name: Setup Ruby
+        if: steps.plan.outputs.render == 'true'
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
 
       - name: Install Jekyll
+        if: steps.plan.outputs.render == 'true'
         run: gem install jekyll
 
       - name: Install SUSHI
+        if: steps.plan.outputs.render == 'true'
         run: npm install -g fsh-sushi
 
+      # The bulk of a cold render is fetching FHIR packages (us.core, uv.sdc and
+      # their transitive deps). Keyed on sushi-config.yaml because that is where
+      # dependencies are declared; restore-keys lets an unrelated config edit
+      # still start from the previous cache instead of a cold fetch. Same
+      # treatment as ig-publish.yml.
+      - name: Cache FHIR package cache
+        if: steps.plan.outputs.render == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
+      - name: Cache IG Publisher jar
+        if: steps.plan.outputs.render == 'true'
+        id: jar
+        uses: actions/cache@v4
+        with:
+          path: publisher.jar
+          key: ig-publisher-${{ steps.pub.outputs.tag }}
+
       - name: Download IG Publisher
-        run: curl -sL -o publisher.jar https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar
+        if: steps.plan.outputs.render == 'true' && steps.jar.outputs.cache-hit != 'true'
+        run: curl -sL -o publisher.jar "https://github.com/HL7/fhir-ig-publisher/releases/download/${{ steps.pub.outputs.tag }}/publisher.jar"
 
       - name: Run IG Publisher
+        if: steps.plan.outputs.render == 'true'
         working-directory: ./ig
         run: java -jar ../publisher.jar -ig . | tee publisher.log
+
+      # ── Gates: run on BOTH paths, against fresh or restored bytes ──────────
+      #
+      # Mirrors the CQL gate in ig-publish.yml, and exists for the same reason:
+      # the failure this repo actually hit was SILENCE, not a bad count. Drop
+      # `path-binary: input/cql` from sushi-config.yaml and the publisher walks
+      # past input/cql without a word, publishing a Library whose ELM is whatever
+      # was last committed. Only a liveness assertion can see that.
+      - name: CQL translation gate
+        working-directory: ./ig
+        run: |
+          if [ ! -f publisher.log ]; then
+            echo "::error::no publisher.log — the IG Publisher did not run"
+            exit 1
+          fi
+          if ! grep -q 'Translating CQL source in folder' publisher.log; then
+            echo '::error::the IG Publisher never translated ig/input/cql. This is the silent-skip failure: check that `path-binary: input/cql` is still present in ig/sushi-config.yaml.'
+            exit 1
+          fi
+          want=$(find input/cql -name '*.cql' | wc -l | tr -d ' ')
+          got=$(grep -c 'Translating CQL source in file' publisher.log || true)
+          echo "CQL → files on disk=${want} translated=${got}"
+          if [ "$want" != "$got" ]; then
+            echo "::error::${want} .cql file(s) in ig/input/cql but the publisher translated ${got} — a file is not being picked up"
+            exit 1
+          fi
+          if grep -qE 'Translation failed with|CQL Processing failed with' publisher.log; then
+            echo "::error::CQL translation failed — not deploying"
+            grep -E 'Translation failed with|CQL Processing failed with' publisher.log
+            exit 1
+          fi
+          if ! grep -q 'CQL translation completed successfully' publisher.log; then
+            echo "::error::the publisher neither reported CQL success nor failure — the log format may have changed; re-read it before trusting this gate"
+            exit 1
+          fi
+          echo "CQL translation completed successfully."
 
       - name: Gate on IG QA (fail on errors or broken links)
         working-directory: ./ig
@@ -81,13 +267,64 @@ jobs:
             echo "::error::no output/qa.txt produced — the IG Publisher did not complete"
             exit 1
           fi
-          errs=$(grep -oiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+')
-          broken=$(grep -oiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+')
-          echo "IG QA → errors=${errs:-?} brokenLinks=${broken:-?}"
-          if { [ -n "$errs" ] && [ "$errs" != "0" ]; } || { [ -n "$broken" ] && [ "$broken" != "0" ]; }; then
-            echo "::error::IG Publisher reported ${errs:-?} error(s) and ${broken:-?} broken link(s) — not deploying"
+          # Parsed with `|| true` and then asserted, rather than left to abort
+          # the step on a failed grep. The original spelling relied on `bash -e`:
+          # if qa.txt carried no `err =` line the grep exited non-zero and killed
+          # the step, which was accidentally the SAFE outcome — but it made the
+          # `${errs:-?}` fallbacks dead code and left the real hole visible only
+          # by reading bash semantics. Made explicit here: an unparseable report
+          # is a failure, never an unknown count that passes the check below.
+          errs=$(grep -oiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+' || true)
+          broken=$(grep -oiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+' || true)
+          echo "IG QA → errors=${errs:-unparsed} brokenLinks=${broken:-unparsed}"
+          if [ -z "$errs" ] || [ -z "$broken" ]; then
+            echo "::error::could not read the QA counts (errors='${errs}' brokenLinks='${broken}') from ig/output/qa.txt and ig/publisher.log — the publisher's output format may have changed. Refusing to deploy on an unknown count."
             exit 1
           fi
+          if [ "$errs" != "0" ] || [ "$broken" != "0" ]; then
+            echo "::error::IG Publisher reported ${errs} error(s) and ${broken} broken link(s) — not deploying"
+            exit 1
+          fi
+
+      # Deliberately after both gates and never with `if: always()`: a render
+      # that failed QA must not become the cached answer for its inputs.
+      - name: Cache the rendered IG
+        if: steps.plan.outputs.render == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ig/output
+            ig/publisher.log
+          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+
+      # The render size is reported because it is the one number this design does
+      # not know in advance and that could make it a bad trade: every render
+      # writes a NEW cache entry (the key carries the run id), and the repo-wide
+      # cache is 10GB shared with the ~200MB publisher jar and the ~500MB FHIR
+      # package cache. Entries only accumulate on ig/** changes, and LRU eviction
+      # of stale renders is the desired behaviour — but if `ig/output` turns out
+      # to be large enough that a week of IG work evicts the jar and packages,
+      # this needs revisiting (cache fewer generations, or drop the run-id suffix
+      # so each input hash keeps exactly one entry).
+      - name: Report what this deploy did
+        run: |
+          if [ "${{ steps.plan.outputs.render }}" = "true" ]; then
+            rendered='rendered fresh'
+          else
+            rendered='reused the cached render (`${{ steps.ig-cache.outputs.cache-matched-key }}`)'
+          fi
+          size=$(du -sh ig/output | cut -f1)
+          echo "ig/output size: ${size}"
+          {
+            echo "### Deploy"
+            echo ""
+            echo "- Web app: built"
+            echo "- IG: ${rendered}"
+            echo "- IG Publisher: \`${{ steps.pub.outputs.tag }}\`"
+            echo "- Rendered IG size: ${size} (this is what the render cache stores per entry)"
+            echo ""
+            echo "Both the CQL and QA gates ran either way — see the steps above."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # ── Combine: nest the rendered IG under the app at /adoption-guide/ig/ ──────────
       - name: Nest rendered IG under web/dist/ig
