@@ -216,6 +216,17 @@ export interface ScenarioEncounter {
   /** True when no SPiER profile exists yet for this step's artifact. */
   profileGap?: boolean
   /**
+   * True when the scenario step this narrates is a SPiER *proposal* rather than
+   * part of the use case the HL7 working group circulated (#313).
+   *
+   * The chart shows it as a tag, because a viewer otherwise cannot tell which
+   * steps the working group actually authored — and the whole point of marking
+   * proposals "(proposed)" in the workbook is lost if the running demo presents
+   * them as settled. `build-use-case-workbook.mjs --check` asserts this flag
+   * agrees with `origin` in `docs/use-cases/ed-scenario-11.json`.
+   */
+  proposed?: boolean
+  /**
    * The artifacts this step produced, as FHIR references (`Type/id`) into the
    * same scenario — e.g. `QuestionnaireResponse/p011-asq`.
    *

@@ -162,6 +162,9 @@ const MAP_COLUMNS = [
  */
 const PROPOSED = 'spier-proposed'
 
+/** Why a step has no demo narration. See the assertion in checkContent(). */
+const GAP_KINDS = new Set(['not-narrated', 'branch-exclusive'])
+
 function isProposed(step) {
   return step.origin === PROPOSED
 }
@@ -478,6 +481,19 @@ function checkContent(doc, label) {
       problems.push(`${at}: has both a walkthrough id and a gap reason`)
     }
 
+    // Two very different kinds of gap, and conflating them means the backlog
+    // never converges: `not-narrated` is a to-do on patient-011, while
+    // `branch-exclusive` can never be closed there at all — the step describes
+    // a course this patient did not take, and needs a second ED patient.
+    if (step.walkthrough === null && !GAP_KINDS.has(step.walkthroughGapKind)) {
+      problems.push(
+        `${at}: walkthroughGapKind must be one of ${[...GAP_KINDS].join(' | ')}`,
+      )
+    }
+    if (step.walkthrough && step.walkthroughGapKind) {
+      problems.push(`${at}: is narrated but still declares a walkthroughGapKind`)
+    }
+
     if (!step.fhirText || !step.profileBinding) {
       problems.push(`${at}: missing fhirText or profileBinding`)
     }
@@ -547,6 +563,14 @@ function checkDemoLinkage(doc, label) {
         problems.push(
           `${at}: walkthrough "${step.walkthrough}" is labelled ${entry.step ?? '(none)'}`,
         )
+      } else if (Boolean(entry.proposed) !== isProposed(step)) {
+        // The chart tags a proposed step so a viewer can tell SPiER's additions
+        // from the working group's scenario. If the two files disagree, the
+        // running demo silently presents a proposal as settled.
+        problems.push(
+          `${at}: scenario says ${isProposed(step) ? 'proposed' : 'not proposed'}, ` +
+            `but ${doc.demoPatient} walkthrough "${entry.id}" says the opposite`,
+        )
       }
     } else if (byStep.has(step.step)) {
       // The gap reason has gone stale: the demo narrates this after all.
@@ -615,8 +639,14 @@ function main() {
           )
         }
       }
-      const steps = allSteps(doc).length
-      console.log(`  ${label}: ${steps} steps, ${doc.sections.length} sections`)
+      const steps = allSteps(doc)
+      const kinds = steps.filter(({ step }) => step.walkthrough === null)
+      const todo = kinds.filter(({ step }) => step.walkthroughGapKind === 'not-narrated')
+      console.log(
+        `  ${label}: ${steps.length} steps, ${doc.sections.length} sections, ` +
+          `${steps.length - kinds.length} narrated ` +
+          `(${todo.length} to narrate, ${kinds.length - todo.length} branch-exclusive)`,
+      )
     } else {
       for (const [path, fresh] of [
         [scenario.xlsx, xlsx],

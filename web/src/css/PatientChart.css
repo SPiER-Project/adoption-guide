@@ -738,6 +738,17 @@
   color: var(--accent-warning-text);
 }
 
+/* A SPiER proposal rather than a step the HL7 working group authored. Info
+   blue, not the warning amber of a profile gap — it is a provenance note, not
+   a defect. */
+.encounter-proposed-tag {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-info-text);
+}
+
 .encounter-artifacts {
   display: flex;
   flex-wrap: wrap;

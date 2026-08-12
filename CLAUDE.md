@@ -181,10 +181,14 @@ two patterns in either direction.
 
 The same `--check` gates the scenario's linkage to the `patient-011` demo
 walkthrough in both directions, as an allowlist with reasons rather than a
-coverage count. Four steps are declared un-narrated; closing one means deleting
-its `walkthroughGapReason` *and* adding the narration, and the gate requires
-both. `docs/use-cases/README.md` has the rationale, including why review notes
-are not emitted as Excel cell comments.
+coverage count. Each gap declares a `walkthroughGapKind`: `not-narrated` is a
+to-do (closing it means deleting the `walkthroughGapReason` *and* adding the
+narration, and the gate requires both), while `branch-exclusive` can never be
+closed on `patient-011` — the step describes a course Maria did not take, and
+needs a second ED patient. `--check` prints the split. A narrated proposal must
+also carry `proposed: true` on its walkthrough entry, so the chart cannot show
+a SPiER proposal as settled. `docs/use-cases/README.md` has the rationale,
+including why review notes are not emitted as Excel cell comments.
 
 In `services/cds-hooks/` — **easy to forget, and CI gates it:**
 ```

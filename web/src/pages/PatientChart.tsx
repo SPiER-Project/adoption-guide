@@ -133,7 +133,9 @@ function EncountersTimeline({
             Narrative steps, not FHIR resources — each links to the FHIR artifact it
             produces. Steps
             marked <em>profile gap</em> map to resource types that don't yet have a SPiER
-            profile (tracked in issue&nbsp;#52).
+            profile (tracked in issue&nbsp;#52). Steps marked <em>proposed step</em> are
+            SPiER additions to the HL7 use case, not part of the scenario the working
+            group circulated.
           </p>
           <ol className="encounters-list">
             {walkthrough.map(enc => {
@@ -178,6 +180,12 @@ function EncountersTimeline({
                           <>
                             <span className="encounter-card-divider">&middot;</span>
                             <span className="encounter-gap-tag">profile gap</span>
+                          </>
+                        )}
+                        {enc.proposed && (
+                          <>
+                            <span className="encounter-card-divider">&middot;</span>
+                            <span className="encounter-proposed-tag">proposed step</span>
                           </>
                         )}
                       </div>

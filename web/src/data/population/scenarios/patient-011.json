@@ -1157,6 +1157,27 @@
       "profileGap": true
     },
     {
+      "id": "ed-11-6-1c",
+      "step": "11.6-1C",
+      "date": "2026-08-02",
+      "title": "Patient reviews and accepts the safety plan",
+      "stageId": "coordinate-handoffs",
+      "actor": "Patient / Collaborator",
+      "status": "completed",
+      "notes": "Maria revised two warning signs into her own words, agreed her sister could be named as a support and contacted, and declined naming her employer. The decline is recorded rather than dropped, so the outpatient team knows it was discussed.",
+      "fhirArtifacts": [
+        "CarePlan",
+        "Provenance",
+        "RelatedPerson"
+      ],
+      "profileGap": true,
+      "proposed": true,
+      "relatedRefs": [
+        "CarePlan/p011-stanley-brown",
+        "QuestionnaireResponse/p011-sb"
+      ]
+    },
+    {
       "id": "ed-11-6-2a",
       "step": "11.6-2A",
       "date": "2026-08-02",
@@ -1187,6 +1208,23 @@
       "profileGap": true
     },
     {
+      "id": "ed-11-6-2c",
+      "step": "11.6-2C",
+      "date": "2026-08-02",
+      "title": "Patient and sister commit to means-safety actions",
+      "stageId": "coordinate-handoffs",
+      "actor": "Patient and caregiver / Means-Safety Participant",
+      "status": "completed",
+      "notes": "Two time-bound actions agreed: the sister takes the stored medication home the same evening, and the patient moves the remaining supply to a lock box within 48 hours. Each has a named owner and a due date rather than being recorded only as counseling delivered.",
+      "fhirArtifacts": [
+        "CarePlan",
+        "RelatedPerson",
+        "Task"
+      ],
+      "profileGap": true,
+      "proposed": true
+    },
+    {
       "id": "ed-11-6-3a",
       "step": "11.6-3A",
       "date": "2026-08-02",
@@ -1203,6 +1241,41 @@
       "relatedRefs": [
         "DocumentReference/p011-discharge-packet"
       ]
+    },
+    {
+      "id": "ed-11-6-3b",
+      "step": "11.6-3B",
+      "date": "2026-08-02",
+      "title": "Release rules applied before portal delivery",
+      "stageId": "coordinate-handoffs",
+      "actor": "EHR System / Release Manager",
+      "status": "completed",
+      "notes": "The after-visit packet reached the portal only after checking who could see it. No proxy access is configured on this adult record, so the safety plan released in full — and the rule that produced that decision is recorded alongside it, rather than the release being simply automatic.",
+      "fhirArtifacts": [
+        "DocumentReference",
+        "Consent"
+      ],
+      "profileGap": true,
+      "proposed": true,
+      "relatedRefs": [
+        "DocumentReference/p011-discharge-packet"
+      ]
+    },
+    {
+      "id": "ed-11-7-0a",
+      "step": "11.7-0A",
+      "date": "2026-08-03",
+      "title": "Disclosure authorization captured before the packet",
+      "stageId": "coordinate-handoffs",
+      "actor": "ED Clinician / Consent and Privacy Manager",
+      "status": "completed",
+      "notes": "Maria authorized sending the risk summary, safety plan and follow-up plan to the named outpatient BH program, for this episode only. She is an adult and no 42 CFR Part 2 program is involved, so no emergency exception was relied on. Recorded before 11.7-1B assembled the packet.",
+      "fhirArtifacts": [
+        "Consent",
+        "Provenance"
+      ],
+      "profileGap": true,
+      "proposed": true
     },
     {
       "id": "ed-11-7-1a",
@@ -1272,6 +1345,25 @@
         "PlanDefinition"
       ],
       "profileGap": true,
+      "relatedRefs": [
+        "Communication/p011-outreach-48h"
+      ]
+    },
+    {
+      "id": "ed-11-7-2d",
+      "step": "11.7-2D",
+      "date": "2026-08-04",
+      "title": "Patient answers the 48-hour caring contact",
+      "stageId": "track-risk-over-time",
+      "actor": "Patient / Follow-Up Participant",
+      "status": "completed",
+      "notes": "Maria answered the 48-hour call, reported using two coping strategies from the plan, and asked to be reached by text rather than phone in future. The channel change is recorded as a preference update, not as a refusal of contact.",
+      "fhirArtifacts": [
+        "Communication",
+        "Consent"
+      ],
+      "profileGap": true,
+      "proposed": true,
       "relatedRefs": [
         "Communication/p011-outreach-48h"
       ]

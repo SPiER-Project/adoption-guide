@@ -53,7 +53,8 @@
           "walkthroughGapReason": "Persistence has no separate narration in the demo: the QuestionnaireResponse referenced by 11.2-1A is the persisted resource.",
           "fhirText": "`QuestionnaireResponse` with `encounter` reference + `Provenance`",
           "profileBinding": "Encounter linkage + audit",
-          "cdsHook": null
+          "cdsHook": null,
+          "walkthroughGapKind": "not-narrated"
         },
         {
           "step": "11.2-1C",
@@ -68,7 +69,7 @@
             "DC.3.2 Support Patient Education and Self-Care"
           ],
           "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria was screened by the triage nurse (11.2-1A), so there is no self-completed screen to narrate. Needs a second ED patient.",
           "origin": "spier-proposed",
           "rationale": "The scenario permits patient self-report in 11.2-1A but never gives the patient an Actor row, so nothing distinguishes a self-completed screen — including whether the patient was alone when answering, which changes how the answers should be read.",
           "fhirText": "`QuestionnaireResponse` (author = `Patient`) + `Provenance` (self-reported source)",
@@ -76,7 +77,8 @@
           "cdsHook": null,
           "profileGaps": [
             "Self-report screening authorship convention (QuestionnaireResponse.author + Provenance)"
-          ]
+          ],
+          "walkthroughGapKind": "branch-exclusive"
         },
         {
           "step": "11.2-1D",
@@ -92,7 +94,7 @@
             "IN.2.2 Auditable Records"
           ],
           "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria completed the screener. Needs a second ED patient whose screen is declined or incompletable.",
           "origin": "spier-proposed",
           "rationale": "A blank is currently indistinguishable from a negative screen. That difference drives both the clinical follow-up and the denominator of every screening measure.",
           "fhirText": "`QuestionnaireResponse` (status `stopped`) or `Observation` (screening not performed, with reason) + `Task` (re-attempt)",
@@ -100,7 +102,8 @@
           "cdsHook": null,
           "profileGaps": [
             "Screening-Not-Performed Observation (coded reason, distinct from a negative result)"
-          ]
+          ],
+          "walkthroughGapKind": "branch-exclusive"
         },
         {
           "step": "11.2-2A",
@@ -180,7 +183,7 @@
             "IN.5.1 Support Decision Logic"
           ],
           "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria screened non-acute positive. Needs a second ED patient who screens negative.",
           "origin": "spier-proposed",
           "rationale": "11.2-2A defines three outcomes but only the positive ones are consumed anywhere. A negative screen still has consequences: a re-screen interval, and the standing ability of a clinician to escalate anyway.",
           "fhirText": "`Observation` (negative screening outcome) + `Task` (re-screen at interval)",
@@ -188,7 +191,8 @@
           "cdsHook": null,
           "profileGaps": [
             "Negative-screen handling: re-screen interval and clinician-override-despite-negative path"
-          ]
+          ],
+          "walkthroughGapKind": "branch-exclusive"
         }
       ],
       "summary": "**Screening and identification** — triage-time ASQ or C-SSRS ED screener, captured as discrete data, classified, surfaced on the trackboard, and routed via role-based tasks.",
@@ -298,7 +302,8 @@
           "cdsHook": null,
           "profileGaps": [
             "Active Precautions Flag"
-          ]
+          ],
+          "walkthroughGapKind": "not-narrated"
         }
       ],
       "summary": "**Immediate safety / mitigation** — environmental safety, observation/sitter, belongings security.",
@@ -351,7 +356,8 @@
           "profileGaps": [
             "BSSA Outcome Observation",
             "\"Hold for Evaluation\" Flag"
-          ]
+          ],
+          "walkthroughGapKind": "not-narrated"
         },
         {
           "step": "11.4-1A",
@@ -457,7 +463,8 @@
           "walkthroughGapReason": "The demo has a single room-clearance event and no shift-change repeat.",
           "fhirText": "New instance of Room Clearance Checklist (11.3-1C) + updated `CareTeam` for observer handoff",
           "profileBinding": "Reuses 11.3-1C and 11.3-1D profiles",
-          "cdsHook": null
+          "cdsHook": null,
+          "walkthroughGapKind": "not-narrated"
         },
         {
           "step": "11.5-1D",
@@ -473,7 +480,7 @@
             "IN.4 Manage Health Information Sharing"
           ],
           "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria was discharged home with follow-up. Needs a second ED patient who is admitted or transferred.",
           "origin": "spier-proposed",
           "rationale": "11.5's own preamble describes patients awaiting psychiatric placement or transfer, but every step after it follows the discharge-home branch. The placement itself — and the log of failed attempts that explains a long boarding stay — is unmodelled.",
           "fhirText": "`ServiceRequest` (admission or transfer) + `Encounter` (disposition and boarding period) + `Organization` (receiving facility) + `Communication` (acceptance)",
@@ -481,7 +488,8 @@
           "cdsHook": null,
           "profileGaps": [
             "Psychiatric Admission/Transfer Disposition (with per-attempt placement log)"
-          ]
+          ],
+          "walkthroughGapKind": "branch-exclusive"
         },
         {
           "step": "11.5-1E",
@@ -497,7 +505,7 @@
             "IN.5.1 Support Decision Logic"
           ],
           "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria completed her ED care. Needs a second ED patient who elopes or leaves against advice.",
           "origin": "spier-proposed",
           "rationale": "A patient on suicide precautions who leaves is among the highest-risk events an ED sees, and the scenario has no path for it. With no modelled event the encounter simply closes, and the follow-up protocol in 11.7 never fires.",
           "fhirText": "`Encounter` (disposition: left without completing treatment) + `Flag` (elopement) + `Communication` (notification and outreach attempts) + `Task` (follow-up)",
@@ -505,7 +513,8 @@
           "cdsHook": null,
           "profileGaps": [
             "Elopement / left-against-advice handling for an at-risk patient"
-          ]
+          ],
+          "walkthroughGapKind": "branch-exclusive"
         }
       ],
       "summary": "**Boarding and reassessment** — time-based reassessment during ED boarding."
@@ -565,8 +574,7 @@
             "DC.3.2 Support Patient Education and Self-Care",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthrough": "ed-11-6-1c",
           "origin": "spier-proposed",
           "rationale": "The scenario calls the plan collaborative but models only the clinician side. A safety plan the patient did not actually agree to is a documented artifact rather than an intervention — and naming a support person the patient has not agreed to name is itself a disclosure.",
           "fhirText": "`CarePlan` (patient-confirmed) + `Provenance` (patient as author) + `RelatedPerson` (named support, with agreement)",
@@ -635,8 +643,7 @@
             "DC.1.7 Patient Education",
             "DC.2.4 Manage Care Plans"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthrough": "ed-11-6-2c",
           "origin": "spier-proposed",
           "rationale": "11.6-2A documents that counseling happened and what was agreed, but nothing owns the actions or closes them out. Means-safety is the intervention with the strongest evidence base here, and \"agreed\" is not \"done\".",
           "fhirText": "`CarePlan.activity` (per-action owner and due date) + `RelatedPerson` (caregiver) + `Task` (outstanding action)",
@@ -679,8 +686,7 @@
             "DC.1.9 Manage Patient Education",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthrough": "ed-11-6-3b",
           "origin": "spier-proposed",
           "rationale": "For an adolescent whose guardian holds proxy access, or a plan naming a member of the household the patient is unsafe with, automatic portal release can be the harm. Real deployments gate this, and the scenario should say so rather than describing release as automatic.",
           "fhirText": "`DocumentReference` (with security labels) + `Consent` (release directives)",
@@ -712,8 +718,7 @@
             "IN.4 Manage Health Information Sharing",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthrough": "ed-11-7-0a",
           "origin": "spier-proposed",
           "rationale": "Consent appears only as an input to 11.7-1A and 11.7-1B. Whether the packet may lawfully be sent is a decision with an actor, a timestamp, and a record — and for a minor or a Part 2 program it can forbid the transmission the scenario assumes.",
           "fhirText": "`Consent` (scope, recipients, expiry) + `Provenance` (basis for an emergency disclosure)",
@@ -848,8 +853,7 @@
             "DC.2.4 Manage Care Plans",
             "DC.1.3.1 Manage Alerts"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Proposed step; the demo does not narrate it yet.",
+          "walkthrough": "ed-11-7-2d",
           "origin": "spier-proposed",
           "rationale": "11.7-2C escalates on missed follow-up, but nothing models the patient side of the contact. \"No answer\" and \"asked us to stop\" are clinically and legally different, and only one of them should escalate.",
           "fhirText": "`Communication` (received, with outcome) + `Consent` (withdrawal or channel change)",
