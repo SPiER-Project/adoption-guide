@@ -1,7 +1,8 @@
 # Handoff — next session
 
-Rewritten 2026-08-11, after the gate-hardening pass and #272. `main` is at
-**411eeae**.
+Rewritten 2026-08-11, after the gate-hardening pass, #272 and #304. `main` was at
+**fb5e5cb** when this was written — and moved four times during the session, so
+check rather than trust that.
 
 ⚠️ **The previous version of this file was never committed.** It sat in one
 worktree, on an already-merged branch, and no fresh session could see it — a
@@ -38,14 +39,14 @@ Closed: #260, #262, #263, #265, #302.
 | #308 (b429a67) | #280 | Every `var(--token)` under `web/src` must resolve to a real definition |
 | #309 (9e24ab1) | #273 | The *shape* of SUSHI's warnings, so the next real one is not invisible |
 | #311 (411eeae) | #272 | The concept-domain tag on `Appointment.serviceCategory`; `EpisodeOfCare` and `Task` deliberately untouched |
+| #314 (78f546e) | #304 | The 11.7-2A/2B naming swap — step titles moved, artifacts left alone |
 
-All three merged, all three issues closed, and each gate was seen *running* on
+All four merged, all four issues closed, and each gate was seen *running* on
 merged `main` rather than merely present: `lint-css` prints `116 defined … 115
 distinct referenced … css-token check passed`, and the `sushi` job prints
 `31 × sliced-category-numeric-index — expected`.
 
-⚠️ **Two PRs landed from other sessions while this one ran**, neither reviewed
-here:
+⚠️ **Four PRs landed from other sessions while this one ran**, none reviewed here:
 
 - **#310** — "Stop re-rendering an IG that did not change on every deploy", a keyed
   cache around `deploy.yml`'s IG render. #311 merged on top of it and the combined
@@ -54,8 +55,19 @@ here:
   for a `#current` template bump.
 - **#312** — the HL7 use-case workbook is now generated from
   `docs/use-cases/ed-scenario-11.json`, with `ed-scenario-11.md` and the `dist/`
-  workbook as outputs. **This moved the file #304 tells you to check** — see that
-  entry below.
+  workbook as outputs, plus a `freshness` CI job. **Edit the JSON, never the `.md`.**
+- **#313** — drafted the missing actors, exception flows and consent steps into that
+  scenario JSON (this is where `11.7-0A`, `11.7-2D` and the `origin:
+  spier-proposed` marking came from).
+- **#315** — narrated five of those proposed steps in `patient-011` and classified
+  the rest; the walkthrough went 24 → 29 steps.
+
+⚠️ **`patient-011.json` and `ed-scenario-11.json` are under concurrent edit by
+other sessions** — three of those four PRs touched one or both, and two landed
+*during* #304's review. #315 was purely additive so #304's titles survived, but I
+checked rather than assumed, and #300 is the precedent for why: it silently
+reverted a merged gate by rewriting a file from a stale base. **Diff against the
+merge-base before trusting any edit to those two files.**
 
 **#308 — `web/scripts/check-css-tokens.mjs`, wired into `npm run verify` (now
 **eight** drift checks) and `web-lint.yml`'s fast `lint-css` job.** `lint:css`
@@ -113,6 +125,20 @@ The rationale per row lives in `docs/plans/episode-correlation-key.md` §7 under
   cannot tell one episode from another; `Encounter.appointment` is still the only
   episode path, because R4 gives `Appointment` no `.encounter`.
 
+**#314 — the 11.7-2A/2B swap, fixed on the titles.** Four lines in
+`patient-011.json`. Two things generalise:
+
+- **`meta.profile` is stronger evidence than a date.** #304 argued the assignment
+  from the `sent` dates; the artifacts also claim different profiles
+  (`spier-outreach-attempt` vs `spier-caring-contact`), which settles it without
+  reference to a rolling date anchor that `check:dates` shifts anyway. When a
+  narration and an artifact disagree, ask what the artifact *claims to be*.
+- **The issue's stated blocker had evaporated.** It said the step titles might have
+  been lifted from `ed-scenario-11.md`, so that file would need the same edit. It
+  had not: the titles exist nowhere but `patient-011.json`, and the HL7 scenario's
+  own step text was never swapped. An issue's premises go stale in both directions
+  — this one had become *easier*, the same way #273's count had drifted.
+
 ## Three things to know before touching the correlation area
 
 1. **`ig.yml`'s `validate` job now validates runtime output.** It runs
@@ -134,11 +160,12 @@ The rationale per row lives in `docs/plans/episode-correlation-key.md` §7 under
 
 ## Open issues, with my read on each
 
-**There is no obvious next pick left.** #272, #273 and #280 — the three the last
-handoff nominated — are all merged, and nothing in the remaining list is both
-unblocked and substantial. What follows is the honest inventory; picking from it
-is a prioritisation call, not a discovery one, and the cleanups below are small
-enough that a session could take several.
+**There is no obvious next pick left.** #272, #273, #280 and #304 are all merged,
+and nothing in the remaining list is both unblocked and substantial. What follows
+is the honest inventory; picking from it is a prioritisation call, not a discovery
+one. Note that **#303 is the one item that is explicitly not mine to decide** — it
+is a scenario-authoring judgement about what `p007-stanley-brown` is supposed to
+represent.
 
 ### Small data/doc cleanups
 
@@ -147,15 +174,6 @@ enough that a session could take several.
   why `spier-episode-trigger-on-positive-screen` covers only `positive-screen` and
   not `elevated-assessment`. Renaming is probably right, but it's a scenario-authoring
   call.
-- **#304 — walkthrough steps 11.7-2A/2B** use "caring contact" and "follow-up
-  outreach" the opposite way round from the artifacts they reference. The references
-  are correct (dates decide it); the titles are loose. ⚠️ **#312 changed where to
-  fix this:** `docs/use-cases/ed-scenario-11.md` is now *generated* from
-  `docs/use-cases/ed-scenario-11.json` by `scripts/build-use-case-workbook.mjs`, so
-  edit the JSON — and note that PR also gated scenario-step ↔ `patient-011`
-  walkthrough correspondence in both directions, which is the drift this issue is
-  about. Re-read #304 against that gate before touching anything; it may already be
-  narrower than it reads.
 - **#281 — dictionary ValueSet canonicals are gated but barely rendered.** Pairs
   naturally with #264 since it's the same table.
 
@@ -197,6 +215,11 @@ form your own.
   files in that package, **including the shared `clinical-*` ones** — a per-type
   `ls` misses them, which is how "EpisodeOfCare has no `type` parameter" almost
   became a finding.
+- **Read the issue, then re-derive it.** Every issue picked up in this pass had at
+  least one premise that had gone stale — #273's warning count, #272's element
+  table, #304's claim that a doc would need the same edit. None was wrong when
+  filed. Budget for re-deriving the facts before planning the change: twice it made
+  the work smaller, once it changed the answer.
 - **Stop hand-checking design tokens.** I checked 23 by hand across two sessions
   because no gate existed; `npm run check:tokens` is that gate now.
 - **`services/cds-hooks` has its own verify** that `web`'s does not cover.
