@@ -2,7 +2,12 @@
   "id": "ed-scenario-11",
   "title": "Behavioral Health Scenario 11 – Emergency Department Suicide Identification, Assessment, Safety, and Follow-Up",
   "sheetName": "ED Scenario 11",
-  "demoPatient": "patient-011",
+  "demoPatients": [
+    "patient-011",
+    "patient-012",
+    "patient-013",
+    "patient-014"
+  ],
   "narrative": "Scenario 11.1 – Patient Narrative\nMaria, a 28-year-old with chronic pain and recent job loss, presents to a general medical emergency department (ED) for severe insomnia and anxiety. During triage, the nurse administers an ED-appropriate suicide risk screener (e.g., C-SSRS ED Screener with Triage Points or ASQ). Maria endorses suicidal ideation and reports a recent self-harm behavior.\n\nThe EHR captures screener responses as discrete structured data, derives an outcome (negative / non-acute positive / acute positive) using configurable rules, and then:\n• Communicates status to the whole ED team via a visible ED trackboard / chart banner indicator, and\n• Separately routes time-sensitive protocol work via role-based Tasks and a clinician-facing advisory that provides one-click access to the appropriate order set/checklists.\n\nFor positive screens, the EHR supports rapid mitigation (environment/room clearance checklist, belongings documentation, and observation/1:1 sitter workflow with appropriate provider authorization), followed by brief assessment and/or full suicide risk assessment (e.g., Brief Suicide Safety Assessment when ASQ is used; SAFE-T with C-SSRS when indicated).\n\nFollowing assessment, the care team determines Maria can be discharged with collaborative safety planning, lethal means counseling, and rapid follow-up. At discharge, the EHR automatically includes (and prints or portal-delivers) a patient-facing safety plan and suicide-specific discharge instructions with crisis resources, and transmits a transition-of-care packet to outpatient providers while initiating post-discharge caring contacts/follow-up calls.",
   "columns": [
     "Event Step",
@@ -32,7 +37,11 @@
             "DC.1.5 Manage Patient History",
             "DC.1.7.1 Capture Standardized Assessments"
           ],
-          "walkthrough": "ed-11-2-1a",
+          "walkthrough": [
+            "patient-011/ed-11-2-1a",
+            "patient-013/ed13-11-2-1a",
+            "patient-014/ed14-11-2-1a"
+          ],
           "fhirText": "`QuestionnaireResponse`",
           "profileBinding": "SPiER ASQ Questionnaire ([built](../../FHIR-Resources/ASQ/)) or C-SSRS Screener ([built](../../FHIR-Resources/C-SSRS/))",
           "cdsHook": null
@@ -49,12 +58,12 @@
             "IN.1.1 Entity Authentication",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Persistence has no separate narration in the demo: the QuestionnaireResponse referenced by 11.2-1A is the persisted resource.",
+          "walkthrough": [
+            "patient-012/ed12-11-2-1b"
+          ],
           "fhirText": "`QuestionnaireResponse` with `encounter` reference + `Provenance`",
           "profileBinding": "Encounter linkage + audit",
-          "cdsHook": null,
-          "walkthroughGapKind": "not-narrated"
+          "cdsHook": null
         },
         {
           "step": "11.2-1C",
@@ -68,8 +77,9 @@
             "DC.1.7.1 Capture Standardized Assessments",
             "DC.3.2 Support Patient Education and Self-Care"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria was screened by the triage nurse (11.2-1A), so there is no self-completed screen to narrate. Needs a second ED patient.",
+          "walkthrough": [
+            "patient-012/ed12-11-2-1c"
+          ],
           "origin": "spier-proposed",
           "rationale": "The scenario permits patient self-report in 11.2-1A but never gives the patient an Actor row, so nothing distinguishes a self-completed screen — including whether the patient was alone when answering, which changes how the answers should be read.",
           "fhirText": "`QuestionnaireResponse` (author = `Patient`) + `Provenance` (self-reported source)",
@@ -77,8 +87,7 @@
           "cdsHook": null,
           "profileGaps": [
             "Self-report screening authorship convention (QuestionnaireResponse.author + Provenance)"
-          ],
-          "walkthroughGapKind": "branch-exclusive"
+          ]
         },
         {
           "step": "11.2-1D",
@@ -93,8 +102,9 @@
             "DC.2.3.1 Standard Assessments and Outcomes",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria completed the screener. Needs a second ED patient whose screen is declined or incompletable.",
+          "walkthrough": [
+            "patient-013/ed13-11-2-1d"
+          ],
           "origin": "spier-proposed",
           "rationale": "A blank is currently indistinguishable from a negative screen. That difference drives both the clinical follow-up and the denominator of every screening measure.",
           "fhirText": "`QuestionnaireResponse` (status `stopped`) or `Observation` (screening not performed, with reason) + `Task` (re-attempt)",
@@ -102,8 +112,7 @@
           "cdsHook": null,
           "profileGaps": [
             "Screening-Not-Performed Observation (coded reason, distinct from a negative result)"
-          ],
-          "walkthroughGapKind": "branch-exclusive"
+          ]
         },
         {
           "step": "11.2-2A",
@@ -117,7 +126,11 @@
             "DC.2.3.1 Standard Assessments and Outcomes",
             "DC.2.4.1 Support for Standard Care Plans"
           ],
-          "walkthrough": "ed-11-2-2a",
+          "walkthrough": [
+            "patient-011/ed-11-2-2a",
+            "patient-012/ed12-11-2-2a",
+            "patient-013/ed13-11-2-2a"
+          ],
           "fhirText": "`Observation` (derived risk tier)",
           "profileBinding": "**gap** — needs a SPiER ASQ Outcome Observation profile (low/non-acute positive/acute positive)",
           "cdsHook": "`patient-view`",
@@ -137,7 +150,9 @@
             "DC.1.3.1 Manage Alerts",
             "IN.5 Clinical Decision Support"
           ],
-          "walkthrough": "ed-11-2-2b",
+          "walkthrough": [
+            "patient-011/ed-11-2-2b"
+          ],
           "reviewNotes": [
             {
               "author": "Kelly Samuelson",
@@ -165,7 +180,9 @@
             "DC.2.4.3 Support for Standard Care Plans, Guidelines, Protocols",
             "IN.5.1 Support Decision Logic"
           ],
-          "walkthrough": "ed-11-2-2c",
+          "walkthrough": [
+            "patient-011/ed-11-2-2c"
+          ],
           "fhirText": "`Task` (role-routed) + `ServiceRequest` (BH consult / BSSA) + `PlanDefinition` reference",
           "profileBinding": "SPiER PlanDefinition for stage-1 → stage-2 transition ([`pathway-stages.fsh`](../../ig/input/fsh/pathway-stages.fsh))",
           "cdsHook": "`order-select` / advisory"
@@ -182,8 +199,9 @@
             "DC.2.3.1 Standard Assessments and Outcomes",
             "IN.5.1 Support Decision Logic"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria screened non-acute positive. Needs a second ED patient who screens negative.",
+          "walkthrough": [
+            "patient-012/ed12-11-2-2d"
+          ],
           "origin": "spier-proposed",
           "rationale": "11.2-2A defines three outcomes but only the positive ones are consumed anywhere. A negative screen still has consequences: a re-screen interval, and the standing ability of a clinician to escalate anyway.",
           "fhirText": "`Observation` (negative screening outcome) + `Task` (re-screen at interval)",
@@ -191,8 +209,7 @@
           "cdsHook": null,
           "profileGaps": [
             "Negative-screen handling: re-screen interval and clinician-override-despite-negative path"
-          ],
-          "walkthroughGapKind": "branch-exclusive"
+          ]
         }
       ],
       "summary": "**Screening and identification** — triage-time ASQ or C-SSRS ED screener, captured as discrete data, classified, surfaced on the trackboard, and routed via role-based tasks.",
@@ -215,7 +232,9 @@
             "DC.2.4.3 Support for Standard Care Plans",
             "DC.1.1.3 Manage Encounter Information"
           ],
-          "walkthrough": "ed-11-3-1a",
+          "walkthrough": [
+            "patient-011/ed-11-3-1a"
+          ],
           "fhirText": "`Task` (mitigation checklist) + `Procedure` (patient relocation)",
           "profileBinding": "**gap** — Mitigation Checklist Task profile",
           "cdsHook": null,
@@ -235,7 +254,9 @@
             "DC.1.6.1 Order Entry",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": "ed-11-3-1b",
+          "walkthrough": [
+            "patient-011/ed-11-3-1b"
+          ],
           "fhirText": "`ServiceRequest` (suicide precautions, observation level) with required signature",
           "profileBinding": "**gap** — Suicide Precaution ServiceRequest profile",
           "cdsHook": "`order-sign`",
@@ -254,7 +275,9 @@
           "ehrsFm": [
             "DC.1.6.2 Order Documents and Reports"
           ],
-          "walkthrough": "ed-11-3-1c",
+          "walkthrough": [
+            "patient-011/ed-11-3-1c"
+          ],
           "fhirText": "`Observation` (room clearance result) + `List` (belongings inventory)",
           "profileBinding": "**gap** — Room Clearance Checklist profile; Belongings Inventory profile",
           "cdsHook": null,
@@ -275,7 +298,9 @@
             "DC.2.4 Manage Care Plans",
             "DC.1.3.1 Manage Alerts"
           ],
-          "walkthrough": "ed-11-3-1d",
+          "walkthrough": [
+            "patient-011/ed-11-3-1d"
+          ],
           "fhirText": "`Observation` series (time-stamped observations) + `CareTeam` (observer assignment)",
           "profileBinding": "**gap** — Continuous Observation Log profile",
           "cdsHook": null,
@@ -295,15 +320,16 @@
             "DC.1.3.1 Manage Alerts",
             "IN.5 Clinical Decision Support"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "The demo emits no Flag resource, so there is no active-precautions indicator to narrate.",
+          "walkthrough": [
+            "patient-013/ed13-11-3-1e",
+            "patient-014/ed14-11-3-1e"
+          ],
           "fhirText": "`Flag` (active precautions) with current parameters",
           "profileBinding": "**gap** — Active Precautions Flag profile",
           "cdsHook": null,
           "profileGaps": [
             "Active Precautions Flag"
-          ],
-          "walkthroughGapKind": "not-narrated"
+          ]
         }
       ],
       "summary": "**Immediate safety / mitigation** — environmental safety, observation/sitter, belongings security.",
@@ -325,7 +351,9 @@
           "ehrsFm": [
             "DC.1.7.1 Capture Standardized Assessments"
           ],
-          "walkthrough": "ed-11-4-0a",
+          "walkthrough": [
+            "patient-011/ed-11-4-0a"
+          ],
           "fhirText": "`QuestionnaireResponse` (BSSA)",
           "profileBinding": "**gap** — needs FSH for BSSA ([TL-005](https://github.com/SPiER-Project/adoption-guide/issues/21), status:planned, promote priority)",
           "cdsHook": null,
@@ -348,7 +376,7 @@
             "DC.2.3.1 Standard Assessments and Outcomes",
             "DC.2.4.3 Care Plans Protocols"
           ],
-          "walkthrough": null,
+          "walkthrough": [],
           "walkthroughGapReason": "The demo records the BSSA (11.4-0A) but emits no routing Task, so there is no artifact for this step.",
           "fhirText": "`Observation` (BSSA outcome) + `Task` (next-step routing) + `Flag` (cannot leave until evaluated)",
           "profileBinding": "**gap** — BSSA Outcome Observation; \"Hold for Evaluation\" Flag",
@@ -370,7 +398,9 @@
           "ehrsFm": [
             "DC.1.7.1 Capture Standardized Assessments"
           ],
-          "walkthrough": "ed-11-4-1a",
+          "walkthrough": [
+            "patient-011/ed-11-4-1a"
+          ],
           "fhirText": "`QuestionnaireResponse` (C-SSRS Full + SAFE-T framing)",
           "profileBinding": "C-SSRS Full ([built — `cssrs-full-lifetime-recent.json`](../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json)); SAFE-T ([TL-006](https://github.com/SPiER-Project/adoption-guide/issues/22), status:planned, promote)",
           "cdsHook": null,
@@ -393,7 +423,9 @@
             "DC.1.3.1 Manage Alerts",
             "DC.2.4 Manage Care Plans"
           ],
-          "walkthrough": "ed-11-4-1b",
+          "walkthrough": [
+            "patient-011/ed-11-4-1b"
+          ],
           "fhirText": "`Observation` (current suicide risk level) + `Condition` (suicide-risk condition, coded) + `Flag` (longitudinal risk indicator)",
           "profileBinding": "**gap** — Current Suicide Risk Level Observation; Longitudinal Risk Flag",
           "cdsHook": null,
@@ -423,7 +455,9 @@
             "DC.2.4.3 Care Plans Protocols",
             "IN.5.1 Support Decision Logic"
           ],
-          "walkthrough": "ed-11-5-1a",
+          "walkthrough": [
+            "patient-011/ed-11-5-1a"
+          ],
           "fhirText": "`Task` series with `restriction.period` + `PlanDefinition` (reassessment cadence)",
           "profileBinding": "**gap** — Reassessment Cadence PlanDefinition + Reassessment Task profile",
           "cdsHook": null,
@@ -443,7 +477,9 @@
             "DC.2.3.1 Standard Assessments",
             "DC.1.6.1 Order Entry"
           ],
-          "walkthrough": "ed-11-5-1b",
+          "walkthrough": [
+            "patient-011/ed-11-5-1b"
+          ],
           "fhirText": "`Observation` (updated risk) + `ServiceRequest` (updated precautions) with prior-value preservation",
           "profileBinding": "Reuses Current Suicide Risk Level Observation (11.4-1B) + Suicide Precaution ServiceRequest (11.3-1B)",
           "cdsHook": null
@@ -459,12 +495,12 @@
           "ehrsFm": [
             "DC.1.6.2 Order Documents and Reports"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "The demo has a single room-clearance event and no shift-change repeat.",
+          "walkthrough": [
+            "patient-014/ed14-11-5-1c"
+          ],
           "fhirText": "New instance of Room Clearance Checklist (11.3-1C) + updated `CareTeam` for observer handoff",
           "profileBinding": "Reuses 11.3-1C and 11.3-1D profiles",
-          "cdsHook": null,
-          "walkthroughGapKind": "not-narrated"
+          "cdsHook": null
         },
         {
           "step": "11.5-1D",
@@ -479,8 +515,9 @@
             "DC.2.5 Order Entry — Referrals",
             "IN.4 Manage Health Information Sharing"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria was discharged home with follow-up. Needs a second ED patient who is admitted or transferred.",
+          "walkthrough": [
+            "patient-013/ed13-11-5-1d"
+          ],
           "origin": "spier-proposed",
           "rationale": "11.5's own preamble describes patients awaiting psychiatric placement or transfer, but every step after it follows the discharge-home branch. The placement itself — and the log of failed attempts that explains a long boarding stay — is unmodelled.",
           "fhirText": "`ServiceRequest` (admission or transfer) + `Encounter` (disposition and boarding period) + `Organization` (receiving facility) + `Communication` (acceptance)",
@@ -488,8 +525,7 @@
           "cdsHook": null,
           "profileGaps": [
             "Psychiatric Admission/Transfer Disposition (with per-attempt placement log)"
-          ],
-          "walkthroughGapKind": "branch-exclusive"
+          ]
         },
         {
           "step": "11.5-1E",
@@ -504,8 +540,9 @@
             "DC.1.3.1 Manage Alerts",
             "IN.5.1 Support Decision Logic"
           ],
-          "walkthrough": null,
-          "walkthroughGapReason": "Branch-exclusive on patient-011: Maria completed her ED care. Needs a second ED patient who elopes or leaves against advice.",
+          "walkthrough": [
+            "patient-014/ed14-11-5-1e"
+          ],
           "origin": "spier-proposed",
           "rationale": "A patient on suicide precautions who leaves is among the highest-risk events an ED sees, and the scenario has no path for it. With no modelled event the encounter simply closes, and the follow-up protocol in 11.7 never fires.",
           "fhirText": "`Encounter` (disposition: left without completing treatment) + `Flag` (elopement) + `Communication` (notification and outreach attempts) + `Task` (follow-up)",
@@ -513,8 +550,7 @@
           "cdsHook": null,
           "profileGaps": [
             "Elopement / left-against-advice handling for an at-risk patient"
-          ],
-          "walkthroughGapKind": "branch-exclusive"
+          ]
         }
       ],
       "summary": "**Boarding and reassessment** — time-based reassessment during ED boarding."
@@ -536,7 +572,9 @@
             "DC.2.4 Manage Care Plans",
             "DC.1.7.1 Capture Standardized Assessments"
           ],
-          "walkthrough": "ed-11-6-1a",
+          "walkthrough": [
+            "patient-011/ed-11-6-1a"
+          ],
           "fhirText": "`QuestionnaireResponse` (Stanley-Brown safety plan) + `CarePlan`",
           "profileBinding": "Stanley-Brown ([built](../../FHIR-Resources/Stanley-Brown/))",
           "cdsHook": null
@@ -553,7 +591,9 @@
             "DC.2.4 Manage Care Plans",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": "ed-11-6-1b",
+          "walkthrough": [
+            "patient-011/ed-11-6-1b"
+          ],
           "fhirText": "`CarePlan` with version history + `Provenance` for each version",
           "profileBinding": "Reuses Stanley-Brown CarePlan profile; **gap** — versioning extension",
           "cdsHook": null,
@@ -574,7 +614,9 @@
             "DC.3.2 Support Patient Education and Self-Care",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": "ed-11-6-1c",
+          "walkthrough": [
+            "patient-011/ed-11-6-1c"
+          ],
           "origin": "spier-proposed",
           "rationale": "The scenario calls the plan collaborative but models only the clinician side. A safety plan the patient did not actually agree to is a documented artifact rather than an intervention — and naming a support person the patient has not agreed to name is itself a disclosure.",
           "fhirText": "`CarePlan` (patient-confirmed) + `Provenance` (patient as author) + `RelatedPerson` (named support, with agreement)",
@@ -596,7 +638,9 @@
             "DC.1.7 Patient Education",
             "DC.2.4 Manage Care Plans"
           ],
-          "walkthrough": "ed-11-6-2a",
+          "walkthrough": [
+            "patient-011/ed-11-6-2a"
+          ],
           "fhirText": "`Procedure` (lethal means counseling delivered) + `CarePlan.activity` (means-safety actions, who/what/when/where)",
           "profileBinding": "**gap** — Lethal Means Counseling Procedure + Means-Safety Action profile ([TL-008](https://github.com/SPiER-Project/adoption-guide/issues/24), status:planned, promote)",
           "cdsHook": null,
@@ -623,7 +667,9 @@
             "DC.1.6.1 Order Entry",
             "IN.5.1 Support Decision Logic"
           ],
-          "walkthrough": "ed-11-6-2b",
+          "walkthrough": [
+            "patient-011/ed-11-6-2b"
+          ],
           "fhirText": "`Task` (discharge readiness) + `Flag` (blocking alert if incomplete)",
           "profileBinding": "**gap** — Discharge Readiness Checklist profile",
           "cdsHook": "`encounter-discharge`",
@@ -643,7 +689,9 @@
             "DC.1.7 Patient Education",
             "DC.2.4 Manage Care Plans"
           ],
-          "walkthrough": "ed-11-6-2c",
+          "walkthrough": [
+            "patient-011/ed-11-6-2c"
+          ],
           "origin": "spier-proposed",
           "rationale": "11.6-2A documents that counseling happened and what was agreed, but nothing owns the actions or closes them out. Means-safety is the intervention with the strongest evidence base here, and \"agreed\" is not \"done\".",
           "fhirText": "`CarePlan.activity` (per-action owner and due date) + `RelatedPerson` (caregiver) + `Task` (outstanding action)",
@@ -665,7 +713,9 @@
             "DC.1.9 Manage Patient Education",
             "DC.2.7.2 Patient Discharge Summary"
           ],
-          "walkthrough": "ed-11-6-3a",
+          "walkthrough": [
+            "patient-011/ed-11-6-3a"
+          ],
           "fhirText": "`Composition` (after-visit summary) + `DocumentReference` (printed/portal-delivered safety plan + discharge instructions)",
           "profileBinding": "**gap** — Suicide-Specific Discharge AVS Composition profile",
           "cdsHook": null,
@@ -686,7 +736,9 @@
             "DC.1.9 Manage Patient Education",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": "ed-11-6-3b",
+          "walkthrough": [
+            "patient-011/ed-11-6-3b"
+          ],
           "origin": "spier-proposed",
           "rationale": "For an adolescent whose guardian holds proxy access, or a plan naming a member of the household the patient is unsafe with, automatic portal release can be the harm. Real deployments gate this, and the scenario should say so rather than describing release as automatic.",
           "fhirText": "`DocumentReference` (with security labels) + `Consent` (release directives)",
@@ -718,7 +770,9 @@
             "IN.4 Manage Health Information Sharing",
             "IN.2.2 Auditable Records"
           ],
-          "walkthrough": "ed-11-7-0a",
+          "walkthrough": [
+            "patient-011/ed-11-7-0a"
+          ],
           "origin": "spier-proposed",
           "rationale": "Consent appears only as an input to 11.7-1A and 11.7-1B. Whether the packet may lawfully be sent is a decision with an actor, a timestamp, and a record — and for a minor or a Part 2 program it can forbid the transmission the scenario assumes.",
           "fhirText": "`Consent` (scope, recipients, expiry) + `Provenance` (basis for an emergency disclosure)",
@@ -740,7 +794,9 @@
             "DC.2.5 Order Entry — Referrals",
             "DC.1.6.1 Order Entry"
           ],
-          "walkthrough": "ed-11-7-1a",
+          "walkthrough": [
+            "patient-011/ed-11-7-1a"
+          ],
           "fhirText": "`ServiceRequest` (urgent outpatient referral) + `Appointment` request + `Communication` to receiving provider",
           "profileBinding": "**gap** — Urgent BH Follow-Up Referral profile ([TL-009 Transition](https://github.com/SPiER-Project/adoption-guide/issues/25), status:planned, promote)",
           "cdsHook": "`order-select`",
@@ -766,7 +822,9 @@
             "DC.2.7.1 Care Plan, Guideline, Protocol Generation",
             "IN.4 Manage Health Information Sharing"
           ],
-          "walkthrough": "ed-11-7-1b",
+          "walkthrough": [
+            "patient-011/ed-11-7-1b"
+          ],
           "fhirText": "`Bundle` (transition-of-care packet) + `Composition` + `Provenance` for delivery acknowledgement",
           "profileBinding": "**gap** — Suicide-Specific Transition-of-Care Bundle profile",
           "cdsHook": null,
@@ -786,7 +844,9 @@
             "DC.2.4.3 Care Plans Protocols",
             "DC.2.4 Manage Care Plans"
           ],
-          "walkthrough": "ed-11-7-2a",
+          "walkthrough": [
+            "patient-011/ed-11-7-2a"
+          ],
           "fhirText": "`Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment",
           "profileBinding": "**gap** — Caring Contacts PlanDefinition + Caring Contact Task profile ([TL-010](https://github.com/SPiER-Project/adoption-guide/issues/26), status:planned, promote); ED-SAFE telephone follow-up profile ([TL-012](https://github.com/SPiER-Project/adoption-guide/issues/28), status:planned, promote) — ED-SAFE specifies the phone-call protocol that Caring Contacts envelopes; both are needed for an ED-anchored follow-up program",
           "cdsHook": null,
@@ -816,7 +876,9 @@
             "DC.2.4 Manage Care Plans",
             "DC.1.3.1 Manage Alerts"
           ],
-          "walkthrough": "ed-11-7-2b",
+          "walkthrough": [
+            "patient-011/ed-11-7-2b"
+          ],
           "fhirText": "`Communication` (outreach attempt) + updated `Observation` (current risk) + updated `CarePlan`",
           "profileBinding": "Reuses earlier profiles",
           "cdsHook": null
@@ -833,7 +895,10 @@
             "IN.5.1 Support Decision Logic",
             "DC.1.3.1 Manage Alerts"
           ],
-          "walkthrough": "ed-11-7-2c",
+          "walkthrough": [
+            "patient-011/ed-11-7-2c",
+            "patient-014/ed14-11-7-2c"
+          ],
           "fhirText": "`Task` status transitions to overdue + `Communication` (supervisor alert) + `Flag` (escalated follow-up status)",
           "profileBinding": "**gap** — Follow-Up Overdue Escalation profile",
           "cdsHook": null,
@@ -853,7 +918,9 @@
             "DC.2.4 Manage Care Plans",
             "DC.1.3.1 Manage Alerts"
           ],
-          "walkthrough": "ed-11-7-2d",
+          "walkthrough": [
+            "patient-011/ed-11-7-2d"
+          ],
           "origin": "spier-proposed",
           "rationale": "11.7-2C escalates on missed follow-up, but nothing models the patient side of the contact. \"No answer\" and \"asked us to stop\" are clinically and legally different, and only one of them should escalate.",
           "fhirText": "`Communication` (received, with outcome) + `Consent` (withdrawal or channel change)",

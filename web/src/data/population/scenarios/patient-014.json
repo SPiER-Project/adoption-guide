@@ -1,0 +1,564 @@
+{
+  "responses": [
+    {
+      "id": "p014-asq",
+      "questionnaireName": "ASQ Screening",
+      "completedAt": "2026-08-09T16:05:00.000Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "p014-asq",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "encounter": {
+          "reference": "Encounter/p014-enc-ed"
+        },
+        "item": [
+          {
+            "linkId": "screening-questions",
+            "item": [
+              {
+                "linkId": "q1",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q2",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q3",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "acuity-section",
+            "item": [
+              {
+                "linkId": "q5",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "screening-result",
+            "item": [
+              {
+                "linkId": "result-category",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://spier.org/CodeSystem/asq-screening-result",
+                      "code": "acute-positive",
+                      "display": "Acute Positive Screen (imminent risk)"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "id": "p014-asq-result",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-014"
+      },
+      "encounter": {
+        "reference": "Encounter/p014-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-09T16:05:00.000Z",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/asq-screening-result",
+            "code": "acute-positive",
+            "display": "Acute Positive Screen"
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p014-room-resweep",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "exam"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "text": "Environmental safety re-sweep at shift change"
+      },
+      "subject": {
+        "reference": "Patient/patient-014"
+      },
+      "encounter": {
+        "reference": "Encounter/p014-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-09T23:10:00.000Z",
+      "valueString": "Room re-cleared at 23:10 shift change; observer handoff confirmed to the incoming tech. One exception noted: patient's own footwear with laces left in place at their request, escalated to and accepted by the charge nurse."
+    }
+  ],
+  "carePlans": [],
+  "riskAlerts": [],
+  "episodes": [
+    {
+      "resourceType": "EpisodeOfCare",
+      "id": "p014-episode",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "active",
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "code": "suicide-safer-care",
+              "display": "Suicide-safer care episode"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "code": "positive-screen",
+                "display": "Positive screen"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-trigger",
+          "valueReference": {
+            "reference": "Observation/p014-asq-result"
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "code": "imminent",
+                "display": "Imminent risk"
+              }
+            ]
+          }
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-014"
+      },
+      "period": {
+        "start": "2026-08-09T16:05:00.000Z"
+      }
+    }
+  ],
+  "flags": [
+    {
+      "resourceType": "Flag",
+      "id": "p014-precautions",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions"
+          }
+        ]
+      },
+      "status": "active",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/flag-category",
+              "code": "safety",
+              "display": "Safety"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "text": "Suicide precautions ON — continuous 1:1 observation"
+      },
+      "subject": {
+        "reference": "Patient/patient-014"
+      },
+      "encounter": {
+        "reference": "Encounter/p014-enc-ed"
+      },
+      "period": {
+        "start": "2026-08-09T16:20:00.000Z"
+      }
+    },
+    {
+      "resourceType": "Flag",
+      "id": "p014-elopement",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions"
+          }
+        ]
+      },
+      "status": "active",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/flag-category",
+              "code": "safety",
+              "display": "Safety"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "text": "Left the department while on suicide precautions — 2026-08-10 02:35"
+      },
+      "subject": {
+        "reference": "Patient/patient-014"
+      },
+      "encounter": {
+        "reference": "Encounter/p014-enc-ed"
+      },
+      "period": {
+        "start": "2026-08-10T02:35:00.000Z"
+      }
+    }
+  ],
+  "communications": [
+    {
+      "resourceType": "Communication",
+      "id": "p014-elopement-escalation",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Elopement escalation"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-014"
+      },
+      "encounter": {
+        "reference": "Encounter/p014-enc-ed"
+      },
+      "sent": "2026-08-10T02:41:00.000Z",
+      "payload": [
+        {
+          "contentString": "Absence noted at 02:35 during observer handoff. Charge nurse and ED attending notified at 02:38, security search of department and adjacent lots 02:38-03:05, no contact. Attending physician notified per policy; incident logged."
+        }
+      ]
+    },
+    {
+      "resourceType": "Communication",
+      "id": "p014-outreach-attempt",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Post-departure outreach"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-014"
+      },
+      "encounter": {
+        "reference": "Encounter/p014-enc-ed"
+      },
+      "sent": "2026-08-10T09:00:00.000Z",
+      "payload": [
+        {
+          "contentString": "Two call attempts to the number on file (09:00, 13:30), no answer, voicemail left with 988 and local crisis line on the second. Emergency contact was not called: no consent on file to disclose to them. Crisis resources mailed to the address on file."
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "resourceType": "Task",
+      "id": "p014-followup-outreach",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-follow-up"
+          }
+        ]
+      },
+      "status": "in-progress",
+      "intent": "order",
+      "priority": "urgent",
+      "description": "Continue outreach attempts after departure while on precautions; escalate to the care-coordination supervisor if no contact within 72 hours.",
+      "for": {
+        "reference": "Patient/patient-014"
+      },
+      "encounter": {
+        "reference": "Encounter/p014-enc-ed"
+      },
+      "authoredOn": "2026-08-10T03:10:00.000Z"
+    }
+  ],
+  "encounters": [
+    {
+      "resourceType": "Encounter",
+      "id": "p014-enc-ed",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p014-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-014"
+      },
+      "period": {
+        "start": "2026-08-09T15:30:00.000Z",
+        "end": "2026-08-10T02:35:00.000Z"
+      },
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "aadvice",
+              "display": "Left against advice"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "ed14-11-2-1a",
+      "step": "11.2-1A",
+      "date": "2026-08-09",
+      "title": "Triage suicide screen — acute positive",
+      "stageId": "identify-possible-risk",
+      "actor": "Triage Nurse / Screener",
+      "status": "completed",
+      "notes": "Presented after a call from a family member. Wish to be dead and current thoughts of suicide endorsed, with acute ideation at the time of screening — an acute positive.",
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
+      "relatedRefs": [
+        "QuestionnaireResponse/p014-asq"
+      ]
+    },
+    {
+      "id": "ed14-11-3-1e",
+      "step": "11.3-1E",
+      "date": "2026-08-09",
+      "title": "Active precautions persisted and displayed",
+      "stageId": "document-safety-actions",
+      "actor": "EHR System / Status Visibility Manager",
+      "status": "completed",
+      "notes": "Precautions and the 1:1 observation level held as an active status from 16:20, visible on the ED views rather than buried in a note.",
+      "fhirArtifacts": [
+        "Flag"
+      ],
+      "profileGap": true,
+      "relatedRefs": [
+        "Flag/p014-precautions"
+      ]
+    },
+    {
+      "id": "ed14-11-5-1c",
+      "step": "11.5-1C",
+      "date": "2026-08-09",
+      "title": "Environmental re-sweep and observer handoff at shift change",
+      "stageId": "document-safety-actions",
+      "actor": "ED Nurse / Charge Nurse / Safety Monitor",
+      "status": "completed",
+      "notes": "Room re-cleared at the 23:10 shift change and the observer handoff confirmed. One exception was documented rather than quietly allowed: the patient kept laced footwear at their request, escalated to and accepted by the charge nurse.",
+      "fhirArtifacts": [
+        "Observation",
+        "CareTeam"
+      ],
+      "profileGap": true,
+      "relatedRefs": [
+        "Observation/p014-room-resweep"
+      ]
+    },
+    {
+      "id": "ed14-11-5-1e",
+      "step": "11.5-1E",
+      "date": "2026-08-10",
+      "title": "Patient leaves the department while on precautions",
+      "stageId": "document-safety-actions",
+      "actor": "ED Nurse / Charge Nurse / Safety Monitor",
+      "status": "completed",
+      "notes": "Absence noted at 02:35 during the next observer handoff — the gap between handoffs is where this happens. Escalation, search and physician notification all logged with times. The encounter closes as left-against-advice, which is the disposition every downstream measure has to be able to see.",
+      "fhirArtifacts": [
+        "Encounter",
+        "Flag",
+        "Communication",
+        "Task"
+      ],
+      "profileGap": true,
+      "proposed": true,
+      "relatedRefs": [
+        "Flag/p014-elopement",
+        "Communication/p014-elopement-escalation",
+        "Encounter/p014-enc-ed"
+      ]
+    },
+    {
+      "id": "ed14-11-7-2c",
+      "step": "11.7-2C",
+      "date": "2026-08-10",
+      "title": "Outreach attempted, no contact — escalation pending",
+      "stageId": "track-follow-up",
+      "actor": "EHR System / Exception + Escalation Manager",
+      "status": "completed",
+      "notes": "This is what the discharge-home path never exercises: the follow-up protocol firing for someone who left before it was set up. Two calls, no answer, voicemail with crisis resources. The emergency contact was not called — there is no consent on file to disclose to them, and the absence of consent is not a reason to improvise. Supervisor escalation is due at 72 hours.",
+      "fhirArtifacts": [
+        "Communication",
+        "Task",
+        "Flag"
+      ],
+      "profileGap": true,
+      "relatedRefs": [
+        "Communication/p014-outreach-attempt",
+        "Task/p014-followup-outreach"
+      ]
+    }
+  ]
+}

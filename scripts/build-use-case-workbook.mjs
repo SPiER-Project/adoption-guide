@@ -289,9 +289,9 @@ function mappingSheet(doc) {
     const notes = (step.reviewNotes ?? [])
       .map(n => `${n.author} (${n.date}, ${n.column}): ${n.text}`)
       .join('\n')
-    const demo = step.walkthrough
-      ? `${doc.demoPatient} / ${step.walkthrough}`
-      : `not narrated — ${step.walkthroughGapReason}`
+    const demo = (step.walkthrough ?? []).length
+      ? step.walkthrough.join('\n')
+      : `${step.walkthroughGapKind} — ${step.walkthroughGapReason}`
 
     rows.push({
       cells: [
@@ -474,25 +474,6 @@ function checkContent(doc, label) {
       problems.push(`${at}: no HL7 EHR-S FM reference (column H)`)
     }
 
-    if (step.walkthrough === null && !step.walkthroughGapReason) {
-      problems.push(`${at}: walkthrough is null with no walkthroughGapReason`)
-    }
-    if (step.walkthrough && step.walkthroughGapReason) {
-      problems.push(`${at}: has both a walkthrough id and a gap reason`)
-    }
-
-    // Two very different kinds of gap, and conflating them means the backlog
-    // never converges: `not-narrated` is a to-do on patient-011, while
-    // `branch-exclusive` can never be closed there at all — the step describes
-    // a course this patient did not take, and needs a second ED patient.
-    if (step.walkthrough === null && !GAP_KINDS.has(step.walkthroughGapKind)) {
-      problems.push(
-        `${at}: walkthroughGapKind must be one of ${[...GAP_KINDS].join(' | ')}`,
-      )
-    }
-    if (step.walkthrough && step.walkthroughGapKind) {
-      problems.push(`${at}: is narrated but still declares a walkthroughGapKind`)
-    }
 
     if (!step.fhirText || !step.profileBinding) {
       problems.push(`${at}: missing fhirText or profileBinding`)
@@ -539,69 +520,103 @@ function checkContent(doc, label) {
  */
 function checkDemoLinkage(doc, label) {
   const problems = []
-  const path = join(SCENARIO_DIR, `${doc.demoPatient}.json`)
+  const walkthroughs = new Map() // patient id → entries
 
-  if (!existsSync(path)) {
-    return [`${label}: demo scenario ${relative(ROOT, path)} not found`]
+  for (const patient of doc.demoPatients) {
+    const path = join(SCENARIO_DIR, `${patient}.json`)
+    if (!existsSync(path)) {
+      problems.push(`${label}: demo scenario ${relative(ROOT, path)} not found`)
+      continue
+    }
+    walkthroughs.set(patient, JSON.parse(readFileSync(path, 'utf8')).walkthrough ?? [])
   }
+  if (problems.length) return problems
 
-  const walkthrough = JSON.parse(readFileSync(path, 'utf8')).walkthrough ?? []
-  const byId = new Map(walkthrough.map(entry => [entry.id, entry]))
-  const byStep = new Map(walkthrough.filter(e => e.step).map(entry => [entry.step, entry]))
+  /** Every "<patient>/<walkthrough id>" this scenario claims. */
   const declared = new Set()
-  const scenarioSteps = new Set(allSteps(doc).map(({ step }) => step.step))
 
   for (const { step } of allSteps(doc)) {
     const at = `${label} ${step.step}`
+    const refs = step.walkthrough ?? []
 
-    if (step.walkthrough) {
-      declared.add(step.walkthrough)
-      const entry = byId.get(step.walkthrough)
+    if (!Array.isArray(refs)) {
+      problems.push(`${at}: walkthrough must be an array of "<patient>/<id>" refs`)
+      continue
+    }
+
+    for (const ref of refs) {
+      const slash = ref.indexOf('/')
+      const patient = ref.slice(0, slash)
+      const id = ref.slice(slash + 1)
+
+      if (slash < 0 || !walkthroughs.has(patient)) {
+        problems.push(`${at}: walkthrough ref "${ref}" names no demo patient`)
+        continue
+      }
+      declared.add(ref)
+
+      const entry = walkthroughs.get(patient).find(e => e.id === id)
       if (!entry) {
-        problems.push(`${at}: declares walkthrough "${step.walkthrough}", absent from ${doc.demoPatient}`)
+        problems.push(`${at}: declares "${ref}", absent from ${patient}`)
       } else if (entry.step !== step.step) {
-        problems.push(
-          `${at}: walkthrough "${step.walkthrough}" is labelled ${entry.step ?? '(none)'}`,
-        )
+        problems.push(`${at}: "${ref}" is labelled ${entry.step ?? '(none)'}`)
       } else if (Boolean(entry.proposed) !== isProposed(step)) {
         // The chart tags a proposed step so a viewer can tell SPiER's additions
         // from the working group's scenario. If the two files disagree, the
         // running demo silently presents a proposal as settled.
         problems.push(
           `${at}: scenario says ${isProposed(step) ? 'proposed' : 'not proposed'}, ` +
-            `but ${doc.demoPatient} walkthrough "${entry.id}" says the opposite`,
+            `but ${ref} says the opposite`,
         )
       }
-    } else if (byStep.has(step.step)) {
-      // The gap reason has gone stale: the demo narrates this after all.
-      problems.push(
-        `${at}: declared not-narrated, but ${doc.demoPatient} has "${byStep.get(step.step).id}" — ` +
-          `drop walkthroughGapReason and set walkthrough`,
-      )
+    }
+
+    // A step narrated somewhere must not still be declaring why it isn't.
+    if (refs.length && (step.walkthroughGapReason || step.walkthroughGapKind)) {
+      problems.push(`${at}: is narrated but still declares a walkthrough gap`)
+    }
+    if (!refs.length) {
+      if (!step.walkthroughGapReason) {
+        problems.push(`${at}: no walkthrough refs and no walkthroughGapReason`)
+      }
+      if (!GAP_KINDS.has(step.walkthroughGapKind)) {
+        problems.push(`${at}: walkthroughGapKind must be one of ${[...GAP_KINDS].join(' | ')}`)
+      }
+      // The reason has gone stale if some demo narrates it after all.
+      for (const [patient, entries] of walkthroughs) {
+        const found = entries.find(e => e.step === step.step)
+        if (found) {
+          problems.push(
+            `${at}: declared not narrated, but ${patient} has "${found.id}" — ` +
+              `add "${patient}/${found.id}" to walkthrough and drop the gap fields`,
+          )
+        }
+      }
     }
   }
 
+  // The other direction: nothing narrated may go undeclared. This is exact now
+  // that a step can claim refs on several patients — before, a shared step like
+  // 11.2-2A had to be skipped, which meant nobody checked it.
   const allowed = doc.extraWalkthroughSteps ?? {}
-  for (const entry of walkthrough) {
-    if (declared.has(entry.id)) continue
-    const key = entry.step ?? entry.id
-    // A step the scenario *does* define was already reported precisely by the
-    // loop above — as a renamed id, or as a gap reason the demo has outgrown.
-    // Saying "matches no scenario step" as well would be both redundant and
-    // wrong, and would send the reader to fix the allowlist instead of the id.
-    if (scenarioSteps.has(key)) continue
-    if (!(key in allowed)) {
-      problems.push(
-        `${doc.demoPatient} walkthrough "${entry.id}" (${key}) matches no scenario step — ` +
-          `add it to the scenario, or to extraWalkthroughSteps with a reason`,
-      )
+  for (const [patient, entries] of walkthroughs) {
+    for (const entry of entries) {
+      if (declared.has(`${patient}/${entry.id}`)) continue
+      const key = entry.step ?? entry.id
+      if (!(key in allowed)) {
+        problems.push(
+          `${patient} walkthrough "${entry.id}" (${key}) is declared by no scenario step — ` +
+            `add the ref, or add it to extraWalkthroughSteps with a reason`,
+        )
+      }
     }
   }
 
   for (const key of Object.keys(allowed)) {
-    if (!walkthrough.some(entry => (entry.step ?? entry.id) === key)) {
-      problems.push(`${label}: extraWalkthroughSteps lists "${key}", which no longer exists`)
-    }
+    const live = [...walkthroughs.values()].some(entries =>
+      entries.some(e => (e.step ?? e.id) === key),
+    )
+    if (!live) problems.push(`${label}: extraWalkthroughSteps lists "${key}", which no longer exists`)
   }
 
   return problems
@@ -640,7 +655,7 @@ function main() {
         }
       }
       const steps = allSteps(doc)
-      const kinds = steps.filter(({ step }) => step.walkthrough === null)
+      const kinds = steps.filter(({ step }) => !(step.walkthrough ?? []).length)
       const todo = kinds.filter(({ step }) => step.walkthroughGapKind === 'not-narrated')
       console.log(
         `  ${label}: ${steps.length} steps, ${doc.sections.length} sections, ` +

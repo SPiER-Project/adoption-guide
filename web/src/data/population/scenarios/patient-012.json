@@ -1,0 +1,291 @@
+{
+  "responses": [
+    {
+      "id": "p012-asq",
+      "questionnaireName": "ASQ Screening",
+      "completedAt": "2026-08-06T14:20:00.000Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "p012-asq",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "encounter": {
+          "reference": "Encounter/p012-enc-ed"
+        },
+        "author": {
+          "reference": "Patient/patient-012"
+        },
+        "source": {
+          "reference": "Patient/patient-012"
+        },
+        "item": [
+          {
+            "linkId": "screening-questions",
+            "item": [
+              {
+                "linkId": "q1",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q2",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q3",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "screening-result",
+            "item": [
+              {
+                "linkId": "result-category",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://spier.org/CodeSystem/asq-screening-result",
+                      "code": "negative",
+                      "display": "Negative Screen"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "patient-refused",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "id": "p012-asq-result",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-012"
+      },
+      "encounter": {
+        "reference": "Encounter/p012-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-06T14:20:00.000Z",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/asq-screening-result",
+            "code": "negative",
+            "display": "Negative Screen"
+          }
+        ]
+      }
+    }
+  ],
+  "carePlans": [],
+  "riskAlerts": [],
+  "tasks": [
+    {
+      "resourceType": "Task",
+      "id": "p012-rescreen",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "requested",
+      "intent": "plan",
+      "description": "Re-screen for suicide risk at the next qualifying encounter (12-month interval for a negative ED screen).",
+      "for": {
+        "reference": "Patient/patient-012"
+      },
+      "encounter": {
+        "reference": "Encounter/p012-enc-ed"
+      },
+      "authoredOn": "2026-08-06T14:25:00.000Z",
+      "restriction": {
+        "period": {
+          "end": "2027-08-06T00:00:00.000Z"
+        }
+      }
+    }
+  ],
+  "encounters": [
+    {
+      "resourceType": "Encounter",
+      "id": "p012-enc-ed",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "subject": {
+        "reference": "Patient/patient-012"
+      },
+      "period": {
+        "start": "2026-08-06T13:50:00.000Z",
+        "end": "2026-08-06T17:05:00.000Z"
+      }
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "ed12-11-2-1c",
+      "step": "11.2-1C",
+      "date": "2026-08-06",
+      "title": "Patient completes the ASQ herself on a tablet",
+      "stageId": "identify-possible-risk",
+      "actor": "Patient / Respondent",
+      "status": "completed",
+      "notes": "Presented with a hand laceration. Screened at triage on a patient-facing tablet, alone in the room, in English at her stated preference. The QuestionnaireResponse records the patient as author and source, so a later reader can tell this was self-reported rather than nurse-administered.",
+      "fhirArtifacts": [
+        "QuestionnaireResponse",
+        "Provenance"
+      ],
+      "profileGap": true,
+      "proposed": true,
+      "relatedRefs": [
+        "QuestionnaireResponse/p012-asq"
+      ]
+    },
+    {
+      "id": "ed12-11-2-1b",
+      "step": "11.2-1B",
+      "date": "2026-08-06",
+      "title": "Screen retained as structured data on the encounter",
+      "stageId": "identify-possible-risk",
+      "actor": "EHR System / Retainer",
+      "status": "completed",
+      "notes": "The response is persisted against the ED encounter with item-level answers intact, not as a scanned form or a note. This is the step that makes every later one possible.",
+      "fhirArtifacts": [
+        "QuestionnaireResponse",
+        "Provenance"
+      ],
+      "relatedRefs": [
+        "QuestionnaireResponse/p012-asq"
+      ]
+    },
+    {
+      "id": "ed12-11-2-2a",
+      "step": "11.2-2A",
+      "date": "2026-08-06",
+      "title": "Derived screening outcome — negative",
+      "stageId": "identify-possible-risk",
+      "actor": "EHR System / Analyzer",
+      "status": "completed",
+      "notes": "All four ASQ items answered No, so the acuity question is never asked and the outcome classifies as negative. The result is stored as discrete data rather than left implicit in the answers.",
+      "fhirArtifacts": [
+        "Observation"
+      ],
+      "profileGap": true,
+      "relatedRefs": [
+        "Observation/p012-asq-result"
+      ]
+    },
+    {
+      "id": "ed12-11-2-2d",
+      "step": "11.2-2D",
+      "date": "2026-08-06",
+      "title": "Negative screen closed out with a re-screen interval",
+      "stageId": "identify-possible-risk",
+      "actor": "EHR System / Router",
+      "status": "completed",
+      "notes": "No protocol tasks, no trackboard indicator, no consult — and that restraint is the point. What the EHR does create is a re-screen due date, so the negative result has a shelf life. A clinician can still escalate on judgment despite it. Note also what is absent: no suicide-safer-care EpisodeOfCare opens, so this ED visit is a plain R4 Encounter rather than a SPiER one, and the episode-based measures never see it.",
+      "fhirArtifacts": [
+        "Observation",
+        "Task"
+      ],
+      "profileGap": true,
+      "proposed": true,
+      "relatedRefs": [
+        "Observation/p012-asq-result",
+        "Task/p012-rescreen"
+      ]
+    }
+  ]
+}

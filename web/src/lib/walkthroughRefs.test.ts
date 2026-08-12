@@ -104,10 +104,15 @@ describe('every walkthrough ref in every shipped scenario resolves', () => {
         carePlans: scenario.carePlans ?? [],
         observations: scenario.observations ?? [],
         communications: scenario.communications ?? [],
+        // Must mirror PatientChart's index exactly, or this test passes on a
+        // set of buckets the chart does not actually build.
         workflowArtifacts: [
           ...(scenario.documentReferences ?? []),
           ...(scenario.serviceRequests ?? []),
           ...(scenario.appointments ?? []),
+          ...(scenario.flags ?? []),
+          ...(scenario.tasks ?? []),
+          ...(scenario.encounters ?? []),
         ],
       })
       for (const step of scenario.walkthrough ?? []) {
