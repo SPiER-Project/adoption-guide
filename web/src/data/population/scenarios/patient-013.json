@@ -344,6 +344,9 @@
       },
       "status": "completed",
       "intent": "order",
+      "code": {
+        "text": "Re-attempt suicide risk screening"
+      },
       "description": "Re-attempt suicide risk screening once the patient is alert and oriented.",
       "for": {
         "reference": "Patient/patient-013"

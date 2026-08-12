@@ -409,6 +409,9 @@
       "status": "in-progress",
       "intent": "order",
       "priority": "urgent",
+      "code": {
+        "text": "Continue post-departure outreach"
+      },
       "description": "Continue outreach attempts after departure while on precautions; escalate to the care-coordination supervisor if no contact within 72 hours.",
       "for": {
         "reference": "Patient/patient-014"

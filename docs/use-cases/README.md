@@ -134,11 +134,14 @@ already did in #232.
 A gap declares a `walkthroughGapKind`, because two very different things were
 being conflated and the backlog could never converge:
 
-- `not-narrated` — a to-do. One today: 11.4-0B.
+- `not-narrated` — a to-do.
 - `branch-exclusive` — cannot be closed on a given patient because the step
-  describes a course they did not take. **None today.** All five were closed by
-  adding the patients below; the kind stays because the next scenario will need
-  it again.
+  describes a course they did not take; it needs a patient who took that course.
+
+**Both are empty today: all 37 steps are narrated.** The vocabulary stays
+because the next scenario will start out full of gaps, and because the
+distinction is what stopped this backlog reading as one pile of work when five
+of the nine entries could never have been closed on the patient they sat on.
 
 `--check` prints the split on every run.
 
@@ -149,6 +152,8 @@ demo cannot present a SPiER proposal as settled. The chart shows it as a
 
 This drift was real and invisible before the gate existed: 24 of 27 steps were
 narrated, and one walkthrough step (`11.7-1A-confirm`) belonged to no scenario.
+Getting from there to full coverage took three more patients and ten new steps;
+`--check` prints the state on every run.
 
 ## Proposed steps
 

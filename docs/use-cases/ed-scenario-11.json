@@ -376,16 +376,16 @@
             "DC.2.3.1 Standard Assessments and Outcomes",
             "DC.2.4.3 Care Plans Protocols"
           ],
-          "walkthrough": [],
-          "walkthroughGapReason": "The demo records the BSSA (11.4-0A) but emits no routing Task, so there is no artifact for this step.",
+          "walkthrough": [
+            "patient-011/ed-11-4-0b"
+          ],
           "fhirText": "`Observation` (BSSA outcome) + `Task` (next-step routing) + `Flag` (cannot leave until evaluated)",
           "profileBinding": "**gap** — BSSA Outcome Observation; \"Hold for Evaluation\" Flag",
           "cdsHook": "`patient-view`",
           "profileGaps": [
             "BSSA Outcome Observation",
             "\"Hold for Evaluation\" Flag"
-          ],
-          "walkthroughGapKind": "not-narrated"
+          ]
         },
         {
           "step": "11.4-1A",
