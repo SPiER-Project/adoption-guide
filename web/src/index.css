@@ -118,6 +118,17 @@
   --space-7: 1.75rem;
   --space-8: 2rem;
 
+  /* ── Page widths ────────────────────────────────────────────
+     The page template's two measures, set on a lens's root element. The four
+     lenses used to declare four different numbers (900 / none / 1100 / 1200),
+     which is one width per page rather than a template.
+
+     `prose` is a reading measure and belongs to pages that are mostly sentences;
+     `wide` is for the pages built around tables and card grids. A new lens picks
+     one of the two — that choice is the whole vocabulary. */
+  --page-width-prose: 900px;
+  --page-width-wide: 1200px;
+
   /* Breathing room above an element scrolled to via an in-page anchor. Folds in
      the sticky patient banner, whose live height PatientBanner publishes as
      --patient-banner-height (0 on routes without a banner). Anchor scrolling is

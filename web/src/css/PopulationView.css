@@ -1,24 +1,11 @@
+/* No padding of its own. It used to add `var(--space-6)` on top of
+   `.ehr-content-body`'s inset, which is why this page's content started 24px
+   further in and further down than the Overview and Patient Chart lenses — the
+   shell pads the page, and only the shell.
+   The title block that used to live here (`.population-header`,
+   `.population-title`, `.population-intro`) is the shared PageHeader now. */
 .population-view {
-  padding: var(--space-6);
-  max-width: 1200px;
-}
-
-.population-header {
-  margin-bottom: var(--space-6);
-}
-
-.population-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--text-strong);
-  margin: 0 0 var(--space-2) 0;
-}
-
-.population-intro {
-  color: var(--text-body);
-  line-height: 1.55;
-  margin: 0 0 var(--space-3) 0;
-  max-width: 760px;
+  max-width: var(--page-width-wide);
 }
 
 .population-meta {

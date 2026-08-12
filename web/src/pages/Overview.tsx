@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { PageHeader } from '../components/PageHeader'
 import { STAGES } from '../data/catalog/stages'
 import '../css/Overview.css'
 
@@ -35,21 +36,20 @@ const STEPS = [
 export function Overview() {
   return (
     <div className="overview">
-      <header className="overview__hero">
-        <p className="overview__eyebrow">SPiER</p>
-        <h2 className="overview__title">
-          Setting priorities for technology-enabled suicide-safer care
-        </h2>
-        <div className="overview__accent-line" />
-        <p className="overview__lede">
-          A FHIR-native reference implementation of the suicide-safer care pathway. SPiER&rsquo;s mission is to
-          make suicide-safer care the standard everywhere &mdash; and the tools to do it already exist.
-          Validated screeners, risk assessments, safety plans, and response protocols live on paper, in PDFs,
-          and in plain-text guidelines that no EHR can act on. SPiER makes each layer machine-actionable,
-          shows EHR vendors and health-system admins what a configured implementation looks like, and
-          provides the code to execute on it. The artifacts are free and open to adopt at no cost.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="SPiER"
+        title="Setting priorities for technology-enabled suicide-safer care"
+        lede={
+          <>
+            A FHIR-native reference implementation of the suicide-safer care pathway. SPiER&rsquo;s mission is to
+            make suicide-safer care the standard everywhere &mdash; and the tools to do it already exist.
+            Validated screeners, risk assessments, safety plans, and response protocols live on paper, in PDFs,
+            and in plain-text guidelines that no EHR can act on. SPiER makes each layer machine-actionable,
+            shows EHR vendors and health-system admins what a configured implementation looks like, and
+            provides the code to execute on it. The artifacts are free and open to adopt at no cost.
+          </>
+        }
+      />
 
       <section className="overview__section overview__section--steps">
         <h3 className="overview__h3">How SPiER works</h3>

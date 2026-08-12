@@ -1,79 +1,34 @@
+/* ===========================
+   Adoption Guide — the /guide layout: one shared page header plus the active
+   section's outlet.
+   ---------------------------
+   This file used to carry the guide's own header (`.ig-header`, a --surface-card
+   band with its own 20/24/12/24 padding) and its own body inset
+   (`.ig-content > * { padding: 24px }`). Both are gone: the header is the shared
+   PageHeader and the inset is `.ehr-content-body`'s, which is what the Overview
+   and Patient Chart lenses were already using. The two layers together were why
+   every guide page started 24px further in — and 24px further down — than those
+   two, for what looked from the page like no reason at all.
+
+   Nothing has to opt in for a sub-page to be correct now, which is the property
+   the old container rule was reaching for: there is no per-page padding left to
+   forget. (Three of the nine sub-pages had forgotten it before that rule
+   existed, one of them under a class it did not even render.)
+   =========================== */
 .implementation-guide {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.ig-header {
-  padding: 20px 24px 12px 24px;
-  background: var(--surface-card);
-  border-bottom: 1px solid var(--border-default);
-}
-
-.ig-eyebrow {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin: 0 0 4px 0;
-}
-
-/* Separator between the lens name and the active section's group
-   ("Adoption Guide / Configure"). */
-.ig-eyebrow__sep {
-  margin: 0 0.25em;
-  opacity: 0.5;
-}
-
-.ig-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--text-strong);
-  margin: 0;
-}
-
-/* Keep the title on one line. A wrapped title makes `.ig-header` 111px instead
-   of 82px, and since the header sits above `.ig-content`, that pushes the body
-   down on that page alone — the subpages stop lining up with each other again,
-   which is the same class of inconsistency the body padding above fixes.
-   The longest label, "Adoption Readiness", measures 247px at 24px Poppins.
-   Below 768px the sidebar collapses to a drawer and the header's content box
-   is the viewport minus 80px of chrome, so 247px runs out at a 327px viewport
-   — narrower than any mainstream phone (360 and 375 both clear it). Step the
-   size down just below that rather than let it wrap. */
-@media (max-width: 340px) {
-  .ig-title {
-    font-size: var(--font-size-2xl);
-  }
-}
-
-.ig-content {
-  flex: 1;
-  padding: 0;
-  overflow-y: auto;
-}
-
-/* Body padding lives here, not on each sub-page root. It used to be the
-   sub-page's job, and three of the nine never did it — MeasureDashboard and
-   AdoptionReadiness were never added to the opt-in list, and EhrAdoptionRubric
-   was listed under a class it does not render (`.ehr-adoption-rubric` vs the
-   actual `.ehr-rubric`), so its rule silently matched nothing. All three sat
-   flush against the chrome. Padding the container instead means a new sub-page
-   is correct by default. The pager is excluded: it spans the full width so its
-   border-top meets both edges, and it pads itself. */
-.ig-content > :not(.guide-pager) {
-  padding: 24px;
+  max-width: var(--page-width-wide);
 }
 
 /* Bottom-of-page prev/next navigation between guide sections. Order mirrors the
    sidebar (data/guideSections.ts) and this is the primary lateral nav on mobile,
-   where the sidebar collapses into the drawer. */
+   where the sidebar collapses into the drawer.
+   Zero horizontal padding, so its border-top spans the page's full content box
+   — it used to add 24px to match the inset its siblings carried. */
 .guide-pager {
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-5) 24px var(--space-6);
+  padding: var(--space-5) 0 0;
   margin-top: var(--space-6);
   border-top: 1px solid var(--border-default);
 }
@@ -112,7 +67,7 @@
   color: var(--accent-info);
 }
 
-/* Placeholder body used by Roadmap. Padding comes from `.ig-content`. */
+/* Placeholder body used by Roadmap. Padding comes from `.ehr-content-body`. */
 .page-placeholder {
   max-width: 760px;
 }

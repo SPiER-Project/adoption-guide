@@ -28,6 +28,7 @@ import {
 } from '../lib/caseloadViews'
 import { CaseloadTable, HeaderFilter } from '../components/CaseloadTable'
 import { COLUMNS } from '../components/caseloadColumns'
+import { PageHeader } from '../components/PageHeader'
 import { PopulationAlertsPanel } from '../components/PopulationAlertsPanel'
 import { PopulationSummary } from '../components/PopulationSummary'
 import '../css/PopulationView.css'
@@ -282,14 +283,13 @@ export function PopulationView() {
 
   return (
     <div className="population-view">
-      <header className="population-header">
-        <h2 className="population-title">Population View</h2>
-        <p className="population-intro">
-          Caseload of patients on the suicide-safer care pathway. Recommendations show the next
-          best step regardless of which tools your implementation has enabled — what matters here
-          is the patient's status and risk, not the specific instrument.
-        </p>
-      </header>
+      {/* Eyebrow names the project, not the lens: this lens is a single page, so
+          its parent is SPiER itself — same as the front door. See PageHeader. */}
+      <PageHeader
+        eyebrow="SPiER"
+        title="Population View"
+        lede="Caseload of patients on the suicide-safer care pathway. Recommendations show the next best step regardless of which tools your implementation has enabled — what matters here is the patient's status and risk, not the specific instrument."
+      />
 
       {/* Side by side on wide screens. Stacked, these two zones cost ~640px of
           vertical space before the caseload table starts — which buries the
