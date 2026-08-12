@@ -364,6 +364,8 @@ export function PatientChart() {
     procedures,
     episodes,
     encounters,
+    flags,
+    tasks,
     activePatientId,
     populationPatient,
     isSmartConnected,
@@ -384,13 +386,32 @@ export function PatientChart() {
         carePlans,
         observations,
         communications: communications ?? [],
+        // Flags, Tasks and Encounters are indexed here but deliberately NOT in
+        // `workflowArtifactsOf` below — that feeds pathway derivation, and a
+        // precaution Flag is not a stage artifact. This index only answers
+        // "can a walkthrough step link to it", and the ED exception branches
+        // (patient-013, patient-014) reference all three.
         workflowArtifacts: [
           ...(documentReferences ?? []),
           ...(serviceRequests ?? []),
           ...(appointments ?? []),
+          ...(flags ?? []),
+          ...(tasks ?? []),
+          ...(encounters ?? []),
         ],
       }),
-    [responses, carePlans, observations, communications, documentReferences, serviceRequests, appointments],
+    [
+      responses,
+      carePlans,
+      observations,
+      communications,
+      documentReferences,
+      serviceRequests,
+      appointments,
+      flags,
+      tasks,
+      encounters,
+    ],
   )
 
   // Stage-5 artifacts all stage themselves through meta.tag, so they travel as

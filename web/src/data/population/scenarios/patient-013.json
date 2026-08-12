@@ -1,0 +1,596 @@
+{
+  "responses": [
+    {
+      "id": "p013-asq-deferred",
+      "questionnaireName": "ASQ Screening",
+      "completedAt": "2026-08-07T22:10:00.000Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "p013-asq-deferred",
+        "status": "stopped",
+        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "encounter": {
+          "reference": "Encounter/p013-enc-ed"
+        },
+        "item": [
+          {
+            "linkId": "screening-result",
+            "item": [
+              {
+                "linkId": "patient-refused",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "patient-age-group",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://spier.org/CodeSystem/asq-age-group",
+                      "code": "adult",
+                      "display": "Adult (18+)"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "p013-asq",
+      "questionnaireName": "ASQ Screening",
+      "completedAt": "2026-08-08T06:30:00.000Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "p013-asq",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "encounter": {
+          "reference": "Encounter/p013-enc-ed"
+        },
+        "item": [
+          {
+            "linkId": "screening-questions",
+            "item": [
+              {
+                "linkId": "q1",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q2",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q3",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4-recent-attempt",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://spier.org/CodeSystem/asq-attempt-recency",
+                      "code": "within-12-months",
+                      "display": "Within last 12 months"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "acuity-section",
+            "item": [
+              {
+                "linkId": "q5",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "screening-result",
+            "item": [
+              {
+                "linkId": "result-category",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://spier.org/CodeSystem/asq-screening-result",
+                      "code": "acute-positive",
+                      "display": "Acute Positive Screen (imminent risk)"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "observations": [
+    {
+      "resourceType": "Observation",
+      "id": "p013-screen-not-done",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-013"
+      },
+      "encounter": {
+        "reference": "Encounter/p013-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-07T22:10:00.000Z",
+      "dataAbsentReason": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/data-absent-reason",
+            "code": "temp-unknown",
+            "display": "Temporarily Unknown"
+          }
+        ],
+        "text": "Screen deferred at triage: patient not alert enough to answer reliably. Re-attempt scheduled."
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p013-asq-result",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-013"
+      },
+      "encounter": {
+        "reference": "Encounter/p013-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-08T06:30:00.000Z",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/asq-screening-result",
+            "code": "acute-positive",
+            "display": "Acute Positive Screen"
+          }
+        ]
+      }
+    }
+  ],
+  "carePlans": [],
+  "riskAlerts": [],
+  "episodes": [
+    {
+      "resourceType": "EpisodeOfCare",
+      "id": "p013-episode",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "active",
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "code": "suicide-safer-care",
+              "display": "Suicide-safer care episode"
+            }
+          ]
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "code": "positive-screen",
+                "display": "Positive screen"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-trigger",
+          "valueReference": {
+            "reference": "Observation/p013-asq-result"
+          }
+        },
+        {
+          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "code": "imminent",
+                "display": "Imminent risk"
+              }
+            ]
+          }
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-013"
+      },
+      "period": {
+        "start": "2026-08-08T06:30:00.000Z"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "resourceType": "Task",
+      "id": "p013-rescreen-attempt",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "completed",
+      "intent": "order",
+      "description": "Re-attempt suicide risk screening once the patient is alert and oriented.",
+      "for": {
+        "reference": "Patient/patient-013"
+      },
+      "encounter": {
+        "reference": "Encounter/p013-enc-ed"
+      },
+      "authoredOn": "2026-08-07T22:15:00.000Z"
+    }
+  ],
+  "flags": [
+    {
+      "resourceType": "Flag",
+      "id": "p013-precautions",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions"
+          }
+        ]
+      },
+      "status": "active",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/flag-category",
+              "code": "safety",
+              "display": "Safety"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "text": "Suicide precautions ON — continuous 1:1 observation"
+      },
+      "subject": {
+        "reference": "Patient/patient-013"
+      },
+      "encounter": {
+        "reference": "Encounter/p013-enc-ed"
+      },
+      "period": {
+        "start": "2026-08-08T06:45:00.000Z"
+      }
+    }
+  ],
+  "serviceRequests": [
+    {
+      "resourceType": "ServiceRequest",
+      "id": "p013-transfer",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs"
+          }
+        ]
+      },
+      "status": "completed",
+      "intent": "order",
+      "priority": "urgent",
+      "code": {
+        "text": "Transfer to inpatient psychiatric care (accepted, Riverbend Behavioral Health)"
+      },
+      "subject": {
+        "reference": "Patient/patient-013"
+      },
+      "encounter": {
+        "reference": "Encounter/p013-enc-ed"
+      },
+      "authoredOn": "2026-08-08T11:20:00.000Z"
+    }
+  ],
+  "communications": [
+    {
+      "resourceType": "Communication",
+      "id": "p013-placement-log",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs"
+          }
+        ]
+      },
+      "status": "completed",
+      "category": [
+        {
+          "text": "Placement attempts"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-013"
+      },
+      "encounter": {
+        "reference": "Encounter/p013-enc-ed"
+      },
+      "sent": "2026-08-08T11:20:00.000Z",
+      "payload": [
+        {
+          "contentString": "Four facilities contacted over 4h50m. Two declined for no adult bed, one declined pending medical clearance, Riverbend Behavioral Health accepted at 11:20 (Dr. Osei). Each refusal logged with time and reason — this is what explains the boarding interval."
+        }
+      ]
+    }
+  ],
+  "encounters": [
+    {
+      "resourceType": "Encounter",
+      "id": "p013-enc-ed",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-encounter"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "episodeOfCare": [
+        {
+          "reference": "EpisodeOfCare/p013-episode"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/patient-013"
+      },
+      "period": {
+        "start": "2026-08-07T21:40:00.000Z",
+        "end": "2026-08-08T13:05:00.000Z"
+      },
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "psy",
+              "display": "Psychiatric hospital"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "ed13-11-2-1d",
+      "step": "11.2-1D",
+      "date": "2026-08-07",
+      "title": "Screen deferred at triage — recorded, not left blank",
+      "stageId": "identify-possible-risk",
+      "actor": "Triage Nurse / Screener",
+      "status": "completed",
+      "notes": "Brought in by a friend, not alert enough at triage to answer reliably. Rather than a blank where the screen should be, the EHR records a deferred screen with a coded reason and schedules a re-attempt. A blank would be indistinguishable from a negative — and would sit in the denominator of the screening measure as a miss rather than a legitimate deferral.",
+      "fhirArtifacts": [
+        "QuestionnaireResponse",
+        "Observation",
+        "Task"
+      ],
+      "profileGap": true,
+      "proposed": true,
+      "relatedRefs": [
+        "QuestionnaireResponse/p013-asq-deferred",
+        "Observation/p013-screen-not-done",
+        "Task/p013-rescreen-attempt"
+      ]
+    },
+    {
+      "id": "ed13-11-2-1a",
+      "step": "11.2-1A",
+      "date": "2026-08-08",
+      "title": "Screen re-attempted once alert — acute positive",
+      "stageId": "identify-possible-risk",
+      "actor": "Triage Nurse / Screener",
+      "status": "completed",
+      "notes": "Re-attempted at 06:30 when the patient was alert and oriented. All four items positive, a recent attempt disclosed, and the acuity question answered Yes — an acute positive screen.",
+      "fhirArtifacts": [
+        "QuestionnaireResponse"
+      ],
+      "relatedRefs": [
+        "QuestionnaireResponse/p013-asq"
+      ]
+    },
+    {
+      "id": "ed13-11-2-2a",
+      "step": "11.2-2A",
+      "date": "2026-08-08",
+      "title": "Derived risk tier — acute positive",
+      "stageId": "identify-possible-risk",
+      "actor": "EHR System / Analyzer",
+      "status": "completed",
+      "notes": "Classified acute positive, which is the tier that opens a suicide-safer-care episode and drives the precaution protocol rather than the discharge-planning path Maria took.",
+      "fhirArtifacts": [
+        "Observation"
+      ],
+      "profileGap": true,
+      "relatedRefs": [
+        "Observation/p013-asq-result"
+      ]
+    },
+    {
+      "id": "ed13-11-3-1e",
+      "step": "11.3-1E",
+      "date": "2026-08-08",
+      "title": "Active precautions persisted and displayed",
+      "stageId": "document-safety-actions",
+      "actor": "EHR System / Status Visibility Manager",
+      "status": "completed",
+      "notes": "Suicide precautions and the 1:1 observation level are held as an active status with a start time, visible on the ED views, rather than living only in a nursing note. The Flag stays open across the boarding period and through transport.",
+      "fhirArtifacts": [
+        "Flag"
+      ],
+      "profileGap": true,
+      "relatedRefs": [
+        "Flag/p013-precautions"
+      ]
+    },
+    {
+      "id": "ed13-11-5-1d",
+      "step": "11.5-1D",
+      "date": "2026-08-08",
+      "title": "Psychiatric placement found after four attempts",
+      "stageId": "coordinate-handoffs",
+      "actor": "ED Provider (MD/APP) / Disposition Manager",
+      "status": "completed",
+      "notes": "Boarded from 06:45 to 13:05 awaiting an adult bed. Four facilities contacted; two declined for capacity, one pending medical clearance, the fourth accepted. Each refusal is logged with a time and a reason — without that log the six-hour boarding interval looks like inaction. Precautions and the 1:1 observer continued through transport.",
+      "fhirArtifacts": [
+        "ServiceRequest",
+        "Encounter",
+        "Organization",
+        "Communication"
+      ],
+      "profileGap": true,
+      "proposed": true,
+      "relatedRefs": [
+        "ServiceRequest/p013-transfer",
+        "Communication/p013-placement-log"
+      ]
+    }
+  ]
+}

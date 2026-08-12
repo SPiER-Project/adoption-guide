@@ -50,17 +50,23 @@ export function CdsCardView({ card }: { card: Card }) {
       {card.detail && <p className="cds-card-rationale">{card.detail}</p>}
       {links.length > 0 ? (
         <div className="cds-card-actions">
-          {links.map(link => {
+          {links.map((link, i) => {
             // Deep links carry an in-app router path in the extension so the SPA
             // can navigate client-side; fall back to the absolute url otherwise.
             const to = routerPaths[link.url]
+            // Keyed by position, not by url: a stage can offer two tools whose
+            // launch actions share a path (different labels, same destination),
+            // and `key={link.url}` then collides. patient-013 and patient-014
+            // hit this on track-follow-up; patient-011 never did, so the bug sat
+            // latent until the ED exception branches were added.
+            const key = `${i}:${link.url}`
             return to ? (
-              <Link key={link.url} to={to} className="cds-card-action-btn">
+              <Link key={key} to={to} className="cds-card-action-btn">
                 {link.label}
               </Link>
             ) : (
               <a
-                key={link.url}
+                key={key}
                 href={link.url}
                 className="cds-card-action-btn"
                 target="_blank"

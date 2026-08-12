@@ -112,15 +112,20 @@ Transition Packager`, and four more like them.
 
 ## The demo linkage
 
-`ed-scenario-11.json` declares, per step, which walkthrough step in
-[`patient-011.json`](../../web/src/data/population/scenarios/patient-011.json)
-narrates it. `--check` asserts that declaration in both directions:
+`ed-scenario-11.json` declares, per step, which walkthrough steps narrate it,
+as qualified `"<patient>/<walkthrough id>"` refs across the patients in
+`demoPatients`. `--check` asserts that declaration in both directions:
 
-- a step naming a walkthrough id must find it, under the same step label;
-- a step declaring `"walkthrough": null` must give a `walkthroughGapReason`, and
-  must **not** turn out to be narrated after all;
-- a walkthrough step matching no scenario step must be listed in
-  `extraWalkthroughSteps` with a reason.
+- every ref must name a demo patient and find that id, under the same step label;
+- a step with no refs must give a `walkthroughGapReason` and a
+  `walkthroughGapKind`, and must **not** turn out to be narrated after all;
+- every walkthrough entry, on every demo patient, must be declared by some step
+  or listed in `extraWalkthroughSteps` with a reason.
+
+That last direction is **exact**, which it could not be while a step could name
+only one patient: a shared step like 11.2-2A is narrated on three patients now,
+and before the refs became a list the reverse check had to skip anything whose
+step id it recognised.
 
 It is an allowlist with reasons, not a coverage count — a pinned number churns
 and trains people to bump it, which is what a stale `check:codings` floor
@@ -129,14 +134,11 @@ already did in #232.
 A gap declares a `walkthroughGapKind`, because two very different things were
 being conflated and the backlog could never converge:
 
-- `not-narrated` — a to-do on patient-011. Four today: 11.2-1B, 11.3-1E,
-  11.4-0B, 11.5-1C. Closing one means deleting its `walkthroughGapReason` and
-  adding the narration; the gate requires the two to move together.
-- `branch-exclusive` — **cannot** be closed on patient-011 at any point,
-  because the step describes a course Maria did not take. Five today: she was
-  staff-screened (11.2-1C), completed the screener (11.2-1D), screened positive
-  (11.2-2D), and was discharged home rather than admitted (11.5-1D) or eloping
-  (11.5-1E). Narrating these needs a **second ED patient**.
+- `not-narrated` — a to-do. One today: 11.4-0B.
+- `branch-exclusive` — cannot be closed on a given patient because the step
+  describes a course they did not take. **None today.** All five were closed by
+  adding the patients below; the kind stays because the next scenario will need
+  it again.
 
 `--check` prints the split on every run.
 
@@ -173,6 +175,31 @@ That is why `11.7-0A` uses a `0` group, following the `11.4-0A` precedent.
 The EHR-S FM references on proposed steps are drafts and need checking against
 the published function list — as, in fairness, does every other reference in
 that document, which still describes itself as a first-pass skeleton.
+
+## The four ED demo patients
+
+One patient cannot carry this scenario. The steps include three mutually
+exclusive screening outcomes and two mutually exclusive dispositions, so
+narrating them all on one timeline would be clinically incoherent — and would
+feed the Stage-8 measure engine branches that cannot all have happened.
+
+| Patient | Course | Steps it uniquely carries |
+|---|---|---|
+| `patient-011` Maria Alvarez | Non-acute positive, discharged home with a safety plan and follow-up | the main path, 11.6-1C / 11.6-2C / 11.6-3B / 11.7-0A / 11.7-2D |
+| `patient-012` Nia Barrett | Self-administered screen, **negative**, discharged | 11.2-1C, 11.2-1B, 11.2-2D |
+| `patient-013` Owen Delacroix | Screen **deferred** at triage, re-attempted, acute positive, boarded, **transferred** | 11.2-1D, 11.5-1D |
+| `patient-014` Terrence Whitfield | Acute positive, precautions, **eloped** during an observer handoff | 11.5-1C, 11.5-1E |
+
+Two details worth keeping:
+
+- **patient-012's ED Encounter deliberately does not claim `spier-encounter`.**
+  That profile requires `episodeOfCare`, and a negative screen opens no
+  suicide-safer-care episode. Asserting one to satisfy the profile would put a
+  negative screen into the episode-based measures.
+- **patient-014's outreach reaches nobody, on purpose.** Two calls, no answer,
+  and the emergency contact is not called because no consent is on file. It is
+  the one branch where the 11.7 follow-up protocol fires for someone who left
+  before it was set up.
 
 ## Adding the next scenario
 

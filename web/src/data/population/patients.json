@@ -130,5 +130,41 @@
       "label": "Keep the episode current after a completed handoff",
       "rationale": "ED suicide-care episode (Scenario 11): 28-year-old presenting with severe insomnia and anxiety, chronic pain and recent job loss. Positive triage screen, safety plan and lethal-means counseling completed in the ED. The transition-of-care packet, outpatient intake and first caring contact are all documented — the episode is still open, so reassess risk and set the next reassessment cadence."
     }
+  },
+  {
+    "id": "patient-012",
+    "displayName": "Nia Barrett",
+    "dob": "1991-03-04",
+    "mrn": "11012",
+    "gender": "Female",
+    "recommendedNextStep": {
+      "stageId": "identify-possible-risk",
+      "label": "No action due — re-screen at the interval",
+      "rationale": "ED suicide-care episode (Scenario 11), negative branch: self-administered ASQ at triage with all four items negative. No episode opens and no protocol task fires, deliberately. The only follow-up owed is the re-screen due 2027-08-06; a clinician can still escalate on judgment before then."
+    }
+  },
+  {
+    "id": "patient-013",
+    "displayName": "Owen Delacroix",
+    "dob": "1988-12-19",
+    "mrn": "11013",
+    "gender": "Male",
+    "recommendedNextStep": {
+      "stageId": "coordinate-handoffs",
+      "label": "Confirm the receiving facility took the handoff",
+      "rationale": "ED suicide-care episode (Scenario 11), admitted branch: screen deferred at triage for altered mental status, re-attempted at 06:30 and acute positive. Precautions and 1:1 observation ran through a six-hour board; transfer accepted by Riverbend Behavioral Health after four placement attempts. The episode stays open until the receiving facility confirms the handoff."
+    }
+  },
+  {
+    "id": "patient-014",
+    "displayName": "Terrence Whitfield",
+    "dob": "1994-07-30",
+    "mrn": "11014",
+    "gender": "Male",
+    "recommendedNextStep": {
+      "stageId": "track-follow-up",
+      "label": "Escalate — no contact since departure",
+      "rationale": "ED suicide-care episode (Scenario 11), elopement branch: acute positive screen and 1:1 precautions, then left the department at 02:35 during an observer handoff. Two outreach attempts have gone unanswered and the emergency contact cannot be called without consent on file. Supervisor escalation is due at 72 hours and the episode remains open."
+    }
   }
 ]

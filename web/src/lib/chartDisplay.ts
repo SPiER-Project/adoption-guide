@@ -214,6 +214,21 @@ export function artifactLabel(resource: FhirResourceLike): string {
       'Observation'
     )
   }
+  // Flag / Task / Encounter reach this function only through the walkthrough
+  // ref index (patient-013 and patient-014 link precautions, re-attempt tasks
+  // and the elopement encounter). Without these cases the default returns the
+  // bare resourceType, which renders as "Flag · Flag".
+  if (resource.resourceType === 'Flag') {
+    return r.code?.text ?? r.code?.coding?.[0]?.display ?? 'Flag'
+  }
+  if (resource.resourceType === 'Task') {
+    const t = resource as RenderableResource & { description?: unknown }
+    return typeof t.description === 'string' ? t.description : 'Task'
+  }
+  if (resource.resourceType === 'Encounter') {
+    const e = resource as RenderableResource & { class?: { display?: string } }
+    return e.class?.display ? `${e.class.display} encounter` : 'Encounter'
+  }
   if (resource.resourceType === 'Communication') {
     // The first category with prose; the #262 concept-domain category is coded
     // only, so it is skipped rather than shown as the name.
