@@ -115,9 +115,17 @@ export function mapResponseToObservations(
   const mapper = MAPPER_BY_QUESTIONNAIRE_URL[recognized.signature.spierCanonical]
   if (!mapper) return null
 
-  const result = mapper(
-    normalizeToSpierQr(qr, recognized.signature, recognized.confidence === 'shape'),
+  // Null when an item was present with an answer the normalizer could not read
+  // (#230). Deriving from the rest would score that item as a "No", so the
+  // response is declined rather than half-mapped — see normalizeToSpierQr.
+  const normalized = normalizeToSpierQr(
+    qr,
+    recognized.signature,
+    recognized.confidence === 'shape',
   )
+  if (!normalized) return null
+
+  const result = mapper(normalized)
   if (!result) return null
   return {
     ...result,
