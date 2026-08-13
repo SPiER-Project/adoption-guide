@@ -506,6 +506,38 @@ which is filed separately.
 ## Gotchas
 
 - **Fresh worktrees need `npm install` in `web/`** before any npm script runs.
+- ⚠️ **A huge `git status` in the ROOT checkout usually means the ref moved, not
+  the files.** Sessions here run `git branch -f main origin/main` from linked
+  worktrees to resync after a squash-merge. That updates the shared
+  `refs/heads/main` **without touching the root worktree's files or index** — so
+  the root can sit on a weeks-old tree while `HEAD` reports today's commit, and
+  `git status` reports the whole gap as *staged* changes nobody staged. Observed
+  2026-08-13: the root's files were last updated 2026-07-29 (`eaec385`) while
+  `main` had advanced to `9d3ef83`, giving **328 "staged" files, 117 of them
+  deletions** — which reads exactly like someone reverted the repo.
+
+  **Diagnose from the reflogs before touching anything**, because the wrong
+  reading here is destructive and the right fix is one command:
+
+  ```
+  git log --oneline -1                      # what HEAD claims
+  git reflog show main --date=iso -5        # `branch: Reset to origin/main` = git branch -f
+  tail -3 .git/logs/HEAD                    # only records HEAD-mediated changes
+  ```
+
+  The tell is a **discontinuity in `.git/logs/HEAD`**: consecutive lines where one
+  entry's new value is not the next entry's old value. A checkout cannot produce
+  that, so the ref moved without one and the working tree is simply stale. Confirm
+  by hashing the tree — `git write-tree`, then look for a commit with that tree
+  (`git log --all --format='%H %T' | grep <tree>`). A clean match to an *older
+  commit* means no local work exists and `git reset --hard origin/main` is safe
+  and lossless. It is **not** evidence that someone ran `git checkout <old> -- .`;
+  this file said that for a day, and it was wrong.
+
+  Do this diagnosis FIRST. `git reset --hard` destroys the mtimes that date the
+  divergence, and `git worktree remove` deletes that worktree's
+  `.git/worktrees/<name>/logs/HEAD` — the two records that identify which session
+  moved the ref. Both were lost that way before the cause was found.
 - **Two of `@formbox/renderer`'s dependencies are aliased to shims** in
   `vite.config.ts` (`web/src/shims/`, and therefore in vitest too), because the
   chunk every assessment route loads carried 47% of its gzip in code this app
