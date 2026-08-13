@@ -24,14 +24,15 @@
     "check:scenarios:resources": "node scripts/check-scenario-resources.mjs",
     "pretest": "npm run copy-fhir",
     "test": "vitest run",
-    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:tokens && npm run check:template && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm run check:scenarios && npm run check:dates && npm run check:measures && npm run check:reassessment && npm test",
+    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:tokens && npm run check:template && npm run check:ucum && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm run check:scenarios && npm run check:dates && npm run check:measures && npm run check:reassessment && npm test",
     "preview": "vite preview",
     "check:measures": "node scripts/check-measures.mjs",
     "check:codings": "node scripts/check-codings.mjs",
     "check:reassessment": "node scripts/check-reassessment.mjs",
     "check:dates": "node scripts/shift-scenario-dates.mjs",
     "shift-dates": "node scripts/shift-scenario-dates.mjs --apply",
-    "emit:runtime-fhir": "vitest run src/lib/runtimeFhir.emit.test.ts"
+    "emit:runtime-fhir": "vitest run src/lib/runtimeFhir.emit.test.ts",
+    "check:ucum": "node scripts/check-ucum-stub.mjs"
   },
   "dependencies": {
     "@formbox/hs-theme": "^0.2.1",
@@ -66,7 +67,7 @@
     "vitest": "^4.1.9"
   },
   "//overrides": [
-    "expo-random \u2014 prunes an Expo/React Native toolchain that a browser-only app",
+    "expo-random — prunes an Expo/React Native toolchain that a browser-only app",
     "can never run or ship.",
     "",
     "Chain: fhirclient -> isomorphic-webcrypto -> expo-random. isomorphic-webcrypto",
@@ -77,7 +78,7 @@
     "",
     "Safe because the code path never executes. fhirclient's browser entry reaches",
     "isomorphic-webcrypto only via `globalThis.crypto ? globalThis.crypto :",
-    "require('isomorphic-webcrypto')` (lib/security/browser.js) \u2014 a require inside",
+    "require('isomorphic-webcrypto')` (lib/security/browser.js) — a require inside",
     "a ternary, so it is neither evaluated in a browser (globalThis.crypto always",
     "exists) nor statically bundled by Rollup. Verified: the dist chunks are",
     "byte-identical before and after this override, and contain zero react-native",
@@ -91,7 +92,7 @@
     "react-native-securerandom, which declares a hard `react-native: \"*\"` peer in",
     "every published version, so no version pin removes it. It accounts for 2 of",
     "the 14 remaining advisories (shell-quote, ws). Removing it needs a blunter",
-    "tool \u2014 `omit=peer` in .npmrc, or aliasing react-native to a stub \u2014 judged not",
+    "tool — `omit=peer` in .npmrc, or aliasing react-native to a stub — judged not",
     "worth the maintenance surprise. The other 12 advisories come from real",
     "devDependencies (fsh-sushi, stylelint, eslint, @formbox/renderer).",
     "",

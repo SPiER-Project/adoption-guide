@@ -13,7 +13,7 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, all nine drift checks, and the unit tests in sequence. The individual pieces:
+In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, all ten drift checks, and the unit tests in sequence. The individual pieces:
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
@@ -21,6 +21,8 @@ npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
 npm run check:template # page template: one header implementation, one owner of the page inset
+npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
+                       # and the shim still covers every method its consumers call
 npm run check:crosswalk  # concept-crosswalk validation
 npm run check:extract    # observation-extract validation
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
@@ -403,6 +405,28 @@ Pass `--tx https://tx.fhir.org` to check external terminology locally.
 ## Gotchas
 
 - **Fresh worktrees need `npm install` in `web/`** before any npm script runs.
+- **`@lhncbc/ucum-lhc` is aliased to a shim** (`web/src/shims/ucum-lhc.ts`, wired
+  in `vite.config.ts` and therefore in vitest too). The full UCUM units library
+  was 557KB raw / 117KB gzip — **30% of the chunk every assessment route loads**
+  — for a conversion nothing here performs: all 18 Questionnaires are
+  choice/group/string/text/integer/display, and their only two FHIRPath
+  expressions are unit-free integer sums.
+  ⚠️ **It is `fhirpath` that needs UCUM, not the renderer** — `fhirpath` requires
+  it *eagerly at module scope* (`UcumLhcUtils.getInstance()` in three of its
+  files) and only uses it for Quantity arithmetic; `@formbox/renderer` builds it
+  lazily on Quantity paths alone. So a stack trace mentioning UCUM is not a
+  formbox bug, and there is no supported opt-out to reach for: fhirpath declares
+  it as a plain dependency with no optional flag and no lighter entry point.
+  The shim's methods **throw** rather than returning `{status: 'failed'}`, which
+  fhirpath would quietly fold into a result — a silently wrong instrument score
+  is the one outcome this app must not produce. `npm run check:ucum` is what makes
+  reaching one a build error: it fails if a Questionnaire grows a quantity item, a
+  `valueQuantity`/`answerQuantity`, or a unit-bearing expression, **and** it
+  derives the required method list from the installed `fhirpath` and
+  `@formbox/renderer` rather than hardcoding it, so an upgrade that calls a new
+  UCUM method fails the gate instead of a form. Same trade as the `expo-random`
+  override documented in `web/package.json` — prune what cannot execute, and say
+  why in the place someone will look.
 - **`copy-fhir` is incremental:** it skips the ~30s SUSHI compile when `web/src/data/fhir/` is newer than every FSH input. `predev` runs it plain; `prebuild` runs it with `--force`. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
 - **Generated files must exist before `tsc -b`.** `web/src/data/fhir/*.json` and `web/src/data/catalog/care-plan-profiles.generated.ts` (both gitignored) are produced by `copy-fhir`. On a clean checkout, run `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
