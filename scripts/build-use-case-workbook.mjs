@@ -73,6 +73,23 @@
  *               `rationale`, and is rendered "(proposed)" everywhere its id
  *               appears. Presenting a SPiER proposal unmarked inside their own
  *               document would misrepresent what they authored.
+ *
+ *   tool      — a `status:planned` claim, or a gating-tool entry, must not name
+ *               a tool the app can already launch. This is the half that went
+ *               stale in silence (issue #341): the document told the working
+ *               group that BSSA, SAFE-T, Means Counseling and Transition were
+ *               planned work long after all four were built, shipped and
+ *               launchable in the demo — and the one about Means Counseling is
+ *               also what made a missing demo artifact look intentional (#324).
+ *
+ *               "Built" is read from the app rather than asserted here: a tool
+ *               is built when `tool-ui-metadata.ts` gives it a launch path AND
+ *               that path resolves to a route in App.tsx. GitHub's own
+ *               `status:` labels are the authority, but they live outside the
+ *               repo, so a claim that contradicts the running app is the
+ *               strongest offline evidence available — and it is the direction
+ *               that actually goes wrong. The reverse (a built tool the doc
+ *               never mentions) is not an error.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
@@ -622,6 +639,99 @@ function checkDemoLinkage(doc, label) {
   return problems
 }
 
+/* ── Tool-status claims ─────────────────────────────────────────────────────
+ *
+ * See "tool" in the header. Nothing here parses TypeScript properly — it reads
+ * two literal shapes out of the catalog and the router, and **fails loudly if
+ * it finds neither**, because a regex that silently matches nothing would turn
+ * this gate green over an unread file (the #232 / #261 failure mode).
+ */
+const UI_METADATA = join(ROOT, 'web', 'src', 'data', 'catalog', 'tool-ui-metadata.ts')
+const APP_ROUTES = join(ROOT, 'web', 'src', 'App.tsx')
+
+/** TL id → launch paths declared in tool-ui-metadata.ts. */
+function launchPathsByTool() {
+  const src = readFileSync(UI_METADATA, 'utf8')
+  const byTool = new Map()
+  // `'TL-008': { … launchActions: [{ label: '…', path: '/patient/workflow/lethal-means' }] … }`
+  for (const entry of src.matchAll(/'(TL-\d+)':\s*\{/g)) {
+    const start = entry.index
+    const next = src.slice(start + 1).search(/'TL-\d+':\s*\{/)
+    const block = src.slice(start, next === -1 ? undefined : start + 1 + next)
+    const paths = [...block.matchAll(/path:\s*'([^']+)'/g)].map(m => m[1])
+    if (paths.length) byTool.set(entry[1], paths)
+  }
+  return byTool
+}
+
+/** Route paths declared in App.tsx, nested segments included. */
+function declaredRoutes() {
+  return new Set([...readFileSync(APP_ROUTES, 'utf8').matchAll(/path="([^"]+)"/g)].map(m => m[1]))
+}
+
+/** Is this launch path reachable? `/patient/assessments/bssa` → `assessments/bssa`. */
+function pathResolves(path, routes) {
+  if (routes.has(path)) return true
+  const segments = path.replace(/^\//, '').split('/')
+  for (let i = 1; i < segments.length; i++) {
+    if (routes.has(segments.slice(i).join('/'))) return true
+  }
+  return false
+}
+
+function checkToolStatusClaims(doc, label) {
+  const problems = []
+  const byTool = launchPathsByTool()
+  const routes = declaredRoutes()
+
+  if (byTool.size === 0) problems.push(`${label}: read no TL launch actions from ${relative(ROOT, UI_METADATA)}`)
+  if (routes.size === 0) problems.push(`${label}: read no routes from ${relative(ROOT, APP_ROUTES)}`)
+  if (problems.length) return problems
+
+  const built = new Set(
+    [...byTool].filter(([, paths]) => paths.some(p => pathResolves(p, routes))).map(([tool]) => tool),
+  )
+  if (built.size === 0) {
+    return [`${label}: no TL launch path resolved to a route — the parse is wrong, not the catalog`]
+  }
+
+  /** Issue number → TL id, from the doc's own links: `[TL-010](…/issues/26)`. */
+  const toolForIssue = new Map()
+  for (const { step } of allSteps(doc)) {
+    for (const m of String(step.profileBinding ?? '').matchAll(/\[(TL-\d+)[^\]]*\]\([^)]*\/issues\/(\d+)\)/g)) {
+      toolForIssue.set(Number(m[2]), m[1])
+    }
+  }
+
+  for (const { step } of allSteps(doc)) {
+    const at = `${label} ${step.step}`
+    const binding = String(step.profileBinding ?? '')
+
+    // A `status:planned` claim sits next to the TL link it describes.
+    for (const m of binding.matchAll(/\[(TL-\d+)[^\]]*\][^;]*?status:planned/g)) {
+      if (built.has(m[1])) {
+        problems.push(
+          `${at}: says ${m[1]} is \`status:planned\`, but it launches at ` +
+            `${byTool.get(m[1]).join(', ')} — promote the binding, or the document tells the ` +
+            `working group SPiER has a gap it closed`,
+        )
+      }
+    }
+
+    for (const gating of step.gatingIssues ?? []) {
+      const tool = toolForIssue.get(gating.number)
+      if (tool && built.has(tool)) {
+        problems.push(
+          `${at}: gates on ${gating.label} (#${gating.number} = ${tool}), which launches at ` +
+            `${byTool.get(tool).join(', ')} — it no longer gates anything`,
+        )
+      }
+    }
+  }
+
+  return problems
+}
+
 function main() {
   const check = process.argv.includes('--check')
   const problems = []
@@ -633,6 +743,7 @@ function main() {
 
     problems.push(...checkContent(doc, label))
     problems.push(...checkDemoLinkage(doc, label))
+    problems.push(...checkToolStatusClaims(doc, label))
 
     const xlsx = buildXlsx([wgSheet(doc), mappingSheet(doc)])
     const csv = Buffer.from(wgCsv(doc), 'utf8')
