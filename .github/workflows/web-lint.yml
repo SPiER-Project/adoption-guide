@@ -83,6 +83,15 @@ jobs:
       - name: Check scenario responses
         run: npm run check:scenarios:responses
 
+      # Does each mapper read an answer the way its Questionnaire declares it?
+      # (#327: the whole C-SSRS family read `valueBoolean` from items declared
+      # `choice`, so an endorsed screen derived "no risk".) Reads the mapper
+      # sources and the checked-in Questionnaires only — no copy-fhir needed,
+      # so it belongs in this fast job. It fails, rather than skipping, on a
+      # read it cannot resolve.
+      - name: Check mapper answer readers
+        run: npm run check:readers
+
   verify:
     runs-on: ubuntu-latest
     defaults:

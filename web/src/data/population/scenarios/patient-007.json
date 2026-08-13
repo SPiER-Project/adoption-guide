@@ -1,6 +1,104 @@
 {
   "responses": [
     {
+      "id": "p007-cssrs-pediatric",
+      "questionnaireName": "C-SSRS Pediatric",
+      "completedAt": "2026-07-28T14:30:00.000Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "p007-cssrs-pediatric",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Pediatric",
+        "encounter": {
+          "reference": "Encounter/p007-enc-index"
+        },
+        "item": [
+          {
+            "linkId": "ideation-section",
+            "item": [
+              {
+                "linkId": "q1",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q2",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q3",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q5",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "behavior-section",
+            "item": [
+              {
+                "linkId": "q6",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "id": "p007-sb",
       "questionnaireName": "Stanley-Brown Safety Plan",
       "completedAt": "2026-07-28T16:30:00.000Z",

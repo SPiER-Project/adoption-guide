@@ -1,21 +1,22 @@
 import { describe, it, expect } from 'vitest'
 import { mapCSSRSScreener } from './cssrsScreener'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
-// C-SSRS Screener items are plain booleans (getBooleanAnswer).
+/**
+ * ⚠️ These responses are built from the C-SSRS Screener Questionnaire itself.
+ *
+ * This file used to open `// C-SSRS Screener items are plain booleans` and
+ * hand-build `valueBoolean` items — which is how #327 stayed invisible: the
+ * Questionnaire declares every item as `choice` bound to SNOMED Yes/No, the
+ * mapper read `valueBoolean` only, and this suite was green the whole time a
+ * q5-endorsed screen derived "No risk identified" in the app. `nativeQr` reads
+ * the answer shape off the form, so the suite can no longer certify the mapper
+ * against input the app does not produce.
+ */
+const CSSRS_SCREENER = 'http://spier.org/Questionnaire/C-SSRS-Screener'
 type CssrsAnswers = Partial<Record<'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q6-recent', boolean>>
 
-function cssrsResponse(answers: CssrsAnswers): QuestionnaireResponseResource {
-  return {
-    resourceType: 'QuestionnaireResponse',
-    status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/C-SSRS-Screener',
-    item: Object.entries(answers).map(([linkId, valueBoolean]) => ({
-      linkId,
-      answer: [{ valueBoolean }],
-    })),
-  } as QuestionnaireResponseResource
-}
+const cssrsResponse = (answers: CssrsAnswers) => nativeQr(CSSRS_SCREENER, answers)
 
 function riskCoding(r: ReturnType<typeof mapCSSRSScreener>) {
   return r.observations
@@ -78,5 +79,25 @@ describe('mapCSSRSScreener', () => {
     const q1Obs = r.observations.find(o => o.code?.coding?.[0]?.code === '93246-7')
     expect(q1Obs?.valueBoolean).toBe(true)
     expect(q1Obs?.code?.coding?.[0]?.system).toBe('http://loinc.org')
+  })
+
+  // #327 in the shape it was actually observed: the app's own form, q1/q2/q5
+  // endorsed, deriving "No risk identified".
+  it('reads the coded answers the app emits — q5 Yes is high, not none', () => {
+    const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: true, q5: true }))
+    const q5Answer = nativeQr(CSSRS_SCREENER, { q5: true }).item?.[0]?.item?.[0]?.answer?.[0]
+    // Guard the fixture itself: if this stops being a SNOMED coding, the test
+    // above stops testing what the app produces.
+    expect(q5Answer?.valueCoding).toEqual({ system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' })
+    expect(riskCoding(r)).toBe('high')
+    expect(r.riskAlert.summary).toBe('C-SSRS: HIGH Risk')
+  })
+
+  // The foreign-payload path (#230) normalizes to valueBoolean, so both shapes
+  // must keep reading — that inversion (foreign right, native wrong) was #327's
+  // tell, and it stays fixed only while this passes alongside the case above.
+  it('still reads the normalized valueBoolean shape a foreign QR arrives as', () => {
+    const r = mapCSSRSScreener(booleanQr(CSSRS_SCREENER, { q1: true, q2: true, q5: true }))
+    expect(riskCoding(r)).toBe('high')
   })
 })

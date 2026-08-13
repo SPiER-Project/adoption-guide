@@ -1,4 +1,4 @@
-import { walkItems, getCodingAnswer, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, type FhirResource } from './shared'
+import { walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, type FhirResource } from './shared'
 
 export function mapCAMSSectionB(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
@@ -63,8 +63,8 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
   observations.push(...(conditions as ObservationResource[]))
 
   // Check for ideation, plan, preparation
-  const ideationPresent = getBooleanAnswer(walkItems(items, 'ideation-present'))
-  const planPresent = getBooleanAnswer(walkItems(items, 'plan-present'))
+  const ideationPresent = getYesNoBoolean(walkItems(items, 'ideation-present'))
+  const planPresent = getYesNoBoolean(walkItems(items, 'plan-present'))
 
   const driverCount = conditions.length
 

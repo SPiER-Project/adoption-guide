@@ -1,23 +1,23 @@
-import { makeObservation, interpretationOf, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, CSSRS_RISK_LEVEL_SYSTEM, cssrsRiskLevelDisplay } from './shared'
+import { makeObservation, interpretationOf, walkItems, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, CSSRS_RISK_LEVEL_SYSTEM, cssrsRiskLevelDisplay } from './shared'
 
 export function mapCSSRSFull(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
   const observations: ObservationResource[] = []
 
   // Check both lifetime and recent for each ideation level
-  const q1Life = getBooleanAnswer(walkItems(items, 'q1-lifetime'))
-  const q1Recent = getBooleanAnswer(walkItems(items, 'q1-recent'))
-  const q2Life = getBooleanAnswer(walkItems(items, 'q2-lifetime'))
-  const q2Recent = getBooleanAnswer(walkItems(items, 'q2-recent'))
-  const q3Life = getBooleanAnswer(walkItems(items, 'q3-lifetime'))
-  const q3Recent = getBooleanAnswer(walkItems(items, 'q3-recent'))
-  const q4Life = getBooleanAnswer(walkItems(items, 'q4-lifetime'))
-  const q4Recent = getBooleanAnswer(walkItems(items, 'q4-recent'))
-  const q5Life = getBooleanAnswer(walkItems(items, 'q5-lifetime'))
-  const q5Recent = getBooleanAnswer(walkItems(items, 'q5-recent'))
+  const q1Life = getYesNoBoolean(walkItems(items, 'q1-lifetime'))
+  const q1Recent = getYesNoBoolean(walkItems(items, 'q1-recent'))
+  const q2Life = getYesNoBoolean(walkItems(items, 'q2-lifetime'))
+  const q2Recent = getYesNoBoolean(walkItems(items, 'q2-recent'))
+  const q3Life = getYesNoBoolean(walkItems(items, 'q3-lifetime'))
+  const q3Recent = getYesNoBoolean(walkItems(items, 'q3-recent'))
+  const q4Life = getYesNoBoolean(walkItems(items, 'q4-lifetime'))
+  const q4Recent = getYesNoBoolean(walkItems(items, 'q4-recent'))
+  const q5Life = getYesNoBoolean(walkItems(items, 'q5-lifetime'))
+  const q5Recent = getYesNoBoolean(walkItems(items, 'q5-recent'))
 
-  const attemptLife = getBooleanAnswer(walkItems(items, 'actual-attempt-lifetime'))
-  const attemptRecent = getBooleanAnswer(walkItems(items, 'actual-attempt-recent'))
+  const attemptLife = getYesNoBoolean(walkItems(items, 'actual-attempt-lifetime'))
+  const attemptRecent = getYesNoBoolean(walkItems(items, 'actual-attempt-recent'))
 
   // Highest recent ideation level
   let highestRecent = 0
