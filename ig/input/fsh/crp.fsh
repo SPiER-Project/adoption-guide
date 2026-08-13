@@ -117,7 +117,6 @@ Title: "Example — Completed Crisis Response Plan"
 Description: "Sample CarePlan showing all five CRP sections populated for an example patient. Each activity carries its SPiER-local section code, with the human label retained in detail.code.text and the patient-authored content in detail.description."
 Usage: #example
 * status = #active
-* category[suicidePreventionNote] = http://loinc.org#87626-8 "Suicide prevention note"
 * intent = #plan
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)

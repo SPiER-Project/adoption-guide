@@ -252,19 +252,27 @@ RuleSet: SafetyPlanAndSuicideRiskCategory
 * insert TreatmentEscalationPlanSlice
 * insert SuicideRiskDomainSlice
 
-// `suicidePreventionNote` is 0..1, not 1..1, on purpose. Naming the slice is what
-// stops the domain tag from clobbering the coding; requiring it would be a
-// separate conformance decision, and the data does not support it — of the two
-// Stanley-Brown safety plans in the population scenarios, `patient-001` carries
-// `87626-8` and `patient-011` does not. The HL7 validator is what surfaced that
-// (`check:scenarios` sees profile `min` but not slice-level cardinality — the
-// division of labour CLAUDE.md documents). Because min is 0, SUSHI will not
-// auto-populate it, so the two Instances that do carry the code assign it by
-// SLICE NAME rather than by numeric index.
+// `suicidePreventionNote` is 1..1: every safety plan in this family IS a suicide
+// prevention note, and a LOINC document-type code is the axis an external
+// consumer is most likely to filter on — the HL7/ASTP US Behavioral Health
+// Profiles IG classifies its mental-health notes exactly this way. Requiring it
+// makes the classification queryable across the whole record rather than
+// present-if-you-are-lucky.
+//
+// It shipped as 0..1 in the first pass (#325) because the data did not support
+// requiring it: `patient-011`'s Stanley-Brown plan was missing `87626-8` while
+// `patient-001` carried it. That was an oversight in the scenario, not a
+// deliberate variant — #329 settled it by adding the code, so the constraint can
+// now be what it should have been. The HL7 validator is what surfaced the
+// discrepancy in the first place; `check:scenarios` reads profile `min` but not
+// slice-level cardinality, the division of labour CLAUDE.md documents.
+//
+// Because min is 1 and the slice carries an assigned value, SUSHI populates it
+// into every Instance automatically — so the FSH examples do NOT restate it.
 RuleSet: SafetyPlanNoteAndSuicideRiskCategory
 * insert SuicideRiskDomainSlicing
 * insert TreatmentEscalationPlanSlice
-* category contains suicidePreventionNote 0..1
+* category contains suicidePreventionNote 1..1
 * category[suicidePreventionNote] = http://loinc.org#87626-8 "Suicide prevention note"
 * category[suicidePreventionNote] ^short = "LOINC document type — suicide prevention note"
 * insert SuicideRiskDomainSlice
