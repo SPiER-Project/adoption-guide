@@ -1,21 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { mapCSSRSSinceLastContact } from './cssrsSinceLastContact'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
-// The C-SSRS mapper reads booleans (getBooleanAnswer → valueBoolean), matching
-// the existing C-SSRS Screener test contract.
-function slvResponse(answers: Record<string, boolean>): QuestionnaireResponseResource {
-  const items = Object.entries(answers).map(([linkId, valueBoolean]) => ({
-    linkId,
-    answer: [{ valueBoolean }],
-  }))
-  return {
-    resourceType: 'QuestionnaireResponse',
-    status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact',
-    item: items,
-  } as QuestionnaireResponseResource
-}
+// Answers built from the Since-Last-Contact Questionnaire (SNOMED-coded Yes/No)
+// rather than hand-written booleans — see __fixtures__/nativeQr.ts, issue #327.
+const CSSRS_SLC = 'http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact'
+const slvResponse = (answers: Record<string, boolean>) => nativeQr(CSSRS_SLC, answers)
 
 function riskObs(r: ReturnType<typeof mapCSSRSSinceLastContact>) {
   return r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
@@ -79,6 +69,13 @@ describe('mapCSSRSSinceLastContact', () => {
   it('still derives the shared timeframe-agnostic risk-level Observation', () => {
     const r = mapCSSRSSinceLastContact(slvResponse({ q1: true, q2: true, q5: true }))
     expect(riskObs(r)?.code?.coding?.[0]?.code).toBe('93374-7')
+    expect(riskObs(r)?.valueCodeableConcept?.coding?.[0]?.code).toBe('high')
+  })
+
+  // Both shapes read (#327): coded is the form's, valueBoolean is the foreign-
+  // payload normalizer's (#230).
+  it('reads the normalized valueBoolean shape too', () => {
+    const r = mapCSSRSSinceLastContact(booleanQr(CSSRS_SLC, { q5: true }))
     expect(riskObs(r)?.valueCodeableConcept?.coding?.[0]?.code).toBe('high')
   })
 })

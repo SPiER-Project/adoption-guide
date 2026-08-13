@@ -66,14 +66,18 @@ export interface InstrumentSignature {
    *  - `ordinal`: the mapper joins the answer code back to an `ordinalValue`
    *    weight (PHQ-9, via `ordinalForAnswer`). A bare integer can be turned into
    *    the SPiER answer coding for that weight.
-   *  - `boolean`: the mapper reads `answer.valueBoolean` (`getBooleanAnswer` —
-   *    the whole C-SSRS family). Its Questionnaire declares SNOMED Yes/No
-   *    `answerOption` codings with no `ordinalValue`, so neither ordinal helper
-   *    resolves anything here; the normalized QR must carry booleans instead.
-   *    Recorded rather than papered over: the synthetic QR is transient (never
-   *    persisted, never validated against the Questionnaire it names), so this
-   *    is safe — but the mapper/Questionnaire mismatch it reflects is real, and
-   *    lives on `getBooleanAnswer`, not here.
+   *  - `boolean`: the item is a yes/no question (the whole C-SSRS family). Its
+   *    Questionnaire declares SNOMED Yes/No `answerOption` codings with no
+   *    `ordinalValue`, so neither ordinal helper resolves anything here; the
+   *    normalized QR carries `valueBoolean` instead.
+   *
+   *    ⚠️ That normalization used to be load-bearing in a way it should never
+   *    have been: the mappers read `valueBoolean` **only**, so a foreign QR
+   *    arriving through this path derived the right tier while a native SPiER
+   *    submission derived `none` (#327). `getYesNoBoolean` now reads both
+   *    shapes, so the boolean here is a convenience — one normalized form for
+   *    LOINC `LA33-6`/`LA32-8`, SNOMED and bare booleans alike — rather than the
+   *    only shape the mapper can see.
    */
   answerKind: 'ordinal' | 'boolean'
   /** Optional Tier-3 answer-shape heuristic. */
@@ -368,13 +372,13 @@ export function recognizeInstrument(qr: QuestionnaireResponseResource): Recognit
 const LOINC_YES_NO: Record<string, boolean> = { 'LA33-6': true, 'LA32-8': false }
 
 /**
- * Coerce a foreign yes/no answer into the `valueBoolean` the C-SSRS mappers read.
+ * Coerce a foreign yes/no answer into one normalized `valueBoolean`.
  *
  * Accepts three shapes:
- *   1. `valueBoolean` — already what the mapper wants.
- *   2. a SNOMED Yes/No coding — via `getYesNoBoolean`, the same helper (and the
- *      same two codes) the ASQ mapper already uses, which is also what SPiER's
- *      own C-SSRS `answerOption` list declares.
+ *   1. `valueBoolean` — already normalized.
+ *   2. a SNOMED Yes/No coding — via `getYesNoBoolean`, the single yes/no reader
+ *      every mapper now uses, whose two codes are what SPiER's own C-SSRS
+ *      `answerOption` list declares.
  *   3. a LOINC Yes/No coding (`LA33-6` / `LA32-8`).
  *
  * ⚠️ Shape 3 was **deliberately excluded** when this function landed (#323), on

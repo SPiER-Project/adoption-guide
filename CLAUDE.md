@@ -31,6 +31,8 @@ npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDe
                          # questionnaire URLs / per-AD licensing metadata)
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
+npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
+                         # declared item `type` — see the mapper-reader note below
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #  check-scenario-responses.mjs — QuestionnaireResponses vs their
                          #    Questionnaire (linkIds, nesting, answer options, ranges)
@@ -354,6 +356,43 @@ fast and offline-reproducible. Consequence: codes from **external** systems
 from SPiER-local CodeSystems *are* fully checked, including that every
 `Coding.display` matches the CodeSystem's display or one of its designations.
 Pass `--tx https://tx.fhir.org` to check external terminology locally.
+
+⚠️ **A mapper can read an answer shape its Questionnaire never declares, and
+every other gate will call that fine.** For months the whole C-SSRS family and
+CAMS Section B read `answer.valueBoolean`, while **not one Questionnaire in this
+repo declares a `boolean` item** — every yes/no question is `type: choice` bound
+to SNOMED Yes `373066001` / No `373067005`. So a screener filled in through
+SPiER's own form read `undefined` for every item, and the risk ladders treat
+`undefined` as "not endorsed": a patient endorsing q5, *specific plan and
+intent*, derived `tier: none`, "No risk identified" (issue #327). Three blind
+spots lined up, and each is worth knowing on its own:
+
+- **A mapper test can encode the wrong shape and then defend it.** Those suites
+  hand-built `valueBoolean` responses, so they proved the mappers correct against
+  input the app never produces. Tests now build responses with
+  `__fixtures__/nativeQr.ts`, which derives item nesting and every `value[x]`
+  from the Questionnaire JSON — a fixture that asserts the shape of the app's
+  data has to *derive* that shape from the artifact defining it.
+- **`check:scenarios:responses` does check `value[x]` against `item.type`** — it
+  simply had no C-SSRS or CAMS-B fixture *with items* to look at. `p011-cssrs-full`
+  and `p007-cssrs-pediatric` now carry coded answers, so the native shape is
+  gated.
+- **The #230 fallback normalizes a foreign QR to `valueBoolean` on purpose**, so
+  a *foreign* C-SSRS derived the right tier while a *native* one did not. That
+  inversion is the tell; `getYesNoBoolean` is now the single yes/no reader and
+  accepts both shapes, so booleans stay valid.
+
+`npm run check:readers` is the class-level fix: it parses each mapper with the
+TypeScript AST, resolves which linkId every `walkItems` read names and which
+reader is applied, and checks that reader against the item's declared `type`.
+It needs no test to exist and no fixture to be written. It resolves the linkId
+forms this codebase uses (literal, `for…of` over a code table, `.reduce` over a
+list, helper parameter fed by literal call sites) and **fails on anything it
+cannot follow** rather than skipping it — a silent skip is how a gate reports
+green while checking nothing (#232, #261). Its first run found that `getYesNoBoolean`
+is deliberately pointed at PSS-3 items offering the SNOMED pair **plus**
+`unable-to-complete` / `patient-refused`; the rule is containment, not equality,
+because a non-response must stay `undefined` rather than becoming a "No".
 
 ⚠️ **A measure change lands in FOUR places, and `check:measures` only ties two
 of them together.** A population criterion lives in `ig/input/fsh/measure-and-share.fsh`

@@ -1,16 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { mapCSSRSPediatric } from './cssrsPediatric'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
-// The C-SSRS mapper reads booleans (getBooleanAnswer → valueBoolean).
-function pedResponse(answers: Record<string, boolean>): QuestionnaireResponseResource {
-  return {
-    resourceType: 'QuestionnaireResponse',
-    status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/C-SSRS-Pediatric',
-    item: Object.entries(answers).map(([linkId, valueBoolean]) => ({ linkId, answer: [{ valueBoolean }] })),
-  } as QuestionnaireResponseResource
-}
+// Answers are built from the Pediatric Questionnaire (SNOMED-coded Yes/No), not
+// hand-written booleans — see __fixtures__/nativeQr.ts and issue #327.
+const CSSRS_PEDIATRIC = 'http://spier.org/Questionnaire/C-SSRS-Pediatric'
+const pedResponse = (answers: Record<string, boolean>) => nativeQr(CSSRS_PEDIATRIC, answers)
 
 function riskCode(r: ReturnType<typeof mapCSSRSPediatric>) {
   return r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')?.valueCodeableConcept?.coding?.[0]?.code
@@ -45,5 +40,12 @@ describe('mapCSSRSPediatric', () => {
     const r = mapCSSRSPediatric(pedResponse({ q1: false, q2: false, q6: false }))
     expect(riskCode(r)).toBe('none')
     expect(r.riskAlert.level).toBe('none')
+  })
+
+  // Both shapes read (#327): coded is what the form emits, valueBoolean is what
+  // the foreign-payload normalizer (#230) produces.
+  it('reads the normalized valueBoolean shape too', () => {
+    const r = mapCSSRSPediatric(booleanQr(CSSRS_PEDIATRIC, { q5: true }))
+    expect(riskCode(r)).toBe('high')
   })
 })

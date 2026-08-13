@@ -142,15 +142,33 @@ export function getCodingAnswer(item: QuestionnaireResponseItem | undefined): Co
   return item?.answer?.[0]?.valueCoding
 }
 
-export function getBooleanAnswer(item: QuestionnaireResponseItem | undefined): boolean | undefined {
-  return item?.answer?.[0]?.valueBoolean
-}
-
 /**
- * SNOMED Yes/No coding → boolean. Used by ASQ where answers are SNOMED-
- * coded Yes (373066001) / No (373067005).
+ * A yes/no answer → boolean, accepting either shape SPiER can receive:
+ *   1. a SNOMED Yes (373066001) / No (373067005) coding — what **every** SPiER
+ *      Questionnaire declares, because not one of them declares a `boolean`
+ *      item: each yes/no question is `type: choice` bound to that pair;
+ *   2. `valueBoolean` — what `fallbackDispatch` normalizes a foreign QR to, and
+ *      what a genuinely boolean-typed item would carry.
+ *
+ * ⚠️ **This is the only yes/no reader, and that is the fix for #327.** There
+ * used to be a second one, `getBooleanAnswer`, that read `valueBoolean` alone.
+ * The C-SSRS family and CAMS Section B used it, so a screener filled in through
+ * SPiER's own form — coded answers, exactly as its Questionnaire declares —
+ * read `undefined` for every item, and the risk ladders treat `undefined` as
+ * "not endorsed": q5 Yes ("specific plan and intent") derived `tier: none`,
+ * "No risk identified". Nothing was flagged, because the mappers' own tests
+ * built `valueBoolean` responses and so certified the mappers against input the
+ * app never produces.
+ *
+ * Do not reintroduce a raw `valueBoolean` reader. If a SPiER Questionnaire ever
+ * does declare a `boolean` item, this helper already reads it; a second helper
+ * only recreates the fork that made the bug possible.
+ * `npm run check:readers` now checks each read against the item's declared
+ * `type`, so the mismatch is a build error rather than a silent wrong tier.
  */
 export function getYesNoBoolean(item: QuestionnaireResponseItem | undefined): boolean | undefined {
+  const direct = item?.answer?.[0]?.valueBoolean
+  if (typeof direct === 'boolean') return direct
   const coding = getCodingAnswer(item)
   if (!coding) return undefined
   if (coding.system === 'http://snomed.info/sct') {

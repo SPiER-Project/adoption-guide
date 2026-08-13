@@ -1,21 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { mapCSSRSFull } from './cssrsFull'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
-// C-SSRS Full uses per-level lifetime/recent boolean items plus attempt items.
-type FullAnswers = Partial<Record<string, boolean>>
+// C-SSRS Full asks each ideation level as a lifetime/recent pair. Every one is a
+// `choice` item bound to SNOMED Yes/No, so the answers here are built from the
+// Questionnaire — see __fixtures__/nativeQr.ts and issue #327.
+const CSSRS_FULL = 'http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent'
+type FullAnswers = Record<string, boolean>
 
-function fullResponse(answers: FullAnswers): QuestionnaireResponseResource {
-  return {
-    resourceType: 'QuestionnaireResponse',
-    status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent',
-    item: Object.entries(answers).map(([linkId, valueBoolean]) => ({
-      linkId,
-      answer: [{ valueBoolean }],
-    })),
-  } as QuestionnaireResponseResource
-}
+const fullResponse = (answers: FullAnswers) => nativeQr(CSSRS_FULL, answers)
 
 function riskCoding(r: ReturnType<typeof mapCSSRSFull>) {
   return r.observations
@@ -61,5 +54,12 @@ describe('mapCSSRSFull', () => {
     const r = mapCSSRSFull(fullResponse({ 'q1-recent': false, 'q1-lifetime': false }))
     expect(riskCoding(r)).toBe('none')
     expect(r.riskAlert.level).toBe('none')
+  })
+
+  // Both shapes read (#327): coded is the form's, valueBoolean is the foreign-
+  // payload normalizer's (#230).
+  it('reads the normalized valueBoolean shape too', () => {
+    const r = mapCSSRSFull(booleanQr(CSSRS_FULL, { 'q5-recent': true }))
+    expect(riskCoding(r)).toBe('high')
   })
 })

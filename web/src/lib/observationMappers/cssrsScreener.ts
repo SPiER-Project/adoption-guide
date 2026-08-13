@@ -1,4 +1,4 @@
-import { makeObservation, interpretationOf, walkItems, getBooleanAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, CSSRS_RISK_LEVEL_SYSTEM, cssrsRiskLevelDisplay } from './shared'
+import { makeObservation, interpretationOf, walkItems, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, CSSRS_RISK_LEVEL_SYSTEM, cssrsRiskLevelDisplay } from './shared'
 
 /** The code that identifies one C-SSRS item in an extracted Observation. */
 export interface CSSRSItemCoding {
@@ -50,13 +50,13 @@ export function mapCSSRSScreenerCore(
   const observations: ObservationResource[] = []
 
   // Extract ideation items
-  const q1 = getBooleanAnswer(walkItems(items, 'q1'))
-  const q2 = getBooleanAnswer(walkItems(items, 'q2'))
-  const q3 = getBooleanAnswer(walkItems(items, 'q3'))
-  const q4 = getBooleanAnswer(walkItems(items, 'q4'))
-  const q5 = getBooleanAnswer(walkItems(items, 'q5'))
-  const q6 = getBooleanAnswer(walkItems(items, 'q6'))
-  const q6Recent = getBooleanAnswer(walkItems(items, 'q6-recent'))
+  const q1 = getYesNoBoolean(walkItems(items, 'q1'))
+  const q2 = getYesNoBoolean(walkItems(items, 'q2'))
+  const q3 = getYesNoBoolean(walkItems(items, 'q3'))
+  const q4 = getYesNoBoolean(walkItems(items, 'q4'))
+  const q5 = getYesNoBoolean(walkItems(items, 'q5'))
+  const q6 = getYesNoBoolean(walkItems(items, 'q6'))
+  const q6Recent = getYesNoBoolean(walkItems(items, 'q6-recent'))
 
   // Determine risk level from highest positive
   let riskCode = 'none'
@@ -79,7 +79,7 @@ export function mapCSSRSScreenerCore(
 
   // Individual item observations, coded for this administration's reference period.
   for (const { linkId, system, code, display } of itemCodes) {
-    const val = getBooleanAnswer(walkItems(items, linkId))
+    const val = getYesNoBoolean(walkItems(items, linkId))
     if (val !== undefined) {
       observations.push(
         makeObservation({
