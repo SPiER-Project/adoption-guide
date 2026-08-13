@@ -161,7 +161,12 @@ const familyOf = system =>
 // figures above are checkable against any recent nightly log rather than taken
 // on trust.
 const SCAN = [
-  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 49, snomed: 7, tho: 12 } },
+  // snomed raised 7 -> 9 (#330): the live count had grown to 19 while the floor
+  // stayed at 7, leaving 12 codings able to fall out of the scan unnoticed —
+  // the #232 failure mode. LOINC was already at half (49/98) because #323 moved
+  // it in step with the C-SSRS codes it added; SNOMED grew in the same window
+  // without its floor following.
+  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 49, snomed: 9, tho: 12 } },
   // ─── Deliberately OVERLAPS web/src above ───────────────────
   //
   // Two independent contributors sit inside web/src — the runtime mappers
