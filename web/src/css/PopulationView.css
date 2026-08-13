@@ -31,6 +31,23 @@
   text-decoration: underline;
 }
 
+/*
+ * The armed half of the two-click demo reset (#301). Same quiet text-button
+ * shape as the control above it, in the warning colour rather than the info one:
+ * the first click is navigation-like, the second discards data.
+ */
+.population-reset-demo {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-md);
+  color: var(--accent-warning-text);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /* ===========================
    Filters
    ---------------------------

@@ -12,7 +12,8 @@
  *
  * These keys and shapes MUST NOT change — existing browsers must keep their
  * data. Auto-seeding of population scenarios happens on first read of a missing
- * slice (idempotent: once a slice exists, even mutated, it never reseeds).
+ * slice, and re-seeding when the fixture behind an UNTOUCHED slice changes
+ * (#301 — see `spier-scenario-seeds` below).
  */
 import { POPULATION_SCENARIOS } from '../../data/population/scenarios'
 import type { DerivedArtifacts, FhirDataSource } from './types'
@@ -38,7 +39,70 @@ import type { RiskAlert } from '../observationMappers'
 const STORE_KEY = 'spier-patient-store'
 const BLANK_SLICE_KEY = 'spier-blank-slice'
 
+/**
+ * Which fixture version produced each seeded slice (#301).
+ *
+ * The problem: seeding was once-only, so a browser that had ever opened the demo
+ * kept whatever fixture version it first loaded — forever, including on the
+ * deployed site. That is not cosmetic, because the scenarios are dated against a
+ * recorded anchor (`scripts/shift-scenario-dates.mjs`) and get re-anchored: a
+ * returning visitor saw "Overdue by 143 days" where the shipped fixtures say 3.
+ * The staleness grows with every re-anchor, and only for repeat visitors.
+ *
+ * A blind reseed is not the fix — a visitor's own submitted assessments live in
+ * the same slice, which is exactly why the original code never reseeded. So the
+ * marker distinguishes the two cases: a slice we seeded and the user has not
+ * touched is ours to refresh; a slice the user has written to is theirs, and is
+ * left alone forever.
+ *
+ * Held in its own key rather than on the slice, unlike the `_seed` field #301
+ * sketched: `PatientSlice` is chart state that feeds FHIR payloads (and
+ * `smartDataSource` writes resources from it), so a non-FHIR bookkeeping scalar
+ * has no business travelling inside it. The two keys can only desync in the safe
+ * direction — a lost seed record makes a slice look user-owned, which means
+ * "never touch it".
+ */
+const SEEDS_KEY = 'spier-scenario-seeds'
+
+/** The pre-#301 single-patient keys, consumed by `migrateLegacyStorage`. */
+const LEGACY_KEYS = [
+  'spier-demo-responses',
+  'spier-demo-observations',
+  'spier-demo-careplans',
+  'spier-demo-risk-alerts',
+]
+
 type PatientStore = Record<string, PatientSlice>
+
+/** patientId → fingerprint of the scenario that seeded it. */
+type SeedRecord = Record<string, string>
+
+/**
+ * Content fingerprint of a scenario, so "has this fixture changed" needs no
+ * hand-maintained version constant.
+ *
+ * Deliberately derived rather than a `SEED_VERSION` someone bumps: a manual
+ * version is one more thing to remember at exactly the moment attention is
+ * elsewhere (editing fixtures), and this repo has already paid for that twice —
+ * #232's `check:codings` floor sat stale while the inventory doubled, and #273
+ * had to gate warning *shape* precisely because a pinned number trains people to
+ * bump without reading. A fingerprint cannot go stale: it is the data.
+ *
+ * FNV-1a over the serialized scenario. Not cryptographic and does not need to
+ * be — the only question is "same bytes or different bytes", and `crypto.subtle`
+ * is async, which `getSliceSync` cannot be. Key order is stable because these
+ * objects come from imported JSON modules.
+ */
+function fingerprintScenario(scenario: unknown): string {
+  const json = JSON.stringify(scenario)
+  let hash = 0x811c9dc5
+  for (let i = 0; i < json.length; i++) {
+    hash ^= json.charCodeAt(i)
+    // FNV prime, via shifts so the result stays in 32-bit range.
+    hash = (hash + (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24)) >>> 0
+  }
+  return `${hash.toString(36)}-${json.length.toString(36)}`
+}
 
 const EMPTY_SLICE: PatientSlice = {
   responses: [],
@@ -110,30 +174,62 @@ function migrateLegacyStorage(): PatientStore | null {
 export class LocalDataSource implements FhirDataSource {
   private store: PatientStore
   private blankSlice: PatientSlice
+  private seeds: SeedRecord
   private readonly listeners = new Set<() => void>()
 
   constructor() {
     this.store = readJson<PatientStore>(STORE_KEY) ?? migrateLegacyStorage() ?? {}
     this.blankSlice = readJson<PatientSlice>(BLANK_SLICE_KEY) ?? EMPTY_SLICE
+    this.seeds = readJson<SeedRecord>(SEEDS_KEY) ?? {}
+  }
+
+  /** Seed (or re-seed) a patient from its scenario and record the fingerprint. */
+  private seedFrom(patientId: string, scenario: PatientSlice, fingerprint: string): PatientSlice {
+    this.store[patientId] = scenario
+    this.seeds[patientId] = fingerprint
+    writeJson(STORE_KEY, this.store)
+    writeJson(SEEDS_KEY, this.seeds)
+    return scenario
   }
 
   /**
-   * Resolve the slice synchronously, auto-seeding a missing population slice
-   * from static scenario data. Seeding persists but intentionally does NOT
-   * notify listeners: the caller is already receiving the seeded value, and
+   * Resolve the slice synchronously, seeding a missing population slice from
+   * static scenario data and re-seeding one whose fixture has changed *and*
+   * which the user has never written to (#301). Both persist but intentionally
+   * do NOT notify listeners: the caller is already receiving the value, and
    * notifying during a render-time read would loop.
+   *
+   * Three cases, and the middle one is the whole point:
+   *
+   *  - No slice → seed, record the fingerprint.
+   *  - Slice + a seed record that no longer matches the fixture → the slice is
+   *    still ours, so refresh it. Nothing of the user's is in it.
+   *  - Slice with NO seed record → hands off, permanently. Two kinds of slice
+   *    land here: one the user has written to (the record is dropped on write),
+   *    and one seeded by a build before #301. Those are indistinguishable, and
+   *    guessing between them is not worth it — an id-based heuristic ("does this
+   *    hold any resource the fixture doesn't?") would still miss an in-place
+   *    edit like marking an appointment fulfilled, so it can silently discard
+   *    something the user did. `resetLocalDemoData()` is the deliberate,
+   *    user-driven way out for those; from this build on, every seeded slice
+   *    carries a record and refreshes itself.
    */
   private resolveSlice(patientId: string | null): PatientSlice {
     if (patientId === null) return this.blankSlice
     const existing = this.store[patientId]
-    if (existing) return existing
     const scenario = POPULATION_SCENARIOS[patientId]
-    if (scenario) {
-      this.store[patientId] = scenario
-      writeJson(STORE_KEY, this.store)
-      return scenario
+
+    if (!existing) {
+      if (!scenario) return EMPTY_SLICE
+      return this.seedFrom(patientId, scenario, fingerprintScenario(scenario))
     }
-    return EMPTY_SLICE
+
+    const seededFrom = this.seeds[patientId]
+    if (seededFrom && scenario) {
+      const current = fingerprintScenario(scenario)
+      if (seededFrom !== current) return this.seedFrom(patientId, scenario, current)
+    }
+    return existing
   }
 
   getSliceSync(patientId: string | null): PatientSlice {
@@ -162,6 +258,14 @@ export class LocalDataSource implements FhirDataSource {
         [patientId]: updater(this.store[patientId] ?? EMPTY_SLICE),
       }
       writeJson(STORE_KEY, this.store)
+      // The slice is the user's now, not the fixture's (#301). Dropping the seed
+      // record is what protects their work from a later fixture refresh — it has
+      // to happen on EVERY write, which is why it lives here in the one funnel
+      // rather than in each of saveResponse/saveArtifact.
+      if (this.seeds[patientId] !== undefined) {
+        delete this.seeds[patientId]
+        writeJson(SEEDS_KEY, this.seeds)
+      }
     }
     this.notify()
   }
@@ -273,6 +377,35 @@ export class LocalDataSource implements FhirDataSource {
 
   private notify(): void {
     for (const listener of this.listeners) listener()
+  }
+}
+
+/**
+ * Discard every locally-stored demo slice so the curated scenarios load fresh.
+ *
+ * The escape hatch for the one case the fingerprint cannot fix: a slice seeded
+ * before #301 has no seed record, so it is treated as user-owned and never
+ * refreshed. Without this, the only cure was knowing that `spier-patient-store`
+ * exists and clearing it in devtools — which no viewer of the deployed demo will
+ * do. It is also useful on its own: someone who has mutated a patient and wants
+ * the curated scenario back could not previously get it.
+ *
+ * Destructive on purpose, so the caller confirms first. Clears the legacy keys
+ * too — leaving them would let `migrateLegacyStorage` resurrect the pre-slice
+ * data on the next construct, i.e. a "reset" that restores old state.
+ *
+ * The caller reloads afterwards rather than this notifying listeners: every
+ * context, memo and derived registry in the app holds slice-derived state, and a
+ * reload is the one way to be sure none of it survives. This runs at most once
+ * in a session, so the cost is irrelevant next to the risk of a half-cleared UI.
+ */
+export function resetLocalDemoData(): void {
+  for (const key of [STORE_KEY, BLANK_SLICE_KEY, SEEDS_KEY, ...LEGACY_KEYS]) {
+    try {
+      window.localStorage.removeItem(key)
+    } catch {
+      // Matching readJson/writeJson: storage may be unavailable; nothing to undo.
+    }
   }
 }
 

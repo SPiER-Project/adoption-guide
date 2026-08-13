@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '../data/catalog'
 import registryPatientsData from '../data/population/patients.json'
-import { localDataSource } from '../lib/dataSource/localDataSource'
+import { localDataSource, resetLocalDemoData } from '../lib/dataSource/localDataSource'
 import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '../lib/registry'
 import { evaluateAllMeasures, trailingPeriod } from '../lib/measures'
 import { alertsForPatient, groupAlertsByPatient } from '../lib/populationAlerts'
@@ -92,6 +92,7 @@ export function PopulationView() {
   const wrapperRef = useRef<HTMLElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const [tableOverflows, setTableOverflows] = useState(false)
+  const [confirmingReset, setConfirmingReset] = useState(false)
 
   useEffect(() => {
     const refresh = () => setEntries(deriveAllEntries())
@@ -238,6 +239,17 @@ export function PopulationView() {
     setAgeFilter('all')
   }
 
+  /**
+   * Clear the stored slices, then reload. The reload is the point: every context,
+   * memo and derived registry row in the app is built from slice data, so
+   * re-rendering in place would leave some of it stale. See
+   * `resetLocalDemoData()`.
+   */
+  const handleResetDemo = () => {
+    resetLocalDemoData()
+    window.location.reload()
+  }
+
   const toggleSort = (col: SortCol) => {
     setSort(prev =>
       prev.col === col
@@ -369,6 +381,43 @@ export function PopulationView() {
         risk levels. Click any row to view that patient's chart. Opening a patient here also
         broadcasts a <strong>FHIRcast</strong> patient-open event: a chart open in another tab
         follows along, the way context-synced apps do in production.
+      </p>
+
+      {/*
+        The deliberate way back to the curated scenarios (#301). Refreshed
+        fixtures reach an untouched patient on their own, but a patient you have
+        written to is yours and is never overwritten — and a slice seeded before
+        that mechanism existed cannot be told apart from one you edited. This is
+        the escape hatch for both, and it lives here because this is where the
+        page already says the data is a demo.
+
+        Two-click rather than a `window.confirm`: it discards anything entered in
+        the demo, the app uses no browser dialogs anywhere else, and the second
+        label states the consequence instead of asking "are you sure?".
+      */}
+      <p className="population-footnote">
+        {confirmingReset ? (
+          <>
+            <button type="button" className="population-reset-demo" onClick={handleResetDemo}>
+              Confirm reset &mdash; discards anything you entered
+            </button>{' '}
+            <button
+              type="button"
+              className="population-clear-filters"
+              onClick={() => setConfirmingReset(false)}
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            className="population-clear-filters"
+            onClick={() => setConfirmingReset(true)}
+          >
+            Reset demo data to the shipped scenarios
+          </button>
+        )}
       </p>
     </div>
   )
