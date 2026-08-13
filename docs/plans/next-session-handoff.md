@@ -1,8 +1,8 @@
 # Handoff — next session
 
-Rewritten 2026-08-11, after the gate-hardening pass, #272, #304 and #281. `main`
-was at **cb777fa** when this was written — and moved six times during the session,
-so check rather than trust that.
+Rewritten 2026-08-11, covering the gate-hardening pass plus #272, #304, #281,
+#301 and #230. `main` was at **fa9236c** when this was written — and moved twelve
+times during the session, so check rather than trust that.
 
 ⚠️ **The previous version of this file was never committed.** It sat in one
 worktree, on an already-merged branch, and no fresh session could see it — a
@@ -41,14 +41,16 @@ Closed: #260, #262, #263, #265, #302.
 | #311 (411eeae) | #272 | The concept-domain tag on `Appointment.serviceCategory`; `EpisodeOfCare` and `Task` deliberately untouched |
 | #314 (78f546e) | #304 | The 11.7-2A/2B naming swap — step titles moved, artifacts left alone |
 | #317 (cb777fa) | #281 | Dictionary ValueSet canonicals rendered as links; `Binding.value.valueSet` shown at all |
+| #321 (99915e9) | #301 | An untouched demo patient re-seeds when its fixture changes; a deliberate demo reset |
+| #323 (fa9236c) | #230 | Foreign C-SSRS payloads derive; ASQ's exclusion recorded with its reasoning |
 
-All five merged, all five issues closed, and each gate was seen *running* on
+All seven merged, all seven issues closed, and each gate was seen *running* on
 merged `main` rather than merely present: `lint-css` prints `116 defined … 115
 distinct referenced … css-token check passed`, the `sushi` job prints
 `31 × sliced-category-numeric-index — expected`, and `check:catalog` prints
 `all 12 SPiER-local ValueSet(s) referenced have a generated definition`.
 
-⚠️ **Five PRs landed from other sessions while this one ran**, none reviewed here:
+⚠️ **Nine PRs landed from other sessions while this one ran**, none reviewed here:
 
 - **#310** — "Stop re-rendering an IG that did not change on every deploy", a keyed
   cache around `deploy.yml`'s IG render. #311 merged on top of it and the combined
@@ -68,9 +70,19 @@ distinct referenced … css-token check passed`, the `sushi` job prints
   current on this). It landed *between* #317's CI run and #317's merge, so those
   green checks had tested a merge with the older `main` — see the concurrency note
   below.
+- **#318 / #320** — three more ED patients for the exception branches, and the
+  last un-narrated scenario step; every ED step now has a demo.
+- **#319** — the assessment and workflow form views joined that page template, so
+  `check:template` now covers them too. Landed between #321's CI run and its
+  merge; same story as #316/#317, same resolution (the post-merge run).
+- **#325** — named the standard category slices, fixing a **data-loss** bug #271's
+  numeric-index pattern had been causing, and aligned against the HL7/ASTP US
+  Behavioral Health Profiles IG. It touched two things this session had just
+  shipped: the `ALLOWED` reason in `check-sushi-output.mjs` (#309) and
+  `fallbackDispatch.ts` (#323). Both changes are improvements; see those notes.
 
 ⚠️ **`patient-011.json` and `ed-scenario-11.json` are under concurrent edit by
-other sessions** — three of those five PRs touched one or both, and two landed
+other sessions** — five of those eight PRs touched one or both, and two landed
 *during* #304's review. #315 was purely additive so #304's titles survived, but I
 checked rather than assumed, and #300 is the precedent for why: it silently
 reverted a merged gate by rewriting a file from a stale base. **Diff against the
@@ -107,9 +119,16 @@ browser drops. Four things worth knowing before touching it:
 **#309 — `scripts/check-sushi-output.mjs`; `ig.yml`'s compile step now tees its
 output and a second step gates it.** Two facts that correct the issue text:
 
-- **The expected-advisory count is 31, not 32.** #273's title says "the 33rd";
-  the real numbers were 31 expected today. This is exactly why the gate matches
-  *shape* against an allowlist and never a count.
+- **The expected-advisory count was 31, not the 32/33 in #273's text — and is now
+  6.** ⚠️ Do not trust any number here; check. #325 named the standard category
+  slices the same day and the count fell to 6, all on `Communication`. This is the
+  gate paying for itself twice: matching *shape* rather than a count meant the drop
+  needed no edit, and the `ALLOWED` entry's mandatory reason is where #325 had to
+  write down which shape is actually benign (`category[+].text` writes a
+  sub-element of index 0, so both codings survive) versus which was **losing data**
+  (a whole-value `category[+] = <coding>` overwrote the domain slice — 23 of 25
+  example Instances). This file previously called all 31 "deliberate, do not
+  silence", which was wrong about 25 of them.
 - **SUSHI's summary sentence is randomised per run** ("Something smells fishy…",
   "This looks a bit fishy."), so only the `N Errors` / `N Warnings` fields are
   matched. The gate also reconciles its own parse against that banner — if
@@ -174,6 +193,47 @@ undefined rather than guessing another publisher's URL pattern). Three notes:
   the exact defect #281 closed. Add an external ValueSet and it goes red on
   purpose, forcing a decision about how to link it.
 
+**#321 — an untouched demo patient re-seeds itself; a written-to one never does.**
+The record is a content FINGERPRINT of the scenario (FNV-1a over the serialized
+module) in its own `spier-scenario-seeds` key, not a hand-bumped `SEED_VERSION` on
+the slice. Three things to carry forward:
+
+- **A pre-#301 slice has no record and is therefore never refreshed**, on purpose:
+  it cannot be told apart from a user-modified one, and the obvious heuristic
+  ("does it hold a resource the fixture doesn't?") still misses an in-place edit
+  like marking an appointment fulfilled. Those browsers rely on the two-click
+  **reset** in the Population footnote, which also clears the legacy
+  single-patient keys — leaving them lets `migrateLegacyStorage` resurrect
+  pre-slice data, i.e. a "reset" that restores old state.
+- The record is dropped in `updateSlice`, the single write funnel, so a new
+  `saveArtifact` branch cannot forget it.
+- Fixtures are dated against a re-anchored constant, which is *why* this mattered:
+  staleness grew with every re-anchor, and only for repeat visitors.
+
+**#323 — foreign C-SSRS payloads derive now, and recognition got a real scoring
+rule.** The screener's 7 item codes are a strict SUBSET of the full form's 19, so
+"first signature over its floor" would have sent every full C-SSRS to the screener
+mapper. Recognition now takes the best match — most matched codes, ties broken by
+coverage (matched ÷ signature size). Also:
+
+- **Screener and Pediatric are indistinguishable by item code** (byte-identical
+  LOINC sets) and one signature covers both, because `cssrsPediatric.ts` delegates
+  to the same core — only the label differs. A second entry could never win a
+  comparison; it would just make the tie-break look accidental.
+- **Fail closed**: an *absent* item is legitimate (`enableWhen`), but an item
+  present with an answer we cannot decode is refused outright rather than scored as
+  a No — an unparsed "specific plan and intent" must never read as a clean screen.
+- ASQ's exclusion is recorded **in the file**, not just the tracker: no per-item
+  LOINC exists, the only LOINC is the shared `93374-7` result code, and inventing
+  codes is #220. Item-level foreign ASQ belongs to #77's ConceptMap path.
+- The `check:codings` LOINC floor for `web/src` moved 34 → 49 in the same change
+  that grew the source 86 → 98. Nothing re-checks a floor on its own.
+- **#325 has already extended this file**: `itemsByCode` now also reads a `linkId`
+  that is itself a LOINC code, because that is the only place the HL7/ASTP US
+  Behavioral Health Profiles IG carries a code on its published PHQ-9 and C-SSRS
+  QuestionnaireResponses. Its examples are checked in under `__fixtures__/`. So the
+  recognition surface is wider than #323 left it — read the file, not this note.
+
 ## Three things to know before touching the correlation area
 
 1. **`ig.yml`'s `validate` job now validates runtime output.** It runs
@@ -195,11 +255,27 @@ undefined rather than guessing another publisher's URL pattern). Three notes:
 
 ## Open issues, with my read on each
 
-**The unblocked list is empty of code work.** #272, #273, #280, #281 and #304 are
-all merged. What is left is one decision that is not an agent's to make, one item
-blocked on clinical sign-off, and three nobody has triaged — so the next session
-either takes a decision to Brad, or works up a read on the untriaged three. That is
-a prioritisation call, not a discovery one.
+**#272, #273, #280, #281, #301, #304 and #230 are all merged.** What was the
+untriaged pile is now assessed, and the highest-value item on the board is one this
+session *created* by reading code carefully rather than one that was waiting to be
+picked.
+
+### Take this first — #327, filed 2026-08-12
+
+**The C-SSRS and CAMS-Section-B mappers cannot read their own forms' output.**
+`getBooleanAnswer` reads only `answer.valueBoolean`, and **not one Questionnaire in
+this repo declares a `boolean` item** — every yes/no question is `type: choice` with
+SNOMED Yes/No codings. Observed, not inferred: a screener endorsing q1, q2 and **q5
+("specific plan and intent")** derives `tier: 'none'`, `"C-SSRS: No risk
+identified"`.
+
+Why it survived is as important as the defect, and the issue lists all three:
+`cssrsScreener.test.ts` *builds* `valueBoolean` QRs and so proves the mapper works
+on input the app never produces; no scenario fixture carries one of these forms with
+items, so `check:scenarios:responses` never sees the native shape; and #323's
+fallback path deliberately emits booleans, so a **foreign** C-SSRS derives correctly
+while a **native** one does not. That inversion is the tell. `asq.ts`, `pss3.ts` and
+`safet.ts` use `getYesNoBoolean` and are fine — the fix already exists in the repo.
 
 ### Needs a human decision, not a patch
 
@@ -209,6 +285,19 @@ a prioritisation call, not a discovery one.
   `elevated-assessment`. Renaming is probably right, but which way depends on what
   that fixture is meant to represent — a scenario-authoring judgement. **Do not
   guess it; ask.**
+- **#231 — the CDS service's auth posture.** Triaged this pass, and narrower than
+  filed. A tokenless invoke against the live Worker returns **HTTP 200 with a
+  `critical` card**, so the claim holds — but the issue's premise that an adopter
+  must "infer the posture from the code" does not: the guide page has an
+  Authentication section stating warn mode, and the README has a config table, the
+  SSRF note and a `Rollout: warn → require` section that already names the
+  tokenless-demo blocker. What is actually missing is that both frame warn as
+  *transitional* and nobody has scheduled the flip. `require` is implemented and
+  unit-tested and is one `wrangler.jsonc` var; the app itself only fetches
+  discovery (open either way), so flipping would break the guide's own published
+  curl and any CDS Hooks Sandbox trial — not the demo UI. **Option B (declare warn
+  deliberate, two-line doc change) looks right, but it is a security posture and so
+  is Brad's call.**
 
 ### Blocked
 
@@ -219,13 +308,14 @@ a prioritisation call, not a discovery one.
   tables now carries the system and the bindable set, and fidelity qualifies exactly
   that pair. No column was stubbed for it — an empty column is a claim of its own.
 
-### Open but not assessed in this pass
+### Filed by other sessions, not triaged here
 
-Listed so they are not mistaken for triaged: **#301** (refreshed scenario fixtures
-never reach a browser that already seeded its store), **#230** (extend the mapper
-dispatch fallback past PHQ-9), **#231** (decide the CDS service's auth posture —
-flip JWT validation to require, or document warn mode). No read on these here;
-form your own.
+Listed so they are not mistaken for assessed: **#324** (the lethal-means measure
+scores "could not be done" and "not yet done" alike), **#322** (assessment pages
+carry two titles, heading order runs h2 → h2), **#326** (clinical review of ED
+Scenario 11's 10 proposed steps and 3 new patients — likely not a code task).
+#324 reads like a real measure-correctness bug and is probably the one to look at
+after #327.
 
 ## Standing repo rules that mattered most
 
@@ -250,6 +340,13 @@ form your own.
   files in that package, **including the shared `clinical-*` ones** — a per-type
   `ls` misses them, which is how "EpisodeOfCare has no `type` parameter" almost
   became a finding.
+- **A test can encode the wrong assumption, and then defend it.** #327 is the
+  sharpest example this repo has: `cssrsScreener.test.ts` states in its first
+  comment that "C-SSRS Screener items are plain booleans" and builds QRs to match,
+  so a green suite certified a mapper against input the app never produces. Tests
+  prove consistency with themselves. When the question is "does this read what the
+  app actually emits", read what the app emits — the form's own Live FHIR panel
+  answers it in ten seconds.
 - **Read the issue, then re-derive it.** Every issue picked up in this pass had at
   least one premise that had gone stale — #273's warning count, #272's element
   table, #304's claim that a doc would need the same edit. None was wrong when
