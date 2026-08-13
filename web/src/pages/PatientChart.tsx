@@ -392,6 +392,10 @@ export function PatientChart() {
         // precaution Flag is not a stage artifact. This index only answers
         // "can a walkthrough step link to it", and the ED exception branches
         // (patient-013, patient-014) reference all three.
+        // Consents were missing until #341: a walkthrough step that references
+        // one renders no link at all, because a ref this index cannot resolve
+        // is simply dropped. walkthroughRefs.test.ts asserts the two stay in
+        // step, and it is what caught this.
         workflowArtifacts: [
           ...(documentReferences ?? []),
           ...(serviceRequests ?? []),
@@ -399,6 +403,7 @@ export function PatientChart() {
           ...(flags ?? []),
           ...(tasks ?? []),
           ...(encounters ?? []),
+          ...(consents ?? []),
         ],
       }),
     [
@@ -412,6 +417,7 @@ export function PatientChart() {
       flags,
       tasks,
       encounters,
+      consents,
     ],
   )
 

@@ -87,6 +87,136 @@
       }
     },
     {
+      "id": "p011-bssa",
+      "questionnaireName": "Brief Suicide Safety Assessment",
+      "completedAt": "2026-08-02T09:20:00.000Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "p011-bssa",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/BSSA",
+        "encounter": {
+          "reference": "Encounter/p011-enc-ed"
+        },
+        "item": [
+          {
+            "linkId": "assessment",
+            "item": [
+              {
+                "linkId": "frequency",
+                "item": [
+                  {
+                    "linkId": "past-weeks-ideation",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "current-ideation",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373067005",
+                          "display": "No"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "plan",
+                "item": [
+                  {
+                    "linkId": "has-plan",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373067005",
+                          "display": "No"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "past-behavior",
+                "item": [
+                  {
+                    "linkId": "ever-attempt",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "safety-plan",
+            "item": [
+              {
+                "linkId": "needs-help-to-be-safe",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "disposition-section",
+            "item": [
+              {
+                "linkId": "disposition",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://spier.org/CodeSystem/bssa-disposition",
+                      "code": "further-evaluation-necessary",
+                      "display": "Further evaluation of risk is necessary (safety plan + mental health referral, preferably within 72 hours)"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "nurse-followup-planned",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "id": "p011-cssrs-full",
       "questionnaireName": "C-SSRS Full (Lifetime/Recent)",
       "completedAt": "2026-08-02T11:20:00.000Z",
@@ -112,6 +242,104 @@
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
         }
+      }
+    },
+    {
+      "id": "p011-cssrs-slc",
+      "questionnaireName": "C-SSRS Since Last Visit",
+      "completedAt": "2026-08-02T19:30:00.000Z",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "p011-cssrs-slc",
+        "status": "completed",
+        "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact",
+        "encounter": {
+          "reference": "Encounter/p011-enc-ed"
+        },
+        "item": [
+          {
+            "linkId": "ideation-section",
+            "item": [
+              {
+                "linkId": "q1",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q2",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q3",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q4",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              },
+              {
+                "linkId": "q5",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373066001",
+                      "display": "Yes"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "behavior-section",
+            "item": [
+              {
+                "linkId": "q6",
+                "answer": [
+                  {
+                    "valueCoding": {
+                      "system": "http://snomed.info/sct",
+                      "code": "373067005",
+                      "display": "No"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     }
   ],
@@ -168,10 +396,14 @@
       "resourceType": "Observation",
       "id": "p011-bssa-outcome",
       "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-bssa-disposition-result"
+        ],
         "tag": [
           {
             "system": "http://spier.org/CodeSystem/spier-pathway-stage",
-            "code": "clarify-risk"
+            "code": "clarify-risk",
+            "display": "Clarify Risk"
           }
         ]
       },
@@ -181,12 +413,29 @@
           "coding": [
             {
               "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-              "code": "survey"
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
             }
           ]
         }
       ],
       "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ],
         "text": "Brief suicide safety assessment — determination"
       },
       "subject": {
@@ -197,11 +446,200 @@
       },
       "effectiveDateTime": "2026-08-02T09:20:00.000Z",
       "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/bssa-disposition",
+            "code": "further-evaluation-necessary",
+            "display": "Further evaluation of risk is necessary"
+          }
+        ],
         "text": "Proceed to full suicide risk assessment before any disposition decision"
       },
       "note": [
         {
           "text": "Frequency of ideation, absence of a current plan or intent, one past attempt over a year ago, and intact supports. Non-acute positive, so the \"cannot leave until evaluated\" hold was not applied — that status is reserved for acute presentations."
+        }
+      ],
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "A",
+              "display": "Abnormal"
+            }
+          ],
+          "text": "Further evaluation of risk is necessary"
+        }
+      ],
+      "derivedFrom": [
+        {
+          "reference": "QuestionnaireResponse/p011-bssa"
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p011-risk-level-high",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-concept"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "define-risk-picture",
+            "display": "Define the Risk Picture"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-02T11:45:00.000Z",
+      "derivedFrom": [
+        {
+          "reference": "QuestionnaireResponse/p011-cssrs-full"
+        }
+      ],
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+            "code": "high",
+            "display": "High risk"
+          }
+        ],
+        "text": "High risk — set after the full C-SSRS within a SAFE-T framing"
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "H",
+              "display": "High"
+            }
+          ],
+          "text": "High risk"
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p011-reassessment-risk",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-concept"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-02T19:30:00.000Z",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+            "code": "high",
+            "display": "High risk"
+          }
+        ],
+        "text": "High risk — unchanged on the boarding reassessment"
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "H",
+              "display": "High"
+            }
+          ],
+          "text": "High risk"
+        }
+      ],
+      "note": [
+        {
+          "text": "Scheduled boarding reassessment. Risk unchanged; suicide precautions maintained."
+        }
+      ],
+      "derivedFrom": [
+        {
+          "reference": "QuestionnaireResponse/p011-cssrs-slc"
         }
       ]
     }
@@ -1003,7 +1441,6 @@
       "fhirArtifacts": [
         "Observation"
       ],
-      "profileGap": true,
       "relatedRefs": [
         "Observation/p011-asq-result"
       ]
@@ -1035,8 +1472,7 @@
         "Task",
         "ServiceRequest",
         "PlanDefinition"
-      ],
-      "profileGap": true
+      ]
     },
     {
       "id": "ed-11-3-1a",
@@ -1109,7 +1545,9 @@
       "fhirArtifacts": [
         "QuestionnaireResponse"
       ],
-      "profileGap": true
+      "relatedRefs": [
+        "QuestionnaireResponse/p011-bssa"
+      ]
     },
     {
       "id": "ed-11-4-0b",
@@ -1128,7 +1566,8 @@
       "profileGap": true,
       "relatedRefs": [
         "Observation/p011-bssa-outcome",
-        "Task/p011-bssa-routing"
+        "Task/p011-bssa-routing",
+        "QuestionnaireResponse/p011-bssa"
       ]
     },
     {
@@ -1161,7 +1600,10 @@
         "Condition",
         "Flag"
       ],
-      "profileGap": true
+      "relatedRefs": [
+        "Observation/p011-risk-level-high",
+        "Flag/p011-risk-flag"
+      ]
     },
     {
       "id": "ed-11-5-1a",
@@ -1176,7 +1618,9 @@
         "Task",
         "PlanDefinition"
       ],
-      "profileGap": true
+      "relatedRefs": [
+        "Task/p011-reassessment-due"
+      ]
     },
     {
       "id": "ed-11-5-1b",
@@ -1191,7 +1635,10 @@
         "Observation",
         "ServiceRequest"
       ],
-      "profileGap": true
+      "relatedRefs": [
+        "Observation/p011-reassessment-risk",
+        "QuestionnaireResponse/p011-cssrs-slc"
+      ]
     },
     {
       "id": "ed-11-6-1a",
@@ -1259,8 +1706,7 @@
       "fhirArtifacts": [
         "Procedure",
         "CarePlan"
-      ],
-      "profileGap": true
+      ]
     },
     {
       "id": "ed-11-6-2b",
@@ -1345,7 +1791,10 @@
         "Provenance"
       ],
       "profileGap": true,
-      "proposed": true
+      "proposed": true,
+      "relatedRefs": [
+        "Consent/p011-disclosure-consent"
+      ]
     },
     {
       "id": "ed-11-7-1a",
@@ -1361,7 +1810,6 @@
         "Appointment",
         "Communication"
       ],
-      "profileGap": true,
       "relatedRefs": [
         "ServiceRequest/p011-referral",
         "Appointment/p011-follow-up"
@@ -1432,7 +1880,6 @@
         "Communication",
         "Consent"
       ],
-      "profileGap": true,
       "proposed": true,
       "relatedRefs": [
         "Communication/p011-outreach-48h"
@@ -1452,7 +1899,6 @@
         "Observation",
         "CarePlan"
       ],
-      "profileGap": true,
       "relatedRefs": [
         "Communication/p011-caring-contact"
       ]
@@ -1470,8 +1916,7 @@
         "Task",
         "Communication",
         "Flag"
-      ],
-      "profileGap": true
+      ]
     }
   ],
   "encounters": [
@@ -1641,6 +2086,183 @@
       "authoredOn": "2026-08-02T09:20:00.000Z",
       "reasonReference": {
         "reference": "Observation/p011-bssa-outcome"
+      }
+    },
+    {
+      "resourceType": "Task",
+      "id": "p011-reassessment-due",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-safety-task"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "completed",
+      "intent": "plan",
+      "code": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-safety-task-type",
+            "code": "reassessment-due",
+            "display": "Reassessment due"
+          }
+        ]
+      },
+      "description": "Reassess suicide risk while boarding, per the high-tier cadence",
+      "for": {
+        "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
+      "basedOn": [
+        {
+          "reference": "EpisodeOfCare/p011-episode"
+        }
+      ],
+      "authoredOn": "2026-08-02T12:10:00.000Z",
+      "restriction": {
+        "period": {
+          "end": "2026-08-09T23:59:59.000Z"
+        }
+      }
+    }
+  ],
+  "flags": [
+    {
+      "resourceType": "Flag",
+      "id": "p011-risk-flag",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-suicide-risk-flag"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "track-risk-over-time",
+            "display": "Track Risk Over Time"
+          }
+        ]
+      },
+      "status": "active",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/flag-category",
+              "code": "safety",
+              "display": "Safety"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-risk-flag",
+            "code": "active-suicide-risk-episode",
+            "display": "Active suicide-safer care episode"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
+      "period": {
+        "start": "2026-08-02T11:45:00.000Z"
+      }
+    }
+  ],
+  "consents": [
+    {
+      "resourceType": "Consent",
+      "id": "p011-disclosure-consent",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-information-sharing-consent"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "coordinate-handoffs",
+            "display": "Coordinate Handoffs"
+          }
+        ]
+      },
+      "status": "active",
+      "scope": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/consentscope",
+            "code": "patient-privacy",
+            "display": "Privacy Consent"
+          }
+        ]
+      },
+      "policyRule": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/consentpolicycodes",
+            "code": "hipaa-auth",
+            "display": "HIPAA Authorization"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-consent-category",
+              "code": "suicide-safety-sharing",
+              "display": "Suicide-safety information sharing"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "patient": {
+        "reference": "Patient/patient-011"
+      },
+      "dateTime": "2026-08-03T09:15:00.000Z",
+      "provision": {
+        "type": "permit",
+        "period": {
+          "start": "2026-08-03",
+          "end": "2026-11-03"
+        },
+        "purpose": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ActReason",
+            "code": "TREAT",
+            "display": "treatment"
+          }
+        ]
       }
     }
   ]

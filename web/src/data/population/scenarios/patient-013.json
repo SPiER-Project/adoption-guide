@@ -551,7 +551,6 @@
       "fhirArtifacts": [
         "Observation"
       ],
-      "profileGap": true,
       "relatedRefs": [
         "Observation/p013-asq-result"
       ]
