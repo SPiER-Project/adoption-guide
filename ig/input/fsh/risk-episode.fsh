@@ -732,7 +732,6 @@ Description: "The chart banner for an open episode. Carries no clinical detail b
 Usage: #example
 * meta.tag[+] = SPiERPathwayStage#track-risk-over-time
 * status = #active
-* category[+] = http://terminology.hl7.org/CodeSystem/flag-category#safety
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = SuicideRiskFlagCodes#active-suicide-risk-episode "Active suicide-safer care episode"
 * subject = Reference(Patient/example)

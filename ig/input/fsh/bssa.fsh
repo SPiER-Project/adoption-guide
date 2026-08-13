@@ -145,9 +145,10 @@ Description: "An Observation representing the clinician-selected disposition of 
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
 * subject only Reference(Patient)
@@ -203,7 +204,6 @@ Title: "Example — BSSA Disposition: Further Evaluation Necessary"
 Description: "Sample Observation showing a 'further evaluation of risk is necessary' BSSA disposition for an example patient. Used as a conformance fixture and for human reviewers."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
@@ -218,7 +218,6 @@ Title: "Example — BSSA Disposition: Emergency Psychiatric Evaluation"
 Description: "Sample Observation showing an 'emergency psychiatric evaluation' BSSA disposition — the most urgent tier (imminent risk; send to ED, do not leave alone)."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)

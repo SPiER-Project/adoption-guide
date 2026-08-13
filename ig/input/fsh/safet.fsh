@@ -107,9 +107,10 @@ Description: "An Observation representing the clinician-determined suicide-risk 
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
 * subject only Reference(Patient)
@@ -165,7 +166,6 @@ Title: "Example — SAFE-T Risk Level: Moderate"
 Description: "Sample Observation showing a moderate SAFE-T risk-level determination for an example patient. The value is the shared-tier code, so this Observation is directly comparable across instruments."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)

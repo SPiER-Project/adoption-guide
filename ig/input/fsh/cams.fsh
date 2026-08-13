@@ -130,9 +130,10 @@ Description: "Integer rating (1–5) for one of the six Suicide Status Form (SSF
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code from CAMSSSFMeasure (required)
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
 * status MS
@@ -369,9 +370,10 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 * status MS
 * subject MS
 * category MS
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// SNOMED treatment-escalation-plan artifact type + the Gravity-pattern domain
+// tag, so this resource is retrievable with the rest of the suicide-safer care
+// record by category alone (#262).
+* insert SafetyPlanAndSuicideRiskCategory
 * activity MS
 * activity.detail.code MS
 
@@ -418,9 +420,10 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 * status MS
 * subject MS
 * category MS
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// SNOMED treatment-escalation-plan artifact type + the Gravity-pattern domain
+// tag, so this resource is retrievable with the rest of the suicide-safer care
+// record by category alone (#262).
+* insert SafetyPlanAndSuicideRiskCategory
 * activity MS
 * activity.detail.code MS
 
@@ -439,9 +442,10 @@ Description: "The disposition decision from the CAMS SSF-5 Outcome/Disposition f
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
 * subject only Reference(Patient)
@@ -611,7 +615,6 @@ Title: "Example — CAMS SSF: Psychological Pain 4/5"
 Description: "Sample SSF Vital Observation showing elevated psychological pain reported during a CAMS Section A assessment."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = CAMSSSFMeasureCodes#psychological-pain "Psychological Pain"
 * subject = Reference(Patient/example)
@@ -642,7 +645,6 @@ Description: "Sample CAMS Stabilization Plan CarePlan with all five sections pop
 Usage: #example
 * status = #active
 * intent = #plan
-* category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * activity[+].detail
@@ -682,7 +684,6 @@ Description: "Sample CAMS Therapeutic Worksheet CarePlan from an interim session
 Usage: #example
 * status = #active
 * intent = #plan
-* category[+] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
 * activity[+].detail
@@ -709,7 +710,6 @@ Title: "Example — CAMS Outcome/Disposition: Resolved"
 Description: "Sample disposition Observation from a CAMS final session where resolution criteria were met and the episode was closed as resolved."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)

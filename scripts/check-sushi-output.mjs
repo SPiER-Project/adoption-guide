@@ -11,11 +11,28 @@
  *   warn  Sliced element Observation.category is being accessed via numeric
  *         index. Use slice names in rule paths when possible.
  *
- * That is deliberate and is argued at length in `ig/input/fsh/concept-layer.fsh`
- * — silencing it would mean declaring a named slice for every standard category
- * on ~28 profiles, further constraining each one and pinning each instance to a
- * single standard category several of them do not have. A real conformance cost
- * paid for a quiet linter. **This gate is not a step toward fixing them.**
+ * ⚠️ **That reasoning was wrong, and the warnings were not harmless.** This
+ * docblock used to argue the warnings should be left alone because naming the
+ * slices would "over-constrain ~28 profiles" for a quiet linter. In fact the
+ * named slice on the domain tag was resolving onto index 0 and **overwriting the
+ * value `category[+]` had just written there** — 23 of 25 example Instances were
+ * silently losing `survey` / `procedure` / `problem-list-item` / the SNOMED
+ * artifact code. Nothing caught it, because a missing optional category is not a
+ * validation error: `validate-fhir.mjs` reporting 0 errors was never evidence the
+ * category survived.
+ *
+ * Those profiles now declare their standard category as a named slice too (see
+ * `SurveyCategorySlice` and friends in `ig/input/fsh/concept-layer.fsh`), which
+ * fixes the data loss, removes the warning at its source, and — for `survey` —
+ * makes the instrument Observations conformant to
+ * `us-core-observation-screening-assessment`. That took the count from 31 to 6.
+ *
+ * The 6 that remain are genuinely benign and structurally different: they are
+ * `Communication.category[+].text` assignments, which write a *sub-element* of
+ * index 0, so the domain coding merges into the same CodeableConcept instead of
+ * replacing it. Text and coding both survive. Verify that before assuming a new
+ * numeric-index warning is equally harmless — the two cases look identical in
+ * SUSHI's output and only one of them loses data.
  *
  * The gap it closes is that the in-source comment tells a human reader to leave
  * the warnings alone, and nothing told CI. The real 32nd warning now arrives in
@@ -59,12 +76,17 @@ const igDir = resolve(root, 'ig')
 const ALLOWED = [
   {
     id: 'sliced-category-numeric-index',
-    // Any resource type: Observation, CarePlan, Communication and Condition all
-    // produce it today.
-    pattern: /^Sliced element [A-Za-z]+\.category is being accessed via numeric index\./,
-    why: '#271: .category is sliced #open for the concept-domain tag, and example '
-       + 'Instances set their standard category by numeric index. Silencing it '
-       + 'would over-constrain ~28 profiles — see ig/input/fsh/concept-layer.fsh.',
+    // Communication only, now. Observation/CarePlan/Condition used to produce
+    // this too — and were losing data when they did; those profiles now name
+    // their standard category slice. See the docblock above before widening
+    // this back out to `[A-Za-z]+`.
+    pattern: /^Sliced element Communication\.category is being accessed via numeric index\./,
+    why: 'Communication example Instances set `category[+].text` — a SUB-ELEMENT of '
+       + 'index 0, so the concept-domain coding merges into that same '
+       + 'CodeableConcept rather than replacing it. Both survive; verified against '
+       + 'the generated resources. This is NOT the same case as a whole-value '
+       + '`category[+] = <coding>`, which silently lost the coding until the named '
+       + 'slices landed — see ig/input/fsh/concept-layer.fsh.',
   },
 ]
 

@@ -115,9 +115,10 @@ Description: "Derived risk-level Observation produced by either the C-SSRS Scree
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7
 * subject 1..1
 * subject only Reference(Patient)
@@ -263,7 +264,6 @@ Title: "Example — C-SSRS Screener: High Risk"
 Description: "Sample risk-level Observation from a C-SSRS screener with item 5 (active ideation with specific plan and intent) endorsed."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
@@ -281,7 +281,6 @@ Title: "Example — C-SSRS Full: Moderate Risk"
 Description: "Sample risk-level Observation from a full C-SSRS with item 3 (active ideation with methods, no intent) endorsed in the recent timeframe."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
@@ -329,7 +328,6 @@ Title: "Example — C-SSRS Since Last Visit: Moderate Risk"
 Description: "Sample risk-level Observation from a C-SSRS Since Last Visit assessment with item 3 (active ideation with methods, no intent) endorsed over the interval since the prior contact."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
@@ -375,7 +373,6 @@ Title: "Example — C-SSRS Pediatric: Low Risk"
 Description: "Sample risk-level Observation from a pediatric/adolescent C-SSRS screener with only item 1 (wish to be dead) endorsed."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
