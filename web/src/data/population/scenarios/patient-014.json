@@ -515,7 +515,6 @@
         "Observation",
         "CareTeam"
       ],
-      "profileGap": true,
       "relatedRefs": [
         "Observation/p014-room-resweep"
       ]
@@ -557,7 +556,6 @@
         "Task",
         "Flag"
       ],
-      "profileGap": true,
       "relatedRefs": [
         "Communication/p014-outreach-attempt",
         "Task/p014-followup-outreach"

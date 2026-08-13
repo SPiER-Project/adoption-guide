@@ -56,7 +56,11 @@
  *               steps they contain.
  *
  *   demo      — the source's declared linkage to patient-011 is true in both
- *               directions. A step claiming `walkthrough: "ed-11-2-1a"` must
+ *               directions, and the two flags each step carries in BOTH files —
+ *               `proposed` and `profileGap` — agree. `profileGap` is the same
+ *               claim as this document's `**gap**` binding; fifteen of them had
+ *               drifted apart (#341), every one showing the chart a gap badge
+ *               for work that had shipped. A step claiming `walkthrough: "ed-11-2-1a"` must
  *               find that id; a step declaring `walkthrough: null` must carry a
  *               `walkthroughGapReason` and must NOT be narrated after all; and
  *               any walkthrough step whose `step` is absent from the scenario
@@ -589,6 +593,18 @@ function checkDemoLinkage(doc, label) {
         problems.push(
           `${at}: scenario says ${isProposed(step) ? 'proposed' : 'not proposed'}, ` +
             `but ${ref} says the opposite`,
+        )
+      } else if (Boolean(entry.profileGap) !== isGap(step)) {
+        // Same class as `proposed`, and the one that actually drifted: the
+        // walkthrough's `profileGap` and this document's `**gap**` binding are
+        // the SAME claim about the SAME step — "SPiER has no profile for this
+        // yet" — kept in two files. Fifteen of them disagreed, all in the
+        // direction of the chart showing a gap badge for work that shipped
+        // (#341). The document is the audited side, so it wins.
+        problems.push(
+          `${at}: this document says ${isGap(step) ? 'gap' : 'no gap'}, but ${ref} ` +
+            `sets profileGap: ${Boolean(entry.profileGap)} — they are the same claim, ` +
+            `so one of them is telling a reader something untrue`,
         )
       }
     }
