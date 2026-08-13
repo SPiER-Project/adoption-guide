@@ -25,7 +25,7 @@
     "check:scenarios:resources": "node scripts/check-scenario-resources.mjs",
     "pretest": "npm run copy-fhir",
     "test": "vitest run",
-    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:tokens && npm run check:template && npm run check:ucum && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm run check:readers && npm run check:scenarios && npm run check:dates && npm run check:measures && npm run check:reassessment && npm test",
+    "verify": "npm run copy-fhir -- --force && tsc -b && npm run lint && npm run lint:css && npm run check:tokens && npm run check:template && npm run check:ucum && npm run check:fhir-r5 && npm run check:crosswalk && npm run check:extract && npm run check:catalog && npm run check:stages && npm run check:fallback && npm run check:readers && npm run check:scenarios && npm run check:dates && npm run check:measures && npm run check:reassessment && npm test",
     "preview": "vite preview",
     "check:measures": "node scripts/check-measures.mjs",
     "check:codings": "node scripts/check-codings.mjs",
@@ -33,7 +33,8 @@
     "check:dates": "node scripts/shift-scenario-dates.mjs",
     "shift-dates": "node scripts/shift-scenario-dates.mjs --apply",
     "emit:runtime-fhir": "vitest run src/lib/runtimeFhir.emit.test.ts",
-    "check:ucum": "node scripts/check-ucum-stub.mjs"
+    "check:ucum": "node scripts/check-ucum-stub.mjs",
+    "check:fhir-r5": "node scripts/check-r5-context-shim.mjs"
   },
   "dependencies": {
     "@formbox/hs-theme": "^0.2.1",

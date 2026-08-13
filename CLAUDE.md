@@ -13,7 +13,7 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, all ten drift checks, and the unit tests in sequence. The individual pieces:
+In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, all eleven drift checks, and the unit tests in sequence. The individual pieces:
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
@@ -23,6 +23,8 @@ npm run check:tokens   # every var(--token) resolves to a real definition
 npm run check:template # page template: one header implementation, one owner of the page inset
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
                        # and the shim still covers every method its consumers call
+npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
+                       # and the renderer still imports the specifier we alias
 npm run check:crosswalk  # concept-crosswalk validation
 npm run check:extract    # observation-extract validation
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
@@ -444,12 +446,31 @@ because a non-response must stay `undefined` rather than becoming a "No".
 ## Gotchas
 
 - **Fresh worktrees need `npm install` in `web/`** before any npm script runs.
-- **`@lhncbc/ucum-lhc` is aliased to a shim** (`web/src/shims/ucum-lhc.ts`, wired
-  in `vite.config.ts` and therefore in vitest too). The full UCUM units library
-  was 557KB raw / 117KB gzip — **30% of the chunk every assessment route loads**
-  — for a conversion nothing here performs: all 18 Questionnaires are
-  choice/group/string/text/integer/display, and their only two FHIRPath
-  expressions are unit-free integer sums.
+- **Two of `@formbox/renderer`'s dependencies are aliased to shims** in
+  `vite.config.ts` (`web/src/shims/`, and therefore in vitest too), because the
+  chunk every assessment route loads carried 47% of its gzip in code this app
+  cannot execute: **391 → 208 KB gzip**. Each has a gate, each gate treats "not
+  aliased" as "nothing to guard" and passes — so the shared alias reader
+  (`web/scripts/lib/vite-alias.mjs`) **throws** on an alias form it cannot parse
+  rather than reporting an absence. Do not soften that: a quiet parse failure
+  turns both gates green over unguarded shims.
+  ⚠️ **The aliases are anchored regexes in the array form, not the object form.**
+  Object aliases match by *prefix*, so a `fhirpath` entry also swallows
+  `fhirpath/fhir-context/r4` and resolves it to `<shim>.ts/fhir-context/r4`.
+  That mistake cost a debugging round; `$` is the fix.
+  - **`fhirpath/fhir-context/r5`** → an empty object (575KB raw / 67KB gzip). The
+    renderer statically imports both models and picks by its `fhirVersion` prop,
+    which is the literal `"r4"` at both call sites. `npm run check:fhir-r5`
+    fails on any other `fhirVersion` (including a computed one it cannot read)
+    **and** if the renderer stops importing that exact specifier — the silent
+    failure being an upgrade that renames it, putting the 67KB back with the app
+    behaving completely normally. That rule first shipped as a substring
+    `includes()` and passed a planted rename to `…/r5-renamed`; it matches the
+    whole quoted specifier now.
+  - **`@lhncbc/ucum-lhc`** → a throwing shim (557KB raw / 117KB gzip). The full
+    UCUM units library, for a conversion nothing here performs: all 18
+    Questionnaires are choice/group/string/text/integer/display, and their only
+    two FHIRPath expressions are unit-free integer sums.
   ⚠️ **It is `fhirpath` that needs UCUM, not the renderer** — `fhirpath` requires
   it *eagerly at module scope* (`UcumLhcUtils.getInstance()` in three of its
   files) and only uses it for Quantity arithmetic; `@formbox/renderer` builds it

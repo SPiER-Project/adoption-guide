@@ -252,19 +252,60 @@ RuleSet: SafetyPlanAndSuicideRiskCategory
 * insert TreatmentEscalationPlanSlice
 * insert SuicideRiskDomainSlice
 
-// `suicidePreventionNote` is 0..1, not 1..1, on purpose. Naming the slice is what
-// stops the domain tag from clobbering the coding; requiring it would be a
-// separate conformance decision, and the data does not support it — of the two
-// Stanley-Brown safety plans in the population scenarios, `patient-001` carries
-// `87626-8` and `patient-011` does not. The HL7 validator is what surfaced that
-// (`check:scenarios` sees profile `min` but not slice-level cardinality — the
-// division of labour CLAUDE.md documents). Because min is 0, SUSHI will not
-// auto-populate it, so the two Instances that do carry the code assign it by
-// SLICE NAME rather than by numeric index.
+// `suicidePreventionNote` is 1..1 — required on the two narrative safety plans
+// (Stanley-Brown, CRP) and on nothing else. Naming the slice is what stops the
+// domain tag from clobbering the coding; requiring it is what makes the profile
+// itself the gate.
+//
+// #325 shipped this as 0..1 for two reasons, and both are now settled:
+//
+//   1. The demo data disagreed with itself — of the two profile-claiming
+//      Stanley-Brown plans in the population scenarios, `patient-001` carried
+//      `87626-8` and `patient-011` did not. #329 fixed that. Do not cite it again.
+//   2. Requiring it makes every conforming implementer carry a *document-type*
+//      concept in `CarePlan.category`. That cost is real and is accepted rather
+//      than dismissed — see the caveat below.
+//
+// The caveat, which the constraint does not erase: `87626-8`'s most precise home
+// is `Composition.type` / `DocumentReference.type`. SPiER carries it in
+// `CarePlan.category` — an example binding, so this is legal — purely so the plan
+// is discoverable by suicide-prevention consumers. A consumer must NOT read it as
+// a claim that the CarePlan is a document. The same caveat is recorded on the
+// data-dictionary entry in `web/src/data/catalog/dataElements.ts`, and it is the
+// reason this slice is required on the two NARRATIVE plans only; the CAMS plans
+// share the runtime factory but do not carry the code, and their profiles use the
+// plain `SafetyPlanAndSuicideRiskCategory` rule set above.
+//
+// What 1..1 buys, stated precisely, because it is NOT "the build now catches this
+// everywhere". Because min is 1 and the value is fixed, SUSHI *auto-populates* the
+// slice — verified by deleting the explicit assignment from
+// `ExampleStanleyBrownSafetyPlan` and recompiling: `87626-8` still appears in the
+// generated JSON, 0 errors. So an FSH-authored Instance can never violate this
+// constraint, and the IG examples gain no protection from it.
+//
+// Where it bites is HAND-AUTHORED FHIR, which never passes through SUSHI: the
+// population scenarios and `FHIR-Resources/*.json`. That is precisely the
+// `patient-011` case — the omission was invisible to every offline gate
+// (`check:scenarios` reads profile `min` but not slice-level cardinality, the
+// division of labour CLAUDE.md documents) and surfaced only in the Java validator,
+// as a warning-free silence until someone read the output. Now it is an error.
+// Break-tested: deleting the category from `patient-011` fails
+// `scripts/validate-fhir.mjs` with a slice-cardinality error.
+//
+// SPiER's runtime emits the code unconditionally on both narrative plans
+// (`carePlanMappers/stanleyBrown.ts`, `crp.ts`), so nothing SPiER generates has to
+// change.
+//
+// The explicit `category[suicidePreventionNote] = …` assignments in
+// `stanley-brown.fsh` and `crp.fsh` are redundant after this but are kept: they are
+// assigned by SLICE NAME, so they resolve onto the same slice rather than appending
+// a duplicate (checked — the generated examples carry exactly three categories),
+// and they keep the example readable as FSH instead of relying on an invisible
+// auto-fill.
 RuleSet: SafetyPlanNoteAndSuicideRiskCategory
 * insert SuicideRiskDomainSlicing
 * insert TreatmentEscalationPlanSlice
-* category contains suicidePreventionNote 0..1
+* category contains suicidePreventionNote 1..1
 * category[suicidePreventionNote] = http://loinc.org#87626-8 "Suicide prevention note"
 * category[suicidePreventionNote] ^short = "LOINC document type — suicide prevention note"
 * insert SuicideRiskDomainSlice
