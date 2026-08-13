@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -9,6 +10,18 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE ?? '/',
+  resolve: {
+    alias: {
+      // `fhirpath` (via @formbox/renderer) pulls in the full UCUM units library
+      // and instantiates it at import time, though nothing here has a quantity
+      // item to convert: 557KB raw / 117KB gzip, 30% of the chunk every
+      // assessment route loads. The shim satisfies the API and throws if it is
+      // ever actually used; `npm run check:ucum` is what keeps that safe, and
+      // carries the full rationale alongside src/shims/ucum-lhc.ts.
+      // Applies to vitest too, which reads this config.
+      '@lhncbc/ucum-lhc': fileURLToPath(new URL('./src/shims/ucum-lhc.ts', import.meta.url)),
+    },
+  },
   // Honor a PORT assigned by the environment (e.g. a preview harness) so the
   // dev server binds where callers expect it; otherwise Vite's default 5173.
   server: process.env.PORT ? { port: Number(process.env.PORT) } : undefined,
