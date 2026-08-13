@@ -84,7 +84,12 @@
  *
  *               "Built" is read from the app rather than asserted here: a tool
  *               is built when `tool-ui-metadata.ts` gives it a launch path AND
- *               that path resolves to a route in App.tsx. GitHub's own
+ *               that path resolves to a route in App.tsx. A tool with no launch
+ *               action is never "built", which is what keeps the three genuine
+ *               placeholders (TL-026, TL-028 licensing no-go, TL-029) out of it
+ *               — they declare none. Today 34 of 34 tools with a launch action
+ *               resolve, and the check prints that count so a wrong parse shows
+ *               up as a suspicious number rather than as silence. GitHub's own
  *               `status:` labels are the authority, but they live outside the
  *               repo, so a claim that contradicts the running app is the
  *               strongest offline evidence available — and it is the direction
@@ -703,12 +708,15 @@ function checkToolStatusClaims(doc, label) {
     }
   }
 
+  let claims = 0
+
   for (const { step } of allSteps(doc)) {
     const at = `${label} ${step.step}`
     const binding = String(step.profileBinding ?? '')
 
     // A `status:planned` claim sits next to the TL link it describes.
     for (const m of binding.matchAll(/\[(TL-\d+)[^\]]*\][^;]*?status:planned/g)) {
+      claims++
       if (built.has(m[1])) {
         problems.push(
           `${at}: says ${m[1]} is \`status:planned\`, but it launches at ` +
@@ -719,6 +727,7 @@ function checkToolStatusClaims(doc, label) {
     }
 
     for (const gating of step.gatingIssues ?? []) {
+      claims++
       const tool = toolForIssue.get(gating.number)
       if (tool && built.has(tool)) {
         problems.push(
@@ -728,6 +737,13 @@ function checkToolStatusClaims(doc, label) {
       }
     }
   }
+
+  // Printed, not silent: a gate that says nothing on success is indistinguishable
+  // in a CI log from one that read nothing at all.
+  console.log(
+    `  ${label}: ${claims} tool-status claim(s) checked against ` +
+      `${built.size} launchable tool(s) of ${byTool.size} with a launch action`,
+  )
 
   return problems
 }
