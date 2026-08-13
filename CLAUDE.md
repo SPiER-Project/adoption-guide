@@ -188,6 +188,27 @@ promotions are all **derived** from the per-step fields rather than restated,
 and `--check` asserts the two directions of that (a `**gap**` binding must name
 a `profileGaps` or `gatingIssues` entry, and vice versa).
 
+⚠️ **A gap claim in that document is a statement to the HL7 working group, and
+four of them stayed true-looking long after they stopped being true (#341).**
+The workbook described BSSA, SAFE-T, Means Counseling and Transition as
+`status:planned` when all four were built, shipped and launchable in the demo —
+which is also what made a missing demo artifact read as intentional (#324). So
+`--check` now gates tool-status claims: **a `status:planned` claim, or a
+gating-tool entry, must not name a tool the app can already launch.** "Built" is
+read from the app — a TL id in `tool-ui-metadata.ts` with a launch path that
+resolves to a route in `App.tsx` — because GitHub's `status:` labels are the
+real authority but live outside the repo. Only that direction is an error; a
+built tool the document never mentions is not.
+
+Both parsers **fail when they read nothing** rather than passing over an unread
+file, which is the #232 / #261 failure mode and was planted-and-verified before
+this shipped. When a gap genuinely closes, promote the binding (name the profile
+and link its FSH), delete the `profileGaps` entries, drop the gating entry, and
+rebuild — the consolidated gap list and the gating-promotions list are derived,
+so neither is edited by hand. Where a profile covers only *part* of a claim,
+narrow the text to what is still missing instead of promoting it whole; eight of
+the sixteen #341 corrections were that shape.
+
 ⚠️ **Ten of the 37 steps are SPiER proposals, not the scenario the working group
 circulated** — `origin: "spier-proposed"`, rendered `11.2-1C (proposed)`
 everywhere the id appears, each owing a `rationale`. Do not drop the marker to
