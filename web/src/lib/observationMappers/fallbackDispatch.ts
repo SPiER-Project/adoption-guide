@@ -26,6 +26,7 @@
  * guards against drift (see CLAUDE.md "Drift-prone hand-duplicated values").
  */
 import { answerCodingForOrdinal, ordinalForAnswer } from '../../data/questionnaires'
+import { getYesNoBoolean } from './shared'
 import type {
   Coding,
   QuestionnaireResource,
@@ -50,22 +51,131 @@ export interface InstrumentSignature {
   itemCodes: ItemCodeMapping[]
   /** Minimum item-code matches to accept a Tier-2 recognition. */
   minCodeMatches: number
+  /**
+   * How this instrument's mapper READS an answer — which is not always how its
+   * Questionnaire declares one, and normalization has to satisfy the mapper.
+   *
+   *  - `ordinal`: the mapper joins the answer code back to an `ordinalValue`
+   *    weight (PHQ-9, via `ordinalForAnswer`). A bare integer can be turned into
+   *    the SPiER answer coding for that weight.
+   *  - `boolean`: the mapper reads `answer.valueBoolean` (`getBooleanAnswer` —
+   *    the whole C-SSRS family). Its Questionnaire declares SNOMED Yes/No
+   *    `answerOption` codings with no `ordinalValue`, so neither ordinal helper
+   *    resolves anything here; the normalized QR must carry booleans instead.
+   *    Recorded rather than papered over: the synthetic QR is transient (never
+   *    persisted, never validated against the Questionnaire it names), so this
+   *    is safe — but the mapper/Questionnaire mismatch it reflects is real, and
+   *    lives on `getBooleanAnswer`, not here.
+   */
+  answerKind: 'ordinal' | 'boolean'
   /** Optional Tier-3 answer-shape heuristic. */
   shape?: { itemCount: number; ordinalRange: [number, number] }
 }
 
 /**
- * Supported instruments. Phase 1 ships PHQ-9 only: it has real published LOINC
- * per-item codes (44250-9…44262-4, panel 44249-1) so Tier-2 recognition is
- * reliable. Instruments without per-item LOINC (e.g. ASQ — SPiER-local codes
- * only) are Tier-3-only and deferred to Phase 2.
+ * Supported instruments — those with real published LOINC per-item codes, which
+ * is what makes Tier-2 recognition honest rather than a guess.
+ *
+ * ⚠️ **ASQ is deliberately absent, and this is where that decision is recorded
+ * (#230).** ASQ publishes NO per-item LOINC codes: its items carry SPiER-local
+ * `asq-item` codes, and the Questionnaire's own panel code carries a
+ * `coding-verification-status` of `no-standard-binding` saying exactly that. The
+ * only LOINC on the form is `93374-7` on the *result*, which ASQ shares with the
+ * C-SSRS forms and every other harmonized tier Observation — recognizing an
+ * instrument from it would identify the wrong one about as often as the right
+ * one. Inventing item codes to make Tier 2 work is what #220 cost the repo (six
+ * fabricated codes plus one that resolved to healthcare-agent disclosure
+ * authority and so validated cleanly while meaning the wrong thing). So a
+ * foreign *item-level* ASQ belongs to the ConceptMap path (#77 / #92), which
+ * translates a vocabulary instead of guessing which form produced it. The Tier-3
+ * shape heuristic could match ASQ's 5 yes/no items, but it is default-off and
+ * "5 boolean items" describes far too many instruments to turn on for this one.
  *
  * NOTE for the drift check parser (check-fallback-signatures.mjs): keep each
  * itemCodes entry on one line with `code` before `linkId`.
  */
 export const INSTRUMENT_SIGNATURES: InstrumentSignature[] = [
+  /**
+   * The C-SSRS **full** lifetime/recent form. Declared before the screener
+   * because it is the more specific of the two — see `recognizeInstrument` for
+   * why order alone is not what decides it.
+   *
+   * Its 19 item codes are timeframe-specific, and the screener's 7 are a strict
+   * SUBSET of them (the screener asks the "recent" variants plus the preparatory
+   * pair). So every screener QR also matches this signature, and vice versa —
+   * which is exactly the ambiguity the scoring rule below exists to settle.
+   */
+  {
+    spierCanonical: `${SPIER_Q}/C-SSRS-Full-Lifetime-Recent`,
+    itemCodes: [
+      { system: 'http://loinc.org', code: '93299-6', linkId: 'q1-lifetime' },
+      { system: 'http://loinc.org', code: '93246-7', linkId: 'q1-recent' },
+      { system: 'http://loinc.org', code: '93298-8', linkId: 'q2-lifetime' },
+      { system: 'http://loinc.org', code: '93247-5', linkId: 'q2-recent' },
+      { system: 'http://loinc.org', code: '93297-0', linkId: 'q3-lifetime' },
+      { system: 'http://loinc.org', code: '93248-3', linkId: 'q3-recent' },
+      { system: 'http://loinc.org', code: '93296-2', linkId: 'q4-lifetime' },
+      { system: 'http://loinc.org', code: '93249-1', linkId: 'q4-recent' },
+      { system: 'http://loinc.org', code: '93295-4', linkId: 'q5-lifetime' },
+      { system: 'http://loinc.org', code: '93250-9', linkId: 'q5-recent' },
+      { system: 'http://loinc.org', code: '93253-3', linkId: 'actual-attempt-lifetime' },
+      { system: 'http://loinc.org', code: '93255-8', linkId: 'actual-attempt-recent' },
+      { system: 'http://loinc.org', code: '93259-0', linkId: 'interrupted-lifetime' },
+      { system: 'http://loinc.org', code: '93261-6', linkId: 'interrupted-recent' },
+      { system: 'http://loinc.org', code: '93263-2', linkId: 'aborted-lifetime' },
+      { system: 'http://loinc.org', code: '93265-7', linkId: 'aborted-recent' },
+      { system: 'http://loinc.org', code: '93267-3', linkId: 'preparatory-lifetime' },
+      { system: 'http://loinc.org', code: '93269-9', linkId: 'preparatory-recent' },
+      // ⚠️ 18 of the form's 19 LOINC items, and the missing one is deliberate:
+      // `actual-lethality` (93271-5) is a 0–5 damage SCALE on a SPiER-local code
+      // system, not a yes/no question. Listing it here would make every foreign
+      // full-form QR that answered it fail the boolean normalization and be
+      // refused outright. Do not "complete" this list without giving the
+      // signature a way to describe a per-item answer kind.
+    ],
+    // A lifetime/recent pair plus one behaviour item: enough to be this form
+    // rather than the screener, without demanding a fully-answered instrument.
+    minCodeMatches: 3,
+    answerKind: 'boolean',
+  },
+  /**
+   * The C-SSRS 6-item screener family.
+   *
+   * **One signature covers both the adult Screener and the Pediatric form, on
+   * purpose.** Their Questionnaires carry byte-identical LOINC item codes (8 of
+   * 8), so no amount of code evidence can tell them apart — a second entry could
+   * never win a comparison, it would only make the tie-break look like an
+   * accident of array order. Mapping the family to the adult canonical is
+   * harmless because `cssrsPediatric.ts` delegates to `mapCSSRSScreenerCore`:
+   * both forms derive the same Observations and the same risk tier, and only the
+   * tool *label* differs. A foreign pediatric QR is therefore labelled
+   * "C-SSRS Screener", which is a naming imprecision, not a clinical one.
+   *
+   * `risk-level` (93374-7) is excluded deliberately: it is the form's own result
+   * code, shared with ASQ and the full form, so admitting it would let an
+   * unrelated instrument's summary Observation recognize this one.
+   */
+  {
+    spierCanonical: `${SPIER_Q}/C-SSRS-Screener`,
+    itemCodes: [
+      { system: 'http://loinc.org', code: '93246-7', linkId: 'q1' },
+      { system: 'http://loinc.org', code: '93247-5', linkId: 'q2' },
+      { system: 'http://loinc.org', code: '93248-3', linkId: 'q3' },
+      { system: 'http://loinc.org', code: '93249-1', linkId: 'q4' },
+      { system: 'http://loinc.org', code: '93250-9', linkId: 'q5' },
+      { system: 'http://loinc.org', code: '93267-3', linkId: 'q6' },
+      { system: 'http://loinc.org', code: '93269-9', linkId: 'q6-recent' },
+    ],
+    // Low on purpose: q3–q5 and q6-recent are `enableWhen`-gated on the form, so
+    // a legitimately-administered screener can carry as few as two answered
+    // items. Requiring more would refuse real conditional QRs; the scoring rule
+    // below is what keeps a low floor from mis-recognizing a different form.
+    minCodeMatches: 2,
+    answerKind: 'boolean',
+  },
   {
     spierCanonical: `${SPIER_Q}/PHQ-9`,
+    answerKind: 'ordinal',
     itemCodes: [
       { system: 'http://loinc.org', code: '44250-9', linkId: 'q1' },
       { system: 'http://loinc.org', code: '44255-8', linkId: 'q2' },
@@ -168,16 +278,71 @@ function ordinalItems(
  */
 export function recognizeInstrument(qr: QuestionnaireResponseResource): RecognitionResult | null {
   const byCode = itemsByCode(qr)
+
+  /*
+   * BEST match, not the first one over the line (#230).
+   *
+   * This used to return the first signature clearing its floor, which is fine
+   * while no two instruments share a code and wrong the moment they do. The
+   * C-SSRS screener's 7 item codes are a strict subset of the full form's 19, so
+   * both signatures match both forms and "first past the post" would hand every
+   * full C-SSRS to the screener mapper — silently collapsing the lifetime/recent
+   * distinction that is the entire reason the full form exists.
+   *
+   * Two ranking keys, in order:
+   *   1. **matched codes** — a full-form QR matches ~19 against the full
+   *      signature and only 7 against the screener, so the full form wins.
+   *   2. **coverage** (matched ÷ signature size) — a screener QR matches 7 of 7
+   *      screener codes and 7 of 19 full ones, a tie on key 1 that coverage
+   *      settles for the screener. Read plainly: prefer the instrument the QR
+   *      accounts for *completely* over the one it merely fits inside.
+   * Declaration order is the final, deterministic tie-break.
+   */
+  let best: { signature: InstrumentSignature; matches: number; coverage: number } | null = null
   for (const signature of INSTRUMENT_SIGNATURES) {
     const matches = signature.itemCodes.filter((ic) => byCode.has(ic.code)).length
-    if (matches >= signature.minCodeMatches) return { signature, confidence: 'code' }
+    if (matches < signature.minCodeMatches) continue
+    const coverage = matches / signature.itemCodes.length
+    if (
+      !best ||
+      matches > best.matches ||
+      (matches === best.matches && coverage > best.coverage)
+    ) {
+      best = { signature, matches, coverage }
+    }
   }
+  if (best) return { signature: best.signature, confidence: 'code' }
+
   for (const signature of INSTRUMENT_SIGNATURES) {
     if (signature.shape && ordinalItems(qr, signature.shape.ordinalRange).length === signature.shape.itemCount) {
       return { signature, confidence: 'shape' }
     }
   }
   return null
+}
+
+/**
+ * Coerce a foreign yes/no answer into the `valueBoolean` the C-SSRS mappers read.
+ *
+ * Accepts exactly two shapes, and adds no new code literals to the repo:
+ *   1. `valueBoolean` — already what the mapper wants.
+ *   2. a SNOMED Yes/No coding — via `getYesNoBoolean`, the same helper (and the
+ *      same two codes) the ASQ mapper already uses, which is also what SPiER's
+ *      own C-SSRS `answerOption` list declares.
+ *
+ * Anything else — a LOINC `LA…` answer code, a site-local yes/no vocabulary, a
+ * free-text "Yes" — returns undefined, and the caller then refuses the whole
+ * response rather than dropping the item. That asymmetry is the point: see
+ * `normalizeToSpierQr`.
+ */
+function normalizeBooleanAnswer(
+  src: QuestionnaireResponseItem,
+): QuestionnaireResponseAnswer | undefined {
+  const direct = src.answer?.[0]?.valueBoolean
+  if (typeof direct === 'boolean') return { valueBoolean: direct }
+  const yesNo = getYesNoBoolean(src)
+  if (typeof yesNo === 'boolean') return { valueBoolean: yesNo }
+  return undefined
 }
 
 /**
@@ -193,9 +358,12 @@ function normalizeAnswer(
   src: QuestionnaireResponseItem,
   spierCanonical: string,
   linkId: string,
+  answerKind: InstrumentSignature['answerKind'] = 'ordinal',
 ): QuestionnaireResponseAnswer | undefined {
   const ans = src.answer?.[0]
   if (!ans) return undefined
+
+  if (answerKind === 'boolean') return normalizeBooleanAnswer(src)
 
   if (ans.valueCoding?.code && ordinalForAnswer(spierCanonical, linkId, ans.valueCoding.code) !== undefined) {
     return { valueCoding: ans.valueCoding }
@@ -227,18 +395,37 @@ export function normalizeToSpierQr(
   qr: QuestionnaireResponseResource,
   signature: InstrumentSignature,
   positional = false,
-): QuestionnaireResponseResource {
+): QuestionnaireResponseResource | null {
   const byCode = itemsByCode(qr)
   const ordered = positional && signature.shape
     ? ordinalItems(qr, signature.shape.ordinalRange)
     : []
   const item: QuestionnaireResponseItem[] = []
+  let uninterpretable = 0
   signature.itemCodes.forEach((ic, i) => {
     const src = byCode.get(ic.code) ?? (positional ? ordered[i] : undefined)
     if (!src) return
-    const answer = normalizeAnswer(src, signature.spierCanonical, ic.linkId)
+    const answer = normalizeAnswer(src, signature.spierCanonical, ic.linkId, signature.answerKind)
     if (answer) item.push({ linkId: ic.linkId, answer: [answer] })
+    // An item that IS present, with an answer we could not read, is different
+    // from one that is absent — see the refusal below.
+    else if (src.answer?.length) uninterpretable++
   })
+
+  /*
+   * Fail closed on an answer we found but could not interpret (#230).
+   *
+   * A missing item is legitimate and means "not asked": C-SSRS gates q3–q5 and
+   * q6-recent behind `enableWhen`, and the mappers read an absent item as No. But
+   * an item that carries an answer we cannot decode is not a No — and treating it
+   * as one turns an unparsed "Yes, I have a specific plan and intent" into a
+   * clean screen. That is the worst possible direction for this instrument to be
+   * wrong in, and it would be invisible: the derived Observation would look
+   * ordinary. So the whole response is refused instead. The QR still renders as
+   * submitted; SPiER simply declines to claim a derived risk it cannot stand
+   * behind, which is the honest failure and the one a reader can notice.
+   */
+  if (uninterpretable > 0) return null
   const normalized: QuestionnaireResponseResource = {
     resourceType: 'QuestionnaireResponse',
     status: qr?.status ?? 'completed',

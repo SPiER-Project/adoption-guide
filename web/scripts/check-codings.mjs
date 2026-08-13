@@ -145,11 +145,23 @@ const familyOf = system =>
 //
 //   web/src    loinc 69 / snomed 15 / tho 25
 //
+// Re-checked 2026-08-12 after #230 added the C-SSRS full-form and screener item
+// codes to the fallback dispatcher:
+//
+//   web/src    loinc 98 / snomed 19 / tho 25
+//
+// The LOINC floor moved 34 → 49 to stay near the ~50% convention. It is bumped
+// here, in the same change that grew the source, precisely because nothing
+// re-checks a floor on its own — #232 is what a floor left behind by a growing
+// inventory looks like (5 against 20, i.e. a quarter, with nothing going red).
+// SNOMED's 19 against 7 is the next one drifting; it is left alone here only
+// because this change did not grow it (both new codes were already present).
+//
 // The run prints the live count next to each floor on every invocation, so the
 // figures above are checkable against any recent nightly log rather than taken
 // on trust.
 const SCAN = [
-  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 34, snomed: 7, tho: 12 } },
+  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 49, snomed: 7, tho: 12 } },
   // ─── Deliberately OVERLAPS web/src above ───────────────────
   //
   // Two independent contributors sit inside web/src — the runtime mappers

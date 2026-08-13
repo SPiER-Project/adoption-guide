@@ -166,7 +166,10 @@ describe('fallback dispatch — regression & guards', () => {
 
   it('normalizeToSpierQr produces SPiER linkIds + a SPiER canonical', () => {
     const sig = INSTRUMENT_SIGNATURES.find(s => s.spierCanonical.endsWith('/PHQ-9'))!
-    const normalized = normalizeToSpierQr(foreignCodedQr([1, 2, 3, 0, 1, 2, 3, 0, 1]), sig)
+    // Null only when an answer was present and unreadable (#230), which this
+    // fully-mappable QR is not — so assert it mapped before reading it.
+    const normalized = normalizeToSpierQr(foreignCodedQr([1, 2, 3, 0, 1, 2, 3, 0, 1]), sig)!
+    expect(normalized).not.toBeNull()
     expect(normalized.questionnaire).toBe('http://spier.org/Questionnaire/PHQ-9')
     expect(normalized.item?.map(i => i.linkId)).toEqual(['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9'])
   })
@@ -198,5 +201,130 @@ describe('deriveFromResponse — provenance stamping', () => {
       item: [1, 1, 1, 1, 1, 1, 1, 1, 2].map((s, i) => ({ linkId: `x${i}`, answer: [{ valueInteger: s }] })),
     } as unknown as QuestionnaireResponseResource
     expect(deriveFromResponse(shapeQr)).toBeNull()
+  })
+})
+
+/**
+ * #230 — the C-SSRS family. This is the case #60's HIE pilot is actually about:
+ * a QuestionnaireResponse arriving from another EHR under that EHR's own
+ * canonical, carrying LOINC item codes SPiER can recognize.
+ *
+ * The C-SSRS answer contract differs from PHQ-9's in a way that matters here: the
+ * mappers read `valueBoolean` (getBooleanAnswer), while the Questionnaire declares
+ * SNOMED Yes/No codings. Both foreign shapes are therefore exercised below.
+ */
+const SNOMED_YES = { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' }
+const SNOMED_NO = { system: 'http://snomed.info/sct', code: '373067005', display: 'No' }
+
+/** Screener item codes, q1..q6 + q6-recent (see the signature). */
+const SCREENER_LOINC = ['93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3', '93269-9']
+
+/** A foreign C-SSRS screener QR. `answers` is keyed by LOINC item code. */
+function foreignCssrs(
+  answers: Record<string, unknown>,
+  canonical = 'http://cerner.example.org/Questionnaire/cssrs-6item',
+): QuestionnaireResponseResource {
+  return {
+    resourceType: 'QuestionnaireResponse',
+    status: 'completed',
+    questionnaire: canonical,
+    item: Object.entries(answers).map(([code, answer], i) => ({
+      linkId: `SITE-Q${i + 1}`,
+      code: [{ system: 'http://loinc.org', code }],
+      answer: [answer],
+    })),
+  } as unknown as QuestionnaireResponseResource
+}
+
+const riskLevelOf = (r: ReturnType<typeof mapResponseToObservations>) =>
+  r?.observations
+    .find(o => o.code?.coding?.[0]?.code === '93374-7')
+    ?.valueCodeableConcept?.coding?.[0]?.code
+
+describe('C-SSRS screener via Tier 2 (#230)', () => {
+  it('derives a risk tier from a foreign canonical with SNOMED Yes/No answers', () => {
+    const result = mapResponseToObservations(
+      foreignCssrs({
+        '93246-7': { valueCoding: SNOMED_YES },
+        '93247-5': { valueCoding: SNOMED_YES },
+        '93248-3': { valueCoding: SNOMED_YES },
+        '93267-3': { valueCoding: SNOMED_NO },
+      }),
+    )!
+    expect(result).not.toBeNull()
+    expect(result.dispatch?.via).toBe('code')
+    expect(result.dispatch?.recognizedCanonical).toBe('http://spier.org/Questionnaire/C-SSRS-Screener')
+    // q3 endorsed → ideation with method → moderate.
+    expect(riskLevelOf(result)).toBe('moderate')
+    expect(result.riskAlert.level).toBe('moderate')
+  })
+
+  it('accepts valueBoolean answers too — the shape the mapper itself reads', () => {
+    const result = mapResponseToObservations(
+      foreignCssrs({
+        '93246-7': { valueBoolean: true },
+        '93247-5': { valueBoolean: true },
+        '93250-9': { valueBoolean: true },
+      }),
+    )!
+    // q5 endorsed → specific plan and intent → high.
+    expect(riskLevelOf(result)).toBe('high')
+  })
+
+  it('treats an enableWhen-skipped item as unasked, not as unreadable', () => {
+    // q2 = No, so q3–q5 are never asked on the real form. That must still derive.
+    const result = mapResponseToObservations(
+      foreignCssrs({
+        '93246-7': { valueCoding: SNOMED_YES },
+        '93247-5': { valueCoding: SNOMED_NO },
+      }),
+    )!
+    expect(result).not.toBeNull()
+    expect(riskLevelOf(result)).toBe('low')
+  })
+
+  it('REFUSES the response when an answer is present but unreadable', () => {
+    // A LOINC LA answer code SPiER does not map. Scoring the rest would read this
+    // endorsed item as a "No" and report a clean screen — so nothing is derived.
+    const result = mapResponseToObservations(
+      foreignCssrs({
+        '93246-7': { valueCoding: SNOMED_YES },
+        '93250-9': { valueCoding: { system: 'http://loinc.org', code: 'LA33-6', display: 'Yes' } },
+      }),
+    )
+    expect(result).toBeNull()
+  })
+})
+
+describe('C-SSRS variant disambiguation (#230)', () => {
+  it('sends a full lifetime/recent QR to the full-form mapper, not the screener', () => {
+    // Its codes include the screener's 7 as a subset, so "first signature over
+    // the line" would have mis-recognized this as the screener.
+    const result = mapResponseToObservations(
+      foreignCssrs({
+        '93299-6': { valueBoolean: true },  // q1-lifetime
+        '93246-7': { valueBoolean: true },  // q1-recent
+        '93298-8': { valueBoolean: true },  // q2-lifetime
+        '93247-5': { valueBoolean: false }, // q2-recent
+        '93253-3': { valueBoolean: true },  // actual attempt, lifetime
+      }),
+    )!
+    expect(result.dispatch?.recognizedCanonical).toBe(
+      'http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent',
+    )
+  })
+
+  it('keeps a screener QR on the screener, which its codes cover completely', () => {
+    const result = mapResponseToObservations(
+      foreignCssrs(Object.fromEntries(SCREENER_LOINC.map(c => [c, { valueBoolean: false }]))),
+    )!
+    expect(result.dispatch?.recognizedCanonical).toBe(
+      'http://spier.org/Questionnaire/C-SSRS-Screener',
+    )
+  })
+
+  it('does not regress PHQ-9 recognition', () => {
+    const result = mapResponseToObservations(foreignCodedQr([1, 2, 3, 0, 1, 2, 3, 0, 1]))!
+    expect(result.dispatch?.recognizedCanonical).toBe('http://spier.org/Questionnaire/PHQ-9')
   })
 })
