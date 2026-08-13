@@ -188,7 +188,8 @@ to-do (closing it means deleting the `walkthroughGapReason` *and* adding the
 narration, and the gate requires both), while `branch-exclusive` cannot be closed on
 a given patient at all, because the step describes a course they did not take
 (the ED scenario needs four patients for that reason — one negative screen, one
-deferred-then-transferred, one elopement). `--check` prints the split. A narrated proposal must
+deferred-then-transferred, one elopement). `--check` prints the split; all 37
+ED steps are narrated today, so both counts are zero. A narrated proposal must
 also carry `proposed: true` on its walkthrough entry, so the chart cannot show
 a SPiER proposal as settled. `docs/use-cases/README.md` has the rationale,
 including why review notes are not emitted as Excel cell comments.

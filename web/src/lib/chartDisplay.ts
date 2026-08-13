@@ -222,7 +222,10 @@ export function artifactLabel(resource: FhirResourceLike): string {
     return r.code?.text ?? r.code?.coding?.[0]?.display ?? 'Flag'
   }
   if (resource.resourceType === 'Task') {
+    // `code` is the short name of the work; `description` is the full
+    // instruction and runs to a sentence or more, which reads badly as a chip.
     const t = resource as RenderableResource & { description?: unknown }
+    if (r.code?.text) return r.code.text
     return typeof t.description === 'string' ? t.description : 'Task'
   }
   if (resource.resourceType === 'Encounter') {

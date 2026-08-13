@@ -171,6 +171,9 @@
       },
       "status": "requested",
       "intent": "plan",
+      "code": {
+        "text": "Re-screen for suicide risk"
+      },
       "description": "Re-screen for suicide risk at the next qualifying encounter (12-month interval for a negative ED screen).",
       "for": {
         "reference": "Patient/patient-012"

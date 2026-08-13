@@ -163,6 +163,47 @@
           }
         ]
       }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p011-bssa-outcome",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "clarify-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "text": "Brief suicide safety assessment — determination"
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
+      "effectiveDateTime": "2026-08-02T09:20:00.000Z",
+      "valueCodeableConcept": {
+        "text": "Proceed to full suicide risk assessment before any disposition decision"
+      },
+      "note": [
+        {
+          "text": "Frequency of ideation, absence of a current plan or intent, one past attempt over a year ago, and intact supports. Non-acute positive, so the \"cannot leave until evaluated\" hold was not applied — that status is reserved for acute presentations."
+        }
+      ]
     }
   ],
   "carePlans": [
@@ -1062,6 +1103,26 @@
       "profileGap": true
     },
     {
+      "id": "ed-11-4-0b",
+      "step": "11.4-0B",
+      "date": "2026-08-02",
+      "title": "BSSA outcome recorded and next step routed",
+      "stageId": "clarify-risk",
+      "actor": "EHR System / Analyzer + Router",
+      "status": "completed",
+      "notes": "The BSSA determination is persisted as discrete data and routes the next stage rather than living in a note: a full risk assessment is ordered before any disposition decision, which is why 11.4-1A follows. The \"cannot leave until evaluated\" hold was deliberately not applied — Maria screened non-acute positive, and that status is reserved for acute presentations. The determination carries text rather than a code: no LOINC concept exists for a BSSA routing decision, and this step is marked as a profile gap for exactly that reason.",
+      "fhirArtifacts": [
+        "Observation",
+        "Task",
+        "Flag"
+      ],
+      "profileGap": true,
+      "relatedRefs": [
+        "Observation/p011-bssa-outcome",
+        "Task/p011-bssa-routing"
+      ]
+    },
+    {
       "id": "ed-11-4-1a",
       "step": "11.4-1A",
       "date": "2026-08-02",
@@ -1540,6 +1601,37 @@
       "period": {
         "start": "2026-08-11T09:00:00.000Z",
         "end": "2026-08-11T09:10:00.000Z"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "resourceType": "Task",
+      "id": "p011-bssa-routing",
+      "meta": {
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "clarify-risk"
+          }
+        ]
+      },
+      "status": "completed",
+      "intent": "order",
+      "priority": "urgent",
+      "code": {
+        "text": "Order full suicide risk assessment"
+      },
+      "description": "Full suicide risk assessment (C-SSRS Full within SAFE-T framing) before a disposition decision — routed from the BSSA determination.",
+      "for": {
+        "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
+      "authoredOn": "2026-08-02T09:20:00.000Z",
+      "reasonReference": {
+        "reference": "Observation/p011-bssa-outcome"
       }
     }
   ]
