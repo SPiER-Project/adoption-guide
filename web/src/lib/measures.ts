@@ -4,9 +4,15 @@
  *
  * Computes the seven SPiER suicide-safer care measures over a patient's FHIR
  * slice and assembles MeasureReports from the results. This is the executable
- * reference implementation of the population criteria: the CQL long form at
- * ig/drafts/SPiERSuicideSaferCareMeasures.cql is readable documentation that
- * nothing compiles, so THIS is the version that is actually tested.
+ * reference implementation of the population criteria — it is what the app runs
+ * and what `npm test` covers.
+ *
+ * The CQL long form is the portable, normative statement of the same criteria.
+ * It lives at ig/input/cql/SPiERSuicideSaferCareMeasures.cql and IS compiled:
+ * the IG Publisher translates it to ELM on every run and fails the build on a
+ * translation error (#212 / #239). This comment used to say it sat in
+ * ig/drafts/ and that nothing compiled it, which stopped being true two
+ * releases ago. Change a criterion and you change both files.
  *
  * Two structural decisions:
  *
@@ -52,6 +58,7 @@ import type {
   CarePlanResource,
   CommunicationResource,
   DocumentReferenceResource,
+  EncounterResource,
   EpisodeOfCareResource,
   FhirResource,
   MeasureReportResource,
@@ -319,6 +326,8 @@ interface Ctx {
   validReferrals: ServiceRequestResource[]
   safetyPlans: CarePlanResource[]
   procedures: ProcedureResource[]
+  /** Encounters overlapping the most recent episode — read for the disposition. */
+  episodeEncounters: EncounterResource[]
 }
 
 function inPeriod(ctx: Ctx, value: number): boolean {
@@ -418,11 +427,46 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
         ['active', 'completed'].includes((p as { status?: string }).status ?? ''),
     ),
     procedures: slice.procedures ?? [],
+    episodeEncounters: (slice.encounters ?? []).filter(e => {
+      if (!latestEpisode) return false
+      const { start, end } = episodePeriod(latestEpisode)
+      const p = (e as { period?: { start?: string; end?: string } }).period
+      const encStart = ms(p?.start)
+      const encEnd = ms(p?.end)
+      // Overlap, not containment: the ED encounter typically starts before the
+      // episode opens (triage precedes the positive screen that opens it).
+      return (Number.isFinite(encStart) ? encStart : -Infinity) <= end &&
+        (Number.isFinite(encEnd) ? encEnd : Infinity) >= start
+    }),
   }
 }
 
 function closureReason(ctx: Ctx): string | undefined {
   return extensionCode(ctx.latestEpisode, CLOSURE_REASON_EXT)
+}
+
+/**
+ * Discharge dispositions that defer or preclude means counseling (issue #324).
+ *
+ * `psy` / `hosp` / `long` / `rehab` — the patient went to a higher level of
+ * care, so counseling belongs at the eventual discharge to the community and is
+ * owed by the receiving facility. `aadvice` — the patient left before
+ * disposition, so there was no opportunity.
+ *
+ * Mirrors "Deferring Discharge Dispositions" in the CQL library. HL7's
+ * discharge-disposition CodeSystem, which the Encounters already carry — this
+ * measure asked for no new recording.
+ */
+const DEFERRING_DISPOSITIONS = new Set(['psy', 'hosp', 'long', 'rehab', 'aadvice'])
+const DISCHARGE_DISPOSITION_SYSTEM = 'http://terminology.hl7.org/CodeSystem/discharge-disposition'
+
+function dischargeDispositionCodes(encounter: EncounterResource): string[] {
+  const coding = (encounter as {
+    hospitalization?: { dischargeDisposition?: { coding?: Array<{ system?: string; code?: string }> } }
+  }).hospitalization?.dischargeDisposition?.coding
+  return (coding ?? [])
+    .filter(c => c.system === DISCHARGE_DISPOSITION_SYSTEM && !!c.code)
+    .map(c => c.code as string)
 }
 
 function sentWithin(messages: CommunicationResource[], from: number, windowMs: number): boolean {
@@ -514,6 +558,20 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
       return Number.isFinite(n) && n >= start && n <= end
     })
   },
+
+  // The #324 exception. Two ways an open episode carries no counseling without
+  // the ED having failed at anything: the patient went to a higher level of
+  // care (not yet due — and owed by the receiving facility), or left before
+  // disposition (no opportunity). Read off the discharge disposition, which the
+  // encounters already carry.
+  //
+  // This names the REASON only. "Removed only if the numerator is not met" is
+  // the exception's scoring semantics and lives in evaluateMeasure, so a
+  // patient counseled before transfer still counts as a pass.
+  'Transferred Or Left Before Means Counseling': ctx =>
+    ctx.episodeEncounters.some(e =>
+      dischargeDispositionCodes(e).some(c => DEFERRING_DISPOSITIONS.has(c)),
+    ),
 
   // ── Measure 5: follow-up timeliness ──
   'Excluded From Follow Up Measurement': ctx => {
@@ -637,9 +695,22 @@ export interface GroupEvaluation {
   display: string
   /** population code → membership */
   populations: Record<string, boolean>
-  /** True when the patient counts toward the denominator after exclusions. */
+  /**
+   * True when the patient counts toward the denominator after exclusions AND
+   * after exceptions. See `evaluateMeasure` for why those two are not the same
+   * test.
+   */
   inDenominator: boolean
   inNumerator: boolean
+  /**
+   * True when an exception actually removed this patient — i.e. they met the
+   * exception criterion and did NOT meet the numerator. A patient who met both
+   * stays in the denominator and passes, so this is false for them.
+   *
+   * Reported separately because the summary MeasureReport counts the population
+   * as FHIR defines it: how many cases the exception removed.
+   */
+  removedByException: boolean
 }
 
 export interface MeasureEvaluation {
@@ -669,14 +740,30 @@ export function evaluateMeasure(
         if (!fn) throw new Error(`No implementation for measure criterion "${expr}"`)
         populations[code] = fn(ctx)
       }
+      // Exclusion and exception are NOT the same test, and the difference is
+      // the whole reason #324 chose an exception:
+      //
+      //   exclusion  the case never belonged in the cohort. Removed outright.
+      //   exception  the case belongs, but there is a valid clinical or system
+      //              reason it could not be met — so it is removed ONLY IF the
+      //              numerator is not met. A patient who got lethal-means
+      //              counseling before being transferred still counts as a
+      //              pass; a patient who was transferred without it drops out
+      //              rather than reading as a care failure.
+      //
+      // That conditionality means the numerator has to be resolved before the
+      // denominator can be, which is why it is computed first here.
       const excluded = populations['denominator-exclusion'] === true
-      const inDenominator = populations['denominator'] === true && !excluded
+      const meetsNumerator = populations['numerator'] === true
+      const removedByException = populations['denominator-exception'] === true && !meetsNumerator
+      const inDenominator = populations['denominator'] === true && !excluded && !removedByException
       return {
         code: g.code,
         display: g.display,
         populations,
         inDenominator,
-        inNumerator: inDenominator && populations['numerator'] === true,
+        inNumerator: inDenominator && meetsNumerator,
+        removedByException,
       }
     }),
   }
@@ -700,8 +787,17 @@ export interface GroupTally {
   initialPopulation: number
   denominator: number
   denominatorExclusion: number
+  /**
+   * Cases an exception actually removed — met the exception criterion and not
+   * the numerator. Patients who met both are counted in the numerator instead,
+   * so this is the number FHIR asks for: how many cases came out.
+   */
+  denominatorException: number
   numerator: number
-  /** numerator / (denominator − exclusion), or null when the denominator is empty. */
+  /**
+   * numerator / (denominator − exclusion − exception), or null when nothing is
+   * left to score over.
+   */
   score: number | null
 }
 
@@ -729,14 +825,20 @@ export function tallyMeasure(evaluations: MeasureEvaluation[], spec: MeasureSpec
       const count = (pop: string) => rows.filter(r => r.populations[pop] === true).length
       const denominator = count('denominator')
       const exclusion = count('denominator-exclusion')
+      // Counted from `removedByException`, not from the raw population flag: a
+      // patient who met the exception criterion AND the numerator was never
+      // removed, so counting the flag would subtract a case that is still being
+      // scored — and the score would exceed 100%.
+      const exception = rows.filter(r => r.removedByException).length
       const numerator = rows.filter(r => r.inNumerator).length
-      const effective = denominator - exclusion
+      const effective = denominator - exclusion - exception
       return {
         code: g.code,
         display: g.display,
         initialPopulation: count('initial-population'),
         denominator,
         denominatorExclusion: exclusion,
+        denominatorException: exception,
         numerator,
         score: effective > 0 ? numerator / effective : null,
       }
@@ -769,6 +871,7 @@ const POPULATION_DISPLAYS: Record<string, string> = {
   'initial-population': 'Initial Population',
   denominator: 'Denominator',
   'denominator-exclusion': 'Denominator Exclusion',
+  'denominator-exception': 'Denominator Exception',
   numerator: 'Numerator',
 }
 
@@ -802,9 +905,15 @@ export function buildIndividualMeasureReport(
     },
     group: spec.groups.map(g => {
       const row = evaluation.groups.find(x => x.code === g.code)
-      const populations = Object.keys(g.criteria).map(pop =>
-        populationEntry(pop, POPULATION_DISPLAYS[pop] ?? pop, row?.populations[pop] ? 1 : 0),
-      )
+      const populations = Object.keys(g.criteria).map(pop => {
+        // The exception population reports what it REMOVED, not who matched
+        // its criterion — a patient who met the exception and the numerator was
+        // never taken out. Same rule as the summary tally; see GroupTally.
+        const member = pop === 'denominator-exception'
+          ? row?.removedByException === true
+          : row?.populations[pop] === true
+        return populationEntry(pop, POPULATION_DISPLAYS[pop] ?? pop, member ? 1 : 0)
+      })
       return {
         id: g.code,
         code: groupCoding(g.code, g.display),
@@ -841,6 +950,7 @@ export function buildSummaryMeasureReport(
         'initial-population': g.initialPopulation,
         denominator: g.denominator,
         'denominator-exclusion': g.denominatorExclusion,
+        'denominator-exception': g.denominatorException,
         numerator: g.numerator,
       }
       return {

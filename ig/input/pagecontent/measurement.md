@@ -13,7 +13,7 @@ measurement is a read.
 | [Positive Screen Followed by Assessment](Measure-SPiERScreenToAssessment.html) | Risk-concept Observations, split by pathway-stage tag | Patients with a positive screen |
 | [Current Risk Level Documented](Measure-SPiERRiskStatusDocumented.html) | Risk-concept Observations inside the episode | Patients in an episode |
 | [Safety Plan Before Discharge](Measure-SPiERSafetyPlanBeforeDischarge.html) | Safety-plan CarePlans; discharge packet content items | Patients with a documented transition |
-| [Lethal Means Counseling Completed](Measure-SPiERLethalMeansCounselingCompleted.html) | The counseling Procedure | Patients in an episode |
+| [Lethal Means Counseling Completed](Measure-SPiERLethalMeansCounselingCompleted.html) | The counseling Procedure; the encounter's discharge disposition | Patients in an episode, less transfers and departures (see below) |
 | [Follow-Up Timeliness](Measure-SPiERFollowUpTimeliness.html) | Outreach attempts; follow-up Appointments | Patients with a documented transition |
 | [Caring Contact Adherence](Measure-SPiERCaringContactAdherence.html) | Caring contacts; the opt-out extension | Patients with a documented transition |
 | [Referral Loop Closure](Measure-SPiERReferralCompletion.html) | Referral ServiceRequest status | Patients with a referral |
@@ -83,6 +83,23 @@ the reason `caring-contact-opt-out` sits on the contact resource.
 patient leave with a copy?" is answerable because TL-009 and TL-030 agreed on a
 single content code list, so `safety-plan-copy` means the same thing on a
 handoff and on a discharge packet.
+
+**Lethal-means counseling needs an *exception*, not another exclusion.** Two
+ways an open episode carries no counseling without anyone having failed: the
+patient went to a higher level of care (`psy`, `hosp`, `long`, `rehab` — the
+counseling belongs at the eventual discharge to the community, and is owed by
+the receiving facility), or left before disposition (`aadvice`). Both are read
+from `Encounter.hospitalization.dischargeDisposition`, so nothing new had to be
+recorded to answer them.
+
+They are a **denominator exception** rather than a denominator exclusion, and
+the difference is load-bearing: an exception is removed from the denominator
+*only if the numerator is not met*. A patient who **was** counseled before being
+transferred still counts as a pass instead of vanishing from the measure — and
+a site cannot lift its score by transferring people. An exclusion would do both
+of those things wrong. This is the only exception in the set; everything else
+that leaves a denominator here is an exclusion, because it never belonged in the
+cohort at all.
 
 ### Choices you may want to make differently
 

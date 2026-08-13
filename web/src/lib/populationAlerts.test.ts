@@ -50,7 +50,7 @@ function evalOf(
     measureId,
     measureUrl: `http://spier.org/Measure/${measureId}`,
     title: measureId,
-    groups: [{ code, display: code, populations: {}, inDenominator, inNumerator }],
+    groups: [{ code, display: code, populations: {}, inDenominator, inNumerator, removedByException: false }],
   }
 }
 

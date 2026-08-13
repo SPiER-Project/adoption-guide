@@ -392,6 +392,11 @@ export function PatientChart() {
         // precaution Flag is not a stage artifact. This index only answers
         // "can a walkthrough step link to it", and the ED exception branches
         // (patient-013, patient-014) reference all three.
+        //
+        // Procedures were missing until #324: patient-011's means-counseling
+        // step had no artifact to link to, so nothing here noticed. A ref this
+        // index cannot resolve renders no link at all, which is why
+        // walkthroughRefs.test.ts asserts the two stay in step.
         workflowArtifacts: [
           ...(documentReferences ?? []),
           ...(serviceRequests ?? []),
@@ -399,6 +404,7 @@ export function PatientChart() {
           ...(flags ?? []),
           ...(tasks ?? []),
           ...(encounters ?? []),
+          ...(procedures ?? []),
         ],
       }),
     [
@@ -412,6 +418,7 @@ export function PatientChart() {
       flags,
       tasks,
       encounters,
+      procedures,
     ],
   )
 

@@ -670,6 +670,106 @@ describe('lethal means counseling', () => {
     expect(g.inNumerator).toBe(false)
   })
 
+  // ── The #324 exception ──
+  // Two open episodes can carry no counseling without the ED having failed:
+  // the patient went to a higher level of care (not yet due, and owed by the
+  // receiving facility) or left before disposition (no opportunity).
+
+  function encounterWith(disposition: string) {
+    return {
+      resourceType: 'Encounter' as const,
+      id: 'enc-1',
+      status: 'finished',
+      subject: { reference: 'Patient/patient-005' },
+      period: { start: '2026-07-02T08:00:00.000Z', end: '2026-07-03T09:00:00.000Z' },
+      hospitalization: {
+        dischargeDisposition: {
+          coding: [
+            {
+              system: 'http://terminology.hl7.org/CodeSystem/discharge-disposition',
+              code: disposition,
+            },
+          ],
+        },
+      },
+    }
+  }
+
+  it.each([
+    ['psy', 'transferred to inpatient psychiatry — counseling not yet due'],
+    ['aadvice', 'left against advice before disposition — no opportunity'],
+  ])('excepts a patient discharged as %s (%s)', disposition => {
+    const slice = emptySlice()
+    slice.episodes = [episode({ start: '2026-07-02' })]
+    slice.encounters = [encounterWith(disposition)]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'lethal-means-counseling')
+    expect(g.populations['denominator-exception']).toBe(true)
+    expect(g.removedByException).toBe(true)
+    expect(g.inDenominator).toBe(false)
+    expect(g.inNumerator).toBe(false)
+  })
+
+  // THE reason #324 chose an exception over an exclusion. An exclusion removes
+  // the case outright; an exception removes it only when the numerator is not
+  // met, so counseling delivered before a transfer still counts as a pass
+  // rather than disappearing from the measure.
+  it('keeps a patient who WAS counseled before the transfer, and counts them', () => {
+    const slice = emptySlice()
+    slice.episodes = [episode({ start: '2026-07-02' })]
+    slice.encounters = [encounterWith('psy')]
+    slice.procedures = [
+      buildLethalMeansCounseling({
+        id: 'counseling-1',
+        patientId: 'patient-005',
+        performed: '2026-07-02T18:00:00.000Z',
+      }),
+    ]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'lethal-means-counseling')
+    expect(g.populations['denominator-exception']).toBe(true)
+    expect(g.removedByException).toBe(false)
+    expect(g.inDenominator).toBe(true)
+    expect(g.inNumerator).toBe(true)
+  })
+
+  it('leaves an ordinary home discharge in the denominator', () => {
+    const slice = emptySlice()
+    slice.episodes = [episode({ start: '2026-07-02' })]
+    slice.encounters = [encounterWith('home')]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'lethal-means-counseling')
+    expect(g.populations['denominator-exception']).toBe(false)
+    expect(g.inDenominator).toBe(true)
+    expect(g.inNumerator).toBe(false)
+  })
+
+  it('subtracts exceptions from the scored denominator, but not passes', () => {
+    const counseledThenTransferred = emptySlice()
+    counseledThenTransferred.episodes = [episode({ start: '2026-07-02' })]
+    counseledThenTransferred.encounters = [encounterWith('psy')]
+    counseledThenTransferred.procedures = [
+      buildLethalMeansCounseling({ id: 'c1', patientId: 'patient-005', performed: '2026-07-02T18:00:00.000Z' }),
+    ]
+    const transferredUncounseled = emptySlice()
+    transferredUncounseled.episodes = [episode({ start: '2026-07-02' })]
+    transferredUncounseled.encounters = [encounterWith('psy')]
+    const plainMiss = emptySlice()
+    plainMiss.episodes = [episode({ start: '2026-07-02' })]
+
+    const tally = tallyMeasure(
+      [counseledThenTransferred, transferredUncounseled, plainMiss].map(s =>
+        evaluateMeasure(spec, s, PERIOD),
+      ),
+      spec,
+    )
+    const g = tally.groups[0]
+    expect(g.denominator).toBe(3)
+    // Only ONE case was removed: the transferred patient who was counseled is
+    // still being scored. Counting the raw population flag would say 2 here and
+    // the score would read 1/1 = 100%.
+    expect(g.denominatorException).toBe(1)
+    expect(g.numerator).toBe(1)
+    expect(g.score).toBeCloseTo(1 / 2, 5)
+  })
+
   // As with the caring contact above: the fixture proves the criterion, this
   // proves something in the app can satisfy it. Before the TL-008 recorder
   // landed (#210) nothing could, so this numerator was structurally
