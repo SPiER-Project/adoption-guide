@@ -331,13 +331,21 @@ Consequences worth knowing:
   which writes a *sub-element* of index 0, so the coding merges instead of replacing — the only
   genuinely benign shape. `check-sushi-output.mjs` now allows the warning **only for
   `Communication`**, so the data-losing shape fails the gate. Verified by planting it.
-- `suicidePreventionNote` is deliberately `0..1`, not `1..1`. The HL7 validator caught that
-  `patient-011`'s Stanley-Brown CarePlan lacks `87626-8` while `patient-001` has it; requiring it
-  would have been a conformance decision beyond fixing the data loss. **That scenario
-  inconsistency is left as-is and is worth a look** — it is demo data, not a profile problem.
+- `suicidePreventionNote` shipped here as `0..1`, because the HL7 validator caught that
+  `patient-011`'s Stanley-Brown CarePlan lacked `87626-8` while `patient-001` had it, and
+  requiring it would have been a conformance decision beyond fixing the data loss.
+  **Both halves are now closed: #329 fixed the demo data and raised the slice to `1..1`.**
+  `patient-011` carries the code, matching what `carePlanMappers/stanleyBrown.ts` emits at
+  runtime, and the profile now enforces it on the two narrative safety plans (Stanley-Brown,
+  CRP) — not on the CAMS plans, which share the runtime factory but not the code. The
+  accepted cost, and the fact that a required document-type concept in `CarePlan.category`
+  stays a documented misuse, is recorded on the rule set in `concept-layer.fsh`.
 - This is also a live example of the documented gate division: `check:scenarios` passed the whole
   time, because it reads profile `min` but not slice-level cardinality. The Java validator is
-  what found it.
+  what found it — and, after #329's `1..1`, is what now fails on it. Note the limit of that
+  gate: because the value is fixed, SUSHI *auto-populates* a required slice, so an FSH-authored
+  Instance cannot violate it. The constraint protects hand-authored FHIR (the population
+  scenarios, `FHIR-Resources/`), which is exactly where the defect was.
 
 Verification: SUSHI 0 errors / 6 expected warnings · validator **0 conformance errors across 386
 resources** · `web` verify 546 tests (was 540) · `cds-hooks` 24 tests · `check:codings` 61
