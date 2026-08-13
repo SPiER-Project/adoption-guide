@@ -136,9 +136,10 @@ Description: "An Observation representing the binary suicide-risk result of a Pa
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
 * subject only Reference(Patient)
@@ -194,7 +195,6 @@ Title: "Example — PSS-3 Result: Positive"
 Description: "Sample Observation showing a positive PSS-3 suicide-risk screen for an example patient. Used as a conformance fixture and for human reviewers."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)

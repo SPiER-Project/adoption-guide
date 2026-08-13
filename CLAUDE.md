@@ -87,11 +87,25 @@ thing and fails in a fresh worktree:
 npx fsh-sushi .        # compile FSH → fsh-generated/resources/
 ```
 
-⚠️ **A clean SUSHI run is not a quiet one, and has not been since #271.** That PR
-sliced `.category` on 28 profiles, so every example Instance setting a standard
-category by numeric index emits an advisory warning — 31 of them today,
-deliberately, for reasons argued in `ig/input/fsh/concept-layer.fsh`. Do not
-silence them. The cost is that the 32nd, *real* warning arrives invisible, so
+⚠️ **A clean SUSHI run is not a quiet one.** Slicing `.category` (#271) makes
+every Instance that reaches the element by numeric index emit an advisory
+warning. **6 of those are expected today, all on `Communication`**, and they are
+the only benign shape: `category[+].text` writes a *sub-element* of index 0, so
+the concept-domain coding merges into that CodeableConcept and both survive.
+
+⚠️ **The other shape was never benign, and this file used to say it was.** A
+whole-value `* category[+] = <coding>` was being **overwritten** by the domain
+slice resolving onto index 0 — 23 of 25 example Instances silently lost their
+`survey` / `procedure` / `problem-list-item` / SNOMED category, and no gate saw
+it, because a missing optional category is not a validation error. Those profiles
+now declare their standard category as a **named slice**
+(`SurveyCategorySlice` and friends in `ig/input/fsh/concept-layer.fsh`), which
+fixed the loss, cut the warnings 31 → 6, and made the instrument Observations
+conformant to `us-core-observation-screening-assessment`. `check-sushi-output.mjs`
+now allows the warning **only for `Communication`** — if another resource type
+starts emitting it, read the generated JSON before touching the allowlist.
+
+The remaining cost is that a real warning arrives in a field of expected ones, so
 from the repo root:
 ```
 node scripts/check-sushi-output.mjs        # compile ig/ and gate the warning SHAPE

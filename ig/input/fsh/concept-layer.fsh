@@ -160,6 +160,115 @@ RuleSet: SuicideRiskDomainCategory
 * insert SuicideRiskDomainSlicing
 * insert SuicideRiskDomainSlice
 
+// --- Standard categories, as NAMED slices ---------------------------
+//
+// WHY THESE EXIST (and why the comment below them changed):
+//
+// The domain slice above is `1..1` on a `#pattern`-discriminated `$this`. When
+// an example Instance sets its standard category by numeric index and then
+// assigns the domain slice —
+//
+//   * category[+]            = …observation-category#survey
+//   * category[suicideRisk]  = SPiERConceptDomain#suicide-risk
+//
+// — SUSHI resolves the named slice onto index 0 and **overwrites the value that
+// `category[+]` just wrote there.** The standard category is not "an unsliced
+// neighbour the open slicing permits"; it is silently discarded. 23 of 25
+// example Instances were losing `survey` / `procedure` / `problem-list-item` /
+// the SNOMED document type this way, and nothing caught it: the resources still
+// validate (a missing optional category is not an error), so `validate-fhir.mjs`
+// reporting 0 errors was never evidence the category survived.
+//
+// `SPiERSuicideRiskFlag` (risk-episode.fsh) is the one profile that got this
+// right from the start, and it shows the fix: make BOTH codes named slices. Its
+// instance's `category[+]` is clobbered too — it just doesn't matter there,
+// because the profile's fixed `category[safety]` slice supplies the same value
+// regardless. That is the pattern these rulesets generalise.
+//
+// Because the slice carries an assigned value at `1..1`, SUSHI populates it into
+// every instance automatically. The instances therefore do NOT restate it — the
+// `category[+]` lines were deleted rather than renamed, which is also what
+// removes the advisory warning at its source.
+//
+// The earlier decision not to do this (recorded here and in
+// `scripts/check-sushi-output.mjs`) rested on two premises that turned out to be
+// wrong: that the warnings were harmless, and that naming a slice would "pin
+// each instance to a single standard category several do not have." The first is
+// refuted above. The second confused the profile with the instance: the slicing
+// stays `#open`, so a profile that names one standard category still permits any
+// number of additional unsliced ones — and each of these profiles genuinely does
+// have exactly one standard category across every instance of it.
+//
+// `survey` is additionally the element `us-core-observation-screening-assessment`
+// requires (`category:survey` 1..1, pattern `observation-category#survey`), which
+// is the profile the HL7/ASTP US Behavioral Health Profiles crosswalk names for
+// its "Suicide Risk Assessment" element. Naming the slice here is what makes a
+// SPiER instrument Observation conformant to it — see
+// `docs/research/2026-08-us-behavioral-health-profiles-ig.md`.
+RuleSet: SurveyCategorySlice
+* category contains survey 1..1
+* category[survey] = http://terminology.hl7.org/CodeSystem/observation-category#survey
+* category[survey] ^short = "Standard HL7 observation category — survey"
+* category[survey] ^definition = "Marks this as a survey/assessment-derived Observation. Named rather than left to a numeric index so the value is not overwritten by the domain slice, and so the profile satisfies us-core-observation-screening-assessment's required `survey` slice."
+
+// A survey-derived instrument Observation: standard `survey` category + the
+// SPiER concept-domain tag. Replaces `insert SuicideRiskDomainCategory` on
+// those profiles.
+RuleSet: SurveyAndSuicideRiskCategory
+* insert SuicideRiskDomainSlicing
+* insert SurveyCategorySlice
+* insert SuicideRiskDomainSlice
+
+// The other three standard categories this repo assigns, same treatment. Each
+// carries the display its instances already used, so naming the slice preserves
+// the coding exactly rather than reducing it to a bare code.
+
+// `SPiERMeansSafetyAction` — a counselling/securing action, not a survey result.
+RuleSet: ProcedureAndSuicideRiskCategory
+* insert SuicideRiskDomainSlicing
+* category contains procedure 1..1
+* category[procedure] = http://terminology.hl7.org/CodeSystem/observation-category#procedure
+* category[procedure] ^short = "Standard HL7 observation category — procedure"
+* insert SuicideRiskDomainSlice
+
+// `SPiERSuicideRelatedCondition` — Condition.category.
+RuleSet: ProblemListAndSuicideRiskCategory
+* insert SuicideRiskDomainSlicing
+* category contains problemList 1..1
+* category[problemList] = http://terminology.hl7.org/CodeSystem/condition-category#problem-list-item "Problem List Item"
+* category[problemList] ^short = "Standard HL7 condition category — problem list item"
+* insert SuicideRiskDomainSlice
+
+// The safety-plan family of CarePlans. `SPiERCrisisResponsePlan` and
+// `SPiERStanleyBrownSafetyPlan` additionally carry the LOINC document type;
+// the two CAMS plans carry only the SNOMED artifact code.
+RuleSet: TreatmentEscalationPlanSlice
+* category contains treatmentEscalationPlan 1..1
+* category[treatmentEscalationPlan] = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
+* category[treatmentEscalationPlan] ^short = "SNOMED CT record-artifact type — treatment escalation plan"
+
+RuleSet: SafetyPlanAndSuicideRiskCategory
+* insert SuicideRiskDomainSlicing
+* insert TreatmentEscalationPlanSlice
+* insert SuicideRiskDomainSlice
+
+// `suicidePreventionNote` is 0..1, not 1..1, on purpose. Naming the slice is what
+// stops the domain tag from clobbering the coding; requiring it would be a
+// separate conformance decision, and the data does not support it — of the two
+// Stanley-Brown safety plans in the population scenarios, `patient-001` carries
+// `87626-8` and `patient-011` does not. The HL7 validator is what surfaced that
+// (`check:scenarios` sees profile `min` but not slice-level cardinality — the
+// division of labour CLAUDE.md documents). Because min is 0, SUSHI will not
+// auto-populate it, so the two Instances that do carry the code assign it by
+// SLICE NAME rather than by numeric index.
+RuleSet: SafetyPlanNoteAndSuicideRiskCategory
+* insert SuicideRiskDomainSlicing
+* insert TreatmentEscalationPlanSlice
+* category contains suicidePreventionNote 0..1
+* category[suicidePreventionNote] = http://loinc.org#87626-8 "Suicide prevention note"
+* category[suicidePreventionNote] ^short = "LOINC document type — suicide prevention note"
+* insert SuicideRiskDomainSlice
+
 // `Appointment` only (#272). Its slot is `serviceCategory` 0..*, whose binding is
 // `example`, so adding a SPiER code is conformant rather than a violation of a
 // stronger binding. The value a consumer searches for is unchanged — what differs
@@ -169,26 +278,33 @@ RuleSet: SuicideRiskDomainServiceCategory
 * insert SuicideRiskDomainSlicingOn(serviceCategory)
 * insert SuicideRiskDomainSliceOn(serviceCategory)
 
-// EXPECTED SUSHI WARNINGS, so the next reader does not "fix" them.
+// SUSHI WARNINGS — what the remaining ones mean, and why most are gone.
 //
 // Slicing `category` makes SUSHI advise slice names for every rule that reaches
-// the element by numeric index — so each example Instance that sets its own
-// category (`* category[+] = …#survey`) now emits:
+// the element by numeric index:
 //
-//   Sliced element Observation.category is being accessed via numeric index.
+//   Sliced element <Resource>.category is being accessed via numeric index.
 //
-// Those entries are the UNSLICED neighbours the open slicing exists to permit;
-// they have no slice name because they are deliberately not slices. The warning
-// is advisory and the resources validate cleanly — `validate-fhir.mjs` reports
-// 0 errors across all 353.
+// This block used to say those entries were "the UNSLICED neighbours the open
+// slicing exists to permit", that the warning was advisory, and that the
+// resources validated cleanly. The last part was true and the first two were
+// not: for a whole-value assignment (`* category[+] = <coding>`) the domain
+// slice was resolving onto index 0 and destroying the coding — see the long
+// note above `SurveyCategorySlice`. The resources did validate, because a
+// missing optional category is not an error; that is precisely why it went
+// unnoticed. 23 of 25 example Instances were affected.
 //
-// The way to silence it would be to declare a named slice for every standard
-// category too (a `survey` slice on each Observation profile, and so on). That
-// is a real option, but it means constraining ~28 profiles further in order to
-// quiet a linter rather than because the constraint is wanted — and it would
-// pin instances to one standard category each, which several do not have. If a
-// future change wants those slices for their own sake, add them; do not add
-// them for the warning count.
+// Those profiles now name their standard category slice, which fixed the data
+// loss and removed the warning at its source (31 → 6).
+//
+// The 6 that remain are `Communication.category[+].text` — a SUB-ELEMENT write,
+// so the domain coding merges into the same CodeableConcept instead of
+// replacing it, and both survive. Those are the real "unsliced neighbour" case.
+//
+// So the two shapes are NOT interchangeable, even though SUSHI prints the same
+// sentence for both. `scripts/check-sushi-output.mjs` now allows the warning
+// only for `Communication`; if you make another resource type emit it, check the
+// generated JSON before adding it to that allowlist.
 
 
 // --- Harmonized concept Observation profile ------------------------
@@ -203,11 +319,10 @@ Description: "The instrument-agnostic, actionable suicide-risk concept derived f
 * status = #final (exactly)
 // Generic concept code — NOT an instrument item code.
 * code = http://loinc.org#93374-7
-// Require a suicide-risk domain category (Gravity pattern). The slice itself
-// now lives in the SuicideRiskDomainCategory RuleSet above, shared with every
-// other profile in the chain — see #262. This profile is where the pattern
-// started; it is no longer the only place it applies.
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 // Value is the common, ordered risk tier.
 * value[x] 1..1
 * value[x] only CodeableConcept

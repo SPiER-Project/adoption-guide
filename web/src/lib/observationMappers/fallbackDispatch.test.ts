@@ -3,6 +3,8 @@ import { mapResponseToObservations } from './index'
 import { recognizeInstrument, normalizeToSpierQr, INSTRUMENT_SIGNATURES } from './fallbackDispatch'
 import { deriveFromResponse } from '../deriveFromResponse'
 import type { QuestionnaireResponseResource } from '../../types/fhir'
+import bhpCssrs from './__fixtures__/bhp-cssrs-example.json'
+import bhpPhq9 from './__fixtures__/bhp-phq9-example.json'
 
 // SPiER PHQ-9 answer-option ordinals (FHIR-Resources/PHQ-9/phq9-questionnaire.json).
 const LA = { 0: 'LA6568-5', 1: 'LA6569-3', 2: 'LA6570-1', 3: 'LA6571-9' } as const
@@ -175,6 +177,71 @@ describe('fallback dispatch — regression & guards', () => {
   })
 })
 
+/**
+ * The real published artifacts, not our idea of a foreign QR. See
+ * `__fixtures__/README.md` — these carry their LOINC code only in `linkId`
+ * ("/44250-9"), with no `item.code` and no contained Questionnaire, and the
+ * C-SSRS one points `questionnaire` at a PDF so Tier 1 cannot fire.
+ */
+describe('fallback dispatch — the US Behavioral Health Profiles IG examples', () => {
+  it('recognizes the published PHQ-9 example and scores it (12, per the IG total)', () => {
+    const result = mapResponseToObservations(bhpPhq9 as unknown as QuestionnaireResponseResource)!
+    expect(result).not.toBeNull()
+    expect(result.dispatch?.via).toBe('code')
+    expect(result.dispatch?.recognizedCanonical).toBe('http://spier.org/Questionnaire/PHQ-9')
+    // The IG's own item 44261-6 states the total is 12; SPiER must agree, having
+    // read only the nine per-item answers.
+    expect(totalOf(result)).toBe(12)
+  })
+
+  it('recognizes the published C-SSRS example despite `questionnaire` being a PDF', () => {
+    const qr = bhpCssrs as unknown as QuestionnaireResponseResource
+    expect(qr.questionnaire).toMatch(/\.pdf$/)
+    const recognized = recognizeInstrument(qr)
+    expect(recognized?.confidence).toBe('code')
+    expect(recognized?.signature.spierCanonical).toBe('http://spier.org/Questionnaire/C-SSRS-Screener')
+  })
+
+  it('maps the C-SSRS example to the risk level the IG itself asserts (Low)', () => {
+    const result = mapResponseToObservations(bhpCssrs as unknown as QuestionnaireResponseResource)!
+    const risk = result.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
+    // Every item is answered "No" (LA32-8), and the IG's own 93374-7 item says
+    // LA9194-7 "Low". SPiER derives from the items alone and must not disagree.
+    expect(risk?.valueCodeableConcept?.coding?.[0]?.code).toBe('none')
+  })
+
+  it('converts the IG\'s LOINC yes/no codings into the booleans the mapper reads', () => {
+    const sig = INSTRUMENT_SIGNATURES.find(s => s.spierCanonical.endsWith('/C-SSRS-Screener'))!
+    const normalized = normalizeToSpierQr(bhpCssrs as unknown as QuestionnaireResponseResource, sig)
+    // Not null: every one of the IG's answers is readable, so nothing is refused.
+    expect(normalized).not.toBeNull()
+    expect(normalized!.questionnaire).toBe('http://spier.org/Questionnaire/C-SSRS-Screener')
+    expect(normalized!.item?.map(i => i.linkId)).toEqual(['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q6-recent'])
+    // valueBoolean, not a passed-through LA32-8 coding — `getBooleanAnswer`
+    // reads nothing else.
+    expect(normalized!.item?.every(i => i.answer?.[0]?.valueBoolean === false)).toBe(true)
+  })
+
+  it('a "Yes" C-SSRS answer drives the risk level up (the fixture is not passing by always saying No)', () => {
+    const qr = JSON.parse(JSON.stringify(bhpCssrs)) as QuestionnaireResponseResource
+    // Endorse item 5 — active ideation with specific plan and intent.
+    const q5 = qr.item?.find(i => i.linkId === '/93250-9')
+    q5!.answer = [{ valueCoding: { system: 'http://loinc.org', code: 'LA33-6', display: 'Yes' } }]
+    const result = mapResponseToObservations(qr)!
+    const risk = result.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
+    expect(risk?.valueCodeableConcept?.coding?.[0]?.code).toBe('high')
+  })
+
+  it('does NOT treat an opaque linkId as terminology', () => {
+    // Same nine answers, but linkIds that are not LOINC-shaped. Recognition must
+    // fail rather than guess — otherwise `linkIdAsCode` would be matching noise.
+    const qr = JSON.parse(JSON.stringify(bhpPhq9)) as QuestionnaireResponseResource
+    qr.item?.forEach((it, i) => { it.linkId = `question-${i + 1}` })
+    expect(recognizeInstrument(qr)).toBeNull()
+    expect(mapResponseToObservations(qr)).toBeNull()
+  })
+})
+
 describe('deriveFromResponse — provenance stamping', () => {
   const notesOf = (o: unknown) => ((o as { note?: Array<{ text?: string }> }).note) ?? []
 
@@ -284,12 +351,20 @@ describe('C-SSRS screener via Tier 2 (#230)', () => {
   })
 
   it('REFUSES the response when an answer is present but unreadable', () => {
-    // A LOINC LA answer code SPiER does not map. Scoring the rest would read this
-    // endorsed item as a "No" and report a clean screen — so nothing is derived.
+    // A site-local yes/no vocabulary SPiER does not map. Scoring the rest would
+    // read this endorsed item as a "No" and report a clean screen — so nothing is
+    // derived.
+    //
+    // This case originally used LOINC `LA33-6` as its unreadable example. LOINC's
+    // normative Yes/No pair is now accepted (the US Behavioral Health Profiles IG
+    // answers with it — see `normalizeBooleanAnswer`), so the example moved to a
+    // vocabulary that really is unmappable. The property under test is unchanged:
+    // an answer that is *present but not understood* must refuse the whole
+    // response, never be silently treated as absent.
     const result = mapResponseToObservations(
       foreignCssrs({
         '93246-7': { valueCoding: SNOMED_YES },
-        '93250-9': { valueCoding: { system: 'http://loinc.org', code: 'LA33-6', display: 'Yes' } },
+        '93250-9': { valueCoding: { system: 'http://acme-ehr.example.org/answers', code: 'Y', display: 'Yes' } },
       }),
     )
     expect(result).toBeNull()

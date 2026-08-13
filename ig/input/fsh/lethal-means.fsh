@@ -111,9 +111,10 @@ Description: "One means-safety action for a specific lethal means. Observation.c
 * status 1..1
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `procedure` category (this records an action taken, not a survey
+// result) + the Gravity-pattern domain tag, so the resource is retrievable with
+// the rest of the suicide-safer care record by category alone (#262).
+* insert ProcedureAndSuicideRiskCategory
 * code 1..1
 * code from LethalMeansMethod (required)
 * subject 1..1
@@ -179,7 +180,6 @@ Title: "Example — Means Safety Action: Firearm secured"
 Description: "Sample means-safety action Observation: the patient's firearm was transferred to a trusted party for safekeeping."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#procedure
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = LethalMeansMethodCodes#firearm "Firearm"
 * subject = Reference(Patient/example)
@@ -194,7 +194,6 @@ Title: "Example — Means Safety Action: Medication locked"
 Description: "Sample means-safety action Observation: medications locked in a lockbox held by a family member."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#procedure
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = LethalMeansMethodCodes#medication "Medication"
 * subject = Reference(Patient/example)

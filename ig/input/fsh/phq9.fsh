@@ -19,9 +19,10 @@ Description: "Integer total score (0–27) derived from a completed PHQ-9 Questi
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#44261-6
 * subject 1..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
@@ -47,9 +48,10 @@ Description: "Discrete Observation for PHQ-9 item 9 (\"Thoughts that you would b
 * status = #final (exactly)
 * category 1..*
 * category.coding 1..*
-// Gravity-pattern domain tag, so this resource is retrievable with the rest
-// of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// Standard `survey` category + the Gravity-pattern domain tag, so this resource
+// is retrievable with the rest of the suicide-safer care record by category
+// alone (#262) and satisfies us-core-observation-screening-assessment.
+* insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#44260-8
 * subject 1..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
@@ -97,7 +99,6 @@ Title: "Example — PHQ-9 Total Score 18 (Moderately Severe)"
 Description: "Sample total-score Observation showing a Moderately Severe PHQ-9 result for an example patient."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#44261-6 "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
 * subject = Reference(Patient/example)
@@ -114,7 +115,6 @@ Title: "Example — PHQ-9 Item 9 Positive"
 Description: "Sample item-9 Observation showing endorsement of suicide-related thoughts (score 2 = 'More than half the days')."
 Usage: #example
 * status = #final
-* category[+] = http://terminology.hl7.org/CodeSystem/observation-category#survey
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#44260-8 "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]"
 * subject = Reference(Patient/example)

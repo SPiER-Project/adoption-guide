@@ -15,10 +15,18 @@
  * Three tiers, tried in order by `mapResponseToObservations` (index.ts):
  *   Tier 1 — canonical URL (handled in index.ts; highest confidence).
  *   Tier 2 — item-code recognition (`confidence: 'code'`). Matches standardized
- *            LOINC per-item codes carried on `QuestionnaireResponse.item[].code`
- *            or on a contained Questionnaire's `item.code`.
+ *            LOINC per-item codes, from a contained Questionnaire's `item.code`,
+ *            from a (non-conformant) `QuestionnaireResponse.item[].code`, or from
+ *            a `linkId` that is itself a LOINC code. See `itemsByCode`.
  *   Tier 3 — answer-shape heuristic (`confidence: 'shape'`). Crude "N ordinal
  *            items in range [lo,hi]" match; low confidence, opt-in only.
+ *
+ * The `linkId` source is not a nicety: it is the ONLY place the HL7/ASTP US
+ * Behavioral Health Profiles IG carries a code on its published PHQ-9 and C-SSRS
+ * QuestionnaireResponses, so without it SPiER cannot read the national
+ * behavioural-health guide's own examples. Both are checked in verbatim under
+ * `__fixtures__/` and asserted against in `fallbackDispatch.test.ts`. See
+ * `docs/research/2026-08-us-behavioral-health-profiles-ig.md`.
  *
  * ⚠️ The LOINC item codes below are hand-duplicated from the SPiER Questionnaire
  * JSON (FHIR-Resources/<tool>/*.json) — a third home for values that already
@@ -221,10 +229,37 @@ function* walkQuestionnaireItems(items: any[] | undefined): Generator<any> {
 }
 
 /**
+ * A `linkId` that IS a standardized code, with an optional leading slash —
+ * `/44250-9` or `44250-9`. That is how the HL7/ASTP US Behavioral Health
+ * Profiles IG writes its PHQ-9 and C-SSRS QuestionnaireResponses, and it is the
+ * only place those examples carry a code at all.
+ *
+ * Deliberately narrow: LOINC's `nnnnn-n` shape only. A `linkId` is an opaque
+ * correlator, so treating one as terminology is a heuristic — restricting it to
+ * a syntactic LOINC match keeps a SPiER-style `q1` (or any other opaque id) from
+ * being entered into the code map, where a coincidental collision could shadow a
+ * genuinely coded item under `itemsByCode`'s first-writer-wins rule.
+ */
+const LOINC_LINKID = /^\/?(\d{1,7}-\d)$/
+function linkIdAsCode(linkId: string | undefined): string | undefined {
+  return linkId ? (LOINC_LINKID.exec(linkId)?.[1] ?? undefined) : undefined
+}
+
+/**
  * Build a map of standardized item code → the answer-bearing QR item that
- * carries it. Reads codes from two places:
- *   1. `QuestionnaireResponse.item[].code` (foreign QRs that annotate items).
- *   2. a contained Questionnaire's `item.code`, joined to the QR item by linkId.
+ * carries it. Reads codes from three places, in decreasing authority:
+ *   1. a contained Questionnaire's `item.code`, joined to the QR item by linkId.
+ *   2. `QuestionnaireResponse.item[].code`.
+ *   3. the item's own `linkId`, when that linkId is itself a LOINC code.
+ *
+ * ⚠️ Source 2 is **not a conformant shape**: R4 `QuestionnaireResponse.item` has
+ * exactly `linkId`, `definition`, `text`, `answer` and `item` — there is no
+ * `code` element (verified against `hl7.org/fhir/R4/questionnaireresponse.profile.json`).
+ * It is kept because tolerating a non-conformant producer that annotates its
+ * items costs one line and can only add recognition, never break it — but it must
+ * not be relied on, and it is why sources 1 and 3 exist. This docblock previously
+ * listed it first and implied it was the normal case, which it cannot be.
+ *
  * First writer wins so an earlier item isn't clobbered by a duplicate code.
  */
 function itemsByCode(qr: QuestionnaireResponseResource): Map<string, QuestionnaireResponseItem> {
@@ -244,8 +279,11 @@ function itemsByCode(qr: QuestionnaireResponseResource): Map<string, Questionnai
   const byCode = new Map<string, QuestionnaireResponseItem>()
   for (const item of walkResponseItems(qr?.item)) {
     const codes: string[] = []
-    for (const c of item.code ?? []) if (c.code) codes.push(c.code)
     if (item.linkId) for (const c of codesByLinkId.get(item.linkId) ?? []) codes.push(c)
+    for (const c of item.code ?? []) if (c.code) codes.push(c.code)
+    // Lowest authority: only consulted when nothing above named a code.
+    const fromLinkId = linkIdAsCode(item.linkId)
+    if (fromLinkId) codes.push(fromLinkId)
     for (const code of codes) if (!byCode.has(code)) byCode.set(code, item)
   }
   return byCode
@@ -322,22 +360,45 @@ export function recognizeInstrument(qr: QuestionnaireResponseResource): Recognit
 }
 
 /**
+ * LOINC's normative Yes/No answer pair (answer list LL361-7). Kept here rather
+ * than in `shared.ts` because only foreign-QR normalization needs it — no SPiER
+ * Questionnaire binds these. Both displays confirmed against tx.fhir.org
+ * (2026-08-13); `check:codings` re-checks them nightly.
+ */
+const LOINC_YES_NO: Record<string, boolean> = { 'LA33-6': true, 'LA32-8': false }
+
+/**
  * Coerce a foreign yes/no answer into the `valueBoolean` the C-SSRS mappers read.
  *
- * Accepts exactly two shapes, and adds no new code literals to the repo:
+ * Accepts three shapes:
  *   1. `valueBoolean` — already what the mapper wants.
  *   2. a SNOMED Yes/No coding — via `getYesNoBoolean`, the same helper (and the
  *      same two codes) the ASQ mapper already uses, which is also what SPiER's
  *      own C-SSRS `answerOption` list declares.
+ *   3. a LOINC Yes/No coding (`LA33-6` / `LA32-8`).
  *
- * Anything else — a LOINC `LA…` answer code, a site-local yes/no vocabulary, a
- * free-text "Yes" — returns undefined, and the caller then refuses the whole
- * response rather than dropping the item. That asymmetry is the point: see
+ * ⚠️ Shape 3 was **deliberately excluded** when this function landed (#323), on
+ * the reasoning that accepting it "adds new code literals to the repo". That
+ * reasoning was sound in the abstract and wrong for this specific pair: the
+ * HL7/ASTP US Behavioral Health Profiles IG answers its published C-SSRS example
+ * with `LA32-8`, so refusing LOINC meant SPiER could not read the national
+ * behavioural-health guide's own artifact even once it recognized the items. This
+ * is not an open door to arbitrary vocabularies — it is two codes from LOINC's
+ * normative answer list, verified against the publishing authority, added because
+ * a named external consumer emits them.
+ *
+ * Anything else — a site-local yes/no vocabulary, a free-text "Yes" — still
+ * returns undefined, and the caller then refuses the whole response rather than
+ * dropping the item. That asymmetry is unchanged and is still the point: see
  * `normalizeToSpierQr`.
  */
 function normalizeBooleanAnswer(
   src: QuestionnaireResponseItem,
 ): QuestionnaireResponseAnswer | undefined {
+  const coding = src.answer?.[0]?.valueCoding
+  if (coding?.system === 'http://loinc.org' && coding.code && coding.code in LOINC_YES_NO) {
+    return { valueBoolean: LOINC_YES_NO[coding.code] }
+  }
   const direct = src.answer?.[0]?.valueBoolean
   if (typeof direct === 'boolean') return { valueBoolean: direct }
   const yesNo = getYesNoBoolean(src)
