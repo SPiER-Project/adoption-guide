@@ -7,10 +7,18 @@ PHQ-9 / anxiety examples. Structural claims about FHIR R4 and US Core were check
 `hl7.org/fhir/R4/questionnaireresponse.profile.json` and
 `hl7.org/fhir/us/core/STU6.1/StructureDefinition-us-core-observation-screening-assessment.json`.
 
+The §5 defects were **re-verified against the live build on 2026-08-13** before being filed
+upstream, and all five still held.
+
 This is a **CI build that changes regularly**. Every finding below is dated; re-verify before
 acting on any of it. Where this report contradicts
 [`ig/input/pagecontent/relationship-to-other-igs.md`](../../ig/input/pagecontent/relationship-to-other-igs.md),
 this report is newer — see [What our existing page gets wrong](#what-our-existing-page-gets-wrong).
+
+⚠️ **One claim in the first version of this report was wrong and is corrected in place**: it read
+`open_issues_count: 0` on the upstream repo as an unattended tracker, when issues are in fact
+*disabled* there. See [Where to send feedback](#where-to-send-feedback). The correction is kept
+visible rather than quietly edited out, because the faulty inference is the reusable lesson.
 
 ---
 
@@ -24,7 +32,7 @@ this report is newer — see [What our existing page gets wrong](#what-our-exist
 | **Funder** | SAMHSA, under the Behavioral Health IT (BHIT) Initiative, with ASTP/ONC |
 | **Package** | `fhir.astp.bhp#0.1.0`, FHIR 4.0.1 |
 | **Status** | CI build, generated 2026-02-19; **"not an authorized publication"** |
-| **Repo** | `HL7/us-behavioral-health-profiles`, last pushed 2026-07-22, **0 open issues** |
+| **Repo** | `HL7/us-behavioral-health-profiles` (last pushed 2026-07-22) — but **issues are disabled there**; feedback goes to `lantanagroup/astp-bhp`. See [Where to send feedback](#where-to-send-feedback). |
 | **Purpose** | Express the **USCDI+ Behavioral Health** data-element list as FHIR |
 
 **It is a crosswalk document, not a profile library.** The entire normative surface is three
@@ -228,9 +236,32 @@ strengthens it.
    `Coverage-medicaid-coverage-example-1` / `Organization-fl-medicaid-example-1` examples say
    Florida Medicaid. `quick_facts` says James requested female counselors; `full_story` says he
    requested afternoon appointments.
-6. **Zero open issues on the repo** — with these inconsistencies present, that reads as an
-   unattended tracker rather than a clean build. Which is *good news for us*: filing
-   well-formed, evidence-backed issues is likely to land with disproportionate visibility.
+All five re-verified against the live build on **2026-08-13** — including that the six removed
+elements are still live crosswalk rows. Tracked as [#337](https://github.com/SPiER-Project/adoption-guide/issues/337).
+
+### Where to send feedback
+
+⚠️ **This section originally read "zero open issues on the repo — that reads as an unattended
+tracker," and inferred that a well-formed issue would land with disproportionate visibility.
+That was wrong, and it is the kind of wrong that wastes an afternoon.** The count is zero
+because `HL7/us-behavioral-health-profiles` has **`has_issues: false`** — issues are *disabled*,
+not unattended. Anything filed there goes nowhere.
+
+The IG's own footer offers three channels, and they disagree with each other (checked 2026-08-13):
+
+| Channel | Live? | Notes |
+|---|---|---|
+| [`lantanagroup/astp-bhp`](https://github.com/lantanagroup/astp-bhp/issues) | ✅ `has_issues: true`, 1 open | What the IG's **"New Issue"** link actually points at. The authoring repo — Lantana are the authors. Last pushed 2026-02-26. |
+| `HL7/us-behavioral-health-profiles` | ❌ issues disabled | Also linked from the page, as "GitHub Issue submission page". Dead end. |
+| [ASTP Health IT Feedback and Inquiry Portal](https://inquiry.healthit.gov/support/plugins/servlet/desk/portal/2) | ? | Linked as the formal channel. Heavier weight; likely right for anything policy-adjacent. |
+
+So the **code** lands in the HL7 repo (pushed 2026-07-22) while **feedback** is invited at the
+Lantana repo (pushed 2026-02-26) — a five-month gap between the two. That mismatch is itself
+worth reporting.
+
+The general lesson, since this report is meant to be trusted: `open_issues_count: 0` from the
+GitHub API does not distinguish "nobody has filed anything" from "nobody can." Read
+`has_issues` before drawing a conclusion about a project's responsiveness.
 
 ---
 
@@ -351,30 +382,44 @@ Verification: SUSHI 0 errors / 6 expected warnings · validator **0 conformance 
 resources** · `web` verify 546 tests (was 540) · `cds-hooks` 24 tests · `check:codings` 61
 external codings match tx.fhir.org.
 
-### Do next — positions SPiER externally (not started)
+### Do next — positions SPiER externally
+
+Items 6, 7 and 9 are now tracked as issues, so they are visible to anyone reading the tracker
+rather than only to a reader of this document. That mattered here: main advanced four times
+during the session that produced this report, and two of its changes were independently
+duplicated by other sessions — untracked work in a doc is work liable to be redone or forgotten.
 
 5. **Open the 2026-01-22 Call to Action** (§6) and decide on EHR WG BH Project participation.
-   This is the only item with an external clock and it needs a human with a Confluence login.
-6. **File issues on `HL7/us-behavioral-health-profiles`** for §5.1–5.5. Low cost, evidence in
-   hand, empty tracker, and it establishes SPiER as a contributing implementer rather than a
-   downstream consumer.
+   The only item with an external clock, and it needs a human with a Confluence login — so it is
+   deliberately *not* filed as an issue. **Still open.**
+6. **Report the build defects** in §5.1–5.5 — [#337](https://github.com/SPiER-Project/adoption-guide/issues/337).
+   Read [Where to send feedback](#where-to-send-feedback) first; the obvious channel is disabled.
 7. **Offer the SPiER C-SSRS Questionnaire** as the canonical target replacing the CMS PDF
-   (§4.3).
+   (§4.3) — [#338](https://github.com/SPiER-Project/adoption-guide/issues/338). **Blocked on
+   licensing (#64)**: contributing a C-SSRS Questionnaire to a third-party IG is redistribution,
+   and the item *text* is the licensed part even though the item codes are LOINC.
 8. **Map SPiER's proposed Suicide-Care Disclosure Consent profile** (the `11.7-0A` gap in
    `docs/use-cases/ed-scenario-11.json`) onto the **SDOH Clinical Care Consent Profile**, which
    is what BHP row 15 uses. Same base, and 42 CFR Part 2 is a shared concern — their pilots
-   name it explicitly.
+   name it explicitly. **Deliberately unfiled: gated on
+   [#326](https://github.com/SPiER-Project/adoption-guide/issues/326)**, which asks for clinical
+   accept/reject on the ten proposed ED-scenario steps — and `11.7-0A` is one of them, still
+   unchecked. Building the profile before that step is accepted risks building for a step that
+   gets rejected.
 
-### Consider — larger, and needs a decision (not started)
+### Consider — larger, and needs a decision
 
-9. **A "BHP bridge" worked example.** Take the BHP IG's James Wolff C-SSRS QR verbatim, run it
-   through SPiER's fallback dispatch → tier Observation → risk episode → safety plan →
-   follow-up → Stage-8 measure. That is a *runnable* demonstration that SPiER completes their
-   story, using their patient and their data. Given the pilot cohort in §6, this is plausibly
-   the highest-value demo SPiER could build — and most of the machinery already exists.
-   Note it needs a **second ED patient** or careful reuse: `patient-011` is Maria, and
-   `ed-scenario-11.json` already tracks `branch-exclusive` walkthrough gaps that a
-   different ED course cannot close on her.
+9. **A "BHP bridge" worked example** — [#339](https://github.com/SPiER-Project/adoption-guide/issues/339).
+   Take the BHP IG's James Wolff C-SSRS QR verbatim, run it through SPiER's fallback dispatch →
+   tier Observation → risk episode → safety plan → follow-up → Stage-8 measure. A *runnable*
+   demonstration that SPiER completes their story, using their patient and their data. Given the
+   pilot cohort in §6, plausibly the highest-value demo SPiER could build — and since #325 most
+   of the machinery exists.
+   Two constraints the issue carries: their answers are all "No" → `none` tier, so run literally
+   the demo shows *nothing happening*, which inverts the point (the issue recommends showing both
+   arms); and it needs a **new or clearly-variant patient** — `patient-011` is Maria, and
+   `ed-scenario-11.json` already tracks `branch-exclusive` walkthrough gaps a different ED course
+   cannot close on her.
 10. **Do not declare a package dependency.** §5 confirms the existing judgment.
 
 ---
