@@ -25,6 +25,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { aliasedModules } from './lib/vite-alias.mjs'
 
 const WEB = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const REPO = resolve(WEB, '..')
@@ -39,7 +40,10 @@ const fail = msg => errors.push(msg)
 // ── RULE 1 — alias and shim travel together ───────────────────────────────────
 
 const viteConfig = readFileSync(VITE_CONFIG, 'utf8')
-const aliased = new RegExp(`['"]${PACKAGE}['"]\\s*:`).test(viteConfig)
+// Via the shared reader rather than a regex here: this gate's own first version
+// matched only the object form, so moving vite.config.ts to the array form would
+// have reported "not stubbed" and skipped every check below.
+const aliased = aliasedModules(viteConfig).has(PACKAGE)
 const shimExists = existsSync(SHIM)
 
 if (!aliased && !shimExists) {
