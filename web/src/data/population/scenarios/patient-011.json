@@ -97,7 +97,193 @@
         "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent",
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
-        }
+        },
+        "item": [
+          {
+            "linkId": "ideation-section",
+            "item": [
+              {
+                "linkId": "q1-group",
+                "item": [
+                  {
+                    "linkId": "q1-lifetime",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "q1-recent",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "q2-group",
+                "item": [
+                  {
+                    "linkId": "q2-lifetime",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "q2-recent",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "q3-group",
+                "item": [
+                  {
+                    "linkId": "q3-lifetime",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "q3-recent",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "q4-group",
+                "item": [
+                  {
+                    "linkId": "q4-lifetime",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "q4-recent",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "q5-group",
+                "item": [
+                  {
+                    "linkId": "q5-lifetime",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "q5-recent",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373066001",
+                          "display": "Yes"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "behavior-section",
+            "item": [
+              {
+                "linkId": "actual-attempt",
+                "item": [
+                  {
+                    "linkId": "actual-attempt-lifetime",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373067005",
+                          "display": "No"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "actual-attempt-recent",
+                    "answer": [
+                      {
+                        "valueCoding": {
+                          "system": "http://snomed.info/sct",
+                          "code": "373067005",
+                          "display": "No"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     },
     {

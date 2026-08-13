@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   walkItems,
   getCodingAnswer,
-  getBooleanAnswer,
   getYesNoBoolean,
   highestRiskLevel,
   makeObservation,
@@ -65,7 +64,7 @@ describe('walkItems', () => {
   })
 })
 
-describe('getCodingAnswer / getBooleanAnswer', () => {
+describe('getCodingAnswer', () => {
   it('reads the first answer.valueCoding', () => {
     // Synthetic code on an example system, not `http://loinc.org#LA1` — this test
     // exercises answer traversal, not terminology, and a fixture that claims LOINC
@@ -78,19 +77,13 @@ describe('getCodingAnswer / getBooleanAnswer', () => {
     expect(getCodingAnswer(item)?.code).toBe('LA1')
   })
 
-  it('reads the first answer.valueBoolean, including false', () => {
-    expect(getBooleanAnswer({ linkId: 'x', answer: [{ valueBoolean: false }] })).toBe(false)
-    expect(getBooleanAnswer({ linkId: 'x', answer: [{ valueBoolean: true }] })).toBe(true)
-  })
-
   it('returns undefined for a missing item or missing answer', () => {
     expect(getCodingAnswer(undefined)).toBeUndefined()
-    expect(getBooleanAnswer(undefined)).toBeUndefined()
     expect(getCodingAnswer({ linkId: 'x' })).toBeUndefined()
   })
 })
 
-describe('getYesNoBoolean (SNOMED Yes/No → boolean)', () => {
+describe('getYesNoBoolean (SNOMED Yes/No coding or valueBoolean → boolean)', () => {
   const yes = (code: string, system = 'http://snomed.info/sct'): QuestionnaireResponseItem => ({
     linkId: 'x',
     answer: [{ valueCoding: { system, code } }],
@@ -115,6 +108,16 @@ describe('getYesNoBoolean (SNOMED Yes/No → boolean)', () => {
   it('returns undefined when there is no coding at all', () => {
     expect(getYesNoBoolean({ linkId: 'x' })).toBeUndefined()
     expect(getYesNoBoolean(undefined)).toBeUndefined()
+  })
+
+  // #327 — this helper absorbed `getBooleanAnswer`, which read valueBoolean
+  // alone. Both shapes now read through one reader: the SNOMED coding SPiER's
+  // own forms emit, and the valueBoolean `fallbackDispatch` normalizes a foreign
+  // QR into (#230). `false` must survive, since the risk ladders distinguish
+  // "answered No" from "not answered" only by `undefined`.
+  it('reads valueBoolean, including false', () => {
+    expect(getYesNoBoolean({ linkId: 'x', answer: [{ valueBoolean: true }] })).toBe(true)
+    expect(getYesNoBoolean({ linkId: 'x', answer: [{ valueBoolean: false }] })).toBe(false)
   })
 })
 
