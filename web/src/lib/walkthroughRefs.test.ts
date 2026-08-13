@@ -114,6 +114,7 @@ describe('every walkthrough ref in every shipped scenario resolves', () => {
           ...(scenario.tasks ?? []),
           ...(scenario.encounters ?? []),
           ...(scenario.procedures ?? []),
+          ...(scenario.consents ?? []),
         ],
       })
       for (const step of scenario.walkthrough ?? []) {
