@@ -214,13 +214,20 @@ export function MeasureDashboard() {
                   <th scope="col">Group</th>
                   <th scope="col">Denominator</th>
                   <th scope="col">Excluded</th>
+                  {/* Cases an exception removed: the reason applied AND the
+                      numerator was not met. A patient who met both stays in the
+                      denominator and counts as a pass, so this column never
+                      hides a success. */}
+                  <th scope="col" title="Removed for a valid clinical or system reason, and only because the numerator was not met">
+                    Exception
+                  </th>
                   <th scope="col">Numerator</th>
                   <th scope="col">Score</th>
                 </tr>
               </thead>
               <tbody>
                 {tally.groups.map(g => {
-                  const effective = g.denominator - g.denominatorExclusion
+                  const effective = g.denominator - g.denominatorExclusion - g.denominatorException
                   return (
                     <tr key={g.code}>
                       <th scope="row" className="md-group-name">
@@ -228,6 +235,7 @@ export function MeasureDashboard() {
                       </th>
                       <td>{g.denominator}</td>
                       <td>{g.denominatorExclusion || '—'}</td>
+                      <td>{g.denominatorException || '—'}</td>
                       <td>{g.numerator}</td>
                       <td className="md-score">
                         {g.score === null ? (

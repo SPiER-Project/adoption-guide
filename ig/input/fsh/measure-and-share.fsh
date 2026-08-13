@@ -371,6 +371,23 @@ Usage: #definition
     * description = "Patients whose episode was closed for administrative reasons."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Episode Closed Administratively"
+  // Issue #324. Adding the ED exception-branch patients dropped this measure
+  // from 40% to 29%, and the arithmetic was right — the definition simply had
+  // no way to say that two of the misses were not process failures. One patient
+  // was transferred to inpatient psychiatry (counseling belongs at discharge to
+  // the community, so it is not yet due, and it is owed by the receiving
+  // facility); one eloped while on 1:1 precautions (there was no opportunity).
+  //
+  // An EXCEPTION rather than an exclusion, because an exception is removed from
+  // the denominator only if the numerator is not met: a patient counseled
+  // before transfer still counts as a pass. An exclusion would forgive the
+  // transfer case unconditionally — and that is a shape a site could game by
+  // transferring.
+  * population[+]
+    * code = http://terminology.hl7.org/CodeSystem/measure-population#denominator-exception "Denominator Exception"
+    * description = "Patients whose episode encounter ended in transfer to a higher level of care (psy, hosp, long, rehab) or who left against advice before disposition (aadvice). Counseling is not yet due, or there was no opportunity to deliver it. Removed from the denominator only when the numerator is not met."
+    * criteria.language = #text/cql-identifier
+    * criteria.expression = "Transferred Or Left Before Means Counseling"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
     * description = "A SPiERLethalMeansCounseling Procedure with status completed, performed during the episode."

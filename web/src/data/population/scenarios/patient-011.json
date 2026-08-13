@@ -578,6 +578,56 @@
       "detail": "Current suicide risk level set to high following C-SSRS Full assessment within a SAFE-T framing; safety plan and lethal-means counseling completed prior to ED discharge."
     }
   ],
+  "procedures": [
+    {
+      "resourceType": "Procedure",
+      "id": "p011-lethal-means",
+      "meta": {
+        "profile": [
+          "http://spier.org/StructureDefinition/spier-lethal-means-counseling"
+        ],
+        "tag": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "code": "document-safety-actions",
+            "display": "Document Safety Actions"
+          }
+        ]
+      },
+      "status": "completed",
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "409063005",
+            "display": "Counseling"
+          }
+        ],
+        "text": "Lethal means safety counseling (CALM)"
+      },
+      "subject": {
+        "reference": "Patient/patient-011"
+      },
+      "encounter": {
+        "reference": "Encounter/p011-enc-ed"
+      },
+      "performedDateTime": "2026-08-02T14:40:00.000Z",
+      "note": [
+        {
+          "text": "Stored medication to be taken home by her sister the same evening; remaining supply to a lock box within 48 hours. Both actions have a named owner and a due date — see walkthrough step 11.6-2C."
+        }
+      ],
+      "category": {
+        "coding": [
+          {
+            "system": "http://spier.org/CodeSystem/spier-concept-domain",
+            "code": "suicide-risk",
+            "display": "Suicide risk"
+          }
+        ]
+      }
+    }
+  ],
   "communications": [
     {
       "resourceType": "Communication",
@@ -1441,12 +1491,15 @@
       "stageId": "document-safety-actions",
       "actor": "ED Clinician / Educator",
       "status": "completed",
-      "notes": "Lethal-means counseling delivered and documented; means-safety actions (who/what/when/where) added to the care plan. (Tool TL-008 is planned.)",
+      "notes": "Lethal-means counseling delivered and documented; means-safety actions (who/what/when/where) added to the care plan. Recorded with TL-008, which is built: the counseling Procedure and the per-method means-safety Observations are what its recorder writes.",
       "fhirArtifacts": [
         "Procedure",
         "CarePlan"
       ],
-      "profileGap": true
+      "relatedRefs": [
+        "Procedure/p011-lethal-means",
+        "CarePlan/p011-stanley-brown"
+      ]
     },
     {
       "id": "ed-11-6-2b",

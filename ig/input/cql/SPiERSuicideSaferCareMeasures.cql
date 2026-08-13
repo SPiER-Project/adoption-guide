@@ -332,6 +332,45 @@ define "Lethal Means Counseling During Episode":
         and "Performed Interval"(P.performed) during "Most Recent Episode".period
   )
 
+/* ── The exception, and why it is an exception rather than an exclusion ──
+
+   Two ways an open episode can carry no means counseling without the ED
+   having failed at anything (issue #324):
+
+     psy / hosp / long / rehab  the patient was admitted or transferred to a
+                                higher level of care. Means counseling belongs
+                                at discharge to the community, so it is NOT YET
+                                DUE — and when it comes due it is owed by the
+                                receiving facility.
+     aadvice                    the patient left before disposition. Terrence
+                                Whitfield (patient-014) eloped at 02:35 while on
+                                1:1 precautions: there was NO OPPORTUNITY.
+
+   `denominator-exception` is the population FHIR defines for exactly this —
+   removed from the denominator ONLY IF the numerator is not met. That
+   conditionality is the whole reason not to use an exclusion here: a patient
+   who WAS counseled before being transferred still counts as a pass rather
+   than disappearing from the measure. An exclusion would forgive the transfer
+   case unconditionally, which is also the shape a site could game.
+
+   Read off Encounter.hospitalization.dischargeDisposition because that is
+   where the signal already lives; nothing new had to be recorded to answer
+   this. */
+define "Deferring Discharge Dispositions": { 'psy', 'hosp', 'long', 'rehab', 'aadvice' }
+
+define "Episode Encounters":
+  [Encounter] E
+    where E.period overlaps "Most Recent Episode".period
+
+define "Transferred Or Left Before Means Counseling":
+  exists (
+    "Episode Encounters" E
+      where exists (
+        E.hospitalization.dischargeDisposition.coding C
+          where C.code.value in "Deferring Discharge Dispositions"
+      )
+  )
+
 // ─── Measure 5 — Follow-up timeliness ────────────────────────
 // The appointment windows require status = fulfilled, not booked. A scheduled
 // visit the patient never attended is not follow-up, and telling the two apart

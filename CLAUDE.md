@@ -394,6 +394,45 @@ is deliberately pointed at PSS-3 items offering the SNOMED pair **plus**
 `unable-to-complete` / `patient-refused`; the rule is containment, not equality,
 because a non-response must stay `undefined` rather than becoming a "No".
 
+⚠️ **A measure change lands in FOUR places, and `check:measures` only ties two
+of them together.** A population criterion lives in `ig/input/fsh/measure-and-share.fsh`
+(the published definition), `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` (the
+portable statement, compiled by the IG Publisher) and `web/src/lib/measures.ts`
+(the executable reference implementation the app runs) — and if it changes
+scoring, in `MeasureDashboard.tsx` too. `check:measures` asserts the FSH
+criterion names and the TS implementations agree in both directions; the
+publisher asserts the CQL compiles. **Nothing asserts the CQL and the TypeScript
+compute the same answer** — that is a reading, not a gate.
+
+⚠️ **`denominator-exclusion` and `denominator-exception` are not
+interchangeable, and the engine treats them differently on purpose (#324).** An
+exclusion is removed outright — the case never belonged in the cohort. An
+exception is removed **only if the numerator is not met**, so a patient who met
+the criterion *and* the numerator stays in and counts as a pass. Consequences
+worth knowing before adding either:
+
+- the exception's count is `removedByException`, **not** the raw population
+  flag. Tallying the flag would subtract a case that is still being scored, and
+  the score can then exceed 100%.
+- the numerator has to be resolved before the denominator can be, which is why
+  `evaluateMeasure` computes it first.
+- lethal-means counseling is the only exception in the set today: transfer to a
+  higher level of care (not yet due) or departure before disposition (no
+  opportunity), read off `Encounter.hospitalization.dischargeDisposition`.
+
+⚠️ **The demo's narration and the demo's measures can disagree, and only one
+test looks.** Patient-011's walkthrough said "Lethal-means counseling delivered
+and documented" while her scenario carried no Procedure, so the dashboard scored
+her a *miss* on a step her own chart calls completed — for as long as the ED
+scenario had existed. `measures.narration.test.ts` gates it from both ends: a
+narrated-completed step must reach the numerator it claims, and **any** measure
+miss for a patient who has a `walkthrough` must be written down in
+`EXPLAINED_MISSES` with a reason. That allowlist is empty today, which is the
+finding — every remaining miss among the ED patients is a pass, an exclusion or
+an exception. It does NOT assert that a step materializes every resource type it
+names: 21 completed steps name a SPiER-profiled type with no artifact behind it,
+which is filed separately.
+
 ## Conventions
 
 - **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for `color`, `background-color`, `border-color`, `fill`, `font-size`, `box-shadow`. Raw values are allowed only in `src/index.css` (token definitions). Class selectors must be kebab-case BEM.

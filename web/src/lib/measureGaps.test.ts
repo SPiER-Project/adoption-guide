@@ -5,14 +5,16 @@ import { MEASURE_GAPS, emptinessOf, gapFor, isComputed } from './measureGaps'
 function group(partial: Partial<GroupTally>): GroupTally {
   const denominator = partial.denominator ?? 0
   const exclusion = partial.denominatorExclusion ?? 0
+  const exception = partial.denominatorException ?? 0
   const numerator = partial.numerator ?? 0
-  const effective = denominator - exclusion
+  const effective = denominator - exclusion - exception
   return {
     code: partial.code ?? 'g',
     display: partial.display ?? 'Group',
     initialPopulation: partial.initialPopulation ?? denominator,
     denominator,
     denominatorExclusion: exclusion,
+    denominatorException: exception,
     numerator,
     score: 'score' in partial ? (partial.score ?? null) : effective > 0 ? numerator / effective : null,
   }
