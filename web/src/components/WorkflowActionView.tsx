@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
+import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
 import { TOOLS, stageById } from '../data/catalog'
@@ -188,9 +189,9 @@ export function WorkflowActionView({
           )}
         </div>
 
-        <aside className="debug-sidebar">
+        <CodeDrawer>
           <FhirJsonViewer data={draft} title="Live FHIR Communication" defaultOpen />
-        </aside>
+        </CodeDrawer>
       </div>
     </div>
   )

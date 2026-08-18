@@ -136,6 +136,13 @@
      and subtracts it. */
   --anchor-scroll-offset: calc(var(--patient-banner-height, 0px) + var(--space-4));
 
+  /* Height of the panel code drawer's collapsed bar. ONE definition, two
+     consumers: the bar sets its own height from it, and the panel's page content
+     reserves clearance from it (CodeDrawer.css). Split across two hand-kept
+     values it was already wrong — the bar rendered 34px against 32px of
+     clearance, so content sat 2px underneath. */
+  --code-drawer-bar-height: 36px;
+
   /* ── Radius scale ───────────────────────────────────────── */
   --radius-xs:  3px;
   --radius-sm:  4px;

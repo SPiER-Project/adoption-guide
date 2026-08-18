@@ -1,0 +1,96 @@
+/* ===========================
+   Code drawer — the panel-chrome rendering of the FHIR view.
+
+   Fixed to the bottom of the panel viewport rather than placed in flow, because
+   in flow is precisely the bug: `.form-wrapper` wraps and the old sidebar landed
+   ~3000px below the form, unreachable mid-demo (panel plan §9.1 finding 3).
+
+   EHR chrome keeps `.debug-sidebar` (App.css) untouched — it works when there is
+   room beside the form.
+   =========================== */
+.code-drawer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  /* ⚠️ Above the renderer's combobox popover (`z-index: 10`), deliberately —
+     the same ordering question `.panel-shell__patient` answered the other way.
+     The strip is passive chrome, so a popover must cover it; this drawer is
+     something the user explicitly opened, so it covers the popover instead.
+     Both are stated rather than left to DOM order. */
+  z-index: 20;
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-drawer);
+}
+
+/* The always-visible bar. This is the reachability fix: one tap from anywhere
+   in the form, at any scroll position. */
+.code-drawer__handle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  /* Fixed from the shared token rather than emerging from padding + line-height,
+     so the clearance rule below cannot drift out of agreement with it. */
+  height: var(--code-drawer-bar-height);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: var(--surface-muted);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.code-drawer__handle:hover {
+  background: var(--surface-banner-muted-hover);
+}
+
+.code-drawer__handle-icon {
+  color: var(--text-faint);
+}
+
+.code-drawer__handle-label {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-strong);
+}
+
+.code-drawer__handle-hint {
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+.code-drawer__body {
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-default);
+}
+
+/* The collapsed bar overlays the bottom of the page, so the panel's content must
+   clear it or the last control sits underneath. Applied to the page root rather
+   than the drawer, because the drawer is out of flow and cannot push anything.
+
+   ⚠️ Derived from `--code-drawer-bar-height`, not guessed. The first version used
+   `--space-8` (32px) against a bar that rendered 34px — measured at **-2px
+   clearance**, which is the hand-duplicated-constant failure this repo keeps
+   catching elsewhere. One token, both consumers, plus a margin of real space. */
+.panel-shell .form-view,
+.panel-shell .patient-chart {
+  padding-bottom: calc(var(--code-drawer-bar-height) + var(--space-4));
+}
+
+/* The Written section's empty state. Deliberately a statement of absence rather
+   than a preview — see the comment at its call site in QuestionnaireView. */
+.code-drawer__empty {
+  margin: var(--space-2) 0 0 0;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  color: var(--text-muted);
+}
