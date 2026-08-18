@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
+import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
 import { makeId } from '../lib/id'
@@ -223,9 +224,9 @@ export function CaringContactView() {
           )}
         </div>
 
-        <aside className="debug-sidebar">
+        <CodeDrawer>
           <FhirJsonViewer data={draft} title="Live FHIR Communication (caring contact)" defaultOpen />
-        </aside>
+        </CodeDrawer>
       </div>
     </div>
   )

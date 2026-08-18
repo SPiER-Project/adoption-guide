@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
 import { usePatient } from '../context/PatientContext'
+import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
 import { CarePlanDisplay } from './CarePlanDisplay'
@@ -38,7 +39,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
   const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
   const [searchParams] = useSearchParams()
-  const { addResponse, addCarePlan } = usePatient()
+  const { addResponse, addCarePlan, writebackReport } = usePatient()
 
   function handleSubmit(submittedResponse: QuestionnaireResponseResource) {
     const base = submittedResponse || response
@@ -150,12 +151,30 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
           </div>
         )}
 
-        <aside className="debug-sidebar">
+        <CodeDrawer>
           <FhirJsonViewer data={questionnaire} title="FHIR Questionnaire Definition" />
           {response && !carePlan && (
             <FhirJsonViewer data={response} title="Live FHIR QuestionnaireResponse" defaultOpen />
           )}
-        </aside>
+          {/* Panel plan §2's third section: what the writeback ladder actually
+              created. §2 is emphatic that this is "only truthful because of §5 —
+              it reports what happened, not what would have", so it renders ONLY
+              a real WritebackReport and never a hypothetical.
+
+              ⚠️ §9 asks for a "what would be written" fallback when there is no
+              server. That is the half forked on the Track-1 decision (see
+              docs/plans/next-session-handoff.md), so it is deliberately NOT
+              built here — the empty state below states the absence instead,
+              which is true under either answer. */}
+          {writebackReport ? (
+            <FhirJsonViewer data={writebackReport} title="Written to the EHR (writeback ladder)" />
+          ) : (
+            <p className="code-drawer__empty">
+              <strong>Nothing written back yet.</strong> Submitting against a connected
+              EHR records each ladder tier&rsquo;s outcome here.
+            </p>
+          )}
+        </CodeDrawer>
       </div>
     </div>
   )

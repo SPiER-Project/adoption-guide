@@ -4,6 +4,7 @@ import { theme } from '@formbox/hs-theme'
 import { generateCarePlan } from '../lib/carePlanMappers'
 import type { GeneratedCarePlan } from '../lib/carePlanMappers'
 import { CarePlanDisplay } from './CarePlanDisplay'
+import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
 import { usePatient } from '../context/PatientContext'
@@ -56,12 +57,12 @@ export function StanleyBrownView() {
           </div>
         )}
 
-        <aside className="debug-sidebar">
+        <CodeDrawer>
           <FhirJsonViewer data={stanleyBrownQuestionnaire} title="FHIR Questionnaire Definition" />
           {response && !carePlan && (
             <FhirJsonViewer data={response} title="Live FHIR QuestionnaireResponse" defaultOpen />
           )}
-        </aside>
+        </CodeDrawer>
       </div>
     </div>
   )
