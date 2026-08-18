@@ -28,7 +28,7 @@ a clinical reviewer has to be *told* which half is for them.
 | 1 — mock EHR read API over the existing fixtures | **Not started, and BLOCKED on a prerequisite.** §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **Not started.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **Not started.** §3 |
-| 4 — writes + the capability-degradation demo | **Not started — but the ladder driver is already built on unmerged #350.** §5 |
+| 4 — writes + the capability-degradation demo | **Not started. The ladder driver is already ON MAIN** (#351, `6f37e0d`), so this is a server, not a build. §5 |
 | 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **Not started.** §9 |
 | 6 — FHIRcast across the origin boundary | **Not started.** §6 |
 
@@ -245,24 +245,30 @@ its caller is **not** outstanding work.
 | `SmartDataSource implements FhirDataSource, WritebackTarget` | **wired** |
 | per-resource `create` primitive, patient-scoped | **wired** |
 | `fetchCapabilities()` → `parseCapabilityStatement` | **wired** |
-| `buildWritePlan` / `executeWritePlan` | built + tested, **no caller on `main`** |
+| `buildWritePlan` / `executeWritePlan` | built + tested, **driven from `saveResponse` on `main`** |
 
-⚠️ **The caller exists, unmerged.** Branch
-`claude/writeback-ladder-wiring-7ccb25` (commit `566e16c`, PR #350, pushed but
-not an ancestor of `main`) has `SmartDataSource.saveResponse` driving
-`buildWritePlan` + `executeWritePlan`, plus a `WritebackScorecard` UI on the
-patient chart. That commit also corrects an **inverted tier model** that #348's
-commit message recorded and #350 reproduced: Tier 1 is `QuestionnaireResponse`
-and Tier 2 is `Observation`, not the reverse. QR-first is load-bearing —
-`execute.ts` writes the QR first to capture the server-assigned id, then remaps
-`Observation.derivedFrom` and `Condition.evidence` onto it, so the inverted
-order would point every provenance reference at an id no server issued.
+**The caller is on `main`.** PR #351 (squash-merged as `6f37e0d`,
+2026-08-18, closing #350) has `SmartDataSource.saveResponse` driving
+`buildWritePlan` + `executeWritePlan`, plus a `WritebackScorecard` on the patient
+chart. It also corrects an **inverted tier model** that #348's commit message
+recorded and #350 reproduced: Tier 1 is `QuestionnaireResponse` and Tier 2 is
+`Observation`, not the reverse. QR-first is load-bearing — `execute.ts` writes the
+QR first to capture the server-assigned id, then remaps `Observation.derivedFrom`
+and `Condition.evidence` onto it, so the inverted order would point every
+provenance reference at an id no server issued.
 
-**Consequence for this plan: phase 4 is mostly a merge, not a build.** What is
-genuinely missing is a server that answers `/metadata` and accepts writes —
-which is what §4 builds. Land #350 before starting phase 4, and re-scope that
-phase against what it actually left open (live sandbox validation, the Tier-3
-confirmation UI, and whether the demo sets `alwaysWriteDocument`).
+⚠️ **This paragraph has now been wrong twice, in opposite directions.** It was
+filed saying the ladder needed a caller (true of `main` at the time, false of the
+project — the work was on an unmerged branch), then corrected to say the caller
+was unmerged (true when written at 15:xx, false by 16:22 when #351 merged).
+**Read `main` before trusting either sentence** — `git fetch origin main` first,
+because a stale local ref is what produced the second error.
+
+**Consequence for this plan: phase 4 is a server, not a build.** What is missing
+is something that answers `/metadata` and accepts writes — which is what §4
+builds. Re-scope phase 4 against what #351 actually left open: live sandbox
+validation, the Tier-3 confirmation UI, and whether the demo sets
+`alwaysWriteDocument`.
 
 ### The degradation demo
 
@@ -353,7 +359,7 @@ Sequenced to kill unknowns first.
 | 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Blocked on §7.** |
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
 | 3 | `PanelShell`, navigation stack, code drawer | Now it looks like the product. |
-| 4 | Land #350; writes on the mock; degradation demo | §5 — the ladder driver is already built there, so this is a merge plus a server, not a build. Guardrail 2 (prove it rejects) lands here. |
+| 4 | Writes on the mock; degradation demo | §5 — the ladder driver is already on `main` (#351), so this is a server, not a build. Guardrail 2 (prove it rejects) lands here. |
 | 5 | Mock EHR chrome, launch button, CDS card `type: "smart"` | Can slot earlier if something recordable is needed sooner — the button is cheap, the chart is polish. |
 | 6 | FHIRcast across origins | §6. |
 
@@ -460,6 +466,6 @@ sidebar, but it should be deliberate rather than inherited.
   server as a third consumer of shared code.
 - [`ux-navigation-improvements.md`](ux-navigation-improvements.md) — the
   navigation work the panel's stack builds on.
-- #350 / branch `claude/writeback-ladder-wiring-7ccb25` — the ladder's caller and
-  scorecard, and the tier-model correction. A dependency of phase 4 (§5).
+- #350 / PR #351 (`6f37e0d`) — the ladder's caller and scorecard, and the
+  tier-model correction. **On `main` since 2026-08-18**; phase 4 builds on it.
 - #230 — mapper dispatch past PHQ-9; governs how much foreign data derives.
