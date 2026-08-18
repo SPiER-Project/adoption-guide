@@ -91,17 +91,70 @@ the *Written* tab degrade honestly to "what would be written."
 
 ## The embedded panel work — orientation
 
-Two plan docs landed in #352. A session picking this up should read them in this
+Two plan docs landed in #352, but **they are not self-contained** — both argue
+against, re-scope, or depend on four older documents, and a session reading only
+the new pair will hit references it cannot resolve. The full set, in reading
 order:
+
+### Read first — the new pair
 
 1. **[`surfaces-and-distribution.md`](surfaces-and-distribution.md)** — shorter, and
    it frames the other. What is and is not an application (the IG is **not**; it is
    upstream of everything), the demo-vs-clinical build surface, hosting topology,
    and §8's two-track split.
 2. **[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md)** — the
-   panel itself. **Read §1 before agreeing to anything**: it reverses
-   [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6, which had
-   recorded "write our own mock FHIR + SMART endpoints" as NOT RECOMMENDED.
+   panel itself. **Read §1 before agreeing to anything** (see next entry).
+
+### Read with them — the docs they argue against or depend on
+
+3. **[`mock-patient-smart-launch.md`](mock-patient-smart-launch.md)** —
+   **not optional.** Its §6 recorded "write our own mock FHIR + SMART endpoints"
+   as NOT RECOMMENDED, and the panel plan's §1 *reverses* it. Reading the reversal
+   without the argument it reverses gets you a decision with no reasoning attached.
+   Its §7 also carries the `Patient`-resource prerequisite and its §8 the
+   population-lens gap.
+4. **[`repo-and-package-boundaries.md`](repo-and-package-boundaries.md)** — §1 is
+   why the IG is not an application; §5 rejected splitting the guide from the
+   clinical demo, and `surfaces-and-distribution.md` §2 re-scopes that rejection
+   rather than overturning it. Both new docs cite it.
+5. **[`smart-filler-writeback-ladder.md`](smart-filler-writeback-ladder.md)** — the
+   ladder's own plan (re-derived by #351; a reconstruction, not the lost original).
+   Phase 4 of the panel plan builds directly on it.
+6. **[`../smart-sandbox-testing.md`](../smart-sandbox-testing.md)** — the current
+   SMART walkthrough and its three known limitations. **The panel work touches all
+   three**, so this is the baseline any change is measured against.
+
+### Read before writing code
+
+7. **`CLAUDE.md`** (repo root) — the gate landscape. Which of the five gate classes
+   catches what, why a clean SUSHI run is not a quiet one, and the standing
+   "prove a gate can fail" rule. Not optional for anyone editing code here.
+8. **[`fhircast-two-way-sync.md`](fhircast-two-way-sync.md)** — the existing
+   FHIRcast demo. Panel plan §6 requires moving it off `BroadcastChannel`, which is
+   same-origin only and will not cross the boundary the cross-origin decision
+   introduces.
+
+### Read before making claims outside the repo
+
+9. **[`../best-practices/licensing-verification-backlog.md`](../best-practices/licensing-verification-backlog.md)**
+   — `surfaces-and-distribution.md` §6. Gates distribution outright and applies in
+   reduced form to a conference demo.
+10. **[`../use-cases/README.md`](../use-cases/README.md)** and
+    [`ed-scenario-11.md`](../use-cases/ed-scenario-11.md) — the HL7 working-group
+    scenario and the four ED patients (`patient-011`–`014`) whose walkthroughs a
+    demo is most likely to use. ⚠️ **`ed-scenario-11.json` is the source; the `.md`
+    and everything in `dist/` are generated** — edit the JSON.
+
+### Also cited, lower priority
+
+11. **[`ux-navigation-improvements.md`](ux-navigation-improvements.md)** — the
+    navigation work the panel's stack builds on.
+12. **[`code-based-mapper-dispatch-fallback.md`](code-based-mapper-dispatch-fallback.md)**
+    — #230, which governs how much *foreign* QR data derives rather than landing in
+    "Other activity." Matters as soon as the panel reads a real server.
+
+[`../MANIFEST.md`](../MANIFEST.md) indexes the wider doc set, though it does not
+list every plan.
 
 ### What is decided
 
