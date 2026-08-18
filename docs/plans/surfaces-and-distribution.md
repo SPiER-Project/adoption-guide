@@ -270,39 +270,50 @@ lives in `sessionStorage` inside a cross-site iframe. It should work partitioned
 but this is exactly the class of behavior that differs across browsers and
 versions, and it is the demo's single highest-variance dependency.
 
-### Two tracks, same visible demo
+### ⚠️ The two-track split is RETIRED — decided 2026-08-18
 
-The audience cannot see the difference between these, which is what makes the
-split safe:
+This section proposed splitting the work into an **offline Track 1** for the
+conference and a **Track 2** that added the real claim later. **Track 1 as a
+rehearsed offline demo is retired.** The conference demo runs against the mock
+EHR ([`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8), and
+per Brad, 2026-08-18: *"don't try and solve for problems involving lack of
+network connectivity."*
 
-| Track | Steps (panel plan §9) | Runs on | Gives |
-|---|---|---|---|
-| **1 — conference** | 0 (width spike), 3 (`PanelShell`), 5 (host chrome + launch button) | `LocalDataSource`, no network | The whole visible story: launch from a chart, fill an instrument in the panel, submit, watch the pathway advance, open the code drawer on real generated FHIR |
-| **2 — the real claim** | 1 (mock read API), 2 (SMART stub), 4 (writes + degradation) | mock EHR over HTTP | "This is our production code path" and the capability-degradation demo |
+**What is retired is the demo deliverable, NOT the interface discipline** — and
+the distinction is the whole reason this was safe to retire:
 
-Track 1 is faster, offline, and has no OAuth in it. Track 2 upgrades the same
-demo later **without changing what the audience sees** — which is the property to
-protect.
+- ❌ **A second, offline demo to rehearse and maintain.** Gone. There is one
+  demo, and it talks to the mock EHR.
+- ✅ **The panel reads through `FhirDataSource` rather than binding to
+  `SmartDataSource`.** Kept, and already true — #358 built `PanelShell` this way.
+  It costs nothing: the chart already works both ways, and `LocalDataSource`
+  cannot be removed regardless, because every gate and all 673 tests run against
+  it and it is the no-patient "play with the forms" mode.
 
-The honesty of track 1 rests on the code drawer: the app really does generate
-conformant FHIR locally, and showing it is not a claim about anyone's server.
-**What track 1 must never do is assert interoperability** — the same guardrail
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §1 puts on the
-mock, for the same reason.
+The practical value of keeping the discipline is worth stating plainly, since the
+offline *demo* is gone: **if the mock EHR is down mid-talk, the app still runs.**
+That is a fallback nobody has to rehearse, not a second track to maintain.
 
-### The one constraint to honor now
+The honesty guardrail is unchanged and now applies to the mock rather than to a
+local track: **never assert interoperability from a host we control.** The
+portability claim is made by loading the same Bundles into a *public* sandbox —
+see `mock-patient-smart-launch.md` §5–§6.
 
-⚠️ **The panel must not assume a connected server.** If `PanelShell` or the
-navigation stack is built against `SmartDataSource` only, track 1 becomes
-impossible and the conference demo inherits every failure mode of track 2. This
-is *genuinely* cheap now and expensive later — more so than phase B, which is why
-B defers and this does not.
+### The one constraint to honor now — ✅ satisfied
 
-Concretely: the panel reads through the `FhirDataSource` interface, as the chart
-already does; a directed launch works from a query param when there is no
-`intent` to read; and the code drawer's *Written* tab must degrade honestly to
-"what would be written" when there is no server, rather than implying a write
-that did not happen.
+⚠️ **The panel must not assume a connected server.** Retained after the track
+split was retired above, for the fallback reason rather than the offline-demo
+reason.
+
+**Satisfied by #358 and #360:** the panel reads through `FhirDataSource` as the
+chart does, and `?embed=1` on the real query string is the directed-launch path
+where there is no SMART `intent` to read.
+
+One piece deliberately **not** built: this section asked that the code drawer's
+*Written* tab "degrade honestly to *what would be written*" with no server. With
+the offline track retired there is always a server, so panel §2 governs — the tab
+reports **what happened**, never a hypothetical. #360 renders a real
+`WritebackReport` or an empty state naming the absence.
 
 ### Licensing, at a conference
 

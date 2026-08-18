@@ -14,8 +14,8 @@ prove.
 |---|---|
 | **1 — build a second "mock patient" SMART app** | **REJECTED.** SPiER is already a complete SMART client; a second app of ours proves nothing we control both ends of. §2 |
 | **2 — mint real `Patient` resources and emit each mock patient as a FHIR Bundle** | **PROPOSED, and worth doing regardless of everything below.** §4 |
-| **3 — stand up a real FHIR server (Medplum / HAPI) and load the Bundles** | **PROPOSED as the target.** §5 |
-| **4 — write our own mock FHIR + SMART auth endpoints on the existing Worker** | **NOT RECOMMENDED.** A lenient mock attacks the one claim the SMART path exists to make. §6 |
+| **3 — stand up a real FHIR server (Medplum / HAPI) and load the Bundles** | **NO LONGER THE DEMO TARGET** (decided 2026-08-18, [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8). Still the right home for the **portability** claim — load the Bundles into a *public* sandbox. §5 |
+| **4 — write our own mock FHIR + SMART auth endpoints** | ⚠️ **REVERSED — now DECIDED, 2026-08-18** ([`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8), on its own Worker rather than the existing one. §6's argument was not refuted; its *scope* was narrowed — see §6. |
 | **5 — a patient-facing SMART app** | **OUT OF SCOPE here.** A product direction, not a demo gap. See [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §5. |
 
 | Phase | State |
@@ -162,7 +162,12 @@ toward the other. Do not let them merge in triage.
   TS runtime in the package other than vitest. A Bundle export gate should reuse
   that pattern rather than inventing a second one.
 
-## 5. Decision 3: point it at a real server — PROPOSED as the target
+## 5. Decision 3: point it at a real server — reframed 2026-08-18
+
+> **Not the demo path any more** (see §6 and the panel plan's §8), but still the
+> right way to make the *portability* claim: load the phase-2 Bundles into a
+> **public** sandbox rather than a server of ours. Everything below is why that
+> is worth doing — real search semantics, real conformance rejection.
 
 Medplum has SMART launch built in; HAPI in Docker needs auth work in front of it.
 Either way what we get is the thing that matters: **real search semantics, real
@@ -174,7 +179,31 @@ write must produce the red *EHR data error* banner and write nothing to
 localStorage. That behaviour is only meaningful against a server that actually
 rejects.
 
-## 6. Decision 4: writing our own mock server — NOT RECOMMENDED
+## 6. Decision 4: writing our own mock server — ⚠️ REVERSED 2026-08-18
+
+> **This section's conclusion no longer holds, but its argument does.** The
+> decision is recorded in [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md)
+> §8: `services/mock-ehr/` serves real FHIR, on its own Worker.
+>
+> **What changed is the question, not the answer.** This section asked *"what
+> would prove SPiER's data is portable?"* — for which a mock we control is still
+> worthless, and everything below still stands. The panel plan asks *"what would
+> show a clinician the workflow in situ?"*, which a host we control can answer
+> honestly as long as it never claims the first thing.
+>
+> The portability claim is therefore made **somewhere else**: the phase-2 Bundles
+> get loaded into a *public* sandbox, a third party's server. Two claims, two
+> artifacts.
+>
+> The mitigation this section proposes — "make it strict on purpose, run the same
+> profile checks `check-scenario-resources.mjs` does" — is now a **binding
+> condition** of that decision rather than a suggestion, along with proving a
+> planted invalid write reaches 422. ⚠️ And note a cost nobody had priced: that
+> script is Node reading StructureDefinitions off a filesystem, and a Worker has
+> none, so it is a *port*, not reuse.
+
+The original argument, unchanged:
+
 
 Technically it is the shortest path to a live URL. The Worker exists, `run_worker_first`
 already routes every request, and `/fhir/r4/*` plus a stub

@@ -17,7 +17,7 @@ a clinical reviewer has to be *told* which half is for them.
 | Decision | State |
 |---|---|
 | **1 — panel is a chrome mode of the existing app, not a second app** | **PROPOSED.** §3 |
-| **2 — the host is a mock EHR we write, serving real FHIR** | **PROPOSED — and this REVERSES [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6.** See §1, which is the part to read before agreeing. |
+| **2 — the host is a mock EHR we write, serving real FHIR** | **DECIDED 2026-08-18.** Reverses [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6; the Medplum variant is rejected. Reason, guardrails and costs in §8. |
 | **3 — cross-origin: host and panel on separate `workers.dev` hostnames** | **PROPOSED.** §6 |
 | **4 — claim the demo makes is "SMART activity", not "persistent sidebar"** | **DECIDED.** §2 |
 | **5 — panel submit drives the writeback ladder** | **PROPOSED.** §5 |
@@ -339,26 +339,108 @@ the panel, so this plan does not need them — but "the whole demo runs on the
 connected server" is not true until they are fixed
 ([`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §8, phase 4).
 
-## 8. The variant that keeps both claims
+## 8. DECIDED — the mock serves FHIR
 
-Worth costing before committing to §1's reversal: **let a strict third-party
-server hold the data, and let the mock EHR be only host chrome.**
+**Settled 2026-08-18 (Brad).** §1's reversal stands: `services/mock-ehr/` serves
+real FHIR and the SMART stub. The Medplum variant below is **rejected**, and
+`mock-patient-smart-launch.md` §5 ("stand up a real FHIR server") is no longer
+the target for the demo path.
 
-Medplum has SMART launch built in. Load the phase-2 Bundles into it; the mock
-EHR Worker then supplies the fake chart, the launch button, and the iframe — and
-hands off to Medplum for authorize/token/FHIR. The panel talks to a server whose
-rejections are real.
+> *"medplum feels like it would be massive overkill. we're really just trying to
+> show a patient list/registry, patient page, and patient encounter page."*
 
-| | Mock serves FHIR (§1–§4) | Medplum serves FHIR |
+### ⚠️ The reason is NOT the one this section originally proposed
+
+This section framed the choice as hinging on **whether the capability-degradation
+demo earns its keep** — if it did not, Medplum was "strictly better". That is not
+the criterion the decision was made on, and recording only the conclusion would
+invite someone to reopen it on a test nobody applied.
+
+The actual reason is **scope of what the host has to be**. The mock EHR needs to
+show a patient list, a patient page and an encounter page. That is a small,
+well-understood surface, and standing up a full clinical data platform to sit
+behind it is disproportionate to it.
+
+The degradation demo survives as a *benefit* of the decision rather than its
+justification — we control `/metadata`, so it stays easy.
+
+### One clarification that did not change the answer
+
+Worth recording because it came up and will come up again: **in the Medplum
+variant, Medplum would not have been "our demonstration application".** It would
+have been an invisible FHIR server and auth provider behind SPiER's own mock
+chrome — the audience would still see the panel and our fake chart. The choice
+was never "our demo app vs. a full EHR"; it was *who implements FHIR + OAuth
+underneath the chrome we write either way*.
+
+The decision holds regardless: an external platform is still an operational
+dependency (an instance to run or an account to hold, its own CORS and framing
+settings, a third origin) for a host that only has to render three screens.
+
+### What this actually costs, measured rather than estimated
+
+The build is **not** evenly distributed, and the cheap-looking half really is
+cheap:
+
+| Piece | Cost | Why |
+|---|---|---|
+| Read API (13 resource types) | **cheap** | `SmartDataSource.getSlice` issues patient-scoped `GET Type?patient=X`. Serving that from the scenario fixtures is one route, a filter and a Bundle envelope. `services/cds-hooks` already imports those fixtures via `import.meta.glob`. |
+| `/metadata` | **trivial**, and load-bearing | It is the degradation demo. |
+| authorize / token / PKCE stub | **moderate** | Well-trodden but fiddly, and where `frame-ancestors` and cross-site storage bite (§6). |
+| **Strict write validation** | **the expensive part** | And the one that decides whether the mock is credible. |
+
+⚠️ **The guardrail's cost has been understated everywhere it is stated.** §1 says
+strict writes "reusing `check-scenario-resources.mjs`". That script is **Node,
+reading generated StructureDefinitions off the filesystem**, and a Worker has no
+filesystem. Reusing it means bundling those StructureDefinitions through the Vite
+build — feasible (`services/cds-hooks` already does exactly this for the catalog
+and scenarios), but it is a **port, not reuse**. Budget it on day one. If it
+slips, the mock ships lenient, which is precisely the failure
+`mock-patient-smart-launch.md` §6 predicted and this guardrail exists to prevent.
+
+### The guardrails are now binding conditions, not advice
+
+§1 permits a mock we control **only** with all three. They are conditions of this
+decision:
+
+1. **Strict validation on writes**, reusing the profile checks
+   `check-scenario-resources.mjs` performs (see the porting note above).
+2. **A planted invalid write seen to 422** before the mock is trusted — the
+   repo's standing "prove a gate can fail" rule, applied to a server.
+3. **No interoperability claim ever made from a host we control.**
+
+### How the portability claim gets made instead
+
+`mock-patient-smart-launch.md` §6's objection — *a mock we control proves nothing
+about portability* — is correct and is **not** answered by the guardrails. It is
+answered by doing the claim somewhere else:
+
+**Load the same phase-2 Bundles into a public sandbox** (the SMART Health IT
+sandbox, or a prospect's own). That is nearly free once the Bundles exist, it is
+a third party's server rejecting or accepting our data, and it keeps Medplum out
+of the demo path entirely. Recorded here as intent rather than scheduled work.
+
+So the two claims are made by two different artifacts, which is what §6 was
+really asking for:
+
+| Claim | Made by |
+|---|---|
+| "Here is the workflow in situ" | the mock EHR — a host we control, making no interoperability claim |
+| "Our data is portable" | the Bundles, loaded into somebody else's server |
+
+### The rejected variant, kept for the record
+
+Let a strict third-party server hold the data and let the mock EHR be only host
+chrome. Medplum has SMART launch built in; load the phase-2 Bundles into it, and
+the mock Worker supplies the fake chart, the launch button and the iframe.
+
+| | Mock serves FHIR (**chosen**) | Medplum serves FHIR (rejected) |
 |---|---|---|
 | Build cost | authorize + token + PKCE + 13-resource read surface + strict writes | Bundle load + host chrome |
 | Rejections | ours, and only as strict as we made them | real |
 | Capability-degradation demo (§5) | **easy — we control `/metadata`** | hard; needs a second, deliberately-limited server |
-| `mock-patient-smart-launch.md` §6 objection | answered by guardrails, not removed | **does not arise** |
-
-The degradation demo is the reason to keep §1 as written. If that demo turns out
-not to matter, this variant is strictly better and the reversal should be undone.
-**Decide this explicitly rather than by drift.**
+| Operational dependency | one more Worker | an external platform to run or hold an account on |
+| §6's portability objection | answered separately, by the sandbox above | does not arise |
 
 ## 9. Build order
 
@@ -450,7 +532,7 @@ sidebar, but it should be deliberate rather than inherited.
 - **Does the mock ship a login/consent screen?** Skipping it is faster;
   including it lets the demo show the scope list SPiER requests — the other
   question integration leads always ask.
-- **§8.** Mock-serves-FHIR versus Medplum-serves-FHIR, decided on whether the
+- ~~**§8.** Mock-serves-FHIR versus Medplum-serves-FHIR~~ — **DECIDED 2026-08-18, see §8.** Originally framed as decided on whether the
   capability-degradation demo earns its keep.
 - **Where the subject resources live** (§7) — `ig/` as example Instances versus
   beside the scenarios. `mock-patient-smart-launch.md` §7 recommends `ig/`.
