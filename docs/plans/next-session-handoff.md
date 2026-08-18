@@ -83,27 +83,59 @@ could otherwise act on:
 `valueCoding` first; `valueText` is a pre-existing repo-wide convention) — worth
 knowing so they are not re-investigated.
 
-## Take this first — ⚠️ nothing on the panel path is unblocked
+## Take this first — `services/mock-ehr/`, the read API (panel step 1)
 
-**Panel step 3 is COMPLETE** (#358 `PanelShell`, #360 code drawer). Read that
-before picking up "the next panel step", because the honest position is:
+⚠️ **The previous version of this file said nothing on the panel path was
+unblocked. That is no longer true — §8 was settled 2026-08-18.**
 
-> **Every remaining panel step needs the mock EHR to exist, and the mock EHR
-> needs §8 settled.** There is no independent panel work left to take.
+Two decisions landed, and between them they unblock everything:
 
-| Panel step | State | Needs |
-|---|---|---|
-| 0 — width spike | **Done** (§9.1) | — |
-| 1 — mock EHR read API | Not started | **the mock EHR** → §8 |
-| 2 — SMART authorize/token stub | Not started | **the mock EHR** → §8 |
-| **3 — `PanelShell`, nav stack, code drawer** | **DONE** — #358, #360 | — |
-| 4 — writes + capability degradation | Not started | **the mock EHR** → §8 |
-| 5 — host chrome, launch button, CDS `type:"smart"` card | Not started | **the mock EHR** → §8, and the link also needs Track 1 |
-| 6 — FHIRcast across the origin boundary | Not started | the mock EHR |
+- **§8 — the mock serves FHIR.** `services/mock-ehr/` on its own Worker; the
+  Medplum variant is rejected. Reason, costs and binding guardrails in
+  [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8.
+- **Track 1 — the offline demo is retired**, the interface discipline is kept.
+  [`surfaces-and-distribution.md`](surfaces-and-distribution.md) §8.
 
-So a session arriving here has two honest options: **get §8 written down** (see
-*Needs a human decision*), or **take something off the unblocked list** further
-down — #126, #125, #228, #128 are all real and none touch the panel.
+| Panel step | State |
+|---|---|
+| 0 — width spike | **Done** (§9.1) |
+| **1 — mock EHR read API + `/metadata`** | **NEXT.** Was blocked on `Patient` resources; #356 closed that |
+| 2 — SMART authorize/token stub | Unblocked, after 1 |
+| **3 — `PanelShell`, nav stack, code drawer** | **Done** — #358, #360 |
+| 4 — writes + capability degradation | Unblocked, after 2. The ladder driver is already on `main` |
+| 5 — host chrome, launch button, CDS `type:"smart"` card | Unblocked |
+| 6 — FHIRcast across the origin boundary | Unblocked |
+
+### What step 1 is, and the one thing that will be underestimated
+
+`SmartDataSource.getSlice` issues patient-scoped `GET Type?patient=X` across **13
+resource types**. Serving them from the scenario fixtures is one route, a filter
+and a Bundle envelope — `services/cds-hooks` already imports those fixtures via
+`import.meta.glob`, so the pattern exists. `/metadata` is trivial and is also the
+degradation demo, since we control it.
+
+⚠️ **The expensive part is strict write validation (step 4), and its cost is
+understated everywhere it is written down.** The guardrail says "reuse
+`check-scenario-resources.mjs`" — that script is **Node, reading generated
+StructureDefinitions off the filesystem**, and a Worker has no filesystem. It is
+a **port**, not reuse. Budget it when step 4 starts, or the mock ships lenient,
+which is exactly the failure `mock-patient-smart-launch.md` §6 predicted.
+
+### Three guardrails that are conditions of the §8 decision, not advice
+
+1. **Strict validation on writes**, reusing the profile checks
+   `check-scenario-resources.mjs` performs (see the porting note above).
+2. **A planted invalid write seen to 422** before the mock is trusted — the
+   repo's "prove a gate can fail" rule, applied to a server.
+3. **No interoperability claim ever made from a host we control.** The
+   portability claim is made separately, by loading the same Bundles into a
+   *public* sandbox.
+
+⚠️ **A new deployable outside the gate net will rot.** `services/cds-hooks/` has
+its own CI-gated `verify` because `web/`'s does not cover it. `services/mock-ehr/`
+needs the same **on day one** — more urgently, because it reads the scenario
+fixtures and will break silently when those are re-anchored by
+`web/scripts/shift-scenario-dates.mjs`.
 
 ### What step 3 settled, so it is not re-derived
 
@@ -143,11 +175,13 @@ to reach that low. It is now `--code-drawer-bar-height`, one definition and two
 consumers. **A padding guessed to match a height maintained elsewhere is the
 hand-duplicated-constant failure this repo keeps catching**; derive it instead.
 
-### Still open inside step 3
+### The *Written* section — fork resolved, nothing to build
 
-The *Written* section renders only a real `WritebackReport`. §9's "what would be
-written" fallback is **forked on Track 1** and deliberately unbuilt — the empty
-state names the absence, which is true under either answer.
+It renders only a real `WritebackReport`. §9's "what would be written" fallback
+was forked on Track 1; **with the offline track retired there is always a server**,
+so panel §2 governs — the tab reports what *happened*, never a hypothetical. The
+existing empty state ("nothing written back yet") is the correct and final
+behaviour. ✅ Nothing further to build here.
 
 ## The embedded panel work — orientation
 
@@ -227,38 +261,12 @@ list every plan.
 
 ### What is open, and matters before building
 
-- ⚠️ **§8 — mock-serves-FHIR vs Medplum-serves-FHIR.** Still not formally
-  recorded, but **leaning hard toward the mock.** Brad, 2026-08-18: *"medplum
-  feels like it would be massive overkill — we're really just trying to show a
-  patient list/registry, patient page, and patient encounter page."*
-  **Do not build phase 4 without writing the decision down.**
-  - Note the reasoning differs from §8's own criterion. §8 frames the choice as
-    hinging on whether the capability-degradation demo earns its keep; the actual
-    reason is scope of what the host must show. Record the real reason, or this
-    gets re-litigated on a criterion nobody used.
-  - Worth knowing when it is written up: in the §8 variant **Medplum would not be
-    the demo application** — it would be an invisible FHIR server behind SPiER's
-    own mock chrome. The choice is who implements FHIR + OAuth underneath, not
-    whether to demo a full EHR.
-  - The cheap-looking half is genuinely cheap: `SmartDataSource.getSlice` issues
-    patient-scoped `GET Type?patient=X` across 13 types, servable from the
-    existing fixtures. **The expensive half is strict write validation**, and the
-    guardrail's "reuse `check-scenario-resources.mjs`" is a *port*, not reuse —
-    that script is Node reading StructureDefinitions off the filesystem, and a
-    Worker has no filesystem. Budget it on day one or the mock ships lenient,
-    which is exactly what the guardrail exists to prevent.
-- ~~§7's blocker: there are no `Patient` resources for the 14 demo patients.~~
-  **CLOSED by #356.** The 14 exist as example Instances in
-  `ig/input/fsh/population-patients.fsh`; the 116 `subject` references that
-  dangled now resolve, gated by `check:patients` and check 8 of `check:scenarios`.
-  **Phase 1 of `mock-patient-smart-launch.md` is done. Panel phase 1 is
-  unblocked.**
-  - Phase 2 (per-patient transaction Bundles) is still open — but **question
-    whether it is needed** rather than building it because the plan lists it: a
-    mock EHR reading the scenario fixtures directly may never require it.
-  - Measured while doing it: there are **zero** `Practitioner`/`Organization`
-    references. Performers are `display` text only, so `Patient` was the only
-    subject type missing. Three docs implied otherwise (corrected in #355).
+- ✅ ~~**§8 — mock-serves-FHIR vs Medplum-serves-FHIR.**~~ **DECIDED 2026-08-18:
+  the mock serves FHIR.** `embedded-panel-smart-launch.md` §8 records the reason
+  (scope of what the host must be — NOT the degradation-demo criterion the
+  section originally proposed), the cost breakdown, and three binding guardrails.
+  The Medplum variant is rejected; the portability claim moves to a public
+  sandbox instead.
 - Whether the mock ships a consent screen; where subject resources live.
 
 ### ⚠️ The reversal's guardrails are conditions, not suggestions
@@ -271,45 +279,22 @@ full — a lenient mock makes the demo look better while proving less.
 
 ## Needs a human decision, not a patch
 
-**The two at the top block the most work.** Both came out of the #355 spec-doc
-conflict audit; both are one sentence of decision and then mechanical to apply.
+**The two that blocked the most work are now settled** (2026-08-18) and kept here
+struck through, because both had been "decided in conversation, undecided in the
+docs" — the state that produced the contradictions the #355 audit found.
 
-- ⚠️ **Is Track 1 (offline, `LocalDataSource`) retired or deferred?**
-
-  `surfaces-and-distribution.md` §8 defines the conference track as
-  `LocalDataSource`, "no network", "no OAuth in it". Brad's direction, 2026-08-18,
-  is the opposite: the conference demo talks to a **fake EHR on a Cloudflare
-  Worker**, and *"don't try and solve for problems involving lack of network
-  connectivity."* **The doc and the direction disagree in writing, and neither has
-  been retired.**
-
-  Worth separating, because the docs conflate them and only one half is in
-  question:
-
-  - **Track 1 as a demo deliverable** — a rehearsed offline demo. This is what is
-    being retired.
-  - **The interface discipline** — the panel reads through `FhirDataSource`. This
-    is near-free and probably right either way: the chart already works both
-    ways, `LocalDataSource` cannot be removed regardless (every gate and all 665
-    tests run against it, and it is the no-patient "play with the forms" mode),
-    and a demo with no fallback makes the mock EHR a single point of failure for
-    the talk. **#358 already built `PanelShell` this way**, so the panel is not
-    waiting on the answer.
-
-  What IS waiting: #350's CDS `type:'smart'` link (a SMART launch link's whole
-  point is the real launch path), the *Written*-tab contradiction between panel
-  §2 and §9, and §8's own track table.
-- ⚠️ **Write down the §8 mock-vs-Medplum decision, with its real reason.**
-  **This is now the single biggest blocker on the board.** With step 3 complete,
-  *every* remaining panel step (1, 2, 4, 5, 6) needs the mock EHR to exist, and
-  the mock EHR needs this settled. It is "leaning mock" in conversation and
-  "genuinely undecided" in the docs, which is the worst of both. See the panel
-  section above for what a write-up should not miss.
-- **Four more corrections from the #355 audit are queued behind those two** and
-  are mechanical once they land: panel §2 vs §9 (resolves automatically from
-  Track 1), the three different urgency framings of the `Patient` task (now moot
-  — #356 did it), `surfaces-and-distribution.md` §4's "transitional" IG-redirect
-  comment (drop the word or file the move), and re-scoping §8's phase table.
+- ✅ ~~**Is Track 1 retired or deferred?**~~ **SETTLED 2026-08-18** — the offline
+  demo is retired, the `FhirDataSource` discipline is kept (already true of
+  `PanelShell`). `surfaces-and-distribution.md` §8.
+- ✅ ~~**Write down the §8 mock-vs-Medplum decision.**~~ **SETTLED 2026-08-18** —
+  the mock serves FHIR. `embedded-panel-smart-launch.md` §8, which records the
+  real reason (scope of what the host must be) rather than the criterion the
+  section originally proposed.
+- **Two corrections from the #355 audit remain**, now unblocked by the above and
+  mechanical: `surfaces-and-distribution.md` §4's "transitional" IG-redirect
+  comment (drop the word or file the move), and §8's phase table, which still
+  lists phases B–D as deferred "because no client ship is near-term" — true, but
+  it now sits beside a retired track split and should be re-read as a whole.
 - **#303 — `p007-stanley-brown` is a stub** (no `activity`) named after a profile it doesn't conform to. It *limits* how strong #289's invariant can be: it is why `spier-episode-trigger-on-positive-screen` covers only `positive-screen` and not `elevated-assessment`. Renaming is probably right, but which way depends on what that fixture is meant to represent. **Do not guess it; ask.**
 - **#231 — the CDS service's auth posture.** Narrower than filed. `require` is implemented and unit-tested and is one `wrangler.jsonc` var; the app itself only fetches discovery (open either way), so flipping would break the guide's own published curl and any CDS Hooks Sandbox trial, not the demo UI. The guide page and README already state warn mode — what is missing is that both frame it as *transitional* and nobody has scheduled the flip. Declaring warn deliberate (a two-line doc change) looks right, but it is a security posture and so is Brad's call.
 - **#326 — clinical review of ED Scenario 11**: 10 proposed steps, 3 new patient courses, one open note. Not a code task.
