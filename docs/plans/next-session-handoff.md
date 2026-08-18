@@ -1,31 +1,38 @@
 # Handoff — next session
 
-Rewritten **2026-08-18 (second rewrite that day)**. `main` was at **`3c01e66`**
+Rewritten **2026-08-18 (fourth rewrite that day)**. `main` was at **`266fd5f`**
 when this was written; check rather than trust that.
 
-⚠️ **This file's own warning fired again, within hours.** The previous version
-opened with "everything is green and nothing is in flight — **no open PRs**" and
-named the writeback ladder as unreachable dead code. Both were true when written
-and false by the end of the same day: #351 wired the ladder, #352 landed two plan
-docs. **A handoff is stale the moment work lands, not a week later.**
+⚠️ **This file's own warning has now fired three times in one day.** The version
+before last opened with "no open PRs" and called the writeback ladder dead code;
+both were false hours later. The version after *that* said the outstanding ladder
+work had "none of it with an issue yet — file one before starting", when #350 was
+open holding three of the five items — an instruction that would have produced
+duplicate issues (corrected in #355). **A handoff is stale the moment work lands,
+not a week later, and its confident sentences are the dangerous ones.**
 
 The rule now has three halves:
 
 1. **Rewrite this file in place at the end of a session.** Do not leave a new one
    in a worktree — one version was never committed at all.
 2. **Rewrite it when the work it describes lands**, not only when a session ends.
-3. **Verify its claims before restating them.** Every "green" below was re-run
-   this session, not copied forward.
+3. **Verify its claims before restating them.** Every number below was re-derived
+   against `266fd5f` this session, not copied forward — including the ones that
+   did not change.
 
 ## State of the repo
 
-- **No open PRs.** 37 open issues.
-- `web` — `npm run verify` exits 0, **re-run this session**: every `check:*` gate
-  green, **55 test files / 658 tests**.
-- `services/cds-hooks` — its own `verify` exits 0, **re-run this session**, 24
+- **No open PRs.** 37 open issues. (Both counted with an explicit `--limit`;
+  `gh issue list` defaults to 30 and silently truncates.)
+- `web` — `npm run verify` exits 0, **re-run on `266fd5f`**: every `check:*` gate
+  green (**15** of them now — `check:patients` is new), **55 test files / 658
+  tests**.
+- `services/cds-hooks` — its own `verify` exits 0, **re-run on `266fd5f`**, 24
   tests. **`web`'s verify does not cover it.**
-- CI green on `main` including the post-merge `Deploy to GitHub Pages` for
-  `3c01e66`, and `IG — Sushi compile + validate` for `6f37e0d`.
+- CI green on `main`, including the post-merge `Deploy to GitHub Pages` for
+  `266fd5f` — which **genuinely re-rendered** the IG rather than reusing cache
+  (`ig/input` changed, so the cache key missed; `Run IG Publisher`, the CQL gate
+  and the QA gate all executed). The PR-time `IG Publisher` job passed too.
 - The one eslint warning (`MeasureDashboard.tsx` useMemo dep) is **pre-existing**.
 - ⚠️ A fresh worktree needs `npm install` in **both** `web/` and
   `services/cds-hooks/`, plus `npm run copy-fhir` in `web/`, before anything runs.
@@ -38,6 +45,10 @@ The rule now has three halves:
 | **#349** (`ff9b2f0`) | Refreshed three docs that had gone stale into saying false things |
 | **#351** (`6f37e0d`) | **Wired the ladder** — `saveResponse` drives it, `WritebackScorecard` renders it, tier model corrected |
 | **#352** (`3c01e66`) | Two plan docs: the embedded SMART panel, and surfaces/distribution |
+| **#353** (`d479759`) | Handoff rewrite |
+| **#354** (`25a5e36`) | Handoff reading map — the panel plans are not self-contained |
+| **#355** (`e831709`) | **Four false spec-doc claims corrected**, from a conflict audit across the nine required-reading docs. Details below |
+| **#356** (`266fd5f`) | **The 14 demo patients are real FHIR now.** 116 dangling `subject` references closed; two new gates |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -81,13 +92,41 @@ Three things the spike settled, so they are not re-litigated:
   and wraps, so `.debug-sidebar` lands 5604px down at panel width. The
   bottom-drawer redesign is about reachability.
 
-⚠️ **The one constraint to honor while building it: the panel must never assume a
-connected server.** Track 1 (the conference demo) runs on `LocalDataSource` with
-no network and no OAuth. Build `PanelShell` against `SmartDataSource` only and the
-conference demo inherits every failure mode of the cross-origin stack — captive
-portals, storage partitioning, someone else's laptop. Read through
-`FhirDataSource`, accept a query param when there is no SMART `intent`, and make
-the *Written* tab degrade honestly to "what would be written."
+### ⚠️ Read this before building `PanelShell` — the stated constraint is CONTESTED
+
+The sentence this section used to carry, verbatim, was:
+
+> **The one constraint to honor while building it: the panel must never assume a
+> connected server.** Track 1 (the conference demo) runs on `LocalDataSource` with
+> no network and no OAuth.
+
+**That premise is under active revision as of 2026-08-18 and should not be built
+to as written.** Brad's direction: the conference demo interacts with a **fake EHR
+hosted on a Cloudflare Worker**, and *"don't try and solve for problems involving
+lack of network connectivity."* `surfaces-and-distribution.md` §8 still defines
+Track 1 as offline `LocalDataSource`, so the doc and the direction disagree. **The
+decision is not recorded yet — do not resolve it by building.**
+
+What is worth separating, because the docs conflate them and only one half is in
+question:
+
+- **Track 1 as a demo deliverable** — a rehearsed offline demo. This is what is
+  being retired.
+- **The interface discipline** — the panel reads through `FhirDataSource` rather
+  than binding to `SmartDataSource`. This costs approximately nothing and is
+  *probably* worth keeping regardless: the chart already works both ways,
+  `LocalDataSource` cannot be removed anyway (all 658 tests and every gate run
+  against it, and it is the no-patient "play with the forms" mode), and a demo
+  with no fallback makes the mock EHR a single point of failure for the talk.
+
+Until it is settled, build `PanelShell` so it reads through `FhirDataSource` —
+that choice is cheap, is what the chart already does, and is not invalidated by
+either answer.
+
+The *Written* tab has the same fork, and it resolves automatically once Track 1
+does: panel §2 says the tab "is only truthful because of §5 — it reports what
+happened, not what would have", while §9 says it must degrade to "what would be
+written". If there is always a mock EHR, §2 stands and §9's clause is dead.
 
 ## The embedded panel work — orientation
 
@@ -167,14 +206,38 @@ list every plan.
 
 ### What is open, and matters before building
 
-- ⚠️ **§8 — mock-serves-FHIR vs Medplum-serves-FHIR.** Genuinely undecided. It
-  turns on whether the capability-degradation demo earns its keep; if it does not,
-  the Medplum variant is strictly better and §1's reversal should be undone.
-  **Do not build phase 4 without settling this.**
-- §7's blocker: **there are no `Patient` resources for the 14 demo patients.**
-  `patients.json` is app-shaped display data and every `subject: Patient/patient-001`
-  dangles. Phases 1–2 of `mock-patient-smart-launch.md` are a **dependency** of the
-  mock EHR, not an alternative.
+- ⚠️ **§8 — mock-serves-FHIR vs Medplum-serves-FHIR.** Still not formally
+  recorded, but **leaning hard toward the mock.** Brad, 2026-08-18: *"medplum
+  feels like it would be massive overkill — we're really just trying to show a
+  patient list/registry, patient page, and patient encounter page."*
+  **Do not build phase 4 without writing the decision down.**
+  - Note the reasoning differs from §8's own criterion. §8 frames the choice as
+    hinging on whether the capability-degradation demo earns its keep; the actual
+    reason is scope of what the host must show. Record the real reason, or this
+    gets re-litigated on a criterion nobody used.
+  - Worth knowing when it is written up: in the §8 variant **Medplum would not be
+    the demo application** — it would be an invisible FHIR server behind SPiER's
+    own mock chrome. The choice is who implements FHIR + OAuth underneath, not
+    whether to demo a full EHR.
+  - The cheap-looking half is genuinely cheap: `SmartDataSource.getSlice` issues
+    patient-scoped `GET Type?patient=X` across 13 types, servable from the
+    existing fixtures. **The expensive half is strict write validation**, and the
+    guardrail's "reuse `check-scenario-resources.mjs`" is a *port*, not reuse —
+    that script is Node reading StructureDefinitions off the filesystem, and a
+    Worker has no filesystem. Budget it on day one or the mock ships lenient,
+    which is exactly what the guardrail exists to prevent.
+- ~~§7's blocker: there are no `Patient` resources for the 14 demo patients.~~
+  **CLOSED by #356.** The 14 exist as example Instances in
+  `ig/input/fsh/population-patients.fsh`; the 116 `subject` references that
+  dangled now resolve, gated by `check:patients` and check 8 of `check:scenarios`.
+  **Phase 1 of `mock-patient-smart-launch.md` is done. Panel phase 1 is
+  unblocked.**
+  - Phase 2 (per-patient transaction Bundles) is still open — but **question
+    whether it is needed** rather than building it because the plan lists it: a
+    mock EHR reading the scenario fixtures directly may never require it.
+  - Measured while doing it: there are **zero** `Practitioner`/`Organization`
+    references. Performers are `display` text only, so `Patient` was the only
+    subject type missing. Three docs implied otherwise (corrected in #355).
 - Whether the mock ships a consent screen; where subject resources live.
 
 ### ⚠️ The reversal's guardrails are conditions, not suggestions
@@ -187,6 +250,23 @@ full — a lenient mock makes the demo look better while proving less.
 
 ## Needs a human decision, not a patch
 
+**The two at the top block the most work.** Both came out of the #355 spec-doc
+conflict audit; both are one sentence of decision and then mechanical to apply.
+
+- ⚠️ **Is Track 1 (offline, `LocalDataSource`) retired or deferred?** See the
+  `PanelShell` section above. This single answer unblocks **three** threads: the
+  `PanelShell` guidance, #350's CDS `type:'smart'` link (a SMART launch link's
+  whole point is the real launch path), and the *Written*-tab contradiction
+  between panel §2 and §9. Until it lands, `surfaces-and-distribution.md` §8 and
+  the stated direction disagree in writing.
+- ⚠️ **Write down the §8 mock-vs-Medplum decision, with its real reason.** See
+  above. It is "leaning mock" in conversation and "genuinely undecided" in the
+  docs, which is the worst of both.
+- **Four more corrections from the #355 audit are queued behind those two** and
+  are mechanical once they land: panel §2 vs §9 (resolves automatically from
+  Track 1), the three different urgency framings of the `Patient` task (now moot
+  — #356 did it), `surfaces-and-distribution.md` §4's "transitional" IG-redirect
+  comment (drop the word or file the move), and re-scoping §8's phase table.
 - **#303 — `p007-stanley-brown` is a stub** (no `activity`) named after a profile it doesn't conform to. It *limits* how strong #289's invariant can be: it is why `spier-episode-trigger-on-positive-screen` covers only `positive-screen` and not `elevated-assessment`. Renaming is probably right, but which way depends on what that fixture is meant to represent. **Do not guess it; ask.**
 - **#231 — the CDS service's auth posture.** Narrower than filed. `require` is implemented and unit-tested and is one `wrangler.jsonc` var; the app itself only fetches discovery (open either way), so flipping would break the guide's own published curl and any CDS Hooks Sandbox trial, not the demo UI. The guide page and README already state warn mode — what is missing is that both frame it as *transitional* and nobody has scheduled the flip. Declaring warn deliberate (a two-line doc change) looks right, but it is a security posture and so is Brad's call.
 - **#326 — clinical review of ED Scenario 11**: 10 proposed steps, 3 new patient courses, one open note. Not a code task.
