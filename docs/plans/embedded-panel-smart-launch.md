@@ -25,7 +25,7 @@ a clinical reviewer has to be *told* which half is for them.
 | Phase | State |
 |---|---|
 | 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
-| 1 — mock EHR read API over the existing fixtures | **Not started. No longer blocked** — the `Patient` prerequisite landed 2026-08-18. §7 |
+| 1 — mock EHR read API over the existing fixtures | **Not started, unblocked, and specced** — [`mock-ehr-read-api.md`](mock-ehr-read-api.md). §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **Not started.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **DONE 2026-08-18.** `PanelShell` in #358 (`3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. Code drawer in #360 (`1901c0e`): the stranded sidebar (§9.1 finding 3) becomes a bottom drawer, one tap from any scroll position. §3 |
 | 4 — writes + the capability-degradation demo | **Not started. The ladder driver is already ON MAIN** (#351, `6f37e0d`), so this is a server, not a build. §5 |
@@ -449,7 +449,7 @@ Sequenced to kill unknowns first.
 | # | Step | Why here |
 |---|---|---|
 | **0** | ~~Width spike~~ — **done, §9.1** | C-SSRS Full renders at 470px with zero horizontal overflow. Geometry confirmed; nothing downstream shifts. |
-| 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Blocked on §7.** |
+| 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Unblocked** — #356 minted the `Patient` resources. Executable spec: [`mock-ehr-read-api.md`](mock-ehr-read-api.md) |
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
 | 3 | ~~`PanelShell`, navigation stack, code drawer~~ **DONE (#358, #360)** | Now it looks like the product. Measured: 252px → 76px of chrome, and the FHIR view from ~3000px below the form to one tap away. |
 | 4 | Writes on the mock; degradation demo | §5 — the ladder driver is already on `main` (#351), so this is a server, not a build. Guardrail 2 (prove it rejects) lands here. |

@@ -85,6 +85,8 @@ knowing so they are not re-investigated.
 
 ## Take this first — `services/mock-ehr/`, the read API (panel step 1)
 
+📄 **Executable spec: [`mock-ehr-read-api.md`](mock-ehr-read-api.md).** Start there; it carries three corrections to what the panel plan says about this step, each of which would otherwise cost real time.
+
 ⚠️ **The previous version of this file said nothing on the panel path was
 unblocked. That is no longer true — §8 was settled 2026-08-18.**
 
@@ -107,6 +109,8 @@ Two decisions landed, and between them they unblock everything:
 | 6 — FHIRcast across the origin boundary | Unblocked |
 
 ### What step 1 is, and the one thing that will be underestimated
+
+*(Summary — [`mock-ehr-read-api.md`](mock-ehr-read-api.md) is the full version.)*
 
 `SmartDataSource.getSlice` issues patient-scoped `GET Type?patient=X` across **13
 resource types**. Serving them from the scenario fixtures is one route, a filter
@@ -217,6 +221,12 @@ order:
 6. **[`../smart-sandbox-testing.md`](../smart-sandbox-testing.md)** — the current
    SMART walkthrough and its three known limitations. **The panel work touches all
    three**, so this is the baseline any change is measured against.
+
+### Read when building the mock EHR
+
+0. **[`mock-ehr-read-api.md`](mock-ehr-read-api.md)** — step 1's executable spec:
+   the exact 14 searches, which two are load-bearing, the Bundle shape fhirclient
+   expects, and three corrections to the panel plan.
 
 ### Read before writing code
 
