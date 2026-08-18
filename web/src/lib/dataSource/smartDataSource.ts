@@ -29,6 +29,8 @@ import { toolForQuestionnaireUrl, stripCanonicalVersion } from '../../data/catal
 import { deriveFromResponse } from '../deriveFromResponse'
 import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '../patientPathway'
 import type { RiskAlert } from '../observationMappers'
+import { parseCapabilityStatement } from '../writeback/capability'
+import type { ServerCapabilities, WritebackTarget } from '../writeback/types'
 import type { DerivedArtifacts, FhirDataSource } from './types'
 import type {
   AppointmentResource,
@@ -59,6 +61,21 @@ function questionnaireNameFor(qr: QuestionnaireResponseResource): string {
     if (tail) return tail
   }
   return `QuestionnaireResponse/${qr.id ?? 'unknown'}`
+}
+
+/**
+ * Turn a create failure into a scorecard-friendly message. fhirclient throws an
+ * `HttpError`-ish value carrying a status (`statusCode`/`status`) and a message
+ * that usually includes the server's OperationOutcome; we surface whatever is
+ * present rather than a bare "request failed".
+ */
+function describeCreateError(resourceType: string, err: unknown): string {
+  const e = err as { status?: number; statusCode?: number; message?: string; response?: { status?: number } }
+  const status = e?.statusCode ?? e?.status ?? e?.response?.status
+  const detail = e?.message ?? (typeof err === 'string' ? err : String(err))
+  return status
+    ? `Failed to create ${resourceType} — HTTP ${status}: ${detail}`
+    : `Failed to create ${resourceType}: ${detail}`
 }
 
 function toStoredResponse(qr: QuestionnaireResponseResource): StoredResponse {
@@ -145,7 +162,7 @@ const LIFECYCLE_RESOURCE_TYPES = new Set([
   'Encounter',
 ])
 
-export class SmartDataSource implements FhirDataSource {
+export class SmartDataSource implements FhirDataSource, WritebackTarget {
   private readonly listeners = new Set<() => void>()
   private readonly client: Client
 
@@ -278,6 +295,36 @@ export class SmartDataSource implements FhirDataSource {
     if (body?.id) return body.id
     const location = response.headers.get('location') ?? response.headers.get('content-location')
     return location?.match(new RegExp(`${resource.resourceType}/([^/]+)`))?.[1]
+  }
+
+  /**
+   * WritebackTarget — create a single resource, scoped to the launch patient,
+   * surfacing failures as thrown Errors that carry the HTTP status (and any
+   * OperationOutcome detail fhirclient captured) so the writeback executor can
+   * record a readable outcome in the scorecard. Unlike the private `create`,
+   * this is the public, per-resource primitive the ladder drives.
+   */
+  async createResource(resource: FhirResource): Promise<{ id?: string }> {
+    const pid = this.resolvePatientId(null)
+    const payload = this.toCreatePayload(resource, pid)
+    try {
+      return { id: await this.create(payload) }
+    } catch (err) {
+      throw new Error(describeCreateError(resource.resourceType, err))
+    }
+  }
+
+  /**
+   * Fetch + parse the connected server's CapabilityStatement so the ladder can
+   * probe which discrete tiers are supported. Best-effort: any failure yields
+   * empty capabilities (the ladder then relies on the Tier-0 floor).
+   */
+  async fetchCapabilities(): Promise<ServerCapabilities> {
+    try {
+      return parseCapabilityStatement(await this.client.request<unknown>('metadata'))
+    } catch {
+      return {}
+    }
   }
 
   /**
