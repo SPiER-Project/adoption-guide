@@ -33,6 +33,7 @@ import { generateCrisisResponseCarePlan } from './lib/carePlanMappers'
 // *Provider.tsx, its context object and hook in *Context.ts — so the provider
 // module stays component-only and Fast Refresh preserves its state on edit.
 // Consumers import the hook from the *Context module, the path they always used.
+import { PresentationProvider } from './context/PresentationProvider'
 import { SmartProvider } from './context/SmartProvider'
 import { PatientProvider } from './context/PatientProvider'
 import { ToolConfigProvider } from './context/ToolConfigProvider'
@@ -42,7 +43,7 @@ import { SmartLaunch } from './components/SmartLaunch'
 import { SmartRedirect } from './components/SmartRedirect'
 
 // Shell — kept eager so the nav/sidebar chrome is always in the main chunk.
-import { EhrShell } from './components/EhrShell'
+import { Shell } from './components/Shell'
 
 // Cross-tab patient-context sync (simulated FHIRcast). Eager + always mounted
 // so a chart tab is listening regardless of which lens the user loaded first.
@@ -119,7 +120,7 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/overview" replace />} />
 
       {/* EHR Shell wraps the demo lenses */}
-      <Route element={<EhrShell />}>
+      <Route element={<Shell />}>
         {/* Overview — the front door, a top-level lens rather than a guide
             section (the sidebar lists it above the Adoption Guide). */}
         <Route path="/overview" element={<Overview />} />
@@ -267,12 +268,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <SmartProvider>
-      <PatientProvider>
-        <ToolConfigProvider>
-          <AppRoutes />
-        </ToolConfigProvider>
-      </PatientProvider>
-    </SmartProvider>
+    <PresentationProvider>
+      <SmartProvider>
+        <PatientProvider>
+          <ToolConfigProvider>
+            <AppRoutes />
+          </ToolConfigProvider>
+        </PatientProvider>
+      </SmartProvider>
+    </PresentationProvider>
   )
 }

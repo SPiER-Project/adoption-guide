@@ -1,0 +1,64 @@
+/* ===========================
+   Panel shell — SPiER embedded as a SMART activity in a host chart.
+
+   The measured problem this solves (panel plan §9.1, re-measured on this
+   branch): 252px of chrome above the first form card at 470px, which is 28% of
+   a 900px panel spent before a question is asked. The host already has a header
+   and already identifies the patient, so both of ours go; what stays is one
+   identity line, because a panel that never names its patient is a safety
+   problem rather than an untidy one.
+
+   No width rules here on purpose. The spike found zero horizontal overflow at
+   470px, so width is the host's decision and this shell has no opinion.
+   =========================== */
+.panel-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--surface-page);
+}
+
+/* The one-line identity strip. `position: sticky` because the panel scrolls a
+   long instrument and losing track of whose chart you are filling in is the
+   failure this strip exists to prevent.
+
+   ⚠️ `z-index: 1`, deliberately, and it was measured rather than guessed. The
+   renderer's combobox popover is `z-index: 10`; a strip at 10 as well left the
+   two EQUAL, so which one painted on top depended on DOM order rather than on
+   intent. A combobox low in a long instrument flips to open upward, straight
+   into the strip's band — so the popover has to win. 1 still beats ordinary
+   page content, which sets no z-index at all. */
+.panel-shell__patient {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-banner);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--font-size-xs);
+}
+
+.panel-shell__name {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  color: var(--text-strong);
+}
+
+.panel-shell__meta {
+  color: var(--text-muted);
+}
+
+/* The panel's page inset — the second sanctioned owner alongside
+   `.ehr-content-body`, declared in web/scripts/check-page-template.mjs so the
+   template gate knows about it rather than being worked around.
+
+   Tighter than the shell's inset: horizontal room is the scarce thing at 470px,
+   and the vertical budget is what this whole shell exists to reclaim. */
+.panel-shell__body {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+}

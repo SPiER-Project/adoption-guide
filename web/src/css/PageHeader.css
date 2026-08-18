@@ -95,3 +95,56 @@
     font-size: var(--font-size-2xl);
   }
 }
+
+/* ===========================
+   Panel variant — the same header, collapsed to one line.
+
+   ⚠️ These rules live HERE, not in PanelShell.css, and that is enforced:
+   `check:template` RULE 1 fails any `.page-header` selector outside this file,
+   so the template cannot grow per-context variants scattered across stylesheets.
+   The panel is a variant of the one header, not a second header.
+
+   What it buys: the header measured 75px in the shell — eyebrow, large title,
+   accent rule, and a --space-6 gap. On one line it is ~26px. Combined with
+   dropping the app header (65px) and the full patient banner (73px), that is
+   what takes 252px of chrome down to roughly 70px.
+
+   The eyebrow stays because it carries `up`, the drill-in page's way back out —
+   in a panel there is no sidebar to escape through, so it is the only exit.
+   =========================== */
+.panel-shell .page-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.panel-shell .page-header__eyebrow {
+  margin: 0;
+}
+
+/* Only the first segment survives: it is the one `up` links, and a full trail
+   would wrap the line it is supposed to fit on. */
+.panel-shell .page-header__eyebrow span:not(:first-child) {
+  display: none;
+}
+
+.panel-shell .page-header__title {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+/* The accent rule is a full-width divider under a stacked title. There is no
+   stack here for it to divide. */
+.panel-shell .page-header__rule {
+  display: none;
+}
+
+/* The lede keeps its content but leaves the header's line — most workflow views
+   pass one, and dropping it would remove information rather than chrome. */
+.panel-shell .page-header__lede {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--font-size-xs);
+}
