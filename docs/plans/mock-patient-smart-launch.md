@@ -20,7 +20,7 @@ prove.
 
 | Phase | State |
 |---|---|
-| 1 — `Patient` / `Practitioner` / `Organization` for the 14, gated | **Not started.** §7 |
+| 1 — `Patient` for the 14, gated | **DONE 2026-08-18** — `ig/input/fsh/population-patients.fsh`, plus `check:patients` and check 8 of `check:scenarios`. No `Practitioner`/`Organization` needed; nothing references them. §7 |
 | 2 — per-patient transaction Bundle export + a validator gate | **Not started.** §7 |
 | 3 — load into a real server; re-run the SMART walkthrough against it | **Not started.** §7 |
 | 4 — population-capable `SmartDataSource` (un-hardcode two pages) | **Not started.** §8 — the scope people forget |
@@ -68,7 +68,8 @@ not another *app*, it is a *server with our patients on it*.
 
 ### Three concrete deficits
 
-1. **The 14 mock patients have no `Patient` resource.**
+1. ~~**The 14 mock patients have no `Patient` resource.**~~ **CLOSED — see the
+   DONE note below.**
    [`patients.json`](../../web/src/data/population/patients.json) is app-shaped —
    `id`, `displayName`, `dob`, `mrn`, `gender`, `recommendedNextStep`. Every
    `subject: Patient/patient-001` across the scenarios points at an id with
@@ -86,7 +87,14 @@ not another *app*, it is a *server with our patients on it*.
    sentence above implies. Minting `Practitioner`/`Organization` is a richness
    choice, not a conformance fix.
 
-   **This is a conformance hole in its own right, independent of any server.**
+   **This was a conformance hole in its own right, independent of any server.**
+⚠️ **DONE 2026-08-18.** The 14 `Patient` resources now exist as example Instances
+in [`ig/input/fsh/population-patients.fsh`](../../ig/input/fsh/population-patients.fsh),
+gated two ways: `check-scenario-resources.mjs` check 8 fails when a scenario's
+subject does not resolve, and `npm run check:patients` asserts the FSH,
+`patients.json` and `populationToFhir` agree field by field. Both were verified
+against planted defects. Phase 2 (per-patient transaction Bundles) is still open.
+
 
 2. **SMART mode cannot reach the Population or Dashboard lenses at all.**
    [`PopulationView.tsx:73`](../../web/src/pages/PopulationView.tsx:73) and
@@ -198,7 +206,8 @@ the cost of a real server with none of the credibility, which is the argument fo
 
 ## 7. Phases
 
-**Phase 1 — real subject resources.** `Patient` × 14. (Originally scoped as
+**Phase 1 — real subject resources. DONE 2026-08-18.** `Patient` × 14, as example
+Instances in `ig/`, which is what this section recommended. (Originally scoped as
 "plus the `Practitioner` and `Organization` resources the scenarios' performers
 reference" — but measurement found no such references exist; see §2 deficit 1.) Where they live is a
 real decision: `ig/` as example Instances (gated by sushi + the validator + the

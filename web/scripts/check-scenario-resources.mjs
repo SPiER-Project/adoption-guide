@@ -220,6 +220,16 @@ const structureDefs = new Map()
 const codeSystems = new Map()
 /** canonical url → ValueSet */
 const valueSets = new Map()
+/**
+ * Ids of the generated `Patient` instances (ig/input/fsh/population-patients.fsh).
+ *
+ * ⚠️ Collected BEFORE the `url` guard below, deliberately. A `Patient` has no
+ * `url` element, so `if (typeof doc?.url !== 'string') continue` skips it — which
+ * is why this index cannot be folded into the same branch chain as the conformance
+ * resources. Getting that wrong yields an empty set and a vacuous pass, which is
+ * the exact failure mode check 8 exists to prevent.
+ */
+const patientIds = new Set()
 
 for (const name of generatedFiles) {
   if (!name.endsWith('.json')) continue
@@ -229,10 +239,22 @@ for (const name of generatedFiles) {
   } catch {
     continue
   }
+  if (doc?.resourceType === 'Patient' && typeof doc.id === 'string') {
+    patientIds.add(doc.id)
+  }
   if (typeof doc?.url !== 'string') continue
   if (doc.resourceType === 'StructureDefinition') structureDefs.set(doc.url, doc)
   else if (doc.resourceType === 'CodeSystem') codeSystems.set(doc.url, doc)
   else if (doc.resourceType === 'ValueSet') valueSets.set(doc.url, doc)
+}
+
+if (patientIds.size === 0) {
+  console.error(
+    '[check:scenario-resources] no Patient resources found in web/src/data/fhir/ — ' +
+      'run `npm run copy-fhir -- --force`. Without them check 8 would pass vacuously ' +
+      'and every scenario subject reference could dangle again.',
+  )
+  process.exit(1)
 }
 
 if (structureDefs.size === 0) {
@@ -958,6 +980,24 @@ let resourcesChecked = 0
 
 for (const file of scenarioFiles) {
   const patientId = file.replace(/\.json$/, '')
+
+  // 8 — the scenario's subject actually EXISTS.
+  //
+  // Check 3 (in checkResource) asserts every resource references
+  // `Patient/<this scenario's id>`. Together with this line that closes the
+  // dangle: 116 references across 14 ids pointed at nothing at all until
+  // ig/input/fsh/population-patients.fsh landed, and neither gate could see it —
+  // a `subject` naming a nonexistent Patient is not a conformance error, so the
+  // HL7 validator passed it too. Check 3 alone only proves the references agree
+  // with each other.
+  if (!patientIds.has(patientId)) {
+    fail(
+      `scenarios/${file}: no Patient resource with id "${patientId}" — every ` +
+        `subject reference in this scenario dangles. Add an Instance to ` +
+        `ig/input/fsh/population-patients.fsh and re-run copy-fhir.`,
+    )
+  }
+
   let scenario
   try {
     scenario = JSON.parse(readFileSync(join(scenariosDir, file), 'utf8'))

@@ -33,6 +33,10 @@ npm run check:stages     # stage ids in population data vs canonical FSH stage l
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see the mapper-reader note below
+npm run check:patients   # the 14 demo patients' demographics agree across all THREE
+                         # sites: population-patients.fsh (canonical), patients.json
+                         # (display copies), and populationToFhir's MRN system in
+                         # PatientProvider.tsx — which is SCRAPED, not restated
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #  check-scenario-responses.mjs — QuestionnaireResponses vs their
                          #    Questionnaire (linkIds, nesting, answer options, ranges)
@@ -345,7 +349,7 @@ rather than an empty one (issue #226). Be precise about which gate sees what:
 |---|---|---|
 | Runs | every `web/` verify | PR + push touching `ig/`, `FHIR-Resources/`, or the scenarios |
 | QuestionnaireResponses | linkIds, nesting, answerOption, ranges, value[x] type | full conformance against the Questionnaire |
-| Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
+| Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage, **the subject Patient actually existing**, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
 | Misses | cardinality *counts*, slices, invariants, unknown elements, external codes | nothing structural — but runs `-tx n/a`, so LOINC/SNOMED displays wait for the nightly |
 
 The offline half's base-R4 required-element and status-code tables are
@@ -363,6 +367,22 @@ server. `riskAlerts` and `walkthrough` are deliberately not fed to the validator
 neither is FHIR (`walkthrough` is `ScenarioEncounter` narration, not a FHIR
 Encounter), and the offline half checks both against their TypeScript shapes
 instead.
+
+⚠️ **The scenarios' 116 `subject: Patient/patient-0NN` references dangled for
+months, and no gate could see it.** A `subject` naming a nonexistent Patient is
+not a conformance error, so the HL7 validator passed it; the offline checker
+asserted every resource named the *right* id, never that the id resolved. The 14
+subjects now exist as example Instances in `ig/input/fsh/population-patients.fsh`,
+and `check-scenario-resources.mjs`'s check 8 closes the loop — it **exits non-zero
+when it finds no Patient resources at all**, rather than passing vacuously when
+`copy-fhir` has not run.
+
+Two things there are easy to get wrong. The Patient index is built **before** the
+`if (typeof doc?.url !== 'string') continue` guard, because a `Patient` has no
+`url` and would otherwise be skipped — folding it into the conformance-resource
+branch chain yields an empty set and a green gate. And `* id = "patient-0NN"` in
+the FSH is load-bearing: the Instance *name* is CamelCase, but the resource id
+must be the exact string the scenarios reference, or they dangle again.
 
 ⚠️ **`encounters` used to be that narration bucket and no longer is.** #285 made
 it real FHIR `Encounter`s — the correlation hinge every other artifact reaches

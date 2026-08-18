@@ -69,7 +69,7 @@ export interface PatientOpenPayload {
   displayName?: string
 }
 
-const MRN_SYSTEM = 'http://hospital.example.org/mrn'
+const MRN_SYSTEM = 'http://spier.org/identifier/mrn'
 
 /**
  * Build the anchor Patient resource carried in the event context. Kept minimal
