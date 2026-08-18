@@ -24,7 +24,7 @@ a clinical reviewer has to be *told* which half is for them.
 
 | Phase | State |
 |---|---|
-| 0 — width spike: one long instrument at panel width | **Not started.** §9 |
+| 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
 | 1 — mock EHR read API over the existing fixtures | **Not started, and BLOCKED on a prerequisite.** §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **Not started.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **Not started.** §3 |
@@ -349,7 +349,7 @@ Sequenced to kill unknowns first.
 
 | # | Step | Why here |
 |---|---|---|
-| **0** | **Width spike** — C-SSRS Full rendered at ~470px | If `@formbox/renderer` cannot do a long instrument at panel width, the geometry changes and everything downstream shifts. Half a day. **Do this first.** It also settles third-vs-half (§10). |
+| **0** | ~~Width spike~~ — **done, §9.1** | C-SSRS Full renders at 470px with zero horizontal overflow. Geometry confirmed; nothing downstream shifts. |
 | 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Blocked on §7.** |
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
 | 3 | `PanelShell`, navigation stack, code drawer | Now it looks like the product. |
@@ -373,10 +373,60 @@ happen. Cheap now, expensive later. See
 
 Steps 1–2 are UI-independent and can run in parallel with 0 and 3.
 
+### 9.1 Step 0 result — measured 2026-08-18
+
+Method: C-SSRS Full (the longest instrument in the repo) loaded in a **470px
+same-origin iframe inside a 1440×900 viewport** — not a 470px browser window,
+because a narrow window also triggers touch/mobile-device emulation that an
+embedded panel does not have. The iframe reproduces the real case exactly: the
+panel gets its own viewport, so its own media queries apply.
+
+| Measure | 470px | 700px |
+|---|---|---|
+| Horizontal overflow | **none** | none |
+| Elements wider than viewport | **0** | 0 |
+| Document height (all sections revealed) | 6088px | 5237px |
+| Chrome above the first form card | **252px** | 252px |
+
+**It passes, and the predicted failure mode does not exist.** `@formbox/renderer`
+renders `choice` items as comboboxes, not radio matrices — so there is no grid to
+break. Option popovers stay inside the panel, and the longest labels in the
+instrument (the Duration scale: *"More than 8 hours / persistent or continuous"*)
+**wrap to two lines rather than truncating**.
+
+Three findings worth more than the pass:
+
+1. ⚠️ **The hardest layout case is behind `enableWhen`.** Answering Q2 *yes*
+   takes the form from 13 controls to 23 and from 3297px to 6088px, revealing the
+   Intensity-of-Ideation scales that carry the long labels. **A spike that only
+   loads the form tests none of it** — still zero overflow after expansion, but
+   that had to be provoked to be true.
+2. **The panel's real constraint is vertical, not horizontal.** 252px of chrome
+   sits above the first question — header, patient banner, patient switcher,
+   breadcrumb, `PageHeader` — identical at both widths. In a 900px-tall panel
+   that is **28% of the viewport spent before a single question**. This is the
+   thing `PanelShell` (§3) has to fix, and it is a bigger win than any width
+   choice.
+3. ⚠️ **The code drawer is not merely cramped at panel width — it is stranded.**
+   `.form-wrapper` is `flex-direction: row` and wraps, so `.debug-sidebar` lands
+   **below** the form: at 470px its top is **5604px** down. The FHIR view is
+   effectively unreachable mid-demo. That is the argument for the bottom drawer in
+   §2 — reachability, not overflow.
+
+**Decision: a third (~470px) is viable, so the choice is free.** 700px buys
+one-line option labels and ~14% less scrolling (5237 vs 6088). Recommend building
+`PanelShell` **width-agnostic** and defaulting to ~"a third, resizable" — nothing
+in the renderer forces the wider default, so it can be a presentation preference
+rather than an architectural constraint.
+
+*Also observed:* mobile breakpoints fire inside the iframe (the shell's hamburger
+appears below 768px). Harmless for `PanelShell`, which will not carry the lens
+sidebar, but it should be deliberate rather than inherited.
+
 ## 10. Open decisions
 
-- **Panel width.** A third (~470px) versus a half (~700px). The step-0 spike
-  should decide it, not a preference.
+- ~~**Panel width.**~~ **Answered by §9.1: 470px works, so the choice is free.**
+  Build width-agnostic; default to a third, resizable.
 - **Does the mock ship a login/consent screen?** Skipping it is faster;
   including it lets the demo show the scope list SPiER requests — the other
   question integration leads always ask.
@@ -390,7 +440,7 @@ Steps 1–2 are UI-independent and can run in parallel with 0 and 3.
 | Risk | Mitigation |
 |---|---|
 | A lenient mock quietly weakens SPiER's central claim | §1 guardrails — strict writes, prove a rejection, never claim interop from this host |
-| Long instruments unusable at panel width | Step 0, before anything else is built |
+| ~~Long instruments unusable at panel width~~ | **Retired** — measured, §9.1. Replaced by: 252px of chrome above the first question, which `PanelShell` must cut |
 | `services/mock-ehr/` drifts out of the gate net | Its own CI-gated `verify` on day one (§6) |
 | Two chrome modes double the layout surface | Declare the second inset owner to `check:template` rather than routing around it (§3) |
 | Demo breaks on a strict-privacy laptop | `workers.dev` is on the Public Suffix List, so two Workers are cross-**site**, not just cross-origin — the stricter category for storage partitioning. Test Safari and Chrome before any live presentation, and keep the track-1 offline path working as the fallback (`surfaces-and-distribution.md` §8) |
