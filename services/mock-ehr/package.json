@@ -1,0 +1,33 @@
+{
+  "name": "@spier/mock-ehr",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A mock EHR FHIR server on Cloudflare Workers — serves SPiER's own population scenarios as a real FHIR read API so the embedded SMART panel can be launched against a server. Demo host only; never an interoperability claim.",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "pretest": "npm --prefix ../../web run copy-fhir",
+    "test": "vitest run",
+    "verify": "npm --prefix ../../web run copy-fhir && npm run typecheck && npm run lint && npm run test"
+  },
+  "dependencies": {
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^22.20.1",
+    "eslint": "^10.8.0",
+    "globals": "^17.8.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.65.0",
+    "vite": "^7.3.1",
+    "vitest": "^3.0.5",
+    "wrangler": "~4.107.0"
+  }
+}

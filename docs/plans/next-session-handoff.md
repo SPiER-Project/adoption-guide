@@ -1,7 +1,8 @@
 # Handoff — next session
 
-Rewritten **2026-08-18 (sixth rewrite that day)**. `main` was at **`1901c0e`**
-when this was written; check rather than trust that.
+Rewritten **2026-08-18 (seventh rewrite that day)**. `main` was at **`c6af8fd`**
+when this was written, confirmed against `origin/main`; check rather than trust
+that.
 
 ⚠️ **Six rewrites in one day is itself the finding.** Four of the last five
 merges made this file wrong within the hour — twice it still said "take
@@ -30,13 +31,17 @@ The rule now has three halves:
 
 ## State of the repo
 
-- **No open PRs.** 37 open issues. (Both counted with an explicit `--limit`;
+- **No open PRs** at the time of writing — the step-1 branch below is the next
+  one. **37 open issues.** (Both counted with an explicit `--limit`;
   `gh issue list` defaults to 30 and silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `1901c0e`**: every `check:*` gate
-  green (**15** of them; `check:patients` is the newest), **57 test files / 673
-  tests**. `check:template` reports **2 inset owners**.
-- `services/cds-hooks` — its own `verify` exits 0, **re-run on `1901c0e`**, 24
+- `web` — `npm run verify` exits 0, **re-run on `c6af8fd`**: every `check:*` gate
+  green, **57 test files / 673 tests**. (No count of the gates here on purpose —
+  `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
+  stale.)
+- `services/cds-hooks` — its own `verify` exits 0, **re-run on `c6af8fd`**, 24
   tests. **`web`'s verify does not cover it.**
+- `services/mock-ehr` — **new.** Its own `verify` exits 0, 33 tests, its own
+  `mock-ehr` CI job in `web-lint.yml`. `web`'s verify does not cover it either.
 - CI green on `main`, including the post-merge deploys for `266fd5f` and
   `3832e18`. The `266fd5f` deploy **genuinely re-rendered** the IG rather than
   reusing cache (`ig/input` changed, so the key missed; `Run IG Publisher`, the
@@ -66,6 +71,10 @@ The rule now has three halves:
 | **#358** (`3832e18`) | **`PanelShell` — 252px of chrome above the first question down to 76px.** Chrome-mode seam, `INSET_OWNERS` gate |
 | **#359** (`e94bfc5`) | Handoff + panel plan re-pointed at the code drawer |
 | **#360** (`1901c0e`) | **Code drawer — the FHIR view was stranded ~3000px below the form; now one tap from any scroll position.** Panel step 3 complete |
+| **#361** (`7d5356a`) | Handoff: panel step 3 done |
+| **#362** (`ad3ffe0`) | **§8 settled — the mock serves FHIR; the offline track is retired** |
+| **#363** (`c6af8fd`) | The step-1 read API spec, plus three corrections to what the panel plan said about it |
+| *(this branch)* | **`services/mock-ehr/` — step 1 built.** Two findings the derived spec could not have had; see "Take this first" |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -83,63 +92,60 @@ could otherwise act on:
 `valueCoding` first; `valueText` is a pre-existing repo-wide convention) — worth
 knowing so they are not re-investigated.
 
-## Take this first — `services/mock-ehr/`, the read API (panel step 1)
+## Take this first — panel step 2, the SMART authorize/token stub
 
-📄 **Executable spec: [`mock-ehr-read-api.md`](mock-ehr-read-api.md).** Start there; it carries three corrections to what the panel plan says about this step, each of which would otherwise cost real time.
-
-⚠️ **The previous version of this file said nothing on the panel path was
-unblocked. That is no longer true — §8 was settled 2026-08-18.**
-
-Two decisions landed, and between them they unblock everything:
-
-- **§8 — the mock serves FHIR.** `services/mock-ehr/` on its own Worker; the
-  Medplum variant is rejected. Reason, costs and binding guardrails in
-  [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8.
-- **Track 1 — the offline demo is retired**, the interface discipline is kept.
-  [`surfaces-and-distribution.md`](surfaces-and-distribution.md) §8.
+⚠️ **Step 1 is done.** `services/mock-ehr/` is built: a FHIR read API over the
+app's own scenarios, on its own Worker, with 33 tests and its own CI-gated
+`verify` job. What that leaves as next is **step 2** — SMART `/authorize` +
+`/token` on the same Worker — because steps 4, 5 and 6 all want a launched
+panel and step 2 is what launches one.
 
 | Panel step | State |
 |---|---|
 | 0 — width spike | **Done** (§9.1) |
-| **1 — mock EHR read API + `/metadata`** | **NEXT.** Was blocked on `Patient` resources; #356 closed that |
-| 2 — SMART authorize/token stub | Unblocked, after 1 |
-| **3 — `PanelShell`, nav stack, code drawer** | **Done** — #358, #360 |
-| 4 — writes + capability degradation | Unblocked, after 2. The ladder driver is already on `main` |
+| 1 — mock EHR read API + `/metadata` | **Done** — `services/mock-ehr/` |
+| **2 — SMART authorize/token stub** | **NEXT.** Unblocked; step 1 is the server it authorizes against |
+| 3 — `PanelShell`, nav stack, code drawer | **Done** — #358, #360 |
+| 4 — writes + capability degradation | After 2. The ladder driver is on `main`; the mock's four capability profiles are built and switchable |
 | 5 — host chrome, launch button, CDS `type:"smart"` card | Unblocked |
 | 6 — FHIRcast across the origin boundary | Unblocked |
 
-### What step 1 is, and the one thing that will be underestimated
+### What step 1 found, which the spec could not have
 
-*(Summary — [`mock-ehr-read-api.md`](mock-ehr-read-api.md) is the full version.)*
+The read API was **derived** — specified by reading `SmartDataSource` and
+reasoning about what it would ask for. Standing it up is what tested the
+reading, and it found two things:
 
-`SmartDataSource.getSlice` issues patient-scoped `GET Type?patient=X` across **13
-resource types**. Serving them from the scenario fixtures is one route, a filter
-and a Bundle envelope — `services/cds-hooks` already imports those fixtures via
-`import.meta.glob`, so the pattern exists. `/metadata` is trivial and is also the
-degradation demo, since we control it.
+1. ⚠️ **Not one of the 20 scenario QuestionnaireResponses carries a `subject`.**
+   Twelve of thirteen FHIR buckets are 100% patient-linked; `responses` is 0%.
+   So `QuestionnaireResponse?patient=` — the search whose failure fails the
+   whole chart — returned nothing for every patient on the first real request.
+   Invisible to the gates *by construction*: `check-scenario-resources.mjs`'s
+   "points at THIS patient" check does not walk `responses`, and
+   `check-scenario-responses.mjs` checks QRs against their Questionnaire, which
+   says nothing about `subject`. Neither is wrong; between them the element is
+   unowned. **The mock stamps it and pins the list of what it stamped. The
+   durable fix is in the fixtures, and needs an issue.**
+2. **`category=procedure` is empty for all 14 patients** (means-safety is a
+   `Procedure`, not an Observation), and the two `category=exam` Observations
+   reach no chart at all through SMART — including patient-002's *only*
+   artifact, so the never-screened patient's SMART chart is empty where their
+   local one is not. A `SmartDataSource` query-set divergence, not a mock bug.
 
-⚠️ **The expensive part is strict write validation (step 4), and its cost is
-understated everywhere it is written down.** The guardrail says "reuse
-`check-scenario-resources.mjs`" — that script is **Node, reading generated
-StructureDefinitions off the filesystem**, and a Worker has no filesystem. It is
-a **port**, not reuse. Budget it when step 4 starts, or the mock ships lenient,
-which is exactly the failure `mock-patient-smart-launch.md` §6 predicted.
+Both are written up in [`mock-ehr-read-api.md`](mock-ehr-read-api.md) under
+"What building it found", with the third omission (CORS, unmentioned in the
+spec and fatal in a browser).
 
-### Three guardrails that are conditions of the §8 decision, not advice
+### Still owed on step 1
 
-1. **Strict validation on writes**, reusing the profile checks
-   `check-scenario-resources.mjs` performs (see the porting note above).
-2. **A planted invalid write seen to 422** before the mock is trusted — the
-   repo's "prove a gate can fail" rule, applied to a server.
-3. **No interoperability claim ever made from a host we control.** The
-   portability claim is made separately, by loading the same Bundles into a
-   *public* sandbox.
-
-⚠️ **A new deployable outside the gate net will rot.** `services/cds-hooks/` has
-its own CI-gated `verify` because `web/`'s does not cover it. `services/mock-ehr/`
-needs the same **on day one** — more urgently, because it reads the scenario
-fixtures and will break silently when those are re-anchored by
-`web/scripts/shift-scenario-dates.mjs`.
+- **A browser run.** The integration test drives the real `SmartDataSource`
+  through a real fhirclient over loopback HTTP, which proves the contract and
+  the failure directions. It does **not** prove CORS preflight or a SMART
+  launch. Do that when step 2 lands and the thing can actually be launched.
+- **Never deployed.** No `wrangler deploy` has been run; the Worker name
+  `spier-mock-ehr` is claimed only in `wrangler.jsonc`.
+- **An issue for the fixture `subject` fix** (finding 1). Not filed — file
+  before starting it.
 
 ### What step 3 settled, so it is not re-derived
 

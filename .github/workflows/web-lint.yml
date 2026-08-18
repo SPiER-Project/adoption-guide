@@ -170,3 +170,37 @@ jobs:
       # and care-plan-profiles.generated.ts via copy-fhir.
       - name: Verify
         run: npm run verify
+
+  # The mock EHR Worker: typecheck, lint, and unit tests — including the
+  # integration test that drives the app's real SmartDataSource against it.
+  # Its own job for the same reason as cds-hooks above, and more urgently: this
+  # service reads the population scenario fixtures directly, so a re-anchoring
+  # by web/scripts/shift-scenario-dates.mjs (or any fixture edit) can break it
+  # while every web gate stays green.
+  mock-ehr:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/mock-ehr
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # `pretest` shells out to `npm --prefix ../../web run copy-fhir` (the 14
+      # Patient resources it serves are SUSHI output), and the integration test
+      # resolves fhirclient out of web/node_modules rather than keeping a second
+      # copy — so web's dependencies have to be installed too.
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Install service dependencies
+        run: npm ci
+
+      - name: Verify
+        run: npm run verify
