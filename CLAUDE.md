@@ -13,7 +13,7 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, all eleven drift checks, and the unit tests in sequence. The individual pieces:
+In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, every `check:*` drift gate listed below, and the unit tests in sequence. (**Deliberately not a count.** This line said "eleven" while `verify` ran fourteen, because a pinned number goes stale silently on every gate added — the same failure as a stale `check:codings` floor in #232. If you add a gate, add it to this list; there is no number to bump.) The individual pieces, in the order `verify` runs them:
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
@@ -40,7 +40,20 @@ npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #    CarePlan, Communication, EpisodeOfCare, Appointment,
                          #    ServiceRequest, Procedure, DocumentReference, Consent, Flag,
                          #    Task) — see the scenario-gate note below for what it does NOT do
+npm run check:dates      # the scenario fixtures' clinical dates are still coherent
+                         # RELATIVE TO their anchor — a `fulfilled` appointment dated
+                         # next week, a reassessment overdue by months. Default is
+                         # --check (validates what is on disk and writes nothing);
+                         # `--apply` is the separate re-dating command, so the script's
+                         # name says "shift" while the gate only reads
 npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
+npm run check:reassessment # the per-tier reassessment cadence agrees across all THREE
+                         # places it is stated: the PlanDefinition (FHIRPath condition
+                         # *and* action.code), the app, and the CQL's
+                         # ReassessmentIntervalDays. Also that the tiers deliberately
+                         # left out (imminent, no-risk) stay out — an interval
+                         # appearing for `imminent` would answer an open clinical
+                         # question by accident
 npm test                 # vitest
 ```
 

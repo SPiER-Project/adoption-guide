@@ -1,8 +1,17 @@
 # SPiER Repository Structure Audit
 
-**Status:** Move 6d audit, read-only — produced 2026-05-20 against `main` at commit `6315763` (post-PR #7).
+**Status: HISTORICAL RECORD — superseded, do not act on it.** Produced 2026-05-20
+against `main` at `6315763` (post-PR #7), when the repo was seven tools old.
 
-This document inventories the current SPiER repository structure, identifies redundancies and inconsistencies, and proposes a sequenced refactor. It exists to be reviewed *before* any code moves; nothing here has been executed.
+⚠️ **Every recommendation below has since been implemented, and the tree it
+describes no longer exists.** `pathway-stages.fsh` was extracted;
+`FHIR-Resources/` was restructured tool-keyed (ASQ, BSSA, C-SSRS, CAMS, CARS-S,
+CRP, PHQ-9, PSS-3, …) rather than by numbered stage; `firebase-debug.log` and
+`.DS_Store` are untracked. Read `CLAUDE.md` for the current layout — the "Findings"
+and "Recommendation" sections here are a snapshot of a decision already made, kept
+for the reasoning, not as a to-do list.
+
+This document inventoried the repository structure as it stood in May 2026, identified redundancies and inconsistencies, and proposed a sequenced refactor. It was written to be reviewed *before* any code moved; that review happened and the refactor was carried out, so the present tense below refers to May 2026, not today.
 
 ## 1. Top-level layout
 
