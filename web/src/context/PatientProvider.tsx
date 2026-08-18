@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect, useRef, useState } from 'react'
+import React, { useMemo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { formatPatientDisplay } from '../data/demoPatient'
@@ -284,6 +284,28 @@ export function PatientProvider({
 
   const slice = sliceState.slice
 
+  // The SMART writeback scorecard (#350). Read through useSyncExternalStore
+  // rather than an effect + setState: the report lives on the data source (see
+  // SmartDataSource.writebackReport), which is exactly the "external mutable
+  // store" this hook exists for, and an effect that seeds state synchronously
+  // trips react-hooks/set-state-in-effect.
+  //
+  // It is deliberately NOT folded into the slice load: a writeback where every
+  // tier failed changes nothing about the slice, but is precisely what the
+  // scorecard exists to show. Null for the local source, so no scorecard renders.
+  //
+  // getSnapshot must be referentially stable between changes — it is, because
+  // `writebackReport` returns the stored object, replaced only by a new writeback.
+  const subscribeWriteback = useCallback(
+    (onChange: () => void) => smartSource?.subscribe(onChange) ?? (() => {}),
+    [smartSource],
+  )
+  const getWritebackReport = useCallback(
+    () => smartSource?.writebackReport ?? null,
+    [smartSource],
+  )
+  const writebackReport = useSyncExternalStore(subscribeWriteback, getWritebackReport)
+
   // Write failures surface to the UI (the SMART server may reject a POST —
   // scope issues, validation); there is deliberately no silent fallback to
   // local storage. Cleared by the next successful write.
@@ -512,6 +534,7 @@ export function PatientProvider({
       addArtifact,
       isSliceLoading: sliceState.isLoading,
       dataSourceError: sliceState.error ?? saveError,
+      writebackReport,
     }),
     [
       activePatient,
@@ -524,6 +547,7 @@ export function PatientProvider({
       sliceState.isLoading,
       sliceState.error,
       saveError,
+      writebackReport,
       addCarePlan,
       addResponse,
       addArtifact,

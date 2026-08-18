@@ -30,7 +30,17 @@ import { deriveFromResponse } from '../deriveFromResponse'
 import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '../patientPathway'
 import type { RiskAlert } from '../observationMappers'
 import { parseCapabilityStatement } from '../writeback/capability'
-import type { ServerCapabilities, WritebackTarget } from '../writeback/types'
+import { buildConditionProposal } from '../writeback/conditionProposal'
+import { buildDocumentReference } from '../writeback/documentReference'
+import { executeWritePlan } from '../writeback/execute'
+import { buildWritePlan, resolveConfig } from '../writeback/ladder'
+import type {
+  ServerCapabilities,
+  WritebackArtifacts,
+  WritebackConfig,
+  WritebackReport,
+  WritebackTarget,
+} from '../writeback/types'
 import type { DerivedArtifacts, FhirDataSource } from './types'
 import type {
   AppointmentResource,
@@ -165,9 +175,25 @@ const LIFECYCLE_RESOURCE_TYPES = new Set([
 export class SmartDataSource implements FhirDataSource, WritebackTarget {
   private readonly listeners = new Set<() => void>()
   private readonly client: Client
+  /** Writeback policy. Injected so the Tier-3 confirm flow can opt in per-write. */
+  private readonly writebackConfig: WritebackConfig
+  /**
+   * The most recent writeback run, for the scorecard. Held here rather than
+   * returned from `saveResponse` because `FhirDataSource.saveResponse` is
+   * `Promise<void>` for every source, and widening that interface would push a
+   * SMART-only concern onto LocalDataSource and every caller. Readers pick it
+   * up through the existing `subscribe` notification.
+   */
+  private lastWriteback: WritebackReport | null = null
 
-  constructor(client: Client) {
+  constructor(client: Client, writebackConfig: WritebackConfig = {}) {
     this.client = client
+    this.writebackConfig = writebackConfig
+  }
+
+  /** The last writeback run, or null before the first submission this session. */
+  get writebackReport(): WritebackReport | null {
+    return this.lastWriteback
   }
 
   private resolvePatientId(patientId: string | null): string {
@@ -365,34 +391,142 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     })
   }
 
+  /**
+   * Probe the server's create capabilities, distinguishing "it told us nothing"
+   * from "we could not ask".
+   *
+   * `fetchCapabilities` (the public WritebackTarget-side helper) collapses both
+   * into `{}`, which is fine for the ladder — either way it degrades to the
+   * Tier-0 floor — but NOT for the scorecard, whose whole job is explaining why
+   * a tier did not land. Reporting a failed probe as "the EHR does not support
+   * QuestionnaireResponse" would be a false readiness claim.
+   */
+  private async probeCapabilities(): Promise<{ caps: ServerCapabilities; ok: boolean }> {
+    try {
+      const caps = parseCapabilityStatement(await this.client.request<unknown>('metadata'))
+      // A real FHIR server always advertises something; an empty parse means the
+      // body was not a readable CapabilityStatement.
+      return { caps, ok: Object.keys(caps).length > 0 }
+    } catch {
+      return { caps: {}, ok: false }
+    }
+  }
+
+  /**
+   * A `WritebackTarget` bound to an explicit patient id.
+   *
+   * The public `createResource` resolves the patient from the launch context
+   * (`resolvePatientId(null)`), which is right for an unscoped caller but wrong
+   * here: `saveResponse` receives the slice key and must scope its writes to
+   * that patient even if it differs from `client.patient.id`.
+   */
+  private targetFor(pid: string): WritebackTarget {
+    return {
+      createResource: async (resource: FhirResource) => {
+        try {
+          return { id: await this.create(this.toCreatePayload(resource, pid)) }
+        } catch (err) {
+          throw new Error(describeCreateError(resource.resourceType, err))
+        }
+      },
+    }
+  }
+
+  /**
+   * Persist a completed instrument by climbing the writeback ladder
+   * (`lib/writeback/`), recording every outcome for the scorecard.
+   *
+   * This replaced a hand-rolled Tier-1 + Tier-2 sequence that did the same two
+   * writes with the same QR-id remapping, but had no capability probing, no
+   * Tier-0 floor, and no record of what failed — so a server that rejected
+   * Observations lost the data silently. The ladder is a strict generalization
+   * of that code; see docs/plans/smart-filler-writeback-ladder.md.
+   *
+   * Failures do NOT reject: the ladder records them as step outcomes so a
+   * partial writeback is visible rather than fatal. A total failure is still
+   * reported — see the throw at the end — because PatientContext's save-error
+   * surface is what tells the user nothing landed.
+   */
   async saveResponse(
     patientId: string | null,
     entry: StoredResponse,
     derived: DerivedArtifacts | null,
   ): Promise<void> {
     const pid = this.resolvePatientId(patientId)
+    const cfg = resolveConfig(this.writebackConfig)
 
-    // Create the QR first — the derived Observations' derivedFrom must point
-    // at the server-assigned id, not the client-minted one.
-    const qr = this.toCreatePayload(entry.resource, pid)
-    if (!qr.authored) qr.authored = entry.completedAt
-    const serverQrId = await this.create(qr)
+    // `authored` must be set before the Tier-0 narrative is rendered: it
+    // supplies the DocumentReference date and the "Completed:" line.
+    const qr: QuestionnaireResponseResource = {
+      ...entry.resource,
+      ...(entry.resource.authored ? {} : { authored: entry.completedAt }),
+    }
 
-    for (const obs of derived?.observations ?? []) {
-      const payload = this.toCreatePayload(obs, pid)
-      if (serverQrId) {
-        const derivedFrom = (payload.derivedFrom ?? []) as { reference?: string }[]
-        payload.derivedFrom = derivedFrom.map(d =>
-          d.reference === `QuestionnaireResponse/${entry.id}`
-            ? { reference: `QuestionnaireResponse/${serverQrId}` }
-            : d,
-        )
-      }
-      await this.create(payload)
+    // The Tier-0 attachment embeds this QR as recoverable FHIR JSON, so it goes
+    // through `toCreatePayload` — the same transform the POSTed copy gets. That
+    // is deliberate on both halves:
+    //  - it adds the patient link, because an extracted QR that does not say who
+    //    it is about is not recoverable in any useful sense; and
+    //  - it strips the client-minted `id` and `_savedAt`, the latter being a
+    //    local persistence stamp that a FHIR parser reads as a primitive
+    //    extension for a nonexistent `savedAt` element. Embedding it would put
+    //    invalid FHIR inside the artifact whose whole purpose is recoverability.
+    // So the attachment is exactly the resource SPiER would have written.
+    const documentReference = buildDocumentReference({
+      qr: this.toCreatePayload(qr, pid),
+      patientId: pid,
+      title: entry.questionnaireName,
+      riskAlert: derived?.riskAlert ?? null,
+    })
+
+    // Tier 3 is built only when enabled — `WritebackArtifacts.condition` present
+    // means "a proposal was warranted", and buildWritePlan reads it that way.
+    // buildConditionProposal returns null for a negative screen.
+    const condition =
+      cfg.enableConditionProposal && derived?.riskAlert
+        ? buildConditionProposal({
+            riskAlert: derived.riskAlert,
+            patientId: pid,
+            derivedFromRefs: [`QuestionnaireResponse/${entry.id}`],
+            recordedDate: entry.completedAt,
+          })
+        : null
+
+    const artifacts: WritebackArtifacts = {
+      // Keeps the client id: `executeWritePlan` needs it to remap the
+      // `QuestionnaireResponse/<id>` references inside the Observations and the
+      // Condition proposal to the server-assigned id. `toCreatePayload` strips
+      // it before the POST.
+      qr,
+      observations: derived?.observations ?? [],
+      documentReference,
+      ...(condition ? { condition } : {}),
+    }
+
+    const { caps, ok } = await this.probeCapabilities()
+    const plan = buildWritePlan(caps, this.writebackConfig, artifacts)
+    const result = await executeWritePlan(plan, this.targetFor(pid), artifacts, this.writebackConfig)
+
+    this.lastWriteback = {
+      at: new Date().toISOString(),
+      config: cfg,
+      capabilities: caps,
+      capabilitiesKnown: ok,
+      result,
     }
     // derived.riskAlert is not persisted — getSlice recomputes alerts from
     // the QRs, so the alert reappears on the post-save refresh.
     this.notify()
+
+    // Nothing landed at all — not even the universal floor. That is a failed
+    // save, not a degraded one, so it must reach the caller's error surface
+    // instead of being reported only in the scorecard.
+    if (!result.steps.some(step => step.outcome === 'written')) {
+      const detail = result.steps
+        .map(step => `${step.resourceType}: ${step.error ?? step.reason ?? step.outcome}`)
+        .join('; ')
+      throw new Error(`Writeback failed — no resource was created. ${detail}`)
+    }
   }
 
   async saveArtifact(patientId: string | null, resource: FhirResource): Promise<void> {

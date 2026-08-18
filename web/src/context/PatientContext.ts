@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react'
 import type { PatientDisplay } from '../data/demoPatient'
 import type { RiskAlert } from '../lib/observationMappers'
 import type { RegistryPatient } from '../lib/registry'
+import type { WritebackReport } from '../lib/writeback/types'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -93,6 +94,14 @@ export interface PatientContextType {
    * here instead of silently falling back to local storage. Null when healthy.
    */
   dataSourceError: string | null
+  /**
+   * Outcome of the most recent SMART writeback (#350), rendered by
+   * `WritebackScorecard` as a site-readiness diagnostic. Null under the local
+   * source and before the first submission of a SMART session — the ladder only
+   * runs against a real FHIR server, since Tier 0 and Tier 3 are meaningless
+   * against localStorage and capability probing has nothing to probe.
+   */
+  writebackReport: WritebackReport | null
 }
 
 export const PatientContext = createContext<PatientContextType | undefined>(undefined)

@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader'
 import { PatientPathway } from '../components/PatientPathway'
 import { ArtifactCards } from '../components/ChartArtifacts'
 import { EpisodeRecordView } from '../components/EpisodeRecordView'
+import { WritebackScorecard } from '../components/WritebackScorecard'
 import {
   artifactCount,
   buildWalkthroughRefIndex,
@@ -373,6 +374,7 @@ export function PatientChart() {
     walkthrough,
     isSliceLoading,
     dataSourceError,
+    writebackReport,
   } = usePatient()
   const { isToolEnabled } = useToolConfig()
   useScrollToHash()
@@ -473,6 +475,11 @@ export function PatientChart() {
           Loading chart data from the connected EHR…
         </div>
       )}
+
+      {/* Sits with dataSourceError deliberately: both are SMART-session
+          feedback, and a degraded writeback is the case where there is no error
+          to show but still something the site needs to know (#350). */}
+      <WritebackScorecard report={writebackReport} />
 
       {!hasData && !isSliceLoading && !dataSourceError && (
         <div className="empty-chart-banner">
