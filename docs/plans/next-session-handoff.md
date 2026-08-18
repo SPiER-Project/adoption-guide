@@ -1,7 +1,15 @@
 # Handoff — next session
 
-Rewritten **2026-08-18 (fifth rewrite that day)**. `main` was at **`3832e18`**
+Rewritten **2026-08-18 (sixth rewrite that day)**. `main` was at **`1901c0e`**
 when this was written; check rather than trust that.
+
+⚠️ **Six rewrites in one day is itself the finding.** Four of the last five
+merges made this file wrong within the hour — twice it still said "take
+`PanelShell` first" or "take the code drawer first" after those merged. The
+durable fix is probably to shrink this file to the open *decisions* and the
+standing *rules*, and let `git log` and the plan docs' own status tables carry
+state. Until someone does that, assume the "what landed" and "take this first"
+sections are the stalest things here and check them against `main` first.
 
 ⚠️ **This file's own warning has now fired three times in one day.** The version
 before last opened with "no open PRs" and called the writeback ladder dead code;
@@ -24,10 +32,10 @@ The rule now has three halves:
 
 - **No open PRs.** 37 open issues. (Both counted with an explicit `--limit`;
   `gh issue list` defaults to 30 and silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `3832e18`**: every `check:*` gate
-  green (**15** of them; `check:patients` is the newest), **56 test files / 665
-  tests**. `check:template` now reports **2 inset owners** — see below.
-- `services/cds-hooks` — its own `verify` exits 0, **re-run on `3832e18`**, 24
+- `web` — `npm run verify` exits 0, **re-run on `1901c0e`**: every `check:*` gate
+  green (**15** of them; `check:patients` is the newest), **57 test files / 673
+  tests**. `check:template` reports **2 inset owners**.
+- `services/cds-hooks` — its own `verify` exits 0, **re-run on `1901c0e`**, 24
   tests. **`web`'s verify does not cover it.**
 - CI green on `main`, including the post-merge deploys for `266fd5f` and
   `3832e18`. The `266fd5f` deploy **genuinely re-rendered** the IG rather than
@@ -56,6 +64,8 @@ The rule now has three halves:
 | **#356** (`266fd5f`) | **The 14 demo patients are real FHIR now.** 116 dangling `subject` references closed; two new gates |
 | **#357** (`02e7671`) | Handoff refresh — flagged the contested `PanelShell` premise |
 | **#358** (`3832e18`) | **`PanelShell` — 252px of chrome above the first question down to 76px.** Chrome-mode seam, `INSET_OWNERS` gate |
+| **#359** (`e94bfc5`) | Handoff + panel plan re-pointed at the code drawer |
+| **#360** (`1901c0e`) | **Code drawer — the FHIR view was stranded ~3000px below the form; now one tap from any scroll position.** Panel step 3 complete |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -73,57 +83,71 @@ could otherwise act on:
 `valueCoding` first; `valueText` is a pre-existing repo-wide convention) — worth
 knowing so they are not re-investigated.
 
-## Take this first — the code drawer, finishing panel step 3
+## Take this first — ⚠️ nothing on the panel path is unblocked
 
-⚠️ **`PanelShell` is DONE** (#358, `3832e18`). The previous four versions of this
-file said "take `PanelShell` first"; it is built and merged. **252px of chrome
-above the first question is now 76px**, EHR chrome unchanged at 252px.
+**Panel step 3 is COMPLETE** (#358 `PanelShell`, #360 code drawer). Read that
+before picking up "the next panel step", because the honest position is:
 
-What #358 settled, so it is not re-derived:
+> **Every remaining panel step needs the mock EHR to exist, and the mock EHR
+> needs §8 settled.** There is no independent panel work left to take.
 
-- **Chrome mode is a context, not a route fork.** `PresentationContext` +
-  `Shell` picks `EhrShell` or `PanelShell` behind one
-  `<Route element={<Shell/>}>`, so every route is reachable in both chromes by
-  construction. `?embed=1` on the **real query string** (not the hash — that is
-  what survives `HashRouter` navigation) is the testing path; `setChromeMode` is
-  the seam for `/redirect` to set from a SMART `intent` in phase 2.
+| Panel step | State | Needs |
+|---|---|---|
+| 0 — width spike | **Done** (§9.1) | — |
+| 1 — mock EHR read API | Not started | **the mock EHR** → §8 |
+| 2 — SMART authorize/token stub | Not started | **the mock EHR** → §8 |
+| **3 — `PanelShell`, nav stack, code drawer** | **DONE** — #358, #360 | — |
+| 4 — writes + capability degradation | Not started | **the mock EHR** → §8 |
+| 5 — host chrome, launch button, CDS `type:"smart"` card | Not started | **the mock EHR** → §8, and the link also needs Track 1 |
+| 6 — FHIRcast across the origin boundary | Not started | the mock EHR |
+
+So a session arriving here has two honest options: **get §8 written down** (see
+*Needs a human decision*), or **take something off the unblocked list** further
+down — #126, #125, #228, #128 are all real and none touch the panel.
+
+### What step 3 settled, so it is not re-derived
+
+- **Chrome mode is a context, not a route fork.** `PresentationContext` + `Shell`
+  behind one `<Route element={<Shell/>}>`, so every route is reachable in both
+  chromes by construction. `?embed=1` on the **real query string** (not the hash
+  — that is what survives `HashRouter` navigation) is the testing path;
+  `setChromeMode` is the seam for `/redirect` to set from a SMART `intent`.
 - **The panel reads through `FhirDataSource`**, so it is not coupled to a
-  connected server whichever way the Track-1 question lands (below).
-- **`check:template` now has `INSET_OWNERS`** — an allowlist-with-reasons, since
-  §3 required the panel body be *declared* rather than the gate worked around.
-  RULE 4a asserts every declared owner pads unconditionally. **Adding a third
-  entry should feel expensive.**
-- **The compact page header lives in `PageHeader.css`**, scoped under
-  `.panel-shell`, because RULE 1 fails any `.page-header` selector outside that
-  file. The panel is a *variant of the one header*, not a second header.
+  connected server whichever way Track 1 lands.
+- **`check:template` has `INSET_OWNERS`** — an allowlist-with-reasons. RULE 4a
+  asserts every declared owner pads unconditionally. **A third entry should feel
+  expensive.**
+- **Panel `.page-header` rules live in `PageHeader.css`**, because RULE 1 rejects
+  them anywhere else. The panel is a *variant of the one header*.
+- **`CodeDrawer` replaced `.debug-sidebar` in all 12 views**, same children, so
+  EHR chrome is unchanged. Panel gets a bottom drawer, collapsed until asked for.
 
-### The next concrete piece: the code drawer
+### Two z-index decisions that are now deliberate, and must stay so
 
-Panel plan §9.1 finding 3, and the wording matters — **the drawer is *stranded*,
-not cramped.** `.form-wrapper` is `flex-direction: row` and wraps, so
-`.debug-sidebar` lands *below* the form: measured at **2968px down** in panel
-chrome. It is unreachable mid-demo, which is the argument for the bottom drawer
-in §2 — reachability, not overflow.
+Touching panel CSS means touching these. Both were measured, not reasoned:
 
-§2 specifies three tabs: Definition (the Questionnaire), Live response (the QR as
-it fills), and **Written** (what the ladder actually created). The third is the
-one worth the real estate, and its content already exists — `WritebackScorecard`
-from #351 renders exactly that.
+- `.panel-shell__patient` is **`z-index: 1`** — *below* the renderer's combobox
+  popover (`10`). It shipped at `10`, which left them equal, so paint order
+  decided rather than intent. A combobox low in a long instrument flips to open
+  upward into the strip's band, so the popover must win. (Recorded honestly: the
+  hazard was fixed by construction, never observed firing.)
+- `.code-drawer` is **`z-index: 20`** — *above* the popover, the opposite answer
+  to the same question, because the drawer is something the user explicitly
+  opened.
 
-⚠️ **The *Written* tab has an open fork** — see *Needs a human decision* below. Panel §2
-says it "is only truthful because of §5 — it reports what happened, not what
-would have"; §9 says it must degrade to "what would be written". Those cannot
-both be built. **Resolve Track 1 first, or build the other two tabs and leave the
-third.**
+### One measurement lesson worth keeping
 
-### One hazard #358 found, worth knowing before touching panel CSS
+The drawer's clearance shipped as `padding-bottom: var(--space-8)` (32px) against
+a bar rendering 34px — **-2px**, invisible only because the content happened not
+to reach that low. It is now `--code-drawer-bar-height`, one definition and two
+consumers. **A padding guessed to match a height maintained elsewhere is the
+hand-duplicated-constant failure this repo keeps catching**; derive it instead.
 
-The sticky identity strip first shipped at `z-index: 10` — **the same value as
-the renderer's combobox popover**. Equal z-index means DOM order decides rather
-than intent, and a combobox low in a long instrument flips to open upward into
-the strip's band. It is `1` now, which still beats ordinary page content and
-loses to the popover. Recorded honestly: the fix is correct by construction, but
-the hazard was never observed firing.
+### Still open inside step 3
+
+The *Written* section renders only a real `WritebackReport`. §9's "what would be
+written" fallback is **forked on Track 1** and deliberately unbuilt — the empty
+state names the absence, which is true under either answer.
 
 ## The embedded panel work — orientation
 
@@ -275,9 +299,12 @@ conflict audit; both are one sentence of decision and then mechanical to apply.
   What IS waiting: #350's CDS `type:'smart'` link (a SMART launch link's whole
   point is the real launch path), the *Written*-tab contradiction between panel
   §2 and §9, and §8's own track table.
-- ⚠️ **Write down the §8 mock-vs-Medplum decision, with its real reason.** See
-  above. It is "leaning mock" in conversation and "genuinely undecided" in the
-  docs, which is the worst of both.
+- ⚠️ **Write down the §8 mock-vs-Medplum decision, with its real reason.**
+  **This is now the single biggest blocker on the board.** With step 3 complete,
+  *every* remaining panel step (1, 2, 4, 5, 6) needs the mock EHR to exist, and
+  the mock EHR needs this settled. It is "leaning mock" in conversation and
+  "genuinely undecided" in the docs, which is the worst of both. See the panel
+  section above for what a write-up should not miss.
 - **Four more corrections from the #355 audit are queued behind those two** and
   are mechanical once they land: panel §2 vs §9 (resolves automatically from
   Track 1), the three different urgency framings of the `Patient` task (now moot
