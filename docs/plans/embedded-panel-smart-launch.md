@@ -357,6 +357,20 @@ Sequenced to kill unknowns first.
 | 5 | Mock EHR chrome, launch button, CDS card `type: "smart"` | Can slot earlier if something recordable is needed sooner — the button is cheap, the chart is polish. |
 | 6 | FHIRcast across origins | §6. |
 
+⚠️ **Two tracks, because the near-term goal is a conference demo, not a client
+ship.** Steps **0, 3, 5** on `LocalDataSource` give the entire *visible* demo —
+launch from a chart, fill an instrument in the panel, submit, watch the pathway
+advance, open the code drawer — offline, with no OAuth in it. Steps **1, 2, 4**
+add the claim that this is the production code path, plus the capability-
+degradation demo, and can land later **without changing what the audience sees**.
+
+That property only holds if **the panel never assumes a connected server** — it
+reads through `FhirDataSource` as the chart already does, a directed launch works
+from a query param when there is no `intent`, and the *Written* tab degrades
+honestly to "what would be written" rather than implying a write that did not
+happen. Cheap now, expensive later. See
+[`surfaces-and-distribution.md`](surfaces-and-distribution.md) §8.
+
 Steps 1–2 are UI-independent and can run in parallel with 0 and 3.
 
 ## 10. Open decisions
@@ -379,7 +393,7 @@ Steps 1–2 are UI-independent and can run in parallel with 0 and 3.
 | Long instruments unusable at panel width | Step 0, before anything else is built |
 | `services/mock-ehr/` drifts out of the gate net | Its own CI-gated `verify` on day one (§6) |
 | Two chrome modes double the layout surface | Declare the second inset owner to `check:template` rather than routing around it (§3) |
-| Demo breaks on a strict-privacy laptop | Cross-origin iframe behavior tested on Safari and Chrome before any live presentation |
+| Demo breaks on a strict-privacy laptop | `workers.dev` is on the Public Suffix List, so two Workers are cross-**site**, not just cross-origin — the stricter category for storage partitioning. Test Safari and Chrome before any live presentation, and keep the track-1 offline path working as the fallback (`surfaces-and-distribution.md` §8) |
 | §7 discovered mid-build | It is called out here; treat phases 1–2 of the earlier plan as gating |
 
 ## Related

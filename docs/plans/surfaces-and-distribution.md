@@ -29,9 +29,9 @@ measurements it rests on.
 | Phase | State |
 |---|---|
 | A — measure the IG's file count | **Not started.** One line in `deploy.yml`. §4 |
-| B — surface flag + clinical build | **Not started.** Design in now, retrofit later is expensive. §3 |
-| C — a gate asserting the clinical surface is clean | **Not started, and load-bearing.** §3 |
-| D — licensing verification before any client ships | **Standing backlog**, [`licensing-verification-backlog.md`](../best-practices/licensing-verification-backlog.md). §6 |
+| B — surface flag + clinical build | **Deferred** — no client ship is near-term (§7). The one constraint to honor now is that the panel must run without a server. §3, §8 |
+| C — a gate asserting the clinical surface is clean | **Deferred with B.** §3 |
+| D — licensing verification before any client ships | **Off the critical path, not off the list.** A conference showing is lower stakes than a ship, not zero. §6, §8 |
 
 ---
 
@@ -239,16 +239,78 @@ the claim that the whole app runs on a connected server.
 
 ## 7. Open questions
 
-- **Is a client deployment actually near-term?** The SMART filler work was
-  scoped PoC-only — sandboxes, public client + PKCE, no app gallery. If a client
-  ship is a year out, phase B is still worth doing with the panel (it is cheap
-  then and expensive later) and phases C–D can wait. If it is near, §6 is the
-  critical path and the code layout is not.
+- ~~**Is a client deployment actually near-term?**~~ **Answered 2026-08-18: no.
+  PoC only — sandboxes, public client + PKCE, no app gallery. The near-term goal
+  is a conference demo.** That reorders everything below; see §8.
 - **Does the `clinical` surface include the code drawer?**
   ([`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §2 —
   "nice for the demo, hidden in real life.") Likely a third setting rather than
   a property of the surface.
 - **Per-deployment instrument allowlist** — §6.
+
+## 8. What a conference demo optimizes for instead
+
+Answered 2026-08-18: **no client ship is near-term; the near-term goal is
+demonstrating at conferences.** Phases B–D were all justified by distribution,
+so they defer. What replaces them is a different objective with a different
+failure mode.
+
+### The tension worth naming
+
+[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) optimizes for
+architectural honesty: cross-origin, real SMART launch, real FHIR reads and
+writes, real capability negotiation. That is also, precisely, the most fragile
+thing to run in a conference hall — captive-portal wifi, someone else's laptop,
+a projector, and browser privacy settings nobody controls.
+
+⚠️ **Because `workers.dev` is on the Public Suffix List, two SPiER Workers are
+cross-*site*, not merely cross-origin** — the stricter category for browser
+storage partitioning and tracking heuristics. The panel's `fhirclient` session
+lives in `sessionStorage` inside a cross-site iframe. It should work partitioned,
+but this is exactly the class of behavior that differs across browsers and
+versions, and it is the demo's single highest-variance dependency.
+
+### Two tracks, same visible demo
+
+The audience cannot see the difference between these, which is what makes the
+split safe:
+
+| Track | Steps (panel plan §9) | Runs on | Gives |
+|---|---|---|---|
+| **1 — conference** | 0 (width spike), 3 (`PanelShell`), 5 (host chrome + launch button) | `LocalDataSource`, no network | The whole visible story: launch from a chart, fill an instrument in the panel, submit, watch the pathway advance, open the code drawer on real generated FHIR |
+| **2 — the real claim** | 1 (mock read API), 2 (SMART stub), 4 (writes + degradation) | mock EHR over HTTP | "This is our production code path" and the capability-degradation demo |
+
+Track 1 is faster, offline, and has no OAuth in it. Track 2 upgrades the same
+demo later **without changing what the audience sees** — which is the property to
+protect.
+
+The honesty of track 1 rests on the code drawer: the app really does generate
+conformant FHIR locally, and showing it is not a claim about anyone's server.
+**What track 1 must never do is assert interoperability** — the same guardrail
+[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §1 puts on the
+mock, for the same reason.
+
+### The one constraint to honor now
+
+⚠️ **The panel must not assume a connected server.** If `PanelShell` or the
+navigation stack is built against `SmartDataSource` only, track 1 becomes
+impossible and the conference demo inherits every failure mode of track 2. This
+is *genuinely* cheap now and expensive later — more so than phase B, which is why
+B defers and this does not.
+
+Concretely: the panel reads through the `FhirDataSource` interface, as the chart
+already does; a directed launch works from a query param when there is no
+`intent` to read; and the code drawer's *Written* tab must degrade honestly to
+"what would be written" when there is no server, rather than implying a write
+that did not happen.
+
+### Licensing, at a conference
+
+Lower stakes than a client ship, not zero — a conference talk is the most public
+this project gets, and §6 still records that no instrument's status has been
+verified against current published terms. Worth a look at the specific
+instruments a demo puts on a projector before it is given, which is a much
+smaller job than the full backlog.
 
 ## Related
 
