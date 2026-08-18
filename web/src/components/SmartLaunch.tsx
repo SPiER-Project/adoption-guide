@@ -35,6 +35,12 @@ export function SmartLaunch() {
                     'patient/CarePlan.write',
                     'patient/Communication.read',
                     'patient/Communication.write',
+                    // Writeback ladder: Tier 0 (DocumentReference floor) and
+                    // Tier 3 (opt-in Condition proposal). Requesting Condition
+                    // write is harmless — the tier stays OFF by default and a
+                    // human must confirm before any Condition is created.
+                    'patient/DocumentReference.write',
+                    'patient/Condition.write',
                 ].join(' '),
 
                 // OAuth redirect URIs cannot carry hash fragments, and GitHub
