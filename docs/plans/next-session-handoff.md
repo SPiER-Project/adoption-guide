@@ -19,8 +19,8 @@ it describes lands**, not only when a session ends.
 
 Everything is green and nothing is in flight:
 
-- **No open PRs** except the writeback rescue below. All 36 open issues, zero open PRs otherwise.
-- `web` — `npm run verify` exits 0: every `check:*` gate green, 48 test files / 607 tests. (The rescue branch below adds 5 files / 28 tests on top, so 53 / 635 there.)
+- **No open PRs.** 36 open issues.
+- `web` — `npm run verify` exits 0: every `check:*` gate green, 53 test files / 635 tests (48 / 607 of those predate the writeback rescue below).
 - `services/cds-hooks` — its own `verify` exits 0, 24 tests. **`web`'s verify does not cover it.**
 - CI green on `main`, including the nightly external-terminology check.
 - The weekly roadmap snapshot opened its own PR (#347), so the `ROADMAP_PR_TOKEN` PAT is still live — when it expires this silently reverts to the hand-opened path.
@@ -30,32 +30,38 @@ Everything is green and nothing is in flight:
 
 Many parallel sessions had left a large mess behind the working tree. It is now clean:
 
-- **Local branches 180 → 2** (`main` plus the rescue branch); **the remote is `main`-only**, down from 77 stale branches. Every deletion was classified first — merged PR, or its diff reverse-applies against `main` — never by age. Four that failed the automated test were checked by hand and all four were stale-base copies of landed work. Tips of all 180 are recorded in `~/spier-branches-backup-2026-08-18.txt`; GitHub also keeps `refs/pull/<n>/head` forever, so any merged-PR branch is recoverable from its PR.
+- **Local branches 180 → `main` only**, and **the remote likewise**, down from 77 stale branches (the two PRs opened that day merged and deleted their branches). Every deletion was classified first — merged PR, or its diff reverse-applies against `main` — never by age. Four that failed the automated test were checked by hand and all four were stale-base copies of landed work. Tips of all 180 are recorded in `~/spier-branches-backup-2026-08-18.txt`; GitHub also keeps `refs/pull/<n>/head` forever, so any merged-PR branch is recoverable from its PR.
 - ⚠️ **41 of those 77 "remote" branches were phantoms** — already deleted on GitHub, lingering as unpruned `org/*` tracking refs, because `origin` and `org` point at the **same URL** and only `origin` had ever been pruned. `git remote prune org` is the fix, and `gh api repos/.../branches` is the authority; `git branch -r` is not.
 - Both stale worktrees are gone. Note that `git worktree remove` deletes that worktree's `.git/worktrees/<name>/logs/HEAD` — one of the two records that identify which session moved a ref, per the stale-root note in `CLAUDE.md`. Do the diagnosis before the cleanup, not after.
 
-## Take this first — PR #348, the writeback ladder rescue
+## Take this first — the writeback ladder is on `main` and unreachable
 
-**Not a feature; a decision.** `web/src/lib/writeback/` — 7 modules, 5 suites, 28
-tests — was written 2026-07-14 and left as **untracked files** in a worktree on a
-branch 121 commits behind `main`. No commit, no branch, no PR, no issue, and
-nothing named `writeback` anywhere in `main`, so **no gate or CI job could have
-surfaced it**; it was found by walking the worktrees by hand. It is now committed
-and CI-green on `claude/writeback-ladder-rescue`.
+**`web/src/lib/writeback/` is dead code today.** 7 modules, 5 suites, 28 tests,
+landed 2026-08-18 as **#348** (`868e32c`) — and **nothing imports it**. It was
+merged on a deliberate call that durability under CI beats keeping `main` free of
+unreachable code, because of how it got here: written 2026-07-14, then left as
+**untracked files** in a worktree on a branch 121 commits behind `main`. No commit,
+no branch, no PR, no issue, and nothing named `writeback` in `main` — so **no gate
+or CI job could have surfaced it**. It was found by walking the worktrees by hand.
 
-What the reviewer has to decide is whether ~1300 lines of currently-unreachable
-code belong in `main`. Merging makes it durable and puts it under CI; leaving it on
-the branch keeps `main` free of dead code but is exactly how it was lost the first
-time.
+That call comes with a debt: unreachable code rots quietly, and the reason it is on
+`main` is to be *wired*, not to sit. Wiring it is the highest-value work on the
+board.
 
 Two things to know before touching it:
 
 - ⚠️ **Its plan doc, `docs/plans/smart-filler-writeback-ladder.md`, is permanently gone** — never committed to any branch, absent from every dangling commit, worktree discarded. The commit message and PR body now carry the four tier decisions (DocumentReference floor → Observation → QuestionnaireResponse → opt-in Condition proposal, default OFF) because they are the only surviving record.
 - ⚠️ **`smartDataSource.ts` had to be reconciled by hand.** `main` had grown `patientRefField`, `withPatientLink` and `LIFECYCLE_RESOURCE_TYPES` in the interim. All of main's work was kept; the July side contributed only `implements FhirDataSource, WritebackTarget`. Committing the stale copy wholesale would have reverted a month of changes while looking additive — the #300 failure mode. **Never use a stranded worktree's copy of a shared file as the base.**
 
-Still outstanding from the lost plan: the `WritebackScorecard` UI, the CDS card
-`type:'smart'` link, the adoption-pathways guide page, live sandbox validation —
-and a genuine review, since the code has never had a second pair of eyes.
+Still outstanding from the lost plan, in rough order: the `WritebackScorecard` UI,
+the CDS card `type:'smart'` link, the adoption-pathways guide page, and live
+sandbox validation. **None of it has an issue yet** — file one before starting, so
+this does not become invisible a second time.
+
+⚠️ **It has also never been reviewed.** The 2026-07-14 code passes its own tests,
+but those tests were written by the same session that wrote the code — and #327 is
+this repo's proof that a suite can encode the wrong assumption and then defend it.
+Treat green as "self-consistent", not "correct".
 
 ## Needs a human decision, not a patch
 
