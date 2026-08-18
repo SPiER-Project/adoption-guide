@@ -1,0 +1,372 @@
+# The embedded panel: SPiER as a SMART app launched from a host chart
+
+Written 2026-08-18, from the proposal *"deliver the care path and its tools as a
+SMART on FHIR application that launches from the patient chart, into the right
+third of the screen."*
+
+Two things follow from that framing, and only one of them is about layout.
+
+The layout half is a panel shell and a navigation stack. **The half that matters
+is that it splits the app by audience** — a clinician-facing SMART app (pathway
++ tools) and an implementer-facing guide (population, measures, rubric, data
+dictionary, roadmap) — a boundary the current single sidebar leaves implicit, so
+a clinical reviewer has to be *told* which half is for them.
+
+## Status
+
+| Decision | State |
+|---|---|
+| **1 — panel is a chrome mode of the existing app, not a second app** | **PROPOSED.** §3 |
+| **2 — the host is a mock EHR we write, serving real FHIR** | **PROPOSED — and this REVERSES [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6.** See §1, which is the part to read before agreeing. |
+| **3 — cross-origin: host and panel on separate `workers.dev` hostnames** | **PROPOSED.** §6 |
+| **4 — claim the demo makes is "SMART activity", not "persistent sidebar"** | **DECIDED.** §2 |
+| **5 — panel submit drives the writeback ladder** | **PROPOSED.** §5 |
+
+| Phase | State |
+|---|---|
+| 0 — width spike: one long instrument at panel width | **Not started.** §9 |
+| 1 — mock EHR read API over the existing fixtures | **Not started, and BLOCKED on a prerequisite.** §7 |
+| 2 — SMART authorize/token stub, cross-origin iframe launch | **Not started.** §4 |
+| 3 — `PanelShell`, navigation stack, code drawer | **Not started.** §3 |
+| 4 — writes + the capability-degradation demo | **Not started.** §5 |
+| 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **Not started.** §9 |
+| 6 — FHIRcast across the origin boundary | **Not started.** §6 |
+
+---
+
+## 1. This reverses a decision made five days ago
+
+[`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6 evaluated
+"write our own mock FHIR + SMART auth endpoints on the existing Worker" and
+recorded it **NOT RECOMMENDED**. Its argument is not about effort, and it is
+good:
+
+> a mock we write will be lenient, and leniency here attacks SPiER's strongest
+> claim.
+
+A lenient server accepts writes a real EHR rejects — a wrong `patientRefField`,
+a missing required slice, a `Coding.display` that does not match its CodeSystem.
+The demo looks *better* while proving *less*, and the failure is invisible from
+inside the demo. That is the same shape as every silent pass this repo has
+catalogued. `smartDataSource.ts`'s own comment on `patientRefField` already says
+a lenient server "silently drops" the patient link.
+
+**That argument still stands, and this plan does not refute it. It narrows what
+the mock is allowed to be evidence of.**
+
+The reversal rests on a distinction the earlier document did not need to draw,
+because it was answering a different question. It asked *"what would prove
+SPiER's data is portable?"* — for which a mock we control is worthless. This
+plan asks *"what would show a clinician the workflow in situ?"* — for which the
+host is stage furniture, and its FHIR-serving is a means of exercising SPiER's
+real code path rather than a claim about anyone else's server.
+
+So the two documents divide as follows, and neither supersedes the other:
+
+| Claim | Proved by | Not proved by |
+|---|---|---|
+| SPiER's data is conformant and portable | validated per-patient Bundles + a strict third-party server (`mock-patient-smart-launch.md` §4–5) | anything we host |
+| SPiER works as an embedded SMART app | a host we control, cross-origin, over real SMART + real FHIR reads/writes | a screenshot, or a same-origin fake |
+| SPiER degrades correctly against a limited server | a host whose **CapabilityStatement we can turn down on purpose** (§5) | a permissive server of any provenance |
+
+⚠️ **Three guardrails are conditions of the reversal, not nice-to-haves.** Drop
+any one and §6's objection reasserts itself in full:
+
+1. **The mock validates writes before accepting them**, reusing the profile
+   checks in `web/scripts/check-scenario-resources.mjs` rather than inventing a
+   second, laxer opinion. §6's own stated mitigation.
+2. **Prove it can reject.** Plant an invalid write — wrong `Coding.display`, a
+   missing required slice — and watch it 422 before the mock is trusted. A mock
+   nobody has seen reject anything is not evidence of anything.
+3. **The demo never claims interoperability from this host.** Conformance
+   evidence stays where the earlier plan put it: validated Bundles, loaded into
+   somebody else's server. §8 describes a variant that gets both at once.
+
+## 2. The UX
+
+### The claim being made
+
+**A SMART activity, not a persistent sidebar.** Epic and Cerner both support
+embedded SMART activities; "a panel that follows the clinician everywhere in the
+chart" is a stronger, more vendor-specific claim, and the difference matters to
+whoever has to implement it. Confirm the specifics against the target vendor's
+current documentation before the demo asserts anything about either.
+
+### The launch
+
+Two entry points, and the second is the interesting one:
+
+- an EHR-native activity button (vendor-configured; boring; real), and
+- **a CDS Hooks card whose link is `type: "smart"`.** `CdsLink.type` in
+  [`web/src/lib/cdsHooks/types.ts`](../../web/src/lib/cdsHooks/types.ts) already
+  declares `'smart'` with the comment *"unused by SPiER today"*. This is what it
+  was left open for: `patient-view` fires → a card says "positive PSS-3, C-SSRS
+  Full indicated" → the link opens the panel already scoped to that tool. It
+  answers *how did the button know which instrument to name* with a standard
+  rather than a hard-coded button.
+
+### Inside the panel
+
+```
+Pathway overview  ──launch──▶  Tool  ──submit──▶  Result  ──▶  back to overview
+      ▲                                                            │
+      └────────────────────────────────────────────────────────────┘
+```
+
+Three levels, no deeper. A **directed** launch (`intent` names a tool) opens at
+*Tool*, and back from there goes to *overview* — not out of the app. A clinician
+sent to do one thing therefore lands in the pathway afterward and sees what is
+next.
+
+⚠️ **Do not teleport away from the result.** `QuestionnaireView` already renders
+a risk-tier summary with a suggested next action on submit, and that summary is
+the payoff — it is where *capture → translate → act* lands. Keep it as a
+confirmation beat, then return to the overview **with the pathway visibly
+advanced**. The advance is the money shot; the eye must be on the overview when
+it happens.
+
+### Panel chrome
+
+Patient identity strip · back affordance · connected-server indicator · code
+drawer toggle.
+
+The server indicator is not decoration. Once the panel is genuinely talking to a
+different origin, naming the server is the difference between a demo and a
+mockup — and `EhrShell.tsx` already carries a comment marking that slot as "the
+natural slot for a SMART-connection indicator later."
+
+The identity strip is **conditional on `need_patient_banner`** (§4). SMART has a
+standard answer for "the host already shows a banner, don't draw a second one";
+honoring it is two lines and tells an informaticist the spec was read.
+
+### The code drawer
+
+Today the FHIR view is a `.debug-sidebar` `<aside>` inside `.form-wrapper`
+([`QuestionnaireView.tsx`](../../web/src/components/QuestionnaireView.tsx)). It
+cannot survive beside a form at panel width. It becomes a **bottom drawer with
+three tabs**:
+
+| Tab | Shows | Answers |
+|---|---|---|
+| Definition | the Questionnaire | "is this real FHIR?" |
+| Live response | the QR as it fills | "what is the structure?" |
+| **Written** | the resources created, the ladder tier chosen, the server's response | "what lands in my database?" |
+
+The third tab is only truthful because of §5 — it reports what *happened*, not
+what would have. It is the tab worth the real estate.
+
+## 3. System shape
+
+Three deployables, one repo, **one copy of every fixture**:
+
+| | What | Origin |
+|---|---|---|
+| SPiER panel app | today's `web/` — the SMART app | `spier-adoption-guide.…workers.dev` |
+| **Mock EHR** | new `services/mock-ehr/` — FHIR API + SMART stub + host chrome | `spier-mock-ehr.…workers.dev` |
+| CDS Hooks service | existing `services/cds-hooks/` | unchanged |
+
+**Two Workers give two origins for free.** No DNS work, no
+`thespierproject.org` subdomain — which matters, because there is no DNS access
+to that domain.
+
+The mock EHR serves the *same* `web/src/data/population/scenarios/patient-0NN.json`
+fixtures the app ships. No second copy of any patient. `collectScenarioResources`
+in [`scripts/validate-fhir.mjs`](../../scripts/validate-fhir.mjs) already does
+the bucket-unwrapping walk the read path needs.
+
+### One shell, two chrome modes
+
+**Do not fork the route table** — thirty-odd routes is too many to duplicate.
+Keep the single `<Route element={<Shell/>}>` in `App.tsx` and let `Shell` choose
+chrome from a presentation context established at `/redirect` (with an
+`?embed=1` override for testing). `EhrShell` for the implementer lenses,
+`PanelShell` when embedded.
+
+⚠️ **`check:template` gains a second page-inset owner.** `.ehr-content-body` is
+currently its *sole* owner by gate, and `PageHeader` the only page-title
+implementation. `PanelShell`'s body is a legitimate second owner — it must be
+**declared** to `web/scripts/check-page-template.mjs` with a reason, in the same
+allowlist-with-reasons style as `LENSES`. Working around the gate instead is how
+the panel becomes the place template drift lives.
+
+## 4. What the mock EHR has to implement
+
+The read side is mechanical. The SMART stub is where the credibility is.
+
+| Endpoint | Notes |
+|---|---|
+| `GET /fhir/.well-known/smart-configuration` | discovery |
+| `GET /fhir/metadata` | **load-bearing — see below** |
+| `GET /fhir/Patient/{id}`, `GET /fhir/{Type}?patient=` | `SmartDataSource.getSlice` issues 14 patient-scoped searches across 13 resource types; that list *is* the required surface, and it is not small |
+| `POST /fhir/{Type}` | strict — §1 guardrail 1 |
+| `GET /authorize`, `POST /token` | PKCE S256, launch context |
+
+**`/metadata` is the one to get right.** `parseCapabilityStatement`
+([`web/src/lib/writeback/capability.ts`](../../web/src/lib/writeback/capability.ts))
+reads it to decide what SPiER may create. Make the CapabilityStatement
+**runtime-configurable from the mock EHR's own UI** and the writeback ladder
+stops being a slide — see §5.
+
+**Do PKCE properly.** `fhirclient` sends S256 by default; verifying it is a few
+lines of WebCrypto. A stub that ignores PKCE is exactly the shortcut that makes
+the demo prove nothing.
+
+**Use the launch-context parameters SMART already defines.** Two of them answer
+open UX questions directly:
+
+- **`intent`** — the standard carrier for *"open C-SSRS Full."* Preferred over a
+  bespoke query param, because it is what a real EHR would send. (The app
+  already reads a `?tool=` param for `stampLaunchStage`; `intent` is the outer,
+  spec-blessed form of the same information.)
+- **`need_patient_banner: false`** — the host telling the panel not to draw its
+  own banner. §2.
+
+**Persistence and reset.** Seed reads from the fixtures; keep writes in KV or a
+Durable Object under a session key; expose a visible **Reset demo** control.
+This demo will be run many times, and one that cannot be reset in a click goes
+stale mid-presentation.
+
+## 5. The writeback ladder is half-wired already
+
+Correcting a belief worth not re-deriving: the ladder is **not** dead code.
+
+| Piece | State |
+|---|---|
+| `SmartDataSource implements FhirDataSource, WritebackTarget` | **wired** |
+| per-resource `create` primitive, patient-scoped | **wired** |
+| `fetchCapabilities()` → `parseCapabilityStatement` | **wired** |
+| `buildWritePlan` / `executeWritePlan` | **built, tested, zero call sites outside `lib/writeback/`** |
+
+So the *target* side is done. What is missing is the **driver** at submit time,
+and a server that answers `/metadata` — which is precisely what §4 builds.
+
+### The degradation demo
+
+With a runtime-configurable CapabilityStatement, the same submit runs twice:
+
+| Server says | SPiER does |
+|---|---|
+| `Observation.create` supported | full ladder — QR, derived Observations, CarePlan |
+| `Observation.create` refused | degrades to the Tier-0 `DocumentReference` floor — **and says so, in the *Written* tab** |
+
+That is the most persuasive thing in the whole proposal for an integration lead,
+because it answers the question they actually ask — *what can you write into my
+system, and what do you do when I won't let you?* — by demonstration rather than
+assertion. It costs almost nothing once the stub exists, and it is a capability
+*negotiation* claim, which a mock can legitimately make (§1).
+
+## 6. What cross-origin costs
+
+- **`frame-ancestors`.** The panel must permit embedding by the mock EHR's
+  origin, configured explicitly on Cloudflare's static-asset serving. First thing
+  that will break; cheap once known.
+- ⚠️ **FHIRcast has to leave `BroadcastChannel`.**
+  [`web/src/lib/fhircast.ts`](../../web/src/lib/fhircast.ts) says *same-origin*
+  in its own header comment and will not cross the boundary. `postMessage` with
+  strict origin checks is the floor. The better version: Durable Objects speak
+  WebSocket, so the mock EHR could host an actual FHIRcast hub — which is what
+  real FHIRcast uses, making this an upgrade rather than a tax.
+- **`check:template`** — §3.
+- ⚠️ **A new deployable outside the gate net will rot.** `services/cds-hooks/`
+  has its own CI-gated `verify` precisely because `web/`'s does not cover it.
+  `services/mock-ehr/` needs the same on day one — more urgently, because it
+  reads the scenario fixtures and will break silently when those are re-anchored
+  by `web/scripts/shift-scenario-dates.mjs`.
+
+## 7. The prerequisite nobody will see coming
+
+⚠️ **Phase 1 is blocked: there are no `Patient` resources to serve.**
+
+`patients.json` is app-shaped (`id`, `displayName`, `dob`, `mrn`, `gender`,
+`recommendedNextStep`). Every `subject: Patient/patient-001` across the scenarios
+points at an id with nothing behind it; the only real `Patient` in the tree is
+`DEMO_PATIENT` in [`web/src/data/demoPatient.ts`](../../web/src/data/demoPatient.ts).
+There are no `Practitioner` or `Organization` resources either, though artifacts
+reference performers.
+
+A mock EHR cannot serve `GET /fhir/Patient/patient-001` from resources that do
+not exist. So **phases 1–2 of [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md)
+— mint the subject resources, emit validated per-patient Bundles — are a
+dependency of this plan, not an alternative to it.** That earlier plan already
+recommends doing them "regardless of everything below," on their own conformance
+merits. This is the thing that makes them urgent rather than merely correct.
+
+A lesser dependency, worth naming so it is not discovered late: `PopulationView.tsx`
+and `MeasureDashboard.tsx` import `localDataSource` **directly**, bypassing the
+`FhirDataSource` abstraction. Those are implementer lenses and therefore outside
+the panel, so this plan does not need them — but "the whole demo runs on the
+connected server" is not true until they are fixed
+([`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §8, phase 4).
+
+## 8. The variant that keeps both claims
+
+Worth costing before committing to §1's reversal: **let a strict third-party
+server hold the data, and let the mock EHR be only host chrome.**
+
+Medplum has SMART launch built in. Load the phase-2 Bundles into it; the mock
+EHR Worker then supplies the fake chart, the launch button, and the iframe — and
+hands off to Medplum for authorize/token/FHIR. The panel talks to a server whose
+rejections are real.
+
+| | Mock serves FHIR (§1–§4) | Medplum serves FHIR |
+|---|---|---|
+| Build cost | authorize + token + PKCE + 13-resource read surface + strict writes | Bundle load + host chrome |
+| Rejections | ours, and only as strict as we made them | real |
+| Capability-degradation demo (§5) | **easy — we control `/metadata`** | hard; needs a second, deliberately-limited server |
+| `mock-patient-smart-launch.md` §6 objection | answered by guardrails, not removed | **does not arise** |
+
+The degradation demo is the reason to keep §1 as written. If that demo turns out
+not to matter, this variant is strictly better and the reversal should be undone.
+**Decide this explicitly rather than by drift.**
+
+## 9. Build order
+
+Sequenced to kill unknowns first.
+
+| # | Step | Why here |
+|---|---|---|
+| **0** | **Width spike** — C-SSRS Full rendered at ~470px | If `@formbox/renderer` cannot do a long instrument at panel width, the geometry changes and everything downstream shifts. Half a day. **Do this first.** It also settles third-vs-half (§10). |
+| 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Blocked on §7.** |
+| 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
+| 3 | `PanelShell`, navigation stack, code drawer | Now it looks like the product. |
+| 4 | Writes; drive `buildWritePlan` / `executeWritePlan` from submit; degradation demo | §5. Guardrail 2 (prove it rejects) lands here. |
+| 5 | Mock EHR chrome, launch button, CDS card `type: "smart"` | Can slot earlier if something recordable is needed sooner — the button is cheap, the chart is polish. |
+| 6 | FHIRcast across origins | §6. |
+
+Steps 1–2 are UI-independent and can run in parallel with 0 and 3.
+
+## 10. Open decisions
+
+- **Panel width.** A third (~470px) versus a half (~700px). The step-0 spike
+  should decide it, not a preference.
+- **Does the mock ship a login/consent screen?** Skipping it is faster;
+  including it lets the demo show the scope list SPiER requests — the other
+  question integration leads always ask.
+- **§8.** Mock-serves-FHIR versus Medplum-serves-FHIR, decided on whether the
+  capability-degradation demo earns its keep.
+- **Where the subject resources live** (§7) — `ig/` as example Instances versus
+  beside the scenarios. `mock-patient-smart-launch.md` §7 recommends `ig/`.
+
+## 11. Risks
+
+| Risk | Mitigation |
+|---|---|
+| A lenient mock quietly weakens SPiER's central claim | §1 guardrails — strict writes, prove a rejection, never claim interop from this host |
+| Long instruments unusable at panel width | Step 0, before anything else is built |
+| `services/mock-ehr/` drifts out of the gate net | Its own CI-gated `verify` on day one (§6) |
+| Two chrome modes double the layout surface | Declare the second inset owner to `check:template` rather than routing around it (§3) |
+| Demo breaks on a strict-privacy laptop | Cross-origin iframe behavior tested on Safari and Chrome before any live presentation |
+| §7 discovered mid-build | It is called out here; treat phases 1–2 of the earlier plan as gating |
+
+## Related
+
+- [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) — **read
+  §6 alongside §1 here.** Its phases 1–2 are this plan's prerequisite (§7); its
+  §8 is the scope this plan deliberately excludes.
+- [`docs/smart-sandbox-testing.md`](../smart-sandbox-testing.md) — the current
+  SMART walkthrough and its three known limitations.
+- [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) — a mock
+  server as a third consumer of shared code.
+- [`ux-navigation-improvements.md`](ux-navigation-improvements.md) — the
+  navigation work the panel's stack builds on.
+- #230 — mapper dispatch past PHQ-9; governs how much foreign data derives.
