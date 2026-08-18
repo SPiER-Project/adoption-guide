@@ -27,7 +27,7 @@ a clinical reviewer has to be *told* which half is for them.
 | 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
 | 1 — mock EHR read API over the existing fixtures | **Not started. No longer blocked** — the `Patient` prerequisite landed 2026-08-18. §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **Not started.** §4 |
-| 3 — `PanelShell`, navigation stack, code drawer | **Not started.** §3 |
+| 3 — `PanelShell`, navigation stack, code drawer | **PARTLY DONE.** `PanelShell` landed 2026-08-18 (#358, `3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. **The code drawer is not done** — see §9.1 finding 3. §3 |
 | 4 — writes + the capability-degradation demo | **Not started. The ladder driver is already ON MAIN** (#351, `6f37e0d`), so this is a server, not a build. §5 |
 | 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **Not started.** §9 |
 | 6 — FHIRcast across the origin boundary | **Not started.** §6 |
@@ -198,6 +198,12 @@ implementation. `PanelShell`'s body is a legitimate second owner — it must be
 allowlist-with-reasons style as `LENSES`. Working around the gate instead is how
 the panel becomes the place template drift lives.
 
+✅ **Done in #358** — `INSET_OWNERS` in that script, and RULE 4a now asserts
+*every* declared owner pads unconditionally, so a chrome whose inset silently
+disappears fails rather than passing vacuously. The compact panel header also had
+to live in `PageHeader.css` (RULE 1 rejects `.page-header` selectors anywhere
+else), which is the right home: the panel is a variant of the one header.
+
 ## 4. What the mock EHR has to implement
 
 The read side is mechanical. The SMART stub is where the credibility is.
@@ -363,7 +369,7 @@ Sequenced to kill unknowns first.
 | **0** | ~~Width spike~~ — **done, §9.1** | C-SSRS Full renders at 470px with zero horizontal overflow. Geometry confirmed; nothing downstream shifts. |
 | 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Blocked on §7.** |
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
-| 3 | `PanelShell`, navigation stack, code drawer | Now it looks like the product. |
+| 3 | ~~`PanelShell`~~ **done (#358)**; navigation stack + code drawer remain | Now it looks like the product. The measured win: 252px → 76px. |
 | 4 | Writes on the mock; degradation demo | §5 — the ladder driver is already on `main` (#351), so this is a server, not a build. Guardrail 2 (prove it rejects) lands here. |
 | 5 | Mock EHR chrome, launch button, CDS card `type: "smart"` | Can slot earlier if something recordable is needed sooner — the button is cheap, the chart is polish. |
 | 6 | FHIRcast across origins | §6. |
@@ -451,7 +457,7 @@ sidebar, but it should be deliberate rather than inherited.
 | Risk | Mitigation |
 |---|---|
 | A lenient mock quietly weakens SPiER's central claim | §1 guardrails — strict writes, prove a rejection, never claim interop from this host |
-| ~~Long instruments unusable at panel width~~ | **Retired** — measured, §9.1. Replaced by: 252px of chrome above the first question, which `PanelShell` must cut |
+| ~~Long instruments unusable at panel width~~ | **Retired** — measured, §9.1. Its replacement — 252px of chrome above the first question — is **also retired**: `PanelShell` (#358) cut it to 76px, measured the same way |
 | `services/mock-ehr/` drifts out of the gate net | Its own CI-gated `verify` on day one (§6) |
 | Two chrome modes double the layout surface | Declare the second inset owner to `check:template` rather than routing around it (§3) |
 | Demo breaks on a strict-privacy laptop | `workers.dev` is on the Public Suffix List, so two Workers are cross-**site**, not just cross-origin — the stricter category for storage partitioning. Test Safari and Chrome before any live presentation, and keep the track-1 offline path working as the fallback (`surfaces-and-distribution.md` §8) |

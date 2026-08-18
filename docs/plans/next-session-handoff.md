@@ -1,6 +1,6 @@
 # Handoff — next session
 
-Rewritten **2026-08-18 (fourth rewrite that day)**. `main` was at **`266fd5f`**
+Rewritten **2026-08-18 (fifth rewrite that day)**. `main` was at **`3832e18`**
 when this was written; check rather than trust that.
 
 ⚠️ **This file's own warning has now fired three times in one day.** The version
@@ -24,15 +24,20 @@ The rule now has three halves:
 
 - **No open PRs.** 37 open issues. (Both counted with an explicit `--limit`;
   `gh issue list` defaults to 30 and silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `266fd5f`**: every `check:*` gate
-  green (**15** of them now — `check:patients` is new), **55 test files / 658
-  tests**.
-- `services/cds-hooks` — its own `verify` exits 0, **re-run on `266fd5f`**, 24
+- `web` — `npm run verify` exits 0, **re-run on `3832e18`**: every `check:*` gate
+  green (**15** of them; `check:patients` is the newest), **56 test files / 665
+  tests**. `check:template` now reports **2 inset owners** — see below.
+- `services/cds-hooks` — its own `verify` exits 0, **re-run on `3832e18`**, 24
   tests. **`web`'s verify does not cover it.**
-- CI green on `main`, including the post-merge `Deploy to GitHub Pages` for
-  `266fd5f` — which **genuinely re-rendered** the IG rather than reusing cache
-  (`ig/input` changed, so the cache key missed; `Run IG Publisher`, the CQL gate
-  and the QA gate all executed). The PR-time `IG Publisher` job passed too.
+- CI green on `main`, including the post-merge deploys for `266fd5f` and
+  `3832e18`. The `266fd5f` deploy **genuinely re-rendered** the IG rather than
+  reusing cache (`ig/input` changed, so the key missed; `Run IG Publisher`, the
+  CQL gate and the QA gate all executed).
+- ⚠️ **A `web/src/App.tsx` change triggers `use-case-workbook.yml`**, which is
+  easy to be surprised by. That gate resolves tool launch paths against
+  `App.tsx`, so a route-table edit is within its blast radius — #358's shell swap
+  set it off, and it passing is what confirmed launch-path resolution still
+  worked.
 - The one eslint warning (`MeasureDashboard.tsx` useMemo dep) is **pre-existing**.
 - ⚠️ A fresh worktree needs `npm install` in **both** `web/` and
   `services/cds-hooks/`, plus `npm run copy-fhir` in `web/`, before anything runs.
@@ -49,6 +54,8 @@ The rule now has three halves:
 | **#354** (`25a5e36`) | Handoff reading map — the panel plans are not self-contained |
 | **#355** (`e831709`) | **Four false spec-doc claims corrected**, from a conflict audit across the nine required-reading docs. Details below |
 | **#356** (`266fd5f`) | **The 14 demo patients are real FHIR now.** 116 dangling `subject` references closed; two new gates |
+| **#357** (`02e7671`) | Handoff refresh — flagged the contested `PanelShell` premise |
+| **#358** (`3832e18`) | **`PanelShell` — 252px of chrome above the first question down to 76px.** Chrome-mode seam, `INSET_OWNERS` gate |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -66,67 +73,57 @@ could otherwise act on:
 `valueCoding` first; `valueText` is a pre-existing repo-wide convention) — worth
 knowing so they are not re-investigated.
 
-## Take this first — `PanelShell`, for the conference demo
+## Take this first — the code drawer, finishing panel step 3
 
-The near-term goal is **demonstrating at conferences**; a client ship is **not**
-near-term (PoC only). That decision is recorded in
-[`surfaces-and-distribution.md`](surfaces-and-distribution.md) §7–8 and it
-reorders everything.
+⚠️ **`PanelShell` is DONE** (#358, `3832e18`). The previous four versions of this
+file said "take `PanelShell` first"; it is built and merged. **252px of chrome
+above the first question is now 76px**, EHR chrome unchanged at 252px.
 
-**Next concrete piece: step 3 of [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §9 — build `PanelShell`.**
+What #358 settled, so it is not re-derived:
 
-The width spike (step 0) is **done** and its result is §9.1. It found the target:
-**252px of chrome sits above the first question** — header, patient banner,
-patient switcher, breadcrumb, `PageHeader` — which is 28% of a 900px panel spent
-before anything is asked. `PanelShell` should get that to roughly 60–80px while
-keeping a patient identity strip and a back affordance.
+- **Chrome mode is a context, not a route fork.** `PresentationContext` +
+  `Shell` picks `EhrShell` or `PanelShell` behind one
+  `<Route element={<Shell/>}>`, so every route is reachable in both chromes by
+  construction. `?embed=1` on the **real query string** (not the hash — that is
+  what survives `HashRouter` navigation) is the testing path; `setChromeMode` is
+  the seam for `/redirect` to set from a SMART `intent` in phase 2.
+- **The panel reads through `FhirDataSource`**, so it is not coupled to a
+  connected server whichever way the Track-1 question lands (below).
+- **`check:template` now has `INSET_OWNERS`** — an allowlist-with-reasons, since
+  §3 required the panel body be *declared* rather than the gate worked around.
+  RULE 4a asserts every declared owner pads unconditionally. **Adding a third
+  entry should feel expensive.**
+- **The compact page header lives in `PageHeader.css`**, scoped under
+  `.panel-shell`, because RULE 1 fails any `.page-header` selector outside that
+  file. The panel is a *variant of the one header*, not a second header.
 
-Three things the spike settled, so they are not re-litigated:
+### The next concrete piece: the code drawer
 
-- **470px works.** Zero horizontal overflow on C-SSRS Full, before *and* after
-  `enableWhen` doubles the form. `@formbox/renderer` uses comboboxes, not radio
-  matrices, so the predicted narrow-width failure does not exist. Build
-  width-agnostic; default to a third, resizable.
-- **The panel's constraint is vertical**, not horizontal (above).
-- **The code drawer is stranded, not cramped.** `.form-wrapper` is `flex-direction: row`
-  and wraps, so `.debug-sidebar` lands 5604px down at panel width. The
-  bottom-drawer redesign is about reachability.
+Panel plan §9.1 finding 3, and the wording matters — **the drawer is *stranded*,
+not cramped.** `.form-wrapper` is `flex-direction: row` and wraps, so
+`.debug-sidebar` lands *below* the form: measured at **2968px down** in panel
+chrome. It is unreachable mid-demo, which is the argument for the bottom drawer
+in §2 — reachability, not overflow.
 
-### ⚠️ Read this before building `PanelShell` — the stated constraint is CONTESTED
+§2 specifies three tabs: Definition (the Questionnaire), Live response (the QR as
+it fills), and **Written** (what the ladder actually created). The third is the
+one worth the real estate, and its content already exists — `WritebackScorecard`
+from #351 renders exactly that.
 
-The sentence this section used to carry, verbatim, was:
+⚠️ **The *Written* tab has an open fork** — see *Needs a human decision* below. Panel §2
+says it "is only truthful because of §5 — it reports what happened, not what
+would have"; §9 says it must degrade to "what would be written". Those cannot
+both be built. **Resolve Track 1 first, or build the other two tabs and leave the
+third.**
 
-> **The one constraint to honor while building it: the panel must never assume a
-> connected server.** Track 1 (the conference demo) runs on `LocalDataSource` with
-> no network and no OAuth.
+### One hazard #358 found, worth knowing before touching panel CSS
 
-**That premise is under active revision as of 2026-08-18 and should not be built
-to as written.** Brad's direction: the conference demo interacts with a **fake EHR
-hosted on a Cloudflare Worker**, and *"don't try and solve for problems involving
-lack of network connectivity."* `surfaces-and-distribution.md` §8 still defines
-Track 1 as offline `LocalDataSource`, so the doc and the direction disagree. **The
-decision is not recorded yet — do not resolve it by building.**
-
-What is worth separating, because the docs conflate them and only one half is in
-question:
-
-- **Track 1 as a demo deliverable** — a rehearsed offline demo. This is what is
-  being retired.
-- **The interface discipline** — the panel reads through `FhirDataSource` rather
-  than binding to `SmartDataSource`. This costs approximately nothing and is
-  *probably* worth keeping regardless: the chart already works both ways,
-  `LocalDataSource` cannot be removed anyway (all 658 tests and every gate run
-  against it, and it is the no-patient "play with the forms" mode), and a demo
-  with no fallback makes the mock EHR a single point of failure for the talk.
-
-Until it is settled, build `PanelShell` so it reads through `FhirDataSource` —
-that choice is cheap, is what the chart already does, and is not invalidated by
-either answer.
-
-The *Written* tab has the same fork, and it resolves automatically once Track 1
-does: panel §2 says the tab "is only truthful because of §5 — it reports what
-happened, not what would have", while §9 says it must degrade to "what would be
-written". If there is always a mock EHR, §2 stands and §9's clause is dead.
+The sticky identity strip first shipped at `z-index: 10` — **the same value as
+the renderer's combobox popover**. Equal z-index means DOM order decides rather
+than intent, and a combobox low in a long instrument flips to open upward into
+the strip's band. It is `1` now, which still beats ordinary page content and
+loses to the popover. Recorded honestly: the fix is correct by construction, but
+the hazard was never observed firing.
 
 ## The embedded panel work — orientation
 
@@ -253,12 +250,31 @@ full — a lenient mock makes the demo look better while proving less.
 **The two at the top block the most work.** Both came out of the #355 spec-doc
 conflict audit; both are one sentence of decision and then mechanical to apply.
 
-- ⚠️ **Is Track 1 (offline, `LocalDataSource`) retired or deferred?** See the
-  `PanelShell` section above. This single answer unblocks **three** threads: the
-  `PanelShell` guidance, #350's CDS `type:'smart'` link (a SMART launch link's
-  whole point is the real launch path), and the *Written*-tab contradiction
-  between panel §2 and §9. Until it lands, `surfaces-and-distribution.md` §8 and
-  the stated direction disagree in writing.
+- ⚠️ **Is Track 1 (offline, `LocalDataSource`) retired or deferred?**
+
+  `surfaces-and-distribution.md` §8 defines the conference track as
+  `LocalDataSource`, "no network", "no OAuth in it". Brad's direction, 2026-08-18,
+  is the opposite: the conference demo talks to a **fake EHR on a Cloudflare
+  Worker**, and *"don't try and solve for problems involving lack of network
+  connectivity."* **The doc and the direction disagree in writing, and neither has
+  been retired.**
+
+  Worth separating, because the docs conflate them and only one half is in
+  question:
+
+  - **Track 1 as a demo deliverable** — a rehearsed offline demo. This is what is
+    being retired.
+  - **The interface discipline** — the panel reads through `FhirDataSource`. This
+    is near-free and probably right either way: the chart already works both
+    ways, `LocalDataSource` cannot be removed regardless (every gate and all 665
+    tests run against it, and it is the no-patient "play with the forms" mode),
+    and a demo with no fallback makes the mock EHR a single point of failure for
+    the talk. **#358 already built `PanelShell` this way**, so the panel is not
+    waiting on the answer.
+
+  What IS waiting: #350's CDS `type:'smart'` link (a SMART launch link's whole
+  point is the real launch path), the *Written*-tab contradiction between panel
+  §2 and §9, and §8's own track table.
 - ⚠️ **Write down the §8 mock-vs-Medplum decision, with its real reason.** See
   above. It is "leaning mock" in conversation and "genuinely undecided" in the
   docs, which is the worst of both.
