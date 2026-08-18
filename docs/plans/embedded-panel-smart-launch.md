@@ -182,6 +182,15 @@ chrome from a presentation context established at `/redirect` (with an
 `?embed=1` override for testing). `EhrShell` for the implementer lenses,
 `PanelShell` when embedded.
 
+⚠️ **This is scoped to the demo build.** "One app, two chrome modes" answers
+what the *demo* is; it does not answer what a client receives, and a client does
+not want the guide lenses or the 14 synthetic patients that
+`PatientProvider` bundles eagerly on every build. A third axis — **build
+surface** (`demo` / `clinical`) — is orthogonal to chrome mode and belongs in
+the same seam. See [`surfaces-and-distribution.md`](surfaces-and-distribution.md)
+§3, which also corrects the scope of `repo-and-package-boundaries.md` §5 that
+this section inherited.
+
 ⚠️ **`check:template` gains a second page-inset owner.** `.ehr-content-body` is
 currently its *sole* owner by gate, and `PageHeader` the only page-title
 implementation. `PanelShell`'s body is a legitimate second owner — it must be
@@ -380,6 +389,9 @@ Steps 1–2 are UI-independent and can run in parallel with 0 and 3.
   §8 is the scope this plan deliberately excludes.
 - [`docs/smart-sandbox-testing.md`](../smart-sandbox-testing.md) — the current
   SMART walkthrough and its three known limitations.
+- [`surfaces-and-distribution.md`](surfaces-and-distribution.md) — the corrected
+  surface inventory, the demo/clinical build split (§3 here is scoped by it), and
+  the hosting topology.
 - [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) — a mock
   server as a third consumer of shared code.
 - [`ux-navigation-improvements.md`](ux-navigation-improvements.md) — the
