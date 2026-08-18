@@ -75,7 +75,16 @@ not another *app*, it is a *server with our patients on it*.
    nothing behind it. The only real `Patient` in the tree is `DEMO_PATIENT` in
    [`demoPatient.ts`](../../web/src/data/demoPatient.ts), a single hand-written
    resource for the no-patient-selected mode. There are no `Practitioner` or
-   `Organization` resources either, though artifacts reference performers.
+   `Organization` resources either, though artifacts name performers.
+
+   ⚠️ **Measured 2026-08-18, and it narrows this scope:** there are **zero**
+   `Practitioner/` or `Organization/` references in the scenarios. Performers are
+   carried as `display` text only (`{"display": "Eastgate Behavioral Health"}`),
+   which is valid FHIR and dangles nothing. Of 116 `Patient/` references across
+   14 distinct ids, `Patient` is the **only** subject type actually missing. So
+   phase 1 is 14 `Patient` resources — not the three-resource-type job the
+   sentence above implies. Minting `Practitioner`/`Organization` is a richness
+   choice, not a conformance fix.
 
    **This is a conformance hole in its own right, independent of any server.**
 
@@ -189,8 +198,9 @@ the cost of a real server with none of the credibility, which is the argument fo
 
 ## 7. Phases
 
-**Phase 1 — real subject resources.** `Patient` × 14, plus the `Practitioner` and
-`Organization` resources the scenarios' performers reference. Where they live is a
+**Phase 1 — real subject resources.** `Patient` × 14. (Originally scoped as
+"plus the `Practitioner` and `Organization` resources the scenarios' performers
+reference" — but measurement found no such references exist; see §2 deficit 1.) Where they live is a
 real decision: `ig/` as example Instances (gated by sushi + the validator + the
 publisher, consistent with the other 134 Instances) versus alongside the scenarios
 (closer to their consumers). **Recommend `ig/`**, with `patients.json` keeping only

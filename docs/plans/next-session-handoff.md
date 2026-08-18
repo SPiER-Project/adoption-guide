@@ -236,10 +236,17 @@ Nothing here is urgent; listed so it is not re-derived each session.
 | #277 | [Epic] Suicide Care Dashboard — a CoCM registry spec and the five gaps it exposes | — |
 | #259 | [Epic] Data dictionary: two-layer concept model, cross-stage correlation | — |
 
-Still outstanding from the ladder work, **none of it with an issue yet** — file
-one before starting: the CDS card `type:'smart'` link (which the panel plan §2
-also wants), the adoption-pathways guide page, the Tier-3 confirmation UI, live
-sandbox validation, and whether the demo should set `alwaysWriteDocument`.
+Still outstanding from the ladder work. ⚠️ **Three of these are already tracked
+on #350 — do not file duplicates.** #350 stayed open after #351 with exactly
+these unchecked:
+
+- **#350** — the CDS card `type:'smart'` link (which the panel plan §2 also
+  wants), the adoption-pathways guide page, and live sandbox validation.
+- **No issue yet** — the Tier-3 confirmation UI, and whether the demo should set
+  `alwaysWriteDocument`. File before starting either.
+
+(This paragraph previously said "none of it with an issue yet," which would have
+produced three duplicate issues. `gh issue view 350` is the authority.)
 
 **Deliberately parked, not drift:** the **ten** `status:built` tool epics (#20,
 #23, #24, #25, #26, #168, #170, #172, #175, #176) stay open by design and carry

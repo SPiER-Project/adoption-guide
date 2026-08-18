@@ -312,7 +312,12 @@ assertion. It costs almost nothing once the stub exists, and it is a capability
 points at an id with nothing behind it; the only real `Patient` in the tree is
 `DEMO_PATIENT` in [`web/src/data/demoPatient.ts`](../../web/src/data/demoPatient.ts).
 There are no `Practitioner` or `Organization` resources either, though artifacts
-reference performers.
+name performers.
+
+⚠️ **Measured 2026-08-18: that does not block a mock EHR.** Performers are
+`display` text only, so nothing dangles but `Patient`. The prerequisite below is
+14 `Patient` resources, which is smaller than this section implies — see
+[`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §2 deficit 1.
 
 A mock EHR cannot serve `GET /fhir/Patient/patient-001` from resources that do
 not exist. So **phases 1–2 of [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md)

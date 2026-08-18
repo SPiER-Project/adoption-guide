@@ -68,11 +68,17 @@ Patient ids can be listed from the open endpoint:
 1. **Read:** after launch, the chart shows the launch patient's banner (name,
    DOB, SMART badge) and loads their server data. A fresh sandbox patient has
    no SPiER data — foreign survey Observations appear under **Other activity**
-   (collapsed) and in Patient Documents.
-2. **Write:** submit a PHQ-9 from the sidebar. The app POSTs the
-   QuestionnaireResponse first, then each derived Observation with
-   `derivedFrom` pointing at the server-assigned QR id and `subject` set to
-   the launch patient.
+   (collapsed) and in Patient Documents. A foreign **PHQ-9** is the exception —
+   it derives via the code-based fallback and does produce a risk alert (see
+   *Known limitations*).
+2. **Write:** submit a PHQ-9 from the sidebar. Since #351 the write climbs the
+   **writeback ladder** (`web/src/lib/writeback/`, driven by
+   `SmartDataSource.saveResponse`): the server's CapabilityStatement is probed,
+   the QuestionnaireResponse is POSTed first, then each derived Observation with
+   `derivedFrom` pointing at the server-assigned QR id and `subject` set to the
+   launch patient. A `DocumentReference` may also be written — see step 4. Every
+   tier's outcome is rendered by the **writeback scorecard** on the chart. See
+   [`plans/smart-filler-writeback-ladder.md`](plans/smart-filler-writeback-ladder.md).
 3. **Round-trip:** the chart refreshes from the server after the save — the
    response, its Observations (staged under *Flag Risk* via their pathway
    `meta.tag`), and the recomputed risk alert appear. Confirm server-side:
@@ -83,18 +89,43 @@ Patient ids can be listed from the open endpoint:
    ```
 
    Or simply re-launch the same patient — the submission is still there.
-4. **Errors surface, no silent fallback:** if a write is rejected (scope or
-   validation), a red "EHR data error" banner appears on the chart; nothing is
-   written to localStorage in SMART mode.
+4. **Errors surface, no silent fallback — but read this carefully, it changed
+   in #351.** Nothing is ever written to localStorage in SMART mode; that half
+   still holds. What changed is *where* a rejection shows up.
+
+   A **partial** rejection no longer produces the red banner. If the server
+   refuses `Observation.create`, the ladder records that tier as `failed`, fires
+   the Tier-0 `DocumentReference` floor so the data is still recoverable, and
+   `saveResponse` **resolves successfully**. The failure is reported in the
+   writeback scorecard, per tier, with the HTTP status — not as a save error.
+   That is the ladder's designed degradation, not a swallowed error.
+
+   The red **EHR data error** banner now means a **total** failure: not one
+   resource was created, not even the floor. `saveResponse` throws only in that
+   case.
+
+   ⚠️ So verifying "errors surface" means checking **both** paths: refuse one
+   resource type and confirm the scorecard names it while the floor lands; refuse
+   *everything* and confirm the banner appears. Checking only the banner would
+   now pass while a whole tier failed silently.
 
 ## Known limitations
 
-- **Mapper dispatch is canonical-URL-bound.** The observation mappers dispatch
-  on `http://spier.org/Questionnaire/*` canonicals
-  (`web/src/lib/observationMappers/index.ts`), so only QRs written by SPiER —
-  or by servers reusing SPiER canonicals — produce risk alerts and derived
-  Observations. Foreign QRs/Observations still render on the chart; anything
-  that resolves to no pathway stage lands in the "Other activity" bucket.
+- **Mapper dispatch is canonical-URL-first, with a narrow code-based fallback.**
+  Dispatch prefers `http://spier.org/Questionnaire/*` canonicals
+  (`web/src/lib/observationMappers/index.ts`). A foreign QR whose canonical does
+  not match **still derives when its instrument is recognized from standardized
+  LOINC item codes** (#230, `observationMappers/fallbackDispatch.ts`) — but that
+  fallback covers **PHQ-9 only** today, and results are stamped as inferred. The
+  shape heuristic (tier 3) is deliberately **not** enabled here.
+
+  Anything else — a foreign C-SSRS or ASQ — produces no risk alert and no derived
+  Observations, and lands in the collapsed "Other activity" bucket when it
+  resolves to no pathway stage. Extending this past PHQ-9 is #230.
+
+  ⚠️ This bullet said dispatch was canonical-**bound** with no fallback at all,
+  which predated #230 and disagreed with both `smartDataSource.ts`'s own header
+  comment and [`plans/mock-patient-smart-launch.md`](plans/mock-patient-smart-launch.md) §2.
 - **Population view stays local-only under SMART.** The registry reads the
   local demo store; only the Patient Chart reads/writes the connected server.
 - **Session lifetime.** The SMART session lives in `sessionStorage` and is
