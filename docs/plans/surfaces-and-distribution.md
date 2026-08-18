@@ -230,9 +230,9 @@ instrument makes it worse rather than better — a per-deployment instrument
 allowlist is the likely shape, and it is a real design question, not a config
 line.
 
-Also outstanding, and cheaper: the demo's synthetic `Patient` resources do not
-exist at all ([`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md)
-§7), and `PopulationView` / `MeasureDashboard` bypass the `FhirDataSource`
+Also outstanding, and cheaper: ~~the demo's synthetic `Patient` resources do not
+exist at all~~ (**landed 2026-08-18** — `ig/input/fsh/population-patients.fsh`,
+gated by `check:patients` and check 8 of `check:scenarios`), and `PopulationView` / `MeasureDashboard` bypass the `FhirDataSource`
 abstraction ([`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §8).
 Neither blocks a clinical build — both lenses are demo-surface — but both block
 the claim that the whole app runs on a connected server.

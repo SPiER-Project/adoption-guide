@@ -29,7 +29,7 @@ describe('buildPatientOpenEvent', () => {
     expect(ctx.resource).toMatchObject({
       resourceType: 'Patient',
       id: 'patient-005',
-      identifier: [{ system: 'http://hospital.example.org/mrn', value: '56789' }],
+      identifier: [{ system: 'http://spier.org/identifier/mrn', value: '56789' }],
       name: [{ given: ['Elena'], family: 'Rodriguez' }],
     })
   })

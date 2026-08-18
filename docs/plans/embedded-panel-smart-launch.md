@@ -25,7 +25,7 @@ a clinical reviewer has to be *told* which half is for them.
 | Phase | State |
 |---|---|
 | 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
-| 1 — mock EHR read API over the existing fixtures | **Not started, and BLOCKED on a prerequisite.** §7 |
+| 1 — mock EHR read API over the existing fixtures | **Not started. No longer blocked** — the `Patient` prerequisite landed 2026-08-18. §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **Not started.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **Not started.** §3 |
 | 4 — writes + the capability-degradation demo | **Not started. The ladder driver is already ON MAIN** (#351, `6f37e0d`), so this is a server, not a build. §5 |
@@ -305,7 +305,7 @@ assertion. It costs almost nothing once the stub exists, and it is a capability
 
 ## 7. The prerequisite nobody will see coming
 
-⚠️ **Phase 1 is blocked: there are no `Patient` resources to serve.**
+⚠️ ~~**Phase 1 is blocked: there are no `Patient` resources to serve.**~~ **UNBLOCKED 2026-08-18** — the 14 `Patient` resources exist and are gated; see the note at the end of this section. What remains of the prerequisite is phase 2 (per-patient transaction Bundles), which a mock reading the fixtures directly may not even need.
 
 `patients.json` is app-shaped (`id`, `displayName`, `dob`, `mrn`, `gender`,
 `recommendedNextStep`). Every `subject: Patient/patient-001` across the scenarios
