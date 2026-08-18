@@ -142,3 +142,33 @@ export interface WritebackResult {
 export interface WritebackTarget {
   createResource(resource: FhirResource): Promise<{ id?: string }>
 }
+
+/**
+ * What the scorecard renders: one writeback run, with enough context to explain
+ * every absence as well as every write.
+ *
+ * `result.steps` alone is NOT sufficient for the site-readiness diagnostic, for
+ * a reason that is easy to miss: `buildWritePlan` OMITS the Tier-3 step entirely
+ * when the proposal is disabled (ladder.ts) — it does not emit a `disabled`
+ * step. So a scorecard reading only `steps` shows silence where the governance
+ * story ("a Condition is never auto-written") is the most important thing to
+ * say. Carrying the resolved `config` is what lets the UI distinguish
+ * "deliberately off" from "never considered".
+ */
+export interface WritebackReport {
+  /** ISO timestamp of the run, so a stale scorecard is recognizable as stale. */
+  at: string
+  /** Resolved policy — the source of "off by design" statements in the UI. */
+  config: ResolvedWritebackConfig
+  /** What the server advertised it can create. */
+  capabilities: ServerCapabilities
+  /**
+   * False when the CapabilityStatement probe failed or returned nothing usable.
+   * `capabilities` is `{}` in BOTH that case and the (unrealistic) case of a
+   * server advertising no creatable types, and conflating them would report a
+   * network failure as "the EHR does not support this" — the opposite of a
+   * readiness diagnostic. The UI must say "could not ask" instead.
+   */
+  capabilitiesKnown: boolean
+  result: WritebackResult
+}

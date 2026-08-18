@@ -1,0 +1,127 @@
+/* ===========================
+   Writeback scorecard (#350)
+
+   The SMART writeback readiness diagnostic. Colour carries meaning here, so the
+   four rung states are visually distinct: written (success), failed (acute),
+   skipped (warning — the server could not take it) and absent (muted — not
+   applicable, which is NOT a problem and must not read as one).
+   =========================== */
+.writeback-scorecard {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.writeback-scorecard__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.writeback-scorecard__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--text-strong);
+}
+
+.writeback-scorecard__summary {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.writeback-scorecard__probe {
+  background: var(--accent-warning-bg);
+  border: 1px solid var(--accent-warning-border);
+  border-radius: var(--radius-lg);
+  color: var(--accent-warning-text-deep);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  padding: var(--space-3);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.writeback-scorecard__rungs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.writeback-scorecard__rung {
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-muted);
+}
+
+.writeback-scorecard__rung--written {
+  background: var(--accent-success-bg);
+  border-left-color: var(--accent-success);
+}
+
+.writeback-scorecard__rung--failed {
+  background: var(--risk-acute-soft-bg);
+  border-left-color: var(--risk-acute);
+}
+
+.writeback-scorecard__rung--skipped {
+  background: var(--accent-warning-bg);
+  border-left-color: var(--accent-warning-edge);
+}
+
+.writeback-scorecard__rung--absent {
+  background: var(--surface-page-alt);
+  border-left-color: var(--border-default);
+}
+
+.writeback-scorecard__rung-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.writeback-scorecard__rung-label {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-strong);
+}
+
+.writeback-scorecard__badge {
+  font-size: var(--font-size-2xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.writeback-scorecard__blurb {
+  margin: var(--space-1) 0 0 0;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  color: var(--text-muted);
+}
+
+.writeback-scorecard__detail {
+  margin: var(--space-2) 0 0 0;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  color: var(--text-body);
+  overflow-wrap: anywhere;
+}
+
+.writeback-scorecard__foot {
+  margin: var(--space-4) 0 0 0;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  color: var(--text-faint);
+}
