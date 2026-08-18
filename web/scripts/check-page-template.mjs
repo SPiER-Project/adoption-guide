@@ -52,6 +52,24 @@ const HEADER_CSS = 'css/PageHeader.css'
  * would put two page titles on one page, which is how the guide's header came to
  * be a special case the first time.
  */
+/**
+ * The sanctioned owners of a page inset, with the reason each is allowed one.
+ *
+ * `.ehr-content-body` was the *sole* owner until the SMART panel landed
+ * (embedded-panel-smart-launch.md §3, which requires this be declared here
+ * rather than worked around — "the panel becomes the place template drift
+ * lives" otherwise). Two shells legitimately pad their own body because they
+ * are two chromes for the same routes; what must stay forbidden is a *page*
+ * padding itself, which is RULE 4b below and is unchanged.
+ *
+ * Adding a third entry should feel expensive. Two is a chrome decision; three
+ * is drift.
+ */
+const INSET_OWNERS = {
+  '.ehr-content-body': 'EhrShell — the standalone demo chrome',
+  '.panel-shell__body': 'PanelShell — the embedded SMART activity chrome (tighter inset; the panel reclaims vertical space)',
+}
+
 const LENSES = {
   'Overview.tsx': 'the front door: brand eyebrow + the project tagline as title',
   'AdoptionGuide.tsx': 'the /guide layout — renders the header for all nine sub-pages',
@@ -253,7 +271,8 @@ function cssFilesUnder(dir, prefix = '') {
 }
 
 const cssFiles = cssFilesUnder(SRC_DIR)
-let shellPadsThePage = false
+/** Which declared inset owners were actually found padding, unconditionally. */
+const padsFound = new Set()
 
 for (const file of cssFiles) {
   const src = readFileSync(join(SRC_DIR, file), 'utf8')
@@ -266,7 +285,7 @@ for (const file of cssFiles) {
       // RULE 4a — the shell really does pad the page, unconditionally. Without
       // this, every check below could pass while nothing padded anything: a
       // green gate over an app with no page inset at all.
-      if (selector === '.ehr-content-body' && pads && !rule.nested) shellPadsThePage = true
+      if (Object.hasOwn(INSET_OWNERS, selector) && pads && !rule.nested) padsFound.add(selector)
 
       // RULE 1 (CSS half) — no page-header rules outside PageHeader.css, so a
       // per-page override cannot reintroduce a variant from the stylesheet side.
@@ -303,8 +322,14 @@ for (const file of cssFiles) {
   }
 }
 
-if (!shellPadsThePage) {
-  fail('no unconditional `.ehr-content-body { padding: … }` rule found — the shell must own the page inset, or the checks above are vacuous')
+for (const [selector, owner] of Object.entries(INSET_OWNERS)) {
+  if (!padsFound.has(selector)) {
+    fail(
+      `no unconditional \`${selector} { padding: … }\` rule found (${owner}) — ` +
+        'a declared inset owner that pads nothing means that chrome has no page ' +
+        'inset at all, and the checks above are vacuous for it',
+    )
+  }
 }
 
 // ── Report ────────────────────────────────────────────────────────────────────
@@ -319,5 +344,6 @@ if (errors.length > 0) {
 console.log(
   `✓ page template: ${pageFiles.length} pages (${Object.keys(LENSES).length} lens headers), ` +
     `${formViews.length} form views, ` +
+    `${Object.keys(INSET_OWNERS).length} inset owners, ` +
     `${containers.size} containers checked against ${cssFiles.length} stylesheets`,
 )
