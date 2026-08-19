@@ -92,3 +92,32 @@ describe('POST feedback', () => {
     expect(res.status).toBe(200)
   })
 })
+
+describe('frame-ancestors (the SMART panel is embedded cross-origin)', () => {
+  const ASSETS = { fetch: async () => new Response('<!doctype html>', { headers: { 'content-type': 'text/html' } }) }
+
+  it('lets the mock EHR frame the app, and nobody else by default', async () => {
+    const res = await app.request(`${BASE}/`, {}, { ...NO_AUTH, ASSETS })
+    const csp = res.headers.get('content-security-policy')
+    expect(csp).toContain('frame-ancestors')
+    expect(csp).toContain('https://spier-mock-ehr.bbthorson.workers.dev')
+    expect(csp).toContain("'self'")
+    // Deliberately NOT a wildcard: a `frame-ancestors *` would let anything
+    // embed the app, which is the shortcut that makes the header decorative.
+    expect(csp).not.toContain('*')
+  })
+
+  it('is overridable per environment', async () => {
+    const res = await app.request(`${BASE}/`, {}, {
+      ...NO_AUTH,
+      ASSETS,
+      PANEL_FRAME_ANCESTORS: "'self' https://staging.test",
+    })
+    expect(res.headers.get('content-security-policy')).toBe("frame-ancestors 'self' https://staging.test")
+  })
+
+  it('still serves the asset body', async () => {
+    const res = await app.request(`${BASE}/`, {}, { ...NO_AUTH, ASSETS })
+    expect(await res.text()).toContain('<!doctype html>')
+  })
+})

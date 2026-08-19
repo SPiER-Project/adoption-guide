@@ -6,16 +6,32 @@
  * of that endpoint is that the consumer can read it, and a hand-written
  * assertion would only prove the document matches this test's idea of it.
  */
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { parseCapabilityStatement } from '../../../web/src/lib/writeback/capability'
 import app, { resetProfile } from './app'
+import { authHeaderFor } from './__fixtures__/launch'
 
 const BASE = 'https://mock-ehr.test'
 
 afterEach(() => resetProfile())
 
-async function get(path: string) {
-  const res = await app.request(`${BASE}${path}`)
+/**
+ * Tokens for the patients these tests read. Obtained through the real
+ * `/authorize` → `/token` flow (see the fixture), so every read below also
+ * exercises the auth stub rather than bypassing it.
+ */
+const auth: Record<string, Record<string, string>> = {}
+
+beforeAll(async () => {
+  for (let n = 1; n <= 14; n++) {
+    const pid = `patient-${String(n).padStart(3, '0')}`
+    auth[pid] = await authHeaderFor(BASE, pid)
+  }
+})
+
+/** GET as `patient` (default patient-011), carrying that patient's token. */
+async function get(path: string, patient = 'patient-011') {
+  const res = await app.request(`${BASE}${path}`, { headers: auth[patient] })
   const body = await res.json().catch(() => null)
   return { res, body: body as Record<string, unknown> | null }
 }
@@ -29,7 +45,11 @@ describe('read', () => {
   })
 
   it('404s an unknown id as an OperationOutcome', async () => {
-    const { res, body } = await get('/fhir/Patient/patient-999')
+    // Deliberately not `Patient/patient-999`: a Patient id the token is not
+    // bound to is now a 403 before it is a 404, which is the correct order
+    // (do not disclose whether a patient exists to a token that cannot read
+    // them) and is asserted separately below.
+    const { res, body } = await get('/fhir/Observation/nonexistent')
     expect(res.status).toBe(404)
     expect(body).toMatchObject({ resourceType: 'OperationOutcome' })
   })
@@ -81,8 +101,8 @@ describe('search', () => {
     const empty: string[] = []
     for (let n = 1; n <= 14; n++) {
       const pid = `patient-${String(n).padStart(3, '0')}`
-      const qrs = await get(`/fhir/QuestionnaireResponse?patient=${pid}`)
-      const obs = await get(`/fhir/Observation?patient=${pid}&category=survey`)
+      const qrs = await get(`/fhir/QuestionnaireResponse?patient=${pid}`, pid)
+      const obs = await get(`/fhir/Observation?patient=${pid}&category=survey`, pid)
       expect(qrs.res.status, pid).toBe(200)
       expect(obs.res.status, pid).toBe(200)
       const count = (qrs.body?.entry as unknown[]).length + (obs.body?.entry as unknown[]).length
@@ -95,9 +115,9 @@ describe('search', () => {
     // `getSlice` queries only category=survey and category=procedure, so the
     // two `exam` Observations in the scenarios never reach the panel. The
     // server holds them; the client's query set is what excludes them.
-    const all = await get('/fhir/Observation?patient=patient-002')
+    const all = await get('/fhir/Observation?patient=patient-002', 'patient-002')
     expect((all.body?.entry as unknown[]).length).toBe(1)
-    const survey = await get('/fhir/Observation?patient=patient-002&category=survey')
+    const survey = await get('/fhir/Observation?patient=patient-002&category=survey', 'patient-002')
     expect((survey.body?.entry as unknown[]).length).toBe(0)
   })
 
@@ -128,7 +148,7 @@ describe('search', () => {
 
   it('sends CORS headers — the panel is on another origin', async () => {
     const res = await app.request(`${BASE}/fhir/Patient/patient-011`, {
-      headers: { origin: 'https://spier-adoption-guide.test' },
+      headers: { ...auth['patient-011'], origin: 'https://spier-adoption-guide.test' },
     })
     expect(res.headers.get('access-control-allow-origin')).toBe('*')
   })

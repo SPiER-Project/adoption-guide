@@ -28,6 +28,12 @@
   // call the service without a token — keeps working while we observe real
   // callers; flip to `require` once callers reliably present a valid JWT.
   "vars": {
+    // Space-separated `frame-ancestors` sources for the SPA — who may embed
+    // this app in a frame. The embedded SMART panel is launched inside the mock
+    // EHR on a different origin, so that origin has to be named here. Blank =
+    // the default in src/index.ts. See docs/plans/embedded-panel-smart-launch.md §6.
+    "PANEL_FRAME_ANCESTORS": "",
+
     // "off" | "warn" | "require".
     "CDS_JWT_ENFORCE": "warn",
     // Accepted `aud` — this service's canonical invoke URL(s), comma-separated.

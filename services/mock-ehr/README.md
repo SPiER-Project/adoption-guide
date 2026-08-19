@@ -19,11 +19,15 @@ and it is permitted only with the guardrails in §1 of that plan.
 | | |
 |---|---|
 | FHIR base | `/fhir` |
+| Discovery | `GET /fhir/.well-known/smart-configuration` |
 | Read | `GET /fhir/{Type}/{id}` |
 | Search | `GET /fhir/{Type}?patient={id}[&category={token}]` → searchset `Bundle` |
 | Capability | `GET /fhir/metadata` |
-| Control page | `GET /` — switches the capability profile |
+| Authorize | `GET /authorize` — PKCE S256 required |
+| Token | `POST /token` |
+| Control page | `GET /` — mint a launch, switch the capability profile |
 | Profile API | `GET`/`PUT /_admin/capabilities` |
+| Launch API | `POST /_admin/launch` |
 
 Data is the app's own files, with **no second copy of anything**: the scenarios
 from `web/src/data/population/scenarios/patient-0NN.json` and the 14 Patients
@@ -72,13 +76,66 @@ cold start. Flip immediately before launching. Durable state (KV / a Durable
 Object) is a later step; the seam that would have been costly to retrofit is
 `src/capability.ts`, not its storage.
 
+## The SMART launch (step 2)
+
+`GET /` mints a launch: pick a patient, optionally an `intent`, and get the URL
+an EHR would open — the app's `launch_uri` carrying `iss` and `launch`. From
+there the app runs the ordinary authorization-code flow against `/authorize` and
+`/token`.
+
+What is actually verified, because a stub that skips these proves nothing:
+
+- **PKCE S256** — required at `/authorize`, and the verifier is checked with
+  real SHA-256 at `/token`.
+  ⚠️ It can be skipped by *omission*: fhirclient only sends a challenge when
+  discovery advertises `code_challenge_methods_supported: ["S256"]`. Remove that
+  and PKCE silently stops happening while the login still works. The discovery
+  document and the `/authorize` requirement are two halves of one decision, and
+  both are asserted.
+- **`redirect_uri`** — exact match against a registered list, and an
+  unregistered one is *refused without redirecting*. Bouncing an error to
+  whatever URI was asked for is the open-redirect bug.
+- **`aud`** — must name this server's FHIR base, or the parameter is decorative.
+- **Patient binding** — a token is issued for one patient, and reaching for
+  another is a `403`. Otherwise one token reads all 14 charts and
+  "patient-scoped" is a claim this server does not support.
+- **Code replay** — best effort only, and honestly so: see below.
+
+`/fhir` requires a bearer token by default (`MOCK_AUTH_ENFORCE=off` reopens it
+for curl exploration). `/metadata` and discovery stay pre-auth, because a client
+reads them to learn how to authorize at all.
+
+### What the auth stub does NOT prove
+
+- **No `id_token`.** `openid fhirUser` is requested by the app and not honoured.
+  A real one needs a signing key and a published JWKS; a fake one is exactly the
+  shortcut named above. `client.user` is null — honest and harmless.
+- **No scope enforcement.** Granted scopes are echoed and carried on the token,
+  but no read is refused for a missing scope. **Do not describe this mock as
+  proving SMART scopes work.** The patient binding is a different thing, and it
+  is enforced.
+- **No refresh tokens.**
+- **No consent screen** — `/authorize` auto-approves. Decided, not skipped: a
+  clinician launching from a chart does not re-consent per launch, so this is
+  the realistic behaviour for the scenario being demonstrated. Per-scope consent
+  would be theatre while nothing enforces scopes.
+  [`embedded-panel-smart-launch.md` §10.1](../../docs/plans/embedded-panel-smart-launch.md).
+- **Replay is only best-effort.** Every artifact is a signed, self-contained
+  blob rather than a row in a table, because a Worker has no shared memory and
+  `/authorize` and `/token` can land in different isolates — a table there
+  fails the login intermittently, in front of an audience. The cost is that
+  "used" cannot be written down: an authorization code is replayable inside its
+  60-second window across isolates. Acceptable for synthetic data on a demo
+  host, and nowhere else. Step 4 needs a Durable Object for writes anyway; this
+  should move behind it then.
+
 ## Not here
 
-**Auth** — no `/authorize`, `/token` or PKCE; step 1 is an open read API, which
-is why it could be built and tested before step 2. **Writes** — step 4, and its
-strict-validation guardrail is a *port* of `check-scenario-resources.mjs`, not a
-reuse of it (that script is Node reading StructureDefinitions off a filesystem).
-**Host chrome** — a patient list, a patient page, a launch button: step 5.
+**Writes** — step 4, and its strict-validation guardrail is a *port* of
+`check-scenario-resources.mjs`, not a reuse of it (that script is Node reading
+StructureDefinitions off a filesystem). **Host chrome** — a patient list, a
+patient page, an encounter page: step 5. This service mints launches; it does
+not yet look like an EHR.
 
 ## Verify
 
@@ -91,6 +148,11 @@ npm install && npm run verify   # copy-fhir + typecheck + eslint + vitest
 triggers on `services/**` — this service reads the scenario fixtures that
 `web/scripts/shift-scenario-dates.mjs` periodically re-anchors, and that break
 would otherwise be silent and show up as an empty chart mid-demo.
+
+Every test that reads `/fhir` obtains its token through the **real**
+`/authorize` → `/token` flow (`src/__fixtures__/launch.ts`), never a hand-minted
+one — so the auth stub is exercised by the whole suite rather than by the
+handful of cases that name it.
 
 `src/smartDataSource.integration.test.ts` is the one to keep working: it stands
 the app up on a loopback HTTP server and drives the **real** `SmartDataSource`
