@@ -62,7 +62,7 @@ export function controlPage(
   <h1>SPiER mock EHR</h1>
   <p class="lede">
     FHIR base <code>${fhirBase}</code> — ${resourceCount} synthetic resources across 14 demo patients,
-    read straight from the app's own population scenarios. Open read API; no authorization yet.
+    read straight from the app's own population scenarios.
   </p>
 
   <h2>Launch the panel</h2>

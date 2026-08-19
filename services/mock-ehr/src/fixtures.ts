@@ -114,6 +114,13 @@ const PATIENT_ELEMENT: Record<string, 'subject' | 'patient' | 'for' | 'appointme
  */
 export const NORMALIZED_LINKS: string[] = []
 
+/**
+ * Every QuestionnaireResponse whose `authored` this module had to supply from
+ * its `StoredResponse` wrapper's `completedAt`. Pinned by a test for the same
+ * reason as `NORMALIZED_LINKS`: the workaround must die with the defect.
+ */
+export const NORMALIZED_AUTHORED: string[] = []
+
 function withPatientLink(resource: MockResource, patientId: string): MockResource {
   const element = PATIENT_ELEMENT[resource.resourceType]
   if (!element) return resource
@@ -182,9 +189,25 @@ function buildHeld(): HeldResource[] {
       for (const entry of entries) {
         // `responses` holds StoredResponse wrappers; every other bucket holds
         // the resource directly.
-        const raw = (bucket === 'responses'
+        let raw = (bucket === 'responses'
           ? (entry as { resource?: MockResource })?.resource
           : entry) as MockResource | undefined
+        // ⚠️ Same shape as the missing `subject`: the WRAPPER carries
+        // `completedAt` and not one of the 20 QRs carries `authored`, so a
+        // server serving the resource alone drops the date entirely. The chart
+        // rendered "Invalid Date Invalid Date" for every SMART-read
+        // QuestionnaireResponse until this existed. The app's own write path
+        // already compensates in the other direction (smartDataSource stamps
+        // `authored: entry.completedAt` when writing a QR back), which is the
+        // tell that the fixture is what is incomplete. Tracked in #364 with
+        // the `subject` gap; delete this when the fixtures carry `authored`.
+        if (bucket === 'responses' && raw && !raw.authored) {
+          const completedAt = (entry as { completedAt?: unknown })?.completedAt
+          if (typeof completedAt === 'string' && completedAt) {
+            raw = { ...raw, authored: completedAt }
+            NORMALIZED_AUTHORED.push(`${raw.resourceType}/${String(raw.id)}`)
+          }
+        }
         if (!raw || typeof raw !== 'object') continue
         if (raw.resourceType !== type) {
           throw new Error(
