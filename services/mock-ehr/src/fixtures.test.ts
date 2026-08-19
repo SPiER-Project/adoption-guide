@@ -5,7 +5,7 @@
  * look like a working server returning a well-formed empty Bundle.
  */
 import { describe, expect, it } from 'vitest'
-import { HELD_RESOURCES, HELD_TYPES, NORMALIZED_LINKS, RESOURCES_BY_KEY } from './fixtures'
+import { HELD_RESOURCES, HELD_TYPES, NORMALIZED_AUTHORED, NORMALIZED_LINKS, RESOURCES_BY_KEY } from './fixtures'
 
 describe('fixtures', () => {
   it('holds the 14 minted Patients', () => {
@@ -49,6 +49,20 @@ describe('fixtures', () => {
     expect(NORMALIZED_LINKS).toHaveLength(20)
     for (const key of NORMALIZED_LINKS) {
       expect(key.startsWith('QuestionnaireResponse/'), `${key} is not a QuestionnaireResponse`).toBe(true)
+    }
+  })
+
+  it('supplies `authored` for all 20 QRs, from their wrapper’s completedAt', () => {
+    // ⚠️ Same gap as the patient link, and it was on screen: the chart showed
+    // "Invalid Date Invalid Date" for every SMART-read QuestionnaireResponse,
+    // because the StoredResponse WRAPPER carries completedAt and the resource
+    // carries no `authored`. Pinned so this workaround dies with #364 rather
+    // than outliving it.
+    expect(NORMALIZED_AUTHORED).toHaveLength(20)
+    for (const { resource } of HELD_RESOURCES) {
+      if (resource.resourceType !== 'QuestionnaireResponse') continue
+      expect(typeof resource.authored, `${resource.id} has no authored`).toBe('string')
+      expect(Number.isNaN(new Date(String(resource.authored)).getTime())).toBe(false)
     }
   })
 

@@ -69,7 +69,13 @@ export interface PatientOpenPayload {
   displayName?: string
 }
 
-const MRN_SYSTEM = 'http://spier.org/identifier/mrn'
+/**
+ * The MRN namespace SPiER's synthetic patients use. Exported because
+ * `smartPatient.ts` must pick the same identifier out of a Patient read back
+ * from a server — two spellings of this string is exactly what
+ * `npm run check:patients` exists to catch.
+ */
+export const MRN_SYSTEM = 'http://spier.org/identifier/mrn'
 
 /**
  * Build the anchor Patient resource carried in the event context. Kept minimal

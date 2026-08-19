@@ -28,8 +28,19 @@ export interface RenderableResource {
   _savedAt?: string
 }
 
+/**
+ * Format an ISO instant for the chart.
+ *
+ * ⚠️ Returns an em dash rather than "Invalid Date Invalid Date" for anything
+ * unparseable. That string was on screen for every QuestionnaireResponse read
+ * over SMART, because `toStoredResponse` falls back to `''` when a QR carries
+ * no `authored` — and no scenario QR does. A real EHR is under no obligation
+ * to send one either, so the renderer has to survive it regardless of what the
+ * fixtures are fixed to say.
+ */
 export function formatDateTime(iso: string): string {
   const d = new Date(iso)
+  if (!iso || Number.isNaN(d.getTime())) return '—'
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
 }
 

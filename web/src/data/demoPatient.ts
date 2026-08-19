@@ -39,6 +39,8 @@ interface PatientLike {
   gender?: string
   birthDate?: string
   identifier?: Array<{ value?: string }>
+  /** Pre-parsed MRN on the SMART summary (see smartPatient.ts). */
+  mrn?: string
 }
 
 export function formatPatientDisplay(patient: PatientLike | null | undefined): PatientDisplay {
@@ -47,7 +49,9 @@ export function formatPatientDisplay(patient: PatientLike | null | undefined): P
     return {
       fullName: patient.name,
       dob: patient.dob || 'Unknown',
-      mrn: patient.id || 'Unknown',
+      // The resource id is the LAST resort: it is not an MRN, and showing it
+      // as one made the SMART banner disagree with the local one.
+      mrn: patient.mrn || patient.id || 'Unknown',
       gender: patient.gender || 'Unknown',
     }
   }
