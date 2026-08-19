@@ -1,18 +1,20 @@
 # Handoff — next session
 
-Rewritten **2026-08-18 (seventh rewrite that day)**. `main` was at **`c6af8fd`**
-when this was written, confirmed against `origin/main`; check rather than trust
-that.
+Rewritten **2026-08-19**. `main` was at **`b877e21`** when this was written,
+confirmed against `origin/main`; check rather than trust that. Every number
+below was re-derived on that commit, not copied forward.
 
-⚠️ **Six rewrites in one day is itself the finding.** Four of the last five
-merges made this file wrong within the hour — twice it still said "take
-`PanelShell` first" or "take the code drawer first" after those merged. The
-durable fix is probably to shrink this file to the open *decisions* and the
-standing *rules*, and let `git log` and the plan docs' own status tables carry
-state. Until someone does that, assume the "what landed" and "take this first"
-sections are the stalest things here and check them against `main` first.
+⚠️ **Nine rewrites across two days is itself the finding.** Six on 2026-08-18
+alone; four of five merges that day made this file wrong within the hour, twice
+still saying "take `PanelShell` first" or "take the code drawer first" after
+those merged. The durable fix is probably to shrink this file to the open
+*decisions* and the standing *rules*, and let `git log` and the plan docs' own
+status tables carry state — **that restructure is still not done, and every
+rewrite since has made the case for it stronger.** Until someone does it, assume
+the "what landed" and "take this first" sections are the stalest things here and
+check them against `main` first.
 
-⚠️ **This file's own warning has now fired three times in one day.** The version
+⚠️ **This file's own warning fired three times on 2026-08-18 alone.** The version
 before last opened with "no open PRs" and called the writeback ladder dead code;
 both were false hours later. The version after *that* said the outstanding ladder
 work had "none of it with an issue yet — file one before starting", when #350 was
@@ -31,22 +33,37 @@ The rule now has three halves:
 
 ## State of the repo
 
-- **No open PRs** at the time of writing — the step-1 branch below is the next
-  one. **37 open issues.** (Both counted with an explicit `--limit`;
-  `gh issue list` defaults to 30 and silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `c6af8fd`**: every `check:*` gate
+- **No open PRs.** **38 open issues** (37 + #364, filed by the step-1 work).
+  (Both counted with an explicit `--limit`; `gh issue list` defaults to 30 and
+  silently truncates.)
+- `web` — `npm run verify` exits 0, **re-run on `b877e21`**: every `check:*` gate
   green, **57 test files / 673 tests**. (No count of the gates here on purpose —
   `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
   stale.)
 - `services/cds-hooks` — its own `verify` exits 0, 27 tests (three new ones
   cover the `frame-ancestors` CSP the panel needs). **`web`'s verify does not
   cover it.**
-- `services/mock-ehr` — **new.** Its own `verify` exits 0, 60 tests, its own
-  `mock-ehr` CI job in `web-lint.yml`. `web`'s verify does not cover it either.
-- CI green on `main`, including the post-merge deploys for `266fd5f` and
-  `3832e18`. The `266fd5f` deploy **genuinely re-rendered** the IG rather than
-  reusing cache (`ig/input` changed, so the key missed; `Run IG Publisher`, the
-  CQL gate and the QA gate all executed).
+- `services/mock-ehr` — **new, and now two packages deep.** Its own `verify`
+  exits 0, **5 test files / 60 tests**, its own `mock-ehr` CI job in
+  `web-lint.yml`. `web`'s verify does not cover it either. **There are now
+  three `verify`s in this repo and `web`'s covers one of them.**
+- ⚠️ **CI now runs `npm run verify` for all three packages** rather than
+  re-listing its steps (#368). Before that, the `web` job hand-listed a subset
+  and **eight gates ran only on developer machines** — `check:template`,
+  `check:patients`, `check:fallback`, `check:measures`, `check:reassessment`,
+  `check:dates`, `check:ucum`, `check:fhir-r5`. A gate added to `package.json`
+  is now enforced automatically; **do not re-expand that job into individual
+  steps.**
+- CI green on `main`, **including the post-merge runs for `c501c73`, `9ad230e`
+  and `b877e21`** — watched, not assumed.
+- ⚠️ **A squash-merged stack needs a rebase, and this repo does not delete
+  merged branches.** #366 was stacked on #365's branch. Squash-merging #365
+  produced a new SHA on `main` while `claude/mock-ehr-read-api` still existed,
+  so GitHub did **not** auto-retarget #366 and its diff would have re-applied
+  step 1's commits. The fix that worked: `git rebase --onto origin/main <old
+  base> <branch>`, confirm `git diff <old tip> HEAD` is **empty** (same content
+  CI already validated), re-run the verifies, `--force-with-lease`, then
+  `gh pr edit --base main`. Full CI re-ran on the rebased SHA before merging.
 - ⚠️ **A `web/src/App.tsx` change triggers `use-case-workbook.yml`**, which is
   easy to be surprised by. That gate resolves tool launch paths against
   `App.tsx`, so a route-table edit is within its blast radius — #358's shell swap
@@ -75,8 +92,14 @@ The rule now has three halves:
 | **#361** (`7d5356a`) | Handoff: panel step 3 done |
 | **#362** (`ad3ffe0`) | **§8 settled — the mock serves FHIR; the offline track is retired** |
 | **#363** (`c6af8fd`) | The step-1 read API spec, plus three corrections to what the panel plan said about it |
-| **#365** | **`services/mock-ehr/` — step 1 built.** Two findings the derived spec could not have had |
-| *(this branch)* | **Step 2 — the SMART authorize/token stub.** PKCE S256 verified, patient-bound tokens, `frame-ancestors` on the panel host |
+
+## What landed 2026-08-19
+
+| PR | What |
+|---|---|
+| **#365** (`c501c73`) | **Panel step 1 — `services/mock-ehr/`.** A FHIR read API over the app's own scenarios, on its own Worker. Two findings the derived spec could not have had; **filed #364** |
+| **#366** (`9ad230e`) | **Panel step 2 — the SMART launch.** `/authorize` + `/token`, PKCE S256 verified, patient-bound tokens, `frame-ancestors` on the panel host. Also settled the consent-screen question |
+| **#368** (`b877e21`) | **Eight gates were running only on developer machines**, and one of them could not run on the repo's own Node version. CI now calls `npm run verify` |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -88,19 +111,29 @@ could otherwise act on:
   the same document, so treat it as a reconstruction rather than a recovered
   original.
 
-⚠️ **The ladder still has never had an outside review.** #351 reviewed it, but
-#348's code and its tests were written by the same session. Two suspected
-#327-shaped defects were checked and are **false alarms** (`answerText` reads
-`valueCoding` first; `valueText` is a pre-existing repo-wide convention) — worth
-knowing so they are not re-investigated.
+⚠️ **Nothing on this path has had an outside review, and the pile is growing.**
+The ladder, the scorecard, `PanelShell`, the code drawer, `services/mock-ehr/`
+and now an **authorization stub** were each written and checked by the same
+session that designed them. Planting defects before trusting a gate is the
+strongest thing available from inside — 8 were planted against the auth stub
+alone, and all 8 were caught — but it is not the same as another reader, and
+auth is the worst place for that gap. Two suspected #327-shaped defects in the
+ladder were checked and are **false alarms** (`answerText` reads `valueCoding`
+first; `valueText` is a pre-existing repo-wide convention) — recorded so they
+are not re-investigated.
 
 ## Take this first — deploy the two Workers and run the launch in a browser
 
-⚠️ **Steps 1 and 2 are both built, and neither has ever run outside Node.**
-That is now the single most valuable thing anyone can do here, and it is not a
-build task: `wrangler deploy` the mock EHR, point `PANEL_FRAME_ANCESTORS` at its
-real origin, open the control page, mint a launch, and watch the panel come up
-inside it. Everything below step 2 assumes that works, and nothing has checked.
+⚠️ **Steps 1 and 2 are merged (`c501c73`, `9ad230e`) and neither has ever run
+outside Node.** That is now the single most valuable thing anyone can do here,
+and it is not a build task: `wrangler deploy` the mock EHR, point
+`PANEL_FRAME_ANCESTORS` at its real origin, open the control page, mint a
+launch, and watch the panel come up inside it. Everything below step 2 assumes
+that works, and nothing has checked.
+
+⚠️ **It needs Brad's Cloudflare account**, so it is not something a session can
+finish alone — which is exactly why it keeps not happening. Deploying is the
+whole task; the code is on `main`.
 
 | Panel step | State |
 |---|---|
@@ -180,8 +213,9 @@ spec and fatal in a browser).
   *should* land. If the real subdomain differs the panel renders blank inside
   the host, and the browser console names the blocked ancestor exactly — that is
   the first thing to check, not the last.
-- **#364 — the fixture `subject` fix.** Filed, unstarted. Its step 4 is the one
-  that matters: when it lands, delete the stamping in
+- **#364 — the fixture `subject` fix.** Filed, unstarted. Its **last** step is
+  the one that matters (not to be confused with panel step 4): when the fixtures
+  gain a real `subject`, delete the stamping in
   `services/mock-ehr/src/fixtures.ts` and assert `NORMALIZED_LINKS` is empty, or
   the workaround outlives the defect it works around.
 - ✅ ~~**Whether the mock ships a consent screen.**~~ **DECIDED 2026-08-19: no**
@@ -443,4 +477,18 @@ SPiER-profiled type with no artifact behind it, filed separately.
 - **A worktree is scratch space, not storage.** Anything that must survive gets committed to a branch the same session. Untracked files in an abandoned worktree are invisible to every gate, and `git worktree remove` takes them with it. This cost one plan doc permanently (#351 re-derived a replacement, which is not the same thing).
 - **Don't pin a count in prose.** `CLAUDE.md` said "eleven drift checks" while `verify` ran fourteen. The list is now the source of truth and carries no number — the same reasoning as matching SUSHI warning *shape* rather than count, and the same failure as a stale `check:codings` floor (#232).
 - **Watch the post-merge run, not just the PR's.** `pull_request` CI tests the merge with `main` as it stood when the run happened, not at merge time.
-- **`services/cds-hooks` has its own verify** that `web`'s does not cover.
+- **`services/cds-hooks` has its own verify** that `web`'s does not cover, and
+  so does `services/mock-ehr`.
+- ⚠️ **A CI job that re-lists a script's steps will drift from it.** New,
+  2026-08-19: `web-lint.yml`'s verify job hand-copied part of `npm run verify`,
+  and eight gates were never on the list. Nothing could see it, because a
+  hand-copied list has nothing to compare itself against — the same shape as the
+  stale `check:codings` floor (#232) and the "eleven drift checks" prose. **Call
+  the script; do not restate it.**
+- ⚠️ **"It passes locally" can mean "it cannot run in CI at all."** The same
+  session found `check:dates` using `fs.globSync`, which needs **Node 22**,
+  while all 14 workflows pin **Node 20** and no package declares `engines`. The
+  gate had never run anywhere but on developer machines that happened to be on
+  22, and it threw a `SyntaxError` the first time CI executed it. When adding a
+  gate, the Node baseline is part of the contract — and a green local run on a
+  newer runtime is not evidence about CI.
