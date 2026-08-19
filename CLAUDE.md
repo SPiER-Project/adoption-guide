@@ -13,7 +13,19 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, every `check:*` drift gate listed below, and the unit tests in sequence. (**Deliberately not a count.** This line said "eleven" while `verify` ran fourteen, because a pinned number goes stale silently on every gate added — the same failure as a stale `check:codings` floor in #232. If you add a gate, add it to this list; there is no number to bump.) The individual pieces, in the order `verify` runs them:
+In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, every `check:*` drift gate listed below, and the unit tests in sequence. (**Deliberately not a count.** This line said "eleven" while `verify` ran fourteen, because a pinned number goes stale silently on every gate added — the same failure as a stale `check:codings` floor in #232. If you add a gate, add it to this list; there is no number to bump.)
+
+⚠️ **CI runs `npm run verify` itself**, rather than re-listing its steps, so a
+gate added to `package.json` is enforced automatically. It did not always: the
+`verify` job in `web-lint.yml` hand-listed a subset, and **eight gates ran only
+on developer machines** — `check:template`, `check:patients`, `check:fallback`,
+`check:measures`, `check:reassessment`, `check:dates`, `check:ucum`,
+`check:fhir-r5`. All eight passed and all eight together take ~3s, so cost was
+never the reason; a hand-copied list simply has nothing to compare itself
+against. **Do not re-expand that job into individual steps.** The fast
+`lint-css` job deliberately re-runs the copy-fhir-free gates for quick feedback;
+that overlap is intentional, and nothing may live there that is not also in
+`verify`. The individual pieces, in the order `verify` runs them:
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)

@@ -36,6 +36,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Fast feedback. Every gate here ALSO runs in the `verify` job below, which
+  # calls `npm run verify` wholesale — that redundancy is deliberate, not drift.
+  # These are the gates that need no `copy-fhir`, so they report in ~30s instead
+  # of waiting on a SUSHI compile. Deleting this job would lose nothing but
+  # speed; adding a gate here that is NOT in `npm run verify` would recreate the
+  # hand-copied-list problem the verify job's comment describes.
   lint-css:
     runs-on: ubuntu-latest
     defaults:
@@ -109,33 +115,34 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Generates web/src/data/fhir/*.json and care-plan-profiles.generated.ts,
-      # which src/data/catalog/stages.ts and src/lib/carePlanMappers/shared.ts
-      # import. Must run before tsc and build.
-      - name: Copy FHIR resources
-        run: npm run copy-fhir
+      # ⚠️ ONE step on purpose: `npm run verify` runs the whole gate list, the
+      # same way the cds-hooks and mock-ehr jobs below do.
+      #
+      # This job used to hand-list its steps — copy-fhir, check:catalog,
+      # check:scenarios:resources, tsc, lint, test — and that list drifted from
+      # the one in package.json. EIGHT gates were only ever run locally:
+      # check:template, check:patients, check:fallback, check:measures,
+      # check:reassessment, check:dates, check:ucum and check:fhir-r5. All eight
+      # passed, and together they take about three seconds; the cost was never
+      # the reason they were missing. Nothing gated the drift, because a
+      # hand-copied list has nothing to compare itself against — the same
+      # failure as the stale `check:codings` floor (#232) and the "eleven drift
+      # checks" prose in CLAUDE.md.
+      #
+      # Calling the script means a gate added to package.json is enforced here
+      # automatically, and there is no second list to keep in sync. Do not
+      # re-expand this into individual steps to get prettier step names.
+      #
+      # `verify` starts with `copy-fhir -- --force`, which generates
+      # web/src/data/fhir/*.json and care-plan-profiles.generated.ts (imported
+      # by src/data/catalog/stages.ts and src/lib/carePlanMappers/shared.ts), so
+      # the separate copy-fhir step this job used to run is redundant — keeping
+      # it would compile the FSH twice.
+      - name: Verify (typecheck, lint, every check:* gate, unit tests)
+        run: npm run verify
 
-      # Needs the generated ActivityDefinition/PlanDefinition/CodeSystem JSON,
-      # so it runs after copy-fhir.
-      - name: Check catalog integrity
-        run: npm run check:catalog
-
-      # The other half of check:scenarios — every NON-QuestionnaireResponse
-      # resource in the population scenarios. Lives here rather than in the fast
-      # job because it derives its profile constraints from the generated
-      # StructureDefinitions, which copy-fhir produces.
-      - name: Check scenario resources
-        run: npm run check:scenarios:resources
-
-      - name: Typecheck
-        run: npx tsc -b
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Unit tests
-        run: npm test
-
+      # Not part of `verify` — a production build is a different question from
+      # "is the source correct", and it is the slowest thing here.
       - name: Build
         run: npm run build
 

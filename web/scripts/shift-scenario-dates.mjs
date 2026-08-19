@@ -50,10 +50,9 @@
  * pushed an episode past the anchor. If you re-date again, set new deltas, run
  * --apply once, and reset them to 0 (or update ANCHOR and start over).
  */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { resolve, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { globSync } from 'node:fs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const scenarioDir = resolve(here, '../src/data/population/scenarios')
@@ -209,7 +208,15 @@ function checkScenario(name, doc, anchorMs, errors, warnings) {
 /* ─── Main ───────────────────────────────────────────────── */
 
 const apply = process.argv.includes('--apply')
-const files = globSync('patient-*.json', { cwd: scenarioDir }).sort()
+// `readdirSync` + filter rather than `fs.globSync`, which needs Node 22 while
+// every workflow here pins Node 20. This script was the only globSync user in
+// the repo, and the mismatch was invisible for as long as the gate ran solely
+// on developer machines: it threw `SyntaxError: does not provide an export
+// named 'globSync'` the first time CI executed it. Every other script in
+// web/scripts enumerates with readdirSync; this now matches.
+const files = readdirSync(scenarioDir)
+  .filter(name => /^patient-.*\.json$/.test(name))
+  .sort()
 if (files.length === 0) {
   console.error(`✗ no scenario files found under ${scenarioDir}`)
   process.exit(1)
