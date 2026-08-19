@@ -1,6 +1,6 @@
 # Handoff — next session
 
-Rewritten **2026-08-19**. `main` was at **`b877e21`** when this was written,
+Rewritten **2026-08-19** (second pass that day). `main` was at **`fe5c2cd`** when this was written,
 confirmed against `origin/main`; check rather than trust that. Every number
 below was re-derived on that commit, not copied forward.
 
@@ -36,15 +36,15 @@ The rule now has three halves:
 - **No open PRs.** **38 open issues** (37 + #364, filed by the step-1 work).
   (Both counted with an explicit `--limit`; `gh issue list` defaults to 30 and
   silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `b877e21`**: every `check:*` gate
-  green, **57 test files / 673 tests**. (No count of the gates here on purpose —
+- `web` — `npm run verify` exits 0, **re-run on `fe5c2cd`**: every `check:*` gate
+  green, **58 test files / 678 tests**. (No count of the gates here on purpose —
   `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
   stale.)
 - `services/cds-hooks` — its own `verify` exits 0, 27 tests (three new ones
   cover the `frame-ancestors` CSP the panel needs). **`web`'s verify does not
   cover it.**
 - `services/mock-ehr` — **new, and now two packages deep.** Its own `verify`
-  exits 0, **5 test files / 60 tests**, its own `mock-ehr` CI job in
+  exits 0, **61 tests**, its own `mock-ehr` CI job in
   `web-lint.yml`. `web`'s verify does not cover it either. **There are now
   three `verify`s in this repo and `web`'s covers one of them.**
 - ⚠️ **CI now runs `npm run verify` for all three packages** rather than
@@ -54,8 +54,8 @@ The rule now has three halves:
   `check:dates`, `check:ucum`, `check:fhir-r5`. A gate added to `package.json`
   is now enforced automatically; **do not re-expand that job into individual
   steps.**
-- CI green on `main`, **including the post-merge runs for `c501c73`, `9ad230e`
-  and `b877e21`** — watched, not assumed.
+- CI green on `main`, **including the post-merge runs for `c501c73`, `9ad230e`,
+  `b877e21`, `9d0207d` and `fe5c2cd`** — watched, not assumed.
 - ⚠️ **A squash-merged stack needs a rebase, and this repo does not delete
   merged branches.** #366 was stacked on #365's branch. Squash-merging #365
   produced a new SHA on `main` while `claude/mock-ehr-read-api` still existed,
@@ -100,6 +100,8 @@ The rule now has three halves:
 | **#365** (`c501c73`) | **Panel step 1 — `services/mock-ehr/`.** A FHIR read API over the app's own scenarios, on its own Worker. Two findings the derived spec could not have had; **filed #364** |
 | **#366** (`9ad230e`) | **Panel step 2 — the SMART launch.** `/authorize` + `/token`, PKCE S256 verified, patient-bound tokens, `frame-ancestors` on the panel host. Also settled the consent-screen question |
 | **#368** (`b877e21`) | **Eight gates were running only on developer machines**, and one of them could not run on the repo's own Node version. CI now calls `npm run verify` |
+| **#367** (`9d0207d`) | Handoff refresh |
+| **#369** (`fe5c2cd`) | **Three defects only a browser launch could find** — see below |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -117,33 +119,82 @@ and now an **authorization stub** were each written and checked by the same
 session that designed them. Planting defects before trusting a gate is the
 strongest thing available from inside — 8 were planted against the auth stub
 alone, and all 8 were caught — but it is not the same as another reader, and
-auth is the worst place for that gap. Two suspected #327-shaped defects in the
+auth is the worst place for that gap — **and it is now deployed to a public
+origin**, which raises the stakes without changing the evidence. Two suspected
+#327-shaped defects in the
 ladder were checked and are **false alarms** (`answerText` reads `valueCoding`
 first; `valueText` is a pre-existing repo-wide convention) — recorded so they
 are not re-investigated.
 
-## Take this first — deploy the two Workers and run the launch in a browser
+## Take this first — the panel is LIVE; steps 4 and 5 are what remain
 
-⚠️ **Steps 1 and 2 are merged (`c501c73`, `9ad230e`) and neither has ever run
-outside Node.** That is now the single most valuable thing anyone can do here,
-and it is not a build task: `wrangler deploy` the mock EHR, point
-`PANEL_FRAME_ANCESTORS` at its real origin, open the control page, mint a
-launch, and watch the panel come up inside it. Everything below step 2 assumes
-that works, and nothing has checked.
+✅ **The deploy happened, and the launch works.** This section said for two
+rewrites that deploying was the bottleneck. It is done:
 
-⚠️ **It needs Brad's Cloudflare account**, so it is not something a session can
-finish alone — which is exactly why it keeps not happening. Deploying is the
-whole task; the code is on `main`.
+| | |
+|---|---|
+| Mock EHR | **https://spier-mock-ehr.bbthorson.workers.dev** — control page, FHIR API, SMART auth |
+| Panel | **https://spier-adoption-guide.bbthorson.workers.dev** — launched from the mock |
+
+Verified in a real browser, end to end: mint a launch on the control page →
+the app's `/launch` → fhirclient `authorize()` → the mock's `/authorize` →
+back with a code → `ready()` exchanges it at `/token` with PKCE → the chart
+renders patient-011 (Maria Alvarez, RISK HIGH, `SMART` badge, 7 of 8 stages
+with activity) read live from the mock. No console errors. Also probed over the
+network: CORS preflight 204, wrong verifier → 400, foreign patient → 403,
+unregistered `redirect_uri` → 400 **with no `Location` header**.
+
+⚠️ **The mock is deployed from local `wrangler deploy`, not from CI.** The panel
+redeploys itself from `main` through the Cloudflare dashboard integration; the
+mock does not. **After merging anything under `services/mock-ehr/`, run
+`npm run deploy` there** or the live host silently keeps serving the old build.
+`MOCK_SIGNING_SECRET` is **not set**, so it falls back to the obvious
+development value in `tokens.ts` — fine (it protects nothing real, the data is
+synthetic) but worth knowing before anyone reasons about it as a control.
 
 | Panel step | State |
 |---|---|
 | 0 — width spike | **Done** (§9.1) |
-| 1 — mock EHR read API + `/metadata` | **Done** — `services/mock-ehr/` |
-| 2 — SMART authorize/token stub | **Done, server side.** PKCE S256 verified, patient-bound tokens, `frame-ancestors` on the panel host. **The iframe half is unproven** |
+| 1 — mock EHR read API + `/metadata` | **Done and deployed** |
+| 2 — SMART authorize/token stub | **Done and deployed**, proven in a browser |
 | 3 — `PanelShell`, nav stack, code drawer | **Done** — #358, #360 |
-| **4 — writes + capability degradation** | **NEXT to build.** The ladder driver is on `main`; the four capability profiles are built and switchable. Needs a Durable Object — see below |
-| 5 — host chrome, launch button, CDS `type:"smart"` card | Unblocked. `POST /_admin/launch` is the button's engine; step 5 is the chart around it |
-| 6 — FHIRcast across the origin boundary | Unblocked |
+| **4 — writes + capability degradation** | **Unstarted.** The ladder driver is on `main` and the four capability profiles are switchable, so this is mostly a server. Needs a Durable Object — see the replay note below |
+| **5 — host chrome, launch button, CDS `type:"smart"` card** | **Unstarted, and it now carries the one unproven claim** — see next |
+
+### The one thing still unproven: the panel inside a frame
+
+`frame-ancestors 'self' https://spier-mock-ehr.bbthorson.workers.dev` is **live**
+on the panel host and names the mock's real origin (the default guess turned out
+to be right). But **nothing has ever loaded the panel in an iframe**, because
+the mock has no host chrome to embed it in — the launch opens top-level.
+
+So the cross-origin *embedding* claim — the thing the whole proposal rests on —
+is the last untested one. §9's build order puts step 5 after step 4 but says it
+"can slot earlier if something recordable is needed sooner"; **closing this gap
+is a reason to slot it earlier**, and it is a small job: a patient list and a
+patient page with an iframe in it.
+
+### What #369 found, and why it matters more than the fixes
+
+Three defects, all found by *looking at the deployed thing*, none catchable by
+the suites that were passing the whole time:
+
+1. **"Invalid Date Invalid Date" on every SMART-read QuestionnaireResponse.**
+   The `StoredResponse` wrapper carries `completedAt`; **not one of the 20
+   scenario QRs carries `authored`**. Fixed in both origins — the mock supplies
+   it from the wrapper, and `formatDateTime` now returns an em dash for
+   anything unparseable, because a real EHR need not send `authored` either.
+2. **The banner showed `MRN patient-011`** for a patient whose MRN is `11011`,
+   while the local data source showed the real number on the same chart.
+   `readSmartPatientSummary` never read `Patient.identifier`.
+3. The mock's control page still claimed "no authorization yet".
+
+⚠️ **All three sit in seams no test was looking at**: wrapper metadata the FHIR
+resource lacks (1), and presentation nothing asserts (2). 678 web tests, 61 mock
+tests and every drift gate were green throughout. **1 and 2 are the same class
+as the missing `subject`** — see #364, which now owes three fixture fields, not
+one, and whose closure should delete both `NORMALIZED_LINKS` and
+`NORMALIZED_AUTHORED` from `services/mock-ehr/src/fixtures.ts`.
 
 ### What step 2 built, and what it deliberately did not
 
@@ -199,25 +250,24 @@ spec and fatal in a browser).
 
 ### Still owed on steps 1 and 2
 
-- **A browser run, and a deploy.** The tests drive the real `SmartDataSource`
-  through a real fhirclient over loopback HTTP, and every FHIR read in the suite
-  now goes through a real `/authorize` → `/token` exchange. That proves the
-  contract, the PKCE round trip and the failure directions. It does **not**
-  prove CORS preflight, `frame-ancestors`, cross-site cookie/storage behaviour
-  in an iframe, or fhirclient's own browser-side `authorize()`/`ready()` (those
-  need a location redirect and sessionStorage, so the tests exchange the code
-  directly instead). Nothing has been deployed; `spier-mock-ehr` is a name in a
-  config file.
-- ⚠️ **`PANEL_FRAME_ANCESTORS` is a guess until then.** The default names
-  `https://spier-mock-ehr.bbthorson.workers.dev`, which is where the Worker
-  *should* land. If the real subdomain differs the panel renders blank inside
-  the host, and the browser console names the blocked ancestor exactly — that is
-  the first thing to check, not the last.
-- **#364 — the fixture `subject` fix.** Filed, unstarted. Its **last** step is
-  the one that matters (not to be confused with panel step 4): when the fixtures
-  gain a real `subject`, delete the stamping in
-  `services/mock-ehr/src/fixtures.ts` and assert `NORMALIZED_LINKS` is empty, or
-  the workaround outlives the defect it works around.
+- ✅ ~~**A browser run, and a deploy.**~~ **Both done.** fhirclient's own
+  browser-side `authorize()`/`ready()`, CORS preflight and the whole
+  authorization-code exchange are proven against the deployed host.
+- ✅ ~~**`PANEL_FRAME_ANCESTORS` is a guess.**~~ The Worker landed on exactly the
+  guessed origin, and the header is live on the panel host.
+- ⚠️ **Still unproven: the panel INSIDE a frame.** Nothing has embedded it yet —
+  the launch opens top-level because the mock has no host chrome. Cross-site
+  storage in a third-party frame is the specific risk (a browser partitions or
+  blocks it, and fhirclient keeps its state in `sessionStorage`). **This is the
+  last untested part of the central claim.** Step 5.
+- **#364 — the fixture fixes. It now covers TWO fields, not one.** Filed for the
+  missing `subject`; #369 found the same class again in `authored` (0 of 20 QRs
+  carry it). Both are worked around in `services/mock-ehr/src/fixtures.ts` and
+  both are pinned by tests. Its **last** step is the one that matters (not panel
+  step 4): when the fixtures carry both fields, delete the stamping and assert
+  **`NORMALIZED_LINKS` and `NORMALIZED_AUTHORED` are empty**, or the workarounds
+  outlive the defects they work around. ⚠️ **The issue text still describes only
+  `subject`** — update it before starting.
 - ✅ ~~**Whether the mock ships a consent screen.**~~ **DECIDED 2026-08-19: no**
   — `/authorize` auto-approves, and the reason is realism, not speed (a
   clinician EHR launch does not re-consent per launch; that is a patient-facing
@@ -485,6 +535,15 @@ SPiER-profiled type with no artifact behind it, filed separately.
   hand-copied list has nothing to compare itself against — the same shape as the
   stale `check:codings` floor (#232) and the "eleven drift checks" prose. **Call
   the script; do not restate it.**
+- ⚠️ **A green suite says nothing about what is on the screen.** New,
+  2026-08-19: deploying the mock and launching it in a browser found three
+  defects in ten minutes — a date rendering as "Invalid Date Invalid Date" on
+  every SMART-read QuestionnaireResponse, an MRN showing a resource id, and a
+  page claiming an auth posture that had changed. 678 web tests, 61 mock tests
+  and every drift gate were green throughout, because all three sat in seams
+  nothing asserted: wrapper metadata the FHIR resource lacks, and presentation
+  no test reads. **Look at the deployed thing.** It is not a substitute for
+  tests and they are not a substitute for it.
 - ⚠️ **"It passes locally" can mean "it cannot run in CI at all."** The same
   session found `check:dates` using `fs.globSync`, which needs **Node 22**,
   while all 14 workflows pin **Node 20** and no package declares `engines`. The
