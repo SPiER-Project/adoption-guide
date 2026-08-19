@@ -47,6 +47,13 @@ The rule now has three halves:
   exits 0, **5 test files / 60 tests**, its own `mock-ehr` CI job in
   `web-lint.yml`. `web`'s verify does not cover it either. **There are now
   three `verify`s in this repo and `web`'s covers one of them.**
+- ⚠️ **CI now runs `npm run verify` for all three packages** rather than
+  re-listing its steps (#368). Before that, the `web` job hand-listed a subset
+  and **eight gates ran only on developer machines** — `check:template`,
+  `check:patients`, `check:fallback`, `check:measures`, `check:reassessment`,
+  `check:dates`, `check:ucum`, `check:fhir-r5`. A gate added to `package.json`
+  is now enforced automatically; **do not re-expand that job into individual
+  steps.**
 - CI green on `main`, **including the post-merge runs for `c501c73` and
   `9ad230e`** — watched, not assumed.
 - ⚠️ **A squash-merged stack needs a rebase, and this repo does not delete
@@ -92,6 +99,7 @@ The rule now has three halves:
 |---|---|
 | **#365** (`c501c73`) | **Panel step 1 — `services/mock-ehr/`.** A FHIR read API over the app's own scenarios, on its own Worker. Two findings the derived spec could not have had; **filed #364** |
 | **#366** (`9ad230e`) | **Panel step 2 — the SMART launch.** `/authorize` + `/token`, PKCE S256 verified, patient-bound tokens, `frame-ancestors` on the panel host. Also settled the consent-screen question |
+| **#368** (`b877e21`) | **Eight gates were running only on developer machines**, and one of them could not run on the repo's own Node version. CI now calls `npm run verify` |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -469,4 +477,18 @@ SPiER-profiled type with no artifact behind it, filed separately.
 - **A worktree is scratch space, not storage.** Anything that must survive gets committed to a branch the same session. Untracked files in an abandoned worktree are invisible to every gate, and `git worktree remove` takes them with it. This cost one plan doc permanently (#351 re-derived a replacement, which is not the same thing).
 - **Don't pin a count in prose.** `CLAUDE.md` said "eleven drift checks" while `verify` ran fourteen. The list is now the source of truth and carries no number — the same reasoning as matching SUSHI warning *shape* rather than count, and the same failure as a stale `check:codings` floor (#232).
 - **Watch the post-merge run, not just the PR's.** `pull_request` CI tests the merge with `main` as it stood when the run happened, not at merge time.
-- **`services/cds-hooks` has its own verify** that `web`'s does not cover.
+- **`services/cds-hooks` has its own verify** that `web`'s does not cover, and
+  so does `services/mock-ehr`.
+- ⚠️ **A CI job that re-lists a script's steps will drift from it.** New,
+  2026-08-19: `web-lint.yml`'s verify job hand-copied part of `npm run verify`,
+  and eight gates were never on the list. Nothing could see it, because a
+  hand-copied list has nothing to compare itself against — the same shape as the
+  stale `check:codings` floor (#232) and the "eleven drift checks" prose. **Call
+  the script; do not restate it.**
+- ⚠️ **"It passes locally" can mean "it cannot run in CI at all."** The same
+  session found `check:dates` using `fs.globSync`, which needs **Node 22**,
+  while all 14 workflows pin **Node 20** and no package declares `engines`. The
+  gate had never run anywhere but on developer machines that happened to be on
+  22, and it threw a `SyntaxError` the first time CI executed it. When adding a
+  gate, the Node baseline is part of the contract — and a green local run on a
+  newer runtime is not evidence about CI.
