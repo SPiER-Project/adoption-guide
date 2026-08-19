@@ -1,6 +1,6 @@
 # Handoff — next session
 
-Rewritten **2026-08-19**. `main` was at **`9ad230e`** when this was written,
+Rewritten **2026-08-19**. `main` was at **`b877e21`** when this was written,
 confirmed against `origin/main`; check rather than trust that. Every number
 below was re-derived on that commit, not copied forward.
 
@@ -36,7 +36,7 @@ The rule now has three halves:
 - **No open PRs.** **38 open issues** (37 + #364, filed by the step-1 work).
   (Both counted with an explicit `--limit`; `gh issue list` defaults to 30 and
   silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `9ad230e`**: every `check:*` gate
+- `web` — `npm run verify` exits 0, **re-run on `b877e21`**: every `check:*` gate
   green, **57 test files / 673 tests**. (No count of the gates here on purpose —
   `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
   stale.)
@@ -54,8 +54,8 @@ The rule now has three halves:
   `check:dates`, `check:ucum`, `check:fhir-r5`. A gate added to `package.json`
   is now enforced automatically; **do not re-expand that job into individual
   steps.**
-- CI green on `main`, **including the post-merge runs for `c501c73` and
-  `9ad230e`** — watched, not assumed.
+- CI green on `main`, **including the post-merge runs for `c501c73`, `9ad230e`
+  and `b877e21`** — watched, not assumed.
 - ⚠️ **A squash-merged stack needs a rebase, and this repo does not delete
   merged branches.** #366 was stacked on #365's branch. Squash-merging #365
   produced a new SHA on `main` while `claude/mock-ehr-read-api` still existed,
