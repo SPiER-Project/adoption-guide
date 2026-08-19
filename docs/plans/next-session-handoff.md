@@ -1,10 +1,10 @@
 # Handoff — next session
 
-Rewritten **2026-08-19** (third pass that day). `main` was at **`fa2a503`** when this was written,
+Rewritten **2026-08-19** (fourth pass that day). `main` was at **`9a34eba`** when this was written,
 confirmed against `origin/main`; check rather than trust that. Every number
 below was re-derived on that commit, not copied forward.
 
-⚠️ **Ten rewrites across two days is itself the finding.** Six on 2026-08-18
+⚠️ **Eleven rewrites across two days is itself the finding.** Six on 2026-08-18
 alone; four of five merges that day made this file wrong within the hour, twice
 still saying "take `PanelShell` first" or "take the code drawer first" after
 those merged. The durable fix is probably to shrink this file to the open
@@ -33,10 +33,10 @@ The rule now has three halves:
 
 ## State of the repo
 
-- **No open PRs.** **38 open issues.**
+- **No open PRs.** **37 open issues** (#126 closed).
   (Both counted with an explicit `--limit`; `gh issue list` defaults to 30 and
   silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `fa2a503`**: every `check:*` gate
+- `web` — `npm run verify` exits 0, **re-run on `9a34eba`**: every `check:*` gate
   green, **58 test files / 682 tests**. (No count of the gates here on purpose —
   `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
   stale.)
@@ -55,7 +55,8 @@ The rule now has three halves:
   is now enforced automatically; **do not re-expand that job into individual
   steps.**
 - CI green on `main`, **including the post-merge runs for `c501c73`, `9ad230e`,
-  `b877e21`, `9d0207d`, `fe5c2cd` and `fa2a503`** — watched, not assumed.
+  `b877e21`, `9d0207d`, `fe5c2cd`, `fa2a503`, `be59ce5` and `9a34eba`** — watched, not
+  assumed.
 - ⚠️ **A squash-merged stack needs a rebase, and this repo does not delete
   merged branches.** #366 was stacked on #365's branch. Squash-merging #365
   produced a new SHA on `main` while `claude/mock-ehr-read-api` still existed,
@@ -104,6 +105,8 @@ The rule now has three halves:
 | **#369** (`fe5c2cd`) | **Three defects only a browser launch could find** — see below |
 | **#370** (`f81cab0`) | Handoff refresh |
 | **#371** (`fa2a503`) | **`PatientProvider` decomposed, 558 → 209** — four hooks out, and the #263 save path finally gated. #126's premise had inverted; see below |
+| **#372** (`be59ce5`) | Handoff refresh |
+| **#373** (`9a34eba`) | **`PatientChart` 531 → 201** — three inline sections out. **#126 is closed** |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -487,7 +490,6 @@ Nothing here is urgent; listed so it is not re-derived each session.
 
 | Issue | What | Milestone |
 |---|---|---|
-| #126 | **Only the `PatientChart.tsx` file split is left** — the provider half landed in #371. See the note below before starting | M7 |
 | #125 | Consolidate hardcoded example Observations into IG example instances | M7 |
 | #228 | [TL-009] Write the handoff-content-item checklist from the transition recorder | M3 |
 | #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset) | M5 |
@@ -506,7 +508,7 @@ these unchecked:
 (This paragraph previously said "none of it with an issue yet," which would have
 produced three duplicate issues. `gh issue view 350` is the authority.)
 
-### What is actually left on #126, and two things #371 found
+### #126 is CLOSED — what it turned out to be, and three things it found
 
 ⚠️ **#126's stated priority had inverted, and its own scope-update comment had
 gone stale the same way.** Both are corrected on the issue now; the short
@@ -526,13 +528,15 @@ concern **no version of the issue mentions**, because #263/#285 added it after
 both were written: the Encounter-correlation save path, now
 `hooks/useCorrelatedSave.ts`.
 
-**Left to do:** move `OtherActivitySection`, `EncountersTimeline` and
-`PatientDocuments` (~308 lines) out of `PatientChart.tsx` into a `PatientChart/`
-directory, `531 → ~220`. Purely mechanical — but **there is no `PatientChart`
-test at all**, so it rests on `tsc`, `check:template` and a browser click-through
-in both chrome modes, not on the suite.
+**Both halves are done** — #371 took the provider to 209, #373 took the page to
+201 by moving `OtherActivitySection`, `EncountersTimeline` and `PatientDocuments`
+out. ⚠️ **They went to `src/components/`, not the `PatientChart/` directory the
+issue asked for**, because all four children the page already composed were
+page-private *and* already there; a new directory would have held three of seven
+siblings and split one category across two locations. If that looks like drift
+from the issue text, the reasoning is in #373 — it was deliberate.
 
-Two findings worth not re-discovering:
+Three findings worth not re-discovering:
 
 - ⚠️ **The Encounter cache-clear was guarded by nothing.** Four tests were
   written before the extraction and each verified against a planted defect.
@@ -551,6 +555,13 @@ Two findings worth not re-discovering:
   `PatientProvider`'s own `dataSource` prop and call `cleanup()`, because
   **auto-cleanup is not enabled in this project's vitest setup** and every prior
   provider stayed mounted and subscribed. Same class as #327.
+- ⚠️ **`OtherActivitySection` renders for no demo patient.** It returns `null` on
+  an empty bucket, and unstaged artifacts only arrive from a *foreign* EHR, so
+  nothing local exercises it — a chart section that ships unlooked-at. #373
+  verified it by crafting a foreign QuestionnaireResponse plus a vendor
+  Observation, then removing them; **there is still no fixture that covers it.**
+  Worth a scenario if the panel work starts reading a real server, which is
+  exactly when this section starts mattering.
 
 **Deliberately parked, not drift:** the **ten** `status:built` tool epics (#20,
 #23, #24, #25, #26, #168, #170, #172, #175, #176) stay open by design and carry
@@ -571,10 +582,11 @@ SPiER-profiled type with no artifact behind it, filed separately.
 - **Prove a gate can fail before trusting it.** Every gate added in the last stretch was verified by planting the defect it targets. There are now several distinct silent-pass mechanisms in this repo; a green gate you have never seen go red is not evidence of anything.
 - ⚠️ **A squash merge makes `is-ancestor` lie.** New, 2026-08-18: a plan doc asserted work was unmerged on the strength of `git merge-base --is-ancestor <branch-sha> main`. The work had landed — squash-merged under a *different* SHA — and the local `main` ref was stale besides. That check answers "no" both when work is genuinely unmerged and when it merged under a new hash. **`git fetch origin main` first, and use `gh pr list --head <branch>` to decide;** the local ref is not the authority. This produced two corrections to the same paragraph in one day.
 - **Verify against the source, not memory, and re-derive the issue before planning.** Every issue picked up recently had at least one premise that had gone stale — twice that made the work smaller, once it changed the answer. None was wrong when filed.
-- **A shared fixture that is never reset is the same trap as a wrong assumption.** New, 2026-08-19 (#371): `localDataSource` is a module singleton that reads `localStorage` only in its constructor, so `localStorage.clear()` left its in-memory store intact and a test read the *previous* test's data. It passed because `waitFor` caught a count in transit through the expected value on its way past it. Inject a fresh source through the seam the provider already exposes (`PatientProvider`'s `dataSource` prop), and call `cleanup()` — auto-cleanup is **not** enabled here, so otherwise every prior provider stays mounted and subscribed.
+- **A shared fixture that is never reset is the same trap as a wrong assumption.** New, 2026-08-19 (#371): `localDataSource` is a module singleton that reads `localStorage` only in its constructor, so `localStorage.clear()` left its in-memory store intact and a test read the *previous* test's data. It passed because `waitFor` caught a count in transit through the expected value on its way past it. Inject a fresh source through the seam the provider already exposes (`PatientProvider`'s `dataSource` prop), and call `cleanup()` — auto-cleanup is **not** enabled here, so otherwise every prior provider stays mounted and subscribed. ⚠️ **The same singleton bites when crafting demo data by hand:** writing `spier-blank-slice` in devtools and then navigating does nothing, because the hash router does not reload the document and the in-memory store wins — and then overwrites what you wrote. It needs a real reload.
 - **A test can encode the wrong assumption and then defend it.** #327 is the sharpest case: `cssrsScreener.test.ts` asserted C-SSRS items are plain booleans and built fixtures to match, so a green suite certified a mapper against input the app never produces. `check:readers` is the class-level fix; `__fixtures__/nativeQr.ts` derives shapes from the Questionnaire rather than restating them.
 - **A worktree is scratch space, not storage.** Anything that must survive gets committed to a branch the same session. Untracked files in an abandoned worktree are invisible to every gate, and `git worktree remove` takes them with it. This cost one plan doc permanently (#351 re-derived a replacement, which is not the same thing).
 - **Don't pin a count in prose.** `CLAUDE.md` said "eleven drift checks" while `verify` ran fourteen. The list is now the source of truth and carries no number — the same reasoning as matching SUSHI warning *shape* rather than count, and the same failure as a stale `check:codings` floor (#232).
+- ⚠️ **`gh issue edit --body-file /dev/null` silently blanks an issue body.** New, 2026-08-19: a stray flag while retitling #126 wiped its body, and `gh` reported success. Recovered from the session's own earlier `gh issue view` output. **Pass only the flags you mean** — `gh issue edit` writes every field it is given, and there is no confirmation step.
 - **Watch the post-merge run, not just the PR's.** `pull_request` CI tests the merge with `main` as it stood when the run happened, not at merge time.
   ⚠️ **And `gh run list --commit <short-sha>` returns an empty list**, not an error — it wants the full SHA. A poller that waits for "no run is `in_progress`" therefore reports SETTLED immediately against zero runs, which is how #371's post-merge watch passed vacuously on its first attempt before being redone with `--branch main` and an explicit emptiness guard. Exactly the #232 / #261 shape, in the tooling used to check for it: **a check that reads nothing must fail, not pass.**
 - **`services/cds-hooks` has its own verify** that `web`'s does not cover, and
