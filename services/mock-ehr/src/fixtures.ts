@@ -106,9 +106,11 @@ const PATIENT_ELEMENT: Record<string, 'subject' | 'patient' | 'for' | 'appointme
  * combination just leaves `QuestionnaireResponse.subject` unowned.
  *
  * Stamping here is the narrow fix — it keeps the change inside this service —
- * but the durable one is to add `subject` to the fixtures. `mock-ehr.test.ts`
- * pins this list so a NEW unlinked resource in any other bucket fails loudly
- * instead of quietly acquiring a link.
+ * but the durable one is to add `subject` to the fixtures: **issue #364**. When
+ * that lands, DELETE this stamping and assert the list is empty, so the
+ * workaround dies with the defect instead of outliving it. `fixtures.test.ts`
+ * pins the list meanwhile, so a NEW unlinked resource in any other bucket fails
+ * loudly instead of quietly acquiring a link.
  */
 export const NORMALIZED_LINKS: string[] = []
 

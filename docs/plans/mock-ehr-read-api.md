@@ -222,8 +222,9 @@ stamped** (`NORMALIZED_LINKS`), pinned by a test to exactly those 20 QRs, so a
 resource in any other bucket losing its link fails loudly instead of quietly
 acquiring one. That is the narrow fix, chosen to keep the change inside this
 service. **The durable fix is to add `subject` to the fixtures** and let the
-existing gate own it — worth a separate issue, because it touches the app's
-scenarios and the gate that reads them.
+existing gate own it — filed as **#364**, which also carries the step most
+likely to be skipped: delete the stamping here and assert `NORMALIZED_LINKS` is
+empty, so the workaround dies with the defect rather than outliving it.
 
 ### 2. `category=procedure` returns empty for all 14 patients, and two Observations are unreachable
 

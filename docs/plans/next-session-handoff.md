@@ -124,8 +124,8 @@ reading, and it found two things:
    "points at THIS patient" check does not walk `responses`, and
    `check-scenario-responses.mjs` checks QRs against their Questionnaire, which
    says nothing about `subject`. Neither is wrong; between them the element is
-   unowned. **The mock stamps it and pins the list of what it stamped. The
-   durable fix is in the fixtures, and needs an issue.**
+   unowned. **The mock stamps it and pins the list of what it stamped; the
+   durable fix is in the fixtures — filed as #364.**
 2. **`category=procedure` is empty for all 14 patients** (means-safety is a
    `Procedure`, not an Observation), and the two `category=exam` Observations
    reach no chart at all through SMART — including patient-002's *only*
@@ -144,8 +144,10 @@ spec and fatal in a browser).
   launch. Do that when step 2 lands and the thing can actually be launched.
 - **Never deployed.** No `wrangler deploy` has been run; the Worker name
   `spier-mock-ehr` is claimed only in `wrangler.jsonc`.
-- **An issue for the fixture `subject` fix** (finding 1). Not filed — file
-  before starting it.
+- **#364 — the fixture `subject` fix** (finding 1). Filed, unstarted. Its
+  step 4 is the one that matters: when it lands, delete the stamping in
+  `services/mock-ehr/src/fixtures.ts` and assert `NORMALIZED_LINKS` is empty,
+  or the workaround outlives the defect it works around.
 
 ### What step 3 settled, so it is not re-derived
 
