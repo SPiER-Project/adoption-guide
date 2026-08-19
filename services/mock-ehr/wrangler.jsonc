@@ -21,6 +21,26 @@
     // "full" | "no-observation" | "documents-only" | "read-only" (see
     // src/capability.ts). The control page switches it at runtime; this is
     // only the value a freshly started isolate begins with.
-    "MOCK_CAPABILITY_PROFILE": "full"
+    "MOCK_CAPABILITY_PROFILE": "full",
+
+    // ── SMART authorization (step 2) ──────────────────────────────────────
+    // "require" (default) or "off". `off` makes /fhir an open read API again,
+    // which is useful for curl exploration and proves nothing about auth.
+    "MOCK_AUTH_ENFORCE": "require",
+    // Where the panel lives, for the launch URL the control page mints.
+    "MOCK_PANEL_BASE_URL": "https://spier-adoption-guide.bbthorson.workers.dev/",
+    // Comma-separated EXACT redirect URIs, replacing the built-in defaults in
+    // src/smart.ts. The app computes its own as `import.meta.env.BASE_URL`
+    // against its origin, so the hosted forms differ by path: `/` on the
+    // Worker, `/adoption-guide/` on GitHub Pages. Blank = use the defaults.
+    "MOCK_REDIRECT_URIS": "",
+    // Comma-separated client ids. Blank = just the app's own `spier-client`.
+    "MOCK_CLIENT_IDS": ""
+
+    // NOT here: MOCK_SIGNING_SECRET. It signs launch contexts, authorization
+    // codes and access tokens, so it belongs in `wrangler secret put
+    // MOCK_SIGNING_SECRET` rather than in a committed file — even though this
+    // server holds only synthetic data and the secret protects nothing real.
+    // Unset, src/tokens.ts falls back to an obvious development value.
   }
 }

@@ -24,6 +24,7 @@ import type { fhirclient } from 'fhirclient/lib/types'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { SmartDataSource } from '../../../web/src/lib/dataSource/smartDataSource'
 import app from './app'
+import { launchFor } from './__fixtures__/launch'
 
 let server: Server
 let SERVER_URL = ''
@@ -90,21 +91,44 @@ function nodeEnvironment(): fhirclient.Adapter {
   } as unknown as fhirclient.Adapter
 }
 
-function clientFor(patientId: string): Client {
+/**
+ * A client holding a token obtained through the REAL `/authorize` → `/token`
+ * flow, with a genuine PKCE verifier — not a hand-written `tokenResponse`.
+ *
+ * fhirclient's own `oauth2.authorize()`/`ready()` are not driven here because
+ * they need a browser (a location redirect and sessionStorage). What is
+ * exercised is everything after that: the same authorization-code exchange the
+ * browser performs, and then every FHIR read carrying the resulting bearer
+ * token, which is the part this server implements.
+ */
+async function clientFor(patientId: string): Promise<Client> {
+  const { tokenResponse } = await launchFor(`http://127.0.0.1:${port}`, { patient: patientId })
   return new Client(nodeEnvironment(), {
     serverUrl: SERVER_URL,
-    tokenResponse: { patient: patientId },
+    tokenResponse,
   } as fhirclient.ClientState)
 }
 
 describe('SmartDataSource against the mock EHR', () => {
+  it('carries the SMART launch context on the token response', async () => {
+    // `intent` and `need_patient_banner` are how the host tells the panel what
+    // to open and whether to draw its own banner (§4). They ride the token
+    // response, so this is the only place their round trip can be asserted.
+    const launch = await launchFor(`http://127.0.0.1:${port}`, { patient: 'patient-011' })
+    expect(launch.tokenResponse).toMatchObject({
+      token_type: 'Bearer',
+      patient: 'patient-011',
+    })
+    expect(launch.tokenResponse.access_token).toBeTruthy()
+  })
+
   it('reads the launch Patient', async () => {
-    const patient = await clientFor('patient-011').patient.read()
+    const patient = await (await clientFor('patient-011')).patient.read()
     expect(patient).toMatchObject({ resourceType: 'Patient', id: 'patient-011' })
   })
 
   it('builds patient-011’s full slice — every bucket the chart renders', async () => {
-    const slice = await new SmartDataSource(clientFor('patient-011')).getSlice(null)
+    const slice = await new SmartDataSource(await clientFor('patient-011')).getSlice(null)
 
     // The two load-bearing searches.
     expect(slice.responses.length).toBe(5)
@@ -136,7 +160,7 @@ describe('SmartDataSource against the mock EHR', () => {
     // JSON, went through `deriveFromResponse`, and produced tiers. #327 is the
     // precedent — a QR whose answers are shaped wrong derives "no risk" while
     // looking completely healthy.
-    const slice = await new SmartDataSource(clientFor('patient-011')).getSlice(null)
+    const slice = await new SmartDataSource(await clientFor('patient-011')).getSlice(null)
     expect(slice.riskAlerts.length).toBeGreaterThan(0)
     for (const alert of slice.riskAlerts) {
       expect(alert.tool).toBeTruthy()
@@ -149,7 +173,7 @@ describe('SmartDataSource against the mock EHR', () => {
   })
 
   it('returns an empty-but-valid slice for the never-screened patient', async () => {
-    const slice = await new SmartDataSource(clientFor('patient-002')).getSlice(null)
+    const slice = await new SmartDataSource(await clientFor('patient-002')).getSlice(null)
     expect(slice.responses).toEqual([])
     expect(slice.observations).toEqual([])
     expect(slice.riskAlerts).toEqual([])
@@ -161,10 +185,11 @@ describe('SmartDataSource against the mock EHR', () => {
     // reject; Flag has one, so the same failure must degrade to an empty bucket.
     try {
       failTypes = ['QuestionnaireResponse']
-      await expect(new SmartDataSource(clientFor('patient-011')).getSlice(null)).rejects.toThrow()
+      const failClient = await clientFor('patient-011')
+      await expect(new SmartDataSource(failClient).getSlice(null)).rejects.toThrow()
 
       failTypes = ['Flag']
-      const degraded = await new SmartDataSource(clientFor('patient-011')).getSlice(null)
+      const degraded = await new SmartDataSource(await clientFor('patient-011')).getSlice(null)
       expect(degraded.flags).toEqual([])
       expect(degraded.responses.length).toBe(5)
     } finally {

@@ -25,7 +25,29 @@ import type { CdsDiscoveryResponse, CdsHookRequest } from './types'
 interface Env extends CdsJwtEnv {
   /** Static Assets binding — serves the built SPA from ./web-dist. */
   ASSETS: { fetch: (request: Request) => Promise<Response> }
+  /**
+   * Space-separated `frame-ancestors` sources for the SPA. This is what lets
+   * the mock EHR embed the app as a SMART panel; see the note below.
+   */
+  PANEL_FRAME_ANCESTORS?: string
 }
+
+/**
+ * Who may embed this app in a frame.
+ *
+ * The embedded-panel work launches the app INSIDE a host chart on a different
+ * origin, so framing has to be permitted deliberately. §6 of the panel plan
+ * calls this "the first thing that will break", and it is worth knowing which
+ * direction the breakage runs: with no CSP at all a browser frames this app
+ * from anywhere, so adding this header can only ever REDUCE what works. If the
+ * panel renders blank inside the mock EHR, this list is the first thing to
+ * check — the browser console names the blocked ancestor exactly.
+ *
+ * 'self' keeps the app's own same-origin iframes working (the step-0 width spike
+ * used one). Deliberately not a wildcard, which would make the header
+ * decorative.
+ */
+const DEFAULT_FRAME_ANCESTORS = "'self' https://spier-mock-ehr.bbthorson.workers.dev"
 
 /** Canonical GitHub Pages home of the rendered IG (see /ig redirect below). */
 const CANONICAL_IG_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
@@ -82,6 +104,16 @@ app.get('/ig/*', (c) => {
 // ── Static SPA (everything else) ─────────────────────────────────────────────
 // Delegate to Static Assets; not_found_handling: single-page-application means
 // unknown paths return index.html (harmless with the app's HashRouter).
-app.all('*', (c) => c.env.ASSETS.fetch(c.req.raw))
+app.all('*', async (c) => {
+  const asset = await c.env.ASSETS.fetch(c.req.raw)
+  // Re-wrapped rather than returned directly: an asset response from the
+  // binding has immutable headers, so the CSP cannot be attached in place.
+  const response = new Response(asset.body, asset)
+  response.headers.set(
+    'content-security-policy',
+    `frame-ancestors ${c.env.PANEL_FRAME_ANCESTORS || DEFAULT_FRAME_ANCESTORS}`,
+  )
+  return response
+})
 
 export default app

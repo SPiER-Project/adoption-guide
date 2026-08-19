@@ -218,3 +218,9 @@ export const RESOURCES_BY_KEY: Map<string, MockResource> = (() => {
 export const HELD_TYPES: string[] = [
   ...new Set(HELD_RESOURCES.map(h => h.resource.resourceType)),
 ].sort()
+
+/** The demo patients, sorted — for the control page's launch picker. */
+export const PATIENT_IDS: string[] = HELD_RESOURCES
+  .filter(h => h.resource.resourceType === 'Patient')
+  .map(h => String(h.resource.id))
+  .sort()

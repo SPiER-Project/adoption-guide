@@ -26,7 +26,7 @@ a clinical reviewer has to be *told* which half is for them.
 |---|---|
 | 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
 | 1 — mock EHR read API over the existing fixtures | **DONE** — `services/mock-ehr/`. Spec + what building it found: [`mock-ehr-read-api.md`](mock-ehr-read-api.md). §7 |
-| 2 — SMART authorize/token stub, cross-origin iframe launch | **Not started.** §4 |
+| 2 — SMART authorize/token stub, cross-origin iframe launch | **DONE (server side).** `/authorize` + `/token` with PKCE S256 verified, launch contexts, patient-bound tokens, `frame-ancestors` on the panel host. ⚠️ The *iframe* half is unproven — nothing is deployed and no browser has run it. §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **DONE 2026-08-18.** `PanelShell` in #358 (`3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. Code drawer in #360 (`1901c0e`): the stranded sidebar (§9.1 finding 3) becomes a bottom drawer, one tap from any scroll position. §3 |
 | 4 — writes + the capability-degradation demo | **Not started. The ladder driver is already ON MAIN** (#351, `6f37e0d`), so this is a server, not a build. §5 |
 | 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **Not started.** §9 |

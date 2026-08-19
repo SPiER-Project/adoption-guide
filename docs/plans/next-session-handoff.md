@@ -38,9 +38,10 @@ The rule now has three halves:
   green, **57 test files / 673 tests**. (No count of the gates here on purpose —
   `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
   stale.)
-- `services/cds-hooks` — its own `verify` exits 0, **re-run on `c6af8fd`**, 24
-  tests. **`web`'s verify does not cover it.**
-- `services/mock-ehr` — **new.** Its own `verify` exits 0, 33 tests, its own
+- `services/cds-hooks` — its own `verify` exits 0, 27 tests (three new ones
+  cover the `frame-ancestors` CSP the panel needs). **`web`'s verify does not
+  cover it.**
+- `services/mock-ehr` — **new.** Its own `verify` exits 0, 60 tests, its own
   `mock-ehr` CI job in `web-lint.yml`. `web`'s verify does not cover it either.
 - CI green on `main`, including the post-merge deploys for `266fd5f` and
   `3832e18`. The `266fd5f` deploy **genuinely re-rendered** the IG rather than
@@ -74,7 +75,8 @@ The rule now has three halves:
 | **#361** (`7d5356a`) | Handoff: panel step 3 done |
 | **#362** (`ad3ffe0`) | **§8 settled — the mock serves FHIR; the offline track is retired** |
 | **#363** (`c6af8fd`) | The step-1 read API spec, plus three corrections to what the panel plan said about it |
-| *(this branch)* | **`services/mock-ehr/` — step 1 built.** Two findings the derived spec could not have had; see "Take this first" |
+| **#365** | **`services/mock-ehr/` — step 1 built.** Two findings the derived spec could not have had |
+| *(this branch)* | **Step 2 — the SMART authorize/token stub.** PKCE S256 verified, patient-bound tokens, `frame-ancestors` on the panel host |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -92,23 +94,49 @@ could otherwise act on:
 `valueCoding` first; `valueText` is a pre-existing repo-wide convention) — worth
 knowing so they are not re-investigated.
 
-## Take this first — panel step 2, the SMART authorize/token stub
+## Take this first — deploy the two Workers and run the launch in a browser
 
-⚠️ **Step 1 is done.** `services/mock-ehr/` is built: a FHIR read API over the
-app's own scenarios, on its own Worker, with 33 tests and its own CI-gated
-`verify` job. What that leaves as next is **step 2** — SMART `/authorize` +
-`/token` on the same Worker — because steps 4, 5 and 6 all want a launched
-panel and step 2 is what launches one.
+⚠️ **Steps 1 and 2 are both built, and neither has ever run outside Node.**
+That is now the single most valuable thing anyone can do here, and it is not a
+build task: `wrangler deploy` the mock EHR, point `PANEL_FRAME_ANCESTORS` at its
+real origin, open the control page, mint a launch, and watch the panel come up
+inside it. Everything below step 2 assumes that works, and nothing has checked.
 
 | Panel step | State |
 |---|---|
 | 0 — width spike | **Done** (§9.1) |
 | 1 — mock EHR read API + `/metadata` | **Done** — `services/mock-ehr/` |
-| **2 — SMART authorize/token stub** | **NEXT.** Unblocked; step 1 is the server it authorizes against |
+| 2 — SMART authorize/token stub | **Done, server side.** PKCE S256 verified, patient-bound tokens, `frame-ancestors` on the panel host. **The iframe half is unproven** |
 | 3 — `PanelShell`, nav stack, code drawer | **Done** — #358, #360 |
-| 4 — writes + capability degradation | After 2. The ladder driver is on `main`; the mock's four capability profiles are built and switchable |
-| 5 — host chrome, launch button, CDS `type:"smart"` card | Unblocked |
+| **4 — writes + capability degradation** | **NEXT to build.** The ladder driver is on `main`; the four capability profiles are built and switchable. Needs a Durable Object — see below |
+| 5 — host chrome, launch button, CDS `type:"smart"` card | Unblocked. `POST /_admin/launch` is the button's engine; step 5 is the chart around it |
 | 6 — FHIRcast across the origin boundary | Unblocked |
+
+### What step 2 built, and what it deliberately did not
+
+Verified, because a stub that skips these proves nothing: **PKCE S256**
+(challenge required, verifier checked with real SHA-256), **exact
+`redirect_uri`** matching with an unregistered one *refused rather than
+redirected to* (the open-redirect bug), **`aud`** naming this server, and a
+**token bound to one patient** — reaching for another is a 403.
+
+⚠️ **PKCE can be defeated by omission, not just by laziness.** fhirclient only
+sends a challenge when discovery advertises
+`code_challenge_methods_supported: ["S256"]`. Delete that array and the client
+stops sending PKCE, the server stops requiring what never arrives, and the login
+still works. Two halves of one decision; both are asserted.
+
+Deliberately NOT done, and **not to be described as working**: no `id_token`
+(so `client.user` is null), **no scope enforcement at all**, no refresh tokens.
+Patient binding is enforced and is a different thing.
+
+⚠️ **Replay protection is best-effort and says so.** Launch contexts, codes and
+tokens are signed self-contained blobs, not table rows, because a Worker has no
+shared memory and `/authorize` and `/token` can land in different isolates — a
+table there fails logins intermittently, in front of an audience. The cost:
+"used" cannot be written down, so a code is replayable inside its 60-second
+window across isolates. **Step 4 needs a Durable Object for writes anyway; move
+this behind it then.**
 
 ### What step 1 found, which the spec could not have
 
@@ -136,18 +164,29 @@ Both are written up in [`mock-ehr-read-api.md`](mock-ehr-read-api.md) under
 "What building it found", with the third omission (CORS, unmentioned in the
 spec and fatal in a browser).
 
-### Still owed on step 1
+### Still owed on steps 1 and 2
 
-- **A browser run.** The integration test drives the real `SmartDataSource`
-  through a real fhirclient over loopback HTTP, which proves the contract and
-  the failure directions. It does **not** prove CORS preflight or a SMART
-  launch. Do that when step 2 lands and the thing can actually be launched.
-- **Never deployed.** No `wrangler deploy` has been run; the Worker name
-  `spier-mock-ehr` is claimed only in `wrangler.jsonc`.
-- **#364 — the fixture `subject` fix** (finding 1). Filed, unstarted. Its
-  step 4 is the one that matters: when it lands, delete the stamping in
-  `services/mock-ehr/src/fixtures.ts` and assert `NORMALIZED_LINKS` is empty,
-  or the workaround outlives the defect it works around.
+- **A browser run, and a deploy.** The tests drive the real `SmartDataSource`
+  through a real fhirclient over loopback HTTP, and every FHIR read in the suite
+  now goes through a real `/authorize` → `/token` exchange. That proves the
+  contract, the PKCE round trip and the failure directions. It does **not**
+  prove CORS preflight, `frame-ancestors`, cross-site cookie/storage behaviour
+  in an iframe, or fhirclient's own browser-side `authorize()`/`ready()` (those
+  need a location redirect and sessionStorage, so the tests exchange the code
+  directly instead). Nothing has been deployed; `spier-mock-ehr` is a name in a
+  config file.
+- ⚠️ **`PANEL_FRAME_ANCESTORS` is a guess until then.** The default names
+  `https://spier-mock-ehr.bbthorson.workers.dev`, which is where the Worker
+  *should* land. If the real subdomain differs the panel renders blank inside
+  the host, and the browser console names the blocked ancestor exactly — that is
+  the first thing to check, not the last.
+- **#364 — the fixture `subject` fix.** Filed, unstarted. Its step 4 is the one
+  that matters: when it lands, delete the stamping in
+  `services/mock-ehr/src/fixtures.ts` and assert `NORMALIZED_LINKS` is empty, or
+  the workaround outlives the defect it works around.
+- **Whether the mock ships a consent screen** is still open, and step 2 did not
+  answer it: `/authorize` auto-approves. Shipping a consent screen quietly would
+  have decided it.
 
 ### What step 3 settled, so it is not re-derived
 
