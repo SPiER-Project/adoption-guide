@@ -21,6 +21,7 @@ a clinical reviewer has to be *told* which half is for them.
 | **3 — cross-origin: host and panel on separate `workers.dev` hostnames** | **PROPOSED.** §6 |
 | **4 — claim the demo makes is "SMART activity", not "persistent sidebar"** | **DECIDED.** §2 |
 | **5 — panel submit drives the writeback ladder** | **PROPOSED.** §5 |
+| **6 — the mock ships NO consent screen; `/authorize` auto-approves** | **DECIDED 2026-08-19.** Reason, the variant that would be theatre, and what would reopen it: §10.1 |
 
 | Phase | State |
 |---|---|
@@ -529,13 +530,56 @@ sidebar, but it should be deliberate rather than inherited.
 
 - ~~**Panel width.**~~ **Answered by §9.1: 470px works, so the choice is free.**
   Build width-agnostic; default to a third, resizable.
-- **Does the mock ship a login/consent screen?** Skipping it is faster;
-  including it lets the demo show the scope list SPiER requests — the other
-  question integration leads always ask.
+- ~~**Does the mock ship a login/consent screen?**~~ **DECIDED 2026-08-19: no.**
+  `/authorize` auto-approves. See §10.1 — the reasoning is not "skipping it is
+  faster".
 - ~~**§8.** Mock-serves-FHIR versus Medplum-serves-FHIR~~ — **DECIDED 2026-08-18, see §8.** Originally framed as decided on whether the
   capability-degradation demo earns its keep.
 - **Where the subject resources live** (§7) — `ig/` as example Instances versus
   beside the scenarios. `mock-patient-smart-launch.md` §7 recommends `ig/`.
+
+### 10.1 Why there is no consent screen
+
+Decided 2026-08-19, while building step 2. The original framing above — "skipping
+it is faster" — is not the reason, and deciding on speed would have been the
+wrong call.
+
+**A per-launch consent screen is not what this scenario looks like.** SPiER's
+demo is a *clinician* launching an embedded panel from a chart. Provider-facing
+apps are approved by the organization at registration time; the clinician does
+not re-consent on every launch. Per-launch consent is the norm for
+**patient-facing standalone** launches, which this is not. So auto-approve is
+the more realistic behaviour here, not a shortcut — which is the opposite of how
+§10 originally framed it.
+
+⚠️ **The granular version would be theatre today, and it is worth knowing why
+before someone builds it.** Nothing in the writeback path reads granted scopes:
+`buildWritePlan` decides each tier from `/metadata` capabilities via
+`canCreate`, and the mock enforces no scopes at all. So per-scope checkboxes
+would let a demo un-tick `Observation.write`, and the ladder would still plan
+Tier 2, the mock would still accept the POST, and the Observation would still be
+written. Making it real needs **two** things that do not exist: scope
+enforcement on the mock (403 on a write outside the grant), and the ladder
+consulting granted scopes alongside capabilities. It would also overlap the
+capability-degradation demo, which already shows "the server decides what the
+app may do" and is built.
+
+**What would reopen this.** Two things, and only these:
+
+1. **A governance-minded audience.** A consent screen is where the scope request
+   becomes legible, and SPiER asks for `patient/Condition.write` on every launch
+   — even though Tier 3 is default-OFF and requires human confirmation before
+   anything is created. Showing that request, and a human approving it, may be
+   worth more to a governance audience than the saved click is worth to anyone.
+   ⚠️ Either way, **be ready for the question**: the scope is requested on every
+   launch whether or not a screen displays it.
+2. **Scope enforcement landing** (most likely with step 4's strict writes). At
+   that point the granular variant stops being theatre and becomes a second,
+   genuine degradation axis.
+
+If it is reopened, the **informational** variant — scope list, Authorize/Cancel,
+no per-scope toggles — is the one to build. It needs no enforcement to be
+honest, because it claims nothing about what happens if you say no to part of it.
 
 ## 11. Risks
 

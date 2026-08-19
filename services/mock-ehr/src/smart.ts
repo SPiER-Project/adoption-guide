@@ -226,8 +226,12 @@ export async function authorize(
     return fail('invalid_request', 'No launch context: pass `launch` (EHR launch) or `patient` (standalone testing).')
   }
 
-  // No consent screen: this auto-approves. Whether the mock should show one is
-  // an open question in the handoff, and shipping one silently would answer it.
+  // No consent screen — decided, not skipped: a clinician launching from a
+  // chart does not re-consent per launch (that is a patient-facing
+  // standalone-launch norm), so auto-approve is the realistic behaviour here.
+  // embedded-panel-smart-launch.md §10.1 records the reasoning, why per-scope
+  // consent would be theatre while nothing enforces scopes, and the two things
+  // that would reopen it.
   const code = await sign(
     {
       ...context,

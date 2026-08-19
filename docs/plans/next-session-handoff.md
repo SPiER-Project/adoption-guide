@@ -184,9 +184,12 @@ spec and fatal in a browser).
   that matters: when it lands, delete the stamping in
   `services/mock-ehr/src/fixtures.ts` and assert `NORMALIZED_LINKS` is empty, or
   the workaround outlives the defect it works around.
-- **Whether the mock ships a consent screen** is still open, and step 2 did not
-  answer it: `/authorize` auto-approves. Shipping a consent screen quietly would
-  have decided it.
+- ✅ ~~**Whether the mock ships a consent screen.**~~ **DECIDED 2026-08-19: no**
+  — `/authorize` auto-approves, and the reason is realism, not speed (a
+  clinician EHR launch does not re-consent per launch; that is a patient-facing
+  standalone-launch norm). `embedded-panel-smart-launch.md` §10.1, which also
+  records why the *granular* variant would be theatre today and the two things
+  that would reopen it.
 
 ### What step 3 settled, so it is not re-derived
 
@@ -324,7 +327,11 @@ list every plan.
   section originally proposed), the cost breakdown, and three binding guardrails.
   The Medplum variant is rejected; the portability claim moves to a public
   sandbox instead.
-- Whether the mock ships a consent screen; where subject resources live.
+- ✅ ~~Whether the mock ships a consent screen~~ — **decided 2026-08-19: no.**
+  §10.1. **Still open: where subject resources live** (`ig/` as example
+  Instances versus beside the scenarios). #356 put them in `ig/` in practice,
+  so this is now a question of ratifying what already happened rather than an
+  unmade choice.
 
 ### ⚠️ The reversal's guardrails are conditions, not suggestions
 
