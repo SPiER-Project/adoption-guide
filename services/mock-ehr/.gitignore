@@ -1,0 +1,4 @@
+# Vite worker bundle
+dist/
+# wrangler local state (dev cache, logs)
+.wrangler/

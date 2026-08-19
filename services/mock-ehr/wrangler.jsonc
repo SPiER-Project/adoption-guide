@@ -1,0 +1,26 @@
+{
+  // SPiER's mock EHR — a FHIR read API over the app's own population scenarios,
+  // on its OWN Worker and therefore its own origin. Cross-origin is a
+  // requirement of the embedded-panel work, not an accident of deployment:
+  // the panel must prove it works from a host it does not share an origin with
+  // (docs/plans/embedded-panel-smart-launch.md §6).
+  //
+  // `main` is the Vite-bundled worker (dist/index.js) — Vite is required
+  // because the scenario/Patient loaders use import.meta.glob. There is no
+  // Static Assets binding: this Worker serves FHIR and its own small control
+  // page, nothing else.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "spier-mock-ehr",
+  "main": "./dist/index.js",
+  "compatibility_date": "2025-07-01",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Which CapabilityStatement this server advertises at startup. One of
+    // "full" | "no-observation" | "documents-only" | "read-only" (see
+    // src/capability.ts). The control page switches it at runtime; this is
+    // only the value a freshly started isolate begins with.
+    "MOCK_CAPABILITY_PROFILE": "full"
+  }
+}

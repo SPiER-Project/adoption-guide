@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // @types/node is here only for the integration test, which stands the app
+    // up on a real loopback server (node:http, Buffer). The Worker source
+    // itself uses none of it.
+    "types": ["@cloudflare/workers-types", "vite/client", "node"],
+    // Mirrors the vitest alias: fhirclient is web's dependency and this package
+    // deliberately keeps no second copy of it. Editing one without the other
+    // breaks either the typecheck or the test, never silently both.
+    "baseUrl": ".",
+    "paths": {
+      "fhirclient/*": ["../../web/node_modules/fhirclient/*"]
+    },
+    // Match the web app's strictness exactly — this project typechecks web
+    // source it imports (catalog, mappers, scenarios), which is clean under
+    // web's config but not under extra flags like noUncheckedIndexedAccess.
+    "strict": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "vite.config.ts", "vitest.config.ts"]
+}
