@@ -32,16 +32,23 @@
  * demonstrating at once share written resources. **Reset** is the mitigation, and
  * it is one click.
  *
- * ── The ids are server-minted, and that is load-bearing ─────────────────────
+ * ── The ids are server-minted, and this is NOT a choice ─────────────────────
  *
- * `srv-N`, from a counter in the store — deliberately unlike anything a client
- * would produce. `SmartDataSource.toCreatePayload` strips the client's `id`
- * before POSTing, and `executeWritePlan` then remaps
- * `QuestionnaireResponse/<client id>` to the server's id inside
- * `Observation.derivedFrom` and `Condition.evidence`. If this server echoed the
- * client's id back, that remap would be a no-op and the provenance bug it exists
- * to prevent would be untestable here. Assigning a visibly different id is what
- * makes the demo exercise it.
+ * `srv-N`, from a counter in the store. `SmartDataSource.toCreatePayload`
+ * **deletes** the client's `id` before POSTing (servers reject or ignore one on
+ * create), so this server never receives an id it could echo — it has to mint
+ * one. `executeWritePlan` then remaps `QuestionnaireResponse/<client id>` to the
+ * server's id inside `Observation.derivedFrom` and `Condition.evidence`.
+ *
+ * ⚠️ An earlier version of this comment said a server that echoed the client's
+ * id back "would make that remap a no-op and the provenance bug untestable
+ * here". That was checked and it is wrong: such a server cannot exist on this
+ * path, because it is never sent an id. Planting it changed nothing, which is how
+ * the claim was caught. What testing against a real server actually buys is that
+ * a **failed** remap becomes observable — disable it and the written Observations
+ * carry `QuestionnaireResponse/p011-asq`, a reference to a resource this server
+ * has never heard of. `srv-N` being readable rather than a UUID is a convenience
+ * for reading the demo, not a mechanism.
  */
 import type { MockResource } from './fixtures'
 import type { CapabilityProfile } from './capability'

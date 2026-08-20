@@ -330,12 +330,20 @@ nothing simulated — the app's own `saveResponse` → `buildWritePlan` →
 | `QuestionnaireResponse/srv-2` | POST — Tier 1 |
 | `Observation/srv-3` … `srv-6` | POST — Tier 2, four of them |
 
-⚠️ **The ids are the finding.** The server mints `srv-N`, deliberately unlike
-anything a client would produce, and all four Observations came back with
+⚠️ **The ids are the finding.** All four Observations came back with
 `derivedFrom: ["QuestionnaireResponse/srv-2"]` — the **server's** id, not the
-client's. That is `execute.ts`'s remap working, and it is untestable against a
-server that echoes the client's id back. It was checked by reading the resources
-back off the mock, not by trusting the scorecard.
+client's. That is `execute.ts`'s remap working, checked by reading the resources
+back off the mock rather than by trusting the scorecard.
+
+⚠️ **And the first explanation of why that matters was wrong.** This section said
+the remap "is untestable against a server that echoes the client's id back". It
+was planted and it changed nothing: `toCreatePayload` **deletes** the client's id
+before POSTing, so no server on this path is ever sent an id to echo, and every
+create necessarily gets a fresh one. The real value of a live server is the
+opposite direction — a **failed** remap becomes observable, because the written
+Observations then carry `QuestionnaireResponse/p011-asq`, a dangling reference.
+That is now a CI-gated integration test (see below), and disabling the remap
+fails it.
 
 **Run 2 — profile `no-observation`, same instrument, same answers.** Two
 resources, and the panel's own report says why:
@@ -414,13 +422,26 @@ it" is a weaker statement than it looks, and it is never conformance evidence
 (guardrail 3). Pinned by a test so the hole is written down rather than
 discovered.
 
-#### Not verified
+#### Gated, not just observed
 
-- **`read-only` end to end.** The server refuses everything (tested), and by
-  reading the code a submit should then *fail* rather than degrade, because
-  `saveArtifact`'s PUT is outside the ladder and throws. That is arguably correct
-  — nothing landed *is* a failed save — but it has not been watched in a browser,
-  and "the least capable EHR" is exactly the profile someone will demo.
+⚠️ **A browser run is evidence, not a gate.** Everything above was watched once,
+by hand. `services/mock-ehr/src/smartDataSource.integration.test.ts` now drives
+the **real** `SmartDataSource.saveResponse` against this server over a real
+socket for all three profiles, so the degradation, the provenance remap and the
+floor each fail a test when someone breaks them.
+
+That also closed the case the browser run skipped: **`read-only`**. The answer is
+not "it degrades" — every tier including the floor is refused and `saveResponse`
+**throws**, which is correct (nothing landed *is* a failed save) and is now
+pinned rather than assumed.
+
+⚠️ One trap in writing those tests, worth repeating because it is the #327 shape:
+the first draft built the derived Observations with `mapResponseToObservations`
+instead of `deriveFromResponse`. The raw mapper emits **no** `derivedFrom` — the
+business logic stamps it — so the provenance assertion would have been testing
+nothing against artifacts the app never produces.
+
+#### Not verified
 - **Durable Object persistence across isolates.** `wrangler dev` runs one
   isolate, so the property the DO exists for is the property local testing cannot
   show. The deployed Worker is where that gets confirmed.

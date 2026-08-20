@@ -202,11 +202,15 @@ panel whose save aborted on the CORS preflight — with a console error about
 `Access-Control-Allow-Methods`, which reads as configuration rather than a
 missing route. `Prefer` had to join `allowHeaders` for the same reason.
 
-⚠️ **The ids are load-bearing.** `POST` assigns `srv-N`, deliberately unlike
-anything a client would send, because `executeWritePlan` remaps
+⚠️ **`POST` must mint an id, and cannot do otherwise.**
+`SmartDataSource.toCreatePayload` deletes the client's `id` before POSTing, so
+there is nothing to echo. `executeWritePlan` then remaps
 `QuestionnaireResponse/<client id>` to the server's id inside
-`Observation.derivedFrom`. A server that echoed the client's id back would make
-that remap a no-op and the provenance bug it guards untestable.
+`Observation.derivedFrom`. What a real server buys is that a **failed** remap
+becomes visible: disable it and the written Observations point at
+`QuestionnaireResponse/p011-asq`, a resource this server has never held. (An
+earlier version of this note claimed a server echoing the client's id back would
+hide the bug — planted, and it changed nothing, because no id is ever sent.)
 
 ### Two capability axes, not one
 

@@ -187,9 +187,23 @@ the short version:
 
 ⚠️ **The provenance check is the part worth keeping.** All four Observations came
 back with `derivedFrom: ["QuestionnaireResponse/srv-2"]` — the **server's** id,
-not the client's. That is `execute.ts`'s remap, and it is untestable against a
-server that echoes the client's id back, which is why the store mints `srv-N`.
-Verified by reading the resources off the mock, not by trusting the scorecard.
+not the client's. That is `execute.ts`'s remap, verified by reading the resources
+off the mock rather than by trusting the scorecard.
+
+⚠️ **A claim about WHY that matters was written down, planted, and disproved** —
+worth knowing because it was in three files before it was checked. It said the
+remap "is untestable against a server that echoes the client's id back".
+`toCreatePayload` **deletes** the client's id before POSTing, so no such server
+can exist on this path; planting it changed nothing. The real value of a live
+server runs the other way: a *failed* remap becomes visible as a dangling
+`QuestionnaireResponse/p011-asq`. Disabling the remap now fails a test.
+
+**All three profiles are gated, not just observed.** The browser run was one
+hand-driven pass; `smartDataSource.integration.test.ts` now drives the real
+`saveResponse` against the mock over a real socket for `full`,
+`no-observation` and `read-only`. `read-only` is no longer an open question: every
+tier including the floor is refused and `saveResponse` **throws**, which is
+correct and is now pinned.
 
 **Three defects the spec's own endpoint table hid**, each masked by the one
 before, and all three invisible to every suite:
@@ -215,13 +229,10 @@ exactly that. Seven planted defects (one per rule class) still fail the scenario
 gate after the move, and pointing the glob at a nonexistent prefix makes the
 validator **fail to load** rather than accept everything.
 
-⚠️ **Two things were NOT verified, and one of them is the profile a sceptic will
-pick.** `read-only` end to end: the server refuses everything (tested), and by
-reading the code a submit should then *fail* rather than degrade, because
-`saveArtifact`'s PUT sits outside the ladder and throws. Arguably correct —
-nothing landed *is* a failed save — but nobody has watched it. And **Durable
-Object persistence across isolates**, which is the property the DO exists for and
-the one `wrangler dev` cannot show: it runs a single isolate.
+⚠️ **One thing is still NOT verified: Durable Object persistence across
+isolates** — the property the DO exists for, and the one `wrangler dev` cannot
+show, because it runs a single isolate. The deployed Worker is where that gets
+confirmed, and `npm run deploy` in `services/mock-ehr/` is not run by CI.
 
 ### ✅ The frame claim is settled — and what proving it cost
 
