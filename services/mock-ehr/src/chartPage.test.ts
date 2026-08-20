@@ -23,9 +23,11 @@ async function html(path: string) {
   return { res, body: await res.text() }
 }
 
-describe('the patient list', () => {
+describe('the front door', () => {
   it('lists every demo patient, with a way into each chart', async () => {
-    const { res, body } = await html('/chart')
+    // ⚠️ On `/`, not `/chart`. The list IS the front door now — the operator's
+    // bench moved to /settings after the old root proved undiscoverable.
+    const { res, body } = await html('/')
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('text/html')
     expect(DEMO_PATIENTS.length).toBe(14)
@@ -35,11 +37,42 @@ describe('the patient list', () => {
     }
   })
 
-  it('is reachable from the control page', async () => {
-    // The operator's page is the entry point people already have bookmarked; a
-    // demo surface nothing links to is a demo surface nobody finds.
+  it('says what this server is, and that it is not SPiER', async () => {
+    // The reported defect was not knowing what to do here. The front door has to
+    // answer that in its first sentence.
     const { body } = await html('/')
-    expect(body).toContain('href="/chart"')
+    expect(body).toContain('not\n    SPiER')
+    expect(body).toContain('Open a chart')
+  })
+
+  it('embeds the population dashboard WITHOUT claiming it is a SMART launch', async () => {
+    // ⚠️ The label is the point. The population view imports localDataSource
+    // directly, so the frame renders its own demo registry — calling it a SMART
+    // view would be the claim §1 guardrail 3 exists to stop.
+    const { body } = await html('/')
+    const frame = /<iframe src="([^"]+)" title="SPiER population dashboard/.exec(body)
+    expect(frame).not.toBeNull()
+    const url = new URL(frame![1])
+    expect(url.searchParams.get('embed')).toBe('1')
+    expect(url.hash).toBe('#/population')
+    // No launch context: this is deliberately not a SMART launch.
+    expect(url.searchParams.has('iss')).toBe(false)
+    expect(url.searchParams.has('launch')).toBe(false)
+    expect(body).toContain('not a SMART launch')
+  })
+
+  it('keeps the operator bench reachable, off the front door', async () => {
+    expect((await html('/')).body).toContain('href="/settings"')
+    const settings = await html('/settings')
+    expect(settings.res.status).toBe(200)
+    expect(settings.body).toContain('data-profile="full"')
+  })
+
+  it('redirects the old /chart list URL rather than 404ing it', async () => {
+    // It is in the README, in two plan docs, and in anyone's history.
+    const res = await app.request(`${BASE}/chart`)
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe('/')
   })
 })
 
@@ -168,10 +201,10 @@ describe('the chart carries the degradation demo (step 4)', () => {
 
   it('puts the switch where the demo happens, not only on the operator page', async () => {
     // Both pages carry it on purpose: flipping the profile mid-demo should not
-    // mean leaving the chart.
+    // mean leaving the chart. The operator's copy is on /settings now.
     const chart = await html('/chart/patient-011')
-    const control = await html('/')
+    const settings = await html('/settings')
     expect(chart.body).toContain('/_admin/capabilities')
-    expect(control.body).toContain('/_admin/capabilities')
+    expect(settings.body).toContain('/_admin/capabilities')
   })
 })

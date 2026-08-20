@@ -57,7 +57,7 @@ import {
 } from './fixtures'
 import { SEARCHABLE_TYPES, applySearch, parseSearch } from './search'
 import { controlPage } from './controlPage'
-import { patientChartPage, patientListPage } from './chartPage'
+import { homePage, patientChartPage } from './chartPage'
 import { validateWrite, withAssignedId } from './validate'
 import { storeFor } from './store'
 import type { DemoStore } from './demoStore'
@@ -855,7 +855,28 @@ app.get('/_admin/fhircast', async (c) => {
 // The patient list and one chart, with the panel framed inside it. This is what
 // exercises `frame-ancestors` on the panel host — see chartPage.ts.
 
-app.get('/chart', (c) => c.html(patientListPage(DEMO_PATIENTS)))
+/**
+ * The front door: the patient list, plus the population dashboard embedded the
+ * way an EHR hosts a worklist.
+ *
+ * ⚠️ `/` used to serve the operator's bench and the demo was two undiscoverable
+ * clicks away. See `homePage` for the report that prompted the change.
+ */
+app.get('/', async (c) => {
+  const panelBase = envOf(c).MOCK_PANEL_BASE_URL || DEFAULT_PANEL_BASE_URL
+  // `embed=1` puts the app in panel chrome; NO `iss`/`launch`, because this is
+  // deliberately not a SMART launch — see the label on the frame.
+  const url = new URL(panelBase)
+  url.searchParams.set('embed', '1')
+  url.hash = '#/population'
+  return c.html(homePage(DEMO_PATIENTS, { populationPanelUrl: url.toString() }))
+})
+
+// `/chart` was the patient list before the list became the front door. Kept as a
+// redirect rather than deleted: it is in the README, in two plan docs and in
+// anyone's history, and a 404 on a URL we published is a worse answer than a
+// redirect.
+app.get('/chart', (c) => c.redirect('/', 301))
 
 app.get('/chart/:patientId', async (c) => {
   const patient = DEMO_PATIENTS_BY_ID.get(c.req.param('patientId'))
@@ -877,7 +898,12 @@ app.get('/chart/:patientId', async (c) => {
   }))
 })
 
-app.get('/', async (c) => c.html(controlPage(
+/**
+ * The operator's bench — moved off `/` deliberately. Everything here is server
+ * equipment (the capability switch, a top-level launch, the FHIR base), and none
+ * of it tells a visitor what to do.
+ */
+app.get('/settings', async (c) => c.html(controlPage(
   await liveProfile(c),
   fhirBase(c.req.url),
   HELD_RESOURCES.length,

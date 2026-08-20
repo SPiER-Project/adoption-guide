@@ -297,7 +297,8 @@ describe('the bearer check on /fhir', () => {
   it('can be switched off for exploration, and says so on the control page', async () => {
     const open = await app.request(`${BASE}/fhir/Patient/patient-011`, {}, { MOCK_AUTH_ENFORCE: 'off' })
     expect(open.status).toBe(200)
-    const page = await (await app.request(`${BASE}/`, {}, { MOCK_AUTH_ENFORCE: 'off' })).text()
+    // The control page is /settings now, not the front door.
+    const page = await (await app.request(`${BASE}/settings`, {}, { MOCK_AUTH_ENFORCE: 'off' })).text()
     expect(page).toContain('OFF')
   })
 })
