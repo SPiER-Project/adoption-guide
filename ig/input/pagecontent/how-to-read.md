@@ -6,8 +6,8 @@ This guide follows the information architecture used by [HL7 US Core](https://hl
 
 - **Home** — what SPiER is, its status, and who it's for.
 - **Getting Started** — how to obtain the artifacts and validate your own resources against them.
-- **Guidance** — this page, plus the Zero Suicide ↔ SPiER mapping.
-- **Conformance** — what it means to conform to SPiER (actor roles, Must-Support — in progress).
+- **Guidance** — this page, plus [Relationship to Other IGs](relationship-to-other-igs.html), the [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html), and [Measurement (Stage 8)](measurement.html).
+- **Conformance** — what it means to conform to SPiER: actor roles, the per-role CapabilityStatements, and what Must-Support means here.
 - **Quick Starts** — per-instrument RESTful search patterns to read SPiER data.
 - **Artifacts** — the full machine-readable list of every profile, extension, value set, code system, and example (generated).
 - **Downloads** — the IG package and resource definitions for tooling (generated).
