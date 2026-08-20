@@ -40,7 +40,11 @@ npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "
 npm run check:crosswalk  # concept-crosswalk validation
 npm run check:extract    # observation-extract validation
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
-                         # questionnaire URLs / per-AD licensing metadata)
+                         # questionnaire URLs BOTH ways / per-AD licensing metadata).
+                         # Check B stops a TOOL from reaching the app with no
+                         # ActivityDefinition; check C stops the artifact one
+                         # layer down — a Questionnaire in FHIR-Resources/ that
+                         # no AD administers, which was ungated until 2026-08-20
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's

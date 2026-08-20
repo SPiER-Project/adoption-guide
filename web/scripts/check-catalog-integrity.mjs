@@ -28,9 +28,17 @@
  *      - every FHIR-backed ActivityDefinition is referenced by a
  *        PlanDefinition action (otherwise the tool gets no stageId and is
  *        dropped at runtime)
- *   C. every Questionnaire canonical referenced by an ActivityDefinition
- *      (relatedArtifact or SDC sdc-questionnaire extension) resolves,
- *      version-stripped, to a Questionnaire JSON in FHIR-Resources/
+ *   C. the Questionnaire <-> ActivityDefinition relation holds in BOTH
+ *      directions, version-stripped:
+ *        - every Questionnaire canonical referenced by an ActivityDefinition
+ *          (relatedArtifact or SDC sdc-questionnaire extension) resolves to a
+ *          Questionnaire JSON in FHIR-Resources/
+ *        - every Questionnaire JSON in FHIR-Resources/ is referenced by some
+ *          ActivityDefinition. Check B stops a *tool* from reaching the app
+ *          without an AD behind it; this stops the artifact one layer down —
+ *          a Questionnaire the app can import while the IG describes no tool
+ *          that administers it, and so publishes no stage, no licensing
+ *          status and no clinical metadata for it
  *   D. every ActivityDefinition carries licensing metadata (issue #127):
  *      a `copyright` notice AND an `instrument-licensing-status` extension
  *      whose code is real, and the ADs of a multi-AD tool agree on it.
@@ -162,23 +170,72 @@ function* jsonFiles(dir) {
     else if (entry.endsWith('.json')) yield p
   }
 }
-const questionnaireUrls = new Set()
+// Keyed by version-stripped canonical, valued by the file(s) that declare it —
+// the path is what makes the reverse failure below actionable, and a canonical
+// declared twice makes the reverse check unable to tell the two files apart.
+const questionnaireFiles = new Map()
 for (const p of jsonFiles(questionnairesDir)) {
   let res
   try { res = JSON.parse(readFileSync(p, 'utf8')) } catch { continue }
-  if (res.resourceType === 'Questionnaire' && res.url) questionnaireUrls.add(stripVersion(res.url))
+  if (res.resourceType !== 'Questionnaire') continue
+  const rel = p.slice(root.length + 1)
+  if (!res.url) {
+    // Nothing can reference it, so the reverse check below could never see it.
+    // Silently skipping it (which this did) is how an unreferenced Questionnaire
+    // stays invisible to BOTH directions.
+    fail(`${rel}: Questionnaire has no \`url\` — nothing can reference it, and it is unreachable from any ActivityDefinition`)
+    continue
+  }
+  const stripped = stripVersion(res.url)
+  questionnaireFiles.set(stripped, [...(questionnaireFiles.get(stripped) ?? []), rel])
+}
+// A check that reads nothing must fail, not pass (#232 / #261): a moved or
+// renamed FHIR-Resources/ would otherwise make both directions vacuous.
+if (questionnaireFiles.size === 0) {
+  fail(`no Questionnaire JSON found under ${questionnairesDir} — this check reads that tree, so an empty read makes both directions of C vacuous`)
+}
+for (const [canonical, paths] of questionnaireFiles) {
+  if (paths.length > 1) {
+    fail(`Questionnaire canonical "${canonical}" is declared by ${paths.length} files (${paths.join(', ')}) — one shadows the other, and a reference cannot say which it meant`)
+  }
 }
 
+// C-forward: an ActivityDefinition's questionnaire reference resolves.
+const referencedQuestionnaires = new Set()
 let qRefs = 0
 for (const ad of activityDefs) {
   for (const canonical of ad.questionnaireUrls) {
     qRefs++
-    if (!questionnaireUrls.has(stripVersion(canonical))) {
+    const stripped = stripVersion(canonical)
+    referencedQuestionnaires.add(stripped)
+    if (!questionnaireFiles.has(stripped)) {
       fail(`ActivityDefinition ${ad.id}: questionnaire "${canonical}" resolves to no Questionnaire JSON in FHIR-Resources/`)
     }
   }
 }
-console.log(`✓ questionnaires: ${qRefs} ActivityDefinition reference(s) checked against ${questionnaireUrls.size} Questionnaire(s)`)
+
+// C-reverse: a Questionnaire nothing administers. Measured 2026-08-20 as 18 of
+// 18 referenced, so there is deliberately NO allowlist here — an exemption list
+// starting empty is the only kind that cannot go stale, and an orphan is always
+// either a missing ActivityDefinition or a Questionnaire that should not be in
+// the tree. If you find yourself adding one, the artifact is the thing to fix.
+let orphans = 0
+for (const [canonical, [path]] of questionnaireFiles) {
+  if (referencedQuestionnaires.has(canonical)) continue
+  orphans++
+  fail(
+    `${path}: Questionnaire "${canonical}" is referenced by no ActivityDefinition — the app could ` +
+      `import and render it while the IG publishes no tool that administers it, so it would carry no ` +
+      `stage, no licensing status (check D) and no clinical metadata. Author an ActivityDefinition in ` +
+      `ig/input/fsh/ naming it (relatedArtifact or the SDC sdc-questionnaire extension), or remove the ` +
+      `Questionnaire.`,
+  )
+}
+console.log(
+  `✓ questionnaires: ${qRefs} ActivityDefinition reference(s) resolve, and ` +
+    `${questionnaireFiles.size - orphans}/${questionnaireFiles.size} Questionnaire(s) in FHIR-Resources/ ` +
+    `are administered by an ActivityDefinition`,
+)
 
 // ---- D: licensing metadata (issue #127) ------------------------------------
 // The status codes come from the generated CodeSystem, not a list retyped here
