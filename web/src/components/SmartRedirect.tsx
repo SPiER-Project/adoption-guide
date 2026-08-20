@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react'
 import FHIR from 'fhirclient'
 import { useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
+import { usePresentation } from '../context/PresentationContext'
 import { readSmartPatientSummary } from '../lib/smartPatient'
+import { launchPathForIntent } from '../lib/smartIntent'
 
 export function SmartRedirect() {
     const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...')
     const [error, setError] = useState<string | null>(null)
     const { setSmartData } = useSmart()
+    const { setHostDrawsPatientBanner } = usePresentation()
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -24,6 +27,32 @@ export function SmartRedirect() {
                         const summary = await readSmartPatientSummary(client)
                         setSmartData(client, summary)
 
+                        // ── The two launch-context parameters the host can send ──
+                        // Both live on the raw token response, which is where
+                        // SMART puts launch context, and both are optional: a
+                        // host that sends neither gets the panel's own banner and
+                        // the pathway overview.
+                        const tokenResponse = (client.state.tokenResponse ?? {}) as {
+                            need_patient_banner?: unknown
+                            intent?: unknown
+                        }
+                        // Only an explicit `false` suppresses our strip. Absent
+                        // means "app decides", and the app's answer is to name the
+                        // patient.
+                        if (tokenResponse.need_patient_banner === false) {
+                            setHostDrawsPatientBanner(true)
+                        }
+
+                        // A DIRECTED launch: `intent` names the tool to open, so
+                        // land there instead of the overview. An intent this
+                        // build does not recognize resolves to null and falls
+                        // through to the chart — the host is a different system
+                        // on a different release cycle, and "open something I
+                        // have never heard of" must not be a dead end.
+                        const directed = typeof tokenResponse.intent === 'string'
+                            ? launchPathForIntent(tokenResponse.intent)
+                            : null
+
                         setStatus('Patient data loaded. Redirecting...')
 
                         // Land on the patient chart — a SMART launch carries a
@@ -31,7 +60,7 @@ export function SmartRedirect() {
                         // EHR data via SmartDataSource) is the destination.
                         // Give the user a brief moment to see success first.
                         setTimeout(() => {
-                            navigate('/patient/chart')
+                            navigate(directed ?? '/patient/chart')
                         }, 500)
                     } else {
                         // We authenticated, but no patient was in context
@@ -47,7 +76,7 @@ export function SmartRedirect() {
                 console.error('SMART Ready Error:', err)
                 setError(err.message || 'Failed to complete SMART on FHIR authorization.')
             })
-    }, [navigate, setSmartData])
+    }, [navigate, setSmartData, setHostDrawsPatientBanner])
 
     if (error) {
         return (

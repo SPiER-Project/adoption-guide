@@ -121,3 +121,34 @@ describe('frame-ancestors (the SMART panel is embedded cross-origin)', () => {
     expect(await res.text()).toContain('<!doctype html>')
   })
 })
+
+describe('SMART launch links come from the request origin', () => {
+  /**
+   * The launch URL is DERIVED from the request rather than configured, and this
+   * is the assertion that keeps it that way. One Worker serves the SPA and this
+   * API, so the origin that reached us *is* the app's origin; a second env var
+   * would be a place for the two to disagree after a redeploy.
+   */
+  it('points card launches at this Worker’s own root', async () => {
+    const res = await app.request(`${BASE}/cds-services/spier-patient-view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        hook: 'patient-view',
+        hookInstance: 'test',
+        context: { patientId: 'patient-006' },
+      }),
+    }, NO_AUTH)
+    const body = (await res.json()) as CdsServiceResponse
+    const links = body.cards.flatMap(c => c.links ?? [])
+    expect(links.length).toBeGreaterThan(0)
+    for (const link of links) {
+      expect(link.type).toBe('smart')
+      expect(link.url).toBe(`${BASE}/`)
+      // The CDS client appends these; a service that invents them is
+      // fabricating a launch context it does not have.
+      expect(link.url).not.toContain('iss=')
+      expect(link.url).not.toContain('launch=')
+    }
+  })
+})

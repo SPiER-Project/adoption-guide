@@ -25,6 +25,11 @@
  * a tidy one), and PageHeader.css collapses the page header to a single line
  * under `.panel-shell`.
  *
+ * The strip is additionally conditional on SMART's `need_patient_banner`: a host
+ * that says it draws the banner gets no strip at all, which is the one place the
+ * panel gives up naming its patient and it does so only when told, by a standard
+ * parameter, that something else is doing it. See `PresentationContext`.
+ *
  * ── What it deliberately does NOT do ──────────────────────────────────────
  *
  * - **No sidebar.** The lens switcher is implementer navigation; a clinician in
@@ -41,6 +46,7 @@
 import { Outlet } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
+import { usePresentation } from '../context/PresentationContext'
 import '../css/PanelShell.css'
 
 type RiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
@@ -70,10 +76,17 @@ function highestRiskLevel(alertLevels: string[]): RiskLevel {
 export function PanelShell() {
   useScrollToTopOnNavigate()
   const { patientDisplay, activePatientId, isSmartConnected, riskAlerts } = usePatient()
+  const { hostDrawsPatientBanner } = usePresentation()
 
   // Mirrors PatientBanner's rule: with no patient and no SMART context there is
   // nobody to name, and a strip reading "—" is worse than no strip.
-  const hasPatient = activePatientId !== null || isSmartConnected
+  //
+  // The second condition is SMART's `need_patient_banner`: the host telling us it
+  // already identifies the patient. Honoring it is what keeps the panel from
+  // drawing a duplicate banner two inches from the host's own — and the reason
+  // the default is to draw one is that a panel which never names its patient is
+  // a safety problem rather than a tidy one.
+  const hasPatient = (activePatientId !== null || isSmartConnected) && !hostDrawsPatientBanner
   const risk = highestRiskLevel(riskAlerts.map(a => a.level))
 
   return (

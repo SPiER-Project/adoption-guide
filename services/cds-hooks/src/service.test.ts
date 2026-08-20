@@ -135,3 +135,54 @@ describe('live path (prefetched QuestionnaireResponses)', () => {
     expect(cards.some((c) => c.indicator === 'critical' || c.indicator === 'warning')).toBe(true)
   })
 })
+
+describe('SMART launch links (panel step 5)', () => {
+  const LAUNCH = 'https://spier-adoption-guide.example/'
+
+  /** Every link on every card, flattened. */
+  function linksOf(cards: Array<{ links?: Array<{ type: string; url: string; appContext?: string }> }>) {
+    return cards.flatMap(c => c.links ?? [])
+  }
+
+  it('emits deep links when no launch URL is supplied', () => {
+    // The default has to stay `absolute`: a caller that does not know its own
+    // public URL must still get cards a human can follow.
+    const { cards } = buildPatientViewResponse(request({}))
+    const links = linksOf(cards)
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.every(l => l.type === 'absolute')).toBe(true)
+  })
+
+  it('emits SMART launches on the fallback (no-prefetch) path', () => {
+    // This is the path the mock EHR's chart page actually takes — it sends
+    // context only — so if the two paths were going to disagree, it would be
+    // here that the demo broke.
+    const { cards } = buildPatientViewResponse(request({}), { smartLaunchUrl: LAUNCH })
+    const links = linksOf(cards)
+    expect(links.length).toBeGreaterThan(0)
+    for (const link of links) {
+      expect(link.type).toBe('smart')
+      expect(link.url).toBe(LAUNCH)
+      expect(typeof link.appContext).toBe('string')
+      expect(JSON.parse(link.appContext!).intent).toMatch(/^open-/)
+    }
+  })
+
+  it('emits SMART launches on the live (prefetch) path too', () => {
+    const { cards } = buildPatientViewResponse(
+      request({ prefetch: { questionnaireResponses: HIGH_RISK_CSSRS } }),
+      { smartLaunchUrl: LAUNCH },
+    )
+    const links = linksOf(cards)
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.every(l => l.type === 'smart')).toBe(true)
+  })
+
+  it('is ignored when the launch URL is an empty string', () => {
+    // A misconfigured env var reaching the builder as '' must not produce SMART
+    // links pointing at nothing — that would be a card whose button silently
+    // launches the current page.
+    const { cards } = buildPatientViewResponse(request({}), { smartLaunchUrl: '' })
+    expect(linksOf(cards).every(l => l.type === 'absolute')).toBe(true)
+  })
+})

@@ -86,7 +86,13 @@ app.post(`/cds-services/${SERVICE_ID}`, cdsJwt(), async (c) => {
   if (request?.hook !== 'patient-view') {
     return c.json({ error: `This service handles the 'patient-view' hook, got '${request?.hook}'.` }, 400)
   }
-  return c.json(buildPatientViewResponse(request))
+  // The app's launch_uri is this Worker's own root — one Worker serves the SPA
+  // and this API, so the origin of the request that reached us IS the app's
+  // origin. Derived rather than configured: a wrong value here would produce
+  // cards that launch someone else's app, and there is no second place for it to
+  // go stale.
+  const smartLaunchUrl = new URL('/', c.req.url).toString()
+  return c.json(buildPatientViewResponse(request, { smartLaunchUrl }))
 })
 
 // Feedback — accepted per spec but not persisted (stateless service).

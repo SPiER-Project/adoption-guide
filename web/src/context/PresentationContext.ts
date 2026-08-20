@@ -20,13 +20,25 @@ export type ChromeMode = 'ehr' | 'panel'
 export interface PresentationContextType {
   chromeMode: ChromeMode
   /**
-   * Set the chrome for the session.
+   * Set the chrome for the session, persisting it for the tab.
    *
-   * The seam for phase 2: a SMART launch that carries `intent` marking an
-   * embedded activity calls this from `/redirect`. Today the only caller is the
-   * `?embed=1` bootstrap, which is the testing path the plan names.
+   * Callers: the `?embed=1` bootstrap (which a host puts on the launch URL), and
+   * anything that needs to leave or enter panel chrome without a reload.
    */
   setChromeMode: (mode: ChromeMode) => void
+  /**
+   * The host already identifies the patient, so the panel must not draw a second
+   * banner. Set from the SMART launch context's `need_patient_banner: false`.
+   *
+   * ⚠️ A THIRD axis, deliberately separate from `chromeMode`. Panel chrome says
+   * *the host owns the surrounding UI*; this says *the host owns the patient
+   * banner*. They usually travel together and they are not the same claim — a
+   * host may embed an activity and still expect the app to identify the patient,
+   * and SMART gives it a standard way to say which. Collapsing the two would
+   * make honoring the parameter impossible to demonstrate.
+   */
+  hostDrawsPatientBanner: boolean
+  setHostDrawsPatientBanner: (hostDraws: boolean) => void
 }
 
 export const PresentationContext = createContext<PresentationContextType | undefined>(undefined)
