@@ -621,6 +621,36 @@ is the most useful thing this step surfaced.
    moved to storage; `sockets` and `topics` are derived from the live socket set
    and are the trustworthy fields.
 
+#### ✅ The hub, on the deployed host — 2026-08-20
+
+The browser run above used `wrangler dev`, which runs **one** isolate — so it
+could show context crossing two origins and could *not* show the hub's actual
+fan-out surviving real infrastructure. `fhircast.test.ts` says the same thing
+about itself: `WebSocketPair` and `ctx.acceptWebSocket` do not exist outside the
+Workers runtime, so a green offline suite is not evidence of relaying anything.
+
+Checked against the deployed Worker after `npm run deploy` (migration `v2`), with
+three real WebSockets from a Node client:
+
+| | |
+|---|---|
+| Subscription | `202`, advertising `wss://spier-mock-ehr…/fhircast/ws?topic=<topic>&events=patient-open` |
+| Sockets connected | **3** — two on topic A, one on topic B; `/_admin/fhircast` agreed |
+| `POST /fhircast/{topic A}` | `delivered: 2` |
+| Both topic-A subscribers | received `patient-011` |
+| The topic-B subscriber | received **nothing** — topic isolation holds between real sockets |
+| ACKs | `sent: 2, acked: 2` |
+
+⚠️ **The hibernation caveat reproduced, which is the useful part.** After the
+three clients disconnected, `/_admin/fhircast` read
+`{"sockets":0,"topics":[],"sent":0,"acked":0}` — the counters had gone back to
+zero while the delivery they counted had definitely happened. That is the
+in-memory-counter behaviour documented in finding 2 above, observed on the
+deployed host rather than inferred. `sockets` and `topics` are the fields to
+trust.
+
+The demo was left clean afterwards: 0 writes, profile `full`, hub idle.
+
 #### What this hub deliberately is not
 
 No `hub.secret` and no HMAC signatures, so **it authenticates nothing** — the same
