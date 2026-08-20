@@ -131,6 +131,14 @@ code rather than from the spec:
 So the minimum that makes the ladder work is a `rest[0].resource[]` listing each
 type with `read`, `search-type` and (for step 4) `create`.
 
+⚠️ **Step 4 found a second interaction this list does not mention.**
+`SmartDataSource.saveArtifact` **PUTs** the eight lifecycle types
+(update-as-create) so that an episode opened and later closed converges on one
+resource. `parseCapabilityStatement` does not read `update`, so the ladder never
+notices — but the *server* has to accept it, and CORS has to allow the method and
+the `Prefer` header. Following the create-only reading of this section produced a
+panel whose save aborted on a CORS preflight, with every `curl` succeeding.
+
 ⚠️ **Make it runtime-configurable from the mock's own UI** (panel §4). That
 single switch is what turns the capability-degradation demo — panel §5 calls it
 "the most persuasive thing in the whole proposal for an integration lead" — from
@@ -141,12 +149,22 @@ awkward to retrofit.
 
 - **Auth.** No `/authorize`, no `/token`, no PKCE — that is step 2. Step 1 is an
   open read API, which is exactly why it can be built and tested first.
-- **Writes.** Step 4. ⚠️ And when it comes: the guardrail's "reuse
-  `check-scenario-resources.mjs`" is a **port, not reuse** — that script is Node
-  reading StructureDefinitions off a filesystem, and a Worker has none. It needs
-  the same Vite-bundling treatment `services/cds-hooks` already uses. Budget it
-  then; do not let step 1's ease set the expectation.
-- **Host chrome.** Step 5.
+- ~~**Writes.** Step 4.~~ **BUILT 2026-08-20** (panel plan §5.1). ⚠️ **And this
+  bullet's prediction was wrong in a way worth keeping.** It said the guardrail's
+  "reuse `check-scenario-resources.mjs`" could only be a **port, not reuse**,
+  because "that script is Node reading StructureDefinitions off a filesystem, and
+  a Worker has none".
+
+  That was true of the *script* and false of the *rules*. The rules need the
+  conformance resources only as **data** — and the very next section of this
+  document explains that a Vite-bundled Worker gets exactly that from
+  `import.meta.glob`, which is how it already receives the Patients. So the
+  filesystem was never the rule set's problem, the port was never necessary, and
+  the two callers now share
+  [`web/scripts/lib/fhir-resource-rules.mjs`](../../web/scripts/lib/fhir-resource-rules.mjs)
+  verbatim. **The mistake was reasoning about the obstacle without checking it
+  against the mechanism described two paragraphs later.**
+- ~~**Host chrome.** Step 5.~~ **BUILT 2026-08-19** (panel plan §6.1).
 
 ## The pattern to copy
 
