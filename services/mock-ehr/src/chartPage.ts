@@ -56,17 +56,42 @@ import { MRN_SYSTEM } from '../../../web/src/lib/fhircast'
 const PANEL_WIDTHS = [380, 470, 700] as const
 const DEFAULT_PANEL_WIDTH = 470
 
-const LIST_CSS = `
+const HOME_CSS = `
   table { border-collapse: collapse; width: 100%; font-size: .95rem; }
   th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid ${RULE}; }
   th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: ${INK}; }
   tbody tr:hover { background: ${TINT_WARM}; }
   td a { font-weight: 600; text-decoration: none; }
   td.mono { font-variant-numeric: tabular-nums; color: ${INK}; }
+  .population-frame { border: 1px solid ${RULE}; border-radius: 6px; overflow: hidden; background: #fff; }
+  /* Tall enough to reach the caseload rows: at 34rem the frame stopped at the
+     tab bar, so the one part of a worklist a clinician would actually read was
+     the part cut off. It scrolls internally beyond this. */
+  .population-frame iframe { display: block; width: 100%; height: 44rem; border: 0; }
 `
 
-/** The patient list — the way into a chart, and nothing more. */
-export function patientListPage(patients: DemoPatient[]): string {
+/**
+ * The front door.
+ *
+ * ⚠️ **This used to be the operator's bench, and that was the defect.** The root
+ * URL served a capability switch and a launch form, while the thing worth looking
+ * at — a chart with the SPiER panel embedded in it — was two clicks away and
+ * undiscoverable. Reported directly: *"it was very difficult for me to understand
+ * what to do."* A demo whose entry point does not say what to do is a demo nobody
+ * runs correctly. The bench moved to `/settings`; the way in is now first.
+ *
+ * The population dashboard is embedded here because this is where a worklist
+ * belongs in an EHR — but read the label on it. It is an iframe of the app's own
+ * population view, which imports `localDataSource` **directly**, so it renders
+ * from its own demo registry and not from this server's FHIR API. Calling it an
+ * embedded SMART view would be the kind of claim §1 guardrail 3 exists to stop.
+ * Upgrading it to a genuine user-scoped launch is a real piece of work with a real
+ * prerequisite; see `docs/plans/embedded-panel-smart-launch.md` §6.3.
+ */
+export function homePage(
+  patients: DemoPatient[],
+  { populationPanelUrl }: { populationPanelUrl: string },
+): string {
   const rows = patients.map(p => `
       <tr>
         <td><a href="/chart/${esc(p.id)}">${esc(p.name)}</a></td>
@@ -77,19 +102,42 @@ export function patientListPage(patients: DemoPatient[]): string {
       </tr>`).join('')
 
   return page({
-    title: 'Patients — SPiER mock EHR',
-    css: LIST_CSS,
+    title: 'SPiER mock EHR',
+    css: HOME_CSS,
     body: `
-  ${crumbs([{ label: 'SPiER mock EHR', href: '/' }, { label: 'Patients' }])}
-  <h1>Patients</h1>
+  <h1>SPiER mock EHR</h1>
   <p class="lede">
-    ${patients.length} synthetic patients, read from the app's own population scenarios.
-    Open a chart to launch the SPiER panel inside it.
+    A stand-in for a vendor chart, so SPiER can be launched into one. <strong>This is not
+    SPiER</strong> — SPiER is what appears in the panel on the right of a patient's chart.
+    <a href="/settings">Server settings and controls &rarr;</a>
+  </p>
+
+  <h2>Patients</h2>
+  <p class="lede">
+    ${patients.length} synthetic patients. <strong>Open a chart</strong> — that is where the SPiER
+    panel is launched, and where an assessment can be filled in and written back.
   </p>
   <table>
     <thead><tr><th>Name</th><th>MRN</th><th>Born</th><th>Sex</th><th>FHIR id</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
+
+  <h2>Population dashboard</h2>
+  <p class="lede">
+    SPiER's population view, embedded the way an EHR would host a worklist activity.
+  </p>
+  <p class="warn">
+    ⚠️ <strong>Embedded, but not a SMART launch — and the difference matters.</strong> This frame
+    renders SPiER's population view, which reads its own bundled demo registry rather than this
+    server's FHIR API. So it shows the <em>shape</em> of an embedded worklist and proves nothing
+    about data crossing the boundary. Making it real needs a user-scoped SMART launch (population
+    is not one patient, and every token this server issues is bound to one) and a refactor so the
+    view reads through the data-source seam. Tracked in the panel plan &sect;6.3.
+  </p>
+  <div class="population-frame">
+    <iframe src="${esc(populationPanelUrl)}" title="SPiER population dashboard (embedded)"></iframe>
+  </div>
+
   ${DISCLAIMER}`,
   })
 }
@@ -197,7 +245,7 @@ export function patientChartPage(
     <div class="chart-main">
       ${crumbs([
     { label: 'SPiER mock EHR', href: '/' },
-    { label: 'Patients', href: '/chart' },
+    { label: 'Patients', href: '/' },
     { label: patient.name },
   ])}
 

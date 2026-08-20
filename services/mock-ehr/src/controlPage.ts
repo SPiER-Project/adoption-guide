@@ -17,7 +17,7 @@
  * `chartPage.ts`; the launch form below stays because it can mint a launch this
  * page's own controls cover (an arbitrary `intent`, banner on or off) and
  * because a TOP-LEVEL launch is the useful thing to compare an embedded one
- * against. Demonstrate from `/chart`; debug from here.
+ * against. Demonstrate from `/` (the patient list); debug from here.
  */
 import { CAPABILITY_PROFILES, PROFILE_DESCRIPTIONS, type CapabilityProfile } from './capability'
 // Palette shared with the host-chrome pages — one definition, not three.
@@ -70,11 +70,11 @@ export function controlPage(
     read straight from the app's own population scenarios.
   </p>
 
-  <h2>Open a chart</h2>
+  <h2>Back to the demo</h2>
   <p>
-    <a href="/chart">The patient list &rarr;</a> — the host chrome, where the panel is launched
-    <strong>inside</strong> a chart rather than into a new tab. That is the demo; everything below is
-    the operator's bench.
+    <a href="/">The patient list &rarr;</a> — open a chart and the SPiER panel is launched
+    <strong>inside</strong> it. That is the demo; everything on this page is the operator's bench,
+    which is why it no longer sits on the front door.
   </p>
 
   <h2>Launch the panel top-level</h2>

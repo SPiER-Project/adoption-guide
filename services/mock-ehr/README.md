@@ -133,14 +133,25 @@ reads them to learn how to authorize at all.
 
 | Route | |
 |---|---|
-| `GET /chart` | the patient list |
+| `GET /` | **the front door** — the patient list, plus SPiER's population view embedded as a worklist |
 | `GET /chart/{id}` | one chart: host banner, CDS Hooks cards, and the panel **in an iframe** |
-| `GET /` | the operator's bench — capability switch, top-level launch |
+| `GET /settings` | the operator's bench — capability switch, top-level launch, FHIR base |
+| `GET /chart` | 301 to `/` (this URL was the list before the list became the front door) |
 
-⚠️ **`/chart/{id}` is the demo; `/` is the bench.** The control page can still
-mint a launch, because a *top-level* launch is the useful thing to compare an
-embedded one against and because it can send an arbitrary `intent`. Demonstrate
-from `/chart`.
+⚠️ **`/` and `/chart/{id}` are the demo; `/settings` is the bench.** These were
+the other way round, and it was a real defect: the root served a capability switch
+and a launch form while the thing worth looking at was two undiscoverable clicks
+away. See the panel plan §6.3. The bench keeps the top-level launch, because a
+top-level launch is the useful thing to compare an embedded one against and it can
+send an arbitrary `intent`.
+
+⚠️ **The embedded population dashboard on `/` is NOT a SMART launch**, and the page
+says so. It is an iframe at `?embed=1#/population` — panel chrome, no `iss`, no
+`launch` — and `PopulationView` imports `localDataSource` directly, so it renders
+its own bundled registry rather than this server's FHIR API. Making it real needs a
+user-scoped launch (a population is not one patient, and every token here is bound
+to one) plus a refactor so the view reads through the data-source seam. Panel plan
+§6.3 has the reasoning and what the upgrade unlocks.
 
 Two entry points, which are the two the panel plan names (§2): an activity button
 that knows only the patient, and a **CDS Hooks card whose link is

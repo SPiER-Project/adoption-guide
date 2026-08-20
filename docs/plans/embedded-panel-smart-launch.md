@@ -660,6 +660,71 @@ authorization on the hub at all: anyone who can reach the Worker can subscribe t
 a topic they know. The topic is an unguessable per-session value, which is a
 demo's worth of protection and not a security control.
 
+### 6.3 The front door, and the embedded population dashboard
+
+⚠️ **The demo was hard to start, and that was a defect worth more than it looks.**
+Reported directly: *"I don't understand what [the mock EHR] is doing… it was very
+difficult for me to understand what to do."* The mock's root URL served the
+**operator's bench** — a capability switch and a launch form — while the thing
+worth looking at, a chart with the panel embedded in it, was two clicks away at
+`/chart/{id}`. Every visitor landed on the least illustrative page on the server.
+
+Worth separating the two failures, because only one of them was about layout:
+
+1. **The way in was not first.** Fixed: `/` is the patient list, `/settings` is
+   the bench, `/chart` redirects (it is published in this repo's docs, so a 404
+   would be a worse answer than a redirect).
+2. **The page never said what the server was.** A visitor cannot tell a fake EHR
+   from SPiER by looking, and the two are styled differently precisely so they can
+   be told apart — which only helps if something says which is which. The first
+   sentence now does: *"A stand-in for a vendor chart… **This is not SPiER** —
+   SPiER is what appears in the panel on the right of a patient's chart."*
+
+**Keeping the two visual languages apart is deliberate**, and confirmed as such.
+The moment the host looks like SPiER, every screenshot becomes ambiguous about
+which half is the product, and an audience cannot see what SPiER contributes.
+
+#### The population dashboard is embedded, and is NOT a SMART launch
+
+The front door embeds SPiER's population view the way an EHR hosts a worklist
+activity. It is an `<iframe>` at `?embed=1#/population` — **panel chrome, no
+`iss`, no `launch`** — and the page says so in a warning box rather than in a
+comment nobody reads.
+
+⚠️ **Calling it a SMART view would be false today, for two independent reasons,
+and both are prerequisites for fixing it:**
+
+- `PopulationView` imports `localDataSource` **directly** rather than reading
+  through the `FhirDataSource` seam the chart already uses. So the frame renders
+  its own bundled demo registry; no data crosses the origin boundary, whatever the
+  frame looks like.
+- **A population is not one patient, and every token this server issues is bound
+  to one** (`denyForeignPatient`). A genuine embedded worklist needs a
+  *user-scoped* launch — no patient in context, `user/*.read` — which the auth
+  stub does not do, plus a cohort read.
+
+So this frame demonstrates the **shape** of an embedded worklist and nothing about
+interoperability. That is the honest claim and it is the one printed on the page.
+
+**The upgrade is real work with a real payoff, and the same refactor unlocks both
+halves.** Making `PopulationView` read through the data source is what would let
+it become a genuine user-scoped SMART panel *and* what would let the adoption
+guide retire its own `/population` and `/patient/chart` routes — the stated
+long-term direction, since those two views are EHR surfaces rather than
+implementer ones. Until that lands, the frame stays labelled.
+
+⚠️ **The demo patient data does NOT move with them.** It is tempting to conclude
+that if the population and chart views belong to the EHR, so do the fixtures.
+They do not: `web/src/data/population/` has consumers in all three packages and at
+the repo root — the gate net (`check-scenario-*`, `check-stage-ids`,
+`check-population-patients`, `shift-scenario-dates`, `validate-fhir`), the HL7
+use-case workbook's walkthrough linkage, the CDS service's fallback path, and the
+Stage-8 measure engine and dashboard, **which stay in the adoption guide**. The
+canonical Patients are `ig/input/fsh/population-patients.fsh` either way. One
+home with three consumers is the shape it already has; moving the files would
+invert the dependency (`services/mock-ehr` imports *from* `web` today) for no
+gain.
+
 ## 7. The prerequisite nobody will see coming
 
 ⚠️ ~~**Phase 1 is blocked: there are no `Patient` resources to serve.**~~ **UNBLOCKED 2026-08-18** — the 14 `Patient` resources exist and are gated; see the note at the end of this section. What remains of the prerequisite is phase 2 (per-patient transaction Bundles), which a mock reading the fixtures directly may not even need.

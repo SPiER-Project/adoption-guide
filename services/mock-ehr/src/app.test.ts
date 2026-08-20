@@ -216,7 +216,9 @@ describe('/fhir/metadata', () => {
 
 describe('control surface', () => {
   it('serves a page with the profile switch', async () => {
-    const res = await app.request(`${BASE}/`)
+    // /settings, not /: the operator's bench moved off the front door once the
+    // root page proved undiscoverable (see homePage in chartPage.ts).
+    const res = await app.request(`${BASE}/settings`)
     expect(res.status).toBe(200)
     const html = await res.text()
     expect(html).toContain('data-profile="no-observation"')
