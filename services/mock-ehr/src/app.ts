@@ -307,9 +307,13 @@ app.put('/_admin/capabilities', async (c) => {
 })
 
 /**
- * Mint a launch context and the URL an EHR would open. This is the step-5
- * launch button's engine, built here because without it nothing can be
- * launched at all — step 5 adds the chart around it, not the mechanism.
+ * Mint a launch context and the URL an EHR would open.
+ *
+ * The engine behind both launch surfaces: the chart page's activity button and
+ * CDS cards (`/chart/{id}`), and the control page's top-level launch. It stayed
+ * an `_admin` endpoint after step 5 added the chart because the chart is a
+ * *caller*, not the mechanism — which is also what lets the two surfaces differ
+ * only in what they put in the body (`embed`, `intent`, `needPatientBanner`).
  */
 app.post('/_admin/launch', async (c) => {
   type LaunchBody = { patient?: unknown; intent?: unknown; needPatientBanner?: unknown; embed?: unknown }
