@@ -170,9 +170,9 @@ synthetic) but worth knowing before anyone reasons about it as a control.
 | 1 — mock EHR read API + `/metadata` | **Done and deployed** |
 | 2 — SMART authorize/token stub | **Done and deployed**, proven in a browser |
 | 3 — `PanelShell`, nav stack, code drawer | **Done** — #358, #360 |
-| **4 — writes + capability degradation** | **DONE** (open PR, stacked on #375). Three defects the spec's endpoint table hid; two things deliberately NOT verified — see below |
+| 4 — writes + capability degradation | **DONE** (#376). Three defects the spec's endpoint table hid; all three profiles gated |
 | 5 — host chrome, launch button, CDS `type:"smart"` card | **DONE** (#375). The iframe claim is settled |
-| **6 — FHIRcast across origins** | **Unstarted, and now the only panel step left.** §6: `BroadcastChannel` will not cross the boundary, so this is `postMessage` with strict origin checks at the floor — or a real FHIRcast hub on a Durable Object, which is now cheap because step 4 added one |
+| 6 — FHIRcast across origins | **DONE.** A real hub in a Durable Object, host and panel on ONE topic across two origins — `postMessage` (the floor §6 proposed) was never needed, because step 4's DO already speaks WebSocket. Plan §6.2 |
 
 ### ✅ Step 4 — the ladder writes to a real server, and degrades on demand
 

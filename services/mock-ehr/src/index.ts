@@ -11,11 +11,16 @@
 import app from './app'
 
 /**
- * The Durable Object class has to be exported from the Worker's entry point —
- * that is how the runtime resolves `class_name` in the `durable_objects` binding.
- * Miss it and the deploy fails with "Durable Object class not found", which is at
- * least loud; a rename that updates only one side is the quiet version.
+ * Every Durable Object class has to be exported from the Worker's entry point —
+ * that is how the runtime resolves `class_name` in the `durable_objects`
+ * bindings. Miss one and the deploy fails with "Durable Object class not found",
+ * which is at least loud; a rename that updates only one side is the quiet
+ * version.
+ *
+ * `DemoStore` holds written resources and the capability profile (step 4);
+ * `FhircastHub` holds live WebSocket subscriptions (step 6).
  */
 export { DemoStore } from './demoStore'
+export { FhircastHub } from './fhircastHub'
 
 export default app

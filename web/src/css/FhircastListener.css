@@ -72,3 +72,15 @@
   background-color: var(--surface-banner-muted-hover);
   color: var(--text-strong);
 }
+
+/*
+ * The out-of-scope notice (step 6): the host chart moved to a patient this
+ * panel's access token is not bound to, so there is nothing to navigate to and
+ * what is on screen is stale. A warning rather than a status — see
+ * FhircastListener's header for why silence would be the worst option.
+ */
+.fhircast-banner--warn {
+  background-color: var(--risk-high-soft-bg);
+  border-color: var(--risk-high-faded);
+  color: var(--risk-high-soft-text);
+}

@@ -1,16 +1,25 @@
 import { makeId } from './id'
 
 /**
- * FHIRcast (STU3) patient-open events over a same-origin BroadcastChannel.
+ * FHIRcast (STU3) patient-open events, over a real hub when there is one.
  *
  * A real FHIRcast deployment has a *hub* that relays context-change events to
- * every subscribed app over WebSocket (or server-sent events). Here there is
- * no hub: two browser tabs of this same app (one showing the population
- * worklist, one showing a patient chart) stand in for two subscribed apps, and
- * a `BroadcastChannel` stands in for the hub's fan-out. The important part —
- * and the reason this is more than a `localStorage` ping — is that the payload
- * on the wire is a real FHIRcast **event notification**, so it can be
- * inspected and it maps 1:1 onto what a production hub would deliver.
+ * every subscribed app over WebSocket. **Step 6 made that the primary path**:
+ * when a SMART launch tells us the EHR's `hub.url` and `hub.topic`, this module
+ * subscribes to it and context crosses the origin boundary between the host
+ * chart and the embedded panel.
+ *
+ * The `BroadcastChannel` transport remains, and is still the right thing where
+ * it applies: two tabs of THIS app (the population worklist and a chart) with no
+ * EHR in the picture. It is a simulation, and the distinction matters enough to
+ * be modelled — see the transport section. What was always true of both is that
+ * the payload on the wire is a real FHIRcast **event notification**, so it can be
+ * inspected and maps 1:1 onto what a production hub delivers.
+ *
+ * ⚠️ The panel plan §6 listed leaving `BroadcastChannel` as a *cost* of going
+ * cross-origin, with `postMessage` as the floor and a real hub as the better
+ * version. The Durable Object that step 4 added for writes is what made the
+ * better version cheap: it already speaks WebSocket.
  *
  * Two-way and v1-scoped: this module only *models* the `patient-open` event,
  * but context changes flow both directions — the population worklist and any
@@ -105,12 +114,14 @@ function buildContextPatient(payload: PatientOpenPayload): Record<string, unknow
 export function buildPatientOpenEvent(
   payload: PatientOpenPayload,
   timestamp: string,
+  /** The live session topic; falls back to the demo's fixed one. */
+  topic: string = FHIRCAST_TOPIC,
 ): FhircastEvent {
   return {
     timestamp,
     id: makeId(),
     event: {
-      'hub.topic': FHIRCAST_TOPIC,
+      'hub.topic': topic,
       'hub.event': PATIENT_OPEN_EVENT,
       context: [{ key: 'patient', resource: buildContextPatient(payload) }],
     },
@@ -226,6 +237,43 @@ export function shouldPublishOnActivation({
   return true
 }
 
+// ── Transport ───────────────────────────────────────────────────────────────
+//
+// Everything above is pure: it builds and parses FHIRcast event notifications
+// and decides when to publish. What carries them is a separate concern, and
+// step 6 is the reason it became one.
+//
+// ⚠️ **Two transports, and the difference is WHO is talking — not how.** That
+// distinction drives a policy decision in `FhircastListener`, so it is modelled
+// here rather than left implicit:
+//
+//   - `broadcast` — a `BroadcastChannel` between tabs of THIS app. A simulation:
+//     no hub exists, and the "other app" is another copy of us. Same-origin by
+//     construction, and it cannot cross into a host chart.
+//   - `hub` — a real WebSocket subscription to a FHIRcast hub the connected EHR
+//     told us about, at the EHR's own origin. When this is live, an incoming
+//     `patient-open` is the EHR reporting its own context change, which is a
+//     completely different claim from another SPiER tab doing so.
+//
+// The old module header said this file "says same-origin and will not cross the
+// boundary", which the panel plan §6 listed as the thing FHIRcast would have to
+// leave behind. This is that.
+
+export type FhircastTransportKind = 'broadcast' | 'hub'
+
+interface Transport {
+  kind: FhircastTransportKind
+  publish(event: FhircastEvent): boolean
+  subscribe(handler: (event: FhircastEvent) => void): () => void
+  close(): void
+}
+
+/** Which transport is live. Read by the React listener to pick its policy. */
+export function activeTransportKind(): FhircastTransportKind {
+  return hubTransport ? 'hub' : 'broadcast'
+}
+
+// ── BroadcastChannel (the same-origin simulation) ───────────────────────────
 // One channel per document, opened lazily so importing this module has no
 // side effects (and so it degrades gracefully where BroadcastChannel is
 // unavailable, e.g. older test environments).
@@ -237,37 +285,206 @@ function getChannel(): BroadcastChannel | null {
   return channel
 }
 
+/** The BroadcastChannel transport. Note it does NOT echo to the posting document. */
+function broadcastTransport(): Transport | null {
+  const ch = getChannel()
+  if (!ch) return null
+  return {
+    kind: 'broadcast',
+    publish: (event) => { ch.postMessage(event); return true },
+    subscribe: (handler) => {
+      const listener = (e: MessageEvent) => handler(e.data as FhircastEvent)
+      ch.addEventListener('message', listener)
+      return () => ch.removeEventListener('message', listener)
+    },
+    close: () => {},
+  }
+}
+
+// ── WebSocket hub (the real thing, cross-origin) ────────────────────────────
+
+/** Where the connected EHR's hub lives, from the SMART token response. */
+export interface HubConfig {
+  /** The hub's base URL — FHIRcast `hub.url`. */
+  url: string
+  /** The session topic — FHIRcast `hub.topic`. Scopes events to this session. */
+  topic: string
+}
+
+let hubTransport: Transport | null = null
+let hubConfig: HubConfig | null = null
+
+/** The live hub configuration, or null when only the simulation is running. */
+export function currentHub(): HubConfig | null {
+  return hubConfig
+}
+
 /**
- * Publish a `patient-open` event to the other tabs. Returns the exact event
- * that was sent (so a caller can display it), or null if BroadcastChannel is
- * unavailable. Note BroadcastChannel does not echo to the posting document —
- * only *other* tabs receive it, which is exactly the semantics we want.
+ * Subscribe to a real FHIRcast hub and make it the active transport.
+ *
+ * The subscription is the spec's: `POST {hub.url}` form-encoded with
+ * `hub.channel.type=websocket`, `hub.mode=subscribe`, `hub.topic` and
+ * `hub.events`, answered with a `hub.channel.endpoint` to connect a WebSocket
+ * to. We do not invent a shortcut — a hub that handed out a socket URL without a
+ * subscription request would not be one an EHR could stand in for.
+ *
+ * Idempotent for the same topic, so a re-render cannot open a second socket.
+ * Returns false when the hub refuses or is unreachable, and the BroadcastChannel
+ * simulation stays in place — an app that loses its hub should degrade to no
+ * cross-app context rather than to a broken one.
+ */
+export async function configureFhircastHub(
+  config: HubConfig,
+  fetchImpl: typeof fetch = fetch,
+): Promise<boolean> {
+  if (hubConfig && hubConfig.url === config.url && hubConfig.topic === config.topic) return true
+  closeFhircastHub()
+
+  let endpoint: string
+  try {
+    const body = new URLSearchParams({
+      'hub.channel.type': 'websocket',
+      'hub.mode': 'subscribe',
+      'hub.topic': config.topic,
+      'hub.events': PATIENT_OPEN_EVENT,
+    })
+    const res = await fetchImpl(config.url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    })
+    if (!res.ok) return false
+    const json = (await res.json()) as Record<string, unknown>
+    const advertised = json['hub.channel.endpoint']
+    if (typeof advertised !== 'string' || !advertised) return false
+    endpoint = advertised
+  } catch {
+    return false
+  }
+
+  if (typeof WebSocket === 'undefined') return false
+  const socket = new WebSocket(endpoint)
+
+  socket.addEventListener('message', (e: MessageEvent) => {
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(String(e.data))
+    } catch {
+      return
+    }
+    const evt = parsed as FhircastEvent
+    // ⚠️ Topic check, and it is not ceremony. The topic is what scopes a
+    // FHIRcast session; a hub that mixed topics would leak one clinician's
+    // context into another's app, and a client that ignored the field would not
+    // notice. Cheap to check, so check it.
+    if (evt?.event?.['hub.topic'] !== config.topic) return
+    // The subscriber ACK the spec asks for. Sent before dispatch so a handler
+    // that throws cannot leave the hub waiting.
+    if (typeof evt.id === 'string') {
+      try {
+        socket.send(JSON.stringify({ id: evt.id, status: 'ok' }))
+      } catch { /* socket already closing — nothing useful to do */ }
+    }
+    dispatch(evt, 'hub')
+  })
+
+  hubConfig = config
+  hubTransport = {
+    kind: 'hub',
+    publish: (event) => {
+      // ⚠️ Published to the HUB over HTTP, not down our own socket. A hub relays
+      // to *other* subscribers; echoing to the publisher is what the follow
+      // marker exists to survive, and doing it over the socket would also make
+      // this app the source of truth for fan-out, which it is not.
+      void fetchImpl(`${config.url.replace(/\/+$/, '')}/${encodeURIComponent(config.topic)}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(event),
+      }).catch(() => {})
+      return true
+    },
+    // Unused: subscribers register with the module (see the public API below),
+    // and this transport pushes into that set from its socket handler. Kept on
+    // the interface because the BroadcastChannel transport genuinely needs it.
+    subscribe: () => () => {},
+    close: () => {
+      try { socket.close() } catch { /* already closed */ }
+    },
+  }
+  return true
+}
+
+/** Drop the hub subscription and fall back to the same-origin simulation. */
+export function closeFhircastHub(): void {
+  hubTransport?.close()
+  hubTransport = null
+  hubConfig = null
+}
+
+// ── The public API, transport-agnostic ──────────────────────────────────────
+//
+// ⚠️ **Subscribers register with THIS module, not with a transport, and that is a
+// correctness requirement rather than a nicety.** The hub is configured during
+// the SMART redirect — which happens *after* `FhircastListener` has mounted and
+// subscribed. A `subscribePatientOpen` that bound to whichever transport existed
+// at call time would therefore attach to the BroadcastChannel and never see a
+// single hub event, while every part of the wiring looked correct. Both
+// transports feed one subscriber set instead, so a hub that arrives later starts
+// delivering to handlers already registered.
+
+type Subscriber = (
+  payload: PatientOpenPayload,
+  event: FhircastEvent,
+  via: FhircastTransportKind,
+) => void
+
+const subscribers = new Set<Subscriber>()
+
+function dispatch(event: FhircastEvent, via: FhircastTransportKind): void {
+  const payload = parsePatientOpen(event)
+  if (!payload) return
+  for (const subscriber of subscribers) subscriber(payload, event, via)
+}
+
+/** Lazily attach the BroadcastChannel feed. Idempotent. */
+let broadcastAttached = false
+function attachBroadcast(): void {
+  if (broadcastAttached) return
+  const transport = broadcastTransport()
+  if (!transport) return
+  broadcastAttached = true
+  transport.subscribe(event => dispatch(event, 'broadcast'))
+}
+
+/**
+ * Publish a `patient-open` event. Returns the exact event that was sent (so a
+ * caller can display it), or null if no transport is available.
+ *
+ * Goes to the hub when one is subscribed, otherwise to the BroadcastChannel —
+ * never both, because two copies of one context change is not a truer statement
+ * of it.
  */
 export function publishPatientOpen(
   payload: PatientOpenPayload,
   timestamp: string,
 ): FhircastEvent | null {
-  const evt = buildPatientOpenEvent(payload, timestamp)
-  const ch = getChannel()
-  if (!ch) return null
-  ch.postMessage(evt)
-  return evt
+  const evt = buildPatientOpenEvent(payload, timestamp, currentHub()?.topic)
+  const transport = hubTransport ?? broadcastTransport()
+  if (!transport) return null
+  return transport.publish(evt) ? evt : null
 }
 
 /**
  * Subscribe to incoming `patient-open` events. The handler receives the parsed
- * payload plus the raw event (for display/inspection). Returns an unsubscribe
- * function. No-op (returns a no-op cleanup) where BroadcastChannel is missing.
+ * payload, the raw event (for display/inspection), and **which transport it
+ * arrived on** — the last of which decides policy, not presentation.
+ *
+ * An event from the connected EHR's hub is that EHR reporting its own context
+ * change. An event from the BroadcastChannel is another tab of this app
+ * simulating one. `FhircastListener` treats them differently and has to.
  */
-export function subscribePatientOpen(
-  handler: (payload: PatientOpenPayload, event: FhircastEvent) => void,
-): () => void {
-  const ch = getChannel()
-  if (!ch) return () => {}
-  const listener = (e: MessageEvent) => {
-    const payload = parsePatientOpen(e.data)
-    if (payload) handler(payload, e.data as FhircastEvent)
-  }
-  ch.addEventListener('message', listener)
-  return () => ch.removeEventListener('message', listener)
+export function subscribePatientOpen(handler: Subscriber): () => void {
+  attachBroadcast()
+  subscribers.add(handler)
+  return () => { subscribers.delete(handler) }
 }

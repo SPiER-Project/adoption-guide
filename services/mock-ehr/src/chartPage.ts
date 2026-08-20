@@ -41,6 +41,7 @@
  */
 import { DISCLAIMER, INK, RASPBERRY, RULE, TINT, TINT_WARM, crumbs, esc, page } from './hostChrome'
 import type { DemoPatient } from './fixtures'
+import { MRN_SYSTEM } from '../../../web/src/lib/fhircast'
 
 /**
  * Panel widths the demo can switch between, in CSS pixels.
@@ -95,7 +96,7 @@ export function patientListPage(patients: DemoPatient[]): string {
 
 const CHART_CSS = `
   body.chart { padding: 0; }
-  .chart-layout { display: flex; align-items: stretch; min-height: 100vh; }
+  .chart-layout { display: flex; align-items: flex-start; min-height: 100vh; }
   .chart-main { flex: 1 1 auto; min-width: 0; padding: 1.5rem; }
   .banner { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; padding: .75rem 1rem;
             border: 1px solid ${RULE}; border-left: 4px solid ${RASPBERRY}; border-radius: 6px; background: ${TINT}; }
@@ -122,7 +123,24 @@ const CHART_CSS = `
                          background: ${RASPBERRY}; color: #fff; }
   button.smart { border-color: ${RASPBERRY}; }
 
-  .panel-dock { flex: 0 0 auto; display: flex; flex-direction: column; border-left: 1px solid ${RULE}; background: ${TINT}; }
+  /*
+   * ⚠️ **Sticky and exactly one viewport tall — not stretched to the column
+   * beside it.** With align-items: stretch (the flex default) the dock grows to
+   * the height of the chart content, so the iframe becomes as tall as the host
+   * page. The panel's own chrome is position: fixed — the code drawer and the
+   * FHIRcast notice — which pins it to the bottom of the IFRAME's viewport, and
+   * that is then a thousand pixels below the fold. Measured here: a 2073px chart
+   * column gave a 1961px iframe in a 1000px window, and the FHIRcast banner
+   * rendered correctly and invisibly.
+   *
+   * This is panel plan §9.1 finding 3 ("the code drawer is not merely cramped at
+   * panel width — it is stranded") arriving from the other side: step 3 fixed it
+   * inside the panel, and step 4's additions to THIS page reintroduced it from
+   * the host. An embedded activity gets a viewport, so the frame has to be one.
+   */
+  .panel-dock { flex: 0 0 auto; align-self: flex-start; position: sticky; top: 0;
+                height: 100vh; display: flex; flex-direction: column;
+                border-left: 1px solid ${RULE}; background: ${TINT}; }
   .panel-dock__bar { display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem; border-bottom: 1px solid ${RULE};
                      font-size: .8rem; color: ${INK}; }
   .panel-dock__title { font-weight: 700; color: ${RASPBERRY}; letter-spacing: .02em; }
@@ -156,12 +174,15 @@ export function patientChartPage(
     panelOrigin,
     profiles,
     activeProfile,
+    otherPatients,
   }: {
     cdsEndpoint: string
     panelOrigin: string
     /** Every capability profile, with its one-line description. */
     profiles: Array<{ profile: string; description: string }>
     activeProfile: string
+    /** Everyone except this patient, for the FHIRcast announce affordance. */
+    otherPatients: DemoPatient[]
   },
 ): string {
   const widthButtons = PANEL_WIDTHS.map(w => `
@@ -218,6 +239,37 @@ export function patientChartPage(
         <button type="button" id="reset-writes">Reset written data</button>
       </p>
 
+      <h2>Shared context (FHIRcast)</h2>
+      <p class="lede">
+        This chart is a FHIRcast subscriber on the EHR's own hub, and it tells the panel which
+        session it is in via <code>hub.url</code> and <code>hub.topic</code> on the token response.
+        Opening a chart announces <code>patient-open</code>; the panel is subscribed to the same
+        topic and reacts to it <strong>across the origin boundary</strong>.
+      </p>
+      <p class="server-note">
+        <span id="cast-status">Subscribing to the hub…</span>
+      </p>
+
+      <!-- ⚠️ Why a button and not just "open another chart": navigating this page
+           is a full page load, which destroys the iframe — so the panel would be
+           gone before it could react. This announces a context change WITHOUT
+           navigating, which is the only way to watch the panel receive one. A
+           demo affordance, and it says so. -->
+      <form id="cast-form">
+        <label>Announce a context change to another patient
+          <select name="patient">${otherPatients.map(p => `
+            <option value="${esc(p.id)}">${esc(p.name)} &middot; ${esc(p.id)}</option>`).join('')}
+          </select>
+        </label>
+        <button type="submit">Announce patient-open</button>
+      </form>
+      <p class="server-note">
+        Stands in for the clinician opening a different chart. The panel is scoped to
+        ${esc(patient.name)} by its access token, so it <em>cannot</em> follow — watch it say so
+        rather than fail.
+      </p>
+      <ul id="cast-log" class="cards"></ul>
+
       <h2>Activity</h2>
       <p class="lede">
         The vendor-configured entry point: it knows the patient and nothing else, so the panel opens
@@ -240,7 +292,7 @@ export function patientChartPage(
       <p class="panel-dock__sent" id="dock-sent"></p>
     </aside>
   </div>`,
-    script: chartScript({ patientId: patient.id, cdsEndpoint, panelOrigin }),
+    script: chartScript({ patient, cdsEndpoint, panelOrigin }),
   })
 }
 
@@ -249,14 +301,48 @@ export function patientChartPage(
  * Static Assets binding and no client bundle, which is also why it is small.
  */
 function chartScript({
-  patientId,
+  patient,
   cdsEndpoint,
   panelOrigin,
-}: { patientId: string; cdsEndpoint: string; panelOrigin: string }): string {
+}: { patient: DemoPatient; cdsEndpoint: string; panelOrigin: string }): string {
+  // Split for the FHIRcast context Patient, which carries a HumanName. Same
+  // "first token is the given name" rule `buildContextPatient` uses in the app —
+  // crude, and correct for every synthetic name in this repo.
+  const [given, ...familyParts] = patient.name.split(' ')
   return `
-  var PATIENT = ${JSON.stringify(patientId)};
+  var PATIENT = ${JSON.stringify(patient.id)};
+  var MRN = ${JSON.stringify(patient.mrn)};
+  var GIVEN = ${JSON.stringify(given ?? '')};
+  var FAMILY = ${JSON.stringify(familyParts.join(' '))};
+  // Imported rather than restated: the MRN namespace has four sites that must
+  // agree and check:patients gates them (see fixtures.ts).
+  var MRN_SYSTEM = ${JSON.stringify(MRN_SYSTEM)};
   var CDS_ENDPOINT = ${JSON.stringify(cdsEndpoint)};
   var PANEL_ORIGIN = ${JSON.stringify(panelOrigin)};
+
+  /**
+   * The FHIRcast session topic, held in sessionStorage for the TAB.
+   *
+   * Per-tab rather than per-page: opening patient-012's chart is a full page
+   * navigation, and a topic minted per load would put every chart in its own
+   * session — so the panel launched from the previous chart would never hear
+   * about the new one, which is exactly the event worth demonstrating. Per-tab
+   * also keeps two people demonstrating at once on separate sessions.
+   */
+  var TOPIC = (function () {
+    var key = 'spier-mock-ehr:fhircast-topic';
+    try {
+      var existing = sessionStorage.getItem(key);
+      if (existing) return existing;
+      var minted = 'host-' + crypto.randomUUID();
+      sessionStorage.setItem(key, minted);
+      return minted;
+    } catch (e) {
+      // Storage denied — fall back to a per-load topic. The demo degrades to
+      // "the panel does not follow", which is visible, rather than throwing.
+      return 'host-' + crypto.randomUUID();
+    }
+  })();
 
   var dock = document.getElementById('dock');
   var frame = document.getElementById('panel');
@@ -300,6 +386,11 @@ function chartScript({
         intent: intent || undefined,
         needPatientBanner: false,
         embed: true,
+        // ⚠️ THIS page's topic, not a fresh one. The panel joins the session the
+        // host is already in, which is the whole point — a per-launch topic
+        // would give each side its own session and nothing would cross, while
+        // looking identical to working.
+        topic: TOPIC,
       }),
     }).then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -309,7 +400,8 @@ function chartScript({
       dockContext.textContent = label || 'pathway';
       dockSent.innerHTML = 'Launch context sent: <code>patient=' + PATIENT + '</code>'
         + (intent ? ' <code>intent=' + intent + '</code>' : '')
-        + ' <code>need_patient_banner=false</code>';
+        + ' <code>need_patient_banner=false</code>'
+        + ' <code>hub.topic=' + TOPIC + '</code>';
     }).catch(function (err) {
       dockContext.textContent = '';
       dockSent.textContent = 'Could not mint a launch: ' + err.message;
@@ -317,6 +409,130 @@ function chartScript({
   }
 
   document.getElementById('open-panel').addEventListener('click', function () { launch(null, 'pathway'); });
+
+  // ── FHIRcast: subscribe, then announce this chart ─────────────────────────
+  //
+  // The subscription is the spec's: POST the hub with hub.channel.type=websocket
+  // and connect to the endpoint it hands back. Announcing patient-open on load is
+  // what a real EHR does when a chart is opened, and it is what the embedded
+  // panel reacts to.
+  var castStatus = document.getElementById('cast-status');
+  var castForm = document.getElementById('cast-form');
+  var castLog = document.getElementById('cast-log');
+
+  function logCast(text, kind) {
+    var li = document.createElement('li');
+    li.className = 'card card--' + (kind || 'info');
+    li.textContent = text;
+    castLog.insertBefore(li, castLog.firstChild);
+  }
+
+  fetch('/fhircast', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      'hub.channel.type': 'websocket',
+      'hub.mode': 'subscribe',
+      'hub.topic': TOPIC,
+      'hub.events': 'patient-open',
+    }).toString(),
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }).then(function (body) {
+    var endpoint = body['hub.channel.endpoint'];
+    if (!endpoint) throw new Error('the hub returned no channel endpoint');
+    var socket = new WebSocket(endpoint);
+    socket.addEventListener('open', function () {
+      castStatus.innerHTML = 'Subscribed on <code>' + TOPIC + '</code>. Announcing this chart…';
+      announce();
+    });
+    socket.addEventListener('message', function (e) {
+      var parsed;
+      try { parsed = JSON.parse(e.data); } catch (err) { return; }
+      if (parsed['hub.mode'] === 'subscribe') {
+        logCast('Hub confirmed the subscription on topic ' + parsed['hub.topic'], 'info');
+        return;
+      }
+      var evt = parsed.event || {};
+      // The ACK the spec asks of a subscriber.
+      if (parsed.id) socket.send(JSON.stringify({ id: parsed.id, status: 'ok' }));
+      var ctx = (evt.context || [])[0] || {};
+      var who = (ctx.resource || {}).id || '(unknown)';
+      logCast(evt['hub.event'] + ' → ' + who + '  (received on the hub)', 'info');
+    });
+    socket.addEventListener('close', function () {
+      castStatus.textContent = 'The hub connection closed.';
+    });
+  }).catch(function (err) {
+    castStatus.textContent = 'Could not subscribe to the hub: ' + err.message;
+  });
+
+  castForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var id = new FormData(e.target).get('patient');
+    var option = e.target.querySelector('option[value="' + id + '"]');
+    var label = option ? option.textContent.split('\u00b7')[0].trim() : String(id);
+    var parts = label.split(' ');
+    publish(String(id), parts[0], parts.slice(1).join(' '), '');
+  });
+
+  /** Publish patient-open for THIS chart's patient. */
+  function announce() {
+    var event = {
+      timestamp: new Date().toISOString(),
+      id: crypto.randomUUID(),
+      event: {
+        'hub.topic': TOPIC,
+        'hub.event': 'patient-open',
+        context: [{
+          key: 'patient',
+          resource: {
+            resourceType: 'Patient',
+            id: PATIENT,
+            identifier: [{ system: MRN_SYSTEM, value: MRN }],
+            name: [{ given: [GIVEN], family: FAMILY }],
+          },
+        }],
+      },
+    };
+    postEvent(event, PATIENT);
+  }
+
+  /** Publish patient-open for an arbitrary patient, on this page's topic. */
+  function publish(id, given, family, mrn) {
+    postEvent({
+      timestamp: new Date().toISOString(),
+      id: crypto.randomUUID(),
+      event: {
+        'hub.topic': TOPIC,
+        'hub.event': 'patient-open',
+        context: [{
+          key: 'patient',
+          resource: {
+            resourceType: 'Patient',
+            id: id,
+            identifier: mrn ? [{ system: MRN_SYSTEM, value: mrn }] : undefined,
+            name: [{ given: [given], family: family }],
+          },
+        }],
+      },
+    }, id);
+  }
+
+  function postEvent(event, who) {
+    fetch('/fhircast/' + encodeURIComponent(TOPIC), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(event),
+    }).then(function (res) { return res.json(); }).then(function (body) {
+      castStatus.innerHTML = 'Announced <code>patient-open</code> for ' + who
+        + ' on <code>' + TOPIC + '</code> — delivered to ' + body.delivered + ' subscriber(s).';
+      logCast('patient-open → ' + who + '  (published by this chart)', 'info');
+    }).catch(function (err) {
+      castStatus.textContent = 'Could not announce: ' + err.message;
+    });
+  }
 
   // ── The server's own account of what was written ─────────────────────────
   // Deliberately independent of the panel's scorecard: the ladder reporting on

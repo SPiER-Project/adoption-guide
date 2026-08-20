@@ -5,6 +5,7 @@ import { useSmart } from '../context/SmartContext'
 import { usePresentation } from '../context/PresentationContext'
 import { readSmartPatientSummary } from '../lib/smartPatient'
 import { launchPathForIntent } from '../lib/smartIntent'
+import { configureFhircastHub } from '../lib/fhircast'
 
 export function SmartRedirect() {
     const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...')
@@ -35,6 +36,8 @@ export function SmartRedirect() {
                         const tokenResponse = (client.state.tokenResponse ?? {}) as {
                             need_patient_banner?: unknown
                             intent?: unknown
+                            'hub.url'?: unknown
+                            'hub.topic'?: unknown
                         }
                         // Only an explicit `false` suppresses our strip. Absent
                         // means "app decides", and the app's answer is to name the
@@ -52,6 +55,20 @@ export function SmartRedirect() {
                         const directed = typeof tokenResponse.intent === 'string'
                             ? launchPathForIntent(tokenResponse.intent)
                             : null
+
+                        // ── FHIRcast (step 6) ────────────────────────────
+                        // The EHR tells us where its hub is and which session
+                        // topic we are in; subscribing is how context crosses
+                        // the origin boundary between the host chart and this
+                        // panel. Best-effort on purpose: a hub that refuses or
+                        // is unreachable leaves the app on its same-origin
+                        // BroadcastChannel simulation, which is a degraded
+                        // demo rather than a broken chart.
+                        const hubUrl = tokenResponse['hub.url']
+                        const hubTopic = tokenResponse['hub.topic']
+                        if (typeof hubUrl === 'string' && hubUrl && typeof hubTopic === 'string' && hubTopic) {
+                            await configureFhircastHub({ url: hubUrl, topic: hubTopic })
+                        }
 
                         setStatus('Patient data loaded. Redirecting...')
 

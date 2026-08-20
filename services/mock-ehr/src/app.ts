@@ -17,6 +17,10 @@
  *   POST /_admin/launch           mint a launch context + the app's launch URL
  *   GET  /_admin/writes           what has been written, as JSON
  *   POST /_admin/reset            discard every write
+ *   POST /fhircast                FHIRcast subscription (websocket channel)
+ *   GET  /fhircast/ws             the subscribed WebSocket channel
+ *   POST /fhircast/{topic}        publish a context change; hub fans it out
+ *   GET  /_admin/fhircast         live hub stats
  *
  * ── Deliberately absent ─────────────────────────────────────────────────────
  * No `id_token` and no scope enforcement — see the header of smart.ts, which
@@ -57,6 +61,11 @@ import { patientChartPage, patientListPage } from './chartPage'
 import { validateWrite, withAssignedId } from './validate'
 import { storeFor } from './store'
 import type { DemoStore } from './demoStore'
+import { parseSubscription } from './fhircastProtocol'
+import type { HubNotification } from './fhircastProtocol'
+// Type-only: see the header of fhircastHub.ts for why this must never become a
+// value import.
+import type { FhircastHub } from './fhircastHub'
 import {
   authRequired,
   authorize,
@@ -75,6 +84,8 @@ export interface Env extends SmartEnv {
    * misconfigured deploy — see `storeFor`, which refuses to fake it.
    */
   DEMO_STORE?: DurableObjectNamespace<DemoStore>
+  /** The FHIRcast hub (step 6). Absent in unit tests that do not need it. */
+  FHIRCAST_HUB?: DurableObjectNamespace<FhircastHub>
   /** Profile a freshly started isolate begins with (wrangler.jsonc `vars`). */
   MOCK_CAPABILITY_PROFILE?: string
   /** Where the panel app lives, for the launch URL the control page builds. */
@@ -596,7 +607,7 @@ app.get('/authorize', async (c) => {
 
 app.post('/token', async (c) => {
   const form = new URLSearchParams(await c.req.text())
-  const result = await token(form, envOf(c))
+  const result = await token(form, envOf(c), new URL(c.req.url).origin)
   // OAuth 2 requires token responses to be uncacheable.
   c.header('cache-control', 'no-store')
   c.header('pragma', 'no-cache')
@@ -649,16 +660,31 @@ app.put('/_admin/capabilities', async (c) => {
  * only in what they put in the body (`embed`, `intent`, `needPatientBanner`).
  */
 app.post('/_admin/launch', async (c) => {
-  type LaunchBody = { patient?: unknown; intent?: unknown; needPatientBanner?: unknown; embed?: unknown }
+  type LaunchBody = {
+    patient?: unknown
+    intent?: unknown
+    needPatientBanner?: unknown
+    embed?: unknown
+    topic?: unknown
+  }
   const body = await c.req.json<LaunchBody>().catch(() => ({} as LaunchBody))
   const patient = typeof body.patient === 'string' ? body.patient : ''
   if (!RESOURCES_BY_KEY.has(`Patient/${patient}`)) {
     return c.json({ error: `Unknown patient '${patient}'.` }, 400)
   }
+  // ⚠️ A FHIRcast topic per launch, minted here unless the caller supplies one.
+  // The caller supplying one is the interesting case: the chart page reuses ONE
+  // topic across every launch it makes, so the host and the panel share a session
+  // (step 6). A fresh topic per launch would give each of them its own session and
+  // nothing would cross — which looks identical to working until you check.
+  const topic = typeof body.topic === 'string' && body.topic
+    ? body.topic
+    : `spier-${crypto.randomUUID()}`
   const launch = await mintLaunch({
     patient,
     intent: typeof body.intent === 'string' && body.intent ? body.intent : undefined,
     needPatientBanner: typeof body.needPatientBanner === 'boolean' ? body.needPatientBanner : undefined,
+    topic,
   }, envOf(c))
 
   const origin = new URL(c.req.url).origin
@@ -676,7 +702,7 @@ app.post('/_admin/launch', async (c) => {
   url.searchParams.set('launch', launch)
   if (body.embed === true) url.searchParams.set('embed', '1')
   url.hash = '#/launch'
-  return c.json({ launch, launchUrl: url.toString(), patient })
+  return c.json({ launch, launchUrl: url.toString(), patient, topic })
 })
 
 /**
@@ -722,6 +748,109 @@ app.post('/_admin/reset', async (c) => {
   return c.json({ discarded, profileUnchanged: await liveProfile(c) })
 })
 
+// ── FHIRcast hub (step 6) ────────────────────────────────────────────────────
+//
+// The hub itself is a Durable Object (fhircastHub.ts); these routes are its HTTP
+// surface. CORS matters here for the same reason it does on /fhir: the panel is
+// on another origin, so a subscription request is a cross-origin POST and a
+// preflight failure looks exactly like a hub that is down.
+
+const hubCors = cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400,
+})
+app.use('/fhircast', hubCors)
+app.use('/fhircast/*', hubCors)
+
+/** The single hub instance, or null when the binding is absent. */
+function hubFor(env: Env): DurableObjectStub<FhircastHub> | null {
+  if (!env.FHIRCAST_HUB) return null
+  return env.FHIRCAST_HUB.get(env.FHIRCAST_HUB.idFromName('hub'))
+}
+
+/**
+ * `POST /fhircast` — a FHIRcast subscription request.
+ *
+ * Form-encoded per the spec, and refused rather than coerced when it asks for
+ * something this hub does not do (see `parseSubscription`). Answers 202 with the
+ * `hub.channel.endpoint` to connect a WebSocket to.
+ *
+ * ⚠️ The endpoint is built from the REQUEST's origin, with the scheme swapped to
+ * `ws`/`wss`. Not from a configured base URL: the hub has to be reachable at
+ * whatever host the client actually used, and a hardcoded origin is how a
+ * localhost demo ends up handing out a production socket URL.
+ */
+app.post('/fhircast', async (c) => {
+  const hub = hubFor(envOf(c))
+  if (!hub) return c.json({ error: 'No FHIRCAST_HUB binding — this deployment has no hub.' }, 503)
+
+  const parsed = parseSubscription(new URLSearchParams(await c.req.text()))
+  if ('error' in parsed) return c.json({ error: parsed.error }, 400)
+
+  if (parsed.mode === 'unsubscribe') {
+    const closed = await hub.unsubscribe(parsed.subscription.topic)
+    return c.json({ 'hub.mode': 'unsubscribe', 'hub.topic': parsed.subscription.topic, closed }, 202)
+  }
+
+  const url = new URL(c.req.url)
+  const scheme = url.protocol === 'https:' ? 'wss:' : 'ws:'
+  const endpoint = `${scheme}//${url.host}/fhircast/ws`
+    + `?topic=${encodeURIComponent(parsed.subscription.topic)}`
+    + `&events=${encodeURIComponent(parsed.subscription.events.join(','))}`
+  return c.json({
+    'hub.mode': 'subscribe',
+    'hub.topic': parsed.subscription.topic,
+    'hub.events': parsed.subscription.events.join(','),
+    'hub.channel.type': 'websocket',
+    'hub.channel.endpoint': endpoint,
+  }, 202)
+})
+
+/** The WebSocket channel. Handed straight to the DO — see its `fetch`. */
+app.get('/fhircast/ws', (c) => {
+  const hub = hubFor(envOf(c))
+  if (!hub) return c.json({ error: 'No FHIRCAST_HUB binding — this deployment has no hub.' }, 503)
+  return hub.fetch(c.req.raw)
+})
+
+/**
+ * `POST /fhircast/{topic}` — an app reporting a context change. The hub fans it
+ * out to that topic's subscribers.
+ *
+ * The topic in the URL must match the one in the body. A mismatch is refused
+ * rather than resolved in either direction: taking the URL's would let a
+ * misaddressed event reach the wrong session, and taking the body's would make
+ * the URL decorative.
+ */
+app.post('/fhircast/:topic', async (c) => {
+  const hub = hubFor(envOf(c))
+  if (!hub) return c.json({ error: 'No FHIRCAST_HUB binding — this deployment has no hub.' }, 503)
+  const topic = c.req.param('topic')
+  const body = await c.req.json<HubNotification>().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return c.json({ error: 'Body must be a FHIRcast event notification.' }, 400)
+  }
+  const bodyTopic = body.event?.['hub.topic']
+  if (bodyTopic && bodyTopic !== topic) {
+    return c.json({ error: `hub.topic in the body ("${bodyTopic}") does not match the URL ("${topic}").` }, 400)
+  }
+  const delivered = await hub.publish(topic, body)
+  return c.json({ 'hub.topic': topic, delivered })
+})
+
+/**
+ * Live hub stats. `sockets` and `topics` are derived from the live socket set and
+ * are trustworthy; `sent` and `acked` count only since the hub last woke from
+ * hibernation — see the note on those fields in fhircastHub.ts.
+ */
+app.get('/_admin/fhircast', async (c) => {
+  const hub = hubFor(envOf(c))
+  if (!hub) return c.json({ error: 'No FHIRCAST_HUB binding — this deployment has no hub.' }, 503)
+  return c.json(await hub.stats())
+})
+
 // ── Host chrome (step 5) ─────────────────────────────────────────────────────
 // The patient list and one chart, with the panel framed inside it. This is what
 // exercises `frame-ancestors` on the panel host — see chartPage.ts.
@@ -741,6 +870,10 @@ app.get('/chart/:patientId', async (c) => {
     panelOrigin,
     profiles: CAPABILITY_PROFILES.map(p => ({ profile: p, description: PROFILE_DESCRIPTIONS[p] })),
     activeProfile: await liveProfile(c),
+    // Everyone except the patient whose chart this is — the FHIRcast affordance
+    // announces a move to a DIFFERENT patient, so offering this one would
+    // demonstrate nothing.
+    otherPatients: DEMO_PATIENTS.filter(p => p.id !== patient.id),
   }))
 })
 

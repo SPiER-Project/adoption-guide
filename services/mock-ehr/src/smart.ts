@@ -95,6 +95,18 @@ export interface LaunchContext {
   intent?: string
   /** `false` tells the panel the host already draws a patient banner. */
   needPatientBanner?: boolean
+  /**
+   * FHIRcast session topic (step 6).
+   *
+   * ⚠️ **Minted with the launch, on purpose.** The topic is what scopes a
+   * FHIRcast session, and the host and the panel have to end up on the SAME one
+   * or they subscribe to different sessions and nothing crosses. Carrying it in
+   * the launch context is how: the host mints it alongside the launch, and the
+   * panel receives it in the token response. The alternative — each side deriving
+   * a topic from, say, the patient id — would look like it worked and would
+   * silently join two unrelated sessions that happened to open the same patient.
+   */
+  topic?: string
   exp: number
 }
 
@@ -220,7 +232,12 @@ export async function authorize(
   if (launch) {
     const decoded = await verify<LaunchContext>(launch, secretOf(env), now)
     if (!decoded) return fail('invalid_request', 'The launch context is unknown or expired.')
-    context = { patient: decoded.patient, intent: decoded.intent, needPatientBanner: decoded.needPatientBanner }
+    context = {
+      patient: decoded.patient,
+      intent: decoded.intent,
+      needPatientBanner: decoded.needPatientBanner,
+      topic: decoded.topic,
+    }
   } else if (get('patient')) {
     context = { patient: get('patient') }
   }
@@ -262,6 +279,13 @@ export type TokenResult =
 export async function token(
   form: URLSearchParams,
   env: SmartEnv,
+  /**
+   * This server's own origin, for the FHIRcast `hub.url` in the response.
+   * Optional so a caller that does not know it still gets a valid token — the
+   * response then simply carries no hub, and the app keeps its BroadcastChannel
+   * simulation rather than subscribing to something it cannot reach.
+   */
+  origin?: string,
   now = Date.now(),
 ): Promise<TokenResult> {
   const get = (name: string) => form.get(name) ?? ''
@@ -303,6 +327,11 @@ export async function token(
       // `client.state.tokenResponse`; omitted when the launch did not set them.
       ...(code.needPatientBanner === undefined ? {} : { need_patient_banner: code.needPatientBanner }),
       ...(code.intent ? { intent: code.intent } : {}),
+      // FHIRcast launch context (step 6). `hub.url` is where the app subscribes,
+      // `hub.topic` scopes the session, and both ride the token response because
+      // that is where FHIRcast puts them — the app is never *configured* with a
+      // hub address, it is told one by the EHR that launched it.
+      ...(code.topic && origin ? { 'hub.topic': code.topic, 'hub.url': `${origin}/fhircast` } : {}),
     },
   }
 }
