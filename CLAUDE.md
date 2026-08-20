@@ -264,6 +264,26 @@ also carry `proposed: true` on its walkthrough entry, so the chart cannot show
 a SPiER proposal as settled. `docs/use-cases/README.md` has the rationale,
 including why review notes are not emitted as Excel cell comments.
 
+⚠️ **The scenario gate's per-resource rules are SHARED with the mock EHR's write
+endpoint, and that is a guardrail rather than a refactor.**
+`web/scripts/lib/fhir-resource-rules.mjs` holds the base-R4 tables, the
+profile-derived checks and the date/binding rules; `check-scenario-resources.mjs`
+and `services/mock-ehr/src/validate.ts` both call it. The embedded-panel plan §1
+permits a mock we control **only** if it validates writes with these checks
+"rather than inventing a second, laxer opinion" — a lenient mock accepts writes a
+real EHR rejects, so the demo looks better while proving less. If you change a
+rule, you change both callers at once, which is the point. The rule bodies were
+moved unchanged into a closure that supplies `fail` and `structureDefs`, so
+`git log -p` on that file shows an empty diff for the rules themselves.
+
+Two properties there are load-bearing. `assertUsableIndex` makes an **empty**
+conformance index a startup failure in both callers — otherwise every
+profile-derived rule reports nothing and the gate (or the write endpoint) green-lights
+what it never read. And the rules require an `id`, while a FHIR **create** must
+not carry one; `validate.ts` assigns the server's id *before* validating rather
+than relaxing the rule, because relaxing it would have loosened the scenario gate
+too.
+
 In `services/cds-hooks/` — **easy to forget, and CI gates it:**
 ```
 npm install && npm run verify   # typecheck + eslint + vitest for the Worker

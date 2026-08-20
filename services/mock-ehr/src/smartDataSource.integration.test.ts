@@ -21,10 +21,15 @@
 import { createServer, type Server } from 'node:http'
 import Client from 'fhirclient/lib/Client'
 import type { fhirclient } from 'fhirclient/lib/types'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { SmartDataSource } from '../../../web/src/lib/dataSource/smartDataSource'
-import app from './app'
+import { deriveFromResponse } from '../../../web/src/lib/deriveFromResponse'
+import { POPULATION_SCENARIOS } from '../../../web/src/data/population/scenarios'
+import type { StoredResponse } from '../../../web/src/types/fhir'
+import type { DerivedArtifacts } from '../../../web/src/lib/dataSource/types'
+import app, { resetProfile } from './app'
 import { launchFor } from './__fixtures__/launch'
+import { fakeStore, type FakeStoreBinding } from './__fixtures__/store'
 
 let server: Server
 let SERVER_URL = ''
@@ -35,6 +40,13 @@ let port = 0
  * the app — how the "prove it can fail" case takes one search offline.
  */
 let failTypes: string[] = []
+
+/**
+ * Env the loopback server passes to the app. Writes need a `DEMO_STORE`; the
+ * read tests do not, and leaving it unset for them keeps their behaviour
+ * identical to before step 4.
+ */
+let requestEnv: Record<string, unknown> = {}
 
 beforeAll(async () => {
   server = createServer((req, res) => {
@@ -55,7 +67,7 @@ beforeAll(async () => {
         method: req.method,
         headers: req.headers as Record<string, string>,
         body: chunks.length ? Buffer.concat(chunks) : undefined,
-      })
+      }, requestEnv)
       const headers: Record<string, string> = {}
       response.headers.forEach((value, key) => { headers[key] = value })
       res.writeHead(response.status, headers)
@@ -195,5 +207,165 @@ describe('SmartDataSource against the mock EHR', () => {
     } finally {
       failTypes = []
     }
+  })
+})
+
+/**
+ * The writeback ladder, driven by the REAL `SmartDataSource.saveResponse`
+ * against this server over a real socket — panel step 4.
+ *
+ * ⚠️ **This exists because a browser is not a gate.** The degradation demo was
+ * observed once, by hand, in a browser (panel plan §5.1): a PSS-3 submitted under
+ * `full` wrote a QuestionnaireResponse and four Observations, and the same submit
+ * under `no-observation` wrote the QuestionnaireResponse and the
+ * DocumentReference floor instead. That is evidence the thing works; it is not
+ * something that fails when someone breaks it. This is.
+ *
+ * It also closes a case the browser run deliberately did not cover — the
+ * `read-only` profile — which is the profile a sceptical integration lead will
+ * pick, precisely because it is the one where nothing can land.
+ *
+ * Nothing here is hand-built: the QuestionnaireResponse comes from the population
+ * scenarios and its Observations from `deriveFromResponse`, so the payloads are
+ * the ones the app actually produces.
+ *
+ * ⚠️ **`deriveFromResponse`, not `mapResponseToObservations`** — and the first
+ * draft of this file got that wrong, which is worth recording because it is the
+ * #327 shape exactly. The raw mapper returns Observations with **no**
+ * `derivedFrom`; `deriveFromResponse` is the business logic that stamps the
+ * back-reference and the pathway-stage tag, and it is what `useCorrelatedSave`
+ * calls on submit. Using the mapper directly would have built artifacts the app
+ * never produces, and the provenance assertion below — the one thing here that
+ * cannot be checked any other way — would have been quietly testing nothing.
+ */
+describe('the writeback ladder against the mock EHR (step 4)', () => {
+  /** A scenario response whose mapper fires, with its real derived artifacts. */
+  function submissionFor(patientId: string): { entry: StoredResponse; derived: DerivedArtifacts } {
+    for (const entry of POPULATION_SCENARIOS[patientId]?.responses ?? []) {
+      const derived = deriveFromResponse(entry.resource)
+      if (derived && derived.observations.length > 0) {
+        return { entry: entry as StoredResponse, derived }
+      }
+    }
+    throw new Error(`no scenario response for ${patientId} produces Observations`)
+  }
+
+  async function submit(profile: 'full' | 'no-observation' | 'read-only') {
+    resetProfile()
+    const store = fakeStore()
+    await store.state.setProfile(profile)
+    requestEnv = store as unknown as Record<string, unknown>
+    const source = new SmartDataSource(await clientFor('patient-011'))
+    const { entry, derived } = submissionFor('patient-011')
+    let error: Error | null = null
+    try {
+      await source.saveResponse('patient-011', entry, derived)
+    } catch (err) {
+      error = err as Error
+    }
+    return { store: store as FakeStoreBinding, source, error }
+  }
+
+  afterEach(() => {
+    requestEnv = {}
+    resetProfile()
+  })
+
+  it('full: writes the QuestionnaireResponse and the Observations', async () => {
+    const { store, source, error } = await submit('full')
+    expect(error).toBeNull()
+
+    const written = await store.state.list()
+    const types = written.map(w => String(w.resource.resourceType))
+    expect(types).toContain('QuestionnaireResponse')
+    expect(types.filter(t => t === 'Observation').length).toBeGreaterThan(0)
+
+    const report = source.writebackReport
+    expect(report?.result.steps.find(s => s.tier === 1)?.outcome).toBe('written')
+    expect(report?.result.steps.find(s => s.tier === 2)?.outcome).toBe('written')
+  })
+
+  it('full: remaps derivedFrom onto the id the SERVER assigned', async () => {
+    // ⚠️ The property server-minted ids exist for. `executeWritePlan` rewrites
+    // `QuestionnaireResponse/<client id>` to the server's id inside
+    // `Observation.derivedFrom`; against a server that echoed the client's id
+    // back the remap would be a no-op, and a broken one would look identical.
+    //
+    // ⚠️ **The first version of this test could not fail.** It asserted only
+    // that `derivedFrom` names the written QR's id — which stays true when the
+    // server echoes the client's id, because then the two ids are the same
+    // string. Planting exactly that defect passed. What makes the assertion mean
+    // something is pinning the ids APART first: the client's id, the server's,
+    // and then which one the reference follows.
+    const { entry } = submissionFor('patient-011')
+    const clientQrId = String(entry.resource.id)
+    const { store } = await submit('full')
+    const written = await store.state.list()
+    const qr = written.find(w => w.resource.resourceType === 'QuestionnaireResponse')
+    const serverQrId = String(qr?.resource.id)
+    const observations = written.filter(w => w.resource.resourceType === 'Observation')
+
+    // 1. The server did NOT take the client's id.
+    expect(clientQrId).toBeTruthy()
+    expect(serverQrId).not.toBe(clientQrId)
+    expect(serverQrId).toMatch(/^srv-/)
+
+    // 2. Every derivedFrom followed the server's id, and none kept the client's.
+    expect(observations.length).toBeGreaterThan(0)
+    for (const observation of observations) {
+      const refs = ((observation.resource.derivedFrom as Array<{ reference?: string }> | undefined) ?? [])
+        .map(r => r.reference)
+      expect(refs).toContain(`QuestionnaireResponse/${serverQrId}`)
+      expect(refs).not.toContain(`QuestionnaireResponse/${clientQrId}`)
+    }
+  })
+
+  it('no-observation: Tier 2 is skipped and the Tier-0 floor carries it', async () => {
+    const { store, source, error } = await submit('no-observation')
+    expect(error).toBeNull()
+
+    const types = (await store.state.list()).map(w => String(w.resource.resourceType))
+    expect(types).toContain('QuestionnaireResponse')
+    expect(types).toContain('DocumentReference')
+    // The whole point of the demo: no Observation landed, and the data is still
+    // recoverable from the floor.
+    expect(types).not.toContain('Observation')
+
+    const steps = source.writebackReport?.result.steps ?? []
+    expect(steps.find(s => s.tier === 2)).toMatchObject({ outcome: 'skipped' })
+    expect(steps.find(s => s.tier === 0)).toMatchObject({ outcome: 'written', role: 'floor' })
+  })
+
+  it('no-observation: the ladder learned this from /metadata, not from a flag', async () => {
+    // `capabilitiesKnown` distinguishes "the server said it cannot" from "we
+    // could not ask" — conflating them would report a network failure as an EHR
+    // limitation, which is the opposite of a readiness diagnostic.
+    const { source } = await submit('no-observation')
+    const report = source.writebackReport
+    expect(report?.capabilitiesKnown).toBe(true)
+    expect(report?.capabilities.Observation).toEqual({ create: false })
+    expect(report?.capabilities.QuestionnaireResponse).toEqual({ create: true })
+  })
+
+  it('read-only: nothing lands, and the save FAILS rather than reporting success', async () => {
+    // ⚠️ The case the browser run did not cover, and the answer is not "it
+    // degrades". Every tier including the floor is refused, and `saveResponse`
+    // throws — which is correct: nothing landed IS a failed save, and a UI that
+    // showed a green tick here would be lying. Recorded as a defensible
+    // behaviour rather than assumed to be one.
+    const { store, error } = await submit('read-only')
+    expect(await store.state.list()).toEqual([])
+    expect(error).not.toBeNull()
+    expect(error?.message).toMatch(/no resource was created/i)
+  })
+
+  it('a written resource is then readable through the real data source', async () => {
+    // End to end: the ladder wrote it, and the chart's own read path finds it.
+    // Two independent code paths agreeing is the point — the writeback report is
+    // SPiER reporting on itself.
+    const { store } = await submit('full')
+    const qr = (await store.state.list()).find(w => w.resource.resourceType === 'QuestionnaireResponse')
+    const slice = await new SmartDataSource(await clientFor('patient-011')).getSlice(null)
+    expect(slice.responses.some(r => r.resource.id === qr?.resource.id)).toBe(true)
   })
 })

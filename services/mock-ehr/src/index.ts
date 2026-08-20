@@ -10,4 +10,12 @@
  */
 import app from './app'
 
+/**
+ * The Durable Object class has to be exported from the Worker's entry point —
+ * that is how the runtime resolves `class_name` in the `durable_objects` binding.
+ * Miss it and the deploy fails with "Durable Object class not found", which is at
+ * least loud; a rename that updates only one side is the quiet version.
+ */
+export { DemoStore } from './demoStore'
+
 export default app

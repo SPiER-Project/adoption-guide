@@ -102,11 +102,20 @@ export function controlPage(
   <p>What <code>/fhir/metadata</code> advertises, and therefore how far the writeback ladder climbs.</p>
   <ul>${buttons}</ul>
 
+  <h2>Demo data</h2>
+  <p>
+    Everything written by the panel's writeback ladder, held in a Durable Object.
+    Reset discards the writes and <strong>leaves the capability profile alone</strong> — "reset the
+    data" and "put the server back to full capability" are different intentions.
+  </p>
+  <p id="writes-summary">Loading…</p>
+  <p><button type="button" id="reset-writes">Reset written data</button></p>
+
   <p class="warn">
     <strong>Demonstration host only.</strong> This server is controlled by the same project it is
     demonstrating, so nothing observed here is evidence of interoperability — that claim is only made
-    against a public sandbox. The profile is held in memory: it is per-isolate and resets on a cold
-    start, so flip it immediately before launching the panel.
+    against a public sandbox. Accepting a write is not evidence either: the mock validates against
+    SPiER's own profiles, which is a guardrail against leniency, not a conformance statement.
   </p>
 
 <script>
@@ -134,6 +143,30 @@ export function controlPage(
     a.rel = 'noopener'
     a.textContent = 'Launch the panel for ' + body.patient + ' →'
     out.appendChild(a)
+  })
+
+  function refreshWrites() {
+    return fetch('/_admin/writes').then(function (res) {
+      return res.ok ? res.json() : null
+    }).then(function (body) {
+      var out = document.getElementById('writes-summary')
+      if (!body) { out.textContent = 'No DEMO_STORE binding — this deployment cannot persist writes.'; return }
+      if (body.count === 0) { out.textContent = 'Nothing written yet.'; return }
+      var byType = Object.keys(body.byType).sort().map(function (t) {
+        return body.byType[t] + ' ' + t
+      }).join(', ')
+      out.textContent = body.count + ' resource(s) written: ' + byType
+    }).catch(function () {
+      document.getElementById('writes-summary').textContent = 'Could not read the write log.'
+    })
+  }
+  refreshWrites()
+
+  document.getElementById('reset-writes').addEventListener('click', function () {
+    fetch('/_admin/reset', { method: 'POST' }).then(function (res) {
+      if (!res.ok) { alert('Could not reset: HTTP ' + res.status); return }
+      refreshWrites()
+    })
   })
 
   document.querySelectorAll('button[data-profile]').forEach(function (btn) {
