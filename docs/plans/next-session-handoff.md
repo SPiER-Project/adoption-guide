@@ -35,7 +35,14 @@ standing rules, and findings that generalize beyond the PR that found them.
 
 ## State of the repo — derived 2026-08-20, check it rather than trust it
 
-- `main` is at **`9702356`**, confirmed against `origin/main`. **No open PRs.**
+⚠️ **The SHA below is one commit stale by construction, and chasing it is a
+regress.** The commit that writes this file is necessarily the next one after the
+`main` it describes — so a session that "corrects" the SHA makes it wrong again,
+and the twelve rewrites above are partly that loop. `git log --oneline -1` is
+always the authority; this line is a timestamp, not a fact to maintain.
+
+- `main` was at **`9702356`** when this was written, plus the commit that wrote
+  it. **No open PRs** at that point.
   **37 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
 - **All three `verify` pipelines green**, each run in this session:
