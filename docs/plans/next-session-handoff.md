@@ -229,10 +229,18 @@ exactly that. Seven planted defects (one per rule class) still fail the scenario
 gate after the move, and pointing the glob at a nonexistent prefix makes the
 validator **fail to load** rather than accept everything.
 
-⚠️ **One thing is still NOT verified: Durable Object persistence across
-isolates** — the property the DO exists for, and the one `wrangler dev` cannot
-show, because it runs a single isolate. The deployed Worker is where that gets
-confirmed, and `npm run deploy` in `services/mock-ehr/` is not run by CI.
+✅ **Durable Object persistence across isolates is now verified** on the deployed
+host (plan §5.1): a real PKCE launch, `POST` → 201 with a server-minted `srv-1`,
+present in **10/10** chart searches on fresh connections, and the durable profile
+agreeing on **15/15**. The three refusals — 405 capability-gated, 422 invalid,
+403 foreign patient — were also watched on the public origin, which is guardrail
+2 discharged where it counts. The demo was reset afterwards, so it is clean.
+
+⚠️ **`services/mock-ehr/` is still not deployed by CI.** After merging anything
+under it, run `npm run deploy` there. And do not debug the Worker in the first
+seconds after a deploy: the first `PUT /_admin/capabilities` came back
+`durable: false` purely because the old version was still being served, which
+looks exactly like a missing binding.
 
 ### ✅ The frame claim is settled — and what proving it cost
 
