@@ -5,6 +5,8 @@
  *   GET  /fhir/metadata           CapabilityStatement (the degradation switch)
  *   GET  /fhir/{Type}/{id}        read
  *   GET  /fhir/{Type}?patient=…   patient-scoped search → searchset Bundle
+ *   POST /fhir/{Type}             create — capability-gated and VALIDATED
+ *   PUT  /fhir/{Type}/{id}        update-as-create, for the lifecycle types
  *   GET  /authorize               SMART authorization (PKCE S256 required)
  *   POST /token                   authorization_code → access token
  *   GET  /                        control page: capability profile + launch
@@ -13,10 +15,15 @@
  *   GET  /_admin/capabilities     the profile, as JSON
  *   PUT  /_admin/capabilities     set it
  *   POST /_admin/launch           mint a launch context + the app's launch URL
+ *   GET  /_admin/writes           what has been written, as JSON
+ *   POST /_admin/reset            discard every write
  *
  * ── Deliberately absent ─────────────────────────────────────────────────────
- * No writes (step 4). No `id_token` and no scope enforcement — see the header
- * of smart.ts, which says exactly what the auth stub does and does not prove.
+ * No `id_token` and no scope enforcement — see the header of smart.ts, which
+ * says exactly what the auth stub does and does not prove. No update, no delete,
+ * no transaction Bundle: the writeback ladder POSTs one resource at a time, and
+ * an endpoint nothing exercises is an endpoint nobody has watched reject
+ * anything.
  *
  * ── CORS is not optional here ───────────────────────────────────────────────
  * The panel is a browser app on a DIFFERENT origin talking to this server
@@ -32,6 +39,7 @@ import {
   buildCapabilityStatement,
   creatableTypes,
   isCapabilityProfile,
+  updatableTypes,
   type CapabilityProfile,
 } from './capability'
 import {
@@ -46,6 +54,9 @@ import {
 import { SEARCHABLE_TYPES, applySearch, parseSearch } from './search'
 import { controlPage } from './controlPage'
 import { patientChartPage, patientListPage } from './chartPage'
+import { validateWrite, withAssignedId } from './validate'
+import { storeFor } from './store'
+import type { DemoStore } from './demoStore'
 import {
   authRequired,
   authorize,
@@ -58,6 +69,12 @@ import {
 } from './smart'
 
 export interface Env extends SmartEnv {
+  /**
+   * Durable Object holding written resources and the live capability profile.
+   * Absent in unit tests (which pass their own `DemoState`) and in a
+   * misconfigured deploy — see `storeFor`, which refuses to fake it.
+   */
+  DEMO_STORE?: DurableObjectNamespace<DemoStore>
   /** Profile a freshly started isolate begins with (wrangler.jsonc `vars`). */
   MOCK_CAPABILITY_PROFILE?: string
   /** Where the panel app lives, for the launch URL the control page builds. */
@@ -108,6 +125,24 @@ export function resetProfile(): void {
   activeProfile = null
 }
 
+/**
+ * The profile this request should answer with.
+ *
+ * ⚠️ **The durable value wins, and that ordering is the fix, not a preference.**
+ * `getProfile` above reads module memory, which is per-isolate: an operator flips
+ * the profile in whichever isolate served the control page, and the panel then
+ * reads `/metadata` from whichever serves that — so the presenter says "this EHR
+ * refuses Observations" while the panel is told it accepts them. Every local test
+ * passes because `wrangler dev` runs one isolate. The module value survives as
+ * the fallback for unit tests (no binding) and for a first request that precedes
+ * any switch.
+ */
+async function liveProfile(c: { env?: Env }): Promise<CapabilityProfile> {
+  const store = storeFor(envOf(c))
+  const stored = await store?.getProfile()
+  return stored ?? getProfile(envOf(c))
+}
+
 function fhirBase(url: string): string {
   return `${new URL(url).origin}/fhir`
 }
@@ -117,6 +152,37 @@ function operationOutcome(severity: 'error' | 'warning', code: string, diagnosti
     resourceType: 'OperationOutcome',
     issue: [{ severity, code, diagnostics }],
   }
+}
+
+/**
+ * Everything this server can serve for a patient: the fixtures plus anything
+ * written since.
+ *
+ * ⚠️ Written resources come LAST. `applySearch` preserves order and the app
+ * renders newest-last lists, so appending is what makes a just-submitted
+ * instrument appear where a clinician expects it. It also means a write cannot
+ * displace a fixture, which keeps the demo re-runnable.
+ */
+async function servableFor(c: { env?: Env }): Promise<MockResource[]> {
+  const store = storeFor(envOf(c))
+  if (!store) return HELD_RESOURCES.map(h => h.resource)
+  const written = await store.list()
+  if (written.length === 0) return HELD_RESOURCES.map(h => h.resource)
+
+  // ⚠️ Keyed by `Type/id`, with the written version REPLACING a fixture of the
+  // same id — not appended beside it. A PUT is update-as-create, so the app
+  // closing an episode that came from the fixtures sends the fixture's own id;
+  // concatenating would return both versions and the chart would show the
+  // episode as open and closed at once. Insertion order is preserved so a
+  // just-written resource still lands after the fixtures.
+  const byKey = new Map<string, MockResource>()
+  for (const { resource } of HELD_RESOURCES) {
+    byKey.set(`${resource.resourceType}/${String(resource.id)}`, resource)
+  }
+  for (const { resource } of written) {
+    byKey.set(`${resource.resourceType}/${String(resource.id)}`, resource)
+  }
+  return [...byKey.values()]
 }
 
 /**
@@ -145,8 +211,27 @@ const app = new Hono<{ Bindings: Env; Variables: { grant?: Grant } }>()
 // failure here looks exactly like a broken login.
 const apiCors = cors({
   origin: '*',
-  allowMethods: ['GET', 'POST', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  // ⚠️ PUT is here because the app uses it, and finding that out took a browser.
+  // §4 of the panel plan lists only `POST /fhir/{Type}`, but
+  // `SmartDataSource.saveArtifact` PUTs the LIFECYCLE types (Encounter,
+  // EpisodeOfCare, Flag, Task, ServiceRequest, Appointment, Consent,
+  // DocumentReference) so open→close converges on one resource instead of
+  // leaving the superseded version behind. Without PUT here the browser refused
+  // the preflight and the whole submit aborted — with the console error naming
+  // CORS, which reads as a configuration problem rather than a missing route.
+  allowMethods: ['GET', 'POST', 'PUT', 'OPTIONS'],
+  // ⚠️ `Prefer` is not optional here, and its absence broke nothing until step 4.
+  // `SmartDataSource.create` sends `prefer: return=representation`, which makes
+  // the browser preflight the POST asking for that header; a server that does not
+  // list it fails the preflight, so **every write fails cross-origin while every
+  // curl succeeds** — the most misleading way for this to break, and the same
+  // shape as the CORS note in this file's header.
+  allowHeaders: ['Content-Type', 'Authorization', 'Prefer'],
+  // `Location` carries the new resource's id. fhirclient prefers the id in the
+  // response body (which `return=representation` supplies), so this is a
+  // fallback — but a cross-origin client cannot read an unexposed header at all,
+  // and a client relying on it would see a successful write with no id.
+  exposeHeaders: ['Location', 'Content-Location', 'ETag'],
   maxAge: 86400,
 })
 app.use('/fhir', apiCors)
@@ -181,17 +266,23 @@ app.get('/fhir/.well-known/smart-configuration', (c) => {
   return c.body(JSON.stringify(smartConfiguration(new URL(c.req.url).origin)))
 })
 
-app.get('/fhir/metadata', (c) => {
-  const statement = buildCapabilityStatement(getProfile(envOf(c)), HELD_TYPES, fhirBase(c.req.url))
+app.get('/fhir/metadata', async (c) => {
+  const statement = buildCapabilityStatement(await liveProfile(c), HELD_TYPES, fhirBase(c.req.url))
   c.header('content-type', FHIR_JSON)
   return c.body(JSON.stringify(statement))
 })
 
 // ── Read ─────────────────────────────────────────────────────────────────────
 
-app.get('/fhir/:type/:id', (c) => {
+app.get('/fhir/:type/:id', async (c) => {
   const { type, id } = c.req.param()
-  const resource = RESOURCES_BY_KEY.get(`${type}/${id}`)
+  // ⚠️ The merged view FIRST, not the fixtures: a PUT can replace a fixture by
+  // id, and reading the fixture back would report the pre-update version of a
+  // resource the client just changed. `servableFor` already resolves the
+  // precedence; `RESOURCES_BY_KEY` is only the fallback for the unbound-store
+  // case.
+  const resource = (await servableFor(c)).find(r => r.resourceType === type && r.id === id)
+    ?? RESOURCES_BY_KEY.get(`${type}/${id}`)
   c.header('content-type', FHIR_JSON)
   // A token is bound to one patient. Reading a Patient it was not issued for is
   // a 403 — otherwise "patient-scoped" would be a claim this server does not
@@ -210,7 +301,7 @@ app.get('/fhir/:type/:id', (c) => {
 
 // ── Search ───────────────────────────────────────────────────────────────────
 
-app.get('/fhir/:type', (c) => {
+app.get('/fhir/:type', async (c) => {
   const type = c.req.param('type')
   c.header('content-type', FHIR_JSON)
 
@@ -235,9 +326,243 @@ app.get('/fhir/:type', (c) => {
   const denied = denyForeignPatient(c, parsed.query.patientId)
   if (denied) return denied
 
-  const matches = applySearch(HELD_RESOURCES.map(h => h.resource), type, parsed.query)
+  const matches = applySearch(await servableFor(c), type, parsed.query)
   return c.body(JSON.stringify(searchset(matches, fhirBase(c.req.url))))
 })
+
+// ── Create (step 4) ──────────────────────────────────────────────────────────
+
+/**
+ * `POST /fhir/{Type}` — the write half of the writeback ladder.
+ *
+ * Four refusals, in this order, and the order matters:
+ *
+ *   1. **Not creatable under the live capability profile → 405.** This is the
+ *      degradation demo's server half. The ladder reads `/metadata` and will not
+ *      even attempt an unadvertised type, so this path only fires for a client
+ *      that ignored the CapabilityStatement — which is precisely why it has to
+ *      exist. A server that advertises a restriction and then accepts the write
+ *      anyway makes its own `/metadata` decorative, the same way an unexercised
+ *      `frame-ancestors` was decorative before step 5 tested it.
+ *   2. **Unparseable body → 400.**
+ *   3. **Another patient's resource → 403**, via the same grant check the read
+ *      path uses. A token scoped to one patient must not be able to write into
+ *      another's chart.
+ *   4. **Anything the shared rules object to → 422**, listing EVERY problem as
+ *      an OperationOutcome issue. See validate.ts for why the rules are shared
+ *      with `check-scenario-resources.mjs` rather than restated here — leniency
+ *      is the specific failure this endpoint is a guardrail against.
+ *
+ * On success: 201, the stored representation (so `prefer: return=representation`
+ * is honoured), and a `Location` header. The id is the server's, never the
+ * client's — see store.ts.
+ */
+app.post('/fhir/:type', async (c) => {
+  const type = c.req.param('type')
+  c.header('content-type', FHIR_JSON)
+
+  const checked = await checkWritable(c, type, 'create')
+  if (checked.refusal) return checked.refusal
+  const { store } = checked
+
+  const body = await c.req.json<unknown>().catch(() => null)
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return c.body(
+      JSON.stringify(operationOutcome('error', 'structure', 'Request body must be a FHIR resource object.')),
+      400,
+    )
+  }
+
+  const scoped = patientForWrite(c, body as MockResource)
+  if ('refusal' in scoped) return scoped.refusal
+  const { patientId } = scoped
+
+  // ⚠️ The id is assigned BEFORE validation, because the shared rules require
+  // one and a create must not carry one. See `withAssignedId` for why resolving
+  // that the other way would have quietly loosened the scenario gate too.
+  const nextId = `srv-${(await store.list()).length + 1}`
+  const candidate = withAssignedId(body as MockResource, nextId)
+  const problems = validateWrite(candidate, { expectedType: type, patientId })
+  if (problems.length > 0) {
+    return c.body(JSON.stringify({ resourceType: 'OperationOutcome', issue: problems }), 422)
+  }
+
+  const stored = await store.add(patientId, candidate)
+  c.header('location', `${fhirBase(c.req.url)}/${type}/${String(stored.id)}`)
+  return c.body(JSON.stringify(stored), 201)
+})
+
+/**
+ * `PUT /fhir/{Type}/{id}` — update-as-create, keeping the client's id.
+ *
+ * ⚠️ **This endpoint exists because a browser found it, not because the plan
+ * asked for it.** §4's table lists `POST /fhir/{Type}` and nothing else, and the
+ * writeback ladder does only POST — but `SmartDataSource.saveArtifact` PUTs the
+ * LIFECYCLE types, so that an episode opened and later closed converges on one
+ * resource instead of leaving the open version behind. The first real submit in
+ * a browser failed on the CORS preflight for `PUT`, which aborted the whole save
+ * with a console error about `Access-Control-Allow-Methods` — a message that
+ * points at configuration rather than at the missing route.
+ *
+ * Same gate, same rules, same patient scoping as POST. Two differences:
+ *
+ *   - the id comes from the URL and is kept, so the store upserts rather than
+ *     appends (see `DemoState.upsert`);
+ *   - 200 for a replacement, 201 for a first write, which is what FHIR's
+ *     update-as-create says and what tells a client which one happened.
+ *
+ * The app's own comment notes this "relies on the server permitting
+ * update-as-create (FHIR allows it, but a server may reject a client-supplied
+ * id)". This server permits it. A real EHR may not, and that is a portability
+ * caveat the demo must not paper over.
+ */
+app.put('/fhir/:type/:id', async (c) => {
+  const { type, id } = c.req.param()
+  c.header('content-type', FHIR_JSON)
+
+  const checked = await checkWritable(c, type, 'update')
+  if (checked.refusal) return checked.refusal
+  const { store } = checked
+
+  const body = await c.req.json<unknown>().catch(() => null)
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return c.body(
+      JSON.stringify(operationOutcome('error', 'structure', 'Request body must be a FHIR resource object.')),
+      400,
+    )
+  }
+
+  const bodyId = (body as MockResource).id
+  if (typeof bodyId === 'string' && bodyId !== id) {
+    // FHIR is explicit that these must agree; accepting a mismatch would let a
+    // client believe it updated one resource while updating another.
+    return c.body(
+      JSON.stringify(operationOutcome(
+        'error',
+        'invalid',
+        `Resource.id "${bodyId}" does not match the id in the URL ("${id}").`,
+      )),
+      400,
+    )
+  }
+
+  const scoped = patientForWrite(c, body as MockResource)
+  if ('refusal' in scoped) return scoped.refusal
+  const { patientId } = scoped
+
+  const candidate = withAssignedId(body as MockResource, id)
+  const problems = validateWrite(candidate, { expectedType: type, patientId })
+  if (problems.length > 0) {
+    return c.body(JSON.stringify({ resourceType: 'OperationOutcome', issue: problems }), 422)
+  }
+
+  const existed = (await store.list()).some(
+    w => w.resource.resourceType === type && w.resource.id === id,
+  )
+  const stored = await store.upsert(patientId, candidate)
+  c.header('location', `${fhirBase(c.req.url)}/${type}/${id}`)
+  return c.body(JSON.stringify(stored), existed ? 200 : 201)
+})
+
+/**
+ * The gate both write verbs share: is this type writable under the live
+ * capability profile, and is there somewhere to put it?
+ *
+ * Factored so POST and PUT cannot drift — a profile that refused creates while
+ * still accepting updates would be a hole in the degradation demo, and it is the
+ * kind of hole that opens by adding an endpoint rather than by changing a rule.
+ */
+async function checkWritable(
+  c: Parameters<typeof envOf>[0] & { header: (k: string, v: string) => void; body: (b: string, s?: 405 | 503) => Response; req: { url: string } },
+  type: string,
+  interaction: 'create' | 'update',
+): Promise<{ refusal: Response; store?: undefined; profile?: undefined } | { refusal: null; store: NonNullable<ReturnType<typeof storeFor>>; profile: CapabilityProfile }> {
+  const profile = await liveProfile(c)
+  const allowed = interaction === 'create' ? creatableTypes(profile) : updatableTypes(profile)
+  if (!allowed.includes(type)) {
+    // 405 rather than 404: the resource type is understood, the interaction is
+    // not offered. `Allow` says what is, which is what a client should read.
+    // 405 rather than 404: the resource type is understood, the interaction is
+    // not offered. `Allow` says what is, which is what a client should read.
+    c.header('allow', 'GET')
+    return {
+      refusal: c.body(
+        JSON.stringify(operationOutcome(
+          'error',
+          'not-supported',
+          `This server does not support ${interaction} for '${type}' under capability profile `
+          + `'${profile}'. Supported for ${interaction}: ${allowed.join(', ') || 'nothing'}. `
+          + 'This is the capability-degradation demo, not a defect.',
+        )),
+        405,
+      ),
+    }
+  }
+
+  const store = storeFor(envOf(c))
+  if (!store) {
+    // Deliberately not a memory fallback — see storeFor. A demo that accepts
+    // writes and then loses them between isolates is harder to diagnose than one
+    // that says the binding is missing.
+    return {
+      refusal: c.body(
+        JSON.stringify(operationOutcome(
+          'error',
+          'transient',
+          'No DEMO_STORE binding: this deployment cannot persist writes. Check the '
+          + 'durable_objects binding in wrangler.jsonc.',
+        )),
+        503,
+      ),
+    }
+  }
+  return { refusal: null, store, profile }
+}
+
+/**
+ * The patient a write belongs to, or a refusal.
+ *
+ * With auth enforced there is always a grant; with `MOCK_AUTH_ENFORCE=off` this
+ * falls back to the resource's own link so curl exploration still works — and
+ * validation then checks the link against itself, which is weaker and is why
+ * `off` is not the deployed setting.
+ */
+function patientForWrite(
+  c: Parameters<typeof denyForeignPatient>[0] & { get: (k: 'grant') => Grant | undefined; body: (b: string, s?: 400) => Response },
+  resource: MockResource,
+): { patientId: string } | { refusal: Response } {
+  const claimed = patientOf(resource)
+  const patientId = c.get('grant')?.patient ?? claimed
+  if (!patientId) {
+    return {
+      refusal: c.body(
+        JSON.stringify(operationOutcome(
+          'error',
+          'invalid',
+          'Cannot tell which patient this resource is for: no access-token patient context '
+          + 'and no patient reference on the resource.',
+        )),
+        400,
+      ),
+    }
+  }
+  const denied = denyForeignPatient(c, claimed)
+  if (denied) return { refusal: denied }
+  return { patientId }
+}
+
+/** The patient a resource points at, by whichever element its type uses. */
+function patientOf(resource: MockResource): string | undefined {
+  const refs: string[] = []
+  for (const key of ['subject', 'patient', 'for'] as const) {
+    const ref = (resource[key] as { reference?: string } | undefined)?.reference
+    if (typeof ref === 'string') refs.push(ref)
+  }
+  for (const p of (resource.participant as Array<{ actor?: { reference?: string } }> | undefined) ?? []) {
+    if (typeof p?.actor?.reference === 'string') refs.push(p.actor.reference)
+  }
+  return refs.map(r => /^Patient\/(.+)$/.exec(r)?.[1]).find((id): id is string => !!id)
+}
 
 /**
  * 403 when the request asks about a patient the bearer token was not issued
@@ -283,14 +608,14 @@ app.post('/token', async (c) => {
 
 // ── Control surface ──────────────────────────────────────────────────────────
 
-app.get('/_admin/capabilities', (c) => {
-  const profile = getProfile(envOf(c))
+app.get('/_admin/capabilities', async (c) => {
+  const profile = await liveProfile(c)
   return c.json({
     profile,
     description: PROFILE_DESCRIPTIONS[profile],
     creates: creatableTypes(profile),
     available: CAPABILITY_PROFILES.map(p => ({ profile: p, description: PROFILE_DESCRIPTIONS[p] })),
-    durable: false,
+    durable: storeFor(envOf(c)) !== null,
   })
 })
 
@@ -302,8 +627,16 @@ app.put('/_admin/capabilities', async (c) => {
       400,
     )
   }
+  // Both layers: the durable one is what other isolates will read, the module
+  // one keeps this isolate consistent without a round trip.
   setProfile(body.profile)
-  return c.json({ profile: body.profile, creates: creatableTypes(body.profile), durable: false })
+  const store = storeFor(envOf(c))
+  await store?.setProfile(body.profile)
+  return c.json({
+    profile: body.profile,
+    creates: creatableTypes(body.profile),
+    durable: store !== null,
+  })
 })
 
 /**
@@ -346,13 +679,56 @@ app.post('/_admin/launch', async (c) => {
   return c.json({ launch, launchUrl: url.toString(), patient })
 })
 
+/**
+ * What has been written. Powers the "written so far" readout and, more
+ * importantly, makes the writeback demo checkable: the ladder's scorecard is
+ * SPiER reporting on itself, and this is the server's own account of the same
+ * event. Two independent statements of what happened is the difference between a
+ * demo and an assertion.
+ */
+app.get('/_admin/writes', async (c) => {
+  const store = storeFor(envOf(c))
+  if (!store) return c.json({ error: 'No DEMO_STORE binding — this deployment cannot persist writes.' }, 503)
+  const writes = await store.list()
+  return c.json({
+    count: writes.length,
+    byType: writes.reduce<Record<string, number>>((acc, w) => {
+      const type = String(w.resource.resourceType)
+      acc[type] = (acc[type] ?? 0) + 1
+      return acc
+    }, {}),
+    writes: writes.map(w => ({
+      patient: w.patientId,
+      resourceType: w.resource.resourceType,
+      id: w.resource.id,
+    })),
+  })
+})
+
+/**
+ * Reset the demo. The plan asks for this explicitly — "this demo will be run
+ * many times, and one that cannot be reset in a click goes stale
+ * mid-presentation".
+ *
+ * Discards writes only. The capability profile survives on purpose: "reset the
+ * data" and "put the server back to full capability" are different intentions,
+ * and a reset that silently re-armed the ladder would undo the degradation the
+ * presenter just set up.
+ */
+app.post('/_admin/reset', async (c) => {
+  const store = storeFor(envOf(c))
+  if (!store) return c.json({ error: 'No DEMO_STORE binding — nothing to reset.' }, 503)
+  const discarded = await store.reset()
+  return c.json({ discarded, profileUnchanged: await liveProfile(c) })
+})
+
 // ── Host chrome (step 5) ─────────────────────────────────────────────────────
 // The patient list and one chart, with the panel framed inside it. This is what
 // exercises `frame-ancestors` on the panel host — see chartPage.ts.
 
 app.get('/chart', (c) => c.html(patientListPage(DEMO_PATIENTS)))
 
-app.get('/chart/:patientId', (c) => {
+app.get('/chart/:patientId', async (c) => {
   const patient = DEMO_PATIENTS_BY_ID.get(c.req.param('patientId'))
   if (!patient) return c.notFound()
   const panelBase = envOf(c).MOCK_PANEL_BASE_URL || DEFAULT_PANEL_BASE_URL
@@ -363,11 +739,13 @@ app.get('/chart/:patientId', (c) => {
   return c.html(patientChartPage(patient, {
     cdsEndpoint: `${panelOrigin}${CDS_SERVICE_PATH}`,
     panelOrigin,
+    profiles: CAPABILITY_PROFILES.map(p => ({ profile: p, description: PROFILE_DESCRIPTIONS[p] })),
+    activeProfile: await liveProfile(c),
   }))
 })
 
-app.get('/', (c) => c.html(controlPage(
-  getProfile(envOf(c)),
+app.get('/', async (c) => c.html(controlPage(
+  await liveProfile(c),
   fhirBase(c.req.url),
   HELD_RESOURCES.length,
   PATIENT_IDS,

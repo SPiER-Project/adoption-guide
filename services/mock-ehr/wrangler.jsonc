@@ -16,6 +16,28 @@
   "observability": {
     "enabled": true
   },
+
+  // ── Written resources + the live capability profile (step 4) ─────────────
+  // A Durable Object rather than module state or KV: a POST and the GET that
+  // follows it can land in different isolates, and a written resource that
+  // appears and disappears depending on which isolate answered looks like a bug
+  // in SPiER rather than a missing feature. See src/store.ts.
+  //
+  // ⚠️ `class_name` must match the class EXPORTED FROM src/index.ts. A rename
+  // that updates only one side fails the deploy with "Durable Object class not
+  // found" — loud, but only at deploy time.
+  "durable_objects": {
+    "bindings": [
+      { "name": "DEMO_STORE", "class_name": "DemoStore" }
+    ]
+  },
+  // SQLite-backed, which is the current default for new classes and works on
+  // the free plan. The tag is a one-way ledger: never edit or remove `v1`, add
+  // `v2` for the next change, or the deploy is rejected.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["DemoStore"] }
+  ],
+
   "vars": {
     // Which CapabilityStatement this server advertises at startup. One of
     // "full" | "no-observation" | "documents-only" | "read-only" (see

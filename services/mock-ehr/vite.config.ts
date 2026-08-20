@@ -14,6 +14,11 @@ export default defineConfig({
     emptyOutDir: true,
     target: 'esnext',
     rollupOptions: {
+      // `cloudflare:*` modules are provided BY the runtime, so Rollup must leave
+      // the import alone rather than try to resolve it — step 4's Durable Object
+      // imports `cloudflare:workers`. Without this the build fails with "failed
+      // to resolve import", which reads as a missing dependency.
+      external: [/^cloudflare:/],
       output: { entryFileNames: 'index.js', format: 'es' },
     },
   },

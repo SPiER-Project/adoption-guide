@@ -4,7 +4,7 @@ Serves SPiER's own synthetic population as a real FHIR read API, on its **own
 Worker and therefore its own origin**, so the embedded SMART panel can be
 launched cross-origin against a server rather than against localStorage.
 
-Panel **steps 1, 2 and 5**. The spec is [`docs/plans/mock-ehr-read-api.md`](../../docs/plans/mock-ehr-read-api.md);
+Panel **steps 1, 2, 4 and 5**. The spec is [`docs/plans/mock-ehr-read-api.md`](../../docs/plans/mock-ehr-read-api.md);
 the decision that permits a mock we control at all is
 [`embedded-panel-smart-launch.md`](../../docs/plans/embedded-panel-smart-launch.md) §8,
 and it is permitted only with the guardrails in §1 of that plan.
@@ -182,11 +182,74 @@ refused **without a `Location` header**, and a panel whose `frame-ancestors` doe
 not name this origin renders as a blocked frame. ⚠️ `wrangler dev` does **not**
 hot-reload `.dev.vars` — restart it.
 
+## Writes (step 4)
+
+| Route | |
+|---|---|
+| `POST /fhir/{Type}` | create — capability-gated, validated, patient-scoped. 201 + representation + `Location`, with a **server-minted** id (`srv-N`) |
+| `PUT /fhir/{Type}/{id}` | update-as-create for the lifecycle types, keeping the **client's** id. 201 first, 200 on replacement |
+| `GET /_admin/writes` | the server's own account of what it stored |
+| `POST /_admin/reset` | discard the writes; the capability profile survives |
+
+Reads reflect writes: the fixtures and the store are merged keyed by `Type/id`,
+with a written resource replacing a fixture of the same id, so an episode opened
+and later closed converges on one resource instead of appearing twice.
+
+⚠️ **`PUT` exists because a browser found it, not because the spec asked.** The
+plan's §4 lists `POST` only, but `SmartDataSource.saveArtifact` PUTs the eight
+LIFECYCLE types so open→close converges. Following the spec exactly produced a
+panel whose save aborted on the CORS preflight — with a console error about
+`Access-Control-Allow-Methods`, which reads as configuration rather than a
+missing route. `Prefer` had to join `allowHeaders` for the same reason.
+
+⚠️ **The ids are load-bearing.** `POST` assigns `srv-N`, deliberately unlike
+anything a client would send, because `executeWritePlan` remaps
+`QuestionnaireResponse/<client id>` to the server's id inside
+`Observation.derivedFrom`. A server that echoed the client's id back would make
+that remap a no-op and the provenance bug it guards untestable.
+
+### Two capability axes, not one
+
+`creatableTypes(profile)` is the writeback ladder (Tiers 0–3: QuestionnaireResponse,
+Observation, Condition, DocumentReference) — what the degradation demo turns down.
+`updatableTypes(profile)` is the lifecycle set, permitted by every profile except
+`read-only`. Collapsing them refused every lifecycle write **even under `full`**;
+they overlap only at `DocumentReference`.
+
+### Validation is not this service's opinion
+
+Guardrail 1 of the plan's §1 requires the mock to reuse
+`check-scenario-resources.mjs`'s checks *"rather than inventing a second, laxer
+opinion"* — because **a lenient mock accepts writes a real EHR rejects, and the
+demo then looks better while proving less**. The rules live in
+[`web/scripts/lib/fhir-resource-rules.mjs`](../../web/scripts/lib/fhir-resource-rules.mjs)
+and both callers share them verbatim.
+
+⚠️ This README previously said that would have to be a *port*, "not a reuse of it
+(that script is Node reading StructureDefinitions off a filesystem)". True of the
+script, false of the rules: they need the conformance resources only as data, and
+`import.meta.glob` inlines them into this Worker exactly as it already inlines the
+Patients.
+
+Two things follow, and both are deliberate:
+
+- **An invalid write is a 422 listing EVERY problem**, not the first one. A 422
+  naming one defect invites fixing that one and re-POSTing forever.
+- **An empty conformance index is a startup crash, not a permissive validator.**
+  Point the glob at a nonexistent prefix and the module throws; without that,
+  `copy-fhir` not having run would make this endpoint accept anything and look
+  like a working server.
+
+⚠️ **An accepted write is still not conformance evidence** (guardrail 3), and an
+**unprofiled** resource is checked far less deeply — no `meta.profile` means
+base-R4 checks only. Pinned by a test so the hole is written down rather than
+discovered.
+
 ## Not here
 
-**Writes** — step 4, and its strict-validation guardrail is a *port* of
-`check-scenario-resources.mjs`, not a reuse of it (that script is Node reading
-StructureDefinitions off a filesystem). **No encounter page, no user, no login**
+**No transaction Bundle, no delete, no search beyond `patient` + `category`** —
+the writeback ladder POSTs one resource at a time, and an endpoint nothing
+exercises is an endpoint nobody has watched reject anything. **No encounter page, no user, no login**
 — `patient-view` needs a patient, and a fabricated practitioner would be theatre.
 **No CDS prefetch**: the chart page sends context only, so the service takes its
 documented fallback path and serves the bundled scenario for that patient id.

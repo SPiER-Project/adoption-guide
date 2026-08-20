@@ -42,6 +42,7 @@ import type {
   WritebackTarget,
 } from '../writeback/types'
 import type { DerivedArtifacts, FhirDataSource } from './types'
+import { LIFECYCLE_RESOURCE_TYPES } from './lifecycleTypes'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -153,24 +154,6 @@ function withPatientLink<T extends FhirResource>(resource: T, patientId: string)
   return { ...resource, participant: participants }
 }
 
-/**
- * Resources whose writes are lifecycle updates rather than appends: the Stage-7
- * episode/flag/task, plus the Stage-5 handoff artifacts, all of which are
- * tracked past creation (a referral to completed, an appointment to
- * fulfilled/noshow, a consent to revoked, a packet to superseded).
- */
-const LIFECYCLE_RESOURCE_TYPES = new Set([
-  'EpisodeOfCare',
-  'Flag',
-  'Task',
-  'DocumentReference',
-  'ServiceRequest',
-  'Appointment',
-  'Consent',
-  // #263: an Encounter is opened, gains its episode reference when one opens,
-  // gains Appointment references as they are booked, and is closed.
-  'Encounter',
-])
 
 export class SmartDataSource implements FhirDataSource, WritebackTarget {
   private readonly listeners = new Set<() => void>()

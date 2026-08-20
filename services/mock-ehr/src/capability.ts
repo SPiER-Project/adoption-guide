@@ -22,6 +22,8 @@
  * retrofit is this module, not its storage.
  */
 
+import { LIFECYCLE_RESOURCE_TYPES } from '../../../web/src/lib/dataSource/lifecycleTypes'
+
 /** The four advertised postures, ordered most to least capable. */
 export const CAPABILITY_PROFILES = ['full', 'no-observation', 'documents-only', 'read-only'] as const
 export type CapabilityProfile = typeof CAPABILITY_PROFILES[number]
@@ -59,6 +61,27 @@ export function creatableTypes(profile: CapabilityProfile): string[] {
 }
 
 /**
+ * Types this server accepts by `PUT` (FHIR update-as-create).
+ *
+ * ⚠️ **A SECOND axis, and collapsing it into `CREATABLE` was a real bug.** The
+ * four profiles model how capable an EHR is *for the writeback ladder* — Tiers
+ * 0–3, four resource types. But `SmartDataSource.saveArtifact` also PUTs the
+ * eight LIFECYCLE types (`LIFECYCLE_RESOURCE_TYPES`), which are SPiER's own
+ * episode bookkeeping and have nothing to do with how far the ladder climbs.
+ * Gating PUT against the create list refused every one of them **even under
+ * `full`**, and the symptom was a panel whose save aborted with a console error
+ * about CORS.
+ *
+ * So every profile that permits writing at all permits these. `read-only` is the
+ * exception and has to be: that profile means "nothing may be written", and a
+ * `read-only` server still accepting Encounters would make the label a lie.
+ */
+export function updatableTypes(profile: CapabilityProfile): string[] {
+  if (profile === 'read-only') return []
+  return [...LIFECYCLE_RESOURCE_TYPES]
+}
+
+/**
  * Build the CapabilityStatement for a profile. `readableTypes` is what this
  * server actually holds (from the fixtures), so the advertised read surface
  * cannot drift from the served one.
@@ -69,7 +92,8 @@ export function buildCapabilityStatement(
   fhirBaseUrl: string,
 ): Record<string, unknown> {
   const creatable = new Set(creatableTypes(profile))
-  const types = [...new Set([...readableTypes, ...WRITABLE_TYPES])].sort()
+  const updatable = new Set(updatableTypes(profile))
+  const types = [...new Set([...readableTypes, ...WRITABLE_TYPES, ...updatable])].sort()
   return {
     resourceType: 'CapabilityStatement',
     status: 'active',
@@ -92,8 +116,23 @@ export function buildCapabilityStatement(
         mode: 'server',
         documentation: `Capability profile: ${profile}. ${PROFILE_DESCRIPTIONS[profile]}`,
         security: {
-          // Step 1 is an open read API on purpose; SMART authorize/token is step 2.
-          description: 'Open (no authorization) — this is the step-1 read API.',
+          // ⚠️ This said "Open (no authorization) — this is the step-1 read API"
+          // for two steps after step 2 added `/authorize` + `/token`. A
+          // CapabilityStatement that misdescribes its own security is the kind of
+          // stale claim this repo keeps finding in prose; it is worse here,
+          // because a client may act on it.
+          cors: true,
+          service: [{
+            coding: [{
+              system: 'http://terminology.hl7.org/CodeSystem/restful-security-service',
+              code: 'SMART-on-FHIR',
+              display: 'SMART-on-FHIR',
+            }],
+          }],
+          description:
+            'SMART on FHIR EHR launch: authorization code + PKCE (S256 required). Access tokens '
+            + 'are bound to one patient. No id_token and no scope enforcement — see src/smart.ts '
+            + 'for exactly what this stub does and does not prove.',
         },
         resource: types.map(type => ({
           type,
@@ -101,6 +140,11 @@ export function buildCapabilityStatement(
             { code: 'read' },
             { code: 'search-type' },
             ...(creatable.has(type) ? [{ code: 'create' }] : []),
+            // Advertised so the statement matches behaviour. The ladder does not
+            // read `update` today — it only POSTs — but a statement that omits an
+            // interaction the server performs is a statement a client cannot
+            // trust, and this one exists to be trusted by `parseCapabilityStatement`.
+            ...(updatable.has(type) ? [{ code: 'update' }] : []),
           ],
           searchParam: [
             { name: 'patient', type: 'reference' },

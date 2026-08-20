@@ -20,7 +20,7 @@ a clinical reviewer has to be *told* which half is for them.
 | **2 — the host is a mock EHR we write, serving real FHIR** | **DECIDED 2026-08-18.** Reverses [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6; the Medplum variant is rejected. Reason, guardrails and costs in §8. |
 | **3 — cross-origin: host and panel on separate `workers.dev` hostnames** | **PROVEN 2026-08-19** in a browser, both directions: the panel renders framed from the permitted origin, and a non-permitted origin is refused by `frame-ancestors`. §6 |
 | **4 — claim the demo makes is "SMART activity", not "persistent sidebar"** | **DECIDED.** §2 |
-| **5 — panel submit drives the writeback ladder** | **PROPOSED.** §5 |
+| **5 — panel submit drives the writeback ladder** | **PROVEN 2026-08-20.** A real submit against the mock wrote QR + 4 Observations; flipping the profile degraded the same submit to QR + the DocumentReference floor. §5.1 |
 | **6 — the mock ships NO consent screen; `/authorize` auto-approves** | **DECIDED 2026-08-19.** Reason, the variant that would be theatre, and what would reopen it: §10.1 |
 
 | Phase | State |
@@ -29,7 +29,7 @@ a clinical reviewer has to be *told* which half is for them.
 | 1 — mock EHR read API over the existing fixtures | **DONE** — `services/mock-ehr/`. Spec + what building it found: [`mock-ehr-read-api.md`](mock-ehr-read-api.md). §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **DONE.** `/authorize` + `/token` with PKCE S256 verified, launch contexts, patient-bound tokens, `frame-ancestors` on the panel host. The iframe half was unproven until step 5 framed it; **both halves are now observed in a browser — §6.1.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **DONE 2026-08-18.** `PanelShell` in #358 (`3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. Code drawer in #360 (`1901c0e`): the stranded sidebar (§9.1 finding 3) becomes a bottom drawer, one tap from any scroll position. §3 |
-| 4 — writes + the capability-degradation demo | **Not started. The ladder driver is already ON MAIN** (#351, `6f37e0d`), so this is a server, not a build. §5 |
+| 4 — writes + the capability-degradation demo | **DONE 2026-08-20.** `POST /fhir/{Type}` + `PUT /fhir/{Type}/{id}`, validated against the SAME rules as `check-scenario-resources.mjs`, capability-gated, persisted in a Durable Object with a visible reset. What a browser found: §5.1 |
 | 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **DONE 2026-08-19.** `/chart` + `/chart/{id}` in `services/mock-ehr/src/chartPage.ts`, `type: "smart"` links from the hosted CDS service, `intent` → tool routing. What a browser found: §6.1 |
 | 6 — FHIRcast across the origin boundary | **Not started.** §6 |
 
@@ -215,6 +215,7 @@ The read side is mechanical. The SMART stub is where the credibility is.
 | `GET /fhir/metadata` | **load-bearing — see below** |
 | `GET /fhir/Patient/{id}`, `GET /fhir/{Type}?patient=` | `SmartDataSource.getSlice` issues 14 patient-scoped searches across 13 resource types; that list *is* the required surface, and it is not small |
 | `POST /fhir/{Type}` | strict — §1 guardrail 1 |
+| `PUT /fhir/{Type}/{id}` | ⚠️ **missing from this table until step 4 built it.** `saveArtifact` PUTs the eight lifecycle types (update-as-create) so open→close converges; without it the panel's save aborts on the CORS preflight. §5.1 |
 | `GET /authorize`, `POST /token` | PKCE S256, launch context |
 
 **`/metadata` is the one to get right.** `parseCapabilityStatement`
@@ -247,10 +248,18 @@ open UX questions directly:
   patient, because a panel that stops identifying whose chart it shows is a safety
   problem rather than a layout one.
 
-**Persistence and reset.** Seed reads from the fixtures; keep writes in KV or a
-Durable Object under a session key; expose a visible **Reset demo** control.
-This demo will be run many times, and one that cannot be reset in a click goes
-stale mid-presentation.
+**Persistence and reset.** ✅ **Done in step 4** — a Durable Object (`DemoStore`),
+one instance named `demo`, plus a **Reset written data** control on both the
+control page and the chart. Not keyed per session: the mock has no session
+identity to key on (the access token is patient-bound and carries nothing else),
+so two concurrent demos share writes and reset is the mitigation.
+
+⚠️ **The capability profile moved into the same store, and that was a correctness
+fix rather than tidying.** It was module-local and therefore per-isolate: the
+operator flips it in whichever isolate serves the control page, and the panel
+reads `/metadata` from whichever serves that — so the presenter says "this EHR
+refuses Observations" while the panel is told it accepts them. Every local test
+passes, because `wrangler dev` runs one isolate.
 
 ## 5. The writeback ladder is already built — and already driven, on a branch
 
@@ -281,11 +290,14 @@ was unmerged (true when written at 15:xx, false by 16:22 when #351 merged).
 **Read `main` before trusting either sentence** — `git fetch origin main` first,
 because a stale local ref is what produced the second error.
 
-**Consequence for this plan: phase 4 is a server, not a build.** What is missing
-is something that answers `/metadata` and accepts writes — which is what §4
-builds. Re-scope phase 4 against what #351 actually left open: live sandbox
-validation, the Tier-3 confirmation UI, and whether the demo sets
-`alwaysWriteDocument`.
+**Consequence for this plan: phase 4 is a server, not a build.** Confirmed —
+what was missing was something that answers `/metadata` and accepts writes, and
+building it changed no app code except extracting one constant. What #351 left
+open and step 4 did **not** close: live sandbox validation, the Tier-3
+confirmation UI, and whether the demo sets `alwaysWriteDocument` (it does not —
+run 1 wrote no DocumentReference, because the discrete tiers fully captured the
+data; run 2's floor fired only because Tier 2 was refused, which is the more
+persuasive demo anyway).
 
 ### The degradation demo
 
@@ -301,6 +313,119 @@ because it answers the question they actually ask — *what can you write into m
 system, and what do you do when I won't let you?* — by demonstration rather than
 assertion. It costs almost nothing once the stub exists, and it is a capability
 *negotiation* claim, which a mock can legitimately make (§1).
+
+### 5.1 Step 4 result — the ladder against a real server, measured 2026-08-20
+
+Method: the same two local origins as §6.1, with the mock's writes persisted in a
+Durable Object. A **real PSS-3 filled in the panel and submitted**, twice: once
+with the server advertising `full`, once with `no-observation`. Nothing stubbed,
+nothing simulated — the app's own `saveResponse` → `buildWritePlan` →
+`executeWritePlan` path, over HTTP, cross-origin.
+
+**Run 1 — profile `full`.** Six resources landed:
+
+| | |
+|---|---|
+| `Encounter/encounter-22e6376c…` | **PUT**, client id preserved |
+| `QuestionnaireResponse/srv-2` | POST — Tier 1 |
+| `Observation/srv-3` … `srv-6` | POST — Tier 2, four of them |
+
+⚠️ **The ids are the finding.** The server mints `srv-N`, deliberately unlike
+anything a client would produce, and all four Observations came back with
+`derivedFrom: ["QuestionnaireResponse/srv-2"]` — the **server's** id, not the
+client's. That is `execute.ts`'s remap working, and it is untestable against a
+server that echoes the client's id back. It was checked by reading the resources
+back off the mock, not by trusting the scorecard.
+
+**Run 2 — profile `no-observation`, same instrument, same answers.** Two
+resources, and the panel's own report says why:
+
+```
+capabilities: Observation.create=false, QuestionnaireResponse.create=true, DocumentReference.create=true
+capabilitiesKnown: true
+Tier 1 QuestionnaireResponse → written  srv-7
+Tier 2 Observation           → skipped  "Server does not support create for this type"
+Tier 0 DocumentReference     → written  srv-8   (the floor)
+```
+
+The server's independent account (`GET /_admin/writes`) agrees: `srv-7` and
+`srv-8`, no Observation. **Two statements about the same event** — the ladder
+reporting on itself and the server reporting on what it stored — which is the
+difference between a demo and an assertion.
+
+#### What a browser found that the spec did not
+
+⚠️ **§4's endpoint table is incomplete, and following it exactly produces a demo
+that cannot save.** It lists `POST /fhir/{Type}`. But
+`SmartDataSource.saveArtifact` **PUTs** the eight LIFECYCLE types
+(`LIFECYCLE_RESOURCE_TYPES` — Encounter, EpisodeOfCare, Flag, Task,
+ServiceRequest, Appointment, Consent, DocumentReference) so that an episode
+opened and later closed converges on one resource instead of leaving the open
+version behind. Three separate defects followed, each hidden by the one before:
+
+1. **CORS blocked the preflight.** `allowHeaders` did not list `Prefer`, which
+   `SmartDataSource.create` sends as `return=representation`; and `allowMethods`
+   did not list `PUT`. The first real submit died with
+   `Method PUT is not allowed by Access-Control-Allow-Methods`, i.e. a message
+   about configuration rather than about a missing route — and every `curl`
+   succeeded throughout.
+2. **The capability profiles were modelled on the ladder alone.** `CREATABLE`
+   holds the four ladder types; gating PUT against it refused every lifecycle
+   write **even under `full`**. Fixed by making `update` a second axis
+   (`updatableTypes`) — permitted by every profile except `read-only`, which has
+   to refuse everything or the label is a lie. The CapabilityStatement now
+   advertises `update` for those types, because a statement that omits an
+   interaction the server performs is one a client cannot trust.
+3. **The merged read view double-counted upserts.** Fixtures + writes were
+   concatenated, so a PUT replacing a fixture by id returned *both* versions and
+   a chart would show one episode as active and finished at once. Now keyed by
+   `Type/id` with the written version winning.
+
+#### Guardrail 1, and why the mock is not lenient
+
+§1 makes the reversal conditional on the mock *"reusing the profile checks in
+`check-scenario-resources.mjs` rather than inventing a second, laxer opinion"*.
+
+The README used to say that would have to be a **port**, "not a reuse of it (that
+script is Node reading StructureDefinitions off a filesystem)". That was true of
+the script and false of the rules: the rules need the conformance resources only
+as **data**, and `import.meta.glob` inlines them into a Worker exactly as it
+already inlines the Patients. So the rules moved to
+[`web/scripts/lib/fhir-resource-rules.mjs`](../../web/scripts/lib/fhir-resource-rules.mjs)
+and both callers share them **verbatim** — the bodies were moved unchanged into a
+closure that supplies `fail` and `structureDefs`, so the diff on the rules
+themselves is empty and this refactor cannot have quietly loosened one. Proven by
+planting one defect per rule class (bad status, missing required element,
+unresolvable profile, bad date, wrong patient link, min-cardinality,
+required-binding) and watching the scenario gate still fail all seven.
+
+Guardrail 2 — "prove it can reject" — is `write.test.ts`: six invalid payloads,
+each produced by breaking **one** thing in a resource the repo's own gate already
+accepts, so none of them proves the validator rejects something nobody would
+send. Plus the case that matters most: pointing the conformance glob at a
+nonexistent prefix makes the module **fail to load** rather than accept
+everything, which is the #232 / #261 silent-pass shape in the one place this
+service is supposed to be strict.
+
+⚠️ **A stated hole: an UNPROFILED resource is checked far less.** No
+`meta.profile` means base-R4 checks only — no min-cardinality, no fixed values,
+no bindings. The ladder's own artifacts do carry profiles, but "the mock accepted
+it" is a weaker statement than it looks, and it is never conformance evidence
+(guardrail 3). Pinned by a test so the hole is written down rather than
+discovered.
+
+#### Not verified
+
+- **`read-only` end to end.** The server refuses everything (tested), and by
+  reading the code a submit should then *fail* rather than degrade, because
+  `saveArtifact`'s PUT is outside the ladder and throws. That is arguably correct
+  — nothing landed *is* a failed save — but it has not been watched in a browser,
+  and "the least capable EHR" is exactly the profile someone will demo.
+- **Durable Object persistence across isolates.** `wrangler dev` runs one
+  isolate, so the property the DO exists for is the property local testing cannot
+  show. The deployed Worker is where that gets confirmed.
+- **Concurrent demos.** One store instance named `demo`, so two people
+  demonstrating at once share written resources. Reset is the mitigation.
 
 ## 6. What cross-origin costs
 
@@ -525,7 +650,7 @@ Sequenced to kill unknowns first.
 | 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Unblocked** — #356 minted the `Patient` resources. Executable spec: [`mock-ehr-read-api.md`](mock-ehr-read-api.md) |
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
 | 3 | ~~`PanelShell`, navigation stack, code drawer~~ **DONE (#358, #360)** | Now it looks like the product. Measured: 252px → 76px of chrome, and the FHIR view from ~3000px below the form to one tap away. |
-| 4 | Writes on the mock; degradation demo | §5 — the ladder driver is already on `main` (#351), so this is a server, not a build. Guardrail 2 (prove it rejects) lands here. |
+| 4 | ~~Writes on the mock; degradation demo~~ **DONE — §5.1** | It was a server, as predicted, plus three defects the spec's endpoint table hid (a PUT path, a second capability axis, upsert-aware reads). Guardrail 2 landed here: six planted rejections, and the validator fails to load rather than accept everything when its inputs are missing. |
 | 5 | ~~Mock EHR chrome, launch button, CDS card `type: "smart"`~~ **DONE — §6.1** | Slotted **before** step 4, because it carried the one unproven claim in the proposal: nothing had ever loaded the panel in a frame. Two defects found that no suite could see. |
 | 6 | FHIRcast across origins | §6. |
 

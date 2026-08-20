@@ -134,6 +134,12 @@ const CHART_CSS = `
   .panel-dock__sent { padding: .4rem .6rem; border-top: 1px solid ${RULE}; font-size: .75rem; color: ${INK};
                       overflow-wrap: anywhere; }
   .panel-dock[hidden] { display: none; }
+
+  .profiles { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
+  .profiles button { width: 100%; text-align: left; display: grid; gap: .15rem; padding: .5rem .75rem; }
+  .profiles button span { font-size: .8rem; color: ${INK}; }
+  .profiles button[aria-pressed="true"] { border-color: ${RASPBERRY}; box-shadow: inset 3px 0 0 ${RASPBERRY}; background: ${TINT_WARM}; }
+  .server-note { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; font-size: .85rem; color: ${INK}; }
 `
 
 /**
@@ -145,7 +151,18 @@ const CHART_CSS = `
  */
 export function patientChartPage(
   patient: DemoPatient,
-  { cdsEndpoint, panelOrigin }: { cdsEndpoint: string; panelOrigin: string },
+  {
+    cdsEndpoint,
+    panelOrigin,
+    profiles,
+    activeProfile,
+  }: {
+    cdsEndpoint: string
+    panelOrigin: string
+    /** Every capability profile, with its one-line description. */
+    profiles: Array<{ profile: string; description: string }>
+    activeProfile: string
+  },
 ): string {
   const widthButtons = PANEL_WIDTHS.map(w => `
         <button type="button" data-width="${w}" aria-pressed="${w === DEFAULT_PANEL_WIDTH}">${w}px</button>`).join('')
@@ -182,6 +199,24 @@ export function patientChartPage(
       </p>
       <p id="cds-status" class="cds-status">Calling the CDS service…</p>
       <ul id="cds-cards" class="cards"></ul>
+
+      <h2>What this server will accept</h2>
+      <p class="lede">
+        The capability-degradation demo. Flip the profile, relaunch, submit the same instrument: the
+        panel's writeback ladder reads <code>/metadata</code> and climbs only as far as this says it
+        can, then reports what it could not write instead of hiding it.
+      </p>
+      <ul class="profiles">${profiles.map(p => `
+        <li>
+          <button type="button" data-profile="${esc(p.profile)}" aria-pressed="${p.profile === activeProfile}">
+            <strong>${esc(p.profile)}</strong>
+            <span>${esc(p.description)}</span>
+          </button>
+        </li>`).join('')}</ul>
+      <p class="server-note">
+        <span id="writes-summary">Loading written data…</span>
+        <button type="button" id="reset-writes">Reset written data</button>
+      </p>
 
       <h2>Activity</h2>
       <p class="lede">
@@ -282,6 +317,51 @@ function chartScript({
   }
 
   document.getElementById('open-panel').addEventListener('click', function () { launch(null, 'pathway'); });
+
+  // ── The server's own account of what was written ─────────────────────────
+  // Deliberately independent of the panel's scorecard: the ladder reporting on
+  // itself and the server reporting on the same event are two statements, and
+  // only two make it checkable.
+  function refreshWrites() {
+    return fetch('/_admin/writes').then(function (res) {
+      return res.ok ? res.json() : null;
+    }).then(function (body) {
+      var out = document.getElementById('writes-summary');
+      if (!body) { out.textContent = 'No DEMO_STORE binding — writes cannot be persisted.'; return; }
+      if (body.count === 0) { out.textContent = 'Nothing written yet.'; return; }
+      out.textContent = body.count + ' resource(s) written: ' + Object.keys(body.byType).sort().map(function (t) {
+        return body.byType[t] + ' ' + t;
+      }).join(', ');
+    }).catch(function () {
+      document.getElementById('writes-summary').textContent = 'Could not read the write log.';
+    });
+  }
+  refreshWrites();
+  // The panel writes on submit, inside a cross-origin frame we cannot observe,
+  // so poll while it is open rather than pretending to know when it finished.
+  setInterval(function () { if (!dock.hidden) refreshWrites(); }, 4000);
+
+  document.getElementById('reset-writes').addEventListener('click', function () {
+    fetch('/_admin/reset', { method: 'POST' }).then(function (res) {
+      if (!res.ok) { alert('Could not reset: HTTP ' + res.status); return; }
+      refreshWrites();
+    });
+  });
+
+  document.querySelectorAll('[data-profile]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      fetch('/_admin/capabilities', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ profile: btn.dataset.profile }),
+      }).then(function (res) {
+        if (!res.ok) { alert('Could not switch profile: HTTP ' + res.status); return; }
+        document.querySelectorAll('[data-profile]').forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+      });
+    });
+  });
 
   // ── CDS Hooks patient-view ────────────────────────────────────────────────
   // No prefetch: see the module header. hookInstance must be unique per call.

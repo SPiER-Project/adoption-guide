@@ -145,3 +145,33 @@ describe('demographics are derived, not restated', () => {
     }
   })
 })
+
+describe('the chart carries the degradation demo (step 4)', () => {
+  it('offers every capability profile, marking the live one', async () => {
+    const { body } = await html('/chart/patient-011')
+    for (const profile of ['full', 'no-observation', 'documents-only', 'read-only']) {
+      expect(body).toContain(`data-profile="${profile}"`)
+    }
+    // The default profile is `full` with no env var and no durable value set.
+    expect(body).toContain('data-profile="full" aria-pressed="true"')
+  })
+
+  it('shows the server’s own account of what was written', async () => {
+    // Deliberately a second statement about the same event: the panel's
+    // scorecard is SPiER reporting on itself, and one source cannot corroborate
+    // anything.
+    const { body } = await html('/chart/patient-011')
+    expect(body).toContain('id="writes-summary"')
+    expect(body).toContain('id="reset-writes"')
+    expect(body).toContain('/_admin/writes')
+  })
+
+  it('puts the switch where the demo happens, not only on the operator page', async () => {
+    // Both pages carry it on purpose: flipping the profile mid-demo should not
+    // mean leaving the chart.
+    const chart = await html('/chart/patient-011')
+    const control = await html('/')
+    expect(chart.body).toContain('/_admin/capabilities')
+    expect(control.body).toContain('/_admin/capabilities')
+  })
+})

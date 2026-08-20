@@ -1,8 +1,9 @@
 # Handoff — next session
 
-Rewritten **2026-08-19** (fifth pass that day). `main` was at **`7e5e1ef`** when this was
-written, confirmed against `origin/main`; check rather than trust that. Every
-number below was re-derived on that commit, not copied forward.
+Rewritten **2026-08-20**. `main` was at **`7e5e1ef`** when this was written,
+confirmed against `origin/main`; check rather than trust that. **Two stacked PRs
+are open on top of it** — see the state section. Every number below was
+re-derived, not copied forward.
 
 ⚠️ **Eleven rewrites across two days is itself the finding.** Six on 2026-08-18
 alone; four of five merges that day made this file wrong within the hour, twice
@@ -33,16 +34,21 @@ The rule now has three halves:
 
 ## State of the repo
 
-- **One open PR — the step-5 branch (`claude/panel-step-5-host-chrome`).** **37 open issues.**
+- **Two open PRs, and the second is STACKED on the first.** #375 (panel step 5,
+  `claude/panel-step-5-host-chrome`, all checks green) and the step-4 branch on
+  top of it. **37 open issues.**
+  ⚠️ Squash-merging #375 will need the rebase recipe below before step 4 can
+  merge — this repo does not delete merged branches, so GitHub will not
+  auto-retarget and the step-4 diff would re-apply step 5's commits.
   (Both counted with an explicit `--limit`; `gh issue list` defaults to 30 and
   silently truncates.)
-- `web` — `npm run verify` exits 0 **on the step-5 branch**: every `check:*` gate
+- `web` — `npm run verify` exits 0 **on the step-4 branch**: every `check:*` gate
   green, **60 test files / 708 tests**. (No count of the gates here on purpose —
   `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
   stale.)
 - `services/cds-hooks` — its own `verify` exits 0, **32 tests**. **`web`'s verify
   does not cover it.**
-- `services/mock-ehr` — its own `verify` exits 0, **73 tests**, its own
+- `services/mock-ehr` — its own `verify` exits 0, **107 tests**, its own
   `mock-ehr` CI job in `web-lint.yml`. `web`'s verify does not cover it either.
   **There are three `verify`s in this repo and `web`'s covers one of them.**
 - ⚠️ **CI now runs `npm run verify` for all three packages** rather than
@@ -106,7 +112,8 @@ The rule now has three halves:
 | **#372** (`be59ce5`) | Handoff refresh |
 | **#373** (`9a34eba`) | **`PatientChart` 531 → 201** — three inline sections out. **#126 is closed** |
 | **#374** (`7e5e1ef`) | Handoff refresh |
-| **step 5** (open) | **Host chrome + the framed panel.** `/chart` + `/chart/{id}` on the mock, CDS card `type: "smart"`, `intent` → tool routing, `need_patient_banner` honored. **The iframe claim is settled** — see below |
+| **step 5** (#375, open) | **Host chrome + the framed panel.** `/chart` + `/chart/{id}` on the mock, CDS card `type: "smart"`, `intent` → tool routing, `need_patient_banner` honored. **The iframe claim is settled** |
+| **step 4** (open, stacked) | **Writes + the degradation demo.** `POST`/`PUT` on the mock, validated by the SAME rules as `check-scenario-resources.mjs`, a Durable Object with reset. **A real submit wrote QR + 4 Observations; flipping the profile degraded it to QR + the floor** — see below |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -131,7 +138,7 @@ ladder were checked and are **false alarms** (`answerText` reads `valueCoding`
 first; `valueText` is a pre-existing repo-wide convention) — recorded so they
 are not re-investigated.
 
-## Take this first — step 4 is the only panel step left
+## Take this first — the panel plan is DONE except step 6
 
 ✅ **The deploy happened, and the launch works.** This section said for two
 rewrites that deploying was the bottleneck. It is done:
@@ -163,8 +170,58 @@ synthetic) but worth knowing before anyone reasons about it as a control.
 | 1 — mock EHR read API + `/metadata` | **Done and deployed** |
 | 2 — SMART authorize/token stub | **Done and deployed**, proven in a browser |
 | 3 — `PanelShell`, nav stack, code drawer | **Done** — #358, #360 |
-| **4 — writes + capability degradation** | **Unstarted, and now the only one left.** The ladder driver is on `main` and the four capability profiles are switchable, so this is mostly a server. Needs a Durable Object — see the replay note below |
-| 5 — host chrome, launch button, CDS `type:"smart"` card | **DONE** (open PR). The iframe claim is settled; two defects found — see next |
+| **4 — writes + capability degradation** | **DONE** (open PR, stacked on #375). Three defects the spec's endpoint table hid; two things deliberately NOT verified — see below |
+| 5 — host chrome, launch button, CDS `type:"smart"` card | **DONE** (#375). The iframe claim is settled |
+| **6 — FHIRcast across origins** | **Unstarted, and now the only panel step left.** §6: `BroadcastChannel` will not cross the boundary, so this is `postMessage` with strict origin checks at the floor — or a real FHIRcast hub on a Durable Object, which is now cheap because step 4 added one |
+
+### ✅ Step 4 — the ladder writes to a real server, and degrades on demand
+
+A real PSS-3 filled in the panel and submitted twice, against two local origins
+with writes persisted in a Durable Object. Full numbers in the plan's new **§5.1**;
+the short version:
+
+| Profile | What landed |
+|---|---|
+| `full` | Encounter (PUT, client id) + QuestionnaireResponse `srv-2` + **4** Observations `srv-3…6` |
+| `no-observation` | QuestionnaireResponse `srv-7` + **DocumentReference `srv-8`** — Tier 2 skipped, the floor fired |
+
+⚠️ **The provenance check is the part worth keeping.** All four Observations came
+back with `derivedFrom: ["QuestionnaireResponse/srv-2"]` — the **server's** id,
+not the client's. That is `execute.ts`'s remap, and it is untestable against a
+server that echoes the client's id back, which is why the store mints `srv-N`.
+Verified by reading the resources off the mock, not by trusting the scorecard.
+
+**Three defects the spec's own endpoint table hid**, each masked by the one
+before, and all three invisible to every suite:
+
+1. **§4 lists `POST` only, but the app PUTs.** `saveArtifact` PUTs the eight
+   lifecycle types (update-as-create) so open→close converges on one resource.
+   The first real submit died on the CORS preflight — `Prefer` was not in
+   `allowHeaders`, `PUT` not in `allowMethods` — and every `curl` succeeded
+   throughout.
+2. **The capability profiles were modelled on the ladder alone.** Gating PUT
+   against the *create* list refused every lifecycle write **even under `full`**.
+   `update` is now a second axis, permitted by every profile but `read-only`.
+3. **The merged read view double-counted upserts** — a PUT replacing a fixture
+   returned both versions, so a chart would show one episode active *and*
+   finished.
+
+**Guardrail 1 is satisfied by sharing, not porting.** The per-resource rules moved
+to `web/scripts/lib/fhir-resource-rules.mjs`; the scenario gate and the mock's
+write endpoint now call the same code. The README's claim that this "would have to
+be a port, not a reuse" was true of the script and false of the rules — they need
+the conformance resources only as data, and `import.meta.glob` gives a Worker
+exactly that. Seven planted defects (one per rule class) still fail the scenario
+gate after the move, and pointing the glob at a nonexistent prefix makes the
+validator **fail to load** rather than accept everything.
+
+⚠️ **Two things were NOT verified, and one of them is the profile a sceptic will
+pick.** `read-only` end to end: the server refuses everything (tested), and by
+reading the code a submit should then *fail* rather than degrade, because
+`saveArtifact`'s PUT sits outside the ladder and throws. Arguably correct —
+nothing landed *is* a failed save — but nobody has watched it. And **Durable
+Object persistence across isolates**, which is the property the DO exists for and
+the one `wrangler dev` cannot show: it runs a single isolate.
 
 ### ✅ The frame claim is settled — and what proving it cost
 
