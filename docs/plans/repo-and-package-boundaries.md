@@ -14,13 +14,14 @@ app in two; §5 argues against that specifically.
 | Decision | State |
 |---|---|
 | **1 — separate repos per surface** | **REJECTED.** The cross-tree drift gates are the repo's strongest discipline and cannot survive version skew. §3 |
-| **2 — monorepo with declared workspace packages** | **PROPOSED.** Boundaries drawn along seams the code already shows. §4 |
-| **3 — split the adoption guide from the clinical demo into two apps** | **REJECTED.** #316 deliberately unified them; the cross-lens links are the product. §5 |
-| **4 — a patient-facing app as its own `apps/` entry** | **PROPOSED, and the trigger for #2.** §5 |
+| **2 — monorepo with declared workspace packages** | **PROPOSED, and the condition in §8 is now MET.** §9 |
+| **3 — split the adoption guide from the clinical demo into two apps** | **REJECTED, and independently re-derived since.** #316 unified them; the panel plan's chrome-mode decision reached the same answer from the other direction, and it is now proven in a browser. §5, §9.4 |
+| **4 — a patient-facing app as its own `apps/` entry** | ~~the trigger for #2~~ — **superseded as the trigger.** Still unbuilt and still legitimate, but a different consumer arrived first. §9.2 |
+| **5 — the demo fixtures get their own package** | **NEW, PROPOSED 2026-08-20.** They have no home in §4's table, which is exactly why "where should the patient data live" was hard to answer. §9.3 |
 
 | Phase | State |
 |---|---|
-| 0 — declare `packages/core`, convert the Worker's nine deep imports | **Not started.** Contained; worth doing on its own. §6 |
+| 0 — declare `packages/core`, convert the Workers' deep imports | **Not started. Now 21 imports across TWO Workers, not nine across one.** §9.1 |
 | 1 — move the SUSHI build out of the web app's devDependencies | **Not started.** §6 |
 | 2 — `packages/ui`, gates move with it | **Not started.** §6 |
 | 3 — `apps/patient` | **Not started.** Blocked on a decision to build it at all. |
@@ -28,6 +29,12 @@ app in two; §5 argues against that specifically.
 ⚠️ Phases 1–3 are **triggered, not scheduled.** If the patient app never happens,
 phase 0 is still worth having and the rest buys little. Do not do this
 speculatively — §7 is the honest cost.
+
+⚠️ **The trigger fired on 2026-08-20, and it was not the one this document
+expected.** §5 named the patient app; what arrived instead was a mock EHR — a
+consumer §5 mentions only in passing — plus a decision to move the population view
+into it. §9 records the new measurements and what they change. **Read it before
+acting on §6, whose phase 0 is now larger than it says.**
 
 ---
 
@@ -303,6 +310,169 @@ The asymmetry that decides it: **phase 0 is cheap and reversible; phases 1–3 a
 neither.** Do phase 0 on its merits. Do the rest when a third consumer makes the
 undeclared boundary a liability rather than a smell.
 
+## 9. Re-measured 2026-08-20 — the third consumer arrived
+
+This document was written on 2026-08-13, when there was one Worker. There are now
+three packages with three `verify` pipelines, and §8's decision rule — *"do the
+rest when a third consumer makes the undeclared boundary a liability rather than a
+smell"* — has had its condition satisfied by events rather than by argument.
+
+Prompted by a direct question: *"we have an interesting repo set up, the ehr and
+the web app are in different folders. is that normal? … i see there being maybe 4
+apps."* §9.4 answers the four-app framing. The measurements come first, because
+they are what changed.
+
+### 9.1 The deep imports more than doubled: 9 → 21
+
+| Package | `../../../web/src` imports |
+|---|---|
+| `services/cds-hooks` | **9** (the nine §2.1 measured) |
+| `services/mock-ehr` | **12** |
+
+What the second Worker reaches for, beyond the scenarios and `types/fhir`:
+`lib/dataSource/smartDataSource`, `lib/dataSource/types`,
+`lib/dataSource/lifecycleTypes`, `lib/writeback/capability`,
+`lib/deriveFromResponse`, `lib/observationMappers`, `lib/fhircast`,
+`data/population/patients.json`.
+
+⚠️ **`lib/dataSource/smartDataSource` is the one that should raise an eyebrow.** A
+mock *server* imports the app's FHIR **client** — legitimately, in the integration
+test that drives the real client against the real server, which is the best test
+in the repo. But it means the seam §2.1 called "undeclared" is now load-bearing in
+both directions, and nothing states which direction is allowed.
+
+### 9.2 A crossing this document has no row for
+
+`services/mock-ehr/src/validate.ts` imports
+**`web/scripts/lib/fhir-resource-rules.mjs`** — a Worker taking a runtime
+dependency on a *gate's* internals.
+
+That was deliberate and is still right: the embedded-panel plan's §1 guardrail 1
+requires the mock to validate writes *"reusing the profile checks in
+`check-scenario-resources.mjs` rather than inventing a second, laxer opinion"*, and
+sharing the module is the only way to have one opinion instead of two. The rules
+were moved out of the gate unchanged and both callers now use them.
+
+⚠️ **But §4's package table has nowhere to put it, and §7 gets it backwards.** §7
+counts `web/scripts/` as *things that break when files move* — 13 of 15 files
+hardcoding paths. It is now also a thing that is **imported by a deployable**. Any
+package layout has to answer where shared *validation rules* live, and the answer
+is not "in the scripts folder of an app". Candidate: they belong in
+`packages/core` (or beside `fhir-artifacts`), with the CLI gates importing them —
+the same direction as everything else in §4.
+
+### 9.3 The fixtures have no home, and that is a real gap
+
+§4's `packages/core` row lists `data/catalog`. It does **not** list
+`data/population` — so the 14 demo patients and their scenario slices are
+unaddressed by this document, and they are consumed by all three packages plus
+repo-root tooling.
+
+That omission had a cost this week: asked *"we don't really need to keep any of the
+patient data files in the adoption guide, those all really fit in the mock ehr
+application, right?"*, the first answer given was a defence of the status quo built
+on a consumer count that **padded tests and gates as if they were arguments** —
+they move with the data, so they were never arguments. The honest re-count:
+
+| Consumer | Survives moving the patient views out of the guide? |
+|---|---|
+| `PatientProvider`, `localDataSource`, `useActivePatientId`, `usePatientOpenBroadcast` | **No — they go with the chart** |
+| `PopulationView.tsx` | **No — being deprecated** |
+| `MeasureDashboard.tsx` | The only guide-side maybe |
+| `services/cds-hooks`, `services/mock-ehr` | Yes, and both already import it |
+| `scripts/validate-fhir.mjs`, `scripts/build-use-case-workbook.mjs` | Yes — **repo-root tooling, not "the guide"**; both take paths |
+
+And the fact that decides it: **`measures.ts` imports no data at all.** It is pure
+and takes a slice as an argument, so the measure *engine* is portable and
+`MeasureDashboard.tsx` is only wiring — wired to `localDataSource` directly, the
+same way `PopulationView.tsx` is (already flagged in this document's Related
+section). One refactor, not three problems.
+
+**So: nothing in the adoption guide has a durable claim on the fixtures.**
+`packages/demo-population` is the honest home — not `services/mock-ehr`, because
+while the guide still has a chart it would make the product import from the demo
+host, which is worse than today's direction.
+
+⚠️ **And the 14 `Patient` resources should probably leave the IG.** They live in
+`ig/input/fsh/population-patients.fsh` because #356 minted them there to stop 116
+scenario `subject` references dangling — a **validation** need, not a
+specification need. An IG's examples should illustrate its profiles, not populate a
+demo host's roster. The current shape means **the mock EHR's patient roster depends
+on a SUSHI compile**, which is a strange dependency for a fake EHR and is a direct
+consequence of the §2.4 inversion this document already identified.
+
+### 9.4 The four-app framing, answered
+
+The proposal was: IG documentation, adoption guide, mock EHR, and a CDS/SMART app
+"where we house the actual interaction, like the thing we license to other
+groups."
+
+**The underlying instinct is right and is this document's own thesis** — the
+licensable engine and the material that explains it are different products, and
+the engine currently lives inside one of its consumers. Three corrections:
+
+1. **The IG is not an app.** §1 already says this and the reason has not changed:
+   no runtime, no users, and it is *upstream* of everything else. Any framing that
+   makes it a peer gets the dependency direction wrong. The associated instinct —
+   *"our embedded app should be pulling directly from these resources"* — is
+   phase 1, and it is **already half-true**: profiles, ValueSets, CodeSystems and
+   ActivityDefinitions arrive via `copy-fhir`, but the **18 Questionnaires are
+   hand-authored in `FHIR-Resources/`, outside the IG**, and imported straight by
+   `App.tsx`.
+
+   ⚠️ **Measured, because the sharp version is sharper than the summary: the IG
+   contains ZERO `Questionnaire` resources and 11 example
+   `QuestionnaireResponse`s — responses to forms it does not define.** Their
+   `questionnaire` canonicals (`http://spier.org/Questionnaire/ASQ-Screening-Tool`
+   and friends) resolve only inside `FHIR-Resources/`. So the IG publishes answers
+   to a questionnaire set that lives outside it, and the app treats that outside
+   set as the spec. That is the substantive version of "pull directly from the IG",
+   and it is a conformance story rather than a folder-layout one.
+2. **The licensed app and the guide should not be separate deployables.** §5
+   rejected it; the panel plan re-derived the same answer independently and now has
+   browser evidence. One route table, two chrome modes — and the tool routes are
+   needed by *both* (the panel launches them, the guide documents them), so two
+   packages would duplicate or re-import them immediately. The audience boundary is
+   real; a package boundary is the wrong instrument for it.
+3. **`scripts/` is not homeless.** It is cross-package by nature —
+   `validate-fhir.mjs` reads `ig/`, `FHIR-Resources/` **and** the population
+   scenarios in one run. Root-level tooling in a monorepo is correct. Same caution
+   on folding `docs/` into the guide: `docs/use-cases/` and `docs/outreach/` are
+   **build inputs with their own CI gates**, not prose.
+
+⚠️ **The cost the four-app framing does not count is pipelines.** There are
+already three `verify`s and CLAUDE.md warns that `web`'s covers one of them; #368
+found **eight gates that only ever ran on developer machines** because a CI job
+hand-listed its steps. Every package multiplies that surface. Split for
+*enforcement*, not for tidiness — which is the same reason §4 wants `core`
+declared rather than merely tidy.
+
+### 9.5 Revised sequencing
+
+Deployables stay at **three**. What changes is that shared code stops living
+inside a consumer.
+
+| Step | Why this order | Unblocks |
+|---|---|---|
+| **A — `packages/demo-population`** | Smallest, no behaviour change, settles a question that is live now | The fixtures question; stops the next consumer guessing |
+| **B — `packages/core`** (§6 phase 0, now 21 imports) | Cheap and reversible per §8; the lint constraint is the point | A third consumer having an honest import path; the `validate.ts` crossing in §9.2 getting a home |
+| **C — `PopulationView` + `MeasureDashboard` onto the `FhirDataSource` seam** | The gate on everything after it | The population view moving to the EHR app; the embedded dashboard becoming a *genuine* user-scoped SMART panel rather than a labelled iframe |
+| **D — move the population view; retire the guide's `/population` and `/patient/chart`** | Only safe once C removes the `localDataSource` coupling | The guide keeping no patient data at all |
+| **E — Patients out of the IG; `packages/fhir-artifacts`** (§6 phase 1) | Highest path churn — §7's re-prove pass applies in full | Killing the §2.4 inversions |
+
+⚠️ **§7's migration rule applies unchanged and is the most important paragraph in
+this document.** One deliberate pass per step; after each, plant the defect each
+moved gate targets and watch it go red. A half-migrated tree is where a gate
+quietly starts reading an empty directory — and this repo has six catalogued
+instances of exactly that.
+
+**Open question, not decided here:** does `MeasureDashboard` stay in the adoption
+guide? If it does *and* it still needs patient-level data, step D leaves the guide
+importing fixtures from somewhere. If measures move to the EHR side — where they
+would live in a real deployment, computed over real data — the guide keeps no
+patient data and D is clean. This is a product decision and it changes step D's
+shape.
+
 ## Related
 
 - [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) — the question that
@@ -312,7 +482,12 @@ undeclared boundary a liability rather than a smell.
   `lib/encounters.ts` and `lib/episodeRecord.ts` belong in `core`.
 - [`docs/smart-sandbox-testing.md`](../smart-sandbox-testing.md) — the SMART
   client's current limits, including the Population view being local-only under
-  SMART (`PopulationView.tsx:73` imports `localDataSource` directly, bypassing the
-  `FhirDataSource` abstraction).
+  SMART (`PopulationView.tsx` imports `localDataSource` directly, bypassing the
+  `FhirDataSource` abstraction). ⚠️ **That line turned out to be the gate on the
+  whole reshape** — see §9.5 step C. `MeasureDashboard.tsx` does the same thing.
+- [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) — the six
+  merged panel steps that produced the second Worker, and §6.3 there for why the
+  embedded population dashboard is labelled rather than claimed. Its decision 1
+  (one shell, two chrome modes) independently re-derives §5.
 - #126 — decompose `PatientChart.tsx` and split `PatientContext` concerns.
   Independent of this, but the same area; doing it first would make `apps/` cleaner.
