@@ -138,6 +138,26 @@ ladder were checked and are **false alarms** (`answerText` reads `valueCoding`
 first; `valueText` is a pre-existing repo-wide convention) — recorded so they
 are not re-investigated.
 
+## ✅ All six panel steps are merged, and the hub is deployed
+
+`main` is at **`6ee89cc`** (step 6). **No open PRs.** The mock EHR is deployed —
+`npm run deploy` in `services/mock-ehr/`, which CI does **not** do — and its two
+Durable Objects (`DemoStore`, `FhircastHub`, migration `v2`) are live.
+
+Verified on the deployed host, not just under `wrangler dev` (which runs one
+isolate and therefore cannot show either property):
+
+- **Writes persist across isolates** — plan §5.1. `POST` → 201 with a
+  server-minted `srv-1`, present in 10/10 chart searches on fresh connections.
+- **The hub really relays** — plan §6.2. Three real WebSockets: publish to topic A
+  reported `delivered: 2`, both A subscribers received it, the B subscriber
+  received nothing, `sent: 2 / acked: 2`.
+
+⚠️ **The hibernation caveat is real and reproduced**: after the clients
+disconnected, the hub's `sent`/`acked` counters read `0` while the deliveries had
+certainly happened. They mean "since this instance last woke". `sockets` and
+`topics` are derived from the live socket set and are the trustworthy fields.
+
 ## Take this first — the panel plan is DONE except step 6
 
 ✅ **The deploy happened, and the launch works.** This section said for two
