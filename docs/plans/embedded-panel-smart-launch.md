@@ -476,9 +476,15 @@ later was correct in every respect. Do not debug a Worker for the first few
 seconds after `wrangler deploy`.
 
 #### Not verified
-- **Durable Object persistence across isolates.** `wrangler dev` runs one
-  isolate, so the property the DO exists for is the property local testing cannot
-  show. The deployed Worker is where that gets confirmed.
+
+⚠️ **This list used to open with "Durable Object persistence across isolates",
+and that bullet survived the section above being written — which contradicted
+it thirty lines earlier.** Introduced by the very commit that verified the
+property (#377): the ✅ block was inserted and the superseded bullet was not
+deleted. Recorded rather than quietly removed, because it is the exact failure
+this repo keeps cataloguing, committed by the change that was documenting a
+success.
+
 - **Concurrent demos.** One store instance named `demo`, so two people
   demonstrating at once share written resources. Reset is the mitigation.
 
