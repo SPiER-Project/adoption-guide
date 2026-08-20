@@ -53,16 +53,10 @@ EHR workflow steps:
 | 7. **Track Risk Over Time** | Treat                 | Keep active suicide-safer care episodes visible, trackable, and escalated when needed.                           |
 | 8. **Measure and Share the Data** | Improve               | Make pathway activity usable for reporting, QI, accountability, and information sharing.                         |
 
-### Build status of the eight stages
-
-Not all eight stages are equally built out in this IG version. Stages
-**1 (Identify Possible Risk), 2 (Clarify Risk), 3 (Define the Risk
-Picture), and 4 (Document Safety Actions)** have published
-`PlanDefinition`s with wired instruments. Stages **5 (Coordinate
-Handoffs), 6 (Track Follow-Up), 7 (Track Risk Over Time), and 8
-(Measure and Share the Data)** have published `PlanDefinition`s whose
-actions are catalogued placeholder tools pending full FHIR modelling — see the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap)
-for per-tool build status.
+All eight stages have a published `PlanDefinition`; how far each one's actions
+are modelled varies, and that state is tracked per tool in the companion app's
+[Roadmap](https://spier-project.github.io/adoption-guide/#/guide/roadmap) rather
+than restated here.
 
 ### Notes on the mapping
 
@@ -90,37 +84,3 @@ for per-tool build status.
   companion app's [Population View](https://spier-project.github.io/adoption-guide/#/population)).
   Full QI methodology — running PDSA cycles, board reporting cadence — is
   Zero Suicide's territory, not SPiER's.
-
-## What this mapping implies for adopters
-
-If your organization is implementing Zero Suicide and looking for the EHR
-piece:
-
-- **Adopt SPiER for the *Identify, Engage, Transition, Treat, Improve*
-  layers** — the parts that need to live in FHIR resources, workflow
-  triggers, and EHR screens.
-- **Adopt Zero Suicide directly for *Lead* and *Train*** — leadership
-  commitment, workforce competency, organizational change. These are not
-  EHR features.
-- **The SPiER [Adoption Rubric](https://spier-project.github.io/adoption-guide/#/implementation-guide/adoption-rubric)**
-  scores your EHR's capability across the eight technical stages. Use it
-  alongside the Zero Suicide [Organizational Self-Study](https://zerosuicide.edc.org/toolkit/lead/zero-suicide-organizational-self-study)
-  for a full picture.
-
-## Open questions for the Zero Suicide Institute
-
-The following items will be discussed with the Zero Suicide Institute
-before this mapping is considered final:
-
-1. Is the decomposition of *Identify* into Identify Possible Risk →
-   Clarify Risk → Define the Risk Picture faithful to the framework's
-   intent, or does it over-fragment what Zero Suicide treats as one
-   workflow element?
-2. Should SPiER's *Measure and Share the Data* stage explicitly reference the Zero
-   Suicide outcome measures (e.g., attempts per 1000 patients, time-to-
-   safety-plan), and if so, with what FHIR Measure profiles?
-3. Are there Zero Suicide-published code systems (for assessment
-   instruments, safety-plan elements, etc.) that SPiER should reference
-   directly rather than defining locally?
-4. Co-authorship attribution: how should the Zero Suicide Institute
-   appear in this IG's `publisher` and `author` metadata?
