@@ -230,7 +230,7 @@ describe('/token', () => {
       redirect_uri: TEST_REDIRECT_URI,
       client_id: TEST_CLIENT_ID,
       code_verifier: verifier,
-    }), {}, Date.now() + 120_000) // 60s TTL
+    }), {}, undefined, Date.now() + 120_000) // 60s TTL
     expect(result.ok).toBe(false)
   })
 

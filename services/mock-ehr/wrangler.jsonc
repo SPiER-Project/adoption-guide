@@ -28,14 +28,20 @@
   // found" — loud, but only at deploy time.
   "durable_objects": {
     "bindings": [
-      { "name": "DEMO_STORE", "class_name": "DemoStore" }
+      { "name": "DEMO_STORE", "class_name": "DemoStore" },
+      // The FHIRcast hub (step 6). A SEPARATE class from DEMO_STORE on purpose:
+      // the store holds durable data and the hub holds live WebSockets, and
+      // hibernation semantics differ enough that mixing them would make both
+      // harder to reason about.
+      { "name": "FHIRCAST_HUB", "class_name": "FhircastHub" }
     ]
   },
   // SQLite-backed, which is the current default for new classes and works on
   // the free plan. The tag is a one-way ledger: never edit or remove `v1`, add
   // `v2` for the next change, or the deploy is rejected.
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["DemoStore"] }
+    { "tag": "v1", "new_sqlite_classes": ["DemoStore"] },
+    { "tag": "v2", "new_sqlite_classes": ["FhircastHub"] }
   ],
 
   "vars": {

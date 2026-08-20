@@ -31,7 +31,7 @@ a clinical reviewer has to be *told* which half is for them.
 | 3 — `PanelShell`, navigation stack, code drawer | **DONE 2026-08-18.** `PanelShell` in #358 (`3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. Code drawer in #360 (`1901c0e`): the stranded sidebar (§9.1 finding 3) becomes a bottom drawer, one tap from any scroll position. §3 |
 | 4 — writes + the capability-degradation demo | **DONE 2026-08-20.** `POST /fhir/{Type}` + `PUT /fhir/{Type}/{id}`, validated against the SAME rules as `check-scenario-resources.mjs`, capability-gated, persisted in a Durable Object with a visible reset. What a browser found: §5.1 |
 | 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **DONE 2026-08-19.** `/chart` + `/chart/{id}` in `services/mock-ehr/src/chartPage.ts`, `type: "smart"` links from the hosted CDS service, `intent` → tool routing. What a browser found: §6.1 |
-| 6 — FHIRcast across the origin boundary | **Not started.** §6 |
+| 6 — FHIRcast across the origin boundary | **DONE 2026-08-20.** A real hub in a Durable Object; host and panel subscribe to one topic across two origins. §6.2 |
 
 ---
 
@@ -476,9 +476,15 @@ later was correct in every respect. Do not debug a Worker for the first few
 seconds after `wrangler deploy`.
 
 #### Not verified
-- **Durable Object persistence across isolates.** `wrangler dev` runs one
-  isolate, so the property the DO exists for is the property local testing cannot
-  show. The deployed Worker is where that gets confirmed.
+
+⚠️ **This list used to open with "Durable Object persistence across isolates",
+and that bullet survived the section above being written — which contradicted
+it thirty lines earlier.** Introduced by the very commit that verified the
+property (#377): the ✅ block was inserted and the superseded bullet was not
+deleted. Recorded rather than quietly removed, because it is the exact failure
+this repo keeps cataloguing, committed by the change that was documenting a
+success.
+
 - **Concurrent demos.** One store instance named `demo`, so two people
   demonstrating at once share written resources. Reset is the mitigation.
 
@@ -488,12 +494,13 @@ seconds after `wrangler deploy`.
   was the first thing predicted to break and it did not; what mattered was
   confirming the header is load-bearing rather than decorative, which needed a
   deliberately wrong value and a blocked frame.
-- ⚠️ **FHIRcast has to leave `BroadcastChannel`.**
-  [`web/src/lib/fhircast.ts`](../../web/src/lib/fhircast.ts) says *same-origin*
-  in its own header comment and will not cross the boundary. `postMessage` with
-  strict origin checks is the floor. The better version: Durable Objects speak
-  WebSocket, so the mock EHR could host an actual FHIRcast hub — which is what
-  real FHIRcast uses, making this an upgrade rather than a tax.
+- ✅ **FHIRcast left `BroadcastChannel` — and took the better option, not the
+  floor.** This bullet proposed `postMessage` with strict origin checks as the
+  floor and a real hub as the better version. The Durable Object that step 4 added
+  for writes made the better version the *cheaper* one: it already speaks
+  WebSocket. So `postMessage` was never written. The hub is
+  `services/mock-ehr/src/fhircastHub.ts`; the app subscribes to it with the
+  `hub.url` / `hub.topic` the EHR puts in the token response. §6.2.
 - **`check:template`** — §3.
 - ⚠️ **A new deployable outside the gate net will rot.** `services/cds-hooks/`
   has its own CI-gated `verify` precisely because `web/`'s does not cover it.
@@ -561,6 +568,67 @@ Three findings, and the first two are defects a browser was the only way to see:
    default) that access throws — and so does `fhirclient`'s own OAuth state, so
    in that browser the launch does not complete at all. **Untested there**, and
    the first thing to check before demonstrating on someone else's laptop.
+
+### 6.2 Step 6 result — context crosses the boundary, measured 2026-08-20
+
+Method as §6.1: two Workers on two origins locally, real SMART launch, real CSP.
+
+**A real hub, not a simulation.** `POST /fhircast` is a spec-shaped subscription
+request (`hub.channel.type=websocket`, `hub.mode`, `hub.topic`, `hub.events`)
+answered with a `hub.channel.endpoint`; the app connects a WebSocket to it and
+ACKs what it receives. The topic is minted with the launch and travels to the
+panel in the token response, which is how both sides end up in **one** session.
+
+| Observed | |
+|---|---|
+| Host chart subscribes | hub confirms the subscription on its topic |
+| Panel launched into the iframe | sockets go **1 → 2, same topic, two origins** |
+| Host announces `patient-open` for another patient | `delivered: 2`, **`acked: 2`** — the panel received it and acknowledged |
+| Panel's reaction | the out-of-scope notice, *"The chart moved to Nia Barrett … relaunch from their chart"* |
+
+⚠️ **The policy inverted, and the old comment was right for its time.**
+`FhircastListener` used to ignore every event under a live SMART session — "the
+connected EHR owns patient context, not this simulation". True of a
+`BroadcastChannel`, which reaches other tabs of *this app*. False of the EHR's own
+hub. The rule was never "ignore under SMART"; it was "do not let a simulation
+override the system of record", and the two transports fall on opposite sides of
+it. Both halves are now gated (`FhircastListener.test.tsx`).
+
+⚠️ **"Follow" cannot mean "read that patient", and this is what makes an embedded
+panel different.** The panel's token is bound to one patient, so a `patient-open`
+for another cannot be followed — navigating would render a chart of 403s. The
+panel says the session no longer matches and stops claiming its data is current.
+That is a constraint of the security model, not a limitation of FHIRcast, and it
+is the most useful thing this step surfaced.
+
+#### Two defects found, one of them a regression of §9.1
+
+1. ⚠️ **The panel's fixed chrome was stranded again — from the host side this
+   time.** The dock inherited `align-items: stretch`, so the iframe grew to the
+   height of the chart column: **1961px tall in a 1000px window**. The FHIRcast
+   notice and the code drawer are `position: fixed`, which pins them to the bottom
+   of the *iframe's* viewport — a thousand pixels below the fold. They rendered
+   correctly and invisibly. This is §9.1 finding 3 ("the code drawer is not merely
+   cramped at panel width — it is stranded") arriving from the other direction:
+   step 3 fixed it inside the panel, and **step 4's additions to the host page
+   reintroduced the symptom**. The dock is now `position: sticky` at
+   `height: 100vh` with `align-self: flex-start` — an embedded activity gets a
+   viewport, so the frame has to be one.
+2. **The hub's `sent` / `acked` counters reset on hibernation while the sockets
+   survive** — which is `acceptWebSocket` working as designed, and makes those two
+   numbers mean "since this instance last woke". Seen as `sockets: 2, sent: 0`
+   moments after two delivered-and-ACKed notifications. Documented rather than
+   moved to storage; `sockets` and `topics` are derived from the live socket set
+   and are the trustworthy fields.
+
+#### What this hub deliberately is not
+
+No `hub.secret` and no HMAC signatures, so **it authenticates nothing** — the same
+class of shortcut as the missing `id_token` in the auth stub, and recorded in
+`fhircastProtocol.ts` beside it. No webhook channel, no SSE, no lease expiry, no
+authorization on the hub at all: anyone who can reach the Worker can subscribe to
+a topic they know. The topic is an unguessable per-session value, which is a
+demo's worth of protection and not a security control.
 
 ## 7. The prerequisite nobody will see coming
 
