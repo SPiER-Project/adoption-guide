@@ -10,13 +10,18 @@
  *      not the button: no patient list, no chart, no encounter page.
  *
  * Deliberately one self-contained string: this Worker has no Static Assets
- * binding and no build step beyond the Vite bundle. Host chrome — a patient
- * list, a patient page, a launch button — is step 5, not this.
+ * binding and no build step beyond the Vite bundle.
+ *
+ * ⚠️ **This is the operator's page, not the demo.** Host chrome — the patient
+ * list, a chart, and the panel framed inside it — landed in step 5 and lives in
+ * `chartPage.ts`; the launch form below stays because it can mint a launch this
+ * page's own controls cover (an arbitrary `intent`, banner on or off) and
+ * because a TOP-LEVEL launch is the useful thing to compare an embedded one
+ * against. Demonstrate from `/chart`; debug from here.
  */
 import { CAPABILITY_PROFILES, PROFILE_DESCRIPTIONS, type CapabilityProfile } from './capability'
-
-const PLUM = '#341528'
-const RASPBERRY = '#cc3366'
+// Palette shared with the host-chrome pages — one definition, not three.
+import { PLUM, RASPBERRY } from './hostChrome'
 
 export function controlPage(
   active: CapabilityProfile,
@@ -65,7 +70,14 @@ export function controlPage(
     read straight from the app's own population scenarios.
   </p>
 
-  <h2>Launch the panel</h2>
+  <h2>Open a chart</h2>
+  <p>
+    <a href="/chart">The patient list &rarr;</a> — the host chrome, where the panel is launched
+    <strong>inside</strong> a chart rather than into a new tab. That is the demo; everything below is
+    the operator's bench.
+  </p>
+
+  <h2>Launch the panel top-level</h2>
   <p>
     Mints a SMART launch context and opens the app's <code>launch_uri</code> with
     <code>iss</code> and <code>launch</code>, the way an EHR would.

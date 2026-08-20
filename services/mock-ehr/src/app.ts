@@ -8,6 +8,8 @@
  *   GET  /authorize               SMART authorization (PKCE S256 required)
  *   POST /token                   authorization_code → access token
  *   GET  /                        control page: capability profile + launch
+ *   GET  /chart                   host chrome: the patient list
+ *   GET  /chart/{id}              host chrome: one chart, with the panel framed
  *   GET  /_admin/capabilities     the profile, as JSON
  *   PUT  /_admin/capabilities     set it
  *   POST /_admin/launch           mint a launch context + the app's launch URL
@@ -32,9 +34,18 @@ import {
   isCapabilityProfile,
   type CapabilityProfile,
 } from './capability'
-import { HELD_RESOURCES, HELD_TYPES, PATIENT_IDS, RESOURCES_BY_KEY, type MockResource } from './fixtures'
+import {
+  DEMO_PATIENTS,
+  DEMO_PATIENTS_BY_ID,
+  HELD_RESOURCES,
+  HELD_TYPES,
+  PATIENT_IDS,
+  RESOURCES_BY_KEY,
+  type MockResource,
+} from './fixtures'
 import { SEARCHABLE_TYPES, applySearch, parseSearch } from './search'
 import { controlPage } from './controlPage'
+import { patientChartPage, patientListPage } from './chartPage'
 import {
   authRequired,
   authorize,
@@ -55,6 +66,18 @@ export interface Env extends SmartEnv {
 
 /** Default panel origin for a minted launch URL; overridden by the env var. */
 const DEFAULT_PANEL_BASE_URL = 'https://spier-adoption-guide.bbthorson.workers.dev/'
+
+/**
+ * Where the panel host serves its CDS Hooks service. One Worker hosts both the
+ * SPA and `/cds-services/*`, so this is a path on the panel's own origin.
+ *
+ * ⚠️ Hand-written here rather than imported, because importing the service
+ * module would pull the whole card builder into this Worker's bundle for one
+ * string. `app.test.ts` asserts it against the real `SERVICE_ID` instead, so the
+ * drift is gated without the weight. (A mismatch would not fail silently — the
+ * chart page renders the fetch error — but "visible in a browser" is not a gate.)
+ */
+const CDS_SERVICE_PATH = '/cds-services/spier-patient-view'
 
 const FHIR_JSON = 'application/fhir+json'
 
@@ -284,16 +307,17 @@ app.put('/_admin/capabilities', async (c) => {
 })
 
 /**
- * Mint a launch context and the URL an EHR would open. This is the step-5
- * launch button's engine, built here because without it nothing can be
- * launched at all — step 5 adds the chart around it, not the mechanism.
+ * Mint a launch context and the URL an EHR would open.
+ *
+ * The engine behind both launch surfaces: the chart page's activity button and
+ * CDS cards (`/chart/{id}`), and the control page's top-level launch. It stayed
+ * an `_admin` endpoint after step 5 added the chart because the chart is a
+ * *caller*, not the mechanism — which is also what lets the two surfaces differ
+ * only in what they put in the body (`embed`, `intent`, `needPatientBanner`).
  */
 app.post('/_admin/launch', async (c) => {
-  const body = await c.req.json<{
-    patient?: unknown
-    intent?: unknown
-    needPatientBanner?: unknown
-  }>().catch(() => ({} as { patient?: unknown; intent?: unknown; needPatientBanner?: unknown }))
+  type LaunchBody = { patient?: unknown; intent?: unknown; needPatientBanner?: unknown; embed?: unknown }
+  const body = await c.req.json<LaunchBody>().catch(() => ({} as LaunchBody))
   const patient = typeof body.patient === 'string' ? body.patient : ''
   if (!RESOURCES_BY_KEY.has(`Patient/${patient}`)) {
     return c.json({ error: `Unknown patient '${patient}'.` }, 400)
@@ -309,8 +333,37 @@ app.post('/_admin/launch', async (c) => {
   // SMART EHR launch: the EHR opens the app's launch_uri with `iss` + `launch`.
   // The app's launch screen is under its hash router, and main.tsx routes the
   // real query string into it.
-  const launchUrl = `${panelBase}?iss=${encodeURIComponent(`${origin}/fhir`)}&launch=${encodeURIComponent(launch)}#/launch`
-  return c.json({ launch, launchUrl, patient })
+  //
+  // ⚠️ `embed=1` is the panel-chrome flag, and it belongs in the QUERY, before
+  // the `#`. The app reads it from `location.search` on purpose (see
+  // PresentationProvider) — appending it after the fragment would make it part
+  // of the route and it would be silently ignored.
+  const url = new URL(panelBase)
+  url.searchParams.set('iss', `${origin}/fhir`)
+  url.searchParams.set('launch', launch)
+  if (body.embed === true) url.searchParams.set('embed', '1')
+  url.hash = '#/launch'
+  return c.json({ launch, launchUrl: url.toString(), patient })
+})
+
+// ── Host chrome (step 5) ─────────────────────────────────────────────────────
+// The patient list and one chart, with the panel framed inside it. This is what
+// exercises `frame-ancestors` on the panel host — see chartPage.ts.
+
+app.get('/chart', (c) => c.html(patientListPage(DEMO_PATIENTS)))
+
+app.get('/chart/:patientId', (c) => {
+  const patient = DEMO_PATIENTS_BY_ID.get(c.req.param('patientId'))
+  if (!patient) return c.notFound()
+  const panelBase = envOf(c).MOCK_PANEL_BASE_URL || DEFAULT_PANEL_BASE_URL
+  // The panel host serves the SPA and the CDS Hooks API from ONE Worker, so the
+  // service lives at the panel's own origin. Deriving it (rather than taking a
+  // second env var) means a redeploy cannot point the two at different hosts.
+  const panelOrigin = new URL(panelBase).origin
+  return c.html(patientChartPage(patient, {
+    cdsEndpoint: `${panelOrigin}${CDS_SERVICE_PATH}`,
+    panelOrigin,
+  }))
 })
 
 app.get('/', (c) => c.html(controlPage(

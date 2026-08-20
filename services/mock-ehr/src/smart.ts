@@ -211,8 +211,10 @@ export async function authorize(
     )
   }
 
-  // Resolve the launch context. `launch` is the EHR-launch path; `patient` is
-  // the standalone shortcut for testing before host chrome exists (step 5).
+  // Resolve the launch context. `launch` is the EHR-launch path that the chart
+  // page and the control page both take; `patient` is the standalone shortcut,
+  // kept for curl exploration — it skips the launch context entirely, so it
+  // cannot carry `intent` or `need_patient_banner`.
   let context: Omit<LaunchContext, 'exp'> | null = null
   const launch = get('launch')
   if (launch) {

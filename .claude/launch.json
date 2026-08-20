@@ -8,6 +8,20 @@
       "port": 5173,
       "autoPort": true,
       "cwd": "web"
+    },
+    {
+      "name": "panel-worker",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "8788"],
+      "port": 8788,
+      "cwd": "services/cds-hooks"
+    },
+    {
+      "name": "mock-ehr",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "8787"],
+      "port": 8787,
+      "cwd": "services/mock-ehr"
     }
   ]
 }

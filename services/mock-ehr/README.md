@@ -4,7 +4,7 @@ Serves SPiER's own synthetic population as a real FHIR read API, on its **own
 Worker and therefore its own origin**, so the embedded SMART panel can be
 launched cross-origin against a server rather than against localStorage.
 
-Panel **step 1**. The spec is [`docs/plans/mock-ehr-read-api.md`](../../docs/plans/mock-ehr-read-api.md);
+Panel **steps 1, 2 and 5**. The spec is [`docs/plans/mock-ehr-read-api.md`](../../docs/plans/mock-ehr-read-api.md);
 the decision that permits a mock we control at all is
 [`embedded-panel-smart-launch.md`](../../docs/plans/embedded-panel-smart-launch.md) §8,
 and it is permitted only with the guardrails in §1 of that plan.
@@ -129,19 +129,90 @@ reads them to learn how to authorize at all.
   host, and nowhere else. Step 4 needs a Durable Object for writes anyway; this
   should move behind it then.
 
+## The host chrome (step 5)
+
+| Route | |
+|---|---|
+| `GET /chart` | the patient list |
+| `GET /chart/{id}` | one chart: host banner, CDS Hooks cards, and the panel **in an iframe** |
+| `GET /` | the operator's bench — capability switch, top-level launch |
+
+⚠️ **`/chart/{id}` is the demo; `/` is the bench.** The control page can still
+mint a launch, because a *top-level* launch is the useful thing to compare an
+embedded one against and because it can send an arbitrary `intent`. Demonstrate
+from `/chart`.
+
+Two entry points, which are the two the panel plan names (§2): an activity button
+that knows only the patient, and a **CDS Hooks card whose link is
+`type: "smart"`** — the card names the instrument, so the panel opens already
+scoped to it. The card comes from the *panel* host's `/cds-services` endpoint
+(one Worker serves the SPA and that API), and its `appContext` carries
+`{"intent":"open-…"}` which this server copies into the SMART launch context.
+The division of labour is the spec's: the CDS service proposes, the EHR mints
+the launch.
+
+Every embedded launch sends **`need_patient_banner: false`**, because the chart
+draws a banner two inches to the left, and **`embed=1`** on the launch URL, which
+is what puts the app in panel chrome. Both are visible on the page as "launch
+context sent", so what the host claimed can be read off the screen.
+
+⚠️ **`embed=1` goes in the query, before the `#`.** The app reads it from
+`location.search` (under `HashRouter` that is what makes it survive in-app
+navigation); appended after the fragment it becomes part of the route and is
+silently ignored, and the panel renders full EHR chrome inside the frame with
+nothing failing. `chartPage.test.ts` pins the ordering.
+
+### Local dev against a local panel
+
+`wrangler dev` loads `.dev.vars` (gitignored). To frame a locally-served panel:
+
+```
+# services/mock-ehr/.dev.vars
+MOCK_PANEL_BASE_URL=http://localhost:8788/
+MOCK_REDIRECT_URIS=http://localhost:8788/
+
+# services/cds-hooks/.dev.vars
+PANEL_FRAME_ANCESTORS='self' http://localhost:8787
+```
+
+Then `npm run dev -- --port 8787` here and `npm run dev -- --port 8788` in
+`services/cds-hooks` (`.claude/launch.json` has both as `mock-ehr` and
+`panel-worker`). Both halves are needed: an unregistered `redirect_uri` is
+refused **without a `Location` header**, and a panel whose `frame-ancestors` does
+not name this origin renders as a blocked frame. ⚠️ `wrangler dev` does **not**
+hot-reload `.dev.vars` — restart it.
+
 ## Not here
 
 **Writes** — step 4, and its strict-validation guardrail is a *port* of
 `check-scenario-resources.mjs`, not a reuse of it (that script is Node reading
-StructureDefinitions off a filesystem). **Host chrome** — a patient list, a
-patient page, an encounter page: step 5. This service mints launches; it does
-not yet look like an EHR.
+StructureDefinitions off a filesystem). **No encounter page, no user, no login**
+— `patient-view` needs a patient, and a fabricated practitioner would be theatre.
+**No CDS prefetch**: the chart page sends context only, so the service takes its
+documented fallback path and serves the bundled scenario for that patient id.
+Same data either way, and it keeps the page from needing a bearer token for this
+server's own API — but it does silently select a different code path in the
+service, so it is a decision rather than an omission.
 
 ## Verify
 
 ```
 npm install && npm run verify   # copy-fhir + typecheck + eslint + vitest
 ```
+
+## Deploy
+
+⚠️ **This Worker is NOT deployed by CI.** The panel host redeploys itself from
+`main` through the Cloudflare dashboard integration; this one does not. After
+merging anything under `services/mock-ehr/`:
+
+```
+npm run deploy
+```
+
+Otherwise the live host keeps serving the old build, and the symptom is a demo
+that behaves like the previous commit — which reads as a code bug rather than a
+deploy that never happened.
 
 `web/`'s `npm run verify` does **not** cover this package. CI runs the same
 `verify` as its own `mock-ehr` job in `.github/workflows/web-lint.yml`, which

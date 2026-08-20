@@ -16,9 +16,9 @@ a clinical reviewer has to be *told* which half is for them.
 
 | Decision | State |
 |---|---|
-| **1 — panel is a chrome mode of the existing app, not a second app** | **PROPOSED.** §3 |
+| **1 — panel is a chrome mode of the existing app, not a second app** | **PROVEN 2026-08-19.** One route table, one shell switch; the panel ran embedded in a host chart with no second app and no forked routes. §3 |
 | **2 — the host is a mock EHR we write, serving real FHIR** | **DECIDED 2026-08-18.** Reverses [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6; the Medplum variant is rejected. Reason, guardrails and costs in §8. |
-| **3 — cross-origin: host and panel on separate `workers.dev` hostnames** | **PROPOSED.** §6 |
+| **3 — cross-origin: host and panel on separate `workers.dev` hostnames** | **PROVEN 2026-08-19** in a browser, both directions: the panel renders framed from the permitted origin, and a non-permitted origin is refused by `frame-ancestors`. §6 |
 | **4 — claim the demo makes is "SMART activity", not "persistent sidebar"** | **DECIDED.** §2 |
 | **5 — panel submit drives the writeback ladder** | **PROPOSED.** §5 |
 | **6 — the mock ships NO consent screen; `/authorize` auto-approves** | **DECIDED 2026-08-19.** Reason, the variant that would be theatre, and what would reopen it: §10.1 |
@@ -27,10 +27,10 @@ a clinical reviewer has to be *told* which half is for them.
 |---|---|
 | 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
 | 1 — mock EHR read API over the existing fixtures | **DONE** — `services/mock-ehr/`. Spec + what building it found: [`mock-ehr-read-api.md`](mock-ehr-read-api.md). §7 |
-| 2 — SMART authorize/token stub, cross-origin iframe launch | **DONE (server side).** `/authorize` + `/token` with PKCE S256 verified, launch contexts, patient-bound tokens, `frame-ancestors` on the panel host. ⚠️ The *iframe* half is unproven — nothing is deployed and no browser has run it. §4 |
+| 2 — SMART authorize/token stub, cross-origin iframe launch | **DONE.** `/authorize` + `/token` with PKCE S256 verified, launch contexts, patient-bound tokens, `frame-ancestors` on the panel host. The iframe half was unproven until step 5 framed it; **both halves are now observed in a browser — §6.1.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **DONE 2026-08-18.** `PanelShell` in #358 (`3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. Code drawer in #360 (`1901c0e`): the stranded sidebar (§9.1 finding 3) becomes a bottom drawer, one tap from any scroll position. §3 |
 | 4 — writes + the capability-degradation demo | **Not started. The ladder driver is already ON MAIN** (#351, `6f37e0d`), so this is a server, not a build. §5 |
-| 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **Not started.** §9 |
+| 5 — mock EHR chrome, launch button, CDS card with `type: "smart"` | **DONE 2026-08-19.** `/chart` + `/chart/{id}` in `services/mock-ehr/src/chartPage.ts`, `type: "smart"` links from the hosted CDS service, `intent` → tool routing. What a browser found: §6.1 |
 | 6 — FHIRcast across the origin boundary | **Not started.** §6 |
 
 ---
@@ -233,9 +233,19 @@ open UX questions directly:
 - **`intent`** — the standard carrier for *"open C-SSRS Full."* Preferred over a
   bespoke query param, because it is what a real EHR would send. (The app
   already reads a `?tool=` param for `stampLaunchStage`; `intent` is the outer,
-  spec-blessed form of the same information.)
+  spec-blessed form of the same information.) **Live since step 5.** The
+  vocabulary is `open-<launch-path-slug>` and is **derived from the tool catalog
+  in both directions** ([`web/src/lib/smartIntent.ts`](../../web/src/lib/smartIntent.ts)),
+  so a new tool is reachable by intent the day it has a launch action and nothing
+  has to be kept in sync. An intent this build does not know resolves to null and
+  lands on the pathway — the host is a different system on a different release
+  cycle, and "open something I have never heard of" must not be a dead end.
 - **`need_patient_banner: false`** — the host telling the panel not to draw its
-  own banner. §2.
+  own banner. §2. **Honored since step 5**: `SmartRedirect` reads it off the token
+  response and `PanelShell` drops its identity strip. Only an explicit `false`
+  does so — absent means "app decides", and the app's answer is to name the
+  patient, because a panel that stops identifying whose chart it shows is a safety
+  problem rather than a layout one.
 
 **Persistence and reset.** Seed reads from the fixtures; keep writes in KV or a
 Durable Object under a session key; expose a visible **Reset demo** control.
@@ -294,9 +304,10 @@ assertion. It costs almost nothing once the stub exists, and it is a capability
 
 ## 6. What cross-origin costs
 
-- **`frame-ancestors`.** The panel must permit embedding by the mock EHR's
-  origin, configured explicitly on Cloudflare's static-asset serving. First thing
-  that will break; cheap once known.
+- ✅ **`frame-ancestors` — settled, and tested in both directions (§6.1).** It
+  was the first thing predicted to break and it did not; what mattered was
+  confirming the header is load-bearing rather than decorative, which needed a
+  deliberately wrong value and a blocked frame.
 - ⚠️ **FHIRcast has to leave `BroadcastChannel`.**
   [`web/src/lib/fhircast.ts`](../../web/src/lib/fhircast.ts) says *same-origin*
   in its own header comment and will not cross the boundary. `postMessage` with
@@ -309,6 +320,67 @@ assertion. It costs almost nothing once the stub exists, and it is a capability
   `services/mock-ehr/` needs the same on day one — more urgently, because it
   reads the scenario fixtures and will break silently when those are re-anchored
   by `web/scripts/shift-scenario-dates.mjs`.
+
+### 6.1 Step 5 result — the framed panel, measured 2026-08-19
+
+Method: both Workers run locally on separate origins — the mock EHR on
+`http://localhost:8787`, the panel Worker (SPA + CDS API, exactly as deployed) on
+`http://localhost:8788` — in a 1440×900 viewport. `.dev.vars` in each service
+points them at each other; the deployed values are unchanged. Not a same-origin
+iframe and not a proxy: two origins, a real OAuth round trip, a real CSP.
+
+**The claim holds.** `http://localhost:8787/chart/patient-011` frames the panel;
+the full SMART sequence completes *inside the frame* (`/launch` → `authorize()` →
+the mock's `/authorize` → back with a code → `ready()` exchanges it at `/token`
+with PKCE); the pathway renders from **15 live patient-scoped reads against the
+mock**, all 200, cross-origin from within the frame. Zero console errors.
+
+| Observed | |
+|---|---|
+| Panel chrome inside the frame | yes — no app header, no lens sidebar |
+| Identity strip | **absent**, because the launch sent `need_patient_banner: false` and the host draws its own |
+| Activity button → panel | opens on the pathway overview |
+| CDS card `type: "smart"` → panel | opens **directly on Stanley-Brown**, from `appContext` `{"intent":"open-stanley-and-brown"}` |
+| Code drawer (#360) | reachable, pinned at the foot of the panel |
+| Widths | 380 / 470 / 700 all render; the form wraps rather than truncating at 380 |
+
+⚠️ **`frame-ancestors` was then proven to bite.** With the panel's CSP pointed at
+a *different* port, the same page logged
+`Framing 'http://localhost:8788/' violates the following Content Security Policy
+directive: "frame-ancestors 'self' http://localhost:9999". The request has been
+blocked.` A header that has only ever been observed permitting things is not
+evidence of anything — this is the negative half.
+
+Three findings, and the first two are defects a browser was the only way to see:
+
+1. ⚠️ **`fhirclient` asks to be told how to complete an authorization inside a
+   frame, and guessing right is not the same as working.** Launched embedded, it
+   warned *"please be explicit and provide a `completeInTarget` option"* and then
+   inferred `true` from being framed. The inference happened to be correct; the
+   *wrong* value fails in the least debuggable way available — `false` makes it
+   `postMessage` the callback URL to `parent` with the **panel's** origin as
+   `targetOrigin`, which a cross-origin host frame can never receive, so the
+   launch hangs with no error and no failed request. `SmartLaunch` now sets
+   `completeInTarget: true` explicitly, which is a no-op for the top-level launch.
+2. ⚠️ **Two tools sharing a launch path put two identical links on a card, and
+   had since the cards were built.** TL-042 (KPI Reporting) and TL-043
+   (Dashboard) both launch `/guide/measures` with the same label, and the stage
+   card's link list ran over *tools*, so every patient at `measure-and-share` got
+   two byte-identical "Open measure dashboard" entries — in the app too. Nothing
+   caught it because `spier-router-paths` is keyed by URL and silently collapsed
+   the pair: only the *visible* list was doubled. It surfaced here because a host
+   renders each link as a button that mints an OAuth launch, which makes the
+   duplicate loud. `buildCdsCards` now emits one link per destination.
+3. ⚠️ **The embed flag cannot survive the redirect in the URL.** `?embed=1`
+   arrives on the framed launch URL, and the OAuth leg replaces the whole query
+   string with `?code&state` — a redirect URI carries no fragment and the app
+   registers its bare base. Without persistence the panel comes back up in full
+   EHR chrome *inside the host's iframe*, with a second header and a second
+   patient banner. `PresentationProvider` now records it in `sessionStorage` for
+   the tab. Note the cost: under full third-party storage blocking (Safari's
+   default) that access throws — and so does `fhirclient`'s own OAuth state, so
+   in that browser the launch does not complete at all. **Untested there**, and
+   the first thing to check before demonstrating on someone else's laptop.
 
 ## 7. The prerequisite nobody will see coming
 
@@ -454,7 +526,7 @@ Sequenced to kill unknowns first.
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
 | 3 | ~~`PanelShell`, navigation stack, code drawer~~ **DONE (#358, #360)** | Now it looks like the product. Measured: 252px → 76px of chrome, and the FHIR view from ~3000px below the form to one tap away. |
 | 4 | Writes on the mock; degradation demo | §5 — the ladder driver is already on `main` (#351), so this is a server, not a build. Guardrail 2 (prove it rejects) lands here. |
-| 5 | Mock EHR chrome, launch button, CDS card `type: "smart"` | Can slot earlier if something recordable is needed sooner — the button is cheap, the chart is polish. |
+| 5 | ~~Mock EHR chrome, launch button, CDS card `type: "smart"`~~ **DONE — §6.1** | Slotted **before** step 4, because it carried the one unproven claim in the proposal: nothing had ever loaded the panel in a frame. Two defects found that no suite could see. |
 | 6 | FHIRcast across origins | §6. |
 
 ⚠️ **Two tracks, because the near-term goal is a conference demo, not a client

@@ -1,8 +1,9 @@
 /**
  * Pure CDS Hooks service logic — no Hono, no Workers APIs (only the ambient
  * `crypto.randomUUID` that buildCdsCards already guards). Everything here is
- * a straight reuse of the SPiER app's browser-free derivation code so the
- * hosted endpoint and the in-app Patient Chart produce identical cards:
+ * a straight reuse of the SPiER app's browser-free derivation code, so the
+ * hosted endpoint and the in-app Patient Chart derive the same cards from the
+ * same pipeline:
  *
  *   QuestionnaireResponse(s) → observationMappers → RiskAlert[]
  *                            → derivePathwayStatus → activeStageId
@@ -14,6 +15,12 @@
  *   2. Fallback path — no prefetch (e.g. testing from sandbox.cds-hooks.org with
  *      a bundled patient id). We serve one of the app's population scenarios so
  *      the service is demonstrable without a connected FHIR server.
+ *
+ * ⚠️ One thing differs between here and the app on purpose: with
+ * `smartLaunchUrl` set, this endpoint emits `type: "smart"` card links so a host
+ * EHR can launch the panel with context, where the app emits deep links it can
+ * route itself. Same cards, different link form — and the difference is in who
+ * is able to act on them, not in what was derived.
  */
 import { buildCdsCards } from '../../../web/src/lib/cdsHooks'
 import type { Card, CdsServiceResponse } from '../../../web/src/lib/cdsHooks/types'
@@ -123,9 +130,26 @@ function riskAlertsFor(responses: QuestionnaireResponseResource[]): RiskAlert[] 
  * patient's curated `recommendedNextStep` is allowed to surface. Unknown ids
  * yield an empty (spec-valid) card list.
  */
-export function buildPatientViewResponse(request: CdsHookRequest): CdsServiceResponse {
+export interface PatientViewOptions {
+  /**
+   * The app's SMART `launch_uri`. When given, card links are emitted as
+   * `type: "smart"` launches carrying the tool in `appContext` instead of deep
+   * links — see `SmartLaunchLinks` in web/src/lib/cdsHooks/cards.ts for why that
+   * is the right form for a host EHR and the wrong one for the app itself.
+   *
+   * Optional so a caller that does not know its own public URL still gets valid
+   * cards. Omitted, the links stay `type: "absolute"`.
+   */
+  smartLaunchUrl?: string
+}
+
+export function buildPatientViewResponse(
+  request: CdsHookRequest,
+  options: PatientViewOptions = {},
+): CdsServiceResponse {
   const patientId = request.context?.patientId
   const prefetched = questionnaireResponsesFromPrefetch(request.prefetch)
+  const smartLaunch = options.smartLaunchUrl ? { launchUrl: options.smartLaunchUrl } : undefined
 
   let cards: Card[]
   if (prefetched.length > 0) {
@@ -139,6 +163,7 @@ export function buildPatientViewResponse(request: CdsHookRequest): CdsServiceRes
       isToolEnabled: () => true,
       recommendedNextStep: null,
       isSmartConnected: true,
+      smartLaunch,
     })
   } else {
     const scenario = patientId ? POPULATION_SCENARIOS[patientId] : undefined
@@ -155,6 +180,7 @@ export function buildPatientViewResponse(request: CdsHookRequest): CdsServiceRes
       isToolEnabled: () => true,
       recommendedNextStep: (patientId && RECOMMENDED_BY_PATIENT[patientId]) || null,
       isSmartConnected: false,
+      smartLaunch,
     })
   }
 

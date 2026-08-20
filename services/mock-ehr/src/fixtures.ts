@@ -28,6 +28,7 @@
  *    needed it.
  */
 import { POPULATION_SCENARIOS } from '../../../web/src/data/population/scenarios'
+import { MRN_SYSTEM } from '../../../web/src/lib/fhircast'
 
 /** The least a resource must be for this server to serve it. */
 export interface MockResource {
@@ -247,3 +248,60 @@ export const PATIENT_IDS: string[] = HELD_RESOURCES
   .filter(h => h.resource.resourceType === 'Patient')
   .map(h => String(h.resource.id))
   .sort()
+
+/**
+ * Display demographics for the host chrome (patient list + chart banner),
+ * DERIVED from the same `Patient` resources this server serves.
+ *
+ * ⚠️ Deliberately not a hand-typed table. `CLAUDE.md` already names three sites
+ * where the 14 demo patients' demographics must agree — `population-patients.fsh`
+ * (canonical), `patients.json`, and `populationToFhir`'s MRN system — and
+ * `check:patients` gates all three. A fourth copy inside this service would sit
+ * outside that gate and drift silently, which is the failure this repo keeps
+ * finding. `MRN_SYSTEM` is imported rather than restated for the same reason.
+ *
+ * The banner is not decoration either: it is what makes
+ * `need_patient_banner: false` an honest thing for a launch to say. A host that
+ * tells the panel "I draw the banner" and then draws nothing is worse than one
+ * that never sends the parameter.
+ */
+export interface DemoPatient {
+  id: string
+  /** "Maria Alvarez" — given + family, the shape the panel's strip renders. */
+  name: string
+  /** From `Patient.identifier` in SPiER's MRN namespace. */
+  mrn: string
+  birthDate: string
+  gender: string
+}
+
+/** Fallback for a display field the resource does not carry. */
+const UNKNOWN = '—'
+
+function demographicsOf(patient: MockResource): DemoPatient {
+  const name = (patient.name as Array<{ given?: string[]; family?: string }> | undefined)?.[0]
+  const identifiers = (patient.identifier as Array<{ system?: string; value?: string }> | undefined) ?? []
+  // Same preference order as readSmartPatientSummary: SPiER's own namespace
+  // first, then any identifier that has a value.
+  const mrn = identifiers.find(i => i?.system === MRN_SYSTEM)?.value
+    ?? identifiers.find(i => i?.value)?.value
+
+  return {
+    id: String(patient.id),
+    name: name ? `${name.given?.join(' ') ?? ''} ${name.family ?? ''}`.trim() : UNKNOWN,
+    mrn: mrn ?? UNKNOWN,
+    birthDate: typeof patient.birthDate === 'string' ? patient.birthDate : UNKNOWN,
+    gender: typeof patient.gender === 'string' ? patient.gender : UNKNOWN,
+  }
+}
+
+/** The demo patients with their demographics, sorted by id. */
+export const DEMO_PATIENTS: DemoPatient[] = HELD_RESOURCES
+  .filter(h => h.resource.resourceType === 'Patient')
+  .map(h => demographicsOf(h.resource))
+  .sort((a, b) => a.id.localeCompare(b.id))
+
+/** `id` → demographics, for the chart page's banner. */
+export const DEMO_PATIENTS_BY_ID: Map<string, DemoPatient> = new Map(
+  DEMO_PATIENTS.map(p => [p.id, p]),
+)

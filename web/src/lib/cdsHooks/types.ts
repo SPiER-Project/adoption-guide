@@ -33,14 +33,25 @@ export interface CdsSource {
 }
 
 /**
- * A link a user can follow from the card. SPiER's links are deep links into the
- * deployed app, so `type` is always `'absolute'` (not a SMART app launch).
+ * A link a user can follow from the card. SPiER emits both forms, and which one
+ * depends on who is consuming the card — see `SmartLaunchLinks` in `cards.ts`:
+ *
+ * - `'absolute'` — a deep link into the deployed app. What the in-app Patient
+ *   Chart renders, because it routes them client-side itself.
+ * - `'smart'` — a SMART app launch. `url` is the app's `launch_uri`; the CDS
+ *   *client* appends `iss` and `launch`, so the same URL appears on every such
+ *   link and the tool is named in `appContext` instead.
  */
 export interface CdsLink {
   label: string
   url: string
   type: 'absolute' | 'smart'
-  /** Only valid when `type: 'smart'`; unused by SPiER today. */
+  /**
+   * Only valid when `type: 'smart'`. A string on the wire per the spec; SPiER
+   * puts JSON in it — `{"intent":"open-cssrs-full"}` — and the host copies that
+   * `intent` into the SMART launch context. See `lib/smartIntent.ts` for why the
+   * vocabulary is derived from the tool catalog rather than listed.
+   */
   appContext?: string
 }
 

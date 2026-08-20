@@ -3,6 +3,7 @@ import { buildCdsCards, type BuildCdsCardsInput } from './cards'
 import { TOOLS } from '../../data/catalog'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
 import type { RiskAlert } from '../observationMappers'
+import { intentForLaunchPath, launchPathForIntent } from '../smartIntent'
 
 // A real launchable tool from the catalog anchors the link/dedupe tests so they
 // stay honest against actual paths rather than invented ones.
@@ -157,5 +158,126 @@ describe('buildCdsCards — summary length', () => {
     })
     expect(card.summary.length).toBeLessThanOrEqual(140)
     expect(card.summary.endsWith('…')).toBe(true)
+  })
+})
+
+describe('buildCdsCards — SMART launch links (panel step 5)', () => {
+  const LAUNCH_URL = 'https://spier-adoption-guide.example/'
+
+  it('emits type:"absolute" deep links by default', () => {
+    // The in-app default. Unchanged by step 5 on purpose: the Patient Chart
+    // renders these cards itself and there is no EHR to perform a launch.
+    const [card] = build({ isToolEnabled: () => true })
+    expect(card.links?.length).toBeGreaterThan(0)
+    for (const link of card.links!) {
+      expect(link.type).toBe('absolute')
+      expect(link.appContext).toBeUndefined()
+    }
+  })
+
+  it('emits type:"smart" links carrying the tool in appContext when asked', () => {
+    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    const link = card.links![0]
+    expect(link.type).toBe('smart')
+    // The URL is the app's launch_uri — the SAME for every link, which is why
+    // the tool cannot be carried in it.
+    expect(link.url).toBe(LAUNCH_URL)
+    expect(JSON.parse(link.appContext!)).toEqual({ intent: intentForLaunchPath(launchPath) })
+  })
+
+  it('never puts iss or launch in the URL — the CDS client appends those', () => {
+    // The one thing a card builder must not do: it has no authorization server
+    // and no launch context, so inventing either would be a fabrication.
+    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    for (const link of card.links!) {
+      expect(link.url).not.toContain('iss=')
+      expect(link.url).not.toContain('launch=')
+    }
+  })
+
+  it('drops spier-router-paths, which only the app itself can act on', () => {
+    // A router path handed to a host EHR is an invitation to route a link it is
+    // not the consumer of.
+    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    expect(card.extension?.['spier-router-paths']).toBeUndefined()
+    // …and it is still there in the default form.
+    const [plain] = build({ isToolEnabled: () => true })
+    expect(Object.keys(plain.extension?.['spier-router-paths'] ?? {}).length).toBeGreaterThan(0)
+  })
+
+  it('applies to alert cards too, not just the stage card', () => {
+    const cards = buildCdsCards({
+      activeStageId: null,
+      riskAlerts: [alert({ level: 'high', suggestedAction: { label: 'Launch it', path: launchPath } })],
+      isToolEnabled: () => true,
+      recommendedNextStep: null,
+      isSmartConnected: false,
+      smartLaunch: { launchUrl: LAUNCH_URL },
+    })
+    expect(cards).toHaveLength(1)
+    expect(cards[0].links![0]).toMatchObject({ type: 'smart', url: LAUNCH_URL })
+    expect(cards[0].extension?.['spier-router-paths']).toBeUndefined()
+  })
+
+  it('emits an intent the app can resolve back to the tool', () => {
+    // The round trip is the whole contract between the card and the panel: the
+    // host copies appContext.intent into the launch context, and SmartRedirect
+    // resolves it to a route. Asserted end to end here so neither half can drift
+    // alone.
+    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    const { intent } = JSON.parse(card.links![0].appContext!) as { intent: string }
+    expect(launchPathForIntent(intent)).toBe(launchPath)
+  })
+})
+
+describe('buildCdsCards — one link per destination', () => {
+  it('does not repeat a launch path two tools share', () => {
+    // TL-042 and TL-043 both launch /guide/measures with the same label, so the
+    // stage card carried two byte-identical links. Asserted against the real
+    // catalog rather than a fixture, because the defect WAS the catalog shape:
+    // a fixture would have had to reproduce the coincidence to catch it.
+    const shared = new Map<string, number>()
+    for (const tool of TOOLS) {
+      for (const action of tool.launchActions) {
+        shared.set(action.path, (shared.get(action.path) ?? 0) + 1)
+      }
+    }
+    const duplicated = [...shared.entries()].filter(([, n]) => n > 1)
+    // If this ever becomes empty the test stops proving anything — say so rather
+    // than passing vacuously.
+    expect(duplicated.length).toBeGreaterThan(0)
+
+    for (const [path] of duplicated) {
+      const stageId = TOOLS.find(t => t.launchActions.some(a => a.path === path))!.stageId
+      const [card] = buildCdsCards({
+        activeStageId: stageId,
+        riskAlerts: [],
+        isToolEnabled: () => true,
+        recommendedNextStep: null,
+        isSmartConnected: false,
+      })
+      const urls = (card.links ?? []).map(l => l.url)
+      expect(urls.length).toBe(new Set(urls).size)
+    }
+  })
+
+  it('keeps distinct destinations at the same stage', () => {
+    // The dedupe must not collapse a stage's genuinely different tools into one
+    // link — that would be the opposite defect and just as invisible.
+    for (const tool of TOOLS) {
+      const stagePaths = new Set(
+        TOOLS.filter(t => t.stageId === tool.stageId).flatMap(t => t.launchActions.map(a => a.path)),
+      )
+      if (stagePaths.size < 2) continue
+      const [card] = buildCdsCards({
+        activeStageId: tool.stageId,
+        riskAlerts: [],
+        isToolEnabled: () => true,
+        recommendedNextStep: null,
+        isSmartConnected: false,
+      })
+      expect(card.links?.length).toBe(stagePaths.size)
+      break
+    }
   })
 })

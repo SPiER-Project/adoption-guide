@@ -11,6 +11,7 @@ import { TOOLS, stageById } from '../../data/catalog'
 import { RISK_LEVEL_ORDER } from '../observationMappers'
 import type { RiskAlert } from '../observationMappers'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
+import { intentForLaunchPath } from '../smartIntent'
 import type { Card, CdsIndicator, CdsLink, Coding } from './types'
 
 // Per-stage rationale copy for the "next step" card, keyed by stage id. Falls
@@ -40,6 +41,26 @@ export interface RecommendedNextStep {
   rationale: string
 }
 
+/**
+ * Emit card links as SMART app launches instead of deep links.
+ *
+ * ⚠️ **Opt-in, and the reason is who consumes the card.** In-app, the Patient
+ * Chart renders these cards itself and follows `spier-router-paths` to route
+ * client-side — there is no EHR to perform a launch, so a `type: "smart"` link
+ * would be a button that cannot be pressed. In a host EHR the opposite holds:
+ * the host mints the launch context and `type: "absolute"` throws away the
+ * patient context it already has. So the hosted `/cds-services` endpoint sets
+ * this and the app does not.
+ *
+ * `launchUrl` is the app's `launch_uri`. Per the CDS Hooks spec the CDS *client*
+ * appends `iss` and `launch` — this builder must not, and could not: it has no
+ * authorization server and no launch context.
+ */
+export interface SmartLaunchLinks {
+  /** The app's launch URL, e.g. `https://…workers.dev/`. */
+  launchUrl: string
+}
+
 export interface BuildCdsCardsInput {
   activeStageId: string | null
   riskAlerts: RiskAlert[]
@@ -47,10 +68,44 @@ export interface BuildCdsCardsInput {
   /** The active patient's curated recommendation, or null (e.g. under SMART). */
   recommendedNextStep: RecommendedNextStep | null
   isSmartConnected: boolean
+  /** Set by a host-facing service to emit `type: "smart"` links. See above. */
+  smartLaunch?: SmartLaunchLinks
 }
 
 function appUrlForPath(path: string): string {
   return `${APP_BASE_URL}#${path.startsWith('/') ? path : `/${path}`}`
+}
+
+/**
+ * One card link for one tool launch action, in whichever of the two forms the
+ * consumer can act on.
+ *
+ * The SMART form carries the tool in `appContext` rather than in the URL,
+ * because the URL is the app's launch endpoint and the same for every link — the
+ * host reads `appContext` and puts it in the launch context as `intent`.
+ * `appContext` is a string on the wire (spec), so it is JSON-encoded here.
+ */
+function cardLink(
+  label: string,
+  path: string,
+  smartLaunch: SmartLaunchLinks | undefined,
+): { link: CdsLink; routerPath: [string, string] | null } {
+  if (smartLaunch) {
+    return {
+      link: {
+        label,
+        url: smartLaunch.launchUrl,
+        type: 'smart',
+        appContext: JSON.stringify({ intent: intentForLaunchPath(path) }),
+      },
+      // No router path: these cards are being handed to a host EHR, which has
+      // no idea about SPiER's client-side routes. Emitting one would invite the
+      // app to route a link it is not the consumer of.
+      routerPath: null,
+    }
+  }
+  const url = appUrlForPath(path)
+  return { link: { label, url, type: 'absolute' }, routerPath: [url, path] }
 }
 
 /** CDS Hooks caps `summary` at 140 chars — truncate with an ellipsis. */
@@ -84,6 +139,7 @@ export function buildCdsCards({
   isToolEnabled,
   recommendedNextStep,
   isSmartConnected,
+  smartLaunch,
 }: BuildCdsCardsInput): Card[] {
   const cards: Card[] = []
   // Router paths already surfaced as a link, so alert cards don't duplicate them.
@@ -111,19 +167,31 @@ export function buildCdsCards({
       recommendedNextStep.stageId === activeStageId
 
     const routerPaths: Record<string, string> = {}
-    const links: CdsLink[] = options.map(({ tool, action }) => {
-      const url = appUrlForPath(action.path)
-      routerPaths[url] = action.path
+    // ⚠️ One link per DESTINATION, not per tool. Two tools can share a launch
+    // path — TL-042 (KPI Reporting) and TL-043 (Dashboard) both launch
+    // `/guide/measures` with the same label — and this map ran over tools, so
+    // the card carried two byte-identical links. The in-app chart has rendered
+    // two identical "Open measure dashboard" buttons for every patient at the
+    // measure-and-share stage since the cards were built; nothing caught it
+    // because `spier-router-paths` is keyed by URL and silently collapsed the
+    // pair, so only the visible list was ever doubled. Found when a host EHR
+    // rendered the same cards as SMART launch buttons (panel step 5) — the
+    // duplication is louder when each one is a button that mints an OAuth
+    // launch.
+    const linkedPaths = new Set<string>()
+    const links: CdsLink[] = []
+    for (const { tool, action } of options) {
       seenPaths.add(action.path)
-      return {
-        label:
-          tool.launchActions.length > 1
-            ? `${tool.shortName ?? tool.name}: ${action.label}`
-            : action.label,
-        url,
-        type: 'absolute' as const,
-      }
-    })
+      if (linkedPaths.has(action.path)) continue
+      linkedPaths.add(action.path)
+      const label =
+        tool.launchActions.length > 1
+          ? `${tool.shortName ?? tool.name}: ${action.label}`
+          : action.label
+      const { link, routerPath } = cardLink(label, action.path, smartLaunch)
+      if (routerPath) routerPaths[routerPath[0]] = routerPath[1]
+      links.push(link)
+    }
 
     cards.push({
       uuid: makeUuid(),
@@ -155,7 +223,11 @@ export function buildCdsCards({
     const tool = TOOLS.find((t) => t.launchActions.some((a) => a.path === alert.suggestedAction!.path))
     if (!tool || !isToolEnabled(tool.id)) continue
 
-    const url = appUrlForPath(alert.suggestedAction.path)
+    const { link, routerPath } = cardLink(
+      alert.suggestedAction.label,
+      alert.suggestedAction.path,
+      smartLaunch,
+    )
     cards.push({
       uuid: makeUuid(),
       summary: truncateSummary(alert.suggestedAction.label),
@@ -164,11 +236,11 @@ export function buildCdsCards({
       // warning (preserves the pre-refactor urgent/recommended split).
       indicator: alert.level === 'acute' || alert.level === 'high' ? 'critical' : 'warning',
       source: { label: SOURCE_LABEL, url: APP_BASE_URL, topic: stageTopic(tool.stageId) },
-      links: [{ label: alert.suggestedAction.label, url, type: 'absolute' }],
+      links: [link],
       extension: {
         'spier-card-id': `cds-alert-${alert.tool}`,
         'spier-stage-id': tool.stageId,
-        'spier-router-paths': { [url]: alert.suggestedAction.path },
+        ...(routerPath ? { 'spier-router-paths': { [routerPath[0]]: routerPath[1] } } : {}),
       },
     })
     seenPaths.add(alert.suggestedAction.path)

@@ -1,8 +1,8 @@
 # Handoff — next session
 
-Rewritten **2026-08-19** (fourth pass that day). `main` was at **`9a34eba`** when this was written,
-confirmed against `origin/main`; check rather than trust that. Every number
-below was re-derived on that commit, not copied forward.
+Rewritten **2026-08-19** (fifth pass that day). `main` was at **`7e5e1ef`** when this was
+written, confirmed against `origin/main`; check rather than trust that. Every
+number below was re-derived on that commit, not copied forward.
 
 ⚠️ **Eleven rewrites across two days is itself the finding.** Six on 2026-08-18
 alone; four of five merges that day made this file wrong within the hour, twice
@@ -33,20 +33,18 @@ The rule now has three halves:
 
 ## State of the repo
 
-- **No open PRs.** **37 open issues** (#126 closed).
+- **One open PR — the step-5 branch (`claude/panel-step-5-host-chrome`).** **37 open issues.**
   (Both counted with an explicit `--limit`; `gh issue list` defaults to 30 and
   silently truncates.)
-- `web` — `npm run verify` exits 0, **re-run on `9a34eba`**: every `check:*` gate
-  green, **58 test files / 682 tests**. (No count of the gates here on purpose —
+- `web` — `npm run verify` exits 0 **on the step-5 branch**: every `check:*` gate
+  green, **60 test files / 708 tests**. (No count of the gates here on purpose —
   `CLAUDE.md`'s list is the source of truth, and the number it used to pin went
   stale.)
-- `services/cds-hooks` — its own `verify` exits 0, 27 tests (three new ones
-  cover the `frame-ancestors` CSP the panel needs). **`web`'s verify does not
-  cover it.**
-- `services/mock-ehr` — **new, and now two packages deep.** Its own `verify`
-  exits 0, **61 tests**, its own `mock-ehr` CI job in
-  `web-lint.yml`. `web`'s verify does not cover it either. **There are now
-  three `verify`s in this repo and `web`'s covers one of them.**
+- `services/cds-hooks` — its own `verify` exits 0, **32 tests**. **`web`'s verify
+  does not cover it.**
+- `services/mock-ehr` — its own `verify` exits 0, **73 tests**, its own
+  `mock-ehr` CI job in `web-lint.yml`. `web`'s verify does not cover it either.
+  **There are three `verify`s in this repo and `web`'s covers one of them.**
 - ⚠️ **CI now runs `npm run verify` for all three packages** rather than
   re-listing its steps (#368). Before that, the `web` job hand-listed a subset
   and **eight gates ran only on developer machines** — `check:template`,
@@ -107,6 +105,8 @@ The rule now has three halves:
 | **#371** (`fa2a503`) | **`PatientProvider` decomposed, 558 → 209** — four hooks out, and the #263 save path finally gated. #126's premise had inverted; see below |
 | **#372** (`be59ce5`) | Handoff refresh |
 | **#373** (`9a34eba`) | **`PatientChart` 531 → 201** — three inline sections out. **#126 is closed** |
+| **#374** (`7e5e1ef`) | Handoff refresh |
+| **step 5** (open) | **Host chrome + the framed panel.** `/chart` + `/chart/{id}` on the mock, CDS card `type: "smart"`, `intent` → tool routing, `need_patient_banner` honored. **The iframe claim is settled** — see below |
 
 **Two claims in the previous handoff are now retired**, both of which a session
 could otherwise act on:
@@ -131,7 +131,7 @@ ladder were checked and are **false alarms** (`answerText` reads `valueCoding`
 first; `valueText` is a pre-existing repo-wide convention) — recorded so they
 are not re-investigated.
 
-## Take this first — the panel is LIVE; steps 4 and 5 are what remain
+## Take this first — step 4 is the only panel step left
 
 ✅ **The deploy happened, and the launch works.** This section said for two
 rewrites that deploying was the bottleneck. It is done:
@@ -163,21 +163,45 @@ synthetic) but worth knowing before anyone reasons about it as a control.
 | 1 — mock EHR read API + `/metadata` | **Done and deployed** |
 | 2 — SMART authorize/token stub | **Done and deployed**, proven in a browser |
 | 3 — `PanelShell`, nav stack, code drawer | **Done** — #358, #360 |
-| **4 — writes + capability degradation** | **Unstarted.** The ladder driver is on `main` and the four capability profiles are switchable, so this is mostly a server. Needs a Durable Object — see the replay note below |
-| **5 — host chrome, launch button, CDS `type:"smart"` card** | **Unstarted, and it now carries the one unproven claim** — see next |
+| **4 — writes + capability degradation** | **Unstarted, and now the only one left.** The ladder driver is on `main` and the four capability profiles are switchable, so this is mostly a server. Needs a Durable Object — see the replay note below |
+| 5 — host chrome, launch button, CDS `type:"smart"` card | **DONE** (open PR). The iframe claim is settled; two defects found — see next |
 
-### The one thing still unproven: the panel inside a frame
+### ✅ The frame claim is settled — and what proving it cost
 
-`frame-ancestors 'self' https://spier-mock-ehr.bbthorson.workers.dev` is **live**
-on the panel host and names the mock's real origin (the default guess turned out
-to be right). But **nothing has ever loaded the panel in an iframe**, because
-the mock has no host chrome to embed it in — the launch opens top-level.
+For two rewrites this section said the panel had never been loaded in an iframe,
+because the mock had no host chrome to embed it in. **It has now**, on two local
+origins with a real OAuth round trip and a real CSP: the panel renders framed,
+the SMART sequence completes *inside the frame*, and the pathway draws from 15
+live cross-origin reads. Measurements and the full observation table are in the
+plan's new **§6.1** rather than restated here.
 
-So the cross-origin *embedding* claim — the thing the whole proposal rests on —
-is the last untested one. §9's build order puts step 5 after step 4 but says it
-"can slot earlier if something recordable is needed sooner"; **closing this gap
-is a reason to slot it earlier**, and it is a small job: a patient list and a
-patient page with an iframe in it.
+⚠️ **`frame-ancestors` was also proven to bite**, by pointing it at the wrong
+port and watching the browser refuse to frame. A header only ever observed
+permitting things is not evidence — this repo's own rule, applied to a config
+line rather than a gate.
+
+**Two defects no suite could see, and both are the same shape as #369's:**
+
+1. **`fhirclient` warned that it was guessing.** Launched inside a frame with no
+   `completeInTarget`, it logs *"please be explicit"* and infers `true`. The
+   inference was right; the wrong value would `postMessage` the callback to
+   `parent` with the **panel's** origin as `targetOrigin`, which a cross-origin
+   host can never receive — the launch hangs with no error and no failed
+   request. Now set explicitly.
+2. **Two tools sharing a launch path put two identical links on a card — and had
+   since the cards were built.** TL-042 and TL-043 both launch `/guide/measures`
+   with the same label, and the link list ran over *tools*, so every patient at
+   `measure-and-share` got two byte-identical buttons **in the app too**.
+   `spier-router-paths` is keyed by URL and silently collapsed the pair, so only
+   the visible list was doubled. Fixed to one link per destination.
+
+⚠️ **A third thing is a known gap rather than a fix: Safari.** The embed flag has
+to survive the OAuth redirect (which replaces the query string), so it is kept in
+`sessionStorage` — and under full third-party storage blocking that access
+throws. So does `fhirclient`'s own OAuth state, so in that browser the *launch*
+does not complete at all, not just the chrome. **Untested there.** Check it before
+demonstrating on someone else's laptop; it is the one remaining way the framed
+panel can fail on a machine that is not this one.
 
 ### What #369 found, and why it matters more than the fixes
 

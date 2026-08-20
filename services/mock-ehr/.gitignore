@@ -2,3 +2,7 @@
 dist/
 # wrangler local state (dev cache, logs)
 .wrangler/
+# Local `wrangler dev` overrides (per-developer hosts, ports, secrets). Wrangler
+# loads this automatically; it must never be committed — the deployed values
+# live in wrangler.jsonc and `wrangler secret put`.
+.dev.vars

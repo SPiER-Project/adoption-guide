@@ -49,6 +49,23 @@ export function SmartLaunch() {
                 // into the #/redirect screen. fhirclient resolves this
                 // relative path against the current origin.
                 redirectUri: import.meta.env.BASE_URL,
+
+                // ⚠️ Required for the embedded panel, and fhirclient asks for it
+                // explicitly: launched inside an iframe with this unset, it logs
+                // "please be explicit and provide a completeInTarget option" and
+                // then INFERS `true` from being framed (smart.js — the default is
+                // `inFrame`). Working by inference is not the same as working, and
+                // the wrong value here fails in the least debuggable way: `false`
+                // makes it `postMessage` the callback URL to `parent` with the
+                // PANEL's origin as targetOrigin, which a cross-origin host frame
+                // can never receive, so the launch hangs with no error.
+                //
+                // `true` — complete the authorization in the frame that started
+                // it — is correct for a SMART activity embedded in a host chart,
+                // and a no-op for the top-level launch (there is no parent or
+                // opener to defer to). Observed as a console warning in the first
+                // real iframe launch, panel step 5.
+                completeInTarget: true,
             })
             .catch((err) => {
                 console.error('FHIR OAuth2 Authorize Error:', err)
