@@ -441,6 +441,40 @@ instead of `deriveFromResponse`. The raw mapper emits **no** `derivedFrom` — t
 business logic stamps it — so the provenance assertion would have been testing
 nothing against artifacts the app never produces.
 
+#### ✅ Verified on the deployed host — 2026-08-20
+
+The one property `wrangler dev` structurally cannot show is **Durable Object
+persistence across isolates**, because it runs a single isolate. Checked against
+the deployed Worker after `npm run deploy`, through a real PKCE launch:
+
+| | |
+|---|---|
+| `POST /fhir/Observation` under `full` | **201**, `Location: …/fhir/Observation/srv-1`, id minted by the server (the client sent none) |
+| read back by id, fresh connection | 200 |
+| `Observation?patient=patient-011` — the search the chart issues | contains it in **10/10** requests on fresh connections |
+| `/_admin/writes` — the server's own account | `count: 1, {Observation: 1}` |
+| durable profile: `/fhir/metadata` after flipping to `no-observation` | **15/15** fresh connections agree |
+
+And the three refusals, on the deployed host rather than in a test:
+
+| | |
+|---|---|
+| `POST /fhir/Observation` under `no-observation` | **405**, naming the profile |
+| `DocumentReference` with `status: "not-a-real-status"` and no `content` | **422**, listing **both** problems |
+| a resource whose `subject` is another patient | **403** |
+
+That second table is guardrail 2 discharged where it counts — "a mock nobody has
+seen reject anything is not evidence of anything", now watched rejecting three
+different things on the public origin.
+
+⚠️ **One trap in doing this, worth knowing before anyone repeats it.** The first
+`PUT /_admin/capabilities` after the deploy returned `durable: false` and
+`/metadata` kept reporting `full` — which reads exactly like the DO binding being
+absent. It was **deploy propagation**: that request was still served by the
+previous version, whose `durable` was a hardcoded `false`. Re-running a minute
+later was correct in every respect. Do not debug a Worker for the first few
+seconds after `wrangler deploy`.
+
 #### Not verified
 - **Durable Object persistence across isolates.** `wrangler dev` runs one
   isolate, so the property the DO exists for is the property local testing cannot
