@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '@spier/core/data/catalog'
-import registryPatientsData from '@spier/demo-population/patients.json'
-import { localDataSource, resetLocalDemoData } from '../lib/dataSource/localDataSource'
-import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '@spier/core/lib/registry'
+import { resetLocalDemoData } from '../lib/dataSource/localDataSource'
+import { deriveRegistryRow, type DerivedRegistryRow } from '@spier/core/lib/registry'
 import { evaluateAllMeasures, trailingPeriod } from '@spier/core/lib/measures'
 import { alertsForPatient, groupAlertsByPatient } from '../lib/populationAlerts'
 import {
@@ -16,6 +15,7 @@ import {
 import { AGE_BANDS, bandOf, ageOf } from '../lib/populationFilters'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { PatientSlice } from '@spier/core/types/fhir'
+import { useRegistrySlices } from '../hooks/useRegistrySlices'
 import {
   CASELOAD_VIEWS,
   DEFAULT_DIR,
@@ -35,44 +35,12 @@ import '../css/PopulationView.css'
 
 type RiskLevel = RiskAlert['level']
 
-const REGISTRY_PATIENTS = registryPatientsData as RegistryPatient[]
-
-const EMPTY_SLICE: PatientSlice = {
-  responses: [],
-  observations: [],
-  carePlans: [],
-  riskAlerts: [],
-  communications: [],
-  episodes: [],
-  flags: [],
-  tasks: [],
-}
-
-/**
- * The measurement period the alerts panel evaluates over.
- *
- * Ten years, i.e. effectively "ever". The deck's alerts are outstanding-work
- * questions — "is there a safety plan", "was follow-up done" — and a patient
- * whose safety plan was never written does not stop needing one because the
- * omission is 40 days old. Stage-8's dashboard is where a narrow period is the
- * right choice, because a *rate* over an unbounded window is meaningless.
- */
 const ALERT_PERIOD_DAYS = 3650
 
 /** Rows and slices together: the alerts need the slice, the table needs the row. */
 interface RegistryEntry {
   row: DerivedRegistryRow
   slice: PatientSlice
-}
-
-// Rows are computed from the same FhirDataSource slices PatientChart reads —
-// this is a query over live FHIR data, not a hand-curated snapshot. Submitting
-// an assessment on a patient's chart updates their registry row here too.
-function deriveAllEntries(): RegistryEntry[] {
-  return REGISTRY_PATIENTS.map(p => {
-    const slice = localDataSource.getSliceSync?.(p.id) ?? EMPTY_SLICE
-    return { row: deriveRegistryRow(p, slice), slice }
-  })
 }
 
 const RISK_LEVELS: RiskLevel[] = CENSUS_ORDER
@@ -88,17 +56,19 @@ export function PopulationView() {
   const [riskFilter, setRiskFilter] = useState<string>('all')
   const [ageFilter, setAgeFilter] = useState<string>('all')
   const [sort, setSort] = useState<SortState>(CASELOAD_VIEWS[0].defaultSort)
-  const [entries, setEntries] = useState<RegistryEntry[]>(deriveAllEntries)
   const wrapperRef = useRef<HTMLElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const [tableOverflows, setTableOverflows] = useState(false)
   const [confirmingReset, setConfirmingReset] = useState(false)
 
-  useEffect(() => {
-    const refresh = () => setEntries(deriveAllEntries())
-    refresh()
-    return localDataSource.subscribe(refresh)
-  }, [])
+  // Rows come from the ACTIVE FhirDataSource, not a hardcoded local one — this
+  // page used to import `localDataSource` directly, so a live SMART session left
+  // it rendering bundled demo data that looked like a server read (#390).
+  const { entries: sliceEntries, scope, isLoading } = useRegistrySlices()
+  const entries = useMemo<RegistryEntry[]>(
+    () => sliceEntries.map(e => ({ row: deriveRegistryRow(e.patient, e.slice), slice: e.slice })),
+    [sliceEntries],
+  )
 
   // Column-header controls are only reachable once the table stops fitting if the
   // reader thinks to scroll sideways first, so below that point the same menus
@@ -303,6 +273,25 @@ export function PopulationView() {
         lede="Caseload of patients on the suicide-safer care pathway. Recommendations show the next best step regardless of which tools your implementation has enabled — what matters here is the patient's status and risk, not the specific instrument."
       />
 
+      {/* ⚠️ Under SMART the seam is bound to ONE patient, so the caseload is that
+          patient and nothing else. Saying so is the point: this page previously
+          rendered the bundled 14-patient registry during a live SMART session,
+          which reads as a server-side worklist. A genuine one needs a
+          user-scoped launch and a cohort read — blocker 2 in
+          embedded-panel-smart-launch.md §6.3, deliberately not invented here. */}
+      {scope === 'in-context' && (
+        <p className="population-scope-notice">
+          <strong>Showing the patient in context only.</strong> A SMART access token is
+          bound to one patient, so this connection cannot serve a caseload. A
+          registry read needs a user-scoped launch and a cohort query, which this
+          server does not offer yet — so nothing here is a cross-patient claim.
+        </p>
+      )}
+
+      {isLoading && entries.length === 0 && (
+        <p className="population-scope-notice">Reading the caseload from the connected server…</p>
+      )}
+
       {/* Side by side on wide screens. Stacked, these two zones cost ~640px of
           vertical space before the caseload table starts — which buries the
           worklist the page exists for. Two columns make the cost the taller of
@@ -395,8 +384,19 @@ export function PopulationView() {
         the demo, the app uses no browser dialogs anywhere else, and the second
         label states the consequence instead of asking "are you sure?".
       */}
+      {/* ⚠️ Local-demo affordance only, so it is gated on the scope. This is the
+          one remaining `localDataSource` import on this page, and it is an ACTION
+          on demo storage rather than a data read — the read is what coupled this
+          lens to a concrete source (#390). Offering "reset the demo data" while
+          the rows came from a connected server would claim to do something it
+          cannot. */}
       <p className="population-footnote">
-        {confirmingReset ? (
+        {scope !== 'registry' ? (
+          <span className="population-reset-unavailable">
+            Resetting demo data applies to the local scenarios only — not to a connected
+            server.
+          </span>
+        ) : confirmingReset ? (
           <>
             <button type="button" className="population-reset-demo" onClick={handleResetDemo}>
               Confirm reset &mdash; discards anything you entered

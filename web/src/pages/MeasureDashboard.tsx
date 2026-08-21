@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import registryPatientsData from '@spier/demo-population/patients.json'
+import { useMemo, useState } from 'react'
 import roadmapSnapshot from '../data/roadmap.generated.json'
-import { localDataSource } from '../lib/dataSource/localDataSource'
 import {
   MEASURE_SPECS,
   buildSummaryMeasureReport,
@@ -13,13 +11,9 @@ import {
 } from '@spier/core/lib/measures'
 import { emptinessOf, type Emptiness } from '../lib/measureGaps'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
-import type { RegistryPatient } from '@spier/core/lib/registry'
+import { useRegistrySlices } from '../hooks/useRegistrySlices'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import '../css/MeasureDashboard.css'
-
-const REGISTRY_PATIENTS = registryPatientsData as RegistryPatient[]
-
-const EMPTY_SLICE: PatientSlice = { responses: [], observations: [], carePlans: [], riskAlerts: [] }
 
 const WINDOWS: { days: number; label: string }[] = [
   { days: 30, label: 'Last 30 days' },
@@ -33,13 +27,15 @@ const WIDEST_WINDOW_DAYS = Math.max(...WINDOWS.map(w => w.days))
 
 const REPO_URL = `https://github.com/${(roadmapSnapshot as { repo: string }).repo}`
 
-/** Tally every measure across the whole registry for one measurement period. */
-function tallyRegistry(period: MeasurementPeriod): MeasureTally[] {
-  return tallyAll(
-    REGISTRY_PATIENTS.map(p =>
-      evaluateAllMeasures(localDataSource.getSliceSync?.(p.id) ?? EMPTY_SLICE, period),
-    ),
-  )
+/**
+ * Tally every measure across a cohort for one measurement period.
+ *
+ * Takes the slices rather than reaching for a data source: `measures.ts` is pure
+ * and slice-shaped, so the only thing coupling this page to `localDataSource` was
+ * the read — which now happens through the `FhirDataSource` seam (#390).
+ */
+function tallyRegistry(slices: PatientSlice[], period: MeasurementPeriod): MeasureTally[] {
+  return tallyAll(slices.map(slice => evaluateAllMeasures(slice, period)))
 }
 
 function IssueLinks({ issues }: { issues: number[] }) {
@@ -114,26 +110,26 @@ function EmptyExplanation({ emptiness }: { emptiness: Emptiness }) {
  */
 export function MeasureDashboard() {
   const [windowDays, setWindowDays] = useState(3650)
-  const [tick, setTick] = useState(0)
 
-  // Recompute when any patient's slice changes, exactly like the registry does.
-  useEffect(() => localDataSource.subscribe(() => setTick(t => t + 1)), [])
+  // Slices come from the ACTIVE FhirDataSource and the hook owns the
+  // subscribe/refresh, so the manual `tick` counter this page used to keep is
+  // gone with the direct `localDataSource` import (#390).
+  const { entries, scope, isLoading } = useRegistrySlices()
+  const slices = useMemo(() => entries.map(e => e.slice), [entries])
 
-  const period: MeasurementPeriod = useMemo(
-    () => trailingPeriod(windowDays),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [windowDays, tick],
-  )
+  const period: MeasurementPeriod = useMemo(() => trailingPeriod(windowDays), [windowDays])
 
-  const tallies: MeasureTally[] = useMemo(() => tallyRegistry(period), [period])
+  const tallies: MeasureTally[] = useMemo(() => tallyRegistry(slices, period), [slices, period])
 
   // The same measures over the widest window. Only used to tell "this measure
   // never computes on the demo data" apart from "nothing happened in the last
   // 30 days" — two different findings that both render as "no denominator".
   const widestTallies: MeasureTally[] = useMemo(
     () =>
-      windowDays === WIDEST_WINDOW_DAYS ? tallies : tallyRegistry(trailingPeriod(WIDEST_WINDOW_DAYS)),
-    [windowDays, tallies],
+      windowDays === WIDEST_WINDOW_DAYS
+        ? tallies
+        : tallyRegistry(slices, trailingPeriod(WIDEST_WINDOW_DAYS)),
+    [windowDays, tallies, slices],
   )
 
   const emptiness: Emptiness[] = useMemo(
@@ -149,9 +145,26 @@ export function MeasureDashboard() {
     <div className="measure-dashboard">
       <p className="md-description">
         Aggregate view of the seven suicide-safer care measures, computed live over the{' '}
-        {REGISTRY_PATIENTS.length}-patient registry. Nothing on this page is stored — each tile is a
-        query over the artifacts stages 1–7 already produce, which is the point of Stage 8.
+        {entries.length}-patient {scope === 'in-context' ? 'cohort in context' : 'registry'}.
+        Nothing on this page is stored — each tile is a query over the artifacts stages 1–7
+        already produce, which is the point of Stage 8.
       </p>
+
+      {/* Same honesty as the population lens: a SMART token is bound to one
+          patient, so these denominators cover that patient alone. Measures over a
+          real cohort need a user-scoped launch and a cohort read — blocker 2 in
+          embedded-panel-smart-launch.md §6.3, deliberately not invented here. */}
+      {scope === 'in-context' && (
+        <p className="md-scope-notice">
+          <strong>Scoped to the patient in context.</strong> A SMART access token is bound to
+          one patient, so every denominator below counts that patient only — these are not
+          population rates.
+        </p>
+      )}
+
+      {isLoading && entries.length === 0 && (
+        <p className="md-scope-notice">Reading the cohort from the connected server…</p>
+      )}
 
       <div className="md-controls">
         <label className="md-control-label" htmlFor="md-window">
