@@ -792,7 +792,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Reporting', variant: 'monitoring' },
-    launchActions: [{ label: 'Open measure dashboard', path: '/guide/measures' }],
+    launchActions: [{ label: 'Open measure dashboard', path: '/population/measures' }],
     tags: ['numerators & denominators', 'follow-up timeliness'],
     targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
     recordingPattern: {
@@ -809,7 +809,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
     inclusionStatus: 'core',
     settings: ['all settings'],
     badge: { label: 'Reporting', variant: 'monitoring' },
-    launchActions: [{ label: 'Open measure dashboard', path: '/guide/measures' }],
+    launchActions: [{ label: 'Open measure dashboard', path: '/population/measures' }],
     tags: ['aggregate view', 'site/team filters'],
     targetMaturity: { electronic: 3, writeback: 2, triggering: 1 },
     recordingPattern: {

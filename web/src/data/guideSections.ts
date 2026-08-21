@@ -53,7 +53,11 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // Learn — read-only concepts and reference. Nothing here has side effects.
   { path: 'pathway', label: 'Pathway', group: 'learn' },
   { path: 'data-dictionary', label: 'Data Dictionary', group: 'learn' },
-  { path: 'measures', label: 'Measures', group: 'learn' },
+  // 'measures' is deliberately absent. It moved to the EHR side as
+  // /population/measures (step D, #391): it was the one guide section that read
+  // patient data, and measures over a caseload belong beside the caseload —
+  // which is also where they would sit in a real deployment. /guide/measures
+  // still redirects, because it is a published tool launch path.
   // Configure — the two sections that wire an implementation up. Tool
   // Configuration writes ToolConfigContext, which gates the Patient View's
   // launch actions; CDS Service probes the live hosted endpoint.

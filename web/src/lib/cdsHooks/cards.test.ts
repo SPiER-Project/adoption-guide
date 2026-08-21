@@ -232,7 +232,7 @@ describe('buildCdsCards — SMART launch links (panel step 5)', () => {
 
 describe('buildCdsCards — one link per destination', () => {
   it('does not repeat a launch path two tools share', () => {
-    // TL-042 and TL-043 both launch /guide/measures with the same label, so the
+    // TL-042 and TL-043 both launch /population/measures with the same label, so the
     // stage card carried two byte-identical links. Asserted against the real
     // catalog rather than a fixture, because the defect WAS the catalog shape:
     // a fixture would have had to reproduce the coincidence to catch it.

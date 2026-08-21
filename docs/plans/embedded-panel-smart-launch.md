@@ -551,7 +551,8 @@ Three findings, and the first two are defects a browser was the only way to see:
    `completeInTarget: true` explicitly, which is a no-op for the top-level launch.
 2. ⚠️ **Two tools sharing a launch path put two identical links on a card, and
    had since the cards were built.** TL-042 (KPI Reporting) and TL-043
-   (Dashboard) both launch `/guide/measures` with the same label, and the stage
+   (Dashboard) both launch `/population/measures` with the same label (it was
+   `/guide/measures` until step D moved it, #391), and the stage
    card's link list ran over *tools*, so every patient at `measure-and-share` got
    two byte-identical "Open measure dashboard" entries — in the app too. Nothing
    caught it because `spier-router-paths` is keyed by URL and silently collapsed

@@ -73,7 +73,12 @@ const INSET_OWNERS = {
 const LENSES = {
   'Overview.tsx': 'the front door: brand eyebrow + the project tagline as title',
   'AdoptionGuide.tsx': 'the /guide layout — renders the header for all nine sub-pages',
-  'PopulationView.tsx': 'single-page lens, so its eyebrow names the project rather than a section',
+  'PopulationView.tsx': 'the Population lens\u2019s index page; its eyebrow names the project rather than a section',
+  // Added in step D (#391), when Measures moved out of the Adoption Guide to the
+  // EHR side. It is a sub-page of the Population lens, but that lens has no
+  // layout component to render a header for it the way AdoptionGuide does for
+  // its sections \u2014 so this page owns its own, like the caseload beside it.
+  'MeasureDashboard.tsx': 'the Population lens\u2019s second page; the lens has no header-rendering layout',
   'PatientChart.tsx': 'the Patient View lens; eyebrow names the lens, title the page',
 }
 
