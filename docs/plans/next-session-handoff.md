@@ -1,7 +1,9 @@
 # Handoff — next session
 
-**Restructured 2026-08-20**, which is the twelfth rewrite and the first that
-changes the file's *shape* rather than its contents.
+**Restructured 2026-08-20**; refreshed **2026-08-21** without needing a shape
+change, which is the first evidence the restructure worked. Deliberately no
+running tally of rewrites here — a counter is one more number that goes stale, and
+the point below is the history, not the score.
 
 ## Why this file is now short
 
@@ -33,7 +35,14 @@ standing rules, and findings that generalize beyond the PR that found them.
    what merged this week, `git log --oneline` already says it and will not go
    stale. State the *open* things.
 
-## State of the repo — derived 2026-08-20, check it rather than trust it
+✅ **Tested 2026-08-21.** Seven PRs merged in one session (#393–#399, the whole
+repo reshape) and this file needed **no new "what landed" table** — the state
+section changed four numbers, two open decisions became struck-through, and the
+durable material was five findings and one standing rule. That is the restructure
+working as intended. The temptation each time is to narrate the session; resist
+it.
+
+## State of the repo — derived 2026-08-21, check it rather than trust it
 
 ⚠️ **The SHA below is one commit stale by construction, and chasing it is a
 regress.** The commit that writes this file is necessarily the next one after the
@@ -41,22 +50,31 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`9702356`** when this was written, plus the commit that wrote
+- `main` was at **`343d3da`** when this was written, plus the commit that wrote
   it. **No open PRs** at that point.
-  **37 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
+  **40 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
 - **All three `verify` pipelines green**, each run in this session:
 
   | Package | Exit | Tests | Covered by `web`'s verify? |
   |---|---|---|---|
-  | `web` | 0 | 62 files / **728** | — |
+  | `web` | 0 | 63 files / **732** | — |
   | `services/cds-hooks` | 0 | 3 files / **32** | **No** |
   | `services/mock-ehr` | 0 | 8 files / **138** | **No** |
 
 - The one `eslint` warning (`MeasureDashboard.tsx`, a `useMemo` dep) is
   **pre-existing**.
-- A fresh worktree needs `npm install` in **all three** packages, plus
-  `npm run copy-fhir` in `web/`.
+- ⚠️ **There are now three `packages/` as well as three apps**, and a fresh
+  worktree still needs `npm install` in **the three app/service packages only** —
+  `packages/*` carry no dependencies of their own, which is the whole reason
+  E2b is blocked (see below). Plus `npm run copy-fhir` in `web/`.
+
+  | Package | What |
+  |---|---|
+  | `packages/core` | the React-free domain layer; **React-free and DOM-free by gate** |
+  | `packages/demo-population` | the 14 patients, their scenarios, and their `Patient` resources |
+  | `packages/fhir-artifacts/generated/` | SUSHI's output, gitignored |
+
 - **All six embedded-panel steps are merged and deployed**, and the claim was
   proven in a browser end to end rather than inferred. Details live in
   [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md), not here.
@@ -169,19 +187,22 @@ desirable, since the re-render is the gate that validates narrative links.
 
 ## Needs a human decision, not a patch
 
-- **Does `MeasureDashboard` stay in the adoption guide?** This is the one open
-  decision gating the repo reshape, and it is a product call.
-  [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §9.5: if it
-  stays *and* still needs patient-level data, step D leaves the guide importing
-  fixtures from somewhere. If measures move to the EHR side — where they would
-  live in a real deployment, computed over real data — the guide keeps no patient
-  data and D is clean. **It changes step D's shape.**
-- **Where do the subject resources live?** #356 minted the 14 demo `Patient`s in
-  `ig/input/fsh/population-patients.fsh` to stop 116 dangling `subject`
-  references — a *validation* need, not a specification one. §9.3 argues they
-  should leave the IG (an IG's examples should illustrate its profiles, not
-  populate a demo host's roster; today **the mock EHR's patient roster depends on
-  a SUSHI compile**). This is ratifying what already happened, or undoing it.
+- ✅ ~~**Does `MeasureDashboard` stay in the adoption guide?**~~ **DECIDED
+  2026-08-21: measures move to the EHR side.** It is `/population/measures` now
+  (#398), the guide keeps no patient data, and `check:guide-boundary` holds that.
+- ✅ ~~**Where do the subject resources live?**~~ **DECIDED 2026-08-21: out of the
+  IG** (#399). The measurement settled it — **not one example instance in the IG
+  referenced them**, so the IG was publishing 14 `Patient` examples that
+  illustrated none of its own profiles. They are hand-authored FHIR in
+  `packages/demo-population/src/patients/`, and the mock's roster no longer needs
+  a SUSHI compile.
+- **Whether E2b is worth reopening the workspaces decision for.** #387 is reopened
+  as its blocker. The alias mechanism carries a path, not a dependency, so
+  `fsh-sushi` cannot leave `web`'s devDependencies without an install location.
+  §9.7 has the three options; the one that needs no new install
+  (`npx -y fsh-sushi@<pinned>`) was rejected on offline-reproducibility, and it
+  would also fix a real inconsistency — **five workflows install SUSHI unpinned
+  today**. Not urgent; it is the last item in the reshape.
 - **#303 — `p007-stanley-brown` is a stub** (no `activity`) named after a profile
   it does not conform to. It *limits* how strong #289's invariant can be: it is
   why `spier-episode-trigger-on-positive-screen` covers only `positive-screen`
@@ -213,26 +234,52 @@ desirable, since the re-render is the gate that validates narrative links.
   bindable set, and fidelity qualifies exactly that pair. **No column was stubbed
   for it — an empty column is a claim of its own.**
 
-## The reshape is the next substantial thing
+## The reshape is DONE except E2b, which is blocked
 
-[`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §9 (re-measured
-2026-08-20) has the agreed shape and sequencing A–E. **Step C — `PopulationView` +
-`MeasureDashboard` onto the `FhirDataSource` seam — is the gate on everything
-else**, including making the mock EHR's embedded population dashboard a genuine
-user-scoped SMART panel instead of a labelled iframe. Deployables stay at three;
-what changes is that shared code stops living inside a consumer.
+Epic **#386**; [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md)
+§9 carries the reasoning. Steps 0, A, B, C, D, E1 and E2a merged 2026-08-21 as
+#393–#399. What it achieved, beyond moving files:
 
-⚠️ **§7's migration rule is the most important paragraph in that document.** One
-deliberate pass per step; after each, plant the defect each moved gate targets and
-watch it go red. A half-migrated tree is where a gate quietly starts reading an
-empty directory.
+- the two Workers' deep `../../../web/src` imports went **21 → 0**;
+- `packages/core` is React-free and DOM-free **by gate** (`check:core-boundary`);
+- the Adoption Guide holds no patient data **by gate** (`check:guide-boundary`,
+  which walks the guide's pages *transitively*);
+- the population lens and measure dashboard read whatever source the provider made
+  active, instead of always the local one;
+- the mock EHR's roster no longer needs a SUSHI compile.
 
-Two crossings worth knowing before starting: `services/mock-ehr/src/validate.ts`
-imports **`web/scripts/lib/fhir-resource-rules.mjs`** — a deployable taking a
-runtime dependency on a gate's internals, which is deliberate (one opinion about
-write validity, not two) but has no home in the package table. And
-`services/mock-ehr` imports `lib/dataSource/smartDataSource` — a mock *server*
-importing the app's FHIR *client*, legitimately, in the best test in the repo.
+⚠️ **E2b — `fsh-sushi` leaving the React app's devDependencies — is BLOCKED on
+#387, and #387 is reopened for it.** §6 phase 1's stated content
+("`fsh-generated` becomes a package output") was delivered by E1. What remains is
+the *dependency*, and the alias mechanism #387 shipped carries a **path, not a
+dependency**. Three options and their costs are §9.7; the decision on 2026-08-21
+was to defer to the workspaces migration. **Do not solve it with a 4th lockfile
+without reopening that decision** — the migration would consolidate it away again.
+
+⚠️ **§7's migration rule earned its billing.** Every step turned up a defect that
+had been invisible, and they were all one family — *a check that reads nothing
+reporting success*. Five instances, listed under "Findings" below. One deliberate
+pass per step; after each, plant the defect each moved gate targets and watch it
+go red.
+
+⚠️ **Two defects in the plan document itself, both still uncorrected there:**
+
+1. **§9.5's step-D row contradicts §5.** It says "retire the guide's
+   `/population` and `/patient/chart`" — neither is a guide route, and §5 plus
+   §9.4's correction 2 insist the lenses stay ONE deployable. The row conflates
+   "the guide" (a lens) with "the adoption-guide app". Read as a lens — the only
+   reading consistent with §5 — D was an intra-app IA change, which is what
+   shipped.
+2. **§9.3's `PopulationView.tsx — being deprecated` is unsupported.** Nothing else
+   in the doc set says so, and `suicide-care-dashboard.md` treats it as the
+   primary surface to *redesign*, recommending it stay a single page. **Do not act
+   on that cell.**
+
+One crossing worth knowing: `services/mock-ehr/src/validate.ts` imports
+**`packages/core/fhir-resource-rules.mjs`** — a deployable taking a runtime
+dependency on what began as a gate's internals. Deliberate (one opinion about
+write validity, not two), and step B gave it a home that is no longer an app's
+scripts folder.
 
 ## Outstanding debt with a named finish line
 
@@ -264,6 +311,51 @@ importing the app's FHIR *client*, legitimately, in the best test in the repo.
   but it is not another reader, and auth is the worst place for that gap.
 
 ## Findings that generalize — do not re-derive these
+
+### The reshape's five, all one failure family
+
+Every step of the 2026-08-21 reshape turned up a defect that had been invisible,
+and they are the same bug wearing different clothes: **a check that reads nothing
+reporting success.** Kept together because the pattern is the lesson.
+
+1. **`check:scenarios:responses` and `check:stages` passed on an empty scenarios
+   directory** — no floors, so the step-A move could have blinded both. Both fail
+   on an empty read now.
+2. **`check:codings`' `web/src` floor was stale the moment the mappers moved** —
+   it expected 49 LOINC and got 11. The gate went red *correctly*, which is what
+   caught it; the real hole was that no entry covered `packages/core/src` as a
+   whole, so the mappers would have left the scan while every declared floor still
+   passed. #261's hole arriving by a **move** rather than by growth.
+3. **`check:core-boundary` shipped blind on its own primary rule.** A module
+   specifier *is* a string literal, and the scan ran against a string-stripped
+   copy — so a planted `import { useMemo } from 'react'` passed and the gate
+   reported green. The same mistake had already defeated its feature-detection
+   guard. Only *prove a gate can fail* caught it.
+4. **Moving the 14 Patients silently dropped them out of `validate-fhir`** — 428
+   targets to 414 — because that gate validates the IG's output and they were no
+   longer in it. The scenarios' 116 `subject` references would have pointed at
+   resources nothing validated.
+5. **`validate-fhir`'s `--also` emptiness check had never fired, on any Node
+   version.** `const found = walkJson(abs); if (found.length === 0)` — `walkJson`
+   is a **generator**, so `found.length` is `undefined` and the comparison is
+   always false. The comment directly above it said it existed to prevent exactly
+   that. It would have masked a missing runtime-FHIR corpus in `ig.yml`, which
+   passes `--also web/.runtime-fhir`.
+
+⚠️ **`Iterator.prototype.map` is Node 22+ and every workflow pins Node 20.**
+`walkJson(...).map(...)` passed on a developer machine and threw
+`walkJson(...).map is not a function` in CI. Second instance of the class
+CLAUDE.md already records from `fs.globSync`. **A plain-node gate is not verified
+until it has run on Node 20** — `~/.nvm/versions/node/v20.*/bin/node <script>`
+keeps the current PATH so `java` stays available, which `nvm use` in a login shell
+did not.
+
+⚠️ **Two of this session's own slips came from the same habit** — reading
+indentation out of `sed 's/^/  /'`-prefixed output and pasting it into a string
+match, twice. Display prefixes are not source. And a proof harness that restores
+with `git checkout --` **silently does nothing for untracked files**, which
+damaged two new fixtures before it was noticed: `git add` first.
+
 
 - ⚠️ **The mock's replay protection is best-effort and says so.** Launch contexts,
   codes and tokens are signed self-contained blobs, not table rows, because a
