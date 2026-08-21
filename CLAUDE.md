@@ -175,11 +175,40 @@ output format fails loudly instead of passing vacuously. `ig.yml` runs it on the
 tee'd output of its compile step; a new expected warning belongs in `ALLOWED`,
 with the reason it is expected.
 
+Also at the repo root, and dependency-free — `ig/input/pagecontent/how-to-read.md`
+describes the guide's navigation in prose while `ig/sushi-config.yaml`'s `menu:`
+block defines it:
+```
+node scripts/check-ig-menu.mjs   # the IG menu and its prose restatement agree
+```
+⚠️ **The IG Publisher cannot see this drift.** Its broken-link check only sees
+links that *exist*, and a bullet describing a menu entry is not a link. Both
+directions had already gone wrong with nothing going red, and each is caught by a
+different rule here:
+
+- the **Guidance** bullet was missing two live sub-entries (*Relationship to Other
+  IGs* and *Measurement (Stage 8)*) until `9702356` corrected it by hand;
+- a **Downloads** bullet described a menu entry and a page that never existed —
+  introduced with the page in `bf4eb87` and still there at `dd0a53c`, so
+  `/ig/downloads.html` was a 404 for the guide's whole life while its own map
+  sent readers to it. `fhir.base.template#current` emits no `downloads.html`;
+  that is a US Core template convention, and this IG uses the base template.
+
+It asserts three things, and the third is the one that matters most: every
+`menu:` target must resolve to a real `input/pagecontent/*.md` or sit in
+`GENERATED_PAGES` — an allowlist with reasons, currently just `artifacts.html`.
+That is what stops the drift being "fixed" in the wrong direction, by declaring
+`Downloads: downloads.html` in `menu:` and shipping a broken link instead. Both
+parsers **bail rather than skip** on a form they cannot read, and a missing
+block, a missing section or zero parsed entries is an error — the #232/#261
+family, which this gate is deliberately built against. It runs in `ig.yml`
+**before** the compile, since it needs neither SUSHI nor the network.
+
 At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
 caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
 ```
 node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/
-                                 # and web/src/data/population/scenarios/ (unwrapped)
+                                 # and packages/demo-population/src/scenarios/ (unwrapped)
 ```
 
 Also at the repo root, the FHIR Mapping Language gate (same Java + jar; the
@@ -392,7 +421,7 @@ Jekyll is absent. The per-resource QA results are written before Jekyll runs, in
 found.
 
 ⚠️ **The population scenarios are hand-authored FHIR, and are gated by two
-things that cover different amounts.** `web/src/data/population/scenarios/patient-*.json`
+things that cover different amounts.** `packages/demo-population/src/scenarios/patient-*.json`
 holds Observations, CarePlans, Communications, EpisodeOfCares, Appointments,
 ServiceRequests, Procedures and DocumentReferences that the Stage-8 measure
 engine reads directly, so a malformed one produces a *wrong* measure score
@@ -676,7 +705,7 @@ which is filed separately.
   the `FHIR-Resources` copies silently shadowed the IG's with drifted `display`
   values until `validate-fhir.mjs` caught it. `node scripts/validate-fhir.mjs`
   loads both trees, so a fresh collision shows up as a display or binding error.
-- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `web/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `web/src/data/population/` (e.g. `patients.json`). LOINC **per-item** codes additionally live in `web/src/lib/observationMappers/fallbackDispatch.ts` (`INSTRUMENT_SIGNATURES`, used to recognize foreign QRs) — guarded against the Questionnaire JSON by `npm run check:fallback`. When you change any such code, **grep the whole repo** for the old value and update every site.
+- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `packages/core/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `packages/demo-population/src/` (e.g. `patients.json`). LOINC **per-item** codes additionally live in `packages/core/src/lib/observationMappers/fallbackDispatch.ts` (`INSTRUMENT_SIGNATURES`, used to recognize foreign QRs) — guarded against the Questionnaire JSON by `npm run check:fallback`. When you change any such code, **grep the whole repo** for the old value and update every site.
 - **The Stanley-Brown CarePlan transformation exists twice on purpose.**
   `ig/input/resources/maps/StanleyBrownQRToCarePlan.fml` declares it (and is
   what `PlanDefinition.action.transform` points at);

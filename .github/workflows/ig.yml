@@ -27,6 +27,7 @@ on:
       - 'FHIR-Resources/**'
       - 'packages/demo-population/src/scenarios/**'
       - 'scripts/validate-fhir.mjs'
+      - 'scripts/check-ig-menu.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
@@ -42,6 +43,7 @@ on:
       - 'FHIR-Resources/**'
       - 'packages/demo-population/src/scenarios/**'
       - 'scripts/validate-fhir.mjs'
+      - 'scripts/check-ig-menu.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
@@ -67,6 +69,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # #409: `how-to-read.md` describes the guide's navigation in prose while
+      # `sushi-config.yaml` defines it, and nothing compared the two. Both
+      # directions had already gone wrong: the Guidance bullet was missing two
+      # live sub-entries until 9702356, and a Downloads bullet described a menu
+      # entry and a page that never existed (`/ig/downloads.html` was a 404 from
+      # bf4eb87 to dd0a53c). The IG Publisher cannot see either: its broken-link
+      # check only sees links that exist, and a bullet *describing* a menu entry
+      # is not a link.
+      #
+      # Needs no dependencies and no compile, so it runs first — a menu typo
+      # fails in seconds instead of after SUSHI.
+      - name: Check the IG menu against its prose
+        working-directory: ${{ github.workspace }}
+        run: node scripts/check-ig-menu.mjs
 
       - name: Install Sushi
         run: npm install -g fsh-sushi
