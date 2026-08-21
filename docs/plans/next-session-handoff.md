@@ -42,7 +42,7 @@ durable material was five findings and one standing rule. That is the restructur
 working as intended. The temptation each time is to narrate the session; resist
 it.
 
-## State of the repo — derived 2026-08-21, check it rather than trust it
+## State of the repo — derived 2026-08-21 (second pass), check it rather than trust it
 
 ⚠️ **The SHA below is one commit stale by construction, and chasing it is a
 regress.** The commit that writes this file is necessarily the next one after the
@@ -50,9 +50,9 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`343d3da`** when this was written, plus the commit that wrote
+- `main` was at **`5041dc0`** when this was written, plus the commit that wrote
   it. **No open PRs** at that point.
-  **40 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
+  **42 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
 - **All three `verify` pipelines green**, each run in this session:
 
@@ -238,6 +238,17 @@ desirable, since the re-render is the gate that validates narrative links.
 
 ## Blocked
 
+- **#401 — the embedded population dashboard is a labelled iframe, not a SMART
+  panel**, on **#404** (a decision, above). Step C closed blocker 1 of
+  `embedded-panel-smart-launch.md` §6.3; this is blocker 2 — a user-scoped launch,
+  **scope enforcement**, and a cohort read. ⚠️ **Its size depends on #404's
+  answer**, and if that answer is "enforce nothing" the issue should be closed
+  `wontfix` rather than left open as implied future work: the frame's label is
+  already honest. It also carries a genuine design question §8 of
+  `mock-patient-smart-launch.md` refuses to hand-wave — *how a registry scopes
+  itself on a real server, where "the caseload" is not a static list of 14* — so
+  **do not start at the code.**
+- **#392 — E2b**, on #387. See the reshape section.
 - **#264 — crosswalk fidelity in the data dictionary**, on #93. The
   `fidelity`-derived-from-ConceptMap half could land early, but presenting
   fidelity as settled is the failure mode the issue warns about. #317 left the
@@ -273,18 +284,23 @@ reporting success*. Five instances, listed under "Findings" below. One deliberat
 pass per step; after each, plant the defect each moved gate targets and watch it
 go red.
 
-⚠️ **Two defects in the plan document itself, both still uncorrected there:**
+✅ **Two defects in the plan document were found by executing it, and are now
+corrected there** (#402 → #403): §9.5's step-D row conflated "the guide" the LENS
+with the adoption-guide APP (its literal reading contradicted §5), and §9.3 called
+`PopulationView.tsx` "being deprecated" with nothing in the doc set supporting it —
+it is #277's redesign target, not slated for removal.
 
-1. **§9.5's step-D row contradicts §5.** It says "retire the guide's
-   `/population` and `/patient/chart`" — neither is a guide route, and §5 plus
-   §9.4's correction 2 insist the lenses stay ONE deployable. The row conflates
-   "the guide" (a lens) with "the adoption-guide app". Read as a lens — the only
-   reading consistent with §5 — D was an intra-app IA change, which is what
-   shipped.
-2. **§9.3's `PopulationView.tsx — being deprecated` is unsupported.** Nothing else
-   in the doc set says so, and `suicide-care-dashboard.md` treats it as the
-   primary surface to *redesign*, recommending it stay a single page. **Do not act
-   on that cell.**
+⚠️ **The generalizable half is the vocabulary, and it is still live.** "The guide"
+means three different things in this repo — a **lens** (`/guide/*`), an **app**,
+and a deployable historically named `adoption-guide`. The step-D row was wrong only
+because it did not say which, and a reader could reasonably have split the
+deployable on the strength of it. **Say which one you mean anywhere it appears in a
+decision.**
+
+That pass also marked §9.1/§9.2/§9.3 resolved at the top (each led with a problem
+the reshape had solved), gave §4's table rows for the three shipped packages and
+the shared validation rules, and put a historical banner on §6, which read as the
+plan of record while §9.5 supersedes it.
 
 One crossing worth knowing: `services/mock-ehr/src/validate.ts` imports
 **`packages/core/fhir-resource-rules.mjs`** — a deployable taking a runtime
