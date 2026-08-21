@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-003",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-003 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "34567"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Sarah"
+      ],
+      "family": "Patel"
+    }
+  ],
+  "gender": "female",
+  "birthDate": "1978-11-03"
+}

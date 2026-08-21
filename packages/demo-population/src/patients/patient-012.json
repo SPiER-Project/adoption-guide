@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-012",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-012 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "11012"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Nia"
+      ],
+      "family": "Barrett"
+    }
+  ],
+  "gender": "female",
+  "birthDate": "1991-03-04"
+}

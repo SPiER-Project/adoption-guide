@@ -59,6 +59,7 @@ const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
 const AUTHORED_DIR = join(root, 'FHIR-Resources')
 const SCENARIOS_DIR = join(root, 'packages/demo-population/src/scenarios')
+const PATIENTS_DIR = join(root, 'packages/demo-population/src/patients')
 
 /**
  * Scenario buckets that hold FHIR resources, and the resourceType each implies.
@@ -247,6 +248,22 @@ function collectScenarioResources(dir) {
 const { paths: scenarioTargets, labels: scenarioLabels, tmpDir: scenarioTmpDir } =
   collectScenarioResources(SCENARIOS_DIR)
 targets.push(...scenarioTargets)
+
+/**
+ * The 14 demo Patients. They were IG example Instances until #392 moved them to
+ * packages/demo-population — and moving them dropped them out of this gate
+ * entirely (428 targets to 414), because the IG's output no longer contains them.
+ * That would have left the scenarios' 116 `subject` references pointing at
+ * resources nothing validates. Added explicitly, and a zero count is an error for
+ * the same reason the scenario tree's is.
+ */
+const patientTargets = existsSync(PATIENTS_DIR)
+  ? walkJson(PATIENTS_DIR).map((full) => relative(root, full))
+  : []
+if (existsSync(PATIENTS_DIR) && patientTargets.length === 0) {
+  fail(`${relative(root, PATIENTS_DIR)} exists but holds no Patient resources`)
+}
+targets.push(...patientTargets)
 
 /**
  * `--also` directories. A named-but-empty directory is an error for the same

@@ -57,13 +57,24 @@ import {
  * everything.
  */
 const conformanceModules = import.meta.glob<FhirDoc>(
-  '../../../packages/fhir-artifacts/generated/{StructureDefinition,ValueSet,CodeSystem,Patient}-*.json',
+  '../../../packages/fhir-artifacts/generated/{StructureDefinition,ValueSet,CodeSystem}-*.json',
   { eager: true, import: 'default' },
 )
 
-export const CONFORMANCE: ConformanceIndex = buildConformanceIndex(
-  Object.values(conformanceModules),
+// The 14 Patients come from packages/demo-population, not the IG's output: step
+// E2 (#392) moved them out, because nothing in the IG referenced them and a fake
+// EHR's roster should not depend on a SUSHI compile. They feed the SAME index —
+// `assertUsableIndex` requires both halves, and the write rules resolve `subject`
+// references against its `patientIds`.
+const patientModules = import.meta.glob<FhirDoc>(
+  '../../../packages/demo-population/src/patients/patient-*.json',
+  { eager: true, import: 'default' },
 )
+
+export const CONFORMANCE: ConformanceIndex = buildConformanceIndex([
+  ...Object.values(conformanceModules),
+  ...Object.values(patientModules),
+])
 
 // ⚠️ At module load, not per request. An empty index makes every profile-derived
 // rule report nothing, so `POST /fhir/{Type}` would accept anything and look

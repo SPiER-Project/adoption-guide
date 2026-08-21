@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-013",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-013 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "11013"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Owen"
+      ],
+      "family": "Delacroix"
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1988-12-19"
+}

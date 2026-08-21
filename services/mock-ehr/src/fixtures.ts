@@ -2,7 +2,7 @@
  * fixtures — the mock EHR's entire dataset, built once at module load from the
  * app's OWN files. There is no second copy of any patient anywhere: the
  * scenarios are `packages/demo-population/src/scenarios/patient-0NN.json` and the
- * Patients are the FSH-generated `packages/fhir-artifacts/generated/Patient-patient-0NN.json`
+ * Patients are `packages/demo-population/src/patients/patient-0NN.json`
  * minted in #356. Both arrive through `import.meta.glob`, inlined by the Vite
  * build, because a Worker has no filesystem.
  *
@@ -142,8 +142,12 @@ function withPatientLink(resource: MockResource, patientId: string): MockResourc
   return { ...resource, [element]: reference }
 }
 
+// The roster comes from packages/demo-population, NOT the IG's compiled output.
+// Step E2 (#392) moved the 14 Patients out of `ig/`: a fake EHR's patient list
+// should not depend on a SUSHI compile, and the IG was publishing 14 examples
+// that referenced none of its own profiles.
 const patientModules = import.meta.glob<MockResource>(
-  '../../../packages/fhir-artifacts/generated/Patient-patient-*.json',
+  '../../../packages/demo-population/src/patients/patient-*.json',
   { eager: true, import: 'default' },
 )
 
@@ -254,7 +258,7 @@ export const PATIENT_IDS: string[] = HELD_RESOURCES
  * DERIVED from the same `Patient` resources this server serves.
  *
  * ⚠️ Deliberately not a hand-typed table. `CLAUDE.md` already names three sites
- * where the 14 demo patients' demographics must agree — `population-patients.fsh`
+ * where the 14 demo patients' demographics must agree — the Patient JSON
  * (canonical), `patients.json`, and `populationToFhir`'s MRN system — and
  * `check:patients` gates all three. A fourth copy inside this service would sit
  * outside that gate and drift silently, which is the failure this repo keeps

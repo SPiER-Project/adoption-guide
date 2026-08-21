@@ -6,7 +6,7 @@
  * `useActivePatientId`, which validates ids out of the URL against it.
  *
  * ⚠️ This is one of the THREE sites `npm run check:patients` reconciles —
- * `population-patients.fsh` is canonical, this package's `patients.json` holds
+ * the Patient JSON in `./patients/` is canonical, this file's `patients.json` holds
  * the display copies, and the MRN system the app emits is scraped out of
  * `PatientProvider.tsx`. Changing a demographic here alone will fail that gate.
  */

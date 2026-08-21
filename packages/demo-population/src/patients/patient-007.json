@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-007",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-007 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "78901"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Aisha"
+      ],
+      "family": "Patel-Williams"
+    }
+  ],
+  "gender": "female",
+  "birthDate": "2008-09-21"
+}

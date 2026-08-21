@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-009",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-009 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "90123"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Mei"
+      ],
+      "family": "Lin"
+    }
+  ],
+  "gender": "female",
+  "birthDate": "1981-07-17"
+}
