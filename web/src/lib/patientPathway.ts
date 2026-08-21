@@ -1,5 +1,5 @@
 import { STAGES, TOOLS, toolForQuestionnaireUrl, type Tool } from '../data/catalog'
-import type { CarePlanProfileUrl } from '../data/catalog/care-plan-profiles.generated'
+import type { CarePlanProfileUrl } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
 
 export type StageStatus = 'not-started' | 'active' | 'complete'
 

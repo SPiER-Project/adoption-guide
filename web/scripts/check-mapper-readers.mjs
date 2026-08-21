@@ -54,7 +54,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
 const root = resolve(here, '../..')
 const mapperDir = join(webRoot, 'src/lib/observationMappers')
-const questionnaireDirs = [join(root, 'FHIR-Resources'), join(webRoot, 'src/data/fhir')]
+const questionnaireDirs = [join(root, 'FHIR-Resources'), join(root, 'packages/fhir-artifacts/generated')]
 
 const SNOMED = 'http://snomed.info/sct'
 const SNOMED_YES = '373066001'
@@ -91,7 +91,7 @@ function* walkJson(dir) {
   try {
     entries = readdirSync(dir)
   } catch {
-    return // web/src/data/fhir/ is a build artifact; absent on a clean checkout
+    return // packages/fhir-artifacts/generated/ is a build artifact; absent on a clean checkout
   }
   for (const entry of entries.sort()) {
     const full = join(dir, entry)

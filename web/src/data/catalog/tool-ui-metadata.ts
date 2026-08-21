@@ -72,7 +72,7 @@ export interface ToolUiMetadata {
 
 // ─────────────────────────────────────────────────────────────
 // Inline FHIR example resources
-// (TODO: replace with reads from web/src/data/fhir/Observation-Example*.json
+// (TODO: replace with reads from packages/fhir-artifacts/generated/Observation-Example*.json
 //  once a viewer page lists IG instances directly.)
 // ─────────────────────────────────────────────────────────────
 

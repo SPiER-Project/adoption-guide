@@ -13,6 +13,7 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
+      "@spier/fhir-artifacts/*": ["../packages/fhir-artifacts/*"],
       "@spier/demo-population": ["../packages/demo-population/src/index.ts"],
       "@spier/demo-population/*": ["../packages/demo-population/src/*"]
     },

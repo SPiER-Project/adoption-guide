@@ -57,7 +57,7 @@ import {
  * everything.
  */
 const conformanceModules = import.meta.glob<FhirDoc>(
-  '../../../web/src/data/fhir/{StructureDefinition,ValueSet,CodeSystem,Patient}-*.json',
+  '../../../packages/fhir-artifacts/generated/{StructureDefinition,ValueSet,CodeSystem,Patient}-*.json',
   { eager: true, import: 'default' },
 )
 

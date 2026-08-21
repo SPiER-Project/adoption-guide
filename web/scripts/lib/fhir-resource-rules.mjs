@@ -22,7 +22,7 @@
  * reuse of it (that script is Node reading StructureDefinitions off a
  * filesystem)"*. That was true of the script and not of the rules — the rules
  * only need the conformance resources as **data**, and a Worker can have them:
- * `import.meta.glob` inlines `web/src/data/fhir/*.json` at build time exactly as
+ * `import.meta.glob` inlines `packages/fhir-artifacts/generated/*.json` at build time exactly as
  * it already inlines the Patients. So the filesystem was the script's problem,
  * not the rule set's, and two opinions were never necessary.
  *
@@ -147,7 +147,7 @@ const EXTERNAL_PROFILE_ALLOWLIST = new Set([])
 /**
  * Index the generated conformance resources.
  *
- * `docs` is every parsed JSON document from `web/src/data/fhir/` — the CLI reads
+ * `docs` is every parsed JSON document from `packages/fhir-artifacts/generated/` — the CLI reads
  * them off disk, the Worker gets them from `import.meta.glob`. Neither knows how
  * this index is shaped, which is the point.
  *

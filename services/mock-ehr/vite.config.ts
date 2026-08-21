@@ -21,6 +21,15 @@ export default defineConfig({
         ),
       },
       {
+        // The compiled FHIR artifacts (packages/fhir-artifacts), step E1 (#392).
+        // ⚠️ Static imports only — Vite does not resolve aliases inside
+        // `import.meta.glob`, so the runtime globs use relative paths.
+        find: '@spier/fhir-artifacts/',
+        replacement: fileURLToPath(
+          new URL('../../packages/fhir-artifacts/', import.meta.url),
+        ),
+      },
+      {
         find: '@spier/demo-population/',
         replacement: fileURLToPath(
           new URL('../../packages/demo-population/src/', import.meta.url),

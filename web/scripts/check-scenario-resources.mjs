@@ -60,7 +60,7 @@
  * of the validator, and must not be described as one.
  *
  * Requires `npm run copy-fhir` (reads the generated StructureDefinitions,
- * ValueSets and CodeSystems out of web/src/data/fhir/).
+ * ValueSets and CodeSystems out of packages/fhir-artifacts/generated/).
  * Exits non-zero on drift so it can gate CI.
  */
 import { readFileSync, readdirSync } from 'node:fs'
@@ -79,7 +79,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
 const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
-const fhirDir = join(webRoot, 'src/data/fhir')
+const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 
 let failures = 0
 const fail = (msg) => {

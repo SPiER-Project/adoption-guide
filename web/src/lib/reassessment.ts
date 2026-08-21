@@ -39,7 +39,9 @@ interface PlanDefinitionDoc {
 }
 
 const planModules = import.meta.glob<{ default: PlanDefinitionDoc }>(
-  '../data/fhir/PlanDefinition-*.json',
+  // ⚠️ Relative, not `@spier/fhir-artifacts/...`: Vite does not resolve aliases
+  // inside `import.meta.glob`. Climbs out of web/ into the artifacts package.
+  '../../../packages/fhir-artifacts/generated/PlanDefinition-*.json',
   { eager: true },
 )
 

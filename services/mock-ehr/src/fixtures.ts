@@ -2,7 +2,7 @@
  * fixtures — the mock EHR's entire dataset, built once at module load from the
  * app's OWN files. There is no second copy of any patient anywhere: the
  * scenarios are `packages/demo-population/src/scenarios/patient-0NN.json` and the
- * Patients are the FSH-generated `web/src/data/fhir/Patient-patient-0NN.json`
+ * Patients are the FSH-generated `packages/fhir-artifacts/generated/Patient-patient-0NN.json`
  * minted in #356. Both arrive through `import.meta.glob`, inlined by the Vite
  * build, because a Worker has no filesystem.
  *
@@ -143,7 +143,7 @@ function withPatientLink(resource: MockResource, patientId: string): MockResourc
 }
 
 const patientModules = import.meta.glob<MockResource>(
-  '../../../web/src/data/fhir/Patient-patient-*.json',
+  '../../../packages/fhir-artifacts/generated/Patient-patient-*.json',
   { eager: true, import: 'default' },
 )
 

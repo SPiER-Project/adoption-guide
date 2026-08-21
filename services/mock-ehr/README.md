@@ -31,7 +31,7 @@ and it is permitted only with the guardrails in §1 of that plan.
 
 Data is the app's own files, with **no second copy of anything**: the scenarios
 from `web/src/data/population/scenarios/patient-0NN.json` and the 14 Patients
-from the FSH-generated `web/src/data/fhir/Patient-patient-0NN.json`. Both are
+from the FSH-generated `packages/fhir-artifacts/generated/Patient-patient-0NN.json`. Both are
 inlined by the Vite build, because a Worker has no filesystem — the same
 arrangement `services/cds-hooks` uses, and the reason `main` in `wrangler.jsonc`
 points at `dist/index.js` rather than at source.

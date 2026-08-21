@@ -1,7 +1,7 @@
 // FHIR-derived Tool catalog.
 //
 // Clinical fields (name, purpose, stageId, questionnaireUrls) are read from
-// ActivityDefinition and PlanDefinition JSON in web/src/data/fhir/, which the
+// ActivityDefinition and PlanDefinition JSON in packages/fhir-artifacts/generated/, which the
 // `npm run copy-fhir` prebuild step regenerates from ig/input/fsh/. UI
 // metadata (badge, launchActions, etc.) is overlaid from tool-ui-metadata.ts.
 // Every catalogued tool has a FSH ActivityDefinition; tools not yet fully
@@ -128,11 +128,13 @@ interface PlanDefinitionDoc {
 }
 
 const adModules = import.meta.glob<{ default: ActivityDefinitionDoc }>(
-  '../fhir/ActivityDefinition-*.json',
+  // ⚠️ Relative, not `@spier/fhir-artifacts/...`: Vite does not resolve aliases
+  // inside `import.meta.glob`. Climbs out of web/ into the artifacts package.
+  '../../../../packages/fhir-artifacts/generated/ActivityDefinition-*.json',
   { eager: true },
 )
 const pdModules = import.meta.glob<{ default: PlanDefinitionDoc }>(
-  '../fhir/PlanDefinition-*.json',
+  '../../../../packages/fhir-artifacts/generated/PlanDefinition-*.json',
   { eager: true },
 )
 

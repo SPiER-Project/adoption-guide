@@ -9,7 +9,7 @@ import {
 } from './patientPathway'
 import { deriveFromResponse } from './deriveFromResponse'
 import { stampLaunchStage } from './launchStage'
-import { CAREPLAN_PROFILE_URLS } from '../data/catalog/care-plan-profiles.generated'
+import { CAREPLAN_PROFILE_URLS } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { STAGES, TOOLS, toolForQuestionnaireUrl } from '../data/catalog'
 import type { QuestionnaireResponseResource } from '../types/fhir'
@@ -106,7 +106,7 @@ describe('stageForArtifact — shared questionnaire is disambiguated by meta.tag
 
 describe('deriveFromResponse — derived Observations carry the source QR stage', () => {
   // Load whatever example QuestionnaireResponses ship in the generated IG data.
-  const qrModules = import.meta.glob('../data/fhir/QuestionnaireResponse-*.json', { eager: true }) as Record<
+  const qrModules = import.meta.glob('../../../packages/fhir-artifacts/generated/QuestionnaireResponse-*.json', { eager: true }) as Record<
     string,
     { default: QuestionnaireResponseResource }
   >

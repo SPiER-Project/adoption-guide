@@ -10,7 +10,7 @@
  * proper safeguards would be a HIPAA violation.
  */
 
-import type { CarePlanProfileUrl } from '../../data/catalog/care-plan-profiles.generated'
+import type { CarePlanProfileUrl } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
 import type { CarePlanResource, QuestionnaireResponseItem } from '../../types/fhir'
 import { suicideRiskCategory } from '../conceptDomain'
 
@@ -146,7 +146,7 @@ export function makeSuicidePreventionCarePlan(options: {
   /**
    * Canonical URL of the SPiER CarePlan profile this resource conforms to.
    * The union is generated at prebuild time from every StructureDefinition
-   * in web/src/data/fhir/ whose `type === "CarePlan"` — see
+   * in packages/fhir-artifacts/generated/ whose `type === "CarePlan"` — see
    * web/scripts/copy-fhir.mjs. FSH (ig/input/fsh/<tool>.fsh) is the single
    * source of truth; adding a new CarePlan profile in FSH automatically
    * expands this union on the next `npm run copy-fhir`.
