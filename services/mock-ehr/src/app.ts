@@ -73,6 +73,7 @@ import {
   mintLaunch,
   smartConfiguration,
   token,
+  mayCrossPatients,
   type Grant,
   type SmartEnv,
 } from './smart'
@@ -586,11 +587,16 @@ function denyForeignPatient(
 ): Response | null {
   const grant = c.get('grant')
   if (!grant || !patientId || grant.patient === patientId) return null
+  // A `user/…` read scope is the worklist grant: it may cross patients. This is
+  // the one scope axis this server enforces — #404 option A, and the reasoning is
+  // on `mayCrossPatients`.
+  if (mayCrossPatients(grant)) return null
   return c.body(
     JSON.stringify(operationOutcome(
       'error',
       'forbidden',
-      `This access token is scoped to patient '${grant.patient}' and cannot read '${patientId}'.`,
+      `This access token is scoped to patient '${grant.patient}' and cannot read '${patientId}'. ` +
+        `A cross-patient read needs a 'user/…' scope.`,
     )),
     403,
   )
