@@ -9,7 +9,7 @@
  * for a query it did not actually run, and the caller cannot tell.
  *
  * ── The patient element is not `subject` everywhere ─────────────────────────
- * Mirrors `patientRefField` in web/src/lib/dataSource/smartDataSource.ts, which
+ * Mirrors `patientRefField` in packages/core/src/lib/dataSource/smartDataSource.ts, which
  * exists for the write direction; this is the same table read backwards.
  * EpisodeOfCare and Consent use `patient`, Task uses `for`, and Appointment
  * carries the patient as a `participant.actor` reference rather than any

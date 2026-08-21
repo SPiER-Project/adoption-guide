@@ -34,13 +34,13 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import { deriveFromResponse } from './deriveFromResponse'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import {
   generateCarePlan,
   generateStabilizationCarePlan,
   generateTherapeuticCarePlan,
   generateCrisisResponseCarePlan,
-} from './carePlanMappers'
+} from '@spier/core/lib/carePlanMappers'
 import {
   buildEpisode,
   buildFlag,
@@ -52,8 +52,8 @@ import {
   ESCALATION_TRIGGERS,
   RISK_TIERS,
   SAFETY_TASK_TYPES,
-} from './riskEpisode'
-import { attachEpisode, buildEncounter } from './encounters'
+} from '@spier/core/lib/riskEpisode'
+import { attachEpisode, buildEncounter } from '@spier/core/lib/encounters'
 import {
   buildDischargePacket,
   buildFollowUpAppointment,
@@ -64,15 +64,15 @@ import {
   HANDOFF_CONTENT_ITEMS,
   REFERRAL_REASONS,
   REFERRAL_STATUSES,
-} from './handoffs'
-import { buildCaringContact, buildOutreachAttempt, OUTREACH_OUTCOMES } from './followUp'
+} from '@spier/core/lib/handoffs'
+import { buildCaringContact, buildOutreachAttempt, OUTREACH_OUTCOMES } from '@spier/core/lib/followUp'
 import {
   buildLethalMeansCounseling,
   buildMeansSafetyAction,
   LETHAL_MEANS_METHODS,
   MEANS_SAFETY_ACTIONS,
 } from './lethalMeans'
-import type { FhirResource, QuestionnaireResponseResource } from '../types/fhir'
+import type { FhirResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../.runtime-fhir')
 

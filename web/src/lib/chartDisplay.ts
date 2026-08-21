@@ -3,13 +3,13 @@
  * dating and counting. Pure and React-free; the components that use them live
  * in components/ChartArtifacts.tsx.
  */
-import { toolForResponse } from './patientPathway'
+import { toolForResponse } from '@spier/core/lib/patientPathway'
 import type {
   FhirResourceLike,
   QuestionnaireResponseLike,
   StoredResponseLike,
-} from './patientPathway'
-import type { CodeableConcept } from '../types/fhir'
+} from '@spier/core/lib/patientPathway'
+import type { CodeableConcept } from '@spier/core/types/fhir'
 
 // The chart renders stored FHIR resources that arrive (via patientPathway) as
 // loose FhirResourceLike — typed only for stage resolution. This is the set of

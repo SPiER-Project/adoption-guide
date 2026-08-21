@@ -15,10 +15,10 @@
  * and Tier-2 provenance both read real artifact structure.
  */
 import { describe, it, expect } from 'vitest'
-import { SmartDataSource } from './smartDataSource'
-import { deriveFromResponse } from '../deriveFromResponse'
+import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import { nativeQr } from '../observationMappers/__fixtures__/nativeQr'
-import type { StoredResponse, FhirResource } from '../../types/fhir'
+import type { StoredResponse, FhirResource } from '@spier/core/types/fhir'
 
 const CSSRS_SCREENER = 'http://spier.org/Questionnaire/C-SSRS-Screener'
 const PATIENT = 'smart-pt-1'

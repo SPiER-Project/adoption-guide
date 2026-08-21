@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '../data/catalog'
+import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
 import roadmapSnapshot from '../data/roadmap.generated.json'
 import '../css/AdoptionReadiness.css'
 

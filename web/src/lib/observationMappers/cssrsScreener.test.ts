@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapCSSRSScreener } from './cssrsScreener'
+import { mapCSSRSScreener } from '@spier/core/lib/observationMappers/cssrsScreener'
 import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
 /**

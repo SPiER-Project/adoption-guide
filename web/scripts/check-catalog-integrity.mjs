@@ -2,7 +2,7 @@
 /**
  * Anti-drift check for the TOOL CATALOG wiring.
  *
- * The catalog (web/src/data/catalog/tools.ts) merges hand-maintained layers
+ * The catalog (packages/core/src/data/catalog/tools.ts) merges hand-maintained layers
  * that can silently drift apart:
  *
  *   - generated FHIR (packages/fhir-artifacts/generated/ActivityDefinition-*.json and
@@ -61,7 +61,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
-const catalogDir = join(webRoot, 'src/data/catalog')
+const catalogDir = join(root, 'packages/core/src/data/catalog')
 const questionnairesDir = join(root, 'FHIR-Resources')
 
 const STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'

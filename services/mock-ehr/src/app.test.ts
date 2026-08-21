@@ -7,7 +7,7 @@
  * assertion would only prove the document matches this test's idea of it.
  */
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { parseCapabilityStatement } from '../../../web/src/lib/writeback/capability'
+import { parseCapabilityStatement } from '@spier/core/lib/writeback/capability'
 import app, { resetProfile } from './app'
 import { authHeaderFor } from './__fixtures__/launch'
 

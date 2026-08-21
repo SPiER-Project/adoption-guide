@@ -24,10 +24,10 @@ import {
   camsTherapeuticWorksheet,
   crpQuestionnaire,
   pssFullQuestionnaire,
-} from './data/questionnaires'
-import { generateStabilizationCarePlan } from './lib/carePlanMappers'
-import { generateTherapeuticCarePlan } from './lib/carePlanMappers'
-import { generateCrisisResponseCarePlan } from './lib/carePlanMappers'
+} from '@spier/core/data/questionnaires'
+import { generateStabilizationCarePlan } from '@spier/core/lib/carePlanMappers'
+import { generateTherapeuticCarePlan } from '@spier/core/lib/carePlanMappers'
+import { generateCrisisResponseCarePlan } from '@spier/core/lib/carePlanMappers'
 
 // Context Providers. Each context is split in two — the provider component in
 // *Provider.tsx, its context object and hook in *Context.ts — so the provider

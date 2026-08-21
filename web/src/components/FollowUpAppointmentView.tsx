@@ -4,7 +4,7 @@ import { usePatient } from '../context/PatientContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
-import { makeId } from '../lib/id'
+import { makeId } from '@spier/core/lib/id'
 import {
   appointmentProvider,
   appointmentStart,
@@ -13,9 +13,9 @@ import {
   displayFor,
   setAppointmentStatus,
   APPOINTMENT_STATUSES,
-} from '../lib/handoffs'
-import { deriveAppointmentTracking } from '../lib/followUp'
-import type { AppointmentResource } from '../types/fhir'
+} from '@spier/core/lib/handoffs'
+import { deriveAppointmentTracking } from '@spier/core/lib/followUp'
+import type { AppointmentResource } from '@spier/core/types/fhir'
 import '../css/WorkflowActionView.css'
 
 /**

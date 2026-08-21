@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react'
 import type { PatientDisplay } from '../data/demoPatient'
-import type { RiskAlert } from '../lib/observationMappers'
-import type { RegistryPatient } from '../lib/registry'
-import type { WritebackReport } from '../lib/writeback/types'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import type { RegistryPatient } from '@spier/core/lib/registry'
+import type { WritebackReport } from '@spier/core/lib/writeback/types'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -21,7 +21,7 @@ import type {
   QuestionnaireResponseResource,
   ScenarioEncounter,
   StoredResponse,
-} from '../types/fhir'
+} from '@spier/core/types/fhir'
 
 // The patient context object, its value type and its hook. Deliberately NOT a
 // .tsx and holding no component: React Fast Refresh only preserves state for a

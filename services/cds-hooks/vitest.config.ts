@@ -19,6 +19,15 @@ export default defineConfig({
         ),
       },
       {
+        // The React-free domain layer (packages/core), step B (#389). Prefix
+        // alias: every consumer imports `@spier/core/<path>` mirroring the
+        // package's own structure.
+        find: '@spier/core/',
+        replacement: fileURLToPath(
+          new URL('../../packages/core/src/', import.meta.url),
+        ),
+      },
+      {
         // The compiled FHIR artifacts (packages/fhir-artifacts), step E1 (#392).
         // ⚠️ Static imports only — Vite does not resolve aliases inside
         // `import.meta.glob`, so the runtime globs use relative paths.

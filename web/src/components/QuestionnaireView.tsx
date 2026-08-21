@@ -7,11 +7,11 @@ import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
 import { CarePlanDisplay } from './CarePlanDisplay'
-import { mapResponseToObservations } from '../lib/observationMappers'
+import { mapResponseToObservations } from '@spier/core/lib/observationMappers'
 import { stampLaunchStage } from '../lib/launchStage'
-import type { GeneratedCarePlan } from '../lib/carePlanMappers'
-import type { RiskAlert } from '../lib/observationMappers'
-import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
+import type { GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   acute:    { className: 'alert--acute',    label: 'ACUTE' },

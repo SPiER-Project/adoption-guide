@@ -3,7 +3,7 @@
  *
  * `/metadata` is the smallest endpoint here and the most load-bearing one. The
  * panel's writeback ladder reads it through `parseCapabilityStatement`
- * (web/src/lib/writeback/capability.ts) and attempts only the tiers the server
+ * (packages/core/src/lib/writeback/capability.ts) and attempts only the tiers the server
  * advertises `create` for; anything unreadable yields NO capabilities and the
  * ladder degrades to its Tier-0 floor. So the CapabilityStatement is the input
  * that decides how far the ladder climbs — which is exactly why the advertised
@@ -22,7 +22,7 @@
  * retrofit is this module, not its storage.
  */
 
-import { LIFECYCLE_RESOURCE_TYPES } from '../../../web/src/lib/dataSource/lifecycleTypes'
+import { LIFECYCLE_RESOURCE_TYPES } from '@spier/core/lib/dataSource/lifecycleTypes'
 
 /** The four advertised postures, ordered most to least capable. */
 export const CAPABILITY_PROFILES = ['full', 'no-observation', 'documents-only', 'read-only'] as const

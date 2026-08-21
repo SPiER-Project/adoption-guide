@@ -40,9 +40,9 @@
  * where a score depends on the answer.
  */
 import { describe, expect, it } from 'vitest'
-import { MEASURE_SPECS, evaluateAllMeasures, trailingPeriod } from './measures'
+import { MEASURE_SPECS, evaluateAllMeasures, trailingPeriod } from '@spier/core/lib/measures'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { PatientSlice, ScenarioEncounter } from '../types/fhir'
+import type { PatientSlice, ScenarioEncounter } from '@spier/core/types/fhir'
 
 /** Wide enough to contain the whole seeded registry. */
 const PERIOD = trailingPeriod(365)

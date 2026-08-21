@@ -6,7 +6,7 @@ import {
   reassessmentState,
   reassessmentStatusLabel,
   tierCodeForLevel,
-} from './reassessment'
+} from '@spier/core/lib/reassessment'
 
 const NOW = new Date('2026-08-11T12:00:00Z')
 

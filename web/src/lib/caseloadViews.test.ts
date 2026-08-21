@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CASELOAD_VIEWS, DEFAULT_DIR, sortRows, viewById, type SortCol } from './caseloadViews'
 import { COLUMNS } from '../components/caseloadColumns'
-import type { DerivedRegistryRow } from './registry'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
 function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
   return {

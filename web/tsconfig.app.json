@@ -13,6 +13,11 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
+      // packages/core imports fhirclient's Client type. `fhirclient` is web's
+      // dependency and no other package declares a second copy, which could
+      // drift from the version the app ships.
+      "fhirclient/*": ["./node_modules/fhirclient/*"],
+      "@spier/core/*": ["../packages/core/src/*"],
       "@spier/fhir-artifacts/*": ["../packages/fhir-artifacts/*"],
       "@spier/demo-population": ["../packages/demo-population/src/index.ts"],
       "@spier/demo-population/*": ["../packages/demo-population/src/*"]

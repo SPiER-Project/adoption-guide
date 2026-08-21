@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { MEASURE_SPECS, type MeasureEvaluation } from './measures'
+import { MEASURE_SPECS, type MeasureEvaluation } from '@spier/core/lib/measures'
 import {
   alertsForPatient,
   coveredGroupKeys,
   groupAlertsByPatient,
   type PopulationAlert,
 } from './populationAlerts'
-import type { DerivedRegistryRow } from './registry'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
 function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
   return {

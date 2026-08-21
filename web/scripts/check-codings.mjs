@@ -138,7 +138,7 @@ const familyOf = system =>
 // floors on web/src still fail loudly if the extractor breaks or the path moves.
 //
 // Counts at the time of writing, 2026-08-10, after #261 brought the data
-// dictionary (web/src/data/catalog/dataElements.ts) inside the scan — it had
+// dictionary (packages/core/src/data/catalog/dataElements.ts) inside the scan — it had
 // been invisible because it spelled its system `codeSystem: 'LOINC'` rather
 // than as a URL, so ~70 codings on the page an implementer is most likely to
 // copy from had never been checked at all:
@@ -166,11 +166,27 @@ const SCAN = [
   // the #232 failure mode. LOINC was already at half (49/98) because #323 moved
   // it in step with the C-SSRS codes it added; SNOMED grew in the same window
   // without its floor following.
-  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 49, snomed: 9, tho: 12 } },
+  // ⚠️ Floors re-derived 2026-08-21, when step B (#389) moved the mappers and the
+  // catalog out of web/src into packages/core. The old floors (loinc 49, snomed 9,
+  // tho 12) were written when this tree held both, and the move made this gate go
+  // RED — correctly, and that is what caught them. What remains here is UI-side:
+  // components, pages, hooks.
+  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 5, snomed: 8, tho: 1 } },
+  // ─── packages/core — where the runtime mappers now live ─────
+  //
+  // The whole-package entry. Without it the mappers' codings would have left the
+  // scan entirely when they moved out of web/src: the narrower catalog entry
+  // below covers only data/catalog, so `lib/observationMappers` would sit
+  // unscanned while every declared floor still passed. That is #261's hole
+  // arriving by a MOVE rather than by growth.
+  //
+  // Live counts 2026-08-21: loinc 87 / snomed 5 / tho 25. Floors are roughly half,
+  // per this file's convention — a floor asserts LIVENESS, not completeness.
+  { path: 'packages/core/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 43, snomed: 2, tho: 12 } },
   // ─── Deliberately OVERLAPS web/src above ───────────────────
   //
   // Two independent contributors sit inside web/src — the runtime mappers
-  // (web/src/lib) and the data dictionary (this path) — and a whole-tree floor
+  // (packages/core/src/lib) and the data dictionary (this path) — and a whole-tree floor
   // cannot tell them apart. #261 proved that with a break-test: reverting the
   // dictionary to its old un-gated shape drops web/src LOINC from 69 to 41,
   // which still clears a floor of 34, so the run stayed GREEN while ~28 codings
@@ -189,7 +205,7 @@ const SCAN = [
   // codings, and are correctly skipped: their enclosing block has no `system`
   // field for the extractor to match.)
   {
-    path: 'web/src/data/catalog',
+    path: 'packages/core/src/data/catalog',
     exts: ['.ts', '.tsx'],
     minCodings: { loinc: 17, snomed: 1, tho: 7 },
   },

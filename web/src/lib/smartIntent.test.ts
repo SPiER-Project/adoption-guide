@@ -7,14 +7,14 @@
  * — which is the drift it was supposed to prevent.
  */
 import { describe, it, expect } from 'vitest'
-import { TOOLS } from '../data/catalog'
+import { TOOLS } from '@spier/core/data/catalog'
 import {
   INTENT_PREFIX,
   collidingLaunchPaths,
   intentForLaunchPath,
   knownIntents,
   launchPathForIntent,
-} from './smartIntent'
+} from '@spier/core/lib/smartIntent'
 
 describe('intentForLaunchPath', () => {
   it('builds the plan’s own example', () => {

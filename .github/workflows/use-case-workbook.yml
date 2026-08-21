@@ -39,7 +39,7 @@ on:
       - 'scripts/lib/xlsx-writer.mjs'
       - 'scripts/lib/crc32.mjs'
       - 'packages/demo-population/src/scenarios/patient-01*.json'
-      - 'web/src/data/catalog/tool-ui-metadata.ts'
+      - 'packages/core/src/data/catalog/tool-ui-metadata.ts'
       - 'web/src/App.tsx'
       - '.github/workflows/use-case-workbook.yml'
   pull_request:
@@ -49,7 +49,7 @@ on:
       - 'scripts/lib/xlsx-writer.mjs'
       - 'scripts/lib/crc32.mjs'
       - 'packages/demo-population/src/scenarios/patient-01*.json'
-      - 'web/src/data/catalog/tool-ui-metadata.ts'
+      - 'packages/core/src/data/catalog/tool-ui-metadata.ts'
       - 'web/src/App.tsx'
       - '.github/workflows/use-case-workbook.yml'
   workflow_dispatch:

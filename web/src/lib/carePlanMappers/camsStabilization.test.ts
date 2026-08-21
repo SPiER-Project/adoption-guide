@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { generateStabilizationCarePlan } from './camsStabilization'
-import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '../../types/fhir'
+import { generateStabilizationCarePlan } from '@spier/core/lib/carePlanMappers/camsStabilization'
+import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '@spier/core/types/fhir'
 
 // Helpers
 function pairGroup(groupLinkId: string, fieldA: string, fieldB: string, pairs: Array<[string, string]>): QuestionnaireResponseItem {

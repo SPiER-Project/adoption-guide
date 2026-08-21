@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
-import { STAGES } from '../data/catalog/stages'
+import { STAGES } from '@spier/core/data/catalog/stages'
 import '../css/Overview.css'
 
 // The published HL7 IG is a sibling static site (web/dist/ig/), not a hash

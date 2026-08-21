@@ -41,7 +41,7 @@
  */
 import { DISCLAIMER, INK, RASPBERRY, RULE, TINT, TINT_WARM, crumbs, esc, page } from './hostChrome'
 import type { DemoPatient } from './fixtures'
-import { MRN_SYSTEM } from '../../../web/src/lib/fhircast'
+import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 /**
  * Panel widths the demo can switch between, in CSS pixels.

@@ -13,7 +13,7 @@ import {
   type Binding,
   type Concept,
   type Tool,
-} from '../data/catalog'
+} from '@spier/core/data/catalog'
 import '../css/DataDictionary.css'
 
 interface StageGroup {

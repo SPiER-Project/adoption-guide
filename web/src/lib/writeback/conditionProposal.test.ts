@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { buildConditionProposal, riskAlertLevelToTier, SPIER_RISK_TIER_SYSTEM } from './conditionProposal'
-import type { RiskAlert } from '../observationMappers'
+import { buildConditionProposal, riskAlertLevelToTier, SPIER_RISK_TIER_SYSTEM } from '@spier/core/lib/writeback/conditionProposal'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
 
 const alert = (level: RiskAlert['level']): RiskAlert => ({
   tool: 'PHQ-9',

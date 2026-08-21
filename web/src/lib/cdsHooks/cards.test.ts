@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { buildCdsCards, type BuildCdsCardsInput } from './cards'
-import { TOOLS } from '../../data/catalog'
-import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
-import type { RiskAlert } from '../observationMappers'
-import { intentForLaunchPath, launchPathForIntent } from '../smartIntent'
+import { buildCdsCards, type BuildCdsCardsInput } from '@spier/core/lib/cdsHooks/cards'
+import { TOOLS } from '@spier/core/data/catalog'
+import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import { intentForLaunchPath, launchPathForIntent } from '@spier/core/lib/smartIntent'
 
 // A real launchable tool from the catalog anchors the link/dedupe tests so they
 // stay honest against actual paths rather than invented ones.

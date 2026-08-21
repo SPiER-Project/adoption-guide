@@ -10,11 +10,11 @@ import {
   trailingPeriod,
   type MeasureTally,
   type MeasurementPeriod,
-} from '../lib/measures'
+} from '@spier/core/lib/measures'
 import { emptinessOf, type Emptiness } from '../lib/measureGaps'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
-import type { RegistryPatient } from '../lib/registry'
-import type { PatientSlice } from '../types/fhir'
+import type { RegistryPatient } from '@spier/core/lib/registry'
+import type { PatientSlice } from '@spier/core/types/fhir'
 import '../css/MeasureDashboard.css'
 
 const REGISTRY_PATIENTS = registryPatientsData as RegistryPatient[]

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { positiveItem9OnDay, riskCountsOf, summaryTiles, tierCensus } from './populationSummary'
-import type { DerivedRegistryRow } from './registry'
-import type { PatientSlice } from '../types/fhir'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
+import type { PatientSlice } from '@spier/core/types/fhir'
 
 function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
   return {

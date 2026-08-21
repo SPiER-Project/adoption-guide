@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapCSSRSFull } from './cssrsFull'
+import { mapCSSRSFull } from '@spier/core/lib/observationMappers/cssrsFull'
 import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
 // C-SSRS Full asks each ideation level as a lifetime/recent pair. Every one is a

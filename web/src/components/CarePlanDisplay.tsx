@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LOINC_SYSTEM, type GeneratedCarePlan } from '../lib/carePlanMappers'
+import { LOINC_SYSTEM, type GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
 
 export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
   const [showJson, setShowJson] = useState(false)

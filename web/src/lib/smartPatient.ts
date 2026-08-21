@@ -6,7 +6,7 @@
  * screen and SmartContext's session rehydration.
  */
 import type Client from 'fhirclient/lib/Client'
-import { MRN_SYSTEM } from './fhircast'
+import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 export interface SmartPatientSummary {
   id?: string

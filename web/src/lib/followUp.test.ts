@@ -19,10 +19,10 @@ import {
   OUTREACH_OUTCOME_SYSTEM,
   OUTREACH_PROMPT_EXT,
   SAFETY_CONCERN_EXT,
-} from './followUp'
-import { buildFollowUpAppointment } from './handoffs'
-import { stageForArtifact } from './patientPathway'
-import type { AppointmentResource, CommunicationResource } from '../types/fhir'
+} from '@spier/core/lib/followUp'
+import { buildFollowUpAppointment } from '@spier/core/lib/handoffs'
+import { stageForArtifact } from '@spier/core/lib/patientPathway'
+import type { AppointmentResource, CommunicationResource } from '@spier/core/types/fhir'
 
 function attempt(params: {
   id: string

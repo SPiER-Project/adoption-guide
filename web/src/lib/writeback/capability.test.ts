@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseCapabilityStatement, canCreate } from './capability'
+import { parseCapabilityStatement, canCreate } from '@spier/core/lib/writeback/capability'
 
 describe('parseCapabilityStatement', () => {
   it('extracts create support per resource type', () => {

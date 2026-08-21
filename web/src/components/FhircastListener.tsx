@@ -6,7 +6,7 @@ import {
   subscribePatientOpen,
   type FhircastTransportKind,
   type PatientOpenPayload,
-} from '../lib/fhircast'
+} from '@spier/core/lib/fhircast'
 import '../css/FhircastListener.css'
 
 // Only a tab already viewing a patient chart follows a broadcast. This mirrors

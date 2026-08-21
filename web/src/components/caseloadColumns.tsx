@@ -9,13 +9,13 @@
  */
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { stageTitleById } from '../data/catalog'
+import { stageTitleById } from '@spier/core/data/catalog'
 import { ageOf } from '../lib/populationFilters'
 import { RISK_LABEL } from '../lib/populationSummary'
-import { reassessmentStatusLabel } from '../lib/reassessment'
+import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
 import { formatDaysAgo } from '../lib/relativeTime'
 import type { FilterKey, SortCol } from '../lib/caseloadViews'
-import type { DerivedRegistryRow } from '../lib/registry'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
 export interface CaseloadColumn {
   header: string

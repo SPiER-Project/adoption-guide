@@ -22,18 +22,18 @@
  * route itself. Same cards, different link form — and the difference is in who
  * is able to act on them, not in what was derived.
  */
-import { buildCdsCards } from '../../../web/src/lib/cdsHooks'
-import type { Card, CdsServiceResponse } from '../../../web/src/lib/cdsHooks/types'
+import { buildCdsCards } from '@spier/core/lib/cdsHooks'
+import type { Card, CdsServiceResponse } from '@spier/core/lib/cdsHooks/types'
 import {
   derivePathwayStatus,
   type PatientArtifacts,
   type QuestionnaireResponseLike,
   type StoredResponseLike,
-} from '../../../web/src/lib/patientPathway'
-import { mapResponseToObservations, type RiskAlert } from '../../../web/src/lib/observationMappers'
+} from '@spier/core/lib/patientPathway'
+import { mapResponseToObservations, type RiskAlert } from '@spier/core/lib/observationMappers'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import patientsJson from '@spier/demo-population/patients.json'
-import type { QuestionnaireResponseResource } from '../../../web/src/types/fhir'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import type { CdsHookRequest, CdsServiceDefinition } from './types'
 
 /** Machine id — the patient-view invocation path is `/cds-services/{SERVICE_ID}`. */
@@ -134,7 +134,7 @@ export interface PatientViewOptions {
   /**
    * The app's SMART `launch_uri`. When given, card links are emitted as
    * `type: "smart"` launches carrying the tool in `appContext` instead of deep
-   * links — see `SmartLaunchLinks` in web/src/lib/cdsHooks/cards.ts for why that
+   * links — see `SmartLaunchLinks` in packages/core/src/lib/cdsHooks/cards.ts for why that
    * is the right form for a host EHR and the wrong one for the app itself.
    *
    * Optional so a caller that does not know its own public URL still gets valid

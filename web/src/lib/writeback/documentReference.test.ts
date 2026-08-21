@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { buildDocumentReference, renderQrNarrative, base64Utf8 } from './documentReference'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
-import type { RiskAlert } from '../observationMappers'
+import { buildDocumentReference, renderQrNarrative, base64Utf8 } from '@spier/core/lib/writeback/documentReference'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
 
 const decode = (b64: string) => new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0)))
 

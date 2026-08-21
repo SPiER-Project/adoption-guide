@@ -28,7 +28,7 @@
  *    needed it.
  */
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import { MRN_SYSTEM } from '../../../web/src/lib/fhircast'
+import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 /** The least a resource must be for this server to serve it. */
 export interface MockResource {
@@ -71,7 +71,7 @@ const CLIENT_ONLY_FIELDS = ['_savedAt']
 
 /**
  * How each type points at its patient — the read-direction twin of
- * `patientRefField` in web/src/lib/dataSource/smartDataSource.ts.
+ * `patientRefField` in packages/core/src/lib/dataSource/smartDataSource.ts.
  */
 const PATIENT_ELEMENT: Record<string, 'subject' | 'patient' | 'for' | 'appointment-participant'> = {
   QuestionnaireResponse: 'subject',

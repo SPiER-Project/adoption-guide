@@ -44,7 +44,7 @@ const CQL = resolve(here, '../../ig/input/cql/SPiERSuicideSaferCareMeasures.cql'
 
 const TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
 
-/** UCUM codes web/src/lib/reassessment.ts knows how to convert. Keep in step. */
+/** UCUM codes packages/core/src/lib/reassessment.ts knows how to convert. Keep in step. */
 const READABLE_UNITS = new Set(['d', 'wk', 'mo', 'a'])
 
 /**
@@ -149,7 +149,7 @@ for (const action of actions) {
     }
     if (!READABLE_UNITS.has(d.code)) {
       fail(
-        `${where}: timingDuration unit "${d.code}" is not one web/src/lib/reassessment.ts converts ` +
+        `${where}: timingDuration unit "${d.code}" is not one packages/core/src/lib/reassessment.ts converts ` +
           `(${[...READABLE_UNITS].join(', ')}). The interval would be silently dropped.`,
       )
     }

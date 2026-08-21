@@ -6,7 +6,7 @@
  *
  *   - generated FHIR (packages/fhir-artifacts/generated/Measure-*.json, from FSH in
  *     ig/input/fsh/measure-and-share.fsh) — the published definitions
- *   - web/src/lib/measures.ts — the executable reference implementation
+ *   - packages/core/src/lib/measures.ts — the executable reference implementation
  *
  * The engine already reads the measure WIRING from the generated JSON, so
  * groups and populations cannot drift. What can drift is the CRITERIA: a
@@ -49,10 +49,9 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
-const enginePath = join(webRoot, 'src/lib/measures.ts')
+const enginePath = join(root, 'packages/core/src/lib/measures.ts')
 
 const MEASURE_POPULATION_SYSTEM = 'http://terminology.hl7.org/CodeSystem/measure-population'
 const GROUP_CODE_SYSTEM = 'http://spier.org/CodeSystem/spier-measure-group'

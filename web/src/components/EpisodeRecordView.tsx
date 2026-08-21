@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import { groupByEpisode, type EpisodeRecord } from '../lib/episodeRecord'
+import { groupByEpisode, type EpisodeRecord } from '@spier/core/lib/episodeRecord'
 import { artifactLabel, formatDateTime } from '../lib/chartDisplay'
-import { displayFor, ENTRY_REASONS, episodeCurrentTier, RISK_TIERS } from '../lib/riskEpisode'
-import type { FhirResourceLike } from '../lib/patientPathway'
+import { displayFor, ENTRY_REASONS, episodeCurrentTier, RISK_TIERS } from '@spier/core/lib/riskEpisode'
+import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 import '../css/EpisodeRecord.css'
 
 /**

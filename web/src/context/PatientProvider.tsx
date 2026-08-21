@@ -7,8 +7,8 @@ import {
   type PopulationPatient,
 } from './PatientContext'
 import { localDataSource } from '../lib/dataSource/localDataSource'
-import { SmartDataSource } from '../lib/dataSource/smartDataSource'
-import type { FhirDataSource } from '../lib/dataSource/types'
+import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
+import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
 import {
   POPULATION_BY_ID,
   POPULATION_PATIENTS,
@@ -18,7 +18,7 @@ import { useActivePatientId } from '../hooks/useActivePatientId'
 import { usePatientOpenBroadcast } from '../hooks/usePatientOpenBroadcast'
 import { usePatientSlice } from '../hooks/usePatientSlice'
 import { useCorrelatedSave } from '../hooks/useCorrelatedSave'
-import type { PatientResource, ScenarioEncounter } from '../types/fhir'
+import type { PatientResource, ScenarioEncounter } from '@spier/core/types/fhir'
 
 // PopulationPatient, PatientContextType, the context object and usePatient all
 // live in PatientContext.ts so this module stays component-only.

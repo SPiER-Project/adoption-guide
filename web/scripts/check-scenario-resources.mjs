@@ -10,7 +10,7 @@
  * DocumentReference in `scenarios/patient-*.json` was ungated hand-authored
  * FHIR (issue #226).
  *
- * That matters because the Stage-8 measure engine (`src/lib/measures.ts`) reads
+ * That matters because the Stage-8 measure engine (`packages/core/src/lib/measures.ts`) reads
  * exactly those buckets. A malformed `EpisodeOfCare.status`, a `ServiceRequest`
  * missing `intent`, or a profile claim that resolves to nothing does not fail —
  * it silently produces a WRONG measure score, which is worse than an empty one.
@@ -73,10 +73,9 @@ import {
   // dates are FHIR dates — one definition of "is this a FHIR date", not two.
   FHIR_DATE_RE,
   validateResource,
-} from './lib/fhir-resource-rules.mjs'
+} from '../../packages/core/fhir-resource-rules.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
 const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
@@ -123,7 +122,7 @@ const NON_FHIR_BUCKETS = new Set([
 // ─────────────────────────────────────────────────────────────
 // FHIR R4 base facts, profile-derived checks, and the per-resource rules
 // ─────────────────────────────────────────────────────────────
-// All of it now lives in scripts/lib/fhir-resource-rules.mjs, shared VERBATIM
+// All of it now lives in packages/core/fhir-resource-rules.mjs, shared VERBATIM
 // with the mock EHR's `POST /fhir/{Type}` — a guardrail of the embedded-panel
 // plan §1, which requires the mock to reuse these checks "rather than inventing
 // a second, laxer opinion". The tables that were here (base-R4 required
@@ -136,7 +135,7 @@ const NON_FHIR_BUCKETS = new Set([
 // ─────────────────────────────────────────────────────────────
 // Load the generated conformance resources
 // ─────────────────────────────────────────────────────────────
-// The RULES that read these live in scripts/lib/fhir-resource-rules.mjs, shared
+// The RULES that read these live in packages/core/fhir-resource-rules.mjs, shared
 // verbatim with the mock EHR's write endpoint — see that file's header for why
 // two opinions were never necessary. This script keeps only what is
 // scenario-shaped: buckets, ids, cross-resource correlation, and the two
@@ -185,14 +184,14 @@ const { patientIds, structureDefs } = conformance
  * trick check-measures.mjs uses on the CRITERIA map.)
  */
 const RISK_LEVELS = (() => {
-  const src = readFileSync(join(webRoot, 'src/lib/observationMappers/shared.ts'), 'utf8')
+  const src = readFileSync(join(root, 'packages/core/src/lib/observationMappers/shared.ts'), 'utf8')
   const block = src.match(/export interface RiskAlert \{[\s\S]*?\n\}/)?.[0]
   const union = block?.match(/^\s*level:\s*(.+)$/m)?.[1]
   const levels = [...(union ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1])
   if (levels.length === 0) {
     console.error(
       '[check:scenario-resources] could not parse RiskAlert["level"] out of ' +
-        'src/lib/observationMappers/shared.ts. If it was renamed or retyped, update this ' +
+        'packages/core/src/lib/observationMappers/shared.ts. If it was renamed or retyped, update this ' +
         'script — do not delete the check.',
     )
     process.exit(1)

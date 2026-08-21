@@ -15,9 +15,9 @@
  * gained a field. So a view is a list of column keys plus a default sort, and
  * adding one means adding an entry here — no new component, no new markup.
  */
-import { RISK_LEVEL_ORDER } from './observationMappers'
-import type { DerivedRegistryRow } from './registry'
-import type { RiskAlert } from './observationMappers'
+import { RISK_LEVEL_ORDER } from '@spier/core/lib/observationMappers'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
 
 type RiskLevel = RiskAlert['level']
 

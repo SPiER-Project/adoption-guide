@@ -13,7 +13,7 @@
 import { useState } from 'react'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount } from '../lib/chartDisplay'
-import type { FhirResourceLike, StoredResponseLike } from '../lib/patientPathway'
+import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
 
 export function OtherActivitySection({
   responses,

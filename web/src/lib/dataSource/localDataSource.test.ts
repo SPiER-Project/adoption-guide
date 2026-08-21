@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { LocalDataSource, resetLocalDemoData } from './localDataSource'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { StoredResponse } from '../../types/fhir'
+import type { StoredResponse } from '@spier/core/types/fhir'
 
 /**
  * #301: seeding used to be once-only, so a browser that had opened the demo kept

@@ -6,13 +6,13 @@ import {
   unstagedArtifacts,
   PATHWAY_STAGE_SYSTEM,
   type FhirResourceLike,
-} from './patientPathway'
-import { deriveFromResponse } from './deriveFromResponse'
+} from '@spier/core/lib/patientPathway'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import { stampLaunchStage } from './launchStage'
 import { CAREPLAN_PROFILE_URLS } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import { STAGES, TOOLS, toolForQuestionnaireUrl } from '../data/catalog'
-import type { QuestionnaireResponseResource } from '../types/fhir'
+import { STAGES, TOOLS, toolForQuestionnaireUrl } from '@spier/core/data/catalog'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // Cross-tool stage-resolution coverage.
 //

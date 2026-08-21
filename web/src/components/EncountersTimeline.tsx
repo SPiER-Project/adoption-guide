@@ -12,8 +12,8 @@
  */
 import { useState } from 'react'
 import { resolveRelatedRefs, type RelatedArtifact } from '../lib/chartDisplay'
-import { stageById } from '../data/catalog'
-import type { ScenarioEncounter } from '../types/fhir'
+import { stageById } from '@spier/core/data/catalog'
+import type { ScenarioEncounter } from '@spier/core/types/fhir'
 
 export function EncountersTimeline({
   walkthrough,

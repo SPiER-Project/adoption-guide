@@ -3,7 +3,7 @@
  * opened. Extracted from `PatientProvider` (#126).
  */
 import { useEffect, useRef } from 'react'
-import { publishPatientOpen, shouldPublishOnActivation } from '../lib/fhircast'
+import { publishPatientOpen, shouldPublishOnActivation } from '@spier/core/lib/fhircast'
 import { POPULATION_BY_ID } from '@spier/demo-population'
 
 /**

@@ -24,7 +24,7 @@
  * directions — a measure added in FSH fails the test rather than silently
  * falling back to generic copy.
  */
-import type { MeasureTally } from './measures'
+import type { MeasureTally } from '@spier/core/lib/measures'
 
 /** Why the tables for a measure are empty, if they are. */
 export type Emptiness =

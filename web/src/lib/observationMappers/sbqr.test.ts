@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapSBQR } from './sbqr'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapSBQR } from '@spier/core/lib/observationMappers/sbqr'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // SBQ-R answerOption codes → ordinal (from FHIR-Resources/SBQ-R/sbqr-questionnaire.json):
 //   q1: "1"=1 "2"=2 "3a/3b"=3 "4a/4b"=4   (own CodeSystem per item)

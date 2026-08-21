@@ -28,8 +28,8 @@
  */
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { generateCarePlan } from './stanleyBrown'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { generateCarePlan } from '@spier/core/lib/carePlanMappers/stanleyBrown'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // Paths are relative to `web/`, which is vitest's cwd.
 const FIXTURE_QR = '../scripts/fixtures/stanley-brown/questionnaireresponse.json'

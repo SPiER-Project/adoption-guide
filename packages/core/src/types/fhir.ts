@@ -10,7 +10,7 @@
  *  - any consumer that wants a typed handle on resources read from the
  *    patient context.
  */
-import type { RiskAlert } from '../lib/observationMappers'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
 
 export interface FhirResource {
   resourceType: string

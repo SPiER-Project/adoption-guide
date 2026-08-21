@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
-import { generateCarePlan } from '../lib/carePlanMappers'
-import type { GeneratedCarePlan } from '../lib/carePlanMappers'
+import { generateCarePlan } from '@spier/core/lib/carePlanMappers'
+import type { GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
 import { CarePlanDisplay } from './CarePlanDisplay'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
 import { usePatient } from '../context/PatientContext'
-import type { QuestionnaireResponseResource } from '../types/fhir'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 import stanleyBrownQuestionnaire from '../../../FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json'
 

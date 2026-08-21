@@ -3,7 +3,7 @@
  *
  * Only the fields this service reads or emits are modeled. The Card/response
  * shapes are NOT redefined here — they are imported verbatim from the app's
- * single source of truth (web/src/lib/cdsHooks/types.ts) so the hosted endpoint
+ * single source of truth (packages/core/src/lib/cdsHooks/types.ts) so the hosted endpoint
  * and the in-app Patient Chart emit byte-identical cards.
  *
  * Spec: https://cds-hooks.org/specification/current/

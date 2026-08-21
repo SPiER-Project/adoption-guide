@@ -14,7 +14,7 @@
 // see presetToolIds. `check-catalog-integrity.mjs` (check E) reads this file and
 // fails if a derived preset is re-frozen into hand-listed ids.
 
-import { launchableTools } from './catalog'
+import { launchableTools } from '@spier/core/data/catalog'
 
 export type PresetId = 'minimum-viable' | 'common-mid-tier' | 'maximalist'
 

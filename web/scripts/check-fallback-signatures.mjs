@@ -2,7 +2,7 @@
 /**
  * Anti-drift check for the code-based fallback dispatcher.
  *
- * `web/src/lib/observationMappers/fallbackDispatch.ts` hand-lists standardized
+ * `packages/core/src/lib/observationMappers/fallbackDispatch.ts` hand-lists standardized
  * LOINC per-item codes (INSTRUMENT_SIGNATURES[].itemCodes) mapped to SPiER
  * linkIds, so a foreign QuestionnaireResponse can be recognized and normalized
  * into SPiER shape. Those same code↔linkId pairs already live in the canonical
@@ -25,10 +25,9 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
 const questionnairesDir = join(root, 'FHIR-Resources')
-const signaturesFile = join(webRoot, 'src/lib/observationMappers/fallbackDispatch.ts')
+const signaturesFile = join(root, 'packages/core/src/lib/observationMappers/fallbackDispatch.ts')
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }

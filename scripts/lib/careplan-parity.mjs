@@ -2,7 +2,7 @@
  * The comparable shape of a Stanley-Brown safety-plan CarePlan.
  *
  * `StanleyBrownQRToCarePlan.fml` (declarative, executed by the HL7 validator)
- * and `web/src/lib/carePlanMappers/stanleyBrown.ts` (executable, runs in the
+ * and `packages/core/src/lib/carePlanMappers/stanleyBrown.ts` (executable, runs in the
  * demo app) are two implementations of one transformation. Both are compared
  * against the same golden file, `scripts/fixtures/stanley-brown/
  * careplan-expected.json`, so either one drifting turns a gate red:

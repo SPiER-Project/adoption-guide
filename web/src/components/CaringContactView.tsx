@@ -4,7 +4,7 @@ import { usePatient } from '../context/PatientContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
-import { makeId } from '../lib/id'
+import { makeId } from '@spier/core/lib/id'
 import {
   buildCaringContact,
   caringContactOptedOut,
@@ -12,7 +12,7 @@ import {
   displayFor,
   hasOptedOutOfCaringContacts,
   OUTREACH_CHANNELS,
-} from '../lib/followUp'
+} from '@spier/core/lib/followUp'
 import '../css/WorkflowActionView.css'
 
 /**

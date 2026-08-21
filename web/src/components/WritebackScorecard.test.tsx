@@ -18,7 +18,7 @@
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { WritebackScorecard } from './WritebackScorecard'
-import type { WritebackReport, WriteStepResult } from '../lib/writeback/types'
+import type { WritebackReport, WriteStepResult } from '@spier/core/lib/writeback/types'
 
 function report(
   steps: WriteStepResult[],

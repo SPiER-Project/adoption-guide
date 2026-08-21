@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapPSSFull } from './pssFull'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapPSSFull } from '@spier/core/lib/observationMappers/pssFull'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const TIER = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
 

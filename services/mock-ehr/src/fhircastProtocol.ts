@@ -15,7 +15,7 @@
  * ── Why this is an upgrade rather than a tax ─────────────────────────────────
  *
  * The panel plan §6 filed FHIRcast under "what cross-origin costs":
- * `web/src/lib/fhircast.ts` relayed context over a `BroadcastChannel`, which is
+ * `packages/core/src/lib/fhircast.ts` relayed context over a `BroadcastChannel`, which is
  * same-origin by construction and cannot reach a host chart on another origin.
  * The floor it proposed was `postMessage` with strict origin checks. It also
  * noted the better version — *"Durable Objects speak WebSocket, so the mock EHR

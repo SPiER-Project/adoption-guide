@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapSAFET } from './safet'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapSAFET } from '@spier/core/lib/observationMappers/safet'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const YES = { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' }
 const TIER = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'

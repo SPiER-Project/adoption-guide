@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { deriveRegistryRow, type RegistryPatient } from './registry'
+import { deriveRegistryRow, type RegistryPatient } from '@spier/core/lib/registry'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -9,8 +9,8 @@ import type {
   PatientSlice,
   ServiceRequestResource,
   StoredResponse,
-} from '../types/fhir'
-import type { RiskAlert } from './observationMappers'
+} from '@spier/core/types/fhir'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
 
 describe('deriveRegistryRow', () => {
   const patient: RegistryPatient = {

@@ -14,9 +14,9 @@
  * The launching tool id is threaded from the launchAction/route as a `?tool=`
  * query param (see catalog `tool-ui-metadata.ts` and `QuestionnaireView`).
  */
-import { toolById, stripCanonicalVersion } from '../data/catalog'
-import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
-import type { QuestionnaireResponseResource } from '../types/fhir'
+import { toolById, stripCanonicalVersion } from '@spier/core/data/catalog'
+import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 /**
  * Return `qr` stamped with `launchToolId`'s pathway stage via `meta.tag`

@@ -6,6 +6,14 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 - `ig/` — FHIR Implementation Guide. FSH sources in `ig/input/fsh/` are compiled by SUSHI to `ig/fsh-generated/resources/` (gitignored). This is the **canonical, machine-readable** source for Profiles, ValueSets, CodeSystems, ActivityDefinitions, PlanDefinitions, and example Instances.
 - `FHIR-Resources/` — hand-authored FHIR Questionnaire JSON (plus a few CarePlan templates), one folder per instrument (ASQ, PHQ-9, C-SSRS, SBQ-R, CAMS, Stanley-Brown). Imported **directly** by `web/src/App.tsx` at runtime.
+- `packages/core/` — the **React-free domain layer** (#389): FHIR types, the tool
+  catalog, instrument + care-plan mappers, the `FhirDataSource` seam, pathway /
+  registry / measure logic, CDS Hooks, FHIRcast. Consumed as `@spier/core/<path>`
+  by the app and both Workers, which have **zero** deep imports into `web/src`.
+  ⚠️ **Its tests live in the mirrored path under `web/src`**, so web's `verify`
+  covers it; moving them would need a fourth pipeline.
+- `packages/demo-population/` — the 14 demo patients + scenario slices (#388).
+- `packages/fhir-artifacts/generated/` — SUSHI's output, gitignored (#392).
 - `web/` — React 19 + TypeScript (strict) + Vite app. Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/` by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from `FHIR-Resources/`.
 - `docs/` — project/reference docs. `scripts/` — repo-level helper scripts.
 
@@ -39,6 +47,11 @@ npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "
                        # and the renderer still imports the specifier we alias
 npm run check:crosswalk  # concept-crosswalk validation
 npm run check:extract    # observation-extract validation
+npm run check:core-boundary # packages/core stays React-free and DOM-free — the constraint
+                         # that makes the boundary worth drawing. A feature-detected
+                         # browser API (`typeof BroadcastChannel === 'undefined'`) is
+                         # allowed; an unguarded one is not. `alert` is deliberately
+                         # NOT forbidden: `RiskAlert` values are named `alert`
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
                          # questionnaire URLs BOTH ways / per-AD licensing metadata).
                          # Check B stops a TOOL from reaching the app with no

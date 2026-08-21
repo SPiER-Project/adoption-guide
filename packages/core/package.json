@@ -1,0 +1,10 @@
+{
+  "name": "@spier/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The React-free domain layer: FHIR types, the tool catalog, instrument and care-plan mappers, the data-source seam, the pathway/registry/measure logic, CDS Hooks and FHIRcast.",
+  "type": "module",
+  "exports": {
+    "./*": "./src/*"
+  }
+}
