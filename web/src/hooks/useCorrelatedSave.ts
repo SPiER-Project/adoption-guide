@@ -22,23 +22,23 @@
  * defect before this was extracted.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { makeId } from '../lib/id'
+import { makeId } from '@spier/core/lib/id'
 import { describeError } from '../lib/describeError'
-import { deriveFromResponse } from '../lib/deriveFromResponse'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import {
   buildEpisode,
   findOpenEpisode,
   isPositiveScreen,
   pickEpisodeTrigger,
-} from '../lib/riskEpisode'
+} from '@spier/core/lib/riskEpisode'
 import {
   attachAppointment,
   attachEpisode,
   buildEncounter,
   findOpenEncounter,
   stampEncounter,
-} from '../lib/encounters'
-import type { FhirDataSource } from '../lib/dataSource/types'
+} from '@spier/core/lib/encounters'
+import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type {
   CarePlanResource,
   EncounterResource,
@@ -48,7 +48,7 @@ import type {
   PatientSlice,
   QuestionnaireResponseResource,
   StoredResponse,
-} from '../types/fhir'
+} from '@spier/core/types/fhir'
 
 export interface CorrelatedSave {
   addCarePlan: (carePlan: CarePlanResource) => void

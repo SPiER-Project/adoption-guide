@@ -8,8 +8,8 @@
  */
 import { useEffect, useState } from 'react'
 import { describeError } from '../lib/describeError'
-import type { FhirDataSource } from '../lib/dataSource/types'
-import type { PatientSlice } from '../types/fhir'
+import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
+import type { PatientSlice } from '@spier/core/types/fhir'
 
 // Fallback initial slice for the first render when the data source can't
 // resolve synchronously (async-only sources like SmartDataSource omit

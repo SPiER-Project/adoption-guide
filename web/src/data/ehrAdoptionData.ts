@@ -2,7 +2,7 @@
  * Thin adapter that derives the rubric view over the shared catalog.
  * New code should import from `./catalog` directly.
  */
-import { STAGES, TOOLS, type MaturityLevel } from './catalog'
+import { STAGES, TOOLS, type MaturityLevel } from '@spier/core/data/catalog'
 
 export interface RubricCriterion {
   id: string

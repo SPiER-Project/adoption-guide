@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { STAGES, stageTitleById } from '../data/catalog'
+import { STAGES, stageTitleById } from '@spier/core/data/catalog'
 import registryPatientsData from '@spier/demo-population/patients.json'
 import { localDataSource, resetLocalDemoData } from '../lib/dataSource/localDataSource'
-import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '../lib/registry'
-import { evaluateAllMeasures, trailingPeriod } from '../lib/measures'
+import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '@spier/core/lib/registry'
+import { evaluateAllMeasures, trailingPeriod } from '@spier/core/lib/measures'
 import { alertsForPatient, groupAlertsByPatient } from '../lib/populationAlerts'
 import {
   RISK_LABEL,
@@ -14,8 +14,8 @@ import {
   CENSUS_ORDER,
 } from '../lib/populationSummary'
 import { AGE_BANDS, bandOf, ageOf } from '../lib/populationFilters'
-import type { RiskAlert } from '../lib/observationMappers'
-import type { PatientSlice } from '../types/fhir'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import type { PatientSlice } from '@spier/core/types/fhir'
 import {
   CASELOAD_VIEWS,
   DEFAULT_DIR,

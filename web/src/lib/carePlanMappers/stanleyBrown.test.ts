@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { generateCarePlan } from './stanleyBrown'
-import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '../../types/fhir'
+import { generateCarePlan } from '@spier/core/lib/carePlanMappers/stanleyBrown'
+import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '@spier/core/types/fhir'
 
 // Repeating "pair" groups capture their two child fields under answer.item.
 function pairGroup(groupLinkId: string, fieldA: string, fieldB: string, pairs: Array<[string, string]>): QuestionnaireResponseItem {

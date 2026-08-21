@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { TOOLS, groupToolsByStage, launchableTools } from '../data/catalog'
+import { TOOLS, groupToolsByStage, launchableTools } from '@spier/core/data/catalog'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { PRESETS, presetToolIds, type PresetId } from '../data/toolPresets'
 import { usePatient } from '../context/PatientContext'

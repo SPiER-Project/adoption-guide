@@ -15,23 +15,23 @@ import {
   tallyAll,
   tallyMeasure,
   trailingPeriod,
-} from './measures'
+} from '@spier/core/lib/measures'
 import {
   APPOINTMENT_PROFILE,
   HANDOFF_CONTENT_ITEM_EXT,
   PACKET_PROFILE,
   REFERRAL_PROFILE,
-} from './handoffs'
+} from '@spier/core/lib/handoffs'
 import {
   buildCaringContact,
   CARING_CONTACT_PROFILE,
   OUTREACH_OUTCOME_EXT,
   OUTREACH_OUTCOME_SYSTEM,
-} from './followUp'
+} from '@spier/core/lib/followUp'
 import { buildLethalMeansCounseling, buildMeansSafetyAction } from './lethalMeans'
-import { CLOSURE_REASON_EXT, EPISODE_PROFILE } from './riskEpisode'
-import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
-import type { PatientSlice } from '../types/fhir'
+import { CLOSURE_REASON_EXT, EPISODE_PROFILE } from '@spier/core/lib/riskEpisode'
+import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
+import type { PatientSlice } from '@spier/core/types/fhir'
 
 // ─── Fixtures ────────────────────────────────────────────────
 // July 2026 throughout, matching the IG examples: episode opens 07-02, the

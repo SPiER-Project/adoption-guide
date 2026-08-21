@@ -7,7 +7,7 @@ import {
   bindingsUsedByTool,
   systemLabel,
   type Tool,
-} from '../data/catalog'
+} from '@spier/core/data/catalog'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import { useScrollToHash } from '../hooks/useScrollToHash'
 import { guideHref } from '../data/guideSections'

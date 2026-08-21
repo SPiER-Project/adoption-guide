@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
 import { usePresentation } from '../context/PresentationContext'
 import { readSmartPatientSummary } from '../lib/smartPatient'
-import { launchPathForIntent } from '../lib/smartIntent'
-import { configureFhircastHub } from '../lib/fhircast'
+import { launchPathForIntent } from '@spier/core/lib/smartIntent'
+import { configureFhircastHub } from '@spier/core/lib/fhircast'
 
 export function SmartRedirect() {
     const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...')

@@ -7,9 +7,9 @@
  * from the filename
  * (e.g. `patient-005.json` → `patient-005`).
  */
-// ⚠️ A type-only edge back into the app — see the note in ../patients.ts.
-// `types/fhir` is also bound for `packages/core` (#389), which closes it.
-import type { PatientSlice, ScenarioEncounter } from '../../../../web/src/types/fhir'
+// Step B (#389) closed the type-only edge this used to have into the app:
+// `types/fhir` now lives in packages/core, so this is a package-to-package import.
+import type { PatientSlice, ScenarioEncounter } from '@spier/core/types/fhir'
 
 /**
  * The on-disk scenario shape is a `PatientSlice` plus an optional read-only

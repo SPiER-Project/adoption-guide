@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MEASURE_SPECS, type GroupTally, type MeasureTally } from './measures'
+import { MEASURE_SPECS, type GroupTally, type MeasureTally } from '@spier/core/lib/measures'
 import { MEASURE_GAPS, emptinessOf, gapFor, isComputed } from './measureGaps'
 
 function group(partial: Partial<GroupTally>): GroupTally {

@@ -5,7 +5,7 @@ import {
   CDS_INVOKE_URL,
   CDS_SANDBOX_URL,
   CDS_SERVICE_ID,
-} from '../lib/cdsHooks'
+} from '@spier/core/lib/cdsHooks'
 import '../css/CdsServiceGuide.css'
 
 const DISCOVERY_CURL = `curl -s ${CDS_DISCOVERY_URL}`

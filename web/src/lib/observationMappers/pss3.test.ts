@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapPSS3 } from './pss3'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapPSS3 } from '@spier/core/lib/observationMappers/pss3'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const YES = { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' }
 const NO = { system: 'http://snomed.info/sct', code: '373067005', display: 'No' }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapASQ } from './asq'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapASQ } from '@spier/core/lib/observationMappers/asq'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // ASQ answers are SNOMED-coded Yes/No (see getYesNoBoolean in shared.ts).
 const YES = { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' }

@@ -25,10 +25,10 @@ import {
   HANDOFF_WITHHELD_ITEM_EXT,
   WITHHOLDING_BASIS_SYSTEM,
   REFERRAL_REASON_SYSTEM,
-} from './handoffs'
-import { CONCEPT_DOMAIN_SYSTEM } from './conceptDomain'
-import { PATHWAY_STAGE_SYSTEM, stageForArtifact } from './patientPathway'
-import type { ConsentResource } from '../types/fhir'
+} from '@spier/core/lib/handoffs'
+import { CONCEPT_DOMAIN_SYSTEM } from '@spier/core/lib/conceptDomain'
+import { PATHWAY_STAGE_SYSTEM, stageForArtifact } from '@spier/core/lib/patientPathway'
+import type { ConsentResource } from '@spier/core/types/fhir'
 
 describe('discharge safety packet (TL-030)', () => {
   const packet = buildDischargePacket({

@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { COLUMNS } from './caseloadColumns'
 import type { CaseloadView, FilterKey, FilterOption, SortCol, SortDir, SortState } from '../lib/caseloadViews'
-import type { DerivedRegistryRow } from '../lib/registry'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
 const MENU_EDGE_GAP = 8
 

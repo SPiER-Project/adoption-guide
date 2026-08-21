@@ -4,7 +4,7 @@
  *
  * The screening Questionnaires DECLARE which items yield Observations via the
  * SDC `sdc-questionnaire-observationExtract` extension; the per-instrument
- * mappers (web/src/lib/observationMappers/*) are the reference IMPLEMENTATION
+ * mappers (packages/core/src/lib/observationMappers/*) are the reference IMPLEMENTATION
  * of that contract. The two can silently drift. This script asserts:
  *
  *   1. every item declaring observationExtract also carries a `code`
@@ -30,7 +30,7 @@ const EXTRACT_URL =
 
 // Questionnaire file → the Observation codes its mapper extracts as LITERAL
 // per-item / total-score Observations (i.e. the items that should declare
-// observationExtract). Keep in sync with web/src/lib/observationMappers/*.
+// observationExtract). Keep in sync with packages/core/src/lib/observationMappers/*.
 const EXPECTED = {
   'FHIR-Resources/PHQ-9/phq9-questionnaire.json': ['44261-6'],
   'FHIR-Resources/SBQ-R/sbqr-questionnaire.json': ['225337009'],
@@ -43,19 +43,19 @@ const EXPECTED = {
   // http://spier.org/CodeSystem/cssrs-interval-item instead of reusing the
   // screener's 1-month LOINC codes, which would assert a window the instrument
   // does not claim (issue #220). These are NOT LOINC codes; they match
-  // web/src/lib/observationMappers/cssrsSinceLastContact.ts.
+  // packages/core/src/lib/observationMappers/cssrsSinceLastContact.ts.
   'FHIR-Resources/C-SSRS/cssrs-since-last-contact.json': [
     'wish-to-be-dead', 'non-specific-active-thoughts', 'active-ideation-any-methods',
     'active-ideation-some-intent', 'active-ideation-plan-and-intent', 'suicidal-behavior',
   ],
   // C-SSRS Pediatric / Adolescent reuses the validated screener item set + LOINC
-  // codes. Matches web/src/lib/observationMappers/cssrsPediatric.ts (shared core).
+  // codes. Matches packages/core/src/lib/observationMappers/cssrsPediatric.ts (shared core).
   'FHIR-Resources/C-SSRS/cssrs-pediatric.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
   // ASQ has NO published per-item LOINC codes (verified June 2026), so the five
   // screening items bind to the SPiER-local http://spier.org/CodeSystem/asq-item.
-  // These are NOT LOINC codes; they match web/src/lib/observationMappers/asq.ts.
+  // These are NOT LOINC codes; they match packages/core/src/lib/observationMappers/asq.ts.
   'FHIR-Resources/ASQ/asq-questionnaire.json': [
     'wished-dead', 'family-better-off-dead', 'thoughts-killing-self',
     'ever-attempted', 'acute-ideation-now',
@@ -63,23 +63,23 @@ const EXPECTED = {
   // BSSA has NO published panel/per-item LOINC codes. The disposition item
   // carries the generic LOINC 93374-7 ("Suicide risk level"); the discrete
   // interview findings bind to the SPiER-local http://spier.org/CodeSystem/bssa-item.
-  // These match web/src/lib/observationMappers/bssa.ts.
+  // These match packages/core/src/lib/observationMappers/bssa.ts.
   'FHIR-Resources/BSSA/bssa-questionnaire.json': [
     '93374-7', 'current-ideation', 'suicide-plan', 'intent-scale',
     'past-suicide-attempt', 'needs-help-to-be-safe',
   ],
   // PSS-3 has NO published panel/per-item LOINC codes. The three screening
   // items bind to the SPiER-local http://spier.org/CodeSystem/pss3-item; the
-  // result is COMPUTED (not observationExtract-declared). Match web/src/lib/observationMappers/pss3.ts.
+  // result is COMPUTED (not observationExtract-declared). Match packages/core/src/lib/observationMappers/pss3.ts.
   'FHIR-Resources/PSS-3/pss3-questionnaire.json': [
     'depression-2wk', 'active-ideation-2wk', 'lifetime-attempt',
   ],
   // SAFE-T is a clinical-judgment formulation; only the risk-level item is a
   // literal extraction (LOINC 93374-7). Its value binds directly to the shared
-  // suicide-risk tier (no crosswalk). Matches web/src/lib/observationMappers/safet.ts.
+  // suicide-risk tier (no crosswalk). Matches packages/core/src/lib/observationMappers/safet.ts.
   'FHIR-Resources/SAFE-T/safet-questionnaire.json': ['93374-7'],
   // PSS Full: only the site-defined risk-level (93374-7) is a literal extraction;
-  // the PSS-3 screen items are recorded in the QR for context. Matches web/src/lib/observationMappers/pssFull.ts.
+  // the PSS-3 screen items are recorded in the QR for context. Matches packages/core/src/lib/observationMappers/pssFull.ts.
   'FHIR-Resources/PSS-Full/pss-full-questionnaire.json': ['93374-7'],
 }
 

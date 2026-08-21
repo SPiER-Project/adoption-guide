@@ -19,8 +19,8 @@ import {
   pickEpisodeTrigger,
   taskDueDate,
   tasksForEpisode,
-} from './riskEpisode'
-import type { EpisodeOfCareResource, ObservationResource, TaskResource } from '../types/fhir'
+} from '@spier/core/lib/riskEpisode'
+import type { EpisodeOfCareResource, ObservationResource, TaskResource } from '@spier/core/types/fhir'
 
 const openEpisode = () =>
   buildEpisode({

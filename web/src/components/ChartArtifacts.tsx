@@ -2,7 +2,7 @@
  * Artifact card rendering shared by the patient chart's pathway rail and its
  * unstaged "Other activity" bucket.
  */
-import { displayFor, outreachOutcome, OUTREACH_OUTCOMES } from '../lib/followUp'
+import { displayFor, outreachOutcome, OUTREACH_OUTCOMES } from '@spier/core/lib/followUp'
 import {
   carePlanDisplayName,
   formatDateTime,
@@ -10,7 +10,7 @@ import {
   type ArtifactBuckets,
   type RenderableResource,
 } from '../lib/chartDisplay'
-import type { CommunicationResource, StoredResponse } from '../types/fhir'
+import type { CommunicationResource, StoredResponse } from '@spier/core/types/fhir'
 
 /** The artifact-card lists shared by pathway stage nodes and the unstaged
  *  "Other activity" bucket. */

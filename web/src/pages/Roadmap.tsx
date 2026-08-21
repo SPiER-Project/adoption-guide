@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { TOOLS, groupToolsByStage, type Tool } from '../data/catalog'
+import { TOOLS, groupToolsByStage, type Tool } from '@spier/core/data/catalog'
 import roadmapSnapshot from '../data/roadmap.generated.json'
 
 // ─────────────────────────────────────────────────────────────

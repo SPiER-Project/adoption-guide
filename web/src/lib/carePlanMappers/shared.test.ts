@@ -4,8 +4,8 @@ import {
   extractAnswer,
   extractPairs,
   makeSuicidePreventionCarePlan,
-} from './shared'
-import type { QuestionnaireResponseItem } from '../../types/fhir'
+} from '@spier/core/lib/carePlanMappers/shared'
+import type { QuestionnaireResponseItem } from '@spier/core/types/fhir'
 
 // These extraction helpers power all three CarePlan mappers (stanleyBrown,
 // camsStabilization, camsTherapeutic). The per-tool tests cover the common

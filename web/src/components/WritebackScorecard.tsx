@@ -16,7 +16,7 @@
  *    a property of the instrument, not a failure of the server.
  * Both would otherwise render as unexplained gaps. See `WritebackReport`.
  */
-import type { WritebackReport, WriteStepResult, WriteTier } from '../lib/writeback/types'
+import type { WritebackReport, WriteStepResult, WriteTier } from '@spier/core/lib/writeback/types'
 import '../css/WritebackScorecard.css'
 
 /** The ladder's rungs, in ascending tier order (see writeback/types.ts). */

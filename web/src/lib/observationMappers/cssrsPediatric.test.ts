@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapCSSRSPediatric } from './cssrsPediatric'
+import { mapCSSRSPediatric } from '@spier/core/lib/observationMappers/cssrsPediatric'
 import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
 // Answers are built from the Pediatric Questionnaire (SNOMED-coded Yes/No), not

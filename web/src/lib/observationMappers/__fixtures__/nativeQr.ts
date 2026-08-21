@@ -22,12 +22,12 @@
  *
  * TEST-ONLY: nothing in `src/` outside `*.test.ts` imports this.
  */
-import { QUESTIONNAIRE_BY_URL } from '../../../data/questionnaires'
+import { QUESTIONNAIRE_BY_URL } from '@spier/core/data/questionnaires'
 import type {
   QuestionnaireResponseAnswer,
   QuestionnaireResponseItem,
   QuestionnaireResponseResource,
-} from '../../../types/fhir'
+} from '@spier/core/types/fhir'
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- raw Questionnaire JSON */
 type QItem = any

@@ -130,11 +130,11 @@ interface PlanDefinitionDoc {
 const adModules = import.meta.glob<{ default: ActivityDefinitionDoc }>(
   // ⚠️ Relative, not `@spier/fhir-artifacts/...`: Vite does not resolve aliases
   // inside `import.meta.glob`. Climbs out of web/ into the artifacts package.
-  '../../../../packages/fhir-artifacts/generated/ActivityDefinition-*.json',
+  '../../../../fhir-artifacts/generated/ActivityDefinition-*.json',
   { eager: true },
 )
 const pdModules = import.meta.glob<{ default: PlanDefinitionDoc }>(
-  '../../../../packages/fhir-artifacts/generated/PlanDefinition-*.json',
+  '../../../../fhir-artifacts/generated/PlanDefinition-*.json',
   { eager: true },
 )
 

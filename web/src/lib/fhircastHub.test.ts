@@ -23,7 +23,7 @@ import {
   publishPatientOpen,
   subscribePatientOpen,
   type FhircastEvent,
-} from './fhircast'
+} from '@spier/core/lib/fhircast'
 
 const HUB_URL = 'https://ehr.example/fhircast'
 const TOPIC = 'host-abc'

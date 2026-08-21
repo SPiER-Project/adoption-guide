@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { derivePathwayStatus, PATHWAY_STAGE_SYSTEM } from './patientPathway'
-import type { PatientArtifacts, FhirResourceLike } from './patientPathway'
-import { STAGES } from '../data/catalog'
+import { derivePathwayStatus, PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
+import type { PatientArtifacts, FhirResourceLike } from '@spier/core/lib/patientPathway'
+import { STAGES } from '@spier/core/data/catalog'
 
 function mockArtifact(stageId?: string): FhirResourceLike {
   if (!stageId) {

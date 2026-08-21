@@ -21,9 +21,9 @@ import { PatientProvider } from './PatientProvider'
 import { SmartContext } from './SmartContext'
 import { usePatient } from './PatientContext'
 import { LocalDataSource, resetLocalDemoData } from '../lib/dataSource/localDataSource'
-import { ENCOUNTER_PROFILE } from '../lib/encounters'
-import { TRIGGER_EXT } from '../lib/riskEpisode'
-import type { FhirResource, QuestionnaireResponseResource } from '../types/fhir'
+import { ENCOUNTER_PROFILE } from '@spier/core/lib/encounters'
+import { TRIGGER_EXT } from '@spier/core/lib/riskEpisode'
+import type { FhirResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const SMART_STUB = {
   client: null,

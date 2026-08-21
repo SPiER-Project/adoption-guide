@@ -24,10 +24,10 @@
  *
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
-import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
-import type { CodedOption } from './handoffs'
-import type { ObservationResource, ProcedureResource } from '../types/fhir'
-import { suicideRiskCategory } from './conceptDomain'
+import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
+import type { CodedOption } from '@spier/core/lib/handoffs'
+import type { ObservationResource, ProcedureResource } from '@spier/core/types/fhir'
+import { suicideRiskCategory } from '@spier/core/lib/conceptDomain'
 
 export const STAGE_ID = 'document-safety-actions'
 const STAGE_TITLE = 'Document Safety Actions'

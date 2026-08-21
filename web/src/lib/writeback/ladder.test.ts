@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { buildWritePlan, resolveConfig } from './ladder'
-import type { ServerCapabilities, WritebackArtifacts, WriteStep } from './types'
-import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '../../types/fhir'
+import { buildWritePlan, resolveConfig } from '@spier/core/lib/writeback/ladder'
+import type { ServerCapabilities, WritebackArtifacts, WriteStep } from '@spier/core/lib/writeback/types'
+import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const qr: QuestionnaireResponseResource = {
   resourceType: 'QuestionnaireResponse',

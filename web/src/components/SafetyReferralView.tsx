@@ -4,7 +4,7 @@ import { usePatient } from '../context/PatientContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
-import { makeId } from '../lib/id'
+import { makeId } from '@spier/core/lib/id'
 import {
   buildSafetyReferral,
   displayFor,
@@ -13,8 +13,8 @@ import {
   setReferralStatus,
   REFERRAL_REASONS,
   REFERRAL_STATUSES,
-} from '../lib/handoffs'
-import type { ServiceRequestResource } from '../types/fhir'
+} from '@spier/core/lib/handoffs'
+import type { ServiceRequestResource } from '@spier/core/types/fhir'
 import '../css/WorkflowActionView.css'
 
 /**

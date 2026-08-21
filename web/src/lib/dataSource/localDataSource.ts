@@ -16,7 +16,7 @@
  * (#301 — see `spier-scenario-seeds` below).
  */
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { DerivedArtifacts, FhirDataSource } from './types'
+import type { DerivedArtifacts, FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -33,8 +33,8 @@ import type {
   ServiceRequestResource,
   StoredResponse,
   TaskResource,
-} from '../../types/fhir'
-import type { RiskAlert } from '../observationMappers'
+} from '@spier/core/types/fhir'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
 
 const STORE_KEY = 'spier-patient-store'
 const BLANK_SLICE_KEY = 'spier-blank-slice'

@@ -40,12 +40,12 @@ const TIER_URL = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
 // Disposition CodeSystem url -> the TS mapper(s) that produce those codes (check F).
 // A code must appear in at least one of the listed (existing) mapper files.
 const MAPPER_FOR_SOURCE = {
-  'http://spier.org/CodeSystem/asq-screening-result': ['web/src/lib/observationMappers/asq.ts'],
-  'http://spier.org/CodeSystem/bssa-disposition': ['web/src/lib/observationMappers/bssa.ts'],
-  'http://spier.org/CodeSystem/pss3-result': ['web/src/lib/observationMappers/pss3.ts'],
+  'http://spier.org/CodeSystem/asq-screening-result': ['packages/core/src/lib/observationMappers/asq.ts'],
+  'http://spier.org/CodeSystem/bssa-disposition': ['packages/core/src/lib/observationMappers/bssa.ts'],
+  'http://spier.org/CodeSystem/pss3-result': ['packages/core/src/lib/observationMappers/pss3.ts'],
   'http://spier.org/CodeSystem/cssrs-risk-level': [
-    'web/src/lib/observationMappers/cssrsScreener.ts',
-    'web/src/lib/observationMappers/cssrsFull.ts',
+    'packages/core/src/lib/observationMappers/cssrsScreener.ts',
+    'packages/core/src/lib/observationMappers/cssrsFull.ts',
   ],
 }
 

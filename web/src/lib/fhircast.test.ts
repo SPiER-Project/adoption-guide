@@ -8,7 +8,7 @@ import {
   FOLLOW_WINDOW_MS,
   PATIENT_OPEN_EVENT,
   FHIRCAST_TOPIC,
-} from './fhircast'
+} from '@spier/core/lib/fhircast'
 
 const TS = '2026-07-05T12:00:00.000Z'
 const NOW = 1_700_000_000_000

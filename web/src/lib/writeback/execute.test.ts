@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { executeWritePlan } from './execute'
-import { buildWritePlan } from './ladder'
-import type { WritebackArtifacts, WritebackTarget, WriteStepResult } from './types'
-import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '../../types/fhir'
+import { executeWritePlan } from '@spier/core/lib/writeback/execute'
+import { buildWritePlan } from '@spier/core/lib/writeback/ladder'
+import type { WritebackArtifacts, WritebackTarget, WriteStepResult } from '@spier/core/lib/writeback/types'
+import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const ALL = {
   QuestionnaireResponse: { create: true },

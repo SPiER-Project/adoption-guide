@@ -29,8 +29,8 @@
  * what keeps the population view and the measure dashboard from disagreeing
  * about the same patient.
  */
-import type { MeasureEvaluation } from './measures'
-import type { DerivedRegistryRow } from './registry'
+import type { MeasureEvaluation } from '@spier/core/lib/measures'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
 export type AlertSeverity = 'red' | 'yellow'
 

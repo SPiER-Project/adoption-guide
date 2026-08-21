@@ -14,9 +14,9 @@
  * distinction into the type system, so a caller cannot render a blocked tile as
  * a number without deleting the `blocked` case.
  */
-import type { RiskAlert } from './observationMappers'
-import type { DerivedRegistryRow } from './registry'
-import type { ObservationResource, PatientSlice } from '../types/fhir'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import type { DerivedRegistryRow } from '@spier/core/lib/registry'
+import type { ObservationResource, PatientSlice } from '@spier/core/types/fhir'
 
 type RiskLevel = RiskAlert['level']
 

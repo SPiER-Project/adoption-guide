@@ -28,7 +28,7 @@
  *
  * ── What it asserts ──────────────────────────────────────────
  *
- *  1. every mapper file under src/lib/observationMappers is either registered
+ *  1. every mapper file under packages/core/src/lib/observationMappers is either registered
  *     in `MAPPER_BY_QUESTIONNAIRE_URL` or reachable from one that is;
  *  2. every linkId a mapper reads exists in at least one Questionnaire it serves
  *     (a renamed item otherwise reads `undefined` forever, in silence);
@@ -53,7 +53,7 @@ import ts from 'typescript'
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
 const root = resolve(here, '../..')
-const mapperDir = join(webRoot, 'src/lib/observationMappers')
+const mapperDir = join(root, 'packages/core/src/lib/observationMappers')
 const questionnaireDirs = [join(root, 'FHIR-Resources'), join(root, 'packages/fhir-artifacts/generated')]
 
 const SNOMED = 'http://snomed.info/sct'

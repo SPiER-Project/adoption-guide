@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapCSSRSSinceLastContact } from './cssrsSinceLastContact'
+import { mapCSSRSSinceLastContact } from '@spier/core/lib/observationMappers/cssrsSinceLastContact'
 import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
 // Answers built from the Since-Last-Contact Questionnaire (SNOMED-coded Yes/No)

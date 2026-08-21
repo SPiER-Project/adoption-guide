@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { groupByEpisode } from './episodeRecord'
-import { TRIGGER_EXT } from './riskEpisode'
+import { groupByEpisode } from '@spier/core/lib/episodeRecord'
+import { TRIGGER_EXT } from '@spier/core/lib/riskEpisode'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { FhirResourceLike } from './patientPathway'
+import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 
 const episode = (id: string, triggerRef?: string): FhirResourceLike =>
   ({

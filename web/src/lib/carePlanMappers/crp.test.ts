@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { generateCrisisResponseCarePlan } from './crp'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { generateCrisisResponseCarePlan } from '@spier/core/lib/carePlanMappers/crp'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 type Activity = { detail?: { code?: { text?: string; coding?: Array<{ system?: string; code?: string }> }; description?: string } }
 

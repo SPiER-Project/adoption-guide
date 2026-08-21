@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildWalkthroughRefIndex, resolveRelatedRefs } from './chartDisplay'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { FhirResourceLike, StoredResponseLike } from './patientPathway'
+import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
 
 /**
  * #263 phase 5b. These replaced two string-matching fields —

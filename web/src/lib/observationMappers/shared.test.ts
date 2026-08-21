@@ -8,8 +8,8 @@ import {
   interpretationOf,
   RISK_LEVEL_ORDER,
   type RiskAlert,
-} from './shared'
-import type { QuestionnaireResponseItem } from '../../types/fhir'
+} from '@spier/core/lib/observationMappers/shared'
+import type { QuestionnaireResponseItem } from '@spier/core/types/fhir'
 
 // These primitives sit underneath every per-tool observation mapper (phq9,
 // asq, cssrs*, cams*, sbqr). The per-tool tests exercise them transitively;

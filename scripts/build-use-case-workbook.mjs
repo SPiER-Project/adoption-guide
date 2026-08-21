@@ -667,7 +667,7 @@ function checkDemoLinkage(doc, label) {
  * it finds neither**, because a regex that silently matches nothing would turn
  * this gate green over an unread file (the #232 / #261 failure mode).
  */
-const UI_METADATA = join(ROOT, 'web', 'src', 'data', 'catalog', 'tool-ui-metadata.ts')
+const UI_METADATA = join(ROOT, 'packages', 'core', 'src', 'data', 'catalog', 'tool-ui-metadata.ts')
 const APP_ROUTES = join(ROOT, 'web', 'src', 'App.tsx')
 
 /** TL id → launch paths declared in tool-ui-metadata.ts. */

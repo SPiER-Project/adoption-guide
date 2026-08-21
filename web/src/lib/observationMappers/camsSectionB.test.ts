@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapCAMSSectionB } from './camsSectionB'
-import { walkItems } from './shared'
+import { mapCAMSSectionB } from '@spier/core/lib/observationMappers/camsSectionB'
+import { walkItems } from '@spier/core/lib/observationMappers/shared'
 import { nativeQr, type NativeAnswer } from './__fixtures__/nativeQr'
 
 /**

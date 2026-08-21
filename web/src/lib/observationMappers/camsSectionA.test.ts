@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapCAMSSectionA } from './camsSectionA'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapCAMSSectionA } from '@spier/core/lib/observationMappers/camsSectionA'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // CAMS SSF-5 Section A: six 1–5 integer ratings (linkId "<n>-score").
 // n=6 is Overall Risk of Suicide, which also drives the LOINC risk-level obs.

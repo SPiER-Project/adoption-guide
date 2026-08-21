@@ -11,12 +11,11 @@
  * `PatientProvider.tsx`. Changing a demographic here alone will fail that gate.
  */
 import populationPatientsData from './patients.json'
-// ⚠️ A type-only edge back into the app, and the only kind this package has.
-// `PopulationPatient` is an alias of `RegistryPatient` in `web/src/lib/registry`,
-// which §4 of the repo-shape plan assigns to `packages/core` — so this import
-// straightens out when step B lands (#389). It is `import type`, so it is erased
-// at build time and there is NO runtime dependency from this package on the app.
-import type { PopulationPatient } from '../../../web/src/context/PatientContext'
+// Step B (#389) closed the type-only edge this used to have into the app.
+// `PopulationPatient` was only ever an alias of `RegistryPatient`, which now
+// lives in packages/core — so this is a package-to-package import, and this
+// package no longer references the app at all.
+import type { RegistryPatient as PopulationPatient } from '@spier/core/lib/registry'
 
 export const POPULATION_PATIENTS = populationPatientsData as PopulationPatient[]
 

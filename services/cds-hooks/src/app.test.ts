@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest'
 import app from './index'
 import type { CdsDiscoveryResponse } from './types'
-import type { CdsServiceResponse } from '../../../web/src/lib/cdsHooks/types'
+import type { CdsServiceResponse } from '@spier/core/lib/cdsHooks/types'
 
 const BASE = 'http://cds.test'
 

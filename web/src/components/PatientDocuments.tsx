@@ -9,9 +9,9 @@
 import { useMemo, useState } from 'react'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { carePlanDisplayName, type RenderableResource } from '../lib/chartDisplay'
-import { stageForResponse } from '../lib/patientPathway'
-import type { FhirResourceLike, StoredResponseLike } from '../lib/patientPathway'
-import type { StoredResponse } from '../types/fhir'
+import { stageForResponse } from '@spier/core/lib/patientPathway'
+import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
+import type { StoredResponse } from '@spier/core/types/fhir'
 
 // Sortable sentinel for FHIR resources missing an authoritative timestamp.
 // Keeps the date-driven memo deterministic and pushes undated rows to the bottom

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { mapResponseToObservations } from './index'
-import { recognizeInstrument, normalizeToSpierQr, INSTRUMENT_SIGNATURES } from './fallbackDispatch'
-import { deriveFromResponse } from '../deriveFromResponse'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapResponseToObservations } from '@spier/core/lib/observationMappers'
+import { recognizeInstrument, normalizeToSpierQr, INSTRUMENT_SIGNATURES } from '@spier/core/lib/observationMappers/fallbackDispatch'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import bhpCssrs from './__fixtures__/bhp-cssrs-example.json'
 import bhpPhq9 from './__fixtures__/bhp-phq9-example.json'
 

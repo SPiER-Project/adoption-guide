@@ -18,7 +18,7 @@
  * trusted (`validate.test.ts` plants six).
  *
  * So the rules are not here. They are in
- * [`web/scripts/lib/fhir-resource-rules.mjs`](../../../web/scripts/lib/fhir-resource-rules.mjs),
+ * [`packages/core/fhir-resource-rules.mjs`](../../../packages/core/fhir-resource-rules.mjs),
  * shared verbatim with that gate. This file only supplies the data the rules
  * need and turns their output into an OperationOutcome.
  *
@@ -46,7 +46,7 @@ import {
   validateResource,
   type ConformanceIndex,
   type FhirDoc,
-} from '../../../web/scripts/lib/fhir-resource-rules.mjs'
+} from '../../../packages/core/fhir-resource-rules.mjs'
 
 /**
  * Every generated conformance resource, inlined by Vite.

@@ -31,8 +31,8 @@ on:
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
       # exist but sit idle exactly when the code it protects moves.
-      - 'web/src/lib/**'
-      - 'web/src/types/**'
+      - 'packages/core/src/lib/**'
+      - 'packages/core/src/types/**'
       - 'web/package.json'
       - 'web/scripts/copy-fhir.mjs'
       - '.github/workflows/ig.yml'
@@ -46,8 +46,8 @@ on:
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
       # exist but sit idle exactly when the code it protects moves.
-      - 'web/src/lib/**'
-      - 'web/src/types/**'
+      - 'packages/core/src/lib/**'
+      - 'packages/core/src/types/**'
       - 'web/package.json'
       - 'web/scripts/copy-fhir.mjs'
       - '.github/workflows/ig.yml'

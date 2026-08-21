@@ -23,7 +23,7 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { render, screen, cleanup, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import type { FhircastEvent, FhircastTransportKind, PatientOpenPayload } from '../lib/fhircast'
+import type { FhircastEvent, FhircastTransportKind, PatientOpenPayload } from '@spier/core/lib/fhircast'
 
 type Handler = (p: PatientOpenPayload, e: FhircastEvent, via: FhircastTransportKind) => void
 
@@ -32,7 +32,7 @@ let captured: Handler | null = null
 const navigate = vi.fn()
 const marked: string[] = []
 
-vi.mock('../lib/fhircast', () => ({
+vi.mock('@spier/core/lib/fhircast', () => ({
   subscribePatientOpen: (handler: Handler) => {
     captured = handler
     return () => { captured = null }

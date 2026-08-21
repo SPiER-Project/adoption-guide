@@ -12,7 +12,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { SignJWT, exportJWK, generateKeyPair } from 'jose'
 import app from './index'
 import type { CdsJwtEnv } from './auth'
-import type { CdsServiceResponse } from '../../../web/src/lib/cdsHooks/types'
+import type { CdsServiceResponse } from '@spier/core/lib/cdsHooks/types'
 
 const BASE = 'http://cds.test'
 const INVOKE = `${BASE}/cds-services/spier-patient-view`

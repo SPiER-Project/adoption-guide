@@ -20,6 +20,8 @@ export default defineConfig({
       // The demo population — declared alias, not a workspace (#387). Object
       // form matches this file's existing shape; prefix matching is wanted, so
       // '@spier/demo-population/patients.json' resolves under the same root.
+      // The React-free domain layer (packages/core), step B (#389).
+      '@spier/core': fileURLToPath(new URL('../../packages/core/src', import.meta.url)),
       // The compiled FHIR artifacts — static imports only; Vite does not
       // resolve aliases inside `import.meta.glob`.
       '@spier/fhir-artifacts': fileURLToPath(

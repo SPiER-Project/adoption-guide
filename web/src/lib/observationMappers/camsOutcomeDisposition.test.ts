@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapCAMSOutcomeDisposition } from './camsOutcomeDisposition'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapCAMSOutcomeDisposition } from '@spier/core/lib/observationMappers/camsOutcomeDisposition'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const DISP = 'http://spier.org/CodeSystem/cams-disposition'
 

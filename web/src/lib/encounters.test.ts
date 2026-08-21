@@ -7,8 +7,8 @@ import {
   findOpenEncounter,
   isEncounterOpen,
   stampEncounter,
-} from './encounters'
-import type { EncounterResource, EpisodeOfCareResource } from '../types/fhir'
+} from '@spier/core/lib/encounters'
+import type { EncounterResource, EpisodeOfCareResource } from '@spier/core/types/fhir'
 
 const enc = (over: Record<string, unknown> = {}): EncounterResource =>
   ({

@@ -15,9 +15,9 @@
  */
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { STAGES, TOOLS, stageById } from '../data/catalog'
-import type { Card, CdsIndicator } from '../lib/cdsHooks'
-import type { StageArtifacts, StageStatus } from '../lib/patientPathway'
+import { STAGES, TOOLS, stageById } from '@spier/core/data/catalog'
+import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
+import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'

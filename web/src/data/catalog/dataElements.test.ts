@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { BINDINGS, CONCEPTS, codeHref, valueSetHref, valueSetLabel } from './dataElements'
+import { BINDINGS, CONCEPTS, codeHref, valueSetHref, valueSetLabel } from '@spier/core/data/catalog/dataElements'
 
 /**
  * The data dictionary's links are claims about what the published IG contains,

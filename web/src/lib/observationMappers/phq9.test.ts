@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mapPHQ9 } from './phq9'
-import type { QuestionnaireResponseResource } from '../../types/fhir'
+import { mapPHQ9 } from '@spier/core/lib/observationMappers/phq9'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // PHQ-9 answerOption ordinals (from FHIR-Resources/PHQ-9/phq9-questionnaire.json):
 //   LA6568-5 = 0 (Not at all)

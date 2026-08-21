@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { generateTherapeuticCarePlan } from './camsTherapeutic'
-import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '../../types/fhir'
+import { generateTherapeuticCarePlan } from '@spier/core/lib/carePlanMappers/camsTherapeutic'
+import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '@spier/core/types/fhir'
 
 function simple(linkId: string, value: string): QuestionnaireResponseItem {
   return { linkId, answer: [{ valueString: value }] }
