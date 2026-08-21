@@ -257,8 +257,12 @@ targets.push(...scenarioTargets)
  * resources nothing validates. Added explicitly, and a zero count is an error for
  * the same reason the scenario tree's is.
  */
+// ⚠️ Spread, not `.map` on the generator: `Iterator.prototype.map` is Node 22+
+// and every workflow pins Node 20, so the direct form threw
+// `walkJson(...).map is not a function` in CI while passing on a Node 22
+// developer machine. Same class as the `fs.globSync` incident CLAUDE.md records.
 const patientTargets = existsSync(PATIENTS_DIR)
-  ? walkJson(PATIENTS_DIR).map((full) => relative(root, full))
+  ? [...walkJson(PATIENTS_DIR)].map((full) => relative(root, full))
   : []
 if (existsSync(PATIENTS_DIR) && patientTargets.length === 0) {
   fail(`${relative(root, PATIENTS_DIR)} exists but holds no Patient resources`)
@@ -279,7 +283,13 @@ for (const dir of alsoDirs) {
         `\`npm --prefix web run emit:runtime-fhir\` first.`,
     )
   }
-  const found = walkJson(abs)
+  // ⚠️ Materialised deliberately. This was `walkJson(abs)` — a GENERATOR — so
+  // `found.length` was `undefined`, `undefined === 0` was false, and the
+  // emptiness check below never fired on any Node version: a named-but-empty
+  // `--also` directory passed silently, which is the exact failure the comment
+  // above says this exists to prevent. Verified by running `--also` against an
+  // empty directory and watching it exit 0.
+  const found = [...walkJson(abs)]
   if (found.length === 0) fail(`--also ${dir} exists but holds no .json resources`)
   for (const full of found) {
     targets.push(relative(root, full))
