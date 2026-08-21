@@ -67,7 +67,7 @@ npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire J
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see the mapper-reader note below
 npm run check:patients   # the 14 demo patients' demographics agree across all THREE
-                         # sites: population-patients.fsh (canonical), patients.json
+                         # sites: demo-population/src/patients/*.json (canonical), patients.json
                          # (display copies), and populationToFhir's MRN system in
                          # PatientProvider.tsx — which is SCRAPED, not restated
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
@@ -425,7 +425,9 @@ instead.
 months, and no gate could see it.** A `subject` naming a nonexistent Patient is
 not a conformance error, so the HL7 validator passed it; the offline checker
 asserted every resource named the *right* id, never that the id resolved. The 14
-subjects now exist as example Instances in `ig/input/fsh/population-patients.fsh`,
+subjects now exist as hand-authored FHIR in `packages/demo-population/src/patients/`
+(they were IG example Instances until #392 moved them out — nothing in the IG
+referenced them),
 and `check-scenario-resources.mjs`'s check 8 closes the loop — it **exits non-zero
 when it finds no Patient resources at all**, rather than passing vacuously when
 `copy-fhir` has not run.

@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-008",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-008 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "89012"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Thomas"
+      ],
+      "family": "Becker"
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1965-12-05"
+}

@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-004",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-004 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "45678"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Daniel"
+      ],
+      "family": "Okafor"
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1996-04-09"
+}

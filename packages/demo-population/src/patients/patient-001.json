@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-001",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-001 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "12345"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Jane"
+      ],
+      "family": "Doe"
+    }
+  ],
+  "gender": "female",
+  "birthDate": "1990-01-15"
+}

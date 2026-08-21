@@ -4,7 +4,8 @@
  *
  * ── Why this gate exists ──────────────────────────────────────────────────
  *
- * `ig/input/fsh/population-patients.fsh` is canonical for the 14 patients, but
+ * `packages/demo-population/src/patients/patient-0NN.json` is canonical for the 14
+ * patients (it was `ig/input/fsh/population-patients.fsh` until #392), but
  * two other sites carry the same facts:
  *
  *   1. `packages/demo-population/src/patients.json` — display copies of name / dob /
@@ -38,7 +39,7 @@ import { fileURLToPath } from 'node:url'
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const root = join(webRoot, '..') // repo root
-const fhirDir = join(root, 'packages/fhir-artifacts/generated')
+const patientsDir = join(root, 'packages/demo-population/src/patients')
 const patientsJsonPath = join(root, 'packages/demo-population/src/patients.json')
 const providerPath = join(webRoot, 'src/context/PatientProvider.tsx')
 
@@ -48,25 +49,28 @@ const fail = (msg) => {
   failures++
 }
 
-// ── Site 1: the canonical FSH output ──────────────────────────────────────
+// ── Site 1: the canonical Patient JSON ────────────────────────────────────
+// Hand-authored FHIR in packages/demo-population, NOT a SUSHI output: step E2
+// (#392) moved the 14 Patients out of the IG, because nothing in the IG
+// referenced them and a fake EHR's roster should not depend on a compile. So
+// this site is now checked-in JSON and needs no `copy-fhir` to have run.
 const fhirPatients = new Map()
-let fhirDirEntries
+let patientDirEntries
 try {
-  fhirDirEntries = readdirSync(fhirDir)
+  patientDirEntries = readdirSync(patientsDir)
 } catch {
-  console.error(`[check:patients] ${fhirDir} not found — run \`npm run copy-fhir\` first.`)
+  console.error(`[check:patients] ${patientsDir} not found — the 14 demo Patients live there since #392.`)
   process.exit(1)
 }
-for (const name of fhirDirEntries) {
-  if (!name.startsWith('Patient-') || !name.endsWith('.json')) continue
-  const doc = JSON.parse(readFileSync(join(fhirDir, name), 'utf8'))
+for (const name of patientDirEntries) {
+  if (!name.endsWith('.json')) continue
+  const doc = JSON.parse(readFileSync(join(patientsDir, name), 'utf8'))
   if (doc?.resourceType !== 'Patient' || typeof doc.id !== 'string') continue
   fhirPatients.set(doc.id, doc)
 }
 if (fhirPatients.size === 0) {
   console.error(
-    '[check:patients] no Patient resources in packages/fhir-artifacts/generated/ — run ' +
-      '`npm run copy-fhir -- --force`. Refusing to pass over an unread input.',
+    `[check:patients] no Patient resources in ${patientsDir} — refusing to pass over an unread input.`,
   )
   process.exit(1)
 }
@@ -94,12 +98,12 @@ const appMrnSystem = mrnMatch[1]
 // ── Both directions of the id sets ────────────────────────────────────────
 for (const p of registry) {
   if (!fhirPatients.has(p.id)) {
-    fail(`patients.json has "${p.id}" with no Patient Instance in population-patients.fsh`)
+    fail(`patients.json has "${p.id}" with no Patient JSON in demo-population/src/patients`)
   }
 }
 for (const id of fhirPatients.keys()) {
   if (!registry.some((p) => p.id === id)) {
-    fail(`population-patients.fsh has Patient/${id} with no row in patients.json`)
+    fail(`demo-population/src/patients has Patient/${id} with no row in patients.json`)
   }
 }
 
@@ -150,7 +154,7 @@ if (failures > 0) {
 }
 
 console.log(
-  `✓ patients: ${compared} patient(s) agree across population-patients.fsh, ` +
+  `✓ patients: ${compared} patient(s) agree across demo-population/src/patients, ` +
     `patients.json and populationToFhir (MRN system "${appMrnSystem}")`,
 )
 console.log('patient demographics check passed.')

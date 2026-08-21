@@ -79,6 +79,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..') // repo root
 const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
+const patientsDir = join(root, 'packages/demo-population/src/patients')
 
 let failures = 0
 const fail = (msg) => {
@@ -149,17 +150,30 @@ try {
   process.exit(1)
 }
 
+// Conformance resources come from the IG's output; the 14 Patients come from
+// packages/demo-population, because step E2 (#392) moved them out of the IG —
+// nothing in the IG referenced them, and a fake EHR's roster should not need a
+// SUSHI compile. Both feed ONE index: check 8 resolves the scenarios' `subject`
+// references against its `patientIds`.
+const readJson = (dir, name) => {
+  try {
+    return JSON.parse(readFileSync(join(dir, name), 'utf8'))
+  } catch {
+    return null
+  }
+}
+let patientFiles
+try {
+  patientFiles = readdirSync(patientsDir).filter((n) => n.endsWith('.json'))
+} catch {
+  console.error(`[check:scenario-resources] ${patientsDir} not found — the 14 demo Patients live there since #392.`)
+  process.exit(1)
+}
 const conformance = buildConformanceIndex(
-  generatedFiles
-    .filter((name) => name.endsWith('.json'))
-    .map((name) => {
-      try {
-        return JSON.parse(readFileSync(join(fhirDir, name), 'utf8'))
-      } catch {
-        return null
-      }
-    })
-    .filter(Boolean),
+  [
+    ...generatedFiles.filter((name) => name.endsWith('.json')).map((n) => readJson(fhirDir, n)),
+    ...patientFiles.map((n) => readJson(patientsDir, n)),
+  ].filter(Boolean),
 )
 
 // ⚠️ Startup, not per-resource: an empty index makes every profile-derived rule
@@ -530,7 +544,7 @@ for (const file of scenarioFiles) {
   // Check 3 (in checkResource) asserts every resource references
   // `Patient/<this scenario's id>`. Together with this line that closes the
   // dangle: 116 references across 14 ids pointed at nothing at all until
-  // ig/input/fsh/population-patients.fsh landed, and neither gate could see it —
+  // the 14 Patient resources landed, and neither gate could see it —
   // a `subject` naming a nonexistent Patient is not a conformance error, so the
   // HL7 validator passed it too. Check 3 alone only proves the references agree
   // with each other.
@@ -538,7 +552,7 @@ for (const file of scenarioFiles) {
     fail(
       `scenarios/${file}: no Patient resource with id "${patientId}" — every ` +
         `subject reference in this scenario dangles. Add an Instance to ` +
-        `ig/input/fsh/population-patients.fsh and re-run copy-fhir.`,
+        `packages/demo-population/src/patients/.`,
     )
   }
 

@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-014",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-014 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "11014"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Terrence"
+      ],
+      "family": "Whitfield"
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1994-07-30"
+}

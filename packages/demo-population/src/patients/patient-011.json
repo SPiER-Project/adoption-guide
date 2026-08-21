@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-011",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Synthetic demo patient patient-011 — demonstration data only, not a real person.</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://spier.org/identifier/mrn",
+      "value": "11011"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "given": [
+        "Maria"
+      ],
+      "family": "Alvarez"
+    }
+  ],
+  "gender": "female",
+  "birthDate": "1997-10-12"
+}

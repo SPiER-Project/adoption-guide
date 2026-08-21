@@ -393,6 +393,17 @@ section). One refactor, not three problems.
 while the guide still has a chart it would make the product import from the demo
 host, which is worse than today's direction.
 
+✅ **DONE 2026-08-21 (#392): the 14 `Patient` resources left the IG**, and the
+measurement that settled it is worth keeping — **not one example instance in the
+IG referenced them.** The only mentions in FSH outside their own file were
+comments. So the IG was publishing 14 examples that illustrated none of its own
+profiles. They are now hand-authored FHIR in
+`packages/demo-population/src/patients/`, still validated by `validate-fhir.mjs`
+(which had to be told about them explicitly — moving them dropped the target count
+from 428 to 414 before that was noticed).
+
+The original argument, kept because it is the reasoning:
+
 ⚠️ **And the 14 `Patient` resources should probably leave the IG.** They live in
 `ig/input/fsh/population-patients.fsh` because #356 minted them there to stop 116
 scenario `subject` references dangling — a **validation** need, not a
@@ -485,7 +496,30 @@ question's mechanism regardless.
 | **B — `packages/core`** (§6 phase 0, now 21 imports) | Cheap and reversible per §8; the lint constraint is the point | A third consumer having an honest import path; the `validate.ts` crossing in §9.2 getting a home |
 | **C — `PopulationView` + `MeasureDashboard` onto the `FhirDataSource` seam** | The gate on everything after it | The population view moving to the EHR app; the embedded dashboard becoming a *genuine* user-scoped SMART panel rather than a labelled iframe |
 | **D — move the population view; retire the guide's `/population` and `/patient/chart`** | Only safe once C removes the `localDataSource` coupling | The guide keeping no patient data at all |
-| **E — Patients out of the IG; `packages/fhir-artifacts`** (§6 phase 1) | Highest path churn — §7's re-prove pass applies in full | Killing the §2.4 inversions |
+| **E1 — the generated FHIR out of `web/src`** | Had to precede B — see correction 1 above | Done (#395) |
+| **E2a — the 14 Patients out of the IG** | Nothing in the IG referenced them | Done (#392). The mock EHR's roster no longer needs a SUSHI compile |
+| **E2b — the SUSHI build itself** | ⚠️ **Blocked on step 0 (#387)** — see below | The last §2.4 inversion |
+
+### 9.7 What is left of step E, and why it is blocked
+
+**E2b — `fsh-sushi` leaving the React app's devDependencies — is blocked on
+step 0 (#387), and that is a real block rather than a deferral of taste.**
+
+§6 phase 1's stated content was *"`fsh-generated` becomes a package output rather
+than a write into `web/src/data/fhir/`"* — **E1 delivered exactly that.** What
+remains is §4's other half: the dependency itself. And a dependency needs an
+install location, of which there are only three options:
+
+| Option | Cost |
+|---|---|
+| a 4th `package.json` + lockfile in `packages/fhir-artifacts` | precisely the lockfile/CI churn #387 chose to defer, and the eventual workspaces migration would consolidate it away again |
+| npm workspaces now | #387's deferred decision, reopened |
+| drop the dependency and pin via `npx -y fsh-sushi@<version>` | no new install location, and it would fix a real inconsistency (five workflows `npm install -g fsh-sushi` **unpinned** today) — but the compile gains a registry dependency on a cold npm cache, weakening `verify`'s offline reproducibility, which this repo values highly |
+
+Decided 2026-08-21: **defer to the workspaces migration.** The third option was
+the tempting one and was rejected on the offline-reproducibility cost; if that
+judgement changes, the `VALIDATOR_VERSION` constant in
+`scripts/lib/validator-jar.mjs` is the pattern to copy, sed-scrape and all.
 
 ⚠️ **§7's migration rule applies unchanged and is the most important paragraph in
 this document.** One deliberate pass per step; after each, plant the defect each

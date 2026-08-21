@@ -59,6 +59,7 @@ const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
 const AUTHORED_DIR = join(root, 'FHIR-Resources')
 const SCENARIOS_DIR = join(root, 'packages/demo-population/src/scenarios')
+const PATIENTS_DIR = join(root, 'packages/demo-population/src/patients')
 
 /**
  * Scenario buckets that hold FHIR resources, and the resourceType each implies.
@@ -249,6 +250,26 @@ const { paths: scenarioTargets, labels: scenarioLabels, tmpDir: scenarioTmpDir }
 targets.push(...scenarioTargets)
 
 /**
+ * The 14 demo Patients. They were IG example Instances until #392 moved them to
+ * packages/demo-population — and moving them dropped them out of this gate
+ * entirely (428 targets to 414), because the IG's output no longer contains them.
+ * That would have left the scenarios' 116 `subject` references pointing at
+ * resources nothing validates. Added explicitly, and a zero count is an error for
+ * the same reason the scenario tree's is.
+ */
+// ⚠️ Spread, not `.map` on the generator: `Iterator.prototype.map` is Node 22+
+// and every workflow pins Node 20, so the direct form threw
+// `walkJson(...).map is not a function` in CI while passing on a Node 22
+// developer machine. Same class as the `fs.globSync` incident CLAUDE.md records.
+const patientTargets = existsSync(PATIENTS_DIR)
+  ? [...walkJson(PATIENTS_DIR)].map((full) => relative(root, full))
+  : []
+if (existsSync(PATIENTS_DIR) && patientTargets.length === 0) {
+  fail(`${relative(root, PATIENTS_DIR)} exists but holds no Patient resources`)
+}
+targets.push(...patientTargets)
+
+/**
  * `--also` directories. A named-but-empty directory is an error for the same
  * reason a zero-resource scenario tree is: coverage that can quietly drop to
  * nothing is the failure mode this gate exists to prevent.
@@ -262,7 +283,13 @@ for (const dir of alsoDirs) {
         `\`npm --prefix web run emit:runtime-fhir\` first.`,
     )
   }
-  const found = walkJson(abs)
+  // ⚠️ Materialised deliberately. This was `walkJson(abs)` — a GENERATOR — so
+  // `found.length` was `undefined`, `undefined === 0` was false, and the
+  // emptiness check below never fired on any Node version: a named-but-empty
+  // `--also` directory passed silently, which is the exact failure the comment
+  // above says this exists to prevent. Verified by running `--also` against an
+  // empty directory and watching it exit 0.
+  const found = [...walkJson(abs)]
   if (found.length === 0) fail(`--also ${dir} exists but holds no .json resources`)
   for (const full of found) {
     targets.push(relative(root, full))
