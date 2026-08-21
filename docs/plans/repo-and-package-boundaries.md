@@ -190,6 +190,9 @@ manifest:
 | `packages/fhir-artifacts` | the SUSHI build; `copy-fhir` becomes its output step | Kills both inversions in §2.4. `fsh-sushi` leaves the React app's devDependencies; generated resources become a package other things import rather than a directory written into `web/src`. |
 | `packages/core` | `types/fhir`, `data/catalog`, `observationMappers`, `carePlanMappers`, `dataSource`, `registry`, `measures`, `patientPathway`, `cdsHooks`, `encounters`, `conceptDomain`, `deriveFromResponse` | Exactly what the Worker imports today (§2.1). Already React-free (§2.2), so the constraint is *enforceable* — a lint rule can forbid React and DOM globals here. The drift gates that read `lib/` move with it. |
 | `packages/ui` | `PageHeader`, `FhirJsonViewer`, the token definitions, the page template | `check:tokens` and `check:template` are gates *about* this package and should live in it. |
+| `packages/core` (root, not `src/`) | **`fhir-resource-rules.mjs`** + its hand-written `.d.mts` | §9.2's open question, answered by #396. The single opinion on whether a FHIR resource is valid, imported by a Node CLI gate (`check-scenario-resources.mjs`) **and** by the mock EHR's write endpoint at runtime. It sits at the package root rather than under `src/` because it is plain ESM outside the TypeScript tree and must stay importable from a bare `node scripts/…` with nothing compiled. |
+| `packages/demo-population` | the 14 patients, their scenario slices, and their `Patient` resources | §9.3. Shipped as #394; the `Patient`s joined it in #399 (E2a). |
+| `packages/fhir-artifacts` | the SUSHI **output** (`generated/`, gitignored) | §6 phase 1. The output location shipped as #395 (E1); ⚠️ **the build itself has not moved** — E2b, blocked on #387. |
 | `apps/adoption-guide` | all 12 pages, the EHR shell, routing | §5 — one app, not two |
 | `apps/cds-hooks` | the Worker | The `../../../` imports become `@spier/core` |
 | `apps/patient` | — | §5, phase 3 |
@@ -240,6 +243,14 @@ imports.
 third consumer of `core` plus the scenarios, pointing the same direction.
 
 ## 6. Phases
+
+> ⚠️ **Historical.** This was the original phasing, and §9.5 supersedes it — the
+> real sequencing turned out to be 0 → A/B → C → D → E1 → E2, with **E1 having to
+> precede B** for a dependency reason this section did not anticipate. Everything
+> here except phase 1's second half (the SUSHI build, E2b) has shipped. Kept
+> because the reasoning is still the reasoning; read §9.5 and §9.6 for what
+> happened.
+
 
 **Phase 0 — declare `packages/core`; convert the Worker's deep imports.**
 The smallest useful step, and the only one worth doing regardless of what else
@@ -322,7 +333,14 @@ the web app are in different folders. is that normal? … i see there being mayb
 apps."* §9.4 answers the four-app framing. The measurements come first, because
 they are what changed.
 
-### 9.1 The deep imports more than doubled: 9 → 21
+### 9.1 The deep imports more than doubled: 9 → 21 — and are now 0
+
+✅ **Resolved by step B (#396): the count is zero.** The measurement below is kept
+because it is *why* the reshape happened, not because it describes today. The
+module names in it have all moved to `packages/core` and are imported as
+`@spier/core/<path>`; `data/population/patients.json` is
+`@spier/demo-population/patients.json`.
+
 
 | Package | `../../../web/src` imports |
 |---|---|
@@ -344,8 +362,9 @@ both directions, and nothing states which direction is allowed.
 ### 9.2 A crossing this document has no row for
 
 `services/mock-ehr/src/validate.ts` imports
-**`web/scripts/lib/fhir-resource-rules.mjs`** — a Worker taking a runtime
-dependency on a *gate's* internals.
+**`packages/core/fhir-resource-rules.mjs`** (it was `web/scripts/lib/` until step B
+moved it) — a Worker taking a runtime dependency on what began as a *gate's*
+internals.
 
 That was deliberate and is still right: the embedded-panel plan's §1 guardrail 1
 requires the mock to validate writes *"reusing the profile checks in
@@ -353,15 +372,23 @@ requires the mock to validate writes *"reusing the profile checks in
 sharing the module is the only way to have one opinion instead of two. The rules
 were moved out of the gate unchanged and both callers now use them.
 
-⚠️ **But §4's package table has nowhere to put it, and §7 gets it backwards.** §7
-counts `web/scripts/` as *things that break when files move* — 13 of 15 files
-hardcoding paths. It is now also a thing that is **imported by a deployable**. Any
-package layout has to answer where shared *validation rules* live, and the answer
-is not "in the scripts folder of an app". Candidate: they belong in
-`packages/core` (or beside `fhir-artifacts`), with the CLI gates importing them —
-the same direction as everything else in §4.
+✅ **§4's package table now has a row for it (resolved by #396).** The open
+question was where shared *validation rules* live, given that "the scripts folder
+of an app" is not an answer once a deployable imports them at runtime. They live at
+`packages/core`'s root — not under `src/`, because the module is plain ESM outside
+the TypeScript tree and has to stay importable from a bare `node scripts/…` with
+nothing compiled.
+
+The observation that prompted it stands: §7 counts `web/scripts/` as *things that
+break when files move* — 13 of 15 files hardcoding paths — and it was **also** a
+thing imported by a deployable. Both callers still use the one module, which is the
+guardrail §1 of the panel plan requires.
 
 ### 9.3 The fixtures have no home, and that is a real gap
+
+✅ **Resolved by step A (#394): they live in `packages/demo-population`**, and the
+14 `Patient` resources joined them in E2a (#399). §4 now has a row for it. What
+follows is the reasoning, kept because the re-count is the useful part.
 
 §4's `packages/core` row lists `data/catalog`. It does **not** list
 `data/population` — so the 14 demo patients and their scenario slices are
@@ -377,7 +404,7 @@ they move with the data, so they were never arguments. The honest re-count:
 | Consumer | Survives moving the patient views out of the guide? |
 |---|---|
 | `PatientProvider`, `localDataSource`, `useActivePatientId`, `usePatientOpenBroadcast` | **No — they go with the chart** |
-| `PopulationView.tsx` | **No — being deprecated** |
+| `PopulationView.tsx` | **No — it goes with the chart-side data** (see the correction below; it is *not* being deprecated) |
 | `MeasureDashboard.tsx` | The only guide-side maybe |
 | `services/cds-hooks`, `services/mock-ehr` | Yes, and both already import it |
 | `scripts/validate-fhir.mjs`, `scripts/build-use-case-workbook.mjs` | Yes — **repo-root tooling, not "the guide"**; both take paths |
@@ -387,6 +414,19 @@ and takes a slice as an argument, so the measure *engine* is portable and
 `MeasureDashboard.tsx` is only wiring — wired to `localDataSource` directly, the
 same way `PopulationView.tsx` is (already flagged in this document's Related
 section). One refactor, not three problems.
+
+⚠️ **Correction, 2026-08-21: that table said `PopulationView.tsx` was "being
+deprecated", and it is not.** Nothing else in this doc set says so, and
+[`suicide-care-dashboard.md`](suicide-care-dashboard.md) treats it as the primary
+surface to **redesign** — it is the first file that plan names — and explicitly
+recommends the page *stay a single page* as it absorbs five more panels. It is
+slated for redesign under #277, not removal.
+
+The claim mattered rather than being cosmetic: it sat in a table used to justify
+moving the fixtures, and "being deprecated" is a reason not to invest in
+something. Step D (#398) left the page alone on the strength of the dashboard
+plan; a reader of the table alone would have had no way to know that. Filed and
+fixed as #402.
 
 **So: nothing in the adoption guide has a durable claim on the fixtures.**
 `packages/demo-population` is the honest home — not `services/mock-ehr`, because
@@ -489,16 +529,57 @@ is what §8's "cheap and reversible" asymmetry was actually about. The only
 argument for A first is that it settles a live question — and #387 settles that
 question's mechanism regardless.
 
+**3. Step D's row conflated "the guide" the LENS with the adoption-guide APP, and
+the literal reading contradicted §5.** It used to read *"move the population view;
+retire the guide's `/population` and `/patient/chart`"* — but neither is a guide
+route. Both are top-level EHR-side lenses in `App.tsx`; there was nothing under
+`/guide` to retire. And moving those views out of the *app* is refused twice in
+this very document: **§5 ("Do not split the guide from the clinical demo" — one
+artifact, `check:template` gating it in both directions, cross-lens links
+load-bearing)** and **§9.4's correction 2** ("the licensed app and the guide should
+not be separate deployables").
+
+Read as a lens — the only reading consistent with §5 — D was an **intra-app IA
+change**, and that is what shipped in #398: `/guide/measures` →
+`/population/measures`, because the measure dashboard was the one guide section
+that read patient data. "The guide" is genuinely overloaded in this repo — a lens,
+an app, and a deployable historically named `adoption-guide` — so **say which one
+is meant** anywhere it appears in a decision. Filed and fixed as #402.
+
 | Step | Why this order | Unblocks |
 |---|---|---|
-| **0 — a workspace mechanism** (#387) | Neither A nor B can start without one | Everything below; a third consumer having anywhere honest to import from |
-| **A — `packages/demo-population`** | Settles a question that is live now. ⚠️ **Not** the smallest — see correction 2 | The fixtures question; stops the next consumer guessing |
-| **B — `packages/core`** (§6 phase 0, now 21 imports) | Cheap and reversible per §8; the lint constraint is the point | A third consumer having an honest import path; the `validate.ts` crossing in §9.2 getting a home |
-| **C — `PopulationView` + `MeasureDashboard` onto the `FhirDataSource` seam** | The gate on everything after it | The population view moving to the EHR app; the embedded dashboard becoming a *genuine* user-scoped SMART panel rather than a labelled iframe |
-| **D — move the population view; retire the guide's `/population` and `/patient/chart`** | Only safe once C removes the `localDataSource` coupling | The guide keeping no patient data at all |
+| **0 — a workspace mechanism** (#387) | Neither A nor B can start without one. Shipped as declared **aliases**, workspaces deferred | Everything below; a third consumer having anywhere honest to import from |
+| **A — `packages/demo-population`** | Settles a question that is live now. ⚠️ **Not** the smallest — see correction 2 | Done (#394) |
+| **B — `packages/core`** (§6 phase 0, now 21 imports) | Cheap and reversible per §8; the lint constraint is the point | Done (#396) — deep imports **21 → 0**, and the `validate.ts` crossing in §9.2 got a home |
+| **C — `PopulationView` + `MeasureDashboard` onto the `FhirDataSource` seam** | The gate on everything after it | Done (#397) — closed blocker 1 of §6.3. Blocker 2 (user-scoped launch + cohort read) is **#401**, still open |
+| **D — the measure dashboard to the EHR side** | Only safe once C removes the `localDataSource` coupling | Done (#398). The guide holds no patient data, gated by `check:guide-boundary`. ⚠️ **This row used to say something else — see correction 3** |
 | **E1 — the generated FHIR out of `web/src`** | Had to precede B — see correction 1 above | Done (#395) |
 | **E2a — the 14 Patients out of the IG** | Nothing in the IG referenced them | Done (#392). The mock EHR's roster no longer needs a SUSHI compile |
 | **E2b — the SUSHI build itself** | ⚠️ **Blocked on step 0 (#387)** — see below | The last §2.4 inversion |
+
+### 9.6 Tracked, as of 2026-08-21
+
+This plan was agreed and then tracked nowhere for a week — the same class as the
+stale plan docs #349 and #355 kept finding, and the reason a doc with no gate
+quietly stops being the plan. It has issues now, so the sequencing goes stale
+**visibly**:
+
+| Step | Issue | State |
+|---|---|---|
+| Epic | [#386](https://github.com/SPiER-Project/adoption-guide/issues/386) | open |
+| 0 — workspace mechanism | [#387](https://github.com/SPiER-Project/adoption-guide/issues/387) | **reopened** — E2b's blocker |
+| A — `packages/demo-population` | [#388](https://github.com/SPiER-Project/adoption-guide/issues/388) | closed (#394) |
+| B — `packages/core` | [#389](https://github.com/SPiER-Project/adoption-guide/issues/389) | closed (#396) |
+| C — the `FhirDataSource` seam | [#390](https://github.com/SPiER-Project/adoption-guide/issues/390) | closed (#397) |
+| D — measures to the EHR side | [#391](https://github.com/SPiER-Project/adoption-guide/issues/391) | closed (#398) |
+| E1 + E2a | [#392](https://github.com/SPiER-Project/adoption-guide/issues/392) | open **for E2b only** (#395, #399 landed) |
+
+Two things that came out of the reshape and are tracked outside it:
+
+| | |
+|---|---|
+| [#401](https://github.com/SPiER-Project/adoption-guide/issues/401) | blocker 2 of §6.3 — the embedded dashboard is a labelled iframe, not a SMART panel. Needs a user-scoped launch, **scope enforcement** (the stub has none), and a cohort read |
+| [#402](https://github.com/SPiER-Project/adoption-guide/issues/402) | the corrections in this document, including the two above |
 
 ### 9.7 What is left of step E, and why it is blocked
 
@@ -533,23 +614,6 @@ importing fixtures from somewhere. If measures move to the EHR side — where th
 would live in a real deployment, computed over real data — the guide keeps no
 patient data and D is clean. This is a product decision and it changes step D's
 shape.
-
-### 9.6 Tracked, as of 2026-08-20
-
-This plan was agreed and then tracked nowhere for a week — the same class as the
-stale plan docs #349 and #355 kept finding, and the reason a doc with no gate
-quietly stops being the plan. It now has issues, so the sequencing can go stale
-**visibly**:
-
-| Step | Issue |
-|---|---|
-| Epic | [#386](https://github.com/SPiER-Project/adoption-guide/issues/386) |
-| 0 — workspace mechanism | [#387](https://github.com/SPiER-Project/adoption-guide/issues/387) |
-| A — `packages/demo-population` | [#388](https://github.com/SPiER-Project/adoption-guide/issues/388) |
-| B — `packages/core` | [#389](https://github.com/SPiER-Project/adoption-guide/issues/389) |
-| C — the `FhirDataSource` seam | [#390](https://github.com/SPiER-Project/adoption-guide/issues/390) |
-| D — move the population view | [#391](https://github.com/SPiER-Project/adoption-guide/issues/391) |
-| E — Patients out of the IG | [#392](https://github.com/SPiER-Project/adoption-guide/issues/392) |
 
 ## Related
 
