@@ -452,9 +452,36 @@ declared rather than merely tidy.
 Deployables stay at **three**. What changes is that shared code stops living
 inside a consumer.
 
+⚠️ **Two corrections, measured 2026-08-20 while scoping step A for #388.** Both
+were found by counting rather than by argument, and the second reverses this
+table's own order advice.
+
+**1. There is no workspace mechanism, and steps A and B both presuppose one.**
+There is no root `package.json`, no `workspaces` key anywhere, no `packages/`
+directory, and **three separate lockfiles**. §6 phase 0 says to convert the
+Worker's imports *"behind a workspace reference"* and that *"nothing moves on disk
+except a `package.json` and a `tsconfig` reference"* — both sentences assume a
+root that does not exist. Establishing one is **step 0** (#387), and it carries a
+real fork: npm workspaces (strongest boundary, but collapses three lockfiles and
+touches 8 `npm ci` invocations across 4 workflows plus `deploy.yml`'s
+`cache-dependency-path`) versus tsconfig `paths` + bundler aliases (no CI change
+at all, still declared and still lintable, weaker than a package name).
+
+**2. Step A is not the smallest step, and B is the better first move.** "Smallest,
+no behaviour change" was wrong: A moves **17 files** and updates **29 referencing
+files across 7 trees** — 14 in `web/src`, 5 `web/scripts` gates, 2 repo-root
+scripts, 4 in `services/mock-ehr`, 1 in `services/cds-hooks`,
+`ig/input/fsh/population-patients.fsh`, and 2 workflows whose **path filters name
+the old location**, so a stale filter silently stops triggering them. That is
+precisely the churn §7 calls the dangerous part. **B moves nothing on disk**, which
+is what §8's "cheap and reversible" asymmetry was actually about. The only
+argument for A first is that it settles a live question — and #387 settles that
+question's mechanism regardless.
+
 | Step | Why this order | Unblocks |
 |---|---|---|
-| **A — `packages/demo-population`** | Smallest, no behaviour change, settles a question that is live now | The fixtures question; stops the next consumer guessing |
+| **0 — a workspace mechanism** (#387) | Neither A nor B can start without one | Everything below; a third consumer having anywhere honest to import from |
+| **A — `packages/demo-population`** | Settles a question that is live now. ⚠️ **Not** the smallest — see correction 2 | The fixtures question; stops the next consumer guessing |
 | **B — `packages/core`** (§6 phase 0, now 21 imports) | Cheap and reversible per §8; the lint constraint is the point | A third consumer having an honest import path; the `validate.ts` crossing in §9.2 getting a home |
 | **C — `PopulationView` + `MeasureDashboard` onto the `FhirDataSource` seam** | The gate on everything after it | The population view moving to the EHR app; the embedded dashboard becoming a *genuine* user-scoped SMART panel rather than a labelled iframe |
 | **D — move the population view; retire the guide's `/population` and `/patient/chart`** | Only safe once C removes the `localDataSource` coupling | The guide keeping no patient data at all |
@@ -472,6 +499,23 @@ importing fixtures from somewhere. If measures move to the EHR side — where th
 would live in a real deployment, computed over real data — the guide keeps no
 patient data and D is clean. This is a product decision and it changes step D's
 shape.
+
+### 9.6 Tracked, as of 2026-08-20
+
+This plan was agreed and then tracked nowhere for a week — the same class as the
+stale plan docs #349 and #355 kept finding, and the reason a doc with no gate
+quietly stops being the plan. It now has issues, so the sequencing can go stale
+**visibly**:
+
+| Step | Issue |
+|---|---|
+| Epic | [#386](https://github.com/SPiER-Project/adoption-guide/issues/386) |
+| 0 — workspace mechanism | [#387](https://github.com/SPiER-Project/adoption-guide/issues/387) |
+| A — `packages/demo-population` | [#388](https://github.com/SPiER-Project/adoption-guide/issues/388) |
+| B — `packages/core` | [#389](https://github.com/SPiER-Project/adoption-guide/issues/389) |
+| C — the `FhirDataSource` seam | [#390](https://github.com/SPiER-Project/adoption-guide/issues/390) |
+| D — move the population view | [#391](https://github.com/SPiER-Project/adoption-guide/issues/391) |
+| E — Patients out of the IG | [#392](https://github.com/SPiER-Project/adoption-guide/issues/392) |
 
 ## Related
 
