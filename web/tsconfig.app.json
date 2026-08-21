@@ -12,6 +12,10 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
+    "paths": {
+      "@spier/demo-population": ["../packages/demo-population/src/index.ts"],
+      "@spier/demo-population/*": ["../packages/demo-population/src/*"]
+    },
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,

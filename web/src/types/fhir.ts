@@ -6,7 +6,7 @@
  *
  * Shared by:
  *  - `context/PatientContext.tsx` (in-memory store + context surface)
- *  - `data/population/scenarios/index.ts` (per-patient seed JSON)
+ *  - `@spier/demo-population` (per-patient seed JSON)
  *  - any consumer that wants a typed handle on resources read from the
  *    patient context.
  */

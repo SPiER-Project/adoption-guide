@@ -33,7 +33,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { POPULATION_SCENARIOS } from '../data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { deriveFromResponse } from './deriveFromResponse'
 import {
   generateCarePlan,

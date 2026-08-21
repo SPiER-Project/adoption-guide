@@ -4,7 +4,7 @@
  *
  * ─── Why this script exists ───
  *
- * Every clinical date in `src/data/population/scenarios/patient-*.json` is
+ * Every clinical date in `packages/demo-population/src/scenarios/patient-*.json` is
  * static, and the demo has enough time-relative logic that stale fixtures make a
  * working pathway read as a failing one: reassessments all overdue, no visit ever
  * booked, "positive item 9 today" structurally zero.
@@ -55,7 +55,7 @@ import { resolve, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const scenarioDir = resolve(here, '../src/data/population/scenarios')
+const scenarioDir = resolve(here, '../../packages/demo-population/src/scenarios')
 
 /**
  * The anchor these fixtures are dated against. Recorded so a future refresh can

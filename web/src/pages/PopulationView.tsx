@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '../data/catalog'
-import registryPatientsData from '../data/population/patients.json'
+import registryPatientsData from '@spier/demo-population/patients.json'
 import { localDataSource, resetLocalDemoData } from '../lib/dataSource/localDataSource'
 import { deriveRegistryRow, type RegistryPatient, type DerivedRegistryRow } from '../lib/registry'
 import { evaluateAllMeasures, trailingPeriod } from '../lib/measures'

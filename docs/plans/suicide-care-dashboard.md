@@ -293,7 +293,7 @@ Phases 3 and 4 need spec answers 5/6 and 3/4 respectively.
   an already-scanned tree wants **its own `SCAN` entry** — a parent floor cannot
   tell two contributors apart.
 - **Any new tier code** ripples through `ig/input/fsh/`,
-  `web/src/lib/observationMappers/`, and `web/src/data/population/` by hand. Grep
+  `web/src/lib/observationMappers/`, and `packages/demo-population/` by hand. Grep
   the whole repo.
 
 ---

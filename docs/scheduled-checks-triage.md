@@ -71,7 +71,7 @@ defect the check exists to catch.
    `86849004` does here.
 2. Fix every site. Codes are hand-duplicated across `ig/input/fsh/`,
    `web/src/lib/observationMappers/`, `web/src/lib/carePlanMappers/`,
-   `web/src/data/population/` and `web/src/data/catalog/dataElements.ts` (the
+   `packages/demo-population/` and `web/src/data/catalog/dataElements.ts` (the
    data dictionary) — grep the whole repo for the old value.
 3. Re-run locally: `node web/scripts/check-codings.mjs --tx https://tx.fhir.org`.
 4. The tracking issue closes itself on the next clean run.

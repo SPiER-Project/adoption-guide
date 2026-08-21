@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 // Bundle the Worker entry (src/index.ts) into a single ESM file for Cloudflare.
@@ -8,6 +9,25 @@ import { defineConfig } from 'vite'
 // their JSON inlined at build time. A Worker has no filesystem, so this is the
 // only way the fixtures reach it.
 export default defineConfig({
+  // The demo population resolves by declared alias, not by npm workspace
+  // (#387 records why there is no workspace yet). Anchored exact + prefix
+  // pair; must agree with tsconfig.json's `paths`.
+  resolve: {
+    alias: [
+      {
+        find: /^@spier\/demo-population$/,
+        replacement: fileURLToPath(
+          new URL('../../packages/demo-population/src/index.ts', import.meta.url),
+        ),
+      },
+      {
+        find: '@spier/demo-population/',
+        replacement: fileURLToPath(
+          new URL('../../packages/demo-population/src/', import.meta.url),
+        ),
+      },
+    ],
+  },
   build: {
     ssr: './src/index.ts',
     outDir: 'dist',

@@ -13,7 +13,11 @@
     // breaks either the typecheck or the test, never silently both.
     "baseUrl": ".",
     "paths": {
-      "fhirclient/*": ["../../web/node_modules/fhirclient/*"]
+      "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
+      // The demo population resolves by declared alias, not by workspace
+      // (#387). Mirrors vite.config.ts and vitest.config.ts here.
+      "@spier/demo-population": ["../../packages/demo-population/src/index.ts"],
+      "@spier/demo-population/*": ["../../packages/demo-population/src/*"]
     },
     // Match the web app's strictness exactly — this project typechecks web
     // source it imports (catalog, mappers, scenarios), which is clean under

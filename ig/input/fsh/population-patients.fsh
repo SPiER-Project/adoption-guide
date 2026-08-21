@@ -1,7 +1,7 @@
 // Population demo patients — the subject resources the scenarios reference.
 //
 // ⚠️ These 14 ids are referenced 116 times across
-// `web/src/data/population/scenarios/patient-*.json` as `subject: Patient/patient-0NN`,
+// `packages/demo-population/src/scenarios/patient-*.json` as `subject: Patient/patient-0NN`,
 // and until this file existed EVERY ONE OF THEM DANGLED. A missing optional
 // subject is not a validation error, so no gate saw it: the offline checker
 // asserted each resource points at the RIGHT patient id, never that the id
@@ -48,7 +48,7 @@
 Instance: PopulationPatient001
 InstanceOf: Patient
 Title: "Demo patient — Jane Doe"
-Description: "Synthetic population patient patient-001. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-001.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-001. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-001.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-001"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -62,7 +62,7 @@ Usage: #example
 Instance: PopulationPatient002
 InstanceOf: Patient
 Title: "Demo patient — Marcus Chen"
-Description: "Synthetic population patient patient-002. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-002.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-002. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-002.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-002"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -76,7 +76,7 @@ Usage: #example
 Instance: PopulationPatient003
 InstanceOf: Patient
 Title: "Demo patient — Sarah Patel"
-Description: "Synthetic population patient patient-003. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-003.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-003. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-003.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-003"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -90,7 +90,7 @@ Usage: #example
 Instance: PopulationPatient004
 InstanceOf: Patient
 Title: "Demo patient — Daniel Okafor"
-Description: "Synthetic population patient patient-004. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-004.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-004. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-004.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-004"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -104,7 +104,7 @@ Usage: #example
 Instance: PopulationPatient005
 InstanceOf: Patient
 Title: "Demo patient — Elena Rodriguez"
-Description: "Synthetic population patient patient-005. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-005.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-005. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-005.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-005"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -118,7 +118,7 @@ Usage: #example
 Instance: PopulationPatient006
 InstanceOf: Patient
 Title: "Demo patient — Jamal Washington"
-Description: "Synthetic population patient patient-006. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-006.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-006. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-006.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-006"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -132,7 +132,7 @@ Usage: #example
 Instance: PopulationPatient007
 InstanceOf: Patient
 Title: "Demo patient — Aisha Patel-Williams"
-Description: "Synthetic population patient patient-007. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-007.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-007. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-007.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-007"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -146,7 +146,7 @@ Usage: #example
 Instance: PopulationPatient008
 InstanceOf: Patient
 Title: "Demo patient — Thomas Becker"
-Description: "Synthetic population patient patient-008. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-008.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-008. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-008.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-008"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -160,7 +160,7 @@ Usage: #example
 Instance: PopulationPatient009
 InstanceOf: Patient
 Title: "Demo patient — Mei Lin"
-Description: "Synthetic population patient patient-009. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-009.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-009. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-009.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-009"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -174,7 +174,7 @@ Usage: #example
 Instance: PopulationPatient010
 InstanceOf: Patient
 Title: "Demo patient — Robert Hayes"
-Description: "Synthetic population patient patient-010. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-010.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-010. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-010.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-010"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -188,7 +188,7 @@ Usage: #example
 Instance: PopulationPatient011
 InstanceOf: Patient
 Title: "Demo patient — Maria Alvarez"
-Description: "Synthetic population patient patient-011. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-011.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-011. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-011.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-011"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -202,7 +202,7 @@ Usage: #example
 Instance: PopulationPatient012
 InstanceOf: Patient
 Title: "Demo patient — Nia Barrett"
-Description: "Synthetic population patient patient-012. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-012.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-012. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-012.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-012"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -216,7 +216,7 @@ Usage: #example
 Instance: PopulationPatient013
 InstanceOf: Patient
 Title: "Demo patient — Owen Delacroix"
-Description: "Synthetic population patient patient-013. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-013.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-013. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-013.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-013"
 * identifier[0].system = "http://spier.org/identifier/mrn"
@@ -230,7 +230,7 @@ Usage: #example
 Instance: PopulationPatient014
 InstanceOf: Patient
 Title: "Demo patient — Terrence Whitfield"
-Description: "Synthetic population patient patient-014. Subject of the scenario artifacts in web/src/data/population/scenarios/patient-014.json. Demonstration data only — not a real person."
+Description: "Synthetic population patient patient-014. Subject of the scenario artifacts in packages/demo-population/src/scenarios/patient-014.json. Demonstration data only — not a real person."
 Usage: #example
 * id = "patient-014"
 * identifier[0].system = "http://spier.org/identifier/mrn"

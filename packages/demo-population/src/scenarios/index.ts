@@ -7,7 +7,9 @@
  * from the filename
  * (e.g. `patient-005.json` → `patient-005`).
  */
-import type { PatientSlice, ScenarioEncounter } from '../../../types/fhir'
+// ⚠️ A type-only edge back into the app — see the note in ../patients.ts.
+// `types/fhir` is also bound for `packages/core` (#389), which closes it.
+import type { PatientSlice, ScenarioEncounter } from '../../../../web/src/types/fhir'
 
 /**
  * The on-disk scenario shape is a `PatientSlice` plus an optional read-only

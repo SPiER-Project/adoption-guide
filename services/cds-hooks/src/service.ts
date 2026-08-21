@@ -31,8 +31,8 @@ import {
   type StoredResponseLike,
 } from '../../../web/src/lib/patientPathway'
 import { mapResponseToObservations, type RiskAlert } from '../../../web/src/lib/observationMappers'
-import { POPULATION_SCENARIOS } from '../../../web/src/data/population/scenarios'
-import patientsJson from '../../../web/src/data/population/patients.json'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import patientsJson from '@spier/demo-population/patients.json'
 import type { QuestionnaireResponseResource } from '../../../web/src/types/fhir'
 import type { CdsHookRequest, CdsServiceDefinition } from './types'
 

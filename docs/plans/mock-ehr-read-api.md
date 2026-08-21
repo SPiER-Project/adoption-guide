@@ -36,7 +36,7 @@ confirmed against a running server.
 - **The offline demo track is retired**, the `FhirDataSource` discipline is kept
   ([`surfaces-and-distribution.md`](surfaces-and-distribution.md) §8).
 - **One copy of every fixture.** The mock serves the *same*
-  `web/src/data/population/scenarios/patient-0NN.json` the app ships. No second
+  `packages/demo-population/src/scenarios/patient-0NN.json` the app ships. No second
   copy of any patient, ever.
 
 ## ⚠️ Three corrections to what the plan says about this step
@@ -172,7 +172,7 @@ awkward to retrofit.
 importing the app's fixtures into a Worker:
 
 ```ts
-import { POPULATION_SCENARIOS } from '../../../web/src/data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 ```
 
 That works because the Worker is **Vite-bundled** (`import.meta.glob` needs it),

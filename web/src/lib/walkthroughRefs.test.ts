@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildWalkthroughRefIndex, resolveRelatedRefs } from './chartDisplay'
-import { POPULATION_SCENARIOS } from '../data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { FhirResourceLike, StoredResponseLike } from './patientPathway'
 
 /**

@@ -4,7 +4,7 @@
  */
 import { useEffect, useRef } from 'react'
 import { publishPatientOpen, shouldPublishOnActivation } from '../lib/fhircast'
-import { POPULATION_BY_ID } from '../data/population/patients'
+import { POPULATION_BY_ID } from '@spier/demo-population'
 
 /**
  * Broadcast a `patient-open` whenever the active patient changes to a real

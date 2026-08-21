@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 // Almost everything under test is a pure function walking FHIR JSON, so the
@@ -14,6 +15,27 @@ import { defineConfig } from 'vitest/config'
 // the workflows' Node or check the new engines range against them. To test the
 // way CI does: `volta run --node 20 -- npm run verify`.
 export default defineConfig({
+  // ⚠️ This file does NOT inherit web/vite.config.ts — no `mergeConfig` — so the
+  // demo-population alias is repeated here rather than shared. Verified, not
+  // assumed: under vitest `@lhncbc/ucum-lhc` resolves to the real library, not
+  // the shim vite.config.ts aliases. Editing one without the other breaks either
+  // the build or the tests, never silently both.
+  resolve: {
+    alias: [
+      {
+        find: /^@spier\/demo-population$/,
+        replacement: fileURLToPath(
+          new URL('../packages/demo-population/src/index.ts', import.meta.url),
+        ),
+      },
+      {
+        find: '@spier/demo-population/',
+        replacement: fileURLToPath(
+          new URL('../packages/demo-population/src/', import.meta.url),
+        ),
+      },
+    ],
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}'],

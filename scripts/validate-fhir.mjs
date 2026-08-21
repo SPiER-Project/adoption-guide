@@ -19,7 +19,7 @@
  * issue so it can gate CI.
  *
  * It also covers a third tree that nothing validated at all (issue #226): the
- * demo registry's scenario slices at `web/src/data/population/scenarios/`.
+ * demo registry's scenario slices at `packages/demo-population/src/scenarios/`.
  * Those hold hand-authored FHIR nested inside a `PatientSlice` wrapper rather
  * than as standalone resource files, so they are unwrapped into a temp
  * directory first (see `collectScenarioResources`). The Stage-8 measure engine
@@ -58,7 +58,7 @@ const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
 
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
 const AUTHORED_DIR = join(root, 'FHIR-Resources')
-const SCENARIOS_DIR = join(root, 'web/src/data/population/scenarios')
+const SCENARIOS_DIR = join(root, 'packages/demo-population/src/scenarios')
 
 /**
  * Scenario buckets that hold FHIR resources, and the resourceType each implies.
@@ -205,7 +205,7 @@ for (const dir of [GENERATED_DIR, AUTHORED_DIR]) {
  *
  * Returns `{ paths, labels }` where `labels` maps each temp path back to a
  * scenario-relative label, so a failure reads as
- * `web/src/data/population/scenarios/patient-004.json episodes[0]` rather than
+ * `packages/demo-population/src/scenarios/patient-004.json episodes[0]` rather than
  * as a path in /tmp that means nothing to the reader.
  */
 function collectScenarioResources(dir) {
@@ -235,8 +235,8 @@ function collectScenarioResources(dir) {
         writeFileSync(full, JSON.stringify(clean, null, 2))
         paths.push(full)
         labels.set(full, {
-          label: `web/src/data/population/scenarios/${file} ${bucket}[${i}] (${clean.id})`,
-          repoFile: `web/src/data/population/scenarios/${file}`,
+          label: `packages/demo-population/src/scenarios/${file} ${bucket}[${i}] (${clean.id})`,
+          repoFile: `packages/demo-population/src/scenarios/${file}`,
         })
       })
     }

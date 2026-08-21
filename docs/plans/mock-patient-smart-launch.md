@@ -70,7 +70,7 @@ not another *app*, it is a *server with our patients on it*.
 
 1. ~~**The 14 mock patients have no `Patient` resource.**~~ **CLOSED — see the
    DONE note below.**
-   [`patients.json`](../../web/src/data/population/patients.json) is app-shaped —
+   [`patients.json`](../../packages/demo-population/src/patients.json) is app-shaped —
    `id`, `displayName`, `dob`, `mrn`, `gender`, `recommendedNextStep`. Every
    `subject: Patient/patient-001` across the scenarios points at an id with
    nothing behind it. The only real `Patient` in the tree is `DEMO_PATIENT` in

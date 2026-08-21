@@ -14,7 +14,7 @@ name: IG — Sushi compile + validate
 #     `err = N` / `Broken Links: N` parse of qa.txt.
 #   - this workflow additionally covers `FHIR-Resources/**` — the hand-authored
 #     Questionnaires the app imports at runtime, which nothing validated at all
-#     before — and `web/src/data/population/scenarios/**`, the demo registry's
+#     before — and `packages/demo-population/src/scenarios/**`, the demo registry's
 #     hand-authored FHIR, which the Stage-8 measure engine reads (#226). It
 #     reports per-resource conformance with inline PR annotations.
 
@@ -25,7 +25,7 @@ on:
     paths:
       - 'ig/**'
       - 'FHIR-Resources/**'
-      - 'web/src/data/population/scenarios/**'
+      - 'packages/demo-population/src/scenarios/**'
       - 'scripts/validate-fhir.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
@@ -40,7 +40,7 @@ on:
     paths:
       - 'ig/**'
       - 'FHIR-Resources/**'
-      - 'web/src/data/population/scenarios/**'
+      - 'packages/demo-population/src/scenarios/**'
       - 'scripts/validate-fhir.mjs'
       - 'web/scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a

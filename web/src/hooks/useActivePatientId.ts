@@ -9,7 +9,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from './useLocalStorage'
-import { POPULATION_BY_ID, isAllowedPatientId } from '../data/population/patients'
+import { POPULATION_BY_ID, isAllowedPatientId } from '@spier/demo-population'
 
 // Persisted across non-chart routes so assessment-submit redirects don't lose
 // the active patient. The patient *store* keys (spier-patient-store /
