@@ -196,6 +196,17 @@ desirable, since the re-render is the gate that validates narrative links.
   illustrated none of its own profiles. They are hand-authored FHIR in
   `packages/demo-population/src/patients/`, and the mock's roster no longer needs
   a SUSHI compile.
+- **#404 — how much SMART scope enforcement should the mock EHR do?** Blocks #401.
+  The stub carries granted scopes and ignores them, so a `user/*.read` token and a
+  patient-scoped one behave identically — which means issuing one changes nothing
+  observable and the embedded dashboard stays a labelled iframe with a nicer
+  label. ⚠️ **The crux is that enforcement here can never earn a scope-interop
+  claim**: §1's guardrail 3 is "no interoperability claim ever made from a host we
+  control". What it *can* buy is guardrail 1's logic applied to reads — a lenient
+  mock lets SPiER's own client look correct when it may be requesting the wrong
+  scopes or mishandling a 403. Four options and a recommendation are on the issue.
+  **"Enforce nothing" is a respectable answer** and costs nothing; the frame's
+  label is already honest.
 - **Whether E2b is worth reopening the workspaces decision for.** #387 is reopened
   as its blocker. The alias mechanism carries a path, not a dependency, so
   `fsh-sushi` cannot leave `web`'s devDependencies without an install location.
