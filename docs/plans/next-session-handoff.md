@@ -50,7 +50,7 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`94e090f`** when this was written, plus the commit that wrote
+- `main` was at **`afba780`** when this was written, plus the commit that wrote
   it. **No open PRs** at that point.
   **41 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
@@ -137,8 +137,11 @@ desirable, since the re-render is the gate that validates narrative links.
   by planting the defect it targets.
 - **A check that reads nothing must fail, not pass.** #232 (a stale `check:codings`
   floor), #261 (a narrower source starving inside a scanned tree), the empty
-  conformance index, the vacuous post-merge poll — same bug, six catalogued
-  instances. When you add a gate, make an empty read an error.
+  conformance index, the vacuous post-merge poll, a proof harness whose no-op
+  mutation "proved" a passing gate — same bug every time, and **deliberately not
+  counted here**: this line said "six" while the reshape section below said
+  "five" of its own, which is the pinned-number failure the rest of this file
+  warns about. When you add a gate, make an empty read an error.
 - **A green suite says nothing about what is on the screen.** Deploying the mock
   and opening it found three defects in ten minutes — a date rendering as "Invalid
   Date Invalid Date", an MRN showing a resource id, a page claiming an auth
@@ -373,6 +376,23 @@ match, twice. Display prefixes are not source. And a proof harness that restores
 with `git checkout --` **silently does nothing for untracked files**, which
 damaged two new fixtures before it was noticed: `git add` first.
 
+⚠️ **The same family turned up in a PROOF HARNESS rather than in a gate** (#409),
+which is the variant worth naming because it inverts the usual tell. The
+harness that plants defects to prove a gate can fail reported two false greens on
+its first run: one mutation string did not match the prose it targeted, and one
+reused its own `s`/`p` variables so the config edit was discarded before the
+write. Both mutations changed nothing, the gate correctly passed unmutated input,
+and the harness read that as *the gate missed it* — a check that reads nothing,
+reporting a result, inside the tool built to detect exactly that. **A proof
+harness needs the same rule as a gate: a mutation that changes no bytes must be
+an error, not a data point.** Assert the replacement landed.
+
+⚠️ **A gate's first run tells you as much about the rule as about the code.**
+One of #409's rules was wrong on first contact, and the *rule* was what changed,
+not the repo: it demanded that a bullet link `how-to-read.html` when that bullet
+correctly says "this page", because a page does not link to itself. Writing the
+exemption is fine; **writing down the gap the exemption leaves** is what keeps it
+from becoming an unexamined hole later.
 
 - ⚠️ **The mock's replay protection is best-effort and says so.** Launch contexts,
   codes and tokens are signed self-contained blobs, not table rows, because a
@@ -478,12 +498,6 @@ frame's label already says it is not a SMART launch.
 | #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset) | M5 |
 | #277 | [Epic] Suicide Care Dashboard — a CoCM registry spec and the five gaps it exposes | — |
 | #259 | [Epic] Data dictionary: two-layer concept model, cross-stage correlation | — |
-
-**No issue yet, and small:** `ig/input/pagecontent/how-to-read.md` restates the
-IG menu by hand and had drifted from `ig/sushi-config.yaml`'s `menu:` (two live
-entries missing, and a Must-Support claim `conformance.md` contradicted). It is
-corrected, but nothing compares the two — a gate would be ~25 lines and is the
-durable fix. File before building.
 
 **Deliberately parked, not drift:** the ten `status:built` tool epics (#20, #23,
 #24, #25, #26, #168, #170, #172, #175, #176) stay open by design and carry **no
