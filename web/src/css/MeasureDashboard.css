@@ -188,3 +188,23 @@
     font-size: var(--font-size-sm);
   }
 }
+
+/* Scope notice — shown when the active FhirDataSource is patient-bound (a SMART
+   token) so the denominators are not population rates, or while an async source
+   is still reading. Mirrors .population-scope-notice; both replace the same
+   failure, which was rendering bundled demo data during a live SMART session. */
+.md-scope-notice {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-warning-bg);
+  border: 1px solid var(--accent-warning-border);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  color: var(--accent-warning-text);
+  font-size: var(--font-size-md);
+  line-height: 1.55;
+}
+
+.md-scope-notice strong {
+  color: var(--accent-warning-text-deep);
+}

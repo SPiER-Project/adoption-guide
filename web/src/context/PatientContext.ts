@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react'
 import type { PatientDisplay } from '../data/demoPatient'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { RegistryPatient } from '@spier/core/lib/registry'
+import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type { WritebackReport } from '@spier/core/lib/writeback/types'
 import type {
   AppointmentResource,
@@ -38,6 +39,21 @@ import type {
 export type PopulationPatient = RegistryPatient
 
 export interface PatientContextType {
+  /**
+   * The ACTIVE data source — `SmartDataSource` when a SMART session is live,
+   * otherwise the injected local one. Exposed so population-scale consumers
+   * (`PopulationView`, `MeasureDashboard`) can read through the seam instead of
+   * importing `localDataSource` directly, which is what made them local-only
+   * under SMART (#390).
+   *
+   * ⚠️ It is per-patient by design (`getSlice(patientId)`), and a SMART token is
+   * bound to ONE patient. There is deliberately no cross-patient/cohort read
+   * here: adding one needs a user-scoped launch and a decision about what "the
+   * caseload" means on a real server — `mock-patient-smart-launch.md` §8 calls
+   * that genuine design work, and `embedded-panel-smart-launch.md` §6.3 lists it
+   * as the second of two blockers. This closes the first.
+   */
+  dataSource: FhirDataSource
   patient: PatientResource
   patientDisplay: PatientDisplay
   isSmartConnected: boolean

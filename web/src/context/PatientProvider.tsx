@@ -162,6 +162,7 @@ export function PatientProvider({
 
   const value = useMemo<PatientContextType>(
     () => ({
+      dataSource: activeSource,
       patient: activePatient,
       patientDisplay,
       isSmartConnected,
@@ -191,6 +192,7 @@ export function PatientProvider({
       writebackReport,
     }),
     [
+      activeSource,
       activePatient,
       patientDisplay,
       isSmartConnected,

@@ -822,7 +822,7 @@
 
 .pop-alert-group-name {
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--accent-warning-text);
   font-size: var(--font-size-md);
 }
 
@@ -895,5 +895,32 @@
   background: var(--border-default);
   color: var(--text-body);
   font-weight: 400;
+  font-style: italic;
+}
+
+/* Scope notice — shown when the active FhirDataSource cannot serve a caseload
+   (a patient-bound SMART token), or while an async source is still reading.
+   Deliberately loud: the failure it replaces was this page silently rendering
+   bundled demo rows during a live SMART session. */
+.population-scope-notice {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-warning-bg);
+  border: 1px solid var(--accent-warning-border);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  color: var(--text-strong);
+  font-size: var(--font-size-md);
+  line-height: 1.55;
+}
+
+.population-scope-notice strong {
+  color: var(--accent-warning-text-deep);
+}
+
+/* Stands in for the reset control when the active source is not the local demo
+   store, so the footnote does not simply vanish and leave the reader wondering. */
+.population-reset-unavailable {
+  color: var(--text-muted);
   font-style: italic;
 }
