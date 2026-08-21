@@ -50,9 +50,9 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`5041dc0`** when this was written, plus the commit that wrote
+- `main` was at **`94e090f`** when this was written, plus the commit that wrote
   it. **No open PRs** at that point.
-  **42 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
+  **41 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
 - **All three `verify` pipelines green**, each run in this session:
 
@@ -196,17 +196,17 @@ desirable, since the re-render is the gate that validates narrative links.
   illustrated none of its own profiles. They are hand-authored FHIR in
   `packages/demo-population/src/patients/`, and the mock's roster no longer needs
   a SUSHI compile.
-- **#404 — how much SMART scope enforcement should the mock EHR do?** Blocks #401.
-  The stub carries granted scopes and ignores them, so a `user/*.read` token and a
-  patient-scoped one behave identically — which means issuing one changes nothing
-  observable and the embedded dashboard stays a labelled iframe with a nicer
-  label. ⚠️ **The crux is that enforcement here can never earn a scope-interop
-  claim**: §1's guardrail 3 is "no interoperability claim ever made from a host we
-  control". What it *can* buy is guardrail 1's logic applied to reads — a lenient
-  mock lets SPiER's own client look correct when it may be requesting the wrong
-  scopes or mishandling a 403. Four options and a recommendation are on the issue.
-  **"Enforce nothing" is a respectable answer** and costs nothing; the frame's
-  label is already honest.
+- ✅ ~~**#404 — how much SMART scope enforcement should the mock EHR do?**~~
+  **DECIDED 2026-08-21: one axis only** — may this token read a patient other than
+  its own. A `user/…` read scope says yes; a patient-scoped token gets a 403.
+  Per-resource-type scopes are deliberately uninterpreted. Recorded as
+  `embedded-panel-smart-launch.md` §10.0, enforced in `smart.ts`'s
+  `mayCrossPatients`, and verified on the deployed host: a patient-scoped token
+  reads its own patient 200 and another 403, a `user/*.read` token reads both 200.
+  ⚠️ **The reasoning matters more than the rule**, because guardrail 3 means this
+  can never license "SPiER works with SMART scopes" — what it buys is guardrail 1's
+  logic applied to reads, so our own client cannot look correct on a server that
+  never says no.
 - **Whether E2b is worth reopening the workspaces decision for.** #387 is reopened
   as its blocker. The alias mechanism carries a path, not a dependency, so
   `fsh-sushi` cannot leave `web`'s devDependencies without an install location.
@@ -238,16 +238,6 @@ desirable, since the re-render is the gate that validates narrative links.
 
 ## Blocked
 
-- **#401 — the embedded population dashboard is a labelled iframe, not a SMART
-  panel**, on **#404** (a decision, above). Step C closed blocker 1 of
-  `embedded-panel-smart-launch.md` §6.3; this is blocker 2 — a user-scoped launch,
-  **scope enforcement**, and a cohort read. ⚠️ **Its size depends on #404's
-  answer**, and if that answer is "enforce nothing" the issue should be closed
-  `wontfix` rather than left open as implied future work: the frame's label is
-  already honest. It also carries a genuine design question §8 of
-  `mock-patient-smart-launch.md` refuses to hand-wave — *how a registry scopes
-  itself on a real server, where "the caseload" is not a static list of 14* — so
-  **do not start at the code.**
 - **#392 — E2b**, on #387. See the reshape section.
 - **#264 — crosswalk fidelity in the data dictionary**, on #93. The
   `fidelity`-derived-from-ConceptMap half could land early, but presenting
@@ -470,6 +460,16 @@ note #342 corrected it — the upstream tracker is *disabled*, not unattended.
 ## Actionable code work, unblocked and unclaimed
 
 Nothing here is urgent; listed so it is not re-derived each session.
+
+⚠️ **#401 — the embedded population dashboard — is unblocked but NOT smaller.**
+#404 settled the scope question, so the *permission* to read across patients now
+exists. The *capability* does not: this server has no cohort search (a
+patient-less search is a deliberate 400, *"no all-patients search"*), and there is
+no patient-less launch. Both are #401's work, and it also carries the design
+question §8 of `mock-patient-smart-launch.md` refuses to hand-wave — *how a
+registry scopes itself on a real server, where "the caseload" is not a static list
+of 14.* **Do not start at the code.** Nothing currently misleads anyone: the
+frame's label already says it is not a SMART launch.
 
 | Issue | What | Milestone |
 |---|---|---|
