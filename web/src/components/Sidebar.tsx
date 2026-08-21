@@ -69,6 +69,14 @@ function buildLenses(patientBase: string): Lens[] {
       label: 'Population View',
       icon: '\u{1F465}', // busts in silhouette
       matchPrefix: '/population',
+      // Route children rather than the Patient lens's anchors: the caseload and
+      // the measure dashboard are separate pages. Measures moved here from the
+      // Adoption Guide in step D (#391) — it reads the caseload, so it belongs
+      // beside it.
+      children: [
+        { to: '/population', label: 'Caseload' },
+        { to: '/population/measures', label: 'Measures' },
+      ],
     },
     {
       // Opening the Patient lens preserves the active patient (bare

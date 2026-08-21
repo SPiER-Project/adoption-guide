@@ -131,7 +131,12 @@ function AppRoutes() {
           <Route path="pathway" element={<PatientJourney />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
-          <Route path="measures" element={<MeasureDashboard />} />
+          {/* Measures moved to the EHR side (step D, #391): it is the only guide
+              section that read patient data, and the guide explains and
+              configures the pathway rather than holding a caseload. The redirect
+              stays — /guide/measures is a published tool launch path and is
+              already linked from CDS cards in the wild. */}
+          <Route path="measures" element={<Navigate to="/population/measures" replace />} />
           <Route path="cds-service" element={<CdsServiceGuide />} />
           <Route path="adoption-readiness" element={<AdoptionReadiness />} />
           <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
@@ -229,7 +234,13 @@ function AppRoutes() {
         </Route>
 
         {/* Population View placeholder */}
-        <Route path="/population" element={<PopulationView />} />
+        {/* Population lens. `/population` itself is unchanged and load-bearing:
+            the mock EHR embeds it as `?embed=1#/population`, so it stays the
+            index rather than becoming /population/caseload. */}
+        <Route path="/population">
+          <Route index element={<PopulationView />} />
+          <Route path="measures" element={<MeasureDashboard />} />
+        </Route>
 
         {/* Legacy /chart/* redirects — keep for one cycle */}
         <Route path="/chart" element={<Navigate to="/patient/chart" replace />} />

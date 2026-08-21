@@ -11,6 +11,7 @@ import {
 } from '@spier/core/lib/measures'
 import { emptinessOf, type Emptiness } from '../lib/measureGaps'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import { PageHeader } from '../components/PageHeader'
 import { useRegistrySlices } from '../hooks/useRegistrySlices'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import '../css/MeasureDashboard.css'
@@ -143,11 +144,20 @@ export function MeasureDashboard() {
 
   return (
     <div className="measure-dashboard">
+      {/* Its own header, because this page is no longer a guide sub-page —
+          AdoptionGuide rendered one for every section it wrapped. The eyebrow
+          names the lens the way the Population caseload's does. */}
+      <PageHeader
+        eyebrow={['Population View', 'Measures']}
+        title="Measures"
+        lede="Every tile is a query over the artifacts stages 1–7 already produce — nothing on this page is stored, which is the point of Stage 8."
+      />
+
+      {/* The dynamic half only — the static claim is the header's lede, and
+          saying it twice on one page is what the move first produced. */}
       <p className="md-description">
-        Aggregate view of the seven suicide-safer care measures, computed live over the{' '}
-        {entries.length}-patient {scope === 'in-context' ? 'cohort in context' : 'registry'}.
-        Nothing on this page is stored — each tile is a query over the artifacts stages 1–7
-        already produce, which is the point of Stage 8.
+        All seven measures, computed live over the {entries.length}-patient{' '}
+        {scope === 'in-context' ? 'cohort in context' : 'registry'}.
       </p>
 
       {/* Same honesty as the population lens: a SMART token is bound to one

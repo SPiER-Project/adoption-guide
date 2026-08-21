@@ -120,7 +120,7 @@ describe('a hub event under SMART — the EHR speaking', () => {
   })
 
   it('does not interrupt other work to follow its OWN patient', () => {
-    renderAt('/guide/measures')
+    renderAt('/population/measures')
     deliver('patient-011', 'hub')
     expect(navigate).not.toHaveBeenCalled()
   })

@@ -70,7 +70,7 @@ describe('scenario fallback (no prefetch)', () => {
     const stageCard = cards.find((c) => c.extension?.['spier-stage-id'] === 'measure-and-share')
     expect(stageCard).toBeDefined()
     expect(stageCard?.extension?.['spier-narrative-only']).toBeUndefined()
-    expect(stageCard?.links?.some((l) => l.url.includes('/guide/measures'))).toBe(true)
+    expect(stageCard?.links?.some((l) => l.url.includes('/population/measures'))).toBe(true)
   })
 
   it('returns an empty (valid) card list for an unknown patient id', () => {

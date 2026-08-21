@@ -52,6 +52,10 @@ npm run check:core-boundary # packages/core stays React-free and DOM-free — th
                          # browser API (`typeof BroadcastChannel === 'undefined'`) is
                          # allowed; an unguarded one is not. `alert` is deliberately
                          # NOT forbidden: `RiskAlert` values are named `alert`
+npm run check:guide-boundary # the Adoption Guide holds no patient data — it explains and
+                         # configures the pathway; the caseload lives on the EHR side
+                         # (#391). Walks the guide's pages TRANSITIVELY, so a guide page
+                         # importing a component that reads fixtures is caught too
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
                          # questionnaire URLs BOTH ways / per-AD licensing metadata).
                          # Check B stops a TOOL from reaching the app with no
