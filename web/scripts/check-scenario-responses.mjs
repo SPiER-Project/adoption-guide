@@ -30,10 +30,9 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
 const root = resolve(here, '../..')
 const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
-const questionnaireDirs = [join(root, 'FHIR-Resources'), join(webRoot, 'src/data/fhir')]
+const questionnaireDirs = [join(root, 'FHIR-Resources'), join(root, 'packages/fhir-artifacts/generated')]
 
 const MIN_VALUE_EXT = 'http://hl7.org/fhir/StructureDefinition/minValue'
 const MAX_VALUE_EXT = 'http://hl7.org/fhir/StructureDefinition/maxValue'
@@ -73,7 +72,7 @@ function* walkJson(dir) {
   try {
     entries = readdirSync(dir)
   } catch {
-    return // web/src/data/fhir/ is a build artifact; absent on a clean checkout
+    return // packages/fhir-artifacts/generated/ is a build artifact; absent on a clean checkout
   }
   for (const entry of entries.sort()) {
     const full = join(dir, entry)

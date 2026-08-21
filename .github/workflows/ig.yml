@@ -172,7 +172,7 @@ jobs:
         run: npm ci
         working-directory: ./web
 
-      # The emitter imports the generated CodeSystems out of web/src/data/fhir/,
+      # The emitter imports the generated CodeSystems out of packages/fhir-artifacts/generated/,
       # which is gitignored. `--no-compile` copies the fsh-generated artifact
       # downloaded above instead of re-running sushi — this job already exists to
       # avoid paying for that compile twice.

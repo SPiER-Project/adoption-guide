@@ -38,7 +38,7 @@ import { fileURLToPath } from 'node:url'
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const root = join(webRoot, '..') // repo root
-const fhirDir = join(webRoot, 'src/data/fhir')
+const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const patientsJsonPath = join(root, 'packages/demo-population/src/patients.json')
 const providerPath = join(webRoot, 'src/context/PatientProvider.tsx')
 
@@ -65,7 +65,7 @@ for (const name of fhirDirEntries) {
 }
 if (fhirPatients.size === 0) {
   console.error(
-    '[check:patients] no Patient resources in web/src/data/fhir/ — run ' +
+    '[check:patients] no Patient resources in packages/fhir-artifacts/generated/ — run ' +
       '`npm run copy-fhir -- --force`. Refusing to pass over an unread input.',
   )
   process.exit(1)

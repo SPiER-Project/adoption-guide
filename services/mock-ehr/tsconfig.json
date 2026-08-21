@@ -16,6 +16,7 @@
       "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
       // The demo population resolves by declared alias, not by workspace
       // (#387). Mirrors vite.config.ts and vitest.config.ts here.
+      "@spier/fhir-artifacts/*": ["../../packages/fhir-artifacts/*"],
       "@spier/demo-population": ["../../packages/demo-population/src/index.ts"],
       "@spier/demo-population/*": ["../../packages/demo-population/src/*"]
     },

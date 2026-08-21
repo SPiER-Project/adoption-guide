@@ -82,7 +82,7 @@ jobs:
       # either and belongs in the fast job.
       #
       # The RESOURCES half of check:scenarios is deliberately NOT here: it reads
-      # the generated StructureDefinitions out of web/src/data/fhir/, which only
+      # the generated StructureDefinitions out of packages/fhir-artifacts/generated/, which only
       # exist after copy-fhir. It runs in the `verify` job below instead. (It
       # fails loudly rather than passing vacuously when they are absent, which
       # is how this split was found.)
@@ -134,7 +134,7 @@ jobs:
       # re-expand this into individual steps to get prettier step names.
       #
       # `verify` starts with `copy-fhir -- --force`, which generates
-      # web/src/data/fhir/*.json and care-plan-profiles.generated.ts (imported
+      # packages/fhir-artifacts/generated/*.json and care-plan-profiles.generated.ts (imported
       # by src/data/catalog/stages.ts and src/lib/carePlanMappers/shared.ts), so
       # the separate copy-fhir step this job used to run is redundant — keeping
       # it would compile the FSH twice.
@@ -173,7 +173,7 @@ jobs:
       - name: Install service dependencies
         run: npm ci
 
-      # typecheck + lint + test. `pretest` generates web/src/data/fhir/*.json
+      # typecheck + lint + test. `pretest` generates packages/fhir-artifacts/generated/*.json
       # and care-plan-profiles.generated.ts via copy-fhir.
       - name: Verify
         run: npm run verify

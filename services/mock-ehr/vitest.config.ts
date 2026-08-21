@@ -20,6 +20,11 @@ export default defineConfig({
       // The demo population — declared alias, not a workspace (#387). Object
       // form matches this file's existing shape; prefix matching is wanted, so
       // '@spier/demo-population/patients.json' resolves under the same root.
+      // The compiled FHIR artifacts — static imports only; Vite does not
+      // resolve aliases inside `import.meta.glob`.
+      '@spier/fhir-artifacts': fileURLToPath(
+        new URL('../../packages/fhir-artifacts', import.meta.url),
+      ),
       '@spier/demo-population': fileURLToPath(
         new URL('../../packages/demo-population/src', import.meta.url),
       ),

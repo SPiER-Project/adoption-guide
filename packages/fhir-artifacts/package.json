@@ -1,0 +1,10 @@
+{
+  "name": "@spier/fhir-artifacts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The compiled FHIR artifacts: SUSHI's output from ig/input/fsh, plus the TypeScript derived from it. Generated — never edited by hand.",
+  "type": "module",
+  "exports": {
+    "./generated/*": "./generated/*"
+  }
+}

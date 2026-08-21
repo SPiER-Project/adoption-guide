@@ -5,7 +5,7 @@
  * The catalog (web/src/data/catalog/tools.ts) merges hand-maintained layers
  * that can silently drift apart:
  *
- *   - generated FHIR (web/src/data/fhir/ActivityDefinition-*.json and
+ *   - generated FHIR (packages/fhir-artifacts/generated/ActivityDefinition-*.json and
  *     PlanDefinition-*.json, produced by `npm run copy-fhir`)
  *   - TOOL_UI_METADATA (tool-ui-metadata.ts) — UI overlay keyed by Tool id
  *   - AD_TO_TOOL_ID (tools.ts) — maps ActivityDefinition ids to Tool ids
@@ -50,7 +50,7 @@
  *      not been re-frozen into hand-listed ids, and their derivations still
  *      match what the UI tells adopters they mean
  *
- * Requires `npm run copy-fhir` to have run (reads web/src/data/fhir/).
+ * Requires `npm run copy-fhir` to have run (reads packages/fhir-artifacts/generated/).
  * Exits non-zero on drift so it can gate CI.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
@@ -60,7 +60,7 @@ import { dirname, resolve, join } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
-const fhirDir = join(webRoot, 'src/data/fhir')
+const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const catalogDir = join(webRoot, 'src/data/catalog')
 const questionnairesDir = join(root, 'FHIR-Resources')
 
@@ -377,7 +377,7 @@ console.log(
 // what stops the next one.
 //
 // Offline by construction — it compares against the generated files in
-// src/data/fhir/ rather than fetching anything, so it belongs in `verify`
+// packages/fhir-artifacts/generated/ rather than fetching anything, so it belongs in `verify`
 // alongside the other drift checks.
 const SPIER_CS_PREFIX = 'http://spier.org/CodeSystem/'
 const dictSrc = readFileSync(join(catalogDir, 'dataElements.ts'), 'utf8')

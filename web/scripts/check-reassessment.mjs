@@ -36,7 +36,7 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const fhirDir = resolve(here, '../src/data/fhir')
+const fhirDir = resolve(here, '../../packages/fhir-artifacts/generated')
 
 const SCHEDULE = resolve(fhirDir, 'PlanDefinition-SPiERReassessmentSchedule.json')
 const TIER_CS = resolve(fhirDir, 'CodeSystem-spier-suicide-risk-tier.json')

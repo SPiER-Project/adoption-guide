@@ -30,7 +30,7 @@
  * than assumed.
  *
  * ⚠️ **Never hand-edit the generated .xlsx, .csv or .md** — same rule as
- * `web/src/data/fhir/`. A comment typed into the workbook is lost on the next
+ * `packages/fhir-artifacts/generated/`. A comment typed into the workbook is lost on the next
  * build with nothing going red, which is exactly the failure that motivated
  * this script. Review notes belong in the source JSON's `reviewNotes`, where
  * they are rendered into a visible column on the mapping sheet.

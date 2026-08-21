@@ -1,8 +1,8 @@
 // Derived from ig/input/fsh/spier-codesystem.fsh via the copy-fhir prebuild step
-// (web/src/data/fhir/CodeSystem-spier-pathway-stage.json). FSH is the source
+// (packages/fhir-artifacts/generated/CodeSystem-spier-pathway-stage.json). FSH is the source
 // of truth — to add a stage, edit the FSH and re-run sushi.
 
-import codeSystem from '../fhir/CodeSystem-spier-pathway-stage.json'
+import codeSystem from '@spier/fhir-artifacts/generated/CodeSystem-spier-pathway-stage.json'
 
 interface CodeSystemConcept {
   code: string

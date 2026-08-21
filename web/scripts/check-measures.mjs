@@ -4,7 +4,7 @@
  *
  * The measures exist in two places that must agree:
  *
- *   - generated FHIR (web/src/data/fhir/Measure-*.json, from FSH in
+ *   - generated FHIR (packages/fhir-artifacts/generated/Measure-*.json, from FSH in
  *     ig/input/fsh/measure-and-share.fsh) — the published definitions
  *   - web/src/lib/measures.ts — the executable reference implementation
  *
@@ -41,7 +41,7 @@
  *      population code is a real measure-population code
  *   E. every group code is declared in the spier-measure-group CodeSystem
  *
- * Requires `npm run copy-fhir` to have run (reads web/src/data/fhir/).
+ * Requires `npm run copy-fhir` to have run (reads packages/fhir-artifacts/generated/).
  * Exits non-zero on drift so it can gate CI.
  */
 import { readFileSync, readdirSync } from 'node:fs'
@@ -50,7 +50,8 @@ import { dirname, resolve, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
-const fhirDir = join(webRoot, 'src/data/fhir')
+const root = resolve(here, '../..') // repo root
+const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const enginePath = join(webRoot, 'src/lib/measures.ts')
 
 const MEASURE_POPULATION_SYSTEM = 'http://terminology.hl7.org/CodeSystem/measure-population'
