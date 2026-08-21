@@ -35,10 +35,21 @@
  *     honoured here. A real one needs a signing key and a published JWKS; a
  *     fake one is precisely the shortcut named above. `client.user` is
  *     therefore null, which is honest and harmless.
- *   - **No scope enforcement.** The granted scopes are echoed and carried on
- *     the token, but this server does not refuse a read because a scope was
- *     missing. Do not describe the mock as proving SMART scopes work. The
- *     patient binding above IS enforced; that is a different thing.
+ *   - **Almost no scope enforcement, and precisely one exception.** Since #404
+ *     (option A) this server enforces ONE axis: **may this token read a patient
+ *     other than its own** — `mayCrossPatients` below. Reaching for another
+ *     patient needs a `user/…` read scope; on a patient-scoped token it is a 403.
+ *     **Nothing else about scopes is checked**: per-resource-type scopes are not
+ *     interpreted, so a token carrying no `patient/Observation.read` still reads
+ *     its own patient's Observations. Do not describe the mock as proving SMART
+ *     scopes work — it proves one boundary, deliberately.
+ *
+ *     ⚠️ An *all-patients* search was never the hole it looks like: `parseSearch`
+ *     requires `patient`, so a patient-less search is a 400 before auth is
+ *     consulted. A scope check there would be unreachable code, and #404 removed
+ *     one that had been written on that wrong assumption. Giving this server a
+ *     genuine cohort search is #401's work, and it is the point at which this
+ *     axis starts carrying weight.
  *   - **No refresh tokens, no `offline_access`.**
  */
 import { s256, sign, spend, verify } from './tokens'
@@ -339,6 +350,35 @@ export async function token(
 // ── Bearer check ─────────────────────────────────────────────────────────────
 
 export interface Grant { patient: string; scope: string }
+
+/**
+ * May this token read across patients?
+ *
+ * ⚠️ **This is the ONLY scope axis this server enforces**, decided on #404
+ * (option A): "may this token read a patient other than its own" is what
+ * separates a chart launch from a worklist launch, and it is the one #401 needs —
+ * SPiER's registry read is N per-patient searches, so per-patient permission is
+ * exactly the question. Per-resource
+ * scopes (`user/Observation.read` vs `user/*.read`) are deliberately NOT
+ * interpreted — a `user/`-prefixed read of any kind answers yes.
+ *
+ * Why so narrow, when SMART has a whole scope grammar: a half-correct scope
+ * implementation is worse than none, because it *looks* like it proves something.
+ * And it could never prove much here anyway — §1's guardrail 3 is "no
+ * interoperability claim ever made from a host we control", so this cannot
+ * license "SPiER works with SMART scopes."
+ *
+ * What it DOES buy is guardrail 1's reasoning applied to reads. That guardrail
+ * demands strict write validation because a lenient mock accepts writes a real
+ * EHR would reject, so the demo looks better while proving less. The same holds
+ * for reads: a server that never refuses an under-scoped cross-patient read lets
+ * SPiER's own client look correct when it may be asking for more than it was
+ * granted. This is a guardrail against self-flattery, not a conformance claim.
+ */
+export function mayCrossPatients(grant: Grant): boolean {
+  // Whitespace-delimited, per RFC 6749 §3.3.
+  return grant.scope.split(/\s+/).some((s) => /^user\/[^.]+\.(read|\*)$/.test(s))
+}
 
 /** Decode a `Authorization: Bearer …` header, or null if it does not verify. */
 export async function grantFor(

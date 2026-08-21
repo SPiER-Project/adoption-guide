@@ -954,6 +954,44 @@ sidebar, but it should be deliberate rather than inherited.
 - **Where the subject resources live** (§7) — `ig/` as example Instances versus
   beside the scenarios. `mock-patient-smart-launch.md` §7 recommends `ig/`.
 
+### 10.0 How much scope enforcement the mock does — ONE axis
+
+**Decided 2026-08-21 (#404, option A): the mock enforces exactly one scope
+question — may this token read a patient other than its own?** A `user/…` read
+scope says yes; on a patient-scoped token it is a 403. Nothing else about scopes
+is interpreted, and `smart.ts` says so where someone will read it.
+
+**Why so narrow.** Guardrail 3 of §1 is *"no interoperability claim ever made from
+a host we control"*, so enforcement here can never license "SPiER works with SMART
+scopes" — that claim is not available from this server at any level of effort.
+What it *does* buy is **guardrail 1's reasoning applied to reads**: that guardrail
+demands strict write validation because a lenient mock accepts writes a real EHR
+would reject, so the demo looks better while proving less. A server that never
+refuses an under-scoped cross-patient read lets SPiER's own client look correct
+when it may be asking for more than it was granted. This is a guardrail against
+self-flattery, not a conformance statement.
+
+**Why not the fuller grammar.** A half-correct scope implementation is worse than
+none, because it *looks* like it proves something — and this is an auth surface
+designed and reviewed by the same sessions, which is already the weakest spot in
+this plan.
+
+⚠️ **One thing building it corrected, worth keeping because the wrong version is
+the intuitive one.** The obvious hole — "a patient-bound token could enumerate
+every chart by omitting `patient=`" — **never existed**. `parseSearch` requires
+`patient` and answers a patient-less search with a 400 (*"This server has no
+all-patients search"*) before auth is consulted. A scope check there would have
+been unreachable code; one was written on that assumption and removed. The axis
+that matters is per-patient permission, because SPiER's own registry read is N
+per-patient searches.
+
+**So what does this leave for #401?** The permission now exists; the *capability*
+does not. A worklist needs either a genuine cohort search on this server or a
+launch with no patient in context, and both are #401 — along with the design
+question §8 of `mock-patient-smart-launch.md` refuses to hand-wave, about what a
+caseload even is on a server where it is not a static list of 14. **This decision
+unblocks that work; it does not do it.**
+
 ### 10.1 Why there is no consent screen
 
 Decided 2026-08-19, while building step 2. The original framing above — "skipping

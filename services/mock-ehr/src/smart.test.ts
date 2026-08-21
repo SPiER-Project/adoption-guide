@@ -294,6 +294,63 @@ describe('the bearer check on /fhir', () => {
     expect(own.status).toBe(200)
   })
 
+  it('a patient-context-free search is refused by the SEARCH layer, not by scope', async () => {
+    // Worth pinning, because the obvious guess is wrong and it changed what #404
+    // had to build. `parseSearch` requires `patient`, so an all-patients search is
+    // a 400 ("This server has no all-patients search") BEFORE auth is consulted.
+    // There was never a hole where a patient-bound token could enumerate every
+    // chart by omitting the parameter — so no scope check belongs here, and one
+    // written here would be unreachable code.
+    const { accessToken } = await launchFor(BASE, { patient: 'patient-011' })
+    const headers = { authorization: `Bearer ${accessToken}` }
+    const cohort = await app.request(`${BASE}/fhir/Observation`, { headers })
+    expect(cohort.status).toBe(400)
+    expect(await cohort.text()).toContain('no all-patients search')
+  })
+
+  it('lets a user/… scope read ANOTHER patient, which is the worklist grant', async () => {
+    // The ONLY scope axis this server enforces (#404 option A). SPiER's own
+    // registry read is N per-patient searches, so "may this token read a patient
+    // other than its own" is exactly the permission a worklist needs.
+    const { accessToken } = await launchFor(BASE, {
+      patient: 'patient-011',
+      scope: 'launch openid fhirUser user/*.read',
+    })
+    const headers = { authorization: `Bearer ${accessToken}` }
+
+    const foreignSearch = await app.request(`${BASE}/fhir/Observation?patient=patient-001`, { headers })
+    expect(foreignSearch.status).toBe(200)
+    const foreignRead = await app.request(`${BASE}/fhir/Patient/patient-001`, { headers })
+    expect(foreignRead.status).toBe(200)
+  })
+
+  it('still refuses the same cross-patient read WITHOUT a user/… scope', async () => {
+    // The negative half. Without it the test above proves only that something
+    // returned 200.
+    const { accessToken } = await launchFor(BASE, {
+      patient: 'patient-011',
+      scope: 'launch openid fhirUser patient/Patient.read patient/Observation.read',
+    })
+    const headers = { authorization: `Bearer ${accessToken}` }
+    const search = await app.request(`${BASE}/fhir/Observation?patient=patient-001`, { headers })
+    expect(search.status).toBe(403)
+    expect(await search.text()).toContain("needs a 'user/…' scope")
+  })
+
+  it('does NOT interpret per-resource-type scopes, deliberately', async () => {
+    // #404 chose option A: the patient-crossing axis only. A token with no
+    // Observation scope can still read its own patient's Observations, and
+    // smart.ts says so — a half-correct scope implementation is worse than none,
+    // because it looks like it proves something.
+    const { accessToken } = await launchFor(BASE, {
+      patient: 'patient-011',
+      scope: 'launch openid fhirUser patient/Patient.read',
+    })
+    const headers = { authorization: `Bearer ${accessToken}` }
+    const res = await app.request(`${BASE}/fhir/Observation?patient=patient-011`, { headers })
+    expect(res.status).toBe(200)
+  })
+
   it('can be switched off for exploration, and says so on the control page', async () => {
     const open = await app.request(`${BASE}/fhir/Patient/patient-011`, {}, { MOCK_AUTH_ENFORCE: 'off' })
     expect(open.status).toBe(200)

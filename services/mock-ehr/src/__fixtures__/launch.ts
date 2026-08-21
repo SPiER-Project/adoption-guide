@@ -33,7 +33,9 @@ function randomVerifier(): string {
  */
 export async function launchFor(
   origin: string,
-  context: { patient?: string; launch?: string },
+  // `scope` overrides TEST_SCOPE, for the one axis this server enforces: a
+  // `user/…` read scope may cross patients (#404 option A).
+  context: { patient?: string; launch?: string; scope?: string },
 ): Promise<LaunchResult> {
   const verifier = randomVerifier()
   const challenge = await s256(verifier)
@@ -42,7 +44,7 @@ export async function launchFor(
   authorizeUrl.search = new URLSearchParams({
     response_type: 'code',
     client_id: TEST_CLIENT_ID,
-    scope: TEST_SCOPE,
+    scope: context.scope ?? TEST_SCOPE,
     redirect_uri: TEST_REDIRECT_URI,
     aud: `${origin}/fhir`,
     state: 'test-state',
