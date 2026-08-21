@@ -10,7 +10,7 @@ import {
 import { deriveFromResponse } from './deriveFromResponse'
 import { stampLaunchStage } from './launchStage'
 import { CAREPLAN_PROFILE_URLS } from '../data/catalog/care-plan-profiles.generated'
-import { POPULATION_SCENARIOS } from '../data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { STAGES, TOOLS, toolForQuestionnaireUrl } from '../data/catalog'
 import type { QuestionnaireResponseResource } from '../types/fhir'
 

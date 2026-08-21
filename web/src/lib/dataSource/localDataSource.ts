@@ -15,7 +15,7 @@
  * slice, and re-seeding when the fixture behind an UNTOUCHED slice changes
  * (#301 — see `spier-scenario-seeds` below).
  */
-import { POPULATION_SCENARIOS } from '../../data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { DerivedArtifacts, FhirDataSource } from './types'
 import type {
   AppointmentResource,

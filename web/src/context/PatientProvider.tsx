@@ -9,8 +9,11 @@ import {
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import { SmartDataSource } from '../lib/dataSource/smartDataSource'
 import type { FhirDataSource } from '../lib/dataSource/types'
-import { POPULATION_BY_ID, POPULATION_PATIENTS } from '../data/population/patients'
-import { POPULATION_SCENARIOS } from '../data/population/scenarios'
+import {
+  POPULATION_BY_ID,
+  POPULATION_PATIENTS,
+  POPULATION_SCENARIOS,
+} from '@spier/demo-population'
 import { useActivePatientId } from '../hooks/useActivePatientId'
 import { usePatientOpenBroadcast } from '../hooks/usePatientOpenBroadcast'
 import { usePatientSlice } from '../hooks/usePatientSlice'

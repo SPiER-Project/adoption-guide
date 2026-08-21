@@ -5,7 +5,7 @@
 // documented way to opt in, same as hooks/useScrollToHash.test.tsx.
 import { describe, it, expect, beforeEach } from 'vitest'
 import { LocalDataSource, resetLocalDemoData } from './localDataSource'
-import { POPULATION_SCENARIOS } from '../../data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { StoredResponse } from '../../types/fhir'
 
 /**

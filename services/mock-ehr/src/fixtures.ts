@@ -1,7 +1,7 @@
 /**
  * fixtures — the mock EHR's entire dataset, built once at module load from the
  * app's OWN files. There is no second copy of any patient anywhere: the
- * scenarios are `web/src/data/population/scenarios/patient-0NN.json` and the
+ * scenarios are `packages/demo-population/src/scenarios/patient-0NN.json` and the
  * Patients are the FSH-generated `web/src/data/fhir/Patient-patient-0NN.json`
  * minted in #356. Both arrive through `import.meta.glob`, inlined by the Vite
  * build, because a Worker has no filesystem.
@@ -27,7 +27,7 @@
  *    convenience, and it is exported so a test can pin exactly which resources
  *    needed it.
  */
-import { POPULATION_SCENARIOS } from '../../../web/src/data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { MRN_SYSTEM } from '../../../web/src/lib/fhircast'
 
 /** The least a resource must be for this server to serve it. */

@@ -5,7 +5,7 @@
  *
  * `check-scenario-responses.mjs` validates the `responses` bucket only (its own
  * header says so). `scripts/validate-fhir.mjs` historically did not read
- * `web/src/data/population/` at all. So every Observation, CarePlan,
+ * `packages/demo-population/` at all. So every Observation, CarePlan,
  * Communication, EpisodeOfCare, Appointment, ServiceRequest, Procedure and
  * DocumentReference in `scenarios/patient-*.json` was ungated hand-authored
  * FHIR (issue #226).
@@ -77,7 +77,8 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
-const scenariosDir = join(webRoot, 'src/data/population/scenarios')
+const root = resolve(here, '../..') // repo root
+const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
 const fhirDir = join(webRoot, 'src/data/fhir')
 
 let failures = 0

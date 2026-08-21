@@ -1,0 +1,12 @@
+{
+  "name": "@spier/demo-population",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The 14 synthetic demo patients and their scenario slices, shared by the app, both Workers and repo-root tooling.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./patients.json": "./src/patients.json",
+    "./scenarios": "./src/scenarios/index.ts"
+  }
+}

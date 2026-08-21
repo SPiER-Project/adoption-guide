@@ -170,7 +170,7 @@ Three deployables, one repo, **one copy of every fixture**:
 `thespierproject.org` subdomain — which matters, because there is no DNS access
 to that domain.
 
-The mock EHR serves the *same* `web/src/data/population/scenarios/patient-0NN.json`
+The mock EHR serves the *same* `packages/demo-population/src/scenarios/patient-0NN.json`
 fixtures the app ships. No second copy of any patient. `collectScenarioResources`
 in [`scripts/validate-fhir.mjs`](../../scripts/validate-fhir.mjs) already does
 the bucket-unwrapping walk the read path needs.
@@ -715,7 +715,7 @@ implementer ones. Until that lands, the frame stays labelled.
 
 ⚠️ **The demo patient data does NOT move with them.** It is tempting to conclude
 that if the population and chart views belong to the EHR, so do the fixtures.
-They do not: `web/src/data/population/` has consumers in all three packages and at
+They do not: `packages/demo-population/` has consumers in all three packages and at
 the repo root — the gate net (`check-scenario-*`, `check-stage-ids`,
 `check-population-patients`, `shift-scenario-dates`, `validate-fhir`), the HL7
 use-case workbook's walkthrough linkage, the CDS service's fallback path, and the

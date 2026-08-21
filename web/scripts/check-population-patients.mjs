@@ -7,7 +7,7 @@
  * `ig/input/fsh/population-patients.fsh` is canonical for the 14 patients, but
  * two other sites carry the same facts:
  *
- *   1. `web/src/data/population/patients.json` — display copies of name / dob /
+ *   1. `packages/demo-population/src/patients.json` — display copies of name / dob /
  *      gender / mrn, read by the caseload table and the patient banner.
  *   2. `populationToFhir` in `web/src/context/PatientProvider.tsx` — builds a
  *      runtime `Patient` from patients.json, and hardcodes the MRN system.
@@ -37,8 +37,9 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const root = join(webRoot, '..') // repo root
 const fhirDir = join(webRoot, 'src/data/fhir')
-const patientsJsonPath = join(webRoot, 'src/data/population/patients.json')
+const patientsJsonPath = join(root, 'packages/demo-population/src/patients.json')
 const providerPath = join(webRoot, 'src/context/PatientProvider.tsx')
 
 let failures = 0

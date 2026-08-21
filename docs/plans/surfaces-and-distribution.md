@@ -96,7 +96,7 @@ reason to do this.**
 
 ### The problem is that the demo patients are not lazy
 
-[`web/src/data/population/scenarios/index.ts`](../../web/src/data/population/scenarios/index.ts):
+[`packages/demo-population/src/scenarios/index.ts`](../../packages/demo-population/src/scenarios/index.ts):
 
 ```ts
 const modules = import.meta.glob<PatientScenario>('./patient-*.json', {

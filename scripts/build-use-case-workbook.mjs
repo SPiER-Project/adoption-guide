@@ -8,7 +8,7 @@
  * per event step, columns Event Step / Actor / Actor Role / Event / Data
  * Requirements In / Out / Actions Taken / HL7 EHR System Functional Model. SPiER
  * owes them that format, and separately wants the same scenario to drive a
- * runnable demo (`web/src/data/population/scenarios/patient-011.json`) and a
+ * runnable demo (`packages/demo-population/src/scenarios/patient-011.json`) and a
  * FHIR mapping document (`docs/use-cases/ed-scenario-11.md`).
  *
  * Before this script the workbook was the source of truth, hand-edited in a
@@ -159,7 +159,7 @@ const KNOWN_RESOURCES = new Set([
   'Task',
 ])
 
-const SCENARIO_DIR = join(ROOT, 'web', 'src', 'data', 'population', 'scenarios')
+const SCENARIO_DIR = join(ROOT, 'packages', 'demo-population', 'src', 'scenarios')
 
 /** Column widths, in Excel's character units, matching the circulated workbook. */
 const WG_WIDTHS = [12, 17, 19, 30, 34, 34, 40, 34]

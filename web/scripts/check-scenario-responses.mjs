@@ -2,7 +2,7 @@
 /**
  * Anti-drift check for the demo registry's hand-authored QuestionnaireResponses.
  *
- * `web/src/data/population/scenarios/patient-*.json` carries QuestionnaireResponse
+ * `packages/demo-population/src/scenarios/patient-*.json` carries QuestionnaireResponse
  * resources written by hand. They drive the Population and chart views and are fed
  * to the observation mappers, but nothing validated them against the Questionnaire
  * they claim to answer — so a renamed linkId, a regrouped item, an answer code that
@@ -32,7 +32,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
 const root = resolve(here, '../..')
-const scenariosDir = join(webRoot, 'src/data/population/scenarios')
+const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
 const questionnaireDirs = [join(root, 'FHIR-Resources'), join(webRoot, 'src/data/fhir')]
 
 const MIN_VALUE_EXT = 'http://hl7.org/fhir/StructureDefinition/minValue'
@@ -173,7 +173,23 @@ function checkAnswer(answer, defn, where) {
 let responsesChecked = 0
 let itemsChecked = 0
 
-for (const file of readdirSync(scenariosDir).filter((f) => f.endsWith('.json')).sort()) {
+// ⚠️ A check that reads nothing must fail, not pass. This gate read the
+// scenario directory by path and said nothing when the directory was empty —
+// so a path change (this file's own move to packages/demo-population, #388)
+// would have turned it green while checking zero fixtures. That is the #232 /
+// #261 failure mode, and it was confirmed by emptying the directory and
+// watching this script exit 0. Do not remove the floor: it is the only thing
+// standing between a moved path and a silent pass.
+const scenarioFiles = readdirSync(scenariosDir).filter((f) => f.endsWith('.json')).sort()
+if (scenarioFiles.length === 0) {
+  console.error(
+    `\u2717 no scenario JSON found in ${scenariosDir} — this gate reads that directory, ` +
+      'so an empty read would make it pass having checked nothing.',
+  )
+  process.exit(1)
+}
+
+for (const file of scenarioFiles) {
   const scenario = JSON.parse(readFileSync(join(scenariosDir, file), 'utf8'))
   let n = 0
 

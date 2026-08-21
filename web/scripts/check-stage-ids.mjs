@@ -2,11 +2,11 @@
 /**
  * Anti-drift check for PATHWAY STAGE IDs in the demo population data.
  *
- * The registry (web/src/data/population/patients.json) references a pathway
+ * The registry (packages/demo-population/src/patients.json) references a pathway
  * stage by hand-typed id in `recommendedNextStep.stageId` — the one field
  * patients.json still curates (current stage / risk / last activity are
  * derived from FHIR data at runtime, see lib/registry.ts). The per-patient
- * scenario files (web/src/data/population/scenarios/*.json) reference stages
+ * scenario files (packages/demo-population/src/scenarios/*.json) reference stages
  * as `stageId` on scenario encounters and as codings with the
  * spier-pathway-stage system on CarePlan/Communication/Observation resources
  * — this is the ground truth the registry derives `currentStage` from.
@@ -23,9 +23,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
-const populationDir = join(webRoot, 'src/data/population')
+const populationDir = join(root, 'packages/demo-population/src')
 const scenariosDir = join(populationDir, 'scenarios')
 const fshPath = join(root, 'ig/input/fsh/spier-codesystem.fsh')
 
@@ -56,6 +55,12 @@ const check = (stageId, where) => {
 
 // ---- patients.json -----------------------------------------------------------
 const patients = JSON.parse(readFileSync(join(populationDir, 'patients.json'), 'utf8'))
+// ⚠️ Same reasoning as the scenario floor below — an empty registry would let
+// every stage-id assertion pass having examined nothing.
+if (!Array.isArray(patients) || patients.length === 0) {
+  console.error(`\u2717 no patients parsed from ${populationDir}/patients.json`)
+  process.exit(1)
+}
 let patientRefs = 0
 for (const p of patients) {
   if (p.recommendedNextStep?.stageId != null) {
@@ -81,7 +86,23 @@ function* stageRefs(node, path) {
   }
 }
 
-for (const file of readdirSync(scenariosDir).filter((f) => f.endsWith('.json')).sort()) {
+// ⚠️ A check that reads nothing must fail, not pass. This gate read the
+// scenario directory by path and said nothing when the directory was empty —
+// so a path change (this file's own move to packages/demo-population, #388)
+// would have turned it green while checking zero fixtures. That is the #232 /
+// #261 failure mode, and it was confirmed by emptying the directory and
+// watching this script exit 0. Do not remove the floor: it is the only thing
+// standing between a moved path and a silent pass.
+const scenarioFiles = readdirSync(scenariosDir).filter((f) => f.endsWith('.json')).sort()
+if (scenarioFiles.length === 0) {
+  console.error(
+    `\u2717 no scenario JSON found in ${scenariosDir} — this gate reads that directory, ` +
+      'so an empty read would make it pass having checked nothing.',
+  )
+  process.exit(1)
+}
+
+for (const file of scenarioFiles) {
   const scenario = JSON.parse(readFileSync(join(scenariosDir, file), 'utf8'))
   let n = 0
   for (const { stageId, where } of stageRefs(scenario, file)) {

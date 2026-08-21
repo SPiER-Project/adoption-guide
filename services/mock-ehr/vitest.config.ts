@@ -17,6 +17,12 @@ export default defineConfig({
       // anchored shim regexes): 'fhirclient/lib/Client' must resolve under the
       // same package root.
       fhirclient: fileURLToPath(new URL('../../web/node_modules/fhirclient', import.meta.url)),
+      // The demo population — declared alias, not a workspace (#387). Object
+      // form matches this file's existing shape; prefix matching is wanted, so
+      // '@spier/demo-population/patients.json' resolves under the same root.
+      '@spier/demo-population': fileURLToPath(
+        new URL('../../packages/demo-population/src', import.meta.url),
+      ),
     },
   },
   test: {

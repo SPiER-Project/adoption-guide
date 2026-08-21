@@ -41,7 +41,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { MEASURE_SPECS, evaluateAllMeasures, trailingPeriod } from './measures'
-import { POPULATION_SCENARIOS } from '../data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { PatientSlice, ScenarioEncounter } from '../types/fhir'
 
 /** Wide enough to contain the whole seeded registry. */

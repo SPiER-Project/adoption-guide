@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import registryPatientsData from '../data/population/patients.json'
+import registryPatientsData from '@spier/demo-population/patients.json'
 import roadmapSnapshot from '../data/roadmap.generated.json'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import {

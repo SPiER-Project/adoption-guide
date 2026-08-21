@@ -19,7 +19,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import app, { resetProfile } from './app'
 import { authHeaderFor } from './__fixtures__/launch'
 import { fakeStore, type FakeStoreBinding } from './__fixtures__/store'
-import { POPULATION_SCENARIOS } from '../../../web/src/data/population/scenarios'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
 
 const BASE = 'https://mock-ehr.test'
 const PATIENT = 'patient-011'
