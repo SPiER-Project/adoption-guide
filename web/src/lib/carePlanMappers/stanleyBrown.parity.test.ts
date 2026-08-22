@@ -32,8 +32,25 @@ import { generateCarePlan } from '@spier/core/lib/carePlanMappers/stanleyBrown'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // Paths are relative to `web/`, which is vitest's cwd.
-const FIXTURE_QR = '../scripts/fixtures/stanley-brown/questionnaireresponse.json'
 const GOLDEN_CARE_PLAN = '../scripts/fixtures/stanley-brown/careplan-expected.json'
+
+/**
+ * Both QuestionnaireResponse shapes, against ONE golden — they carry identical
+ * content, so any difference between them is a defect by definition.
+ *
+ * ⚠️ Only the legacy shape was covered here, and that is what let #419 exist:
+ * the repeating contact groups are declared `type: group, repeats: true`, so a
+ * conforming filler emits `item.item`, while this fixture used `answer.item` —
+ * the one shape the readers could handle. Fixture and reader agreed with each
+ * other and both disagreed with the Questionnaire, so parity was green while a
+ * real safety plan lost all three of its contact sections.
+ */
+const FIXTURE_QRS = [
+  ['conformant (item.item — what SPiER\'s form emits)', '../scripts/fixtures/stanley-brown/questionnaireresponse-conformant.json'],
+  ['legacy (answer.item — non-conformant, still accepted)', '../scripts/fixtures/stanley-brown/questionnaireresponse.json'],
+] as const
+
+const FIXTURE_QR = FIXTURE_QRS[0][1]
 
 type Json = Record<string, unknown>
 
@@ -75,15 +92,21 @@ function normalizeCarePlan(carePlan: Json): unknown {
 }
 
 describe('Stanley-Brown CarePlan parity with StanleyBrownQRToCarePlan.fml', () => {
-  it('produces the same CarePlan the declared StructureMap does', () => {
-    const questionnaireResponse = JSON.parse(
-      readFileSync(FIXTURE_QR, 'utf8'),
-    ) as QuestionnaireResponseResource
-    const golden = JSON.parse(readFileSync(GOLDEN_CARE_PLAN, 'utf8')) as Json
+  for (const [label, path] of FIXTURE_QRS) {
+    it(`produces the same CarePlan the declared StructureMap does — ${label}`, () => {
+      const questionnaireResponse = JSON.parse(
+        readFileSync(path, 'utf8'),
+      ) as QuestionnaireResponseResource
+      const golden = JSON.parse(readFileSync(GOLDEN_CARE_PLAN, 'utf8')) as Json
 
-    const { resource } = generateCarePlan(questionnaireResponse)
+      const { resource } = generateCarePlan(questionnaireResponse)
 
-    expect(normalizeCarePlan(resource as unknown as Json)).toEqual(sortKeys(golden))
+      expect(normalizeCarePlan(resource as unknown as Json)).toEqual(sortKeys(golden))
+    })
+  }
+
+  it('covers both response shapes — dropping one is how #419 happened', () => {
+    expect(FIXTURE_QRS).toHaveLength(2)
   })
 
   it('still emits the two demo-only fields the map deliberately omits', () => {

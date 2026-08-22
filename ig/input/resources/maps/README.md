@@ -52,6 +52,17 @@ because SUSHI never sees them.
 - **Parenthesise `where` clauses** — `where (v = 0)`, not `where v = 0`.
 - **Use FHIRPath names, not JSON names**: `answer.value.ofType(string)`, never
   `answer.valueString`.
+- **A repeating `type: group` item arrives as repeated `item`, not as `answer`.**
+  Reading a `repeats: true` group through `.answer.select(item.where(…))` looks
+  right and is wrong: the HL7 validator rejects that shape with *"Items of type
+  question should not have answers"*. `StanleyBrownQRToCarePlan.fml` read it that
+  way for its whole life and a conforming safety plan lost all three contact
+  sections (#419). It now branches on both, with a nested `iif` rather than a
+  `|` union — union dedups and does not guarantee order, which would silently
+  merge two contacts sharing a name and number.
+- **Give a parity fixture per shape you accept.** One fixture in the readable
+  shape is indistinguishable from a map that works; #419 was green for months on
+  exactly that.
 
 ## Gates, and what each one actually covers
 
@@ -62,7 +73,7 @@ Run locally with `node scripts/check-fml.mjs --tx https://tx.fhir.org`
 | Gate | Catches | Misses |
 |---|---|---|
 | `check-fml.mjs` compile phase | FML syntax, unparseable header, name/filename mismatch, unresolvable imports | misspelled target elements, untypeable FHIRPath, wrong `import` type |
-| `check-fml.mjs` parity phase | the Stanley-Brown map drifting from the CarePlan the runtime produces | anything about the other four maps |
+| `check-fml.mjs` parity phase | the Stanley-Brown map drifting from the CarePlan the runtime produces, run over **both** QuestionnaireResponse shapes against one golden (#419) | anything about the other four maps |
 | `stanleyBrown.parity.test.ts` | the *runtime* drifting from the declared map — offline, in `npm run verify` | the map itself |
 | IG Publisher (`ig-publish.yml`) | element and FHIRPath conformance: wrong `import` target type, untypeable expressions, invalid element names | — this is the strict one |
 
