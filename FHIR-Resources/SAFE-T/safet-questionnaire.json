@@ -194,6 +194,7 @@
             { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "high", "display": "High — suicidal ideation with plan, method, and intent to carry out; severe symptoms or acute precipitating event" } }
           ],
           "extension": [
+            { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "clinician-assigned" },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
               "valueCodeableConcept": {

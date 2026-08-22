@@ -94,6 +94,61 @@ Description: "Bindable set of SPiER concept-domain categories."
 * include codes from system SPiERConceptDomain
 
 
+// --- How a tier is arrived at (#414) --------------------------------
+//
+// Every SPiER instrument yields the same tier on LOINC 93374-7. They do NOT
+// all yield it the same way, and the difference is not cosmetic — it decides
+// whether a filler must collect an answer.
+//
+//   - C-SSRS COMPUTES the tier from its item ladder. The mapper never reads a
+//     `risk-level` answer, so requiring one asked a clinician for a value
+//     nothing produces and nothing consumes. Two scenario QuestionnaireResponses
+//     duly had no answer for it, and were non-conformant for months with every
+//     gate green (#414).
+//   - SAFE-T and PSS-Full ask the clinician to ASSIGN the tier — SAFE-T's step 4
+//     is literally "Determine risk level & intervention (based on clinical
+//     judgment)" — and their mappers read that answer. See the designation
+//     comment on SPiERSuicideRiskTier above, which records the same distinction
+//     from the terminology side.
+//
+// Left implicit, an unanswered `risk-level` reads as an omission in one case and
+// a defect in the other, and nothing on the artifact says which. This makes the
+// intent machine-readable rather than a matter of knowing the instrument.
+
+CodeSystem: SPiERTierDerivation
+Id: spier-tier-derivation
+Title: "SPiER Tier Derivation"
+Description: "How a suicide-risk tier is arrived at for a given instrument item: computed from other responses, or assigned by the clinician. Determines whether a filler is expected to collect an answer."
+* ^status = #draft
+* ^experimental = true
+* ^caseSensitive = true
+* ^content = #complete
+
+* #computed "Computed from responses" "The tier is derived from other items in the same instrument. A filler MUST NOT be required to supply it, and an absent answer is expected rather than missing data. C-SSRS works this way."
+* #clinician-assigned "Assigned by the clinician" "The tier is a clinical judgment the instrument asks for directly, and a consumer reads it from the response. An absent answer IS missing data. SAFE-T and PSS-Full work this way."
+
+
+ValueSet: SPiERTierDerivationVS
+Id: spier-tier-derivation-vs
+Title: "SPiER Tier Derivation Value Set"
+Description: "Bindable set of tier-derivation modes."
+* ^status = #draft
+* ^experimental = true
+* include codes from system SPiERTierDerivation
+
+
+Extension: TierDerivation
+Id: tier-derivation
+Title: "Tier Derivation"
+Description: "On a Questionnaire item that carries a suicide-risk tier (LOINC 93374-7): whether the tier is computed from other responses or assigned by the clinician. A `computed` item must not be marked `required`, because no filler produces it."
+* ^status = #draft
+* ^experimental = true
+* ^context[+].type = #element
+* ^context[=].expression = "Questionnaire.item"
+* value[x] only code
+* valueCode from SPiERTierDerivationVS (required)
+
+
 // --- The domain category, as a reusable rule (#262) -----------------
 //
 // Gravity's leverage does not come from having a domain list. It comes from

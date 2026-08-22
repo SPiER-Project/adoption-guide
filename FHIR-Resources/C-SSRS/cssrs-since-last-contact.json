@@ -192,7 +192,8 @@
       "linkId": "risk-level",
       "text": "Suicide Risk Level",
       "type": "choice",
-      "required": true,
+      "required": false,
+      "readOnly": true,
       "code": [
         { "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }
       ],
@@ -202,6 +203,7 @@
         { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "high", "display": "High Risk" } }
       ],
       "extension": [
+        { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "computed" },
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
           "valueCodeableConcept": {

@@ -66,12 +66,24 @@ const PATIENTS_DIR = join(root, 'packages/demo-population/src/patients')
  * Mirrors `FHIR_BUCKETS` in web/scripts/check-scenario-resources.mjs, which
  * gates the same correspondence offline.
  *
- * Deliberately absent: `responses` (StoredResponse wrappers — the QRs inside
- * them are already covered by `npm run check:scenarios`), `riskAlerts` (an app
- * type, not FHIR) and `walkthrough` (ScenarioEncounter narration,
- * NOT a FHIR Encounter — feeding those to the validator would report garbage).
+ * `responses` is here too, and is the odd one out: it holds StoredResponse
+ * WRAPPERS, so the QR is `entry.resource` rather than the entry itself.
+ *
+ * ⚠️ It used to be excluded, reasoning that "the QRs inside them are already
+ * covered by `npm run check:scenarios`". That was half true and therefore
+ * misleading: that gate checks each QR against its **Questionnaire** (linkIds,
+ * answer options, ranges) and has never checked FHIR **conformance** —
+ * cardinality, invariants, unknown elements, `display` against a CodeSystem. So
+ * the 20 scenario QRs were the only hand-authored FHIR here that no conformance
+ * check read, which is how they carried neither `subject` nor `authored` (#364)
+ * and how four conformance errors sat in them unseen (#414).
+ *
+ * Still deliberately absent: `riskAlerts` (an app type, not FHIR) and
+ * `walkthrough` (ScenarioEncounter narration, NOT a FHIR Encounter — feeding
+ * those to the validator would report garbage).
  */
 const SCENARIO_FHIR_BUCKETS = {
+  responses: 'QuestionnaireResponse', // unwrapped from its StoredResponse — see above
   observations: 'Observation',
   carePlans: 'CarePlan',
   communications: 'Communication',
@@ -226,7 +238,10 @@ function collectScenarioResources(dir) {
     for (const [bucket, type] of Object.entries(SCENARIO_FHIR_BUCKETS)) {
       const entries = scenario[bucket]
       if (!Array.isArray(entries)) continue
-      entries.forEach((resource, i) => {
+      entries.forEach((entry, i) => {
+        // `responses` holds StoredResponse wrappers (`{id, questionnaireName,
+        // completedAt, resource}`); every other bucket holds the resource itself.
+        const resource = bucket === 'responses' ? entry?.resource : entry
         if (!resource || typeof resource !== 'object') return
         const clean = { ...resource }
         delete clean._savedAt
