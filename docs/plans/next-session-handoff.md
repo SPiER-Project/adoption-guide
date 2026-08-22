@@ -50,9 +50,9 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`afba780`** when this was written, plus the commit that wrote
+- `main` was at **`bc1eca6`** when this was written, plus the commit that wrote
   it. **No open PRs** at that point.
-  **41 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
+  **43 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
 - **All three `verify` pipelines green**, each run in this session:
 
@@ -217,11 +217,25 @@ desirable, since the re-render is the gate that validates narrative links.
   (`npx -y fsh-sushi@<pinned>`) was rejected on offline-reproducibility, and it
   would also fix a real inconsistency — **five workflows install SUSHI unpinned
   today**. Not urgent; it is the last item in the reshape.
-- **#303 — `p007-stanley-brown` is a stub** (no `activity`) named after a profile
-  it does not conform to. It *limits* how strong #289's invariant can be: it is
-  why `spier-episode-trigger-on-positive-screen` covers only `positive-screen`
-  and not `elevated-assessment`. Renaming is probably right, but which way depends
-  on what that fixture is meant to represent. **Do not guess it; ask.**
+- **#303 — `p007-stanley-brown`, the naming half only.** The packet's false claim
+  is FIXED (#417): it declared `safety-plan-copy` while pointing at a CarePlan
+  with zero `activity`, wrong under either reading, so it went ahead of the
+  decision. What remains is whether the stub is renamed or filled in. Brad noted
+  2026-08-22 that Stanley-Brown is *"one instrument that can be used in different
+  settings"*, which softens it — a different setting can legitimately produce a
+  different shape — but does not settle the content. It still *limits* #289's
+  invariant: it is why `spier-episode-trigger-on-positive-screen` covers only
+  `positive-screen` and not `elevated-assessment`. ⚠️ **p009 is the same question
+  one notch weaker** — its packet claims `safety-plan-copy` with no CarePlan
+  related at all, which is *unverifiable* rather than false (the copy may be in
+  the attachment), and #417's gate deliberately leaves it green.
+- ✅ ~~**#413 — the IG's canonical is a third party's live website**~~ **DIRECTION
+  SET 2026-08-22:** Brad is taking a plan to the SPiER board to give these apps
+  their own domains, and will update the canonical. Two things to carry: it needs
+  **no DNS** — a canonical is an identifier and nothing here dereferences it
+  (verified: zero network uses) — so the string can change the day the domain is
+  *decided*; and the trigger is **before the URLs first leave the repo**
+  (#337/#338, #412), not a date. Re-scoped to p3 for that reason.
 - **#231 — the CDS service's auth posture.** Narrower than filed. `require` is
   implemented and unit-tested and is one `wrangler.jsonc` var; the app only fetches
   discovery (open either way), so flipping would break the guide's published curl
@@ -303,24 +317,16 @@ scripts folder.
 
 ## Outstanding debt with a named finish line
 
-- ✅ ~~**#364 — the fixture fixes**~~ **DONE.** All 20 scenario QRs carry `subject`
-  and `authored`; the mock's `NORMALIZED_LINKS` / `NORMALIZED_AUTHORED` stamps are
-  **deleted**, not left returning zero — a fallback that never fires reads exactly
-  like a fixture that is correct, which is how the gap survived. Two things
-  generalize past the fixtures: check 3 only fired on a link pointing at the
-  *wrong* patient and said nothing about a **missing** one (so walking the bucket
-  alone would have proved nothing — presence is required now, class-wide, and it
-  was free: 114 of 134 resources were already linked), and the rule is shared with
-  the mock's **write** endpoint, so writes tightened too.
-- ⚠️ **#414 — the 20 scenario QRs are the only hand-authored FHIR no conformance
-  check reads**, found by doing #364. `validate-fhir.mjs` excludes the `responses`
-  bucket because "the QRs are already covered by `check:scenarios`" — true of the
-  *Questionnaire* check, never of FHIR conformance. Including them takes it 428 →
-  448 targets and surfaces **4 pre-existing errors**: two wrong ASQ `display`s (the
-  #220 class, mechanical) and two QRs missing required item `risk-level` (**needs a
-  clinical decision** — answer it, or stop marking a derived item required). The
-  6-line validator diff was written and reverted on the #364 branch, so it is known
-  to work.
+- ✅ ~~**#364 / #414 — the scenario-fixture debt**~~ **BOTH DONE**, and worth
+  reading as one chain rather than two tickets, because each fix exposed the
+  next. #364: all 20 QRs carry `subject` and `authored`, and the mock's stamps are
+  **deleted** rather than left returning zero. #414: the `responses` bucket now
+  reaches `validate-fhir.mjs` (428 → 451 targets), which immediately surfaced 4
+  errors nothing had ever read. `risk-level` is `required: false, readOnly: true`
+  on the three C-SSRS forms and stays required on SAFE-T and PSS-Full, with a new
+  `tier-derivation` extension saying which is which. **Do not re-derive that
+  split** — the mappers settle it: C-SSRS computes the tier and never reads the
+  answer; SAFE-T and PSS-Full read it.
 - **#350** holds three ladder items — the CDS card `type:'smart'` link, the
   adoption-pathways guide page, and live sandbox validation. **Do not file
   duplicates**; a previous handoff said "none of it has an issue yet", which would
@@ -341,6 +347,75 @@ scripts folder.
   but it is not another reader, and auth is the worst place for that gap.
 
 ## Findings that generalize — do not re-derive these
+
+### The 2026-08-22 chain: a mapper reading a shape its own form never emits
+
+The sharpest finding of that session and the one most likely to recur elsewhere.
+#418 (runtime) and #419 (the published map) fixed it; **#420 is the gate gap that
+let it live.**
+
+**What it was.** The Stanley-Brown Questionnaire declares its three contact steps
+as `type: group, repeats: true`, which FHIR renders as repeated `item` entries
+with nested `item[]`. `extractPairs`, the FML map, the mapper's tests and the
+golden file **all** read `answer[].item[]` — a shape the HL7 validator rejects:
+
+| shape | validator |
+|---|---|
+| repeated `item` with nested `item[]` | 0 errors |
+| group carrying `answer[]` | 2 errors — *"Items of type question should not have answers"* |
+
+**It was breaking the live demo, verified in a browser rather than reasoned
+about.** Filling the real form showed `@formbox/renderer` emits the conformant
+shape; an A/B on identical input gave:
+
+    social-distraction    "No distraction contacts provided."   → "RT place (RT 555-0001)"
+    crisis-support        "No crisis contacts provided."        → "RT crisis person (RT 555-0002)"
+    professional-support  "No professional contacts provided."  → "RT clinician (RT 555-0003)"
+
+Three sections, not two — `professional-support` breaks via the clinician half of
+step 5. A **well-formed 7-activity CarePlan with every contact section empty**,
+which is the most safety-critical content in a safety plan.
+
+**Why every gate was green.** The transformation exists twice on purpose and is
+pinned by a golden file — but by *one fixture, in the shape the readers could
+handle*. The map and its fixture agreed with each other and both disagreed with
+the Questionnaire. ⚠️ **One fixture in the readable shape is indistinguishable
+from a mapper that works.** Both parity gates now run BOTH shapes against the
+SAME golden; identical content, so any difference is a defect by definition.
+
+**And no demo data exercised it at all** — all three scenario Stanley-Brown QRs
+were empty, so the two "good" plans were hand-authored to look like output the
+transformation had never produced. `stanleyBrown.derivation.test.ts` now asserts
+each demo plan IS `generateCarePlan(<its QR>)`, plus a second assertion that no
+section is a `"No … provided."` placeholder — the bug produced a structurally
+perfect, clinically empty plan that a shape-only check waves through.
+
+⚠️ **Generalize the question, not the instance:** *does any other mapper read a
+nesting its Questionnaire does not declare?* `check:readers` cannot answer it —
+it scans only `observationMappers` (#420). #327 was this family in the
+observation mappers, this was the carePlan mappers, and nothing has swept the
+rest.
+
+### Three mechanical traps from the same session
+
+- ⚠️ **A second `"extension"` key in JSON is silently dropped** — last key wins,
+  every parser, no warning. Inserting one into an item that already had an
+  `extension` array produced a perfect-looking diff and no extension. **Verify
+  fixture edits by re-parsing the JSON, never by reading the diff.**
+- ⚠️ **The first `"extension": [` after a linkId is often the wrong one.** On
+  SAFE-T and PSS-Full it sits inside the LOINC `Coding` (they carry a
+  coding-verification marker), not on the item. Anchor on the item's own
+  indentation.
+- ⚠️ **`gh pr merge --auto` fires on REQUIRED checks only.** On #421 it merged
+  with `fml` and `publish` still running — the two gates that matter most for a
+  StructureMap change, and neither is required. Both passed afterwards, so this
+  was a near miss rather than a break. If you need the IG Publisher to have
+  passed, poll for it; `--auto` will not wait.
+- ⚠️ **`git checkout <branch> -- <path>` destroys uncommitted work in that
+  path**, silently and unrecoverably — the working-tree twin of the
+  `git checkout --` / untracked-files trap already recorded below. It ate this
+  file's first rewrite. Commit before switching branches, or copy the file aside.
+
 
 ### The reshape's five, all one failure family
 
@@ -503,6 +578,8 @@ frame's label already says it is not a SMART launch.
 
 | Issue | What | Milestone |
 |---|---|---|
+| #420 | `check:readers` covers only `observationMappers`, so the carePlan mappers have no reader gate — the gap that let #418/#419 live; the findings section says what the rule should assert | — |
+| #412 | The IG package is published but unreachable — nothing links `package.tgz` and `spier.ig` is not in the FHIR registry, so Getting Started §1's instruction cannot be followed | — |
 | #125 | Consolidate hardcoded example Observations into IG example instances | M7 |
 | #228 | [TL-009] Write the handoff-content-item checklist from the transition recorder | M3 |
 | #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset) | M5 |
