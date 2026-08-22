@@ -8,7 +8,7 @@
         "resourceType": "QuestionnaireResponse",
         "id": "p006-cams-a",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
+        "questionnaire": "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA",
         "subject": {
           "reference": "Patient/patient-006"
         },
@@ -108,7 +108,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "clarify-risk"
           }
         ]
@@ -127,7 +127,7 @@
       "code": {
         "coding": [
           {
-            "system": "http://spier.org/CodeSystem/cams-ssf",
+            "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf",
             "code": "psychological-pain",
             "display": "Psychological Pain"
           }
@@ -158,7 +158,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "clarify-risk"
           }
         ]
@@ -177,7 +177,7 @@
       "code": {
         "coding": [
           {
-            "system": "http://spier.org/CodeSystem/cams-ssf",
+            "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf",
             "code": "hopelessness",
             "display": "Hopelessness"
           }
@@ -208,7 +208,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "clarify-risk"
           }
         ]

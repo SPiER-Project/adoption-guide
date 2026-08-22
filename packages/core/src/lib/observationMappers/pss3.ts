@@ -1,13 +1,13 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // The PSS-3 has NO published panel or per-item LOINC codes, so the three
-// screening items bind to the SPiER-local http://spier.org/CodeSystem/pss3-item
+// screening items bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/pss3-item
 // (mirroring the ASQ asq-item pattern). These codes MUST stay in sync with the
 // Questionnaire item codes (FHIR-Resources/PSS-3/pss3-questionnaire.json) and the
 // anti-drift check web/scripts/check-observation-extract.mjs EXPECTED list.
-const PSS3_ITEM_SYSTEM = 'http://spier.org/CodeSystem/pss3-item'
-const PSS3_RESULT_SYSTEM = 'http://spier.org/CodeSystem/pss3-result'
-const PSS3_RECENCY_SYSTEM = 'http://spier.org/CodeSystem/pss3-attempt-recency'
+const PSS3_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-item'
+const PSS3_RESULT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-result'
+const PSS3_RECENCY_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-attempt-recency'
 
 // Item 3a recency codes that count as a RECENT attempt (within ~6 months) and
 // therefore drive a positive screen. "more-than-6-months" does not.

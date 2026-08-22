@@ -27,7 +27,7 @@ export function generateCrisisResponseCarePlan(questionnaireResponse: Questionna
 
   return makeSuicidePreventionCarePlan({
     id: `crisis-response-plan-${Date.now()}`,
-    profileUrl: 'http://spier.org/StructureDefinition/spier-crisis-response-plan',
+    profileUrl: 'http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan',
     noteText: 'DEMO ONLY — Crisis Response Plan (Bryan & Rudd) CarePlan generated client-side. No patient data has been stored or transmitted. Uses the Hybrid model where core plan content is embedded in activity.description fields. The patient should keep a copy of the plan.',
     hasAnyData,
     extraCategories: [{ system: LOINC_SYSTEM, code: '87626-8', display: 'Suicide prevention note' }],

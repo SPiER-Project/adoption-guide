@@ -1,4 +1,4 @@
-map "http://spier.org/StructureMap/ASQResultToSuicideRiskConcept" = "ASQResultToSuicideRiskConcept"
+map "http://thespierproject.org/fhir/StructureMap/ASQResultToSuicideRiskConcept" = "ASQResultToSuicideRiskConcept"
 
 // Derives a harmonized SPiER Suicide Risk Concept Observation from an ASQ
 // Result Observation, so a consumer that does not know the ASQ can still read
@@ -51,11 +51,11 @@ group asqResultToConcept(source src : ASQResult, target tgt : Concept) {
 
   // --- domain + survey category (Gravity cross-instrument filtering pattern) ---
   src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
-  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
+  src -> tgt.category = cc('http://thespierproject.org/fhir/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
 
   // --- value: translate the ASQ disposition coding to the common tier coding ---
   src.value : CodeableConcept as disp -> tgt.value = create('CodeableConcept') as tier then {
-    disp.coding as dc -> tier.coding = translate(dc, 'http://spier.org/ConceptMap/ASQDispositionToRiskTier', 'Coding') "translate-tier";
+    disp.coding as dc -> tier.coding = translate(dc, 'http://thespierproject.org/fhir/ConceptMap/ASQDispositionToRiskTier', 'Coding') "translate-tier";
   } "map-value";
 
   // --- interpretation: NEG for a negative disposition, POS otherwise ---

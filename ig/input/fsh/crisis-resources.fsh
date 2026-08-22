@@ -85,7 +85,7 @@ InstanceOf: ActivityDefinition
 Title: "Share Patient-Facing Crisis Resources / Coping Supports"
 Description: "Document that patient-facing crisis resources or coping supports (988, Crisis Text Line, Now Matters Now, a safety-plan copy, local crisis lines) were provided, as a SPiERCrisisResourcesShared Communication."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ShareCrisisResources"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ShareCrisisResources"
 * name = "ShareCrisisResources"
 * version = "1.0.0"
 * title = "Share Patient-Facing Crisis Resources / Coping Supports"
@@ -96,7 +96,7 @@ Usage: #definition
 * purpose = "Ensure the patient leaves with concrete, documented access to crisis support. Belongs to the Document Safety Actions stage."
 * kind = #CommunicationRequest
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #spier-authored
 * copyright = "SPiER-authored workflow content: this activity records which patient-facing crisis resources were shared, using a SPiER-local code system. It is published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). The resources the codes NAME — the 988 Suicide & Crisis Lifeline, Crisis Text Line, Now Matters Now, local crisis and warm lines — are third-party services whose names, branding and materials belong to their operators and are not licensed by SPiER. Naming a service in a code display is not a grant to reproduce its content."
 
@@ -114,11 +114,11 @@ Usage: #example
 * subject = Reference(Patient/example)
 * sent = "2026-07-15T16:45:00Z"
 * payload[+].contentString = "988 Suicide & Crisis Lifeline (call/text/chat 988)"
-* payload[=].extension[+].url = "http://spier.org/StructureDefinition/crisis-resource-code"
+* payload[=].extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/crisis-resource-code"
 * payload[=].extension[=].valueCoding = CrisisResourceCodes#lifeline-988 "988 Suicide & Crisis Lifeline"
 * payload[+].contentString = "Crisis Text Line — text HOME to 741741"
-* payload[=].extension[+].url = "http://spier.org/StructureDefinition/crisis-resource-code"
+* payload[=].extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/crisis-resource-code"
 * payload[=].extension[=].valueCoding = CrisisResourceCodes#crisis-text-line "Crisis Text Line"
 * payload[+].contentString = "Copy of your safety plan"
-* payload[=].extension[+].url = "http://spier.org/StructureDefinition/crisis-resource-code"
+* payload[=].extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/crisis-resource-code"
 * payload[=].extension[=].valueCoding = CrisisResourceCodes#safety-plan-copy "Safety plan copy"

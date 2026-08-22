@@ -11,14 +11,14 @@
 //   7. Reason for living
 //
 // Each activity is identified by a SPiER-local section code from
-// http://spier.org/CodeSystem/safety-plan-section, with the human label kept in
+// http://thespierproject.org/fhir/CodeSystem/safety-plan-section, with the human label kept in
 // detail.code.text. LOINC publishes nothing at this granularity — see
 // safety-plan-section.fsh for the exhaustive LOINC 2.82 search behind that
 // conclusion and for why the six 766xx-x codes this repo used to assert had to
 // be withdrawn (they do not exist; issue #220).
 //
 // Existing Questionnaire:
-//   http://spier.org/Questionnaire/StanleyBrownSafetyPlan|1.1.0
+//   http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan|1.1.0
 // =============================================================
 
 
@@ -84,7 +84,7 @@ InstanceOf: ActivityDefinition
 Title: "Author Stanley-Brown Safety Plan"
 Description: "Collaboratively complete a Stanley-Brown Safety Plan with the patient and persist the result as a CarePlan with one activity per step."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerStanleyBrown"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerStanleyBrown"
 * name = "AdministerStanleyBrown"
 * version = "0.1.0"
 * title = "Author Stanley-Brown Safety Plan"
@@ -98,9 +98,9 @@ Usage: #definition
 * code = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Stanley-Brown Safety Plan template"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/StanleyBrownSafetyPlan|1.1.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan|1.1.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #registration
 * copyright = "The Stanley-Brown Safety Plan is copyrighted by Barbara Stanley, PhD and Gregory K. Brown, PhD (2008, 2021). Individual use of the form is permitted. **Written permission from the authors is required for any changes to the form, or for use of the form in the electronic medical record** — which is exactly what an EHR integration built from this ActivityDefinition would be. See www.suicidesafetyplan.com. Basis: the notice recorded on the SPiER Stanley-Brown Questionnaire (FHIR-Resources/Stanley-Brown/). No licensing-audit memo is on file under issue #64 and SPiER has filed no such permission, so an adopting system must obtain its own before deploying this in an EHR."
 

@@ -27,18 +27,18 @@ InstanceOf: ConceptMap
 Title: "ASQ Disposition → SPiER Suicide Risk Tier"
 Description: "Maps the three ASQ screening dispositions (negative / non-acute-positive / acute-positive) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off (epic #77)."
 Usage: #definition
-* url = "http://spier.org/ConceptMap/ASQDispositionToRiskTier"
+* url = "http://thespierproject.org/fhir/ConceptMap/ASQDispositionToRiskTier"
 * version = "0.1.0"
 * name = "ASQDispositionToRiskTier"
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
 * purpose = "Translate the SPiER-local ASQ disposition vocabulary into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume an ASQ result without understanding the ASQ."
-* sourceCanonical = "http://spier.org/ValueSet/asq-result"
-* targetCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"
+* sourceCanonical = "http://thespierproject.org/fhir/ValueSet/asq-result"
+* targetCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 
-* group[0].source = "http://spier.org/CodeSystem/asq-screening-result"
-* group[0].target = "http://spier.org/CodeSystem/spier-suicide-risk-tier"
+* group[0].source = "http://thespierproject.org/fhir/CodeSystem/asq-screening-result"
+* group[0].target = "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier"
 
 * group[0].element[0].code = #negative
 * group[0].element[0].display = "Negative Screen"

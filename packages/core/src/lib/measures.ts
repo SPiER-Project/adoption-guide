@@ -72,15 +72,15 @@ import type {
 // Profiles + codes this engine reads
 // ─────────────────────────────────────────────────────────────
 
-export const RISK_CONCEPT_PROFILE = 'http://spier.org/StructureDefinition/spier-suicide-risk-concept'
-export const SAFETY_HANDOFF_PROFILE = 'http://spier.org/StructureDefinition/spier-safety-handoff'
-export const LETHAL_MEANS_PROFILE = 'http://spier.org/StructureDefinition/spier-lethal-means-counseling'
-export const STANLEY_BROWN_PROFILE = 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'
-export const CRISIS_RESPONSE_PLAN_PROFILE = 'http://spier.org/StructureDefinition/spier-crisis-response-plan'
+export const RISK_CONCEPT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept'
+export const SAFETY_HANDOFF_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff'
+export const LETHAL_MEANS_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling'
+export const STANLEY_BROWN_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan'
+export const CRISIS_RESPONSE_PLAN_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan'
 // Defined in followUp.ts next to the caring-contact profile it rides on, and
 // re-exported here because this engine is where its consequence lives.
 export { CARING_CONTACT_OPT_OUT_EXT }
-export const HANDOFF_CONTENT_SYSTEM = 'http://spier.org/CodeSystem/spier-handoff-content'
+export const HANDOFF_CONTENT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content'
 /** The generic concept-layer code the risk-concept profile mandates. */
 export const RISK_CONCEPT_LOINC = '93374-7'
 
@@ -880,7 +880,7 @@ const POPULATION_DISPLAYS: Record<string, string> = {
 }
 
 function groupCoding(code: string, display: string) {
-  return { coding: [{ system: 'http://spier.org/CodeSystem/spier-measure-group', code, display }] }
+  return { coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/spier-measure-group', code, display }] }
 }
 
 /**

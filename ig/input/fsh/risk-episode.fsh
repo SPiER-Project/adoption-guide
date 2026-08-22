@@ -275,7 +275,7 @@ Description: "The artifact whose result caused this episode to be opened — a s
 Invariant: spier-episode-trigger-on-positive-screen
 Description: "An episode entered on a positive screen SHALL name the artifact that evidenced it, via the episode-trigger extension."
 Severity: #error
-Expression: "extension('http://spier.org/StructureDefinition/episode-entry-reason').value.ofType(CodeableConcept).coding.where(system = 'http://spier.org/CodeSystem/spier-episode-entry-reason' and code = 'positive-screen').exists() implies extension('http://spier.org/StructureDefinition/episode-trigger').exists()"
+Expression: "extension('http://thespierproject.org/fhir/StructureDefinition/episode-entry-reason').value.ofType(CodeableConcept).coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-episode-entry-reason' and code = 'positive-screen').exists() implies extension('http://thespierproject.org/fhir/StructureDefinition/episode-trigger').exists()"
 
 
 Extension: EscalationTriggerExtension
@@ -465,7 +465,7 @@ InstanceOf: ActivityDefinition
 Title: "Maintain Active Suicide-Safer Care Registry / Work Queue"
 Description: "Present every open suicide-safer care episode in one work queue with risk tier, owner, due dates, and escalation state. Produces no resource of its own: the registry is a QUERY over open SPiERSuicideRiskEpisode resources and their SPiERSafetyTask children."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/MaintainRiskRegistry"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/MaintainRiskRegistry"
 * name = "MaintainRiskRegistry"
 * version = "1.0.0"
 * title = "Maintain Active Suicide-Safer Care Registry / Work Queue"
@@ -485,7 +485,7 @@ InstanceOf: ActivityDefinition
 Title: "Track Suicide-Risk Episode / Pathway Status"
 Description: "Open, maintain, and close an active suicide-safer care episode. Produces a SPiERSuicideRiskEpisode (EpisodeOfCare) plus the SPiERSuicideRiskFlag (Flag) chart banner that announces it."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/TrackRiskEpisodeStatus"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/TrackRiskEpisodeStatus"
 * name = "TrackRiskEpisodeStatus"
 * version = "1.0.0"
 * title = "Track Suicide-Risk Episode / Pathway Status"
@@ -505,7 +505,7 @@ InstanceOf: ActivityDefinition
 Title: "Schedule Reassessment / Risk Review"
 Description: "Schedule the next suicide-risk reassessment as a SPiERSafetyTask with an owner and a due date."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleRiskReassessment"
 * name = "ScheduleRiskReassessment"
 * version = "1.0.0"
 * title = "Schedule Reassessment / Risk Review"
@@ -566,7 +566,7 @@ InstanceOf: PlanDefinition
 Title: "SPiER Reassessment Schedule"
 Description: "Per-tier suicide-risk reassessment cadence: how long after the last assessment the next one is due, as a function of the patient's current risk tier."
 Usage: #definition
-* url = "http://spier.org/PlanDefinition/SPiERReassessmentSchedule"
+* url = "http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule"
 * name = "SPiERReassessmentSchedule"
 * version = "1.0.0"
 * title = "SPiER Reassessment Schedule"
@@ -587,9 +587,9 @@ Usage: #definition
   * condition[+]
     * kind = #applicability
     * expression.language = #text/fhirpath
-    * expression.expression = "%episode.extension('http://spier.org/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://spier.org/CodeSystem/spier-suicide-risk-tier').code = 'high'"
+    * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'high'"
   * timingDuration = 7 'd' "day"
-  * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleRiskReassessment"
 
 * action[+]
   * id = "reassess-moderate"
@@ -599,9 +599,9 @@ Usage: #definition
   * condition[+]
     * kind = #applicability
     * expression.language = #text/fhirpath
-    * expression.expression = "%episode.extension('http://spier.org/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://spier.org/CodeSystem/spier-suicide-risk-tier').code = 'moderate'"
+    * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'moderate'"
   * timingDuration = 14 'd' "day"
-  * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleRiskReassessment"
 
 * action[+]
   * id = "reassess-low"
@@ -611,9 +611,9 @@ Usage: #definition
   * condition[+]
     * kind = #applicability
     * expression.language = #text/fhirpath
-    * expression.expression = "%episode.extension('http://spier.org/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://spier.org/CodeSystem/spier-suicide-risk-tier').code = 'low'"
+    * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'low'"
   * timingDuration = 30 'd' "day"
-  * definitionCanonical = "http://spier.org/ActivityDefinition/ScheduleRiskReassessment"
+  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleRiskReassessment"
 
 
 Instance: TrackOpenSafetyActions
@@ -621,7 +621,7 @@ InstanceOf: ActivityDefinition
 Title: "Track Open Safety Actions / Care Gaps"
 Description: "Track unfinished suicide-safety work as SPiERSafetyTask resources — safety plan needed, lethal-means action open, referral incomplete, appointment missing, and the rest of the SSC care-gap list."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/TrackOpenSafetyActions"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/TrackOpenSafetyActions"
 * name = "TrackOpenSafetyActions"
 * version = "1.0.0"
 * title = "Track Open Safety Actions / Care Gaps"
@@ -641,7 +641,7 @@ InstanceOf: ActivityDefinition
 Title: "Run Risk Escalation / Overdue Workflow"
 Description: "Escalate an episode when risk worsens or key steps go overdue, as a SPiERSafetyTask coded `escalation` carrying one or more escalation triggers."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/EscalateOverdueRisk"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/EscalateOverdueRisk"
 * name = "EscalateOverdueRisk"
 * version = "1.0.0"
 * title = "Run Risk Escalation / Overdue Workflow"

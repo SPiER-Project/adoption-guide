@@ -270,9 +270,9 @@ describe('deriveRegistryRow', () => {
         sent,
         extension: [
           {
-            url: 'http://spier.org/StructureDefinition/outreach-outcome',
+            url: 'http://thespierproject.org/fhir/StructureDefinition/outreach-outcome',
             valueCodeableConcept: {
-              coding: [{ system: 'http://spier.org/CodeSystem/spier-outreach-outcome', code: outcome }],
+              coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/spier-outreach-outcome', code: outcome }],
             },
           },
         ],
@@ -372,7 +372,7 @@ describe('deriveRegistryRow', () => {
               meta: {
                 tag: [
                   {
-                    system: 'http://spier.org/CodeSystem/spier-pathway-stage',
+                    system: 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage',
                     code: 'coordinate-handoffs',
                   },
                 ],

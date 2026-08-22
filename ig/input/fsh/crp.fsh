@@ -10,7 +10,7 @@
 //   5. Professional & crisis support
 //
 // Section identity comes from the shared SPiER-local CodeSystem
-// http://spier.org/CodeSystem/safety-plan-section, which the Stanley-Brown
+// http://thespierproject.org/fhir/CodeSystem/safety-plan-section, which the Stanley-Brown
 // Safety Plan also uses — the CRP's five sections are a subset of
 // Stanley-Brown's seven. There is no CRP-specific LOINC panel, and LOINC
 // publishes nothing at safety-plan-section granularity at all; see
@@ -18,7 +18,7 @@
 // this repo used to assert here (issue #220).
 //
 // Existing Questionnaire:
-//   http://spier.org/Questionnaire/CrisisResponsePlan|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan|1.0.0
 //
 // Licensing: the CRP is a published clinical technique (Bryan & Rudd).
 // Used under the permission/license held by the SPiER project (maintainer-
@@ -88,7 +88,7 @@ InstanceOf: ActivityDefinition
 Title: "Author Crisis Response Plan / Crisis Planning"
 Description: "Collaboratively complete a Crisis Response Plan (CRP) with the patient and persist the result as a CarePlan with one activity per CRP section."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AuthorCrisisResponsePlan"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AuthorCrisisResponsePlan"
 * name = "AuthorCrisisResponsePlan"
 * version = "1.0.0"
 * title = "Author Crisis Response Plan / Crisis Planning"
@@ -102,9 +102,9 @@ Usage: #definition
 * code = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Crisis Response Plan template"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CrisisResponsePlan|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #registration
 * copyright = "The Crisis Response Plan (CRP) is a published clinical intervention described by Craig J. Bryan and M. David Rudd. It is freely used in practice with attribution to Bryan & Rudd; there is no per-use instrument fee. SPiER publishes these artifacts under the permission/license held by the SPiER project — that permission covers SPiER, and does NOT transfer to an adopting system, which should confirm its own position and must attribute the CRP to Bryan & Rudd. Coded `registration` rather than `public-domain` for that reason. Basis: FHIR-Resources/CRP/licensing/MEMO.md (issue #64), maintainer-confirmed 2026-07-15."
 

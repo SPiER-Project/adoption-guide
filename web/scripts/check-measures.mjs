@@ -54,7 +54,7 @@ const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const enginePath = join(root, 'packages/core/src/lib/measures.ts')
 
 const MEASURE_POPULATION_SYSTEM = 'http://terminology.hl7.org/CodeSystem/measure-population'
-const GROUP_CODE_SYSTEM = 'http://spier.org/CodeSystem/spier-measure-group'
+const GROUP_CODE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-measure-group'
 const VALID_POPULATIONS = new Set([
   'initial-population',
   'numerator',

@@ -142,7 +142,7 @@ describe('write path: stampLaunchStage stamps the launching tool’s stage', () 
   // future questionnaire shared by tools at different stages, so the write
   // path (`?tool=` → stampLaunchStage → meta.tag → stageForArtifact tier 1 →
   // deriveFromResponse) is still driven end to end here with the real helper.
-  const CAMS_A_URL = 'http://spier.org/Questionnaire/CAMS-SSF5-SectionA'
+  const CAMS_A_URL = 'http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA'
   const owner = toolForQuestionnaireUrl(CAMS_A_URL)
   const ownerStage = owner?.stageId
 
@@ -264,10 +264,10 @@ describe('stageForArtifact — tier 4: CarePlan meta.profile', () => {
   // cannot compile without being assigned a stage. These stage IDs live only in
   // patientPathway.ts (no FHIR artifact records them), so they are anchored here.
   const cases: Array<[string, string]> = [
-    ['http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan', 'document-safety-actions'],
-    ['http://spier.org/StructureDefinition/spier-cams-stabilization-plan', 'document-safety-actions'],
-    ['http://spier.org/StructureDefinition/spier-crisis-response-plan', 'document-safety-actions'],
-    ['http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet', 'define-risk-picture'],
+    ['http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan', 'document-safety-actions'],
+    ['http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan', 'document-safety-actions'],
+    ['http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan', 'document-safety-actions'],
+    ['http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet', 'define-risk-picture'],
   ]
 
   it.each(cases)('resolves profile %s to stage %s', (profile, expectedStage) => {
@@ -306,7 +306,7 @@ describe('stageForArtifact — resolution precedence', () => {
       // The profile map would say document-safety-actions.
       meta: {
         tag: [{ system: PATHWAY_STAGE_SYSTEM, code: tagStage }],
-        profile: ['http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'],
+        profile: ['http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan'],
       },
       category: [{ coding: [{ system: PATHWAY_STAGE_SYSTEM, code: categoryStage }] }],
     }
@@ -315,7 +315,7 @@ describe('stageForArtifact — resolution precedence', () => {
 
     // Drop the tag: category wins over the profile map.
     artifact.meta = {
-      profile: ['http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'],
+      profile: ['http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan'],
     }
     expect(stageForArtifact(artifact)).toBe(categoryStage)
   })

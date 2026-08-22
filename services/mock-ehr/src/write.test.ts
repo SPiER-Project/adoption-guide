@@ -200,7 +200,7 @@ describe('it rejects — guardrail 2', () => {
     delete resource.valueCodeableConcept
     const { res, body } = await post('Observation', resource)
     expect(res.status).toBe(422)
-    expect(diagnosticsOf(body)).toMatch(/is required by http:\/\/spier\.org/)
+    expect(diagnosticsOf(body)).toMatch(/is required by http:\/\/thespierproject\.org\/fhir/)
   })
 
   it('⚠️ checks an UNPROFILED resource less deeply — a stated limit, not a bug', async () => {

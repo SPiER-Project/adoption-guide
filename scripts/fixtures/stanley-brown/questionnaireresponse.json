@@ -2,7 +2,7 @@
   "resourceType": "QuestionnaireResponse",
   "id": "stanley-brown-parity-example",
   "status": "completed",
-  "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+  "questionnaire": "http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan",
   "subject": { "reference": "Patient/example" },
   "authored": "2026-08-08T14:30:00Z",
   "item": [

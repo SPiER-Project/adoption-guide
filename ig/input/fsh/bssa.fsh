@@ -12,7 +12,7 @@
 //
 // References the hand-authored Questionnaire at
 // FHIR-Resources/BSSA/bssa-questionnaire.json
-// (canonical: http://spier.org/Questionnaire/BSSA).
+// (canonical: http://thespierproject.org/fhir/Questionnaire/BSSA).
 //
 // The disposition -> common suicide-risk-tier crosswalk lives in
 // ig/input/fsh/crosswalk-bssa.fsh (pending clinical sign-off).
@@ -175,7 +175,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
 Description: "Conduct a Brief Suicide Safety Assessment after a positive suicide-risk screen, persist the interview as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER BSSA Disposition Result profile."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerBSSA"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerBSSA"
 * name = "AdministerBSSA"
 * version = "1.0.0"
 * title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
@@ -189,9 +189,9 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Brief Suicide Safety Assessment questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/BSSA|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/BSSA|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
 * copyright = "The Brief Suicide Safety Assessment (BSSA) is part of the ASQ Toolkit, a public domain resource developed by the National Institute of Mental Health (NIMH). As a work of the U.S. federal government it is not subject to copyright in the United States, and no permission or fee is required for use. Attribution to NIMH is a SPiER courtesy rather than a legal condition. The BSSA is a clinical guide for trained professionals following a positive screen, and should be kept with its disposition guidance rather than excerpted as a stand-alone form. Basis: FHIR-Resources/BSSA/licensing/MEMO.md (issue #64)."
 
@@ -231,7 +231,7 @@ Title: "Example — BSSA QuestionnaireResponse (further evaluation necessary)"
 Description: "Source BSSA QuestionnaireResponse: past-few-weeks ideation present, no current ideation, has no plan, a prior attempt, intent 3/10, and a 'further evaluation necessary' disposition. The derived SPiERBSSADispositionResult references this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/BSSA"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/BSSA"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T14:20:00Z"
 // Nesting mirrors the Questionnaire (assessment > frequency / plan /

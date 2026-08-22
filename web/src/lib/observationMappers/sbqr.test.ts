@@ -9,11 +9,11 @@ import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 //   q4: "0"=0 … "6"=6
 // The mapper joins these codes back to the Questionnaire for the total.
 function sbqrResponse(codes: { q1: string; q2: string; q3: string; q4: string }): QuestionnaireResponseResource {
-  const sys = (q: string) => `http://spier.org/CodeSystem/sbqr-${q}`
+  const sys = (q: string) => `http://thespierproject.org/fhir/CodeSystem/sbqr-${q}`
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/SBQ-R',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/SBQ-R',
     item: (['q1', 'q2', 'q3', 'q4'] as const).map(q => ({
       linkId: q,
       answer: [{ valueCoding: { system: sys(q), code: codes[q] } }],

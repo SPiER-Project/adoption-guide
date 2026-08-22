@@ -3,7 +3,7 @@ import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type Map
 // The CAMS Outcome/Disposition final session re-rates the six SSF Core Assessment
 // vitals (same cams-ssf codes as Section A) and records a disposition. The
 // disposition Observation follows the BSSA precedent: LOINC 93374-7 + a SPiER-local
-// disposition value (http://spier.org/CodeSystem/cams-disposition). These codes MUST
+// disposition value (http://thespierproject.org/fhir/CodeSystem/cams-disposition). These codes MUST
 // stay in sync with ig/input/fsh/cams.fsh (CAMSDispositionCodes).
 const CAMS_VITALS = [
   { linkId: '1-score', code: 'psychological-pain', display: 'Psychological Pain' },
@@ -14,7 +14,7 @@ const CAMS_VITALS = [
   { linkId: '6-score', code: 'overall-risk', display: 'Overall Risk of Suicide' },
 ]
 
-const CAMS_DISPOSITION_SYSTEM = 'http://spier.org/CodeSystem/cams-disposition'
+const CAMS_DISPOSITION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cams-disposition'
 
 export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
@@ -30,7 +30,7 @@ export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResourc
       makeObservation({
         id: `cams-${vital.code}-${Date.now()}`,
         // See camsSectionA.ts: the authority's display, "CAMS SSF: …" as `.text`.
-        code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: vital.code, display: vital.display, text: `CAMS SSF: ${vital.display}` },
+        code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: vital.code, display: vital.display, text: `CAMS SSF: ${vital.display}` },
         value: score,
         valueType: 'integer',
         interpretation: score >= 4

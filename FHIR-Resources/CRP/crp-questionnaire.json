@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "CrisisResponsePlan",
-  "url": "http://spier.org/Questionnaire/CrisisResponsePlan",
+  "url": "http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan",
   "version": "1.0.0",
   "name": "CrisisResponsePlan",
   "title": "Crisis Response Plan (CRP)",

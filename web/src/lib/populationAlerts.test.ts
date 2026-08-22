@@ -48,7 +48,7 @@ function evalOf(
 ): MeasureEvaluation {
   return {
     measureId,
-    measureUrl: `http://spier.org/Measure/${measureId}`,
+    measureUrl: `http://thespierproject.org/fhir/Measure/${measureId}`,
     title: measureId,
     groups: [{ code, display: code, populations: {}, inDenominator, inNumerator, removedByException: false }],
   }

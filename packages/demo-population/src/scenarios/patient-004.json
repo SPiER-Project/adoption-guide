@@ -8,7 +8,7 @@
         "resourceType": "QuestionnaireResponse",
         "id": "p004-asq",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "questionnaire": "http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool",
         "subject": {
           "reference": "Patient/patient-004"
         },
@@ -95,7 +95,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]
@@ -127,7 +127,7 @@
       "valueCodeableConcept": {
         "coding": [
           {
-            "system": "http://spier.org/CodeSystem/asq-screening-result",
+            "system": "http://thespierproject.org/fhir/CodeSystem/asq-screening-result",
             "code": "non-acute-positive",
             "display": "Non-Acute Positive Screen"
           }

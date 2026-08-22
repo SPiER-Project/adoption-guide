@@ -7,7 +7,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "define-risk-picture",
             "display": "Define the Risk Picture"
           }
@@ -45,7 +45,7 @@
       "valueCodeableConcept": {
         "coding": [
           {
-            "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier",
             "code": "low",
             "display": "Low risk"
           }
@@ -68,7 +68,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
               "code": "coordinate-handoffs",
               "display": "Coordinate Handoffs"
             }
@@ -105,11 +105,11 @@
       "status": "completed",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-caring-contact"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "track-follow-up",
             "display": "Track Follow-Up"
           }
@@ -122,7 +122,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
               "code": "suicide-risk",
               "display": "Suicide risk"
             }
@@ -164,11 +164,11 @@
       "id": "p008-safety-handoff",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-safety-handoff"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "coordinate-handoffs",
             "display": "Coordinate Handoffs"
           }
@@ -182,7 +182,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
               "code": "suicide-risk",
               "display": "Suicide risk"
             }
@@ -198,11 +198,11 @@
       "sent": "2026-07-25T10:00:00.000Z",
       "extension": [
         {
-          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/handoff-content-item",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-handoff-content",
                 "code": "current-risk-status",
                 "display": "Current risk status"
               }
@@ -210,11 +210,11 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/handoff-content-item",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-handoff-content",
                 "code": "safety-plan-status",
                 "display": "Safety plan status"
               }
@@ -222,11 +222,11 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/handoff-content-item",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-handoff-content",
                 "code": "follow-up-plan",
                 "display": "Follow-up plan"
               }
@@ -234,11 +234,11 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/handoff-content-item",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/handoff-content-item",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-handoff-content",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-handoff-content",
                 "code": "next-provider",
                 "display": "Next provider / team"
               }
@@ -257,11 +257,11 @@
       "id": "p008-outreach-48h",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-outreach-attempt"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "track-follow-up",
             "display": "Track Follow-Up"
           }
@@ -275,7 +275,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
               "code": "suicide-risk",
               "display": "Suicide risk"
             }
@@ -302,11 +302,11 @@
       ],
       "extension": [
         {
-          "url": "http://spier.org/StructureDefinition/outreach-outcome",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/outreach-outcome",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-outreach-outcome",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-outreach-outcome",
                 "code": "patient-reached",
                 "display": "Patient reached"
               }
@@ -314,11 +314,11 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/outreach-prompt",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/outreach-prompt",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-outreach-prompt",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-outreach-prompt",
                 "code": "post-discharge",
                 "display": "Post-discharge follow-up"
               }
@@ -326,7 +326,7 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/safety-concern-identified",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/safety-concern-identified",
           "valueBoolean": false
         }
       ]
@@ -338,11 +338,11 @@
       "id": "p008-episode",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "track-risk-over-time",
             "display": "Track Risk Over Time"
           }
@@ -353,7 +353,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-episode-type",
               "code": "suicide-safer-care",
               "display": "Suicide-safer care episode"
             }
@@ -362,11 +362,11 @@
       ],
       "extension": [
         {
-          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/episode-entry-reason",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-episode-entry-reason",
                 "code": "positive-screen",
                 "display": "Positive screen"
               }
@@ -374,17 +374,17 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/episode-trigger",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/episode-trigger",
           "valueReference": {
             "reference": "Observation/p008-risk-status"
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier",
                 "code": "low",
                 "display": "Low risk"
               }
@@ -392,11 +392,11 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/episode-closure-reason",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/episode-closure-reason",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-episode-closure-reason",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-episode-closure-reason",
                 "code": "stepped-down",
                 "display": "Stepped down to routine care"
               }
@@ -434,11 +434,11 @@
       "id": "p008-referral",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-safety-referral"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-safety-referral"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "coordinate-handoffs",
             "display": "Coordinate Handoffs"
           }
@@ -460,7 +460,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-referral-reason",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-referral-reason",
               "code": "ongoing-treatment",
               "display": "Ongoing behavioral health treatment"
             }
@@ -476,7 +476,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
               "code": "suicide-risk",
               "display": "Suicide risk"
             }
@@ -491,11 +491,11 @@
       "id": "p008-follow-up",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-follow-up-appointment"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-follow-up-appointment"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "coordinate-handoffs",
             "display": "Coordinate Handoffs"
           }
@@ -505,7 +505,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-concept-domain",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
               "code": "suicide-risk",
               "display": "Suicide risk"
             }
@@ -539,11 +539,11 @@
       "id": "p008-enc-index",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-encounter"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]
@@ -572,11 +572,11 @@
       "id": "p008-enc-transition",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-encounter"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "coordinate-handoffs"
           }
         ]
@@ -605,11 +605,11 @@
       "id": "p008-enc-caring-contact",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-encounter"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "track-follow-up"
           }
         ]
@@ -638,11 +638,11 @@
       "id": "p008-enc-outreach-48h",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-encounter"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "track-follow-up"
           }
         ]
@@ -671,11 +671,11 @@
       "id": "p008-enc-follow-up",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-encounter"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "track-follow-up"
           }
         ]

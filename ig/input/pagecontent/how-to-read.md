@@ -54,7 +54,7 @@ This is stated on the artifact rather than left to instrument knowledge. The ite
   "readOnly": true,
   "code": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }],
   "extension": [
-    { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "computed" }
+    { "url": "http://thespierproject.org/fhir/StructureDefinition/tier-derivation", "valueCode": "computed" }
   ]
 }
 ```

@@ -32,17 +32,17 @@ InstanceOf: ConceptMap
 Title: "SPiER Suicide Risk Tier → LOINC Suicide Risk Level"
 Description: "Maps the instrument-agnostic SPiER suicide-risk tiers (no-risk/low/moderate/high/imminent) onto the normative LOINC answer list LL465-6 (Low/Moderate/High) for LOINC 93374-7 'Suicide risk level', so consumers expecting the LOINC-coded value — e.g. the HL7 US Behavioral Health Profiles IG — can interpret a SPiER harmonized concept. `no-risk` has no LOINC equivalent and is omitted; `imminent` maps to the wider LOINC High. Proposed crosswalk pending clinical sign-off (epic #77)."
 Usage: #definition
-* url = "http://spier.org/ConceptMap/SPiERRiskTierToLOINC"
+* url = "http://thespierproject.org/fhir/ConceptMap/SPiERRiskTierToLOINC"
 * version = "0.1.0"
 * name = "SPiERRiskTierToLOINC"
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
 * purpose = "Translate the instrument-agnostic SPiER suicide-risk tier into the LOINC 93374-7 answer list so HL7-aligned partner systems can consume the harmonized concept value natively."
-* sourceCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"
+* sourceCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 * targetCanonical = "http://loinc.org/vs/LL465-6"
 
-* group[0].source = "http://spier.org/CodeSystem/spier-suicide-risk-tier"
+* group[0].source = "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier"
 * group[0].target = "http://loinc.org"
 
 * group[0].element[0].code = #low

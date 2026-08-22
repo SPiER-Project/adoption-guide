@@ -17,7 +17,7 @@ import type {
 import { suicideRiskCategory } from '../conceptDomain'
 
 /** The C-SSRS risk-level system, and its CANONICAL displays. */
-export const CSSRS_RISK_LEVEL_SYSTEM = 'http://spier.org/CodeSystem/cssrs-risk-level'
+export const CSSRS_RISK_LEVEL_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level'
 
 /**
  * `Coding.display` on a SPiER-local system must match the CodeSystem — the

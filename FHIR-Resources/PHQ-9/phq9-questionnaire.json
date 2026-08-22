@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "PHQ-9",
-  "url": "http://spier.org/Questionnaire/PHQ-9",
+  "url": "http://thespierproject.org/fhir/Questionnaire/PHQ-9",
   "version": "1.0.0",
   "name": "PHQ9",
   "title": "Patient Health Questionnaire-9 (PHQ-9)",

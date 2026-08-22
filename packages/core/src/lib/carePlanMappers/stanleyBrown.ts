@@ -55,7 +55,7 @@ export function generateCarePlan(questionnaireResponse: QuestionnaireResponseRes
 
   return makeSuicidePreventionCarePlan({
     id: `stanley-brown-safety-plan-${Date.now()}`,
-    profileUrl: 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan',
+    profileUrl: 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan',
     noteText: 'DEMO ONLY — This CarePlan was generated client-side for demonstration purposes. No patient data has been stored or transmitted. This CarePlan uses the Hybrid model where core safety data is embedded in activity.description fields for maximum interoperability.',
     hasAnyData,
     extraCategories: [{ system: LOINC_SYSTEM, code: '87626-8', display: 'Suicide prevention note' }],

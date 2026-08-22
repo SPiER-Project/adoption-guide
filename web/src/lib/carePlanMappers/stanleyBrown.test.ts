@@ -11,7 +11,7 @@ function fullSafetyPlan(shape: PairShape = 'conformant'): QuestionnaireResponseR
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/StanleyBrownSafetyPlan',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan',
     item: [
       simple('1-1-warning-sign', ['Racing thoughts', 'Isolating']),
       simple('2-1-coping-strategy', ['Go for a walk']),
@@ -35,7 +35,7 @@ describe('generateCarePlan (Stanley-Brown)', () => {
     expect(activities).toHaveLength(7)
 
     const meta = resource.meta as { profile?: string[] }
-    expect(meta.profile).toContain('http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan')
+    expect(meta.profile).toContain('http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan')
 
     const category = resource.category as Array<{ coding?: Array<{ code?: string }> }>
     expect(category[0].coding?.[0]?.code).toBe('735324008')
@@ -58,7 +58,7 @@ describe('generateCarePlan (Stanley-Brown)', () => {
 
     // Section codes land on the FHIR activity detail.code
     const fhirActivity = (resource.activity as Array<{ detail?: { code?: { coding?: Array<{ system?: string; code?: string }> } } }>)[0]
-    expect(fhirActivity.detail?.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/safety-plan-section')
+    expect(fhirActivity.detail?.code?.coding?.[0]?.system).toBe('http://thespierproject.org/fhir/CodeSystem/safety-plan-section')
     expect(fhirActivity.detail?.code?.coding?.[0]?.code).toBe('warning-signs')
 
     // The one real standard code that applies sits at document level on category.
@@ -70,7 +70,7 @@ describe('generateCarePlan (Stanley-Brown)', () => {
     const empty: QuestionnaireResponseResource = {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      questionnaire: 'http://spier.org/Questionnaire/StanleyBrownSafetyPlan',
+      questionnaire: 'http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan',
       item: [],
     } as QuestionnaireResponseResource
 

@@ -47,7 +47,7 @@ function positiveAsq(): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/ASQ-Screening-Tool',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool',
     item: [
       {
         linkId: 'screening-questions',

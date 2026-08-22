@@ -5,7 +5,7 @@
 // SPiER pathway (any positive value advances to Clarify Risk).
 //
 // Existing Questionnaire:
-//   http://spier.org/Questionnaire/PHQ-9|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/PHQ-9|1.0.0
 // =============================================================
 
 
@@ -72,7 +72,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer PHQ-9"
 Description: "Capture a PHQ-9 depression screen, persist as a QuestionnaireResponse, and derive total-score and item-9 Observations. Item 9 advances the patient to Clarify Risk."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerPHQ9"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerPHQ9"
 * name = "AdministerPHQ9"
 * version = "0.1.0"
 * title = "Administer PHQ-9"
@@ -86,9 +86,9 @@ Usage: #definition
 * code = http://loinc.org#44249-1 "PHQ-9 quick depression assessment panel [Reported.PHQ]"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "PHQ-9 questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/PHQ-9|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/PHQ-9|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
 * copyright = "Developed with an educational grant from Pfizer Inc. No permission required to reproduce, translate, display or distribute. Basis: the notice recorded on the SPiER PHQ-9 Questionnaire (FHIR-Resources/PHQ-9/). No licensing-audit memo is on file for the PHQ-9 under issue #64, so this notice has not been verified against the publisher's current terms."
 
@@ -134,7 +134,7 @@ Title: "Example — PHQ-9 QuestionnaireResponse"
 Description: "Sample completed PHQ-9 QuestionnaireResponse that the example total-score and item-9 Observations reference via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/PHQ-9"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/PHQ-9"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T10:30:00Z"
 // q1–q9 are all `required` on the Questionnaire, so a partial response is not a

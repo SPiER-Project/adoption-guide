@@ -199,7 +199,7 @@ const PLAN_DEFS: PlanDefinitionDoc[] = Object.values(pdModules).map((m) => m.def
 function stageIdOf(pd: PlanDefinitionDoc): string | undefined {
   const focus = pd.useContext?.find((c) => c.code.code === 'focus')
   return focus?.valueCodeableConcept?.coding?.find(
-    (c) => c.system === 'http://spier.org/CodeSystem/spier-pathway-stage',
+    (c) => c.system === 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage',
   )?.code
 }
 

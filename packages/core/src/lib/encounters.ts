@@ -25,7 +25,7 @@
 import { makeId } from './id'
 import type { EncounterResource, EpisodeOfCareResource } from '../types/fhir'
 
-export const ENCOUNTER_PROFILE = 'http://spier.org/StructureDefinition/spier-encounter'
+export const ENCOUNTER_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-encounter'
 
 const ACT_CODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
 

@@ -95,17 +95,17 @@ Description: "Machine-readable licensing status of the instrument or workflow an
 // RuleSet so the notice cannot drift between them.
 
 RuleSet: LicensingSpiERAuthored
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #spier-authored
 * copyright = "SPiER-authored workflow content. This activity reproduces no third-party validated instrument: it and the SPiER profiles and code systems it references are published with the SPiER Implementation Guide under the guide's own licence (CC0-1.0). No permission or fee is required to adopt it. Any locally-chosen instrument, script, letter template or vendor content a site substitutes into this step carries its own terms, which the site must confirm separately."
 
 RuleSet: LicensingCAMS
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #commercial
 * copyright = "The Collaborative Assessment and Management of Suicidality (CAMS) framework and the Suicide Status Form (SSF) are the work of David A. Jobes, PhD, distributed by CAMS-care, LLC and Guilford Press. CAMS is a **commercial instrument**: use requires appropriate training and a license from CAMS-care, and the SSF must not be reproduced without that agreement. This ActivityDefinition describes the workflow step; the SSF item content it points at is subject to that license. Basis: the notice recorded on the SPiER CAMS Questionnaires (FHIR-Resources/CAMS/). No licensing-audit memo is on file for CAMS under issue #64, so these terms have not been verified against CAMS-care's current published terms."
 
 RuleSet: LicensingCSSRS
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #registration
 * copyright = "© 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. The C-SSRS is free to use but is copyrighted and permission-based: an adopting system must register through the Columbia Lighthouse Project (cssrs.columbia.edu), some administration contexts require training, item wording may not be altered, and this copyright notice must be retained on every version. Basis: FHIR-Resources/C-SSRS/licensing/MEMO.md (issue #64). Open item recorded there: confirmation that a FHIR representation is covered by a site's own registration is still to be filed."
 

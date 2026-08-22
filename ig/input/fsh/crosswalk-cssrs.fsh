@@ -26,18 +26,18 @@ InstanceOf: ConceptMap
 Title: "C-SSRS Risk Level → SPiER Suicide Risk Tier"
 Description: "Maps the four C-SSRS derived risk levels (none/low/moderate/high) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off (epic #77)."
 Usage: #definition
-* url = "http://spier.org/ConceptMap/CSSRSRiskLevelToRiskTier"
+* url = "http://thespierproject.org/fhir/ConceptMap/CSSRSRiskLevelToRiskTier"
 * version = "0.1.0"
 * name = "CSSRSRiskLevelToRiskTier"
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
 * purpose = "Translate the SPiER-local C-SSRS risk-level vocabulary into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume a C-SSRS result without understanding the C-SSRS."
-* sourceCanonical = "http://spier.org/ValueSet/cssrs-risk-level"
-* targetCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"
+* sourceCanonical = "http://thespierproject.org/fhir/ValueSet/cssrs-risk-level"
+* targetCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 
-* group[0].source = "http://spier.org/CodeSystem/cssrs-risk-level"
-* group[0].target = "http://spier.org/CodeSystem/spier-suicide-risk-tier"
+* group[0].source = "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level"
+* group[0].target = "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier"
 
 * group[0].element[0].code = #none
 * group[0].element[0].display = "None"

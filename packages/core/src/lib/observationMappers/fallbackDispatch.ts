@@ -43,7 +43,7 @@ import type {
   QuestionnaireResponseResource,
 } from '../../types/fhir'
 
-const SPIER_Q = 'http://spier.org/Questionnaire'
+const SPIER_Q = 'http://thespierproject.org/fhir/Questionnaire'
 
 /** One standardized item code → the SPiER linkId it corresponds to. */
 interface ItemCodeMapping {

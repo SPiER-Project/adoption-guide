@@ -6,7 +6,7 @@
           "coding": [
             {
               "code": "warning-signs",
-              "system": "http://spier.org/CodeSystem/safety-plan-section"
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section"
             }
           ],
           "text": "Step 1: Warning Signs"
@@ -21,7 +21,7 @@
           "coding": [
             {
               "code": "internal-coping",
-              "system": "http://spier.org/CodeSystem/safety-plan-section"
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section"
             }
           ],
           "text": "Step 2: Internal Coping Strategies"
@@ -36,7 +36,7 @@
           "coding": [
             {
               "code": "social-distraction",
-              "system": "http://spier.org/CodeSystem/safety-plan-section"
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section"
             }
           ],
           "text": "Step 3: Social Distractions"
@@ -51,7 +51,7 @@
           "coding": [
             {
               "code": "crisis-support",
-              "system": "http://spier.org/CodeSystem/safety-plan-section"
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section"
             }
           ],
           "text": "Step 4: Crisis Support Contacts"
@@ -66,7 +66,7 @@
           "coding": [
             {
               "code": "professional-support",
-              "system": "http://spier.org/CodeSystem/safety-plan-section"
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section"
             }
           ],
           "text": "Step 5: Professional Support"
@@ -81,7 +81,7 @@
           "coding": [
             {
               "code": "lethal-means-safety",
-              "system": "http://spier.org/CodeSystem/safety-plan-section"
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section"
             }
           ],
           "text": "Step 6: Lethal Means Safety"
@@ -96,7 +96,7 @@
           "coding": [
             {
               "code": "reason-for-living",
-              "system": "http://spier.org/CodeSystem/safety-plan-section"
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section"
             }
           ],
           "text": "Step 7: Reason for Living"
@@ -132,7 +132,7 @@
       "coding": [
         {
           "code": "suicide-risk",
-          "system": "http://spier.org/CodeSystem/spier-concept-domain"
+          "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain"
         }
       ]
     }
@@ -140,7 +140,7 @@
   "intent": "plan",
   "meta": {
     "profile": [
-      "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
+      "http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan"
     ]
   },
   "resourceType": "CarePlan",

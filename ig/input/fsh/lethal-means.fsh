@@ -141,7 +141,7 @@ InstanceOf: ActivityDefinition
 Title: "Provide Lethal Means Safety Counseling / Means Safety Actions"
 Description: "Provide lethal-means safety counseling and document the counseling (Procedure) plus the concrete per-method means-safety actions (Observations)."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ProvideMeansSafetyCounseling"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ProvideMeansSafetyCounseling"
 * name = "ProvideMeansSafetyCounseling"
 * version = "1.0.0"
 * title = "Provide Lethal Means Safety Counseling / Means Safety Actions"
@@ -154,7 +154,7 @@ Usage: #definition
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://snomed.info/sct#409063005 "Counseling"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #spier-authored
 * copyright = "SPiER-authored workflow content: this activity records THAT lethal-means safety counseling happened and which per-method actions were agreed, using SPiER-local code systems. It reproduces no third-party curriculum or script, and is published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). A site that delivers the counseling using a named protocol — CALM (Counseling on Access to Lethal Means) or similar — takes that protocol training materials under the protocol's own terms, which SPiER has not audited."
 

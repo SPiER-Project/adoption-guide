@@ -10,10 +10,10 @@
 //   Interim Session                     -> reuses Section A Questionnaire
 //
 // Existing Questionnaires (post placeholder-URL cleanup):
-//   http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0
-//   http://spier.org/Questionnaire/CAMS-SSF5-SectionB|1.0.0
-//   http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet|1.0.0
-//   http://spier.org/Questionnaire/CAMS-Stabilization-Plan|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/CAMS-Therapeutic-Worksheet|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/CAMS-Stabilization-Plan|1.0.0
 // =============================================================
 
 
@@ -198,7 +198,7 @@ Profile: SPiERCAMSSuicideDriver
 Parent: Condition
 Id: spier-cams-suicide-driver
 Title: "SPiER CAMS Suicide Driver Condition"
-Description: "A Condition representing a CAMS-identified driver of suicidality. Surfaces on the patient's problem list (active until resolved at CAMS disposition). The driver's narrative description is captured in Condition.code.text; the marker category http://spier.org/CodeSystem/cams-driver-category#suicide-driver identifies the resource as a CAMS driver."
+Description: "A Condition representing a CAMS-identified driver of suicidality. Surfaces on the patient's problem list (active until resolved at CAMS disposition). The driver's narrative description is captured in Condition.code.text; the marker category http://thespierproject.org/fhir/CodeSystem/cams-driver-category#suicide-driver identifies the resource as a CAMS driver."
 * ^status = #draft
 * ^experimental = true
 * clinicalStatus 1..1
@@ -224,7 +224,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * category[driverCategory] = CAMSDriverCategoryCodes#suicide-driver
 * category[driverCategory] ^short = "CAMS suicide-driver marker"
 * category[driverType].coding 1..1
-* category[driverType].coding.system = "http://spier.org/CodeSystem/cams-driver-type" (exactly)
+* category[driverType].coding.system = "http://thespierproject.org/fhir/CodeSystem/cams-driver-type" (exactly)
 * category[driverType] from CAMSDriverType (required)
 * category[driverType] ^short = "Direct or indirect driver, when the clinician classified it"
 * insert SuicideRiskDomainSlice
@@ -276,7 +276,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 //
 // Reusing them would have published unresolvable codes in a required binding, so
 // every section gets a local code instead. Those seven codes have since been
-// withdrawn repo-wide and replaced by http://spier.org/CodeSystem/safety-plan-section
+// withdrawn repo-wide and replaced by http://thespierproject.org/fhir/CodeSystem/safety-plan-section
 // (issue #220) — see safety-plan-section.fsh, which also records the exhaustive
 // LOINC 2.82 search establishing that no published concepts exist at
 // safety-plan-section granularity for either template.
@@ -466,7 +466,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer CAMS SSF-5 Section A (Patient Vitals)"
 Description: "Patient-completed Suicide Status Form Section A. Produces six SSF Vital Observations conformant to SPiERCAMSSSFVital — one each for psychological pain, stress, agitation, hopelessness, self-hate, and overall risk. The 'overall risk' measure carries the patient's self-rated suicide risk on the same 1–5 scale and serves as the activity's risk-level component."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionA"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCAMSSectionA"
 * name = "AdministerCAMSSectionA"
 * version = "0.1.0"
 * title = "Administer CAMS SSF-5 Section A (Patient Vitals)"
@@ -480,7 +480,7 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Section A questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCAMS
 
@@ -490,7 +490,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer CAMS SSF-5 Section B (Clinician Drivers)"
 Description: "Clinician-completed Suicide Status Form Section B. Identifies up to three suicide drivers, each materialized as a SPiERCAMSSuicideDriver Condition on the patient's problem list. Ideation and plan presence are recorded clinically within the QuestionnaireResponse but are not yet materialized as separate FHIR resources (future work — see Roadmap)."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSSectionB"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCAMSSectionB"
 * name = "AdministerCAMSSectionB"
 * version = "0.1.0"
 * title = "Administer CAMS SSF-5 Section B (Clinician Drivers)"
@@ -503,7 +503,7 @@ Usage: #definition
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Section B questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionB|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCAMS
 
@@ -513,7 +513,7 @@ InstanceOf: ActivityDefinition
 Title: "Author CAMS Therapeutic Worksheet"
 Description: "Collaboratively complete a CAMS Therapeutic Worksheet capturing the patient's personal narrative, direct and indirect suicide drivers, and crisis working model."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSTherapeuticWorksheet"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCAMSTherapeuticWorksheet"
 * name = "AdministerCAMSTherapeuticWorksheet"
 * version = "0.1.0"
 * title = "Author CAMS Therapeutic Worksheet"
@@ -527,7 +527,7 @@ Usage: #definition
 * code = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS Therapeutic Worksheet"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/CAMS-Therapeutic-Worksheet|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCAMS
 
@@ -537,7 +537,7 @@ InstanceOf: ActivityDefinition
 Title: "Author CAMS Stabilization Plan"
 Description: "Collaboratively complete a CAMS Stabilization Plan CarePlan — the CAMS-framework safety plan covering lethal-means reduction, coping strategies, emergency contact, support network, and treatment-adherence plan."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSStabilizationPlan"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCAMSStabilizationPlan"
 * name = "AdministerCAMSStabilizationPlan"
 * version = "0.1.0"
 * title = "Author CAMS Stabilization Plan"
@@ -551,7 +551,7 @@ Usage: #definition
 * code = http://snomed.info/sct#735324008 "Treatment escalation plan (record artifact)"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS Stabilization Plan template"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-Stabilization-Plan|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/CAMS-Stabilization-Plan|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCAMS
 
@@ -561,7 +561,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer CAMS Interim Session (SSF Re-Rating)"
 Description: "Repeat the CAMS Section A SSF Core Assessment at the start of each CAMS interim session. Same Questionnaire as Section A; a distinct session form of the single catalogued CAMS SSF-5 tool (Clarify Risk stage)."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSInterimSession"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCAMSInterimSession"
 * name = "AdministerCAMSInterimSession"
 * version = "0.1.0"
 * title = "Administer CAMS Interim Session (SSF Re-Rating)"
@@ -575,7 +575,7 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Section A questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCAMS
 
@@ -588,7 +588,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
 Description: "CAMS final-session Outcome/Disposition: re-rate the SSF Core Assessment, confirm whether resolution criteria are met, and record the episode disposition. Produces SSF Vital Observations plus a disposition Observation conformant to SPiERCAMSOutcomeDisposition."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCAMSOutcomeDisposition"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCAMSOutcomeDisposition"
 * name = "AdministerCAMSOutcomeDisposition"
 * version = "1.0.0"
 * title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
@@ -602,7 +602,7 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "CAMS SSF-5 Outcome/Disposition questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-OutcomeDisposition|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCAMS
 
@@ -725,11 +725,11 @@ Title: "Example — CAMS Outcome/Disposition QuestionnaireResponse (resolved)"
 Description: "Source CAMS Outcome/Disposition QuestionnaireResponse: low final SSF vitals, resolution met, disposition resolved. The derived SPiERCAMSOutcomeDisposition references this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-OutcomeDisposition"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T16:00:00Z"
 * item[+].linkId = "core-ratings"
 * item[=].item[+].linkId = "6-score"
 * item[=].item[=].answer.valueInteger = 2
 * item[+].linkId = "disposition"
-* item[=].answer.valueCoding = http://spier.org/CodeSystem/cams-disposition#resolved "CAMS resolved — episode complete"
+* item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/cams-disposition#resolved "CAMS resolved — episode complete"

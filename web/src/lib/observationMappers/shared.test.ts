@@ -246,7 +246,7 @@ describe('interpretationOf', () => {
   it('carries a code-level text override into CodeableConcept.text, not the coding', () => {
     const obs = makeObservation({
       id: 'i',
-      code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain', text: 'CAMS SSF: Psychological Pain' },
+      code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain', text: 'CAMS SSF: Psychological Pain' },
       value: 4,
       valueType: 'integer',
       questionnaireName: 'CAMS SSF-5: Section A',

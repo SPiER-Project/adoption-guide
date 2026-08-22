@@ -8,7 +8,7 @@ function crpResponse(answers: Record<string, string[]>): QuestionnaireResponseRe
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/CrisisResponsePlan',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan',
     item: Object.entries(answers).map(([linkId, values]) => ({
       linkId,
       answer: values.map(valueString => ({ valueString })),
@@ -27,7 +27,7 @@ describe('generateCrisisResponseCarePlan', () => {
     }))
     expect(plan.resource.resourceType).toBe('CarePlan')
     const meta = plan.resource.meta as { profile?: string[] }
-    expect(meta.profile?.[0]).toBe('http://spier.org/StructureDefinition/spier-crisis-response-plan')
+    expect(meta.profile?.[0]).toBe('http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan')
     expect(plan.activities).toHaveLength(5)
     expect(plan.isEmpty).toBe(false)
   })
@@ -40,7 +40,7 @@ describe('generateCrisisResponseCarePlan', () => {
     const warning = activity.find(a => a.detail?.code?.text === 'Warning Signs')
     expect(warning?.detail?.description).toBe('racing thoughts; skipping meals')
     // shares the Stanley-Brown warning-signs section code
-    expect(warning?.detail?.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/safety-plan-section')
+    expect(warning?.detail?.code?.coding?.[0]?.system).toBe('http://thespierproject.org/fhir/CodeSystem/safety-plan-section')
     expect(warning?.detail?.code?.coding?.[0]?.code).toBe('warning-signs')
   })
 

@@ -24,7 +24,7 @@
 ## Section coding
 
 Each safety-plan step is identified by a **SPiER-local** section code from
-`http://spier.org/CodeSystem/safety-plan-section`, shared with the Crisis Response
+`http://thespierproject.org/fhir/CodeSystem/safety-plan-section`, shared with the Crisis Response
 Plan. Every use is tagged `no-standard-binding` via the
 `coding-verification-status` extension.
 

@@ -2,7 +2,7 @@ import { mapCSSRSScreenerCore, type CSSRSItemCoding } from './cssrsScreener'
 import type { MapperResult, QuestionnaireResponseResource } from './shared'
 
 /** SPiER-local CodeSystem — see ig/input/fsh/cssrs.fsh (CSSRSIntervalItemCodes). */
-const INTERVAL_ITEM_SYSTEM = 'http://spier.org/CodeSystem/cssrs-interval-item'
+const INTERVAL_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item'
 
 /**
  * Per-item codes for the interval-scoped administration.

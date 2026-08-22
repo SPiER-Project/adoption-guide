@@ -17,7 +17,7 @@
  * `Coding.display` on a SPiER-local system against the CodeSystem, so it must
  * match `CodeSystem-spier-concept-domain.json` exactly.
  */
-export const CONCEPT_DOMAIN_SYSTEM = 'http://spier.org/CodeSystem/spier-concept-domain'
+export const CONCEPT_DOMAIN_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-concept-domain'
 
 export const SUICIDE_RISK_DOMAIN = {
   system: CONCEPT_DOMAIN_SYSTEM,

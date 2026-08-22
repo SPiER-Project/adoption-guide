@@ -12,7 +12,7 @@ export const DEMO_PATIENT = {
   gender: 'female' as const,
   identifier: [
     {
-      system: 'http://spier.org/identifier/mrn',
+      system: 'http://thespierproject.org/fhir/identifier/mrn',
       value: '12345',
     },
   ],

@@ -48,7 +48,7 @@ import { mapPSSFull } from './pssFull'
 // Re-export individual mappers for tests / direct invocation
 export { mapPHQ9, mapASQ, mapBSSA, mapPSS3, mapSAFET, mapSBQR, mapCSSRSScreener, mapCSSRSSinceLastContact, mapCSSRSPediatric, mapCSSRSFull, mapCAMSSectionA, mapCAMSSectionB, mapCAMSOutcomeDisposition, mapPSSFull }
 
-const SPIER_Q = 'http://spier.org/Questionnaire'
+const SPIER_Q = 'http://thespierproject.org/fhir/Questionnaire'
 
 // Canonical Questionnaire URL → per-tool mapper. URLs match the
 // `valueCanonical` in each ActivityDefinition's sdc-questionnaire extension

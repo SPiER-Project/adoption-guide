@@ -23,7 +23,7 @@ function group(partial: Partial<GroupTally>): GroupTally {
 function tally(measureId: string, groups: Partial<GroupTally>[]): MeasureTally {
   return {
     measureId,
-    measureUrl: `http://spier.org/Measure/${measureId}`,
+    measureUrl: `http://thespierproject.org/fhir/Measure/${measureId}`,
     title: measureId,
     groups: groups.map(group),
   }

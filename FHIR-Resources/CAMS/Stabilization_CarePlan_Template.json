@@ -3,7 +3,7 @@
   "id": "cams-stabilization-careplan-example",
   "meta": {
     "profile": [
-      "http://spier.org/StructureDefinition/spier-cams-stabilization-plan"
+      "http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan"
     ]
   },
   "text": {
@@ -25,7 +25,7 @@
     {
       "coding": [
         {
-          "system": "http://spier.org/CodeSystem/spier-concept-domain",
+          "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
           "code": "suicide-risk",
           "display": "Suicide risk"
         }
@@ -48,7 +48,7 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/cams-careplan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cams-careplan-section",
               "code": "lethal-means-reduction",
               "display": "Lethal Means Reduction"
             }
@@ -65,7 +65,7 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/cams-careplan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cams-careplan-section",
               "code": "coping-strategies",
               "display": "Coping Strategies"
             }
@@ -82,7 +82,7 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/cams-careplan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cams-careplan-section",
               "code": "support-network",
               "display": "Support Network"
             }
@@ -99,7 +99,7 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/cams-careplan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cams-careplan-section",
               "code": "emergency-contact",
               "display": "Emergency Contact"
             }
@@ -116,7 +116,7 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/cams-careplan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cams-careplan-section",
               "code": "treatment-adherence",
               "display": "Treatment Adherence Plan"
             }

@@ -103,7 +103,7 @@ const ASQ_RESULT_EXAMPLE = {
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-03-19T10:35:00Z',
   valueCodeableConcept: {
-    coding: [{ system: 'http://spier.org/CodeSystem/asq-screening-result', code: 'non-acute-positive', display: 'Non-Acute Positive Screen' }],
+    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/asq-screening-result', code: 'non-acute-positive', display: 'Non-Acute Positive Screen' }],
   },
 }
 
@@ -116,7 +116,7 @@ const BSSA_DISPOSITION_EXAMPLE = {
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-07-15T14:20:00Z',
   valueCodeableConcept: {
-    coding: [{ system: 'http://spier.org/CodeSystem/bssa-disposition', code: 'further-evaluation-necessary', display: 'Further evaluation of risk is necessary' }],
+    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition', code: 'further-evaluation-necessary', display: 'Further evaluation of risk is necessary' }],
   },
   interpretation: [{
     coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
@@ -133,7 +133,7 @@ const PSS3_RESULT_EXAMPLE = {
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-07-15T09:10:00Z',
   valueCodeableConcept: {
-    coding: [{ system: 'http://spier.org/CodeSystem/pss3-result', code: 'positive', display: 'Positive Screen (suicide risk)' }],
+    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/pss3-result', code: 'positive', display: 'Positive Screen (suicide risk)' }],
   },
   interpretation: [{
     coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
@@ -150,7 +150,7 @@ const SAFET_RISK_LEVEL_EXAMPLE = {
   subject: { reference: 'Patient/123' },
   effectiveDateTime: '2026-07-15T15:05:00Z',
   valueCodeableConcept: {
-    coding: [{ system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', code: 'moderate', display: 'Moderate risk' }],
+    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', code: 'moderate', display: 'Moderate risk' }],
   },
   interpretation: [{
     coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
@@ -170,7 +170,7 @@ const CSSRS_SLV_EXAMPLE = {
   valueCodeableConcept: {
     // Dual-coded: SPiER-local C-SSRS tier + matching LOINC answer (LL465-6) for HL7 interop.
     coding: [
-      { system: 'http://spier.org/CodeSystem/cssrs-risk-level', code: 'moderate', display: 'Moderate' },
+      { system: 'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level', code: 'moderate', display: 'Moderate' },
       { system: 'http://loinc.org', code: 'LA6751-7', display: 'Moderate' },
     ],
     text: 'Moderate Risk — ideation with method, no intent (since last visit)',
@@ -184,7 +184,7 @@ const CAMS_VITAL_EXAMPLE = {
   status: 'final',
   category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
   code: {
-    coding: [{ system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' }],
+    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' }],
     text: 'CAMS SSF: Psychological Pain — local code pending LOINC submission',
   },
   subject: { reference: 'Patient/123' },
@@ -202,8 +202,8 @@ const CAMS_DRIVER_EXAMPLE = {
   id: 'cams-driver-example',
   clinicalStatus: { coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-clinical', code: 'active' }] },
   category: [
-    { coding: [{ system: 'http://spier.org/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' }] },
-    { coding: [{ system: 'http://spier.org/CodeSystem/cams-driver-type', code: 'direct', display: 'Direct Driver' }] },
+    { coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' }] },
+    { coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-type', code: 'direct', display: 'Direct Driver' }] },
   ],
   code: { text: 'Relationship conflict with spouse — feeling trapped and hopeless' },
   subject: { reference: 'Patient/123' },

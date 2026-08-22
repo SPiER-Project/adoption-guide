@@ -8,7 +8,7 @@
 //
 // References the existing Questionnaire authored at
 // FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json
-// (canonical: http://spier.org/Questionnaire/ASQ-Screening-Tool).
+// (canonical: http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool).
 // =============================================================
 
 
@@ -35,7 +35,7 @@
 // Concepts, displays and definitions are carried over verbatim; the ASQ
 // Questionnaire, `web/src/lib/observationMappers/asq.ts`, the data dictionary
 // and `check:extract` all bind to these exact codes, and the canonical URL is
-// unchanged (http://spier.org/CodeSystem/asq-item), so this is a move rather
+// unchanged (http://thespierproject.org/fhir/CodeSystem/asq-item), so this is a move rather
 // than a redefinition. The JSON is deleted in the same change — per CLAUDE.md,
 // the same canonical must never be defined in both trees.
 
@@ -149,7 +149,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer ASQ Suicide Screen"
 Description: "Capture an ASQ screen from the patient (or proxy), persist responses as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER ASQ Result profile."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerASQ"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerASQ"
 * name = "AdministerASQ"
 * version = "0.1.0"
 * title = "Administer ASQ Suicide Screen"
@@ -166,9 +166,9 @@ Usage: #definition
 // independent of this ActivityDefinition.
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "ASQ Screening Tool questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
 * copyright = "The ASQ (Ask Suicide-Screening Questions) is a public domain instrument developed by the National Institute of Mental Health (NIMH). No permission is required for use. The audit memo asks that use attribute the instrument to NIMH and cite the canonical publication. Basis: FHIR-Resources/ASQ/licensing/MEMO.md (issue #64). Open items recorded there: the permission letter it references is still to be filed in-repo, and whether item wording may be modified is not yet settled — the SPiER Questionnaire reproduces the five core items verbatim."
 
@@ -207,7 +207,7 @@ Title: "Example — ASQ QuestionnaireResponse (non-acute positive)"
 Description: "Source ASQ QuestionnaireResponse: a baseline item is 'yes' and the acuity item is 'no' — a non-acute positive screen. The derived SPiERASQResult and the harmonized concept Observation reference this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/ASQ-Screening-Tool"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T10:35:00Z"
 // Item nesting mirrors the Questionnaire's groups: a QuestionnaireResponse item

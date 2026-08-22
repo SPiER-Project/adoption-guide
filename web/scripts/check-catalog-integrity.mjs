@@ -64,10 +64,10 @@ const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const catalogDir = join(root, 'packages/core/src/data/catalog')
 const questionnairesDir = join(root, 'FHIR-Resources')
 
-const STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
+const STAGE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
 const SDC_QUESTIONNAIRE_EXT =
   'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire'
-const LICENSING_EXT = 'http://spier.org/StructureDefinition/instrument-licensing-status'
+const LICENSING_EXT = 'http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status'
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
@@ -379,7 +379,7 @@ console.log(
 // Offline by construction — it compares against the generated files in
 // packages/fhir-artifacts/generated/ rather than fetching anything, so it belongs in `verify`
 // alongside the other drift checks.
-const SPIER_CS_PREFIX = 'http://spier.org/CodeSystem/'
+const SPIER_CS_PREFIX = 'http://thespierproject.org/fhir/CodeSystem/'
 const dictSrc = readFileSync(join(catalogDir, 'dataElements.ts'), 'utf8')
 // `system:` covers both a Concept/Binding `code` and a Binding `value`, since
 // #260 gave the value side its own `{ system, valueSet }` slot rather than the
@@ -406,7 +406,7 @@ if (dictSystems.size === 0) {
 const dictValueSets = new Set(
   [...dictSrc.matchAll(/\bvalueSet: '([^']+)'/g)].map((m) => m[1]),
 )
-const SPIER_VS_PREFIX = 'http://spier.org/ValueSet/'
+const SPIER_VS_PREFIX = 'http://thespierproject.org/fhir/ValueSet/'
 const generatedVsIds = new Set(
   readdirSync(fhirDir)
     .filter((f) => f.startsWith('ValueSet-') && f.endsWith('.json'))

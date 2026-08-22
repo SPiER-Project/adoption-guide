@@ -410,7 +410,7 @@ function checkSafetyPlanCopyClaim(scenario, file) {
   for (const [i, dr] of (scenario.documentReferences ?? []).entries())  {
     const claims = (dr?.extension ?? []).some(
       (e) =>
-        e?.url === 'http://spier.org/StructureDefinition/handoff-content-item' &&
+        e?.url === 'http://thespierproject.org/fhir/StructureDefinition/handoff-content-item' &&
         e?.valueCodeableConcept?.coding?.some((c) => c?.code === 'safety-plan-copy'),
     )
     if (!claims) continue

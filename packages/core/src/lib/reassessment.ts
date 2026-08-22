@@ -24,7 +24,7 @@ import type { RiskAlert } from './observationMappers'
 
 type RiskLevel = RiskAlert['level']
 
-const SCHEDULE_URL = 'http://spier.org/PlanDefinition/SPiERReassessmentSchedule'
+const SCHEDULE_URL = 'http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule'
 
 interface PlanDefinitionActionDoc {
   id?: string

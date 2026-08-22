@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "SBQ-R",
-  "url": "http://spier.org/Questionnaire/SBQ-R",
+  "url": "http://thespierproject.org/fhir/Questionnaire/SBQ-R",
   "version": "1.0.0",
   "name": "SBQR",
   "title": "Suicide Behaviors Questionnaire-Revised (SBQ-R)",
@@ -24,7 +24,7 @@
       "answerOption": [
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q1",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q1",
             "code": "1",
             "display": "Never"
           },
@@ -37,7 +37,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q1",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q1",
             "code": "2",
             "display": "It was just a brief passing thought"
           },
@@ -50,7 +50,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q1",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q1",
             "code": "3a",
             "display": "I have had a plan at least once to kill myself but did not try to do it"
           },
@@ -63,7 +63,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q1",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q1",
             "code": "3b",
             "display": "I have had a plan at least once to kill myself and really wanted to die"
           },
@@ -76,7 +76,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q1",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q1",
             "code": "4a",
             "display": "I have attempted to kill myself, but did not want to die"
           },
@@ -89,7 +89,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q1",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q1",
             "code": "4b",
             "display": "I have attempted to kill myself, and really hoped to die"
           },
@@ -110,7 +110,7 @@
       "answerOption": [
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q2",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q2",
             "code": "1",
             "display": "Never"
           },
@@ -123,7 +123,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q2",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q2",
             "code": "2",
             "display": "Rarely (1 time)"
           },
@@ -136,7 +136,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q2",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q2",
             "code": "3",
             "display": "Sometimes (2 times)"
           },
@@ -149,7 +149,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q2",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q2",
             "code": "4",
             "display": "Often (3-4 times)"
           },
@@ -162,7 +162,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q2",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q2",
             "code": "5",
             "display": "Very Often (5 or more times)"
           },
@@ -183,7 +183,7 @@
       "answerOption": [
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q3",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q3",
             "code": "1",
             "display": "No"
           },
@@ -196,7 +196,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q3",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q3",
             "code": "2a",
             "display": "Yes, at one time, but did not really want to die"
           },
@@ -209,7 +209,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q3",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q3",
             "code": "2b",
             "display": "Yes, at one time, and really wanted to die"
           },
@@ -222,7 +222,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q3",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q3",
             "code": "3a",
             "display": "Yes, more than once, but did not want to do it"
           },
@@ -235,7 +235,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q3",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q3",
             "code": "3b",
             "display": "Yes, more than once, and really wanted to do it"
           },
@@ -256,7 +256,7 @@
       "answerOption": [
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q4",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q4",
             "code": "0",
             "display": "Never"
           },
@@ -269,7 +269,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q4",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q4",
             "code": "1",
             "display": "No chance at all"
           },
@@ -282,7 +282,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q4",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q4",
             "code": "2",
             "display": "Rather unlikely"
           },
@@ -295,7 +295,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q4",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q4",
             "code": "3",
             "display": "Unlikely"
           },
@@ -308,7 +308,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q4",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q4",
             "code": "4",
             "display": "Likely"
           },
@@ -321,7 +321,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q4",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q4",
             "code": "5",
             "display": "Rather likely"
           },
@@ -334,7 +334,7 @@
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/sbqr-q4",
+            "system": "http://thespierproject.org/fhir/CodeSystem/sbqr-q4",
             "code": "6",
             "display": "Very likely"
           },

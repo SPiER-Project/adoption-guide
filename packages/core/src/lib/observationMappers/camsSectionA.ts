@@ -34,7 +34,7 @@ export function mapCAMSSectionA(response: QuestionnaireResponseResource): Mapper
         // — CAMS_VITALS[].display is kept identical to it on purpose. The "CAMS
         // SSF:" prefix a reader wants is `.text`, not a redefinition of the code.
         code: {
-          system: 'http://spier.org/CodeSystem/cams-ssf',
+          system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf',
           code: vital.code,
           display: vital.display,
           text: `CAMS SSF: ${vital.display}`,

@@ -59,7 +59,7 @@ If a LOINC binding can't be verified, flag it explicitly in the artifact (`// TO
 
 Place at `FHIR-Resources/<INSTRUMENT>/fhir/questionnaires/questionnaire.json`. Follow the structural conventions already in the repo:
 
-- `url`: `http://spier.org/Questionnaire/<INSTRUMENT>` (no version suffix in the `url`; carry version in `version`)
+- `url`: `http://thespierproject.org/fhir/Questionnaire/<INSTRUMENT>` (no version suffix in the `url`; carry version in `version`)
 - `version`: Start at `1.0.0`. Bump on material changes.
 - `status: draft`, `experimental: true` until verified end-to-end.
 - `subjectType: ["Patient"]`
@@ -147,4 +147,4 @@ When invoked, the skill produces work in this order, with the user able to inter
 - Clinical validation — assume the source instrument is clinically correct. Flag concerns but don't second-guess validated instruments.
 - LOINC submissions — when no LOINC binding exists, surface it as an open item with a recommended LOINC submission rather than improvising a local code.
 - Running the IG Publisher — verifying `sushi .` compiles is in scope; running the full HL7 IG Publisher CI is not.
-- Multi-IG coordination — this skill assumes the SPiER IG canonical (`http://spier.org`). Cross-IG profile dependencies (US Core, SDC) are referenced but not re-authored.
+- Multi-IG coordination — this skill assumes the SPiER IG canonical (`http://thespierproject.org/fhir`). Cross-IG profile dependencies (US Core, SDC) are referenced but not re-authored.

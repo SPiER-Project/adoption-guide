@@ -16,7 +16,7 @@ function nativeQr(scores: number[]): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/PHQ-9',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
     item: scores.map((s, i) => ({
       linkId: `q${i + 1}`,
       answer: [{ valueCoding: { system: 'http://loinc.org', code: LA[s as 0 | 1 | 2 | 3] } }],
@@ -76,7 +76,7 @@ describe('fallback dispatch — Tier 2 (item-code recognition)', () => {
   it('marks the fallback result with code-dispatch provenance; the native result has none', () => {
     const foreign = mapResponseToObservations(foreignCodedQr([0, 0, 0, 0, 0, 0, 0, 0, 2]))!
     expect(foreign.dispatch?.via).toBe('code')
-    expect(foreign.dispatch?.recognizedCanonical).toBe('http://spier.org/Questionnaire/PHQ-9')
+    expect(foreign.dispatch?.recognizedCanonical).toBe('http://thespierproject.org/fhir/Questionnaire/PHQ-9')
     expect(mapResponseToObservations(nativeQr([0, 0, 0, 0, 0, 0, 0, 0, 2]))!.dispatch).toBeUndefined()
   })
 
@@ -172,7 +172,7 @@ describe('fallback dispatch — regression & guards', () => {
     // fully-mappable QR is not — so assert it mapped before reading it.
     const normalized = normalizeToSpierQr(foreignCodedQr([1, 2, 3, 0, 1, 2, 3, 0, 1]), sig)!
     expect(normalized).not.toBeNull()
-    expect(normalized.questionnaire).toBe('http://spier.org/Questionnaire/PHQ-9')
+    expect(normalized.questionnaire).toBe('http://thespierproject.org/fhir/Questionnaire/PHQ-9')
     expect(normalized.item?.map(i => i.linkId)).toEqual(['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9'])
   })
 })
@@ -188,7 +188,7 @@ describe('fallback dispatch — the US Behavioral Health Profiles IG examples', 
     const result = mapResponseToObservations(bhpPhq9 as unknown as QuestionnaireResponseResource)!
     expect(result).not.toBeNull()
     expect(result.dispatch?.via).toBe('code')
-    expect(result.dispatch?.recognizedCanonical).toBe('http://spier.org/Questionnaire/PHQ-9')
+    expect(result.dispatch?.recognizedCanonical).toBe('http://thespierproject.org/fhir/Questionnaire/PHQ-9')
     // The IG's own item 44261-6 states the total is 12; SPiER must agree, having
     // read only the nine per-item answers.
     expect(totalOf(result)).toBe(12)
@@ -199,7 +199,7 @@ describe('fallback dispatch — the US Behavioral Health Profiles IG examples', 
     expect(qr.questionnaire).toMatch(/\.pdf$/)
     const recognized = recognizeInstrument(qr)
     expect(recognized?.confidence).toBe('code')
-    expect(recognized?.signature.spierCanonical).toBe('http://spier.org/Questionnaire/C-SSRS-Screener')
+    expect(recognized?.signature.spierCanonical).toBe('http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener')
   })
 
   it('maps the C-SSRS example to the risk level the IG itself asserts (Low)', () => {
@@ -215,7 +215,7 @@ describe('fallback dispatch — the US Behavioral Health Profiles IG examples', 
     const normalized = normalizeToSpierQr(bhpCssrs as unknown as QuestionnaireResponseResource, sig)
     // Not null: every one of the IG's answers is readable, so nothing is refused.
     expect(normalized).not.toBeNull()
-    expect(normalized!.questionnaire).toBe('http://spier.org/Questionnaire/C-SSRS-Screener')
+    expect(normalized!.questionnaire).toBe('http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener')
     expect(normalized!.item?.map(i => i.linkId)).toEqual(['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q6-recent'])
     // valueBoolean, not a passed-through LA32-8 coding — `getBooleanAnswer`
     // reads nothing else.
@@ -320,7 +320,7 @@ describe('C-SSRS screener via Tier 2 (#230)', () => {
     )!
     expect(result).not.toBeNull()
     expect(result.dispatch?.via).toBe('code')
-    expect(result.dispatch?.recognizedCanonical).toBe('http://spier.org/Questionnaire/C-SSRS-Screener')
+    expect(result.dispatch?.recognizedCanonical).toBe('http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener')
     // q3 endorsed → ideation with method → moderate.
     expect(riskLevelOf(result)).toBe('moderate')
     expect(result.riskAlert.level).toBe('moderate')
@@ -385,7 +385,7 @@ describe('C-SSRS variant disambiguation (#230)', () => {
       }),
     )!
     expect(result.dispatch?.recognizedCanonical).toBe(
-      'http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent',
+      'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Full-Lifetime-Recent',
     )
   })
 
@@ -394,12 +394,12 @@ describe('C-SSRS variant disambiguation (#230)', () => {
       foreignCssrs(Object.fromEntries(SCREENER_LOINC.map(c => [c, { valueBoolean: false }]))),
     )!
     expect(result.dispatch?.recognizedCanonical).toBe(
-      'http://spier.org/Questionnaire/C-SSRS-Screener',
+      'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener',
     )
   })
 
   it('does not regress PHQ-9 recognition', () => {
     const result = mapResponseToObservations(foreignCodedQr([1, 2, 3, 0, 1, 2, 3, 0, 1]))!
-    expect(result.dispatch?.recognizedCanonical).toBe('http://spier.org/Questionnaire/PHQ-9')
+    expect(result.dispatch?.recognizedCanonical).toBe('http://thespierproject.org/fhir/Questionnaire/PHQ-9')
   })
 })

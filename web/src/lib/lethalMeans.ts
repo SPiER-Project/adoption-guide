@@ -33,12 +33,12 @@ export const STAGE_ID = 'document-safety-actions'
 const STAGE_TITLE = 'Document Safety Actions'
 
 export const COUNSELING_PROFILE =
-  'http://spier.org/StructureDefinition/spier-lethal-means-counseling'
+  'http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling'
 export const MEANS_SAFETY_ACTION_PROFILE =
-  'http://spier.org/StructureDefinition/spier-means-safety-action'
+  'http://thespierproject.org/fhir/StructureDefinition/spier-means-safety-action'
 
-export const LETHAL_MEANS_METHOD_SYSTEM = 'http://spier.org/CodeSystem/spier-lethal-means-method'
-export const MEANS_SAFETY_ACTION_SYSTEM = 'http://spier.org/CodeSystem/spier-means-safety-action'
+export const LETHAL_MEANS_METHOD_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-lethal-means-method'
+export const MEANS_SAFETY_ACTION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-means-safety-action'
 
 const SNOMED_SYSTEM = 'http://snomed.info/sct'
 const OBSERVATION_CATEGORY_SYSTEM = 'http://terminology.hl7.org/CodeSystem/observation-category'

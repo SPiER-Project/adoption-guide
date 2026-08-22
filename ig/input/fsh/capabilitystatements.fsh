@@ -28,7 +28,7 @@ Title: "SPiER Screening-Source EHR"
 Description: "Capabilities of a system that CAPTURES a suicide-risk screening or assessment and PRODUCES the SPiER artifacts: it persists the QuestionnaireResponse and creates the derived instrument Observations, the harmonized suicide-risk concept Observation, and (for safety-planning tools) CarePlan / Condition resources."
 Usage: #definition
 * id = "screening-source-ehr"
-* url = "http://spier.org/CapabilityStatement/screening-source-ehr"
+* url = "http://thespierproject.org/fhir/CapabilityStatement/screening-source-ehr"
 * name = "SPiERScreeningSourceEHR"
 * title = "SPiER Screening-Source EHR"
 * status = #draft
@@ -49,29 +49,29 @@ Usage: #definition
   * resource[+]
     * type = #Observation
     * documentation = "Derived instrument results and the harmonized suicide-risk concept."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-asq-result"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-phq9-total-score"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-phq9-item9"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-sbqr-total-score"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-cams-ssf-vital"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-suicide-risk-concept"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-sbqr-total-score"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Condition
     * documentation = "CAMS-identified suicide drivers on the problem list."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-cams-suicide-driver"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-suicide-driver"
     * interaction[+].code = #create
     * interaction[+].code = #read
   * resource[+]
     * type = #CarePlan
     * documentation = "Stanley-Brown and CAMS safety / stabilization plans, plus the Crisis Response Plan."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-cams-stabilization-plan"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-crisis-response-plan"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan"
     * interaction[+].code = #create
     * interaction[+].code = #read
   // ─── Stage 4–7 workflow resources ───
@@ -80,31 +80,31 @@ Usage: #definition
   * resource[+]
     * type = #Procedure
     * documentation = "Lethal-means safety counseling delivered (Stage 4)."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-lethal-means-counseling"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling"
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Communication
     * documentation = "Crisis resources shared (Stage 4), the suicide-safety handoff (Stage 5), and follow-up outreach attempts and caring contacts (Stage 6)."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-crisis-resources-shared"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-safety-handoff"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-outreach-attempt"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-caring-contact"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-crisis-resources-shared"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact"
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #DocumentReference
     * documentation = "The discharge safety packet (Stage 5)."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-discharge-safety-packet"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet"
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #ServiceRequest
     * documentation = "The suicide-safety referral (Stage 5). SHALL support update — tracking a referral past `sent` through to `completed` is the whole reason this is a ServiceRequest, and is what makes referral loop closure measurable."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-safety-referral"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-referral"
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
@@ -112,7 +112,7 @@ Usage: #definition
   * resource[+]
     * type = #Appointment
     * documentation = "The follow-up appointment (Stage 5). SHALL support update: the 7- and 30-day follow-up measures read `status = fulfilled`, so a system that can book but never records attendance cannot produce them."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-follow-up-appointment"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-follow-up-appointment"
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
@@ -120,14 +120,14 @@ Usage: #definition
   * resource[+]
     * type = #Consent
     * documentation = "Information-sharing consent (Stage 5). Governs what TL-045 may share and with whom."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-information-sharing-consent"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-information-sharing-consent"
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #EpisodeOfCare
     * documentation = "The suicide-safer care episode (Stage 7) — the cohort anchor for every Stage-8 measure. SHALL support update so the episode can be closed with a reason."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode"
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
@@ -135,14 +135,14 @@ Usage: #definition
   * resource[+]
     * type = #Flag
     * documentation = "The active-episode chart banner (Stage 7)."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-suicide-risk-flag"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-flag"
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
   * resource[+]
     * type = #Task
     * documentation = "Open safety work — reassessment, care gaps, escalation (Stage 7)."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-safety-task"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-task"
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
@@ -155,7 +155,7 @@ Title: "SPiER HIE Intermediary"
 Description: "Capabilities of a Health Information Exchange or interoperability platform that STORES and FORWARDS SPiER resources across organizations without losing fidelity or provenance. It accepts the resources from a screening-source EHR and makes them available to risk consumers."
 Usage: #definition
 * id = "hie-intermediary"
-* url = "http://spier.org/CapabilityStatement/hie-intermediary"
+* url = "http://thespierproject.org/fhir/CapabilityStatement/hie-intermediary"
 * name = "SPiERHIEIntermediary"
 * title = "SPiER HIE Intermediary"
 * status = #draft
@@ -233,7 +233,7 @@ Title: "SPiER Risk Consumer"
 Description: "Capabilities of a CLIENT that READS suicide-risk information to surface it at the point of care. The minimal requirement is the harmonized suicide-risk concept Observation (generic LOINC 93374-7, category suicide-risk); the instrument-specific Observations and safety plans are optional higher-fidelity reads."
 Usage: #definition
 * id = "risk-consumer"
-* url = "http://spier.org/CapabilityStatement/risk-consumer"
+* url = "http://thespierproject.org/fhir/CapabilityStatement/risk-consumer"
 * name = "SPiERRiskConsumer"
 * title = "SPiER Risk Consumer"
 * status = #draft
@@ -249,12 +249,12 @@ Usage: #definition
   * resource[+]
     * type = #Observation
     * documentation = "SHALL read the harmonized concept (code 93374-7, category suicide-risk); MAY read the instrument Observations."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-suicide-risk-concept"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-asq-result"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-cssrs-risk-level"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-phq9-total-score"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-phq9-item9"
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-sbqr-total-score"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-sbqr-total-score"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
@@ -272,7 +272,7 @@ Usage: #definition
   * resource[+]
     * type = #EpisodeOfCare
     * documentation = "MAY read the open suicide-safer care episode to show that the patient is in active suicide-safer care."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
@@ -292,7 +292,7 @@ Usage: #definition
   * resource[+]
     * type = #Consent
     * documentation = "SHALL read the information-sharing consent before re-disclosing anything received. A deny provision naming a recipient is what withholds data from that recipient."
-    * supportedProfile[+] = "http://spier.org/StructureDefinition/spier-information-sharing-consent"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-information-sharing-consent"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
 
@@ -310,7 +310,7 @@ Title: "SPiER Quality Reporter"
 Description: "Capabilities of a system that COMPUTES the SPiER suicide-safer care measures and extracts the underlying pathway data for quality improvement. Reads population-wide rather than per-patient; produces MeasureReports."
 Usage: #definition
 * id = "quality-reporter"
-* url = "http://spier.org/CapabilityStatement/quality-reporter"
+* url = "http://thespierproject.org/fhir/CapabilityStatement/quality-reporter"
 * name = "SPiERQualityReporter"
 * title = "SPiER Quality Reporter"
 * status = #draft

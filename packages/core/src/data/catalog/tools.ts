@@ -66,7 +66,7 @@ const LICENSING_STATUSES: readonly Licensing[] = [
   'unknown',
 ]
 
-const LICENSING_EXT_URL = 'http://spier.org/StructureDefinition/instrument-licensing-status'
+const LICENSING_EXT_URL = 'http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status'
 
 export interface Tool {
   id: string
@@ -143,8 +143,8 @@ const PLAN_DEFS: PlanDefinitionDoc[] = Object.values(pdModules).map((m) => m.def
 
 /**
  * Strip the optional `|version` suffix from a canonical URL so lookups
- * tolerate both `http://spier.org/Questionnaire/ASQ-Screening-Tool` and
- * `http://spier.org/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot`.
+ * tolerate both `http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool` and
+ * `http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool|1.1.0-pilot`.
  */
 export function stripCanonicalVersion(canonical: string): string {
   const pipe = canonical.indexOf('|')
@@ -160,7 +160,7 @@ const STAGE_BY_AD_URL = (() => {
   const stageOf = (pd: PlanDefinitionDoc): string | undefined => {
     const stageContext = pd.useContext?.find((c) => c.code.code === 'focus')
     return stageContext?.valueCodeableConcept?.coding?.find(
-      (c) => c.system === 'http://spier.org/CodeSystem/spier-pathway-stage',
+      (c) => c.system === 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage',
     )?.code
   }
   const map = new Map<string, string>()

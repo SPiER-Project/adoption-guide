@@ -26,18 +26,18 @@ InstanceOf: ConceptMap
 Title: "BSSA Disposition → SPiER Suicide Risk Tier"
 Description: "Maps the four BSSA dispositions (emergency psychiatric evaluation / further evaluation necessary / non-urgent follow-up / no intervention) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off."
 Usage: #definition
-* url = "http://spier.org/ConceptMap/BSSADispositionToRiskTier"
+* url = "http://thespierproject.org/fhir/ConceptMap/BSSADispositionToRiskTier"
 * version = "1.0.0"
 * name = "BSSADispositionToRiskTier"
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
 * purpose = "Translate the SPiER-local BSSA disposition vocabulary into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume a BSSA disposition without understanding the BSSA."
-* sourceCanonical = "http://spier.org/ValueSet/bssa-disposition-vs"
-* targetCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"
+* sourceCanonical = "http://thespierproject.org/fhir/ValueSet/bssa-disposition-vs"
+* targetCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 
-* group[0].source = "http://spier.org/CodeSystem/bssa-disposition"
-* group[0].target = "http://spier.org/CodeSystem/spier-suicide-risk-tier"
+* group[0].source = "http://thespierproject.org/fhir/CodeSystem/bssa-disposition"
+* group[0].target = "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier"
 
 * group[0].element[0].code = #emergency-psychiatric-evaluation
 * group[0].element[0].display = "Emergency psychiatric evaluation"

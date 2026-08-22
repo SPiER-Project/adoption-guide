@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "PSS-Full",
-  "url": "http://spier.org/Questionnaire/PSS-Full",
+  "url": "http://thespierproject.org/fhir/Questionnaire/PSS-Full",
   "version": "1.0.0",
   "name": "PSSFull",
   "title": "Patient Safety Screener / Suicide Risk Screener (Full)",
@@ -88,17 +88,17 @@
           "code": "93374-7",
           "display": "Suicide risk level",
           "extension": [
-            { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "verified" }
+            { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "verified" }
           ]
         }
       ],
       "answerOption": [
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "low", "display": "Low risk" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "moderate", "display": "Moderate risk" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "high", "display": "High risk" } }
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier", "code": "low", "display": "Low risk" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier", "code": "moderate", "display": "Moderate risk" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier", "code": "high", "display": "High risk" } }
       ],
       "extension": [
-        { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "clinician-assigned" },
+        { "url": "http://thespierproject.org/fhir/StructureDefinition/tier-derivation", "valueCode": "clinician-assigned" },
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
           "valueCodeableConcept": {

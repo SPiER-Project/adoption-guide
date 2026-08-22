@@ -474,7 +474,7 @@ the engine currently lives inside one of its consumers. Three corrections:
    ⚠️ **Measured, because the sharp version is sharper than the summary: the IG
    contains ZERO `Questionnaire` resources and 11 example
    `QuestionnaireResponse`s — responses to forms it does not define.** Their
-   `questionnaire` canonicals (`http://spier.org/Questionnaire/ASQ-Screening-Tool`
+   `questionnaire` canonicals (`http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool`
    and friends) resolve only inside `FHIR-Resources/`. So the IG publishes answers
    to a questionnaire set that lives outside it, and the app treats that outside
    set as the spec. That is the substantive version of "pull directly from the IG",

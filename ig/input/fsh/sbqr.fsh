@@ -5,7 +5,7 @@
 // cutoffs (≥7 general population, ≥8 psychiatric inpatient).
 //
 // Existing Questionnaire:
-//   http://spier.org/Questionnaire/SBQ-R|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/SBQ-R|1.0.0
 // =============================================================
 
 
@@ -53,7 +53,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer SBQ-R"
 Description: "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and derive a total-score Observation."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerSBQR"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerSBQR"
 * name = "AdministerSBQR"
 * version = "0.1.0"
 * title = "Administer SBQ-R"
@@ -67,9 +67,9 @@ Usage: #definition
 * code = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "SBQ-R questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/SBQ-R|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/SBQ-R|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #unknown
 * copyright = "Licensing status UNKNOWN, pending the issue #64 audit. The SPiER SBQ-R Questionnaire records the notice “© Osman et al (1999) Revised. Permission for use granted by A. Osman, MD.” That establishes the instrument is copyrighted and that a permission exists, but it does not state what an adopting system must do to deploy it, to whom the permission was granted, or whether it transfers — and no licensing-audit memo is on file. Do NOT read this as free reuse: confirm terms with the author before deployment. Reference: Osman A, Bagge CL, Gutierrez PM, Konick LC, Kopper BA, Barrios FX. The Suicidal Behaviors Questionnaire-Revised (SBQ-R): Validation with clinical and nonclinical samples. Assessment. 2001;8(4):443-454."
 
@@ -96,7 +96,7 @@ Title: "Example — SBQ-R QuestionnaireResponse (above inpatient cutoff)"
 Description: "Source SBQ-R QuestionnaireResponse yielding a total of 9 (above the ≥8 inpatient cutoff). The derived SPiERSBQRTotalScore and the harmonized concept Observation reference this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/SBQ-R"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/SBQ-R"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T10:45:00Z"
 // q1–q4 are all `required` on the Questionnaire. The answers below carry the

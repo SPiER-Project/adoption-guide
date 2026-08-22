@@ -75,7 +75,7 @@ java -jar validator_cli.jar ig/fsh-generated/resources/*.json \
   and generic encounter data.
 - **Don't set `^url` on CodeSystems, ValueSets, or Profiles.** Sushi
   auto-generates `url` as `[canonical]/[resourceType]/[id]` from
-  `sushi-config.yaml`'s canonical (`http://spier.org`) and the resource's
+  `sushi-config.yaml`'s canonical (`http://thespierproject.org/fhir`) and the resource's
   declared `Id`. Setting `^url` explicitly duplicates this information and
   creates drift risk — we hit exactly that bug in PR #4. On `Instance:`
   declarations (e.g. ActivityDefinition, PlanDefinition) you do set

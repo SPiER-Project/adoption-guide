@@ -13,7 +13,7 @@ import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
  * the answer shape off the form, so the suite can no longer certify the mapper
  * against input the app does not produce.
  */
-const CSSRS_SCREENER = 'http://spier.org/Questionnaire/C-SSRS-Screener'
+const CSSRS_SCREENER = 'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener'
 type CssrsAnswers = Partial<Record<'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q6-recent', boolean>>
 
 const cssrsResponse = (answers: CssrsAnswers) => nativeQr(CSSRS_SCREENER, answers)

@@ -39,7 +39,7 @@ export type FhirResourceType =
  * `systemLabel()` for display, rather than being the stored truth.
  */
 export interface Coding {
-  system: string                      // URL — 'http://loinc.org', 'http://spier.org/CodeSystem/asq-item'
+  system: string                      // URL — 'http://loinc.org', 'http://thespierproject.org/fhir/CodeSystem/asq-item'
   code: string
   display: string
 }
@@ -116,7 +116,7 @@ const SYSTEM_LABELS: Record<string, string> = {
   'http://snomed.info/sct': 'SNOMED CT',
 }
 
-const SPIER_CS_PREFIX = 'http://spier.org/CodeSystem/'
+const SPIER_CS_PREFIX = 'http://thespierproject.org/fhir/CodeSystem/'
 const THO_PREFIX = 'http://terminology.hl7.org/CodeSystem/'
 
 /**
@@ -124,9 +124,12 @@ const THO_PREFIX = 'http://terminology.hl7.org/CodeSystem/'
  *
  * Derived from `system` + `code`, never hand-written — a link is a claim, and
  * this page's whole recent history (#220, #266) is about unbacked claims on it.
- * The one canonical that is NOT resolvable is SPiER's own: `spier.org` does not
- * serve its CodeSystems, so SPiER-local codes point at the IG **we publish**,
- * whose per-concept anchors the IG Publisher generates as `<csId>-<code>`.
+ * The one canonical that is NOT resolvable is SPiER's own:
+ * `thespierproject.org/fhir` is an identifier namespace, not a server, so
+ * SPiER-local codes point at the IG **we publish**, whose per-concept anchors
+ * the IG Publisher generates as `<csId>-<code>`. (It was `spier.org` until
+ * #413 — a domain the project never owned, which resolved to an unrelated
+ * third party's website.)
  *
  * `import.meta.env.BASE_URL` keeps that following whichever base is active —
  * `/ig/` on Cloudflare, `/adoption-guide/ig/` on the legacy Pages deploy — the
@@ -152,7 +155,7 @@ export function codeHref(system: string, code: string): string | undefined {
   return undefined
 }
 
-const SPIER_VS_PREFIX = 'http://spier.org/ValueSet/'
+const SPIER_VS_PREFIX = 'http://thespierproject.org/fhir/ValueSet/'
 
 /**
  * Where a reader can go to read the *bindable set* a coded value is drawn from.
@@ -237,7 +240,7 @@ export const CONCEPTS: Concept[] = [
     name: 'Suicide risk tier',
     domain: 'suicide-risk',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
-    valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs',
+    valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs',
     description:
       'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Five instruments reach it by five different routes: C-SSRS and CAMS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. All five carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as five unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet; that is #264.',
   },
@@ -322,7 +325,7 @@ export const BINDINGS: Binding[] = [
     conceptId: 'suicide-risk-tier',
     name: 'Suicide risk level',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
-    value: { system: 'http://spier.org/CodeSystem/cssrs-risk-level', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     // Cross-cutting: derived from C-SSRS (Screener, Full, Since Last Visit, Pediatric) and reused as CAMS overall risk.
@@ -333,11 +336,11 @@ export const BINDINGS: Binding[] = [
     id: 'cssrs-actual-lethality',
     name: 'Actual lethality/medical damage',
     code: { system: 'http://loinc.org', code: '93271-5', display: 'Actual lethality/medical damage most lethal suicide attempt Lifetime [C-SSRS]' },
-    value: { system: 'http://spier.org/CodeSystem/cssrs-lethality' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/cssrs-lethality' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='behavior-section').item.where(linkId='lethality-section').item.where(linkId='actual-lethality').answer.valueCoding",
     usedBy: ['TL-004'],
-    description: 'Lethality scale 0–5 (no damage to death) for the most lethal attempt. Full version only. Answers are drawn from http://spier.org/CodeSystem/cssrs-lethality; no Observation is currently extracted for this item.',
+    description: 'Lethality scale 0–5 (no damage to death) for the most lethal attempt. Full version only. Answers are drawn from http://thespierproject.org/fhir/CodeSystem/cssrs-lethality; no Observation is currently extracted for this item.',
   },
 
   // ── PHQ-9 ──
@@ -460,7 +463,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'sbqr-q1',
     name: 'Lifetime ideation/attempt',
-    value: { system: 'http://spier.org/CodeSystem/sbqr-q1' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/sbqr-q1' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q1').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -469,7 +472,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'sbqr-q2',
     name: 'Past-year ideation frequency',
-    value: { system: 'http://spier.org/CodeSystem/sbqr-q2' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/sbqr-q2' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q2').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -478,7 +481,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'sbqr-q3',
     name: 'Threat of suicide attempt',
-    value: { system: 'http://spier.org/CodeSystem/sbqr-q3' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/sbqr-q3' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q3').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -487,7 +490,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'sbqr-q4',
     name: 'Future likelihood of attempt',
-    value: { system: 'http://spier.org/CodeSystem/sbqr-q4' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/sbqr-q4' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='q4').answer.valueCoding",
     usedBy: ['TL-025'],
@@ -511,7 +514,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-q1-wished-dead',
     name: 'Wished you were dead',
-    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'wished-dead', display: 'Wished you were dead' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'wished-dead', display: 'Wished you were dead' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q1').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -520,7 +523,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-q2-family',
     name: 'Family better off if dead',
-    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'family-better-off-dead', display: 'Family better off if dead' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'family-better-off-dead', display: 'Family better off if dead' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q2').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -529,7 +532,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-q3-thoughts',
     name: 'Thoughts about killing yourself',
-    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'thoughts-killing-self', display: 'Thoughts about killing yourself' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'thoughts-killing-self', display: 'Thoughts about killing yourself' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q3').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -538,7 +541,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-q4-ever-tried',
     name: 'Ever tried to kill yourself',
-    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'ever-attempted', display: 'Ever tried to kill yourself' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'ever-attempted', display: 'Ever tried to kill yourself' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q4').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -547,7 +550,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-q4-recent-attempt',
     name: 'Most recent attempt (recency)',
-    value: { system: 'http://spier.org/CodeSystem/asq-attempt-recency' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q4-recent-attempt').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -556,7 +559,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-q5-acuity',
     name: 'Acuity: Killing yourself right now',
-    code: { system: 'http://spier.org/CodeSystem/asq-item', code: 'acute-ideation-now', display: 'Killing yourself right now (acuity)' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'acute-ideation-now', display: 'Killing yourself right now (acuity)' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='acuity-section').item.where(linkId='q5').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -567,11 +570,11 @@ export const BINDINGS: Binding[] = [
     conceptId: 'suicide-risk-tier',
     name: 'ASQ Screening Result',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
-    value: { system: 'http://spier.org/CodeSystem/asq-screening-result', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-screening-result', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-001'],
-    description: 'Three-tier risk stratification: Negative Screen, Non-Acute Positive (potential risk), Acute Positive (imminent risk). The Observation is coded with the generic LOINC suicide-risk-level concept; the value is a SPiER-local http://spier.org/CodeSystem/asq-screening-result code, crosswalked to the common suicide-risk tier.',
+    description: 'Three-tier risk stratification: Negative Screen, Non-Acute Positive (potential risk), Acute Positive (imminent risk). The Observation is coded with the generic LOINC suicide-risk-level concept; the value is a SPiER-local http://thespierproject.org/fhir/CodeSystem/asq-screening-result code, crosswalked to the common suicide-risk tier.',
   },
 
   // ── BSSA (Brief Suicide Safety Assessment) ──
@@ -580,7 +583,7 @@ export const BINDINGS: Binding[] = [
     conceptId: 'suicide-risk-tier',
     name: 'BSSA Disposition',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
-    value: { system: 'http://spier.org/CodeSystem/bssa-disposition', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -589,7 +592,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'bssa-current-ideation',
     name: 'Current suicidal ideation (right now)',
-    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'current-ideation', display: 'Current suicidal ideation (right now)' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/bssa-item', code: 'current-ideation', display: 'Current suicidal ideation (right now)' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -598,7 +601,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'bssa-suicide-plan',
     name: 'Has a suicide plan',
-    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'suicide-plan', display: 'Has a suicide plan' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/bssa-item', code: 'suicide-plan', display: 'Has a suicide plan' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -607,7 +610,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'bssa-intent-scale',
     name: 'Intent to die (0–10 self-rating)',
-    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'intent-scale', display: 'Intent to die (0–10 self-rating)' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/bssa-item', code: 'intent-scale', display: 'Intent to die (0–10 self-rating)' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: ['TL-005'],
@@ -616,7 +619,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'bssa-past-attempt',
     name: 'History of suicide attempt',
-    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'past-suicide-attempt', display: 'History of suicide attempt' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/bssa-item', code: 'past-suicide-attempt', display: 'History of suicide attempt' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -625,7 +628,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'bssa-needs-help-to-be-safe',
     name: 'Reports needing help to stay safe',
-    code: { system: 'http://spier.org/CodeSystem/bssa-item', code: 'needs-help-to-be-safe', display: 'Reports needing help to stay safe' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/bssa-item', code: 'needs-help-to-be-safe', display: 'Reports needing help to stay safe' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-005'],
@@ -638,7 +641,7 @@ export const BINDINGS: Binding[] = [
     conceptId: 'suicide-risk-tier',
     name: 'PSS-3 Screening Result',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
-    value: { system: 'http://spier.org/CodeSystem/pss3-result', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/pss3-result', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -647,7 +650,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'pss3-depression',
     name: 'Depression (past two weeks)',
-    code: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'depression-2wk', display: 'Depression in the past two weeks' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/pss3-item', code: 'depression-2wk', display: 'Depression in the past two weeks' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -656,7 +659,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'pss3-active-ideation',
     name: 'Active suicidal ideation (past two weeks)',
-    code: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'active-ideation-2wk', display: 'Active suicidal ideation in the past two weeks' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/pss3-item', code: 'active-ideation-2wk', display: 'Active suicidal ideation in the past two weeks' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -665,7 +668,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'pss3-lifetime-attempt',
     name: 'Lifetime suicide attempt',
-    code: { system: 'http://spier.org/CodeSystem/pss3-item', code: 'lifetime-attempt', display: 'Lifetime suicide attempt' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/pss3-item', code: 'lifetime-attempt', display: 'Lifetime suicide attempt' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-011'],
@@ -678,7 +681,7 @@ export const BINDINGS: Binding[] = [
     conceptId: 'suicide-risk-tier',
     name: 'SAFE-T Risk Level',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
-    value: { system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     usedBy: ['TL-006'],
@@ -689,63 +692,63 @@ export const BINDINGS: Binding[] = [
   {
     id: 'sb-warning-signs',
     name: 'Warning Signs',
-    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'warning-signs', display: 'Warning Signs' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'warning-signs', display: 'Warning Signs' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='warning-signs').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/safety-plan-section' and code='warning-signs').exists()).detail.description",
     usedBy: ['TL-007'],
     description: 'Patient-identified thoughts, images, mood, situation, or behaviors that indicate a crisis may be developing.',
   },
   {
     id: 'sb-internal-coping',
     name: 'Internal Coping Strategies',
-    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'internal-coping', display: 'Internal Coping Strategies' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'internal-coping', display: 'Internal Coping Strategies' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='internal-coping').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/safety-plan-section' and code='internal-coping').exists()).detail.description",
     usedBy: ['TL-007'],
     description: 'Things the patient can do on their own to take their mind off problems without contacting another person.',
   },
   {
     id: 'sb-social-distraction',
     name: 'Social Distraction Contacts',
-    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'social-distraction', display: 'Social Distractions' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'social-distraction', display: 'Social Distractions' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='social-distraction').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/safety-plan-section' and code='social-distraction').exists()).detail.description",
     usedBy: ['TL-007'],
     description: 'People and social settings that help take the patient\u2019s mind off problems.',
   },
   {
     id: 'sb-crisis-support',
     name: 'Crisis Support Contacts',
-    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'crisis-support', display: 'Crisis Support Contacts' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'crisis-support', display: 'Crisis Support Contacts' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='crisis-support').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/safety-plan-section' and code='crisis-support').exists()).detail.description",
     usedBy: ['TL-007'],
     description: 'Family members or friends the patient can contact for help during a crisis.',
   },
   {
     id: 'sb-professional-support',
     name: 'Professional Support',
-    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'professional-support', display: 'Professional Support' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'professional-support', display: 'Professional Support' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='professional-support').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/safety-plan-section' and code='professional-support').exists()).detail.description",
     usedBy: ['TL-007'],
     description: 'Clinicians, agencies, crisis lines (988), and local ED contact information.',
   },
   {
     id: 'sb-lethal-means',
     name: 'Lethal Means Safety',
-    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'lethal-means-safety', display: 'Lethal Means Safety' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'lethal-means-safety', display: 'Lethal Means Safety' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='lethal-means-safety').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/safety-plan-section' and code='lethal-means-safety').exists()).detail.description",
     usedBy: ['TL-007'],
     description: 'Steps to make the environment safer by restricting access to lethal means.',
   },
   {
     id: 'sb-reason-for-living',
     name: 'Reason for Living',
-    code: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'reason-for-living', display: 'Reason for Living' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'reason-for-living', display: 'Reason for Living' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/safety-plan-section' and code='reason-for-living').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/safety-plan-section' and code='reason-for-living').exists()).detail.description",
     usedBy: ['TL-007'],
     description: 'The most important thing to the patient that is worth living for.',
   },
@@ -777,7 +780,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-psych-pain',
     name: 'Psychological Pain Rating',
-    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -786,7 +789,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-stress',
     name: 'Stress Rating',
-    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'stress', display: 'Stress' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'stress', display: 'Stress' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -795,7 +798,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-agitation',
     name: 'Agitation Rating',
-    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'agitation', display: 'Agitation' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'agitation', display: 'Agitation' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -804,7 +807,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-hopelessness',
     name: 'Hopelessness Rating',
-    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'hopelessness', display: 'Hopelessness' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'hopelessness', display: 'Hopelessness' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -813,7 +816,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-self-hate',
     name: 'Self-Hate Rating',
-    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'self-hate', display: 'Self-Hate' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'self-hate', display: 'Self-Hate' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -822,7 +825,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-overall-risk',
     name: 'Overall Risk Rating',
-    code: { system: 'http://spier.org/CodeSystem/cams-ssf', code: 'overall-risk', display: 'Overall Risk of Suicide' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'overall-risk', display: 'Overall Risk of Suicide' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
@@ -833,7 +836,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-driver',
     name: 'Suicide Driver',
-    code: { system: 'http://spier.org/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' },
     fhirResource: 'Condition',
     fhirPath: 'Condition.code.text',
     usedBy: ['TL-020', 'TL-024'],
@@ -846,7 +849,7 @@ export const BINDINGS: Binding[] = [
     // either one as "the" code would be wrong half the time. Under the old flat
     // schema this had to sit in the interim `answerSystem` field; it now has a
     // proper value slot with its bindable ValueSet.
-    value: { system: 'http://spier.org/CodeSystem/cams-driver-type', valueSet: 'http://spier.org/ValueSet/cams-driver-type-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-type', valueSet: 'http://thespierproject.org/fhir/ValueSet/cams-driver-type-vs' },
     fhirResource: 'Condition',
     fhirPath: 'Condition.category.coding',
     usedBy: ['TL-020', 'TL-024'],
@@ -860,45 +863,45 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-stab-lethal-means',
     name: 'Lethal Means Reduction',
-    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'lethal-means-reduction', display: 'Lethal Means Reduction' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section', code: 'lethal-means-reduction', display: 'Lethal Means Reduction' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='lethal-means-reduction').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/cams-careplan-section' and code='lethal-means-reduction').exists()).detail.description",
     usedBy: ['TL-021'],
     description: 'Section 1 of the CAMS Stabilization Plan: steps agreed to reduce the patient’s access to lethal means.',
   },
   {
     id: 'cams-stab-coping',
     name: 'Coping Strategies',
-    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'coping-strategies', display: 'Coping Strategies' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section', code: 'coping-strategies', display: 'Coping Strategies' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='coping-strategies').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/cams-careplan-section' and code='coping-strategies').exists()).detail.description",
     usedBy: ['TL-021'],
     description: 'Section 2 of the CAMS Stabilization Plan: what the patient can do differently to cope during a suicidal crisis.',
   },
   {
     id: 'cams-stab-emergency-contact',
     name: 'Emergency Contact',
-    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'emergency-contact', display: 'Emergency Contact' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section', code: 'emergency-contact', display: 'Emergency Contact' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='emergency-contact').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/cams-careplan-section' and code='emergency-contact').exists()).detail.description",
     usedBy: ['TL-021'],
     description: 'Section 3 of the CAMS Stabilization Plan: the life-or-death emergency contact number for this patient.',
   },
   {
     id: 'cams-stab-support-network',
     name: 'Support Network',
-    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'support-network', display: 'Support Network' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section', code: 'support-network', display: 'Support Network' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='support-network').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/cams-careplan-section' and code='support-network').exists()).detail.description",
     usedBy: ['TL-021'],
     description: 'Section 4 of the CAMS Stabilization Plan: people the patient can call for help or to decrease isolation.',
   },
   {
     id: 'cams-stab-treatment-adherence',
     name: 'Treatment Adherence Plan',
-    code: { system: 'http://spier.org/CodeSystem/cams-careplan-section', code: 'treatment-adherence', display: 'Treatment Adherence Plan' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section', code: 'treatment-adherence', display: 'Treatment Adherence Plan' },
     fhirResource: 'CarePlan',
-    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://spier.org/CodeSystem/cams-careplan-section' and code='treatment-adherence').exists()).detail.description",
+    fhirPath: "CarePlan.activity.where(detail.code.coding.where(system='http://thespierproject.org/fhir/CodeSystem/cams-careplan-section' and code='treatment-adherence').exists()).detail.description",
     usedBy: ['TL-021'],
     description: 'Section 5 of the CAMS Stabilization Plan: barriers to attending treatment as scheduled, each paired with the solution agreed for it.',
   },
@@ -931,18 +934,18 @@ export const BINDINGS: Binding[] = [
   {
     id: 'handoff-content-item',
     name: 'Handoff Content Item',
-    value: { system: 'http://spier.org/CodeSystem/spier-handoff-content', valueSet: 'http://spier.org/ValueSet/spier-handoff-content-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-handoff-content-vs' },
     fhirResource: 'Communication',
-    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/handoff-content-item').valueCodeableConcept",
+    fhirPath: "Communication.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/handoff-content-item').valueCodeableConcept",
     usedBy: ['TL-009', 'TL-030'],
     description: 'Which piece of safety context actually travelled with the patient at a transition — current risk status, most recent assessment, safety-plan status or copy, means-safety actions, crisis resources, follow-up plan, next provider, appointment or referral details, care-team contact, patient instructions, pending tasks. Repeats: one extension per item included. The row has no code because Communication has no coded slot for this; the checklist lives in the extension.',
   },
   {
     id: 'handoff-withheld-item',
     name: 'Withheld Handoff Item (and why)',
-    value: { system: 'http://spier.org/CodeSystem/spier-withholding-basis', valueSet: 'http://spier.org/ValueSet/spier-withholding-basis-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-withholding-basis', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-withholding-basis-vs' },
     fhirResource: 'DocumentReference',
-    fhirPath: "DocumentReference.extension.where(url='http://spier.org/StructureDefinition/handoff-withheld-item')",
+    fhirPath: "DocumentReference.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/handoff-withheld-item')",
     usedBy: ['TL-030'],
     description: 'A packet item that was deliberately NOT shared, paired with the basis: patient declined sharing outright, this category excluded, this recipient excluded, recipient not among those the consent permits, consent expired, or no consent on file with the withholding default applied. A complex extension — the item code and the basis are separate sub-extensions — so the value vocabulary shown here is the basis; the item is drawn from spier-handoff-content. Recording why something was withheld is what distinguishes a consent-respecting packet from an incomplete one.',
   },
@@ -957,7 +960,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'referral-reason',
     name: 'Referral Reason',
-    value: { system: 'http://spier.org/CodeSystem/spier-referral-reason', valueSet: 'http://spier.org/ValueSet/spier-referral-reason-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-referral-reason', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-referral-reason-vs' },
     fhirResource: 'ServiceRequest',
     fhirPath: 'ServiceRequest.reasonCode',
     usedBy: ['TL-017'],
@@ -974,7 +977,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'consent-category-suicide-safety',
     name: 'Suicide-Safety Sharing Consent',
-    code: { system: 'http://spier.org/CodeSystem/spier-consent-category', code: 'suicide-safety-sharing', display: 'Suicide-safety information sharing' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-consent-category', code: 'suicide-safety-sharing', display: 'Suicide-safety information sharing' },
     fhirResource: 'Consent',
     fhirPath: 'Consent.category',
     usedBy: ['TL-032'],
@@ -983,7 +986,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'consent-provision-content',
     name: 'Consented / Denied Content Category',
-    value: { system: 'http://spier.org/CodeSystem/spier-handoff-content', valueSet: 'http://spier.org/ValueSet/spier-handoff-content-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-handoff-content-vs' },
     fhirResource: 'Consent',
     fhirPath: 'Consent.provision.code',
     usedBy: ['TL-032'],
@@ -994,18 +997,18 @@ export const BINDINGS: Binding[] = [
   {
     id: 'outreach-outcome',
     name: 'Outreach Outcome',
-    value: { system: 'http://spier.org/CodeSystem/spier-outreach-outcome', valueSet: 'http://spier.org/ValueSet/spier-outreach-outcome-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-outreach-outcome', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-outreach-outcome-vs' },
     fhirResource: 'Communication',
-    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/outreach-outcome').valueCodeableConcept",
+    fhirPath: "Communication.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/outreach-outcome').valueCodeableConcept",
     usedBy: ['TL-033', 'TL-035'],
     description: 'What came of a follow-up contact attempt — reached, no answer, message left, unable to reach, and so on. Recorded per attempt, which is what makes follow-up auditable attempt-by-attempt rather than as a single vague "we tried".',
   },
   {
     id: 'outreach-prompt',
     name: 'Outreach Prompt',
-    value: { system: 'http://spier.org/CodeSystem/spier-outreach-prompt', valueSet: 'http://spier.org/ValueSet/spier-outreach-prompt-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-outreach-prompt', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-outreach-prompt-vs' },
     fhirResource: 'Communication',
-    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/outreach-prompt').valueCodeableConcept",
+    fhirPath: "Communication.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/outreach-prompt').valueCodeableConcept",
     usedBy: ['TL-033', 'TL-035'],
     description: 'What triggered the outreach — a scheduled follow-up, a missed appointment, a no-show. This is the only thing distinguishing missed-appointment follow-up (TL-035) from routine outreach (TL-033): the same artifact, differing in the prompt, rather than two parallel resources.',
   },
@@ -1013,7 +1016,7 @@ export const BINDINGS: Binding[] = [
     id: 'outreach-safety-concern',
     name: 'Safety Concern Identified',
     fhirResource: 'Communication',
-    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/safety-concern-identified').valueBoolean",
+    fhirPath: "Communication.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/safety-concern-identified').valueBoolean",
     usedBy: ['TL-033', 'TL-035'],
     description: 'Whether the outreach surfaced a new safety concern. A boolean, so no code and no vocabulary — but load-bearing: a true here is what escalates an outreach attempt into a SPiERSafetyTask.',
   },
@@ -1021,16 +1024,16 @@ export const BINDINGS: Binding[] = [
     id: 'caring-contact-opt-out',
     name: 'Caring Contact Opt-Out',
     fhirResource: 'Communication',
-    fhirPath: "Communication.extension.where(url='http://spier.org/StructureDefinition/caring-contact-opt-out').valueBoolean",
+    fhirPath: "Communication.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/caring-contact-opt-out').valueBoolean",
     usedBy: ['TL-010'],
     description: 'Whether the patient has opted out of caring contacts. Deliberately has no outcome vocabulary, unlike outreach: a caring contact asks nothing of the patient, so "reached" and "unreachable" do not apply to it. Opt-out is the only response it can have.',
   },
   {
     id: 'crisis-resource-shared',
     name: 'Crisis Resource Shared',
-    value: { system: 'http://spier.org/CodeSystem/spier-crisis-resource', valueSet: 'http://spier.org/ValueSet/spier-crisis-resource-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-crisis-resource', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-crisis-resource-vs' },
     fhirResource: 'Communication',
-    fhirPath: "Communication.payload.extension.where(url='http://spier.org/StructureDefinition/crisis-resource-code').valueCoding",
+    fhirPath: "Communication.payload.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/crisis-resource-code').valueCoding",
     usedBy: ['TL-013'],
     description: 'Which patient-facing crisis resource or coping support was given to the patient (988 and the like). The extension exists because Communication.payload has no native coded slot — its context is Communication.payload specifically, so the code sits on the payload entry rather than on the Communication.',
   },
@@ -1047,8 +1050,8 @@ export const BINDINGS: Binding[] = [
   {
     id: 'lethal-means-method',
     name: 'Lethal Means Method',
-    code: { system: 'http://spier.org/CodeSystem/spier-lethal-means-method', code: 'firearm', display: 'Firearm' },
-    value: { system: 'http://spier.org/CodeSystem/spier-means-safety-action', valueSet: 'http://spier.org/ValueSet/spier-means-safety-action-vs' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-lethal-means-method', code: 'firearm', display: 'Firearm' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-means-safety-action', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-means-safety-action-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.code',
     usedBy: ['TL-008'],
@@ -1059,7 +1062,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'episode-type',
     name: 'Suicide-Safer Care Episode',
-    code: { system: 'http://spier.org/CodeSystem/spier-episode-type', code: 'suicide-safer-care', display: 'Suicide-safer care episode' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-episode-type', code: 'suicide-safer-care', display: 'Suicide-safer care episode' },
     fhirResource: 'EpisodeOfCare',
     fhirPath: 'EpisodeOfCare.type',
     usedBy: ['TL-038'],
@@ -1068,18 +1071,18 @@ export const BINDINGS: Binding[] = [
   {
     id: 'episode-entry-reason',
     name: 'Episode Entry Reason',
-    value: { system: 'http://spier.org/CodeSystem/spier-episode-entry-reason', valueSet: 'http://spier.org/ValueSet/spier-episode-entry-reason-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-episode-entry-reason', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-episode-entry-reason-vs' },
     fhirResource: 'EpisodeOfCare',
-    fhirPath: "EpisodeOfCare.extension.where(url='http://spier.org/StructureDefinition/episode-entry-reason').valueCodeableConcept",
+    fhirPath: "EpisodeOfCare.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/episode-entry-reason').valueCodeableConcept",
     usedBy: ['TL-038'],
     description: 'Why the episode was opened — a positive screen, a disclosure, an attempt, and so on (8 codes, required binding). Recorded rather than inferred, so a reportable episode lifecycle starts with a stated reason.',
   },
   {
     id: 'episode-closure-reason',
     name: 'Episode Closure Reason',
-    value: { system: 'http://spier.org/CodeSystem/spier-episode-closure-reason', valueSet: 'http://spier.org/ValueSet/spier-episode-closure-reason-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-episode-closure-reason', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-episode-closure-reason-vs' },
     fhirResource: 'EpisodeOfCare',
-    fhirPath: "EpisodeOfCare.extension.where(url='http://spier.org/StructureDefinition/episode-closure-reason').valueCodeableConcept",
+    fhirPath: "EpisodeOfCare.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/episode-closure-reason').valueCodeableConcept",
     usedBy: ['TL-038'],
     description: 'Why the episode was closed — risk resolved, transferred, lost to follow-up, died, and so on (7 codes, required binding). Closure records both a reason and a final status, so an episode cannot quietly stop being tracked.',
   },
@@ -1087,16 +1090,16 @@ export const BINDINGS: Binding[] = [
     id: 'episode-current-risk-tier',
     name: 'Episode Current Risk Tier',
     conceptId: 'suicide-risk-tier',
-    value: { system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://spier.org/ValueSet/spier-suicide-risk-tier-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'EpisodeOfCare',
-    fhirPath: "EpisodeOfCare.extension.where(url='http://spier.org/StructureDefinition/episode-current-risk-tier').valueCodeableConcept",
+    fhirPath: "EpisodeOfCare.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').valueCodeableConcept",
     usedBy: ['TL-037', 'TL-038'],
     description: 'The episode’s current tier, kept on the episode so a work queue can sort and filter by risk without re-reading every Observation. A binding of the shared suicide-risk-tier concept — the only one that carries no LOINC 93374-7, because it sits in an extension rather than on Observation.code. Same tier vocabulary, different slot.',
   },
   {
     id: 'risk-flag-code',
     name: 'Active Risk Episode Flag',
-    code: { system: 'http://spier.org/CodeSystem/spier-risk-flag', code: 'active-suicide-risk-episode', display: 'Active suicide-safer care episode' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-risk-flag', code: 'active-suicide-risk-episode', display: 'Active suicide-safer care episode' },
     fhirResource: 'Flag',
     fhirPath: 'Flag.code',
     usedBy: ['TL-038'],
@@ -1105,7 +1108,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'safety-task-type',
     name: 'Safety Task Type',
-    code: { system: 'http://spier.org/CodeSystem/spier-safety-task-type', code: 'reassessment-due', display: 'Reassessment due' },
+    code: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-safety-task-type', code: 'reassessment-due', display: 'Reassessment due' },
     fhirResource: 'Task',
     fhirPath: 'Task.code',
     usedBy: ['TL-036', 'TL-037', 'TL-039', 'TL-040', 'TL-041'],
@@ -1114,9 +1117,9 @@ export const BINDINGS: Binding[] = [
   {
     id: 'safety-task-escalation-trigger',
     name: 'Escalation Trigger',
-    value: { system: 'http://spier.org/CodeSystem/spier-escalation-trigger', valueSet: 'http://spier.org/ValueSet/spier-escalation-trigger-vs' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-escalation-trigger', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-escalation-trigger-vs' },
     fhirResource: 'Task',
-    fhirPath: "Task.extension.where(url='http://spier.org/StructureDefinition/escalation-trigger').valueCodeableConcept",
+    fhirPath: "Task.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/escalation-trigger').valueCodeableConcept",
     usedBy: ['TL-036', 'TL-041'],
     description: 'Why a case was escalated — high-risk status, worsening or missed reassessment, missed follow-up or appointment, an overdue safety action, unable to reach, or a manual clinician escalation (11 codes, required binding). Repeats, deliberately: the SSC allows several triggers at once. Follow-up escalation reuses this same Task rather than defining a parallel resource, so a case escalated from follow-up and one escalated from the risk registry land in the same work queue.',
   },

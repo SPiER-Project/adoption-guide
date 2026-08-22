@@ -1,4 +1,4 @@
-map "http://spier.org/StructureMap/CSSRSRiskLevelToSuicideRiskConcept" = "CSSRSRiskLevelToSuicideRiskConcept"
+map "http://thespierproject.org/fhir/StructureMap/CSSRSRiskLevelToSuicideRiskConcept" = "CSSRSRiskLevelToSuicideRiskConcept"
 
 // Derives a harmonized SPiER Suicide Risk Concept Observation from a C-SSRS
 // Risk Level Observation, so a consumer that does not know the C-SSRS can
@@ -40,11 +40,11 @@ group cssrsRiskLevelToConcept(source src : CSSRSRiskLevel, target tgt : Concept)
 
   // --- domain + survey category (Gravity cross-instrument filtering pattern) ---
   src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
-  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
+  src -> tgt.category = cc('http://thespierproject.org/fhir/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
 
   // --- value: translate the C-SSRS risk-level coding to the common tier coding ---
   src.value : CodeableConcept as level -> tgt.value = create('CodeableConcept') as tier then {
-    level.coding as lc -> tier.coding = translate(lc, 'http://spier.org/ConceptMap/CSSRSRiskLevelToRiskTier', 'Coding') "translate-tier";
+    level.coding as lc -> tier.coding = translate(lc, 'http://thespierproject.org/fhir/ConceptMap/CSSRSRiskLevelToRiskTier', 'Coding') "translate-tier";
   } "map-value";
 
   // --- interpretation: NEG for a 'none' risk level, POS otherwise ---

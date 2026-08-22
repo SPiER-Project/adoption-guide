@@ -16,7 +16,7 @@ function asqResponse(answers: { q1: boolean; q2: boolean; q3: boolean; q4: boole
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/ASQ-Screening-Tool',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool',
     item: [
       {
         linkId: 'screening-questions',
@@ -84,7 +84,7 @@ describe('mapASQ', () => {
   it('emits per-item Observations bound to the SPiER-local asq-item system', () => {
     const r = mapASQ(asqResponse({ q1: true, q2: false, q3: false, q4: false, q5: false }))
     const itemObs = r.observations.filter(
-      o => o.code?.coding?.[0]?.system === 'http://spier.org/CodeSystem/asq-item',
+      o => o.code?.coding?.[0]?.system === 'http://thespierproject.org/fhir/CodeSystem/asq-item',
     )
     // one per answered item (q1–q5)
     expect(itemObs).toHaveLength(5)

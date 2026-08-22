@@ -20,7 +20,7 @@ Every coding in the Questionnaire that has not been verified against an authorit
 
 ```json
 "extension": [
-  { "url": "http://spier.org/StructureDefinition/coding-verification-status",
+  { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
     "valueCode": "unverified" }
 ]
 ```
@@ -34,16 +34,16 @@ The per-item LOINC codes were verified against LOINC in June 2026. **Neither** p
 - The codes that had been placed on q1, q3, q4, q5 (`93246-7`, `93247-5`, `93248-3`, `93249-1`) are confirmed members of the **C-SSRS screener panel `93373-9`** (e.g. `93246-7` = "Wish to be dead 1 month"), not ASQ. They were copy-pasted from C-SSRS.
 - The codes the observation mapper / data dictionary emitted (`93267-4`, `93266-6`, `93265-8`, `93264-1`, `93263-3`, and the result code `93243-5`) **do not exist in LOINC at all** — each fails its check digit and resolves to a neighboring C-SSRS suicidal-behavior code. They were fabricated.
 
-The ASQ has **no published per-item LOINC codes**; it is documented at the encounter level as an overall screening result. Accordingly, q1–q5 now bind to the SPiER-local CodeSystem **`http://spier.org/CodeSystem/asq-item`** (defined in `ig/input/fsh/asq.fsh`), with each coding marked `no-standard-binding`. The Questionnaire item codes, the observation mapper (`web/src/lib/observationMappers/asq.ts`), the data dictionary (`web/src/data/catalog/dataElements.ts`), and the anti-drift check (`web/scripts/check-observation-extract.mjs`) all agree on these local codes, and q1–q5 now declare `sdc-questionnaire-observationExtract`.
+The ASQ has **no published per-item LOINC codes**; it is documented at the encounter level as an overall screening result. Accordingly, q1–q5 now bind to the SPiER-local CodeSystem **`http://thespierproject.org/fhir/CodeSystem/asq-item`** (defined in `ig/input/fsh/asq.fsh`), with each coding marked `no-standard-binding`. The Questionnaire item codes, the observation mapper (`web/src/lib/observationMappers/asq.ts`), the data dictionary (`web/src/data/catalog/dataElements.ts`), and the anti-drift check (`web/scripts/check-observation-extract.mjs`) all agree on these local codes, and q1–q5 now declare `sdc-questionnaire-observationExtract`.
 
 **Root panel and result codes — also reconciled (June 2026):**
 
-- The root `Questionnaire.code` was `93373-9`, which is the **C-SSRS** screener panel — a different instrument (a real interop hazard). Since the ASQ has no panel LOINC, the root now uses the SPiER-local `http://spier.org/CodeSystem/asq-panel#asq-screening` (`fhir/codesystems/asq-panel.json`), marked `no-standard-binding`.
+- The root `Questionnaire.code` was `93373-9`, which is the **C-SSRS** screener panel — a different instrument (a real interop hazard). Since the ASQ has no panel LOINC, the root now uses the SPiER-local `http://thespierproject.org/fhir/CodeSystem/asq-panel#asq-screening` (`fhir/codesystems/asq-panel.json`), marked `no-standard-binding`.
 - The result/composite Observation code was `93243-5`, which **does not exist** in LOINC. It is now `93374-7` ("Suicide risk level") — a real, verified LOINC code that also matches the Questionnaire's `result-category` item. This was changed at the FSH source (`ig/input/fsh/asq.fsh`, `ig/input/fsh/pathway-stages.fsh`) and in the observation mapper; the generated artifacts under `web/src/data/fhir/` were regenerated. The Observation *value* remains the SPiER-local `asq-screening-result` tier (negative / non-acute-positive / acute-positive), since LOINC has no answer concepts for the disposition tiers.
 
 ### Q2 — local binding
 
-Q2 ("have you felt that you or your family would be better off if you were dead") now carries the local code `http://spier.org/CodeSystem/asq-item#family-better-off-dead` (marked `no-standard-binding`) and declares `observationExtract`. If a published LOINC concept ever exists for this item, replace the local code.
+Q2 ("have you felt that you or your family would be better off if you were dead") now carries the local code `http://thespierproject.org/fhir/CodeSystem/asq-item#family-better-off-dead` (marked `no-standard-binding`) and declares `observationExtract`. If a published LOINC concept ever exists for this item, replace the local code.
 
 ## Screening Questions
 
@@ -99,7 +99,7 @@ They were byte-level duplicates at the *same canonical URL*, and the
 whichever loaded last silently won. `validator_cli` flagged the resulting
 display mismatches; see `scripts/validate-fhir.mjs`.
 
-Local code system URLs use the `http://spier.org/CodeSystem/...` namespace. Where a LOINC or SNOMED binding is preferred and available, the open-items list calls that out — the local codes are scaffolding for the pilot, not a final binding.
+Local code system URLs use the `http://thespierproject.org/fhir/CodeSystem/...` namespace. Where a LOINC or SNOMED binding is preferred and available, the open-items list calls that out — the local codes are scaffolding for the pilot, not a final binding.
 
 ## Clinical Pathway Integration
 

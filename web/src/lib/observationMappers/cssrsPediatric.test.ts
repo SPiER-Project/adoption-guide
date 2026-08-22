@@ -4,7 +4,7 @@ import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
 // Answers are built from the Pediatric Questionnaire (SNOMED-coded Yes/No), not
 // hand-written booleans — see __fixtures__/nativeQr.ts and issue #327.
-const CSSRS_PEDIATRIC = 'http://spier.org/Questionnaire/C-SSRS-Pediatric'
+const CSSRS_PEDIATRIC = 'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Pediatric'
 const pedResponse = (answers: Record<string, boolean>) => nativeQr(CSSRS_PEDIATRIC, answers)
 
 function riskCode(r: ReturnType<typeof mapCSSRSPediatric>) {

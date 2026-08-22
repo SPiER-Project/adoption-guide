@@ -57,7 +57,7 @@ function riskConcept(params: { id: string; effective: string; stage: string; tie
     effectiveDateTime: params.effective,
     valueCodeableConcept: {
       coding: [
-        { system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', code: params.tier ?? 'moderate' },
+        { system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', code: params.tier ?? 'moderate' },
       ],
     },
     interpretation: [
@@ -88,7 +88,7 @@ function episode(params: { start: string; end?: string; closure?: string; status
               url: CLOSURE_REASON_EXT,
               valueCodeableConcept: {
                 coding: [
-                  { system: 'http://spier.org/CodeSystem/spier-episode-closure-reason', code: params.closure },
+                  { system: 'http://thespierproject.org/fhir/CodeSystem/spier-episode-closure-reason', code: params.closure },
                 ],
               },
             },
@@ -114,7 +114,7 @@ function outreach(params: { id: string; sent: string; outcome?: string }) {
     resourceType: 'Communication' as const,
     id: params.id,
     status: 'completed',
-    meta: { profile: ['http://spier.org/StructureDefinition/spier-outreach-attempt'] },
+    meta: { profile: ['http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt'] },
     subject: { reference: 'Patient/patient-005' },
     sent: params.sent,
     extension: [
@@ -177,7 +177,7 @@ function packet(params: { date: string; contentItems?: string[] }) {
     extension: (params.contentItems ?? []).map(code => ({
       url: HANDOFF_CONTENT_ITEM_EXT,
       valueCodeableConcept: {
-        coding: [{ system: 'http://spier.org/CodeSystem/spier-handoff-content', code }],
+        coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content', code }],
       },
     })),
   }
@@ -326,10 +326,10 @@ describe('current risk level documented', () => {
         ...episode({ start: '2026-07-02' }),
         extension: [
           {
-            url: 'http://spier.org/StructureDefinition/episode-current-risk-tier',
+            url: 'http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier',
             valueCodeableConcept: {
               coding: [
-                { system: 'http://spier.org/CodeSystem/spier-suicide-risk-tier', code: 'moderate' },
+                { system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', code: 'moderate' },
               ],
             },
           },

@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "C-SSRS-Screener",
-  "url": "http://spier.org/Questionnaire/C-SSRS-Screener",
+  "url": "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener",
   "version": "1.0.0",
   "name": "CSSRS_Screener",
   "title": "Columbia-Suicide Severity Rating Scale \u2014 Screener (Recent)",
@@ -336,21 +336,21 @@
       "answerOption": [
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/cssrs-risk-level",
+            "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level",
             "code": "low",
             "display": "Low Risk"
           }
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/cssrs-risk-level",
+            "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level",
             "code": "moderate",
             "display": "Moderate Risk"
           }
         },
         {
           "valueCoding": {
-            "system": "http://spier.org/CodeSystem/cssrs-risk-level",
+            "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level",
             "code": "high",
             "display": "High Risk"
           }
@@ -370,7 +370,7 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/tier-derivation",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/tier-derivation",
           "valueCode": "computed"
         }
       ]

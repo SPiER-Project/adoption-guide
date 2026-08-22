@@ -11,7 +11,7 @@ import { nativeQr, type NativeAnswer } from './__fixtures__/nativeQr'
  * which is why the mapper's misread (#327) passed the suite. Everything is now
  * built from the Questionnaire; see __fixtures__/nativeQr.ts.
  */
-const CAMS_SECTION_B = 'http://spier.org/Questionnaire/CAMS-SSF5-SectionB'
+const CAMS_SECTION_B = 'http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB'
 
 interface Driver { desc?: string; type?: { code: string; display: string } }
 function camsBResponse(opts: {

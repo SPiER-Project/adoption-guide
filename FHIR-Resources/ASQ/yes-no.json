@@ -1,7 +1,7 @@
 {
   "resourceType": "ValueSet",
   "id": "yes-no",
-  "url": "http://spier.org/ValueSet/yes-no",
+  "url": "http://thespierproject.org/fhir/ValueSet/yes-no",
   "version": "1.0.0",
   "name": "YesNo",
   "title": "Yes / No (SNOMED-bound)",

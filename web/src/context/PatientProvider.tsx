@@ -52,7 +52,7 @@ function populationToFhir(p: PopulationPatient) {
     birthDate: p.dob,
     gender: p.gender.toLowerCase(),
     identifier: [
-      { system: 'http://spier.org/identifier/mrn', value: p.mrn },
+      { system: 'http://thespierproject.org/fhir/identifier/mrn', value: p.mrn },
     ],
   }
 }
@@ -65,7 +65,7 @@ const BLANK_PATIENT = {
   name: [{ use: 'official' as const, given: [''], family: '' }],
   birthDate: '',
   gender: '',
-  identifier: [{ system: 'http://spier.org/identifier/mrn', value: '' }],
+  identifier: [{ system: 'http://thespierproject.org/fhir/identifier/mrn', value: '' }],
 }
 
 export function PatientProvider({

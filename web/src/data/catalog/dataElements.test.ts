@@ -14,7 +14,7 @@ describe('valueSetHref (#281)', () => {
   const base = import.meta.env.BASE_URL
 
   it('points a SPiER-local canonical at the published IG page', () => {
-    expect(valueSetHref('http://spier.org/ValueSet/spier-suicide-risk-tier-vs')).toBe(
+    expect(valueSetHref('http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs')).toBe(
       `${base}ig/ValueSet-spier-suicide-risk-tier-vs.html`,
     )
   })
@@ -23,9 +23,9 @@ describe('valueSetHref (#281)', () => {
     // Both resolve inside the IG we publish, and the Publisher names those pages
     // `<ResourceType>-<id>.html`. If one convention ever changes, the other is
     // where to look — so they are asserted together rather than in isolation.
-    const code = codeHref('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk')
+    const code = codeHref('http://thespierproject.org/fhir/CodeSystem/spier-concept-domain', 'suicide-risk')
     expect(code).toBe(`${base}ig/CodeSystem-spier-concept-domain.html#spier-concept-domain-suicide-risk`)
-    expect(valueSetHref('http://spier.org/ValueSet/spier-concept-domain-vs')).toBe(
+    expect(valueSetHref('http://thespierproject.org/fhir/ValueSet/spier-concept-domain-vs')).toBe(
       `${base}ig/ValueSet-spier-concept-domain-vs.html`,
     )
   })
@@ -37,7 +37,7 @@ describe('valueSetHref (#281)', () => {
   })
 
   it('labels a canonical by its id, keeping the URL for the title attribute', () => {
-    expect(valueSetLabel('http://spier.org/ValueSet/cams-driver-type-vs')).toBe('cams-driver-type-vs')
+    expect(valueSetLabel('http://thespierproject.org/fhir/ValueSet/cams-driver-type-vs')).toBe('cams-driver-type-vs')
     // Nothing to shorten — the full canonical is the only honest label left.
     expect(valueSetLabel('http://example.org/vs/x')).toBe('http://example.org/vs/x')
   })

@@ -33,18 +33,18 @@ InstanceOf: ConceptMap
 Title: "CAMS SSF Overall Risk → SPiER Suicide Risk Tier"
 Description: "Maps the CAMS SSF self-rated Overall Risk of Suicide rating (1–5) to the common SPiER suicide-risk tiers (1–2 → low, 3 → moderate, 4–5 → high). Decision-support guidance intended to be clinician-overridable: CAMS is a collaborative therapeutic process, not a predictive screener, and no published psychometric stratification of the SSF Overall Risk rating exists (verified July 2026). No rating maps to `imminent` — escalation to imminent risk requires separate clinical triage. Proposed crosswalk pending clinical sign-off (#93)."
 Usage: #definition
-* url = "http://spier.org/ConceptMap/CAMSOverallRiskToRiskTier"
+* url = "http://thespierproject.org/fhir/ConceptMap/CAMSOverallRiskToRiskTier"
 * version = "0.1.0"
 * name = "CAMSOverallRiskToRiskTier"
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
 * purpose = "Translate the SPiER-local CAMS SSF Overall Risk rating into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume a CAMS SSF self-rating without understanding CAMS — while preserving that the assignment is clinician-overridable decision support, not a predictive score."
-* sourceCanonical = "http://spier.org/ValueSet/cams-ssf-overall-risk"
-* targetCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"
+* sourceCanonical = "http://thespierproject.org/fhir/ValueSet/cams-ssf-overall-risk"
+* targetCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 
-* group[0].source = "http://spier.org/CodeSystem/cams-ssf-overall-risk"
-* group[0].target = "http://spier.org/CodeSystem/spier-suicide-risk-tier"
+* group[0].source = "http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk"
+* group[0].target = "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier"
 
 * group[0].element[0].code = #1
 * group[0].element[0].display = "1 — Extremely low risk"

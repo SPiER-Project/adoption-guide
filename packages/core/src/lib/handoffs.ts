@@ -35,19 +35,19 @@ import { suicideRiskCategory } from './conceptDomain'
 export const STAGE_ID = 'coordinate-handoffs'
 const STAGE_TITLE = 'Coordinate Handoffs'
 
-export const PACKET_PROFILE = 'http://spier.org/StructureDefinition/spier-discharge-safety-packet'
-export const REFERRAL_PROFILE = 'http://spier.org/StructureDefinition/spier-safety-referral'
-export const APPOINTMENT_PROFILE = 'http://spier.org/StructureDefinition/spier-follow-up-appointment'
-export const CONSENT_PROFILE = 'http://spier.org/StructureDefinition/spier-information-sharing-consent'
+export const PACKET_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet'
+export const REFERRAL_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-referral'
+export const APPOINTMENT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-follow-up-appointment'
+export const CONSENT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-information-sharing-consent'
 
-export const HANDOFF_CONTENT_SYSTEM = 'http://spier.org/CodeSystem/spier-handoff-content'
-export const REFERRAL_REASON_SYSTEM = 'http://spier.org/CodeSystem/spier-referral-reason'
-export const CONSENT_CATEGORY_SYSTEM = 'http://spier.org/CodeSystem/spier-consent-category'
-export const WITHHOLDING_BASIS_SYSTEM = 'http://spier.org/CodeSystem/spier-withholding-basis'
+export const HANDOFF_CONTENT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content'
+export const REFERRAL_REASON_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-referral-reason'
+export const CONSENT_CATEGORY_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-consent-category'
+export const WITHHOLDING_BASIS_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-withholding-basis'
 
-export const HANDOFF_CONTENT_ITEM_EXT = 'http://spier.org/StructureDefinition/handoff-content-item'
+export const HANDOFF_CONTENT_ITEM_EXT = 'http://thespierproject.org/fhir/StructureDefinition/handoff-content-item'
 export const HANDOFF_WITHHELD_ITEM_EXT =
-  'http://spier.org/StructureDefinition/handoff-withheld-item'
+  'http://thespierproject.org/fhir/StructureDefinition/handoff-withheld-item'
 
 /** HL7 code systems the profiles bind to natively rather than SPiER-locally. */
 const CONSENT_SCOPE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/consentscope'

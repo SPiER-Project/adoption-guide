@@ -1,7 +1,7 @@
 {
   "resourceType": "CodeSystem",
   "id": "asq-panel",
-  "url": "http://spier.org/CodeSystem/asq-panel",
+  "url": "http://thespierproject.org/fhir/CodeSystem/asq-panel",
   "version": "1.0.0",
   "name": "AsqPanel",
   "title": "ASQ Panel Code (local)",

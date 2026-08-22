@@ -22,23 +22,23 @@ import { suicideRiskCategory } from './conceptDomain'
 
 export const STAGE_ID = 'track-risk-over-time'
 
-export const EPISODE_PROFILE = 'http://spier.org/StructureDefinition/spier-suicide-risk-episode'
-export const FLAG_PROFILE = 'http://spier.org/StructureDefinition/spier-suicide-risk-flag'
-export const TASK_PROFILE = 'http://spier.org/StructureDefinition/spier-safety-task'
+export const EPISODE_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode'
+export const FLAG_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-flag'
+export const TASK_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-task'
 
-export const EPISODE_TYPE_SYSTEM = 'http://spier.org/CodeSystem/spier-episode-type'
-export const ENTRY_REASON_SYSTEM = 'http://spier.org/CodeSystem/spier-episode-entry-reason'
-export const CLOSURE_REASON_SYSTEM = 'http://spier.org/CodeSystem/spier-episode-closure-reason'
-export const SAFETY_TASK_TYPE_SYSTEM = 'http://spier.org/CodeSystem/spier-safety-task-type'
-export const ESCALATION_TRIGGER_SYSTEM = 'http://spier.org/CodeSystem/spier-escalation-trigger'
-export const RISK_FLAG_SYSTEM = 'http://spier.org/CodeSystem/spier-risk-flag'
-export const RISK_TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+export const EPISODE_TYPE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-episode-type'
+export const ENTRY_REASON_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-episode-entry-reason'
+export const CLOSURE_REASON_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-episode-closure-reason'
+export const SAFETY_TASK_TYPE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-safety-task-type'
+export const ESCALATION_TRIGGER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-escalation-trigger'
+export const RISK_FLAG_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-risk-flag'
+export const RISK_TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
-export const ENTRY_REASON_EXT = 'http://spier.org/StructureDefinition/episode-entry-reason'
-export const CLOSURE_REASON_EXT = 'http://spier.org/StructureDefinition/episode-closure-reason'
-export const CURRENT_TIER_EXT = 'http://spier.org/StructureDefinition/episode-current-risk-tier'
-export const TRIGGER_EXT = 'http://spier.org/StructureDefinition/episode-trigger'
-export const ESCALATION_TRIGGER_EXT = 'http://spier.org/StructureDefinition/escalation-trigger'
+export const ENTRY_REASON_EXT = 'http://thespierproject.org/fhir/StructureDefinition/episode-entry-reason'
+export const CLOSURE_REASON_EXT = 'http://thespierproject.org/fhir/StructureDefinition/episode-closure-reason'
+export const CURRENT_TIER_EXT = 'http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier'
+export const TRIGGER_EXT = 'http://thespierproject.org/fhir/StructureDefinition/episode-trigger'
+export const ESCALATION_TRIGGER_EXT = 'http://thespierproject.org/fhir/StructureDefinition/escalation-trigger'
 
 /** EpisodeOfCare.status values that mean the episode is still open. */
 const OPEN_EPISODE_STATUSES = new Set(['planned', 'waitlist', 'active', 'onhold'])

@@ -8,7 +8,7 @@ const decode = (b64: string) => new TextDecoder().decode(Uint8Array.from(atob(b6
 const qr: QuestionnaireResponseResource = {
   resourceType: 'QuestionnaireResponse',
   id: 'qr-1',
-  questionnaire: 'http://spier.org/Questionnaire/PHQ-9',
+  questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
   status: 'completed',
   authored: '2026-07-14T10:00:00Z',
   item: [

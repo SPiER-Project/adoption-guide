@@ -9,25 +9,25 @@ In every example, replace `[base]` with the server's FHIR base URL and `[id]` wi
 Every instrument produces a harmonized **suicide-risk concept** Observation on the generic LOINC code, tagged with the suicide-risk domain category. To read the instrument-agnostic risk tier for a patient regardless of which tool was used:
 
 ```
-GET [base]/Observation?code=http://loinc.org|93374-7&category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
 ```
 
 `Observation.derivedFrom` on each result links back to the source `QuestionnaireResponse` and any instrument-specific Observations.
 
 ## Retrieving the whole suicide-safer care record by domain
 
-Every SPiER resource with a native `category` element carries the same domain coding — `http://spier.org/CodeSystem/spier-concept-domain#suicide-risk` — **in addition to** whatever clinical category it already had. This is the [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) pattern: one code, applied across resource types, so a consumer can assemble the record without knowing which instrument or workflow step produced any part of it.
+Every SPiER resource with a native `category` element carries the same domain coding — `http://thespierproject.org/fhir/CodeSystem/spier-concept-domain#suicide-risk` — **in addition to** whatever clinical category it already had. This is the [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) pattern: one code, applied across resource types, so a consumer can assemble the record without knowing which instrument or workflow step produced any part of it.
 
 ```
-GET [base]/Observation?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
-GET [base]/Condition?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
-GET [base]/CarePlan?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
-GET [base]/ServiceRequest?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
-GET [base]/Communication?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
-GET [base]/Procedure?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
-GET [base]/DocumentReference?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
-GET [base]/Consent?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
-GET [base]/Flag?category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Observation?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Condition?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/CarePlan?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/ServiceRequest?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Communication?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Procedure?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/DocumentReference?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
+GET [base]/Consent?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
+GET [base]/Flag?category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&subject=Patient/[id]
 ```
 
 `Appointment` carries the same coding, but R4 gives it no `category` element — its
@@ -35,13 +35,13 @@ slot is `serviceCategory`, so the parameter **name** differs while the value sta
 identical:
 
 ```
-GET [base]/Appointment?service-category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
+GET [base]/Appointment?service-category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
 ```
 
 **It is a repeated query, not a single one — and that is a property of R4, not of SPiER.** FHIR has no cross-type search on a common parameter; `category` is defined per resource type. A server that supports system-level search with `_type` can collapse the list:
 
 ```
-GET [base]?_type=Observation,Condition,CarePlan,ServiceRequest,Communication,Procedure,DocumentReference,Consent,Flag&category=http://spier.org/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
+GET [base]?_type=Observation,Condition,CarePlan,ServiceRequest,Communication,Procedure,DocumentReference,Consent,Flag&category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain|suicide-risk&patient=Patient/[id]
 ```
 
 but `_type` is optional, so the per-type form above is the portable one. What the domain tag buys is that **the parameter value is identical across every type** — the consumer needs one code, not a per-resource-type mapping table.
@@ -56,8 +56,8 @@ existing does **not** mean a search parameter exists.
 
 | Resource | R4 reality | How the domain is reachable |
 |---|---|---|
-| `Appointment` | no `category`; `serviceCategory` is `0..*` with an **example** binding, and `service-category` is a real search parameter | **Tagged.** `GET [base]/Appointment?service-category=http://spier.org/CodeSystem/spier-concept-domain\|suicide-risk&patient=Patient/[id]` |
-| `EpisodeOfCare` | no `category`; `type` is `1..*` here and searchable via R4's shared `clinical-type` parameter | **Already equivalent** — `SPiERSuicideRiskEpisode` requires `type` from the SPiER episode-type ValueSet: `GET [base]/EpisodeOfCare?type=http://spier.org/CodeSystem/spier-episode-type\|suicide-safer-care` |
+| `Appointment` | no `category`; `serviceCategory` is `0..*` with an **example** binding, and `service-category` is a real search parameter | **Tagged.** `GET [base]/Appointment?service-category=http://thespierproject.org/fhir/CodeSystem/spier-concept-domain\|suicide-risk&patient=Patient/[id]` |
+| `EpisodeOfCare` | no `category`; `type` is `1..*` here and searchable via R4's shared `clinical-type` parameter | **Already equivalent** — `SPiERSuicideRiskEpisode` requires `type` from the SPiER episode-type ValueSet: `GET [base]/EpisodeOfCare?type=http://thespierproject.org/fhir/CodeSystem/spier-episode-type\|suicide-safer-care` |
 | `Task` | no `category`; `Task.code` is load-bearing for the safety-task vocabulary. `code`, `encounter` and `based-on` are all real parameters | **Deliberately untagged** — already reachable by two standard paths: `GET [base]/Task?encounter=Encounter/[id]`, or `Task.basedOn` → the episode |
 
 Why `Appointment` is the only one that gained a tag: it was the sole type where R4
@@ -170,43 +170,43 @@ design.
 
 ## ASQ (Ask Suicide-Screening Questions)
 
-- Questionnaire: `http://spier.org/Questionnaire/ASQ-Screening-Tool` (v1.1.0-pilot)
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool` (v1.1.0-pilot)
 - Derived profile: `SPiERASQResult` (disposition on LOINC `93374-7`)
 
 ```
-GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/ASQ-Screening-Tool&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool&subject=Patient/[id]
 GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
 ```
 
 ## C-SSRS (Columbia-Suicide Severity Rating Scale)
 
-- Questionnaires: `http://spier.org/Questionnaire/C-SSRS-Screener` (v1.0.0), `http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent` (v1.0.0)
+- Questionnaires: `http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener` (v1.0.0), `http://thespierproject.org/fhir/Questionnaire/C-SSRS-Full-Lifetime-Recent` (v1.0.0)
 - Derived profile: `SPiERCSSRSRiskLevel` (risk level on LOINC `93374-7`)
 
 ```
-GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/C-SSRS-Screener&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener&subject=Patient/[id]
 GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
 ```
 
 ## PHQ-9 (Patient Health Questionnaire-9)
 
-- Questionnaire: `http://spier.org/Questionnaire/PHQ-9` (v1.0.0)
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/PHQ-9` (v1.0.0)
 - Derived profiles: `SPiERPHQ9TotalScore` (LOINC `44261-6`), `SPiERPHQ9Item9` (LOINC `44260-8`, the suicide-relevant item)
 
 ```
-GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/PHQ-9&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/PHQ-9&subject=Patient/[id]
 GET [base]/Observation?code=http://loinc.org|44260-8&subject=Patient/[id]
 GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]
 ```
 
 ## SBQ-R (Suicide Behaviors Questionnaire-Revised)
 
-- Questionnaire: `http://spier.org/Questionnaire/SBQ-R` (v1.0.0)
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/SBQ-R` (v1.0.0)
 - Derived profile: `SPiERSBQRTotalScore` (total on SNOMED `225337009`; cutoffs ≥7 / ≥8)
   - No LOINC panel/item/total-score code exists for the SBQ-R (rechecked July 2026). SNOMED `225337009` ("Suicide risk assessment") is a generic concept used as a pragmatic choice for the total score, not an SBQ-R-specific code; re-checked each major release.
 
 ```
-GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/SBQ-R&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/SBQ-R&subject=Patient/[id]
 GET [base]/Observation?code=http://snomed.info/sct|225337009&subject=Patient/[id]
 ```
 

@@ -7,7 +7,7 @@ This page gets a developer from zero to validating their own resources against S
 Three ways, depending on your tooling:
 
 - **Browse** — the [Artifacts](artifacts.html) page lists every profile, value set, code system, ConceptMap, and example. Each example is downloadable as JSON.
-- **IG package** — the IG publishes a FHIR NPM package, `spier.ig` (canonical `http://spier.org`). Point your FHIR tooling (Sushi, the HL7 validator, a Firely/HAPI server) at it to load all definitions at once.
+- **IG package** — the IG publishes a FHIR NPM package, `thespierproject.fhir` (canonical `http://thespierproject.org/fhir`). Point your FHIR tooling (Sushi, the HL7 validator, a Firely/HAPI server) at it to load all definitions at once.
 - **Build locally** — clone [the repo](https://github.com/SPiER-Project/adoption-guide), then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the FSH sources to FHIR JSON (`fsh-generated/`), and the HL7 IG Publisher to render this site.
 
 ## 2. Validate a resource against a SPiER profile
@@ -17,8 +17,8 @@ Use the official HL7 validator. Download `validator_cli.jar` from the [validator
 ```bash
 java -jar validator_cli.jar my-observation.json \
   -version 4.0.1 \
-  -ig spier.ig \
-  -profile http://spier.org/StructureDefinition/spier-suicide-risk-concept
+  -ig thespierproject.fhir \
+  -profile http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept
 ```
 
 Or use a **public FHIR R4 test server** that supports `$validate` (see HL7's [public test servers list](https://confluence.hl7.org/spaces/FHIR/pages/35718859/Public+Test+Servers)). Note: a server can only validate against SPiER profiles once the SPiER IG package has been loaded into it — many public servers only carry the base spec and US Core, so the local `validator_cli.jar` route is the most reliable for custom profiles today.

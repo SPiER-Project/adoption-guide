@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "C-SSRS-Full-Lifetime-Recent",
-  "url": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent",
+  "url": "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Full-Lifetime-Recent",
   "version": "1.0.0",
   "name": "CSSRS_Full_Lifetime_Recent",
   "title": "Columbia-Suicide Severity Rating Scale \u2014 Full (Lifetime/Recent)",
@@ -568,35 +568,35 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-frequency",
                 "code": "1",
                 "display": "Less than once a week"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-frequency",
                 "code": "2",
                 "display": "Once a week"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-frequency",
                 "code": "3",
                 "display": "2-5 times in week"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-frequency",
                 "code": "4",
                 "display": "Daily or almost daily"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-frequency",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-frequency",
                 "code": "5",
                 "display": "Many times each day"
               }
@@ -611,35 +611,35 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-duration",
                 "code": "1",
                 "display": "Fleeting - few seconds or minutes"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-duration",
                 "code": "2",
                 "display": "Less than 1 hour / some of the time"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-duration",
                 "code": "3",
                 "display": "1-4 hours / a lot of time"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-duration",
                 "code": "4",
                 "display": "4-8 hours / most of day"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-duration",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-duration",
                 "code": "5",
                 "display": "More than 8 hours / persistent or continuous"
               }
@@ -654,42 +654,42 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-controllability",
                 "code": "1",
                 "display": "Easily able to control thoughts"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-controllability",
                 "code": "2",
                 "display": "Can control thoughts with little difficulty"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-controllability",
                 "code": "3",
                 "display": "Can control thoughts with some difficulty"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-controllability",
                 "code": "4",
                 "display": "Can control thoughts with a lot of difficulty"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-controllability",
                 "code": "5",
                 "display": "Unable to control thoughts"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-controllability",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-controllability",
                 "code": "0",
                 "display": "Does not attempt to control thoughts"
               }
@@ -704,42 +704,42 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-deterrents",
                 "code": "1",
                 "display": "Deterrents definitely stopped you from attempting suicide"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-deterrents",
                 "code": "2",
                 "display": "Deterrents probably stopped you"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-deterrents",
                 "code": "3",
                 "display": "Uncertain that deterrents stopped you"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-deterrents",
                 "code": "4",
                 "display": "Deterrents most likely did not stop you"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-deterrents",
                 "code": "5",
                 "display": "Deterrents definitely did not stop you"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-deterrents",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-deterrents",
                 "code": "0",
                 "display": "Does not apply"
               }
@@ -754,42 +754,42 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-reasons",
                 "code": "1",
                 "display": "Completely to get attention, revenge or a reaction from others"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-reasons",
                 "code": "2",
                 "display": "Mostly to get attention, revenge or a reaction from others"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-reasons",
                 "code": "3",
                 "display": "Equally to get attention/reaction and to end/stop the pain"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-reasons",
                 "code": "4",
                 "display": "Mostly to end or stop the pain"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-reasons",
                 "code": "5",
                 "display": "Completely to end or stop the pain"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/cssrs-reasons",
+                "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-reasons",
                 "code": "0",
                 "display": "Does not apply"
               }
@@ -1261,42 +1261,42 @@
               "answerOption": [
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-lethality",
                     "code": "0",
                     "display": "No physical damage or very minor physical damage"
                   }
                 },
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-lethality",
                     "code": "1",
                     "display": "Minor physical damage (e.g., lethargic speech, first-degree burns, mild bleeding)"
                   }
                 },
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-lethality",
                     "code": "2",
                     "display": "Moderate physical damage; medical attention needed"
                   }
                 },
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-lethality",
                     "code": "3",
                     "display": "Moderately severe physical damage; medical hospitalization likely required"
                   }
                 },
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-lethality",
                     "code": "4",
                     "display": "Severe physical damage; intensive care required"
                   }
                 },
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-lethality",
                     "code": "5",
                     "display": "Death"
                   }
@@ -1313,7 +1313,7 @@
                   "question": "actual-lethality",
                   "operator": "=",
                   "answerCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-lethality",
                     "code": "0"
                   }
                 }
@@ -1321,21 +1321,21 @@
               "answerOption": [
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-potential-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-potential-lethality",
                     "code": "0",
                     "display": "Behavior not likely to result in injury"
                   }
                 },
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-potential-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-potential-lethality",
                     "code": "1",
                     "display": "Behavior likely to result in injury but not likely to cause death"
                   }
                 },
                 {
                   "valueCoding": {
-                    "system": "http://spier.org/CodeSystem/cssrs-potential-lethality",
+                    "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-potential-lethality",
                     "code": "2",
                     "display": "Behavior likely to result in death despite available medical care"
                   }

@@ -336,7 +336,7 @@ InstanceOf: ActivityDefinition
 Title: "Record Suicide-Safety Handoff / Transition Checkpoint"
 Description: "Document a suicide-safety handoff at a transition of care as a SPiERSafetyHandoff Communication."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/RecordTransitionCheckpoint"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/RecordTransitionCheckpoint"
 * name = "RecordTransitionCheckpoint"
 * version = "1.0.0"
 * title = "Record Suicide-Safety Handoff / Transition Checkpoint"
@@ -356,7 +356,7 @@ InstanceOf: ActivityDefinition
 Title: "Generate Discharge Safety Packet / Transition Bundle"
 Description: "Assemble the suicide-safety discharge packet as a SPiERDischargeSafetyPacket DocumentReference listing what it contains."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/GenerateDischargeSafetyPacket"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/GenerateDischargeSafetyPacket"
 * name = "GenerateDischargeSafetyPacket"
 * version = "1.0.0"
 * title = "Generate Discharge Safety Packet / Transition Bundle"
@@ -376,7 +376,7 @@ InstanceOf: ActivityDefinition
 Title: "Send Referral or Next Provider Handoff"
 Description: "Refer the patient to the next provider/team as a SPiERSafetyReferral ServiceRequest, tracked through to accepted/completed."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/SendRapidReferral"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/SendRapidReferral"
 * name = "SendRapidReferral"
 * version = "1.0.0"
 * title = "Send Referral or Next Provider Handoff"
@@ -396,7 +396,7 @@ InstanceOf: ActivityDefinition
 Title: "Schedule Next Appointment / Follow-Up Visit"
 Description: "Schedule or document the next follow-up visit before transition/discharge as a SPiERFollowUpAppointment."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ScheduleFollowUpAppointment"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleFollowUpAppointment"
 * name = "ScheduleFollowUpAppointment"
 * version = "1.0.0"
 * title = "Schedule Next Appointment / Follow-Up Visit"
@@ -416,7 +416,7 @@ InstanceOf: ActivityDefinition
 Title: "Record Consent / Information-Sharing Status"
 Description: "Document whether suicide-safety information may be shared, and with whom, as a SPiERInformationSharingConsent."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/RecordConsentSharingStatus"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/RecordConsentSharingStatus"
 * name = "RecordConsentSharingStatus"
 * version = "1.0.0"
 * title = "Record Consent / Information-Sharing Status"
