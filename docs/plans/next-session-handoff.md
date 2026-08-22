@@ -50,9 +50,9 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`bc1eca6`** when this was written, plus the commit that wrote
+- `main` was at **`fcb9194`** when this was written, plus the commit that wrote
   it. **No open PRs** at that point.
-  **43 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
+  **42 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
 - **All three `verify` pipelines green**, each run in this session:
 
@@ -351,8 +351,8 @@ scripts folder.
 ### The 2026-08-22 chain: a mapper reading a shape its own form never emits
 
 The sharpest finding of that session and the one most likely to recur elsewhere.
-#418 (runtime) and #419 (the published map) fixed it; **#420 is the gate gap that
-let it live.**
+#418 (runtime) and #419 (the published map) fixed it; #420 was the gate gap that
+let it live, and is closed too.
 
 **What it was.** The Stanley-Brown Questionnaire declares its three contact steps
 as `type: group, repeats: true`, which FHIR renders as repeated `item` entries
@@ -390,11 +390,42 @@ each demo plan IS `generateCarePlan(<its QR>)`, plus a second assertion that no
 section is a `"No … provided."` placeholder — the bug produced a structurally
 perfect, clinically empty plan that a shape-only check waves through.
 
-⚠️ **Generalize the question, not the instance:** *does any other mapper read a
-nesting its Questionnaire does not declare?* `check:readers` cannot answer it —
-it scans only `observationMappers` (#420). #327 was this family in the
-observation mappers, this was the carePlan mappers, and nothing has swept the
-rest.
+✅ **The question that mattered — *does any other mapper read a nesting its
+Questionnaire does not declare?* — is now ANSWERED, and the sweep is done
+(#420).** Every QuestionnaireResponse reader in the repo was audited:
+
+- **two** `extractPairs` call sites exist — Stanley-Brown's three contact groups
+  and CAMS's `barrier-solution-group`, which is also `type: group, repeats: true`
+  and was broken identically. Both are fixed, because both call the one shared
+  helper: **#418 fixed CAMS incidentally, with nothing covering it**, which is
+  why its tests now run both shapes.
+- `crp.ts` and `camsTherapeutic.ts` read leaves only; `writeback/documentReference.ts`
+  already recursed into both nestings. Nothing else was affected.
+
+⚠️ **The reader-gate family now covers both directories, and they ask different
+questions — do not merge them.** `check:readers` asks whether the *value reader*
+matches an item's declared `type` (#327, observation mappers);
+`check:careplan-readers` asks whether the *nesting walked* matches what the
+Questionnaire declares (#420, carePlan mappers). A single rule would fit neither.
+
+### A gate rule that cannot work, and how it was caught
+
+⚠️ **A static reader cannot tell a live branch from a dead one.** #420's gate
+was drafted with a rule asserting the shared `extractPairs` still reads both
+response nestings. Two planted defects showed the rule could not work:
+`if (undefined) { readPair(item.item) }` contains every token an honest
+implementation does, and the regexes also matched incidental occurrences
+(`nested.answer`, `walk(item.item)`).
+
+It was **deleted rather than tightened**, the limit written into the script's
+header, and the reader pointed at the both-shapes mapper tests, where the
+property is observable. **A gate that looks like protection and is not is worse
+than no gate** — and the only reason this one did not ship is that the rule was
+planted against before being trusted.
+
+The general form, worth applying to any new gate: *is the property I am
+asserting visible in the artifact I am reading?* Behaviour needs a test; static
+structure is what a static gate can hold.
 
 ### Three mechanical traps from the same session
 
@@ -578,7 +609,6 @@ frame's label already says it is not a SMART launch.
 
 | Issue | What | Milestone |
 |---|---|---|
-| #420 | `check:readers` covers only `observationMappers`, so the carePlan mappers have no reader gate — the gap that let #418/#419 live; the findings section says what the rule should assert | — |
 | #412 | The IG package is published but unreachable — nothing links `package.tgz` and `spier.ig` is not in the FHIR registry, so Getting Started §1's instruction cannot be followed | — |
 | #125 | Consolidate hardcoded example Observations into IG example instances | M7 |
 | #228 | [TL-009] Write the handoff-content-item checklist from the transition recorder | M3 |
