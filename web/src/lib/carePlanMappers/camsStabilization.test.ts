@@ -1,25 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { generateStabilizationCarePlan } from '@spier/core/lib/carePlanMappers/camsStabilization'
 import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '@spier/core/types/fhir'
+import { PAIR_SHAPES, pairGroup, type PairShape } from './__fixtures__/pairGroup'
 
 // Helpers
-function pairGroup(groupLinkId: string, fieldA: string, fieldB: string, pairs: Array<[string, string]>): QuestionnaireResponseItem {
-  return {
-    linkId: groupLinkId,
-    answer: pairs.map(([a, b]) => {
-      const item: QuestionnaireResponseItem[] = []
-      if (a) item.push({ linkId: fieldA, answer: [{ valueString: a }] })
-      if (b) item.push({ linkId: fieldB, answer: [{ valueString: b }] })
-      return { item }
-    }),
-  }
-}
-
 function simple(linkId: string, values: string[]): QuestionnaireResponseItem {
   return { linkId, answer: values.map(valueString => ({ valueString })) }
 }
 
-function fullStabilizationPlan(): QuestionnaireResponseResource {
+function fullStabilizationPlan(shape: PairShape = 'conformant'): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
@@ -29,7 +18,7 @@ function fullStabilizationPlan(): QuestionnaireResponseResource {
       simple('coping-list', ['Deep breathing', 'Listen to music']),
       simple('emergency-contact', ['911', 'Local Crisis Center']),
       simple('support-list', ['Wife', 'Best Friend']),
-      pairGroup('barrier-solution-group', 'barrier', 'solution', [
+      ...pairGroup(shape, 'barrier-solution-group', 'barrier', 'solution', [
         ['Transportation', 'Bus pass'],
         ['Forgetting appointments', 'Phone alarm'],
         ['No motivation', ''], // no solution case
@@ -108,4 +97,19 @@ describe('generateStabilizationCarePlan (CAMS)', () => {
     expect(activities[3].description).toBe('No support contacts provided.')
     expect(activities[4].description).toBe('No barriers/solutions identified.')
   })
+
+  // ⚠️ `barrier-solution-group` is `type: group, repeats: true`, the same shape
+  // that broke Stanley-Brown (#418/#419). This mapper shares `extractPairs`, so
+  // it was broken the same way and fixed by the same change — incidentally, and
+  // with nothing here covering it. That is the gap this closes.
+  for (const shape of PAIR_SHAPES) {
+    it(`reads the barrier/solution pairs from the ${shape} response shape`, () => {
+      const { activities } = generateStabilizationCarePlan(fullStabilizationPlan(shape))
+      const barriers = activities.find(a => a.sectionCode?.code === 'treatment-adherence')
+      expect(barriers?.description, `${shape} shape lost its pairs`).toContain('Transportation')
+      expect(barriers?.description).toContain('Bus pass')
+      expect(barriers?.description).toContain('Forgetting appointments')
+      expect(barriers?.description).not.toMatch(/^No .* (provided|identified)\.$/)
+    })
+  }
 })

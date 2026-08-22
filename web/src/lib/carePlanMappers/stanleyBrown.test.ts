@@ -1,25 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { generateCarePlan } from '@spier/core/lib/carePlanMappers/stanleyBrown'
 import type { QuestionnaireResponseResource, QuestionnaireResponseItem } from '@spier/core/types/fhir'
-
-// Repeating "pair" groups capture their two child fields under answer.item.
-function pairGroup(groupLinkId: string, fieldA: string, fieldB: string, pairs: Array<[string, string]>): QuestionnaireResponseItem {
-  return {
-    linkId: groupLinkId,
-    answer: pairs.map(([a, b]) => ({
-      item: [
-        { linkId: fieldA, answer: [{ valueString: a }] },
-        { linkId: fieldB, answer: [{ valueString: b }] },
-      ],
-    })),
-  }
-}
+import { PAIR_SHAPES, pairGroup, type PairShape } from './__fixtures__/pairGroup'
 
 function simple(linkId: string, values: string[]): QuestionnaireResponseItem {
   return { linkId, answer: values.map(valueString => ({ valueString })) }
 }
 
-function fullSafetyPlan(): QuestionnaireResponseResource {
+function fullSafetyPlan(shape: PairShape = 'conformant'): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
@@ -27,9 +15,9 @@ function fullSafetyPlan(): QuestionnaireResponseResource {
     item: [
       simple('1-1-warning-sign', ['Racing thoughts', 'Isolating']),
       simple('2-1-coping-strategy', ['Go for a walk']),
-      pairGroup('3-1-distraction-contact-group', '3-1-name-place', '3-2-contact-info', [['Local gym', '555-0100']]),
-      pairGroup('4-1-support-person-group', '4-1-name', '4-2-contact-info', [['Sister Jane', '555-0111']]),
-      pairGroup('5-1-clinician-agency-group', '5-1-name', '5-2-contact-info', [['Dr. Lee', '555-0122']]),
+      ...pairGroup(shape, '3-1-distraction-contact-group', '3-1-name-place', '3-2-contact-info', [['Local gym', '555-0100']]),
+      ...pairGroup(shape, '4-1-support-person-group', '4-1-name', '4-2-contact-info', [['Sister Jane', '555-0111']]),
+      ...pairGroup(shape, '5-1-clinician-agency-group', '5-1-name', '5-2-contact-info', [['Dr. Lee', '555-0122']]),
       simple('5-3-name', ['General Hospital ED']),
       simple('5-4-address', ['1 Main St']),
       simple('5-5-phone', ['555-0133']),
@@ -91,4 +79,19 @@ describe('generateCarePlan (Stanley-Brown)', () => {
     expect(activities).toHaveLength(7)
     expect(activities[0].description).toBe('No warning signs provided.')
   })
+
+  // Both response shapes must yield the same contacts — reading only
+  // `answer.item` is what emptied every contact section (#418/#419).
+  for (const shape of PAIR_SHAPES) {
+    it(`reads all three contact steps from the ${shape} response shape`, () => {
+      const { activities } = generateCarePlan(fullSafetyPlan(shape))
+      const byCode = (code: string) => activities.find(a => a.sectionCode?.code === code)?.description ?? ''
+      expect(byCode('social-distraction'), `${shape}: step 3`).toContain('Local gym')
+      expect(byCode('crisis-support'), `${shape}: step 4`).toContain('Sister Jane')
+      expect(byCode('professional-support'), `${shape}: step 5`).toContain('Dr. Lee')
+      for (const code of ['social-distraction', 'crisis-support', 'professional-support']) {
+        expect(byCode(code), `${shape}: ${code}`).not.toMatch(/^No .* provided\.$/)
+      }
+    })
+  }
 })

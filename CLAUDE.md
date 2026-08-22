@@ -66,6 +66,16 @@ npm run check:stages     # stage ids in population data vs canonical FSH stage l
 npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see the mapper-reader note below
+npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a different
+                         # question: does the NESTING each reader walks match what the
+                         # Questionnaire declares? `extractPairs` must name a `type: group`
+                         # and `extractAnswer(s)` must name a leaf. #420 — `check:readers`
+                         # scans only observationMappers, so #327's family recurred one
+                         # directory over with no gate able to see it (#418/#419).
+                         # ⚠️ It does NOT check that the readers still handle both response
+                         # nestings: a static reader cannot tell a live branch from a dead
+                         # one, and two planted defects proved it. That property is covered
+                         # by the both-shapes cases in the mapper tests instead
 npm run check:patients   # the 14 demo patients' demographics agree across all THREE
                          # sites: demo-population/src/patients/*.json (canonical), patients.json
                          # (display copies), and populationToFhir's MRN system in
