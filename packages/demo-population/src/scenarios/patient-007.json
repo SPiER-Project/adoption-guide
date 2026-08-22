@@ -326,18 +326,6 @@
             "coding": [
               {
                 "system": "http://spier.org/CodeSystem/spier-handoff-content",
-                "code": "safety-plan-copy",
-                "display": "Safety plan copy"
-              }
-            ]
-          }
-        },
-        {
-          "url": "http://spier.org/StructureDefinition/handoff-content-item",
-          "valueCodeableConcept": {
-            "coding": [
-              {
-                "system": "http://spier.org/CodeSystem/spier-handoff-content",
                 "code": "crisis-resources",
                 "display": "Crisis contacts / resources"
               }
