@@ -34,6 +34,33 @@ SPiER's organizing idea is that every layer of suicide prevention currently live
 
 **Capture** and **Translate** are the historical "two-layer model": the Translate (concept) layer is **derived from** the Capture layer and linked back via `Observation.derivedFrom` — it never replaces it. Instruments with a coded disposition (ASQ, C-SSRS) map via **ConceptMaps**; score-based instruments (PHQ-9 Item 9, SBQ-R) map via **StructureMaps**. The derived concept is a **screening-level, unconfirmed** signal — it flags a need for follow-up, not a diagnosis. This pattern is modeled on the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and [SDC](https://hl7.org/fhir/uv/sdc/).
 
+### Where the tier comes from, and why an empty answer is not always missing data {#tier-derivation}
+
+Every instrument lands on the *same* tier, carried on LOINC `93374-7`. They do not all get there the same way, and the difference decides whether a system filling the form is expected to collect an answer at all:
+
+| | How the tier is reached | The `risk-level` item |
+|---|---|---|
+| **C-SSRS** (screener, pediatric, since-last-contact) | **Computed** from the item ladder — the answers to the questions determine the tier | `required: false`, `readOnly: true`. No filler produces it, so an absent answer is *expected* |
+| **SAFE-T**, **PSS-Full** | **Assigned by the clinician** — SAFE-T's Step 4 is literally *"Determine risk level & intervention (based on clinical judgment)"* | `required: true`. A consumer reads the tier from the response, so an absent answer *is* missing data |
+
+Both routes are "derivation" in the Translate sense: each produces one comparable tier from an instrument that does not natively speak in tiers. What differs is whether the input is *other answers* or *a clinician's judgment*.
+
+This is stated on the artifact rather than left to instrument knowledge. The item carries a [Tier Derivation](StructureDefinition-tier-derivation.html) extension valued `computed` or `clinician-assigned`, so a filler, a validator, or a UI can tell the two cases apart without knowing which tool it is holding:
+
+```json
+{
+  "linkId": "risk-level",
+  "required": false,
+  "readOnly": true,
+  "code": [{ "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }],
+  "extension": [
+    { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "computed" }
+  ]
+}
+```
+
+⚠️ **Marking a computed item `required` is a defect, not a strictness choice.** The three C-SSRS Questionnaires did exactly that, asking a clinician for a value nothing in the pipeline produces and nothing consumes; two SPiER-authored QuestionnaireResponses were non-conformant against their own Questionnaire as a direct result.
+
 **Act** is the newest and least-built step. It is an *encoding* problem rather than a *consensus* problem — the clinical response to a given risk tier is already endorsed in guidelines; SPiER's contribution is rendering it as executable logic so the right recommendation surfaces at the right moment. The clinician, or the institution's configured policy, remains the decision-maker.
 
 ## Clinical primer (for non-clinical engineers) {#clinical-primer}

@@ -158,7 +158,7 @@
                     "valueCoding": {
                       "system": "http://spier.org/CodeSystem/asq-screening-result",
                       "code": "acute-positive",
-                      "display": "Acute Positive Screen (imminent risk)"
+                      "display": "Acute Positive Screen"
                     }
                   }
                 ]
