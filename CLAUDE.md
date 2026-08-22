@@ -84,6 +84,12 @@ npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #    CarePlan, Communication, EpisodeOfCare, Appointment,
                          #    ServiceRequest, Procedure, DocumentReference, Consent, Flag,
                          #    Task) — see the scenario-gate note below for what it does NOT do
+                         #  ⚠️ it also relates two resources no other gate relates: a
+                         #    DocumentReference claiming `safety-plan-copy` may not point at
+                         #    a CarePlan with zero `activity` (#303). Scoped to the
+                         #    CONTRADICTED case — a claim with NO related CarePlan is
+                         #    unverifiable, not false (the copy may be in the attachment),
+                         #    and p009 is deliberately left green
 npm run check:dates      # the scenario fixtures' clinical dates are still coherent
                          # RELATIVE TO their anchor — a `fulfilled` appointment dated
                          # next week, a reassessment overdue by months. Default is

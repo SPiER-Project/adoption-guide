@@ -371,6 +371,7 @@ const CORRELATION_REVERSE = {
 }
 
 const correlation = { linked: 0, reverse: 0, exempt: 0, triggers: 0, exemptTypes: new Set() }
+let packetClaimsChecked = 0
 
 /** `.encounter` lives under `context` on DocumentReference and nowhere else. */
 function encounterRefsOf(resource) {
@@ -379,6 +380,56 @@ function encounterRefsOf(resource) {
   }
   const ref = resource.encounter?.reference
   return ref ? [ref] : []
+}
+
+/**
+ * A discharge packet may not claim to carry a copy of a safety plan that has no
+ * content (#303).
+ *
+ * `p007-discharge-packet` declared `handoff-content-item = safety-plan-copy`
+ * while `context.related` named `CarePlan/p007-stanley-brown`, a CarePlan with
+ * **zero `activity`** — the six Stanley-Brown sections ARE the plan, and SPiER
+ * encodes them as activities. So the packet asserted it enclosed a copy of an
+ * empty plan, and nothing could see it: the claim is an extension, the plan is a
+ * separate resource, and no gate related the two.
+ *
+ * ⚠️ **Scoped to the CONTRADICTED case on purpose.** A packet that claims
+ * `safety-plan-copy` and relates to no CarePlan at all is *unverifiable*, not
+ * false — the copy may live in the attachment rather than as a linked resource,
+ * which is a legitimate shape. `p009-discharge-packet` is exactly that, and it
+ * is deliberately NOT failed here. Widening this rule to "must relate to a
+ * CarePlan" would be inventing a requirement the profile does not state.
+ */
+function checkSafetyPlanCopyClaim(scenario, file) {
+  const plans = new Map(
+    (scenario.carePlans ?? [])
+      .filter((c) => typeof c?.id === 'string')
+      .map((c) => [c.id, Array.isArray(c.activity) ? c.activity.length : 0]),
+  )
+
+  for (const [i, dr] of (scenario.documentReferences ?? []).entries())  {
+    const claims = (dr?.extension ?? []).some(
+      (e) =>
+        e?.url === 'http://spier.org/StructureDefinition/handoff-content-item' &&
+        e?.valueCodeableConcept?.coding?.some((c) => c?.code === 'safety-plan-copy'),
+    )
+    if (!claims) continue
+    packetClaimsChecked++
+
+    for (const rel of dr?.context?.related ?? []) {
+      const ref = rel?.reference
+      if (typeof ref !== 'string' || !ref.startsWith('CarePlan/')) continue
+      const id = ref.slice('CarePlan/'.length)
+      if (!plans.has(id)) continue // dangling refs are check 3/8's business
+      if (plans.get(id) === 0) {
+        fail(
+          `scenarios/${file} documentReferences[${i}] (${dr.id ?? 'no id'}): claims handoff content ` +
+            `"safety-plan-copy" but the plan it points at (${ref}) has no activity — the six ` +
+            `Stanley-Brown sections are the plan's content, so the packet claims to enclose an empty plan`,
+        )
+      }
+    }
+  }
 }
 
 function checkEpisodeCorrelation(scenario, file) {
@@ -659,6 +710,7 @@ for (const file of scenarioFiles) {
   if (n > 0) console.log(`✓ scenarios/${file}: ${n} FHIR resource(s) checked`)
 
   checkEpisodeCorrelation(scenario, file)
+  checkSafetyPlanCopyClaim(scenario, file)
 }
 
 console.log(
@@ -675,6 +727,15 @@ if (responseLinksChecked === 0) {
   )
 }
 console.log(`${responseLinksChecked} QuestionnaireResponse patient link(s) checked.`)
+// Reading nothing here would mean no packet claims a safety-plan copy at all,
+// which is a fixture change worth noticing rather than a silent pass.
+if (packetClaimsChecked === 0) {
+  fail(
+    'no discharge packet claims `safety-plan-copy` — the safety-plan-copy check read nothing ' +
+      '[treated as a failure, not a pass]',
+  )
+}
+console.log(`${packetClaimsChecked} safety-plan-copy packet claim(s) checked.`)
 console.log(
   `episode correlation: ${correlation.linked} artifact(s) linked to an Encounter, ` +
     `${correlation.reverse} via Encounter.appointment, ${correlation.exempt} exempt ` +
