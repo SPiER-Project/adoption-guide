@@ -9,6 +9,10 @@
         "id": "p006-cams-a",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
+        "subject": {
+          "reference": "Patient/patient-006"
+        },
+        "authored": "2026-08-06T10:00:00.000Z",
         "item": [
           {
             "linkId": "core-ratings",

@@ -9,6 +9,10 @@
         "id": "p004-asq",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "subject": {
+          "reference": "Patient/patient-004"
+        },
+        "authored": "2026-07-28T13:45:00.000Z",
         "item": [
           {
             "linkId": "screening-questions",

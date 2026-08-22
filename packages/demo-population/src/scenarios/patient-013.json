@@ -9,9 +9,13 @@
         "id": "p013-asq-deferred",
         "status": "stopped",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "subject": {
+          "reference": "Patient/patient-013"
+        },
         "encounter": {
           "reference": "Encounter/p013-enc-ed"
         },
+        "authored": "2026-08-07T22:10:00.000Z",
         "item": [
           {
             "linkId": "screening-result",
@@ -54,9 +58,13 @@
         "id": "p013-asq",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "subject": {
+          "reference": "Patient/patient-013"
+        },
         "encounter": {
           "reference": "Encounter/p013-enc-ed"
         },
+        "authored": "2026-08-08T06:30:00.000Z",
         "item": [
           {
             "linkId": "screening-questions",

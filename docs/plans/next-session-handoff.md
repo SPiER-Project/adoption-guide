@@ -303,14 +303,24 @@ scripts folder.
 
 ## Outstanding debt with a named finish line
 
-- **#364 — the fixture fixes. It covers TWO fields, not one.** Filed for the
-  missing `subject` (0 of 20 scenario QRs carried it); #369 found the same class in
-  `authored` (also 0 of 20). Both are worked around in
-  `services/mock-ehr/src/fixtures.ts` and both are pinned by tests. **Its last
-  step is the one that matters:** when the fixtures carry both fields, delete the
-  stamping and assert **`NORMALIZED_LINKS` and `NORMALIZED_AUTHORED` are empty**,
-  or the workarounds outlive the defects they work around. ⚠️ **The issue text
-  still describes only `subject`** — update it before starting.
+- ✅ ~~**#364 — the fixture fixes**~~ **DONE.** All 20 scenario QRs carry `subject`
+  and `authored`; the mock's `NORMALIZED_LINKS` / `NORMALIZED_AUTHORED` stamps are
+  **deleted**, not left returning zero — a fallback that never fires reads exactly
+  like a fixture that is correct, which is how the gap survived. Two things
+  generalize past the fixtures: check 3 only fired on a link pointing at the
+  *wrong* patient and said nothing about a **missing** one (so walking the bucket
+  alone would have proved nothing — presence is required now, class-wide, and it
+  was free: 114 of 134 resources were already linked), and the rule is shared with
+  the mock's **write** endpoint, so writes tightened too.
+- ⚠️ **#414 — the 20 scenario QRs are the only hand-authored FHIR no conformance
+  check reads**, found by doing #364. `validate-fhir.mjs` excludes the `responses`
+  bucket because "the QRs are already covered by `check:scenarios`" — true of the
+  *Questionnaire* check, never of FHIR conformance. Including them takes it 428 →
+  448 targets and surfaces **4 pre-existing errors**: two wrong ASQ `display`s (the
+  #220 class, mechanical) and two QRs missing required item `risk-level` (**needs a
+  clinical decision** — answer it, or stop marking a derived item required). The
+  6-line validator diff was written and reverted on the #364 branch, so it is known
+  to work.
 - **#350** holds three ladder items — the CDS card `type:'smart'` link, the
   adoption-pathways guide page, and live sandbox validation. **Do not file
   duplicates**; a previous handoff said "none of it has an issue yet", which would

@@ -22,10 +22,13 @@
  *    catching (#232, #261). Same for a duplicate `Type/id`: the id index would
  *    quietly serve whichever won.
  *
- * 3. **A missing patient link is stamped on, and every stamp is listed.** See
- *    `NORMALIZED_LINKS` below — this is a real gap in the fixtures, not a
- *    convenience, and it is exported so a test can pin exactly which resources
- *    needed it.
+ * 3. **A missing patient link or `authored` THROWS; neither is supplied.** This
+ *    module used to stamp both on, because all 20 scenario QuestionnaireResponses
+ *    carried neither. That is fixed at the source now (#364), so the fallbacks
+ *    are gone rather than left in place unused — a fallback that never fires is
+ *    indistinguishable from a fixture that is correct, which is exactly how the
+ *    gap survived. `check-scenario-resources.mjs` requires the link offline; this
+ *    is the second line of defence.
  */
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
@@ -90,56 +93,50 @@ const PATIENT_ELEMENT: Record<string, 'subject' | 'patient' | 'for' | 'appointme
 }
 
 /**
- * Every `Type/id` whose patient link this module had to supply, because the
- * fixture does not carry one.
+ * Assert the fixture carries its own patient link, rather than supplying one.
  *
- * ⚠️ **All 20 scenario QuestionnaireResponses are in here, and nothing else
- * is.** Twelve of the thirteen buckets are 100% linked; `responses` is 0%. That
- * matters more than it looks: `QuestionnaireResponse?patient=` is one of the
- * two searches whose failure fails the whole chart, so without this stamp the
- * most load-bearing search on the server returns nothing for every patient.
+ * ⚠️ **This used to stamp the link, and the stamp is deleted rather than made
+ * conditional (#364).** All 20 scenario QuestionnaireResponses had no `subject`
+ * — twelve of thirteen buckets were 100% linked, `responses` was 0% — and
+ * `QuestionnaireResponse?patient=` is one of only two searches whose failure
+ * fails the whole chart, so the most load-bearing search on this server returned
+ * nothing for every patient. A stamp here made the demo work while leaving the
+ * fixtures wrong, which is why it was always meant to die with the defect.
  *
- * The gap is invisible to the existing gates by construction —
- * `check-scenario-resources.mjs` check 3 ("every resource points at THIS
- * scenario's patient") walks the FHIR buckets, and `responses` is not one of
- * them; `check-scenario-responses.mjs` validates each QR against its
- * Questionnaire, which says nothing about the subject. Neither is wrong; the
- * combination just leaves `QuestionnaireResponse.subject` unowned.
- *
- * Stamping here is the narrow fix — it keeps the change inside this service —
- * but the durable one is to add `subject` to the fixtures: **issue #364**. When
- * that lands, DELETE this stamping and assert the list is empty, so the
- * workaround dies with the defect instead of outliving it. `fixtures.test.ts`
- * pins the list meanwhile, so a NEW unlinked resource in any other bucket fails
- * loudly instead of quietly acquiring a link.
+ * The fixtures now carry both `subject` and `authored`, and
+ * `check-scenario-resources.mjs` requires the patient link on every bucket
+ * INCLUDING `responses` — so this is a belt-and-braces invariant, not a fix. It
+ * throws for the same reason `assertUsableIndex` does: a mock that silently
+ * serves an unlinked resource is a mock that makes a broken fixture look fine.
  */
-export const NORMALIZED_LINKS: string[] = []
-
-/**
- * Every QuestionnaireResponse whose `authored` this module had to supply from
- * its `StoredResponse` wrapper's `completedAt`. Pinned by a test for the same
- * reason as `NORMALIZED_LINKS`: the workaround must die with the defect.
- */
-export const NORMALIZED_AUTHORED: string[] = []
-
-function withPatientLink(resource: MockResource, patientId: string): MockResource {
+function assertPatientLink(resource: MockResource, patientId: string): MockResource {
   const element = PATIENT_ELEMENT[resource.resourceType]
   if (!element) return resource
-  const reference = { reference: `Patient/${patientId}` }
+  const wanted = `Patient/${patientId}`
+  const key = `${resource.resourceType}/${String(resource.id)}`
 
   if (element === 'appointment-participant') {
     const participants = Array.isArray(resource.participant) ? resource.participant : []
     const linked = participants.some(
-      p => (p as { actor?: { reference?: string } })?.actor?.reference === `Patient/${patientId}`,
+      p => (p as { actor?: { reference?: string } })?.actor?.reference === wanted,
     )
-    if (linked) return resource
-    NORMALIZED_LINKS.push(`${resource.resourceType}/${String(resource.id)}`)
-    return { ...resource, participant: [...participants, { actor: reference, status: 'accepted' }] }
+    if (!linked) {
+      throw new Error(
+        `[mock-ehr] ${key} has no participant.actor referencing ${wanted}. Fix the fixture in `
+        + 'packages/demo-population/src/scenarios/ — this service no longer supplies the link (#364).',
+      )
+    }
+    return resource
   }
 
-  if ((resource[element] as { reference?: string } | undefined)?.reference) return resource
-  NORMALIZED_LINKS.push(`${resource.resourceType}/${String(resource.id)}`)
-  return { ...resource, [element]: reference }
+  const ref = (resource[element] as { reference?: string } | undefined)?.reference
+  if (ref !== wanted) {
+    throw new Error(
+      `[mock-ehr] ${key} has ${element}=${ref ?? 'nothing'}, expected ${wanted}. Fix the fixture in `
+      + 'packages/demo-population/src/scenarios/ — this service no longer supplies the link (#364).',
+    )
+  }
+  return resource
 }
 
 // The roster comes from packages/demo-population, NOT the IG's compiled output.
@@ -194,24 +191,22 @@ function buildHeld(): HeldResource[] {
       for (const entry of entries) {
         // `responses` holds StoredResponse wrappers; every other bucket holds
         // the resource directly.
-        let raw = (bucket === 'responses'
+        const raw = (bucket === 'responses'
           ? (entry as { resource?: MockResource })?.resource
           : entry) as MockResource | undefined
-        // ⚠️ Same shape as the missing `subject`: the WRAPPER carries
-        // `completedAt` and not one of the 20 QRs carries `authored`, so a
-        // server serving the resource alone drops the date entirely. The chart
-        // rendered "Invalid Date Invalid Date" for every SMART-read
-        // QuestionnaireResponse until this existed. The app's own write path
-        // already compensates in the other direction (smartDataSource stamps
-        // `authored: entry.completedAt` when writing a QR back), which is the
-        // tell that the fixture is what is incomplete. Tracked in #364 with
-        // the `subject` gap; delete this when the fixtures carry `authored`.
-        if (bucket === 'responses' && raw && !raw.authored) {
-          const completedAt = (entry as { completedAt?: unknown })?.completedAt
-          if (typeof completedAt === 'string' && completedAt) {
-            raw = { ...raw, authored: completedAt }
-            NORMALIZED_AUTHORED.push(`${raw.resourceType}/${String(raw.id)}`)
-          }
+        // ⚠️ Was the same shape as the missing `subject`, and also deleted in
+        // #364. The StoredResponse WRAPPER carries `completedAt` while not one
+        // of the 20 QRs carried `authored`, so a server serving the resource
+        // alone dropped the date and the chart rendered "Invalid Date Invalid
+        // Date" for every SMART-read QuestionnaireResponse. The fixtures carry
+        // `authored` now; this asserts it rather than supplying it, because a
+        // fallback here is what let the fixture stay wrong.
+        if (bucket === 'responses' && raw && typeof raw.authored !== 'string') {
+          throw new Error(
+            `[mock-ehr] QuestionnaireResponse/${String(raw.id)} has no \`authored\`. Fix the fixture in `
+            + 'packages/demo-population/src/scenarios/ — the StoredResponse wrapper\'s `completedAt` is '
+            + 'no longer copied onto the resource (#364).',
+          )
         }
         if (!raw || typeof raw !== 'object') continue
         if (raw.resourceType !== type) {
@@ -219,7 +214,7 @@ function buildHeld(): HeldResource[] {
             `[mock-ehr] ${patientId} bucket '${bucket}' holds a ${String(raw.resourceType)}, expected ${type}.`,
           )
         }
-        held.push({ patientId, resource: withPatientLink(strip(raw), patientId) })
+        held.push({ patientId, resource: assertPatientLink(strip(raw), patientId) })
       }
     }
   }

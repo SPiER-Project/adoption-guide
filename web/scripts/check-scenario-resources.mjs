@@ -72,6 +72,7 @@ import {
   // The walkthrough narration (`ScenarioEncounter.date`) is not FHIR, but its
   // dates are FHIR dates — one definition of "is this a FHIR date", not two.
   FHIR_DATE_RE,
+  patientLinkProblems,
   validateResource,
 } from '../../packages/core/fhir-resource-rules.mjs'
 
@@ -535,6 +536,7 @@ function checkEpisodeCorrelation(scenario, file) {
 }
 
 let resourcesChecked = 0
+let responseLinksChecked = 0
 
 for (const file of scenarioFiles) {
   const patientId = file.replace(/\.json$/, '')
@@ -580,7 +582,44 @@ for (const file of scenarioFiles) {
       fail(`scenarios/${file}: "${bucket}" must be an array`)
       continue
     }
-    if (bucket === 'responses') continue // sibling script owns these
+    if (bucket === 'responses') {
+      // #364: the sibling script validates each QR against its Questionnaire,
+      // which says nothing about `subject`; this script walks the FHIR buckets,
+      // and `responses` is not one of them (they are StoredResponse wrappers).
+      // Between the two, `QuestionnaireResponse.subject` was owned by NEITHER —
+      // and all 20 scenario QRs duly had none, so a patient-scoped search on a
+      // real server returned nothing for every patient.
+      //
+      // So the bucket stays out of every other check here, for the reason above,
+      // and is walked for exactly one: the patient link. Unwrap `entry.resource`.
+      value.forEach((entry, i) => {
+        const qr = entry?.resource
+        if (!qr || typeof qr !== 'object') return // shape is the sibling script's business
+        responseLinksChecked++
+        const where = `scenarios/${file} responses[${i}] (${qr.id ?? 'no id'})`
+        for (const problem of patientLinkProblems(qr, {
+          expectedType: 'QuestionnaireResponse',
+          patientId,
+          where,
+        })) fail(problem)
+
+        // #369, the same gap in a second field: the WRAPPER carries
+        // `completedAt` and the resource carried no `authored`, so a server
+        // serving the resource alone dropped the date — the chart rendered
+        // "Invalid Date Invalid Date" for every SMART-read QR. They describe one
+        // event, so they must agree; asserting equality is what stops them
+        // drifting once both exist.
+        if (typeof qr.authored !== 'string' || !FHIR_DATE_RE.test(qr.authored)) {
+          fail(`${where}: authored ${qr.authored === undefined ? 'is missing' : `"${qr.authored}" is not a FHIR dateTime`}`)
+        } else if (typeof entry.completedAt === 'string' && qr.authored !== entry.completedAt) {
+          fail(
+            `${where}: authored "${qr.authored}" disagrees with the wrapper's ` +
+              `completedAt "${entry.completedAt}" — they describe the same event`,
+          )
+        }
+      })
+      continue
+    }
 
     if (bucket === 'riskAlerts') {
       value.forEach((a, i) => checkRiskAlert(a, `scenarios/${file} riskAlerts[${i}]`))
@@ -626,6 +665,16 @@ console.log(
   `\n${resourcesChecked} non-QuestionnaireResponse scenario resource(s) checked against ` +
     `${structureDefs.size} StructureDefinition(s).`,
 )
+// A silent zero here would mean the `responses` bucket had vanished or been
+// renamed, and this check would report success having read nothing — the
+// failure this repo keeps cataloguing (#232, #261, and the rest).
+if (responseLinksChecked === 0) {
+  fail(
+    'no QuestionnaireResponse found in any scenario\'s `responses` bucket — the patient-link ' +
+      'check read nothing [treated as a failure, not a pass]',
+  )
+}
+console.log(`${responseLinksChecked} QuestionnaireResponse patient link(s) checked.`)
 console.log(
   `episode correlation: ${correlation.linked} artifact(s) linked to an Encounter, ` +
     `${correlation.reverse} via Encounter.appointment, ${correlation.exempt} exempt ` +

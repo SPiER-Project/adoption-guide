@@ -9,9 +9,13 @@
         "id": "p009-cams-therapeutic-s4",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet",
+        "subject": {
+          "reference": "Patient/patient-009"
+        },
         "encounter": {
           "reference": "Encounter/p009-enc-caring-contact"
-        }
+        },
+        "authored": "2026-05-28T10:00:00.000Z"
       }
     }
   ],
