@@ -42,10 +42,28 @@ uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias SafetyPlan as targ
 //
 // QUESTIONNAIRERESPONSE SHAPE
 //
-// SPiER's repeating pair groups (steps 3, 4 and 5) capture their two child
-// fields under `answer.item`, not `item.item` — see the `pairGroup` helper in
-// stanleyBrown.test.ts. Pair children are therefore reached relatively, inside
-// `select()`.
+// The repeating pair groups (steps 3, 4 and 5) are read in BOTH shapes, because
+// two exist and only one of them is conformant:
+//
+//   - `item.item` — the Questionnaire declares these steps as
+//     `type: group, repeats: true`, so a conforming filler emits one repeated
+//     `item` per occurrence with the two fields nested under it. This is what
+//     SPiER's own form produces, verified in the browser (#419).
+//   - `answer.item` — what this map read for its whole life, and what
+//     `stanleyBrown.test.ts`'s `pairGroup` helper and the golden fixture build.
+//     The HL7 validator REJECTS it: "Items of type question should not have
+//     answers".
+//
+// Reading only `answer.item` meant a correctly-filled safety plan produced
+// "No distraction contacts provided.", "No crisis contacts provided." and
+// "No professional contacts provided." — a well-formed CarePlan with every
+// contact section empty, which is the most safety-critical content in the
+// document. Both shapes are accepted so existing consumers keep working.
+//
+// The branch is a nested `iif`, deliberately not a `|` union: union removes
+// duplicates and does not guarantee order, which would silently merge two
+// contacts who share a name and number. Pair children are reached relatively,
+// inside `select()`, in both branches.
 //
 // Every other lookup goes through
 // `(src.item | src.item.item | src.item.item.item)`, which reaches an item at
@@ -138,7 +156,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
         src -> code.text = 'Step 3: Social Distractions' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
-      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').answer.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').answer.select(item.where(linkId = '3-1-name-place').answer.value.ofType(string) + iif(item.where(linkId = '3-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '3-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), 'No distraction contacts provided.')) "description";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').answer.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').answer.select(item.where(linkId = '3-1-name-place').answer.value.ofType(string) + iif(item.where(linkId = '3-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '3-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), iif((src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').item.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '3-1-distraction-contact-group').select(item.where(linkId = '3-1-name-place').answer.value.ofType(string) + iif(item.where(linkId = '3-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '3-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), 'No distraction contacts provided.'))) "description";
     } "detail";
   } "step-3";
 
@@ -150,7 +168,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
         src -> code.text = 'Step 4: Crisis Support Contacts' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
-      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').answer.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').answer.select(item.where(linkId = '4-1-name').answer.value.ofType(string) + iif(item.where(linkId = '4-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '4-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), 'No crisis contacts provided.')) "description";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').answer.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').answer.select(item.where(linkId = '4-1-name').answer.value.ofType(string) + iif(item.where(linkId = '4-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '4-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), iif((src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').item.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '4-1-support-person-group').select(item.where(linkId = '4-1-name').answer.value.ofType(string) + iif(item.where(linkId = '4-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '4-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), 'No crisis contacts provided.'))) "description";
     } "detail";
   } "step-4";
 
@@ -165,7 +183,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
         src -> code.text = 'Step 5: Professional Support' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
-      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').answer.exists() or (src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).exists(), ((src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').answer.select(item.where(linkId = '5-1-name').answer.value.ofType(string) + iif(item.where(linkId = '5-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '5-2-contact-info').answer.value.ofType(string) + ')', '')).join(', ') | iif((src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).exists(), ((src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).first() | (src.item | src.item.item | src.item.item.item).where(linkId = '5-4-address').answer.value.ofType(string).first() | (src.item | src.item.item | src.item.item.item).where(linkId = '5-5-phone').answer.value.ofType(string).first()).join(', '), {})).where($this != '').join(' / '), 'No professional contacts provided.')) "description";
+      src -> detail.description = (iif((src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').answer.exists() or (src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').item.exists() or (src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).exists(), (iif((src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').answer.exists(), (src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').answer.select(item.where(linkId = '5-1-name').answer.value.ofType(string) + iif(item.where(linkId = '5-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '5-2-contact-info').answer.value.ofType(string) + ')', '')).join(', '), (src.item | src.item.item | src.item.item.item).where(linkId = '5-1-clinician-agency-group').select(item.where(linkId = '5-1-name').answer.value.ofType(string) + iif(item.where(linkId = '5-2-contact-info').answer.value.ofType(string).exists(), ' (' + item.where(linkId = '5-2-contact-info').answer.value.ofType(string) + ')', '')).join(', ')) | iif((src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).exists(), ((src.item | src.item.item | src.item.item.item).where(linkId = '5-3-name').answer.value.ofType(string).first() | (src.item | src.item.item | src.item.item.item).where(linkId = '5-4-address').answer.value.ofType(string).first() | (src.item | src.item.item | src.item.item.item).where(linkId = '5-5-phone').answer.value.ofType(string).first()).join(', '), {})).where($this != '').join(' / '), 'No professional contacts provided.')) "description";
     } "detail";
   } "step-5";
 

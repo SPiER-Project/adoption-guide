@@ -84,8 +84,23 @@ const DRAFTS_DIR = join(root, 'ig/drafts')
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
 
 const FIXTURES_DIR = join(root, 'scripts/fixtures/stanley-brown')
-const PARITY_SOURCE = join(FIXTURES_DIR, 'questionnaireresponse.json')
+/**
+ * Both QuestionnaireResponse shapes the map accepts, against ONE golden — they
+ * carry identical content, so a difference between them is a defect by
+ * definition.
+ *
+ * ⚠️ Testing only the legacy shape is what let #419 exist. The map read the
+ * repeating contact groups as `answer.item`, the Questionnaire declares them as
+ * `type: group, repeats: true` (so a conforming filler emits `item.item`), and
+ * the single fixture happened to use the shape the map could read. The two
+ * agreed with each other and both disagreed with the Questionnaire, so parity
+ * was green while a real safety plan lost every contact section.
+ */
 const PARITY_GOLDEN = join(FIXTURES_DIR, 'careplan-expected.json')
+const PARITY_SOURCES = [
+  { label: 'conformant (item.item — what SPiER\'s form emits)', path: join(FIXTURES_DIR, 'questionnaireresponse-conformant.json') },
+  { label: 'legacy (answer.item — non-conformant, still accepted)', path: join(FIXTURES_DIR, 'questionnaireresponse.json') },
+]
 const PARITY_MAP = 'http://spier.org/StructureMap/StanleyBrownQRToCarePlan'
 
 // --- CLI args --------------------------------------------------------------
@@ -254,46 +269,61 @@ if (tx === 'n/a') {
   console.log('\n⚠ Parity check SKIPPED — a map failed to compile, so its output would be meaningless.')
 } else {
   console.log(`\nRunning transform parity for ${PARITY_MAP} (tx ${tx})…`)
-  const out = join(workDir, 'parity-careplan.json')
-  const run = spawnSync(
-    'java',
-    [
-      '-jar', jar,
-      'transform', PARITY_MAP, PARITY_SOURCE,
-      '-output', out,
-      '-version', FHIR_VERSION,
-      '-tx', tx,
-      '-ig', GENERATED_DIR,
-      '-ig', MAPS_DIR,
-    ],
-    { encoding: 'utf8' },
-  )
-  const log = `${run.stdout ?? ''}${run.stderr ?? ''}`
 
-  if (!existsSync(out) || statSync(out).size === 0) {
-    const detail = log.split('\n').find((l) => l.includes('Error transforming') || l.includes('Exception')) ?? 'no output produced'
-    problems.push(`transform ${PARITY_MAP} failed — ${detail.trim()}`)
-  } else {
+  for (const [i, source] of PARITY_SOURCES.entries()) {
+    if (!existsSync(source.path)) {
+      problems.push(`parity fixture ${relative(root, source.path)} is missing`)
+      continue
+    }
+    const out = join(workDir, `parity-careplan-${i}.json`)
+    const run = spawnSync(
+      'java',
+      [
+        '-jar', jar,
+        'transform', PARITY_MAP, source.path,
+        '-output', out,
+        '-version', FHIR_VERSION,
+        '-tx', tx,
+        '-ig', GENERATED_DIR,
+        '-ig', MAPS_DIR,
+      ],
+      { encoding: 'utf8' },
+    )
+    const log = `${run.stdout ?? ''}${run.stderr ?? ''}`
+
+    if (!existsSync(out) || statSync(out).size === 0) {
+      const detail = log.split('\n').find((l) => l.includes('Error transforming') || l.includes('Exception')) ?? 'no output produced'
+      problems.push(`transform ${PARITY_MAP} failed on the ${source.label} fixture — ${detail.trim()}`)
+      continue
+    }
     const actual = normalizeCarePlan(JSON.parse(readFileSync(out, 'utf8')))
 
-    if (writeGolden) {
+    // Only the FIRST (conformant) fixture may write the golden; the second must
+    // agree with it rather than overwrite it, which is the whole point.
+    if (writeGolden && i === 0) {
       writeFileSync(PARITY_GOLDEN, `${JSON.stringify(actual, null, 2)}\n`)
-      console.log(`  ✎ wrote ${relative(root, PARITY_GOLDEN)} — review the diff before committing.`)
-    } else if (!existsSync(PARITY_GOLDEN)) {
-      problems.push(`${relative(root, PARITY_GOLDEN)} is missing — regenerate it with --write-golden.`)
-    } else {
-      const expected = JSON.parse(readFileSync(PARITY_GOLDEN, 'utf8'))
-      const a = JSON.stringify(actual, null, 2)
-      const e = JSON.stringify(expected, null, 2)
-      if (a === e) {
-        console.log('  ✓ transform output matches the golden CarePlan')
-      } else {
-        problems.push(
-          `${basename(PARITY_MAP)} output no longer matches ${relative(root, PARITY_GOLDEN)}.\n` +
-            `${diffLines(e, a)}`,
-        )
-      }
+      console.log(`  ✎ wrote ${relative(root, PARITY_GOLDEN)} from the ${source.label} fixture — review the diff before committing.`)
+      continue
     }
+    if (!existsSync(PARITY_GOLDEN)) {
+      problems.push(`${relative(root, PARITY_GOLDEN)} is missing — regenerate it with --write-golden.`)
+      continue
+    }
+    const expected = JSON.parse(readFileSync(PARITY_GOLDEN, 'utf8'))
+    const a = JSON.stringify(actual, null, 2)
+    const e = JSON.stringify(expected, null, 2)
+    if (a === e) {
+      console.log(`  ✓ ${source.label} matches the golden CarePlan`)
+    } else {
+      problems.push(
+        `${basename(PARITY_MAP)} output for the ${source.label} fixture no longer matches ` +
+          `${relative(root, PARITY_GOLDEN)}.\n${diffLines(e, a)}`,
+      )
+    }
+  }
+
+  if (PARITY_SOURCES.length < 2) {
+    problems.push('parity is covering fewer than both QuestionnaireResponse shapes — see PARITY_SOURCES')
   }
 }
 
