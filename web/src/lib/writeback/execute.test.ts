@@ -14,7 +14,7 @@ const ALL = {
 const qr: QuestionnaireResponseResource = {
   resourceType: 'QuestionnaireResponse',
   id: 'client-qr',
-  questionnaire: 'http://spier.org/Questionnaire/PHQ-9',
+  questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
   status: 'completed',
 }
 

@@ -20,7 +20,7 @@ function request(overrides: Partial<CdsHookRequest>): CdsHookRequest {
 const HIGH_RISK_CSSRS: unknown = {
   resourceType: 'QuestionnaireResponse',
   status: 'completed',
-  questionnaire: 'http://spier.org/Questionnaire/C-SSRS-Screener',
+  questionnaire: 'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener',
   item: [
     { linkId: 'q1', answer: [{ valueBoolean: true }] },
     { linkId: 'q2', answer: [{ valueBoolean: true }] },

@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "SAFE-T",
-  "url": "http://spier.org/Questionnaire/SAFE-T",
+  "url": "http://thespierproject.org/fhir/Questionnaire/SAFE-T",
   "version": "1.0.0",
   "name": "SAFET",
   "title": "SAFE-T — Suicide Assessment Five-Step Evaluation and Triage",
@@ -49,11 +49,11 @@
   ],
   "code": [
     {
-      "system": "http://spier.org/CodeSystem/safet-panel",
+      "system": "http://thespierproject.org/fhir/CodeSystem/safet-panel",
       "code": "safet",
       "display": "Suicide Assessment Five-Step Evaluation and Triage (SAFE-T) panel",
       "extension": [
-        { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+        { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
       ]
     }
   ],
@@ -65,15 +65,15 @@
       "required": false,
       "repeats": true,
       "answerOption": [
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "prior-attempt", "display": "Prior suicide attempt(s)" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "substance-use", "display": "Alcohol or substance use" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "mental-health-history", "display": "History of mental health concerns, particularly depression and other mood disorders" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "access-lethal-means", "display": "Access to lethal means, including firearms" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "knows-suicide-loss", "display": "Knowing someone who died by suicide, particularly a family member" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "social-isolation", "display": "Social isolation" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "chronic-disease-disability", "display": "Chronic disease and/or disability" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "lack-bh-access", "display": "Lack of access to behavioral health care" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-risk-factor", "code": "prolonged-hopelessness", "display": "Prolonged feelings of hopelessness" } }
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "prior-attempt", "display": "Prior suicide attempt(s)" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "substance-use", "display": "Alcohol or substance use" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "mental-health-history", "display": "History of mental health concerns, particularly depression and other mood disorders" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "access-lethal-means", "display": "Access to lethal means, including firearms" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "knows-suicide-loss", "display": "Knowing someone who died by suicide, particularly a family member" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "social-isolation", "display": "Social isolation" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "chronic-disease-disability", "display": "Chronic disease and/or disability" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "lack-bh-access", "display": "Lack of access to behavioral health care" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-risk-factor", "code": "prolonged-hopelessness", "display": "Prolonged feelings of hopelessness" } }
       ],
       "extension": [
         {
@@ -91,12 +91,12 @@
       "required": false,
       "repeats": true,
       "answerOption": [
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "connectedness", "display": "Connectedness to people, family, community, and social supports" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "effective-bh-care", "display": "Effective behavioral health care" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "life-skills", "display": "Life skills (problem-solving, coping, emotional regulation, ability to adapt to change)" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "self-esteem-purpose", "display": "Self-esteem and a sense of purpose or meaning in life" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "beliefs-discourage-suicide", "display": "Cultural, religious, or personal beliefs that discourage suicide" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/safet-protective-factor", "code": "no-access-lethal-means", "display": "No access to lethal means" } }
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-protective-factor", "code": "connectedness", "display": "Connectedness to people, family, community, and social supports" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-protective-factor", "code": "effective-bh-care", "display": "Effective behavioral health care" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-protective-factor", "code": "life-skills", "display": "Life skills (problem-solving, coping, emotional regulation, ability to adapt to change)" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-protective-factor", "code": "self-esteem-purpose", "display": "Self-esteem and a sense of purpose or meaning in life" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-protective-factor", "code": "beliefs-discourage-suicide", "display": "Cultural, religious, or personal beliefs that discourage suicide" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/safet-protective-factor", "code": "no-access-lethal-means", "display": "No access to lethal means" } }
       ],
       "extension": [
         {
@@ -184,17 +184,17 @@
               "code": "93374-7",
               "display": "Suicide risk level",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "verified" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "verified" }
               ]
             }
           ],
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "low", "display": "Low — thoughts of death; no plan, intent, or behavior; manageable risk factors, strong protective factors" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "moderate", "display": "Moderate — suicidal ideation with plan, but no intent or behavior; multiple risk factors, few protective factors" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier", "code": "high", "display": "High — suicidal ideation with plan, method, and intent to carry out; severe symptoms or acute precipitating event" } }
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier", "code": "low", "display": "Low — thoughts of death; no plan, intent, or behavior; manageable risk factors, strong protective factors" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier", "code": "moderate", "display": "Moderate — suicidal ideation with plan, but no intent or behavior; multiple risk factors, few protective factors" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier", "code": "high", "display": "High — suicidal ideation with plan, method, and intent to carry out; severe symptoms or acute precipitating event" } }
           ],
           "extension": [
-            { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "clinician-assigned" },
+            { "url": "http://thespierproject.org/fhir/StructureDefinition/tier-derivation", "valueCode": "clinician-assigned" },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
               "valueCodeableConcept": {

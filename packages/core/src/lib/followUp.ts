@@ -25,18 +25,18 @@ import { suicideRiskCategory } from './conceptDomain'
 export const STAGE_ID = 'track-follow-up'
 const STAGE_TITLE = 'Track Follow-Up'
 
-export const OUTREACH_PROFILE = 'http://spier.org/StructureDefinition/spier-outreach-attempt'
-export const CARING_CONTACT_PROFILE = 'http://spier.org/StructureDefinition/spier-caring-contact'
+export const OUTREACH_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt'
+export const CARING_CONTACT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact'
 
-export const OUTREACH_OUTCOME_SYSTEM = 'http://spier.org/CodeSystem/spier-outreach-outcome'
-export const OUTREACH_PROMPT_SYSTEM = 'http://spier.org/CodeSystem/spier-outreach-prompt'
+export const OUTREACH_OUTCOME_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-outreach-outcome'
+export const OUTREACH_PROMPT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-outreach-prompt'
 
-export const OUTREACH_OUTCOME_EXT = 'http://spier.org/StructureDefinition/outreach-outcome'
-export const OUTREACH_PROMPT_EXT = 'http://spier.org/StructureDefinition/outreach-prompt'
-export const SAFETY_CONCERN_EXT = 'http://spier.org/StructureDefinition/safety-concern-identified'
+export const OUTREACH_OUTCOME_EXT = 'http://thespierproject.org/fhir/StructureDefinition/outreach-outcome'
+export const OUTREACH_PROMPT_EXT = 'http://thespierproject.org/fhir/StructureDefinition/outreach-prompt'
+export const SAFETY_CONCERN_EXT = 'http://thespierproject.org/fhir/StructureDefinition/safety-concern-identified'
 /** `CaringContactOptOut` in follow-up.fsh. Read by the Stage-8 adherence measure. */
 export const CARING_CONTACT_OPT_OUT_EXT =
-  'http://spier.org/StructureDefinition/caring-contact-opt-out'
+  'http://thespierproject.org/fhir/StructureDefinition/caring-contact-opt-out'
 
 const PARTICIPATION_MODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode'
 

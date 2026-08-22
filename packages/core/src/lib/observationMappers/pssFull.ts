@@ -3,7 +3,7 @@ import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type Map
 // PSS Full is a combined acute-care screen (public ED-SAFE PSS-3 items) whose
 // site-defined risk-stratification step yields a common suicide-risk tier
 // directly (like SAFE-T) — no per-instrument crosswalk.
-const RISK_TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+const RISK_TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
 const TIER_ALERT: Record<string, RiskAlert['level']> = {
   'no-risk': 'none',

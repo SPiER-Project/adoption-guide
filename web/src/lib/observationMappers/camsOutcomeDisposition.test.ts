@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { mapCAMSOutcomeDisposition } from '@spier/core/lib/observationMappers/camsOutcomeDisposition'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
-const DISP = 'http://spier.org/CodeSystem/cams-disposition'
+const DISP = 'http://thespierproject.org/fhir/CodeSystem/cams-disposition'
 
 function response(opts: { vitals?: Record<string, number>; disposition?: string }): QuestionnaireResponseResource {
   const coreItems = Object.entries(opts.vitals ?? {}).map(([linkId, valueInteger]) => ({ linkId, answer: [{ valueInteger }] }))
@@ -13,7 +13,7 @@ function response(opts: { vitals?: Record<string, number>; disposition?: string 
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-OutcomeDisposition',
     item,
   } as QuestionnaireResponseResource
 }
@@ -25,7 +25,7 @@ function dispositionObs(r: ReturnType<typeof mapCAMSOutcomeDisposition>) {
 describe('mapCAMSOutcomeDisposition', () => {
   it('emits SSF vital Observations for the final re-rating', () => {
     const r = mapCAMSOutcomeDisposition(response({ vitals: { '1-score': 2, '6-score': 2 }, disposition: 'resolved' }))
-    const vitals = r.observations.filter(o => o.code?.coding?.[0]?.system === 'http://spier.org/CodeSystem/cams-ssf')
+    const vitals = r.observations.filter(o => o.code?.coding?.[0]?.system === 'http://thespierproject.org/fhir/CodeSystem/cams-ssf')
     expect(vitals.map(v => v.code?.coding?.[0]?.code)).toEqual(expect.arrayContaining(['psychological-pain', 'overall-risk']))
   })
 

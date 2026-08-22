@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "CAMS-SSF5-OutcomeDisposition",
-  "url": "http://spier.org/Questionnaire/CAMS-SSF5-OutcomeDisposition",
+  "url": "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-OutcomeDisposition",
   "version": "1.0.0",
   "name": "CAMS_SSF5_OutcomeDisposition",
   "title": "CAMS SSF-5: Outcome / Disposition (Final Session)",
@@ -67,10 +67,10 @@
       "type": "choice",
       "required": true,
       "answerOption": [
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "continue-cams", "display": "Continue CAMS outpatient care" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "resolved", "display": "CAMS resolved — episode complete" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "refer-adjunctive", "display": "Refer to other / adjunctive treatment (e.g., group therapy)" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cams-disposition", "code": "higher-level-care", "display": "Step up to a higher level of care (e.g., inpatient)" } }
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cams-disposition", "code": "continue-cams", "display": "Continue CAMS outpatient care" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cams-disposition", "code": "resolved", "display": "CAMS resolved — episode complete" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cams-disposition", "code": "refer-adjunctive", "display": "Refer to other / adjunctive treatment (e.g., group therapy)" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cams-disposition", "code": "higher-level-care", "display": "Step up to a higher level of care (e.g., inpatient)" } }
       ],
       "extension": [
         {

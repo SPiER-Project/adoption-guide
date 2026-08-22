@@ -20,7 +20,7 @@ import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import { nativeQr } from '../observationMappers/__fixtures__/nativeQr'
 import type { StoredResponse, FhirResource } from '@spier/core/types/fhir'
 
-const CSSRS_SCREENER = 'http://spier.org/Questionnaire/C-SSRS-Screener'
+const CSSRS_SCREENER = 'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener'
 const PATIENT = 'smart-pt-1'
 
 /** Every type the ladder can write. */

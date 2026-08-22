@@ -4,7 +4,7 @@ import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const YES = { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' }
 const NO = { system: 'http://snomed.info/sct', code: '373067005', display: 'No' }
-const DISP = 'http://spier.org/CodeSystem/bssa-disposition'
+const DISP = 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition'
 
 interface BSSAAnswers {
   disposition: string
@@ -26,7 +26,7 @@ function bssaResponse(a: BSSAAnswers): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/BSSA',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/BSSA',
     item: [
       { linkId: 'assessment', item: assessmentItems },
       {
@@ -75,7 +75,7 @@ describe('mapBSSA', () => {
 
   it('extracts discrete coded item Observations bound to the SPiER-local bssa-item system', () => {
     const r = mapBSSA(bssaResponse({ disposition: 'further-evaluation-necessary', currentIdeation: false, hasPlan: false, everAttempt: true, needsHelp: true }))
-    const itemObs = r.observations.filter(o => o.code?.coding?.[0]?.system === 'http://spier.org/CodeSystem/bssa-item')
+    const itemObs = r.observations.filter(o => o.code?.coding?.[0]?.system === 'http://thespierproject.org/fhir/CodeSystem/bssa-item')
     const codes = itemObs.map(o => o.code?.coding?.[0]?.code)
     expect(codes).toEqual(expect.arrayContaining(['current-ideation', 'suicide-plan', 'past-suicide-attempt', 'needs-help-to-be-safe']))
   })

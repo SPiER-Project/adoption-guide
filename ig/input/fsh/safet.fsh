@@ -14,7 +14,7 @@
 //
 // References the hand-authored Questionnaire at
 // FHIR-Resources/SAFE-T/safet-questionnaire.json
-// (canonical: http://spier.org/Questionnaire/SAFE-T).
+// (canonical: http://thespierproject.org/fhir/Questionnaire/SAFE-T).
 // =============================================================
 
 
@@ -137,7 +137,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer SAFE-T"
 Description: "Conduct a SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) structured formulation, persist it as a QuestionnaireResponse, and derive a suicide-risk-level Observation conformant to the SPiER SAFE-T Risk Level profile (value = a common suicide-risk tier)."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerSAFET"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerSAFET"
 * name = "AdministerSAFET"
 * version = "1.0.0"
 * title = "Administer SAFE-T"
@@ -151,9 +151,9 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "SAFE-T questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/SAFE-T|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/SAFE-T|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
 * copyright = "The SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) pocket card is a public resource of the Substance Abuse and Mental Health Services Administration (SAMHSA), developed with Screening for Mental Health, Inc. and Douglas Jacobs, MD. It is distributed free by SAMHSA; no permission or fee is required for use. SAFE-T is a clinician guide rather than a scored instrument, and its risk-level/intervention chart is, in the card's own words, an example range rather than a determination. Basis: FHIR-Resources/SAFE-T/licensing/MEMO.md (issue #64)."
 
@@ -181,14 +181,14 @@ Title: "Example — SAFE-T QuestionnaireResponse (moderate risk)"
 Description: "Source SAFE-T QuestionnaireResponse: two risk factors, one protective factor, ideation and plan present without intent, and a moderate risk-level determination. The derived SPiERSAFETRiskLevel references this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/SAFE-T"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/SAFE-T"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T15:05:00Z"
 * item[+].linkId = "step1-risk-factors"
-* item[=].answer[+].valueCoding = http://spier.org/CodeSystem/safet-risk-factor#prior-attempt "Prior suicide attempt(s)"
-* item[=].answer[+].valueCoding = http://spier.org/CodeSystem/safet-risk-factor#prolonged-hopelessness "Prolonged feelings of hopelessness"
+* item[=].answer[+].valueCoding = http://thespierproject.org/fhir/CodeSystem/safet-risk-factor#prior-attempt "Prior suicide attempt(s)"
+* item[=].answer[+].valueCoding = http://thespierproject.org/fhir/CodeSystem/safet-risk-factor#prolonged-hopelessness "Prolonged feelings of hopelessness"
 * item[+].linkId = "step2-protective-factors"
-* item[=].answer.valueCoding = http://spier.org/CodeSystem/safet-protective-factor#connectedness "Connectedness to people, family, community, and social supports"
+* item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/safet-protective-factor#connectedness "Connectedness to people, family, community, and social supports"
 * item[+].linkId = "step4-risk-level-intervention"
 * item[=].item[+].linkId = "risk-level"
-* item[=].item[=].answer.valueCoding = http://spier.org/CodeSystem/spier-suicide-risk-tier#moderate "Moderate risk"
+* item[=].item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier#moderate "Moderate risk"

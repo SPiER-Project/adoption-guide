@@ -3,7 +3,7 @@ import { mapSAFET } from '@spier/core/lib/observationMappers/safet'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const YES = { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' }
-const TIER = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+const TIER = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
 interface SAFETAnswers {
   riskLevel?: string
@@ -24,7 +24,7 @@ function safetResponse(a: SAFETAnswers): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/SAFE-T',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/SAFE-T',
     item: [
       { linkId: 'step4-risk-level-intervention', item: step4 },
       { linkId: 'step5-document', item: step5 },
@@ -40,7 +40,7 @@ describe('mapSAFET', () => {
   it('binds the result value directly to the shared suicide-risk tier', () => {
     const r = mapSAFET(safetResponse({ riskLevel: 'moderate' }))
     const coding = resultObs(r)?.valueCodeableConcept?.coding?.[0]
-    expect(coding?.system).toBe('http://spier.org/CodeSystem/spier-suicide-risk-tier')
+    expect(coding?.system).toBe('http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier')
     expect(coding?.code).toBe('moderate')
     expect(r.riskAlert.level).toBe('moderate')
     expect(r.riskAlert.tool).toBe('SAFE-T')

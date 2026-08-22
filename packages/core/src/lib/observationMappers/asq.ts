@@ -28,7 +28,7 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
       id: `asq-result-${Date.now()}`,
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
-        coding: [{ system: 'http://spier.org/CodeSystem/asq-screening-result', code: resultCode, display: resultDisplay }],
+        coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/asq-screening-result', code: resultCode, display: resultDisplay }],
         text: resultDisplay,
       },
       valueType: 'codeable',
@@ -43,9 +43,9 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   // The ASQ has NO published per-item LOINC codes (verified against LOINC, June 2026:
   // the codes formerly used here did not exist, and the C-SSRS panel 93373-9 codes that
   // were on the Questionnaire items belong to C-SSRS, not ASQ). We bind to the SPiER-local
-  // http://spier.org/CodeSystem/asq-item instead. These codes MUST stay in sync with the
+  // http://thespierproject.org/fhir/CodeSystem/asq-item instead. These codes MUST stay in sync with the
   // Questionnaire item codes and web/scripts/check-observation-extract.mjs EXPECTED.
-  const ASQ_ITEM_SYSTEM = 'http://spier.org/CodeSystem/asq-item'
+  const ASQ_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/asq-item'
   const itemMap = [
     { linkId: 'q1', code: 'wished-dead', display: 'Wished you were dead' },
     { linkId: 'q2', code: 'family-better-off-dead', display: 'Family better off if dead' },

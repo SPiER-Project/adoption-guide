@@ -4,7 +4,7 @@ import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const YES = { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' }
 const NO = { system: 'http://snomed.info/sct', code: '373067005', display: 'No' }
-const RECENCY = 'http://spier.org/CodeSystem/pss3-attempt-recency'
+const RECENCY = 'http://thespierproject.org/fhir/CodeSystem/pss3-attempt-recency'
 
 interface PSS3Answers {
   depression?: boolean
@@ -23,7 +23,7 @@ function pss3Response(a: PSS3Answers): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/PSS-3',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PSS-3',
     item: items,
   } as QuestionnaireResponseResource
 }
@@ -70,7 +70,7 @@ describe('mapPSS3', () => {
 
   it('emits discrete item Observations bound to the SPiER-local pss3-item system', () => {
     const r = mapPSS3(pss3Response({ depression: true, ideation: true, lifetimeAttempt: false }))
-    const itemObs = r.observations.filter(o => o.code?.coding?.[0]?.system === 'http://spier.org/CodeSystem/pss3-item')
+    const itemObs = r.observations.filter(o => o.code?.coding?.[0]?.system === 'http://thespierproject.org/fhir/CodeSystem/pss3-item')
     const codes = itemObs.map(o => o.code?.coding?.[0]?.code)
     expect(codes).toEqual(expect.arrayContaining(['depression-2wk', 'active-ideation-2wk', 'lifetime-attempt']))
   })

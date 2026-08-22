@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "ASQ-Screening-Tool",
-  "url": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+  "url": "http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool",
   "version": "1.1.0-pilot",
   "name": "ASQ_Screening_Tool",
   "title": "ASQ — Ask Suicide-Screening Questions",
@@ -66,12 +66,12 @@
   ],
   "code": [
     {
-      "system": "http://spier.org/CodeSystem/asq-panel",
+      "system": "http://thespierproject.org/fhir/CodeSystem/asq-panel",
       "code": "asq-screening",
       "display": "Ask Suicide-Screening Questions (ASQ) panel",
       "extension": [
         {
-          "url": "http://spier.org/StructureDefinition/coding-verification-status",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
           "valueCode": "no-standard-binding"
         }
       ]
@@ -106,12 +106,12 @@
           ],
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/asq-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
               "code": "wished-dead",
               "display": "Wished you were dead",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -147,12 +147,12 @@
           ],
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/asq-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
               "code": "family-better-off-dead",
               "display": "Family better off if dead",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -188,12 +188,12 @@
           ],
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/asq-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
               "code": "thoughts-killing-self",
               "display": "Thoughts about killing yourself",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -229,12 +229,12 @@
           ],
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/asq-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
               "code": "ever-attempted",
               "display": "Ever tried to kill yourself",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -266,14 +266,14 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/asq-attempt-recency",
+                "system": "http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency",
                 "code": "within-12-months",
                 "display": "Within last 12 months"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/asq-attempt-recency",
+                "system": "http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency",
                 "code": "over-1-year",
                 "display": "Over 1 year ago"
               }
@@ -363,12 +363,12 @@
           ],
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/asq-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
               "code": "acute-ideation-now",
               "display": "Killing yourself right now (acuity)",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -418,7 +418,7 @@
               "display": "Suicide risk level",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "verified"
                 }
               ]
@@ -427,21 +427,21 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/asq-screening-result",
+                "system": "http://thespierproject.org/fhir/CodeSystem/asq-screening-result",
                 "code": "negative",
                 "display": "Negative Screen"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/asq-screening-result",
+                "system": "http://thespierproject.org/fhir/CodeSystem/asq-screening-result",
                 "code": "non-acute-positive",
                 "display": "Non-Acute Positive Screen (potential risk identified)"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/asq-screening-result",
+                "system": "http://thespierproject.org/fhir/CodeSystem/asq-screening-result",
                 "code": "acute-positive",
                 "display": "Acute Positive Screen (imminent/acute risk identified)"
               }
@@ -503,14 +503,14 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/asq-age-group",
+                "system": "http://thespierproject.org/fhir/CodeSystem/asq-age-group",
                 "code": "youth",
                 "display": "Youth (under 18)"
               }
             },
             {
               "valueCoding": {
-                "system": "http://spier.org/CodeSystem/asq-age-group",
+                "system": "http://thespierproject.org/fhir/CodeSystem/asq-age-group",
                 "code": "adult",
                 "display": "Adult (18+)"
               }

@@ -24,7 +24,7 @@ function phq9Response(scores: number[]): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/PHQ-9',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
     item: scores.map((s, i) => ({
       linkId: `q${i + 1}`,
       answer: [{ valueCoding: { system: 'http://loinc.org', code: CODE[s as 0 | 1 | 2 | 3] } }],

@@ -229,13 +229,20 @@ desirable, since the re-render is the gate that validates narrative links.
   one notch weaker** — its packet claims `safety-plan-copy` with no CarePlan
   related at all, which is *unverifiable* rather than false (the copy may be in
   the attachment), and #417's gate deliberately leaves it green.
-- ✅ ~~**#413 — the IG's canonical is a third party's live website**~~ **DIRECTION
-  SET 2026-08-22:** Brad is taking a plan to the SPiER board to give these apps
-  their own domains, and will update the canonical. Two things to carry: it needs
-  **no DNS** — a canonical is an identifier and nothing here dereferences it
-  (verified: zero network uses) — so the string can change the day the domain is
-  *decided*; and the trigger is **before the URLs first leave the repo**
-  (#337/#338, #412), not a date. Re-scoped to p3 for that reason.
+- ✅ ~~**#413 — the IG's canonical is a third party's live website**~~ **DONE
+  2026-08-22.** The canonical is `http://thespierproject.org/fhir` and the package
+  id is `thespierproject.fhir`. `spier.org` was never the nonprofit's domain — it
+  resolves to an unrelated family's website — and `thespierproject.org` is.
+  1,429 references across 181 files, plus `sushi-config.yaml`'s `canonical:`/`id:`
+  and `ig.ini`'s ImplementationGuide filename, which SUSHI derives from the id.
+  ⚠️ Three things worth knowing if a canonical ever moves again:
+  **`web/src/data/roadmap.generated.json` is deliberately untouched** — it is a
+  committed snapshot of GitHub issue bodies, so rewriting it would falsify the
+  record and be overwritten by the next snapshot; a **regex-escaped** copy in
+  `mock-ehr/src/write.test.ts` (`http:\/\/spier\.org`) survived the literal
+  replace and only a test caught it; and `@spier/...` package aliases are
+  unrelated and must NOT be swept up. A path segment (`/fhir`) was chosen so the
+  identifier namespace does not collide with the live marketing site's URL space.
 - **#231 — the CDS service's auth posture.** Narrower than filed. `require` is
   implemented and unit-tested and is one `wrangler.jsonc` var; the app only fetches
   discovery (open either way), so flipping would break the guide's published curl
@@ -609,7 +616,7 @@ frame's label already says it is not a SMART launch.
 
 | Issue | What | Milestone |
 |---|---|---|
-| #412 | The IG package is published but unreachable — nothing links `package.tgz` and `spier.ig` is not in the FHIR registry, so Getting Started §1's instruction cannot be followed | — |
+| #412 | The IG package is published but unreachable — nothing links `package.tgz` and `thespierproject.fhir` is not in the FHIR registry, so Getting Started §1's instruction cannot be followed | — |
 | #125 | Consolidate hardcoded example Observations into IG example instances | M7 |
 | #228 | [TL-009] Write the handoff-content-item checklist from the transition recorder | M3 |
 | #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset) | M5 |

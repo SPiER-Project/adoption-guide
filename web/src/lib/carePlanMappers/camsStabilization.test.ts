@@ -12,7 +12,7 @@ function fullStabilizationPlan(shape: PairShape = 'conformant'): QuestionnaireRe
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/CAMSStabilizationPlan',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CAMSStabilizationPlan',
     item: [
       simple('lethal-means-list', ['Remove firearms', 'Lock medications']),
       simple('coping-list', ['Deep breathing', 'Listen to music']),
@@ -35,7 +35,7 @@ describe('generateStabilizationCarePlan (CAMS)', () => {
     expect(activities).toHaveLength(5)
 
     const meta = resource.meta as { profile?: string[] }
-    expect(meta.profile).toContain('http://spier.org/StructureDefinition/spier-cams-stabilization-plan')
+    expect(meta.profile).toContain('http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan')
 
     const category = resource.category as Array<{ coding?: Array<{ code?: string }> }>
     expect(category[0].coding?.[0]?.code).toBe('735324008')
@@ -43,7 +43,7 @@ describe('generateStabilizationCarePlan (CAMS)', () => {
 
   it('embeds patient content and a section code on each activity', () => {
     const { activities, resource } = generateStabilizationCarePlan(fullStabilizationPlan())
-    const SECTION_SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-section'
+    const SECTION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section'
 
     // Step 1: Lethal Means Reduction
     expect(activities[0].sectionCode?.code).toBe('lethal-means-reduction')
@@ -83,7 +83,7 @@ describe('generateStabilizationCarePlan (CAMS)', () => {
     const empty: QuestionnaireResponseResource = {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      questionnaire: 'http://spier.org/Questionnaire/CAMSStabilizationPlan',
+      questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CAMSStabilizationPlan',
       item: [],
     } as QuestionnaireResponseResource
 

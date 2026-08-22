@@ -3,7 +3,7 @@
  * Anti-drift check for the cross-instrument CONCEPT LAYER.
  *
  * The concept layer maps each instrument's result onto one common
- * suicide-risk tier (http://spier.org/CodeSystem/spier-suicide-risk-tier).
+ * suicide-risk tier (http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier).
  * Two crosswalk shapes feed it:
  *   - coded dispositions  -> ConceptMap   (ASQ, C-SSRS)
  *   - numeric thresholds   -> StructureMap (PHQ-9 Item 9, SBQ-R), in ig/drafts/*.fml
@@ -35,15 +35,15 @@ const root = resolve(here, '../..') // repo root
 const genDir = join(root, 'ig/fsh-generated/resources')
 const draftsDir = join(root, 'ig/drafts')
 
-const TIER_URL = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+const TIER_URL = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
 // Disposition CodeSystem url -> the TS mapper(s) that produce those codes (check F).
 // A code must appear in at least one of the listed (existing) mapper files.
 const MAPPER_FOR_SOURCE = {
-  'http://spier.org/CodeSystem/asq-screening-result': ['packages/core/src/lib/observationMappers/asq.ts'],
-  'http://spier.org/CodeSystem/bssa-disposition': ['packages/core/src/lib/observationMappers/bssa.ts'],
-  'http://spier.org/CodeSystem/pss3-result': ['packages/core/src/lib/observationMappers/pss3.ts'],
-  'http://spier.org/CodeSystem/cssrs-risk-level': [
+  'http://thespierproject.org/fhir/CodeSystem/asq-screening-result': ['packages/core/src/lib/observationMappers/asq.ts'],
+  'http://thespierproject.org/fhir/CodeSystem/bssa-disposition': ['packages/core/src/lib/observationMappers/bssa.ts'],
+  'http://thespierproject.org/fhir/CodeSystem/pss3-result': ['packages/core/src/lib/observationMappers/pss3.ts'],
+  'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level': [
     'packages/core/src/lib/observationMappers/cssrsScreener.ts',
     'packages/core/src/lib/observationMappers/cssrsFull.ts',
   ],

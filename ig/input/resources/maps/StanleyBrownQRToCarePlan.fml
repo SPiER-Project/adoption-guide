@@ -1,7 +1,7 @@
-map "http://spier.org/StructureMap/StanleyBrownQRToCarePlan" = "StanleyBrownQRToCarePlan"
+map "http://thespierproject.org/fhir/StructureMap/StanleyBrownQRToCarePlan" = "StanleyBrownQRToCarePlan"
 
 // Transforms a completed Stanley-Brown Safety Plan QuestionnaireResponse
-// (http://spier.org/Questionnaire/StanleyBrownSafetyPlan) into a safety-plan
+// (http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan) into a safety-plan
 // CarePlan conforming to SPiERStanleyBrownSafetyPlan.
 //
 // The Document Safety Actions stage names this map in
@@ -101,7 +101,7 @@ uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias SafetyPlan as targ
 group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   // --- resource-level shape ---
   src -> tgt.meta as meta then {
-    src -> meta.profile = 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan' "profile";
+    src -> meta.profile = 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan' "profile";
   } "meta";
 
   src -> tgt.status = 'active' "set-status";
@@ -115,7 +115,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   // the TypeScript side and the golden file together — the transformation is
   // declared in this map and executed in carePlanMappers/stanleyBrown.ts, and
   // CLAUDE.md requires both to move at once (#302).
-  src -> tgt.category = cc('http://spier.org/CodeSystem/spier-concept-domain', 'suicide-risk', 'Suicide risk') "cat-domain";
+  src -> tgt.category = cc('http://thespierproject.org/fhir/CodeSystem/spier-concept-domain', 'suicide-risk', 'Suicide risk') "cat-domain";
 
   src.subject as subject -> tgt.subject = subject "carry-subject";
 
@@ -127,7 +127,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   src -> tgt.activity as activity then {
     src -> activity.detail as detail then {
       src -> detail.code = create('CodeableConcept') as code then {
-        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'warning-signs') "coding";
+        src -> code.coding = c('http://thespierproject.org/fhir/CodeSystem/safety-plan-section', 'warning-signs') "coding";
         src -> code.text = 'Step 1: Warning Signs' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
@@ -139,7 +139,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   src -> tgt.activity as activity then {
     src -> activity.detail as detail then {
       src -> detail.code = create('CodeableConcept') as code then {
-        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'internal-coping') "coding";
+        src -> code.coding = c('http://thespierproject.org/fhir/CodeSystem/safety-plan-section', 'internal-coping') "coding";
         src -> code.text = 'Step 2: Internal Coping Strategies' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
@@ -152,7 +152,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   src -> tgt.activity as activity then {
     src -> activity.detail as detail then {
       src -> detail.code = create('CodeableConcept') as code then {
-        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'social-distraction') "coding";
+        src -> code.coding = c('http://thespierproject.org/fhir/CodeSystem/safety-plan-section', 'social-distraction') "coding";
         src -> code.text = 'Step 3: Social Distractions' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
@@ -164,7 +164,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   src -> tgt.activity as activity then {
     src -> activity.detail as detail then {
       src -> detail.code = create('CodeableConcept') as code then {
-        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'crisis-support') "coding";
+        src -> code.coding = c('http://thespierproject.org/fhir/CodeSystem/safety-plan-section', 'crisis-support') "coding";
         src -> code.text = 'Step 4: Crisis Support Contacts' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
@@ -179,7 +179,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   src -> tgt.activity as activity then {
     src -> activity.detail as detail then {
       src -> detail.code = create('CodeableConcept') as code then {
-        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'professional-support') "coding";
+        src -> code.coding = c('http://thespierproject.org/fhir/CodeSystem/safety-plan-section', 'professional-support') "coding";
         src -> code.text = 'Step 5: Professional Support' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
@@ -191,7 +191,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   src -> tgt.activity as activity then {
     src -> activity.detail as detail then {
       src -> detail.code = create('CodeableConcept') as code then {
-        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'lethal-means-safety') "coding";
+        src -> code.coding = c('http://thespierproject.org/fhir/CodeSystem/safety-plan-section', 'lethal-means-safety') "coding";
         src -> code.text = 'Step 6: Lethal Means Safety' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";
@@ -203,7 +203,7 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
   src -> tgt.activity as activity then {
     src -> activity.detail as detail then {
       src -> detail.code = create('CodeableConcept') as code then {
-        src -> code.coding = c('http://spier.org/CodeSystem/safety-plan-section', 'reason-for-living') "coding";
+        src -> code.coding = c('http://thespierproject.org/fhir/CodeSystem/safety-plan-section', 'reason-for-living') "coding";
         src -> code.text = 'Step 7: Reason for Living' "text";
       } "code";
       src -> detail.status = 'in-progress' "status";

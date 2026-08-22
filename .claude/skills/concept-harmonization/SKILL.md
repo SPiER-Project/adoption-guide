@@ -37,7 +37,7 @@ Work top to bottom; the earlier items are foundational.
 
 ### 1. Exactly one common concept vocabulary
 
-There must be a **single** instrument-agnostic risk-tier CodeSystem (e.g. `http://spier.org/CodeSystem/suicide-risk-tier`) and a ValueSet binding to it. Every instrument maps into *this* set — not its own parallel one.
+There must be a **single** instrument-agnostic risk-tier CodeSystem (e.g. `http://thespierproject.org/fhir/CodeSystem/suicide-risk-tier`) and a ValueSet binding to it. Every instrument maps into *this* set — not its own parallel one.
 
 **Watch for the failure SPiER has today:** the ASQ mapper emits `asq-screening-result` codes (`negative` / `non-acute-positive` / `acute-positive`), and the `riskAlert` layer uses *yet another* set (`none` / `moderate` / `acute`). Those are two instrument-local vocabularies for the same concept. Harmonization means defining one tier set (e.g. `no-risk | low | moderate | high | imminent`) and mapping both ASQ dispositions and every other instrument's result *into* it.
 

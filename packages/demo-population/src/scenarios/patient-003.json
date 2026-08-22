@@ -8,7 +8,7 @@
         "resourceType": "QuestionnaireResponse",
         "id": "p003-phq9",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
+        "questionnaire": "http://thespierproject.org/fhir/Questionnaire/PHQ-9",
         "subject": {
           "reference": "Patient/patient-003"
         },
@@ -133,7 +133,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]
@@ -183,7 +183,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]

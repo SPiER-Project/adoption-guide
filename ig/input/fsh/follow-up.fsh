@@ -200,7 +200,7 @@ InstanceOf: ActivityDefinition
 Title: "Record Follow-Up Outreach / Contact Attempt"
 Description: "Record one follow-up contact attempt and its outcome as a SPiEROutreachAttempt."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/RecordFollowUpOutreach"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/RecordFollowUpOutreach"
 * name = "RecordFollowUpOutreach"
 * version = "1.0.0"
 * title = "Record Follow-Up Outreach / Contact Attempt"
@@ -220,7 +220,7 @@ InstanceOf: ActivityDefinition
 Title: "Send Caring Contact"
 Description: "Send a scheduled caring contact — a brief supportive, non-demanding message — as a SPiERCaringContact."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/SendCaringContact"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/SendCaringContact"
 * name = "SendCaringContact"
 * version = "1.0.0"
 * title = "Send Caring Contact"
@@ -232,7 +232,7 @@ Usage: #definition
 * kind = #CommunicationRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #spier-authored
 * copyright = "SPiER-authored workflow content: this activity records that a caring contact was sent and how the patient responded. Caring contacts are a published intervention pattern rather than a proprietary instrument, and SPiER ships no message text of its own here. The activity and its SPiER profiles are published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). Message templates a site adopts from a published caring-contacts program carry that program's own terms, which SPiER has not audited."
 
@@ -242,7 +242,7 @@ InstanceOf: ActivityDefinition
 Title: "Track Follow-Up Appointment"
 Description: "Track whether the follow-up appointment actually happened. Produces NO new resource — reads the SPiERFollowUpAppointment created at handoff."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/TrackFollowUpAppointment"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/TrackFollowUpAppointment"
 * name = "TrackFollowUpAppointment"
 * version = "1.0.0"
 * title = "Track Follow-Up Appointment"
@@ -262,7 +262,7 @@ InstanceOf: ActivityDefinition
 Title: "Follow Up on a Missed Appointment / No-Show"
 Description: "Re-engage a patient who missed or no-showed a follow-up appointment, recorded as a SPiEROutreachAttempt prompted by the no-show."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/FollowUpMissedAppointment"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/FollowUpMissedAppointment"
 * name = "FollowUpMissedAppointment"
 * version = "1.0.0"
 * title = "Follow Up on a Missed Appointment / No-Show"
@@ -282,7 +282,7 @@ InstanceOf: ActivityDefinition
 Title: "Run Follow-Up Escalation Workflow"
 Description: "Escalate when follow-up fails, as a SPiERSafetyTask coded escalation — the same escalation resource Stage 7 uses."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/EscalateFollowUp"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/EscalateFollowUp"
 * name = "EscalateFollowUp"
 * version = "1.0.0"
 * title = "Run Follow-Up Escalation Workflow"

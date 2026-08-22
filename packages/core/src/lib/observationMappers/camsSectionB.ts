@@ -36,7 +36,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
           {
             coding: [
               {
-                system: 'http://spier.org/CodeSystem/cams-driver-category',
+                system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-category',
                 code: 'suicide-driver',
                 display: 'Suicide Driver',
               },
@@ -44,7 +44,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
           },
           ...(driverType ? [{
             coding: [{
-              system: 'http://spier.org/CodeSystem/cams-driver-type',
+              system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-type',
               code: driverType.code,
               display: driverType.display,
             }],

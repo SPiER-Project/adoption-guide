@@ -84,7 +84,7 @@ export interface PatientOpenPayload {
  * from a server — two spellings of this string is exactly what
  * `npm run check:patients` exists to catch.
  */
-export const MRN_SYSTEM = 'http://spier.org/identifier/mrn'
+export const MRN_SYSTEM = 'http://thespierproject.org/fhir/identifier/mrn'
 
 /**
  * Build the anchor Patient resource carried in the event context. Kept minimal

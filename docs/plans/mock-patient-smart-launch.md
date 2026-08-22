@@ -104,7 +104,7 @@ against planted defects. Phase 2 (per-patient transaction Bundles) is still open
    cannot feed. §8.
 
 3. **Foreign data mostly does not derive.** Mapper dispatch is canonical-bound
-   (`http://spier.org/Questionnaire/*`); the code-based fallback covers **PHQ-9
+   (`http://thespierproject.org/fhir/Questionnaire/*`); the code-based fallback covers **PHQ-9
    only**. Anything else lands in the collapsed "Other activity" bucket with no
    risk alert and no derived Observations. That is #230.
 

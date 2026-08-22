@@ -17,7 +17,7 @@
 // 2026-07-15). See FHIR-Resources/PSS-Full/licensing/MEMO.md.
 //
 // Existing Questionnaire:
-//   http://spier.org/Questionnaire/PSS-Full|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/PSS-Full|1.0.0
 // =============================================================
 
 
@@ -62,7 +62,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
 Description: "Capture the full Patient Safety Screener / Suicide Risk Screener — the ED-SAFE PSS-3 universal screen plus a site-defined risk-stratification step — and derive a suicide-risk-level Observation conformant to the SPiER PSS Full Risk Level profile (value on the shared tier)."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerPSSFull"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerPSSFull"
 * name = "AdministerPSSFull"
 * version = "1.0.0"
 * title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
@@ -76,9 +76,9 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Patient Safety Screener / Suicide Risk Screener (Full) questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/PSS-Full|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/PSS-Full|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
-* extension[+].url = "http://spier.org/StructureDefinition/instrument-licensing-status"
+* extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
 * copyright = "The universal-screen portion reproduces the free, public ED-SAFE PSS-3 items distributed by SAMHSA and the Suicide Prevention Resource Center — no permission or fee required. The risk-stratification step is site-defined (local protocol and clinician judgement), not a reproduced proprietary instrument, so no third-party item content is carried. Attribute the screen to the ED-SAFE study / SAMHSA / SPRC. Basis: FHIR-Resources/PSS-Full/licensing/MEMO.md (issue #64), which records maintainer confirmation on 2026-07-15."
 
@@ -106,7 +106,7 @@ Title: "Example — PSS Full QuestionnaireResponse (moderate risk)"
 Description: "Source PSS Full QuestionnaireResponse: positive active ideation on the universal screen, stratified to moderate risk by the site protocol. The derived SPiERPSSFullRiskLevel references this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/PSS-Full"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/PSS-Full"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T09:40:00Z"
 * item[+].linkId = "q1-depression"
@@ -116,4 +116,4 @@ Usage: #example
 * item[+].linkId = "q3-lifetime-attempt"
 * item[=].answer.valueCoding = http://snomed.info/sct#373067005 "No"
 * item[+].linkId = "risk-level"
-* item[=].answer.valueCoding = http://spier.org/CodeSystem/spier-suicide-risk-tier#moderate "Moderate risk"
+* item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier#moderate "Moderate risk"

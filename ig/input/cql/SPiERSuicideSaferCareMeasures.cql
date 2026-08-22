@@ -69,9 +69,9 @@ include FHIRHelpers version '4.0.1' called FHIRHelpers
 
 codesystem "LOINC": 'http://loinc.org'
 codesystem "ObservationInterpretation": 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation'
-codesystem "SPiER Pathway Stage": 'http://spier.org/CodeSystem/spier-pathway-stage'
-codesystem "SPiER Handoff Content": 'http://spier.org/CodeSystem/spier-handoff-content'
-codesystem "SPiER Episode Closure Reason": 'http://spier.org/CodeSystem/spier-episode-closure-reason'
+codesystem "SPiER Pathway Stage": 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
+codesystem "SPiER Handoff Content": 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content'
+codesystem "SPiER Episode Closure Reason": 'http://thespierproject.org/fhir/CodeSystem/spier-episode-closure-reason'
 
 code "Suicide risk level": '93374-7' from "LOINC" display 'Suicide risk level'
 code "Positive": 'POS' from "ObservationInterpretation" display 'Positive'
@@ -90,23 +90,23 @@ context Patient
 // stage-1..7 artifacts this stage measures over — and so a typo is a
 // one-place fix.
 
-define "Risk Concept Profile": 'http://spier.org/StructureDefinition/spier-suicide-risk-concept'
-define "Stanley Brown Profile": 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan'
-define "Crisis Response Plan Profile": 'http://spier.org/StructureDefinition/spier-crisis-response-plan'
-define "Lethal Means Counseling Profile": 'http://spier.org/StructureDefinition/spier-lethal-means-counseling'
-define "Safety Handoff Profile": 'http://spier.org/StructureDefinition/spier-safety-handoff'
-define "Discharge Packet Profile": 'http://spier.org/StructureDefinition/spier-discharge-safety-packet'
-define "Safety Referral Profile": 'http://spier.org/StructureDefinition/spier-safety-referral'
-define "Follow Up Appointment Profile": 'http://spier.org/StructureDefinition/spier-follow-up-appointment'
-define "Outreach Attempt Profile": 'http://spier.org/StructureDefinition/spier-outreach-attempt'
-define "Caring Contact Profile": 'http://spier.org/StructureDefinition/spier-caring-contact'
-define "Suicide Risk Episode Profile": 'http://spier.org/StructureDefinition/spier-suicide-risk-episode'
+define "Risk Concept Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept'
+define "Stanley Brown Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan'
+define "Crisis Response Plan Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan'
+define "Lethal Means Counseling Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling'
+define "Safety Handoff Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff'
+define "Discharge Packet Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet'
+define "Safety Referral Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-referral'
+define "Follow Up Appointment Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-follow-up-appointment'
+define "Outreach Attempt Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt'
+define "Caring Contact Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact'
+define "Suicide Risk Episode Profile": 'http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode'
 
-define "Pathway Stage System": 'http://spier.org/CodeSystem/spier-pathway-stage'
-define "Risk Tier System": 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
-define "Closure Reason Extension": 'http://spier.org/StructureDefinition/episode-closure-reason'
-define "Handoff Content Extension": 'http://spier.org/StructureDefinition/handoff-content-item'
-define "Caring Contact Opt Out Extension": 'http://spier.org/StructureDefinition/caring-contact-opt-out'
+define "Pathway Stage System": 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
+define "Risk Tier System": 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
+define "Closure Reason Extension": 'http://thespierproject.org/fhir/StructureDefinition/episode-closure-reason'
+define "Handoff Content Extension": 'http://thespierproject.org/fhir/StructureDefinition/handoff-content-item'
+define "Caring Contact Opt Out Extension": 'http://thespierproject.org/fhir/StructureDefinition/caring-contact-opt-out'
 
 // ─── Helpers ─────────────────────────────────────────────────
 

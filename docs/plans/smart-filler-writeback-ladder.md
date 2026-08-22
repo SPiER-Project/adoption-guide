@@ -155,7 +155,7 @@ Reviewed 2026-08-18 as part of #350. What was checked and **held**:
 
 - the five risk-tier codes and displays in `conditionProposal.ts` match
   `concept-layer.fsh` exactly, and `SPIER_RISK_TIER_SYSTEM` matches the
-  `http://spier.org` canonical. The hand-duplication CLAUDE.md warns about is
+  `http://thespierproject.org/fhir` canonical. The hand-duplication CLAUDE.md warns about is
   currently correct.
 - `capability.ts`'s defensive parsing is genuinely well covered.
 - two suspected #327-shaped defects were **false alarms**: `answerText` reads

@@ -26,7 +26,7 @@ export function stageForResponse(qr: QuestionnaireResponseLike | undefined): str
  * `code` is a known stage id binds a resource to that pathway stage. Exported
  * so resource producers (e.g. the workflow recorder) can stamp `meta.tag`.
  */
-export const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
+export const PATHWAY_STAGE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
 
 /**
  * Which pathway stage each CarePlan profile belongs to (#263 phase 5).
@@ -51,12 +51,12 @@ export const PATHWAY_STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-s
  * a side effect of deleting a regex.
  */
 const CAREPLAN_PROFILE_STAGES: Record<CarePlanProfileUrl, string> = {
-  'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan':
+  'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan':
     'document-safety-actions',
-  'http://spier.org/StructureDefinition/spier-cams-stabilization-plan':
+  'http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan':
     'document-safety-actions',
-  'http://spier.org/StructureDefinition/spier-crisis-response-plan': 'document-safety-actions',
-  'http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet': 'define-risk-picture',
+  'http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan': 'document-safety-actions',
+  'http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet': 'define-risk-picture',
 }
 
 const STAGE_IDS = new Set(STAGES.map((s) => s.id))

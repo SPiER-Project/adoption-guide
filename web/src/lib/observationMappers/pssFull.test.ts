@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { mapPSSFull } from '@spier/core/lib/observationMappers/pssFull'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
-const TIER = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+const TIER = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
 function response(riskLevel?: string): QuestionnaireResponseResource {
   const item: unknown[] = [{ linkId: 'q2-ideation', answer: [{ valueCoding: { system: 'http://snomed.info/sct', code: '373066001', display: 'Yes' } }] }]
@@ -10,7 +10,7 @@ function response(riskLevel?: string): QuestionnaireResponseResource {
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/PSS-Full',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PSS-Full',
     item,
   } as QuestionnaireResponseResource
 }

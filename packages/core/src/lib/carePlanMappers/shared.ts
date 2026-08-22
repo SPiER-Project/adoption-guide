@@ -21,7 +21,7 @@ export type { QuestionnaireResponseItem, QuestionnaireResponseResource } from '.
 
 /** Terminology systems a CarePlan section code can come from. */
 export const LOINC_SYSTEM = 'http://loinc.org'
-export const CAMS_SECTION_SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-section'
+export const CAMS_SECTION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section'
 /**
  * Section codes shared by the Stanley-Brown Safety Plan and the Crisis Response
  * Plan. SPiER-local: LOINC publishes nothing at safety-plan-section granularity.
@@ -30,7 +30,7 @@ export const CAMS_SECTION_SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-se
  * authority rather than "reason for living" (issue #220). See
  * ig/input/fsh/safety-plan-section.fsh for the search behind that.
  */
-export const SAFETY_PLAN_SECTION_SYSTEM = 'http://spier.org/CodeSystem/safety-plan-section'
+export const SAFETY_PLAN_SECTION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section'
 
 export interface CarePlanActivity {
   stepTitle: string

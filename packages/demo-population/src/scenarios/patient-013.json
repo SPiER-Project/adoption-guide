@@ -8,7 +8,7 @@
         "resourceType": "QuestionnaireResponse",
         "id": "p013-asq-deferred",
         "status": "stopped",
-        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "questionnaire": "http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool",
         "subject": {
           "reference": "Patient/patient-013"
         },
@@ -37,7 +37,7 @@
                 "answer": [
                   {
                     "valueCoding": {
-                      "system": "http://spier.org/CodeSystem/asq-age-group",
+                      "system": "http://thespierproject.org/fhir/CodeSystem/asq-age-group",
                       "code": "adult",
                       "display": "Adult (18+)"
                     }
@@ -57,7 +57,7 @@
         "resourceType": "QuestionnaireResponse",
         "id": "p013-asq",
         "status": "completed",
-        "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "questionnaire": "http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool",
         "subject": {
           "reference": "Patient/patient-013"
         },
@@ -122,7 +122,7 @@
                 "answer": [
                   {
                     "valueCoding": {
-                      "system": "http://spier.org/CodeSystem/asq-attempt-recency",
+                      "system": "http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency",
                       "code": "within-12-months",
                       "display": "Within last 12 months"
                     }
@@ -156,7 +156,7 @@
                 "answer": [
                   {
                     "valueCoding": {
-                      "system": "http://spier.org/CodeSystem/asq-screening-result",
+                      "system": "http://thespierproject.org/fhir/CodeSystem/asq-screening-result",
                       "code": "acute-positive",
                       "display": "Acute Positive Screen"
                     }
@@ -176,7 +176,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]
@@ -225,7 +225,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]
@@ -260,7 +260,7 @@
       "valueCodeableConcept": {
         "coding": [
           {
-            "system": "http://spier.org/CodeSystem/asq-screening-result",
+            "system": "http://thespierproject.org/fhir/CodeSystem/asq-screening-result",
             "code": "acute-positive",
             "display": "Acute Positive Screen"
           }
@@ -276,11 +276,11 @@
       "id": "p013-episode",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-suicide-risk-episode"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "track-risk-over-time",
             "display": "Track Risk Over Time"
           }
@@ -291,7 +291,7 @@
         {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/spier-episode-type",
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-episode-type",
               "code": "suicide-safer-care",
               "display": "Suicide-safer care episode"
             }
@@ -300,11 +300,11 @@
       ],
       "extension": [
         {
-          "url": "http://spier.org/StructureDefinition/episode-entry-reason",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/episode-entry-reason",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-episode-entry-reason",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-episode-entry-reason",
                 "code": "positive-screen",
                 "display": "Positive screen"
               }
@@ -312,17 +312,17 @@
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/episode-trigger",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/episode-trigger",
           "valueReference": {
             "reference": "Observation/p013-asq-result"
           }
         },
         {
-          "url": "http://spier.org/StructureDefinition/episode-current-risk-tier",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier",
           "valueCodeableConcept": {
             "coding": [
               {
-                "system": "http://spier.org/CodeSystem/spier-suicide-risk-tier",
+                "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier",
                 "code": "imminent",
                 "display": "Imminent risk"
               }
@@ -345,7 +345,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]
@@ -372,7 +372,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "document-safety-actions"
           }
         ]
@@ -410,7 +410,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "coordinate-handoffs"
           }
         ]
@@ -437,7 +437,7 @@
       "meta": {
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "coordinate-handoffs"
           }
         ]
@@ -468,11 +468,11 @@
       "id": "p013-enc-ed",
       "meta": {
         "profile": [
-          "http://spier.org/StructureDefinition/spier-encounter"
+          "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
         ],
         "tag": [
           {
-            "system": "http://spier.org/CodeSystem/spier-pathway-stage",
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
             "code": "identify-possible-risk"
           }
         ]

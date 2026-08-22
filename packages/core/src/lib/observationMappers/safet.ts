@@ -1,9 +1,9 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // SAFE-T lands DIRECTLY on the concept layer: the risk-level answer is already a
-// common suicide-risk tier code (http://spier.org/CodeSystem/spier-suicide-risk-tier),
+// common suicide-risk tier code (http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier),
 // so the derived Observation's value is that tier — no per-instrument crosswalk.
-const RISK_TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+const RISK_TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
 // Shared tier → RiskAlert level. SAFE-T's canonical tiers are low/moderate/high;
 // no-risk/imminent are handled too since the value binds to the full tier ValueSet.

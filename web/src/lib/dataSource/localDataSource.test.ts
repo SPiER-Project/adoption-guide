@@ -34,7 +34,7 @@ const userResponse: StoredResponse = {
     resourceType: 'QuestionnaireResponse',
     id: 'user-authored-1',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/PHQ-9',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
   },
 }
 

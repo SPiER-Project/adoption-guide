@@ -20,18 +20,18 @@ InstanceOf: ConceptMap
 Title: "PSS-3 Result → SPiER Suicide Risk Tier"
 Description: "Maps the two PSS-3 results (negative / positive) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off."
 Usage: #definition
-* url = "http://spier.org/ConceptMap/PSS3ResultToRiskTier"
+* url = "http://thespierproject.org/fhir/ConceptMap/PSS3ResultToRiskTier"
 * version = "1.0.0"
 * name = "PSS3ResultToRiskTier"
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
 * purpose = "Translate the SPiER-local PSS-3 result vocabulary into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume a PSS-3 result without understanding the PSS-3."
-* sourceCanonical = "http://spier.org/ValueSet/pss3-result-vs"
-* targetCanonical = "http://spier.org/ValueSet/spier-suicide-risk-tier-vs"
+* sourceCanonical = "http://thespierproject.org/fhir/ValueSet/pss3-result-vs"
+* targetCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 
-* group[0].source = "http://spier.org/CodeSystem/pss3-result"
-* group[0].target = "http://spier.org/CodeSystem/spier-suicide-risk-tier"
+* group[0].source = "http://thespierproject.org/fhir/CodeSystem/pss3-result"
+* group[0].target = "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier"
 
 * group[0].element[0].code = #negative
 * group[0].element[0].display = "Negative Screen"

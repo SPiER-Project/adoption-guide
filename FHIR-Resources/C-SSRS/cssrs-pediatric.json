@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "C-SSRS-Pediatric",
-  "url": "http://spier.org/Questionnaire/C-SSRS-Pediatric",
+  "url": "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Pediatric",
   "version": "1.0.0",
   "name": "CSSRS_Pediatric",
   "title": "Columbia-Suicide Severity Rating Scale — Pediatric / Adolescent Screener",
@@ -196,12 +196,12 @@
         { "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }
       ],
       "answerOption": [
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "low", "display": "Low Risk" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "moderate", "display": "Moderate Risk" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "high", "display": "High Risk" } }
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level", "code": "low", "display": "Low Risk" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level", "code": "moderate", "display": "Moderate Risk" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level", "code": "high", "display": "High Risk" } }
       ],
       "extension": [
-        { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "computed" },
+        { "url": "http://thespierproject.org/fhir/StructureDefinition/tier-derivation", "valueCode": "computed" },
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
           "valueCodeableConcept": {

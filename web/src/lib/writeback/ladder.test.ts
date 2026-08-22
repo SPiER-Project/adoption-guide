@@ -6,7 +6,7 @@ import type { FhirResource, ObservationResource, QuestionnaireResponseResource }
 const qr: QuestionnaireResponseResource = {
   resourceType: 'QuestionnaireResponse',
   id: 'qr-1',
-  questionnaire: 'http://spier.org/Questionnaire/PHQ-9',
+  questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
   status: 'completed',
 }
 const obs: ObservationResource[] = [{ resourceType: 'Observation', id: 'o1', status: 'final' } as ObservationResource]

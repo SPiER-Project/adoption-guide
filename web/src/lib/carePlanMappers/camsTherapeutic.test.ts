@@ -11,7 +11,7 @@ describe('generateTherapeuticCarePlan', () => {
     const fullResponse: QuestionnaireResponseResource = {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      questionnaire: 'http://spier.org/Questionnaire/CamsTherapeuticWorksheet',
+      questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CamsTherapeuticWorksheet',
       item: [
         simple('story-narrative', 'Patient has been feeling overwhelmed at work.'),
         simple('dd-thoughts', 'I am a failure'),
@@ -34,7 +34,7 @@ describe('generateTherapeuticCarePlan', () => {
     expect(activities).toHaveLength(4)
 
     const meta = resource.meta as { profile?: string[] }
-    expect(meta.profile).toContain('http://spier.org/StructureDefinition/spier-cams-therapeutic-worksheet')
+    expect(meta.profile).toContain('http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet')
 
     expect(activities[0].stepTitle).toBe('Personal Narrative')
     expect(activities[0].description).toBe('Patient has been feeling overwhelmed at work.')
@@ -59,12 +59,12 @@ describe('generateTherapeuticCarePlan', () => {
     const response = {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      questionnaire: 'http://spier.org/Questionnaire/CAMS-Therapeutic-Worksheet',
+      questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CAMS-Therapeutic-Worksheet',
       item: [simple('story-narrative', 'Overwhelmed at work.')],
     } as QuestionnaireResponseResource
 
     const { activities, resource } = generateTherapeuticCarePlan(response)
-    const SYSTEM = 'http://spier.org/CodeSystem/cams-careplan-section'
+    const SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cams-careplan-section'
 
     // All four are SPiER-local: CAMS's narrative and driver constructs have no
     // published LOINC equivalent. A text-only detail.code no longer conforms to
@@ -93,7 +93,7 @@ describe('generateTherapeuticCarePlan', () => {
     const empty: QuestionnaireResponseResource = {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
-      questionnaire: 'http://spier.org/Questionnaire/CamsTherapeuticWorksheet',
+      questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CamsTherapeuticWorksheet',
       item: [],
     } as QuestionnaireResponseResource
 

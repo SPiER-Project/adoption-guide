@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "C-SSRS-Since-Last-Contact",
-  "url": "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact",
+  "url": "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Since-Last-Contact",
   "version": "1.0.0",
   "name": "CSSRS_Since_Last_Contact",
   "title": "Columbia-Suicide Severity Rating Scale — Since Last Visit / Since Last Contact",
@@ -36,11 +36,11 @@
           "required": true,
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item",
               "code": "wish-to-be-dead",
               "display": "Wish to be dead (since last contact)",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
               ]
             }
           ],
@@ -59,11 +59,11 @@
           "required": true,
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item",
               "code": "non-specific-active-thoughts",
               "display": "Non-specific active suicidal thoughts (since last contact)",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
               ]
             }
           ],
@@ -82,11 +82,11 @@
           "required": true,
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item",
               "code": "active-ideation-any-methods",
               "display": "Active suicidal ideation with any methods, without intent to act (since last contact)",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
               ]
             }
           ],
@@ -108,11 +108,11 @@
           "required": true,
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item",
               "code": "active-ideation-some-intent",
               "display": "Active suicidal ideation with some intent to act, without specific plan (since last contact)",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
               ]
             }
           ],
@@ -134,11 +134,11 @@
           "required": true,
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item",
               "code": "active-ideation-plan-and-intent",
               "display": "Active suicidal ideation with specific plan and intent (since last contact)",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
               ]
             }
           ],
@@ -170,11 +170,11 @@
           "required": true,
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/cssrs-interval-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item",
               "code": "suicidal-behavior",
               "display": "Suicidal behavior (since last contact)",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
               ]
             }
           ],
@@ -198,12 +198,12 @@
         { "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }
       ],
       "answerOption": [
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "low", "display": "Low Risk" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "moderate", "display": "Moderate Risk" } },
-        { "valueCoding": { "system": "http://spier.org/CodeSystem/cssrs-risk-level", "code": "high", "display": "High Risk" } }
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level", "code": "low", "display": "Low Risk" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level", "code": "moderate", "display": "Moderate Risk" } },
+        { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level", "code": "high", "display": "High Risk" } }
       ],
       "extension": [
-        { "url": "http://spier.org/StructureDefinition/tier-derivation", "valueCode": "computed" },
+        { "url": "http://thespierproject.org/fhir/StructureDefinition/tier-derivation", "valueCode": "computed" },
         {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
           "valueCodeableConcept": {

@@ -4,7 +4,7 @@ import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 
 // Answers built from the Since-Last-Contact Questionnaire (SNOMED-coded Yes/No)
 // rather than hand-written booleans — see __fixtures__/nativeQr.ts, issue #327.
-const CSSRS_SLC = 'http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact'
+const CSSRS_SLC = 'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Since-Last-Contact'
 const slvResponse = (answers: Record<string, boolean>) => nativeQr(CSSRS_SLC, answers)
 
 function riskObs(r: ReturnType<typeof mapCSSRSSinceLastContact>) {
@@ -62,7 +62,7 @@ describe('mapCSSRSSinceLastContact', () => {
     const perItem = r.observations.filter(o => o.code?.coding?.[0]?.code !== '93374-7')
     expect(perItem).toHaveLength(6)
     for (const obs of perItem) {
-      expect(obs.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/cssrs-interval-item')
+      expect(obs.code?.coding?.[0]?.system).toBe('http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item')
     }
   })
 

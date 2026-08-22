@@ -5,7 +5,7 @@ import { nativeQr, booleanQr } from './__fixtures__/nativeQr'
 // C-SSRS Full asks each ideation level as a lifetime/recent pair. Every one is a
 // `choice` item bound to SNOMED Yes/No, so the answers here are built from the
 // Questionnaire — see __fixtures__/nativeQr.ts and issue #327.
-const CSSRS_FULL = 'http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent'
+const CSSRS_FULL = 'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Full-Lifetime-Recent'
 type FullAnswers = Record<string, boolean>
 
 const fullResponse = (answers: FullAnswers) => nativeQr(CSSRS_FULL, answers)

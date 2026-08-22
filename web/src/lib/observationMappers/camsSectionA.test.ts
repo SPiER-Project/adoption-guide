@@ -8,7 +8,7 @@ function camsAResponse(scores: { 1: number; 2: number; 3: number; 4: number; 5: 
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: 'http://spier.org/Questionnaire/CAMS-SSF5-SectionA',
+    questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA',
     item: [
       {
         linkId: 'core-ratings',

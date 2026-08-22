@@ -28,7 +28,7 @@ const populationDir = join(root, 'packages/demo-population/src')
 const scenariosDir = join(populationDir, 'scenarios')
 const fshPath = join(root, 'ig/input/fsh/spier-codesystem.fsh')
 
-const STAGE_SYSTEM = 'http://spier.org/CodeSystem/spier-pathway-stage'
+const STAGE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }

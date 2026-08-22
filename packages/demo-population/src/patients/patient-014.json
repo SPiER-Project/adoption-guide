@@ -7,7 +7,7 @@
   },
   "identifier": [
     {
-      "system": "http://spier.org/identifier/mrn",
+      "system": "http://thespierproject.org/fhir/identifier/mrn",
       "value": "11014"
     }
   ],

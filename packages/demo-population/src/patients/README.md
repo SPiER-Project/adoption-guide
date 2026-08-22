@@ -27,7 +27,7 @@ vacuously.
 
 ## ⚠️ The MRN system is deliberately not an example.org URL
 
-`http://spier.org/identifier/mrn`. This started as
+`http://thespierproject.org/fhir/identifier/mrn`. This started as
 `http://hospital.example.org/mrn`, on the reasoning that `example.org` is right
 for synthetic data. The HL7 validator disagreed, 14 times:
 

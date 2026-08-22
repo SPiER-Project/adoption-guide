@@ -1,12 +1,12 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // The BSSA has NO published panel or per-item LOINC codes, so the discrete
-// interview findings bind to the SPiER-local http://spier.org/CodeSystem/bssa-item
+// interview findings bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/bssa-item
 // (mirroring the ASQ asq-item pattern). These codes MUST stay in sync with the
 // Questionnaire item codes (FHIR-Resources/BSSA/bssa-questionnaire.json) and the
 // anti-drift check web/scripts/check-observation-extract.mjs EXPECTED list.
-const BSSA_ITEM_SYSTEM = 'http://spier.org/CodeSystem/bssa-item'
-const BSSA_DISPOSITION_SYSTEM = 'http://spier.org/CodeSystem/bssa-disposition'
+const BSSA_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/bssa-item'
+const BSSA_DISPOSITION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition'
 
 // Disposition → risk-alert level. Mirrors the crosswalk-bssa.fsh tier mapping
 // (imminent/high/moderate/no-risk) collapsed onto the RiskAlert level scale.

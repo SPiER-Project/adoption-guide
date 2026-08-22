@@ -11,8 +11,8 @@
 // shared SPiER-local CodeSystem (none/low/moderate/high).
 //
 // Existing Questionnaires:
-//   http://spier.org/Questionnaire/C-SSRS-Screener|1.0.0
-//   http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0
 // =============================================================
 
 
@@ -147,7 +147,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer C-SSRS Screener"
 Description: "Capture a 6-item Columbia Suicide Severity Rating Scale screener and derive a suicide-risk-level Observation."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCSSRSScreener"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCSSRSScreener"
 * name = "AdministerCSSRSScreener"
 * version = "0.1.0"
 * title = "Administer C-SSRS Screener"
@@ -161,7 +161,7 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Screener questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Screener|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCSSRS
 
@@ -173,7 +173,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer C-SSRS Full (Lifetime/Recent)"
 Description: "Capture the full Columbia Suicide Severity Rating Scale with both lifetime and recent ideation/behavior tracking, plus an intensity section, and derive a suicide-risk-level Observation."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCSSRSFull"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCSSRSFull"
 * name = "AdministerCSSRSFull"
 * version = "0.1.0"
 * title = "Administer C-SSRS Full (Lifetime/Recent)"
@@ -187,7 +187,7 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Full (Lifetime/Recent) questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Full-Lifetime-Recent|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCSSRS
 
@@ -204,7 +204,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer C-SSRS Since Last Visit / Since Last Contact"
 Description: "Capture a C-SSRS Since Last Visit / Since Last Contact screen (the 6-item set framed to the interval since the patient's prior contact) and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCSSRSSinceLastContact"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCSSRSSinceLastContact"
 * name = "AdministerCSSRSSinceLastContact"
 * version = "1.0.0"
 * title = "Administer C-SSRS Since Last Visit / Since Last Contact"
@@ -218,7 +218,7 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Since Last Visit / Since Last Contact questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Since-Last-Contact|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCSSRS
 
@@ -237,7 +237,7 @@ InstanceOf: ActivityDefinition
 Title: "Administer C-SSRS Pediatric / Adolescent Version"
 Description: "Capture a C-SSRS screener for pediatric/adolescent patients and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/AdministerCSSRSPediatric"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCSSRSPediatric"
 * name = "AdministerCSSRSPediatric"
 * version = "1.0.0"
 * title = "Administer C-SSRS Pediatric / Adolescent Version"
@@ -251,7 +251,7 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "C-SSRS Pediatric / Adolescent questionnaire"
-* relatedArtifact[=].resource = "http://spier.org/Questionnaire/C-SSRS-Pediatric|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Pediatric|1.0.0"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * insert LicensingCSSRS
 
@@ -298,7 +298,7 @@ Title: "Example — C-SSRS Screener QuestionnaireResponse (high risk)"
 Description: "Source C-SSRS Screener QuestionnaireResponse with high-risk ideation endorsed. The derived SPiERCSSRSRiskLevel and the harmonized concept Observation reference this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/C-SSRS-Screener"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener"
 * subject = Reference(Patient/example)
 * authored = "2026-03-19T11:00:00Z"
 // Nesting mirrors the Questionnaire (ideation-section > q1–q5,
@@ -346,7 +346,7 @@ Title: "Example — C-SSRS Since Last Visit QuestionnaireResponse (moderate risk
 Description: "Source C-SSRS Since Last Visit QuestionnaireResponse: active suicidal thoughts (q2) with a method (q3) endorsed over the interval, no intent. The derived SPiERCSSRSRiskLevel references this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Since-Last-Contact"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T12:00:00Z"
 * item[+].linkId = "ideation-section"
@@ -391,7 +391,7 @@ Title: "Example — C-SSRS Pediatric QuestionnaireResponse (low risk)"
 Description: "Source pediatric/adolescent C-SSRS Screener QuestionnaireResponse: wish to be dead (q1) endorsed, no active thoughts. The derived SPiERCSSRSRiskLevel references this via Observation.derivedFrom."
 Usage: #example
 * status = #completed
-* questionnaire = "http://spier.org/Questionnaire/C-SSRS-Pediatric"
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/C-SSRS-Pediatric"
 * subject = Reference(Patient/example)
 * authored = "2026-07-15T13:30:00Z"
 * item[+].linkId = "ideation-section"

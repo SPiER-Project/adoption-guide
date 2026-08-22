@@ -42,7 +42,7 @@ const SCHEDULE = resolve(fhirDir, 'PlanDefinition-SPiERReassessmentSchedule.json
 const TIER_CS = resolve(fhirDir, 'CodeSystem-spier-suicide-risk-tier.json')
 const CQL = resolve(here, '../../ig/input/cql/SPiERSuicideSaferCareMeasures.cql')
 
-const TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+const TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
 /** UCUM codes packages/core/src/lib/reassessment.ts knows how to convert. Keep in step. */
 const READABLE_UNITS = new Set(['d', 'wk', 'mo', 'a'])

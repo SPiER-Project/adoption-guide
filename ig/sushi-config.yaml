@@ -6,11 +6,11 @@
 #
 # Status: ci-build / draft. Not yet balloted or formally published.
 
-id: spier.ig
+id: thespierproject.fhir
 # Canonical root matches the existing FHIR-Resources artifacts (Questionnaire
-# url = http://spier.org/Questionnaire/...) and the observationMappers code
+# url = http://thespierproject.org/fhir/Questionnaire/...) and the observationMappers code
 # systems. Keep the IG and runtime data in the same namespace.
-canonical: http://spier.org
+canonical: http://thespierproject.org/fhir
 name: SPiER
 title: The SPiER Project
 status: draft

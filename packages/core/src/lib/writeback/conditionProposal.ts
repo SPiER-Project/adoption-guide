@@ -21,7 +21,7 @@ import type { FhirResource } from '../../types/fhir'
 import type { RiskAlert } from '../observationMappers'
 
 /** Canonical URL of the SPiER Suicide Risk Tier CodeSystem (concept-layer.fsh). */
-export const SPIER_RISK_TIER_SYSTEM = 'http://spier.org/CodeSystem/spier-suicide-risk-tier'
+export const SPIER_RISK_TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
 /** One SPiER suicide-risk tier code + display (concept-layer.fsh). */
 interface RiskTier {

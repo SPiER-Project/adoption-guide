@@ -137,7 +137,7 @@ for (const m of indexSrc.matchAll(/import\s*\{([^}]+)\}\s*from\s*'\.\/([\w-]+)'/
 
 /** `[`${SPIER_Q}/Slug`]: mapX,` → file → canonical URLs */
 const canonicalsForFile = new Map()
-const SPIER_Q = 'http://spier.org/Questionnaire'
+const SPIER_Q = 'http://thespierproject.org/fhir/Questionnaire'
 for (const m of indexSrc.matchAll(/\[`\$\{SPIER_Q\}\/([^`]+)`\]:\s*(\w+)/g)) {
   const url = `${SPIER_Q}/${m[1]}`
   const file = fileForSymbol.get(m[2])

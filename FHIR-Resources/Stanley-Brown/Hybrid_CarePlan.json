@@ -3,7 +3,7 @@
   "id": "stanley-brown-safety-plan-hybrid-example",
   "meta": {
     "profile": [
-      "http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan"
+      "http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan"
     ]
   },
   "text": {
@@ -34,7 +34,7 @@
     {
       "coding": [
         {
-          "system": "http://spier.org/CodeSystem/spier-concept-domain",
+          "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
           "code": "suicide-risk",
           "display": "Suicide risk"
         }
@@ -61,12 +61,12 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/safety-plan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section",
               "code": "warning-signs",
               "display": "Warning Signs",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -83,12 +83,12 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/safety-plan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section",
               "code": "internal-coping",
               "display": "Internal Coping Strategies",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -105,12 +105,12 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/safety-plan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section",
               "code": "social-distraction",
               "display": "Social Distractions",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -127,12 +127,12 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/safety-plan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section",
               "code": "crisis-support",
               "display": "Crisis Support Contacts",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -149,12 +149,12 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/safety-plan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section",
               "code": "professional-support",
               "display": "Professional Support",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -171,12 +171,12 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/safety-plan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section",
               "code": "lethal-means-safety",
               "display": "Lethal Means Safety",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]
@@ -193,12 +193,12 @@
         "code": {
           "coding": [
             {
-              "system": "http://spier.org/CodeSystem/safety-plan-section",
+              "system": "http://thespierproject.org/fhir/CodeSystem/safety-plan-section",
               "code": "reason-for-living",
               "display": "Reason for Living",
               "extension": [
                 {
-                  "url": "http://spier.org/StructureDefinition/coding-verification-status",
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
                   "valueCode": "no-standard-binding"
                 }
               ]

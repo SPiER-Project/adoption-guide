@@ -1,7 +1,7 @@
 {
   "resourceType": "Questionnaire",
   "id": "BSSA",
-  "url": "http://spier.org/Questionnaire/BSSA",
+  "url": "http://thespierproject.org/fhir/Questionnaire/BSSA",
   "version": "1.0.0",
   "name": "BSSA",
   "title": "BSSA — Brief Suicide Safety Assessment (NIMH)",
@@ -66,12 +66,12 @@
   ],
   "code": [
     {
-      "system": "http://spier.org/CodeSystem/bssa-panel",
+      "system": "http://thespierproject.org/fhir/CodeSystem/bssa-panel",
       "code": "bssa",
       "display": "Brief Suicide Safety Assessment (BSSA) panel",
       "extension": [
         {
-          "url": "http://spier.org/StructureDefinition/coding-verification-status",
+          "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
           "valueCode": "no-standard-binding"
         }
       ]
@@ -128,11 +128,11 @@
               "required": true,
               "code": [
                 {
-                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "system": "http://thespierproject.org/fhir/CodeSystem/bssa-item",
                   "code": "current-ideation",
                   "display": "Current suicidal ideation (right now)",
                   "extension": [
-                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                    { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
                   ]
                 }
               ],
@@ -158,11 +158,11 @@
               "required": true,
               "code": [
                 {
-                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "system": "http://thespierproject.org/fhir/CodeSystem/bssa-item",
                   "code": "suicide-plan",
                   "display": "Has a suicide plan",
                   "extension": [
-                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                    { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
                   ]
                 }
               ],
@@ -187,11 +187,11 @@
               "required": false,
               "code": [
                 {
-                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "system": "http://thespierproject.org/fhir/CodeSystem/bssa-item",
                   "code": "intent-scale",
                   "display": "Intent to die (0–10 self-rating)",
                   "extension": [
-                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                    { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
                   ]
                 }
               ],
@@ -225,11 +225,11 @@
               "required": true,
               "code": [
                 {
-                  "system": "http://spier.org/CodeSystem/bssa-item",
+                  "system": "http://thespierproject.org/fhir/CodeSystem/bssa-item",
                   "code": "past-suicide-attempt",
                   "display": "History of suicide attempt",
                   "extension": [
-                    { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                    { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
                   ]
                 }
               ],
@@ -259,17 +259,17 @@
           "required": false,
           "repeats": true,
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "depression", "display": "Depression" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "anxiety", "display": "Anxiety" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "impulsivity", "display": "Impulsivity / recklessness" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "hopelessness", "display": "Hopelessness" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "anhedonia", "display": "Anhedonia" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "isolation", "display": "Isolation / social withdrawal" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "irritability", "display": "Irritability" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "substance-alcohol-use", "display": "Substance and alcohol use" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "sleep-disturbance", "display": "Sleep disturbance" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "appetite-change", "display": "Appetite change" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-symptom", "code": "other", "display": "Other concerning change in thinking or feeling" } }
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "depression", "display": "Depression" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "anxiety", "display": "Anxiety" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "impulsivity", "display": "Impulsivity / recklessness" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "hopelessness", "display": "Hopelessness" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "anhedonia", "display": "Anhedonia" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "isolation", "display": "Isolation / social withdrawal" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "irritability", "display": "Irritability" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "substance-alcohol-use", "display": "Substance and alcohol use" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "sleep-disturbance", "display": "Sleep disturbance" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "appetite-change", "display": "Appetite change" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-symptom", "code": "other", "display": "Other concerning change in thinking or feeling" } }
           ],
           "extension": [
             {
@@ -365,11 +365,11 @@
           "required": false,
           "code": [
             {
-              "system": "http://spier.org/CodeSystem/bssa-item",
+              "system": "http://thespierproject.org/fhir/CodeSystem/bssa-item",
               "code": "needs-help-to-be-safe",
               "display": "Reports needing help to stay safe",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "no-standard-binding" }
               ]
             }
           ],
@@ -399,15 +399,15 @@
               "code": "93374-7",
               "display": "Suicide risk level",
               "extension": [
-                { "url": "http://spier.org/StructureDefinition/coding-verification-status", "valueCode": "verified" }
+                { "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status", "valueCode": "verified" }
               ]
             }
           ],
           "answerOption": [
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "emergency-psychiatric-evaluation", "display": "Emergency psychiatric evaluation (imminent risk — send to ED for evaluation)" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "further-evaluation-necessary", "display": "Further evaluation of risk is necessary (safety plan + mental health referral, preferably within 72 hours)" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "non-urgent-followup", "display": "Non-urgent mental health follow-up (safety plan + mental health referral)" } },
-            { "valueCoding": { "system": "http://spier.org/CodeSystem/bssa-disposition", "code": "no-intervention", "display": "No further intervention necessary at this time" } }
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-disposition", "code": "emergency-psychiatric-evaluation", "display": "Emergency psychiatric evaluation (imminent risk — send to ED for evaluation)" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-disposition", "code": "further-evaluation-necessary", "display": "Further evaluation of risk is necessary (safety plan + mental health referral, preferably within 72 hours)" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-disposition", "code": "non-urgent-followup", "display": "Non-urgent mental health follow-up (safety plan + mental health referral)" } },
+            { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/bssa-disposition", "code": "no-intervention", "display": "No further intervention necessary at this time" } }
           ],
           "extension": [
             {

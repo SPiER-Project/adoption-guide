@@ -24,7 +24,7 @@ Actions). An alternative/complement to the Stanley-Brown Safety Plan (TL-007).
 | 5. Professional & crisis support (988, Crisis Text Line, ED) | `professional-support` |
 
 Section identity comes from the **SPiER-local** CodeSystem
-`http://spier.org/CodeSystem/safety-plan-section`, shared with the Stanley-Brown Safety
+`http://thespierproject.org/fhir/CodeSystem/safety-plan-section`, shared with the Stanley-Brown Safety
 Plan — the CRP's five sections are a subset of Stanley-Brown's seven. Each activity also
 names the section in `detail.code.text`, and at document level the CarePlan carries LOINC
 `87626-8` "Suicide prevention note" in `CarePlan.category`.

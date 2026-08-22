@@ -145,7 +145,7 @@ InstanceOf: Library
 Title: "Library — SPiER Suicide-Safer Care Measure Logic"
 Description: "The population criteria for all seven SPiER suicide-safer care measures, in CQL. Every `Measure.criteria.expression` in this file names a definition from this library."
 Usage: #definition
-* url = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* url = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * name = "SPiERSuicideSaferCareMeasures"
 * version = "1.0.0"
 * title = "SPiER Suicide-Safer Care Measure Logic"
@@ -171,13 +171,13 @@ InstanceOf: Measure
 Title: "Measure — Positive Screen Followed by Suicide-Risk Assessment"
 Description: "Proportion of patients with a positive suicide-risk screen who received a clarifying assessment within 24 hours."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERScreenToAssessment"
+* url = "http://thespierproject.org/fhir/Measure/SPiERScreenToAssessment"
 * name = "SPiERScreenToAssessment"
 * version = "1.0.0"
 * title = "Positive Screen Followed by Suicide-Risk Assessment"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a positive suicide-risk screen who received a clarifying suicide-risk assessment within 24 hours. Both the screen and the assessment are SPiERSuicideRiskConcept Observations; they are distinguished by the SPiER pathway-stage tag (identify-possible-risk vs clarify-risk) rather than by instrument, so substituting one screening tool for another does not break the measure."
 * purpose = "A positive screen with no follow-up assessment is the single most consequential gap in a suicide-safer care pathway — the patient has been identified and then dropped. This measures that gap directly."
@@ -213,13 +213,13 @@ InstanceOf: Measure
 Title: "Measure — Current Risk Level Documented"
 Description: "Proportion of patients in a suicide-safer care episode carrying a documented current risk level."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERRiskStatusDocumented"
+* url = "http://thespierproject.org/fhir/Measure/SPiERRiskStatusDocumented"
 * name = "SPiERRiskStatusDocumented"
 * version = "1.0.0"
 * title = "Current Risk Level Documented"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients in a suicide-safer care episode for whom a current suicide-risk level is documented as discrete, coded data. The numerator requires a SPiERSuicideRiskConcept Observation dated inside the episode — NOT merely the episode-current-risk-tier extension, which is a denormalized cache and could be stale or hand-set. Measuring the Observation measures the source of truth."
 * purpose = "Risk level recorded only in narrative cannot drive a work queue, a CDS card, or a handoff. This measures whether it exists as data."
@@ -267,13 +267,13 @@ InstanceOf: Measure
 Title: "Measure — Safety Plan Completed Before Discharge"
 Description: "Proportion of patients whose care transition was preceded by a completed safety plan, and the proportion whose own copy is documented."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERSafetyPlanBeforeDischarge"
+* url = "http://thespierproject.org/fhir/Measure/SPiERSafetyPlanBeforeDischarge"
 * name = "SPiERSafetyPlanBeforeDischarge"
 * version = "1.0.0"
 * title = "Safety Plan Completed Before Discharge"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "Two related proportions over the same denominator of patients with a documented care transition: (1) a safety plan — Stanley-Brown or Crisis Response Plan — existed and was active at or before the transition; (2) the patient's own copy is documented, evidenced by a discharge packet carrying the handoff-content item `safety-plan-copy`. They are separate groups because a completed plan the patient leaves without is a distinct and well-documented failure."
 * purpose = "Safety planning is only protective if the plan exists before the patient leaves and travels with them. This measures both halves."
@@ -338,13 +338,13 @@ InstanceOf: Measure
 Title: "Measure — Lethal Means Counseling Completed"
 Description: "Proportion of patients in a suicide-safer care episode who received lethal-means safety counseling."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERLethalMeansCounselingCompleted"
+* url = "http://thespierproject.org/fhir/Measure/SPiERLethalMeansCounselingCompleted"
 * name = "SPiERLethalMeansCounselingCompleted"
 * version = "1.0.0"
 * title = "Lethal Means Counseling Completed"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients in a suicide-safer care episode for whom a SPiERLethalMeansCounseling Procedure was completed during the episode. Counts the counseling Procedure, not the per-method SPiERMeansSafetyAction Observations: whether counseling happened is the process measure, while which methods were addressed and secured is richer detail a site can report on separately."
 * purpose = "Means-safety counseling has among the strongest evidence bases of any suicide-prevention intervention and is among the least reliably delivered. Measuring it is the point of coding it."
@@ -416,13 +416,13 @@ InstanceOf: Measure
 Title: "Measure — Follow-Up Timeliness After a Care Transition"
 Description: "Proportion of patients with outreach within 48 hours, and an attended follow-up within 7 and 30 days, after a documented care transition."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERFollowUpTimeliness"
+* url = "http://thespierproject.org/fhir/Measure/SPiERFollowUpTimeliness"
 * name = "SPiERFollowUpTimeliness"
 * version = "1.0.0"
 * title = "Follow-Up Timeliness After a Care Transition"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "Three timeliness proportions over one denominator of patients with a documented care transition: outreach attempted within 48 hours, and a follow-up visit COMPLETED within 7 days and within 30 days. The appointment groups require Appointment.status = fulfilled rather than booked — a scheduled visit the patient did not attend is not follow-up, and distinguishing the two is precisely what TL-034 (Follow-Up Appointment Tracking) exists to do. The 48-hour group counts an attempt rather than a successful contact, because the attempt is what the care team controls; a stricter reached-only variant is a one-line change to the CQL and is described on the measurement page."
 * purpose = "The days immediately after discharge carry the highest suicide risk of any period in the pathway. These three windows are the standard Zero Suicide follow-up expectations."
@@ -514,13 +514,13 @@ InstanceOf: Measure
 Title: "Measure — Caring Contact Adherence"
 Description: "Proportion of patients sent a caring contact within 30 days of a care transition, excluding those who opted out."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERCaringContactAdherence"
+* url = "http://thespierproject.org/fhir/Measure/SPiERCaringContactAdherence"
 * name = "SPiERCaringContactAdherence"
 * version = "1.0.0"
 * title = "Caring Contact Adherence"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a documented care transition who were sent at least one SPiERCaringContact within 30 days. Patients who have opted out of the caring-contacts series are a DENOMINATOR EXCLUSION rather than a numerator failure — honoring an opt-out is correct behavior, and a measure that punished it would push sites to ignore the patient's wish. This is the reason the caring-contact-opt-out extension exists on the contact resource."
 * purpose = "Caring contacts are one of the few interventions with direct randomized evidence for reducing repeat suicide attempts, and adherence to the sending schedule is the whole intervention."
@@ -565,13 +565,13 @@ InstanceOf: Measure
 Title: "Measure — Suicide-Safety Referral Loop Closure"
 Description: "Proportion of patients whose suicide-safety referrals were tracked through to completion rather than left at sent."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERReferralCompletion"
+* url = "http://thespierproject.org/fhir/Measure/SPiERReferralCompletion"
 * name = "SPiERReferralCompletion"
 * version = "1.0.0"
 * title = "Suicide-Safety Referral Loop Closure"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with a SPiERSafetyReferral authored during the measurement period whose referrals all reached status completed. This measure is only computable because TL-017 is modelled as a ServiceRequest: ServiceRequest.status carries draft → active → completed natively, whereas a Communication records only that a referral was sent. Referrals marked entered-in-error are excluded; revoked referrals are NOT excluded, because a referral withdrawn without an alternative being arranged is a genuine loop failure."
 * purpose = "A sent referral is not a received one. Loop closure is where suicide-safety handoffs most often fail silently."
@@ -647,13 +647,13 @@ InstanceOf: Measure
 Title: "Measure — Risk Reassessment On Time"
 Description: "Proportion of patients whose most recent suicide-risk reassessment happened within the interval published for the risk tier they were in."
 Usage: #definition
-* url = "http://spier.org/Measure/SPiERReassessmentOnTime"
+* url = "http://thespierproject.org/fhir/Measure/SPiERReassessmentOnTime"
 * name = "SPiERReassessmentOnTime"
 * version = "1.0.0"
 * title = "Risk Reassessment On Time"
 * status = #draft
 * experimental = true
-* library = "http://spier.org/Library/SPiERSuicideSaferCareMeasures"
+* library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * publisher = "SPiER (HTD Health)"
 * description = "The proportion of patients with at least two SPiERSuicideRiskConcept Observations in the measurement period whose most recent interval between assessments was no longer than the cadence published for the tier recorded on the EARLIER of the two — high 7 days, moderate 14 days, low 30 days, per PlanDefinition/SPiERReassessmentSchedule. Reading the tier off the earlier assessment is deliberate: the interval a site owed is the one that applied when the clock started, not the patient's tier today. Patients whose earlier assessment records a tier with no published cadence (imminent, no-risk) are a denominator exclusion rather than a failure — imminent risk is handled by escalation, and a no-risk patient is not on the pathway."
 * purpose = "Reassessment cadence is the one pathway obligation that is invisible without a schedule: nothing about a patient's chart says a review was late. This measure makes lateness reportable, and is the reason PlanDefinition/SPiERReassessmentSchedule exists as data rather than as documentation."
@@ -703,7 +703,7 @@ InstanceOf: ActivityDefinition
 Title: "Report Suicide-Safer Care KPIs / Measures"
 Description: "Calculate the SPiER suicide-safer care measures and emit MeasureReports."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ReportSuicideSaferCareMeasures"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ReportSuicideSaferCareMeasures"
 * name = "ReportSuicideSaferCareMeasures"
 * version = "1.0.0"
 * title = "Report Suicide-Safer Care KPIs / Measures"
@@ -723,7 +723,7 @@ InstanceOf: ActivityDefinition
 Title: "Provide Reporting Dashboard / Aggregate View"
 Description: "Render the suicide-safer care measures and pathway activity as a filterable aggregate view. Produces no FHIR resource — it is a rendering of MeasureReports and the registry query."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ProvideReportingDashboard"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ProvideReportingDashboard"
 * name = "ProvideReportingDashboard"
 * version = "1.0.0"
 * title = "Provide Reporting Dashboard / Aggregate View"
@@ -743,7 +743,7 @@ InstanceOf: ActivityDefinition
 Title: "Export Data / Analytics Extract"
 Description: "Export the suicide-safer care artifacts as structured, timestamped data for analysis. A serialization of existing resources, not a new artifact."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ExportSuicideSaferCareData"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ExportSuicideSaferCareData"
 * name = "ExportSuicideSaferCareData"
 * version = "1.0.0"
 * title = "Export Data / Analytics Extract"
@@ -763,7 +763,7 @@ InstanceOf: ActivityDefinition
 Title: "Share Data / Interoperability Output"
 Description: "Share suicide-safer care data outside the EHR with structure, provenance, and consent restrictions preserved."
 Usage: #definition
-* url = "http://spier.org/ActivityDefinition/ShareSuicideSaferCareData"
+* url = "http://thespierproject.org/fhir/ActivityDefinition/ShareSuicideSaferCareData"
 * name = "ShareSuicideSaferCareData"
 * version = "1.0.0"
 * title = "Share Data / Interoperability Output"
@@ -834,7 +834,7 @@ Description: "One patient's follow-up timeliness, with evaluatedResource pointin
 Usage: #example
 * status = #complete
 * type = #individual
-* measure = "http://spier.org/Measure/SPiERFollowUpTimeliness"
+* measure = "http://thespierproject.org/fhir/Measure/SPiERFollowUpTimeliness"
 * subject = Reference(Patient/example)
 * date = "2026-08-01T00:00:00Z"
 * period.start = "2026-07-01"
@@ -904,7 +904,7 @@ Description: "A program-level summary across a cohort of transitions, showing th
 Usage: #example
 * status = #complete
 * type = #summary
-* measure = "http://spier.org/Measure/SPiERFollowUpTimeliness"
+* measure = "http://thespierproject.org/fhir/Measure/SPiERFollowUpTimeliness"
 * date = "2026-08-01T00:00:00Z"
 * reporter.display = "Riverside Health — Behavioral Health Service Line"
 * period.start = "2026-07-01"
@@ -967,7 +967,7 @@ Description: "Shows the opt-out exclusion doing its job. 9 of the 64 patients in
 Usage: #example
 * status = #complete
 * type = #summary
-* measure = "http://spier.org/Measure/SPiERCaringContactAdherence"
+* measure = "http://thespierproject.org/fhir/Measure/SPiERCaringContactAdherence"
 * date = "2026-08-01T00:00:00Z"
 * reporter.display = "Riverside Health — Behavioral Health Service Line"
 * period.start = "2026-07-01"

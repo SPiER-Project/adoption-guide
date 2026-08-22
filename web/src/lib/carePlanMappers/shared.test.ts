@@ -106,7 +106,7 @@ describe('extractPairs (fieldA/fieldB under a repeating group)', () => {
 })
 
 describe('makeSuicidePreventionCarePlan (shell factory)', () => {
-  const profileUrl = 'http://spier.org/StructureDefinition/spier-stanley-brown-safety-plan' as const
+  const profileUrl = 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan' as const
 
   function build(hasAnyData: boolean) {
     return makeSuicidePreventionCarePlan({
@@ -115,7 +115,7 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
       noteText: 'DEMO note',
       hasAnyData,
       activities: [
-        { stepTitle: 'Coded Step', sectionCode: { system: 'http://spier.org/CodeSystem/safety-plan-section', code: 'lethal-means-safety' }, description: 'coded desc' },
+        { stepTitle: 'Coded Step', sectionCode: { system: 'http://thespierproject.org/fhir/CodeSystem/safety-plan-section', code: 'lethal-means-safety' }, description: 'coded desc' },
         { stepTitle: 'Text-only Step', description: 'text desc' },
       ],
     })
@@ -137,7 +137,7 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
     // until #302's validator gate caught it.
     expect(category).toHaveLength(2)
     expect(category[1].coding?.[0]).toMatchObject({
-      system: 'http://spier.org/CodeSystem/spier-concept-domain',
+      system: 'http://thespierproject.org/fhir/CodeSystem/spier-concept-domain',
       code: 'suicide-risk',
     })
   })
@@ -169,7 +169,7 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
       detail?: { code?: { coding?: Array<{ system?: string; code?: string }>; text?: string }; description?: string; status?: string }
     }>
     // Coded activity → section coding + text label
-    expect(activity[0].detail?.code?.coding?.[0]?.system).toBe('http://spier.org/CodeSystem/safety-plan-section')
+    expect(activity[0].detail?.code?.coding?.[0]?.system).toBe('http://thespierproject.org/fhir/CodeSystem/safety-plan-section')
     expect(activity[0].detail?.code?.coding?.[0]?.code).toBe('lethal-means-safety')
     expect(activity[0].detail?.code?.text).toBe('Coded Step')
     expect(activity[0].detail?.description).toBe('coded desc')

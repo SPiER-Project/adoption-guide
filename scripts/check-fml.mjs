@@ -101,7 +101,7 @@ const PARITY_SOURCES = [
   { label: 'conformant (item.item — what SPiER\'s form emits)', path: join(FIXTURES_DIR, 'questionnaireresponse-conformant.json') },
   { label: 'legacy (answer.item — non-conformant, still accepted)', path: join(FIXTURES_DIR, 'questionnaireresponse.json') },
 ]
-const PARITY_MAP = 'http://spier.org/StructureMap/StanleyBrownQRToCarePlan'
+const PARITY_MAP = 'http://thespierproject.org/fhir/StructureMap/StanleyBrownQRToCarePlan'
 
 // --- CLI args --------------------------------------------------------------
 const argv = process.argv.slice(2)
