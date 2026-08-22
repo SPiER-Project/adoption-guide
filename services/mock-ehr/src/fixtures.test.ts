@@ -5,7 +5,7 @@
  * look like a working server returning a well-formed empty Bundle.
  */
 import { describe, expect, it } from 'vitest'
-import { HELD_RESOURCES, HELD_TYPES, NORMALIZED_AUTHORED, NORMALIZED_LINKS, RESOURCES_BY_KEY } from './fixtures'
+import { HELD_RESOURCES, HELD_TYPES, RESOURCES_BY_KEY } from './fixtures'
 
 describe('fixtures', () => {
   it('holds the 14 minted Patients', () => {
@@ -40,30 +40,51 @@ describe('fixtures', () => {
     expect(HELD_TYPES).not.toContain('undefined')
   })
 
-  it('supplies a patient link ONLY where the fixtures lack one — the 20 QRs', () => {
-    // ⚠️ Pinned deliberately. Twelve of thirteen buckets are 100% patient-linked;
-    // `responses` is 0%, so every scenario QuestionnaireResponse needs a stamped
-    // `subject` or the most load-bearing search on this server returns nothing.
-    // If a resource in ANY other bucket appears here, a fixture lost its patient
-    // link and this service quietly papered over it — go fix the fixture.
-    expect(NORMALIZED_LINKS).toHaveLength(20)
-    for (const key of NORMALIZED_LINKS) {
-      expect(key.startsWith('QuestionnaireResponse/'), `${key} is not a QuestionnaireResponse`).toBe(true)
+  it('serves every resource already patient-linked — nothing is stamped on (#364)', () => {
+    // ⚠️ This assertion replaced `expect(NORMALIZED_LINKS).toHaveLength(20)`.
+    // The fixtures carry `subject` now, so the stamp is DELETED rather than
+    // left in place returning zero — a fallback that never fires reads exactly
+    // like a fixture that is correct, and that is how the gap survived in the
+    // first place. `assertPatientLink` throws at load, so a regressed fixture
+    // fails this whole suite on import; these assertions state the invariant
+    // the loader enforces.
+    const linkOf: Record<string, string> = {
+      EpisodeOfCare: 'patient', Consent: 'patient', Task: 'for',
     }
+    let checked = 0
+    let skipped = 0
+    for (const { patientId, resource } of HELD_RESOURCES) {
+      // A Patient IS the patient; it carries no link to one, which is why
+      // PATIENT_ELEMENT has no entry for it either.
+      if (resource.resourceType === 'Patient') { skipped++; continue }
+      const wanted = `Patient/${patientId}`
+      if (resource.resourceType === 'Appointment') {
+        const parts = (resource.participant ?? []) as { actor?: { reference?: string } }[]
+        expect(parts.some(p => p.actor?.reference === wanted), `${resource.id} is unlinked`).toBe(true)
+      } else {
+        const el = linkOf[resource.resourceType] ?? 'subject'
+        const ref = (resource[el] as { reference?: string } | undefined)?.reference
+        expect(ref, `${resource.resourceType}/${resource.id} ${el}`).toBe(wanted)
+      }
+      checked++
+    }
+    // An empty HELD_RESOURCES would satisfy every assertion above.
+    expect(checked).toBeGreaterThan(100)
+    expect(skipped, 'the 14-patient roster is held too').toBe(14)
   })
 
-  it('supplies `authored` for all 20 QRs, from their wrapper’s completedAt', () => {
-    // ⚠️ Same gap as the patient link, and it was on screen: the chart showed
-    // "Invalid Date Invalid Date" for every SMART-read QuestionnaireResponse,
-    // because the StoredResponse WRAPPER carries completedAt and the resource
-    // carries no `authored`. Pinned so this workaround dies with #364 rather
-    // than outliving it.
-    expect(NORMALIZED_AUTHORED).toHaveLength(20)
+  it('serves QRs whose `authored` comes from the fixture, not the wrapper (#364)', () => {
+    // Replaces `expect(NORMALIZED_AUTHORED).toHaveLength(20)`. The chart showed
+    // "Invalid Date Invalid Date" for every SMART-read QuestionnaireResponse
+    // while the wrapper held `completedAt` and the resource held nothing.
+    let qrs = 0
     for (const { resource } of HELD_RESOURCES) {
       if (resource.resourceType !== 'QuestionnaireResponse') continue
+      qrs++
       expect(typeof resource.authored, `${resource.id} has no authored`).toBe('string')
       expect(Number.isNaN(new Date(String(resource.authored)).getTime())).toBe(false)
     }
+    expect(qrs).toBe(20)
   })
 
   it('holds every type the panel searches for', () => {

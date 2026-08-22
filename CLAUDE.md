@@ -73,6 +73,13 @@ npm run check:patients   # the 14 demo patients' demographics agree across all T
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #  check-scenario-responses.mjs — QuestionnaireResponses vs their
                          #    Questionnaire (linkIds, nesting, answer options, ranges)
+                         #  ⚠️ the `responses` bucket is ALSO walked by
+                         #    check-scenario-resources.mjs, but for exactly two rules:
+                         #    the patient link and `authored` (#364). It was owned by
+                         #    NEITHER script before — the responses half checks the
+                         #    Questionnaire, which says nothing about `subject`, and the
+                         #    resources half skipped the bucket — so all 20 QRs carried
+                         #    neither field and a patient-scoped search matched none
                          #  check-scenario-resources.mjs — every OTHER bucket (Observation,
                          #    CarePlan, Communication, EpisodeOfCare, Appointment,
                          #    ServiceRequest, Procedure, DocumentReference, Consent, Flag,
@@ -430,8 +437,8 @@ rather than an empty one (issue #226). Be precise about which gate sees what:
 | | `npm run check:scenarios` (offline, in `verify`) | `node scripts/validate-fhir.mjs` (Java, `ig.yml`) |
 |---|---|---|
 | Runs | every `web/` verify | PR + push touching `ig/`, `FHIR-Resources/`, or the scenarios |
-| QuestionnaireResponses | linkIds, nesting, answerOption, ranges, value[x] type | full conformance against the Questionnaire |
-| Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage, **the subject Patient actually existing**, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
+| QuestionnaireResponses | linkIds, nesting, answerOption, ranges, value[x] type, plus the patient link and `authored` | full conformance — but **not for the SCENARIO QRs**: `validate-fhir.mjs` excludes the `responses` bucket, so those 20 are the only hand-authored FHIR here no conformance check reads (#414 — 4 errors are hiding behind it) |
+| Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage (**presence required, not just correctness** — the old rule only fired on a link pointing at the *wrong* patient, which is how #364's 20 unlinked QRs passed), **the subject Patient actually existing**, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
 | Misses | cardinality *counts*, slices, invariants, unknown elements, external codes | nothing structural — but runs `-tx n/a`, so LOINC/SNOMED displays wait for the nightly |
 
 The offline half's base-R4 required-element and status-code tables are

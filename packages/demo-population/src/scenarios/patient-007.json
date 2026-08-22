@@ -9,9 +9,13 @@
         "id": "p007-cssrs-pediatric",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Pediatric",
+        "subject": {
+          "reference": "Patient/patient-007"
+        },
         "encounter": {
           "reference": "Encounter/p007-enc-index"
         },
+        "authored": "2026-07-28T14:30:00.000Z",
         "item": [
           {
             "linkId": "ideation-section",
@@ -107,9 +111,13 @@
         "id": "p007-sb",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+        "subject": {
+          "reference": "Patient/patient-007"
+        },
         "encounter": {
           "reference": "Encounter/p007-enc-index"
-        }
+        },
+        "authored": "2026-07-28T16:30:00.000Z"
       }
     }
   ],

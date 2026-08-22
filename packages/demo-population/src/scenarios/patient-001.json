@@ -9,9 +9,13 @@
         "id": "p001-phq9",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/PHQ-9",
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
+        "authored": "2026-07-31T10:15:00.000Z",
         "item": [
           {
             "linkId": "q1",
@@ -133,9 +137,13 @@
         "id": "p001-asq",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
+        "authored": "2026-07-31T10:35:00.000Z",
         "item": [
           {
             "linkId": "screening-questions",
@@ -219,9 +227,13 @@
         "id": "p001-cams-a",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/CAMS-SSF5-SectionA",
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
+        "authored": "2026-08-01T11:00:00.000Z",
         "item": [
           {
             "linkId": "core-ratings",
@@ -358,9 +370,13 @@
         "id": "p001-sb",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
         "encounter": {
           "reference": "Encounter/p001-enc-index"
-        }
+        },
+        "authored": "2026-08-02T14:00:00.000Z"
       }
     }
   ],

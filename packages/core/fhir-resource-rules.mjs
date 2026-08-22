@@ -107,6 +107,14 @@ const PARTICIPANT_STATUS_CODES = ['accepted', 'declined', 'tentative', 'needs-ac
  * the patient is a participant, not a dedicated element.
  */
 const PATIENT_ELEMENT = {
+  // #364: QuestionnaireResponse was absent here for as long as this table
+  // existed, because the scenario gate skips the `responses` bucket and nothing
+  // else asked. That is precisely how all 20 scenario QRs reached a real FHIR
+  // server with no `subject` — `GET QuestionnaireResponse?patient={id}` matched
+  // none of them, and that search is one of only two with no `.catch`, so the
+  // whole chart failed. The bucket is still not walked by the other checks; it
+  // IS walked for this one.
+  QuestionnaireResponse: 'subject',
   Observation: 'subject',
   CarePlan: 'subject',
   Communication: 'subject',
@@ -118,6 +126,57 @@ const PATIENT_ELEMENT = {
   Consent: 'patient',
   Procedure: 'subject',
   Encounter: 'subject',
+}
+
+/**
+ * Check 3 on its own: this resource carries a patient link, and it points at
+ * THIS patient.
+ *
+ * ⚠️ **Presence is required, not merely validated** — and it did not used to be.
+ * The rule read `if (refs.length && !refs.includes(wanted))`, which caught a
+ * link pointing at the WRONG patient and said nothing whatsoever about a link
+ * that was simply absent. That is how #364 survived: 20 QuestionnaireResponses
+ * with no `subject` at all, and the check that owns patient linkage passing
+ * every one of them, because a missing reference yields an empty list and
+ * short-circuits. The Appointment branch had the identical shape, and its
+ * message ended `(found none)` — text the guard made unreachable.
+ *
+ * All the elements involved are `0..1`, so a direct read is exact here; the
+ * general path walker lives inside `validateResource`'s closure and is not
+ * needed for this.
+ *
+ * Exported so the scenario gate can apply this ONE rule to the `responses`
+ * bucket, which stays outside every other check for the reason its own comment
+ * gives. Two callers, one implementation — the same property the rest of this
+ * module is built on.
+ */
+export function patientLinkProblems(resource, { expectedType, patientId, where = 'resource' }) {
+  const problems = []
+  const wanted = `Patient/${patientId}`
+  const element = PATIENT_ELEMENT[expectedType]
+
+  if (element) {
+    const ref = resource?.[element]?.reference
+    if (typeof ref !== 'string' || ref === '') {
+      problems.push(
+        `${where}: ${expectedType} has no ${element}.reference — it is linked to no patient, ` +
+          `so a patient-scoped search would never return it`,
+      )
+    } else if (ref !== wanted) {
+      problems.push(`${where}: ${expectedType}.${element} references ${ref}, not ${wanted}`)
+    }
+  } else if (expectedType === 'Appointment') {
+    const refs = (Array.isArray(resource?.participant) ? resource.participant : [])
+      .map((p) => p?.actor?.reference)
+      .filter((r) => typeof r === 'string')
+    if (!refs.includes(wanted)) {
+      problems.push(
+        `${where}: Appointment has no participant.actor referencing ${wanted} ` +
+          `(found ${refs.join(', ') || 'none'})`,
+      )
+    }
+  }
+  return problems
 }
 
 /**
@@ -519,18 +578,8 @@ export function validateResource(resource, { expectedType, patientId, where = 'r
     }
 
     // 3 — the patient link points at THIS scenario's patient
-    const wanted = `Patient/${patientId}`
-    const element = PATIENT_ELEMENT[expectedType]
-    if (element) {
-      const refs = valuesAt(resource, `${element}.reference`).filter((r) => typeof r === 'string')
-      if (refs.length && !refs.includes(wanted)) {
-        fail(`${where}: ${expectedType}.${element} references ${refs.join(', ')}, not ${wanted}`)
-      }
-    } else if (expectedType === 'Appointment') {
-      const refs = valuesAt(resource, 'participant.actor.reference').filter((r) => typeof r === 'string')
-      if (refs.length && !refs.includes(wanted)) {
-        fail(`${where}: Appointment has no participant.actor referencing ${wanted} (found ${refs.join(', ') || 'none'})`)
-      }
+    for (const problem of patientLinkProblems(resource, { expectedType, patientId, where })) {
+      fail(problem)
     }
 
     // 5/6 — profile claims must resolve, then constrain

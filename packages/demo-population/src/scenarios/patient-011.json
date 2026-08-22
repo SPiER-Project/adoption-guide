@@ -9,9 +9,13 @@
         "id": "p011-asq",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/ASQ-Screening-Tool",
+        "subject": {
+          "reference": "Patient/patient-011"
+        },
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
         },
+        "authored": "2026-08-02T08:40:00.000Z",
         "item": [
           {
             "linkId": "screening-questions",
@@ -95,9 +99,13 @@
         "id": "p011-bssa",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/BSSA",
+        "subject": {
+          "reference": "Patient/patient-011"
+        },
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
         },
+        "authored": "2026-08-02T09:20:00.000Z",
         "item": [
           {
             "linkId": "assessment",
@@ -225,9 +233,13 @@
         "id": "p011-cssrs-full",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent",
+        "subject": {
+          "reference": "Patient/patient-011"
+        },
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
         },
+        "authored": "2026-08-02T11:20:00.000Z",
         "item": [
           {
             "linkId": "ideation-section",
@@ -425,9 +437,13 @@
         "id": "p011-sb",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/StanleyBrownSafetyPlan",
+        "subject": {
+          "reference": "Patient/patient-011"
+        },
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
-        }
+        },
+        "authored": "2026-08-02T15:10:00.000Z"
       }
     },
     {
@@ -439,9 +455,13 @@
         "id": "p011-cssrs-slc",
         "status": "completed",
         "questionnaire": "http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact",
+        "subject": {
+          "reference": "Patient/patient-011"
+        },
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
         },
+        "authored": "2026-08-02T19:30:00.000Z",
         "item": [
           {
             "linkId": "ideation-section",
