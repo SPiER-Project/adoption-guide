@@ -103,23 +103,41 @@ export function extractPairs(
   fieldB: string,
 ): Array<{ a: string; b: string }> {
   const pairs: Array<{ a: string; b: string }> = []
+
+  /** Read one occurrence's two fields out of whichever list carries them. */
+  function readPair(nestedItems: QuestionnaireResponseItem[]) {
+    let a = ''
+    let b = ''
+    for (const nested of nestedItems) {
+      if (nested.linkId === fieldA && nested.answer?.[0]?.valueString) a = nested.answer[0].valueString
+      if (nested.linkId === fieldB && nested.answer?.[0]?.valueString) b = nested.answer[0].valueString
+    }
+    if (a || b) pairs.push({ a, b })
+  }
+
   function walk(itemList: QuestionnaireResponseItem[]) {
     for (const item of itemList) {
-      if (item.linkId === groupLinkId && item.answer) {
-        for (const ans of item.answer) {
-          if (ans.item) {
-            let a = ''
-            let b = ''
-            for (const nested of ans.item) {
-              if (nested.linkId === fieldA && nested.answer?.[0]?.valueString) {
-                a = nested.answer[0].valueString
-              }
-              if (nested.linkId === fieldB && nested.answer?.[0]?.valueString) {
-                b = nested.answer[0].valueString
-              }
-            }
-            if (a || b) pairs.push({ a, b })
-          }
+      if (item.linkId === groupLinkId) {
+        // Shape 1 — `answer[].item[]`. What this mapper originally read, what
+        // its tests build, and what the FML map and golden file encode.
+        for (const ans of item.answer ?? []) {
+          if (ans.item) readPair(ans.item)
+        }
+        // Shape 2 — `item[]`, ONE occurrence per repeat. This is what FHIR
+        // actually produces for a `type: group, repeats: true` item, and what
+        // SPiER's own Questionnaire declares these contact steps to be.
+        //
+        // ⚠️ Shape 1 is NOT conformant: the HL7 validator rejects it with
+        // "Items of type question should not have answers", while shape 2
+        // validates clean. So a correctly-filled safety plan read only for
+        // shape 1 yielded "No crisis contacts provided." — silently dropping
+        // the contacts, which is the most safety-critical part of the plan.
+        // Same family as #327, where every C-SSRS mapper read a `valueBoolean`
+        // no Questionnaire declares; the fix there was the same one — read both
+        // and keep the old shape valid.
+        if (item.item?.some(child => child.linkId === fieldA || child.linkId === fieldB)) {
+          readPair(item.item)
+          continue // its children are this pair's fields, not further groups
         }
       }
       if (item.item) walk(item.item)

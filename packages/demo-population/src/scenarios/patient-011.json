@@ -443,7 +443,202 @@
         "encounter": {
           "reference": "Encounter/p011-enc-ed"
         },
-        "authored": "2026-08-02T15:10:00.000Z"
+        "authored": "2026-08-02T15:10:00.000Z",
+        "item": [
+          {
+            "linkId": "step-1-warning-signs",
+            "item": [
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "Racing thoughts at 3am"
+                  }
+                ]
+              },
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "replaying the argument"
+                  }
+                ]
+              },
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "chest tight"
+                  }
+                ]
+              },
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "avoiding my phone"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-2-internal-coping",
+            "item": [
+              {
+                "linkId": "2-1-coping-strategy",
+                "answer": [
+                  {
+                    "valueString": "Cold shower"
+                  }
+                ]
+              },
+              {
+                "linkId": "2-1-coping-strategy",
+                "answer": [
+                  {
+                    "valueString": "walk the dog around the block"
+                  }
+                ]
+              },
+              {
+                "linkId": "2-1-coping-strategy",
+                "answer": [
+                  {
+                    "valueString": "the breathing app"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-3-distraction-contacts",
+            "item": [
+              {
+                "linkId": "3-1-distraction-contact-group",
+                "item": [
+                  {
+                    "linkId": "3-1-name-place",
+                    "answer": [
+                      {
+                        "valueString": "The café on 5th"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "3-1-distraction-contact-group",
+                "item": [
+                  {
+                    "linkId": "3-1-name-place",
+                    "answer": [
+                      {
+                        "valueString": "Cousin Rosa"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-4-crisis-support",
+            "item": [
+              {
+                "linkId": "4-1-support-person-group",
+                "item": [
+                  {
+                    "linkId": "4-1-name",
+                    "answer": [
+                      {
+                        "valueString": "Rosa (sister)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "4-1-support-person-group",
+                "item": [
+                  {
+                    "linkId": "4-1-name",
+                    "answer": [
+                      {
+                        "valueString": "Elena (neighbour)"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-5-professionals",
+            "item": [
+              {
+                "linkId": "5-1-clinician-agency-group",
+                "item": [
+                  {
+                    "linkId": "5-1-name",
+                    "answer": [
+                      {
+                        "valueString": "Valley Outpatient BH intake line"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "5-3-emergency-dept",
+                "item": [
+                  {
+                    "linkId": "5-3-name",
+                    "answer": [
+                      {
+                        "valueString": "This ED"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-6-lethal-means",
+            "item": [
+              {
+                "linkId": "6-1-safety-action",
+                "answer": [
+                  {
+                    "valueString": "Sleeping medication left with Rosa"
+                  }
+                ]
+              },
+              {
+                "linkId": "6-1-safety-action",
+                "answer": [
+                  {
+                    "valueString": "kitchen knives moved to the locked toolbox"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-7-reason-for-living",
+            "item": [
+              {
+                "linkId": "7-1-worth-living",
+                "answer": [
+                  {
+                    "valueString": "Rosa and the kids; finishing the certification I started in March"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -944,10 +1139,10 @@
                   "code": "social-distraction"
                 }
               ],
-              "text": "Step 3: People and Social Settings That Provide Distraction"
+              "text": "Step 3: Social Distractions"
             },
             "status": "in-progress",
-            "description": "Sit in the café on 5th; call my cousin Rosa just to talk about anything else"
+            "description": "The café on 5th, Cousin Rosa"
           }
         },
         {
@@ -959,10 +1154,10 @@
                   "code": "crisis-support"
                 }
               ],
-              "text": "Step 4: People I Can Ask for Help"
+              "text": "Step 4: Crisis Support Contacts"
             },
             "status": "in-progress",
-            "description": "Rosa (sister), Elena (neighbour) — both know about the plan"
+            "description": "Rosa (sister), Elena (neighbour)"
           }
         },
         {
@@ -974,10 +1169,10 @@
                   "code": "professional-support"
                 }
               ],
-              "text": "Step 5: Professionals or Agencies I Can Contact"
+              "text": "Step 5: Professional Support"
             },
             "status": "in-progress",
-            "description": "Valley Outpatient BH intake line; 988 Suicide & Crisis Lifeline; this ED"
+            "description": "Valley Outpatient BH intake line / This ED"
           }
         },
         {
@@ -989,10 +1184,10 @@
                   "code": "lethal-means-safety"
                 }
               ],
-              "text": "Step 6: Making the Environment Safe"
+              "text": "Step 6: Lethal Means Safety"
             },
             "status": "in-progress",
-            "description": "Sleeping medication left with Rosa; kitchen knives moved to the locked toolbox"
+            "description": "Sleeping medication left with Rosa, kitchen knives moved to the locked toolbox"
           }
         },
         {
@@ -1004,7 +1199,7 @@
                   "code": "reason-for-living"
                 }
               ],
-              "text": "Reasons for Living"
+              "text": "Step 7: Reason for Living"
             },
             "status": "in-progress",
             "description": "Rosa and the kids; finishing the certification I started in March"

@@ -376,7 +376,263 @@
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
-        "authored": "2026-08-02T14:00:00.000Z"
+        "authored": "2026-08-02T14:00:00.000Z",
+        "item": [
+          {
+            "linkId": "step-1-warning-signs",
+            "item": [
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "Feeling trapped"
+                  }
+                ]
+              },
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "chest tightness"
+                  }
+                ]
+              },
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "racing thoughts at night"
+                  }
+                ]
+              },
+              {
+                "linkId": "1-1-warning-sign",
+                "answer": [
+                  {
+                    "valueString": "withdrawing from friends"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-2-internal-coping",
+            "item": [
+              {
+                "linkId": "2-1-coping-strategy",
+                "answer": [
+                  {
+                    "valueString": "Deep breathing exercises"
+                  }
+                ]
+              },
+              {
+                "linkId": "2-1-coping-strategy",
+                "answer": [
+                  {
+                    "valueString": "going for a walk"
+                  }
+                ]
+              },
+              {
+                "linkId": "2-1-coping-strategy",
+                "answer": [
+                  {
+                    "valueString": "listening to music"
+                  }
+                ]
+              },
+              {
+                "linkId": "2-1-coping-strategy",
+                "answer": [
+                  {
+                    "valueString": "journaling"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-3-distraction-contacts",
+            "item": [
+              {
+                "linkId": "3-1-distraction-contact-group",
+                "item": [
+                  {
+                    "linkId": "3-1-name-place",
+                    "answer": [
+                      {
+                        "valueString": "Sister Maria"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "3-1-distraction-contact-group",
+                "item": [
+                  {
+                    "linkId": "3-1-name-place",
+                    "answer": [
+                      {
+                        "valueString": "Coffee shop on Main St"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "3-1-distraction-contact-group",
+                "item": [
+                  {
+                    "linkId": "3-1-name-place",
+                    "answer": [
+                      {
+                        "valueString": "The gym"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-4-crisis-support",
+            "item": [
+              {
+                "linkId": "4-1-support-person-group",
+                "item": [
+                  {
+                    "linkId": "4-1-name",
+                    "answer": [
+                      {
+                        "valueString": "Maria Doe"
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "4-2-contact-info",
+                    "answer": [
+                      {
+                        "valueString": "555-0101"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "4-1-support-person-group",
+                "item": [
+                  {
+                    "linkId": "4-1-name",
+                    "answer": [
+                      {
+                        "valueString": "Tom, best friend"
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "4-2-contact-info",
+                    "answer": [
+                      {
+                        "valueString": "555-0102"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-5-professionals",
+            "item": [
+              {
+                "linkId": "5-1-clinician-agency-group",
+                "item": [
+                  {
+                    "linkId": "5-1-name",
+                    "answer": [
+                      {
+                        "valueString": "Dr. Sarah Chen"
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "5-2-contact-info",
+                    "answer": [
+                      {
+                        "valueString": "555-0200"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "linkId": "5-3-emergency-dept",
+                "item": [
+                  {
+                    "linkId": "5-3-name",
+                    "answer": [
+                      {
+                        "valueString": "City General ED"
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "5-4-address",
+                    "answer": [
+                      {
+                        "valueString": "100 Hospital Dr"
+                      }
+                    ]
+                  },
+                  {
+                    "linkId": "5-5-phone",
+                    "answer": [
+                      {
+                        "valueString": "555-0300"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-6-lethal-means",
+            "item": [
+              {
+                "linkId": "6-1-safety-action",
+                "answer": [
+                  {
+                    "valueString": "Gave prescription medications to sister Maria for safekeeping"
+                  }
+                ]
+              },
+              {
+                "linkId": "6-1-safety-action",
+                "answer": [
+                  {
+                    "valueString": "removed sharp objects from bedroom"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "linkId": "step-7-reason-for-living",
+            "item": [
+              {
+                "linkId": "7-1-worth-living",
+                "answer": [
+                  {
+                    "valueString": "My niece Sofia — I want to see her grow up"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     }
   ],
@@ -790,7 +1046,7 @@
               "text": "Step 3: Social Distractions"
             },
             "status": "in-progress",
-            "description": "Call sister Maria, visit coffee shop on Main St, go to the gym"
+            "description": "Sister Maria, Coffee shop on Main St, The gym"
           }
         },
         {
@@ -805,7 +1061,7 @@
               "text": "Step 4: Crisis Support Contacts"
             },
             "status": "in-progress",
-            "description": "Maria Doe (555-0101), best friend Tom (555-0102)"
+            "description": "Maria Doe (555-0101), Tom, best friend (555-0102)"
           }
         },
         {
@@ -820,7 +1076,7 @@
               "text": "Step 5: Professional Support"
             },
             "status": "in-progress",
-            "description": "Dr. Sarah Chen (555-0200) / City General ED, 100 Hospital Dr (555-0300) / 988 Suicide & Crisis Lifeline"
+            "description": "Dr. Sarah Chen (555-0200) / City General ED, 100 Hospital Dr, 555-0300"
           }
         },
         {
