@@ -4,6 +4,74 @@ import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSection
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
 
+/**
+ * The published HL7 IG is a sibling static site (`web/dist/ig/`), not a hash
+ * route — link it with a plain anchor built from the Vite base path so it follows
+ * whichever base is active: `/ig/` on Cloudflare and in local dev (where `npm run
+ * dev` does not serve it), `/adoption-guide/ig/` on the legacy GitHub Pages
+ * deploy, whose workflow sets `VITE_BASE`. See the note in `vite.config.ts`.
+ */
+const IG_HREF = `${import.meta.env.BASE_URL}ig/`
+
+/**
+ * Where SPiER can be reached that is not a page of this app.
+ *
+ * ── Why these are in the sidebar, having been moved OUT of it ───────────────
+ *
+ * `EhrShell` used to render these as pills in the app bar, with an overflow
+ * disclosure (`HeaderMenu`) taking over below 640px. The stated reason for
+ * moving the IG link there was that *"the sidebar is a switcher for in-app
+ * lenses: it was the one entry that could never be 'active', because it's the
+ * one entry that isn't a place you can be."*
+ *
+ * That reasoning was about being an entry **in the switcher**, and it still
+ * holds — which is why these are in `.sidebar-footer`, below the rule, and are
+ * not `NavLink`s. A separate zone with its own heading is not a lens that can
+ * never light up. What forced the move back was the header running out of room:
+ * a fourth link (the demo host) did not fit, and the two-renderings-swapped-by-
+ * CSS arrangement that made three fit cost 121 lines of disclosure machinery —
+ * Escape handling, pointerdown dismissal, blur-to-close — for links that are
+ * just links once they are in a list. `HeaderMenu` is deleted, not relocated.
+ *
+ * ⚠️ **Two tiers, and the split is deliberate.** The IG is the *normative
+ * spec* and the mock EHR is where the pathway can be seen working; both are
+ * real destinations and are named. GitHub and the project site are project
+ * metadata and sit smaller, at the very bottom, beside the version stamp. The
+ * cost of collapsing them into one list is that the IG gets read as being on a
+ * par with a repo link.
+ */
+const DESTINATIONS = [
+  {
+    key: 'ig',
+    href: IG_HREF,
+    label: 'Implementation Guide',
+    // Said out loud because it is the one link here that is not a demo: the
+    // FSH-generated profiles, value sets and examples are what an implementer
+    // builds against.
+    note: 'The normative FHIR spec',
+  },
+  {
+    key: 'demo',
+    href: 'https://spier-mock-ehr.bbthorson.workers.dev/',
+    // ⚠️ "Mock" is load-bearing, not modesty. That host is controlled by the
+    // same project it demonstrates, so nothing observed there is evidence of
+    // interoperability — the host says so on every page, and a label reading
+    // "EHR demo" would quietly drop the part that keeps the claim honest.
+    label: 'Mock EHR demo',
+    // ⚠️ Measured, not trimmed by feel: the sidebar is 240px and a note has
+    // 192px of it, so "SPiER launched inside a vendor chart" wrapped to two
+    // lines and cost the footer 15px it does not have to spare. Every line here
+    // pushes the version stamp further down a column that already scrolls.
+    note: 'Inside a vendor chart',
+  },
+] as const
+
+/** Project metadata. Quieter, and last. */
+const PROJECT_LINKS = [
+  { key: 'site', href: 'https://thespierproject.org', label: 'thespierproject.org' },
+  { key: 'repo', href: 'https://github.com/SPiER-Project/adoption-guide', label: 'GitHub' },
+] as const
+
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
@@ -218,6 +286,49 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         <div className="sidebar-footer">
+          {/* A `nav` of its own, with its own label: these are not the lens
+              switcher above, and a screen reader should not have to infer that
+              from where they happen to sit. */}
+          <nav className="sidebar-outbound" aria-label="SPiER elsewhere">
+            <p className="sidebar-group-heading sidebar-group-heading--footer">Elsewhere</p>
+            {DESTINATIONS.map(d => (
+              <a
+                key={d.key}
+                className="sidebar-outbound-link"
+                href={d.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${d.label} — ${d.note} (opens in a new tab)`}
+                onClick={onClose}
+              >
+                <span className="sidebar-outbound-label">
+                  {d.label}
+                  <span className="sidebar-outbound-ext" aria-hidden="true">&#8599;</span>
+                </span>
+                {/* aria-hidden: the accessible name above already carries it,
+                    and reading it twice is worse than not styling it. */}
+                <span className="sidebar-outbound-note" aria-hidden="true">{d.note}</span>
+              </a>
+            ))}
+          </nav>
+
+          <nav className="sidebar-meta" aria-label="Project links">
+            {PROJECT_LINKS.map(l => (
+              <a
+                key={l.key}
+                className="sidebar-meta-link"
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${l.label} (opens in a new tab)`}
+                onClick={onClose}
+              >
+                {l.label}
+                <span aria-hidden="true">&#8599;</span>
+              </a>
+            ))}
+          </nav>
+
           <span className="sidebar-version">SPiER v0.1.0</span>
         </div>
       </aside>
