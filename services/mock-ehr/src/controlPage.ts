@@ -22,6 +22,20 @@
 import { CAPABILITY_PROFILES, PROFILE_DESCRIPTIONS, type CapabilityProfile } from './capability'
 // Palette shared with the host-chrome pages — one definition, not three.
 import { PLUM, RASPBERRY } from './hostChrome'
+// The chart owns the dock, so it owns these; this page owns the CONTROL. Imported
+// rather than restated so the whitelist the chart validates against and the
+// options offered here cannot drift into a preference the chart refuses.
+import { DEFAULT_PANEL_WIDTH, PANEL_WIDTHS, PANEL_WIDTH_KEY } from './chartPage'
+
+/**
+ * Why each width is on the list. The numbers come from the step-0 spike (panel
+ * plan §9.1); this is the one-liner a presenter needs to choose between them.
+ */
+const WIDTH_NOTES: Record<number, string> = {
+  380: 'the floor — narrower than anything was measured at, kept so the demo can show it rather than claim it',
+  470: 'the default — the repo\u2019s longest instrument with zero horizontal overflow',
+  700: 'one-line option labels and ~14% less scrolling, at the cost of chart width',
+}
 
 export function controlPage(
   active: CapabilityProfile,
@@ -37,6 +51,12 @@ export function controlPage(
           <span>${PROFILE_DESCRIPTIONS[profile]}</span>
         </button>
       </li>`).join('')
+
+  const widthButtons = PANEL_WIDTHS.map(w => `
+      <li><button type="button" data-width="${w}">
+        <strong>${w}px</strong>
+        <span>${WIDTH_NOTES[w]}</span>
+      </button></li>`).join('')
 
   return `<!doctype html>
 <html lang="en">
@@ -98,8 +118,26 @@ export function controlPage(
   </form>
   <p id="launch-result" hidden></p>
 
+  <h2>Panel width</h2>
+  <p>
+    How wide the dock is on a chart. A <strong>presentation preference</strong>, not server state:
+    it is stored in this browser, and every viewer who never opens this page gets
+    <code>${DEFAULT_PANEL_WIDTH}px</code> — the middle one, and the width the step-0 spike measured
+    the repo's longest instrument at with zero horizontal overflow.
+  </p>
+  <p>
+    ⚠️ These were three buttons on the chart itself. A presentation control on the demo surface is a
+    decision every viewer has to make before they can look at the thing, so it moved here and the
+    chart just reads the answer.
+  </p>
+  <ul>${widthButtons}</ul>
+
   <h2>Capability profile</h2>
-  <p>What <code>/fhir/metadata</code> advertises, and therefore how far the writeback ladder climbs.</p>
+  <p>
+    What <code>/fhir/metadata</code> advertises, and therefore how far the writeback ladder climbs.
+    This is <strong>server</strong> state, held in the Durable Object — so flipping it here changes
+    what a chart open in another tab is told, and the chart no longer carries a copy of the switch.
+  </p>
   <ul>${buttons}</ul>
 
   <h2>Demo data</h2>
@@ -166,6 +204,36 @@ export function controlPage(
     fetch('/_admin/reset', { method: 'POST' }).then(function (res) {
       if (!res.ok) { alert('Could not reset: HTTP ' + res.status); return }
       refreshWrites()
+    })
+  })
+
+  // ── Panel width: a per-browser preference the chart page reads ────────────
+  var WIDTH_KEY = ${JSON.stringify(PANEL_WIDTH_KEY)};
+  var WIDTHS = ${JSON.stringify(PANEL_WIDTHS)};
+  function markWidth(px) {
+    document.querySelectorAll('button[data-width]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(Number(b.dataset.width) === px))
+    })
+  }
+  function readWidth() {
+    try {
+      var raw = Number(localStorage.getItem(WIDTH_KEY))
+      return WIDTHS.indexOf(raw) === -1 ? ${DEFAULT_PANEL_WIDTH} : raw
+    } catch (e) {
+      return ${DEFAULT_PANEL_WIDTH}
+    }
+  }
+  markWidth(readWidth())
+  document.querySelectorAll('button[data-width]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var px = Number(btn.dataset.width)
+      try {
+        localStorage.setItem(WIDTH_KEY, String(px))
+      } catch (e) {
+        alert('This browser refused to store the preference; the chart will use ' + ${DEFAULT_PANEL_WIDTH} + 'px.')
+        return
+      }
+      markWidth(px)
     })
   })
 

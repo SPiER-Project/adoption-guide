@@ -44,17 +44,24 @@ import type { DemoPatient } from './fixtures'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 /**
- * Panel widths the demo can switch between, in CSS pixels.
+ * Panel widths the demo can be set to, in CSS pixels.
  *
  * Not arbitrary: 470 is the width the step-0 spike measured the longest
  * instrument in the repo at (panel plan §9.1 — zero horizontal overflow), 700
  * is the width that buys one-line option labels and ~14% less scrolling, and
  * 380 is below both, kept so the demo can show the floor rather than claim it.
- * The spike's conclusion was that the choice is a presentation preference, so
- * this exposes it as one.
+ *
+ * ⚠️ **These used to be three buttons on the chart, and are now a preference on
+ * `/settings`.** The spike's conclusion was that the width is a presentation
+ * preference, and a presentation preference on the demo surface is a control
+ * every viewer has to decide about before they can look at the thing. Everyone
+ * gets the middle one unless an operator changes it; the chart reads the stored
+ * value and never offers to change it. `settingsPage` owns the control.
  */
-const PANEL_WIDTHS = [380, 470, 700] as const
-const DEFAULT_PANEL_WIDTH = 470
+export const PANEL_WIDTHS = [380, 470, 700] as const
+export const DEFAULT_PANEL_WIDTH = 470
+/** localStorage key the settings page writes and the chart reads. Same origin. */
+export const PANEL_WIDTH_KEY = 'spier-mock-ehr:panel-width'
 
 const HOME_CSS = `
   table { border-collapse: collapse; width: 100%; font-size: .95rem; }
@@ -63,11 +70,39 @@ const HOME_CSS = `
   tbody tr:hover { background: ${TINT_WARM}; }
   td a { font-weight: 600; text-decoration: none; }
   td.mono { font-variant-numeric: tabular-nums; color: ${INK}; }
-  .population-frame { border: 1px solid ${RULE}; border-radius: 6px; overflow: hidden; background: #fff; }
-  /* Tall enough to reach the caseload rows: at 34rem the frame stopped at the
-     tab bar, so the one part of a worklist a clinician would actually read was
-     the part cut off. It scrolls internally beyond this. */
-  .population-frame iframe { display: block; width: 100%; height: 44rem; border: 0; }
+
+  /*
+   * The embedded-activity card. This is the one place these pages try to look
+   * like something rather than just be legible: a host chrome bar above a frame
+   * is what an EHR-hosted activity looks like, and the point of the section is
+   * that a reader can tell at a glance which pixels are SPiER's and which are
+   * the host's.
+   */
+  .activity { border: 1px solid ${RULE}; border-radius: 6px; overflow: hidden; background: #fff; }
+  .activity__bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;
+                   padding: .4rem .7rem; border-bottom: 1px solid ${RULE}; background: ${TINT};
+                   font-size: .8rem; color: ${INK}; }
+  .activity__title { font-weight: 700; color: ${RASPBERRY}; letter-spacing: .02em; }
+  .activity__note { margin-left: auto; }
+  /*
+   * ⚠️ **Measured, not guessed, and it has two answers because the app has a
+   * breakpoint.** The widget's two zones sit side by side above 1100px of FRAME
+   * width and stack below it, so the frame needs the taller of the pair or their
+   * sum: measured at 387px side-by-side and 717px stacked. A single height would
+   * either scroll the desktop case or leave 330px of dead space in it.
+   *
+   * The host's own breakpoint is 1148px, not 1100px: body padding is 1.5rem a
+   * side, so the frame is 48px narrower than the window. Getting that wrong by
+   * 48px reintroduces the scrollbar in a 48px-wide band of window sizes, which
+   * is exactly the kind of thing nobody would ever find.
+   *
+   * It still scrolls internally rather than clipping, because the alerts panel
+   * is expandable and an unusually bad day must not be cut off.
+   */
+  .activity iframe { display: block; width: 100%; height: 46rem; border: 0; }
+  @media (min-width: 1148px) {
+    .activity iframe { height: 25rem; }
+  }
 `
 
 /**
@@ -80,17 +115,30 @@ const HOME_CSS = `
  * what to do."* A demo whose entry point does not say what to do is a demo nobody
  * runs correctly. The bench moved to `/settings`; the way in is now first.
  *
- * The population dashboard is embedded here because this is where a worklist
- * belongs in an EHR — but read the label on it. It is an iframe of the app's own
- * population view, which imports `localDataSource` **directly**, so it renders
- * from its own demo registry and not from this server's FHIR API. Calling it an
- * embedded SMART view would be the kind of claim §1 guardrail 3 exists to stop.
- * Upgrading it to a genuine user-scoped launch is a real piece of work with a real
- * prerequisite; see `docs/plans/embedded-panel-smart-launch.md` §6.3.
+ * ── Why the embed is the summary and not the whole lens ─────────────────────
+ *
+ * It used to frame the app's entire Population view, which put **two patient
+ * lists on one page**: the host's demographics table below and SPiER's sortable
+ * caseload inside the frame. The frame was duplicating the list beside it, and
+ * its row clicks navigated *within the iframe* rather than opening a chart here —
+ * so the more useful-looking list was the one that went nowhere.
+ *
+ * The part a host cannot compute for itself is what sits above a worklist: the
+ * summary tiles, the risk census and the alert groups. So the embed is
+ * `#/population/summary` (`PopulationSummaryEmbed` in the app), it comes first
+ * because that is where an EHR hangs a hosted activity, and the host's own table
+ * — which owns the links into `/chart/{id}` — is the only list on the page.
+ *
+ * ⚠️ Read the label on the frame either way. It is still not a SMART launch: no
+ * `iss`, no `launch`, and the app renders its own bundled registry rather than
+ * this server's FHIR API. Calling it an embedded SMART view would be the kind of
+ * claim §1 guardrail 3 exists to stop. Upgrading it needs a user-scoped launch
+ * and a data-source refactor; see `docs/plans/embedded-panel-smart-launch.md`
+ * §6.3.
  */
 export function homePage(
   patients: DemoPatient[],
-  { populationPanelUrl }: { populationPanelUrl: string },
+  { summaryPanelUrl }: { summaryPanelUrl: string },
 ): string {
   const rows = patients.map(p => `
       <tr>
@@ -112,31 +160,39 @@ export function homePage(
     <a href="/settings">Server settings and controls &rarr;</a>
   </p>
 
+  <h2>Caseload summary and alerts</h2>
+  <p class="lede">
+    SPiER embedded as a hosted activity: the summary, the risk census and the outstanding alerts
+    across the caseload — the part of a worklist page an EHR cannot compute for itself.
+  </p>
+  <div class="activity">
+    <div class="activity__bar">
+      <span class="activity__title">SPiER</span>
+      <span>Embedded activity</span>
+      <span class="activity__note">Everything below this bar is drawn by SPiER, not by the host.</span>
+    </div>
+    <iframe src="${esc(summaryPanelUrl)}" title="SPiER caseload summary and alerts (embedded)"></iframe>
+  </div>
+  <p class="warn">
+    ⚠️ <strong>Embedded, but not a SMART launch — and the difference matters.</strong> This frame
+    carries no <code>iss</code> and no <code>launch</code>, and the app renders its own bundled demo
+    registry rather than this server's FHIR API. So it shows the <em>shape</em> of a hosted activity
+    and proves nothing about data crossing the boundary. Making it real needs a user-scoped SMART
+    launch (a caseload is not one patient, and every token this server issues is bound to one) and a
+    refactor so the view reads through the data-source seam. Tracked in the panel plan &sect;6.3.
+    The framed panel inside a <strong>chart</strong> is the real launch.
+  </p>
+
   <h2>Patients</h2>
   <p class="lede">
-    ${patients.length} synthetic patients. <strong>Open a chart</strong> — that is where the SPiER
-    panel is launched, and where an assessment can be filled in and written back.
+    ${patients.length} synthetic patients &mdash; the host's own list, which is why it is plain.
+    <strong>Open a chart</strong>: that is where the SPiER panel is launched over a real SMART
+    handshake, and where an assessment can be filled in and written back.
   </p>
   <table>
     <thead><tr><th>Name</th><th>MRN</th><th>Born</th><th>Sex</th><th>FHIR id</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
-
-  <h2>Population dashboard</h2>
-  <p class="lede">
-    SPiER's population view, embedded the way an EHR would host a worklist activity.
-  </p>
-  <p class="warn">
-    ⚠️ <strong>Embedded, but not a SMART launch — and the difference matters.</strong> This frame
-    renders SPiER's population view, which reads its own bundled demo registry rather than this
-    server's FHIR API. So it shows the <em>shape</em> of an embedded worklist and proves nothing
-    about data crossing the boundary. Making it real needs a user-scoped SMART launch (population
-    is not one patient, and every token this server issues is bound to one) and a refactor so the
-    view reads through the data-source seam. Tracked in the panel plan &sect;6.3.
-  </p>
-  <div class="population-frame">
-    <iframe src="${esc(populationPanelUrl)}" title="SPiER population dashboard (embedded)"></iframe>
-  </div>
 
   ${DISCLAIMER}`,
   })
@@ -172,6 +228,22 @@ const CHART_CSS = `
   button.smart { border-color: ${RASPBERRY}; }
 
   /*
+   * The launch card. This is the ONE thing a reader is meant to do on this page,
+   * and it used to be the last element on it — below the CDS cards, the
+   * capability switch and the FHIRcast log, under an <h2>Activity</h2> nobody
+   * scrolled to. Same defect as the old front door (§6.3): the demo's entry
+   * point was undiscoverable from the page it was on. It now sits directly under
+   * the banner, which is also where a vendor hangs an activity button.
+   */
+  .launch { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.5rem;
+            margin-top: 1rem; padding: 1rem 1.25rem; border: 1px solid ${RASPBERRY};
+            border-radius: 6px; background: ${TINT_WARM}; }
+  .launch__text { flex: 1 1 22rem; min-width: 0; }
+  .launch__title { margin: 0; font-size: 1.05rem; }
+  .launch__lede { margin: .25rem 0 0; font-size: .9rem; color: ${INK}; }
+  .launch__button { font-size: 1rem; padding: .6rem 1.25rem; }
+
+  /*
    * ⚠️ **Sticky and exactly one viewport tall — not stretched to the column
    * beside it.** With align-items: stretch (the flex default) the dock grows to
    * the height of the chart content, so the iframe becomes as tall as the host
@@ -192,19 +264,13 @@ const CHART_CSS = `
   .panel-dock__bar { display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem; border-bottom: 1px solid ${RULE};
                      font-size: .8rem; color: ${INK}; }
   .panel-dock__title { font-weight: 700; color: ${RASPBERRY}; letter-spacing: .02em; }
-  .panel-dock__widths { margin-left: auto; display: flex; gap: .25rem; }
-  .panel-dock__widths button { padding: .1rem .4rem; font-size: .75rem; }
-  .panel-dock__widths button[aria-pressed="true"] { background: ${RASPBERRY}; border-color: ${RASPBERRY}; color: #fff; }
+  .panel-dock__close { margin-left: auto; padding: .1rem .4rem; font-size: .75rem; }
   .panel-dock__empty { padding: 1.5rem 1rem; color: ${INK}; font-size: .9rem; }
   .panel-dock iframe { flex: 1 1 auto; width: 100%; border: 0; background: #fff; }
   .panel-dock__sent { padding: .4rem .6rem; border-top: 1px solid ${RULE}; font-size: .75rem; color: ${INK};
                       overflow-wrap: anywhere; }
   .panel-dock[hidden] { display: none; }
 
-  .profiles { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
-  .profiles button { width: 100%; text-align: left; display: grid; gap: .15rem; padding: .5rem .75rem; }
-  .profiles button span { font-size: .8rem; color: ${INK}; }
-  .profiles button[aria-pressed="true"] { border-color: ${RASPBERRY}; box-shadow: inset 3px 0 0 ${RASPBERRY}; background: ${TINT_WARM}; }
   .server-note { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; font-size: .85rem; color: ${INK}; }
 `
 
@@ -220,22 +286,14 @@ export function patientChartPage(
   {
     cdsEndpoint,
     panelOrigin,
-    profiles,
-    activeProfile,
     otherPatients,
   }: {
     cdsEndpoint: string
     panelOrigin: string
-    /** Every capability profile, with its one-line description. */
-    profiles: Array<{ profile: string; description: string }>
-    activeProfile: string
     /** Everyone except this patient, for the FHIRcast announce affordance. */
     otherPatients: DemoPatient[]
   },
 ): string {
-  const widthButtons = PANEL_WIDTHS.map(w => `
-        <button type="button" data-width="${w}" aria-pressed="${w === DEFAULT_PANEL_WIDTH}">${w}px</button>`).join('')
-
   return page({
     title: `${patient.name} — SPiER mock EHR`,
     css: CHART_CSS,
@@ -259,6 +317,24 @@ export function patientChartPage(
         <span class="banner__note">Host banner — drawn by the EHR, not by the panel.</span>
       </div>
 
+      <!-- The vendor-configured activity, and the one thing to do on this page.
+           It knows the patient and nothing else, so the panel opens on the
+           pathway rather than in a tool. The CDS cards below are the OTHER entry
+           point (§2), and they name an instrument — but this one has to be
+           obvious without reading anything, which is why it is here and not
+           under an <h2>Activity</h2> at the foot of the page. -->
+      <div class="launch">
+        <div class="launch__text">
+          <h2 class="launch__title">SPiER Suicide-Safer Pathway</h2>
+          <p class="launch__lede">
+            The EHR's SPiER activity for this patient. Opens in a panel beside the chart over a real
+            SMART handshake — authorize, read this server's FHIR API, fill in an assessment, write it
+            back.
+          </p>
+        </div>
+        <button type="button" id="open-panel" class="primary launch__button">Launch SPiER &rarr;</button>
+      </div>
+
       <h2>Clinical decision support</h2>
       <p class="lede">
         <code>patient-view</code> fired against
@@ -269,22 +345,14 @@ export function patientChartPage(
       <p id="cds-status" class="cds-status">Calling the CDS service…</p>
       <ul id="cds-cards" class="cards"></ul>
 
-      <h2>What this server will accept</h2>
-      <p class="lede">
-        The capability-degradation demo. Flip the profile, relaunch, submit the same instrument: the
-        panel's writeback ladder reads <code>/metadata</code> and climbs only as far as this says it
-        can, then reports what it could not write instead of hiding it.
-      </p>
-      <ul class="profiles">${profiles.map(p => `
-        <li>
-          <button type="button" data-profile="${esc(p.profile)}" aria-pressed="${p.profile === activeProfile}">
-            <strong>${esc(p.profile)}</strong>
-            <span>${esc(p.description)}</span>
-          </button>
-        </li>`).join('')}</ul>
+      <!-- ⚠️ A READOUT, not a control, and that distinction is why it survived
+           the switch's removal. This is the SERVER's account of what the panel
+           wrote; the panel's own scorecard is SPiER reporting on itself, and one
+           source cannot corroborate anything. Resetting it, and turning the
+           server's capability down, are operator actions and live on /settings. -->
       <p class="server-note">
         <span id="writes-summary">Loading written data…</span>
-        <button type="button" id="reset-writes">Reset written data</button>
+        <a href="/settings">Capability profile, reset and other controls &rarr;</a>
       </p>
 
       <h2>Shared context (FHIRcast)</h2>
@@ -318,13 +386,6 @@ export function patientChartPage(
       </p>
       <ul id="cast-log" class="cards"></ul>
 
-      <h2>Activity</h2>
-      <p class="lede">
-        The vendor-configured entry point: it knows the patient and nothing else, so the panel opens
-        on the pathway rather than in a tool.
-      </p>
-      <button type="button" id="open-panel" class="primary">Open SPiER Suicide-Safer Pathway</button>
-
       ${DISCLAIMER}
     </div>
 
@@ -332,9 +393,7 @@ export function patientChartPage(
       <div class="panel-dock__bar">
         <span class="panel-dock__title">SPiER</span>
         <span id="dock-context"></span>
-        <span class="panel-dock__widths">${widthButtons}
-          <button type="button" id="close-panel" title="Close the panel">&times;</button>
-        </span>
+        <button type="button" id="close-panel" class="panel-dock__close" title="Close the panel">&times;</button>
       </div>
       <iframe id="panel" title="SPiER Suicide-Safer Pathway" src="about:blank"></iframe>
       <p class="panel-dock__sent" id="dock-sent"></p>
@@ -397,17 +456,30 @@ function chartScript({
   var dockContext = document.getElementById('dock-context');
   var dockSent = document.getElementById('dock-sent');
 
-  function setWidth(px) {
+  /*
+   * The panel width, read from the operator's preference and never offered here.
+   *
+   * ⚠️ **The whitelist is the point, not the default.** localStorage is
+   * attacker-writable in the sense that matters for a demo — anything on this
+   * origin can put a string there — and this value goes into an inline style, so
+   * an unvalidated read is how a preference becomes an injection. Only the three
+   * measured widths are honored; anything else is the middle one.
+   */
+  var PANEL_WIDTHS = ${JSON.stringify(PANEL_WIDTHS)};
+  function storedWidth() {
+    try {
+      var raw = Number(localStorage.getItem(${JSON.stringify(PANEL_WIDTH_KEY)}));
+      return PANEL_WIDTHS.indexOf(raw) === -1 ? ${DEFAULT_PANEL_WIDTH} : raw;
+    } catch (e) {
+      // Storage denied. The middle width is the answer, which is also the answer
+      // for every viewer who has never opened /settings.
+      return ${DEFAULT_PANEL_WIDTH};
+    }
+  }
+  (function (px) {
     dock.style.flexBasis = px + 'px';
     dock.style.width = px + 'px';
-    document.querySelectorAll('[data-width]').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(Number(b.dataset.width) === px));
-    });
-  }
-  setWidth(${DEFAULT_PANEL_WIDTH});
-  document.querySelectorAll('[data-width]').forEach(function (b) {
-    b.addEventListener('click', function () { setWidth(Number(b.dataset.width)); });
-  });
+  })(storedWidth());
 
   document.getElementById('close-panel').addEventListener('click', function () {
     // about:blank rather than removing the node: a closed panel that keeps its
@@ -604,28 +676,6 @@ function chartScript({
   // The panel writes on submit, inside a cross-origin frame we cannot observe,
   // so poll while it is open rather than pretending to know when it finished.
   setInterval(function () { if (!dock.hidden) refreshWrites(); }, 4000);
-
-  document.getElementById('reset-writes').addEventListener('click', function () {
-    fetch('/_admin/reset', { method: 'POST' }).then(function (res) {
-      if (!res.ok) { alert('Could not reset: HTTP ' + res.status); return; }
-      refreshWrites();
-    });
-  });
-
-  document.querySelectorAll('[data-profile]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      fetch('/_admin/capabilities', {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ profile: btn.dataset.profile }),
-      }).then(function (res) {
-        if (!res.ok) { alert('Could not switch profile: HTTP ' + res.status); return; }
-        document.querySelectorAll('[data-profile]').forEach(function (b) {
-          b.setAttribute('aria-pressed', String(b === btn));
-        });
-      });
-    });
-  });
 
   // ── CDS Hooks patient-view ────────────────────────────────────────────────
   // No prefetch: see the module header. hookInstance must be unique per call.

@@ -133,9 +133,9 @@ reads them to learn how to authorize at all.
 
 | Route | |
 |---|---|
-| `GET /` | **the front door** — the patient list, plus SPiER's population view embedded as a worklist |
-| `GET /chart/{id}` | one chart: host banner, CDS Hooks cards, and the panel **in an iframe** |
-| `GET /settings` | the operator's bench — capability switch, top-level launch, FHIR base |
+| `GET /` | **the front door** — SPiER's caseload summary embedded as a hosted activity, then the host's own patient list |
+| `GET /chart/{id}` | one chart: host banner, the **launch** front and centre, CDS Hooks cards, and the panel **in an iframe** |
+| `GET /settings` | the operator's bench — capability switch, panel-width preference, top-level launch, FHIR base |
 | `GET /chart` | 301 to `/` (this URL was the list before the list became the front door) |
 
 ⚠️ **`/` and `/chart/{id}` are the demo; `/settings` is the bench.** These were
@@ -145,13 +145,54 @@ away. See the panel plan §6.3. The bench keeps the top-level launch, because a
 top-level launch is the useful thing to compare an embedded one against and it can
 send an arbitrary `intent`.
 
-⚠️ **The embedded population dashboard on `/` is NOT a SMART launch**, and the page
-says so. It is an iframe at `?embed=1#/population` — panel chrome, no `iss`, no
-`launch` — and `PopulationView` imports `localDataSource` directly, so it renders
-its own bundled registry rather than this server's FHIR API. Making it real needs a
-user-scoped launch (a population is not one patient, and every token here is bound
-to one) plus a refactor so the view reads through the data-source seam. Panel plan
+⚠️ **The embedded activity is the caseload SUMMARY, not the whole Population lens,
+and that is a correction rather than a trim.** The lens contains a sortable
+caseload table, so framing it put **two patient lists** on this page — and the
+better-looking one went nowhere, because a row click inside the frame navigates
+*within the frame* rather than opening `/chart/{id}` here. The frame is now
+`?embed=1#/population/summary` (`PopulationSummaryEmbed`): the summary tiles, the
+risk census and the alert groups — the part a host cannot compute for itself — with
+no table and no page header. It comes first on the page, and the host's own plain
+table is the only list. Both it and the full lens read `useCaseloadSummary`, so
+they cannot disagree about the numbers.
+
+⚠️ **It is still NOT a SMART launch**, and the page says so: panel chrome, no
+`iss`, no `launch`. The remaining blocker is **one** thing, a user-scoped launch —
+a caseload is not one patient and every token here is bound to one — plus a cohort
+read this server does not offer (#401). ⚠️ This README previously also blamed
+`PopulationView` for importing `localDataSource` directly. **That was closed by
+step C (#390)** and stayed written down here for weeks: the lens and the widget
+both read through the `FhirDataSource` seam, and the frame shows bundled data
+because it carries no launch, so the active source is the local one. Panel plan
 §6.3 has the reasoning and what the upgrade unlocks.
+
+⚠️ **After you launch a panel, going back to `/` in the SAME TAB shows the widget
+scoped to one patient — and that is truthful, not a bug.** The SMART session lives
+in `sessionStorage` on the *panel's* origin, and a same-origin iframe in the same
+tab shares it, so the widget's active data source is a token bound to the patient
+you just launched. It says so ("Showing the patient in context only") and reports a
+caseload of one. Pre-existing — the full-lens embed did the same — but it is more
+visible now that the widget is the first thing on the page. **Demonstrate the
+caseload from a fresh tab**, or expect a one-patient census after a launch.
+
+⚠️ **The chart leads with the launch, and carries no controls.** The launch button
+was the last element on `/chart/{id}` — below the CDS cards, the capability switch
+and the FHIRcast log, under an `<h2>Activity</h2>` — which is the front door's old
+defect one level down. It now sits directly under the patient banner. The
+capability switch and the write reset went to `/settings` (they were already
+there), and the three panel-width buttons became a `/settings` preference stored in
+`localStorage` under `spier-mock-ehr:panel-width`; a chart reads it, validates it
+against the three measured widths, and falls back to **470px** — so a viewer who
+never opens `/settings` gets the middle one and decides nothing.
+
+⚠️ Dropping the chart's capability switch **inverts** the decision that put it
+there ("flipping the profile mid-demo should not mean leaving the chart"), and the
+Durable Object is what makes that safe: the live profile was per-isolate module
+memory then, so a flip elsewhere could leave the panel told something different.
+It is durable now, so `/settings` in a second tab changes what an open chart's
+panel reads from `/metadata`. The write log **stays** on the chart, because a
+readout is not a control — and it is the server's own account of what the panel
+wrote, which is the only thing that corroborates the panel's scorecard.
 
 Two entry points, which are the two the panel plan names (§2): an activity button
 that knows only the patient, and a **CDS Hooks card whose link is
