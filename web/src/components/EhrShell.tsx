@@ -1,37 +1,23 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
-import { HeaderMenu } from './HeaderMenu'
 import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from './SpierLogo'
 import '../css/EhrShell.css'
 
-// The published HL7 IG is a sibling static site (web/dist/ig/), not a hash route —
-// link to it with a plain anchor built from the Vite base path, so it follows
-// whichever base is active: `/ig/` on Cloudflare and in local dev (where `npm run
-// dev` does not serve it), `/adoption-guide/ig/` on the legacy GitHub Pages deploy,
-// whose workflow sets VITE_BASE. See the note in vite.config.ts.
+// ⚠️ **The app bar carries no links, and that is where they used to be.** Three
+// outbound pills lived here, with `HeaderMenu` as an overflow disclosure below
+// 640px — two renderings of one list, swapped by CSS. Adding a fourth (the mock
+// EHR demo) did not fit at any width, and the disclosure was 121 lines of
+// Escape/pointerdown/blur handling for links that are just links once they are in
+// a list. Both are gone; `DESTINATIONS` and `PROJECT_LINKS` in `Sidebar.tsx` own
+// them now, in `.sidebar-footer`, and the note there records why that does not
+// re-break the "a lens that can never be active" objection that moved the IG link
+// up here in the first place.
 //
-// It used to sit in the sidebar, which is a switcher for in-app lenses: it was
-// the one entry that could never be "active", because it's the one entry that
-// isn't a place you can be. The header's action cluster is where an outbound
-// link to the normative spec belongs.
-const IG_HREF = `${import.meta.env.BASE_URL}ig/`
-
-// The outbound links. They lived in the standalone front door's top nav until
-// that page merged into /overview and lost its own chrome; the app bar is now
-// the only place they can live, and the only place they need to.
-//
-// A flat list on purpose: a right-hand overflow menu is coming, and it should
-// be able to consume this array as-is rather than unpick three hand-written
-// anchors. `short` is the label below 768px, where the brand subtitle already
-// wraps and three full labels do not fit.
-const HEADER_LINKS = [
-  { key: 'ig', href: IG_HREF, label: 'Implementation Guide', short: 'IG' },
-  { key: 'site', href: 'https://thespierproject.org', label: 'thespierproject.org', short: 'Site' },
-  { key: 'repo', href: 'https://github.com/SPiER-Project/adoption-guide', label: 'GitHub', short: 'GitHub' },
-]
+// What the header keeps is the hamburger and the brand — plus, still, the
+// natural slot for a SMART-connection indicator.
 
 export function EhrShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -56,36 +42,6 @@ export function EhrShell() {
             <SpierLogo className="ehr-brand-logo" />
             <span className="ehr-brand-subtitle">The SPiER Project</span>
           </Link>
-          {/* Right-side action cluster: the app's outbound links, and the
-              natural slot for a SMART-connection indicator later.
-
-              Two renderings of the same list, swapped by CSS at 640px — pills
-              where there is room, an overflow menu where there is not. Both are
-              always in the DOM and exactly one is ever displayed, so only one
-              is in the tab order and accessibility tree at any width. */}
-          <nav className="ehr-header-actions" aria-label="Project links">
-            {HEADER_LINKS.map(link => (
-              <a
-                key={link.key}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ehr-header-action"
-                aria-label={`${link.label} (opens in a new tab)`}
-              >
-                {/* Labels shorten below 1024px, where the brand subtitle also
-                    drops; the aria-label carries the full name at every width. */}
-                <span className="ehr-header-action-full">{link.label}</span>
-                <span className="ehr-header-action-short">{link.short}</span>
-                {/* #258 classed this so the narrow breakpoint could drop it and
-                    reclaim ~23px per pill. The pills no longer render below
-                    640px — the overflow menu does — so nothing styles the class
-                    any more and the glyph now shows wherever a pill does. */}
-                <span aria-hidden>&#8599;</span>
-              </a>
-            ))}
-          </nav>
-          <HeaderMenu links={HEADER_LINKS} />
         </div>
       </header>
 
