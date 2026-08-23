@@ -685,34 +685,67 @@ Worth separating the two failures, because only one of them was about layout:
 The moment the host looks like SPiER, every screenshot becomes ambiguous about
 which half is the product, and an audience cannot see what SPiER contributes.
 
-#### The population dashboard is embedded, and is NOT a SMART launch
+3. **The chart had the same defect one level down.** The launch button — the one
+   thing to do on a chart — was the *last* element on the page, under an
+   `<h2>Activity</h2>` below the CDS cards, the capability switch and the
+   FHIRcast log. It is now directly under the patient banner, which is also where
+   a vendor hangs an activity button, and the page's controls moved off it: the
+   capability profile and the write reset to `/settings` (where they already
+   were), and the panel-width choice to `/settings` as a stored preference, so
+   every viewer gets the measured middle width without deciding anything.
+   ⚠️ Removing the chart's capability switch **inverts** an earlier decision here
+   ("flipping the profile mid-demo should not mean leaving the chart"), and what
+   makes that safe is the Durable Object: the live profile was per-isolate module
+   memory when the switch was added to the chart, so a flip elsewhere could leave
+   the panel reading something else. It is durable now, so `/settings` in a
+   second tab changes what an open chart's panel is told.
 
-The front door embeds SPiER's population view the way an EHR hosts a worklist
-activity. It is an `<iframe>` at `?embed=1#/population` — **panel chrome, no
-`iss`, no `launch`** — and the page says so in a warning box rather than in a
-comment nobody reads.
+#### The embedded activity is the caseload SUMMARY, and is NOT a SMART launch
 
-⚠️ **Calling it a SMART view would be false today, for two independent reasons,
-and both are prerequisites for fixing it:**
+The front door embeds SPiER the way an EHR hosts an activity on a worklist page.
+It is an `<iframe>` at `?embed=1#/population/summary` — **panel chrome, no `iss`,
+no `launch`** — and the page says so in a warning box rather than in a comment
+nobody reads.
 
-- `PopulationView` imports `localDataSource` **directly** rather than reading
-  through the `FhirDataSource` seam the chart already uses. So the frame renders
-  its own bundled demo registry; no data crosses the origin boundary, whatever the
-  frame looks like.
+⚠️ **It framed the whole Population lens until 2026-08-23, and that was a layout
+defect of the same family as the front door above it.** The lens contains a
+sortable caseload table, and the host page has a patient list of its own, so the
+page carried **two patient lists** — and the better-looking one was the one that
+went nowhere, because a row click inside the frame navigates *within the frame*
+rather than opening `/chart/{id}` in the host.
+
+What a host cannot compute for itself is the part above a worklist: the summary
+tiles, the risk-tier census and the alert groups. So the frame is now
+`PopulationSummaryEmbed` (`/population/summary`) — those two panels, no table, no
+page header — it sits **first** on the page, and the host's own plain table is the
+only list. Both consumers share `useCaseloadSummary`, so the widget and the lens
+cannot disagree about how many patients are high-risk.
+
+⚠️ **Calling it a SMART view would still be false, and the reason is now ONE
+reason rather than two. This section named two until 2026-08-23 and the first had
+been closed for weeks:**
+
+- ~~`PopulationView` imports `localDataSource` **directly** rather than reading
+  through the `FhirDataSource` seam.~~ **Closed by step C (#390).** The lens and
+  the widget both read through `useRegistrySlices`, i.e. through whatever source
+  the provider made active. The frame renders bundled demo data because it
+  carries **no launch at all**, so the active source is the local one — which is
+  a different fact with a different fix, and leaving the old wording in place
+  described a refactor that had already happened as a prerequisite.
 - **A population is not one patient, and every token this server issues is bound
   to one** (`denyForeignPatient`). A genuine embedded worklist needs a
   *user-scoped* launch — no patient in context, `user/*.read` — which the auth
-  stub does not do, plus a cohort read.
+  stub does not do, plus a cohort read this server does not offer. That is #401,
+  and it is the whole remaining blocker.
 
-So this frame demonstrates the **shape** of an embedded worklist and nothing about
+So this frame demonstrates the **shape** of a hosted activity and nothing about
 interoperability. That is the honest claim and it is the one printed on the page.
 
-**The upgrade is real work with a real payoff, and the same refactor unlocks both
-halves.** Making `PopulationView` read through the data source is what would let
-it become a genuine user-scoped SMART panel *and* what would let the adoption
-guide retire its own `/population` and `/patient/chart` routes — the stated
-long-term direction, since those two views are EHR surfaces rather than
-implementer ones. Until that lands, the frame stays labelled.
+**The upgrade still has a real payoff.** A user-scoped launch is what would make
+this a genuine SMART panel *and* what would let the adoption guide retire its own
+`/population` and `/patient/chart` routes — the stated long-term direction, since
+those two views are EHR surfaces rather than implementer ones. Until that lands,
+the frame stays labelled.
 
 ⚠️ **The demo patient data does NOT move with them.** It is tempting to conclude
 that if the population and chart views belong to the EHR, so do the fixtures.

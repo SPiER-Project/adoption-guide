@@ -862,11 +862,13 @@ app.get('/_admin/fhircast', async (c) => {
 // exercises `frame-ancestors` on the panel host — see chartPage.ts.
 
 /**
- * The front door: the patient list, plus the population dashboard embedded the
- * way an EHR hosts a worklist.
+ * The front door: SPiER's caseload summary embedded as a hosted activity, then
+ * the host's own patient list.
  *
  * ⚠️ `/` used to serve the operator's bench and the demo was two undiscoverable
- * clicks away. See `homePage` for the report that prompted the change.
+ * clicks away. See `homePage` for the report that prompted the change — and for
+ * why the frame is `#/population/summary` rather than the whole lens, which put
+ * two patient lists on one page.
  */
 app.get('/', async (c) => {
   const panelBase = envOf(c).MOCK_PANEL_BASE_URL || DEFAULT_PANEL_BASE_URL
@@ -874,8 +876,8 @@ app.get('/', async (c) => {
   // deliberately not a SMART launch — see the label on the frame.
   const url = new URL(panelBase)
   url.searchParams.set('embed', '1')
-  url.hash = '#/population'
-  return c.html(homePage(DEMO_PATIENTS, { populationPanelUrl: url.toString() }))
+  url.hash = '#/population/summary'
+  return c.html(homePage(DEMO_PATIENTS, { summaryPanelUrl: url.toString() }))
 })
 
 // `/chart` was the patient list before the list became the front door. Kept as a
@@ -892,11 +894,15 @@ app.get('/chart/:patientId', async (c) => {
   // service lives at the panel's own origin. Deriving it (rather than taking a
   // second env var) means a redeploy cannot point the two at different hosts.
   const panelOrigin = new URL(panelBase).origin
+  // ⚠️ No capability profile is passed any more, and that is not a regression.
+  // The chart is the demo surface; the switch is operator equipment and lives on
+  // /settings. Flipping it there in a second tab still changes what THIS chart's
+  // panel is told, because the live profile is held in the Durable Object rather
+  // than in module memory — see `liveProfile`. That was not true when the switch
+  // was added to this page, which is part of why it was added here.
   return c.html(patientChartPage(patient, {
     cdsEndpoint: `${panelOrigin}${CDS_SERVICE_PATH}`,
     panelOrigin,
-    profiles: CAPABILITY_PROFILES.map(p => ({ profile: p, description: PROFILE_DESCRIPTIONS[p] })),
-    activeProfile: await liveProfile(c),
     // Everyone except the patient whose chart this is — the FHIRcast affordance
     // announces a move to a DIFFERENT patient, so offering this one would
     // demonstrate nothing.

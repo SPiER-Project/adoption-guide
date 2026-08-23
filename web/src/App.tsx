@@ -63,6 +63,7 @@ const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m 
 const Roadmap = lazy(() => import('./pages/Roadmap').then(m => ({ default: m.Roadmap })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
+const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
 const StanleyBrownView = lazy(() => import('./components/StanleyBrownView').then(m => ({ default: m.StanleyBrownView })))
 const QuestionnaireView = lazy(() => import('./components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
 const WorkflowActionView = lazy(() => import('./components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
@@ -239,6 +240,10 @@ function AppRoutes() {
             index rather than becoming /population/caseload. */}
         <Route path="/population">
           <Route index element={<PopulationView />} />
+          {/* The summary and alerts with no table and no page header — what the
+              mock EHR frames at the top of its front door. See the module
+              header for why the whole lens is the wrong thing to embed. */}
+          <Route path="summary" element={<PopulationSummaryEmbed />} />
           <Route path="measures" element={<MeasureDashboard />} />
         </Route>
 

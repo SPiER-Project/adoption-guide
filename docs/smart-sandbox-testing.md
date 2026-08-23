@@ -126,8 +126,13 @@ Patient ids can be listed from the open endpoint:
   ⚠️ This bullet said dispatch was canonical-**bound** with no fallback at all,
   which predated #230 and disagreed with both `smartDataSource.ts`'s own header
   comment and [`plans/mock-patient-smart-launch.md`](plans/mock-patient-smart-launch.md) §2.
-- **Population view stays local-only under SMART.** The registry reads the
-  local demo store; only the Patient Chart reads/writes the connected server.
+- **Population view narrows to the patient in context under SMART.** ⚠️ This
+  bullet said the view "stays local-only" and read the local demo store, which
+  **step C (#390) closed**: it and the summary widget both read through
+  `useRegistrySlices`, i.e. through whatever `FhirDataSource` is active. What a
+  SMART session cannot give them is a *caseload* — the token is bound to one
+  patient, so the cohort is that patient and the page says so. A real registry
+  needs a user-scoped launch and a cohort read (#401), not a refactor.
 - **Session lifetime.** The SMART session lives in `sessionStorage` and is
   rehydrated on reload, but expires with the sandbox token (~1 h); re-launch
   from the EHR/launcher to reconnect.

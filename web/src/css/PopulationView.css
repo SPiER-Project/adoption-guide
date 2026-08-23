@@ -820,6 +820,12 @@
   margin-bottom: 0;
 }
 
+/* The embedded summary widget (/population/summary). Nothing follows the zones
+   there, so their trailing gap is dead space inside someone else's iframe. */
+.population-summary-embed > .population-zones {
+  margin-bottom: 0;
+}
+
 .pop-alert-group-name {
   font-weight: 700;
   color: var(--accent-warning-text);

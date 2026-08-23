@@ -2,20 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '@spier/core/data/catalog'
 import { resetLocalDemoData } from '../lib/dataSource/localDataSource'
-import { deriveRegistryRow, type DerivedRegistryRow } from '@spier/core/lib/registry'
-import { evaluateAllMeasures, trailingPeriod } from '@spier/core/lib/measures'
-import { alertsForPatient, groupAlertsByPatient } from '../lib/populationAlerts'
-import {
-  RISK_LABEL,
-  riskCountsOf,
-  summaryTiles,
-  tierCensus,
-  CENSUS_ORDER,
-} from '../lib/populationSummary'
+import { type DerivedRegistryRow } from '@spier/core/lib/registry'
+import { RISK_LABEL, CENSUS_ORDER } from '../lib/populationSummary'
 import { AGE_BANDS, bandOf, ageOf } from '../lib/populationFilters'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
-import type { PatientSlice } from '@spier/core/types/fhir'
-import { useRegistrySlices } from '../hooks/useRegistrySlices'
+import { useCaseloadSummary } from '../hooks/useCaseloadSummary'
 import {
   CASELOAD_VIEWS,
   DEFAULT_DIR,
@@ -35,14 +26,6 @@ import '../css/PopulationView.css'
 
 type RiskLevel = RiskAlert['level']
 
-const ALERT_PERIOD_DAYS = 3650
-
-/** Rows and slices together: the alerts need the slice, the table needs the row. */
-interface RegistryEntry {
-  row: DerivedRegistryRow
-  slice: PatientSlice
-}
-
 const RISK_LEVELS: RiskLevel[] = CENSUS_ORDER
 
 /* ===========================
@@ -61,14 +44,11 @@ export function PopulationView() {
   const [tableOverflows, setTableOverflows] = useState(false)
   const [confirmingReset, setConfirmingReset] = useState(false)
 
-  // Rows come from the ACTIVE FhirDataSource, not a hardcoded local one — this
-  // page used to import `localDataSource` directly, so a live SMART session left
-  // it rendering bundled demo data that looked like a server read (#390).
-  const { entries: sliceEntries, scope, isLoading } = useRegistrySlices()
-  const entries = useMemo<RegistryEntry[]>(
-    () => sliceEntries.map(e => ({ row: deriveRegistryRow(e.patient, e.slice), slice: e.slice })),
-    [sliceEntries],
-  )
+  // Caseload-wide derivation — rows, risk counts, tiles, census, alerts —
+  // shared verbatim with the embeddable summary widget on /population/summary.
+  // Filtering and sorting stay here, because they describe the table below.
+  const { entries, rows, riskCounts, alertGroups, tiles, census, scope, isLoading } =
+    useCaseloadSummary()
 
   // Column-header controls are only reachable once the table stops fitting if the
   // reader thinks to scroll sideways first, so below that point the same menus
@@ -87,7 +67,6 @@ export function PopulationView() {
     return () => observer.disconnect()
   }, [viewId])
 
-  const rows = useMemo(() => entries.map(e => e.row), [entries])
   const view = viewById(viewId)
 
   const filteredSorted = useMemo(() => {
@@ -106,10 +85,6 @@ export function PopulationView() {
     return counts
   }, [rows])
 
-  // One source for every risk count on the page: the census bar, the high-risk
-  // tile and the Risk column's filter menu all read this.
-  const riskCounts = useMemo(() => riskCountsOf(rows), [rows])
-
   const ageCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     for (const p of rows) {
@@ -118,27 +93,6 @@ export function PopulationView() {
     }
     return counts
   }, [rows])
-
-  const alertGroups = useMemo(() => {
-    const period = trailingPeriod(ALERT_PERIOD_DAYS)
-    return groupAlertsByPatient(
-      entries.flatMap(e => alertsForPatient(e.row, evaluateAllMeasures(e.slice, period))),
-    )
-  }, [entries])
-
-  const tiles = useMemo(
-    () =>
-      summaryTiles({
-        rows,
-        slices: entries.map(e => e.slice),
-        counts: riskCounts,
-        alertCount: alertGroups.reduce((n, g) => n + g.alerts.length, 0),
-        now: new Date(),
-      }),
-    [rows, entries, riskCounts, alertGroups],
-  )
-
-  const census = useMemo(() => tierCensus(riskCounts, rows.length), [riskCounts, rows.length])
 
   const filters: Record<FilterKey, { srLabel: string; options: FilterOption[] }> = useMemo(
     () => ({
