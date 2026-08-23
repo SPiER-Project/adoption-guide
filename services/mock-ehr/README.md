@@ -326,12 +326,28 @@ npm install && npm run verify   # copy-fhir + typecheck + eslint + vitest
 merging anything under `services/mock-ehr/`:
 
 ```
-npm run deploy
+npm install && npm run deploy
 ```
 
 Otherwise the live host keeps serving the old build, and the symptom is a demo
 that behaves like the previous commit — which reads as a code bug rather than a
 deploy that never happened.
+
+⚠️ **`npm install` is not belt-and-braces here — this package has its own
+`node_modules` and nothing else installs it.** This line said `npm run deploy`
+alone, and in a checkout where only `web/` had ever been installed it fails at
+`vite: command not found` — which reads as a broken build script rather than a
+missing install. Same rule as `CLAUDE.md`'s note about `web/`, one directory
+over. Nor is CI cover: the `mock-ehr` job installs into its *own* runner, so a
+green PR says nothing about whether your machine can build this.
+
+⚠️ **Deploy AFTER the panel host has redeployed, not before.** They are two
+Workers and only one is automatic, so between a merge and this command the pair
+is briefly mismatched. That direction is the harmless one — an old host framing a
+new panel. The other direction is not: deploy this first and the front door
+frames `#/population/summary` on a panel build that has no such route, and
+`HashRouter` answers an unknown route with the app's fallback rather than an
+error, so the frame renders something plausible and wrong.
 
 `web/`'s `npm run verify` does **not** cover this package. CI runs the same
 `verify` as its own `mock-ehr` job in `.github/workflows/web-lint.yml`, which
