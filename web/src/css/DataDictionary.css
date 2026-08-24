@@ -97,14 +97,16 @@
 .dd-cell-field {
   font-weight: 600;
   color: var(--text-strong);
-  white-space: nowrap;
+  /* Wraps now. Under `table-layout: fixed` nowrap no longer buys width — it just
+     overflows the budgeted column. */
+  overflow-wrap: break-word;
 }
 
 .dd-cell-code {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: var(--font-size-sm);
   color: var(--accent-violet);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 /*
@@ -149,9 +151,13 @@
  * — the distinction the flat schema could not express, and the reason
  * `asq-result` once documented its value system in the code column.
  */
+/* ⚠️ Inline, not `display: block`. As a block each note was its own line plus a
+   top margin, so a row naming both a code system and a value system spent FOUR
+   lines and two margins on this cell — measured at 167px in a 112px column,
+   which made System the tallest cell on the page once the path column stopped
+   being. Nothing is hidden by this; the qualifier just stops claiming a line. */
 .dd-system-note {
-  display: block;
-  margin-top: var(--space-1);
+  margin-left: 0.3rem;
   font-size: var(--font-size-xs);
   font-style: italic;
   color: var(--text-faint);
@@ -186,13 +192,169 @@
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: var(--font-size-xs);
   color: var(--text-body);
+  /* ⚠️ This was `white-space: nowrap`, and with the table's default auto layout
+     that one line was the row-height bug: an unbreakable column takes whatever
+     it asks for, so this claimed 580–1256px and starved the prose column to
+     112px. `anywhere` rather than `break-word` because a FHIR path's only break
+     opportunities are the dots, and `break-word` will not split
+     `Observation.value[x].coding` at all inside a narrow column. */
+  overflow-wrap: anywhere;
+}
+
+/* ⚠️ `max-width: 300px` used to live here and never applied: under auto layout a
+   max-width on a table cell is a hint the browser may squeeze past, and it did —
+   to 112px. The class survives for the concept description, which is prose in a
+   block, not in a table cell. Row descriptions are in `.dd-detail-desc`. */
+.dd-cell-desc {
+  max-width: 46rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* ===========================
+   Column budget
+   =========================== */
+
+/*
+ * The fix, stated as widths. `table-layout: fixed` makes these binding rather
+ * than advisory — which is the difference between a column budget and a
+ * negotiation the longest monospace string always wins.
+ *
+ * Percentages, not rems: the wrapper is `overflow-x: auto` inside a page column
+ * whose width depends on whether the shell's sidebar is collapsed, so a fixed
+ * total would either overflow or leave a gap at some widths. The toggle column
+ * is the one exception — it holds a 1.5rem caret and has no reason to scale.
+ */
+.dd-table--fixed {
+  table-layout: fixed;
+}
+
+/*
+ * ⚠️ **Rebalanced against measurement, not guessed twice.** The first budget gave
+ * Path 27% and System 10%, which simply moved the starvation: Path needed 13px of
+ * height in 303px of width while System wrapped to 167px in 112px. System's
+ * labels are the long ones — `systemLabel` expands a SPiER canonical to
+ * `SPiER spier-lethal-means-method` — and a row can name two of them.
+ */
+.dd-col-field    { width: 18%; }
+.dd-col-code     { width: 16%; }
+.dd-col-system   { width: 15%; }
+.dd-col-resource { width: 11%; }
+.dd-col-path     { width: 24%; }
+.dd-col-usedby   { width: 13%; }
+.dd-col-toggle   { width: 2.25rem; }
+
+/* The LOINC displays run past 70 characters — four wrapped lines on their own in
+   the old layout. One line here, in full in the detail row and on hover. */
+.dd-code-display--clamp {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* "+3" standing in for the Used-By chips a summary row does not show. Quieter
+   than a chip on purpose: it is a count, not a tool. */
+.dd-tool-more {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
-.dd-cell-desc {
-  max-width: 300px;
-  line-height: 1.4;
+/* ===========================
+   Detail row
+   =========================== */
+
+.dd-cell-toggle {
+  text-align: right;
+  padding-left: 0;
+}
+
+.dd-detail-toggle {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+}
+
+.dd-detail-toggle:hover {
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+
+/* The open row and its detail read as one block rather than two striped rows. */
+.dd-row--open > td {
+  border-bottom-color: transparent;
+}
+
+.dd-detail-row > td {
+  padding: 0 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--surface-muted);
+  background: var(--surface-page);
+}
+
+.dd-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  /* Prose gets a readable measure instead of a column's leftovers. This is the
+     whole point of the detail row: 386 characters at 112px was 47 lines. */
+  max-width: 52rem;
+}
+
+.dd-detail-desc {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--text-body);
+  font-size: var(--font-size-base);
+}
+
+.dd-detail-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.dd-detail-label {
+  flex: 0 0 8.5rem;
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+/* ===========================
+   The normalization layer
+   =========================== */
+
+/* Open by default and first on the page, so it gets an accent the stage
+   sections do not — this is the claim, not one more group of rows. */
+.dd-concept-layer {
+  border-left: 3px solid var(--brand-accent);
+  padding-left: var(--space-4);
+}
+
+/* Visually hidden, still in the accessibility tree — the details column has no
+   visible header but a screen reader should not meet a blank one. */
+.dd-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .dd-resource-badge {

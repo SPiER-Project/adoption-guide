@@ -138,13 +138,29 @@ function ValueSetLine({ canonical }: { canonical: string }) {
 }
 
 /**
- * Shared concepts, rendered above the stage tables.
+ * The normalization layer, rendered above the stage tables.
  *
- * This section exists because of one concrete reading failure: LOINC 93374-7
- * occupied five rows in five different stage groups, and nothing on the page
- * said they were the same concept reached five ways. The concept row names it
- * once; expanding shows every route into it side by side, which is the
- * comparison a consumer actually needs before acting on a tier.
+ * ── Why this is the first thing on the page ─────────────────────────────────
+ *
+ * It exists because of one concrete reading failure: LOINC 93374-7 occupied
+ * five rows in five different stage groups, and nothing said they were the same
+ * concept reached five ways. But naming it was not enough — it shipped as a
+ * collapsed accordion headed *"Shared concepts · 1 concept"* above a 90-row
+ * table, which reads as a footnote. The catalogue of instruments is the obvious
+ * half of what SPiER offers; **the claim that they all land on one actionable
+ * value is the half nobody can see by scrolling**, and it was the half hidden
+ * behind a caret.
+ *
+ * So: named for what it is, open by default, and counted in the terms that make
+ * the point — how many instruments arrive, not how many rows are involved.
+ * Collapsing is still available; defaulting to collapsed is not, because with a
+ * single concept the closed state hides the entire section.
+ *
+ * ⚠️ **Every number here is derived, not written down.** Concepts, routes and
+ * instrument counts all come from `bindingsForConcept`, so a sixth route or a
+ * second concept changes the prose without anyone editing it. A hand-typed "five
+ * instruments" would have been wrong the moment the episode extension landed —
+ * which is exactly what the concept's own description had to be careful about.
  *
  * The bindings still appear in their own stage sections — collapsing them into
  * here only would hide a C-SSRS row from the C-SSRS stage. Each one carries a
@@ -157,32 +173,58 @@ function SharedConcepts({
   concepts: Concept[]
   toolIndex: Map<string, Tool>
 }) {
-  const [expanded, setExpanded] = useState<string | null>(null)
+  // Open by default. `false` is reachable by clicking; it is not the entry state.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   if (concepts.length === 0) return null
 
+  /**
+   * ⚠️ **Tools, and the word matters — this said "instruments" and contradicted
+   * the paragraph underneath it.** `usedBy` holds catalog tool ids, and one
+   * instrument family owns several: C-SSRS alone contributes Screener, Full,
+   * Since Last Contact and Pediatric. So this counts 11 where the concept's own
+   * description correctly says *five instruments* reach the tier. Both numbers
+   * are right about different things, and printing the derived one under the
+   * label "instruments" made the page argue with itself two lines apart.
+   */
+  const toolCount = new Set(
+    concepts.flatMap(c => bindingsForConcept(c.id).flatMap(b => b.usedBy)),
+  ).size
+  const routeCount = concepts.reduce((n, c) => n + bindingsForConcept(c.id).length, 0)
+
   return (
-    <section className="dd-stage-section">
+    <section className="dd-stage-section dd-concept-layer">
       <div className="dd-stage-header">
-        <h3 className="dd-stage-title">Shared concepts</h3>
+        <h3 className="dd-stage-title">Cross-instrument normalization</h3>
         <span className="dd-stage-count">
-          {concepts.length} {concepts.length === 1 ? 'concept' : 'concepts'}
+          {concepts.length} {concepts.length === 1 ? 'concept' : 'concepts'} &middot; {routeCount}{' '}
+          {routeCount === 1 ? 'route' : 'routes'} &middot; {toolCount}{' '}
+          {toolCount === 1 ? 'tool' : 'tools'}
         </span>
       </div>
       <p className="dd-concept-intro">
-        Concepts that more than one instrument expresses. Each is one meaning with several routes
-        into it — expand to compare the routes.
+        Every instrument below asks its own questions in its own vocabulary. <strong>This is where
+        they become one value a consumer can act on without knowing which tool produced it.</strong>{' '}
+        Each concept is a single meaning with several routes into it; the routes are listed side by
+        side, because comparing them is what an implementer has to do before trusting a tier.
       </p>
 
       {concepts.map(concept => {
         const bindings = bindingsForConcept(concept.id)
-        const isOpen = expanded === concept.id
+        const isOpen = !collapsed.has(concept.id)
         return (
           <div key={concept.id} className="dd-concept">
             <button
               type="button"
               className="dd-concept-toggle"
               aria-expanded={isOpen}
-              onClick={() => setExpanded(isOpen ? null : concept.id)}
+              onClick={() =>
+                setCollapsed(prev => {
+                  const next = new Set(prev)
+                  if (next.has(concept.id)) next.delete(concept.id)
+                  else next.add(concept.id)
+                  return next
+                })
+              }
             >
               <span className="dd-concept-caret" aria-hidden="true">{isOpen ? '▾' : '▸'}</span>
               <span className="dd-concept-name">{concept.name}</span>
@@ -191,7 +233,7 @@ function SharedConcepts({
                 <span className="dd-code-display">{concept.code.display}</span>
               </span>
               <span className="dd-concept-count">
-                {bindings.length} {bindings.length === 1 ? 'binding' : 'bindings'}
+                {bindings.length} {bindings.length === 1 ? 'route' : 'routes'}
               </span>
             </button>
 
@@ -223,7 +265,7 @@ function SharedConcepts({
                   <table className="dd-table">
                     <thead>
                       <tr>
-                        <th>Binding</th>
+                        <th>Route in</th>
                         <th>Value drawn from</th>
                         <th>FHIR Resource</th>
                         <th>FHIR Path</th>
@@ -271,9 +313,215 @@ function SharedConcepts({
   )
 }
 
+/**
+ * How many Used-By chips a summary row shows before collapsing to a count.
+ *
+ * Measured: the widest `usedBy` list rendered three wrapped lines in a 142px
+ * column, so the chips alone tripled a row's height. Two plus a count fits one
+ * line at every column width this table uses, and the full list is one click
+ * away in the detail row.
+ */
+const USED_BY_CHIP_LIMIT = 2
+
+/**
+ * One binding: a skimmable summary row plus a detail row that holds the prose.
+ *
+ * ── The row-height bug this fixes, and why it was not "too many columns" ────
+ *
+ * `.dd-table` is `width: 100%` with the DEFAULT `table-layout: auto`, and three
+ * columns were `white-space: nowrap` — Field, Code and `.dd-cell-path`. Auto
+ * layout gives an unbreakable column whatever it asks for, so Path claimed the
+ * width of the longest path in each table: **measured at 580–1256px, in one case
+ * for a cell holding 21 characters.** Description was the only column that could
+ * shrink, so it did — to **112px**, where a 386-character sentence stacked into
+ * **655px** of text. Its `max-width: 300px` never applied; under auto layout a
+ * max-width is a hint the browser is free to squeeze past.
+ *
+ * So the prose column was the victim, not the culprit, and the table measured
+ * 2065px wide inside a 1134px column with rows at median 111px / p90 402px /
+ * max 675px.
+ *
+ * Two things follow, and both are needed — either alone leaves it unskimmable:
+ *
+ *  1. **A column budget.** `table-layout: fixed` plus a `<colgroup>`, and the
+ *     path wraps instead of setting the table's width. See DataDictionary.css.
+ *  2. **Prose leaves the grid.** Even with a perfect budget, 386 characters at a
+ *     fair share of 1134px is ~9 lines. A description is not something anyone
+ *     skims across 90 rows, so it moves to a detail row, along with the two
+ *     chip stacks that were doing the same thing to the Field column.
+ *
+ * ⚠️ **Search matches the description, so a hidden description could make a
+ * result inexplicable** — a row appears with no visible reason. `autoOpen` is
+ * the answer: a row whose description matched the query starts expanded. The
+ * explicit toggle still wins, via `toggled[id] ?? autoOpen`, so closing an
+ * auto-opened row works and is remembered.
+ */
+function BindingRow({
+  binding: b,
+  concept,
+  crossStages,
+  stageById,
+  toolIndex,
+  open,
+  onToggle,
+}: {
+  binding: Binding
+  concept?: Concept
+  crossStages: string[]
+  stageById: Map<string, { title: string }>
+  toolIndex: Map<string, Tool>
+  open: boolean
+  onToggle: () => void
+}) {
+  const detailId = `dd-detail-${b.id}`
+  const tools = b.usedBy.map(tid => toolIndex.get(tid)).filter((t): t is Tool => !!t)
+  const shown = tools.slice(0, USED_BY_CHIP_LIMIT)
+  const hidden = tools.length - shown.length
+  // Anything the summary row cannot show. Empty means the detail row would be
+  // blank, and a disclosure that opens onto nothing is worse than none.
+  const hasDetail =
+    !!b.description || !!concept || crossStages.length > 0 || hidden > 0 || !!b.value?.valueSet
+
+  return (
+    <>
+      <tr className={open ? 'dd-row dd-row--open' : 'dd-row'}>
+        <td className="dd-cell-field">{b.name}</td>
+        <td className="dd-cell-code">
+          {b.code ? (
+            <>
+              {/*
+                Only the code itself is a link — the display stays plain text so
+                the code remains easy to select and copy, which is what people
+                actually do with this column.
+              */}
+              <CodeLink coding={b.code} />
+              {/* Clamped to one line here and shown in full in the detail row.
+                  The LOINC displays run to 70+ characters and were four wrapped
+                  lines of the old row height on their own. `title` carries the
+                  full string for a hover, and the detail row for everyone else. */}
+              <span className="dd-code-display dd-code-display--clamp" title={b.code.display}>
+                {b.code.display}
+              </span>
+            </>
+          ) : (
+            <span className="dd-code-none" title="This element carries no code of its own">—</span>
+          )}
+        </td>
+        <td className="dd-cell-system">
+          {/*
+            Code system and value system are shown as separate lines rather than
+            one column that has to pick. A row can now honestly carry both, which
+            several do — an Observation coded with one concept and valued from
+            another vocabulary. The bindable ValueSet that used to sit under the
+            value system is in the detail row: it is a third line, and it is the
+            one an implementer looks up deliberately rather than skims.
+          */}
+          {b.code && <SystemCell system={b.code.system} note={b.value ? 'code' : undefined} />}
+          {b.value && <SystemCell system={b.value.system} note="values" />}
+          {!b.code && !b.value && '—'}
+        </td>
+        <td>
+          <span className={`dd-resource-badge dd-resource-badge--${b.fhirResource.toLowerCase()}`}>
+            {b.fhirResource}
+          </span>
+        </td>
+        <td className="dd-cell-path">{b.fhirPath}</td>
+        <td>
+          <div className="dd-tools">
+            {shown.map(t => (
+              <span key={t.id} className="dd-tool-chip" title={t.name}>
+                {t.shortName ?? t.name}
+              </span>
+            ))}
+            {hidden > 0 && (
+              <span className="dd-tool-more" title={tools.map(t => t.name).join(', ')}>
+                +{hidden}
+              </span>
+            )}
+          </div>
+        </td>
+        <td className="dd-cell-toggle">
+          {hasDetail && (
+            <button
+              type="button"
+              className="dd-detail-toggle"
+              aria-expanded={open}
+              aria-controls={detailId}
+              /* The row's own name is in the first cell, but a screen reader
+                 reaching this button out of context needs to know which row it
+                 opens — hence the binding name in the label rather than a bare
+                 "Details". */
+              aria-label={`Details for ${b.name}`}
+              onClick={onToggle}
+            >
+              <span aria-hidden="true">{open ? '▾' : '▸'}</span>
+            </button>
+          )}
+        </td>
+      </tr>
+      {/* Rendered at every state and hidden with `hidden` rather than removed, so
+          `aria-controls` always resolves to a real element — the same rule the
+          old header overflow menu followed. */}
+      <tr className="dd-detail-row" hidden={!open || !hasDetail}>
+        <td id={detailId} colSpan={7}>
+          <div className="dd-detail">
+            {b.description && <p className="dd-detail-desc">{b.description}</p>}
+            {b.code && (
+              <p className="dd-detail-line">
+                <span className="dd-detail-label">Code display</span>
+                <span>{b.code.display}</span>
+              </p>
+            )}
+            {b.value?.valueSet && (
+              <p className="dd-detail-line">
+                <span className="dd-detail-label">Values drawn from</span>
+                <ValueSetLine canonical={b.value.valueSet} />
+              </p>
+            )}
+            {tools.length > 0 && (
+              <p className="dd-detail-line">
+                <span className="dd-detail-label">Used by</span>
+                <span className="dd-tools">
+                  {tools.map(t => (
+                    <span key={t.id} className="dd-tool-chip" title={t.name}>
+                      {t.shortName ?? t.name}
+                    </span>
+                  ))}
+                </span>
+              </p>
+            )}
+            {concept && (
+              <p className="dd-detail-line">
+                <span className="dd-detail-label">One route into</span>
+                <span className="dd-concept-chip">{concept.name}</span>
+              </p>
+            )}
+            {crossStages.length > 0 && (
+              <p className="dd-detail-line">
+                <span className="dd-detail-label">Also used in</span>
+                <span className="dd-tools">
+                  {crossStages.map(sid => (
+                    <span key={sid} className="dd-cross-chip">{stageById.get(sid)?.title ?? sid}</span>
+                  ))}
+                </span>
+              </p>
+            )}
+          </div>
+        </td>
+      </tr>
+    </>
+  )
+}
+
 export function DataDictionary() {
   const [search, setSearch] = useState('')
   const [resourceFilter, setResourceFilter] = useState('All')
+  /**
+   * Explicit open/closed per row, layered OVER `autoOpen` below. A plain
+   * `Set` of open ids could not express "the search opened this and I closed
+   * it", so this records the decision rather than the state.
+   */
+  const [toggled, setToggled] = useState<Record<string, boolean>>({})
 
   const resources = useMemo(() => {
     const set = new Set(BINDINGS.map(b => b.fhirResource))
@@ -308,6 +556,18 @@ export function DataDictionary() {
   }, [search, resourceFilter, toolIndex, conceptIndex])
 
   const grouped = useMemo(() => groupBindingsByStage(filtered), [filtered])
+
+  /**
+   * Rows whose DESCRIPTION matched the query, which is the one field the
+   * summary row no longer shows. Without this a search lands on rows with no
+   * visible reason for matching — the cost of moving prose into a detail row,
+   * paid back here rather than left for the reader to puzzle over.
+   */
+  const autoOpen = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return new Set<string>()
+    return new Set(filtered.filter(b => b.description.toLowerCase().includes(q)).map(b => b.id))
+  }, [search, filtered])
 
   // Only show a concept if at least one of its bindings survived the filters —
   // otherwise the section would advertise routes the reader cannot see.
@@ -357,7 +617,24 @@ export function DataDictionary() {
           </div>
 
           <div className="dd-table-wrapper">
-            <table className="dd-table">
+            <table className="dd-table dd-table--fixed">
+              {/*
+                The column budget. `table-layout: fixed` means these percentages
+                are honoured rather than negotiated, which is the whole fix — see
+                the note on BindingRow for what auto layout did instead. Path
+                gets the largest share because it is the only column whose
+                content is genuinely long AND worth reading in full; Code is
+                clamped, and prose is in the detail row.
+              */}
+              <colgroup>
+                <col className="dd-col-field" />
+                <col className="dd-col-code" />
+                <col className="dd-col-system" />
+                <col className="dd-col-resource" />
+                <col className="dd-col-path" />
+                <col className="dd-col-usedby" />
+                <col className="dd-col-toggle" />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Field</th>
@@ -366,87 +643,28 @@ export function DataDictionary() {
                   <th>FHIR Resource</th>
                   <th>FHIR Path</th>
                   <th>Used By</th>
-                  <th>Description</th>
+                  <th><span className="dd-sr-only">Details</span></th>
                 </tr>
               </thead>
               <tbody>
                 {group.bindings.map(b => {
                   const referencedStages = stagesReferencedBy(b, toolIndex)
-                  const crossStages = referencedStages.filter(sid => sid !== group.stageId)
-                  const concept = b.conceptId ? conceptIndex.get(b.conceptId) : undefined
                   return (
-                    <tr key={b.id}>
-                      <td className="dd-cell-field">
-                        {b.name}
-                        {concept && (
-                          <div className="dd-concept-ref">
-                            <span className="dd-cross-label">One route into:</span>
-                            <span className="dd-concept-chip">{concept.name}</span>
-                          </div>
-                        )}
-                        {crossStages.length > 0 && (
-                          <div className="dd-cross-stage">
-                            <span className="dd-cross-label">Also used in:</span>
-                            {crossStages.map(sid => (
-                              <span key={sid} className="dd-cross-chip">{stageById.get(sid)?.title ?? sid}</span>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                      <td className="dd-cell-code">
-                        {b.code ? (
-                          <>
-                            {/*
-                              Only the code itself is a link — the display stays plain
-                              text so the code remains easy to select and copy, which is
-                              what people actually do with this column.
-                            */}
-                            <CodeLink coding={b.code} />
-                            <span className="dd-code-display">{b.code.display}</span>
-                          </>
-                        ) : (
-                          <span className="dd-code-none" title="This element carries no code of its own">—</span>
-                        )}
-                      </td>
-                      <td className="dd-cell-system">
-                        {/*
-                          Code system and value system are shown as separate lines
-                          rather than one column that has to pick. A row can now
-                          honestly carry both, which several do — an Observation coded
-                          with one concept and valued from another vocabulary.
-                        */}
-                        {b.code && <SystemCell system={b.code.system} note={b.value ? 'code' : undefined} />}
-                        {b.value && <SystemCell system={b.value.system} note="values" />}
-                        {/*
-                          The bindable set sits under the value system it narrows,
-                          not in a column of its own: only 18 of 24 value blocks
-                          name one, and an empty column reads as a missing set
-                          rather than as an unbound value.
-                        */}
-                        {b.value?.valueSet && <ValueSetLine canonical={b.value.valueSet} />}
-                        {!b.code && !b.value && '—'}
-                      </td>
-                      <td>
-                        <span className={`dd-resource-badge dd-resource-badge--${b.fhirResource.toLowerCase()}`}>
-                          {b.fhirResource}
-                        </span>
-                      </td>
-                      <td className="dd-cell-path">{b.fhirPath}</td>
-                      <td>
-                        <div className="dd-tools">
-                          {b.usedBy.map(tid => {
-                            const tool = toolIndex.get(tid)
-                            if (!tool) return null
-                            return (
-                              <span key={tid} className="dd-tool-chip" title={tool.name}>
-                                {tool.shortName ?? tool.name}
-                              </span>
-                            )
-                          })}
-                        </div>
-                      </td>
-                      <td className="dd-cell-desc">{b.description}</td>
-                    </tr>
+                    <BindingRow
+                      key={b.id}
+                      binding={b}
+                      concept={b.conceptId ? conceptIndex.get(b.conceptId) : undefined}
+                      crossStages={referencedStages.filter(sid => sid !== group.stageId)}
+                      stageById={stageById}
+                      toolIndex={toolIndex}
+                      open={toggled[b.id] ?? autoOpen.has(b.id)}
+                      onToggle={() =>
+                        setToggled(prev => ({
+                          ...prev,
+                          [b.id]: !(prev[b.id] ?? autoOpen.has(b.id)),
+                        }))
+                      }
+                    />
                   )
                 })}
               </tbody>
