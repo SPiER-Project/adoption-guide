@@ -242,7 +242,7 @@ export const CONCEPTS: Concept[] = [
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs',
     description:
-      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Five instruments reach it by five different routes: C-SSRS and CAMS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. All five carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as five unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet; that is #264.',
+      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Five instruments reach it by five different routes: C-SSRS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. CAMS is deliberately absent: a CAMSOverallRiskToRiskTier map is published, but nothing emits a cams-ssf-overall-risk code for it to translate, so CAMS has no route here today (#436). All five carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as five unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet; that is #264.',
   },
 ]
 
@@ -329,7 +329,19 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
     // Cross-cutting: derived from C-SSRS (Screener, Full, Since Last Visit, Pediatric) and reused as CAMS overall risk.
-    usedBy: [...TOOLS_CSSRS, 'TL-019', 'TL-027', ...TOOLS_CAMS_SSF],
+    /**
+     * ⚠️ **CAMS was on this list and should not have been (#436).** The four
+     * entries are C-SSRS variants — Screener, Full, Since Last Contact,
+     * Pediatric — and all four genuinely emit `cssrs-risk-level`. The CAMS SSF-5
+     * did not: its mappers emit the overall-risk rating as
+     * `Observation.valueInteger` with an H/N/L interpretation and never a coding,
+     * so listing it here attributed C-SSRS's crosswalk fidelity to CAMS. Per
+     * #93 every row of the CAMS map is `wider` — the lossiest of the six — and
+     * it deliberately reaches no `imminent` tier, so a reader comparing routes
+     * would have concluded the opposite of the truth. CAMS has no route into the
+     * concept layer until something produces `cams-ssf-overall-risk`.
+     */
+    usedBy: [...TOOLS_CSSRS, 'TL-019', 'TL-027'],
     description: 'Derived risk level: Low (Q1–2), Moderate (Q3–4), High (Q5 or Q6+recent). Shared by the C-SSRS Screener, Full, Since Last Visit, and Pediatric versions; reused as CAMS overall risk. Value = SPiER-local cssrs-risk-level tier; crosswalked to the common suicide-risk tier.',
   },
   {
