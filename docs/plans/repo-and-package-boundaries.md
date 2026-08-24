@@ -315,8 +315,31 @@ none of them is solved by moving files between repositories:
 
 1. **The repository is named `adoption-guide` and contains an IG, two Workers and
    three packages.** The name stopped describing the contents, which is most of
-   what prompts the question. **Renaming the repository is the cheap, correct
-   fix** and does not touch a single gate.
+   what prompts the question. Renaming it is the **correct** fix and does not
+   touch a single gate.
+   ⚠️ **This line said "cheap" when it was written, hours earlier the same day,
+   and that was wrong — checked against the gates and generalised from there.**
+   Scoped properly, `adoption-guide` appears 325 times and splits three ways:
+   246 `SPiER-Project/adoption-guide` repo links (GitHub redirects these, so they
+   are stale rather than broken), 25 `spier-adoption-guide` Worker references
+   that **must not** change (that string is the live public origin), and a small
+   set of `spier-project.github.io/adoption-guide/` URLs that genuinely break —
+   GitHub redirects a renamed repo's web URL but **not** its Pages path. Two of
+   those matter:
+   - `VITE_BASE: /adoption-guide/` in `deploy.yml`. Miss it and the Pages build
+     *succeeds* while every asset 404s.
+   - `APP_BASE_URL` in `packages/core/src/lib/cdsHooks/cards.ts` — the target of
+     every card link the live `/cds-services` endpoint emits, i.e. a URL handed
+     to **external** clients.
+
+   ⚠️ **That second one is a standing fragility, not a rename cost.** Cloudflare
+   is the primary public host and Pages is the "also deployed" legacy one
+   ([`surfaces-and-distribution.md`](surfaces-and-distribution.md) §7), yet the
+   published IG's five companion-app links and the CDS cards both send people to
+   the legacy path. Pointing those at the Worker origin is worth doing on its own
+   merit and would incidentally reduce a rename to `VITE_BASE` plus a link sweep.
+   Asked 2026-08-23 and **deferred** — the name costs comprehension, not
+   correctness, so there is no hurry.
 2. **Implementers should be able to consume the IG as a standalone artifact.**
    That is a *publishing* concern, not a layout one — a monorepo publishes an IG
    perfectly well, and most published IGs live in a larger tree. It is #412's
