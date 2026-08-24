@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useScrollToHash } from '../hooks/useScrollToHash'
 import {
   STAGES,
   TOOLS,
@@ -15,6 +16,16 @@ import {
   type Tool,
 } from '@spier/core/data/catalog'
 import '../css/DataDictionary.css'
+
+/**
+ * Anchor id for a section, and the ONE place the scheme is written.
+ *
+ * Consumed by the jump nav and by the section that renders it, so a renamed
+ * stage cannot leave the nav pointing at an id nothing declares. `dd-` prefixed
+ * because these ids share a document with whatever the guide layout renders.
+ */
+const sectionAnchor = (stageId: string) => `dd-${stageId}`
+const NORMALIZATION_ANCHOR = 'dd-normalization'
 
 interface StageGroup {
   stageId: string
@@ -192,7 +203,7 @@ function SharedConcepts({
   const routeCount = concepts.reduce((n, c) => n + bindingsForConcept(c.id).length, 0)
 
   return (
-    <section className="dd-stage-section dd-concept-layer">
+    <section className="dd-stage-section dd-concept-layer" id={NORMALIZATION_ANCHOR}>
       <div className="dd-stage-header">
         <h3 className="dd-stage-title">Cross-instrument normalization</h3>
         <span className="dd-stage-count">
@@ -213,21 +224,33 @@ function SharedConcepts({
         const isOpen = !collapsed.has(concept.id)
         return (
           <div key={concept.id} className="dd-concept">
-            <button
-              type="button"
-              className="dd-concept-toggle"
-              aria-expanded={isOpen}
-              onClick={() =>
-                setCollapsed(prev => {
-                  const next = new Set(prev)
-                  if (next.has(concept.id)) next.delete(concept.id)
-                  else next.add(concept.id)
-                  return next
-                })
-              }
-            >
-              <span className="dd-concept-caret" aria-hidden="true">{isOpen ? '▾' : '▸'}</span>
-              <span className="dd-concept-name">{concept.name}</span>
+            {/*
+              ⚠️ **The toggle and the code link are SIBLINGS, and that is a bug
+              fix rather than a layout preference.** This was one `<button>` with
+              the `CodeLink` anchor nested inside it — interactive content inside
+              a button, which is invalid HTML: the browser gets two competing
+              activation targets, so the LOINC link is unreliable to click and
+              assistive tech announces the pair inconsistently. The button now
+              owns the caret and the name; the link sits beside it.
+            */}
+            <div className="dd-concept-head">
+              <button
+                type="button"
+                className="dd-concept-toggle"
+                aria-expanded={isOpen}
+                aria-controls={`${concept.id}-body`}
+                onClick={() =>
+                  setCollapsed(prev => {
+                    const next = new Set(prev)
+                    if (next.has(concept.id)) next.delete(concept.id)
+                    else next.add(concept.id)
+                    return next
+                  })
+                }
+              >
+                <span className="dd-concept-caret" aria-hidden="true">{isOpen ? '▾' : '▸'}</span>
+                <span className="dd-concept-name">{concept.name}</span>
+              </button>
               <span className="dd-concept-code">
                 <CodeLink coding={concept.code} />
                 <span className="dd-code-display">{concept.code.display}</span>
@@ -235,10 +258,10 @@ function SharedConcepts({
               <span className="dd-concept-count">
                 {bindings.length} {bindings.length === 1 ? 'route' : 'routes'}
               </span>
-            </button>
+            </div>
 
             {isOpen && (
-              <div className="dd-concept-body">
+              <div className="dd-concept-body" id={`${concept.id}-body`}>
                 <p className="dd-cell-desc">{concept.description}</p>
                 {concept.valueSet && (
                   <p className="dd-concept-valueset">
@@ -262,7 +285,19 @@ function SharedConcepts({
                   </p>
                 )}
                 <div className="dd-table-wrapper">
-                  <table className="dd-table">
+                  <table className="dd-table dd-table--fixed">
+                    {/* Same budget as the stage tables. Omitting it here was an
+                        oversight in #432, and a visible one: this table kept auto
+                        layout, so its rows ran 92–110px against the 64px median
+                        below and the section read as the scruffier half of its
+                        own page. */}
+                    <colgroup>
+                      <col className="dd-rcol-route" />
+                      <col className="dd-rcol-value" />
+                      <col className="dd-rcol-resource" />
+                      <col className="dd-rcol-path" />
+                      <col className="dd-rcol-usedby" />
+                    </colgroup>
                     <thead>
                       <tr>
                         <th>Route in</th>
@@ -513,6 +548,42 @@ function BindingRow({
   )
 }
 
+/**
+ * Jump nav for the section list.
+ *
+ * ⚠️ **Buttons calling `jumpTo`, not `<a href="#…">`.** This app is a
+ * `HashRouter`, so a bare fragment href is read as a ROUTE — `#dd-clarify-risk`
+ * would navigate to a route of that name and land on the 404 path, not scroll.
+ * `jumpTo` from `useScrollToHash` writes the double-hash form the router
+ * understands (`#/guide/data-dictionary#dd-clarify-risk`) and scrolls, so the
+ * URL stays copyable and a pasted one still works on a cold load.
+ *
+ * It is also the only thing that honours `scroll-margin-top` here: the manual
+ * scroll in `scrollToAnchor` reads the computed value and subtracts it, because
+ * neither `scrollIntoView` nor native fragment navigation is involved. That
+ * matters more since the app bar became sticky — `--anchor-scroll-offset` now
+ * includes its height.
+ */
+function JumpNav({
+  sections,
+  onJump,
+}: {
+  sections: Array<{ anchor: string; label: string; count: number }>
+  onJump: (anchor: string) => void
+}) {
+  if (sections.length <= 1) return null
+  return (
+    <nav className="dd-jump" aria-label="Jump to section">
+      {sections.map(s => (
+        <button key={s.anchor} type="button" className="dd-jump-link" onClick={() => onJump(s.anchor)}>
+          {s.label}
+          <span className="dd-jump-count">{s.count}</span>
+        </button>
+      ))}
+    </nav>
+  )
+}
+
 export function DataDictionary() {
   const [search, setSearch] = useState('')
   const [resourceFilter, setResourceFilter] = useState('All')
@@ -522,6 +593,8 @@ export function DataDictionary() {
    * it", so this records the decision rather than the state.
    */
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
+  // Installs the deep-link scroll effect AND returns the in-page jump.
+  const { jumpTo } = useScrollToHash()
 
   const resources = useMemo(() => {
     const set = new Set(BINDINGS.map(b => b.fhirResource))
@@ -576,6 +649,28 @@ export function DataDictionary() {
     return CONCEPTS.filter(c => ids.has(c.id))
   }, [filtered])
 
+  /**
+   * What the nav offers, derived from what the page actually renders — so a
+   * filter that empties a stage removes its jump target instead of offering a
+   * link to a section that is not there.
+   */
+  const jumpSections = useMemo(() => {
+    const list = grouped.map(g => ({
+      anchor: sectionAnchor(g.stageId),
+      label: g.stageTitle,
+      count: g.bindings.length,
+    }))
+    if (visibleConcepts.length === 0) return list
+    return [
+      {
+        anchor: NORMALIZATION_ANCHOR,
+        label: 'Normalization',
+        count: visibleConcepts.length,
+      },
+      ...list,
+    ]
+  }, [grouped, visibleConcepts])
+
   return (
     <div className="data-dictionary">
       <p className="dd-description">
@@ -603,6 +698,8 @@ export function DataDictionary() {
         <span className="dd-count">{filtered.length} of {BINDINGS.length} entries</span>
       </div>
 
+      <JumpNav sections={jumpSections} onJump={jumpTo} />
+
       {grouped.length === 0 && (
         <p className="dd-empty-state">No entries match your filters.</p>
       )}
@@ -610,7 +707,7 @@ export function DataDictionary() {
       <SharedConcepts concepts={visibleConcepts} toolIndex={toolIndex} />
 
       {grouped.map(group => (
-        <section key={group.stageId} className="dd-stage-section">
+        <section key={group.stageId} className="dd-stage-section" id={sectionAnchor(group.stageId)}>
           <div className="dd-stage-header">
             <h3 className="dd-stage-title">{group.stageTitle}</h3>
             <span className="dd-stage-count">{group.bindings.length} {group.bindings.length === 1 ? 'element' : 'elements'}</span>
