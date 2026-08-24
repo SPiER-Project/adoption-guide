@@ -242,6 +242,99 @@ imports.
 (see [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md)) would be a
 third consumer of `core` plus the scenarios, pointing the same direction.
 
+### Do not split the IG, the app and the mock EHR into separate repositories
+
+Asked again on 2026-08-23, in the sharpest form yet — three repos (the IG plus the
+data dictionary; the adoption guide / SMART app; the mock EHR and its FHIR data),
+*"and the SMART app should pull from the IG for its tools so that we always have a
+source of truth."*
+
+**That last clause is the answer to itself.** The source-of-truth property already
+exists, in a stronger form than a split can provide, and the split is what would
+put it at risk:
+
+- `copy-fhir.mjs` compiles `ig/input/fsh/` with SUSHI into
+  `packages/fhir-artifacts/generated/`, and `prebuild` runs it with `--force`. The
+  app **cannot** be built against a stale IG, because the IG is compiled from the
+  same commit.
+- `check:catalog` then enforces the correspondence in *both* directions: a tool
+  reaching the app with no ActivityDefinition fails, and a Questionnaire in
+  `FHIR-Resources/` that no ActivityDefinition administers fails.
+
+Across a repository boundary, "pull from the IG" becomes a dependency on
+`thespierproject.fhir@x.y.z` — a version number. Drift stops being *impossible*
+and becomes the ordinary state: the app sits on last month's IG until somebody
+bumps it, and the two-directional check above cannot run at all.
+
+#### The decisive cost is the gate net, and it is countable
+
+⚠️ **Fifteen gates read both sides of the proposed boundary.** Counted rather than
+estimated — twelve of the gate scripts under `web/scripts/`:
+
+```
+check-careplan-readers      check-catalog-integrity     check-fallback-signatures
+check-mapper-readers        check-measures              check-observation-extract
+check-population-patients   check-reassessment          check-scenario-resources
+check-scenario-responses    check-stage-ids             check-ucum-stub
+```
+
+plus three at the repo root — `validate-fhir.mjs` (which needs `ig/`,
+`FHIR-Resources/` **and** `packages/demo-population/`, i.e. all three proposed
+repos at once), `check-fml.mjs`, and `build-use-case-workbook.mjs` (whose
+tool-status claims are read off `tool-ui-metadata.ts` and `App.tsx`).
+
+`check-codings.mjs` is **not** in that list and looks like it should be: it
+deliberately excludes `ig/` and `FHIR-Resources/`, because those are resources and
+`validate-fhir.mjs --tx` owns them. Worth stating, because it is the one that
+makes the count a count rather than a grep.
+
+Every one of those gates exists because a value is hand-duplicated across the
+trees and either drifted or could. **Splitting the repos does not remove the
+duplication — it removes each gate's ability to see both sides in one commit.**
+Each then becomes either a late check against a published version, or nothing.
+
+Concretely, the one that matters most: `check:readers` is what closed #327, where
+the whole C-SSRS family read `answer.valueBoolean` while **no Questionnaire in
+this repo declares a boolean item** — so a patient endorsing *specific plan and
+intent* through SPiER's own form derived `tier: none`, "No risk identified". That
+gate parses mapper source and Questionnaire JSON *together*. Across a repo
+boundary it cannot exist.
+
+The mock EHR is the same shape from the other side. It shares
+`web/scripts/lib/fhir-resource-rules.mjs` with `check-scenario-resources.mjs`, and
+[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §1 *requires*
+that it do so "rather than inventing a second, laxer opinion" — a lenient mock
+accepts writes a real EHR rejects, so the demo looks better while proving less.
+Its own repository makes that module a published package or a copy, and a copy is
+precisely the forbidden thing.
+
+#### What is real in the instinct, and where each part belongs
+
+The question keeps returning because three genuine problems sit behind it, and
+none of them is solved by moving files between repositories:
+
+1. **The repository is named `adoption-guide` and contains an IG, two Workers and
+   three packages.** The name stopped describing the contents, which is most of
+   what prompts the question. **Renaming the repository is the cheap, correct
+   fix** and does not touch a single gate.
+2. **Implementers should be able to consume the IG as a standalone artifact.**
+   That is a *publishing* concern, not a layout one — a monorepo publishes an IG
+   perfectly well, and most published IGs live in a larger tree. It is #412's
+   expensive half (`thespierproject.fhir` on `packages.fhir.org`).
+   ⚠️ **Explicitly not scheduled** — confirmed 2026-08-23, "we're not ready to
+   publish the IG yet." Recorded here as the right mechanism *when* that need is
+   real, not as a next step.
+3. **A client deployment must not receive the demo.** That is
+   `VITE_SURFACE=clinical | demo` in
+   [`surfaces-and-distribution.md`](surfaces-and-distribution.md) §3, whose whole
+   argument is that §5's "one app" conclusion was right and its unstated premise
+   "therefore one build" was not.
+
+And the split that *is* planned already delivers the clear boundaries: the `apps/`
+extraction in this section and §6 — `apps/web`, `apps/patient`, sharing
+`packages/core`. **Separate applications, one repository.** The gates survive
+because every tree stays in one commit.
+
 ## 6. Phases
 
 > ⚠️ **Historical.** This was the original phasing, and §9.5 supersedes it — the
