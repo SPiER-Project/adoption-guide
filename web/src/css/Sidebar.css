@@ -12,23 +12,27 @@
      "releases" at the bottom of its grid row, so the footer can scroll into
      view without the sidebar covering it.
 
-     ⚠️ **PRE-EXISTING, and the footer now makes it visible: `100dvh` is a
-     header too tall.** `top: 0` pins the sidebar to the viewport only once the
-     page has scrolled past the header (~47px); at scroll position 0 the box
-     starts below the header and so its last ~47px sit under the fold — even
-     with the sidebar's own scroll bottomed out. Scrolling the page a hair
-     reveals them, which is what the paragraph above describes.
+     ⚠️ **`100dvh` alone was a header too tall, and the app bar is why this now
+     works.** With a scrolling bar, `top: 0` pinned this box to the viewport only
+     once the page had scrolled past it; at scroll position 0 the box began below
+     the bar and ran ~47px under the fold, clipping the footer even with the
+     sidebar's own scroll bottomed out. Subtracting the bar's height would then
+     have left a 47px gap once it scrolled away — the fix had to be an app bar
+     that does not move, so `.ehr-header` is `position: sticky` and this offset is
+     a constant at every scroll position rather than a moving target.
 
-     Unchanged in kind by the footer's growth (the version stamp was clipped the
-     same way when it was the only thing down here), so it is written down rather
-     than fixed here: the fix is `calc(100dvh - <header>)`, the header is
-     content-sized with no height token, and the honest way to get one is the
-     ResizeObserver + `setProperty` pattern `PatientBanner` already uses for
-     `--patient-banner-height`. That is shell-layout work with its own risk, not
-     a rider on moving some links. */
+     `--ehr-header-height` is measured and published by `useHeaderHeightVar` (the
+     bar is content-sized and can wrap under scaled text). The 0px fallback
+     degrades to the old, clipped behaviour rather than to a broken column.
+     ⚠️ The mobile block below overrides BOTH of these — the overlay is fixed at
+     top: 0 above the bar (z-index 200 vs 100) and must stay full height. */
   position: sticky;
-  top: 0;
-  height: 100dvh;
+  top: var(--ehr-header-height, 0);
+  /* ⚠️ `0px` here and bare `0` above, deliberately. stylelint's
+     length-zero-no-unit wants the unitless form and is right for `top`, but
+     `calc(100dvh - 0)` is invalid CSS — calc needs the unit to type the
+     subtraction. Do not make these two match. */
+  height: calc(100dvh - var(--ehr-header-height, 0px));
   align-self: start;
 }
 

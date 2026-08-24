@@ -605,7 +605,8 @@ which is filed separately.
   closes that half: every `var(--token)` under `web/src` must resolve to a CSS
   declaration or to a `setProperty('--token'…)` call in the TypeScript (that
   second source is scraped, not allowlisted, so the exemption dies with the code
-  that earns it — `--patient-banner-height` is the only one). A fallback does
+  that earns it — two today, `--patient-banner-height` and
+  `--ehr-header-height`, each published by the component it measures). A fallback does
   not excuse an undefined token; it just hides it. `index.css` is in stylelint's
   `ignoreFiles` but *is* read by this check.
 - **One page template.** Every route under the EHR shell renders into

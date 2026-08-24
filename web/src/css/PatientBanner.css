@@ -10,9 +10,14 @@
 
      The banner's measured height is published as --patient-banner-height by
      PatientBanner, so anchor scrolling can clear it; see --anchor-scroll-offset
-     in index.css. */
+     in index.css.
+
+     ⚠️ `top` is the app bar's height, not 0. It was 0 because .ehr-header used to
+     scroll away, leaving the top of the viewport free; the bar is sticky now (see
+     the note there), so a banner at top: 0 would slide underneath it and this
+     identity strip would be the thing that disappeared. */
   position: sticky;
-  top: 0;
+  top: var(--ehr-header-height, 0);
   z-index: 50;
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
 import { PatientBanner } from './PatientBanner'
@@ -19,8 +19,57 @@ import '../css/EhrShell.css'
 // What the header keeps is the hamburger and the brand — plus, still, the
 // natural slot for a SMART-connection indicator.
 
+/**
+ * Publishes the app bar's live height as `--ehr-header-height`.
+ *
+ * ── Why anything needs to know this ─────────────────────────────────────────
+ *
+ * The bar is `position: sticky` (see EhrShell.css), and three things have to sit
+ * *below* it rather than under it: the sidebar's viewport-height box, the patient
+ * banner's own sticky offset, and `--anchor-scroll-offset`. Every one of those
+ * needs the number, and the bar has no fixed height to hardcode — it is
+ * content-sized, `padding: 0.65rem` plus a wordmark, and it is allowed to wrap to
+ * two lines below 640px when a user scales text up. So it is measured.
+ *
+ * ⚠️ **Second hand-written copy of this pattern; `PatientBanner`'s
+ * `useBannerHeightVar` is the first.** Two is a pair, three is drift — if a third
+ * element needs to publish its height, extract the three into one
+ * `useElementHeightVar(name)` hook rather than adding another. Kept local for now
+ * because unifying them means touching the anchor-offset plumbing, which is
+ * working, to fix a layout bug that is not in it.
+ *
+ * `check:tokens` scrapes `setProperty` calls rather than reading an allowlist, so
+ * this token is recognized by virtue of this line existing — and stops being
+ * recognized if this line goes.
+ */
+function useHeaderHeightVar() {
+  const [headerEl, setHeaderEl] = useState<HTMLElement | null>(null)
+
+  useLayoutEffect(() => {
+    if (!headerEl) return
+    const publish = () =>
+      document.documentElement.style.setProperty(
+        '--ehr-header-height',
+        `${Math.round(headerEl.getBoundingClientRect().height)}px`,
+      )
+    publish()
+    const observer = new ResizeObserver(publish)
+    observer.observe(headerEl)
+    return () => {
+      observer.disconnect()
+      // PanelShell renders instead of this shell when embedded, and it has no
+      // app bar — so a stale height would offset the panel's anchors by 47px.
+      // Every consumer falls back to 0px.
+      document.documentElement.style.removeProperty('--ehr-header-height')
+    }
+  }, [headerEl])
+
+  return setHeaderEl
+}
+
 export function EhrShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const setHeaderEl = useHeaderHeightVar()
   const location = useLocation()
   useScrollToTopOnNavigate()
   const isPatientView =
@@ -28,7 +77,7 @@ export function EhrShell() {
 
   return (
     <div className="ehr-shell">
-      <header className="ehr-header">
+      <header className="ehr-header" ref={setHeaderEl}>
         <div className="ehr-header-content">
           <button
             className="ehr-sidebar-toggle"

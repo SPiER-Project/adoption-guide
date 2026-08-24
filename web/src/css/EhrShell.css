@@ -22,6 +22,27 @@
   color: white;
   padding: 0.65rem 1.5rem;
   box-shadow: var(--shadow-md);
+  /*
+   * ⚠️ **Sticky, and this is the fix rather than a preference.** The bar used to
+   * scroll away, which is what made `.sidebar`'s `height: 100dvh` wrong: the
+   * sidebar is `sticky; top: 0`, so before any scroll its box began below this
+   * bar and ran ~47px past the fold, clipping the footer. Every artifact-free
+   * alternative needed the visible remainder of a scrolling header, which CSS
+   * cannot express — so the bar stops moving instead, and the sidebar's box is
+   * `100dvh` minus a constant it can now rely on.
+   *
+   * `z-index: 100` predates this and was already doing the stacking job: the
+   * patient banner is sticky at 50 and now offsets itself below this bar rather
+   * than sliding under it.
+   *
+   * Its height is published as `--ehr-header-height` by `useHeaderHeightVar` —
+   * measured, because this bar is content-sized and may wrap to two lines below
+   * 640px under scaled text. Three rules consume it and all three fall back to
+   * 0px, so a failure to publish degrades to the old behaviour rather than to a
+   * broken layout.
+   */
+  position: sticky;
+  top: 0;
   z-index: 100;
 }
 
