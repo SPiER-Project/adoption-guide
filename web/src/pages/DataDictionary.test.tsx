@@ -65,6 +65,88 @@ describe('the normalization layer leads the page', () => {
   })
 })
 
+describe('the concept head is valid HTML', () => {
+  it('keeps the code link OUTSIDE the toggle button', () => {
+    const { container } = renderPage()
+    // ⚠️ The bug: the LOINC `CodeLink` anchor was nested INSIDE the disclosure
+    // `<button>`. Interactive content inside a button is invalid HTML — two
+    // competing activation targets, so the link is unreliable to click and
+    // assistive tech announces the pair inconsistently. jsdom will not complain,
+    // so nothing but this assertion catches a regression.
+    const toggle = container.querySelector('.dd-concept-toggle')!
+    expect(toggle.querySelectorAll('a, button, input, select').length).toBe(0)
+    // …and it is still on the page, as a sibling.
+    expect(container.querySelector('.dd-concept-head > .dd-concept-code a')).toBeTruthy()
+  })
+
+  it('points the toggle at the body it controls', () => {
+    const { container } = renderPage()
+    const toggle = container.querySelector('.dd-concept-toggle')!
+    const id = toggle.getAttribute('aria-controls')
+    expect(id).toBeTruthy()
+    expect(document.getElementById(id!)).toBeTruthy()
+  })
+})
+
+describe('the jump nav', () => {
+  it('offers exactly the sections the page rendered', () => {
+    const { container } = renderPage()
+    const links = container.querySelectorAll('.dd-jump-link')
+    // Normalization + one per stage group. Derived from what rendered, so the
+    // assertion is the correspondence rather than a pinned count.
+    const sections = container.querySelectorAll('.dd-stage-section[id]')
+    expect(links.length).toBeGreaterThan(1)
+    expect(links.length).toBe(sections.length)
+  })
+
+  it('shrinks with the filters, so no target points at nothing', () => {
+    const { container } = renderPage()
+    const before = container.querySelectorAll('.dd-jump-link').length
+    fireEvent.change(container.querySelector('.dd-search')!, { target: { value: 'careplan' } })
+    const after = container.querySelectorAll('.dd-jump-link').length
+    // ⚠️ The failure this guards is a nav that keeps offering a stage the filter
+    // emptied — a jump to an id no longer in the document, which scrolls nowhere
+    // and looks like a broken page rather than an empty filter.
+    expect(after).toBeLessThan(before)
+    expect(after).toBe(container.querySelectorAll('.dd-stage-section[id]').length)
+    for (const link of container.querySelectorAll('.dd-jump-link')) {
+      // Every label must name a section that is actually present.
+      const label = link.textContent!.replace(/\d+$/, '')
+      expect(
+        [...container.querySelectorAll('.dd-stage-title')].some(t =>
+          (t.textContent ?? '').includes(label.trim()),
+        ),
+      ).toBe(true)
+    }
+  })
+
+  it('uses buttons, not fragment hrefs, because this is a HashRouter app', () => {
+    const { container } = renderPage()
+    // A bare `href="#dd-clarify-risk"` would be read as a ROUTE and navigate
+    // away instead of scrolling. `jumpTo` writes the double-hash form.
+    for (const link of container.querySelectorAll('.dd-jump-link')) {
+      expect(link.tagName).toBe('BUTTON')
+    }
+  })
+})
+
+describe('both tables carry the column budget', () => {
+  it('applies the fixed layout to the routes table as well as the stage tables', () => {
+    const { container } = renderPage()
+    // ⚠️ A class assertion, and labelled as one: jsdom computes no layout, so
+    // the row heights this produces were measured in a browser (routes rows
+    // 92–110px → 75–88px, no horizontal overflow). What is gated here is the
+    // #432 oversight itself — the routes table was left on auto layout while
+    // every stage table got the budget.
+    const tables = [...container.querySelectorAll('.dd-table')]
+    expect(tables.length).toBeGreaterThan(1)
+    for (const t of tables) {
+      expect(t.classList.contains('dd-table--fixed')).toBe(true)
+      expect(t.querySelector('colgroup')).toBeTruthy()
+    }
+  })
+})
+
 describe('the scan grid holds no prose', () => {
   it('keeps descriptions out of the summary row', () => {
     renderPage()

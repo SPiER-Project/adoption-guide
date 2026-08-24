@@ -333,14 +333,99 @@
 }
 
 /* ===========================
+   Jump nav
+   =========================== */
+
+/* A wrapping row of pills rather than a sticky rail: the page is 8 sections and
+   ~8900px, so the nav earns its place, but a sticky bar would sit under an
+   already-sticky app bar and a patient banner on other routes. Inline and once
+   is enough. */
+.dd-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+
+.dd-jump-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: white;
+  color: var(--text-body);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.dd-jump-link:hover {
+  border-color: var(--brand-accent);
+  color: var(--text-strong);
+}
+
+.dd-jump-count {
+  font-size: var(--font-size-2xs);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===========================
+   Routes-table column budget
+   =========================== */
+
+.dd-rcol-route    { width: 18%; }
+.dd-rcol-value    { width: 22%; }
+.dd-rcol-resource { width: 12%; }
+.dd-rcol-path     { width: 26%; }
+.dd-rcol-usedby   { width: 22%; }
+
+/* ===========================
    The normalization layer
    =========================== */
 
 /* Open by default and first on the page, so it gets an accent the stage
    sections do not — this is the claim, not one more group of rows. */
+/*
+ * ⚠️ **A panel, not a highlighted stage section.** With only the accent bar it
+ * reused `.dd-stage-header` and the "N elements" count and read as a stage
+ * someone had emphasised — reported as "looks a bit off". The tint and the inset
+ * are what separate an explanation from one more group of rows.
+ */
 .dd-concept-layer {
+  border: 1px solid var(--border-default);
   border-left: 3px solid var(--brand-accent);
-  padding-left: var(--space-4);
+  border-radius: var(--radius-xl);
+  background: var(--surface-page);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+/* The head is a flex ROW containing the toggle, the code link and the count as
+   siblings — see the note in the TSX for why the link is no longer inside the
+   button. */
+.dd-concept-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem var(--space-3);
+  padding: 0.4rem 0;
+}
+
+.dd-concept-head .dd-concept-count {
+  margin-left: auto;
+}
+
+/* The concept description is the most important paragraph on the page and was
+   809 characters in one 202px block. A readable measure and a leading size make
+   it a lede rather than a wall; the prose itself is catalog data and is not
+   rewritten here. */
+.dd-concept-body > .dd-cell-desc {
+  max-width: 44rem;
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  color: var(--text-body);
 }
 
 /* Visually hidden, still in the accessibility tree — the details column has no
@@ -404,6 +489,10 @@
 
 /* ── Journey-grouped stage sections ── */
 .dd-stage-section {
+  /* Every jump target clears whatever is sticky above it. `scrollToAnchor` reads
+     this computed value and subtracts it by hand — see the note on JumpNav for
+     why the CSS property alone would sit dead here. */
+  scroll-margin-top: var(--anchor-scroll-offset);
   margin-bottom: var(--space-8);
 }
 
@@ -479,23 +568,26 @@
   overflow: hidden;
 }
 
+/* ⚠️ No longer `width: 100%` with a filled background — it WAS the whole row,
+   and it is now one control in `.dd-concept-head` beside the code link and the
+   count. Left at full width it pushed both siblings out of the row. */
 .dd-concept-toggle {
-  display: flex;
+  display: inline-flex;
   align-items: baseline;
   gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: 0.15rem 0.35rem 0.15rem 0;
   border: 0;
-  background: var(--surface-muted);
-  color: var(--text-body);
+  background: none;
+  color: var(--text-strong);
   font-family: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
+  font-weight: 700;
   text-align: left;
   cursor: pointer;
 }
 
 .dd-concept-toggle:hover {
-  background: var(--surface-elevated);
+  color: var(--brand-accent);
 }
 
 .dd-concept-caret {
