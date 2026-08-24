@@ -101,6 +101,50 @@ The Collaborative Assessment and Management of Suicidality (CAMS) framework uses
 
 To model the SSF Core Assessment in a FHIR ConceptMap, clinical informatics experts recommend mapping patient-rated scores of 1 to 2 to "Low Risk," a score of 3 to "Moderate Risk," and scores of 4 to 5 (which represent severe distress and active suicidal driving forces) to "High Risk". Because the CAMS SSF is therapeutic and depends on the collaborative stabilization plan (such as locking up firearms and medications), these mappings must remain flexible and subject to immediate clinician override within the EHR.
 
+#### Follow-up pass, 2026-08-23 — three additions to the above
+
+The July findings were re-checked against CAMS-care's own published material and
+all held. Three things were **not** covered and bear on live issues:
+
+**1. CAMS-care positions CAMS at the treatment phase, by its own model.** The
+[systems-of-care page](https://cams-care.com/the-cams-framework/systems-of-care/)
+places screening (ASQ, PHQ-9) *before* CAMS: screening identifies risk, the SSF
+does therapeutic assessment and safeguarding planning, and only then does
+treatment begin with CAMS / DBT / CT-SP / BCBT. Zero Suicide framing on the same
+page describes CAMS as specialising in "training, identifying, engaging, and most
+importantly, **treating**". So "not a screener" is now a *source-level* statement
+rather than an inference from the absence of stratification studies.
+
+**2. The SSF is a three-phase longitudinal instrument, which bears on its stage
+assignment.** Session 1 is the collaborative assessment (Sections A–D); sessions
+2+ treat the drivers with Section A **re-rated each session**; a final
+outcome/disposition phase closes when patient and clinician agree the patient can
+manage their suicidal thoughts, after consistent improvement across **three**
+sessions.
+
+⚠️ SPiER collapses that lifecycle: `AdministerCAMSSectionA`, `SectionB`,
+`InterimSession` and `OutcomeDisposition` all map to **TL-020 at the Clarify Risk
+stage** (`packages/core/src/data/catalog/tools.ts`, which records the reason as
+"per the SSC stage tiles"). That is a defensible product decision, but it pins a
+tool at Clarify Risk whose own lifecycle ends nearer Track Risk Over Time and
+Measure — worth revisiting deliberately rather than inheriting.
+
+**3. The rating is patient-authored, and every other route into the tier is
+not.** SPiER's own Questionnaire says so on its face — titled *"CAMS Suicide
+Status Form (SSF-5) - Section A (Patient)"*, `subjectType: [Patient]`, item
+instruction *"Rate and fill out each item according to how you feel right now."*
+Meanwhile ASQ disposition, C-SSRS risk level, BSSA disposition, PSS-3 result and
+SAFE-T risk level are **all clinician-determined**.
+
+⚠️ **That is a provenance conflation, not a precision one, and it is the stronger
+argument.** The existing note says the mapping is lossy and needs clinician
+override. The sharper problem is that a consumer reading
+`Observation.code = 93374-7` valued `high` cannot tell whether it came from a
+clinician's structured assessment or a patient's momentary self-rating — the tier
+ValueSet carries nothing to distinguish them. See #436, and
+`docs/best-practices/concept-harmonization.md` §2 for how Gravity separates the
+two by resource type.
+
 ### High and Imminent Risk Boundary Analysis
 
 Representing acute suicidality within standard terminology and clinical workflows requires establishing clear guidelines for the "high" versus "imminent" risk boundary.
@@ -198,6 +242,13 @@ For a smaller group like the SPiER coalition, a lighter consensus process is rec
 11. Columbia Lighthouse Project — https://cssrs.columbia.edu/
 12. Stanley-Brown Safety Plan — https://suicidesafetyplan.com/
 13. US Behavioral Health Profiles IG (continuous build) — https://build.fhir.org/ig/HL7/us-behavioral-health-profiles/
+
+Added in the 2026-08-23 follow-up pass:
+
+14. CAMS within a system of care — https://cams-care.com/the-cams-framework/systems-of-care/
+15. The Suicide Status Form in the CAMS Framework — https://cams-care.com/the-cams-framework/the-suicide-status-form/
+16. SPRC: Collaborative Assessment and Management of Suicidality — https://sprc.org/wp-content/uploads/2022/12/Collaborative-Assessment-and-Management-of-Suicidality-CAMS.pdf
+17. The SSF as a therapeutic assessment tool (CAMS-care) — https://cams-care.com/wp-content/uploads/2026/05/SSF-as-a-therapeutic-assessment.pdf
 14. PSS-3 — https://www.umassmed.edu/globalassets/emergency-medicine/documents/patient-safety-screener-3-8.1.17.pdf
 15. CALM (SPRC) — https://sprc.org/resources/calm-counseling-on-access-to-lethal-means/
 16. VA/DoD Lethal Means Safety Counseling — https://www.healthquality.va.gov/guidelines/MH/srb/Lethal-Means-Safety-Counseling-for-Providers-508.pdf

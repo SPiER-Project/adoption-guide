@@ -27,6 +27,27 @@ Key Gravity decisions worth copying:
 - **`interpretation = POS/NEG`** (v3 ObservationInterpretation) as the universal actionable flag.
 - **VSAC grouping value sets** — a parent grouping set aggregates per-instrument source value sets, published to NLM's Value Set Authority Center for national discoverability.
 - **Unconfirmed by design.** A concept derived from an instrument "should be verified by a care team member" — it flags a need, it does not confirm a diagnosis.
+- **Screening response and clinical assertion are different RESOURCE TYPES, not
+  one resource with a flag.** Gravity's IG profiles `Observation` for what the
+  instrument returned and `Condition` for an established SDOH problem, and reaches
+  for `Provenance` when the *source* of an observation needs recording — rather
+  than encoding "who said this" into the value or the concept code.
+
+  ⚠️ **This is the decision SPiER has not yet copied, and #264 is where it bites.**
+  The shared suicide-risk tier is reached by five clinician-determined routes (ASQ
+  disposition, C-SSRS risk level, BSSA disposition, PSS-3 result, SAFE-T judgment)
+  and, if #436 goes the wrong way, by one patient self-rating (the CAMS SSF
+  overall-risk item, whose Questionnaire is titled "Section A (Patient)" and asks
+  the patient to rate "how you feel right now"). A consumer reading
+  `Observation.code = 93374-7` valued `high` cannot currently tell those apart.
+
+  So **fidelity has two axes and #264 currently models one.** `wider` /
+  `relatedto` / `equivalent` from the ConceptMap describes *vocabulary precision*;
+  clinician-determined vs patient-reported describes *provenance*. For a partner
+  deciding whether to act on a tier, the second is arguably the more consequential,
+  and it is the one nothing in the tier ValueSet carries. "Unconfirmed by design"
+  above is adjacent but not the same thing — it is about confirmation status, not
+  about who asserted it.
 
 References:
 - [SDOH Clinical Care IG — Gravity Background](https://www.hl7.org/fhir/us/sdoh-clinicalcare/gravity_background.html)

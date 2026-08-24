@@ -41,10 +41,32 @@ reading has real exposure.
 
 | Tool | Current status | Recorded notice says | What is owed |
 |---|---|---|---|
-| **CAMS** (TL-020 / 021 / 024, 6 ADs) | `commercial` | Training + license required from CAMS-care; SSF not to be reproduced without the CAMS-care/Guilford agreement | Confirm current CAMS-care terms; establish whether SPiER's FHIR representation is covered by any agreement SPiER holds, or whether the artifacts must be withdrawn. Contact: cams-care.com |
+| **CAMS** (TL-020 / 021 / 024, 6 ADs) | `commercial` | Training + license required from CAMS-care; SSF not to be reproduced without the CAMS-care/Guilford agreement | Confirm current CAMS-care terms; establish whether SPiER's FHIR representation is covered by any agreement SPiER holds, or whether the artifacts must be withdrawn. **Blocks a patient-facing SSF — see below.** Contact: cams-care.com |
 | **Stanley-Brown** (TL-007) | `registration` | Written permission required for changes **or for use of the form in the electronic medical record** | This is exactly what SPiER publishes. Establish whether SPiER has (or needs) that permission, and what an adopting site must obtain. Contact: suicidesafetyplan.com |
 | **SBQ-R** (TL-025) | `unknown` | "© Osman et al (1999) Revised. Permission for use granted by A. Osman, MD." | Determine who the permission was granted to, whether it transfers, and what an adopter must do. Until then the status stays `unknown` — do not upgrade it on the strength of the notice alone |
 | **PHQ-9** (TL-002) | `public-domain` | "No permission required to reproduce, translate, display or distribute" | Lowest risk of the four, but still unverified. File a memo recording the source of the public-domain claim |
+
+### ⚠️ CAMS is the one item here that blocks planned work, not just a claim
+
+Raised 2026-08-23: the CAMS SSF Section A questionnaire is **patient-completed**
+(`FHIR-Resources/CAMS/cams-ssf5-section-a.json` — titled "Section A (Patient)",
+`subjectType: [Patient]`), so it is a natural first artifact for the patient app
+that `docs/plans/repo-and-package-boundaries.md` §5 plans.
+
+**It should not go there until this row is verified.**
+[`docs/research/2026-07-terminology-crosswalk-research.md`](../research/2026-07-terminology-crosswalk-research.md)
+rates CAMS *"Strictly commercially licensed; custom digital implementations
+prohibited — integrate official templates via CAMS-care"*, and the published
+ActivityDefinition copyright says the SSF "must not be reproduced without that
+agreement" while admitting the terms are unverified.
+
+A SPiER-authored SSF in a **patient-facing** app is exactly the custom digital
+implementation that description prohibits, on the most exposed surface available.
+
+⚠️ **The exposure already exists** — `cams-ssf5-section-a.json` ships in the
+clinician app today, so this is a question about widening it rather than creating
+it. That is a reason to verify sooner, not a reason to treat a patient app as no
+different.
 
 ## Tier 2 — memo filed, source verification outstanding
 
