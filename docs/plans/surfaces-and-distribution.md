@@ -158,8 +158,15 @@ has never been seen red is not evidence of anything.
 | Mock EHR | its own Worker | separate origin is a requirement, not a preference |
 
 The Worker does not serve the IG. [`services/cds-hooks/src/index.ts`](../../services/cds-hooks/src/index.ts)
-redirects `/ig` and `/ig/*` to `https://spier-project.github.io/adoption-guide/ig/`,
-with a comment calling that "transitional" — so a move was once intended.
+redirects `/ig` and `/ig/*` to `https://spier-project.github.io/adoption-guide/ig/`.
+Verified live 2026-08-23: the Worker path returns **302**, the Pages path returns
+**200**.
+
+⚠️ That comment called the redirect *"transitional"* until 2026-08-23, and the
+word did exactly the damage the recommendation below predicted — it was read as
+"the IG is on its way to the Worker", and the question *"are the IGs published on
+my worker?"* had to be settled by curling the live host. It now says permanent,
+and points here.
 
 ### The IG measurement, and the one that is missing
 
@@ -179,14 +186,24 @@ a few thousand to well past the cap, and **nothing measures it.**
 find ig/output -type f | wc -l
 ```
 
-### Recommendation: leave the IG on Pages
+### Recommendation: leave the IG on Pages — ADOPTED 2026-08-23
 
 Even if it fits. It is free, it is already canonical in the redirect, pushing
 254 MB on every deploy would be slow, and `deploy.yml` uploads the SPA and the
 IG as a single Pages artifact — CLAUDE.md notes the two cannot be decoupled, so
-moving the IG means unpicking that coupling for little gain. Treat the redirect
-as a permanent answer and drop "transitional" from the comment, or file the move
-deliberately; leaving the word there implies a plan nobody holds.
+moving the IG means unpicking that coupling for little gain.
+
+✅ **The first of the two options offered here is taken.** The Worker's comment
+now calls the redirect permanent and carries the reasoning, so a reader meets the
+decision where they meet the code. Filing the move remains open — but it needs
+the file-count measurement above behind it, not an adjective.
+
+⚠️ **One consequence, recorded because it surfaced through the rename question
+(`repo-and-package-boundaries.md` §5):** Pages hosting the IG alone makes it
+**load-bearing, not legacy**, and any summary that calls Cloudflare "the primary
+public host" is describing the SPA row of the table above, not this one. Renaming
+the repository would move the only copy of the render *and* orphan
+`CANONICAL_IG_BASE` inside the Worker.
 
 ### One consequence of keeping guide and panel on one origin
 

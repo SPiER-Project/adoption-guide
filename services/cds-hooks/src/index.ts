@@ -5,7 +5,8 @@
  *   - the adoption-guide SPA, served from Static Assets (the `ASSETS` binding,
  *     directory ./web-dist — the web app's `vite build` output at base `/`);
  *   - the CDS Hooks 2.0 API under /cds-services/*;
- *   - a transitional /ig/* redirect to the rendered HL7 IG on GitHub Pages
+ *   - a permanent /ig/* redirect to the rendered HL7 IG on GitHub Pages, which
+ *     is its only host — see CANONICAL_IG_BASE
  *     (the IG is built there by the Java IG Publisher, not on this Worker).
  *
  * `run_worker_first` (wrangler.jsonc) means this handler sees every request:
@@ -49,7 +50,22 @@ interface Env extends CdsJwtEnv {
  */
 const DEFAULT_FRAME_ANCESTORS = "'self' https://spier-mock-ehr.bbthorson.workers.dev"
 
-/** Canonical GitHub Pages home of the rendered IG (see /ig redirect below). */
+/**
+ * Canonical GitHub Pages home of the rendered IG (see the /ig redirect below).
+ *
+ * ⚠️ **This Worker does not and will not serve the IG, and that is a decision
+ * rather than a pending migration.** `deploy.yml` runs the Java IG Publisher and
+ * nests the render into the Pages artifact; the Cloudflare build only runs
+ * `npm run build` here, so there is nothing to serve.
+ * [`surfaces-and-distribution.md` §4](../../../docs/plans/surfaces-and-distribution.md)
+ * recommends keeping it that way — Pages is free, the 254 MB render would be
+ * pushed on every deploy, and `deploy.yml` uploads the SPA and the IG as ONE
+ * Pages artifact, so moving the IG means unpicking a coupling for little gain.
+ *
+ * ⚠️ It also names the number nobody has measured: Static Assets caps **file
+ * count**, not total bytes, and `find ig/output -type f | wc -l` has never been
+ * run. So "it would fit" is not currently a claim anyone can make.
+ */
 const CANONICAL_IG_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
 
 const app = new Hono<{ Bindings: Env; Variables: CdsJwtVariables }>()
@@ -98,9 +114,18 @@ app.post(`/cds-services/${SERVICE_ID}`, cdsJwt(), async (c) => {
 // Feedback — accepted per spec but not persisted (stateless service).
 app.post(`/cds-services/${SERVICE_ID}/feedback`, cdsJwt(), (c) => c.body(null, 200))
 
-// ── IG redirect (transitional) ───────────────────────────────────────────────
-// The rendered IG lives only on the canonical GitHub Pages site during the
-// migration; the app's /ig/ links (import.meta.env.BASE_URL + 'ig/') land here.
+// ── IG redirect (permanent) ──────────────────────────────────────────────────
+// The rendered IG lives only on the canonical GitHub Pages site; the app's /ig/
+// links (import.meta.env.BASE_URL + 'ig/') land here.
+//
+// ⚠️ **This said "transitional" and "during the migration" for a plan nobody
+// held**, which is precisely what `surfaces-and-distribution.md` §4 warned the
+// word would do: it invites the reader to assume the IG is on its way here. It
+// was read that way and the question had to be answered by curling the live host.
+// §4's recommendation is to treat the redirect as the permanent answer or file
+// the move deliberately; this takes the first option. Filing the move is still
+// open — it just needs to be a decision with the file-count measurement behind
+// it, not an adjective.
 app.get('/ig', (c) => c.redirect(CANONICAL_IG_BASE, 302))
 app.get('/ig/*', (c) => {
   const rest = c.req.path.slice('/ig/'.length)

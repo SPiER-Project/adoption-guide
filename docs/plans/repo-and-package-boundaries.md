@@ -332,14 +332,41 @@ none of them is solved by moving files between repositories:
      every card link the live `/cds-services` endpoint emits, i.e. a URL handed
      to **external** clients.
 
-   ⚠️ **That second one is a standing fragility, not a rename cost.** Cloudflare
-   is the primary public host and Pages is the "also deployed" legacy one
-   ([`surfaces-and-distribution.md`](surfaces-and-distribution.md) §7), yet the
-   published IG's five companion-app links and the CDS cards both send people to
-   the legacy path. Pointing those at the Worker origin is worth doing on its own
-   merit and would incidentally reduce a rename to `VITE_BASE` plus a link sweep.
-   Asked 2026-08-23 and **deferred** — the name costs comprehension, not
-   correctness, so there is no hurry.
+   ⚠️ **That second one is a standing fragility, not a rename cost.** The
+   published IG's five companion-app links and the live CDS cards both send
+   people to a `spier-project.github.io/adoption-guide/` path. Pointing *those*
+   at the Worker origin is worth doing on its own merit and would shrink a rename
+   further.
+
+   ⚠️⚠️ **But this paragraph said "Cloudflare is the primary public host and Pages
+   is the 'also deployed' legacy one", and that is only true of the SPA.**
+   [`surfaces-and-distribution.md` §4](surfaces-and-distribution.md) — §4, not the
+   §7 this cited — has the hosting table, and its IG row reads *"Rendered IG |
+   **GitHub Pages** | the Worker only redirects"*. Verified live 2026-08-23:
+   `spier-adoption-guide.bbthorson.workers.dev/ig/` returns **302** to
+   `spier-project.github.io/adoption-guide/ig/`, which returns 200. So **Pages is
+   the sole host of the rendered IG and the Worker depends on it** — load-bearing,
+   not legacy. The summary picked the SPA row's conclusion and applied it to the
+   whole host.
+
+   Two things follow, and both cut against the rename rather than for it:
+
+   - **Renaming does not merely stale a link; it takes the IG down.** The Pages
+     path is the only copy of the render, and
+     `CANONICAL_IG_BASE` in `services/cds-hooks/src/index.ts` hardcodes it — so
+     the rename orphans a redirect target inside the Worker as well.
+   - **"Point the Pages URLs at the Worker" cannot apply to `/ig/` itself.** The
+     Worker has no IG to serve: `deploy.yml` runs the Java IG Publisher and nests
+     the render into the Pages artifact, while the Cloudflare build only runs
+     `npm run build` in `services/cds-hooks`. Making Cloudflare genuinely primary
+     for the IG is real work, and §4 **recommends against it** — free hosting,
+     254 MB per deploy, and a Pages artifact that couples the SPA and IG so they
+     cannot be decoupled. It also names the one thing nobody has measured: Static
+     Assets caps **file count**, not bytes, and `find ig/output -type f | wc -l`
+     has never been run.
+
+   The rename itself was asked 2026-08-23 and **deferred** — the name costs
+   comprehension, not correctness, so there is no hurry.
 2. **Implementers should be able to consume the IG as a standalone artifact.**
    That is a *publishing* concern, not a layout one — a monorepo publishes an IG
    perfectly well, and most published IGs live in a larger tree. It is #412's
