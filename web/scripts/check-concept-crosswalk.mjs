@@ -39,6 +39,30 @@ const TIER_URL = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-
 
 // Disposition CodeSystem url -> the TS mapper(s) that produce those codes (check F).
 // A code must appear in at least one of the listed (existing) mapper files.
+/**
+ * ConceptMap sources with NO runtime producer, and why each is acceptable.
+ *
+ * ⚠️ **An unlisted source used to skip check F in total silence** — not via the
+ * `note:` path below, which only fires for a *listed* file that is missing. A
+ * source absent from `MAPPER_FOR_SOURCE` missed the `if (mapperRels)` guard
+ * entirely and produced no output at all, so the one map whose every row is a
+ * lossy widening was the one nothing checked. That is the #232 / #261 family:
+ * a gate reporting green over something it never looked at.
+ *
+ * So an unlisted source is now a FAILURE unless it appears here with a reason.
+ * An entry is a known gap, not an exemption from thinking about it.
+ */
+const NO_MAPPER_REASON = {
+  'http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk':
+    'Published crosswalk with no runtime producer (#436): the CAMS mappers emit the SSF-5 ' +
+    'overall-risk rating as Observation.valueInteger with an H/N/L interpretation, never as a ' +
+    'cams-ssf-overall-risk coding — so no code in this map is emitted by SPiER today.',
+  'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier':
+    'Egress map (tier → LOINC), so its source is the concept layer itself rather than an ' +
+    'instrument disposition. Produced by whichever instrument route reached the tier, which ' +
+    'checks A–C already cover from the other direction.',
+}
+
 const MAPPER_FOR_SOURCE = {
   'http://thespierproject.org/fhir/CodeSystem/asq-screening-result': ['packages/core/src/lib/observationMappers/asq.ts'],
   'http://thespierproject.org/fhir/CodeSystem/bssa-disposition': ['packages/core/src/lib/observationMappers/bssa.ts'],
@@ -145,6 +169,20 @@ for (const { id, resource } of conceptMaps) {
 
     // F: mapper coverage (best-effort) — code must appear in >=1 existing mapper
     const mapperRels = MAPPER_FOR_SOURCE[group.source]
+    if (!mapperRels) {
+      // Silence here is what hid #436. Either the source has a producer worth
+      // checking, or it has a written reason why it does not.
+      const reason = NO_MAPPER_REASON[group.source]
+      if (reason) {
+        console.log(`  note: ${group.source.split('/').pop()} has no runtime producer — ${reason}`)
+      } else {
+        fail(
+          `${id}: ConceptMap source ${group.source} has no MAPPER_FOR_SOURCE entry and no ` +
+          `NO_MAPPER_REASON entry — check F would skip it silently. Add the mapper file(s) it ` +
+          `is produced by, or record why nothing produces it.`,
+        )
+      }
+    }
     if (mapperRels) {
       const present = mapperRels
         .map((rel) => ({ rel, path: join(root, rel) }))
