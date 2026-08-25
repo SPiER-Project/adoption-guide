@@ -53,7 +53,7 @@ export function ToolConfiguration() {
           </span>
           <span className="tool-config-meta-divider">&middot;</span>
           <span className="tool-config-meta-count">
-            {TOOLS.length} total in catalog ({TOOLS.length - launchableCount} on roadmap)
+            {TOOLS.length} total in catalog ({TOOLS.length - launchableCount} not yet built)
           </span>
         </p>
       </header>
@@ -131,8 +131,8 @@ export function ToolConfiguration() {
                         onChange={() => toggleTool(tool.id)}
                       />
                     ) : (
-                      <span className="tool-row-roadmap-badge" title="Not yet built — see Roadmap">
-                        Roadmap
+                      <span className="tool-row-unbuilt-badge" title="Catalogued, but not yet launchable from this app">
+                        Not built
                       </span>
                     )}
                     <span className="tool-row-body">

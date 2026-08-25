@@ -36,8 +36,9 @@ name: Terminology — nightly external-code check
 #    green can mean "did not look".
 #
 # 2. The issue-reporting step is best-effort and its failure never masks a drift
-#    failure. This org restricts what Actions may do — `roadmap-snapshot.yml`
-#    documents Actions being forbidden from opening *pull requests* org-wide. That
+#    failure. This org restricts what Actions may do — Actions are forbidden from
+#    opening *pull requests* org-wide (see docs/scheduled-checks-triage.md, which
+#    keeps the detail after `roadmap-snapshot.yml` was deleted). That
 #    restriction does not cover issues, and as of #232 that is observed rather
 #    than assumed: run 31281293599 planted a drifted display on a disposable
 #    branch, and this job filed issue #240 under GITHUB_TOKEN. The same run
@@ -65,8 +66,9 @@ on:
       - '.github/workflows/terminology-nightly.yml'
 
 # The repo default is read-only, and declaring this block at all resets every
-# *unlisted* scope to `none` — the trap that made roadmap-snapshot.yml fetch 0
-# issues on its first run. `issues: write` lets the report job file the tracking
+# *unlisted* scope to `none` — the trap that made the since-deleted
+# roadmap-snapshot.yml fetch 0 issues (HTTP 200 and an empty array, not a 403) on
+# its first run. `issues: write` lets the report job file the tracking
 # issue, `contents: read` lets checkout work, and `actions: read` is what
 # download-artifact needs to pull the two logs across jobs. Dropping any one of
 # them degrades this workflow quietly rather than loudly.

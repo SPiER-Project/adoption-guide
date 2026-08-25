@@ -72,6 +72,13 @@ doc). All verification is green.
 > since been deleted: `migrate-roadmap-stages.mjs` because it is spent, and
 > `seed-roadmap-issues.mjs` because issues are now authored in GitHub directly.
 > The steps are kept as a record of what was done.
+>
+> ⚠️ **The three artifacts the Problem below names are also gone** —
+> `web/src/pages/Roadmap.tsx`, `web/src/data/roadmap.generated.json` and
+> `web/scripts/fetch-roadmap.mjs` were removed when the roadmap stopped being
+> mirrored onto the site. The label migration itself stands; only the site half
+> of it has no remaining consumer. Read what follows as history, not as a map of
+> the tree.
 
 **Problem:** GitHub labels and issues still describe the old structure.
 `web/src/pages/Roadmap.tsx` builds label-filter links like

@@ -66,7 +66,6 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // Evaluate — scoring where an adopter (or SPiER itself) actually stands.
   { path: 'adoption-readiness', label: 'Adoption Readiness', group: 'evaluate' },
   { path: 'adoption-rubric', label: 'Adoption Rubric', group: 'evaluate' },
-  { path: 'roadmap', label: 'Roadmap', group: 'evaluate' },
 ]
 
 export const GUIDE_BASE = '/guide'

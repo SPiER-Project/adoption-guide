@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "copy-fhir": "node scripts/copy-fhir.mjs",
-    "fetch-roadmap": "node scripts/fetch-roadmap.mjs",
     "predev": "npm run copy-fhir",
     "dev": "vite",
     "prebuild": "npm run copy-fhir -- --force",

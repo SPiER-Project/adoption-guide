@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
-import roadmapSnapshot from '../data/roadmap.generated.json'
 import '../css/AdoptionReadiness.css'
 
 // ─────────────────────────────────────────────────────────────
@@ -9,47 +8,42 @@ import '../css/AdoptionReadiness.css'
 // ------------------------------------------------------------
 // One row per catalogued instrument, answering an adopter's three
 // questions at a glance:
-//   1. Where is it in the build lifecycle?  → build status (roadmap epics)
+//   1. Where is it in the build lifecycle?  → build status
 //   2. How strongly do we recommend it?     → inclusionStatus (core/optional/future)
 //   3. How deeply does it integrate?        → targetMaturity (electronic / writeback / triggering)
-// plus the adoption assets that exist to help (pilot plan, demo, tracking epic).
+// plus the adoption assets that exist to help (pilot plan, demo).
 //
-// Data is reused, not duplicated:
-//   - TOOLS / targetMaturity / inclusionStatus  → catalog
-//   - build status                                              → roadmap.generated.json (GitHub epics)
+// Data is reused, not duplicated: everything here comes from the catalog.
+//
+// ⚠️ **Build status is derived from the catalog, not read from GitHub.** It used
+// to come from `roadmap.generated.json` — a committed snapshot of issue bodies
+// refreshed weekly — which gave three states (`built` / `planned` / `future`)
+// and a link to each tool's tracking epic. That snapshot is gone: the roadmap
+// lives in GitHub Issues, and mirroring it onto the site meant shipping 356KB of
+// issue prose to render 280-character excerpts.
+//
+// What that costs is stated rather than hidden. `future` is no longer
+// distinguishable from `planned` — the catalog knows whether a tool can be
+// launched, not whether someone intends to build it next quarter — so the
+// `roadmap` readiness tier is gone and unbuilt tools all read "In progress".
+// `inclusionStatus: 'future'` still carries the "later phase" signal in its own
+// column, which is where an adopter was already reading it.
 // ─────────────────────────────────────────────────────────────
 
-interface RoadmapIssue {
-  number: number
-  url: string
-  toolId?: string
-  type?: 'epic' | 'task'
-  status?: 'built' | 'planned' | 'future'
-}
-
-interface RoadmapSnapshot {
-  repo: string
-  issues: RoadmapIssue[]
-}
-
-const SNAPSHOT = roadmapSnapshot as RoadmapSnapshot
-
-type BuildStatus = 'built' | 'planned' | 'future'
+type BuildStatus = 'built' | 'planned'
 
 // Composite readiness tier, refining build status with the adoption assets
 // that actually let a partner act on it. Order = most → least adoptable.
-type ReadinessTier = 'built' | 'in-progress' | 'roadmap'
+type ReadinessTier = 'built' | 'in-progress'
 
 const READINESS_LABELS: Record<ReadinessTier, string> = {
   built: 'Built',
   'in-progress': 'In progress',
-  roadmap: 'On roadmap',
 }
 
 const READINESS_BLURB: Record<ReadinessTier, string> = {
   built: 'Implemented as FHIR artifacts and demoable in the Patient View; pilot plan not yet written.',
-  'in-progress': 'Actively being built — tracked by an open epic, not yet ready to adopt.',
-  roadmap: 'Catalogued and scoped, but scheduled for a later phase.',
+  'in-progress': 'Catalogued and scoped; not yet launchable from the app.',
 }
 
 const MATURITY_DIMENSIONS = [
@@ -99,22 +93,24 @@ interface ReadinessRow {
   tool: Tool
   buildStatus: BuildStatus
   tier: ReadinessTier
-  epicUrl?: string
   /** Sum of the three target-maturity dimensions, 0–9. */
   depthScore: number
 }
 
-/** Build status for a tool: prefer its tracking epic, fall back to a launch-action heuristic. */
-function buildStatusFor(tool: Tool, epicsByTool: Map<string, RoadmapIssue>): { status: BuildStatus; epicUrl?: string } {
-  const epic = epicsByTool.get(tool.id)
-  if (epic) return { status: (epic.status ?? 'planned') as BuildStatus, epicUrl: epic.url }
+/**
+ * Build status for a tool: can the app launch it?
+ *
+ * This was the fallback branch when a tool had no tracking epic, and it is now
+ * the whole rule. It is also the more honest of the two — a launch action that
+ * resolves to a route is evidence the tool is built, where an epic's label was
+ * evidence that someone had labelled it.
+ */
+function buildStatusFor(tool: Tool): { status: BuildStatus } {
   return { status: tool.launchActions.length > 0 ? 'built' : 'planned' }
 }
 
 function readinessTier(buildStatus: BuildStatus): ReadinessTier {
-  if (buildStatus === 'built') return 'built'
-  if (buildStatus === 'planned') return 'in-progress'
-  return 'roadmap'
+  return buildStatus === 'built' ? 'built' : 'in-progress'
 }
 
 function MaturityChip({ level, dimension }: { level: MaturityLevel; dimension: string }) {
@@ -131,24 +127,12 @@ function MaturityChip({ level, dimension }: { level: MaturityLevel; dimension: s
 
 export function AdoptionReadiness() {
   const { groups, stats } = useMemo(() => {
-    // Index the single tracking epic per tool (matches Roadmap.tsx's epic-first rule).
-    const epicsByTool = new Map<string, RoadmapIssue>()
-    for (const issue of SNAPSHOT?.issues ?? []) {
-      if (!issue.toolId) continue
-      const existing = epicsByTool.get(issue.toolId)
-      // Prefer an explicit epic; otherwise keep the first issue seen.
-      if (!existing || (issue.type === 'epic' && existing.type !== 'epic')) {
-        epicsByTool.set(issue.toolId, issue)
-      }
-    }
-
     const rowFor = (tool: Tool): ReadinessRow => {
-      const { status, epicUrl } = buildStatusFor(tool, epicsByTool)
+      const { status } = buildStatusFor(tool)
       const m = tool.targetMaturity
       return {
         tool,
         buildStatus: status,
-        epicUrl,
         tier: readinessTier(status),
         depthScore: m.electronic + m.writeback + m.triggering,
       }
@@ -287,14 +271,14 @@ export function AdoptionReadiness() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ tool, buildStatus, tier, epicUrl }) => (
+                {rows.map(({ tool, buildStatus, tier }) => (
                   <tr key={tool.id}>
                     <td className="ar-col-tool">
                       <span className="ar-tool-name">{tool.shortName ?? tool.name}</span>
                       <span className="ar-tool-id">{tool.id}</span>
                     </td>
                     <td>
-                      <span className={`roadmap-tool-inclusion roadmap-tool-inclusion--${tool.inclusionStatus}`}>
+                      <span className={`ar-inclusion ar-inclusion--${tool.inclusionStatus}`}>
                         {tool.inclusionStatus}
                       </span>
                     </td>
@@ -325,12 +309,7 @@ export function AdoptionReadiness() {
                             Demo
                           </Link>
                         )}
-                        {epicUrl && (
-                          <a className="ar-res-link ar-res-link--ext" href={epicUrl} target="_blank" rel="noopener noreferrer">
-                            Epic
-                          </a>
-                        )}
-                        {!tool.launchActions[0] && !epicUrl && (
+                        {!tool.launchActions[0] && (
                           <span className="ar-res-empty">—</span>
                         )}
                       </div>
@@ -347,10 +326,6 @@ export function AdoptionReadiness() {
       <section className="ar-crosslinks">
         <h3 className="ar-crosslinks-title">Where to go next</h3>
         <ul className="ar-crosslinks-list">
-          <li>
-            <Link to="/guide/roadmap">Roadmap</Link> — the build status above, by tool, with
-            tracking epics and the three strategic priorities behind them.
-          </li>
           <li>
             <Link to="/guide/pathway">Pathway</Link> — each instrument in its clinical
             context across the 8-stage Suicide Safer Care pathway.

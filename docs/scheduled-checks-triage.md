@@ -1,8 +1,14 @@
 # Scheduled checks: what they are, and who reads them when they go red
 
-Two workflows in this repo run on a timer rather than on a pull request. Both
-were written to be loud, and both spent their first weeks unobserved on the
-trigger that actually matters — which is what issue #232 was about.
+One workflow in this repo runs on a timer rather than on a pull request. It was
+written to be loud, and it spent its first weeks unobserved on the trigger that
+actually matters — which is what issue #232 was about.
+
+⚠️ **There were two.** `roadmap-snapshot.yml` refreshed the committed snapshot
+behind `/guide/roadmap` every Monday; both it and the page are gone, because the
+roadmap lives in GitHub Issues and mirroring it onto the site meant shipping
+356KB of issue bodies to the browser. What it learned about opening a PR from
+Actions in this org outlived it, and is kept at the foot of this document.
 
 A scheduled check differs from a PR check in one way that governs everything
 below: **nobody is standing in front of it.** A PR check has an author waiting on
@@ -13,11 +19,10 @@ to scroll past.
 | Workflow | Schedule | Trigger to watch | Reader |
 |---|---|---|---|
 | [`terminology-nightly.yml`](../.github/workflows/terminology-nightly.yml) | `41 4 * * *` — 04:41 UTC daily | `schedule` | Brad Thorson (repo maintainer) |
-| [`roadmap-snapshot.yml`](../.github/workflows/roadmap-snapshot.yml) | `17 13 * * 1` — Mondays 13:17 UTC | `schedule` | Brad Thorson (repo maintainer) |
 
-Both readers are the same person today because the repo has one active
-maintainer. That is a fact to change, not a design: when a second maintainer
-joins, split the rows rather than leaving "whoever notices".
+The reader is one person today because the repo has one active maintainer. That
+is a fact to change, not a design: when a second maintainer joins, add the row
+rather than leaving "whoever notices".
 
 Two GitHub behaviours worth knowing before diagnosing a schedule that seems dead:
 
@@ -116,49 +121,48 @@ the real count without anything going red.
 
 ---
 
-## `roadmap-snapshot.yml` opens its own PR — until the PAT expires
+## Reference: opening a PR from Actions in this org
 
-The snapshot behind `/guide/roadmap` is committed, so the page builds offline —
-and so it goes stale on its own. The Monday run re-fetches GitHub Issues and
-proposes a PR when the content actually changed.
+⚠️ **Nothing here is live.** The workflow this was written for,
+`roadmap-snapshot.yml`, was deleted along with the Roadmap page. It is kept
+because the next workflow that wants to open a PR will hit every one of these
+walls, and rediscovering them cost a week and issue #232.
 
-**This is working automatically as of 2026-08-08.** The org still forbids GitHub
-Actions from opening pull requests (`can_approve_pull_request_reviews: false`),
-but the repo now carries a fine-grained PAT as the `ROADMAP_PR_TOKEN` secret,
-added 2026-08-08 22:38 UTC, and `roadmap-snapshot.yml` prefers it over
-`GITHUB_TOKEN` wherever it needs write access. Verified the same evening: runs
-`31282321253` and `31282716568` opened PRs #243 and #244 themselves, three to
-twenty seconds after pushing the branch, with `File the manual-PR tracking issue`
-skipped rather than taken.
+The org forbids GitHub Actions from opening pull requests
+(`can_approve_pull_request_reviews: false`). The repo carries a fine-grained PAT
+as the `ROADMAP_PR_TOKEN` secret, added 2026-08-08 22:38 UTC, and the workflow
+preferred it over `GITHUB_TOKEN` wherever it needed write access. Verified the
+same evening: runs `31282321253` and `31282716568` opened PRs #243 and #244
+themselves, three to twenty seconds after pushing the branch.
+
+⚠️ **`ROADMAP_PR_TOKEN` is now an unused secret with a live scope.** Deleting it
+is a repo-settings action nobody has taken; do that, or repoint it, rather than
+leaving a write-capable PAT attached to nothing.
 
 Both PRs also arrived with the full check suite — `verify`, `lint-css`,
 `cds-hooks`, Workers Builds. That is the PAT's second benefit and it is not
 cosmetic: pushes made with `GITHUB_TOKEN` do not trigger other workflows, so
 under the old path the snapshot PR was reviewed with **no checks on it at all**.
 
-### When it goes back to needing a hand
+### PAT expiry, and why the fallback mattered
 
 A fine-grained PAT expires — 366 days at the outside — and expiry is the failure
 mode this section now exists for. GitHub does not expose a secret's expiry date
 through the API, so nothing in this repo can read it back or warn you in advance.
-On expiry the workflow falls back to `GITHUB_TOKEN`, the org policy blocks the
-PR, and the run goes back to pushing `chore/roadmap-snapshot` and filing a
-reusable issue titled **"Roadmap snapshot: branch pushed, PR needs opening by
-hand"** with a compare link. Open that PR, then rotate the PAT.
+On expiry a workflow falls back to `GITHUB_TOKEN`, the org policy blocks the PR,
+and the run goes back to pushing a branch and filing a reusable tracking issue
+with a compare link. Someone opens that PR by hand, then rotates the PAT.
 
-> **`ROADMAP_PR_TOKEN` expiry: not recorded.** Whoever rotates it next should
-> write the date here. Until then the tracking issue is the only notice you get,
-> and it arrives a week late by construction.
+> **`ROADMAP_PR_TOKEN` expiry: never recorded**, and now moot — no workflow uses
+> it. Recording the expiry date is the thing to do differently next time; GitHub
+> does not expose it through the API, so nothing in the repo can read it back.
 
-That fallback is now a **regression detector rather than the normal path** —
-keep it. It is what makes a silently-expired PAT recoverable instead of
-invisible, and it is the same shape the nightly uses. Until #232 the blocked case
-produced only a warning inside a green run, which is why a fully green run on
-2026-08-07 had silently not opened its PR and nobody knew.
-
-If the page looks stale and there is *no* such issue, the PAT is not the
-problem — check whether the schedule ran at all, per the two GitHub behaviours at
-the top.
+That fallback is a **regression detector rather than the normal path**, and any
+replacement should keep the shape. It is what makes a silently-expired PAT
+recoverable instead of invisible, and it is the same shape the nightly uses.
+Until #232 the blocked case produced only a warning inside a green run, which is
+why a fully green run on 2026-08-07 had silently not opened its PR and nobody
+knew.
 
 ### The other permanent fix
 
@@ -166,7 +170,8 @@ Org Settings → Actions → General → **Allow GitHub Actions to create and ap
 pull requests** removes the dependency on a PAT entirely: one checkbox, nothing
 to rotate, no expiry to track. The tradeoff is the checks — with `GITHUB_TOKEN`
 doing the push, the PR arrives with none, and you would need an empty commit to
-get `web-lint` on it.
+get `web-lint` on it. (Pushes made with `GITHUB_TOKEN` do not trigger other
+workflows; that is why the PAT path mattered beyond just opening the PR.)
 
 This is an **org-level** setting on `SPiER-Project`, not a repo one, but note
 that the repo's current maintainer (`bbthorson`) holds org `admin` — it is not

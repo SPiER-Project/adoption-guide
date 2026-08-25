@@ -254,7 +254,6 @@
 .ar-tier--pilot-ready { background: var(--accent-success-bg); color: var(--accent-success-text); }
 .ar-tier--built       { background: var(--risk-low-faded);    color: var(--risk-low-soft-text); }
 .ar-tier--in-progress { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
-.ar-tier--roadmap     { background: var(--surface-muted);     color: var(--text-muted); }
 
 /* ── Licensing pills ── */
 .ar-lic {
@@ -337,3 +336,25 @@
   color: var(--text-body);
   line-height: 1.5;
 }
+
+/* ── Inclusion badge ───────────────────────────────────────────────────────
+   How strongly SPiER recommends a tool: core / optional / future.
+
+   ⚠️ These rules were `.roadmap-tool-inclusion*` in AdoptionGuide.css — the one
+   part of that stylesheet's roadmap block this page used. The Roadmap page is
+   gone; keeping its prefix on a class that never described the roadmap in the
+   first place would leave a name pointing at nothing. `inclusionStatus` comes
+   from the catalog and is unaffected by the removal. */
+.ar-inclusion {
+  display: inline-block;
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-pill);
+}
+
+.ar-inclusion--core     { background: var(--accent-info-soft);  color: var(--accent-info); }
+.ar-inclusion--optional { background: var(--surface-muted);     color: var(--text-muted); border: 1px solid var(--border-default); }
+.ar-inclusion--future   { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
