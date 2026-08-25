@@ -287,7 +287,12 @@
 }
 
 /* Narrow screens can't fit the title and the status pills on one line; the
-   default wrap strands the title under the pills, so stack them deliberately. */
+   default wrap strands the title under the pills, so stack them deliberately.
+
+   ⚠️ **A panel is narrow too, and wants the opposite** — see the panel variant
+   at the foot of this file, which overrides this on specificity. A phone has
+   vertical room to spare and no horizontal room; a docked panel is the other way
+   round, and this rule was quietly applying to both. */
 @media (max-width: 600px) {
   .pathway-node-toggle {
     flex-direction: column;
@@ -865,4 +870,71 @@
 
 .document-body {
   padding: 0 var(--space-3) var(--space-3);
+}
+
+
+/* ===========================
+   Panel variant — the pathway tracker inside a host chart.
+
+   ⚠️ **Measured, at the 470px the step-0 spike settled on (panel plan §9.1).**
+   A COLLAPSED stage — one line of text and a status pill — was **90px**, because
+   the `max-width: 600px` rule above fires inside the panel and stacks the pill
+   onto its own row. Six collapsed stages is 540px of a 900px viewport spent
+   restating what the marker column already says.
+
+   Three changes, in descending order of what they buy:
+
+   1. **Un-stack the row.** The pill goes back beside the title, which is the
+      whole 44px. The phone rule is right about phones: a 375px device has
+      vertical room and no horizontal room. A docked panel has the opposite
+      problem — the entire reason `PanelShell` exists — so it gets the opposite
+      answer rather than inheriting one aimed at a different device.
+   2. **Narrow the marker column.** 1.75rem of gutter plus a --space-3 gap is
+      44px of horizontal room spent on a check mark; 1.25rem and --space-2 give
+      24px of it back to the title, which is what lets the row stay one line.
+   3. **Step the title down one size.** --font-size-lg is a heading size for a
+      page that has a heading; in a panel the page title is already one line of
+      --font-size-base above, and a larger stage title competes with it.
+
+   The spine and the marker keep their alignment because both are derived from
+   the same measurements — `left` is half the marker's width, and `top` clears
+   it. Changing the marker size without those two is what leaves the spine
+   floating beside the checks rather than through them.
+   =========================== */
+.panel-shell .pathway-node {
+  grid-template-columns: 1.25rem 1fr;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.panel-shell .pathway-node-marker {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: var(--font-size-2xs);
+}
+
+.panel-shell .pathway-node::before {
+  left: 0.625rem;
+  top: 1.4rem;
+}
+
+/* Overrides the max-width: 600px stack above — a class more, so specificity
+   decides it and the order of the two blocks does not. */
+.panel-shell .pathway-node-toggle {
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.panel-shell .pathway-node-aside {
+  align-self: auto;
+  justify-content: flex-end;
+}
+
+.panel-shell .pathway-node-card {
+  padding: var(--space-2) var(--space-3);
+}
+
+.panel-shell .pathway-node-title {
+  font-size: var(--font-size-base);
 }

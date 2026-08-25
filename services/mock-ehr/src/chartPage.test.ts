@@ -52,9 +52,16 @@ describe('the front door', () => {
     // one navigates *within the frame* rather than opening a chart here.
     // `#/population/summary` is the part a host cannot compute for itself.
     const { body } = await html('/')
-    const frame = /<iframe src="([^"]+)" title="SPiER caseload summary/.exec(body)
+    // Matched by the title rather than by attribute ORDER: the first version of
+    // this regex read `<iframe src="…" title="SPiER caseload summary`, so adding
+    // a class attribute in front of `src` made it match nothing and the whole
+    // assertion below evaporated into `expect(null).not.toBeNull()`. Anchoring
+    // on the one attribute that identifies the frame keeps it a test of the URL.
+    const frame = /<iframe[^>]*\stitle="SPiER caseload summary[^>]*>/.exec(body)
     expect(frame).not.toBeNull()
-    const url = new URL(frame![1])
+    const src = /\ssrc="([^"]+)"/.exec(frame![0])
+    expect(src).not.toBeNull()
+    const url = new URL(src![1])
     expect(url.searchParams.get('embed')).toBe('1')
     expect(url.hash).toBe('#/population/summary')
     // Not merely "starts with" — that would pass for the full lens again.

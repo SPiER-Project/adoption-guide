@@ -6,6 +6,7 @@ import { usePatient } from '../context/PatientContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
+import { InstrumentHeader } from './InstrumentHeader'
 import { CarePlanDisplay } from './CarePlanDisplay'
 import { mapResponseToObservations } from '@spier/core/lib/observationMappers'
 import { stampLaunchStage } from '../lib/launchStage'
@@ -93,6 +94,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
 
       <div className="form-wrapper">
         <div className="form-card">
+          <InstrumentHeader name={questionnaire.title} description={questionnaire.description} />
           <Renderer
             fhirVersion="r4"
             // Renderer is generic over formbox's strict FHIR types; the raw imported
