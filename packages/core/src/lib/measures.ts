@@ -19,9 +19,10 @@
  *  1. THE MEASURE WIRING IS READ FROM THE GENERATED Measure JSON, not
  *     hand-copied. Which groups exist, which populations each group has, and
  *     which criterion each population names all come from
- *     `data/fhir/Measure-*.json`. So adding a group in FSH automatically
- *     requires a criterion here, and `npm run check:measures` fails if one is
- *     missing. The only hand-written part is CRITERIA below — the actual logic.
+ *     `packages/fhir-artifacts/generated/Measure-*.json` (the glob below). So
+ *     adding a group in FSH automatically requires a criterion here, and
+ *     `npm run check:measures` fails if one is missing. The only hand-written
+ *     part is CRITERIA below — the actual logic.
  *
  *  2. WINDOW LOGIC IS REUSED, NOT REIMPLEMENTED. The 7-/30-day follow-up
  *     windows call `attendedWithinDays` from followUp.ts, which exists
