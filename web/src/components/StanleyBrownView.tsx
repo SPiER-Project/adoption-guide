@@ -7,6 +7,7 @@ import { CarePlanDisplay } from './CarePlanDisplay'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
+import { InstrumentHeader } from './InstrumentHeader'
 import { usePatient } from '../context/PatientContext'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
@@ -39,6 +40,10 @@ export function StanleyBrownView() {
 
       <div className="form-wrapper">
         <div className="form-card">
+          <InstrumentHeader
+            name={stanleyBrownQuestionnaire.title}
+            description={stanleyBrownQuestionnaire.description}
+          />
           <Renderer
             fhirVersion="r4"
             // Renderer is generic over formbox's strict FHIR types; the raw imported

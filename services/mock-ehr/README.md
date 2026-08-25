@@ -234,6 +234,81 @@ refused **without a `Location` header**, and a panel whose `frame-ancestors` doe
 not name this origin renders as a blocked frame. ⚠️ `wrangler dev` does **not**
 hot-reload `.dev.vars` — restart it.
 
+## The look of the host
+
+⚠️ **The host is slate and steel; SPiER is plum and raspberry. That is a claim,
+not a taste.** Every page here says some version of *"Everything below this bar
+is drawn by SPiER, not by the host"* — and until this pass, the host drew its own
+**Launch SPiER** button in SPiER's raspberry, on the same page. A viewer had no
+way to read the boundary the demo is about, because both sides of it were the
+same colour.
+
+So the host now looks like vendor software: a dark slate app bar, steel-blue
+actions, tight radii, dense ruled tables, system fonts (SPiER ships Poppins).
+SPiER's brand appears on these pages in exactly one role — `--guest-brand`, on
+the `.guest__title` wordmark above a frame SPiER drew. Nothing else may use it.
+
+⚠️ **`hostChrome.ts` used to argue the opposite** ("matching the app's palette
+makes the screenshot legible") and it is worth knowing that reasoning was
+considered and reversed, not overlooked. The file carries the full note.
+
+### It has tokens now, and a gate
+
+The old objection to a design system here was structural, and half right: these
+pages are template strings from a Worker with no stylesheet, no build step and no
+token file, so stylelint and `check:tokens` cannot see them. But *"cannot use the
+app's tokens"* is not *"cannot have tokens"* — custom properties need no build
+step.
+
+What the previous arrangement actually produced was the drift `CLAUDE.md` warns
+about, arriving inside the fix for it. `hostChrome.ts` was extracted **from**
+`controlPage.ts` to give the palette one definition; `controlPage.ts` then went
+on building its own `<!doctype>` document with `#5c4a54`, `#f3eef1`, `#d8cdd4`
+and `#fdf5f8` typed as literals, plus its own `button`, `.warn`, `code` and `h1`
+rules, for as long as it existed. The extraction happened and the adoption did
+not.
+
+| | |
+|---|---|
+| `TOKENS` in `hostChrome.ts` | the palette, spacing ramp, radius, type scale — **the only place in `src/` allowed to contain a hex literal** |
+| `COMPONENTS` in `hostChrome.ts` | the app bar, `.page`, `.card`, `.btn`, `.table`, `.form`, `.callout`, `.crumbs`, `.guest` |
+| `page()` | emits the app bar and the page inset, so a page cannot forget the chrome |
+| a page's own CSS | only what describes *that page's* one arrangement — the chart's dock, the front door's frame height |
+
+`npm run check:host-css` enforces both halves, and is in `verify` (and therefore
+in CI, which runs `verify` rather than re-listing its steps):
+
+- **no hex outside `TOKENS`** — this service's stand-in for the app's
+  `color-no-hex`;
+- **every `var(--…)` resolves** — stylelint's blind spot, which the app hit for
+  real in #280: `color: var(--made-up)` satisfies "uses a token" and ships a
+  value the browser drops. A fallback does not excuse an undefined token.
+
+Both rules **fail when they read nothing**, which matters more than usual here:
+the token block is found by parsing for `export const TOKENS`, so a rename would
+otherwise leave the gate checking `var()` against an empty set and passing
+everything. It was proved by planting four defects — a raw hex, an undefined
+token, an undefined token *with* a fallback, and that rename — and watching each
+one fail.
+
+⚠️ **Its one false-negative is written down rather than hidden**: an all-decimal
+3- or 4-digit hex (`#000`) is indistinguishable from `#404`, and this repo cites
+issue numbers constantly — a naive matcher reported 25 issue references and zero
+real findings. Six-digit greys *are* caught. `src/hostCss.test.ts` pins both
+directions.
+
+### The one number that is not a token
+
+The front door's framed activity is 46rem tall stacked and 25rem side by side,
+because the widget inside it has a breakpoint at **1100px of frame width**. That
+rule is a **container query** (`container: guest / inline-size` on `.guest`), and
+it is worth knowing why: it was a media query at 1148px — 1100 plus the 48px of
+page inset — with a comment warning that getting the offset wrong by 48px would
+reintroduce a scrollbar in a band of window sizes nobody would find. Then the
+page grew a `max-width`, the frame could no longer exceed 1040px at any window
+width, and the side-by-side branch became unreachable. The measurement was always
+about the frame, so the query now asks the frame.
+
 ## Writes (step 4)
 
 | Route | |
@@ -316,8 +391,15 @@ service, so it is a decision rather than an omission.
 ## Verify
 
 ```
-npm install && npm run verify   # copy-fhir + typecheck + eslint + vitest
+npm install && npm run verify   # copy-fhir + typecheck + eslint + check:host-css + vitest
 ```
+
+⚠️ **CI runs `npm run verify` itself** rather than re-listing its steps, so a gate
+added to `package.json` is enforced automatically — the same arrangement, and the
+same reason, as `web/`'s. Do not expand the `mock-ehr` job in
+`.github/workflows/web-lint.yml` into individual steps: a hand-copied list has
+nothing to compare itself against, and eight of `web/`'s gates once ran only on
+developer machines for exactly that reason.
 
 ## Deploy
 

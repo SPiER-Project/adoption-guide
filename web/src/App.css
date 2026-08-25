@@ -1013,9 +1013,94 @@
   outline-offset: 2px;
 }
 
-.form-card .t1n83i42 {
-  color: var(--brand-primary);
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  margin-bottom: var(--space-1);
+/* ===========================
+   The instrument's title block
+
+   ⚠️ **The renderer's own title block is suppressed, and `InstrumentHeader`
+   replaces it.** The rule this file used to carry set the renderer's <h1> to
+   `--font-size-3xl`; measured in a 470px panel that heading was 86px and the
+   description below it 240px, putting the first question 560px down a 900px
+   viewport. See `InstrumentHeader.tsx` for the full measurement and for why the
+   description is disclosed rather than dropped.
+
+   ⚠️ **Targeted structurally, not by hash class.** The old rule named
+   `.t1n83i42`, which is a build-time hash from `@formbox/renderer` — it survives
+   only until the package is rebuilt, and when it stops matching nothing fails,
+   the type just changes size. `.form-card header:has(h1)` names the shape
+   instead: the one <header> in the form that carries the questionnaire title.
+   If the renderer ever changes THAT, the failure is visible — its title block
+   reappears above ours, which is a duplicate nobody can miss, rather than a
+   silent restyle. The `:has(h1)` keeps it off any per-group header. */
+.form-card header:has(h1) {
+  display: none;
+}
+
+.instrument-header {
+  margin-bottom: var(--space-4);
+}
+
+/* A <p>, not a heading: `PageHeader` above already owns the page's title level,
+   and the template gate (check:template) is emphatic that a page renders one
+   header. This is the instrument's formal name sitting above its own form —
+   an attribution line, not a second page title. */
+.instrument-header__name {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: var(--line-height-tight);
+  color: var(--text-strong);
+}
+
+.instrument-header__about {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.instrument-header__about > summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  /* The marker is the affordance at this size — the text is deliberately quiet,
+     because opening this is an implementer's action, not a clinician's. */
+  font-size: var(--font-size-xs);
+}
+
+.instrument-header__about > summary:hover {
+  color: var(--brand-accent);
+}
+
+.instrument-header__about > p {
+  margin: var(--space-2) 0 0;
+  line-height: var(--line-height-normal);
+}
+
+/* ===========================
+   The required marker
+
+   ⚠️ **It was not beside the thing it marks.** `@formbox/renderer` makes the
+   question's label a flex row, so the wrapped question text is one flex item and
+   the `*` is another — parked at the far right of the label, vertically centred
+   against the whole block. At 470px, where a question wraps to two or three
+   lines, the asterisk ends up in its own column with nothing under it, ~90px
+   from the last word it belongs to.
+
+   That is worse than untidy on this particular form. Every question here is a
+   suicide-risk item, the answers are optional-looking comboboxes, and the one
+   signal that an item MUST be answered is a red glyph that reads as a column of
+   decoration rather than as part of any sentence.
+
+   The fix is to stop the label being a flex container, so the text and the
+   marker are siblings in one inline flow and the `*` follows the last word.
+   Measured after: same line, 2px after it.
+
+   Keyed on `[data-emphasis]`, which the renderer sets on the label's text span —
+   a semantic attribute rather than one of its build-time hash classes, which
+   change identity whenever the package is rebuilt. */
+.form-card label span[data-emphasis] {
+  display: block;
+}
+
+.form-card label span[data-emphasis] > span {
+  display: inline;
+  margin-left: 0.15em;
 }

@@ -39,7 +39,7 @@
  * - **No login, no user, no encounter.** `patient-view` needs a patient; a
  *   fabricated practitioner would be theatre.
  */
-import { DISCLAIMER, INK, RASPBERRY, RULE, TINT, TINT_WARM, crumbs, esc, page } from './hostChrome'
+import { DISCLAIMER, crumbs, esc, page } from './hostChrome'
 import type { DemoPatient } from './fixtures'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
@@ -63,45 +63,35 @@ export const DEFAULT_PANEL_WIDTH = 470
 /** localStorage key the settings page writes and the chart reads. Same origin. */
 export const PANEL_WIDTH_KEY = 'spier-mock-ehr:panel-width'
 
+/*
+ * The front door's own rules. Everything structural — the table, the cards, the
+ * guest frame — is a host component now (`hostChrome.ts`); what is left here is
+ * the ONE measurement specific to this page.
+ *
+ * ⚠️ **Measured, not guessed, and it has two answers because the app has a
+ * breakpoint.** The widget's two zones sit side by side above 1100px of FRAME
+ * width and stack below it, so the frame needs the taller of the pair or their
+ * sum: measured at 387px side-by-side and 717px stacked. A single height would
+ * either scroll the desktop case or leave 330px of dead space in it.
+ *
+ * ⚠️ **This is a CONTAINER query, and that is the fix for a trap this rule fell
+ * into twice.** It was a media query at 1148px — 1100 plus the 48px of body
+ * padding that made the frame narrower than the window — with a comment noting
+ * that getting the offset wrong by 48px would reintroduce the scrollbar in a
+ * 48px-wide band of window sizes nobody would ever find. Then the page grew a
+ * `max-width`, and the offset was wrong by far more than 48px: the frame could
+ * no longer exceed 1040px at ANY window width, so the side-by-side branch became
+ * unreachable and every viewer got the stacked layout in a 25rem frame.
+ *
+ * The measurement was always about the frame, so the query asks the frame.
+ * Nothing between here and the viewport can invalidate it again — which is the
+ * property the hand-computed offset never had.
+ */
 const HOME_CSS = `
-  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
-  th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid ${RULE}; }
-  th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: ${INK}; }
-  tbody tr:hover { background: ${TINT_WARM}; }
-  td a { font-weight: 600; text-decoration: none; }
-  td.mono { font-variant-numeric: tabular-nums; color: ${INK}; }
+  .activity-frame { height: 46rem; }
 
-  /*
-   * The embedded-activity card. This is the one place these pages try to look
-   * like something rather than just be legible: a host chrome bar above a frame
-   * is what an EHR-hosted activity looks like, and the point of the section is
-   * that a reader can tell at a glance which pixels are SPiER's and which are
-   * the host's.
-   */
-  .activity { border: 1px solid ${RULE}; border-radius: 6px; overflow: hidden; background: #fff; }
-  .activity__bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;
-                   padding: .4rem .7rem; border-bottom: 1px solid ${RULE}; background: ${TINT};
-                   font-size: .8rem; color: ${INK}; }
-  .activity__title { font-weight: 700; color: ${RASPBERRY}; letter-spacing: .02em; }
-  .activity__note { margin-left: auto; }
-  /*
-   * ⚠️ **Measured, not guessed, and it has two answers because the app has a
-   * breakpoint.** The widget's two zones sit side by side above 1100px of FRAME
-   * width and stack below it, so the frame needs the taller of the pair or their
-   * sum: measured at 387px side-by-side and 717px stacked. A single height would
-   * either scroll the desktop case or leave 330px of dead space in it.
-   *
-   * The host's own breakpoint is 1148px, not 1100px: body padding is 1.5rem a
-   * side, so the frame is 48px narrower than the window. Getting that wrong by
-   * 48px reintroduces the scrollbar in a 48px-wide band of window sizes, which
-   * is exactly the kind of thing nobody would ever find.
-   *
-   * It still scrolls internally rather than clipping, because the alerts panel
-   * is expandable and an unusually bad day must not be cut off.
-   */
-  .activity iframe { display: block; width: 100%; height: 46rem; border: 0; }
-  @media (min-width: 1148px) {
-    .activity iframe { height: 25rem; }
+  @container guest (min-width: 1100px) {
+    .activity-frame { height: 25rem; }
   }
 `
 
@@ -152,8 +142,14 @@ export function homePage(
   return page({
     title: 'SPiER mock EHR',
     css: HOME_CSS,
+    nav: 'chart',
+    // Wide, so the framed activity can reach the 1100px at which SPiER's widget
+    // lays its two zones out side by side. At the default 68rem the frame tops
+    // out at 1040px and that branch is unreachable at every window size — see
+    // HOME_CSS above for the same trap in its earlier, arithmetic form.
+    variant: 'wide',
     body: `
-  <h1>SPiER mock EHR</h1>
+  <h1>Patients</h1>
   <p class="lede">
     A stand-in for a vendor chart, so SPiER can be launched into one. <strong>This is not
     SPiER</strong> — SPiER is what appears in the panel on the right of a patient's chart.
@@ -165,15 +161,15 @@ export function homePage(
     SPiER embedded as a hosted activity: the summary, the risk census and the outstanding alerts
     across the caseload — the part of a worklist page an EHR cannot compute for itself.
   </p>
-  <div class="activity">
-    <div class="activity__bar">
-      <span class="activity__title">SPiER</span>
+  <div class="guest">
+    <div class="guest__bar">
+      <span class="guest__title">SPiER</span>
       <span>Embedded activity</span>
-      <span class="activity__note">Everything below this bar is drawn by SPiER, not by the host.</span>
+      <span class="guest__note">Everything below this bar is drawn by SPiER, not by the host.</span>
     </div>
-    <iframe src="${esc(summaryPanelUrl)}" title="SPiER caseload summary and alerts (embedded)"></iframe>
+    <iframe class="activity-frame" src="${esc(summaryPanelUrl)}" title="SPiER caseload summary and alerts (embedded)"></iframe>
   </div>
-  <p class="warn">
+  <p class="callout callout--warn">
     ⚠️ <strong>Embedded, but not a SMART launch — and the difference matters.</strong> This frame
     carries no <code>iss</code> and no <code>launch</code>, and the app renders its own bundled demo
     registry rather than this server's FHIR API. So it shows the <em>shape</em> of a hosted activity
@@ -183,13 +179,13 @@ export function homePage(
     The framed panel inside a <strong>chart</strong> is the real launch.
   </p>
 
-  <h2>Patients</h2>
+  <h2>Patient list</h2>
   <p class="lede">
     ${patients.length} synthetic patients &mdash; the host's own list, which is why it is plain.
     <strong>Open a chart</strong>: that is where the SPiER panel is launched over a real SMART
     handshake, and where an assessment can be filled in and written back.
   </p>
-  <table>
+  <table class="table">
     <thead><tr><th>Name</th><th>MRN</th><th>Born</th><th>Sex</th><th>FHIR id</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
@@ -198,80 +194,143 @@ export function homePage(
   })
 }
 
+/*
+ * The chart's own rules: a patient banner, a launch card and a docked panel.
+ * Everything else it renders — cards, buttons, callouts, the guest bar — is a
+ * host component, which is why this block is now a third of its former size.
+ */
 const CHART_CSS = `
-  body.chart { padding: 0; }
-  .chart-layout { display: flex; align-items: flex-start; min-height: 100vh; }
-  .chart-main { flex: 1 1 auto; min-width: 0; padding: 1.5rem; }
-  .banner { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; padding: .75rem 1rem;
-            border: 1px solid ${RULE}; border-left: 4px solid ${RASPBERRY}; border-radius: 6px; background: ${TINT}; }
-  .banner__name { font-size: 1.15rem; font-weight: 700; }
-  .banner__meta { color: ${INK}; font-size: .9rem; font-variant-numeric: tabular-nums; }
-  .banner__note { flex-basis: 100%; color: ${INK}; font-size: .8rem; }
+  /* The chart owns the whole viewport, so it takes the inset from \`.page\` and
+     applies it to its own column instead — the dock has to reach the edge. */
+  .chart-layout { display: flex; align-items: flex-start; min-height: calc(100vh - var(--bar-h)); }
+  .chart-main { flex: 1 1 auto; min-width: 0; padding: var(--s5); }
 
-  .cards { display: grid; gap: .75rem; padding: 0; margin: 0; list-style: none; }
-  .card { border: 1px solid ${RULE}; border-radius: 6px; padding: .75rem 1rem; }
-  .card--critical { border-left: 4px solid #b3123c; }
-  .card--warning { border-left: 4px solid #b8681b; }
-  .card--info { border-left: 4px solid ${INK}; }
-  .card__summary { font-weight: 600; }
-  .card__detail { margin: .35rem 0 0; font-size: .9rem; color: ${INK}; }
-  .card__source { margin: .35rem 0 0; font-size: .75rem; color: ${INK}; }
-  .card__links { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
-  .cds-status { color: ${INK}; font-size: .9rem; }
+  /* ── Patient banner ───────────────────────────────────────────────────────
+     The host identifying its own patient, and the thing that licenses the launch
+     to send \`need_patient_banner:false\`. A left rule in the host's action colour,
+     not the guest's: this row is drawn by the EHR and has to look it. */
+  .banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s1) var(--s4);
+    padding: var(--s3) var(--s4);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--action);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
 
-  button { font: inherit; cursor: pointer; border-radius: 4px; padding: .35rem .7rem;
-           border: 1px solid ${RULE}; background: #fff; color: inherit; }
-  button.primary { background: ${RASPBERRY}; border-color: ${RASPBERRY}; color: #fff; font-weight: 600; }
-  button.smart::before { content: "SMART"; font-size: .65rem; font-weight: 700; letter-spacing: .04em;
-                         margin-right: .4rem; padding: .05rem .25rem; border-radius: 2px;
-                         background: ${RASPBERRY}; color: #fff; }
-  button.smart { border-color: ${RASPBERRY}; }
+  .banner__name { font-size: var(--text-lg); font-weight: 700; }
+  .banner__meta { color: var(--ink-soft); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+  .banner__note { flex-basis: 100%; color: var(--ink-faint); font-size: var(--text-xs); }
 
-  /*
-   * The launch card. This is the ONE thing a reader is meant to do on this page,
-   * and it used to be the last element on it — below the CDS cards, the
-   * capability switch and the FHIRcast log, under an <h2>Activity</h2> nobody
-   * scrolled to. Same defect as the old front door (§6.3): the demo's entry
-   * point was undiscoverable from the page it was on. It now sits directly under
-   * the banner, which is also where a vendor hangs an activity button.
-   */
-  .launch { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.5rem;
-            margin-top: 1rem; padding: 1rem 1.25rem; border: 1px solid ${RASPBERRY};
-            border-radius: 6px; background: ${TINT_WARM}; }
+  /* ── The launch card ──────────────────────────────────────────────────────
+     This is the ONE thing a reader is meant to do on this page, and it used to
+     be the last element on it — below the CDS cards, the capability switch and
+     the FHIRcast log, under an <h2>Activity</h2> nobody scrolled to. Same defect
+     as the old front door (§6.3): the demo's entry point was undiscoverable from
+     the page it was on. It sits directly under the banner, which is also where a
+     vendor hangs an activity button.
+
+     ⚠️ It is a HOST control that happens to launch SPiER, so it is steel like
+     every other host control. Tinting it raspberry — which it was — put the
+     guest's colour on the host's button, on the page whose whole subject is
+     which pixels belong to whom. */
+  .launch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s3) var(--s5);
+    margin-top: var(--s4);
+    padding: var(--s4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--action-soft);
+  }
+
   .launch__text { flex: 1 1 22rem; min-width: 0; }
-  .launch__title { margin: 0; font-size: 1.05rem; }
-  .launch__lede { margin: .25rem 0 0; font-size: .9rem; color: ${INK}; }
-  .launch__button { font-size: 1rem; padding: .6rem 1.25rem; }
+  .launch__title { margin: 0; font-size: var(--text-base); font-weight: 700; }
+  .launch__lede { margin: var(--s1) 0 0; font-size: var(--text-sm); color: var(--ink-soft); }
 
-  /*
-   * ⚠️ **Sticky and exactly one viewport tall — not stretched to the column
-   * beside it.** With align-items: stretch (the flex default) the dock grows to
-   * the height of the chart content, so the iframe becomes as tall as the host
-   * page. The panel's own chrome is position: fixed — the code drawer and the
-   * FHIRcast notice — which pins it to the bottom of the IFRAME's viewport, and
-   * that is then a thousand pixels below the fold. Measured here: a 2073px chart
-   * column gave a 1961px iframe in a 1000px window, and the FHIRcast banner
-   * rendered correctly and invisibly.
-   *
-   * This is panel plan §9.1 finding 3 ("the code drawer is not merely cramped at
-   * panel width — it is stranded") arriving from the other side: step 3 fixed it
-   * inside the panel, and step 4's additions to THIS page reintroduced it from
-   * the host. An embedded activity gets a viewport, so the frame has to be one.
-   */
-  .panel-dock { flex: 0 0 auto; align-self: flex-start; position: sticky; top: 0;
-                height: 100vh; display: flex; flex-direction: column;
-                border-left: 1px solid ${RULE}; background: ${TINT}; }
-  .panel-dock__bar { display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem; border-bottom: 1px solid ${RULE};
-                     font-size: .8rem; color: ${INK}; }
-  .panel-dock__title { font-weight: 700; color: ${RASPBERRY}; letter-spacing: .02em; }
-  .panel-dock__close { margin-left: auto; padding: .1rem .4rem; font-size: .75rem; }
-  .panel-dock__empty { padding: 1.5rem 1rem; color: ${INK}; font-size: .9rem; }
-  .panel-dock iframe { flex: 1 1 auto; width: 100%; border: 0; background: #fff; }
-  .panel-dock__sent { padding: .4rem .6rem; border-top: 1px solid ${RULE}; font-size: .75rem; color: ${INK};
-                      overflow-wrap: anywhere; }
+  /* ── The dock ─────────────────────────────────────────────────────────────
+     ⚠️ **Sticky and exactly one viewport tall — not stretched to the column
+     beside it.** With align-items: stretch (the flex default) the dock grows to
+     the height of the chart content, so the iframe becomes as tall as the host
+     page. The panel's own chrome is position: fixed — the code drawer and the
+     FHIRcast notice — which pins it to the bottom of the IFRAME's viewport, and
+     that is then a thousand pixels below the fold. Measured here: a 2073px chart
+     column gave a 1961px iframe in a 1000px window, and the FHIRcast banner
+     rendered correctly and invisibly.
+
+     This is panel plan §9.1 finding 3 ("the code drawer is not merely cramped at
+     panel width — it is stranded") arriving from the other side: step 3 fixed it
+     inside the panel, and step 4's additions to THIS page reintroduced it from
+     the host. An embedded activity gets a viewport, so the frame has to be one.
+
+     Both the offset and the height come from --bar-h, the app bar's own token:
+     the bar is sticky, so a dock pinned to 0 would slide underneath it, and a
+     dock a full 100vh tall would overflow by exactly the bar's height. */
+  .panel-dock {
+    flex: 0 0 auto;
+    /* Set by the page script from the operator's stored preference, and
+       defaulted here so the dock is never zero-width if that script has not run
+       yet. The three permitted widths are whitelisted in the script. */
+    width: var(--panel-width, 470px);
+    align-self: flex-start;
+    position: sticky;
+    top: var(--bar-h);
+    height: calc(100vh - var(--bar-h));
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--surface-header);
+  }
+
+  .panel-dock .guest__bar { border-radius: 0; }
+  .panel-dock__close { margin-left: auto; padding: 0 var(--s2); line-height: 1.4; }
+  .panel-dock__empty { padding: var(--s5) var(--s4); color: var(--ink-soft); font-size: var(--text-sm); }
+  .panel-dock iframe { flex: 1 1 auto; width: 100%; border: 0; background: var(--surface); }
+
+  .panel-dock__sent {
+    padding: var(--s2) var(--s3);
+    margin: 0;
+    border-top: 1px solid var(--line);
+    font-size: var(--text-xs);
+    color: var(--ink-faint);
+    overflow-wrap: anywhere;
+  }
+
   .panel-dock[hidden] { display: none; }
 
-  .server-note { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; font-size: .85rem; color: ${INK}; }
+  /*
+   * ── Below the dock's own width, the two columns stack ─────────────────────
+   *
+   * ⚠️ **Without this the chart column is crushed rather than narrowed.** The
+   * layout is one flex row and the dock is flex: 0 0 auto at up to 700px, so on
+   * a 375px screen the dock kept its full width and .chart-main — which is
+   * flex: 1 1 auto with min-width: 0, and therefore shrinkable to nothing — was
+   * left about 90px, wrapping its prose to one word per line. It looked like a
+   * rendering bug and was simply the row doing what a row does.
+   *
+   * 60rem is above the widest dock option (700px) plus a readable column, so the
+   * side-by-side layout only survives where both halves fit. Stacked, the dock
+   * stops being a viewport-tall sticky rail — there is no column beside it to
+   * stay level with — and becomes a tall panel in flow, with the chart above it.
+   */
+  @media (max-width: 60rem) {
+    .chart-layout { flex-wrap: wrap; }
+
+    .panel-dock {
+      width: 100%;
+      position: static;
+      height: 80vh;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+  }
 `
 
 /**
@@ -297,12 +356,13 @@ export function patientChartPage(
   return page({
     title: `${patient.name} — SPiER mock EHR`,
     css: CHART_CSS,
-    bodyClass: 'chart',
+    nav: 'chart',
+    // The dock has to reach the window edge, so this page owns its own inset.
+    variant: 'flush',
     body: `
   <div class="chart-layout">
     <div class="chart-main">
       ${crumbs([
-    { label: 'SPiER mock EHR', href: '/' },
     { label: 'Patients', href: '/' },
     { label: patient.name },
   ])}
@@ -332,7 +392,7 @@ export function patientChartPage(
             back.
           </p>
         </div>
-        <button type="button" id="open-panel" class="primary launch__button">Launch SPiER &rarr;</button>
+        <button type="button" id="open-panel" class="btn btn--primary btn--lg">Launch SPiER &rarr;</button>
       </div>
 
       <h2>Clinical decision support</h2>
@@ -342,15 +402,15 @@ export function patientChartPage(
         A card link of <code>type: "smart"</code> launches the panel into this chart, scoped to the
         instrument the card names.
       </p>
-      <p id="cds-status" class="cds-status">Calling the CDS service…</p>
-      <ul id="cds-cards" class="cards"></ul>
+      <p id="cds-status" class="readout">Calling the CDS service…</p>
+      <ul id="cds-cards" class="stack"></ul>
 
       <!-- ⚠️ A READOUT, not a control, and that distinction is why it survived
            the switch's removal. This is the SERVER's account of what the panel
            wrote; the panel's own scorecard is SPiER reporting on itself, and one
            source cannot corroborate anything. Resetting it, and turning the
            server's capability down, are operator actions and live on /settings. -->
-      <p class="server-note">
+      <p class="readout">
         <span id="writes-summary">Loading written data…</span>
         <a href="/settings">Capability profile, reset and other controls &rarr;</a>
       </p>
@@ -362,7 +422,7 @@ export function patientChartPage(
         Opening a chart announces <code>patient-open</code>; the panel is subscribed to the same
         topic and reacts to it <strong>across the origin boundary</strong>.
       </p>
-      <p class="server-note">
+      <p class="readout">
         <span id="cast-status">Subscribing to the hub…</span>
       </p>
 
@@ -371,29 +431,29 @@ export function patientChartPage(
            gone before it could react. This announces a context change WITHOUT
            navigating, which is the only way to watch the panel receive one. A
            demo affordance, and it says so. -->
-      <form id="cast-form">
-        <label>Announce a context change to another patient
+      <form id="cast-form" class="form">
+        <label class="field"><span>Announce a context change to another patient</span>
           <select name="patient">${otherPatients.map(p => `
             <option value="${esc(p.id)}">${esc(p.name)} &middot; ${esc(p.id)}</option>`).join('')}
           </select>
         </label>
-        <button type="submit">Announce patient-open</button>
+        <div><button type="submit" class="btn">Announce patient-open</button></div>
       </form>
-      <p class="server-note">
+      <p class="readout">
         Stands in for the clinician opening a different chart. The panel is scoped to
         ${esc(patient.name)} by its access token, so it <em>cannot</em> follow — watch it say so
         rather than fail.
       </p>
-      <ul id="cast-log" class="cards"></ul>
+      <ul id="cast-log" class="stack"></ul>
 
       ${DISCLAIMER}
     </div>
 
-    <aside class="panel-dock" id="dock" hidden aria-label="SPiER panel">
-      <div class="panel-dock__bar">
-        <span class="panel-dock__title">SPiER</span>
+    <aside class="panel-dock guest" id="dock" hidden aria-label="SPiER panel">
+      <div class="guest__bar">
+        <span class="guest__title">SPiER</span>
         <span id="dock-context"></span>
-        <button type="button" id="close-panel" class="panel-dock__close" title="Close the panel">&times;</button>
+        <button type="button" id="close-panel" class="btn panel-dock__close" title="Close the panel">&times;</button>
       </div>
       <iframe id="panel" title="SPiER Suicide-Safer Pathway" src="about:blank"></iframe>
       <p class="panel-dock__sent" id="dock-sent"></p>
@@ -476,10 +536,11 @@ function chartScript({
       return ${DEFAULT_PANEL_WIDTH};
     }
   }
-  (function (px) {
-    dock.style.flexBasis = px + 'px';
-    dock.style.width = px + 'px';
-  })(storedWidth());
+  // ⚠️ Published as a CUSTOM PROPERTY, not as an inline width, and that is what
+  // lets the stacked layout exist: an inline style.width outranks any media
+  // query, so a narrow-screen rule could not take the dock full-width without
+  // !important. CSS decides the layout; this only supplies the number.
+  dock.style.setProperty('--panel-width', storedWidth() + 'px');
 
   document.getElementById('close-panel').addEventListener('click', function () {
     // about:blank rather than removing the node: a closed panel that keeps its
@@ -711,13 +772,13 @@ function chartScript({
       li.className = 'card card--' + (card.indicator || 'info');
 
       var summary = document.createElement('p');
-      summary.className = 'card__summary';
+      summary.className = 'card__title';
       summary.textContent = card.summary || '';
       li.appendChild(summary);
 
       if (card.detail) {
         var detail = document.createElement('p');
-        detail.className = 'card__detail';
+        detail.className = 'card__body';
         // Rendered as text, not markdown: the spec allows GFM in the detail field and a
         // markdown renderer is not worth shipping to prove a launch works.
         detail.textContent = card.detail;
@@ -725,21 +786,21 @@ function chartScript({
       }
 
       var source = document.createElement('p');
-      source.className = 'card__source';
+      source.className = 'card__meta';
       source.textContent = 'Source: ' + ((card.source && card.source.label) || 'unknown');
       li.appendChild(source);
 
       var links = card.links || [];
       if (links.length > 0) {
         var row = document.createElement('div');
-        row.className = 'card__links';
+        row.className = 'card__actions';
         links.forEach(function (link) {
           if (link.type === 'smart') {
             // The host mints the launch — the card supplies the app's launch
             // URL and its appContext, never OAuth parameters.
             var btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'smart';
+            btn.className = 'btn btn--smart';
             btn.textContent = link.label;
             btn.addEventListener('click', function () { launch(intentOf(link), link.label); });
             row.appendChild(btn);
