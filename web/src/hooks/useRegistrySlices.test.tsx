@@ -121,10 +121,19 @@ describe('useRegistrySlices — the population read goes through the seam', () =
       patient: { id: 'patient-011', name: [{ family: 'Alvarez', given: ['Maria'] }] },
     }
     renderProbe(new LocalDataSource(), smart as never)
-    await waitFor(() => expect(screen.getByTestId('scope').textContent).toBe('in-context'))
-    // The whole point: NOT 14. A SMART token is bound to one patient, so a
-    // 14-row caseload would be a claim this connection cannot support.
-    expect(Number(screen.getByTestId('count').textContent)).toBe(1)
+    // ⚠️ **Wait on the COUNT, not on `scope`.** `scope` is derived in a `useMemo`,
+    // so it reads 'in-context' on the very first render — before the effect that
+    // loads the slice has run. Waiting on it therefore waits for nothing, and the
+    // assertions below raced the effect: they passed locally every time and CI
+    // failed with `expected +0 to be 1`, which is the signature of a test whose
+    // wait target is synchronous.
+    //
+    // The count is the value the effect actually produces, so waiting on it waits
+    // for the thing under test. The whole point of that value: NOT 14. A SMART
+    // token is bound to one patient, so a 14-row caseload would be a claim this
+    // connection cannot support.
+    await waitFor(() => expect(Number(screen.getByTestId('count').textContent)).toBe(1))
+    expect(screen.getByTestId('scope').textContent).toBe('in-context')
     expect(screen.getByTestId('ids').textContent).toBe('patient-011')
   })
 

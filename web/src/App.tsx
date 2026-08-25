@@ -60,7 +60,6 @@ const CdsServiceGuide = lazy(() => import('./pages/CdsServiceGuide').then(m => (
 const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
-const Roadmap = lazy(() => import('./pages/Roadmap').then(m => ({ default: m.Roadmap })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
 const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
@@ -141,7 +140,11 @@ function AppRoutes() {
           <Route path="cds-service" element={<CdsServiceGuide />} />
           <Route path="adoption-readiness" element={<AdoptionReadiness />} />
           <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
-          <Route path="roadmap" element={<Roadmap />} />
+          {/* /guide/roadmap was published, so it gets a redirect rather than
+              falling through to the catch-all. The page mirrored GitHub Issues
+              onto the site; the issues are the roadmap now, and Adoption
+              Readiness is what survives of "where is each tool". */}
+          <Route path="roadmap" element={<Navigate to="/guide/adoption-readiness" replace />} />
         </Route>
 
         {/* Patient View lens */}

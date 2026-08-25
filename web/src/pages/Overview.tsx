@@ -209,8 +209,8 @@ export function Overview() {
             <h4>Adoption Guide</h4>
             <p>
               How to adopt SPiER and see it running: the eight-stage pathway, a data dictionary, an
-              adoption-readiness matrix and EHR adoption rubric, a configurable Tool Configuration that
-              drives the Patient View, and a public roadmap.
+              adoption-readiness matrix and EHR adoption rubric, and a configurable Tool
+              Configuration that drives the Patient View.
             </p>
             <span className="overview__lens-cta">Explore the guide &rarr;</span>
           </Link>

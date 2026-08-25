@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import roadmapSnapshot from '../data/roadmap.generated.json'
 import {
   MEASURE_SPECS,
   buildSummaryMeasureReport,
@@ -26,7 +25,16 @@ const WINDOWS: { days: number; label: string }[] = [
 /** The longest selectable period, used as the "does this ever compute?" baseline. */
 const WIDEST_WINDOW_DAYS = Math.max(...WINDOWS.map(w => w.days))
 
-const REPO_URL = `https://github.com/${(roadmapSnapshot as { repo: string }).repo}`
+/**
+ * Where the issue links on this page point.
+ *
+ * ⚠️ This was read from `roadmap.generated.json` — a 356KB committed snapshot of
+ * GitHub issue bodies — for this one string. Vite made the snapshot a shared
+ * chunk, so opening the Measure Dashboard downloaded 116KB gzip of issue prose
+ * to render a hostname. The snapshot is gone; the constant is the whole of what
+ * this page ever needed from it.
+ */
+const REPO_URL = 'https://github.com/SPiER-Project/adoption-guide'
 
 /**
  * Tally every measure across a cohort for one measurement period.

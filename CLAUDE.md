@@ -150,15 +150,20 @@ overlaps the first — safe, because `found` is keyed by system|code|display and
 codings inside an already-scanned tree, give it its own entry** rather than
 assuming the parent floor covers it.
 
-⚠️ **The two timer-driven workflows have a named reader and a written triage
-path — `docs/scheduled-checks-triage.md`.** A red nightly has two causes needing
-opposite responses (real drift → fix the code; `tx.fhir.org` down → re-run), and
-`roadmap-snapshot.yml` opens its own PR only while the `ROADMAP_PR_TOKEN` PAT is
-live — the org still forbids Actions from opening PRs, so an expired PAT falls
-back to `GITHUB_TOKEN` and silently returns to the hand-opened path. Both
-workflows link that doc from every issue they file. Note also that `schedule`
-runs only from the default branch, and GitHub disables scheduled workflows after
-60 days of repo inactivity.
+⚠️ **The nightly has a named reader and a written triage path —
+`docs/scheduled-checks-triage.md`.** A red run has two causes needing opposite
+responses (real drift → fix the code; `tx.fhir.org` down → re-run), and it links
+that doc from every issue it files. Note also that `schedule` runs only from the
+default branch, and GitHub disables scheduled workflows after 60 days of repo
+inactivity.
+
+⚠️ **It is the only timer-driven workflow now.** `roadmap-snapshot.yml` was the
+second, and it was deleted with the Roadmap page — the roadmap lives in GitHub
+Issues, and mirroring it into a committed snapshot meant shipping 356KB of issue
+bodies to the browser. If you are re-adding scheduled automation, its `ROADMAP_PR_TOKEN`
+history is the thing worth reading first: the org forbids Actions from opening
+PRs, so a workflow that opens one needs a PAT, and an expired PAT falls back to
+`GITHUB_TOKEN` and silently returns to the hand-opened path.
 
 In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
 thing and fails in a fresh worktree:
