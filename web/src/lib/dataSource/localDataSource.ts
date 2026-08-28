@@ -9,6 +9,8 @@
  *    mode.
  *  - one-time migration from the original single-patient keys
  *    (`spier-demo-responses`, etc.) into a `patient-001` slice.
+ *  - a one-time rewrite of the pre-#413 `http://spier.org` canonical in every
+ *    stored resource (see `migrateCanonicalUrls`).
  *
  * These keys and shapes MUST NOT change — existing browsers must keep their
  * data. Auto-seeding of population scenarios happens on first read of a missing
@@ -158,6 +160,99 @@ function writeJson(key: string, value: unknown): void {
   }
 }
 
+/**
+ * The canonical namespace before and after #413.
+ *
+ * `http://spier.org` was never SPiER's — it resolves to an unrelated family's
+ * website — so #413 moved every SPiER identifier under the domain the project
+ * actually owns. The rename was a uniform prefix swap across all 1,429
+ * occurrences (`CodeSystem/`, `StructureDefinition/`, `Questionnaire/`,
+ * `ActivityDefinition/`, `ValueSet/`, `Measure/`, `PlanDefinition/`, `Library/`,
+ * `StructureMap/`, `ConceptMap/`, `CapabilityStatement/`, `identifier/`), which
+ * is why one string pair can undo it rather than a per-path table.
+ *
+ * The trailing slash is load-bearing: it anchors the swap to the namespace root,
+ * so a hypothetical `spier.organization` host could never be caught by it.
+ */
+const OLD_CANONICAL_PREFIX = 'http://spier.org/'
+const NEW_CANONICAL_PREFIX = 'http://thespierproject.org/fhir/'
+
+/** Every key holding persisted FHIR, including the pre-#301 single-patient ones. */
+const CANONICAL_MIGRATION_KEYS = [STORE_KEY, BLANK_SLICE_KEY, ...LEGACY_KEYS]
+
+/**
+ * Rewrite the pre-#413 canonical in every stored resource.
+ *
+ * ⚠️ **This exists because a stored slice can outlive the artifacts it names.**
+ * `resolveSlice` treats a slice with no seed record as the user's and never
+ * re-seeds it — deliberately, because their own submitted assessments live in
+ * it. So a browser that wrote to the demo before #413 keeps `http://spier.org`
+ * codings forever while the app moved on, and every lookup keyed on a system URL
+ * silently stops matching: `stageForArtifact` resolves no stage, so artifacts
+ * drop out of their pathway stage and the measures scored from them go quiet.
+ * It is not a hypothetical — it is how a stale slice reached the singular-category
+ * branch of `stageForArtifact` and took the whole app down with
+ * "(resource.category ?? []).flatMap is not a function".
+ *
+ * Note the split with #301's re-seeding, because the two cover opposite slices:
+ * an UNTOUCHED slice needs nothing from here (its fingerprint no longer matches
+ * the shipped fixture, so it re-seeds into the new canonical on the next read),
+ * and a USER-OWNED slice can only be reached from here. Which is also why the
+ * seed records are left alone — a fingerprint mismatch after this runs is the
+ * correct answer, and repairing it would suppress the re-seed.
+ *
+ * The rewrite is a whole-document string replace rather than a walk of known
+ * fields. The old canonical appears in `meta.profile`, `meta.tag[].system`,
+ * `category.coding[].system`, `code.coding[].system`, `questionnaire`,
+ * `extension[].url`, `identifier[].system`, `instantiatesCanonical` and more,
+ * across a dozen resource types — a field list would be a second inventory to
+ * keep in step with the artifacts, and the kind that goes stale silently. A
+ * namespace nobody else owns has no false positives to guard against.
+ *
+ * Idempotent, and gated on the substring rather than a stored version marker.
+ * A marker is one more thing to bump at the wrong moment (#232, and the reason
+ * `fingerprintScenario` above derives rather than declares); the data answers
+ * the question directly, and answers it on a raw string before any parse, so a
+ * browser with nothing to migrate pays one substring scan.
+ *
+ * Returns the number of keys rewritten so the caller — and the tests — can tell
+ * "nothing to do" apart from "did nothing", the distinction this repo keeps
+ * paying for when a check reports green over data it never read.
+ */
+function migrateCanonicalUrls(): number {
+  let migrated = 0
+  for (const key of CANONICAL_MIGRATION_KEYS) {
+    let raw: string | null
+    try {
+      raw = window.localStorage.getItem(key)
+    } catch {
+      // localStorage unavailable (private mode, storage disabled) — the
+      // constructor's own reads degrade the same way, to an empty store.
+      return migrated
+    }
+    if (!raw?.includes(OLD_CANONICAL_PREFIX)) continue
+
+    const rewritten = raw.replaceAll(OLD_CANONICAL_PREFIX, NEW_CANONICAL_PREFIX)
+    // Parse-check before writing: a key holding something that is not JSON is
+    // not ours to rewrite, and half-migrating it would be worse than leaving it.
+    // The STRING is what gets written, so nothing is reserialized and no
+    // unrelated shape (key order, number formatting) shifts under a user.
+    try {
+      JSON.parse(rewritten)
+    } catch {
+      continue
+    }
+    try {
+      window.localStorage.setItem(key, rewritten)
+    } catch {
+      // Quota or unavailable — same silent degradation as `writeJson`.
+      continue
+    }
+    migrated++
+  }
+  return migrated
+}
+
 // One-time migration from the original single-patient keys into a patient-001
 // slice so existing demo data isn't lost when this build first runs in a browser.
 function migrateLegacyStorage(): PatientStore | null {
@@ -178,6 +273,9 @@ export class LocalDataSource implements FhirDataSource {
   private readonly listeners = new Set<() => void>()
 
   constructor() {
+    // BEFORE any read: the reads below hand slices straight to the app, so a
+    // slice migrated afterwards would still be stale for this page load.
+    migrateCanonicalUrls()
     this.store = readJson<PatientStore>(STORE_KEY) ?? migrateLegacyStorage() ?? {}
     this.blankSlice = readJson<PatientSlice>(BLANK_SLICE_KEY) ?? EMPTY_SLICE
     this.seeds = readJson<SeedRecord>(SEEDS_KEY) ?? {}

@@ -256,6 +256,45 @@ describe('stageForArtifact — tier 2: category.coding', () => {
     }
     expect(stageForArtifact(plan)).toBe(stageId)
   })
+
+  // R4 caps `Procedure.category` at 0..1, so a Procedure carries a bare
+  // CodeableConcept where a CarePlan carries an array. `stageForArtifact` typed
+  // the field array-only and called `.flatMap` on it, so ANY Procedure that got
+  // past the `meta.tag` tier took the whole app down with
+  // "(resource.category ?? []).flatMap is not a function" — every page that
+  // derives a registry row, not just the one holding the Procedure.
+  //
+  // Reaching the category tier at all needs an untagged Procedure, which is why
+  // the bundled fixtures never showed it: all three carry a resolvable stage tag
+  // and return at tier 1. A stored slice from a build before the
+  // spier.org → thespierproject.org canonical rename (#413) does not — its tag
+  // no longer matches `PATHWAY_STAGE_SYSTEM`, so it falls through to here. The
+  // IG's own `Procedure-ExampleLethalMeansCounseling` has no tag either.
+  it('reads the SINGULAR category R4 gives Procedure, rather than throwing', () => {
+    const procedure: FhirResourceLike = {
+      resourceType: 'Procedure',
+      category: { coding: [{ system: PATHWAY_STAGE_SYSTEM, code: stageId }] },
+    }
+    expect(stageForArtifact(procedure)).toBe(stageId)
+  })
+
+  it('survives a singular category that names no stage', () => {
+    const procedure: FhirResourceLike = {
+      resourceType: 'Procedure',
+      // The shape the demo fixtures actually carry: a concept-domain category
+      // and a pathway-stage tag whose system predates the #413 rename.
+      meta: { tag: [{ system: 'http://spier.org/CodeSystem/spier-pathway-stage', code: stageId }] },
+      category: {
+        coding: [
+          {
+            system: 'http://thespierproject.org/fhir/CodeSystem/spier-concept-domain',
+            code: 'suicide-risk',
+          },
+        ],
+      },
+    }
+    expect(stageForArtifact(procedure)).toBeUndefined()
+  })
 })
 
 describe('stageForArtifact — tier 4: CarePlan meta.profile', () => {

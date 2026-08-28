@@ -67,14 +67,40 @@ export interface FhirResourceLike {
   id?: string
   questionnaire?: string
   meta?: { tag?: { system?: string; code?: string }[]; profile?: string[] }
-  category?: { coding?: { system?: string; code?: string }[] }[]
+  category?: CategoryLike
   [k: string]: unknown
 }
 
 /** Kept for back-compat with importers that referenced the CarePlan-specific shape. */
 export interface CarePlanLike {
   id?: string
-  category?: { coding?: { system?: string; code?: string }[] }[]
+  category?: CategoryLike
+}
+
+/**
+ * `category` as FHIR R4 actually types it, which is BOTH shapes.
+ *
+ * Most types SPiER touches make it `0..*` (CarePlan, Observation, Communication,
+ * Consent, ServiceRequest, DocumentReference, Flag), but `Procedure.category` is
+ * capped at `0..1` in R4 — it only becomes `0..*` in R5 — so a Procedure carries a
+ * bare CodeableConcept there, not an array of one. The repo already knew this: it
+ * is why `lethalMeans.ts` assigns `category: suicideRiskCategory()` unwrapped, and
+ * why the data dictionary records that the domain category is "1..1 and assigned
+ * directly rather than sliced".
+ *
+ * Declaring the field array-only was therefore a type that contradicted the
+ * artifacts, and it type-checked the `.flatMap` below over a value that can be an
+ * object — a crash the compiler was actively vouching for.
+ */
+type CategoryLike =
+  | { coding?: { system?: string; code?: string }[] }
+  | { coding?: { system?: string; code?: string }[] }[]
+
+/** Both `category` shapes, flattened to the codings they carry. */
+function categoryCodings(category: CategoryLike | undefined): { system?: string; code?: string }[] {
+  if (!category) return []
+  const concepts = Array.isArray(category) ? category : [category]
+  return concepts.flatMap((cat) => cat?.coding ?? [])
 }
 
 function stageFromCodings(
@@ -103,9 +129,7 @@ export function stageForArtifact(resource: FhirResourceLike | undefined): string
   const fromTag = stageFromCodings(resource.meta?.tag)
   if (fromTag) return fromTag
 
-  const fromCategory = stageFromCodings(
-    (resource.category ?? []).flatMap((cat) => cat.coding ?? []),
-  )
+  const fromCategory = stageFromCodings(categoryCodings(resource.category))
   if (fromCategory) return fromCategory
 
   if (resource.resourceType === 'QuestionnaireResponse') {
