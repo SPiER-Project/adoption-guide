@@ -346,7 +346,7 @@ including why review notes are not emitted as Excel cell comments.
 
 ⚠️ **The scenario gate's per-resource rules are SHARED with the mock EHR's write
 endpoint, and that is a guardrail rather than a refactor.**
-`web/scripts/lib/fhir-resource-rules.mjs` holds the base-R4 tables, the
+`packages/core/fhir-resource-rules.mjs` holds the base-R4 tables, the
 profile-derived checks and the date/binding rules; `check-scenario-resources.mjs`
 and `services/mock-ehr/src/validate.ts` both call it. The embedded-panel plan §1
 permits a mock we control **only** if it validates writes with these checks
@@ -424,7 +424,7 @@ did not exist in LOINC; `81344-4` resolved to healthcare-agent disclosure
 authority rather than "reason for living", so it validated cleanly while meaning
 the wrong thing. The blind spot had two halves — `validate-fhir.mjs` runs `-tx n/a`
 in CI so external codes go unchecked, and **nothing at all** validated the
-code+display literals in `web/src/lib/*Mappers/`, even though those land in
+code+display literals in `packages/core/src/lib/*Mappers/`, even though those land in
 `Observation.code.coding` on every generated resource at runtime.
 
 The validator job is the only thing that checks `FHIR-Resources/` at all — the IG
@@ -589,7 +589,7 @@ because a non-response must stay `undefined` rather than becoming a "No".
 ⚠️ **A measure change lands in FOUR places, and `check:measures` only ties two
 of them together.** A population criterion lives in `ig/input/fsh/measure-and-share.fsh`
 (the published definition), `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` (the
-portable statement, compiled by the IG Publisher) and `web/src/lib/measures.ts`
+portable statement, compiled by the IG Publisher) and `packages/core/src/lib/measures.ts`
 (the executable reference implementation the app runs) — and if it changes
 scoring, in `MeasureDashboard.tsx` too. `check:measures` asserts the FSH
 criterion names and the TS implementations agree in both directions; the
@@ -764,7 +764,7 @@ which is filed separately.
 - **The Stanley-Brown CarePlan transformation exists twice on purpose.**
   `ig/input/resources/maps/StanleyBrownQRToCarePlan.fml` declares it (and is
   what `PlanDefinition.action.transform` points at);
-  `web/src/lib/carePlanMappers/stanleyBrown.ts` executes it in the demo. Both
+  `packages/core/src/lib/carePlanMappers/stanleyBrown.ts` executes it in the demo. Both
   are compared against one golden file,
   `scripts/fixtures/stanley-brown/careplan-expected.json` — the FML side by
   `scripts/check-fml.mjs` (Java + network, in `fml-validate.yml`), the

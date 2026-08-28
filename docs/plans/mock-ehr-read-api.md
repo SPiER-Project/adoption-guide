@@ -61,7 +61,7 @@ completedAt, resource }` — and the QR is `entry.resource`.
 
 ### 2. It is 14 searches across 13 types, and only two are load-bearing
 
-`SmartDataSource.getSlice` ([`smartDataSource.ts:236`](../../web/src/lib/dataSource/smartDataSource.ts))
+`SmartDataSource.getSlice` ([`smartDataSource.ts:236`](../../packages/core/src/lib/dataSource/smartDataSource.ts))
 runs these in one `Promise.all`. **Two have no `.catch` — a failure there fails
 the whole chart.** The other twelve degrade to empty:
 
@@ -119,7 +119,7 @@ Minimum viable response:
 
 ## `/metadata` — small, and the most load-bearing thing here
 
-`parseCapabilityStatement` ([`web/src/lib/writeback/capability.ts`](../../web/src/lib/writeback/capability.ts))
+`parseCapabilityStatement` ([`packages/core/src/lib/writeback/capability.ts`](../../packages/core/src/lib/writeback/capability.ts))
 reads it to decide what the writeback ladder may create. Its contract, from the
 code rather than from the spec:
 
@@ -161,7 +161,7 @@ awkward to retrofit.
   `import.meta.glob`, which is how it already receives the Patients. So the
   filesystem was never the rule set's problem, the port was never necessary, and
   the two callers now share
-  [`web/scripts/lib/fhir-resource-rules.mjs`](../../web/scripts/lib/fhir-resource-rules.mjs)
+  [`packages/core/fhir-resource-rules.mjs`](../../packages/core/fhir-resource-rules.mjs)
   verbatim. **The mistake was reasoning about the obstacle without checking it
   against the mechanism described two paragraphs later.**
 - ~~**Host chrome.** Step 5.~~ **BUILT 2026-08-19** (panel plan §6.1).
