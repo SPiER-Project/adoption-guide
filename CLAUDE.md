@@ -442,7 +442,7 @@ made #201 conclude the publisher *cannot* translate CQL (it bundles the full
 cqframework translator) and move the file out of the build for a release; #212
 re-tested it, and the first real compile failed on five defects that had been
 invisible the whole time. To confirm the gate is alive, grep a publisher log for
-`Translating CQL source` — see `docs/plans/stage-8-measure-and-share.md`.
+`Translating CQL source` — see `docs/plans/archive/stage-8-measure-and-share.md`.
 
 ⚠️ **`deploy.yml` caches the rendered IG, so a push to main usually does not
 re-render it.** Pages replaces the whole site with one artifact, so the SPA

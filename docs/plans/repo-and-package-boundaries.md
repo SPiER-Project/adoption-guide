@@ -763,7 +763,7 @@ shape.
 - [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) — the question that
   prompted this. A mock FHIR server would be `core`'s third consumer, and its
   Bundle export is the artifact that makes the population portable.
-- [`docs/plans/episode-correlation-key.md`](episode-correlation-key.md) — why
+- [`docs/plans/archive/episode-correlation-key.md`](archive/episode-correlation-key.md) — why
   `lib/encounters.ts` and `lib/episodeRecord.ts` belong in `core`.
 - [`docs/smart-sandbox-testing.md`](../smart-sandbox-testing.md) — the SMART
   client's current limits, including the Population view being local-only under

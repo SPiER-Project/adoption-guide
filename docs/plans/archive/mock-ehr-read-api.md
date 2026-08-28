@@ -1,10 +1,12 @@
 # Mock EHR, step 1: the read API
 
+> Archived 2026-08-28: work complete (PR #365).
+
 Written 2026-08-18 against `main` at `ad3ffe0`. The executable spec for **panel
 step 1** — `services/mock-ehr/` serving the reads `SmartDataSource` issues, so
 the panel can be launched against a server holding SPiER's own patients.
 
-This is the *next* piece: [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md)
+This is the *next* piece: [`embedded-panel-smart-launch.md`](../embedded-panel-smart-launch.md)
 §9 step 1. Its two blockers are gone — the `Patient` resources landed in #356,
 and §8 was settled 2026-08-18.
 
@@ -28,13 +30,13 @@ confirmed against a running server.
 
 ## What is settled, and is not to be relitigated here
 
-- **The mock serves FHIR** ([panel §8](embedded-panel-smart-launch.md), decided
+- **The mock serves FHIR** ([panel §8](../embedded-panel-smart-launch.md), decided
   2026-08-18). Medplum rejected. Reason: scope of what the host must be — a
   patient list, a patient page, an encounter page.
 - **Its own Worker, its own origin.** `spier-mock-ehr.*.workers.dev`. Cross-origin
   is a requirement, not a preference (panel §6).
 - **The offline demo track is retired**, the `FhirDataSource` discipline is kept
-  ([`surfaces-and-distribution.md`](surfaces-and-distribution.md) §8).
+  ([`surfaces-and-distribution.md`](../surfaces-and-distribution.md) §8).
 - **One copy of every fixture.** The mock serves the *same*
   `packages/demo-population/src/scenarios/patient-0NN.json` the app ships. No second
   copy of any patient, ever.
@@ -46,7 +48,7 @@ Found by reading the code rather than the plan. Each would cost real time.
 ### 1. `collectScenarioResources` does NOT cover QuestionnaireResponse
 
 Panel §3 says it "already does the bucket-unwrapping walk the read path needs."
-It does not. [`scripts/validate-fhir.mjs`](../../scripts/validate-fhir.mjs)'s
+It does not. [`scripts/validate-fhir.mjs`](../../../scripts/validate-fhir.mjs)'s
 `SCENARIO_FHIR_BUCKETS` **deliberately omits `responses`**, and says so:
 
 > *Deliberately absent: `responses` (StoredResponse wrappers — the QRs inside
@@ -61,7 +63,7 @@ completedAt, resource }` — and the QR is `entry.resource`.
 
 ### 2. It is 14 searches across 13 types, and only two are load-bearing
 
-`SmartDataSource.getSlice` ([`smartDataSource.ts:236`](../../packages/core/src/lib/dataSource/smartDataSource.ts))
+`SmartDataSource.getSlice` ([`smartDataSource.ts:236`](../../../packages/core/src/lib/dataSource/smartDataSource.ts))
 runs these in one `Promise.all`. **Two have no `.catch` — a failure there fails
 the whole chart.** The other twelve degrade to empty:
 
@@ -119,7 +121,7 @@ Minimum viable response:
 
 ## `/metadata` — small, and the most load-bearing thing here
 
-`parseCapabilityStatement` ([`packages/core/src/lib/writeback/capability.ts`](../../packages/core/src/lib/writeback/capability.ts))
+`parseCapabilityStatement` ([`packages/core/src/lib/writeback/capability.ts`](../../../packages/core/src/lib/writeback/capability.ts))
 reads it to decide what the writeback ladder may create. Its contract, from the
 code rather than from the spec:
 
@@ -161,7 +163,7 @@ awkward to retrofit.
   `import.meta.glob`, which is how it already receives the Patients. So the
   filesystem was never the rule set's problem, the port was never necessary, and
   the two callers now share
-  [`packages/core/fhir-resource-rules.mjs`](../../packages/core/fhir-resource-rules.mjs)
+  [`packages/core/fhir-resource-rules.mjs`](../../../packages/core/fhir-resource-rules.mjs)
   verbatim. **The mistake was reasoning about the obstacle without checking it
   against the mechanism described two paragraphs later.**
 - ~~**Host chrome.** Step 5.~~ **BUILT 2026-08-19** (panel plan §6.1).
@@ -273,11 +275,11 @@ to `/fhir` and `/fhir/*`, and asserted.
 
 ## Related
 
-- [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) — §4 the
+- [`embedded-panel-smart-launch.md`](../embedded-panel-smart-launch.md) — §4 the
   endpoint surface, §8 the decision, §9 the build order.
-- [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) — §6, whose
+- [`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md) — §6, whose
   objection this must keep honoring, and §8's phases 4–5 (the population lens
   bypasses `FhirDataSource`, so "the whole demo runs on the server" is not true
   until those land).
-- [`surfaces-and-distribution.md`](surfaces-and-distribution.md) §5 — origins,
+- [`surfaces-and-distribution.md`](../surfaces-and-distribution.md) §5 — origins,
   and why the browser talks to FHIR directly.

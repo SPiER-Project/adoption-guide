@@ -6,7 +6,7 @@
  * embedded SMART panel must be launched cross-origin, so the two hosts cannot
  * be the same one (docs/plans/embedded-panel-smart-launch.md §6).
  *
- * See docs/plans/mock-ehr-read-api.md for what this is and is not.
+ * See docs/plans/archive/mock-ehr-read-api.md for what this is and is not.
  */
 import app from './app'
 

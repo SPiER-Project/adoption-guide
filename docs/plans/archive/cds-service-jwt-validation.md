@@ -1,5 +1,7 @@
 # Plan: JWT validation on the CDS Hooks service
 
+> Archived 2026-08-28: work complete (PR #147).
+
 ## Current state
 
 `services/cds-hooks/` is a Hono app on Cloudflare Workers (one Worker also serves

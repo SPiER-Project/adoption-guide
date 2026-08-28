@@ -1,5 +1,7 @@
 # Plan: FHIRcast two-way sync
 
+> Archived 2026-08-28: work complete (PR #148).
+
 ## Current state (one-way)
 
 `web/src/lib/fhircast.ts` models a single `patient-open` STU3 event over a

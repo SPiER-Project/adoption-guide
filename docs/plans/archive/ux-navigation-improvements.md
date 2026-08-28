@@ -1,5 +1,7 @@
 # Plan: UX / navigation improvements
 
+> Archived 2026-08-28: work complete (PRs #150, #152, #159).
+
 Findings from a hands-on navigation audit (desktop + mobile preview walkthrough,
 plus a code inventory of every page's nav affordances). The app has no dead ends
 and good empty/loading states — the "clunky" feeling traces to a small number of

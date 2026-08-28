@@ -1,7 +1,7 @@
 # Stage 6 — Track Follow-Up: FHIR design
 
 Design + encoding for the five Stage-6 tools, completing Wave 5 of the
-[SSC stage-tiles rollout](ssc-stage-tiles-rollout.md).
+[SSC stage-tiles rollout](archive/ssc-stage-tiles-rollout.md).
 
 Artifacts: [`ig/input/fsh/follow-up.fsh`](../../ig/input/fsh/follow-up.fsh).
 Requirements source:
@@ -93,7 +93,7 @@ With this, the placeholders for **Stages 5, 6, and 7 are fully drained**. What
 remains in `pathway-tool-placeholders.fsh` is TL-026 (generalized workflow
 trigger), TL-028 (CARS-S — licensing NO-GO), TL-029 (site-defined local tool),
 and the four Stage-8 tools of Wave 6 — *since drained too, see
-[stage-8-measure-and-share.md](stage-8-measure-and-share.md).*
+[stage-8-measure-and-share.md](archive/stage-8-measure-and-share.md).*
 
 ## Implementation status
 
@@ -147,7 +147,7 @@ three FHIR gotchas it turned up.
   existing machinery.
 - ~~Wave 6 — Measure and Share: `Measure` / `MeasureReport` over exactly the
   appointments, outreach attempts, and episodes these stages produce.~~ **Done**
-  (definitional layer) — see [stage-8-measure-and-share.md](stage-8-measure-and-share.md).
+  (definitional layer) — see [stage-8-measure-and-share.md](archive/stage-8-measure-and-share.md).
   Two Stage-6 calls got tested there and held: the 7-/30-day measures read
   `Appointment.status = fulfilled`, vindicating TL-034 producing no resource of
   its own; and the caring-contact opt-out extension is what lets an opt-out be a

@@ -1,7 +1,7 @@
 # Stage 7 — Track Risk Over Time: FHIR design
 
 Design for the five Stage-7 tools, authored **before** per-tool implementation
-per [`ssc-stage-tiles-rollout.md`](ssc-stage-tiles-rollout.md) Wave 5
+per [`ssc-stage-tiles-rollout.md`](archive/ssc-stage-tiles-rollout.md) Wave 5
 ("Do stage 7 as one design PR first, then implement per-tool"). Now also
 records what shipped and what the build changed — see *Implementation status*
 below.

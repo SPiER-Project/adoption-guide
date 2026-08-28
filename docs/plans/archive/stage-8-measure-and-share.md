@@ -1,15 +1,17 @@
 # Stage 8 — Measure and Share the Data: FHIR design
 
+> Archived 2026-08-28: work complete (PRs #208, #212).
+
 Design for the four Stage-8 tools, per
 [`ssc-stage-tiles-rollout.md`](ssc-stage-tiles-rollout.md) Wave 6. Wave 6 was
 split the same way Stage 7 was: part 1 was the definitional layer (Measures,
 MeasureReports, conformance, #201) and part 2 makes it live (the measure engine,
 drift guard, and TL-043 dashboard). See *Implementation status* below.
 
-Artifacts: [`ig/input/fsh/measure-and-share.fsh`](../../ig/input/fsh/measure-and-share.fsh),
-[`ig/input/cql/SPiERSuicideSaferCareMeasures.cql`](../../ig/input/cql/SPiERSuicideSaferCareMeasures.cql),
-[`ig/input/pagecontent/measurement.md`](../../ig/input/pagecontent/measurement.md).
-Requirements source: [`docs/reference/ssc-stage-tiles-question-set.md`](../reference/ssc-stage-tiles-question-set.md),
+Artifacts: [`ig/input/fsh/measure-and-share.fsh`](../../../ig/input/fsh/measure-and-share.fsh),
+[`ig/input/cql/SPiERSuicideSaferCareMeasures.cql`](../../../ig/input/cql/SPiERSuicideSaferCareMeasures.cql),
+[`ig/input/pagecontent/measurement.md`](../../../ig/input/pagecontent/measurement.md).
+Requirements source: [`docs/reference/ssc-stage-tiles-question-set.md`](../../reference/ssc-stage-tiles-question-set.md),
 Stage Tile 8.
 
 ---
@@ -425,8 +427,8 @@ pushing three more patients past their curated next step.
 ## Update — the deck adds an outcome half (2026-08-11)
 
 The *Suicide Care Dashboard* deck
-([spec](../reference/suicide-care-dashboard-spec.md),
-[plan](suicide-care-dashboard.md)) reframes what "Stage 8 complete" means, and
+([spec](../../reference/suicide-care-dashboard-spec.md),
+[plan](../suicide-care-dashboard.md)) reframes what "Stage 8 complete" means, and
 the reframing is worth recording here rather than only in the new plan.
 
 **Everything above is the process half.** All seven measures ask whether the
@@ -453,7 +455,7 @@ added the `SPiEREncounter` profile and 24 scenario Encounters, including 5 with
 narrower: none of the 24 carries `Encounter.type` or `reasonCode`, so `class = IMP`
 counts inpatient stays in general and nothing marks a *psychiatric* admission,
 which is what panel 10 asks for. See
-[`suicide-care-dashboard.md`](suicide-care-dashboard.md) gap 5.
+[`suicide-care-dashboard.md`](../suicide-care-dashboard.md) gap 5.
 
 So the honest status is: **Stage 8's process half is built; its outcome half is
 unmodeled and unscheduled.** That is not a defect in the work above — outcome

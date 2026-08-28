@@ -1,5 +1,7 @@
 # Plan: Code-based mapper dispatch fallback for non-IG-conformant EHRs
 
+> Archived 2026-08-28: work complete (PR #145).
+
 ## Problem
 
 Observation mappers dispatch **only** on the SPiER canonical `questionnaire` URL:

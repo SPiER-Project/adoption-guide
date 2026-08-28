@@ -786,7 +786,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
   // Only TL-042 produces a resource. TL-043 is a rendering, TL-044 a
   // serialization, TL-045 a transport — so their recordingPattern describes
   // what they READ rather than what they write. See
-  // docs/plans/stage-8-measure-and-share.md.
+  // docs/plans/archive/stage-8-measure-and-share.md.
   'TL-042': {
     shortName: 'KPI Reporting',
     inclusionStatus: 'core',

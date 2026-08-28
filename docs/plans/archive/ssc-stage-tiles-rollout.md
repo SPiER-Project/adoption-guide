@@ -1,5 +1,8 @@
 # SSC Stage-Tiles Rollout Plan
 
+> Archived 2026-08-28: work complete (PR #208). TL-026/028/029/044/045 remain
+> as ordinary open GitHub-issue backlog, unrelated to this plan's completion.
+
 Execution plan for landing the July 2026 pathway restructure, migrating the
 GitHub roadmap, and encoding the remaining tools. Written to be executed
 **phase by phase in separate AI-agent sessions** — each phase is a
@@ -238,7 +241,7 @@ the snapshot.
 > the `<stage>` stage PlanDefinition in `pathway-stages.fsh` and mapped to
 > TL-0xx in `web/src/data/catalog/tools.ts`. Keep the AD id and canonical URL
 > stable; move the AD to a new `ig/input/fsh/<instrument>.fsh` and enrich it.
-> Follow the conventions in `docs/plans/ssc-stage-tiles-rollout.md` (standing
+> Follow the conventions in `docs/plans/archive/ssc-stage-tiles-rollout.md` (standing
 > context + per-PR checklist). Source instrument: <attach PDF/link>.
 > Licensing: <status or "audit first">.
 

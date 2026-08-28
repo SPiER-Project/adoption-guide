@@ -1,7 +1,7 @@
 # Stage 5 — Coordinate Handoffs: FHIR design
 
 Design + encoding for the five Stage-5 tools, part of Wave 5 of the
-[SSC stage-tiles rollout](ssc-stage-tiles-rollout.md).
+[SSC stage-tiles rollout](archive/ssc-stage-tiles-rollout.md).
 
 Artifacts: [`ig/input/fsh/handoffs.fsh`](../../ig/input/fsh/handoffs.fsh).
 Requirements source:
@@ -137,7 +137,7 @@ Delivered:
    shipping invalid for the same reason. Worth remembering as a class of gap:
    SUSHI does not evaluate FHIRPath invariants, so `npm run verify` is green on
    resources that fail conformance. See
-   [the publish-gate note](ssc-stage-tiles-rollout.md) — the app-side builders
+   [the publish-gate note](archive/ssc-stage-tiles-rollout.md) — the app-side builders
    have no invariant check at all, only the unit test added here.
 
 ## Follow-ups
