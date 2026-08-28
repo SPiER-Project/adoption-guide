@@ -6,7 +6,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { LocalDataSource, resetLocalDemoData } from './localDataSource'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { StoredResponse } from '@spier/core/types/fhir'
+import { stageForArtifact } from '@spier/core/lib/patientPathway'
+import type { ProcedureResource, StoredResponse } from '@spier/core/types/fhir'
 
 /**
  * #301: seeding used to be once-only, so a browser that had opened the demo kept
@@ -150,5 +151,148 @@ describe('resetLocalDemoData', () => {
 
     expect(slice.responses.some(r => r.id === 'user-authored-1')).toBe(false)
     expect(slice.responses.length).toBe(POPULATION_SCENARIOS[PATIENT].responses.length)
+  })
+})
+
+
+/**
+ * #413 moved every SPiER identifier off `http://spier.org`, a domain the project
+ * never owned. The artifacts moved; a slice already sitting in someone's browser
+ * did not, and `resolveSlice` never re-seeds a slice the user has written to —
+ * so those browsers kept naming a namespace the app no longer answers to.
+ *
+ * The visible cost was total: an old-canonical `Procedure` fell through
+ * `stageForArtifact`'s `meta.tag` tier into its category tier, where R4's
+ * singular `Procedure.category` met a `.flatMap` and blanked every page that
+ * derives a registry row.
+ */
+describe('migrating the pre-#413 canonical', () => {
+  const OLD_TAG = 'http://spier.org/CodeSystem/spier-pathway-stage'
+  const NEW_TAG = 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
+
+  /** The shape that crashed: singular `category`, and a tag naming the old namespace. */
+  const oldCanonicalProcedure = (): ProcedureResource =>
+    ({
+      resourceType: 'Procedure',
+      id: 'p001-lethal-means',
+      meta: {
+        profile: ['http://spier.org/StructureDefinition/spier-lethal-means-counseling'],
+        tag: [{ system: OLD_TAG, code: 'document-safety-actions' }],
+      },
+      status: 'completed',
+      // R4 caps Procedure.category at 0..1 — a bare CodeableConcept, not an array.
+      category: { coding: [{ system: 'http://spier.org/CodeSystem/spier-concept-domain', code: 'suicide-risk' }] },
+    }) as unknown as ProcedureResource
+
+  /**
+   * A slice the user owns: written to, so there is NO seed record and #301's
+   * re-seeding will never touch it. This is the only state the migration can
+   * reach, and the only one that was stuck.
+   */
+  const seedUserOwnedSlice = () => {
+    window.localStorage.setItem(
+      STORE_KEY,
+      JSON.stringify({
+        [PATIENT]: {
+          ...POPULATION_SCENARIOS[PATIENT],
+          responses: [userResponse],
+          procedures: [oldCanonicalProcedure()],
+        },
+      }),
+    )
+    window.localStorage.removeItem(SEEDS_KEY)
+  }
+
+  it('rewrites the canonical in a slice the user owns', () => {
+    seedUserOwnedSlice()
+
+    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const procedure = slice.procedures![0] as unknown as {
+      meta: { tag: { system: string }[]; profile: string[] }
+      category: { coding: { system: string }[] }
+    }
+
+    expect(procedure.meta.tag[0].system).toBe(NEW_TAG)
+    expect(procedure.meta.profile[0]).toBe(
+      'http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling',
+    )
+    // Not just `meta` — the swap is whole-document, so nested codings move too.
+    expect(procedure.category.coding[0].system).toBe(
+      'http://thespierproject.org/fhir/CodeSystem/spier-concept-domain',
+    )
+  })
+
+  it('restores the stage resolution the stale canonical had silently broken', () => {
+    seedUserOwnedSlice()
+
+    const slice = new LocalDataSource().getSliceSync(PATIENT)
+
+    // The point of the rewrite: this is what went `undefined` before it, taking
+    // the Procedure out of its pathway stage and out of the measures scored on it.
+    expect(stageForArtifact(slice.procedures![0])).toBe('document-safety-actions')
+  })
+
+  it('keeps the user\'s own work while rewriting around it', () => {
+    seedUserOwnedSlice()
+
+    const slice = new LocalDataSource().getSliceSync(PATIENT)
+
+    expect(slice.responses).toHaveLength(1)
+    expect(slice.responses[0].id).toBe('user-authored-1')
+    // Still theirs afterwards — the migration must not hand the slice back to
+    // the fixture by writing a seed record.
+    expect(readSeeds()[PATIENT]).toBeUndefined()
+  })
+
+  it('migrates the blank slice and the pre-#301 legacy keys too', () => {
+    window.localStorage.setItem(
+      'spier-blank-slice',
+      JSON.stringify({ responses: [], observations: [], carePlans: [], riskAlerts: [], procedures: [oldCanonicalProcedure()] }),
+    )
+    window.localStorage.setItem(
+      'spier-demo-observations',
+      JSON.stringify([{ resourceType: 'Observation', meta: { tag: [{ system: OLD_TAG }] } }]),
+    )
+
+    new LocalDataSource()
+
+    expect(window.localStorage.getItem('spier-blank-slice')).toContain(NEW_TAG)
+    expect(window.localStorage.getItem('spier-blank-slice')).not.toContain(OLD_TAG)
+    expect(window.localStorage.getItem('spier-demo-observations')).toContain(NEW_TAG)
+  })
+
+  it('runs before the first read, not after it', () => {
+    seedUserOwnedSlice()
+
+    // A migration that ran after the constructor's reads would return a stale
+    // slice for this page load and only look right on the NEXT one — which is
+    // exactly the bug being fixed, one reload later.
+    const first = new LocalDataSource().getSliceSync(PATIENT)
+
+    expect(JSON.stringify(first)).not.toContain('http://spier.org/')
+  })
+
+  it('is idempotent, and leaves an already-current store byte-identical', () => {
+    seedUserOwnedSlice()
+    new LocalDataSource()
+    const afterFirst = window.localStorage.getItem(STORE_KEY)!
+
+    new LocalDataSource()
+
+    expect(window.localStorage.getItem(STORE_KEY)).toBe(afterFirst)
+    expect(afterFirst).not.toContain('http://spier.org/')
+  })
+
+  it('does not rewrite a key holding something that is not JSON', () => {
+    // Defensive rather than expected: nothing writes a bare string to these
+    // keys today. Half-migrating an unparseable value would be worse than
+    // leaving it, so it is left.
+    window.localStorage.setItem('spier-blank-slice', 'not json http://spier.org/CodeSystem/x')
+
+    new LocalDataSource()
+
+    expect(window.localStorage.getItem('spier-blank-slice')).toBe(
+      'not json http://spier.org/CodeSystem/x',
+    )
   })
 })
