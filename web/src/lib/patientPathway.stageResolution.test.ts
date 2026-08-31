@@ -32,7 +32,11 @@ import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 // are hardcoded in patientPathway.ts because no FHIR artifact records them, so we
 // anchor them explicitly.
 
-const STAGE_ID_SET = new Set(STAGES.map((s) => s.id))
+// Widened to Set<string>: this checks values RESOLVED from live-data paths
+// (`stageForArtifact`'s return, and a hand-typed test literal) against the
+// known stage ids — the same "live data stays string" reason
+// `patientPathway.ts`'s own internal STAGE_IDS is widened.
+const STAGE_ID_SET: Set<string> = new Set(STAGES.map((s) => s.id))
 const toolsWithQuestionnaire = TOOLS.filter((t) => (t.questionnaireUrls?.length ?? 0) > 0)
 
 // A single Questionnaire canonical can in principle be administered by more

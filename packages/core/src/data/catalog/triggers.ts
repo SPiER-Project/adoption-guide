@@ -9,13 +9,14 @@
 // NARRATIVE_TRIGGERS below — the FHIR-derived list will pick them up.
 
 import { STAGES } from './stages'
+import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 
 export type TriggerSource = 'fhir' | 'narrative'
 
 export interface StageTrigger {
   id: string
-  fromStageId: string
-  toStageId?: string
+  fromStageId: StageId
+  toStageId?: StageId
   event: string
   condition: string
   action: string
@@ -196,14 +197,19 @@ const pdModules = import.meta.glob<{ default: PlanDefinitionDoc }>(
 )
 const PLAN_DEFS: PlanDefinitionDoc[] = Object.values(pdModules).map((m) => m.default)
 
-function stageIdOf(pd: PlanDefinitionDoc): string | undefined {
+// `pd.useContext[].valueCodeableConcept.coding[].code` is a plain string off
+// generic FHIR JSON — not already known-safe — so `isStageId` guards the one
+// point where it becomes a StageId. An unrecognized code is treated the same
+// as a missing one (undefined), same as tools.ts's STAGE_BY_AD_URL.
+function stageIdOf(pd: PlanDefinitionDoc): StageId | undefined {
   const focus = pd.useContext?.find((c) => c.code.code === 'focus')
-  return focus?.valueCodeableConcept?.coding?.find(
+  const code = focus?.valueCodeableConcept?.coding?.find(
     (c) => c.system === 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage',
   )?.code
+  return code !== undefined && isStageId(code) ? code : undefined
 }
 
-function previousStageId(stageId: string): string {
+function previousStageId(stageId: StageId): StageId {
   const idx = STAGES.findIndex((s) => s.id === stageId)
   if (idx <= 0) return stageId
   return STAGES[idx - 1].id
