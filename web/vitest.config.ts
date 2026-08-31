@@ -5,7 +5,8 @@ import { defineConfig } from 'vitest/config'
 // lightweight `node` environment is the default. The one DOM-dependent suite
 // (hooks/useScrollToHash.test.tsx) opts into jsdom with a
 // `@vitest-environment jsdom` docblock, which keeps jsdom's startup cost off
-// the other 34 files.
+// the other 55 files (`test.include` below reaches into packages/core/src
+// too, not just web/src — see the packages/core mirror-test note in CLAUDE.md).
 //
 // ⚠️ jsdom is pinned to ^29 because CI runs Node 20 (`node-version: 20` in
 // every workflow). jsdom 30 requires `^22.22.2 || ^24.15.0 || >=26.0.0` and
@@ -56,6 +57,9 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}'],
+    // packages/core's mirror tests live beside their subject under
+    // packages/core/src, not under web/src (see the packages/core bullet in
+    // CLAUDE.md) — reached here rather than via a fourth test pipeline.
+    include: ['src/**/*.test.{ts,tsx}', '../packages/core/src/**/*.test.{ts,tsx}'],
   },
 })

@@ -10,8 +10,11 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
   catalog, instrument + care-plan mappers, the `FhirDataSource` seam, pathway /
   registry / measure logic, CDS Hooks, FHIRcast. Consumed as `@spier/core/<path>`
   by the app and both Workers, which have **zero** deep imports into `web/src`.
-  ⚠️ **Its tests live in the mirrored path under `web/src`**, so web's `verify`
-  covers it; moving them would need a fourth pipeline.
+  Its tests live beside their subject, under `packages/core/src` itself, rather
+  than under `web/src` — `packages/core/tsconfig.json` (a `composite` project
+  referenced from `web/tsconfig.json`) and `web/vitest.config.ts`'s extended
+  `test.include` are what reach them from there. Still `web`'s `npm run verify`
+  and `npx tsc -b`; no fourth pipeline.
 - `packages/demo-population/` — the 14 demo patients + scenario slices (#388).
 - `packages/fhir-artifacts/generated/` — SUSHI's output, gitignored (#392).
 - `web/` — React 19 + TypeScript (strict) + Vite app. Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/` by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from `FHIR-Resources/`.
