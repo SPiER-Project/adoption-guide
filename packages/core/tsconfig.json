@@ -1,0 +1,61 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    // Default typeRoots discovery walks up from this file's own directory
+    // looking for node_modules/@types — which never reaches web/node_modules
+    // (a sibling, not an ancestor, of packages/core). Repointing it here is
+    // what lets `import ... from 'node:fs'` resolve via @types/node's ambient
+    // `declare module 'node:fs'`, the same way it did when this test lived
+    // under web/src and the walk-up found web/node_modules/@types on its own.
+    "typeRoots": ["../../web/node_modules/@types"],
+    "types": ["node"],
+    "paths": {
+      // packages/core imports fhirclient's Client type. `fhirclient` is web's
+      // dependency and no other package declares a second copy, which could
+      // drift from the version the app ships.
+      "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
+      // Same "no ancestor node_modules" problem as above, but for a real
+      // package rather than an @types-only one: the moved tests `import ...
+      // from 'vitest'` explicitly (see CLAUDE.md), and that bare specifier
+      // needs an explicit target since packages/core has no node_modules of
+      // its own to walk up into.
+      "vitest": ["../../web/node_modules/vitest/dist/index.d.ts"],
+      // The moved mirror tests import their own subject through the same
+      // `@spier/core/<path>` alias the app uses, rather than a relative
+      // import — so this project needs to resolve its own alias too.
+      "@spier/core/*": ["./src/*"],
+      "@spier/fhir-artifacts/*": ["../fhir-artifacts/*"],
+      "@spier/demo-population": ["../demo-population/src/index.ts"],
+      "@spier/demo-population/*": ["../demo-population/src/*"]
+    },
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "composite": true
+  },
+  "include": [
+    "src",
+    "../fhir-artifacts/generated/**/*.ts",
+    "../demo-population/src/**/*.ts"
+  ]
+}
