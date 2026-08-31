@@ -63,7 +63,6 @@ npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDe
                          # layer down — a Questionnaire in FHIR-Resources/ that
                          # no AD administers, which was ungated until 2026-08-20
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
-npm run check:fallback   # fallback-dispatch LOINC item codes vs Questionnaire JSON
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see the mapper-reader note below
 npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a different
@@ -760,7 +759,7 @@ which is filed separately.
   the `FHIR-Resources` copies silently shadowed the IG's with drifted `display`
   values until `validate-fhir.mjs` caught it. `node scripts/validate-fhir.mjs`
   loads both trees, so a fresh collision shows up as a display or binding error.
-- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `packages/core/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `packages/demo-population/src/` (e.g. `patients.json`). LOINC **per-item** codes additionally live in `packages/core/src/lib/observationMappers/fallbackDispatch.ts` (`INSTRUMENT_SIGNATURES`, used to recognize foreign QRs) — guarded against the Questionnaire JSON by `npm run check:fallback`. When you change any such code, **grep the whole repo** for the old value and update every site.
+- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `packages/core/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `packages/demo-population/src/` (e.g. `patients.json`). LOINC **per-item** codes are no longer hand-copied into `packages/core/src/lib/observationMappers/fallbackDispatch.ts`: `INSTRUMENT_SIGNATURES` (used to recognize foreign QRs) names only linkIds, and their codes are resolved from `packages/fhir-artifacts/generated/instrument-signatures.generated.ts`, which `copy-fhir` derives from the Questionnaire JSON — so a linkId that stops carrying a code is a type error rather than drift. When you change any such code, **grep the whole repo** for the old value and update every site.
 - **The Stanley-Brown CarePlan transformation exists twice on purpose.**
   `ig/input/resources/maps/StanleyBrownQRToCarePlan.fml` declares it (and is
   what `PlanDefinition.action.transform` points at);
