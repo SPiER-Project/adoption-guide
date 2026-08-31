@@ -4,7 +4,7 @@ Serves SPiER's own synthetic population as a real FHIR read API, on its **own
 Worker and therefore its own origin**, so the embedded SMART panel can be
 launched cross-origin against a server rather than against localStorage.
 
-Panel **steps 1, 2, 4 and 5**. The spec is [`docs/plans/mock-ehr-read-api.md`](../../docs/plans/mock-ehr-read-api.md);
+Panel **steps 1, 2, 4 and 5**. The spec is [`docs/plans/archive/mock-ehr-read-api.md`](../../docs/plans/archive/mock-ehr-read-api.md);
 the decision that permits a mock we control at all is
 [`embedded-panel-smart-launch.md`](../../docs/plans/embedded-panel-smart-launch.md) §8,
 and it is permitted only with the guardrails in §1 of that plan.

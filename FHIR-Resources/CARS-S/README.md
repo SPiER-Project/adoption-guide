@@ -2,7 +2,7 @@
 
 > **Placeholder — licensing audit only.** This directory contains **no** FHIR
 > Questionnaire, FSH, or mapper. Per the Wave 3 "audit-first" step of the
-> [SSC stage-tiles rollout](../../docs/plans/ssc-stage-tiles-rollout.md), the
+> [SSC stage-tiles rollout](../../docs/plans/archive/ssc-stage-tiles-rollout.md), the
 > CARS was audited **before** any authoring, and the outcome is **NO-GO pending
 > written permission** — see [`licensing/MEMO.md`](licensing/MEMO.md).
 

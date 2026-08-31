@@ -54,7 +54,7 @@ export interface MeasureGap {
 
 /**
  * Keyed by `Measure.id`. Sourced from the "What the dashboard revealed" gap
- * table in docs/plans/stage-8-measure-and-share.md, which is where these gaps
+ * table in docs/plans/archive/stage-8-measure-and-share.md, which is where these gaps
  * were diagnosed against the real seed data.
  */
 export const MEASURE_GAPS: Record<string, MeasureGap> = {

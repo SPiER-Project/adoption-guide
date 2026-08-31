@@ -26,7 +26,7 @@ a clinical reviewer has to be *told* which half is for them.
 | Phase | State |
 |---|---|
 | 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
-| 1 — mock EHR read API over the existing fixtures | **DONE** — `services/mock-ehr/`. Spec + what building it found: [`mock-ehr-read-api.md`](mock-ehr-read-api.md). §7 |
+| 1 — mock EHR read API over the existing fixtures | **DONE** — `services/mock-ehr/`. Spec + what building it found: [`mock-ehr-read-api.md`](archive/mock-ehr-read-api.md). §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **DONE.** `/authorize` + `/token` with PKCE S256 verified, launch contexts, patient-bound tokens, `frame-ancestors` on the panel host. The iframe half was unproven until step 5 framed it; **both halves are now observed in a browser — §6.1.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **DONE 2026-08-18.** `PanelShell` in #358 (`3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. Code drawer in #360 (`1901c0e`): the stranded sidebar (§9.1 finding 3) becomes a bottom drawer, one tap from any scroll position. §3 |
 | 4 — writes + the capability-degradation demo | **DONE 2026-08-20.** `POST /fhir/{Type}` + `PUT /fhir/{Type}/{id}`, validated against the SAME rules as `check-scenario-resources.mjs`, capability-gated, persisted in a Durable Object with a visible reset. What a browser found: §5.1 |
@@ -899,7 +899,7 @@ Sequenced to kill unknowns first.
 | # | Step | Why here |
 |---|---|---|
 | **0** | ~~Width spike~~ — **done, §9.1** | C-SSRS Full renders at 470px with zero horizontal overflow. Geometry confirmed; nothing downstream shifts. |
-| 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Unblocked** — #356 minted the `Patient` resources. Executable spec: [`mock-ehr-read-api.md`](mock-ehr-read-api.md) |
+| 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Unblocked** — #356 minted the `Patient` resources. Executable spec: [`mock-ehr-read-api.md`](archive/mock-ehr-read-api.md) |
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
 | 3 | ~~`PanelShell`, navigation stack, code drawer~~ **DONE (#358, #360)** | Now it looks like the product. Measured: 252px → 76px of chrome, and the FHIR view from ~3000px below the form to one tap away. |
 | 4 | ~~Writes on the mock; degradation demo~~ **DONE — §5.1** | It was a server, as predicted, plus three defects the spec's endpoint table hid (a PUT path, a second capability axis, upsert-aware reads). Guardrail 2 landed here: six planted rejections, and the validator fails to load rather than accept everything when its inputs are missing. |
@@ -1091,7 +1091,7 @@ honest, because it claims nothing about what happens if you say no to part of it
   the hosting topology.
 - [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) — a mock
   server as a third consumer of shared code.
-- [`ux-navigation-improvements.md`](ux-navigation-improvements.md) — the
+- [`ux-navigation-improvements.md`](archive/ux-navigation-improvements.md) — the
   navigation work the panel's stack builds on.
 - #350 / PR #351 (`6f37e0d`) — the ladder's caller and scorecard, and the
   tier-model correction. **On `main` since 2026-08-18**; phase 4 builds on it.

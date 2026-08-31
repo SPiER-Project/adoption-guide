@@ -348,7 +348,7 @@ Description: "An active episode of suicide-safer care, tracked from entry to res
 // and server support to be queryable at all, which is the appearance of
 // correlation rather than correlation.
 //
-// See docs/plans/episode-correlation-key.md for the full comparison and the
+// See docs/plans/archive/episode-correlation-key.md for the full comparison and the
 // verified element table. Two notes that belong next to the profile:
 //
 //  * `Encounter` itself has NO `category` element, so it cannot carry the

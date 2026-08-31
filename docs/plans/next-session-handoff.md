@@ -659,13 +659,13 @@ references it cannot resolve.
    #348's commit message has it inverted; QR-first is load-bearing for provenance.
 6. [`../smart-sandbox-testing.md`](../smart-sandbox-testing.md) — the SMART
    walkthrough and its three known limitations. The panel work touches all three.
-7. [`mock-ehr-read-api.md`](mock-ehr-read-api.md) — step 1's executable spec: the
+7. [`mock-ehr-read-api.md`](archive/mock-ehr-read-api.md) — step 1's executable spec: the
    exact 14 searches, which two are load-bearing, the Bundle shape `fhirclient`
    expects, and what building it found that the spec could not have.
 8. **`CLAUDE.md`** (repo root) — the gate landscape. Which of the five gate classes
    catches what, and why a clean SUSHI run is not a quiet one. **Not optional for
    anyone editing code here.**
-9. [`fhircast-two-way-sync.md`](fhircast-two-way-sync.md) — the original
+9. [`fhircast-two-way-sync.md`](archive/fhircast-two-way-sync.md) — the original
    `BroadcastChannel` demo, now superseded by the real hub for cross-origin.
 10. [`../best-practices/licensing-verification-backlog.md`](../best-practices/licensing-verification-backlog.md)
     and [`../use-cases/README.md`](../use-cases/README.md) — read before making

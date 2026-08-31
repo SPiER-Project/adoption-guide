@@ -1,5 +1,7 @@
 # EpisodeOfCare as the correlation key for all eight stages
 
+> Archived 2026-08-28: work complete (PR #311).
+
 Design proposal for issue #263. The issue itself says the ordering question "is
 the real design work here and should be settled before any FSH is written", so
 this document settles it — and corrects the issue's proposal table, which does not

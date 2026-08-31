@@ -286,7 +286,7 @@ Phases 3 and 4 need spec answers 5/6 and 3/4 respectively.
   hand-maintained because base R4 StructureDefinitions are not vendored here.
 - **New measures need CQL** in `ig/input/cql/`, which the IG Publisher *does*
   compile (see the correction in
-  [`stage-8-measure-and-share.md`](stage-8-measure-and-share.md)), plus a
+  [`stage-8-measure-and-share.md`](archive/stage-8-measure-and-share.md)), plus a
   criterion in `measures.ts` or `npm run check:measures` fails.
 - **New codings in TypeScript** are only seen by `npm run check:codings`
   (nightly, needs a terminology server). A substantial new coding source inside
@@ -302,7 +302,7 @@ Phases 3 and 4 need spec answers 5/6 and 3/4 respectively.
 
 - **New:** `docs/reference/suicide-care-dashboard-spec.md` (the deck, transcribed)
   and this plan. Both indexed in `MANIFEST.md` and `docs/README.md`.
-- **Amended:** [`stage-8-measure-and-share.md`](stage-8-measure-and-share.md) —
+- **Amended:** [`stage-8-measure-and-share.md`](archive/stage-8-measure-and-share.md) —
   it currently presents seven process measures as the whole of Stage 8. The deck
   splits Stage 8 into a process half (built) and an outcome half (unmodeled),
   which changes what "Stage 8 complete" means. See its *Update — the deck adds an
