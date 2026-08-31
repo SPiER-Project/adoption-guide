@@ -171,7 +171,20 @@ const SCAN = [
   // tho 12) were written when this tree held both, and the move made this gate go
   // RED — correctly, and that is what caught them. What remains here is UI-side:
   // components, pages, hooks.
-  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 5, snomed: 8, tho: 1 } },
+  //
+  // ⚠️ Re-derived again 2026-08-31, for the same reason one level over: the
+  // structure-simplification Phase 3 move (#446) relocated 42 mirror TEST files
+  // out of web/src/lib into packages/core/src/lib. Their own hand-typed LOINC/SNOMED
+  // fixture literals moved with them — mappers/**.test.ts asserting the exact
+  // Observation.code a mapper produces — which is what this scan was actually
+  // finding in web/src, not new UI-side terminology. The move made this gate go
+  // RED correctly (loinc 4, snomed 3 against floors of 5, 8), invisible until now
+  // only because this check runs nightly, not in `verify`, and nothing had
+  // triggered a PR-time run of terminology-nightly.yml since Phase 3 merged.
+  // New floors are ~half the 2026-08-31 live count (loinc 4, snomed 3, tho 1),
+  // rounded down but not to zero — a zero floor asserts nothing, per the
+  // convention above.
+  { path: 'web/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 2, snomed: 1, tho: 1 } },
   // ─── packages/core — where the runtime mappers now live ─────
   //
   // The whole-package entry. Without it the mappers' codings would have left the
