@@ -28,13 +28,23 @@
  * `__fixtures__/` and asserted against in `fallbackDispatch.test.ts`. See
  * `docs/research/2026-08-us-behavioral-health-profiles-ig.md`.
  *
- * ⚠️ The LOINC item codes below are hand-duplicated from the SPiER Questionnaire
- * JSON (FHIR-Resources/<tool>/*.json) — a third home for values that already
- * live there and in the mappers. `web/scripts/check-fallback-signatures.mjs`
- * guards against drift (see CLAUDE.md "Drift-prone hand-duplicated values").
+ * ⚠️ The LOINC item codes are NOT written here. Each signature names the SPiER
+ * linkIds it covers; the `{system, code}` on each of those linkIds is resolved
+ * from `QUESTIONNAIRE_ITEM_CODES`, generated out of the very Questionnaire JSON
+ * (FHIR-Resources/<tool>/*.json) that declares them. The codes used to be
+ * hand-copied here — a third home for a value already living in the
+ * Questionnaire and in the mappers — with `check-fallback-signatures.mjs`
+ * existing solely to assert the copy still matched; both are gone. What a
+ * generator must NOT decide is which linkIds belong to a signature, so those,
+ * their order, and the reasoning for every deliberate omission stay below.
  */
 import { answerCodingForOrdinal, ordinalForAnswer } from '../../data/questionnaires'
 import { getYesNoBoolean } from './shared'
+import {
+  QUESTIONNAIRE_ITEM_CODES,
+  type CodedLinkId,
+  type QuestionnaireCanonical,
+} from '@spier/fhir-artifacts/generated/instrument-signatures.generated'
 import type {
   Coding,
   QuestionnaireResource,
@@ -50,6 +60,78 @@ interface ItemCodeMapping {
   system: string
   code: string
   linkId: string
+}
+
+/**
+ * The `{system, code}` the Questionnaire declares on each hand-listed linkId.
+ *
+ * Both ways this can be wrong are loud, which is the whole point of deriving it:
+ *
+ *  - a linkId that is not a *coded* item on that Questionnaire — renamed,
+ *    misspelled, dropped, or never coded — is a **type error**, because
+ *    `CodedLinkId<C>` is the key set of the generated lookup for that canonical.
+ *    Nothing reaches this function to be silently omitted from `itemCodes`.
+ *  - the throws below are the runtime backstop for the same conditions, since
+ *    `vitest` executes without typechecking. They fire at module initialization,
+ *    so anything importing this module reports them with a stack trace rather
+ *    than quietly recognizing one instrument less.
+ *
+ * A silent drop is the one outcome this must never have: an `itemCodes` entry
+ * missing at runtime lowers a signature's match count and its coverage, which is
+ * exactly what `recognizeInstrument` ranks on — a dropped code can hand a QR to
+ * the wrong instrument's mapper.
+ */
+function resolveItemCodes<C extends QuestionnaireCanonical>(
+  spierCanonical: C,
+  linkIds: readonly CodedLinkId<C>[],
+): ItemCodeMapping[] {
+  const declared = QUESTIONNAIRE_ITEM_CODES[spierCanonical] as Record<
+    string,
+    readonly { system: string; code: string }[] | undefined
+  >
+  return linkIds.map((linkId) => {
+    const codings = declared[linkId]
+    if (!codings?.length) {
+      throw new Error(
+        `fallbackDispatch: ${spierCanonical} item "${linkId}" declares no code. ` +
+          'Either the Questionnaire renamed/dropped it, or the linkId above is wrong — ' +
+          'fix one of the two rather than removing the entry.',
+      )
+    }
+    if (codings.length > 1) {
+      // `Questionnaire.item.code` is 0..*, and no item in the repo carries two.
+      // If one ever does, which of them recognizes the instrument is a judgement,
+      // so it belongs beside the signature — not guessed here.
+      throw new Error(
+        `fallbackDispatch: ${spierCanonical} item "${linkId}" declares ` +
+          `${codings.length} codes (${codings.map((c) => c.code).join(', ')}); ` +
+          'the signature needs a way to say which one identifies the instrument.',
+      )
+    }
+    return { system: codings[0].system, code: codings[0].code, linkId }
+  })
+}
+
+/**
+ * Build one signature: the curatorial half is written out here, the codes are
+ * resolved. Exists so `C` is inferred per entry — that inference is what makes a
+ * bad `codedLinkIds` entry a type error against the *right* Questionnaire.
+ */
+function signature<C extends QuestionnaireCanonical>(spec: {
+  spierCanonical: C
+  /** The instrument's coded items, in the order Tier-3 maps them positionally. */
+  codedLinkIds: readonly CodedLinkId<C>[]
+  minCodeMatches: number
+  answerKind: InstrumentSignature['answerKind']
+  shape?: InstrumentSignature['shape']
+}): InstrumentSignature {
+  return {
+    spierCanonical: spec.spierCanonical,
+    itemCodes: resolveItemCodes(spec.spierCanonical, spec.codedLinkIds),
+    minCodeMatches: spec.minCodeMatches,
+    answerKind: spec.answerKind,
+    ...(spec.shape ? { shape: spec.shape } : {}),
+  }
 }
 
 export interface InstrumentSignature {
@@ -103,8 +185,11 @@ export interface InstrumentSignature {
  * shape heuristic could match ASQ's 5 yes/no items, but it is default-off and
  * "5 boolean items" describes far too many instruments to turn on for this one.
  *
- * NOTE for the drift check parser (check-fallback-signatures.mjs): keep each
- * itemCodes entry on one line with `code` before `linkId`.
+ * ⚠️ ASQ's absence is also why this table is not generated wholesale from the
+ * Questionnaires. A generator emitting one signature per Questionnaire would put
+ * ASQ straight back — on `asq-item` codes and a shared `93374-7` — with nowhere
+ * to record why it should not be there. `codedLinkIds` below is the curated
+ * half; only the `{system, code}` on each named linkId is derived.
  */
 export const INSTRUMENT_SIGNATURES: InstrumentSignature[] = [
   /**
@@ -117,39 +202,41 @@ export const INSTRUMENT_SIGNATURES: InstrumentSignature[] = [
    * pair). So every screener QR also matches this signature, and vice versa —
    * which is exactly the ambiguity the scoring rule below exists to settle.
    */
-  {
+  signature({
     spierCanonical: `${SPIER_Q}/C-SSRS-Full-Lifetime-Recent`,
-    itemCodes: [
-      { system: 'http://loinc.org', code: '93299-6', linkId: 'q1-lifetime' },
-      { system: 'http://loinc.org', code: '93246-7', linkId: 'q1-recent' },
-      { system: 'http://loinc.org', code: '93298-8', linkId: 'q2-lifetime' },
-      { system: 'http://loinc.org', code: '93247-5', linkId: 'q2-recent' },
-      { system: 'http://loinc.org', code: '93297-0', linkId: 'q3-lifetime' },
-      { system: 'http://loinc.org', code: '93248-3', linkId: 'q3-recent' },
-      { system: 'http://loinc.org', code: '93296-2', linkId: 'q4-lifetime' },
-      { system: 'http://loinc.org', code: '93249-1', linkId: 'q4-recent' },
-      { system: 'http://loinc.org', code: '93295-4', linkId: 'q5-lifetime' },
-      { system: 'http://loinc.org', code: '93250-9', linkId: 'q5-recent' },
-      { system: 'http://loinc.org', code: '93253-3', linkId: 'actual-attempt-lifetime' },
-      { system: 'http://loinc.org', code: '93255-8', linkId: 'actual-attempt-recent' },
-      { system: 'http://loinc.org', code: '93259-0', linkId: 'interrupted-lifetime' },
-      { system: 'http://loinc.org', code: '93261-6', linkId: 'interrupted-recent' },
-      { system: 'http://loinc.org', code: '93263-2', linkId: 'aborted-lifetime' },
-      { system: 'http://loinc.org', code: '93265-7', linkId: 'aborted-recent' },
-      { system: 'http://loinc.org', code: '93267-3', linkId: 'preparatory-lifetime' },
-      { system: 'http://loinc.org', code: '93269-9', linkId: 'preparatory-recent' },
+    codedLinkIds: [
+      'q1-lifetime',
+      'q1-recent',
+      'q2-lifetime',
+      'q2-recent',
+      'q3-lifetime',
+      'q3-recent',
+      'q4-lifetime',
+      'q4-recent',
+      'q5-lifetime',
+      'q5-recent',
+      'actual-attempt-lifetime',
+      'actual-attempt-recent',
+      'interrupted-lifetime',
+      'interrupted-recent',
+      'aborted-lifetime',
+      'aborted-recent',
+      'preparatory-lifetime',
+      'preparatory-recent',
       // ⚠️ 18 of the form's 19 LOINC items, and the missing one is deliberate:
       // `actual-lethality` (93271-5) is a 0–5 damage SCALE on a SPiER-local code
       // system, not a yes/no question. Listing it here would make every foreign
       // full-form QR that answered it fail the boolean normalization and be
       // refused outright. Do not "complete" this list without giving the
-      // signature a way to describe a per-item answer kind.
+      // signature a way to describe a per-item answer kind. The generated lookup
+      // DOES carry `actual-lethality` — the omission is a decision taken here,
+      // not something the Questionnaire withholds.
     ],
     // A lifetime/recent pair plus one behaviour item: enough to be this form
     // rather than the screener, without demanding a fully-answered instrument.
     minCodeMatches: 3,
     answerKind: 'boolean',
-  },
+  }),
   /**
    * The C-SSRS 6-item screener family.
    *
@@ -165,44 +252,33 @@ export const INSTRUMENT_SIGNATURES: InstrumentSignature[] = [
    *
    * `risk-level` (93374-7) is excluded deliberately: it is the form's own result
    * code, shared with ASQ and the full form, so admitting it would let an
-   * unrelated instrument's summary Observation recognize this one.
+   * unrelated instrument's summary Observation recognize this one. Like
+   * `actual-lethality` above, it is in the generated lookup and left out here.
    */
-  {
+  signature({
     spierCanonical: `${SPIER_Q}/C-SSRS-Screener`,
-    itemCodes: [
-      { system: 'http://loinc.org', code: '93246-7', linkId: 'q1' },
-      { system: 'http://loinc.org', code: '93247-5', linkId: 'q2' },
-      { system: 'http://loinc.org', code: '93248-3', linkId: 'q3' },
-      { system: 'http://loinc.org', code: '93249-1', linkId: 'q4' },
-      { system: 'http://loinc.org', code: '93250-9', linkId: 'q5' },
-      { system: 'http://loinc.org', code: '93267-3', linkId: 'q6' },
-      { system: 'http://loinc.org', code: '93269-9', linkId: 'q6-recent' },
-    ],
+    codedLinkIds: ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q6-recent'],
     // Low on purpose: q3–q5 and q6-recent are `enableWhen`-gated on the form, so
     // a legitimately-administered screener can carry as few as two answered
     // items. Requiring more would refuse real conditional QRs; the scoring rule
     // below is what keeps a low floor from mis-recognizing a different form.
     minCodeMatches: 2,
     answerKind: 'boolean',
-  },
-  {
+  }),
+  /**
+   * PHQ-9. `total-score` (44261-6) and `difficulty` (69722-7) are coded on the
+   * Questionnaire and left out for the same reason as the C-SSRS result code:
+   * they are the form's OUTPUT, not its questions. The mapper derives the total
+   * from the nine items rather than reading a reported one.
+   */
+  signature({
     spierCanonical: `${SPIER_Q}/PHQ-9`,
     answerKind: 'ordinal',
-    itemCodes: [
-      { system: 'http://loinc.org', code: '44250-9', linkId: 'q1' },
-      { system: 'http://loinc.org', code: '44255-8', linkId: 'q2' },
-      { system: 'http://loinc.org', code: '44259-0', linkId: 'q3' },
-      { system: 'http://loinc.org', code: '44254-1', linkId: 'q4' },
-      { system: 'http://loinc.org', code: '44251-7', linkId: 'q5' },
-      { system: 'http://loinc.org', code: '44258-2', linkId: 'q6' },
-      { system: 'http://loinc.org', code: '44252-5', linkId: 'q7' },
-      { system: 'http://loinc.org', code: '44253-3', linkId: 'q8' },
-      { system: 'http://loinc.org', code: '44260-8', linkId: 'q9' },
-    ],
+    codedLinkIds: ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9'],
     // Require a strong majority so a stray shared LOINC code can't misfire.
     minCodeMatches: 5,
     shape: { itemCount: 9, ordinalRange: [0, 3] },
-  },
+  }),
 ]
 
 export interface RecognitionResult {
