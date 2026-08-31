@@ -66,22 +66,6 @@
   /* wordmark fill follows currentColor (white) from .ehr-brand */
 }
 
-.ehr-brand-subtitle {
-  font-size: var(--font-size-base);
-  color: var(--text-on-brand-muted);
-  font-weight: 400;
-}
-
-/* Measured at 1400px the header had ~903px of content; the subtitle was dropped
-   here because below 1023px it wrapped to two lines and grew the bar. The pills
-   that shared this breakpoint are gone, but the subtitle rule is not about them
-   — the wordmark still carries the brand and /overview states the full name. */
-@media (max-width: 1023px) {
-  .ehr-brand-subtitle {
-    display: none;
-  }
-}
-
 /* ===========================
    Header actions (right side)
    =========================== */

@@ -89,7 +89,6 @@ export function EhrShell() {
           </button>
           <Link to="/" className="ehr-brand">
             <SpierLogo className="ehr-brand-logo" />
-            <span className="ehr-brand-subtitle">The SPiER Project</span>
           </Link>
         </div>
       </header>
@@ -104,12 +103,6 @@ export function EhrShell() {
       </main>
 
       <footer className="ehr-footer">
-        <span>
-          Rendering native FHIR Questionnaires via{' '}
-          <a href="https://www.npmjs.com/package/@formbox/renderer" target="_blank" rel="noopener noreferrer">
-            formbox-renderer
-          </a>
-        </span>
         <span>SPiER — Setting priorities for technology-enabled suicide-safer care</span>
       </footer>
     </div>

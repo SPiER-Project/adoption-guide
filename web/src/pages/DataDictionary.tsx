@@ -675,8 +675,7 @@ export function DataDictionary() {
   return (
     <div className="data-dictionary">
       <p className="dd-description">
-        Structured data fields, terminology codes, and FHIR resource mappings across the suicide safer care pathway.
-        Bindings are grouped by the pathway stage whose tools first produce them — codes used in multiple stages are flagged inline.
+        Every field and terminology code SPiER's tools produce, grouped by the pathway stage that first captures it.
       </p>
 
       <div className="dd-filters">
