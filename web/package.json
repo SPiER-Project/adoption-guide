@@ -59,7 +59,6 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "fsh-sushi": "^3.19.0",
     "globals": "^16.5.0",
     "jsdom": "^29.1.1",
     "stylelint": "^17.12.0",
@@ -98,7 +97,9 @@
     "the 14 remaining advisories (shell-quote, ws). Removing it needs a blunter",
     "tool \u2014 `omit=peer` in .npmrc, or aliasing react-native to a stub \u2014 judged not",
     "worth the maintenance surprise. The other 12 advisories come from real",
-    "devDependencies (fsh-sushi, stylelint, eslint, @formbox/renderer).",
+    "devDependencies (stylelint, eslint, @formbox/renderer) — fsh-sushi left",
+    "this list when it stopped being a devDependency here (E2b, see",
+    "web/scripts/copy-fhir.mjs's SUSHI_VERSION).",
     "",
     "Revisit if fhirclient 3.x (beta as of 2026-07) drops isomorphic-webcrypto, or",
     "if anything here ever needs to run under React Native."

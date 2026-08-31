@@ -698,7 +698,7 @@ is meant** anywhere it appears in a decision. Filed and fixed as #402.
 | **D — the measure dashboard to the EHR side** | Only safe once C removes the `localDataSource` coupling | Done (#398). The guide holds no patient data, gated by `check:guide-boundary`. ⚠️ **This row used to say something else — see correction 3** |
 | **E1 — the generated FHIR out of `web/src`** | Had to precede B — see correction 1 above | Done (#395) |
 | **E2a — the 14 Patients out of the IG** | Nothing in the IG referenced them | Done (#392). The mock EHR's roster no longer needs a SUSHI compile |
-| **E2b — the SUSHI build itself** | ⚠️ **Blocked on step 0 (#387)** — see below | The last §2.4 inversion |
+| **E2b — the SUSHI build itself** | ✏️ **Resolved 2026-08-31, not by the path §9.7 expected** — see §9.8 | The last §2.4 inversion |
 
 ### 9.6 Tracked, as of 2026-08-21
 
@@ -710,12 +710,12 @@ quietly stops being the plan. It has issues now, so the sequencing goes stale
 | Step | Issue | State |
 |---|---|---|
 | Epic | [#386](https://github.com/SPiER-Project/adoption-guide/issues/386) | open |
-| 0 — workspace mechanism | [#387](https://github.com/SPiER-Project/adoption-guide/issues/387) | **reopened** — E2b's blocker |
+| 0 — workspace mechanism | [#387](https://github.com/SPiER-Project/adoption-guide/issues/387) | ✏️ **closed 2026-08-31** — decided as tsconfig `paths` + aliases, *not* workspaces (§9.8) |
 | A — `packages/demo-population` | [#388](https://github.com/SPiER-Project/adoption-guide/issues/388) | closed (#394) |
 | B — `packages/core` | [#389](https://github.com/SPiER-Project/adoption-guide/issues/389) | closed (#396) |
 | C — the `FhirDataSource` seam | [#390](https://github.com/SPiER-Project/adoption-guide/issues/390) | closed (#397) |
 | D — measures to the EHR side | [#391](https://github.com/SPiER-Project/adoption-guide/issues/391) | closed (#398) |
-| E1 + E2a | [#392](https://github.com/SPiER-Project/adoption-guide/issues/392) | open **for E2b only** (#395, #399 landed) |
+| E1 + E2a + E2b | [#392](https://github.com/SPiER-Project/adoption-guide/issues/392) | ✏️ **all landed** (#395, #399, and E2b per §9.8) |
 
 Two things that came out of the reshape and are tracked outside it:
 
@@ -757,6 +757,38 @@ importing fixtures from somewhere. If measures move to the EHR side — where th
 would live in a real deployment, computed over real data — the guide keeps no
 patient data and D is clean. This is a product decision and it changes step D's
 shape.
+
+### 9.8 E2b resolved (2026-08-31), and not by §9.7's decision
+
+**§9.7's "defer to the workspaces migration" no longer has anywhere to defer
+to.** That decision only resolved once #387 eventually chose npm workspaces —
+#387 closed choosing the *opposite*: tsconfig `paths` + Vite/Wrangler aliases,
+permanently, not as a placeholder. `packages/core` is the proof this scales:
+zero lockfile changes, consumed by `web/` and both Workers.
+
+So the three options from §9.7 got re-costed with the migration option gone:
+
+| Option | §9.7's cost | Re-costed |
+|---|---|---|
+| a 4th `package.json` + lockfile | "the eventual workspaces migration would consolidate it away again" | That consolidation was the whole appeal, and it's gone — this is now a **permanent** 4th lockfile |
+| npm workspaces now | "#387's deferred decision, reopened" | Reverses #387 rather than building on it |
+| pin via `npx -y fsh-sushi@<version>` | "weakens `verify`'s offline reproducibility" | Bounded, and smaller than it looked: `copy-fhir.mjs` already called `npx -y fsh-sushi` — the devDependency only supplied the *pin*, not the mechanism. Adding `@<version>` to a call already there is the whole change |
+
+**Decided: the third option**, implemented as `scripts/lib/sushi-version.mjs`
+exporting `SUSHI_VERSION` — the exact `VALIDATOR_VERSION` pattern §9.7 already
+named as the fallback. `web/scripts/copy-fhir.mjs` and
+`scripts/check-sushi-output.mjs` import it directly; the five CI workflows that
+`npm install -g fsh-sushi` sed-scrape the same constant. `fsh-sushi` is out of
+`web/package.json`'s devDependencies.
+
+**A real, separate bug closed as part of this:** those five workflows installed
+sushi completely **unpinned** — `npm install -g fsh-sushi`, no version — so CI's
+sushi version could already silently drift from whatever `web/package-lock.json`
+locked, independent of anything in this issue. One constant now decides the
+version everywhere, so local and CI can't disagree, and `deploy.yml`'s IG-render
+cache key now hashes `scripts/lib/sushi-version.mjs` too — a version bump with
+no `ig/input` change would otherwise have served a stale cached render compiled
+under the old version.
 
 ## Related
 

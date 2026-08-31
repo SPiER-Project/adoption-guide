@@ -15,6 +15,7 @@ import { spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SUSHI_VERSION } from '../../scripts/lib/sushi-version.mjs'
 
 const scriptPath = fileURLToPath(import.meta.url)
 const __dirname = dirname(scriptPath)
@@ -135,10 +136,11 @@ function isUpToDate() {
 
 function runSushi() {
   log('compiling FSH with sushi...')
-  // Run from the script's cwd (web/ when invoked via `npm run`) so npx finds
-  // the local fsh-sushi in web/node_modules/.bin. Pass igDir as an argument
+  // Pinned to SUSHI_VERSION above rather than resolving whatever `fsh-sushi`
+  // npx finds — it is no longer a web/ devDependency, so there is no locked
+  // local copy for npx to prefer over the registry. Pass igDir as an argument
   // — sushi treats it as the project folder and writes to ig/fsh-generated/.
-  const result = spawnSync('npx', ['-y', 'fsh-sushi', igDir], {
+  const result = spawnSync('npx', ['-y', `fsh-sushi@${SUSHI_VERSION}`, igDir], {
     stdio: 'inherit',
     shell: process.platform === 'win32',
   })
