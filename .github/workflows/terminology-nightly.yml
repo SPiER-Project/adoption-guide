@@ -152,8 +152,23 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Pinned deliberately (E2b, docs/plans/repo-and-package-boundaries.md
+      # §9.7) — scraped from the same constant scripts/lib/sushi-version.mjs's own
+      # npx call uses, so CI and a local `npm run copy-fhir` never disagree.
+      # ig.yml, ig-publish.yml, deploy.yml and fml-validate.yml scrape the
+      # same line.
+      - name: Read pinned sushi version
+        id: sushi
+        run: |
+          version=$(sed -n "s/^export const SUSHI_VERSION = '\(.*\)'$/\1/p" scripts/lib/sushi-version.mjs)
+          if [ -z "$version" ]; then
+            echo "::error::could not read SUSHI_VERSION from scripts/lib/sushi-version.mjs"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Install Sushi
-        run: npm install -g fsh-sushi
+        run: npm install -g fsh-sushi@${{ steps.sushi.outputs.version }}
 
       # Compiled here rather than reused from ig.yml: this workflow runs on a
       # schedule, so there is no upstream job whose artifact it could download.

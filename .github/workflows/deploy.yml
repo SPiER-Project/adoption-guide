@@ -141,9 +141,9 @@ jobs:
           path: |
             ig/output
             ig/publisher.log
-          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
           restore-keys: |
-            ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini') }}-${{ steps.pub.outputs.tag }}-
+            ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-
 
       # A restored render is only usable if it is actually complete. A truncated
       # or partially-uploaded cache entry would otherwise deploy a broken IG, so
@@ -188,9 +188,25 @@ jobs:
         if: steps.plan.outputs.render == 'true'
         run: gem install jekyll
 
+      # Pinned deliberately (E2b, docs/plans/repo-and-package-boundaries.md
+      # §9.7) — scraped from the same constant scripts/lib/sushi-version.mjs's own
+      # npx call uses, so CI and a local `npm run copy-fhir` never disagree.
+      # ig.yml, ig-publish.yml, terminology-nightly.yml and fml-validate.yml
+      # scrape the same line.
+      - name: Read pinned sushi version
+        id: sushi
+        if: steps.plan.outputs.render == 'true'
+        run: |
+          version=$(sed -n "s/^export const SUSHI_VERSION = '\(.*\)'$/\1/p" scripts/lib/sushi-version.mjs)
+          if [ -z "$version" ]; then
+            echo "::error::could not read SUSHI_VERSION from scripts/lib/sushi-version.mjs"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Install SUSHI
         if: steps.plan.outputs.render == 'true'
-        run: npm install -g fsh-sushi
+        run: npm install -g fsh-sushi@${{ steps.sushi.outputs.version }}
 
       # The bulk of a cold render is fetching FHIR packages (us.core, uv.sdc and
       # their transitive deps). Keyed on sushi-config.yaml because that is where
@@ -295,7 +311,7 @@ jobs:
           path: |
             ig/output
             ig/publisher.log
-          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
 
       # The render size is reported because it is the one number this design does
       # not know in advance and that could make it a bad trade: every render

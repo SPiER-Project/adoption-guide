@@ -63,6 +63,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
+import { SUSHI_VERSION } from './lib/sushi-version.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -104,8 +105,8 @@ if (logPath) {
   output = readFileSync(logPath, 'utf8')
   console.log(`reading captured SUSHI output: ${logPath}`)
 } else {
-  console.log(`compiling ${igDir} with fsh-sushi …`)
-  const run = spawnSync('npx', ['fsh-sushi', '.'], { cwd: igDir, encoding: 'utf8' })
+  console.log(`compiling ${igDir} with fsh-sushi@${SUSHI_VERSION} …`)
+  const run = spawnSync('npx', ['-y', `fsh-sushi@${SUSHI_VERSION}`, '.'], { cwd: igDir, encoding: 'utf8' })
   if (run.error) {
     console.error(`✗ could not run fsh-sushi: ${run.error.message}`)
     process.exit(1)

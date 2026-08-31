@@ -66,8 +66,7 @@ always the authority; this line is a timestamp, not a fact to maintain.
   **pre-existing**.
 - ⚠️ **There are now three `packages/` as well as three apps**, and a fresh
   worktree still needs `npm install` in **the three app/service packages only** —
-  `packages/*` carry no dependencies of their own, which is the whole reason
-  E2b is blocked (see below). Plus `npm run copy-fhir` in `web/`.
+  `packages/*` carry no dependencies of their own. Plus `npm run copy-fhir` in `web/`.
 
   | Package | What |
   |---|---|
@@ -210,13 +209,6 @@ desirable, since the re-render is the gate that validates narrative links.
   can never license "SPiER works with SMART scopes" — what it buys is guardrail 1's
   logic applied to reads, so our own client cannot look correct on a server that
   never says no.
-- **Whether E2b is worth reopening the workspaces decision for.** #387 is reopened
-  as its blocker. The alias mechanism carries a path, not a dependency, so
-  `fsh-sushi` cannot leave `web`'s devDependencies without an install location.
-  §9.7 has the three options; the one that needs no new install
-  (`npx -y fsh-sushi@<pinned>`) was rejected on offline-reproducibility, and it
-  would also fix a real inconsistency — **five workflows install SUSHI unpinned
-  today**. Not urgent; it is the last item in the reshape.
 - **#303 — `p007-stanley-brown`, the naming half only.** The packet's false claim
   is FIXED (#417): it declared `safety-plan-copy` while pointing at a CarePlan
   with zero `activity`, wrong under either reading, so it went ahead of the
@@ -262,7 +254,6 @@ desirable, since the re-render is the gate that validates narrative links.
 
 ## Blocked
 
-- **#392 — E2b**, on #387. See the reshape section.
 - **#264 — crosswalk fidelity in the data dictionary**, on #93. The
   `fidelity`-derived-from-ConceptMap half could land early, but presenting
   fidelity as settled is the failure mode the issue warns about. #317 left the
@@ -270,11 +261,12 @@ desirable, since the re-render is the gate that validates narrative links.
   bindable set, and fidelity qualifies exactly that pair. **No column was stubbed
   for it — an empty column is a claim of its own.**
 
-## The reshape is DONE except E2b, which is blocked
+## The reshape is DONE
 
 Epic **#386**; [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md)
-§9 carries the reasoning. Steps 0, A, B, C, D, E1 and E2a merged 2026-08-21 as
-#393–#399. What it achieved, beyond moving files:
+§9 carries the reasoning. Steps 0, A, B, C, D, E1, E2a and E2b are all merged —
+#393–#399 (2026-08-21), and E2b (2026-08-31, §9.8). What it achieved, beyond
+moving files:
 
 - the two Workers' deep `../../../web/src` imports went **21 → 0**;
 - `packages/core` is React-free and DOM-free **by gate** (`check:core-boundary`);
@@ -282,15 +274,15 @@ Epic **#386**; [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md
   which walks the guide's pages *transitively*);
 - the population lens and measure dashboard read whatever source the provider made
   active, instead of always the local one;
-- the mock EHR's roster no longer needs a SUSHI compile.
+- the mock EHR's roster no longer needs a SUSHI compile;
+- `fsh-sushi` is out of `web/package.json`'s devDependencies, pinned instead via
+  `scripts/lib/sushi-version.mjs` — the same fix also closed a real, separate bug
+  where five CI workflows installed sushi completely unpinned.
 
-⚠️ **E2b — `fsh-sushi` leaving the React app's devDependencies — is BLOCKED on
-#387, and #387 is reopened for it.** §6 phase 1's stated content
-("`fsh-generated` becomes a package output") was delivered by E1. What remains is
-the *dependency*, and the alias mechanism #387 shipped carries a **path, not a
-dependency**. Three options and their costs are §9.7; the decision on 2026-08-21
-was to defer to the workspaces migration. **Do not solve it with a 4th lockfile
-without reopening that decision** — the migration would consolidate it away again.
+⚠️ **E2b did not resolve the way §9.7 expected.** That section's decision was to
+defer to a future workspaces migration; #387 closed choosing the opposite (alias
+mechanism, permanently), so nothing was left to defer to. §9.8 has the
+re-costed options and what actually shipped.
 
 ⚠️ **§7's migration rule earned its billing.** Every step turned up a defect that
 had been invisible, and they were all one family — *a check that reads nothing
