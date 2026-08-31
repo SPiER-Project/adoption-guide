@@ -1,5 +1,6 @@
 import { STAGES, TOOLS, toolForQuestionnaireUrl, type Tool } from '../data/catalog'
 import type { CarePlanProfileUrl } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
+import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 
 export type StageStatus = 'not-started' | 'active' | 'complete'
 
@@ -50,7 +51,7 @@ export const PATHWAY_STAGE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/
  * declared transformation, not a display detail. Worth doing deliberately, not as
  * a side effect of deleting a regex.
  */
-const CAREPLAN_PROFILE_STAGES: Record<CarePlanProfileUrl, string> = {
+const CAREPLAN_PROFILE_STAGES: Record<CarePlanProfileUrl, StageId> = {
   'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan':
     'document-safety-actions',
   'http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan':
@@ -59,7 +60,13 @@ const CAREPLAN_PROFILE_STAGES: Record<CarePlanProfileUrl, string> = {
   'http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet': 'define-risk-picture',
 }
 
-const STAGE_IDS = new Set(STAGES.map((s) => s.id))
+// Widened to `Set<string>` deliberately: this membership-tests CODES OFF LIVE
+// FHIR DATA (`stageFromCodings` below reads `Coding.code` from an arbitrary
+// resource's `meta.tag` / `category`), which stays a plain string per the
+// "never narrow live-data resolution" rule — a `Set<StageId>` would reject
+// that comparison at compile time even though checking an untrusted string
+// against the known stage ids is exactly what this Set is for.
+const STAGE_IDS: Set<string> = new Set(STAGES.map((s) => s.id))
 
 /** Minimal shape we read off any FHIR resource for pathway-stage resolution. */
 export interface FhirResourceLike {

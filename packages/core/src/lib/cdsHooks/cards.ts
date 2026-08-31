@@ -13,10 +13,16 @@ import type { RiskAlert } from '../observationMappers'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
 import { intentForLaunchPath } from '../smartIntent'
 import type { Card, CdsIndicator, CdsLink, Coding } from './types'
+import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 
 // Per-stage rationale copy for the "next step" card, keyed by stage id. Falls
 // back to the stage's own CodeSystem definition when a stage has no blurb.
-const STAGE_BLURB: Record<string, string> = {
+// `Record<StageId, string>` rather than `Record<string, string>` on purpose: a
+// typo'd key here used to silently fall through to the CodeSystem's own
+// definition text below instead of erroring, and a stage added to the
+// CodeSystem with no blurb here failed the same way. Both a typo AND a
+// missing entry are now compile errors.
+const STAGE_BLURB: Record<StageId, string> = {
   'identify-possible-risk': 'Administer a suicide-risk screen to find a signal and decide whether more review is needed.',
   'clarify-risk': 'Positive screen — clarify the nature, severity, and context of suicide risk.',
   'define-risk-picture': 'Document the current risk status and the clinical reasoning that guides next steps.',
@@ -203,7 +209,11 @@ export function buildCdsCards({
       detail:
         useRecommendation && recommendedNextStep
           ? recommendedNextStep.rationale
-          : STAGE_BLURB[activeStageId] ?? stage?.description ?? '',
+          // `activeStageId` is resolved off live patient data (see
+          // `derivePathwayStatus`), so it stays a plain string rather than
+          // `StageId` — `isStageId` is the boundary guard for indexing the
+          // hand-authored STAGE_BLURB table with it.
+          : (isStageId(activeStageId) ? STAGE_BLURB[activeStageId] : undefined) ?? stage?.description ?? '',
       indicator,
       source: { label: SOURCE_LABEL, url: APP_BASE_URL, topic: stageTopic(activeStageId) },
       links: links.length > 0 ? links : undefined,

@@ -14,6 +14,7 @@ import {
   type Binding,
   type Concept,
   type Tool,
+  type StageId,
 } from '@spier/core/data/catalog'
 import '../css/DataDictionary.css'
 
@@ -48,7 +49,7 @@ function groupBindingsByStage(bindings: Binding[]): StageGroup[] {
   for (const b of bindings) {
     const stages = b.usedBy
       .map(tid => toolStage.get(tid))
-      .filter((s): s is string => !!s)
+      .filter((s): s is StageId => !!s)
     if (stages.length === 0) {
       unassigned.push(b)
       continue
@@ -71,7 +72,7 @@ function groupBindingsByStage(bindings: Binding[]): StageGroup[] {
 
 function stagesReferencedBy(b: Binding, toolIndex: Map<string, Tool>): string[] {
   const stageIds = new Set(
-    b.usedBy.map(tid => toolIndex.get(tid)?.stageId).filter((s): s is string => !!s)
+    b.usedBy.map(tid => toolIndex.get(tid)?.stageId).filter((s): s is StageId => !!s)
   )
   return [...stageIds]
 }

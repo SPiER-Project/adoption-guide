@@ -20,6 +20,7 @@ import {
   type WorkflowType,
 } from './tool-ui-metadata'
 import { STAGES, type Stage } from './stages'
+import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 
 // Re-export UI metadata types so downstream consumers can keep importing them
 // from the catalog barrel without caring about the file split.
@@ -72,7 +73,7 @@ export interface Tool {
   id: string
   name: string
   shortName?: string
-  stageId: string
+  stageId: StageId
   purpose: string
   description?: string
   questionnaireUrls?: string[]
@@ -157,13 +158,19 @@ export function stripCanonicalVersion(canonical: string): string {
 // (typically unversioned) match PD action canonicals even if those carry
 // `|version`.
 const STAGE_BY_AD_URL = (() => {
-  const stageOf = (pd: PlanDefinitionDoc): string | undefined => {
+  // `stageContext…coding[].code` is a plain string off generic FHIR JSON — not
+  // already known-safe — so `isStageId` guards the one point where it becomes
+  // a StageId. Values here originate from our own FSH-authored
+  // PlanDefinitions (trusted build output), but the extraction function reads
+  // a generic shape, so the guard still earns its keep.
+  const stageOf = (pd: PlanDefinitionDoc): StageId | undefined => {
     const stageContext = pd.useContext?.find((c) => c.code.code === 'focus')
-    return stageContext?.valueCodeableConcept?.coding?.find(
+    const code = stageContext?.valueCodeableConcept?.coding?.find(
       (c) => c.system === 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage',
     )?.code
+    return code !== undefined && isStageId(code) ? code : undefined
   }
-  const map = new Map<string, string>()
+  const map = new Map<string, StageId>()
   for (const pd of PLAN_DEFS) {
     const stageId = stageOf(pd)
     if (!stageId) continue
