@@ -100,6 +100,8 @@ pages:
     title: Quick Starts
   zero-suicide-mapping.md:
     title: Zero Suicide ↔ SPiER mapping
+  care-pathway.md:
+    title: Care Pathway
   measurement.md:
     title: Measurement (Stage 8)
 
@@ -116,6 +118,13 @@ pages:
 #
 # ⚠️ `how-to-read.md` restates this block in prose. `scripts/check-ig-menu.mjs`
 # holds the two together (#409); change them in the same commit.
+#
+# ⚠️ AND a page needs BOTH blocks. `menu:` makes it reachable; `pages:` above is
+# what makes the publisher render it. A menu entry whose page is missing from
+# `pages:` is not one broken link — the menu is on every rendered page, so it is
+# one per page: adding `care-pathway.html` to `menu:` alone took the IG from 0 to
+# **1812** broken links, with 0 errors and a clean SUSHI run. `check-ig-menu.mjs`
+# check D now compares the two blocks in both directions.
 menu:
   Home: index.html
   Getting Started: getting-started.html

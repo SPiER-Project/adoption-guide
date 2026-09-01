@@ -37,6 +37,19 @@
  *      This is what stops the drift being "fixed" in the wrong direction — adding
  *      `Downloads: downloads.html` to `menu:` would satisfy A and B and ship a
  *      broken link.
+ *   D. `menu:` and `pages:` agree, in BOTH directions. A page needs both blocks
+ *      and they do different jobs: `menu:` makes it reachable, `pages:` is what
+ *      makes the publisher render it at all. Checks A–C could not see the gap,
+ *      because the `.md` file genuinely exists — C looks at the filesystem, and
+ *      SUSHI compiles clean either way.
+ *
+ *      The cost is not one broken link. The menu is rendered onto EVERY page, so
+ *      a menu target the publisher never renders is one broken link per page:
+ *      adding `Care Pathway: care-pathway.html` to `menu:` alone took this IG
+ *      from 0 to **1812** broken links, with `err = 0` and a green SUSHI run,
+ *      and the `publish` job's broken-link gate was the only thing that caught
+ *      it. The reverse direction is the milder defect of the same shape — a page
+ *      the publisher renders that nothing navigates to.
  *
  * Reading nothing is an ERROR, not a pass (#232, #261, and four more since): a
  * missing `menu:` block, a missing "## The menu" section, or zero entries parsed
@@ -80,6 +93,17 @@ const GENERATED_PAGES = {
  * menu and is not in it is the drift this gate exists for.
  */
 const SELF_PAGE = 'how-to-read.html'
+
+/**
+ * Pages the publisher renders that the menu deliberately does not navigate to,
+ * and why each is legitimate — check D's reverse direction. Empty today, and
+ * that is the finding: every page this IG renders is reachable from its menu.
+ * A page reached only from body text would belong here, with the page that
+ * links it named.
+ *
+ * @type {Record<string, string>}
+ */
+const UNLISTED_PAGES = {}
 
 const rel = (p) => p.slice(ROOT.length + 1)
 
@@ -171,8 +195,51 @@ function parseProse(text) {
   return bullets
 }
 
+// --- Parse `pages:` out of sushi-config.yaml --------------------------------
+//
+// Same strictness as parseMenu, and the same reason: this block decides which
+// pages exist at all, so a form we cannot read must fail rather than parse as
+// empty. Shape is `  <name>.md:` followed by indented `title: …` keys.
+function parsePages(text) {
+  const lines = text.split('\n')
+  const start = lines.findIndex((l) => /^pages:\s*$/.test(l))
+  if (start === -1) bail(`no \`pages:\` block in ${rel(CONFIG)} — nothing to compare the menu against`)
+
+  /** @type {string[]} */
+  const pages = []
+
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i]
+    if (line.trim() === '' || /^\s*#/.test(line)) continue
+    if (/^\S/.test(line)) break // dedent to column 0 ends the block
+
+    const top = /^ {2}(\S.*?)\s*$/.exec(line)
+    const child = /^ {4}(\S.*?)\s*$/.exec(line)
+
+    if (top) {
+      const m = /^(.+?):\s*$/.exec(top[1])
+      if (!m) bail(`unparseable \`pages:\` line in ${rel(CONFIG)}:${i + 1} — ${line.trim()}`)
+      if (!/^[\w-]+\.md$/.test(m[1])) {
+        bail(`\`pages:\` key at ${rel(CONFIG)}:${i + 1} is not a local \`*.md\` page — ${m[1]}`)
+      }
+      pages.push(m[1])
+    } else if (child) {
+      if (pages.length === 0) bail(`indented \`pages:\` entry with no parent at ${rel(CONFIG)}:${i + 1}`)
+      if (!/^\w+:\s+\S/.test(child[1])) {
+        bail(`unparseable \`pages:\` property at ${rel(CONFIG)}:${i + 1} — ${line.trim()}`)
+      }
+    } else {
+      bail(`unexpected indentation in \`pages:\` at ${rel(CONFIG)}:${i + 1} — ${JSON.stringify(line)}`)
+    }
+  }
+
+  if (pages.length === 0) bail(`parsed 0 entries from \`pages:\` in ${rel(CONFIG)} — refusing to pass vacuously`)
+  return pages
+}
+
 const menu = parseMenu(readFileSync(CONFIG, 'utf8'))
 const bullets = parseProse(readFileSync(DOC, 'utf8'))
+const pages = parsePages(readFileSync(CONFIG, 'utf8'))
 
 const problems = []
 
@@ -250,6 +317,34 @@ for (const [label, target] of targets) {
   }
 }
 
+// --- D. `menu:` and `pages:` agree, both directions -------------------------
+const pageSet = new Set(pages)
+const menuPages = new Set()
+
+for (const [label, target] of targets) {
+  if (GENERATED_PAGES[target]) continue
+  if (!/^[\w-]+\.html$/.test(target)) continue // already reported by check C
+  const md = target.replace(/\.html$/, '.md')
+  menuPages.add(md)
+  if (!pageSet.has(md)) {
+    problems.push(
+      `\`menu:\` entry "${label}" points at ${target}, but ${md} is not in the \`pages:\` block — ` +
+        'the publisher renders no such page, and the menu is on EVERY page, so this is one broken link ' +
+        'per rendered page rather than one. A page needs both blocks.',
+    )
+  }
+}
+
+for (const md of pages) {
+  if (menuPages.has(md)) continue
+  if (UNLISTED_PAGES[md]) continue
+  problems.push(
+    `\`pages:\` renders ${md}, but no \`menu:\` entry navigates to ${md.replace(/\.md$/, '.html')} — ` +
+      'the page ships unreachable. If that is intentional, add it to UNLISTED_PAGES in this script ' +
+      'with the page that links it.',
+  )
+}
+
 // --- Report -----------------------------------------------------------------
 if (problems.length) {
   console.error(`\n✗ check-ig-menu: ${problems.length} problem(s):\n`)
@@ -265,4 +360,8 @@ const childCount = menu.reduce((n, e) => n + e.children.size, 0)
 console.log(
   `✓ check-ig-menu: ${menu.length} menu entries (${childCount} sub-entries) agree between ` +
     `${rel(CONFIG)} and ${rel(DOC)}, and every target resolves to a page.`,
+)
+console.log(
+  `  ${pages.length} \`pages:\` entries agree with \`menu:\` in both directions ` +
+    `(${Object.keys(UNLISTED_PAGES).length} deliberately unlinked).`,
 )

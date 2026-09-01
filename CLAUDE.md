@@ -238,15 +238,27 @@ different rule here:
   sent readers to it. `fhir.base.template#current` emits no `downloads.html`;
   that is a US Core template convention, and this IG uses the base template.
 
-It asserts three things, and the third is the one that matters most: every
-`menu:` target must resolve to a real `input/pagecontent/*.md` or sit in
-`GENERATED_PAGES` — an allowlist with reasons, currently just `artifacts.html`.
-That is what stops the drift being "fixed" in the wrong direction, by declaring
-`Downloads: downloads.html` in `menu:` and shipping a broken link instead. Both
-parsers **bail rather than skip** on a form they cannot read, and a missing
-block, a missing section or zero parsed entries is an error — the #232/#261
-family, which this gate is deliberately built against. It runs in `ig.yml`
-**before** the compile, since it needs neither SUSHI nor the network.
+It asserts four things. The third: every `menu:` target must resolve to a real
+`input/pagecontent/*.md` or sit in `GENERATED_PAGES` — an allowlist with
+reasons, currently just `artifacts.html`. That is what stops the drift being
+"fixed" in the wrong direction, by declaring `Downloads: downloads.html` in
+`menu:` and shipping a broken link instead.
+
+⚠️ **The fourth is the expensive one: a page needs BOTH `menu:` and `pages:`,
+and only `pages:` makes the publisher render it.** Checks A–C cannot see that
+gap — the `.md` file genuinely exists, so C is satisfied, and SUSHI compiles
+clean either way. The menu is rendered onto *every* page, so a menu target the
+publisher never renders is one broken link **per page**: adding
+`Care Pathway: care-pathway.html` to `menu:` alone took this IG from 0 to
+**1812** broken links with `err = 0`, and only `ig-publish.yml`'s broken-link
+gate caught it — 5 minutes of Java after a green local run. Check D now compares
+the two blocks in both directions (the reverse being a rendered page nothing
+navigates to; `UNLISTED_PAGES` is the allowlist, empty today).
+
+All three parsers **bail rather than skip** on a form they cannot read, and a
+missing block, a missing section or zero parsed entries is an error — the
+#232/#261 family, which this gate is deliberately built against. It runs in
+`ig.yml` **before** the compile, since it needs neither SUSHI nor the network.
 
 At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
 caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
