@@ -327,8 +327,12 @@ export function AdoptionReadiness() {
         <h3 className="ar-crosslinks-title">Where to go next</h3>
         <ul className="ar-crosslinks-list">
           <li>
-            <Link to="/guide/pathway">Pathway</Link> — each instrument in its clinical
+            <Link to="/guide/tools">Tools</Link> — each instrument in its clinical
             context across the 8-stage Suicide Safer Care pathway.
+          </li>
+          <li>
+            <Link to="/guide/pathway">Care Pathway</Link> — the clinical protocol itself,
+            rendered from the published PlanDefinition.
           </li>
           <li>
             <Link to="/guide/adoption-rubric">EHR Adoption Rubric</Link> — score your own

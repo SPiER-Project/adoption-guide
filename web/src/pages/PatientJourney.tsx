@@ -153,8 +153,11 @@ export function PatientJourney() {
   return (
     <div className="patient-journey">
       <p className="journey-description">
-        The suicide safer care pathway from flagging risk through measuring and sharing pathway activity.
-        Tools are grouped by care stage. Click a tool to see its specification, implementation details, data elements, and launch options.
+        Every instrument and recorder SPiER models, grouped by the care stage it belongs to &mdash; from
+        flagging risk through measuring and sharing pathway activity. Click a tool to see its specification,
+        implementation details, data elements, and launch options. For the clinical protocol these tools
+        serve &mdash; screen, gate, assess, branch by risk tier &mdash; see the{' '}
+        <Link to={guideHref('pathway')}>Care Pathway</Link>.
       </p>
 
       <aside className="journey-zs-callout">
@@ -171,7 +174,7 @@ export function PatientJourney() {
       <div className="journey-progress">
         {STAGES.map((stage, idx) => (
           <div key={stage.id} className="journey-progress-step">
-            <a href={`#${guideHref('pathway')}#stage-${stage.id}`} className="journey-progress-dot">
+            <a href={`#${guideHref('tools')}#stage-${stage.id}`} className="journey-progress-dot">
               {idx + 1}
             </a>
             <span className="journey-progress-label">{stage.title}</span>
