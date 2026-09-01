@@ -53,6 +53,7 @@ import { FhircastListener } from './components/FhircastListener'
 // demand. Named exports are adapted to lazy()'s default-export contract.
 const Overview = lazy(() => import('./pages/Overview').then(m => ({ default: m.Overview })))
 const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide })))
+const CarePathway = lazy(() => import('./pages/CarePathway').then(m => ({ default: m.CarePathway })))
 const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney })))
 const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
@@ -86,7 +87,9 @@ function RouteFallback() {
 
 function LegacyWorkflowRedirect() {
   const { slug } = useParams<{ slug: string }>()
-  return <Navigate to={slug ? `/guide/pathway/${slug}/plan` : '/guide/pathway'} replace />
+  // These pointed at the tool catalogue, which moved from /guide/pathway to
+  // /guide/tools in Phase 3 of docs/plans/suicide-safer-care-pathway.md.
+  return <Navigate to={slug ? `/guide/tools/${slug}/plan` : '/guide/tools'} replace />
 }
 
 // The Adoption Guide lens lived at /adoption-guide (and, before that,
@@ -128,7 +131,15 @@ function AppRoutes() {
         {/* Adoption Guide lens */}
         <Route path="/guide" element={<AdoptionGuide />}>
           <Route index element={<Navigate to="pathway" replace />} />
-          <Route path="pathway" element={<PatientJourney />} />
+          {/* ⚠️ /guide/pathway is REPURPOSED, not renamed. It served the
+              stage-organized tool catalogue until Phase 3 of
+              docs/plans/suicide-safer-care-pathway.md; it is now the pathway
+              itself, rendered from PlanDefinition/SPiERSuicideSaferCarePathway,
+              and the catalogue lives one route down at /guide/tools. Anchored
+              deep links (/guide/pathway#stage-…) are forwarded by CarePathway
+              itself — see the note there. */}
+          <Route path="pathway" element={<CarePathway />} />
+          <Route path="tools" element={<PatientJourney />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
           {/* Measures moved to the EHR side (step D, #391): it is the only guide
@@ -258,11 +269,12 @@ function AppRoutes() {
         <Route path="/chart/careplan" element={<Navigate to="/patient/care-plans" replace />} />
         <Route path="/chart/encounters" element={<Navigate to="/patient/encounters" replace />} />
         <Route path="/chart/implementation-guide" element={<Navigate to="/guide" replace />} />
-        <Route path="/chart/workflow" element={<Navigate to="/guide/pathway" replace />} />
+        {/* Both of these meant "the tool catalogue", which is /guide/tools now. */}
+        <Route path="/chart/workflow" element={<Navigate to="/guide/tools" replace />} />
         <Route path="/chart/workflow/:slug/plan" element={<LegacyWorkflowRedirect />} />
         <Route path="/chart/ehr-rubric" element={<Navigate to="/guide/adoption-rubric" replace />} />
         <Route path="/chart/data-dictionary" element={<Navigate to="/guide/data-dictionary" replace />} />
-        <Route path="/chart/tools" element={<Navigate to="/guide/pathway" replace />} />
+        <Route path="/chart/tools" element={<Navigate to="/guide/tools" replace />} />
 
         {/* The guide's Overview merged with the old standalone front door and
             moved up to /overview. Declared here rather than as a child of

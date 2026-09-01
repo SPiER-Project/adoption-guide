@@ -161,7 +161,9 @@ export function Overview() {
           Every stage is a place a patient can be. Each of the three steps above cuts across all eight of
           them &mdash; a stage needs its instruments captured, its results translated, and its next action
           made executable. Start with the{' '}
-          <Link to="/guide/pathway">Pathway</Link> for the stage-by-stage detail, or the{' '}
+          <Link to="/guide/pathway">Care Pathway</Link> for the protocol itself &mdash; rendered from the
+          published PlanDefinition &mdash; the <Link to="/guide/tools">Tools</Link> catalog for the
+          stage-by-stage instrument detail, or the{' '}
           <Link to="/guide/adoption-readiness">Adoption Readiness matrix</Link> to see where each instrument
           stands today &mdash; what&rsquo;s built, what its licensing requires, and how deeply it integrates.
         </p>
@@ -208,7 +210,8 @@ export function Overview() {
             <span className="overview__lens-badge">Adopt</span>
             <h4>Adoption Guide</h4>
             <p>
-              How to adopt SPiER and see it running: the eight-stage pathway, a data dictionary, an
+              How to adopt SPiER and see it running: the care pathway rendered from its published
+              PlanDefinition, a tool catalog across the eight stages, a data dictionary, an
               adoption-readiness matrix and EHR adoption rubric, and a configurable Tool
               Configuration that drives the Patient View.
             </p>

@@ -33,7 +33,7 @@ export const GUIDE_GROUPS: GuideGroup[] = [
 ]
 
 export interface GuideSection {
-  /** Route segment under /guide, e.g. 'pathway' → /guide/pathway. */
+  /** Route segment under /guide, e.g. 'tools' → /guide/tools. */
   path: string
   /** Label shown in the sidebar, the page title, and the pager. */
   label: string
@@ -51,7 +51,21 @@ export interface GuideSection {
  */
 export const GUIDE_SECTIONS: GuideSection[] = [
   // Learn — read-only concepts and reference. Nothing here has side effects.
-  { path: 'pathway', label: 'Pathway', group: 'learn' },
+  //
+  // Care Pathway and Tools are two surfaces because they answer two questions
+  // that were previously answered by one page. Care Pathway is the *protocol*:
+  // it renders PlanDefinition/SPiERSuicideSaferCarePathway — screen, gate,
+  // assess, branch by tier — from the published artifact, so what the page says
+  // and what SPiER publishes cannot drift. Tools is the *catalogue*: which
+  // instruments and recorders exist, grouped by the eight pathway stages, with
+  // launch paths into the Patient View.
+  //
+  // ⚠️ `pathway` is a REPURPOSED path, not a new one. It served the tool
+  // catalogue until Phase 3 of docs/plans/suicide-safer-care-pathway.md; the
+  // catalogue moved to `tools` and `/guide/pathway#stage-…` deep links are
+  // forwarded there by CarePathway.tsx.
+  { path: 'pathway', label: 'Care Pathway', group: 'learn' },
+  { path: 'tools', label: 'Tools', group: 'learn' },
   { path: 'data-dictionary', label: 'Data Dictionary', group: 'learn' },
   // 'measures' is deliberately absent. It moved to the EHR side as
   // /population/measures (step D, #391): it was the one guide section that read
