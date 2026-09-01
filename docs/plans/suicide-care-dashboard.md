@@ -95,7 +95,10 @@ separately from the current-finding codes.
 
 This is a **concept-layer decision**, so once settled it belongs alongside
 [`best-practices/concept-harmonization.md`](../best-practices/concept-harmonization.md),
-not only in this plan.
+not only in this plan. It is now also co-owned by
+[`suicide-safer-care-pathway.md`](suicide-safer-care-pathway.md) (clinical
+question 2 there) — the pathway diagram carries the same Historical tier, and
+both plans deliberately proceed without it until the axis decision lands.
 
 ### Gap 4 — No approval gate on risk step-down
 
@@ -114,6 +117,9 @@ Three candidate models, in increasing strictness:
 Which one is right depends on spec question 3 (how hard is the gate). Do not pick
 before that answer arrives — this is the one gap where guessing wrong means
 building a constraint that either does nothing or blocks real clinical work.
+(Co-owned by [`suicide-safer-care-pathway.md`](suicide-safer-care-pathway.md),
+clinical question 3 — the pathway diagram states the step-down criteria this
+gate would enforce, and its v1 artifact deliberately omits them.)
 
 ### Gap 5 — Outcome measures need a visit *classification* SPiER does not carry
 
