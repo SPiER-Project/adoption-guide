@@ -7,6 +7,11 @@ import type { MapperResult, QuestionnaireResponseResource } from './shared'
  * adult/recent screener, targeted at pediatric/adolescent settings. Delegates to
  * the shared screener core; only the tool label differs. Emits the shared
  * SPiERCSSRSRiskLevel-shaped risk Observation.
+ *
+ * The default `behaviorRecency` (`'q6-recent-item'`) is right here: this form
+ * carries the same nested "Was this within the past three months?" item as the
+ * adult screener, which is what the published triage ladder gates the high tier
+ * for behavior on. See `cssrsScreener.ts` for that ladder and its verification.
  */
 export function mapCSSRSPediatric(response: QuestionnaireResponseResource): MapperResult {
   return mapCSSRSScreenerCore(response, 'C-SSRS Pediatric')

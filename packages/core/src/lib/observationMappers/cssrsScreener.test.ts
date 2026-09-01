@@ -24,6 +24,10 @@ function riskCoding(r: ReturnType<typeof mapCSSRSScreener>) {
     ?.valueCodeableConcept?.coding?.[0]?.code
 }
 
+/** `Observation.note` is not on the trimmed ObservationResource type. */
+const noteText = (o: unknown) =>
+  (o as { note?: Array<{ text?: string }> } | undefined)?.note?.[0]?.text ?? ''
+
 describe('mapCSSRSScreener', () => {
   it('q1 only (wish to be dead) → low risk', () => {
     const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: false, q3: false, q4: false, q5: false, q6: false }))
@@ -40,6 +44,29 @@ describe('mapCSSRSScreener', () => {
     expect(r.riskAlert.suggestedAction?.path).toBe('/patient/assessments/stanley-and-brown')
   })
 
+  // ── The published triage ladder (spec doc §"Published-instrument
+  // verification (Phase 1b)"; pathway plan Phase 1c) ────────────────────────
+  //
+  // Two corrections shipped with that alignment, and these are the cases that
+  // pin them. Both were previously green on the drifted answers, so a
+  // regression here means the ladder slipped back, not that a fixture moved.
+
+  it('q4 (some intent) alone → HIGH, not moderate — the published red band', () => {
+    // The correction: q4 derived `moderate` for as long as the mapper existed.
+    // CMS 2008 and Columbia 2026 both shade item 4 red, and Columbia's response
+    // protocol gives it "Behavioral Health Consultation and Patient Safety
+    // Precautions" — the high-tier action, same as item 5.
+    const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: true, q3: false, q4: true, q5: false, q6: false }))
+    expect(riskCoding(r)).toBe('high')
+    expect(r.riskAlert.level).toBe('high')
+    expect(r.riskAlert.summary).toBe('C-SSRS: HIGH Risk')
+    // A q4-positive now gets the high-tier alert body, not the moderate one.
+    expect(r.riskAlert.detail).toContain('emergency psychiatric evaluation')
+    const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
+    expect(riskObs?.interpretation?.[0]?.coding?.[0]?.code).toBe('H')
+    expect(riskObs?.valueCodeableConcept?.text).toBe('High Risk — ideation with some intent')
+  })
+
   it('q5 (specific plan + intent) → high risk (boundary: highest ideation)', () => {
     const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: true, q3: true, q4: true, q5: true, q6: false }))
     expect(riskCoding(r)).toBe('high')
@@ -48,22 +75,52 @@ describe('mapCSSRSScreener', () => {
     expect(riskObs?.interpretation?.[0]?.coding?.[0]?.code).toBe('H')
   })
 
-  it('q6 behavior overrides ideation-only to high even when q1–q5 are moderate', () => {
-    // Highest ideation is q3 (moderate) but a positive behavior forces high.
-    const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: true, q3: true, q4: false, q5: false, q6: true }))
-    expect(riskCoding(r)).toBe('high')
+  it('q6 behavior lifetime-only (q6-recent unanswered) → MODERATE, not high', () => {
+    // The other correction: q6 forced `high` regardless of recency. The
+    // published instrument shades lifetime-only behavior orange — the same tier
+    // as a lone q3. The diagram's separate "Historical" tier is deliberately not
+    // implemented (plan open question 2).
+    const r = mapCSSRSScreener(cssrsResponse({ q1: false, q2: false, q3: false, q4: false, q5: false, q6: true }))
+    expect(riskCoding(r)).toBe('moderate')
+    expect(r.riskAlert.level).toBe('moderate')
     const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
+    expect(riskObs?.interpretation?.[0]?.coding?.[0]?.code).toBe('A')
     // The narrative moved from `coding.display` to `text` (#302): a SPiER-local
     // `Coding.display` must match the CodeSystem, and the validator checks it.
-    expect(riskObs?.valueCodeableConcept?.text).toContain('lifetime')
+    expect(riskObs?.valueCodeableConcept?.text).toBe('Moderate Risk — lifetime-only suicidal behavior')
+    expect(noteText(riskObs)).toContain('Behavior: Yes (lifetime only, not within 3 months)')
   })
 
-  it('q6 with q6-recent → high risk flagged within past 3 months', () => {
+  it('q6 with q6-recent = No is lifetime-only too → moderate', () => {
+    // An explicit "No" and an unanswered recency item mean the same thing; only
+    // a Yes reaches the red band.
+    const r = mapCSSRSScreener(cssrsResponse({ q1: false, q2: false, q6: true, 'q6-recent': false }))
+    expect(riskCoding(r)).toBe('moderate')
+  })
+
+  it('q6 within the past 3 months → high risk', () => {
     const r = mapCSSRSScreener(cssrsResponse({ q1: false, q2: false, q3: false, q4: false, q5: false, q6: true, 'q6-recent': true }))
+    expect(riskCoding(r)).toBe('high')
+    expect(r.riskAlert.level).toBe('high')
     const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
-    // The narrative moved from `coding.display` to `text` (#302): a SPiER-local
-    // `Coding.display` must match the CodeSystem, and the validator checks it.
-    expect(riskObs?.valueCodeableConcept?.text).toContain('past 3 months')
+    expect(riskObs?.valueCodeableConcept?.text).toBe('High Risk — suicidal behavior within past 3 months')
+    expect(noteText(riskObs)).toContain('Behavior: Yes (within 3 months)')
+  })
+
+  it('behavior sets a floor, never an override — lifetime-only q6 cannot pull q5 down', () => {
+    // The old code assigned the behavior tier outright, which was harmless only
+    // while every positive q6 meant `high`. With lifetime-only q6 at moderate,
+    // an override would DOWNGRADE a plan-and-intent screen to moderate.
+    const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: true, q3: true, q4: true, q5: true, q6: true, 'q6-recent': false }))
+    expect(riskCoding(r)).toBe('high')
+    const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
+    // Ideation wins the narrative because it is the strictly more severe half.
+    expect(riskObs?.valueCodeableConcept?.text).toBe('High Risk — specific plan with intent')
+  })
+
+  it('lifetime-only q6 still raises a low ideation screen to moderate', () => {
+    const r = mapCSSRSScreener(cssrsResponse({ q1: true, q2: true, q3: false, q4: false, q5: false, q6: true }))
+    expect(riskCoding(r)).toBe('moderate')
   })
 
   it('all negative → no risk identified', () => {

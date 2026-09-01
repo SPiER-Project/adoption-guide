@@ -26,10 +26,22 @@ Description: "SPiER-local code system for the derived risk level from a C-SSRS s
 * ^experimental = true
 * ^caseSensitive = true
 * ^content = #complete
+// The item→level ladder in these definitions is the published C-SSRS Screener
+// with Triage Points, verified against the CMS-hosted 2008 "Screen Version —
+// Recent" PDF and the Columbia Lighthouse Project's 2026 "Screen with Triage
+// Points for Primary Care" — record in
+// docs/reference/suicide-safer-care-pathway-spec.md §"Published-instrument
+// verification (Phase 1b)". It is the same ladder the mappers derive
+// (packages/core/src/lib/observationMappers/cssrsScreener.ts).
+//
+// One variant reads the behavior recency differently, and legitimately: the
+// Since Last Visit / Since Last Contact form asks NO recency follow-up, because
+// its whole reference period is the interval since the patient's last contact —
+// so a positive item 6 there is recent by construction and scores High.
 * #none "None" "No C-SSRS items endorsed. No risk identified."
 * #low "Low" "Wish to be dead or non-specific active suicidal thoughts (items 1–2 positive) without method, intent, plan, or behavior."
-* #moderate "Moderate" "Active ideation with methods or some intent (items 3–4 positive)."
-* #high "High" "Active ideation with specific plan and intent (item 5), and/or any suicidal behavior (item 6)."
+* #moderate "Moderate" "Active ideation with a method but no intent (item 3 positive), and/or lifetime-only suicidal behavior — item 6 positive without the past-three-months recency follow-up."
+* #high "High" "Active ideation with some intent to act (item 4) or with a specific plan and intent (item 5), and/or suicidal behavior within the past three months (item 6)."
 
 // The C-SSRS Questionnaires label the risk-level answerOptions "Low Risk" /
 // "Moderate Risk" / "High Risk" — a bare "Low" is ambiguous next to the other

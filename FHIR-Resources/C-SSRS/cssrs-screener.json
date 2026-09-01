@@ -13,7 +13,7 @@
   "date": "2026-03-19",
   "publisher": "SPiER Project (FHIR translation)",
   "description": "FHIR Questionnaire representation of the C-SSRS Screen Version (Recent). A 6-item suicide risk assessment with three-tier risk stratification (Low/Moderate/High). Questions 1-2 are always asked; Questions 3-5 are conditional on Q2=Yes; Question 6 (suicidal behavior) is always asked. This is the brief screener version \u2014 see also the Full Lifetime/Recent version for comprehensive assessment.",
-  "purpose": "Suicide risk assessment and stratification. Risk tiers: Q1-Q2 positive = Low Risk, Q3-Q4 positive = Moderate Risk, Q5 or Q6 positive = High Risk. Used after positive screening (e.g., PHQ-9 Item 9, ASQ) to determine risk level and guide clinical response.",
+  "purpose": "Suicide risk assessment and stratification, per the published C-SSRS Screener with Triage Points. Risk tiers: Q1-Q2 positive = Low Risk; Q3 positive, or Q6 positive but not within the past three months, = Moderate Risk; Q4 or Q5 positive, or Q6 positive within the past three months, = High Risk. Used after positive screening (e.g., PHQ-9 Item 9, ASQ) to determine risk level and guide clinical response.",
   "copyright": "\u00a9 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. For inquiries and training: posnerk@nyspi.columbia.edu",
   "code": [
     {

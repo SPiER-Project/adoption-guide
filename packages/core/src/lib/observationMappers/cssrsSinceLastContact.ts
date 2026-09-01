@@ -30,10 +30,22 @@ const INTERVAL_ITEM_CODES: CSSRSItemCoding[] = [
  * C-SSRS Since Last Visit / Since Last Contact (TL-019) — a repeat assessment
  * scoped to the interval since the patient's prior contact. It shares the
  * screener's item set, conditional logic, and three-tier risk stratification, so
- * it delegates to the shared screener core; the item coding and the tool label
- * differ. Emits the shared SPiERCSSRSRiskLevel-shaped risk Observation, which is
- * timeframe-agnostic and therefore identical across C-SSRS variants.
+ * it delegates to the shared screener core; the item coding, the tool label and
+ * the behavior item's recency semantics differ. Emits the shared
+ * SPiERCSSRSRiskLevel-shaped risk Observation, which is timeframe-agnostic and
+ * therefore identical across C-SSRS variants.
+ *
+ * ⚠️ **`behaviorRecency: 'interval'` is load-bearing.** The published triage
+ * ladder gates the high tier for behavior on the past 3 months (see
+ * `cssrsScreener.ts` and docs/reference/suicide-safer-care-pathway-spec.md §1b),
+ * and the Screener and Pediatric forms establish that with a nested `q6-recent`
+ * item. **This form has no such item** — its q6 reads "Have you done anything…"
+ * against an explicit "since the patient's last visit or contact (not lifetime)"
+ * instruction, so behavior reported here is recent by construction. Reading an
+ * absent `q6-recent` would score every interval behavior report `moderate`,
+ * silently downgrading the one variant whose whole purpose is interval
+ * surveillance.
  */
 export function mapCSSRSSinceLastContact(response: QuestionnaireResponseResource): MapperResult {
-  return mapCSSRSScreenerCore(response, 'C-SSRS Since Last Visit', INTERVAL_ITEM_CODES)
+  return mapCSSRSScreenerCore(response, 'C-SSRS Since Last Visit', INTERVAL_ITEM_CODES, 'interval')
 }

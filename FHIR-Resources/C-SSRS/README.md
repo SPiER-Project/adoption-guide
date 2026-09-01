@@ -40,16 +40,34 @@ The C-SSRS is the gold-standard suicide risk assessment tool, developed at Colum
 | 1 | Wish to be Dead | Low |
 | 2 | Non-Specific Active Suicidal Thoughts | Low |
 | 3 | Active Ideation with Any Methods (Not Plan), No Intent | Moderate |
-| 4 | Active Ideation with Some Intent, No Specific Plan | Moderate |
+| 4 | Active Ideation with Some Intent, No Specific Plan | High |
 | 5 | Active Ideation with Specific Plan and Intent | High |
 
 ## Screener Risk Stratification
 
+The published C-SSRS Screener with Triage Points, verified against the
+CMS-hosted 2008 "Screen Version — Recent" PDF and the Columbia Lighthouse
+Project's 2026 "Screen with Triage Points for Primary Care" — the two agree
+item-for-item. Record:
+[`docs/reference/suicide-safer-care-pathway-spec.md`](../../docs/reference/suicide-safer-care-pathway-spec.md)
+§ *Published-instrument verification (Phase 1b)*.
+
 | Risk Level | Criteria |
 |------------|----------|
 | **Low** | Q1 or Q2 = Yes (wish to be dead or non-specific thoughts) |
-| **Moderate** | Q3 or Q4 = Yes (method or some intent) |
-| **High** | Q5 = Yes (specific plan with intent) or Q6 = Yes (suicidal behavior) |
+| **Moderate** | Q3 = Yes (method, no intent), **or** Q6 = Yes but *not* within the past three months |
+| **High** | Q4 = Yes (some intent) or Q5 = Yes (specific plan with intent), **or** Q6 = Yes within the past three months |
+
+Two notes on the behavior item. First, the Since Last Visit / Since Last
+Contact form asks **no** recency follow-up, because its whole reference period
+is the interval since the patient's last contact — a positive Q6 there is
+recent by construction and scores High. Second, the source pathway diagram
+places lifetime-only Q6 in a separate "Historical" tier below Low; that tier is
+deliberately **not** implemented, because neither published source defines a
+fourth level and both score that pattern Moderate. Whether SPiER carries
+historical risk as an orthogonal *flag* is an open clinical question — see
+[`docs/plans/suicide-safer-care-pathway.md`](../../docs/plans/suicide-safer-care-pathway.md)
+open question 2.
 
 ## FHIR Assets
 
