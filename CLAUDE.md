@@ -66,6 +66,20 @@ npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDe
                          # layer down — a Questionnaire in FHIR-Resources/ that
                          # no AD administers, which was ungated until 2026-08-20
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
+npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almost
+                         # entirely REFERENCES — tier codes, stage codes, and
+                         # definitionCanonicals — and none of them is a conformance
+                         # error when wrong, so SUSHI and the validator both pass a
+                         # step pointing at nothing. This resolves all three against
+                         # the generated artifacts, reading the stage list through
+                         # the same `scripts/lib/stage-codes.mjs` that `check:stages`
+                         # uses rather than a second copy.
+                         # ⚠️ Its load-bearing rule is that the pathway carries NO
+                         # `timing[x]` at all: the reassessment cadence has exactly
+                         # one home (SPiERReassessmentSchedule) and three statements
+                         # already, held in agreement by `check:reassessment`. A
+                         # fourth here is what "reference, don't restate" prevents,
+                         # and SUSHI reports 0 errors on it — proved by planting one
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see the mapper-reader note below
 npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a different

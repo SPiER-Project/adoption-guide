@@ -19,32 +19,26 @@
  * Exits non-zero on drift so it can gate CI.
  */
 import { readFileSync, readdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve, join } from 'node:path'
+import { join } from 'node:path'
+import { readStageCodes, REPO_ROOT, STAGE_SYSTEM } from './lib/stage-codes.mjs'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const root = resolve(here, '../..') // repo root
+const root = REPO_ROOT
 const populationDir = join(root, 'packages/demo-population/src')
 const scenariosDir = join(populationDir, 'scenarios')
-const fshPath = join(root, 'ig/input/fsh/spier-codesystem.fsh')
-
-const STAGE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 
 // ---- canonical stage list from FSH ------------------------------------------
-// Isolate the SPiERPathwayStage CodeSystem block (the file may hold several
-// CodeSystems), then collect its `* #code "Display" ...` concept lines.
-const fsh = readFileSync(fshPath, 'utf8')
-const block = fsh.split(/^CodeSystem:\s*/m).find((b) => b.startsWith('SPiERPathwayStage'))
-if (!block) {
-  console.error(`✗ CodeSystem SPiERPathwayStage not found in ${fshPath}`)
-  process.exit(1)
-}
-const stageCodes = new Set([...block.matchAll(/^\* #([A-Za-z0-9-]+)\s+"/gm)].map((m) => m[1]))
-if (stageCodes.size === 0) {
-  console.error(`✗ no concepts parsed from SPiERPathwayStage in ${fshPath}`)
+// Parsed out of ig/input/fsh/spier-codesystem.fsh by the shared reader, which
+// `check:pathway` also calls — one parser, one source of truth. It throws
+// rather than returning an empty set, so a rename or a move fails loudly here
+// instead of passing over an unread file.
+let stageCodes
+try {
+  stageCodes = readStageCodes()
+} catch (e) {
+  console.error(`✗ ${e.message}`)
   process.exit(1)
 }
 console.log(`pathway stages: ${[...stageCodes].join(', ')}`)
