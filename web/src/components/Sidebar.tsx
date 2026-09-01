@@ -33,12 +33,16 @@ const IG_HREF = `${import.meta.env.BASE_URL}ig/`
  * Escape handling, pointerdown dismissal, blur-to-close — for links that are
  * just links once they are in a list. `HeaderMenu` is deleted, not relocated.
  *
- * ⚠️ **Two tiers, and the split is deliberate.** The IG is the *normative
- * spec* and the mock EHR is where the pathway can be seen working; both are
- * real destinations and are named. GitHub and the project site are project
- * metadata and sit smaller, at the very bottom, beside the version stamp. The
- * cost of collapsing them into one list is that the IG gets read as being on a
- * par with a repo link.
+ * ⚠️ **These are real destinations, and that's what still earns them a place
+ * here.** GitHub, the project site and the version stamp used to sit below
+ * these in the same `.sidebar-footer`, as quieter project metadata — but that
+ * put them at the bottom of a box whose height is pinned to the viewport, so on
+ * a short page the sidebar's own sticky box visually covered the real page
+ * footer sitting right below it. They moved down into `.ehr-footer` in
+ * `EhrShell.tsx`, which runs full width below the sidebar and can't be
+ * obscured by it — see the note there and on `.sidebar` in `Sidebar.css`. The
+ * IG and the mock EHR stay here because unlike a repo link they're places you
+ * can actually go use SPiER, which is what "Elsewhere" means.
  */
 const DESTINATIONS = [
   {
@@ -61,15 +65,9 @@ const DESTINATIONS = [
     // ⚠️ Measured, not trimmed by feel: the sidebar is 240px and a note has
     // 192px of it, so "SPiER launched inside a vendor chart" wrapped to two
     // lines and cost the footer 15px it does not have to spare. Every line here
-    // pushes the version stamp further down a column that already scrolls.
+    // pushes the rest of this footer further down a column that already scrolls.
     note: 'Inside a vendor chart',
   },
-] as const
-
-/** Project metadata. Quieter, and last. */
-const PROJECT_LINKS = [
-  { key: 'site', href: 'https://thespierproject.org', label: 'thespierproject.org' },
-  { key: 'repo', href: 'https://github.com/SPiER-Project/adoption-guide', label: 'GitHub' },
 ] as const
 
 interface SidebarProps {
@@ -311,25 +309,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </a>
             ))}
           </nav>
-
-          <nav className="sidebar-meta" aria-label="Project links">
-            {PROJECT_LINKS.map(l => (
-              <a
-                key={l.key}
-                className="sidebar-meta-link"
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${l.label} (opens in a new tab)`}
-                onClick={onClose}
-              >
-                {l.label}
-                <span aria-hidden="true">&#8599;</span>
-              </a>
-            ))}
-          </nav>
-
-          <span className="sidebar-version">SPiER v0.1.0</span>
         </div>
       </aside>
     </>

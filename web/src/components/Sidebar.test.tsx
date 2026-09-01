@@ -1,23 +1,31 @@
 /**
  * @vitest-environment jsdom
  *
- * The sidebar footer — where SPiER's outbound links live, having been moved back
- * into the sidebar from the app bar.
+ * The sidebar footer — where SPiER's real destinations live, having been moved
+ * back into the sidebar from the app bar.
  *
- * ⚠️ **This asserts a decision, not a rendering.** Three of these links used to
- * be pills in `EhrShell`'s header, with a `HeaderMenu` disclosure taking over
- * below 640px; a fourth did not fit at any width, so all of them moved here and
- * `HeaderMenu` was deleted. The property worth gating is that they are in
- * **exactly one place** and that the demo host is one of them — the mock EHR is
- * the only surface that shows SPiER as a panel inside someone else's chart,
- * which is the mental model the standalone lenses quietly contradict. A tidy-up
- * that drops it, or that re-adds a header cluster "for prominence", should fail
- * here.
+ * ⚠️ **This asserts a decision, not a rendering.** These links used to be pills
+ * in `EhrShell`'s header, with a `HeaderMenu` disclosure taking over below
+ * 640px; a fourth (the mock EHR demo) did not fit at any width, so all of them
+ * moved here and `HeaderMenu` was deleted. The property worth gating is that
+ * they are in **exactly one place** and that the demo host is one of them — the
+ * mock EHR is the only surface that shows SPiER as a panel inside someone
+ * else's chart, which is the mental model the standalone lenses quietly
+ * contradict. A tidy-up that drops it, or that re-adds a header cluster "for
+ * prominence", should fail here.
  *
- * What is NOT asserted: that they look right. The contrast bug this change fixed
- * (`--text-body` on the dark sidebar is 1.48:1, well under AA) is a computed
- * style, invisible to jsdom, and was caught in a browser. The measurement is
- * recorded in `Sidebar.css` beside the rule instead.
+ * ⚠️ **GitHub and thespierproject.org are NOT here.** They used to sit below
+ * these in the same `.sidebar-footer`, as quieter project metadata alongside
+ * the version stamp — but that put them at the bottom of a box whose height is
+ * pinned to the viewport, so on a short page the sidebar's own sticky box
+ * visually covered the real page footer sitting right below it. They now live
+ * in `.ehr-footer` (see `EhrShell.test.tsx`), which runs full width below the
+ * sidebar and can't be obscured by it.
+ *
+ * What is NOT asserted: that they look right. The contrast bug this change
+ * fixed (`--text-body` on the dark sidebar is 1.48:1, well under AA) is a
+ * computed style, invisible to jsdom, and was caught in a browser. The
+ * measurement is recorded in `Sidebar.css` beside the rule instead.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
@@ -60,21 +68,16 @@ describe('Sidebar footer — outbound links', () => {
     expect(ig.getAttribute('href')).toBe(`${import.meta.env.BASE_URL}ig/`)
   })
 
-  it('keeps project metadata as a separate, quieter group', () => {
+  it('does not carry the project links or version stamp — those are in the page footer now', () => {
     renderSidebar()
-    // Two navs, not one list: the IG and the demo are destinations, GitHub and
-    // the project site are metadata. Collapsing them reads the normative spec as
-    // being on a par with a repo link.
-    expect(screen.getByRole('navigation', { name: 'SPiER elsewhere' })).toBeTruthy()
-    const meta = screen.getByRole('navigation', { name: 'Project links' })
-    expect(meta.textContent).toContain('GitHub')
-    expect(meta.textContent).toContain('thespierproject.org')
-    expect(meta.textContent).not.toContain('Implementation Guide')
+    expect(screen.queryByRole('link', { name: /GitHub/ })).toBeNull()
+    expect(screen.queryByRole('link', { name: /thespierproject\.org/ })).toBeNull()
+    expect(screen.queryByText(/SPiER v\d/)).toBeNull()
   })
 
   it('opens every outbound link in a new tab, and says so in the name', () => {
     renderSidebar()
-    for (const name of [/Implementation Guide/, /Mock EHR demo/, /GitHub/, /thespierproject\.org/]) {
+    for (const name of [/Implementation Guide/, /Mock EHR demo/]) {
       const link = screen.getByRole('link', { name })
       expect(link.getAttribute('target')).toBe('_blank')
       // noreferrer as well as noopener: these are third-party origins.

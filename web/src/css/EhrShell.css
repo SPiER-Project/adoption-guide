@@ -210,6 +210,13 @@
   text-decoration-color: var(--brand-accent);
 }
 
+.ehr-footer-links {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 /* ===========================
    Responsive
    =========================== */
@@ -234,5 +241,9 @@
   .ehr-footer {
     flex-direction: column;
     text-align: center;
+  }
+
+  .ehr-footer-links {
+    justify-content: center;
   }
 }
