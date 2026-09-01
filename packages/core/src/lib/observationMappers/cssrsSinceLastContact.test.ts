@@ -31,10 +31,28 @@ describe('mapCSSRSSinceLastContact', () => {
     expect(riskObs(r)?.valueCodeableConcept?.coding?.[0]?.code).toBe('low')
   })
 
-  it('behavior (q6) over the interval overrides to high', () => {
+  it('q4 (some intent) → high, matching the published red band', () => {
+    const r = mapCSSRSSinceLastContact(slvResponse({ q1: true, q2: true, q3: false, q4: true, q5: false }))
+    expect(riskObs(r)?.valueCodeableConcept?.coding?.[0]?.code).toBe('high')
+    expect(r.riskAlert.level).toBe('high')
+  })
+
+  // ⚠️ The per-variant difference the ladder alignment turns on. The published
+  // gate for behavior is "within the past 3 months", and the Screener and
+  // Pediatric forms establish that with a nested `q6-recent` item. THIS FORM HAS
+  // NO SUCH ITEM — every question is framed to the period since the patient's
+  // last visit or contact, so a positive q6 is recent by construction. Reading
+  // the absent `q6-recent` as "lifetime-only" would score this `moderate` and
+  // silently downgrade the one variant whose whole purpose is interval
+  // surveillance; `behaviorRecency: 'interval'` in the mapper is what prevents
+  // it, and this case is what would catch its removal.
+  it('behavior (q6) over the interval is recent by construction → high', () => {
     const r = mapCSSRSSinceLastContact(slvResponse({ q1: false, q2: false, q6: true }))
     expect(riskObs(r)?.valueCodeableConcept?.coding?.[0]?.code).toBe('high')
     expect(r.riskAlert.level).toBe('high')
+    expect(riskObs(r)?.valueCodeableConcept?.text).toBe('High Risk — suicidal behavior since last contact')
+    const note = (riskObs(r) as { note?: Array<{ text?: string }> } | undefined)?.note?.[0]?.text ?? ''
+    expect(note).toContain('Behavior: Yes (since last contact)')
   })
 
   it('all negative → none', () => {

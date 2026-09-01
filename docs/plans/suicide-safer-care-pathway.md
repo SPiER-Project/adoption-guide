@@ -127,8 +127,14 @@ mapper already *captures* `q6-recent` (the Questionnaire has the nested item)
 — it just doesn't use it for tier assignment.
 
 **Confirmation channel: clinical team.** This is a behavior change to shipped
-risk stratification; the verification record goes in the spec doc, the
-clinical sign-off goes in the PR that changes the mapper.
+risk stratification; the verification record goes in the spec doc.
+
+**Superseded 2026-09-01 (see open question 1):** this section originally
+required the clinical sign-off to land *in* the PR that changes the mapper.
+Brad's decision that day made the review **retrospective rather than
+blocking** — the tools are not in production, and the published instrument is
+the authority (decision 3). Phase 1c shipped on the verification record alone;
+the retrospective review is still owed.
 
 ### 1c. Align the mappers (after 1b confirms)
 
@@ -178,9 +184,10 @@ clinical sign-off goes in the PR that changes the mapper.
   it mechanically.
 
 **Phase 1 exit:** spec doc committed and indexed; mapper ladder matches the
-published instrument with clinical sign-off recorded; code verification
-findings written down. Likely two PRs: (1a+1b+1d docs/verification, then 1c
-code change).
+published instrument, with the *verification* recorded and the clinical review
+booked as retrospective (see 1b's superseding note and open question 1); code
+verification findings written down. Two PRs: (1a+1b+1d docs/verification, then
+1c code change).
 
 ---
 
@@ -445,9 +452,20 @@ on the drifted ladder.
 
 Owner: Brad to route (Kelly's team). Each blocks the item named; nothing else.
 
-1. **C-SSRS triage ladder** — confirm against the published screener: Q4 →
-   high (not moderate)? Q6 behavior tier-gated by 3-month recency? *(Blocks
-   Phase 1c; the published instrument is the authority — decision 3.)*
+1. **C-SSRS triage ladder** — ✅ **SETTLED 2026-09-01. Does not block Phase
+   1c.** Both questions (Q4 → high rather than moderate; Q6 behavior
+   tier-gated by 3-month recency) were answered *yes* by the published
+   instrument itself — two sources in agreement, recorded in
+   [`suicide-safer-care-pathway-spec.md`](../reference/suicide-safer-care-pathway-spec.md)
+   §*Published-instrument verification (Phase 1b)*. Brad's decision that day:
+   **proceed on the published-instrument basis now; clinical review is
+   retrospective, not blocking**, because these tools are not in production
+   and the published instrument is the authority (decision 3). Phase 1c
+   shipped on that basis; **retrospective clinical review of the shipped
+   ladder is still owed** and is not recorded anywhere as done. Note what is
+   *not* covered by this: the diagram's separate **Historical** tier is
+   deliberately unimplemented — that is open question 2 below, and the
+   published instrument scores lifetime-only Q6 as `moderate`.
 2. **Historical risk** — orthogonal history flag rather than a fifth ordinal
    tier? (Shared with dashboard plan Gap 3 / spec question 5; believed to be a
    novel SPiER classification. Answer lands in the concept layer once, cited

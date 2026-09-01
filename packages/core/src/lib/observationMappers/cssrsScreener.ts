@@ -29,14 +29,36 @@ export const CSSRS_SCREENER_ITEM_CODES: CSSRSItemCoding[] = [
   { linkId: 'q6', system: 'http://loinc.org', code: '93267-3', display: 'Preparatory acts or suicidal behavior Lifetime' },
 ]
 
+/** Ordinal rank of the derived tiers, so two contributions can be compared. */
+const TIER_RANK = { none: 0, low: 1, moderate: 2, high: 3 } as const
+type CSSRSTier = keyof typeof TIER_RANK
+
+/**
+ * How an administration establishes that a positive behavior item (q6) is
+ * *recent* — which the published triage ladder gates the high tier on.
+ *
+ * - `'q6-recent-item'` — the form asks "Was this within the past three months?"
+ *   as a nested item under q6 (Screener, Pediatric). No answer, or "No", means
+ *   the behavior is lifetime-only.
+ * - `'interval'` — the whole administration is scoped to the period since the
+ *   patient's last visit or contact, so the form asks no recency question and
+ *   any behavior reported is within that interval **by construction** (Since
+ *   Last Visit). Reading an absent `q6-recent` there would silently downgrade
+ *   every interval behavior report to `moderate`, which is why this is a
+ *   parameter rather than "q6Recent === true" everywhere.
+ */
+export type CSSRSBehaviorRecency = 'q6-recent-item' | 'interval'
+
 /**
  * The C-SSRS 6-item screener, the Pediatric screener and the "Since Last Visit /
- * Since Last Contact" version share an identical item set (q1–q6, q6-recent),
+ * Since Last Contact" version share an identical ideation item set (q1–q6),
  * conditional logic, and three-tier risk stratification. They differ in the
  * administration reference period, which is exactly what LOINC's item codes
  * encode — so the item coding is a parameter rather than shared: the interval
  * version passes SPiER-local codes because LOINC publishes nothing for a
- * "since last contact" window (see ig/input/fsh/cssrs.fsh, issue #220).
+ * "since last contact" window (see ig/input/fsh/cssrs.fsh, issue #220). The
+ * behavior item's recency is a parameter for the same reason: only the two
+ * lifetime-framed forms carry a `q6-recent` item.
  *
  * The derived risk-level Observation is timeframe-agnostic and identical across
  * all three, so it stays in the core.
@@ -45,6 +67,7 @@ export function mapCSSRSScreenerCore(
   response: QuestionnaireResponseResource,
   toolLabel: string,
   itemCodes: CSSRSItemCoding[] = CSSRS_SCREENER_ITEM_CODES,
+  behaviorRecency: CSSRSBehaviorRecency = 'q6-recent-item',
 ): MapperResult {
   const items = response?.item || []
   const observations: ObservationResource[] = []
@@ -58,24 +81,78 @@ export function mapCSSRSScreenerCore(
   const q6 = getYesNoBoolean(walkItems(items, 'q6'))
   const q6Recent = getYesNoBoolean(walkItems(items, 'q6-recent'))
 
-  // Determine risk level from highest positive
-  let riskCode = 'none'
+  // ── Risk tier: the published C-SSRS Screener with Triage Points ──────────
+  //
+  // Verified against two sources that agree item-for-item — the CMS-hosted 2008
+  // "Screen Version — Recent" PDF and the Columbia Lighthouse Project's 2026
+  // "Screen with Triage Points for Primary Care", the latter with an explicit
+  // response-protocol table under the colour bands. The full record is
+  // docs/reference/suicide-safer-care-pathway-spec.md §"Published-instrument
+  // verification (Phase 1b)"; this is Phase 1c of docs/plans/suicide-safer-care-pathway.md.
+  //
+  //   q1 / q2                        → low       (yellow)
+  //   q3                             → moderate  (orange)
+  //   q4 / q5                        → high      (red)
+  //   q6 behavior, past 3 months     → high      (red)
+  //   q6 behavior, lifetime-only     → moderate  (orange)
+  //
+  // Two of those corrected shipped behavior: q4 derived `moderate`, and q6
+  // derived `high` regardless of recency. Clinical review of the change is
+  // **retrospective, not blocking** — decision recorded 2026-09-01: these tools
+  // are not in production, and the published instrument is the authority
+  // (pathway plan, decision 3).
+  //
+  // ⚠️ The source pathway diagram puts q6-lifetime-only in a *separate*
+  // "Historical" tier ranked below low. That tier is deliberately NOT
+  // implemented: neither published source defines a fourth level, and both
+  // score that response pattern `moderate` — the same tier as a lone q3 (spec
+  // doc, §1b "One place the diagram itself is not fully supported"). Whether
+  // SPiER should carry historical risk as an *orthogonal flag* is open clinical
+  // question 2 in the plan; if it is adopted it layers on beside this tier
+  // rather than re-ranking it.
+  //
+  // ⚠️ Behavior sets a FLOOR, not an override. The override this replaced was
+  // safe only while every positive q6 meant `high`; with lifetime-only q6 at
+  // `moderate`, an override would *downgrade* a q5-endorsed screen. Take the
+  // more severe of the two contributions.
+
+  let ideationTier: CSSRSTier = 'none'
   let riskDisplay = 'No risk identified'
   let highestIdeation = 0
 
-  if (q5) { riskCode = 'high'; riskDisplay = 'High Risk — specific plan with intent'; highestIdeation = 5 }
-  else if (q4) { riskCode = 'moderate'; riskDisplay = 'Moderate Risk — ideation with some intent'; highestIdeation = 4 }
-  else if (q3) { riskCode = 'moderate'; riskDisplay = 'Moderate Risk — ideation with method'; highestIdeation = 3 }
-  else if (q2) { riskCode = 'low'; riskDisplay = 'Low Risk — active suicidal thoughts'; highestIdeation = 2 }
-  else if (q1) { riskCode = 'low'; riskDisplay = 'Low Risk — wish to be dead'; highestIdeation = 1 }
+  if (q5) { ideationTier = 'high'; riskDisplay = 'High Risk — specific plan with intent'; highestIdeation = 5 }
+  else if (q4) { ideationTier = 'high'; riskDisplay = 'High Risk — ideation with some intent'; highestIdeation = 4 }
+  else if (q3) { ideationTier = 'moderate'; riskDisplay = 'Moderate Risk — ideation with method'; highestIdeation = 3 }
+  else if (q2) { ideationTier = 'low'; riskDisplay = 'Low Risk — active suicidal thoughts'; highestIdeation = 2 }
+  else if (q1) { ideationTier = 'low'; riskDisplay = 'Low Risk — wish to be dead'; highestIdeation = 1 }
 
-  // Q6 (behavior) overrides to high if positive
+  const behaviorIsRecent = behaviorRecency === 'interval' ? q6 === true : q6Recent === true
+  let behaviorTier: CSSRSTier = 'none'
+  let behaviorDisplay: string | undefined
   if (q6) {
-    riskCode = 'high'
-    riskDisplay = q6Recent
+    behaviorTier = behaviorIsRecent ? 'high' : 'moderate'
+    behaviorDisplay = behaviorRecency === 'interval'
+      ? 'High Risk — suicidal behavior since last contact'
+      : behaviorIsRecent
       ? 'High Risk — suicidal behavior within past 3 months'
-      : 'High Risk — lifetime suicidal behavior'
+      : 'Moderate Risk — lifetime-only suicidal behavior'
   }
+
+  const riskCode: CSSRSTier =
+    TIER_RANK[behaviorTier] > TIER_RANK[ideationTier] ? behaviorTier : ideationTier
+  // On a tie the behavior narrative wins, which is what the old override did and
+  // is the more clinically salient half of an equal-tier pair.
+  if (behaviorDisplay && TIER_RANK[behaviorTier] >= TIER_RANK[ideationTier]) {
+    riskDisplay = behaviorDisplay
+  }
+
+  const behaviorNote = !q6
+    ? 'No'
+    : behaviorRecency === 'interval'
+    ? 'Yes (since last contact)'
+    : behaviorIsRecent
+    ? 'Yes (within 3 months)'
+    : 'Yes (lifetime only, not within 3 months)'
 
   // Individual item observations, coded for this administration's reference period.
   for (const { linkId, system, code, display } of itemCodes) {
@@ -117,7 +194,7 @@ export function mapCSSRSScreenerCore(
         : riskCode === 'low'
         ? interpretationOf('L', riskDisplay)
         : interpretationOf('N', 'No risk identified'),
-      note: `${toolLabel}: Highest ideation level ${highestIdeation}/5. Behavior: ${q6 ? 'Yes' : 'No'}${q6Recent ? ' (within 3 months)' : ''}.`,
+      note: `${toolLabel}: Highest ideation level ${highestIdeation}/5. Behavior: ${behaviorNote}.`,
       questionnaireName: toolLabel,
     }),
   )

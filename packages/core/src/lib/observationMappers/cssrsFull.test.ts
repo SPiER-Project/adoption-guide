@@ -29,6 +29,17 @@ describe('mapCSSRSFull', () => {
     expect(riskCoding(r)).toBe('high')
   })
 
+  // ── The published triage ladder, applied to the full form (spec doc §1b,
+  // pathway plan Phase 1c) ─────────────────────────────────────────────────
+
+  it('recent ideation level 4 (some intent) → HIGH, not moderate', () => {
+    // The correction: `highestRecent >= 5` was the high boundary, so level 4
+    // scored moderate. Both published sources put item 4 in the red band.
+    const r = mapCSSRSFull(fullResponse({ 'q4-recent': true, 'q4-lifetime': true, 'q1-recent': true }))
+    expect(riskCoding(r)).toBe('high')
+    expect(r.riskAlert.level).toBe('high')
+  })
+
   it('recent ideation level 3 (boundary) → moderate risk', () => {
     const r = mapCSSRSFull(fullResponse({ 'q3-recent': true, 'q1-recent': true }))
     expect(riskCoding(r)).toBe('moderate')
@@ -41,13 +52,22 @@ describe('mapCSSRSFull', () => {
     expect(r.riskAlert.level).toBe('low')
   })
 
-  it('lifetime attempt only, no recent ideation → low (historical)', () => {
+  it('lifetime-only attempt, no recent ideation → MODERATE, not low', () => {
+    // The other correction: a lifetime-only attempt scored `low — historical
+    // behavior`. The published instrument scores lifetime-only behavior in the
+    // orange band — the same tier as a lone item 3. The diagram's separate
+    // "Historical" tier is deliberately not implemented (plan open question 2).
     const r = mapCSSRSFull(fullResponse({ 'actual-attempt-lifetime': true, 'q3-lifetime': true }))
-    expect(riskCoding(r)).toBe('low')
+    expect(riskCoding(r)).toBe('moderate')
     const riskObs = r.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
     // The narrative moved from `coding.display` to `text` (#302): a SPiER-local
     // `Coding.display` must match the CodeSystem, and the validator checks it.
-    expect(riskObs?.valueCodeableConcept?.text).toContain('historical')
+    expect(riskObs?.valueCodeableConcept?.text).toBe('Moderate Risk — lifetime-only suicide attempt')
+  })
+
+  it('a lifetime-only attempt is a floor, not an override — it cannot pull level 5 down', () => {
+    const r = mapCSSRSFull(fullResponse({ 'q5-recent': true, 'q5-lifetime': true, 'actual-attempt-lifetime': true }))
+    expect(riskCoding(r)).toBe('high')
   })
 
   it('all negative → no risk identified', () => {
