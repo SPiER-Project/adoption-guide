@@ -80,6 +80,13 @@ const LENSES = {
   // its sections \u2014 so this page owns its own, like the caseload beside it.
   'MeasureDashboard.tsx': 'the Population lens\u2019s second page; the lens has no header-rendering layout',
   'PatientChart.tsx': 'the Patient View lens; eyebrow names the lens, title the page',
+  // Added in Phase 4 of docs/plans/suicide-safer-care-pathway.md, when the
+  // published protocol had to be reachable from the embedded SMART panel. Same
+  // situation as MeasureDashboard above — a second page of a lens that has no
+  // layout component to render a header for it — with one extra reason: in
+  // panel chrome there is no sidebar, so the header's `up` back to the chart is
+  // the page's only way out.
+  'PathwayProtocol.tsx': 'the Patient View lens’s protocol page; the lens has no header-rendering layout, and in the panel its `up` is the only exit',
 }
 
 const errors = []

@@ -62,6 +62,7 @@ const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m 
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
+const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
 const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
 const StanleyBrownView = lazy(() => import('./components/StanleyBrownView').then(m => ({ default: m.StanleyBrownView })))
@@ -163,6 +164,15 @@ function AppRoutes() {
           <Route index element={<Navigate to="chart" replace />} />
           <Route path="chart" element={<PatientChart />} />
           <Route path="chart/:patientId" element={<PatientChart />} />
+          {/* The published protocol, beside the chart rather than in the guide
+              (Phase 4 of docs/plans/suicide-safer-care-pathway.md). This is the
+              route the embedded SMART panel reaches from the chart's pathway
+              rail: /guide/pathway is the implementer's framing — a pager into
+              Tools and the Data Dictionary — which is the wrong surface to send
+              a clinician in a host chart into. Same renderer, same artifact,
+              provenance leading; it renders the DEFINITION and reads no patient
+              data, exactly like the guide page. */}
+          <Route path="pathway" element={<PathwayProtocol />} />
           <Route path="assessments" element={<Navigate to="/patient/chart" replace />} />
           <Route path="assessments/phq-9" element={
             <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />

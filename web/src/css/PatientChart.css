@@ -96,6 +96,13 @@
   text-align: right;
 }
 
+/* Two lines, not two flex children: `.pathway-header` is
+   `justify-content: space-between`, so a second sibling beside the title would
+   spread across the row instead of stacking under the first note. */
+.pathway-subtitle__line {
+  display: block;
+}
+
 .pathway-subtitle a {
   color: inherit;
 }

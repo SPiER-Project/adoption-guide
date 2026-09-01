@@ -14,6 +14,32 @@
   max-width: var(--page-width-wide);
 }
 
+/* The same protocol on the Patient View side — what the embedded SMART panel
+   shows (pages/PathwayProtocol.tsx). Same rendering, different order: the
+   provenance strip leads. No padding here either; `.ehr-content-body` and
+   `.panel-shell__body` are the two sanctioned inset owners and this page renders
+   into whichever chrome is active. */
+.pathway-protocol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--page-width-wide);
+}
+
+/* The line that keeps a definition view from reading as a patient view. It sits
+   directly under the provenance strip, where a reader who has just been told
+   "this is the published artifact" is deciding what it is about. */
+.pathway-protocol__scope {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--brand-accent);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-muted);
+  color: var(--text-body);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
 .care-pathway__lede {
   margin: 0;
   color: var(--text-muted);
@@ -521,6 +547,29 @@
   margin-bottom: var(--space-4);
 }
 
+/* ── Provenance, leading ────────────────────────────────────────
+   The embedded panel's variant. On the guide page these facts close the page
+   and answer "where did this come from"; inside a host chart they ARE the
+   demonstration — the app carried a published artifact into someone else's
+   system — so the strip opens the page and the canonical URL is the headline
+   rather than one cell of a definition list. Same facts, same JSON, different
+   weight; see components/PathwayView.tsx. */
+.pathway-provenance--lead {
+  border-color: var(--brand-accent-light);
+  border-left-width: 4px;
+  border-left-color: var(--brand-accent);
+  background-color: var(--brand-accent-faint);
+}
+
+.pathway-provenance__canonical {
+  overflow-wrap: anywhere;
+  margin: 0 0 var(--space-4);
+  color: var(--brand-primary);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  line-height: var(--line-height-normal);
+}
+
 /* ── Load failure ───────────────────────────────────────────── */
 
 .pathway-load-error {
@@ -551,4 +600,20 @@
   .pathway-branch {
     grid-auto-columns: minmax(15rem, 1fr);
   }
+}
+
+/* ── Panel chrome ───────────────────────────────────────────────
+   The embedded SMART activity is ~470px wide (panel plan §9.1), and the card
+   padding that reads as generous across a lens reads as lost real estate there.
+   Scoped to `.panel-shell` rather than to a width, because the constraint is
+   the chrome the host gave us and not the viewport — the same reasoning
+   PageHeader.css's panel variant is built on. */
+.panel-shell .pathway-step,
+.panel-shell .pathway-provenance,
+.panel-shell .pathway-pending {
+  padding: var(--space-4);
+}
+
+.panel-shell .pathway-tier {
+  padding: var(--space-3);
 }

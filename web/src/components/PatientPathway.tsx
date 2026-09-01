@@ -366,8 +366,19 @@ export function PatientPathway({
       <header className="pathway-header">
         <h3 className="pathway-title">Suicide-safer care pathway</h3>
         <span className="pathway-subtitle">
-          Recommendations are real CDS Hooks 2.0 cards &middot;{' '}
-          <Link to="/guide/cds-service">also served over the wire</Link>
+          <span className="pathway-subtitle__line">
+            Recommendations are real CDS Hooks 2.0 cards &middot;{' '}
+            <Link to="/guide/cds-service">also served over the wire</Link>
+          </span>
+          {/* The way into the published protocol, and in the embedded SMART
+              panel the ONLY one: the panel has no sidebar, so the chart — its
+              overview — is where the definition has to be reachable from.
+              Deliberately not /guide/pathway, which is the implementer's
+              framing, pager into Tools and all. See pages/PathwayProtocol.tsx. */}
+          <span className="pathway-subtitle__line">
+            This rail is <strong>this patient</strong> &middot;{' '}
+            <Link to="/patient/pathway">see the published protocol</Link>
+          </span>
         </span>
       </header>
 

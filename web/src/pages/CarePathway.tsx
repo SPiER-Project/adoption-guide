@@ -23,6 +23,12 @@
  *     never produced, and a demo that hand-rolled its own ladder would be the
  *     same mistake with a bigger audience.
  *
+ * ⚠️ The rendering itself is NOT here. Phase 4 put the same protocol in the
+ * embedded SMART panel, and both surfaces draw it from
+ * `components/PathwayView.tsx` — one spine, one set of tier columns, one
+ * provenance block. What stays on this page is what makes it the *implementer's*
+ * view: the lede, the simulator, and provenance in the closing position.
+ *
  * ⚠️ A GUIDE SUB-PAGE. It renders inside AdoptionGuide's header, so it must not
  * render a page header of its own and must not pad its own root — `npm run
  * check:template` gates both, the header rule in the reverse direction (a page
@@ -37,7 +43,13 @@ import { cssrsScreener } from '@spier/core/data/questionnaires'
 import { buildNativeQuestionnaireResponse } from '@spier/core/lib/nativeQuestionnaireResponse'
 import { mapCSSRSScreener } from '@spier/core/lib/observationMappers/cssrsScreener'
 import { tierCodeForLevel } from '@spier/core/lib/reassessment'
-import { loadPathway, type PathwayAction, type PathwayDocumentation } from '@spier/core/lib/pathway'
+import {
+  PathwayLoadError,
+  PathwayPending,
+  PathwayProvenance,
+  PathwaySpine,
+} from '../components/PathwayView'
+import { usePathway } from '../hooks/usePathway'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import { guideHref } from '../data/guideSections'
 import '../css/CarePathway.css'
@@ -80,73 +92,6 @@ function questionText(linkId: string): string {
   return item.text
 }
 
-/* ─── Small presentational pieces ────────────────────────────── */
-
-function DocumentationNotes({ docs }: { docs: PathwayDocumentation[] }) {
-  if (docs.length === 0) return null
-  return (
-    <ul className="pathway-notes">
-      {docs.map((doc, i) => (
-        <li key={i} className="pathway-notes__item">
-          {doc.label && <span className="pathway-notes__label">{doc.label}</span>}
-          {doc.display && <span className="pathway-notes__text">{doc.display}</span>}
-          {doc.url && (
-            <a className="pathway-notes__link" href={doc.url} target="_blank" rel="noopener noreferrer">
-              {doc.url}
-            </a>
-          )}
-          {doc.resource && <code className="pathway-notes__canonical">{doc.resource}</code>}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function Conditions({ action }: { action: PathwayAction }) {
-  if (action.conditions.length === 0 && action.triggers.length === 0) return null
-  return (
-    <div className="pathway-gate">
-      {action.triggers.map((trigger, i) => (
-        <p key={`t${i}`} className="pathway-gate__row">
-          <span className="pathway-gate__kind">on {trigger.type}</span>
-          <code className="pathway-gate__expr">{trigger.data.join('  |  ')}</code>
-        </p>
-      ))}
-      {action.conditions.map((condition, i) => (
-        <p key={`c${i}`} className="pathway-gate__row">
-          <span className="pathway-gate__kind">{condition.kind}</span>
-          <code className="pathway-gate__expr">{condition.expression}</code>
-        </p>
-      ))}
-    </div>
-  )
-}
-
-function Realization({ action }: { action: PathwayAction }) {
-  if (!action.definitionCanonical) {
-    return <span className="pathway-obligation__protocol">Protocol only — no activity definition</span>
-  }
-  return (
-    <span className="pathway-obligation__def" title={action.definitionCanonical}>
-      {action.definitionLabel}
-    </span>
-  )
-}
-
-function Obligation({ action }: { action: PathwayAction }) {
-  return (
-    <li className="pathway-obligation">
-      <p className="pathway-obligation__title">{action.title}</p>
-      {action.description && <p className="pathway-obligation__desc">{action.description}</p>}
-      <p className="pathway-obligation__meta">
-        {action.stage && <span className="pathway-stage-chip">{action.stage.display ?? action.stage.code}</span>}
-        <Realization action={action} />
-      </p>
-      <DocumentationNotes docs={action.documentation} />
-    </li>
-  )
-}
-
 /* ─── The page ───────────────────────────────────────────────── */
 
 export function CarePathway() {
@@ -156,13 +101,7 @@ export function CarePathway() {
     q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, [Q6_RECENT]: false,
   })
 
-  const loaded = useMemo(() => {
-    try {
-      return { model: loadPathway(), error: null as string | null }
-    } catch (e) {
-      return { model: null, error: e instanceof Error ? e.message : String(e) }
-    }
-  }, [])
+  const loaded = usePathway()
 
   const simulation = useMemo(() => {
     // Mirror the form: `q6-recent` is `enableWhen` q6 = Yes, so an unanswered
@@ -195,23 +134,12 @@ export function CarePathway() {
   if (!loaded.model) {
     return (
       <div className="care-pathway">
-        <div className="pathway-load-error" role="alert">
-          <h3 className="pathway-load-error__title">The pathway artifact could not be read</h3>
-          <p>
-            This page renders <code>PlanDefinition/SPiERSuicideSaferCarePathway</code> and has nothing to
-            show without it. Run <code>npm run copy-fhir -- --force</code> in <code>web/</code>.
-          </p>
-          <pre className="pathway-load-error__detail">{loaded.error}</pre>
-        </div>
+        <PathwayLoadError error={loaded.error} />
       </div>
     )
   }
 
   const model = loaded.model
-  const { group: branch, tiers } = model.tierBranch
-  const spine = model.steps.filter(step => step.id !== branch.id)
-  const before = spine.slice(0, model.steps.indexOf(branch))
-  const after = spine.slice(model.steps.indexOf(branch))
 
   const toggle = (linkId: string) =>
     setAnswers(prev => {
@@ -220,25 +148,6 @@ export function CarePathway() {
       if (linkId === 'q6' && !next.q6) next[Q6_RECENT] = false
       return next
     })
-
-  const renderStep = (step: PathwayAction) => (
-    <li key={step.id} id={`pathway-${step.id}`} className="pathway-step">
-      <div className="pathway-step__head">
-        {step.stage && <span className="pathway-stage-chip">{step.stage.display ?? step.stage.code}</span>}
-        <h4 className="pathway-step__title">{step.title}</h4>
-      </div>
-      {step.description && <p className="pathway-step__desc">{step.description}</p>}
-      <Conditions action={step} />
-      <DocumentationNotes docs={step.documentation} />
-      {step.children.length > 0 && (
-        <ul className="pathway-obligations">
-          {step.children.map(child => (
-            <Obligation key={child.id} action={child} />
-          ))}
-        </ul>
-      )}
-    </li>
-  )
 
   return (
     <div className="care-pathway">
@@ -315,152 +224,33 @@ export function CarePathway() {
       {/* ── The spine ─────────────────────────────────────────── */}
       <section className="pathway-spine-section" aria-labelledby="pathway-spine-title">
         <h3 id="pathway-spine-title" className="pathway-section-title">The pathway</h3>
-        <ol className="pathway-spine">
-          {before.map(renderStep)}
-
-          <li id={`pathway-${branch.id}`} className="pathway-step pathway-step--branch">
-            <div className="pathway-step__head">
-              {branch.stage && (
-                <span className="pathway-stage-chip">{branch.stage.display ?? branch.stage.code}</span>
-              )}
-              <h4 className="pathway-step__title">{branch.title}</h4>
-            </div>
-            {branch.description && <p className="pathway-step__desc">{branch.description}</p>}
-            <DocumentationNotes docs={branch.documentation} />
-
-            {/* Every tier at once. The branch is the shape of the protocol, so
-                hiding two-thirds of it behind tabs would hide the thing the page
-                exists to show; wide content scrolls in its own container instead. */}
-            <div className="pathway-branch__scroll">
-              <div className="pathway-branch">
-                {tiers.map(tier => {
-                  const code = tier.tier?.code ?? 'unknown'
-                  const active = code === simulation.tierCode
-                  return (
-                    <section
-                      key={tier.id}
-                      className={
-                        `pathway-tier pathway-tier--${code}` +
-                        (active ? ' pathway-tier--active' : ' pathway-tier--dimmed')
-                      }
-                      aria-current={active ? 'true' : undefined}
-                    >
-                      <header className="pathway-tier__head">
-                        <h5 className="pathway-tier__title">{tier.title}</h5>
-                        {active && <span className="pathway-tier__flag">simulated result</span>}
-                      </header>
-                      {tier.description && <p className="pathway-tier__desc">{tier.description}</p>}
-                      <Conditions action={tier} />
-                      <ul className="pathway-obligations">
-                        {tier.children.map(child => (
-                          <Obligation key={child.id} action={child} />
-                        ))}
-                      </ul>
-                    </section>
-                  )
-                })}
-              </div>
-            </div>
-
-            {simulation.tierCode === 'no-risk' && (
+        <PathwaySpine
+          model={model}
+          activeTierCode={simulation.tierCode}
+          exitNote={
+            simulation.tierCode === 'no-risk' ? (
               <p className="pathway-branch__exit">
                 Every screener item is negative, so the simulated patient does not enter the pathway and none
                 of the tier obligations apply &mdash; the artifact states this on the assessment step above.
               </p>
-            )}
-          </li>
-
-          {after.map(renderStep)}
-        </ol>
+            ) : null
+          }
+        />
       </section>
 
       {/* ── Pending clinical definition (page copy, NOT the artifact) ── */}
-      <section className="pathway-pending" aria-labelledby="pathway-pending-title">
-        <h3 id="pathway-pending-title" className="pathway-section-title">Pending clinical definition</h3>
-        <p className="pathway-pending__lede">
-          Three things the source diagram states are deliberately <strong>absent from the published
-          artifact</strong>, because a published protocol must not encode what is not settled. They are
-          stated here as page copy, each with the question that blocks it.
-        </p>
-        <dl className="pathway-pending__list">
-          <dt>Step-down criteria</dt>
-          <dd>
-            The diagram de-escalates a tier on a &ldquo;No&rdquo; streak plus a milestone-free window, a
-            minimum time in tier and psychiatric-consultant agreement &mdash; with the streak asymmetric
-            (30 days at Low and Moderate, 90 at High). <em>Open question:</em> is that the rule, and how hard
-            is the gate? Until it is confirmed, publishing it would tell a site to de-escalate suicide risk
-            on an unreviewed rule.
-          </dd>
-          <dt>Milestone events</dt>
-          <dd>
-            The step-down rule counts &ldquo;milestone events&rdquo;, and the diagram&rsquo;s list is
-            explicitly open-ended &mdash; hospitalization, medication change, incarceration, geographic move,
-            recent homelessness, a new DCF/CPS/APS case, an impactful SDOH change, psychotic features,
-            substance reuse, &ldquo;but not limited to&rdquo;. <em>Open question:</em> what closes the list?
-            A partial CodeSystem would read as complete.
-          </dd>
-          <dt>Historical risk</dt>
-          <dd>
-            The diagram carries a fourth tier for a lifetime history with no current ideation. The published
-            C-SSRS scores that response pattern differently, and{' '}
-            <code>SPiERSuicideRiskTier</code> has no <code>historical</code> code. <em>Open question:</em> is
-            historical risk an orthogonal history flag rather than a fifth ordinal tier? The answer lands in
-            the concept layer once, and this pathway&rsquo;s branch stays low / moderate / high until it does.
-          </dd>
-        </dl>
-      </section>
+      <PathwayPending />
 
       {/* ── Provenance ────────────────────────────────────────── */}
-      <section className="pathway-provenance" aria-labelledby="pathway-provenance-title">
-        <h3 id="pathway-provenance-title" className="pathway-section-title">Provenance</h3>
+      <PathwayProvenance model={model}>
         <p className="pathway-provenance__lede">
           This screen is a rendering of a published artifact, and here it is. The app bundles the compiled
-          IG at build time and carries it wherever it runs &mdash; including into an EHR as a SMART app.
+          IG at build time and carries it wherever it runs &mdash; including into an EHR as a SMART app,
+          where the same renderer draws the same protocol under{' '}
+          <Link to="/patient/pathway">Published Care Pathway</Link>, with these facts leading rather than
+          closing.
         </p>
-        <dl className="pathway-provenance__facts">
-          <div className="pathway-provenance__fact">
-            <dt>Canonical</dt>
-            <dd><code>{model.url}</code></dd>
-          </div>
-          <div className="pathway-provenance__fact">
-            <dt>Version</dt>
-            <dd>{model.version}</dd>
-          </div>
-          <div className="pathway-provenance__fact">
-            <dt>Status</dt>
-            <dd>{model.status}{model.experimental ? ' · experimental' : ''}</dd>
-          </div>
-          {model.typeDisplay && (
-            <div className="pathway-provenance__fact">
-              <dt>Type</dt>
-              <dd>{model.typeDisplay}</dd>
-            </div>
-          )}
-          {model.publisher && (
-            <div className="pathway-provenance__fact">
-              <dt>Publisher</dt>
-              <dd>{model.publisher}</dd>
-            </div>
-          )}
-        </dl>
-
-        {model.relatedArtifacts.length > 0 && (
-          <div className="pathway-provenance__related">
-            <h4 className="pathway-provenance__subtitle">Measured by</h4>
-            <ul className="pathway-notes">
-              {model.relatedArtifacts.map((related, i) => (
-                <li key={i} className="pathway-notes__item">
-                  {related.label && <span className="pathway-notes__label">{related.label}</span>}
-                  {related.display && <span className="pathway-notes__text">{related.display}</span>}
-                  {related.resource && <code className="pathway-notes__canonical">{related.resource}</code>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <FhirJsonViewer title="PlanDefinition/SPiERSuicideSaferCarePathway" data={model.raw} />
-      </section>
+      </PathwayProvenance>
     </div>
   )
 }
