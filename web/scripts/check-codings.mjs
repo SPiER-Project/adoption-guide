@@ -195,7 +195,35 @@ const SCAN = [
   //
   // Live counts 2026-08-21: loinc 87 / snomed 5 / tho 25. Floors are roughly half,
   // per this file's convention — a floor asserts LIVENESS, not completeness.
-  { path: 'packages/core/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 43, snomed: 2, tho: 12 } },
+  //
+  // ⚠️ Re-checked 2026-09-01 while adding the CDS problem-list guidance card
+  // (docs/plans/suicide-safer-care-pathway.md Phase 5), because that change grows
+  // this source and nothing re-checks a floor on its own. Live counts now:
+  //
+  //   packages/core/src   loinc 62 / snomed 19 / tho 27
+  //
+  // SNOMED had drifted into the #232 shape: 5 → 19 (the #446 test move brought
+  // the mapper suites' hand-typed SNOMED Yes/No fixture literals into this tree)
+  // with the floor still at 2, i.e. ~10% of the real count, leaving 17 codings
+  // able to fall out of the scan with nothing going red. Raised 2 → 9.
+  //
+  // LOINC is deliberately NOT lowered to half of 62. 43 against 62 is a stronger
+  // floor than the convention asks for and it passes today; loosening a live,
+  // passing floor to match a rule of thumb would trade real protection for
+  // tidiness. THO (12 against 27) is left for the same reason.
+  { path: 'packages/core/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 43, snomed: 9, tho: 12 } },
+  // ─── No entry for packages/core/src/lib/cdsHooks, and why ───
+  //
+  // The #261 rule ("a substantial new coding source inside an already-scanned
+  // tree earns its own overlapping entry") was checked here and does not apply.
+  // The problem-list guidance card writes NO terminology of its own: its SNOMED
+  // CT concepts and its ICD-10-CM crosswalk are read at runtime out of the
+  // published PlanDefinition (packages/core/src/lib/cdsHooks/problemListCard.ts —
+  // Pattern A), where `validate-fhir.mjs --tx` and the IG Publisher check the
+  // SNOMED half at resource level. The whole directory contributes two LOINC
+  // literals, both `93374-7` in test fixtures, and zero SNOMED. An entry for it
+  // would declare floors of 1/0/0 — and a floor of 0 cannot fail, so it would
+  // assert nothing while implying coverage.
   // ─── Deliberately OVERLAPS web/src above ───────────────────
   //
   // Two independent contributors sit inside web/src — the runtime mappers

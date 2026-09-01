@@ -167,7 +167,13 @@ describe('the parser refuses what it cannot read', () => {
 
   it('throws on a coding system the model does not draw', () => {
     const plan = minimalPlan()
-    plan.action[0].code[0].coding.push({ system: 'http://snomed.info/sct', code: '1234', display: 'Something' })
+    // Not a real external system on purpose: check:codings verifies every
+    // LOINC/SNOMED/THO code+display literal in this tree against tx.fhir.org,
+    // and a deliberately-fake SNOMED coding is indistinguishable from drift —
+    // this fixture was `http://snomed.info/sct#1234` until the gate's first
+    // post-#455 run flagged it (#458). The test's contract is only "a system
+    // the model does not draw", which an example.org system states just as well.
+    plan.action[0].code[0].coding.push({ system: 'http://example.org/not-a-pathway-system', code: '1234', display: 'Something' })
     expect(() => parsePathway(plan)).toThrow(/does not\s+know|which this render model/)
   })
 

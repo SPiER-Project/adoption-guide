@@ -125,8 +125,11 @@ export function PatientChart() {
         isToolEnabled,
         recommendedNextStep: populationPatient?.recommendedNextStep ?? null,
         isSmartConnected,
+        // Feeds the tier-driven problem-list guidance card, which gates on the
+        // harmonized concept Observation rather than on a risk alert.
+        observations,
       }),
-    [activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected],
+    [activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected, observations],
   )
 
   return (

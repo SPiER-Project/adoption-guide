@@ -230,8 +230,13 @@ function conformsTo(resource: FhirResource | undefined, profile: string): boolea
  * the profile claim would score zero against real EHR data and against this
  * app's own output. The profile mandates the code, so matching the code can
  * never be wrong.
+ *
+ * Exported because the CDS problem-list guidance card asks the same question of
+ * the same resources (`lib/cdsHooks/problemListCard.ts`). A second predicate
+ * there would be a second opinion on what the concept layer *is* — the exact
+ * drift `RISK_CONCEPT_LOINC` living here once is meant to prevent.
  */
-function isRiskConcept(o: ObservationResource): boolean {
+export function isRiskConcept(o: ObservationResource): boolean {
   if (conformsTo(o, RISK_CONCEPT_PROFILE)) return true
   const codings = (o as { code?: { coding?: Array<{ system?: string; code?: string }> } }).code?.coding
   return !!codings?.some(c => c.system === 'http://loinc.org' && c.code === RISK_CONCEPT_LOINC)

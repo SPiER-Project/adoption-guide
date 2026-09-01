@@ -4,6 +4,8 @@ import { TOOLS } from '@spier/core/data/catalog'
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import { intentForLaunchPath, launchPathForIntent } from '@spier/core/lib/smartIntent'
+import { PROBLEM_LIST_CARD_ID } from '@spier/core/lib/cdsHooks/problemListCard'
+import { RISK_TIER_SYSTEM } from '@spier/core/lib/riskEpisode'
 
 // A real launchable tool from the catalog anchors the link/dedupe tests so they
 // stay honest against actual paths rather than invented ones.
@@ -227,6 +229,36 @@ describe('buildCdsCards — SMART launch links (panel step 5)', () => {
     const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
     const { intent } = JSON.parse(card.links![0].appContext!) as { intent: string }
     expect(launchPathForIntent(intent)).toBe(launchPath)
+  })
+})
+
+describe('buildCdsCards — problem-list guidance card (pathway Phase 5)', () => {
+  const conceptObs = (tier: string) => ({
+    resourceType: 'Observation' as const,
+    id: `obs-${tier}`,
+    status: 'final',
+    code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
+    effectiveDateTime: '2026-08-05T10:00:00.000Z',
+    valueCodeableConcept: {
+      coding: [{ system: RISK_TIER_SYSTEM, code: tier, display: `${tier} risk` }],
+    },
+  })
+
+  it('appends the guidance card when the latest concept tier is positive', () => {
+    const cards = build({ observations: [conceptObs('high')] })
+    const guidance = cards.find(c => c.extension?.['spier-card-id'] === PROBLEM_LIST_CARD_ID)
+    expect(guidance).toBeDefined()
+    // Last, and carrying no link — a documentation prompt sits behind the
+    // actionable cards and can never duplicate one of their destinations.
+    expect(cards.at(-1)).toBe(guidance)
+    expect(guidance!.links).toBeUndefined()
+  })
+
+  it('emits none for a negative tier, and none when no observations are passed', () => {
+    const negative = build({ observations: [conceptObs('no-risk')] })
+    expect(negative.some(c => c.extension?.['spier-card-id'] === PROBLEM_LIST_CARD_ID)).toBe(false)
+    const absent = build()
+    expect(absent.some(c => c.extension?.['spier-card-id'] === PROBLEM_LIST_CARD_ID)).toBe(false)
   })
 })
 
