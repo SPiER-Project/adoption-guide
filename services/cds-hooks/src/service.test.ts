@@ -136,6 +136,48 @@ describe('live path (prefetched QuestionnaireResponses)', () => {
   })
 })
 
+describe('problem-list guidance card (pathway Phase 5)', () => {
+  const PROBLEM_LIST_CARD_ID = 'cds-problem-list-guidance'
+
+  const guidanceCard = (patientId: string) =>
+    buildPatientViewResponse(request({ context: { patientId } })).cards.find(
+      (c) => c.extension?.['spier-card-id'] === PROBLEM_LIST_CARD_ID,
+    )
+
+  it('surfaces guidance for a patient whose risk status is documented at a positive tier', () => {
+    // patient-009 carries a 93374-7 Observation valued `high` on the harmonized
+    // tier system (p009-risk-status). This is the whole point of the Worker
+    // change: the scenario's Observations now reach the card builder.
+    const card = guidanceCard('patient-009')
+    expect(card).toBeDefined()
+    expect(card!.indicator).toBe('warning')
+    expect(card!.source.url).toBe(
+      'http://thespierproject.org/fhir/PlanDefinition/SPiERSuicideSaferCarePathway',
+    )
+    expect(card!.detail).toContain('6471006')
+    expect(card!.detail).toContain('R45.851')
+    // The diagram's wrong ICD-10 code. No gate checks ICD-10 literals, so the
+    // assertion is the control — see docs/reference/suicide-safer-care-pathway-spec.md
+    // §"ICD-10 correction (Phase 1d)".
+    expect(card!.detail).not.toContain('Z91.82')
+  })
+
+  it('never offers to write the Condition', () => {
+    // Decision 5 of docs/plans/suicide-safer-care-pathway.md, asserted on the
+    // wire response a host EHR actually receives.
+    const card = guidanceCard('patient-009')!
+    expect(card.suggestions).toBeUndefined()
+    expect(card.selectionBehavior).toBeUndefined()
+    expect(card.links).toBeUndefined()
+  })
+
+  it('stays silent for a patient with no harmonized tier on record', () => {
+    // patient-001's only 93374-7 Observation carries an ASQ-native result, not a
+    // tier — and the card deliberately does not translate one into the other.
+    expect(guidanceCard('patient-001')).toBeUndefined()
+  })
+})
+
 describe('SMART launch links (panel step 5)', () => {
   const LAUNCH = 'https://spier-adoption-guide.example/'
 

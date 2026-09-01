@@ -12,6 +12,9 @@ import { RISK_LEVEL_ORDER } from '../observationMappers'
 import type { RiskAlert } from '../observationMappers'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
 import { intentForLaunchPath } from '../smartIntent'
+import type { ObservationResource } from '../../types/fhir'
+import { makeUuid, truncateSummary } from './cardShape'
+import { buildProblemListGuidanceCard } from './problemListCard'
 import type { Card, CdsIndicator, CdsLink, Coding } from './types'
 import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 
@@ -38,7 +41,6 @@ const STAGE_BLURB: Record<StageId, string> = {
 // path lives after the `#`.
 const APP_BASE_URL = 'https://spier-project.github.io/adoption-guide/'
 const SOURCE_LABEL = 'SPiER Suicide-Safer Pathway'
-const MAX_SUMMARY = 140
 
 /** The one field patients.json still hand-curates (see lib/registry.ts). */
 export interface RecommendedNextStep {
@@ -76,6 +78,17 @@ export interface BuildCdsCardsInput {
   isSmartConnected: boolean
   /** Set by a host-facing service to emit `type: "smart"` links. See above. */
   smartLaunch?: SmartLaunchLinks
+  /**
+   * The patient's Observations, for the tier-driven guidance cards.
+   *
+   * Optional, and an omission means "this caller has no observation slice" — it
+   * yields no guidance card rather than a wrong one. `riskAlerts` is not a
+   * substitute: an alert is what an instrument said, while the guidance card is
+   * gated on the *harmonized concept* the record carries (LOINC 93374-7 +
+   * SPiERSuicideRiskTier), which is what the published pathway's tier branch
+   * conditions on. See `problemListCard.ts`.
+   */
+  observations?: ObservationResource[]
 }
 
 function appUrlForPath(path: string): string {
@@ -114,11 +127,6 @@ function cardLink(
   return { link: { label, url, type: 'absolute' }, routerPath: [url, path] }
 }
 
-/** CDS Hooks caps `summary` at 140 chars — truncate with an ellipsis. */
-function truncateSummary(text: string): string {
-  return text.length <= MAX_SUMMARY ? text : `${text.slice(0, MAX_SUMMARY - 1).trimEnd()}…`
-}
-
 // Stage/next-step card urgency: acute/high → critical, moderate → warning,
 // low/none → info. Matches the pre-refactor urgent/recommended/routine ladder.
 function indicatorForLevel(level: RiskAlert['level']): CdsIndicator {
@@ -131,14 +139,6 @@ function stageTopic(stageId: string): Coding {
   return { system: PATHWAY_STAGE_SYSTEM, code: stageId, display: stageById(stageId)?.title ?? stageId }
 }
 
-// Available in browsers and Node ≥19; degrade to undefined elsewhere so the
-// builder never throws.
-function makeUuid(): string | undefined {
-  return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : undefined
-}
-
 export function buildCdsCards({
   activeStageId,
   riskAlerts,
@@ -146,6 +146,7 @@ export function buildCdsCards({
   recommendedNextStep,
   isSmartConnected,
   smartLaunch,
+  observations,
 }: BuildCdsCardsInput): Card[] {
   const cards: Card[] = []
   // Router paths already surfaced as a link, so alert cards don't duplicate them.
@@ -255,6 +256,13 @@ export function buildCdsCards({
     })
     seenPaths.add(alert.suggestedAction.path)
   }
+
+  // Card #n+1: tier-driven clinician guidance, read out of the published
+  // pathway. Last on purpose — it is a documentation prompt, and the actionable
+  // cards above are what a clinician should reach first. It carries no link, so
+  // it can never be a duplicate of one.
+  const guidance = buildProblemListGuidanceCard(observations ?? [])
+  if (guidance) cards.push(guidance)
 
   return cards
 }

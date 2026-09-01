@@ -5,9 +5,12 @@
  * hosted endpoint and the in-app Patient Chart derive the same cards from the
  * same pipeline:
  *
- *   QuestionnaireResponse(s) → observationMappers → RiskAlert[]
+ *   QuestionnaireResponse(s) → observationMappers → RiskAlert[] + Observation[]
  *                            → derivePathwayStatus → activeStageId
  *                            → buildCdsCards → CDS Hooks 2.0 Card[]
+ *
+ * The Observations are what the tier-driven guidance cards read (the harmonized
+ * concept, LOINC 93374-7) — see packages/core/src/lib/cdsHooks/problemListCard.ts.
  *
  * Two input paths:
  *   1. Live path — the CDS client prefetched the patient's QuestionnaireResponses.
@@ -33,7 +36,7 @@ import {
 import { mapResponseToObservations, type RiskAlert } from '@spier/core/lib/observationMappers'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import patientsJson from '@spier/demo-population/patients.json'
-import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import type { ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import type { CdsHookRequest, CdsServiceDefinition } from './types'
 
 /** Machine id — the patient-view invocation path is `/cds-services/{SERVICE_ID}`. */
@@ -118,6 +121,23 @@ function riskAlertsFor(responses: QuestionnaireResponseResource[]): RiskAlert[] 
 }
 
 /**
+ * The Observations the mappers derive from a prefetched set of responses.
+ *
+ * The live path has no Observation prefetch — the CDS client hands us
+ * QuestionnaireResponses — so the concept-layer Observations the tier-driven
+ * guidance cards read are the ones SPiER derives here, exactly as the app does
+ * on submission. Only the instruments that land *directly* on the harmonized
+ * tier (SAFE-T, PSS-Full) therefore reach the problem-list card via this path;
+ * see `problemListCard.ts` for why nothing translates a native result into a
+ * tier on the way past.
+ */
+function derivedObservationsFor(
+  responses: QuestionnaireResponseResource[],
+): ObservationResource[] {
+  return responses.flatMap((qr) => mapResponseToObservations(qr)?.observations ?? [])
+}
+
+/**
  * Build the patient-view CDS response for a hook request.
  *
  * Live path (prefetch has QuestionnaireResponses): derive risk + stage from
@@ -164,6 +184,7 @@ export function buildPatientViewResponse(
       recommendedNextStep: null,
       isSmartConnected: true,
       smartLaunch,
+      observations: derivedObservationsFor(prefetched),
     })
   } else {
     const scenario = patientId ? POPULATION_SCENARIOS[patientId] : undefined
@@ -181,6 +202,7 @@ export function buildPatientViewResponse(
       recommendedNextStep: (patientId && RECOMMENDED_BY_PATIENT[patientId]) || null,
       isSmartConnected: false,
       smartLaunch,
+      observations: scenario.observations,
     })
   }
 
