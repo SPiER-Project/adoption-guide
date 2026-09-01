@@ -300,7 +300,7 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
-    description: 'C-SSRS Level 4: Some intent to act on thoughts, past month. Moderate risk tier.',
+    description: 'C-SSRS Level 4: Some intent to act on thoughts, past month. High risk tier — items 4 and 5 share the published instrument’s red band.',
   },
   {
     id: 'cssrs-plan-intent',
@@ -318,7 +318,7 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueBoolean',
     usedBy: TOOLS_CSSRS_PAST_MONTH,
-    description: 'C-SSRS Q6 / Behavior section: any lifetime suicidal behavior or preparatory act. High risk tier. Note this is a finding code, not a question — LOINC scopes it to Lifetime while the ideation items above are past-month.',
+    description: 'C-SSRS Q6 / Behavior section: any lifetime suicidal behavior or preparatory act. Tier depends on recency — high if within the past three months (the nested Q6 follow-up, LOINC 93269-9), moderate if lifetime-only. Note this is a finding code, not a question — LOINC scopes it to Lifetime while the ideation items above are past-month.',
   },
   {
     id: 'suicide-risk-level',
@@ -342,7 +342,7 @@ export const BINDINGS: Binding[] = [
      * concept layer until something produces `cams-ssf-overall-risk`.
      */
     usedBy: [...TOOLS_CSSRS, 'TL-019', 'TL-027'],
-    description: 'Derived risk level: Low (Q1–2), Moderate (Q3–4), High (Q5 or Q6+recent). Shared by the C-SSRS Screener, Full, Since Last Visit, and Pediatric versions; reused as CAMS overall risk. Value = SPiER-local cssrs-risk-level tier; crosswalked to the common suicide-risk tier.',
+    description: 'Derived risk level, per the published C-SSRS Screener with Triage Points: Low (Q1–2), Moderate (Q3, or Q6 lifetime-only), High (Q4, Q5, or Q6 within the past three months). Shared by the C-SSRS Screener, Full, Since Last Visit, and Pediatric versions; reused as CAMS overall risk. Value = SPiER-local cssrs-risk-level tier; crosswalked to the common suicide-risk tier.',
   },
   {
     id: 'cssrs-actual-lethality',
