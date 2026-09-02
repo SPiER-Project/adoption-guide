@@ -9,6 +9,9 @@ the decision that permits a mock we control at all is
 [`embedded-panel-smart-launch.md`](../../docs/plans/embedded-panel-smart-launch.md) §8,
 and it is permitted only with the guardrails in §1 of that plan.
 
+> **Running the demo?** [`docs/mock-ehr-demo-script.md`](../../docs/mock-ehr-demo-script.md)
+> is the ten-minute *what to click*. This README is the *why*.
+
 > ⚠️ **Nothing observed here is evidence of interoperability.** This server is
 > controlled by the project it is demonstrating. The portability claim is made
 > separately, by loading the same Bundles into a public sandbox we do not
