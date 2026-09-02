@@ -5,11 +5,15 @@
  * (2026-09-01) and the fix for each:
  *
  *  1. "Do now" beside "Complete" on the same node. A card on a completed stage
- *     is guidance, not a to-do; only a stage the patient is on or has not
- *     reached gets the to-do flag.
+ *     is guidance, not a to-do; only a stage the patient has not reached gets
+ *     the to-do flag. (2026-09-02: the ACTIVE stage lost it too — "Do now" beside
+ *     "You are here" above an "Urgent" card titled "Next step" was four labels
+ *     for one state. The active node keeps its one status pill.)
  *  2. Five lines of meta before the first stage. In panel chrome the subtitle
  *     lines become a footnote under the rail, and the protocol link survives —
- *     in the panel it is the only way into the published pathway.
+ *     in the panel it is the only way into the published pathway. (2026-09-02:
+ *     the rail's title and progress line left the panel too — the chart's
+ *     PageHeader carries them as title + lede, via `PathwayProgress`.)
  *  3. A 200-word card first. Long detail clips behind "Show more".
  *  4. "Configure tools in your implementation", addressed to someone who is not
  *     in a host chart. Hidden in panel chrome.
@@ -25,7 +29,7 @@ import type { Card } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
 import { PresentationProvider } from '../context/PresentationProvider'
 import type { ChromeMode } from '../context/PresentationContext'
-import { PatientPathway } from './PatientPathway'
+import { PatientPathway, PathwayProgress } from './PatientPathway'
 
 afterEach(cleanup)
 
@@ -77,10 +81,16 @@ function node(container: HTMLElement, stageIndex: number): HTMLElement {
 }
 
 describe('PatientPathway — to-do versus guidance', () => {
-  it('flags a card on the active stage and on an upcoming stage as "Do now"', () => {
+  it('flags a card on an UPCOMING stage "Do now", and leaves the active stage to its one pill', () => {
     const { container } = renderRail('ehr', [card(3), card(5)])
-    expect(node(container, 3).querySelector('.pathway-node-flag')?.textContent).toBe('Do now')
+    // Upcoming: the flag is the only thing saying this row is actionable.
     expect(node(container, 5).querySelector('.pathway-node-flag')?.textContent).toBe('Do now')
+    // Active: "You are here" is the one label; the open card says what to do.
+    expect(node(container, 3).querySelector('.pathway-node-flag')).toBeNull()
+    expect(node(container, 3).querySelector('.pathway-node-status')?.textContent).toBe('You are here')
+    expect(node(container, 3).querySelector('.cds-card')).not.toBeNull()
+    // …and the node still reads as needing attention (border), just not twice.
+    expect(node(container, 3).classList.contains('pathway-node--attention')).toBe(true)
   })
 
   it('labels a card on a COMPLETED stage "Guidance", never "Do now"', () => {
@@ -112,9 +122,36 @@ describe('PatientPathway — the header in panel chrome', () => {
     expect(foot).not.toBeNull()
     // The panel has no sidebar, so this link is the only exit to the definition.
     expect(foot!.querySelector('a[href="/patient/pathway"]')).not.toBeNull()
-    // The title and the progress line stay: they are the answer, not the meta.
+    // The rail's own title and progress line are NOT rendered in the panel: the
+    // chart's PageHeader carries both (title + `PathwayProgress` lede), so the
+    // panel shows one heading above the first stage rather than three.
+    expect(container.querySelector('.pathway-title')).toBeNull()
+    expect(container.querySelector('.pathway-progress')).toBeNull()
+  })
+
+  it('keeps the title and progress line in the full shell', () => {
+    const { container } = renderRail('ehr', [card(3)])
     expect(container.querySelector('.pathway-title')?.textContent).toBe('Suicide-safer care pathway')
-    expect(container.querySelector('.pathway-progress')).not.toBeNull()
+    expect(container.querySelector('.pathway-progress')?.textContent).toContain('Now at step 4 of 8')
+    expect(container.querySelector('.pathway-progress')?.textContent).toContain('stages with activity')
+  })
+})
+
+describe('PathwayProgress — the one-line status the chart header carries in the panel', () => {
+  it('compact form: step, stage title and action count, without the activity clause', () => {
+    const { container } = render(<p><PathwayProgress statuses={statuses} actionCount={1} compact /></p>)
+    const text = container.textContent ?? ''
+    expect(text).toContain(`Step 4 of ${STAGES.length}`)
+    expect(text).toContain(STAGES[3].title)
+    expect(text).toContain('1 recommended action')
+    expect(text).not.toContain('stages with activity')
+    expect(text).not.toContain('Now at')
+  })
+
+  it('says so when every stage is passed', () => {
+    const passed = Object.fromEntries(STAGES.map(s => [s.id, 'complete' as StageStatus]))
+    const { container } = render(<p><PathwayProgress statuses={passed} actionCount={0} compact /></p>)
+    expect(container.textContent).toBe(`All ${STAGES.length} stages passed`)
   })
 })
 

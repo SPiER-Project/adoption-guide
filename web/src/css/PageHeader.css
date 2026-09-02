@@ -130,6 +130,14 @@
   display: none;
 }
 
+/* A top-level panel page — the chart — has no `up`, and its eyebrow then names a
+   lens ("Patient View") that means nothing inside a host chart: the host's own
+   navigation says where the clinician is. With `up` the eyebrow is the way back
+   out and stays; without it, it is a label for a sidebar that is not there. */
+.panel-shell .page-header__eyebrow:not(:has(.page-header__up)) {
+  display: none;
+}
+
 .panel-shell .page-header__title {
   margin: 0;
   font-size: var(--font-size-base);
@@ -142,9 +150,17 @@
 }
 
 /* The lede keeps its content but leaves the header's line — most workflow views
-   pass one, and dropping it would remove information rather than chrome. */
+   pass one, and dropping it would remove information rather than chrome. On the
+   chart it is the pathway's status line ("Step 3 of 8 — …"), which is the answer
+   rather than meta, so it reads at the panel's body size rather than the footnote
+   size. */
 .panel-shell .page-header__lede {
   flex-basis: 100%;
   margin: 0;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.panel-shell .page-header__lede strong {
+  color: var(--text-strong);
 }

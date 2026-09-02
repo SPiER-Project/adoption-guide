@@ -273,9 +273,18 @@ describe('the chart leads with the launch, and carries no controls', () => {
     const hood = body.indexOf('<details class="hood"')
     expect(hood).toBeGreaterThan(body.indexOf('id="cds-cards"'))
     expect(body).not.toMatch(/<details class="hood"[^>]*\sopen/)
-    for (const evidence of ['id="writes-summary"', 'id="cast-status"', 'id="cast-form"', 'id="cast-log"', 'Demonstration host only']) {
+    for (const evidence of ['id="dock-sent"', 'id="writes-summary"', 'id="cast-status"', 'id="cast-form"', 'id="cast-log"', 'Demonstration host only']) {
       expect(body.indexOf(evidence), evidence).toBeGreaterThan(hood)
     }
+    // The launch-context readout (#dock-sent) is evidence too, and it used to be a
+    // permanent footer INSIDE the dock — 73px of the panel's height spent on
+    // `patient=… hub.topic=…` for the whole session. It lives in the drawer now;
+    // the dock keeps only the frame and a place for a launch error to show.
+    const dockStart = body.indexOf('<aside class="panel-dock')
+    const dockEnd = body.indexOf('</aside>', dockStart)
+    expect(dockStart).toBeGreaterThan(-1)
+    expect(body.slice(dockStart, dockEnd)).not.toContain('id="dock-sent"')
+    expect(body.slice(dockStart, dockEnd)).toContain('id="dock-error"')
     // The CDS cards themselves stay OUT of the drawer: they are the second
     // launch path, and a launch path is not evidence.
     expect(body.indexOf('id="cds-cards"')).toBeLessThan(hood)

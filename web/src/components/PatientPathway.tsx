@@ -197,6 +197,13 @@ function StageNode({
   const hasCards = cards.length > 0
   const needsAttention = hasCards && (state === 'active' || state === 'upcoming')
   const isGuidance = hasCards && !needsAttention
+  // The "Do now" flag is for a to-do on a stage the patient has NOT reached —
+  // there it is the only thing saying the row is actionable. On the active
+  // stage it sat beside "You are here", above a red "Urgent" pill, beside a
+  // card titled "Next step": four labels for one state, and a reader could not
+  // tell an emergency from the ordinary next thing. The active node keeps its
+  // one status pill; the open card underneath is what says what to do.
+  const showTodoFlag = needsAttention && state === 'upcoming'
 
   // "Potential actions" at this stage: the tools that would satisfy it. This is
   // what makes the rail readable as a *rule set* rather than only as a history —
@@ -244,7 +251,7 @@ function StageNode({
               {summary && !open && <span className="pathway-node-summary">{summary}</span>}
             </span>
             <span className="pathway-node-aside">
-              {needsAttention && (
+              {showTodoFlag && (
                 <span className="pathway-node-flag">
                   {cards.length === 1 ? 'Do now' : `${cards.length} to do`}
                 </span>
@@ -350,6 +357,58 @@ function StageNode({
   )
 }
 
+/* ---------- The one-line status ---------- */
+
+/**
+ * Where the patient is on the pathway, in one line. Exported because in panel
+ * chrome it is NOT rendered by the rail: the chart's `PageHeader` carries it as
+ * the lede, so the panel shows one title and one status line instead of a page
+ * title, a rail title and a two-line progress sentence stacked above the first
+ * stage (112px of a 740px frame, measured 2026-09-02). `compact` drops the
+ * "N of 8 stages with activity" clause, which the rail's markers already show.
+ */
+export function PathwayProgress({
+  statuses,
+  actionCount,
+  compact = false,
+}: {
+  statuses: Record<string, StageStatus>
+  actionCount: number
+  compact?: boolean
+}) {
+  const withActivity = STAGES.filter(s => statuses[s.id] === 'complete').length
+  const activeStage = STAGES.find(s => statuses[s.id] === 'active')
+  return (
+    <>
+      {activeStage ? (
+        <>
+          <strong>
+            {compact ? 'Step' : 'Now at step'} {STAGES.indexOf(activeStage) + 1} of {STAGES.length}
+          </strong>
+          {' — '}
+          {activeStage.title}
+        </>
+      ) : (
+        <strong>All {STAGES.length} stages passed</strong>
+      )}
+      {!compact && (
+        <>
+          {' · '}
+          {withActivity} of {STAGES.length} stages with activity
+        </>
+      )}
+      {actionCount > 0 && (
+        <>
+          {' · '}
+          <span className="pathway-progress-actions">
+            {actionCount} recommended {actionCount === 1 ? 'action' : 'actions'}
+          </span>
+        </>
+      )}
+    </>
+  )
+}
+
 /* ---------- The rail ---------- */
 
 export function PatientPathway({
@@ -414,22 +473,23 @@ export function PatientPathway({
       return next
     })
 
-  const withActivity = STAGES.filter(s => statuses[s.id] === 'complete').length
   // The panel's vertical budget is the whole reason PanelShell exists, and this
   // header spent five lines of it on meta before the first stage. In panel chrome
-  // the two subtitle lines become one footnote under the rail; the links survive
-  // because in the panel the second one is the ONLY way into the published protocol.
+  // the rail renders NO header and NO progress line of its own: the chart's
+  // PageHeader carries the title and `PathwayProgress` as its lede (see
+  // PatientChart.tsx), and the subtitle lines become one footnote under the
+  // rail — the links survive because in the panel the protocol link is the ONLY
+  // way into the published pathway.
   const inPanel = usePresentation().chromeMode === 'panel'
   const actionCount = cards.length
-  const activeStage = STAGES.find(s => statuses[s.id] === 'active')
   // First stage carrying a recommendation — where #recommendations should land.
   const recommendationsHost = STAGES.find(s => (byStage.get(s.id)?.length ?? 0) > 0)?.id
 
   return (
     <section id="activity" className="pathway">
-      <header className="pathway-header">
+      {!inPanel && <header className="pathway-header">
         <h3 className="pathway-title">Suicide-safer care pathway</h3>
-        {!inPanel && <span className="pathway-subtitle">
+        <span className="pathway-subtitle">
           <span className="pathway-subtitle__line">
             Recommendations are real CDS Hooks 2.0 cards &middot;{' '}
             <Link to="/guide/cds-service">also served over the wire</Link>
@@ -443,30 +503,14 @@ export function PatientPathway({
             This rail is <strong>this patient</strong> &middot;{' '}
             <Link to="/patient/pathway">see the published protocol</Link>
           </span>
-        </span>}
-      </header>
+        </span>
+      </header>}
 
-      <p className="pathway-progress">
-        {activeStage ? (
-          <>
-            <strong>Now at step {STAGES.indexOf(activeStage) + 1} of {STAGES.length}</strong>
-            {' — '}
-            {activeStage.title}
-          </>
-        ) : (
-          <strong>All {STAGES.length} stages passed</strong>
-        )}
-        {' · '}
-        {withActivity} of {STAGES.length} stages with activity
-        {actionCount > 0 && (
-          <>
-            {' · '}
-            <span className="pathway-progress-actions">
-              {actionCount} recommended {actionCount === 1 ? 'action' : 'actions'}
-            </span>
-          </>
-        )}
-      </p>
+      {!inPanel && (
+        <p className="pathway-progress">
+          <PathwayProgress statuses={statuses} actionCount={actionCount} />
+        </p>
+      )}
 
       {orphans.length > 0 && (
         <div className="pathway-orphan-cards">
