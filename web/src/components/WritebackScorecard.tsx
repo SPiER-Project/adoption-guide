@@ -19,35 +19,50 @@
 import type { WritebackReport, WriteStepResult, WriteTier } from '@spier/core/lib/writeback/types'
 import '../css/WritebackScorecard.css'
 
-/** The ladder's rungs, in ascending tier order (see writeback/types.ts). */
+/**
+ * The ladder's rungs, in ascending tier order (see writeback/types.ts).
+ *
+ * `label` says what the rung IS in plain words — what was, or was not, saved to
+ * the EHR; `tierLabel` carries the tier number and resource type underneath it.
+ * "Tier 0 — Document" was the label, and "tier", "rung" and "floor" are
+ * SPiER-internal words: a clinician reading the panel after submitting a form
+ * needs to know their form was saved and its score was not, not which rung of
+ * which ladder that corresponds to. The tier stays visible because the
+ * scorecard also feeds the adoption rubric, where the tier is the point.
+ */
 const RUNGS: Array<{
   tier: WriteTier
   resourceType: string
   label: string
+  tierLabel: string
   blurb: string
 }> = [
   {
     tier: 0,
     resourceType: 'DocumentReference',
-    label: 'Tier 0 — Document',
+    label: 'A readable copy of the completed form',
+    tierLabel: 'Tier 0 · DocumentReference',
     blurb: 'The universal floor: a readable rendering plus the raw QuestionnaireResponse as recoverable FHIR JSON.',
   },
   {
     tier: 1,
     resourceType: 'QuestionnaireResponse',
-    label: 'Tier 1 — Questionnaire response',
+    label: 'The completed form itself',
+    tierLabel: 'Tier 1 · QuestionnaireResponse',
     blurb: 'The discrete capture, and the resource every higher rung references.',
   },
   {
     tier: 2,
     resourceType: 'Observation',
-    label: 'Tier 2 — Observations',
+    label: 'Its scores and risk level',
+    tierLabel: 'Tier 2 · Observation',
     blurb: 'Scored and harmonized results, immediately computable by the EHR.',
   },
   {
     tier: 3,
     resourceType: 'Condition',
-    label: 'Tier 3 — Problem-list proposal',
+    label: 'A problem-list proposal',
+    tierLabel: 'Tier 3 · Condition',
     blurb: 'Opt-in only. A screening-derived Condition is never written without explicit clinician confirmation.',
   },
 ]
@@ -88,7 +103,7 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
     <section className="writeback-scorecard" aria-labelledby="writeback-scorecard-heading">
       <div className="writeback-scorecard__head">
         <h3 className="writeback-scorecard__title" id="writeback-scorecard-heading">
-          EHR writeback
+          Saved to the EHR
         </h3>
         <p className="writeback-scorecard__summary">
           {written.length} of {report.result.steps.length} attempted{' '}
@@ -115,7 +130,10 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
               key={rung.tier}
             >
               <div className="writeback-scorecard__rung-head">
-                <span className="writeback-scorecard__rung-label">{rung.label}</span>
+                <span className="writeback-scorecard__rung-label">
+                  {rung.label}
+                  <span className="writeback-scorecard__rung-tier">{rung.tierLabel}</span>
+                </span>
                 <span className="writeback-scorecard__badge">
                   {step ? outcomeLabel(step.outcome) : 'Not applicable'}
                 </span>

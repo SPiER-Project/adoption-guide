@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChartSectionHeader } from './ChartSectionHeader'
 import { groupByEpisode, type EpisodeRecord } from '@spier/core/lib/episodeRecord'
 import { artifactLabel, formatDateTime } from '../lib/chartDisplay'
 import { displayFor, ENTRY_REASONS, episodeCurrentTier, RISK_TIERS } from '@spier/core/lib/riskEpisode'
@@ -167,8 +168,15 @@ function EpisodeCard({ record }: { record: EpisodeRecord }) {
   )
 }
 
-export function EpisodeRecordView(input: Parameters<typeof groupByEpisode>[0]) {
+export function EpisodeRecordView({
+  defaultCollapsed = false,
+  ...input
+}: Parameters<typeof groupByEpisode>[0] & {
+  /** Start closed — the embedded panel does, the full shell does not. */
+  defaultCollapsed?: boolean
+}) {
   const [showUnassigned, setShowUnassigned] = useState(false)
+  const [open, setOpen] = useState(!defaultCollapsed)
   const { records, unassigned } = useMemo(() => groupByEpisode(input), [input])
 
   // A patient with no episode has no record to show. The pathway and documents
@@ -181,12 +189,13 @@ export function EpisodeRecordView(input: Parameters<typeof groupByEpisode>[0]) {
 
   return (
     <section id="episode-record" className="episode-record-section">
-      <header className="chart-section-header">
-        <h3 className="chart-section-title">Episode record</h3>
-        <span className="chart-section-count">
-          {records.length} {records.length === 1 ? 'episode' : 'episodes'}
-        </span>
-      </header>
+      <ChartSectionHeader
+        title="Episode record"
+        count={`${records.length} ${records.length === 1 ? 'episode' : 'episodes'}`}
+        collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'episode-record-body' }}
+      />
+      {open && (
+        <div id="episode-record-body">
       <p className="episode-record-note">
         Assembled by following references — each artifact names the contact it was
         recorded at, and each contact names its episode. This is the same path a
@@ -267,6 +276,8 @@ export function EpisodeRecordView(input: Parameters<typeof groupByEpisode>[0]) {
               )}
             </div>
           )}
+        </div>
+      )}
         </div>
       )}
     </section>

@@ -125,3 +125,15 @@
   line-height: var(--line-height-normal);
   color: var(--text-faint);
 }
+
+/* The tier and resource type, under the plain-language rung label. Kept
+   visible because the scorecard also feeds the adoption rubric, where the tier
+   is the point; demoted because a clinician who just submitted a form is not
+   its audience. */
+.writeback-scorecard__rung-tier {
+  display: block;
+  font-size: var(--font-size-2xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+}

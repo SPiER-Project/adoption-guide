@@ -8,6 +8,7 @@
  */
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChartSectionHeader } from './ChartSectionHeader'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { carePlanDisplayName, type RenderableResource } from '../lib/chartDisplay'
 import { stageForResponse } from '@spier/core/lib/patientPathway'
@@ -25,11 +26,15 @@ export function PatientDocuments({
   responses,
   carePlans,
   observations,
+  defaultCollapsed = false,
 }: {
   responses: StoredResponseLike[]
   carePlans: FhirResourceLike[]
   observations: FhirResourceLike[]
+  /** Start closed — the embedded panel does, the full shell does not. */
+  defaultCollapsed?: boolean
 }) {
+  const [open, setOpen] = useState(!defaultCollapsed)
   const [filter, setFilter] = useState<DocFilter>('all')
   const [openDoc, setOpenDoc] = useState<string | null>(null)
 
@@ -86,10 +91,13 @@ export function PatientDocuments({
 
   return (
     <section id="documents" className="documents-section">
-      <header className="chart-section-header">
-        <h3 className="chart-section-title">Patient Documents</h3>
-        <span className="chart-section-count">{docs.length} total</span>
-      </header>
+      <ChartSectionHeader
+        title="Patient Documents"
+        count={`${docs.length} total`}
+        collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'documents-body' }}
+      />
+      {open && (
+        <div id="documents-body">
       <p className="documents-note">
         Every FHIR resource captured for this patient, regardless of encounter or stage. The
         "show me everything" view.
@@ -141,6 +149,8 @@ export function PatientDocuments({
           )
         })}
       </ul>
+        </div>
+      )}
     </section>
   )
 }

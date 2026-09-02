@@ -47,6 +47,18 @@ describe('buildCdsCards — level → indicator', () => {
     expect(build({ riskAlerts: [alert({ level: 'low' })] })[0].indicator).toBe('info')
     expect(build({ riskAlerts: [] })[0].indicator).toBe('info')
   })
+
+  it('never marks the reporting stage urgent, whatever the alert level', () => {
+    // A high-risk patient whose remaining step is "measure and share" was shown
+    // an URGENT card whose action was "open the measure dashboard". Urgency
+    // belongs to the alert cards, which still carry it.
+    const cards = build({
+      activeStageId: 'measure-and-share',
+      riskAlerts: [alert({ level: 'acute' })],
+    })
+    expect(cards[0].extension?.['spier-stage-id']).toBe('measure-and-share')
+    expect(cards[0].indicator).toBe('info')
+  })
 })
 
 describe('buildCdsCards — stage card shape', () => {
