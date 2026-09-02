@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { Home, BookOpen, Users, User, ExternalLink, type LucideIcon } from 'lucide-react'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
@@ -97,7 +98,7 @@ interface LensChild {
 interface Lens {
   to: string
   label: string
-  icon: string
+  icon: LucideIcon
   matchPrefix: string
   children?: LensChild[]
 }
@@ -112,13 +113,13 @@ function buildLenses(patientBase: string): Lens[] {
       // since the redirect lands the router on /overview.
       to: '/overview',
       label: 'Overview',
-      icon: '⌂', // house
+      icon: Home,
       matchPrefix: '/overview',
     },
     {
       to: '/guide',
       label: 'Adoption Guide',
-      icon: '\u{1F4DA}', // books
+      icon: BookOpen,
       matchPrefix: '/guide',
       // Children mirror the canonical guide section list so the sidebar can never
       // drift from the routes or the in-page pager (see data/guideSections.ts).
@@ -133,7 +134,7 @@ function buildLenses(patientBase: string): Lens[] {
     {
       to: '/population',
       label: 'Population View',
-      icon: '\u{1F465}', // busts in silhouette
+      icon: Users,
       matchPrefix: '/population',
       // Route children rather than the Patient lens's anchors: the caseload and
       // the measure dashboard are separate pages. Measures moved here from the
@@ -152,7 +153,7 @@ function buildLenses(patientBase: string): Lens[] {
       // (which routes to /patient/chart?new=1).
       to: patientBase,
       label: 'Patient View',
-      icon: '\u{1F464}', // bust
+      icon: User,
       matchPrefix: '/patient',
       // Anchor children carry the active patient id so a deep-linked section
       // URL stays shareable mid-session (e.g. /patient/chart/patient-001#activity).
@@ -214,6 +215,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <nav className="sidebar-nav">
           {lenses.map(lens => {
             const expanded = isLensActive(lens) && !!lens.children?.length
+            const LensIcon = lens.icon
             return (
               <div key={lens.to} className="sidebar-section">
                 <NavLink
@@ -225,7 +227,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   }
                   onClick={onClose}
                 >
-                  <span className="sidebar-icon">{lens.icon}</span>
+                  <LensIcon aria-hidden="true" size={20} className="sidebar-icon" />
                   {lens.label}
                 </NavLink>
                 {expanded && lens.children!.map((child, i) => {
@@ -301,7 +303,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               >
                 <span className="sidebar-outbound-label">
                   {d.label}
-                  <span className="sidebar-outbound-ext" aria-hidden="true">&#8599;</span>
+                  <ExternalLink className="sidebar-outbound-ext" size={12} aria-hidden="true" />
                 </span>
                 {/* aria-hidden: the accessible name above already carries it,
                     and reading it twice is worse than not styling it. */}

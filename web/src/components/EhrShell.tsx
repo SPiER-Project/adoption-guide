@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
+import { ExternalLink } from 'lucide-react'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
 import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
@@ -176,7 +177,7 @@ export function EhrShell() {
               aria-label={`${l.label} (opens in a new tab)`}
             >
               {l.label}
-              <span aria-hidden="true">&#8599;</span>
+              <ExternalLink size={11} aria-hidden="true" />
             </a>
           ))}
           <span className="ehr-footer-version">SPiER v0.1.0</span>

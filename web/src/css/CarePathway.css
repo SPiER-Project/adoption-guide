@@ -168,17 +168,10 @@
   scroll-margin-top: var(--anchor-scroll-offset);
 }
 
-.pathway-step::after {
+.pathway-step-connector {
   display: block;
   margin: var(--space-4) auto calc(var(--space-5) * -1);
   color: var(--border-strong);
-  content: '\2193';
-  font-size: var(--font-size-lg);
-  text-align: center;
-}
-
-.pathway-step:last-child::after {
-  content: none;
 }
 
 .pathway-step__head {

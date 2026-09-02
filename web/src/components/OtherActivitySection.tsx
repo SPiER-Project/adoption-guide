@@ -11,6 +11,7 @@
  * imported once by the page.
  */
 import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount } from '../lib/chartDisplay'
 import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
@@ -54,7 +55,9 @@ export function OtherActivitySection({
             <span className="pathway-node-status pathway-node-status--upcoming">
               {count} {count === 1 ? 'item' : 'items'}
             </span>
-            <span className="pathway-node-chevron" aria-hidden>{open ? '▲' : '▼'}</span>
+            <span className="pathway-node-chevron" aria-hidden>
+              {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </span>
           </span>
         </button>
       </h4>

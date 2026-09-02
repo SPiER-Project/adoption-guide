@@ -1,10 +1,22 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { Clock } from 'lucide-react'
 import { TOOLS, groupToolsByStage, launchableTools } from '@spier/core/data/catalog'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { PRESETS, presetToolIds, type PresetId } from '../data/toolPresets'
 import { usePatient } from '../context/PatientContext'
+import { INCLUSION_ICON, type InclusionStatus } from '../lib/statusIcons'
 import '../css/ToolConfiguration.css'
+
+function InclusionBadge({ status }: { status: InclusionStatus }) {
+  const Icon = INCLUSION_ICON[status]
+  return (
+    <span className={`tool-row-status tool-row-status--${status}`}>
+      <Icon aria-hidden="true" size={11} />
+      {status}
+    </span>
+  )
+}
 
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
@@ -132,6 +144,7 @@ export function ToolConfiguration() {
                       />
                     ) : (
                       <span className="tool-row-unbuilt-badge" title="Catalogued, but not yet launchable from this app">
+                        <Clock aria-hidden="true" size={11} />
                         Not built
                       </span>
                     )}
@@ -139,9 +152,7 @@ export function ToolConfiguration() {
                       <span className="tool-row-name">
                         {tool.shortName ?? tool.name}
                         <span className="tool-row-id">{tool.id}</span>
-                        <span className={`tool-row-status tool-row-status--${tool.inclusionStatus}`}>
-                          {tool.inclusionStatus}
-                        </span>
+                        <InclusionBadge status={tool.inclusionStatus} />
                       </span>
                       <span className="tool-row-purpose">{tool.purpose}</span>
                     </span>

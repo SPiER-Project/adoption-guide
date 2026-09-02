@@ -254,6 +254,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25em;
   margin-top: 0.15rem;
   flex-shrink: 0;
   font-size: var(--font-size-2xs);
@@ -264,12 +265,14 @@
   background: var(--accent-warning-bg);
   padding: 0.15rem 0.4rem;
   border-radius: var(--radius-sm);
-  width: 64px;
+  width: 76px;
   height: 1rem;
 }
 
 .tool-row-status {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
   margin-left: 0.4rem;
   font-size: var(--font-size-2xs);
   font-weight: 700;

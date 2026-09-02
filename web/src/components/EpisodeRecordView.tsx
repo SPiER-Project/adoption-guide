@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { groupByEpisode, type EpisodeRecord } from '@spier/core/lib/episodeRecord'
 import { artifactLabel, formatDateTime } from '../lib/chartDisplay'
 import { displayFor, ENTRY_REASONS, episodeCurrentTier, RISK_TIERS } from '@spier/core/lib/riskEpisode'
@@ -205,7 +206,9 @@ export function EpisodeRecordView(input: Parameters<typeof groupByEpisode>[0]) {
             aria-expanded={showUnassigned}
           >
             {unassigned.length} artifact{unassigned.length === 1 ? '' : 's'} not tied to an episode
-            <span className="episode-unassigned-caret">{showUnassigned ? '▼' : '▶'}</span>
+            <span className="episode-unassigned-caret">
+              {showUnassigned ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </span>
           </button>
           {showUnassigned && (
             <div className="episode-unassigned-body">

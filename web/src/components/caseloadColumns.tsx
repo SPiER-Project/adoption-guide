@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom'
 import { stageTitleById } from '@spier/core/data/catalog'
 import { ageOf } from '../lib/populationFilters'
 import { RISK_LABEL } from '../lib/populationSummary'
+import { RiskPill } from './RiskPill'
 import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
 import { formatDaysAgo } from '../lib/relativeTime'
 import type { FilterKey, SortCol } from '../lib/caseloadViews'
@@ -110,11 +111,7 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
     sortCol: 'risk',
     filter: 'risk',
     className: 'caseload-table-risk-col',
-    render: row => (
-      <span className={`risk-pill risk-pill--${row.currentRiskLevel}`}>
-        {RISK_LABEL[row.currentRiskLevel]}
-      </span>
-    ),
+    render: row => <RiskPill level={row.currentRiskLevel} label={RISK_LABEL[row.currentRiskLevel]} />,
   },
   // Stage-7 work queue (TL-037) and the Stage-6 follow-up rollup (TL-034/035)
   // share one column: neither ever drove a row's height, and merging them buys

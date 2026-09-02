@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
+import { INCLUSION_ICON, LICENSING_ICON, READINESS_TIER_ICON, type InclusionStatus } from '../lib/statusIcons'
 import '../css/AdoptionReadiness.css'
 
 // ─────────────────────────────────────────────────────────────
@@ -113,6 +114,36 @@ function readinessTier(buildStatus: BuildStatus): ReadinessTier {
   return buildStatus === 'built' ? 'built' : 'in-progress'
 }
 
+function InclusionBadge({ status }: { status: InclusionStatus }) {
+  const Icon = INCLUSION_ICON[status]
+  return (
+    <span className={`ar-inclusion ar-inclusion--${status}`}>
+      <Icon aria-hidden="true" size={11} />
+      {status}
+    </span>
+  )
+}
+
+function LicensingBadge({ licensing, title }: { licensing: Licensing; title?: string }) {
+  const Icon = LICENSING_ICON[licensing]
+  return (
+    <span className={`ar-lic ar-lic--${licensing}`} title={title}>
+      <Icon aria-hidden="true" size={11} />
+      {LICENSING_LABELS[licensing]}
+    </span>
+  )
+}
+
+function ReadinessBadge({ tier, title }: { tier: ReadinessTier; title?: string }) {
+  const Icon = READINESS_TIER_ICON[tier]
+  return (
+    <span className={`ar-tier ar-tier--${tier}`} title={title}>
+      <Icon aria-hidden="true" size={11} />
+      {READINESS_LABELS[tier]}
+    </span>
+  )
+}
+
 function MaturityChip({ level, dimension }: { level: MaturityLevel; dimension: string }) {
   return (
     <span
@@ -207,7 +238,7 @@ export function AdoptionReadiness() {
           <div className="ar-legend-body">
             {(Object.keys(READINESS_LABELS) as ReadinessTier[]).map((tier) => (
               <div key={tier} className="ar-legend-row">
-                <span className={`ar-tier ar-tier--${tier}`}>{READINESS_LABELS[tier]}</span>
+                <ReadinessBadge tier={tier} />
                 <span className="ar-legend-text">{READINESS_BLURB[tier]}</span>
               </div>
             ))}
@@ -236,7 +267,7 @@ export function AdoptionReadiness() {
           <div className="ar-legend-body">
             {(Object.keys(LICENSING_LABELS) as Licensing[]).map((lic) => (
               <div key={lic} className="ar-legend-row">
-                <span className={`ar-lic ar-lic--${lic}`}>{LICENSING_LABELS[lic]}</span>
+                <LicensingBadge licensing={lic} />
                 <span className="ar-legend-text">{LICENSING_BLURB[lic]}</span>
               </div>
             ))}
@@ -278,26 +309,20 @@ export function AdoptionReadiness() {
                       <span className="ar-tool-id">{tool.id}</span>
                     </td>
                     <td>
-                      <span className={`ar-inclusion ar-inclusion--${tool.inclusionStatus}`}>
-                        {tool.inclusionStatus}
-                      </span>
+                      <InclusionBadge status={tool.inclusionStatus} />
                     </td>
                     <td>
                       {tool.licensing ? (
-                        <span
-                          className={`ar-lic ar-lic--${tool.licensing}`}
+                        <LicensingBadge
+                          licensing={tool.licensing}
                           title={tool.copyright ?? LICENSING_BLURB[tool.licensing]}
-                        >
-                          {LICENSING_LABELS[tool.licensing]}
-                        </span>
+                        />
                       ) : (
                         <span className="ar-lic ar-lic--not-recorded" title="No licensing status on this tool's ActivityDefinition">—</span>
                       )}
                     </td>
                     <td>
-                      <span className={`ar-tier ar-tier--${tier}`} title={`Build status: ${buildStatus}`}>
-                        {READINESS_LABELS[tier]}
-                      </span>
+                      <ReadinessBadge tier={tier} title={`Build status: ${buildStatus}`} />
                     </td>
                     <td className="ar-col-mat"><MaturityChip level={tool.targetMaturity.electronic} dimension="Electronic capture" /></td>
                     <td className="ar-col-mat"><MaturityChip level={tool.targetMaturity.writeback} dimension="Discrete write-back" /></td>

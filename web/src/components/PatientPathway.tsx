@@ -15,12 +15,14 @@
  */
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { STAGES, TOOLS, stageById } from '@spier/core/data/catalog'
 import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'
+import { CDS_INDICATOR_ICON } from '../lib/statusIcons'
 
 /* ---------- CDS recommendation cards ---------- */
 // The chart's recommendations are real CDS Hooks 2.0 Cards, built by the shared,
@@ -39,10 +41,12 @@ export function CdsCardView({ card }: { card: Card }) {
   const narrativeOnly = ext?.['spier-narrative-only'] === true
   const routerPaths = ext?.['spier-router-paths'] ?? {}
   const links = card.links ?? []
+  const IndicatorIcon = CDS_INDICATOR_ICON[card.indicator]
   return (
     <article className={`cds-card cds-card--${card.indicator}`}>
       <header className="cds-card-header">
         <span className={`cds-card-pill cds-card-pill--${card.indicator}`}>
+          <IndicatorIcon aria-hidden="true" size={12} />
           {INDICATOR_LABEL[card.indicator]}
         </span>
       </header>
@@ -171,7 +175,7 @@ function StageNode({
       }`}
     >
       <span className="pathway-node-marker" aria-hidden>
-        {state === 'done' ? '✓' : index + 1}
+        {state === 'done' ? <Check size={16} /> : index + 1}
       </span>
       <div className="pathway-node-card">
         {anchorId && <span id={anchorId} className="pathway-node-anchor" />}
@@ -197,7 +201,7 @@ function StageNode({
                 {NODE_STATE_LABEL[state]}
               </span>
               <span className="pathway-node-chevron" aria-hidden>
-                {open ? '▲' : '▼'}
+                {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </span>
             </span>
           </button>

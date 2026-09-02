@@ -7,6 +7,7 @@
  * imported once by the page.
  */
 import { useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { carePlanDisplayName, type RenderableResource } from '../lib/chartDisplay'
 import { stageForResponse } from '@spier/core/lib/patientPathway'
@@ -127,7 +128,9 @@ export function PatientDocuments({
                 <span className="document-when">
                   {d.when === UNDATED_SENTINEL ? 'Undated' : new Date(d.when).toLocaleDateString()}
                 </span>
-                <span className="document-toggle">{isOpen ? '▼' : '▶'}</span>
+                <span className="document-toggle">
+                  {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </span>
               </button>
               {isOpen && (
                 <div className="document-body">

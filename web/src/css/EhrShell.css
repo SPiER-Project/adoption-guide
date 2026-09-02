@@ -217,6 +217,12 @@
   gap: var(--space-3);
 }
 
+.ehr-footer-links a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+}
+
 /* ===========================
    Responsive
    =========================== */

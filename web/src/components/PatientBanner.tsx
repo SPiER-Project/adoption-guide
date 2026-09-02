@@ -1,6 +1,8 @@
 import { useLayoutEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { X } from 'lucide-react'
 import { usePatient } from '../context/PatientContext'
+import { RiskPill } from './RiskPill'
 import '../css/PatientBanner.css'
 
 /**
@@ -113,16 +115,15 @@ export function PatientBanner() {
         <span className="patient-banner-divider">|</span>
         <span className="patient-banner-field">
           <span className="patient-banner-label">Risk</span>
-          <span
-            className={`risk-pill risk-pill--${risk}`}
+          <RiskPill
+            level={risk}
+            label={RISK_LABEL[risk]}
             title={
               risk === 'unknown'
                 ? 'No suicide-risk screening on file'
                 : `Highest active risk level: ${RISK_LABEL[risk]}`
             }
-          >
-            {RISK_LABEL[risk]}
-          </span>
+          />
         </span>
         {isSmartConnected ? (
           <span className="patient-banner-smart" title="Connected via SMART on FHIR">
@@ -154,7 +155,8 @@ export function PatientBanner() {
               onClick={() => navigate('/patient/chart?new=1')}
               title="Close this patient and return to the blank chart"
             >
-              Close patient ✕
+              Close patient
+              <X aria-hidden="true" size={14} />
             </button>
           </div>
         )}
