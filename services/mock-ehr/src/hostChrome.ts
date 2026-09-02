@@ -449,6 +449,77 @@ export const COMPONENTS = `
   .callout--warn { border-left-color: var(--warning); background: var(--warning-soft); border-color: var(--warning-soft); }
   .callout > :last-child { margin-bottom: 0; }
 
+  /* ── The hood ─────────────────────────────────────────────────────────────
+     A closed <details> holding the page's EVIDENCE and its caveats — the
+     endpoint that was called, the topic that was subscribed, the write log,
+     the "this is not what it looks like" notes. These used to sit inline at
+     the same weight as the one thing the page asks a viewer to do, and the
+     reported result was not knowing what to do. Nothing in here is deleted;
+     it is one click away instead of first.
+
+     ⚠️ The disclaimers move here too, and that is deliberate: the guardrails
+     in the panel plan §1 require that the pages SAY what they do not prove,
+     which a collapsed section still does. They do not require that the
+     caveat be the first thing on the screen. */
+  .hood {
+    margin: var(--s5) 0 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .hood > summary {
+    cursor: pointer;
+    padding: var(--s3) var(--s4);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+    list-style: none;
+  }
+
+  .hood > summary::-webkit-details-marker { display: none; }
+  .hood > summary::before { content: "\\25B8"; display: inline-block; width: 1.1em; color: var(--ink-faint); }
+  .hood[open] > summary::before { content: "\\25BE"; }
+  .hood[open] > summary { border-bottom: 1px solid var(--line); }
+  .hood__body { padding: var(--s2) var(--s4) var(--s4); }
+  .hood__body > h3:first-child { margin-top: var(--s2); }
+  .hood__body h3 { font-size: var(--text-base); margin: var(--s4) 0 var(--s2); }
+  .hood__body .callout { margin-top: var(--s3); }
+
+  /* ── Start here ───────────────────────────────────────────────────────────
+     The two or three charts a first-time viewer is told to open, each with
+     what it shows and what to notice. A grid of cards rather than a list so
+     the three read as alternatives, not steps. */
+  .try {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--s3);
+    margin: 0 0 var(--s5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .try__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+    padding: var(--s4);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--action);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .try__name { margin: 0; font-size: var(--text-base); font-weight: 700; }
+  .try__why { margin: 0; font-size: var(--text-sm); color: var(--ink-soft); }
+  .try__watch { margin: 0; font-size: var(--text-sm); }
+  .try__watch strong { color: var(--ink-soft); font-weight: 600; }
+  .try__card .btn { align-self: flex-start; margin-top: auto; }
+
+  /* The one-line story column in the patient table. */
+  .story { color: var(--ink-soft); }
+
   /* A one-line readout beside a link — the write log, the FHIRcast status. */
   .readout {
     display: flex;

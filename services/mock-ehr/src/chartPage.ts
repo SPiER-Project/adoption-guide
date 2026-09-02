@@ -41,6 +41,7 @@
  */
 import { DISCLAIMER, crumbs, esc, page } from './hostChrome'
 import type { DemoPatient } from './fixtures'
+import { TRY_IT_ORDER, storyOf } from './demoStories'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 /**
@@ -115,9 +116,28 @@ const HOME_CSS = `
  *
  * The part a host cannot compute for itself is what sits above a worklist: the
  * summary tiles, the risk census and the alert groups. So the embed is
- * `#/population/summary` (`PopulationSummaryEmbed` in the app), it comes first
- * because that is where an EHR hangs a hosted activity, and the host's own table
- * — which owns the links into `/chart/{id}` — is the only list on the page.
+ * `#/population/summary` (`PopulationSummaryEmbed` in the app), and the host's
+ * own table — which owns the links into `/chart/{id}` — is the only list on the
+ * page.
+ *
+ * ── Why the page reads: start here → patients → caseload → about ────────────
+ *
+ * ⚠️ **The widget came FIRST until 2026-09, and that was the same defect a third
+ * time.** It is where an EHR hangs a hosted activity, so it was placed where an
+ * EHR would place it — and a first-time viewer then met, in order: a sentence
+ * saying "this is not SPiER", a dense widget full of registry vocabulary, a long
+ * warning box saying the widget proves nothing, and only then the instruction to
+ * open a chart. The one thing on the page the page itself disclaims was the
+ * first thing on it. Reviewed as a user (2026-09-01): *"there's a lot of
+ * technical information about how the thing is built, but it doesn't make it
+ * easy to understand what the heck I'm supposed to do."*
+ *
+ * So the order is now what a viewer needs: which charts to open and why
+ * (`TRY_IT_ORDER`), the list of all fourteen with a one-line story each, then
+ * the caseload widget with a one-sentence note, then a closed "About this demo"
+ * drawer holding every caveat in full. The caveats are not softened — the panel
+ * plan §1 requires the page to SAY what it does not prove — they are one click
+ * away instead of first.
  *
  * ⚠️ Read the label on the frame either way. It is still not a SMART launch: no
  * `iss`, no `launch`, and the app renders its own bundled registry rather than
@@ -130,13 +150,27 @@ export function homePage(
   patients: DemoPatient[],
   { summaryPanelUrl }: { summaryPanelUrl: string },
 ): string {
+  const byId = new Map(patients.map(p => [p.id, p]))
+  const picks = TRY_IT_ORDER.map(id => {
+    const patient = byId.get(id)
+    const { tryIt } = storyOf(id)
+    if (!patient || !tryIt) throw new Error(`[mock-ehr] TRY_IT_ORDER names ${id}, which has no chart or no tryIt`)
+    return `
+      <li class="try__card">
+        <h3 class="try__name">${esc(patient.name)}</h3>
+        <p class="try__why">${esc(tryIt.why)}</p>
+        <p class="try__watch"><strong>What to notice:</strong> ${esc(tryIt.watch)}</p>
+        <a class="btn btn--primary" href="/chart/${esc(patient.id)}">Open chart &rarr;</a>
+      </li>`
+  }).join('')
+
   const rows = patients.map(p => `
       <tr>
         <td><a href="/chart/${esc(p.id)}">${esc(p.name)}</a></td>
+        <td class="story">${esc(storyOf(p.id).story)}</td>
         <td class="mono">${esc(p.mrn)}</td>
         <td class="mono">${esc(p.birthDate)}</td>
         <td>${esc(p.gender)}</td>
-        <td class="mono">${esc(p.id)}</td>
       </tr>`).join('')
 
   return page({
@@ -151,15 +185,33 @@ export function homePage(
     body: `
   <h1>Patients</h1>
   <p class="lede">
-    A stand-in for a vendor chart, so SPiER can be launched into one. <strong>This is not
-    SPiER</strong> — SPiER is what appears in the panel on the right of a patient's chart.
-    <a href="/settings">Server settings and controls &rarr;</a>
+    A stand-in for a vendor EHR, so SPiER can be launched inside one. <strong>Open a chart</strong>
+    and press <strong>Launch SPiER</strong>: SPiER opens in a panel beside the chart, shows where that
+    patient is on the suicide-safer care pathway, and writes anything you record back to this chart.
+    The slate chrome is the host; the panel is SPiER. This host is not SPiER.
   </p>
 
-  <h2>Caseload summary and alerts</h2>
+  <h2>Start here</h2>
   <p class="lede">
-    SPiER embedded as a hosted activity: the summary, the risk census and the outstanding alerts
-    across the caseload — the part of a worklist page an EHR cannot compute for itself.
+    Three charts that show the pathway at different points. Any of the ${patients.length} works; these
+    three are where the demo has something to do.
+  </p>
+  <ul class="try">${picks}</ul>
+
+  <h2>Patient list</h2>
+  <p class="lede">
+    ${patients.length} synthetic patients. Each line says what that chart is a story about.
+  </p>
+  <table class="table">
+    <thead><tr><th>Name</th><th>Story</th><th>MRN</th><th>Born</th><th>Sex</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <h2>Caseload summary</h2>
+  <p class="lede">
+    SPiER embedded as a hosted activity on the host's worklist: the caseload's risk census and its
+    outstanding alerts. Embedded, but <strong>not a SMART launch</strong> — this frame shows SPiER's
+    bundled demo registry, not this server's data. The panel inside a chart is the real launch.
   </p>
   <div class="guest">
     <div class="guest__bar">
@@ -169,28 +221,30 @@ export function homePage(
     </div>
     <iframe class="activity-frame" src="${esc(summaryPanelUrl)}" title="SPiER caseload summary and alerts (embedded)"></iframe>
   </div>
-  <p class="callout callout--warn">
-    ⚠️ <strong>Embedded, but not a SMART launch — and the difference matters.</strong> This frame
-    carries no <code>iss</code> and no <code>launch</code>, and the app renders its own bundled demo
-    registry rather than this server's FHIR API. So it shows the <em>shape</em> of a hosted activity
-    and proves nothing about data crossing the boundary. Making it real needs a user-scoped SMART
-    launch (a caseload is not one patient, and every token this server issues is bound to one) and a
-    refactor so the view reads through the data-source seam. Tracked in the panel plan &sect;6.3.
-    The framed panel inside a <strong>chart</strong> is the real launch.
-  </p>
 
-  <h2>Patient list</h2>
-  <p class="lede">
-    ${patients.length} synthetic patients &mdash; the host's own list, which is why it is plain.
-    <strong>Open a chart</strong>: that is where the SPiER panel is launched over a real SMART
-    handshake, and where an assessment can be filled in and written back.
-  </p>
-  <table class="table">
-    <thead><tr><th>Name</th><th>MRN</th><th>Born</th><th>Sex</th><th>FHIR id</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-
-  ${DISCLAIMER}`,
+  <details class="hood">
+    <summary>About this demo, and what it does and does not prove</summary>
+    <div class="hood__body">
+      <h3>What this is</h3>
+      <p class="lede">
+        A mock EHR: a FHIR server holding SPiER's own fourteen synthetic patients, with a patient
+        list, a chart per patient, and a SMART on FHIR authorization server — enough for SPiER to be
+        launched into a chart the way a vendor EHR would launch it. Operator controls (the server's
+        capability profile, a top-level launch, the write reset) are on
+        <a href="/settings">Settings</a>.
+      </p>
+      <h3>Why the caseload frame above is not a SMART launch</h3>
+      <p class="lede">
+        It carries no <code>iss</code> and no <code>launch</code>, and the app inside it renders its
+        own bundled demo registry rather than this server's FHIR API. So it shows the <em>shape</em>
+        of a hosted activity and proves nothing about data crossing the boundary. Making it real needs
+        a user-scoped SMART launch (a caseload is not one patient, and every token this server issues
+        is bound to one) and a refactor so the view reads through the data-source seam. Tracked in the
+        panel plan &sect;6.3.
+      </p>
+      ${DISCLAIMER}
+    </div>
+  </details>`,
   })
 }
 
@@ -252,7 +306,9 @@ const CHART_CSS = `
 
   .launch__text { flex: 1 1 22rem; min-width: 0; }
   .launch__title { margin: 0; font-size: var(--text-base); font-weight: 700; }
-  .launch__lede { margin: var(--s1) 0 0; font-size: var(--text-sm); color: var(--ink-soft); }
+  .launch__lede { margin: var(--s1) 0 0; font-size: var(--text-sm); }
+  /* The protocol note, one size down: true, and not the reason to press the button. */
+  .launch__meta { margin: var(--s2) 0 0; font-size: var(--text-xs); color: var(--ink-faint); }
 
   /* ── The dock ─────────────────────────────────────────────────────────────
      ⚠️ **Sticky and exactly one viewport tall — not stretched to the column
@@ -353,6 +409,9 @@ export function patientChartPage(
     otherPatients: DemoPatient[]
   },
 ): string {
+  // The host's one-line annotation of this chart (demoStories.ts), so the launch
+  // card says what THIS chart is a story about rather than describing the protocol.
+  const { story } = storyOf(patient.id)
   return page({
     title: `${patient.name} — SPiER mock EHR`,
     css: CHART_CSS,
@@ -387,66 +446,85 @@ export function patientChartPage(
         <div class="launch__text">
           <h2 class="launch__title">SPiER Suicide-Safer Pathway</h2>
           <p class="launch__lede">
-            The EHR's SPiER activity for this patient. Opens in a panel beside the chart over a real
-            SMART handshake — authorize, read this server's FHIR API, fill in an assessment, write it
-            back.
+            Open SPiER for ${esc(patient.name)}. It shows where ${esc(patient.name)} is on the
+            suicide-safer care pathway and what to do next, and anything you record in it is written
+            back to this chart. ${esc(story)}
+          </p>
+          <p class="launch__meta">
+            Opens in a panel beside the chart over a SMART on FHIR launch: SPiER authorizes against
+            this EHR, reads this chart, and writes to it.
           </p>
         </div>
         <button type="button" id="open-panel" class="btn btn--primary btn--lg">Launch SPiER &rarr;</button>
       </div>
 
-      <h2>Clinical decision support</h2>
+      <h2>Recommendations from SPiER</h2>
       <p class="lede">
-        <code>patient-view</code> fired against
-        <a href="${esc(cdsEndpoint)}">${esc(cdsEndpoint)}</a>.
-        A card link of <code>type: "smart"</code> launches the panel into this chart, scoped to the
-        instrument the card names.
+        What SPiER's decision-support service recommends for this patient, as the EHR received it.
+        A card's button launches SPiER already opened on that tool.
       </p>
-      <p id="cds-status" class="readout">Calling the CDS service…</p>
+      <p id="cds-status" class="readout">Asking SPiER for recommendations…</p>
       <ul id="cds-cards" class="stack"></ul>
 
-      <!-- ⚠️ A READOUT, not a control, and that distinction is why it survived
-           the switch's removal. This is the SERVER's account of what the panel
-           wrote; the panel's own scorecard is SPiER reporting on itself, and one
-           source cannot corroborate anything. Resetting it, and turning the
-           server's capability down, are operator actions and live on /settings. -->
-      <p class="readout">
-        <span id="writes-summary">Loading written data…</span>
-        <a href="/settings">Capability profile, reset and other controls &rarr;</a>
-      </p>
+      <!-- ⚠️ Everything below is EVIDENCE, and it used to sit inline at the
+           same weight as the launch button — the endpoint that was called, the
+           hub topic, the write log, the announce control. Reviewed as a user:
+           the page read as a description of how it was built rather than as a
+           thing to use. Nothing here is deleted; it is one click away. The
+           write log in particular has to stay on this page: it is the SERVER's
+           account of what the panel wrote, and the panel's own scorecard is
+           SPiER reporting on itself. Two statements make it checkable. -->
+      <details class="hood" id="hood">
+        <summary>Under the hood: what was called, what was written, shared context</summary>
+        <div class="hood__body">
+          <h3>Decision support</h3>
+          <p class="lede">
+            The cards above came from a CDS Hooks <code>patient-view</code> call to
+            <a href="${esc(cdsEndpoint)}">${esc(cdsEndpoint)}</a>. A card link of
+            <code>type: "smart"</code> is what lets a card launch the panel into this chart, scoped to
+            the instrument the card names.
+          </p>
 
-      <h2>Shared context (FHIRcast)</h2>
-      <p class="lede">
-        This chart is a FHIRcast subscriber on the EHR's own hub, and it tells the panel which
-        session it is in via <code>hub.url</code> and <code>hub.topic</code> on the token response.
-        Opening a chart announces <code>patient-open</code>; the panel is subscribed to the same
-        topic and reacts to it <strong>across the origin boundary</strong>.
-      </p>
-      <p class="readout">
-        <span id="cast-status">Subscribing to the hub…</span>
-      </p>
+          <h3>Written to this chart</h3>
+          <p class="readout">
+            <span id="writes-summary">Loading written data…</span>
+            <a href="/settings">Capability profile, reset and other controls &rarr;</a>
+          </p>
 
-      <!-- ⚠️ Why a button and not just "open another chart": navigating this page
-           is a full page load, which destroys the iframe — so the panel would be
-           gone before it could react. This announces a context change WITHOUT
-           navigating, which is the only way to watch the panel receive one. A
-           demo affordance, and it says so. -->
-      <form id="cast-form" class="form">
-        <label class="field"><span>Announce a context change to another patient</span>
-          <select name="patient">${otherPatients.map(p => `
-            <option value="${esc(p.id)}">${esc(p.name)} &middot; ${esc(p.id)}</option>`).join('')}
-          </select>
-        </label>
-        <div><button type="submit" class="btn">Announce patient-open</button></div>
-      </form>
-      <p class="readout">
-        Stands in for the clinician opening a different chart. The panel is scoped to
-        ${esc(patient.name)} by its access token, so it <em>cannot</em> follow — watch it say so
-        rather than fail.
-      </p>
-      <ul id="cast-log" class="stack"></ul>
+          <h3>Shared context (FHIRcast)</h3>
+          <p class="lede">
+            This chart is a FHIRcast subscriber on the EHR's own hub, and it tells the panel which
+            session it is in via <code>hub.url</code> and <code>hub.topic</code> on the token response.
+            Opening a chart announces <code>patient-open</code>; the panel is subscribed to the same
+            topic and reacts to it <strong>across the origin boundary</strong>.
+          </p>
+          <p class="readout">
+            <span id="cast-status">Subscribing to the hub…</span>
+          </p>
 
-      ${DISCLAIMER}
+          <!-- ⚠️ Why a button and not just "open another chart": navigating this page
+               is a full page load, which destroys the iframe — so the panel would be
+               gone before it could react. This announces a context change WITHOUT
+               navigating, which is the only way to watch the panel receive one. A
+               demo affordance, and it says so. -->
+          <form id="cast-form" class="form">
+            <label class="field"><span>Announce a context change to another patient</span>
+              <select name="patient">${otherPatients.map(p => `
+                <option value="${esc(p.id)}">${esc(p.name)} &middot; ${esc(p.id)}</option>`).join('')}
+              </select>
+            </label>
+            <div><button type="submit" class="btn">Announce patient-open</button></div>
+          </form>
+          <p class="readout">
+            Stands in for the clinician opening a different chart. The panel is scoped to
+            ${esc(patient.name)} by its access token, so it <em>cannot</em> follow — watch it say so
+            rather than fail.
+          </p>
+          <ul id="cast-log" class="stack"></ul>
+
+          ${DISCLAIMER}
+        </div>
+      </details>
     </div>
 
     <aside class="panel-dock guest" id="dock" hidden aria-label="SPiER panel">
