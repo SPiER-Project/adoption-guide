@@ -948,3 +948,74 @@
 .panel-shell .pathway-node-title {
   font-size: var(--font-size-base);
 }
+
+/* ===========================
+   Panel copy pass (2026-09-01)
+   Reviewed as a user in the embedded panel: five lines of meta before the first
+   stage, "Do now" beside "Complete", a 200-word card first, every record
+   section expanded. The rules below are the CSS half of that pass; the JSX half
+   is in PatientPathway.tsx, ChartSectionHeader.tsx and PatientChart.tsx.
+   =========================== */
+
+/* A recommendation on a stage already completed is guidance, not a to-do, and
+   is coloured like the "Complete" pill's quieter cousin rather than like the
+   blue "Do now" flag it replaces there. */
+.pathway-node-flag--guidance {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+/* In panel chrome the header's two subtitle lines become one footnote under
+   the rail. The links survive: in the panel the protocol link is the only way
+   into the published pathway. */
+.pathway-footnote {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+}
+
+.pathway-footnote a {
+  color: inherit;
+}
+
+.panel-shell .pathway-header {
+  margin-bottom: var(--space-1);
+}
+
+.panel-shell .pathway-progress {
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-3);
+}
+
+/* Long card detail is clipped behind "Show more" (CardDetail). The wrapper
+   keeps `.cds-card-rationale`'s type and spacing; the inner paragraph gives up
+   its own margin so the toggle sits directly under the text. */
+.cds-card-rationale__text {
+  margin: 0;
+}
+
+.cds-card-more {
+  margin-top: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--accent-info);
+  cursor: pointer;
+}
+
+.cds-card-more:hover {
+  text-decoration: underline;
+}
+
+/* The record sections' explanatory notes ("assembled by following references…
+   see the IG's Quick Starts", "the show-me-everything view") are written for an
+   implementer reading the full chart. In the panel they are prose between a
+   clinician and the list. */
+.panel-shell .episode-record-note,
+.panel-shell .documents-note,
+.panel-shell .encounters-note {
+  display: none;
+}

@@ -374,3 +374,28 @@
     gap: 0.15rem;
   }
 }
+
+/* The section title as a control (ChartSectionHeader). Same type as the plain
+   title — the caret is the only sign it toggles — because a heading that looked
+   like a button would read as a third kind of thing on a page with two. */
+.chart-section-toggle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chart-section-toggle:hover {
+  color: var(--brand-primary);
+}
+
+.chart-section-caret {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+}

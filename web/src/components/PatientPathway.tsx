@@ -20,6 +20,7 @@ import { STAGES, TOOLS, stageById } from '@spier/core/data/catalog'
 import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { usePresentation } from '../context/PresentationContext'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'
 import { CDS_INDICATOR_ICON } from '../lib/statusIcons'
@@ -36,12 +37,53 @@ const INDICATOR_LABEL: Record<CdsIndicator, string> = {
   info: 'Routine',
 }
 
+/**
+ * Detail longer than this is clipped behind a "Show more" toggle.
+ *
+ * ⚠️ The problem-list guidance card's detail is ~200 words of SNOMED, ICD-10 and
+ * a ValueSet URL — correct, sourced from the published pathway, pinned by tests,
+ * and unreadable as the FIRST thing in a 470px panel. `Card.detail` is GFM per
+ * the spec and both SPiER renderers deliberately print it as text (see
+ * problemListCard.ts), so shortening it at the source or rendering markdown are
+ * both out; the card is complete, it just does not need to be complete
+ * *first*. The raw card is one toggle away in the JSON viewer either way.
+ */
+const DETAIL_CLIP = 280
+
+/** Cut at the last sentence boundary inside the clip, or hard-clip with an ellipsis. */
+function clipAtSentence(text: string, max: number): string {
+  const head = text.slice(0, max)
+  const end = Math.max(head.lastIndexOf('. '), head.lastIndexOf('.\n'))
+  return end > max / 2 ? head.slice(0, end + 1) : `${head.trimEnd()}…`
+}
+
+function CardDetail({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  if (text.length <= DETAIL_CLIP) return <p className="cds-card-rationale">{text}</p>
+  return (
+    <div className="cds-card-rationale">
+      <p className="cds-card-rationale__text">{expanded ? text : clipAtSentence(text, DETAIL_CLIP)}</p>
+      <button
+        type="button"
+        className="cds-card-more"
+        aria-expanded={expanded}
+        onClick={() => setExpanded(e => !e)}
+      >
+        {expanded ? 'Show less' : 'Show more'}
+      </button>
+    </div>
+  )
+}
+
 export function CdsCardView({ card }: { card: Card }) {
   const ext = card.extension
   const narrativeOnly = ext?.['spier-narrative-only'] === true
   const routerPaths = ext?.['spier-router-paths'] ?? {}
   const links = card.links ?? []
   const IndicatorIcon = CDS_INDICATOR_ICON[card.indicator]
+  // In the embedded panel there is no sidebar and no implementer: "configure
+  // tools in your implementation" is addressed to someone who is not there.
+  const inPanel = usePresentation().chromeMode === 'panel'
   return (
     <article className={`cds-card cds-card--${card.indicator}`}>
       <header className="cds-card-header">
@@ -51,7 +93,7 @@ export function CdsCardView({ card }: { card: Card }) {
         </span>
       </header>
       <h5 className="cds-card-title">{card.summary}</h5>
-      {card.detail && <p className="cds-card-rationale">{card.detail}</p>}
+      {card.detail && <CardDetail text={card.detail} />}
       {links.length > 0 ? (
         <div className="cds-card-actions">
           {links.map((link, i) => {
@@ -81,7 +123,9 @@ export function CdsCardView({ card }: { card: Card }) {
             )
           })}
         </div>
-      ) : narrativeOnly ? null : (
+      ) : narrativeOnly ? null : inPanel ? (
+        <p className="cds-card-no-options">No tool is enabled for this step.</p>
+      ) : (
         <p className="cds-card-no-options">
           No tools enabled for this stage in your implementation.{' '}
           <Link to="/guide/tool-configuration">Configure tools</Link>.
@@ -144,7 +188,15 @@ function StageNode({
   const count = artifactCount(group)
   const state = nodeStateOf(status, count > 0)
   const scoreSummary = scoreSummaryOf(group.observations)
-  const needsAttention = cards.length > 0
+  // A recommendation on the stage the patient is on, or one they have not
+  // reached, is a to-do. The same card on a COMPLETED stage is guidance — the
+  // problem-list card sits on a finished "Define the Risk Picture" by design —
+  // and labelling it "Do now" beside a "Complete" pill was the rail
+  // contradicting itself on three nodes at once. The node still opens for it
+  // (see `autoOpen`); it just stops claiming the stage is outstanding.
+  const hasCards = cards.length > 0
+  const needsAttention = hasCards && (state === 'active' || state === 'upcoming')
+  const isGuidance = hasCards && !needsAttention
 
   // "Potential actions" at this stage: the tools that would satisfy it. This is
   // what makes the rail readable as a *rule set* rather than only as a history —
@@ -196,6 +248,9 @@ function StageNode({
                 <span className="pathway-node-flag">
                   {cards.length === 1 ? 'Do now' : `${cards.length} to do`}
                 </span>
+              )}
+              {isGuidance && (
+                <span className="pathway-node-flag pathway-node-flag--guidance">Guidance</span>
               )}
               <span className={`pathway-node-status pathway-node-status--${state}`}>
                 {NODE_STATE_LABEL[state]}
@@ -360,6 +415,11 @@ export function PatientPathway({
     })
 
   const withActivity = STAGES.filter(s => statuses[s.id] === 'complete').length
+  // The panel's vertical budget is the whole reason PanelShell exists, and this
+  // header spent five lines of it on meta before the first stage. In panel chrome
+  // the two subtitle lines become one footnote under the rail; the links survive
+  // because in the panel the second one is the ONLY way into the published protocol.
+  const inPanel = usePresentation().chromeMode === 'panel'
   const actionCount = cards.length
   const activeStage = STAGES.find(s => statuses[s.id] === 'active')
   // First stage carrying a recommendation — where #recommendations should land.
@@ -369,7 +429,7 @@ export function PatientPathway({
     <section id="activity" className="pathway">
       <header className="pathway-header">
         <h3 className="pathway-title">Suicide-safer care pathway</h3>
-        <span className="pathway-subtitle">
+        {!inPanel && <span className="pathway-subtitle">
           <span className="pathway-subtitle__line">
             Recommendations are real CDS Hooks 2.0 cards &middot;{' '}
             <Link to="/guide/cds-service">also served over the wire</Link>
@@ -383,7 +443,7 @@ export function PatientPathway({
             This rail is <strong>this patient</strong> &middot;{' '}
             <Link to="/patient/pathway">see the published protocol</Link>
           </span>
-        </span>
+        </span>}
       </header>
 
       <p className="pathway-progress">
@@ -436,6 +496,14 @@ export function PatientPathway({
           />
         ))}
       </ol>
+
+      {inPanel && (
+        <p className="pathway-footnote">
+          <Link to="/patient/pathway">The published protocol</Link>
+          {' · '}
+          <Link to="/guide/cds-service">How these recommendations are served</Link>
+        </p>
+      )}
     </section>
   )
 }

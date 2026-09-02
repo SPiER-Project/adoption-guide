@@ -12,6 +12,7 @@
  */
 import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChartSectionHeader } from './ChartSectionHeader'
 import { resolveRelatedRefs, type RelatedArtifact } from '../lib/chartDisplay'
 import { stageById } from '@spier/core/data/catalog'
 import type { ScenarioEncounter } from '@spier/core/types/fhir'
@@ -19,12 +20,16 @@ import type { ScenarioEncounter } from '@spier/core/types/fhir'
 export function EncountersTimeline({
   walkthrough,
   refIndex,
+  defaultCollapsed = false,
 }: {
   walkthrough: ScenarioEncounter[]
   /** `Type/id` → display, built by the caller from every artifact bucket. */
   refIndex: Map<string, RelatedArtifact>
+  /** Start closed — the embedded panel does, the full shell does not. */
+  defaultCollapsed?: boolean
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [open, setOpen] = useState(!defaultCollapsed)
 
   // Most patients carry no scenario walkthrough. An empty "Scenario walkthrough /
   // 0 steps" heading is pure noise between the pathway and the documents list.
@@ -32,14 +37,13 @@ export function EncountersTimeline({
 
   return (
     <section id="encounters" className="encounters-timeline-section">
-      <header className="chart-section-header">
-        <h3 className="chart-section-title">Scenario walkthrough</h3>
-        <span className="chart-section-count">
-          {walkthrough.length} {walkthrough.length === 1 ? 'step' : 'steps'}
-        </span>
-      </header>
-      {(
-        <>
+      <ChartSectionHeader
+        title="Scenario walkthrough"
+        count={`${walkthrough.length} ${walkthrough.length === 1 ? 'step' : 'steps'}`}
+        collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'encounters-body' }}
+      />
+      {open && (
+        <div id="encounters-body">
           <p className="encounters-note">
             Narrative steps, not FHIR resources — each links to the FHIR artifact it
             produces. Steps
@@ -131,7 +135,7 @@ export function EncountersTimeline({
               )
             })}
           </ol>
-        </>
+        </div>
       )}
     </section>
   )

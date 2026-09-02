@@ -163,7 +163,16 @@ export function buildCdsCards({
     // Highest-severity live alert drives urgency (this patient's own slice).
     const topAlert = [...riskAlerts].sort((a, b) => RISK_LEVEL_ORDER[a.level] - RISK_LEVEL_ORDER[b.level])[0]
     const effectiveLevel = topAlert?.level && topAlert.level !== 'none' ? topAlert.level : null
-    const indicator = effectiveLevel ? indicatorForLevel(effectiveLevel) : 'info'
+    // ⚠️ The reporting stage is never urgent. The stage card's urgency mirrors
+    // the patient's highest live alert, which is right for every clinical stage
+    // and wrong for the last one: a high-risk patient whose remaining step is
+    // "use this activity for reporting" was shown an URGENT card whose action was
+    // "open the measure dashboard" — in a 470px clinical panel. The alert cards
+    // (#2..n) still carry the patient's urgency; this caps only the stage card.
+    const indicator =
+      activeStageId === 'measure-and-share'
+        ? 'info'
+        : effectiveLevel ? indicatorForLevel(effectiveLevel) : 'info'
 
     // Substitute the patient's curated recommendation only when no tools are
     // wired for this stage, we're not on a live EHR, and it targets this stage.

@@ -3,6 +3,7 @@ import { useScrollToHash } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { PageHeader } from '../components/PageHeader'
+import { usePresentation } from '../context/PresentationContext'
 import { PatientPathway } from '../components/PatientPathway'
 import { EpisodeRecordView } from '../components/EpisodeRecordView'
 import { WritebackScorecard } from '../components/WritebackScorecard'
@@ -97,6 +98,11 @@ export function PatientChart() {
 
   // Stage-5 artifacts all stage themselves through meta.tag, so they travel as
   // one bucket rather than a named field per resource type — see PatientArtifacts.
+  // In panel chrome the record sections below the rail start collapsed: the
+  // panel's budget is vertical, and a 17-artifact episode record plus a 10-row
+  // document list expanded under the rail put the thing a clinician came for in
+  // the top few percent of a very long scroll. See ChartSectionHeader.
+  const inPanel = usePresentation().chromeMode === 'panel'
   const workflowArtifacts = useMemo(
     () => workflowArtifactsOf({ documentReferences, serviceRequests, appointments, consents, procedures }),
     [documentReferences, serviceRequests, appointments, consents, procedures],
@@ -194,11 +200,17 @@ export function PatientChart() {
         documentReferences={documentReferences}
         appointments={appointments}
         consents={consents}
+        defaultCollapsed={inPanel}
       />
 
-      <EncountersTimeline walkthrough={walkthrough} refIndex={walkthroughRefIndex} />
+      <EncountersTimeline walkthrough={walkthrough} refIndex={walkthroughRefIndex} defaultCollapsed={inPanel} />
 
-      <PatientDocuments responses={responses} carePlans={carePlans} observations={observations} />
+      <PatientDocuments
+        responses={responses}
+        carePlans={carePlans}
+        observations={observations}
+        defaultCollapsed={inPanel}
+      />
     </div>
   )
 }
