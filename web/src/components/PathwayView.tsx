@@ -26,6 +26,7 @@
  * job, and the panel already has the patient's own rail on the chart behind it.
  */
 import { type ReactNode } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import {
   type PathwayAction,
@@ -151,7 +152,11 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
   const before = spine.slice(0, branchAt)
   const after = spine.slice(branchAt)
 
-  const renderStep = (step: PathwayAction) => (
+  // Every step but the last carries a connector arrow to the one below it —
+  // real DOM, replacing what used to be a `::after { content: '\2193' }` on
+  // every non-last `.pathway-step`, so it now shows up in a screen reader's
+  // and a browser extension's DOM the same way any other icon does.
+  const renderStep = (step: PathwayAction, showConnector: boolean) => (
     <li key={step.id} id={`pathway-${step.id}`} className="pathway-step">
       <div className="pathway-step__head">
         {step.stage && <span className="pathway-stage-chip">{step.stage.display ?? step.stage.code}</span>}
@@ -167,12 +172,13 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
           ))}
         </ul>
       )}
+      {showConnector && <ChevronDown className="pathway-step-connector" aria-hidden="true" size={20} />}
     </li>
   )
 
   return (
     <ol className="pathway-spine">
-      {before.map(renderStep)}
+      {before.map(step => renderStep(step, true))}
 
       <li id={`pathway-${branch.id}`} className="pathway-step pathway-step--branch">
         <div className="pathway-step__head">
@@ -218,9 +224,13 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
         </div>
 
         {exitNote}
+
+        {after.length > 0 && (
+          <ChevronDown className="pathway-step-connector" aria-hidden="true" size={20} />
+        )}
       </li>
 
-      {after.map(renderStep)}
+      {after.map((step, i) => renderStep(step, i < after.length - 1))}
     </ol>
   )
 }

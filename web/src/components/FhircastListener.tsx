@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { X } from 'lucide-react'
 import { useSmart } from '../context/SmartContext'
 import {
   markFollowing,
@@ -129,7 +130,7 @@ export function FhircastListener() {
           onClick={dismiss}
           aria-label="Dismiss FHIRcast context notice"
         >
-          ×
+          <X size={14} aria-hidden="true" />
         </button>
       </div>
     )

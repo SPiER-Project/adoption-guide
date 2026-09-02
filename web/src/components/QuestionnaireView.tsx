@@ -8,6 +8,7 @@ import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from './PageHeader'
 import { InstrumentHeader } from './InstrumentHeader'
 import { CarePlanDisplay } from './CarePlanDisplay'
+import { RiskPill } from './RiskPill'
 import { mapResponseToObservations } from '@spier/core/lib/observationMappers'
 import { stampLaunchStage } from '../lib/launchStage'
 import type { GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
@@ -108,9 +109,11 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
           {submitted && !carePlan && submitResult && (
             <div className={`submit-result-summary ${LEVEL_CONFIG[submitResult.riskAlert.level].className}`}>
               <div className="submit-result-header">
-                <span className={`risk-pill risk-pill--sm risk-pill--${submitResult.riskAlert.level}`}>
-                  {LEVEL_CONFIG[submitResult.riskAlert.level].label}
-                </span>
+                <RiskPill
+                  level={submitResult.riskAlert.level}
+                  label={LEVEL_CONFIG[submitResult.riskAlert.level].label}
+                  sm
+                />
                 <span className="submit-result-title">{submitResult.riskAlert.summary}</span>
               </div>
               <p className="submit-result-detail">{submitResult.riskAlert.detail}</p>

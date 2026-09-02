@@ -33,6 +33,7 @@
  * needs genuine tabs, this is the component to grow them in.
  */
 import { useState, type ReactNode } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { usePresentation } from '../context/PresentationContext'
 import '../css/CodeDrawer.css'
 
@@ -62,7 +63,9 @@ export function CodeDrawer({
         aria-expanded={open}
         aria-controls="code-drawer-body"
       >
-        <span className="code-drawer__handle-icon" aria-hidden="true">{open ? '▼' : '▲'}</span>
+        <span className="code-drawer__handle-icon" aria-hidden="true">
+          {open ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+        </span>
         <span className="code-drawer__handle-label">{label}</span>
         <span className="code-drawer__handle-hint">
           {open ? 'Hide' : 'Show generated FHIR'}

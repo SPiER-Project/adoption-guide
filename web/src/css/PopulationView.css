@@ -144,38 +144,23 @@
 
 .caseload-sort-icon {
   flex: none;
-  width: 0.5rem;
-  height: 0.75rem;
-  fill: currentcolor;
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
-/* Inactive: both arrows faint, advertising the column as sortable. Active: the
-   arrow for the current direction goes solid and the other drops away. */
-.caseload-sort-icon-up,
-.caseload-sort-icon-down {
-  opacity: 0.35;
-}
-
-.caseload-sort-icon--asc .caseload-sort-icon-up,
-.caseload-sort-icon--desc .caseload-sort-icon-down {
+.caseload-sort-icon--active {
+  color: var(--accent-info);
   opacity: 1;
-}
-
-.caseload-sort-icon--asc .caseload-sort-icon-down,
-.caseload-sort-icon--desc .caseload-sort-icon-up {
-  opacity: 0;
 }
 
 .caseload-funnel-icon {
   flex: none;
-  width: 0.6rem;
-  height: 0.6rem;
-  fill: currentcolor;
+  color: var(--text-muted);
   opacity: 0.45;
 }
 
 .caseload-filter-trigger--active .caseload-funnel-icon {
-  fill: var(--accent-info);
+  color: var(--accent-info);
   opacity: 1;
 }
 

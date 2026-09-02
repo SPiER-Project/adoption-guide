@@ -241,7 +241,9 @@
 
 /* ── Readiness tier pills ── */
 .ar-tier {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-2xs);
@@ -257,7 +259,9 @@
 
 /* ── Licensing pills ── */
 .ar-lic {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-2xs);
@@ -346,7 +350,9 @@
    first place would leave a name pointing at nothing. `inclusionStatus` comes
    from the catalog and is unaffected by the removal. */
 .ar-inclusion {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
   font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: 0.05em;

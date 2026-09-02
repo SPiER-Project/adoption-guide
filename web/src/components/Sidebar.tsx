@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { Home, BookOpen, Users, User, ExternalLink, type LucideIcon } from 'lucide-react'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
@@ -33,12 +34,16 @@ const IG_HREF = `${import.meta.env.BASE_URL}ig/`
  * Escape handling, pointerdown dismissal, blur-to-close — for links that are
  * just links once they are in a list. `HeaderMenu` is deleted, not relocated.
  *
- * ⚠️ **Two tiers, and the split is deliberate.** The IG is the *normative
- * spec* and the mock EHR is where the pathway can be seen working; both are
- * real destinations and are named. GitHub and the project site are project
- * metadata and sit smaller, at the very bottom, beside the version stamp. The
- * cost of collapsing them into one list is that the IG gets read as being on a
- * par with a repo link.
+ * ⚠️ **These are real destinations, and that's what still earns them a place
+ * here.** GitHub, the project site and the version stamp used to sit below
+ * these in the same `.sidebar-footer`, as quieter project metadata — but that
+ * put them at the bottom of a box whose height is pinned to the viewport, so on
+ * a short page the sidebar's own sticky box visually covered the real page
+ * footer sitting right below it. They moved down into `.ehr-footer` in
+ * `EhrShell.tsx`, which runs full width below the sidebar and can't be
+ * obscured by it — see the note there and on `.sidebar` in `Sidebar.css`. The
+ * IG and the mock EHR stay here because unlike a repo link they're places you
+ * can actually go use SPiER, which is what "Elsewhere" means.
  */
 const DESTINATIONS = [
   {
@@ -61,15 +66,9 @@ const DESTINATIONS = [
     // ⚠️ Measured, not trimmed by feel: the sidebar is 240px and a note has
     // 192px of it, so "SPiER launched inside a vendor chart" wrapped to two
     // lines and cost the footer 15px it does not have to spare. Every line here
-    // pushes the version stamp further down a column that already scrolls.
+    // pushes the rest of this footer further down a column that already scrolls.
     note: 'Inside a vendor chart',
   },
-] as const
-
-/** Project metadata. Quieter, and last. */
-const PROJECT_LINKS = [
-  { key: 'site', href: 'https://thespierproject.org', label: 'thespierproject.org' },
-  { key: 'repo', href: 'https://github.com/SPiER-Project/adoption-guide', label: 'GitHub' },
 ] as const
 
 interface SidebarProps {
@@ -99,7 +98,7 @@ interface LensChild {
 interface Lens {
   to: string
   label: string
-  icon: string
+  icon: LucideIcon
   matchPrefix: string
   children?: LensChild[]
 }
@@ -114,13 +113,13 @@ function buildLenses(patientBase: string): Lens[] {
       // since the redirect lands the router on /overview.
       to: '/overview',
       label: 'Overview',
-      icon: '⌂', // house
+      icon: Home,
       matchPrefix: '/overview',
     },
     {
       to: '/guide',
       label: 'Adoption Guide',
-      icon: '\u{1F4DA}', // books
+      icon: BookOpen,
       matchPrefix: '/guide',
       // Children mirror the canonical guide section list so the sidebar can never
       // drift from the routes or the in-page pager (see data/guideSections.ts).
@@ -135,7 +134,7 @@ function buildLenses(patientBase: string): Lens[] {
     {
       to: '/population',
       label: 'Population View',
-      icon: '\u{1F465}', // busts in silhouette
+      icon: Users,
       matchPrefix: '/population',
       // Route children rather than the Patient lens's anchors: the caseload and
       // the measure dashboard are separate pages. Measures moved here from the
@@ -154,7 +153,7 @@ function buildLenses(patientBase: string): Lens[] {
       // (which routes to /patient/chart?new=1).
       to: patientBase,
       label: 'Patient View',
-      icon: '\u{1F464}', // bust
+      icon: User,
       matchPrefix: '/patient',
       // Anchor children carry the active patient id so a deep-linked section
       // URL stays shareable mid-session (e.g. /patient/chart/patient-001#activity).
@@ -216,6 +215,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <nav className="sidebar-nav">
           {lenses.map(lens => {
             const expanded = isLensActive(lens) && !!lens.children?.length
+            const LensIcon = lens.icon
             return (
               <div key={lens.to} className="sidebar-section">
                 <NavLink
@@ -227,7 +227,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   }
                   onClick={onClose}
                 >
-                  <span className="sidebar-icon">{lens.icon}</span>
+                  <LensIcon aria-hidden="true" size={20} className="sidebar-icon" />
                   {lens.label}
                 </NavLink>
                 {expanded && lens.children!.map((child, i) => {
@@ -303,7 +303,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               >
                 <span className="sidebar-outbound-label">
                   {d.label}
-                  <span className="sidebar-outbound-ext" aria-hidden="true">&#8599;</span>
+                  <ExternalLink className="sidebar-outbound-ext" size={12} aria-hidden="true" />
                 </span>
                 {/* aria-hidden: the accessible name above already carries it,
                     and reading it twice is worse than not styling it. */}
@@ -311,25 +311,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </a>
             ))}
           </nav>
-
-          <nav className="sidebar-meta" aria-label="Project links">
-            {PROJECT_LINKS.map(l => (
-              <a
-                key={l.key}
-                className="sidebar-meta-link"
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${l.label} (opens in a new tab)`}
-                onClick={onClose}
-              >
-                {l.label}
-                <span aria-hidden="true">&#8599;</span>
-              </a>
-            ))}
-          </nav>
-
-          <span className="sidebar-version">SPiER v0.1.0</span>
         </div>
       </aside>
     </>

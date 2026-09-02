@@ -47,6 +47,7 @@ import { Outlet } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
 import { usePresentation } from '../context/PresentationContext'
+import { RiskPill } from './RiskPill'
 import '../css/PanelShell.css'
 
 type RiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
@@ -97,16 +98,16 @@ export function PanelShell() {
           <span className="panel-shell__meta">
             {patientDisplay.dob} &middot; MRN {patientDisplay.mrn}
           </span>
-          <span
-            className={`risk-pill risk-pill--sm risk-pill--${risk}`}
+          <RiskPill
+            level={risk}
+            label={RISK_LABEL[risk]}
+            sm
             title={
               risk === 'unknown'
                 ? 'No suicide-risk screening on file'
                 : `Highest active risk level: ${RISK_LABEL[risk]}`
             }
-          >
-            {RISK_LABEL[risk]}
-          </span>
+          />
         </div>
       )}
       {/* Owns the panel's page inset, the way `.ehr-content-body` owns the

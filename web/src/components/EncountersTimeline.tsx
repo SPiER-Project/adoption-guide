@@ -11,6 +11,7 @@
  * imported once by the page.
  */
 import { useState } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { resolveRelatedRefs, type RelatedArtifact } from '../lib/chartDisplay'
 import { stageById } from '@spier/core/data/catalog'
 import type { ScenarioEncounter } from '@spier/core/types/fhir'
@@ -78,7 +79,9 @@ export function EncountersTimeline({
                     <span className={`encounter-row-status encounter-row-status--${enc.status}`}>
                       {enc.status}
                     </span>
-                    <span className="encounter-row-toggle">{isExpanded ? '▼' : '▶'}</span>
+                    <span className="encounter-row-toggle">
+                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </span>
                   </button>
                   {isExpanded && (
                     <div className="encounter-row-body">

@@ -25,14 +25,26 @@
      bar is content-sized and can wrap under scaled text). The 0px fallback
      degrades to the old, clipped behaviour rather than to a broken column.
      ⚠️ The mobile block below overrides BOTH of these — the overlay is fixed at
-     top: 0 above the bar (z-index 200 vs 100) and must stay full height. */
+     top: 0 above the bar (z-index 200 vs 100) and must stay full height.
+
+     ⚠️ **`--ehr-footer-height` is subtracted for the same reason the header's
+     height is, and its absence was a real bug, not a hypothetical one.**
+     Without it this box is exactly `100dvh` tall regardless of page length, so
+     on any page short enough to fit the viewport with room to spare, the box
+     still reaches the very bottom of the viewport — right where `.ehr-footer`
+     sits on a short page. `position: sticky` makes this a *positioned* element,
+     which paints above non-positioned content like the footer regardless of DOM
+     order, so the two didn't just sit at the same height — the sidebar visually
+     covered the footer's text. Subtracting the footer's measured height
+     (`useFooterHeightVar` in EhrShell.tsx) stops the box short of the footer's
+     row instead, on every page length. */
   position: sticky;
   top: var(--ehr-header-height, 0);
   /* ⚠️ `0px` here and bare `0` above, deliberately. stylelint's
      length-zero-no-unit wants the unitless form and is right for `top`, but
      `calc(100dvh - 0)` is invalid CSS — calc needs the unit to type the
      subtraction. Do not make these two match. */
-  height: calc(100dvh - var(--ehr-header-height, 0px));
+  height: calc(100dvh - var(--ehr-header-height, 0px) - var(--ehr-footer-height, 0px));
   align-self: start;
 }
 
@@ -114,9 +126,8 @@
 }
 
 .sidebar-icon {
-  font-size: var(--font-size-lg);
   width: 1.25rem;
-  text-align: center;
+  height: 1.25rem;
   flex-shrink: 0;
 }
 
@@ -217,53 +228,7 @@
 }
 
 .sidebar-outbound-ext {
-  font-size: var(--font-size-xs);
-}
-
-/* ===========================
-   Footer: project metadata
-   =========================== */
-
-/* Inline and small, because these are about the project rather than about
-   SPiER-the-pathway. A row rather than a list keeps the footer short — this
-   sits at the end of a scrollable column, so every line here is a line the
-   version stamp moves down by. */
-.sidebar-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem var(--space-3);
-  margin-top: var(--space-2);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--border-emphasis);
-}
-
-/* ⚠️ `--text-faint`, NOT `--text-body`. Measured against this sidebar's
-   background (`--text-strong`, #292524): `--text-body` is **1.48:1** — not
-   "a bit low", invisible, and nowhere near the 4.5:1 AA floor. `--text-faint`
-   is 6.01:1. The mistake is easy because both read as "quiet grey" in the token
-   list; only one of them is quiet against a DARK surface. */
-.sidebar-meta-link {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.2rem;
-  font-size: var(--font-size-xs);
-  color: var(--text-faint);
-  text-decoration: none;
-}
-
-.sidebar-meta-link:hover {
-  color: var(--surface-muted);
-  text-decoration: underline;
-}
-
-/* Same correction as `.sidebar-meta-link` above, and this is where the bug came
-   from: the version stamp has been `--text-body` (1.48:1) since the footer
-   existed. Harmless-looking on a line nobody needs to read, and it became the
-   template for two real links the moment the footer grew. */
-.sidebar-version {
-  font-size: var(--font-size-xs);
-  color: var(--text-faint);
-  text-align: center;
+  flex: none;
 }
 
 /* Mobile: sidebar as overlay */

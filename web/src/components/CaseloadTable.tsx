@@ -7,32 +7,27 @@
  * registry and the reasoning; `caseloadColumns.tsx` for how each cell renders.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowUp, ArrowDown, ChevronsUpDown, Check, Filter } from 'lucide-react'
 import { COLUMNS } from './caseloadColumns'
+import { RiskPill } from './RiskPill'
 import type { CaseloadView, FilterKey, FilterOption, SortCol, SortDir, SortState } from '../lib/caseloadViews'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
 const MENU_EDGE_GAP = 8
 
 function SortIcon({ dir }: { dir: SortDir | null }) {
+  const Icon = dir === 'asc' ? ArrowUp : dir === 'desc' ? ArrowDown : ChevronsUpDown
   return (
-    <svg
-      className={`caseload-sort-icon ${dir ? `caseload-sort-icon--${dir}` : ''}`}
-      viewBox="0 0 8 12"
+    <Icon
+      className={`caseload-sort-icon ${dir ? 'caseload-sort-icon--active' : ''}`}
+      size={12}
       aria-hidden="true"
-      focusable="false"
-    >
-      <path className="caseload-sort-icon-up" d="M4 0.5 7 4.5H1z" />
-      <path className="caseload-sort-icon-down" d="M4 11.5 1 7.5h6z" />
-    </svg>
+    />
   )
 }
 
 function FunnelIcon() {
-  return (
-    <svg className="caseload-funnel-icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-      <path d="M0.5 1.5h11L7 6.8V11L5 9.6V6.8z" />
-    </svg>
-  )
+  return <Filter className="caseload-funnel-icon" size={12} aria-hidden="true" />
 }
 
 function SortHeader({
@@ -204,12 +199,10 @@ export function HeaderFilter({
               }}
             >
               <span className="caseload-filter-option-check" aria-hidden="true">
-                {opt.value === value ? '✓' : ''}
+                {opt.value === value ? <Check size={12} /> : null}
               </span>
               {opt.riskLevel ? (
-                <span className={`risk-pill risk-pill--sm risk-pill--${opt.riskLevel}`}>
-                  {opt.label}
-                </span>
+                <RiskPill level={opt.riskLevel} label={opt.label} sm />
               ) : (
                 <span className="caseload-filter-option-label">{opt.label}</span>
               )}
