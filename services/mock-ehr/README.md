@@ -133,8 +133,8 @@ reads them to learn how to authorize at all.
 
 | Route | |
 |---|---|
-| `GET /` | **the front door** — SPiER's caseload summary embedded as a hosted activity, then the host's own patient list |
-| `GET /chart/{id}` | one chart: host banner, the **launch** front and centre, CDS Hooks cards, and the panel **in an iframe** |
+| `GET /` | **the front door** — "Start here" (three named charts with a reason and a thing to notice), the host's patient list with a one-line story per chart, then SPiER's caseload summary embedded as a hosted activity, then a closed "About this demo" drawer holding every caveat |
+| `GET /chart/{id}` | one chart: host banner, the **launch** front and centre, CDS Hooks cards, the panel **in an iframe**, and a closed "Under the hood" drawer holding the evidence (CDS endpoint, write log, FHIRcast) |
 | `GET /settings` | the operator's bench — capability switch, panel-width preference, top-level launch, FHIR base |
 | `GET /chart` | 301 to `/` (this URL was the list before the list became the front door) |
 
@@ -152,9 +152,26 @@ better-looking one went nowhere, because a row click inside the frame navigates
 *within the frame* rather than opening `/chart/{id}` here. The frame is now
 `?embed=1#/population/summary` (`PopulationSummaryEmbed`): the summary tiles, the
 risk census and the alert groups — the part a host cannot compute for itself — with
-no table and no page header. It comes first on the page, and the host's own plain
-table is the only list. Both it and the full lens read `useCaseloadSummary`, so
-they cannot disagree about the numbers.
+no table and no page header. The host's own plain table is the only list. Both it
+and the full lens read `useCaseloadSummary`, so they cannot disagree about the
+numbers.
+
+⚠️ **The widget came FIRST on the page until 2026-09, and that was the front
+door's defect a third time.** It sat where an EHR hangs a hosted activity, so a
+first-time viewer met, in order: "this is not SPiER", a dense registry widget, a
+warning box saying the widget proves nothing, and only then "open a chart" — the
+one thing the page disclaims was the first thing on it. Reviewed as a user:
+*"there's a lot of technical information about how the thing is built, but it
+doesn't make it easy to understand what the heck I'm supposed to do."* The page
+now reads **start here → patient list → caseload → about**: `demoStories.ts`
+carries a one-line story per patient (host voice, no demographics — not a fifth
+copy of the patient data, and `demoStories.test.ts` pins its key set to
+`DEMO_PATIENTS`) plus the three `TRY_IT_ORDER` picks, chosen so the "fill one in
+and watch it write back" story has somewhere to happen: an empty chart
+(patient-002), a high-risk chart with the stabilization plan still to do (patient-006),
+and a complete ED episode (patient-011). Every caveat moved into a closed
+`<details class="hood">` — still on the page, because the panel plan §1 requires
+the page to SAY what it does not prove; it does not require that first.
 
 ⚠️ **It is still NOT a SMART launch**, and the page says so: panel chrome, no
 `iss`, no `launch`. The remaining blocker is **one** thing, a user-scoped launch —
@@ -174,6 +191,16 @@ you just launched. It says so ("Showing the patient in context only") and report
 caseload of one. Pre-existing — the full-lens embed did the same — but it is more
 visible now that the widget is the first thing on the page. **Demonstrate the
 caseload from a fresh tab**, or expect a one-patient census after a launch.
+
+⚠️ **The chart's evidence lives in a closed "Under the hood" drawer.** The CDS
+endpoint URL, the write log, the FHIRcast subscription status, the announce
+control and its log used to sit inline at the same weight as the launch button,
+so the page read as a description of how it was built. All of it is still there,
+one click away; the CDS **cards** stay outside the drawer because they are the
+second launch path, and a launch path is not evidence. The launch card's lede now
+says what launching does (opens SPiER on this patient, shows where they are on
+the pathway, writes back what you record) plus this chart's one-line story, with
+the protocol note one size down.
 
 ⚠️ **The chart leads with the launch, and carries no controls.** The launch button
 was the last element on `/chart/{id}` — below the CDS cards, the capability switch

@@ -700,6 +700,30 @@ which half is the product, and an audience cannot see what SPiER contributes.
    the panel reading something else. It is durable now, so `/settings` in a
    second tab changes what an open chart's panel is told.
 
+4. **The pages explained how they were built instead of what to do (2026-09-01).**
+   Reviewed as a user after 1–3 above had landed: *"there's a lot of technical
+   information about how the thing is built, but it doesn't make it easy to
+   understand what the heck I'm supposed to do."* Three causes, one fix each:
+   - **The front door led with the thing it disclaimed.** The caseload widget sat
+     first (where an EHR hangs an activity), followed by a warning box saying it
+     proved nothing, and only then "open a chart". Now: *Start here* (three named
+     charts with a reason and a thing to notice — `demoStories.ts`,
+     `TRY_IT_ORDER`), the patient list with a one-line story per chart, then the
+     widget, then a closed *About this demo* drawer holding every caveat in full.
+   - **Nothing said which chart to open.** Fourteen names with demographics, and
+     the natural first click (the first row) is a finished episode with nothing
+     left to do — so the demo's most compelling move, fill in an assessment and
+     watch the host confirm the write, had no motivation anywhere. The picks are
+     an empty chart (patient-002), a high-risk chart with the stabilization plan
+     still owed (patient-006) and the complete ED episode (patient-011).
+   - **The chart's evidence had the launch's weight.** The CDS endpoint URL, the
+     hub topic, the write log and the announce control sat inline under the
+     launch. They are all still on the page, in a closed *Under the hood* drawer;
+     the CDS cards stay out of it because they are the second launch path.
+   The caveats are demoted, not softened: §1 requires the pages to SAY what they
+   do not prove, which a closed drawer still does. The panel's own copy has the
+   same problem one origin over and is a separate change.
+
 #### The embedded activity is the caseload SUMMARY, and is NOT a SMART launch
 
 The front door embeds SPiER the way an EHR hosts an activity on a worklist page.
@@ -717,7 +741,8 @@ rather than opening `/chart/{id}` in the host.
 What a host cannot compute for itself is the part above a worklist: the summary
 tiles, the risk-tier census and the alert groups. So the frame is now
 `PopulationSummaryEmbed` (`/population/summary`) — those two panels, no table, no
-page header — it sits **first** on the page, and the host's own plain table is the
+page header — it sits **after** the host's own list (see item 4 above for why it
+no longer comes first), and the host's own plain table is the
 only list. Both consumers share `useCaseloadSummary`, so the widget and the lens
 cannot disagree about how many patients are high-risk.
 

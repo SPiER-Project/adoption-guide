@@ -51,7 +51,6 @@ import {
   DEMO_PATIENTS_BY_ID,
   HELD_RESOURCES,
   HELD_TYPES,
-  PATIENT_IDS,
   RESOURCES_BY_KEY,
   type MockResource,
 } from './fixtures'
@@ -919,7 +918,7 @@ app.get('/settings', async (c) => c.html(controlPage(
   await liveProfile(c),
   fhirBase(c.req.url),
   HELD_RESOURCES.length,
-  PATIENT_IDS,
+  DEMO_PATIENTS,
   authRequired(envOf(c)),
 )))
 

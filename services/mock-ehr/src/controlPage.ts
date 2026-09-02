@@ -27,6 +27,7 @@ import { esc, page } from './hostChrome'
 // rather than restated so the whitelist the chart validates against and the
 // options offered here cannot drift into a preference the chart refuses.
 import { DEFAULT_PANEL_WIDTH, PANEL_WIDTHS, PANEL_WIDTH_KEY } from './chartPage'
+import type { DemoPatient } from './fixtures'
 
 /**
  * Why each width is on the list. The numbers come from the step-0 spike (panel
@@ -38,11 +39,56 @@ const WIDTH_NOTES: Record<number, string> = {
   700: 'one-line option labels and ~14% less scrolling, at the cost of chart width',
 }
 
+/**
+ * The SMART `intent` values the app answers — `open-<launch slug>`, derived in
+ * the app by `launchPathForIntent` from the tool catalog.
+ *
+ * ⚠️ Hand-written here rather than imported, for the reason `CDS_SERVICE_PATH`
+ * in app.ts is: importing `@spier/core/lib/smartIntent` pulls the whole tool
+ * catalog — every ActivityDefinition and PlanDefinition — into this Worker's
+ * bundle for a `<datalist>`. `controlPage.test.ts` asserts this list equals
+ * `knownIntents()` at test time instead, so a tool added to the catalog fails a
+ * test here until the list is updated, and a stale entry fails rather than
+ * minting a launch the app answers by landing on the chart with no error.
+ */
+export const KNOWN_INTENTS: readonly string[] = [
+  'open-asq',
+  'open-bssa',
+  'open-cams-outcome-disposition?tool=TL-020',
+  'open-cams-section-a?tool=TL-020',
+  'open-cams-section-b',
+  'open-cams-stabilization-plan',
+  'open-cams-therapeutic-worksheet',
+  'open-caring-contact',
+  'open-crisis-resources',
+  'open-crisis-response-plan',
+  'open-cssrs-full',
+  'open-cssrs-pediatric',
+  'open-cssrs-screener',
+  'open-cssrs-since-last-contact',
+  'open-discharge-packet',
+  'open-follow-up-appointment',
+  'open-lethal-means',
+  'open-measures',
+  'open-outreach',
+  'open-phq-9',
+  'open-pss-3',
+  'open-pss-full',
+  'open-referral',
+  'open-risk-episode',
+  'open-safe-t',
+  'open-safety-tasks',
+  'open-sbq-r',
+  'open-sharing-consent',
+  'open-stanley-and-brown',
+  'open-transition',
+]
+
 export function controlPage(
   active: CapabilityProfile,
   fhirBase: string,
   resourceCount: number,
-  patientIds: string[],
+  patients: DemoPatient[],
   authRequired: boolean,
 ): string {
   const buttons = CAPABILITY_PROFILES.map(profile => `
@@ -80,10 +126,11 @@ export function controlPage(
   </p>
   <form id="launch-form" class="form">
     <label class="field"><span>Patient</span>
-      <select name="patient">${patientIds.map(id => `<option value="${esc(id)}">${esc(id)}</option>`).join('')}</select>
+      <select name="patient">${patients.map(p => `<option value="${esc(p.id)}">${esc(p.name)} &middot; ${esc(p.id)}</option>`).join('')}</select>
     </label>
-    <label class="field"><span>intent <small>(optional — e.g. <code>open-cssrs-full</code>)</small></span>
-      <input name="intent" type="text" placeholder="">
+    <label class="field"><span>intent <small>(optional — which tool the panel opens on; leave blank for the pathway)</small></span>
+      <input name="intent" type="text" list="known-intents" placeholder="open-cssrs-full">
+      <datalist id="known-intents">${KNOWN_INTENTS.map(i => `<option value="${esc(i)}"></option>`).join('')}</datalist>
     </label>
     <label class="field field--check">
       <input name="needPatientBanner" type="checkbox">

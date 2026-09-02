@@ -14,6 +14,7 @@
 import { describe, expect, it } from 'vitest'
 import app from './app'
 import { DEMO_PATIENTS, DEMO_PATIENTS_BY_ID } from './fixtures'
+import { TRY_IT_ORDER, storyOf } from './demoStories'
 import { SERVICE_ID } from '../../cds-hooks/src/service'
 
 const BASE = 'https://mock-ehr.test'
@@ -37,12 +38,41 @@ describe('the front door', () => {
     }
   })
 
-  it('says what this server is, and that it is not SPiER', async () => {
+  it('says what to do in its first paragraph, and that this host is not SPiER', async () => {
     // The reported defect was not knowing what to do here. The front door has to
-    // answer that in its first sentence.
+    // answer that in its first paragraph — and the instruction comes BEFORE the
+    // disclaimer, not after it. The first version led with "This is not SPiER"
+    // and put the instruction under the caseload frame and a warning box.
     const { body } = await html('/')
-    expect(body).toContain('not\n    SPiER')
+    expect(body).toContain('This host is not SPiER')
     expect(body).toContain('Open a chart')
+    expect(body.indexOf('Open a chart')).toBeLessThan(body.indexOf('This host is not SPiER'))
+  })
+
+  it('leads with "Start here": three named charts, each with a reason and a thing to notice', async () => {
+    // Fourteen names with demographics gave a viewer no reason to open one chart
+    // over another, and the natural first click was a finished episode with
+    // nothing left to do. The picks are where the demo has something to do.
+    const { body } = await html('/')
+    expect(body).toContain('<h2>Start here</h2>')
+    for (const id of TRY_IT_ORDER) {
+      const patient = DEMO_PATIENTS_BY_ID.get(id)!
+      const { tryIt } = storyOf(id)
+      expect(body).toContain(`<h3 class="try__name">${patient.name}</h3>`)
+      expect(body).toContain(tryIt!.why)
+      expect(body).toContain(`class="btn btn--primary" href="/chart/${id}"`)
+    }
+    // Before the full list, before the caseload frame, before the drawer.
+    expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('<table'))
+    expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('<iframe'))
+  })
+
+  it('gives every row a one-line story and drops the FHIR id column', async () => {
+    const { body } = await html('/')
+    for (const patient of DEMO_PATIENTS) {
+      expect(body).toContain(`<td class="story">${storyOf(patient.id).story}`)
+    }
+    expect(body).not.toContain('<th>FHIR id</th>')
   })
 
   it('embeds the caseload SUMMARY, not the whole lens — one patient list on the page', async () => {
@@ -72,11 +102,24 @@ describe('the front door', () => {
     expect(body).toContain('not a SMART launch')
   })
 
-  it('puts the embedded activity ABOVE the host\u2019s own list', async () => {
-    // Where an EHR hangs a hosted activity on a worklist page, and the order the
-    // page is meant to be read in: what needs attention, then who.
+  it('puts the embedded activity BELOW the host\u2019s own list, and the caveats in a closed drawer', async () => {
+    // \u26a0\ufe0f This inverts the previous assertion on purpose. The widget sat first
+    // because that is where an EHR hangs a hosted activity \u2014 and a first-time
+    // viewer then met a dense registry widget and a warning box saying it proved
+    // nothing before reaching the instruction to open a chart. The one thing the
+    // page disclaims was the first thing on it. The picks and the list come
+    // first now; the frame follows; every caveat is one click away in `.hood`,
+    // still on the page, because the panel plan \u00a71 requires the page to SAY what
+    // it does not prove \u2014 not that it say so first.
     const { body } = await html('/')
-    expect(body.indexOf('<iframe')).toBeLessThan(body.indexOf('<table'))
+    expect(body.indexOf('<table')).toBeLessThan(body.indexOf('<iframe'))
+    const hood = body.indexOf('<details class="hood"')
+    expect(hood).toBeGreaterThan(body.indexOf('<iframe'))
+    // Closed by default: `<details open>` would put the caveats back on screen.
+    expect(body).not.toMatch(/<details class="hood"[^>]*\sopen/)
+    // \u2026and the disclaimer lives inside it rather than being dropped.
+    expect(body.indexOf('Demonstration host only')).toBeGreaterThan(hood)
+    expect(body).toContain('not a SMART launch')
   })
 
   it('keeps the operator bench reachable, off the front door', async () => {
@@ -208,8 +251,34 @@ describe('the chart leads with the launch, and carries no controls', () => {
     const launch = body.indexOf('id="open-panel"')
     expect(launch).toBeGreaterThan(-1)
     expect(launch).toBeGreaterThan(body.indexOf('class="banner"'))
-    expect(launch).toBeLessThan(body.indexOf('Clinical decision support'))
+    expect(launch).toBeLessThan(body.indexOf('Recommendations from SPiER'))
     expect(launch).toBeLessThan(body.indexOf('Shared context'))
+  })
+
+  it('says what launching does, in the host’s words, with the patient’s story', async () => {
+    // The lede used to describe the protocol ("over a real SMART handshake —
+    // authorize, read this server's FHIR API…"). A viewer needs the task: what
+    // opens, what it shows, what happens to what they record.
+    const { body } = await html('/chart/patient-011')
+    expect(body).toContain('Open SPiER for Maria Alvarez')
+    expect(body).toContain('written\n            back to this chart')
+    expect(body).toContain(storyOf('patient-011').story)
+  })
+
+  it('keeps the evidence — endpoint, write log, FHIRcast — in a closed "under the hood" drawer', async () => {
+    // Nothing removed, everything demoted. The endpoint URL, the hub topic and
+    // the announce control used to sit inline at the same weight as the launch
+    // button; they are all still on the page, one click away.
+    const { body } = await html('/chart/patient-011')
+    const hood = body.indexOf('<details class="hood"')
+    expect(hood).toBeGreaterThan(body.indexOf('id="cds-cards"'))
+    expect(body).not.toMatch(/<details class="hood"[^>]*\sopen/)
+    for (const evidence of ['id="writes-summary"', 'id="cast-status"', 'id="cast-form"', 'id="cast-log"', 'Demonstration host only']) {
+      expect(body.indexOf(evidence), evidence).toBeGreaterThan(hood)
+    }
+    // The CDS cards themselves stay OUT of the drawer: they are the second
+    // launch path, and a launch path is not evidence.
+    expect(body.indexOf('id="cds-cards"')).toBeLessThan(hood)
   })
 
   it('offers NO capability switch — that is operator equipment, and lives on /settings', async () => {
