@@ -9,15 +9,6 @@
   margin: 0 0 1.5rem 0;
 }
 
-/* Inherited nothing, so the Zero Suicide link rendered in --text-muted with no
-   underline — the same colour as the prose around it, i.e. invisible. Underlined
-   as well as coloured because this one sits mid-paragraph in muted text, where
-   colour alone is both a weak affordance and a contrast-only signal. */
-.rubric-description a {
-  color: var(--brand-accent);
-  text-decoration: underline;
-}
-
 /* ── Summary Bar ── */
 .rubric-summary {
   display: flex;

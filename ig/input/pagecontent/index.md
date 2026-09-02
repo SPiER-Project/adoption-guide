@@ -41,4 +41,4 @@ A short clinical primer for the screening terms is in [How to Read This Guide](h
 
 **Draft / continuous build.** Profiles are `draft` / `experimental`; the concept-layer crosswalks are drafted but pending clinical sign-off. Formal conformance artifacts (Must-Support, CapabilityStatements) are in progress — see [Conformance](conformance.html). Maturity is signaled honestly: SPiER is early (FMM 0–1) and advancing through real-world piloting toward independent multi-system validation.
 
-See the [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) for how the pathway relates to the broader Zero Suicide framework, and the [Roadmap](https://spier-project.github.io/adoption-guide/#/guide/roadmap) for build status across the catalogued tools.
+See the [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) for how the pathway relates to the broader Zero Suicide framework, and the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap) for build status across the catalogued tools.

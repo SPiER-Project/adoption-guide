@@ -91,15 +91,6 @@ export function EhrAdoptionRubric() {
       <p className="rubric-description">
         Assess your EHR&rsquo;s adoption of suicide safer care tools. Check which tools your system
         supports (at least one per stage is needed), then rate each stage across three maturity criteria.
-        This scores the <em>technical</em> layer only &mdash; pair it with the Zero Suicide{' '}
-        <a
-          href="https://zerosuicide.edc.org/toolkit/lead/zero-suicide-organizational-self-study"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Organizational Self-Study
-        </a>{' '}
-        for the leadership and workforce layers, which are deliberately outside SPiER&rsquo;s scope.
       </p>
 
       {/* Overall summary */}
