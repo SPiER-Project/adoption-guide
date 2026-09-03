@@ -180,6 +180,10 @@ export function buildPatientViewResponse(
     cards = buildCdsCards({
       activeStageId: derivePathwayStatus(artifacts).activeStageId,
       riskAlerts: riskAlertsFor(prefetched),
+      // Every catalogued tool. The embedded panel applies the SAME rule in panel
+      // chrome (web/src/lib/toolEnablement.ts) — it used to apply the adoption
+      // guide's default preset instead, and the host page and the panel then
+      // disagreed about patient-006's cards. Change one, change both.
       isToolEnabled: () => true,
       recommendedNextStep: null,
       isSmartConnected: true,
@@ -198,7 +202,7 @@ export function buildPatientViewResponse(
     cards = buildCdsCards({
       activeStageId: derivePathwayStatus(artifacts).activeStageId,
       riskAlerts: scenario.riskAlerts,
-      isToolEnabled: () => true,
+      isToolEnabled: () => true, // see the live path above — must match the panel
       recommendedNextStep: (patientId && RECOMMENDED_BY_PATIENT[patientId]) || null,
       isSmartConnected: false,
       smartLaunch,

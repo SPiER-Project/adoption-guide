@@ -48,11 +48,15 @@ export const DEMO_STORIES: Record<string, DemoStory> = {
     story: 'No suicide-risk screening on file.',
     tryIt: {
       why: 'Start from zero. Nothing has been recorded for him.',
-      watch: 'SPiER recommends a screen. Fill one in and submit it: the panel reports what it wrote, and this host’s own write log confirms it.',
+      watch: 'SPiER recommends a screen, PHQ-9 first. Fill it in with item 9 above “Not at all” and submit: the result hands you the C-SSRS Screener, the panel reports what it wrote, and this host’s own write log confirms it.',
     },
   },
   'patient-003': {
     story: 'PHQ-9 with item 9 endorsed; risk not yet clarified.',
+    tryIt: {
+      why: 'One step in. Screened positive on the PHQ-9 (item 9); the assessment the pathway calls for has not happened.',
+      watch: 'The rail sits at Clarify Risk and the card offers the C-SSRS Screener first. Launch it, answer, and watch the derived tier move the rail to the tier obligations.',
+    },
   },
   'patient-004': {
     story: 'Positive ASQ, not acute; brief safety assessment still owed.',
@@ -60,12 +64,12 @@ export const DEMO_STORIES: Record<string, DemoStory> = {
   'patient-005': {
     story: 'Acute positive ASQ — the urgent branch.',
   },
+  // Not a "start here" pick any more (2026-09-02): the demo leads with the
+  // published pathway's PHQ-9 → C-SSRS workflow, and this chart is a CAMS
+  // course. Its two cards (define the risk picture, Start Stabilization Plan)
+  // still show, and the panel and the host agree on them.
   'patient-006': {
     story: 'High risk after a CAMS session; stabilization plan still to do.',
-    tryIt: {
-      why: 'Part-way through the pathway: assessed high risk, with the stabilization plan still to do.',
-      watch: 'Two recommendations: define the risk picture, and Start Stabilization Plan. Open the stabilization plan from its card, complete it, and watch it land on this chart.',
-    },
   },
   'patient-007': {
     story: 'Adolescent; discharged with a safety plan, intake booked but unconfirmed.',
@@ -98,7 +102,7 @@ export const DEMO_STORIES: Record<string, DemoStory> = {
 }
 
 /** The ids the front door leads with, in the order it shows them. */
-export const TRY_IT_ORDER: string[] = ['patient-002', 'patient-006', 'patient-011']
+export const TRY_IT_ORDER: string[] = ['patient-002', 'patient-003', 'patient-011']
 
 export function storyOf(id: string): DemoStory {
   const story = DEMO_STORIES[id]

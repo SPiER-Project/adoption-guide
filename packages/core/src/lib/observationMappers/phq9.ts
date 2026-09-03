@@ -61,8 +61,13 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
         tool: 'PHQ-9',
         level: item9Score >= 2 ? 'high' : 'moderate',
         summary: `PHQ-9 Item 9 positive (score: ${item9Score}/3)`,
-        detail: `Patient endorsed thoughts of death or self-harm. Total PHQ-9 score: ${totalScore}/27 (${severity}). Further suicide risk assessment recommended.`,
-        suggestedAction: { label: 'Start ASQ Screening', path: '/patient/assessments/asq' },
+        detail: `Patient endorsed thoughts of death or self-harm. Total PHQ-9 score: ${totalScore}/27 (${severity}). The pathway's next step is the C-SSRS Screener with Triage Points.`,
+        // The published pathway's gate: PHQ-9 item 9 positive → the C-SSRS
+        // Screener with Triage Points (suicide-safer-care-pathway.fsh, "Assess
+        // suicide risk after a positive screen"). This used to hand off to the
+        // ASQ — a second SCREEN rather than the assessment — and the chart then
+        // contradicted the Care Pathway page for the one workflow the demo shows.
+        suggestedAction: { label: 'Start C-SSRS Screener', path: '/patient/assessments/cssrs-screener' },
       }
     : {
         tool: 'PHQ-9',

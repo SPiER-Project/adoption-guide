@@ -167,7 +167,7 @@ Usage: #definition
 * experimental = true
 * publisher = "SPiER"
 * description = "Capture a 6-item C-SSRS screener (items 1–5 for ideation, item 6 for behavior) and derive a suicide-risk-level Observation."
-* purpose = "Rapidly screen for suicide ideation and behavior at the Identify Possible Risk stage."
+* purpose = "Assess suicide risk after a positive screen, at the Clarify Risk stage: the 6-item screener with its published triage points yields the harmonized suicide-risk tier the pathway branches on. Its result also crosswalks into the concept layer, so it can serve as the screen itself where a site leads with it."
 * kind = #ServiceRequest
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * code = http://loinc.org#93374-7 "Suicide risk level"

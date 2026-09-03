@@ -350,14 +350,14 @@ const CHART_CSS = `
   .panel-dock__empty { padding: var(--s5) var(--s4); color: var(--ink-soft); font-size: var(--text-sm); }
   .panel-dock iframe { flex: 1 1 auto; width: 100%; border: 0; background: var(--surface); }
 
-  .panel-dock__sent {
-    padding: var(--s2) var(--s3);
-    margin: 0;
-    border-top: 1px solid var(--line);
-    font-size: var(--text-xs);
-    color: var(--ink-faint);
-    overflow-wrap: anywhere;
-  }
+  /* Where the panel's error goes when a launch cannot be minted. The launch
+     CONTEXT readout used to sit here too, as a permanent footer under the frame:
+     73px of "patient=… need_patient_banner=false hub.topic=…" on screen for the
+     whole session, 9% of the dock, saying nothing a clinician acts on. It is in
+     the "Under the hood" drawer now with the rest of the evidence (#dock-sent);
+     only a failure still needs to be seen without opening anything. */
+  .panel-dock__error { overflow-wrap: anywhere; color: var(--critical); }
+  .panel-dock__error[hidden] { display: none; }
 
   .panel-dock[hidden] { display: none; }
 
@@ -485,6 +485,10 @@ export function patientChartPage(
             the instrument the card names.
           </p>
 
+          <h3>Launch context</h3>
+          <p class="readout" id="dock-sent">Nothing launched yet — press <strong>Launch SPiER</strong> and the
+            SMART launch context the host minted is shown here.</p>
+
           <h3>Written to this chart</h3>
           <p class="readout">
             <span id="writes-summary">Loading written data…</span>
@@ -533,8 +537,8 @@ export function patientChartPage(
         <span id="dock-context"></span>
         <button type="button" id="close-panel" class="btn panel-dock__close" title="Close the panel">&times;</button>
       </div>
+      <p class="panel-dock__empty panel-dock__error" id="dock-error" hidden></p>
       <iframe id="panel" title="SPiER Suicide-Safer Pathway" src="about:blank"></iframe>
-      <p class="panel-dock__sent" id="dock-sent"></p>
     </aside>
   </div>`,
     script: chartScript({ patient, cdsEndpoint, panelOrigin }),
@@ -593,6 +597,7 @@ function chartScript({
   var frame = document.getElementById('panel');
   var dockContext = document.getElementById('dock-context');
   var dockSent = document.getElementById('dock-sent');
+  var dockError = document.getElementById('dock-error');
 
   /*
    * The panel width, read from the operator's preference and never offered here.
@@ -636,7 +641,8 @@ function chartScript({
   function launch(intent, label) {
     dock.hidden = false;
     dockContext.textContent = 'authorizing…';
-    dockSent.textContent = '';
+    dockSent.textContent = 'Minting a launch…';
+    dockError.hidden = true;
     return fetch('/_admin/launch', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -663,6 +669,10 @@ function chartScript({
         + ' <code>hub.topic=' + TOPIC + '</code>';
     }).catch(function (err) {
       dockContext.textContent = '';
+      // In the dock itself, not only the drawer: a failure has to be visible
+      // without opening anything.
+      dockError.textContent = 'Could not mint a launch: ' + err.message;
+      dockError.hidden = false;
       dockSent.textContent = 'Could not mint a launch: ' + err.message;
     });
   }

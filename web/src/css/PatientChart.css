@@ -68,6 +68,17 @@
    eight stages (horizontal stepper, detached recommendation stack, stage
    activity list). Each node carries its own status, actions and records, so
    "what do I do next" is answered where the reader is already looking.
+
+   ⚠️ **"Current" is the brand accent, not --accent-info.** The active marker,
+   the "You are here" pill, the active card's border, the "Do now" flag and the
+   recommended-actions count were all info blue — the same hue as the host EHR's
+   primary button, on a demo whose whole subject is which pixels belong to whom
+   (services/mock-ehr/README.md § The look of the host). Reviewed in the panel
+   2026-09-02: SPiER's most visible state colour read as the host's. Raspberry
+   is SPiER's; green stays "done"; red stays clinical urgency (the CDS
+   `critical` indicator) and nothing else in the rail borrows it. The CDS
+   indicator scale (`.cds-card--info` and friends) is CDS Hooks semantics and is
+   deliberately left alone.
    =========================== */
 .pathway {
   margin-bottom: var(--space-8);
@@ -132,7 +143,8 @@
 }
 
 .pathway-progress-actions {
-  color: var(--accent-info);
+  /* Not the accent: coloured like a link, it read as one, and it went nowhere. */
+  color: var(--text-strong);
   font-weight: 600;
 }
 
@@ -204,10 +216,10 @@
 }
 
 .pathway-node--active .pathway-node-marker {
-  background: var(--accent-info);
-  border-color: var(--accent-info);
+  background: var(--brand-accent);
+  border-color: var(--brand-accent);
   color: var(--text-on-brand);
-  box-shadow: var(--shadow-card-outline);
+  box-shadow: var(--shadow-brand-glow);
 }
 
 .pathway-node--passed .pathway-node-marker {
@@ -224,14 +236,14 @@
 }
 
 .pathway-node--active .pathway-node-card {
-  border-color: var(--accent-info);
-  box-shadow: var(--shadow-card-outline);
+  border-color: var(--brand-accent);
+  box-shadow: var(--shadow-brand-glow);
 }
 
 /* A stage carrying a live recommendation — including one the pathway has
    already passed — must read as "there is something to do here". */
 .pathway-node--attention .pathway-node-card {
-  border-color: var(--accent-info);
+  border-color: var(--brand-accent);
 }
 
 .pathway-node--upcoming .pathway-node-card {
@@ -345,7 +357,7 @@
 }
 
 .pathway-node-status--done     { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
-.pathway-node-status--active   { background: var(--accent-info-soft); color: var(--accent-info); }
+.pathway-node-status--active   { background: var(--accent-magenta-soft); color: var(--accent-magenta-text); }
 .pathway-node-status--passed   { background: var(--surface-muted); color: var(--text-muted); }
 .pathway-node-status--upcoming { background: var(--surface-muted); color: var(--text-faint); }
 
@@ -356,7 +368,7 @@
   text-transform: uppercase;
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-pill);
-  background: var(--accent-info);
+  background: var(--brand-accent);
   color: var(--text-on-brand);
   white-space: nowrap;
 }
@@ -411,7 +423,7 @@
 }
 
 .pathway-node-empty a {
-  color: var(--accent-info);
+  color: var(--brand-accent);
   text-decoration: underline;
 }
 
@@ -437,8 +449,8 @@
 }
 
 .pathway-tool-chip:hover {
-  border-color: var(--accent-info);
-  color: var(--accent-info);
+  border-color: var(--brand-accent);
+  color: var(--brand-accent);
 }
 
 /* What the pathway offers here that this implementation hasn't turned on. */
@@ -449,7 +461,7 @@
 }
 
 .pathway-node-tools-note a {
-  color: var(--accent-info);
+  color: var(--brand-accent);
   text-decoration: underline;
 }
 
@@ -545,7 +557,7 @@
 }
 
 .cds-card-no-options a {
-  color: var(--accent-info);
+  color: var(--brand-accent);
   text-decoration: underline;
 }
 
@@ -978,14 +990,10 @@
   color: inherit;
 }
 
-.panel-shell .pathway-header {
-  margin-bottom: var(--space-1);
-}
-
-.panel-shell .pathway-progress {
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--space-3);
-}
+/* `.pathway-header` and `.pathway-progress` used to be shrunk here for the
+   panel. They are not rendered in panel chrome any more — the chart's PageHeader
+   carries the title and the status line (PatientChart.tsx) — so the rules went
+   with them. */
 
 /* Long card detail is clipped behind "Show more" (CardDetail). The wrapper
    keeps `.cds-card-rationale`'s type and spacing; the inner paragraph gives up
@@ -1002,7 +1010,7 @@
   font: inherit;
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--accent-info);
+  color: var(--brand-accent);
   cursor: pointer;
 }
 

@@ -4,13 +4,14 @@ import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { PageHeader } from '../components/PageHeader'
 import { usePresentation } from '../context/PresentationContext'
-import { PatientPathway } from '../components/PatientPathway'
+import { PatientPathway, PathwayProgress } from '../components/PatientPathway'
 import { EpisodeRecordView } from '../components/EpisodeRecordView'
 import { WritebackScorecard } from '../components/WritebackScorecard'
 import { OtherActivitySection } from '../components/OtherActivitySection'
 import { EncountersTimeline } from '../components/EncountersTimeline'
 import { PatientDocuments } from '../components/PatientDocuments'
 import { buildWalkthroughRefIndex } from '../lib/chartDisplay'
+import { toolEnablementFor } from '../lib/toolEnablement'
 import {
   derivePathwayStatus,
   groupArtifactsByStage,
@@ -47,8 +48,20 @@ export function PatientChart() {
     dataSourceError,
     writebackReport,
   } = usePatient()
-  const { isToolEnabled } = useToolConfig()
+  const { isToolEnabled: siteToolEnabled } = useToolConfig()
   useScrollToHash()
+
+  // Panel chrome changes three things on this page: the header is the rail's
+  // title + status line, the record sections start collapsed (see below), and
+  // every catalogued tool is offered — the rule the CDS Hooks service applies,
+  // so the host's cards and this rail agree about the patient. lib/toolEnablement
+  // has the measured case.
+  const { chromeMode } = usePresentation()
+  const inPanel = chromeMode === 'panel'
+  const isToolEnabled = useMemo(
+    () => toolEnablementFor(chromeMode, siteToolEnabled),
+    [chromeMode, siteToolEnabled],
+  )
 
   // `Type/id` → display for every artifact a walkthrough step can reference
   // (#263 phase 5b). Built from all the buckets rather than just responses and
@@ -102,7 +115,6 @@ export function PatientChart() {
   // panel's budget is vertical, and a 17-artifact episode record plus a 10-row
   // document list expanded under the rail put the thing a clinician came for in
   // the top few percent of a very long scroll. See ChartSectionHeader.
-  const inPanel = usePresentation().chromeMode === 'panel'
   const workflowArtifacts = useMemo(
     () => workflowArtifactsOf({ documentReferences, serviceRequests, appointments, consents, procedures }),
     [documentReferences, serviceRequests, appointments, consents, procedures],
@@ -140,7 +152,22 @@ export function PatientChart() {
 
   return (
     <div className="patient-chart">
-      <PageHeader eyebrow="Patient View" title="Patient Chart" />
+      {/* In panel chrome the header IS the rail's title and status line. The
+          panel showed "Patient View / Patient Chart", then "Suicide-safer care
+          pathway", then a two-line progress sentence — three stacked headings
+          for one rail, 112px of a 740px frame. The page title names the one
+          thing on the page and the lede says where the patient is; the eyebrow
+          (a lens name that means nothing inside a host) is hidden by
+          PageHeader.css for a panel page with no `up`. */}
+      {inPanel ? (
+        <PageHeader
+          eyebrow="Patient View"
+          title="Suicide-safer care pathway"
+          lede={<PathwayProgress statuses={statuses} actionCount={cdsCards.length} compact />}
+        />
+      ) : (
+        <PageHeader eyebrow="Patient View" title="Patient Chart" />
+      )}
 
       {dataSourceError && (
         <div className="chart-data-error" role="alert">

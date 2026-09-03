@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildCdsCards, type BuildCdsCardsInput } from '@spier/core/lib/cdsHooks/cards'
 import { TOOLS } from '@spier/core/data/catalog'
+import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import { intentForLaunchPath, launchPathForIntent } from '@spier/core/lib/smartIntent'
@@ -8,8 +9,11 @@ import { PROBLEM_LIST_CARD_ID } from '@spier/core/lib/cdsHooks/problemListCard'
 import { RISK_TIER_SYSTEM } from '@spier/core/lib/riskEpisode'
 
 // A real launchable tool from the catalog anchors the link/dedupe tests so they
-// stay honest against actual paths rather than invented ones.
-const launchTool = TOOLS.find((t) => t.launchActions.length > 0)!
+// stay honest against actual paths rather than invented ones. It has to be the
+// tool that LEADS its stage card: the builder puts the pathway's demonstrated
+// realization first (orderByPathwayRealization), so the first catalog tool is
+// no longer the first link — for Identify Possible Risk that is the PHQ-9.
+const launchTool = orderByPathwayRealization(TOOLS.filter((t) => t.launchActions.length > 0))[0]
 const launchPath = launchTool.launchActions[0].path
 const launchStage = launchTool.stageId
 
@@ -33,6 +37,41 @@ function build(overrides: Partial<BuildCdsCardsInput> = {}) {
     ...overrides,
   })
 }
+
+describe('buildCdsCards — an alert absorbed into the stage card keeps its reason', () => {
+  it('carries the alert summary + detail as the stage card detail, and emits no duplicate', () => {
+    // The alert names a tool that belongs to the ACTIVE stage (the PHQ-9 → C-SSRS
+    // Screener case once the screener became a Clarify Risk tool). The dedupe
+    // rightly emits one link for that path; the reason the step is due must
+    // not disappear with the alert card.
+    const cards = build({
+      isToolEnabled: () => true,
+      riskAlerts: [
+        alert({
+          level: 'moderate',
+          summary: 'PHQ-9 Item 9 positive (score: 1/3)',
+          detail: 'Patient endorsed thoughts of death or self-harm.',
+          suggestedAction: { label: 'Start it', path: launchPath },
+        }),
+      ],
+    })
+    expect(cards[0].detail).toBe(
+      'PHQ-9 Item 9 positive (score: 1/3). Patient endorsed thoughts of death or self-harm.',
+    )
+    const linking = cards.filter((c) => c.links?.some((l) => l.url.endsWith(launchPath)))
+    expect(linking).toHaveLength(1)
+    expect(linking[0].extension?.['spier-card-id']).toBe(`cds-stage-${launchStage}`)
+  })
+
+  it('keeps the stage blurb when no alert targets this stage’s tools', () => {
+    const [card] = build({
+      isToolEnabled: () => true,
+      riskAlerts: [alert({ level: 'high', suggestedAction: { label: 'Elsewhere', path: '/patient/assessments/stanley-and-brown' } })],
+    })
+    expect(card.detail).not.toContain('summary')
+    expect(card.detail?.length ?? 0).toBeGreaterThan(0)
+  })
+})
 
 describe('buildCdsCards — level → indicator', () => {
   it('maps the highest-severity alert to the stage-card indicator', () => {
