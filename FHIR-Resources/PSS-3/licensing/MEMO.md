@@ -11,7 +11,7 @@
 **SPiER tool ID:** TL-011
 **SPiER pathway stage(s):** identify-possible-risk (Stage 1 — Identify Possible Risk)
 **Repository location:** `FHIR-Resources/PSS-3/`
-**Tracking issue:** TL-011 roadmap epic (see `web/src/data/roadmap.generated.json`)
+**Tracking issue:** TL-011 roadmap epic — see [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues)
 
 ## Instrument provenance
 
@@ -48,7 +48,7 @@
 - IG page attribution block: not yet authored (no dedicated `ig/input/pagecontent/pss3.md` in this PR); provenance is carried in the FSH header and this memo.
 - FSH source attribution: `ig/input/fsh/pss3.fsh` header documents ED-SAFE/SAMHSA provenance and free-use status; `AdministerPSS3.publisher = "SPiER (HTD Health)"`.
 
-- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerPSS3` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `web/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
+- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerPSS3` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `packages/core/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
 
 ## Open questions
 

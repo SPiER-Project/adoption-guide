@@ -11,7 +11,7 @@
 **SPiER tool IDs (family):** TL-003 (Screener/Recent), TL-004 (Full Lifetime/Recent), **TL-019 (Since Last Visit / Since Last Contact)**, TL-027 (Pediatric / Adolescent — see the dedicated section below)
 **SPiER pathway stage(s):** identify-possible-risk (TL-003, TL-027), clarify-risk (TL-004, TL-019)
 **Repository location:** `FHIR-Resources/C-SSRS/`
-**Tracking issue:** C-SSRS roadmap epics (see `web/src/data/roadmap.generated.json`)
+**Tracking issue:** C-SSRS roadmap epics — see [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues)
 
 ## Instrument provenance
 
@@ -54,7 +54,7 @@ The C-SSRS **Children/Youth (pediatric/adolescent)** version has its own age-app
 
 **Decision (2026-07-15):** TL-027 is authored per option (a) — it **reuses the validated C-SSRS screener item set** (the same wording validated for adolescents, already registered/used in this repo) under the same registration, with the copyright notice retained and pediatric `useContext` (age = Child). The Questionnaire `description` explicitly states this and flags that the Lighthouse Project's separate younger-child "Children's" simplified wording is a **pending gate** — SPiER does not fabricate that unverified wording. When the Children's-version terms are confirmed, TL-027 can be upgraded to the age-simplified wording. TL-027 reuses the shared `SPiERCSSRSRiskLevel` profile and the `cssrs-risk-level → tier` crosswalk (no new profile/crosswalk).
 
-- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerCSSRSScreener`, `AdministerCSSRSFull`, `AdministerCSSRSSinceLastContact`, `AdministerCSSRSPediatric` (status `registration`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `web/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
+- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerCSSRSScreener`, `AdministerCSSRSFull`, `AdministerCSSRSSinceLastContact`, `AdministerCSSRSPediatric` (status `registration`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `packages/core/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
 
 ## Open questions
 

@@ -17,6 +17,15 @@ map "http://thespierproject.org/fhir/StructureMap/StanleyBrownQRToCarePlan" = "S
 // with no content receives an explicit "No … provided." description rather
 // than being omitted, because the profile requires all seven activities.
 //
+// The patient-authored text is EMBEDDED in each activity's description rather
+// than the CarePlan simply referencing the QuestionnaireResponse. FHIR permits
+// the reference, but it makes reading the safety plan conditional on the
+// receiving system resolving it — and a safety plan a clinician cannot read at
+// the moment they open the chart is not a safety plan. Embedding lets any
+// standard EHR display the coping strategies and emergency contacts with no
+// secondary lookup, at the cost of duplicating the text; the
+// QuestionnaireResponse remains the provenance record.
+//
 // A conforming implementation may assign resource identity and add its own
 // notes; neither is part of this transformation.
 
@@ -30,7 +39,7 @@ uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias SafetyPlan as targ
 //
 // RELATIONSHIP TO THE RUNTIME (issue #229)
 //
-// web/src/lib/carePlanMappers/stanleyBrown.ts is the executable
+// packages/core/src/lib/carePlanMappers/stanleyBrown.ts is the executable
 // implementation the demo runs; this map is the declaration of what it does —
 // the same arrangement as the Stage-8 measure engine under #212. Both are
 // compared against scripts/fixtures/stanley-brown/careplan-expected.json:
