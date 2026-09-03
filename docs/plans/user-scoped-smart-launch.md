@@ -88,14 +88,33 @@ model anywhere — inventing a narrower cohort concept now would be exactly the
 concept is ever needed, it is new product scope, not a gap this plan should
 guess at.
 
-**Not decided here, and worth raising before Phase D:** `embedded-panel-smart-launch.md`
-§6.3 records a stated long-term direction of *retiring* `/population` and
-`/patient/chart` from the guide once a user-scoped launch exists, on the
-grounds that those are EHR surfaces, not implementer ones. This plan does the
-opposite — it keeps those routes and gives them a real token. That's a
-legitimate call (Brad's), but it's a deliberate reversal of prior recorded
-direction, not a gap-fill, and the doc trail should say so explicitly when this
-lands (see Phase D).
+**Settled 2026-09-03 (Brad) — this was filed as "not decided, raise before
+Phase D".** `embedded-panel-smart-launch.md` §6.3 recorded a long-term direction
+of *retiring* `/population` and `/patient/chart` from the guide once a
+user-scoped launch exists, on the grounds that those are EHR surfaces rather
+than implementer ones. **This plan does the opposite and that is now the
+decision, not a tension to resolve later:** the routes stay and get a real
+token.
+
+The retirement's reasoning was sound and its conclusion did not follow. The
+defect in those two views is that the guide *holds the patient data they
+render*, not that it renders them; a user-scoped launch fixes that directly,
+while retiring the routes would remove the screens and leave the fixtures.
+
+One refinement on top of what this plan already says, which is new and belongs
+in Phase D's scope: **a guide page describing the report/dashboard view is
+wanted, separate from the live one.** The description belongs where
+implementers read; the dashboard itself belongs against patient data. The guide
+was doing both jobs with one screen, which is part of why the surfaces read as
+tangled. Filed as **#466**, which is also where the mock-EHR / guide / CDS
+service / IG relationship should be stated — nothing in the product says it
+today, and #466 does not depend on this plan: the relationship is already true
+and already unexplained.
+
+⚠️ **The reversal is already written into `embedded-panel-smart-launch.md`**,
+rather than waiting for Phase D as originally instructed. Deferring it is what
+let two plan docs hold opposite directions for two days; see Phase D step 3,
+which is now a check rather than a task.
 
 ## Ground rules (same as `structure-simplification-scope.md`)
 
@@ -235,10 +254,13 @@ false in the same commit that makes them actually false.
    launch"* label and `chartPage.test.ts`'s assertion of it: update in this
    same commit, per #401's explicit requirement — never before, never as a
    separate follow-up.
-3. Record the reversal of `embedded-panel-smart-launch.md` §6.3's "retire
-   `/population` and `/patient/chart`" direction explicitly in that doc (an
-   ✏️-style correction, matching that doc's own convention) — don't let it sit
-   contradicted.
+3. ~~Record the reversal of `embedded-panel-smart-launch.md` §6.3's "retire
+   `/population` and `/patient/chart`" direction explicitly in that doc.~~
+   **Done 2026-09-03, ahead of this phase** — see the decision section above.
+   One correction to the original instruction: that doc has no ✏️ convention
+   (zero occurrences). It corrects with `~~strikethrough~~` plus a
+   `⚠️ **bold**` paragraph, which is what was used. What remains here is to
+   *check* the note still matches what shipped.
 4. Close `#401` referencing whichever PR(s) did this. Update
    `repo-and-package-boundaries.md` §9 / `mock-patient-smart-launch.md` if
    either still describes the guide as reading bundled data.
