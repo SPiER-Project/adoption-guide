@@ -19,7 +19,7 @@ const IG_HREF = `${import.meta.env.BASE_URL}ig/`
  *
  * ── Why these are in the sidebar, having been moved OUT of it ───────────────
  *
- * `EhrShell` used to render these as pills in the app bar, with an overflow
+ * `AppShell` used to render these as pills in the app bar, with an overflow
  * disclosure (`HeaderMenu`) taking over below 640px. The stated reason for
  * moving the IG link there was that *"the sidebar is a switcher for in-app
  * lenses: it was the one entry that could never be 'active', because it's the
@@ -39,8 +39,8 @@ const IG_HREF = `${import.meta.env.BASE_URL}ig/`
  * these in the same `.sidebar-footer`, as quieter project metadata — but that
  * put them at the bottom of a box whose height is pinned to the viewport, so on
  * a short page the sidebar's own sticky box visually covered the real page
- * footer sitting right below it. They moved down into `.ehr-footer` in
- * `EhrShell.tsx`, which runs full width below the sidebar and can't be
+ * footer sitting right below it. They moved down into `.app-shell__footer` in
+ * `AppShell.tsx`, which runs full width below the sidebar and can't be
  * obscured by it — see the note there and on `.sidebar` in `Sidebar.css`. The
  * IG and the mock EHR stay here because unlike a repo link they're places you
  * can actually go use SPiER, which is what "Elsewhere" means.

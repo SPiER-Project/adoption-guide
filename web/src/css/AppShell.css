@@ -1,5 +1,5 @@
 /* ===========================
-   EHR Shell Layout
+   App Shell Layout
    =========================== */
 /* ⚠️ **A fixed frame, not a document that grows — and that is the whole fix.**
  *
@@ -9,9 +9,9 @@
  *
  *   - `.sidebar` was `position: sticky` at `height: calc(100dvh - header -
  *     footer)`, with BOTH of those measured at runtime by two hand-written
- *     ResizeObserver hooks in EhrShell.tsx, because a `100dvh` column overhung
+ *     ResizeObserver hooks in AppShell.tsx, because a `100dvh` column overhung
  *     the fold and painted over the footer on short pages;
- *   - `.ehr-header` was `position: sticky` for one reason — to make that
+ *   - `.app-shell__header` was `position: sticky` for one reason — to make that
  *     subtraction a constant rather than a moving target;
  *   - `--anchor-scroll-offset` had to fold the bar's height back in, since a
  *     sticky bar covers an anchor target;
@@ -21,7 +21,7 @@
  *     and left a void above its "Elsewhere" group.
  *
  * A real frame makes all of that unnecessary rather than solved: the grid is
- * exactly one viewport tall, `.ehr-content` is the only scroller, and the
+ * exactly one viewport tall, `.app-shell__content` is the only scroller, and the
  * header, sidebar and footer are simply always where they are. No sticky, no
  * measurement, no overlap to arbitrate. Two published custom properties
  * (`--ehr-header-height`, `--ehr-footer-height`) and their hooks were deleted
@@ -32,7 +32,7 @@
  * Mobile drops back to document scrolling regardless (see the breakpoint at the
  * bottom of this file) — `dvh` is what keeps the moment before that honest.
  */
-.ehr-shell {
+.app-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
   grid-template-rows: auto 1fr auto;
@@ -47,7 +47,7 @@
 /* ===========================
    Header
    =========================== */
-.ehr-header {
+.app-shell__header {
   grid-area: header;
   background: var(--brand-primary);
   color: white;
@@ -71,13 +71,13 @@
   z-index: 100;
 }
 
-.ehr-header-content {
+.app-shell__header-content {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
-.ehr-brand {
+.app-shell__brand {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -85,10 +85,10 @@
   color: white;
 }
 
-.ehr-brand-logo {
+.app-shell__brand-logo {
   height: var(--brand-logo-height-sm);
   width: auto;
-  /* wordmark fill follows currentColor (white) from .ehr-brand */
+  /* wordmark fill follows currentColor (white) from .app-shell__brand */
 }
 
 /* ===========================
@@ -96,12 +96,12 @@
    =========================== */
 
 /* ⚠️ **Deliberately empty, and the deletion is the change.** This block held the
-   outbound pills (`.ehr-header-actions` / `.ehr-header-action`) and their two
+   outbound pills (`.app-shell__header-actions` / `.app-shell__header-action`) and their two
    breakpoints: 1023px swapped every label for a short form, 639px hid the pills
    entirely and handed over to `.header-menu`. All of it existed to fit three
    links beside the wordmark; a fourth did not fit at any width, so the links
    moved to `.sidebar-footer` and `HeaderMenu` was deleted rather than relocated.
-   See the note at the top of EhrShell.tsx.
+   See the note at the top of AppShell.tsx.
 
    The heading stays because the slot is still real: a SMART-connection indicator
    belongs here, and it should not have to re-derive that `margin-left: auto` on
@@ -114,12 +114,12 @@
    wrapping should never trigger; it stays for the case it was really guarding, a
    user scaling text well up. */
 @media (max-width: 639px) {
-  .ehr-header-content {
+  .app-shell__header-content {
     flex-wrap: wrap;
     gap: var(--space-2);
   }
 
-  .ehr-header {
+  .app-shell__header {
     padding-left: 1rem;
     padding-right: 1rem;
   }
@@ -135,7 +135,7 @@
    change without silently resizing the target; the flex centering is what
    keeps the bar in the middle of the larger box. `display` stays `none` here
    and becomes `inline-flex` in the mobile media query below. */
-.ehr-sidebar-toggle {
+.app-shell__nav-toggle {
   display: none;
   align-items: center;
   justify-content: center;
@@ -147,7 +147,7 @@
   cursor: pointer;
 }
 
-.ehr-hamburger {
+.app-shell__hamburger {
   display: block;
   width: 20px;
   height: 2px;
@@ -156,8 +156,8 @@
   transition: background 0.2s;
 }
 
-.ehr-hamburger::before,
-.ehr-hamburger::after {
+.app-shell__hamburger::before,
+.app-shell__hamburger::after {
   content: '';
   position: absolute;
   left: 0;
@@ -167,12 +167,12 @@
   transition: transform 0.3s, top 0.3s;
 }
 
-.ehr-hamburger::before { top: -6px; }
-.ehr-hamburger::after { top: 6px; }
+.app-shell__hamburger::before { top: -6px; }
+.app-shell__hamburger::after { top: 6px; }
 
-.ehr-hamburger--active { background: transparent; }
-.ehr-hamburger--active::before { top: 0; transform: rotate(45deg); }
-.ehr-hamburger--active::after { top: 0; transform: rotate(-45deg); }
+.app-shell__hamburger--active { background: transparent; }
+.app-shell__hamburger--active::before { top: 0; transform: rotate(45deg); }
+.app-shell__hamburger--active::after { top: 0; transform: rotate(-45deg); }
 
 /* ===========================
    Content Area
@@ -180,7 +180,7 @@
 /* ⚠️ **The one scroll container in the shell — and this declaration has been
  * here before, meaning something different.**
  *
- * It carried `overflow-y: auto` once while `.ehr-shell` was `min-height: 100vh`,
+ * It carried `overflow-y: auto` once while `.app-shell` was `min-height: 100vh`,
  * and that combination was a bug: the grid grew with its content so the
  * *document* scrolled, this element never did, and yet any overflow other than
  * `visible` still makes an element the sticky scrollport for its descendants. So
@@ -189,7 +189,7 @@
  * reason, and the note here said "deliberately NOT a scroll container".
  *
  * It comes back because the premise changed, not because that reasoning was
- * wrong. `.ehr-shell` is now exactly one viewport tall, so this element is the
+ * wrong. `.app-shell` is now exactly one viewport tall, so this element is the
  * thing that overflows and it genuinely scrolls. The banner's scrollport is now
  * a scrollport that moves, which is what it always wanted; `top: 0` is correct
  * there because this pane starts *below* the app bar rather than underneath it.
@@ -199,7 +199,7 @@
  * which would push the footer off-screen instead of scrolling here. `min-width:
  * 0` is the same rule on the other axis and predates this.
  */
-.ehr-content {
+.app-shell__content {
   grid-area: content;
   min-width: 0;
   min-height: 0;
@@ -208,7 +208,7 @@
   flex-direction: column;
 }
 
-.ehr-content-body {
+.app-shell__body {
   padding: 1.5rem 2rem 2rem;
   flex: 1;
   min-width: 0;
@@ -217,7 +217,7 @@
 /* ===========================
    Footer
    =========================== */
-.ehr-footer {
+.app-shell__footer {
   grid-area: footer;
   background: var(--brand-primary-deep);
   color: var(--text-on-brand-faint);
@@ -229,24 +229,24 @@
   gap: var(--space-2);
 }
 
-.ehr-footer a {
+.app-shell__footer a {
   color: var(--brand-accent);
   text-decoration: underline;
   text-decoration-color: var(--brand-accent-faint);
 }
 
-.ehr-footer a:hover {
+.app-shell__footer a:hover {
   text-decoration-color: var(--brand-accent);
 }
 
-.ehr-footer-links {
+.app-shell__footer-links {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-3);
 }
 
-.ehr-footer-links a {
+.app-shell__footer-links a {
   display: inline-flex;
   align-items: baseline;
   gap: 0.2rem;
@@ -269,7 +269,7 @@
      phone, and it is also what makes `.patient-banner`'s `top: 0` keep working
      at this width — the app bar is not sticky any more, so the top of the
      viewport is free for the banner to occupy. */
-  .ehr-shell {
+  .app-shell {
     grid-template-columns: 1fr;
     grid-template-areas:
       "header"
@@ -279,25 +279,25 @@
     min-height: 100dvh;
   }
 
-  .ehr-content {
+  .app-shell__content {
     overflow-y: visible;
   }
 
   /* inline-flex, not block — the base rule centers the bar with flexbox. */
-  .ehr-sidebar-toggle {
+  .app-shell__nav-toggle {
     display: inline-flex;
   }
 
-  .ehr-content-body {
+  .app-shell__body {
     padding: var(--space-4);
   }
 
-  .ehr-footer {
+  .app-shell__footer {
     flex-direction: column;
     text-align: center;
   }
 
-  .ehr-footer-links {
+  .app-shell__footer-links {
     justify-content: center;
   }
 }

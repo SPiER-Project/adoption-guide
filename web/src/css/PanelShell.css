@@ -53,7 +53,7 @@
 }
 
 /* The panel's page inset — the second sanctioned owner alongside
-   `.ehr-content-body`, declared in web/scripts/check-page-template.mjs so the
+   `.app-shell__body`, declared in web/scripts/check-page-template.mjs so the
    template gate knows about it rather than being worked around.
 
    Tighter than the shell's inset: horizontal room is the scarce thing at 470px,

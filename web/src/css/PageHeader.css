@@ -4,8 +4,8 @@
    The only definition of page-title typography in the app. Four pages used to
    carry their own; see the note in components/PageHeader.tsx for what that cost.
 
-   No padding here, and none on any page root: `.ehr-content-body` owns the
-   page inset (EhrShell.css) and `npm run check:template` keeps it that way.
+   No padding here, and none on any page root: `.app-shell__body` owns the
+   page inset (AppShell.css) and `npm run check:template` keeps it that way.
    `margin-bottom` is the header's own — it is the gap between the header and
    whatever the page puts under it, and it is the same gap on every lens.
    =========================== */

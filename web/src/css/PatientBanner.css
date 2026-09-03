@@ -3,7 +3,7 @@
   border-bottom: 1px solid var(--border-strong);
   padding: 0.5rem 1.5rem;
   /* Stick to the top of the scrollport as the page scrolls, so identifiers +
-     risk stay in view. z-index sits below .ehr-header (z-index: 100).
+     risk stay in view. z-index sits below .app-shell__header (z-index: 100).
 
      The banner's measured height is published as --patient-banner-height by
      PatientBanner, so anchor scrolling can clear it; see --anchor-scroll-offset
@@ -13,8 +13,8 @@
      been wrong in two of them before — check which one you are in before
      changing it.**
 
-       - Desktop shell: `.ehr-content` is the scrollport and starts *below* the
-         app bar, so 0 is the top of the visible pane. (Earlier, `.ehr-content`
+       - Desktop shell: `.app-shell__content` is the scrollport and starts *below* the
+         app bar, so 0 is the top of the visible pane. (Earlier, `.app-shell__content`
          declared an overflow while the document actually scrolled — that made
          it a scrollport that never moved, and this rule silently did nothing.)
        - Mobile shell: the document scrolls and the app bar is not sticky, so 0

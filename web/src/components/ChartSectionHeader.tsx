@@ -8,7 +8,7 @@
  * (17 artifacts across 4 contacts) and the document list (10 rows) rendered
  * fully expanded below the pathway rail, so the panel ran to dozens of screens
  * and the thing a clinician came for — where the patient is and what to do —
- * was the top few percent of it. In the full EHR shell there is a sidebar and
+ * was the top few percent of it. In the full app shell there is a sidebar and
  * a wide column, so the sections stay open there; in panel chrome they start
  * collapsed, and the count on the header says what is inside.
  *

@@ -4,7 +4,7 @@ import { STAGES } from '@spier/core/data/catalog/stages'
 import '../css/Overview.css'
 
 // The published HL7 IG is a sibling static site (web/dist/ig/), not a hash
-// route — see the note on IG_HREF in EhrShell.tsx for how the base resolves.
+// route — see the note on IG_HREF in AppShell.tsx for how the base resolves.
 const IG_HREF = `${import.meta.env.BASE_URL}ig/`
 
 // The three steps, at a glance. Each card is deliberately one claim long: the

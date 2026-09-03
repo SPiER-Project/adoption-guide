@@ -2,7 +2,7 @@
 /**
  * check:template — the page template is one template.
  *
- * Every route under the EHR shell renders into `.ehr-content-body`, which pads
+ * Every route under the app shell renders into `.app-shell__body`, which pads
  * the page. Nothing else may: a page that pads its own root indents its content
  * relative to every other page, for a reason invisible from the page itself.
  * That is precisely what had happened — the Population view added
@@ -55,7 +55,7 @@ const HEADER_CSS = 'css/PageHeader.css'
 /**
  * The sanctioned owners of a page inset, with the reason each is allowed one.
  *
- * `.ehr-content-body` was the *sole* owner until the SMART panel landed
+ * `.app-shell__body` was the *sole* owner until the SMART panel landed
  * (embedded-panel-smart-launch.md §3, which requires this be declared here
  * rather than worked around — "the panel becomes the place template drift
  * lives" otherwise). Two shells legitimately pad their own body because they
@@ -66,7 +66,7 @@ const HEADER_CSS = 'css/PageHeader.css'
  * is drift.
  */
 const INSET_OWNERS = {
-  '.ehr-content-body': 'EhrShell — the standalone demo chrome',
+  '.app-shell__body': 'AppShell — the standalone demo chrome',
   '.panel-shell__body': 'PanelShell — the embedded SMART activity chrome (tighter inset; the panel reclaims vertical space)',
 }
 
@@ -226,7 +226,7 @@ for (const file of formViews) {
 /**
  * Yields every style rule, descending into @media / @supports blocks. `nested`
  * marks a rule that only applies under a condition — which matters for RULE 4a:
- * `.ehr-content-body` also gets a padding inside a `max-width: 768px` query, and
+ * `.app-shell__body` also gets a padding inside a `max-width: 768px` query, and
  * counting that as proof would leave the desktop inset unguarded.
  */
 function* styleRules(css, offset = 0, nested = false) {
@@ -313,7 +313,7 @@ for (const file of cssFiles) {
       if (!pads) continue
 
       // RULE 4b — no page root or layout wrapper pads itself, and neither do its
-      // direct children as a group. `.ehr-content-body` is the one owner.
+      // direct children as a group. `.app-shell__body` is the one owner.
       //
       // Limit, stated plainly: this sees the containers it can scrape from the
       // JSX (page roots, outlet wrappers) and their `> *` children. Padding
@@ -325,9 +325,9 @@ for (const file of cssFiles) {
         const self = new RegExp(`^\\.${escaped}$`)
         const kids = new RegExp(`^\\.${escaped}\\s*>`)
         if (self.test(selector)) {
-          fail(`${at}: \`${selector}\` pads a page root (${owner}) — .ehr-content-body owns the page inset`)
+          fail(`${at}: \`${selector}\` pads a page root (${owner}) — .app-shell__body owns the page inset`)
         } else if (kids.test(selector)) {
-          fail(`${at}: \`${selector}\` pads the direct children of a page container (${owner}) — .ehr-content-body owns the page inset`)
+          fail(`${at}: \`${selector}\` pads the direct children of a page container (${owner}) — .app-shell__body owns the page inset`)
         }
       }
     }

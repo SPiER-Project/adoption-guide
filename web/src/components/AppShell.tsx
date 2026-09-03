@@ -5,7 +5,7 @@ import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
 import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from './SpierLogo'
-import '../css/EhrShell.css'
+import '../css/AppShell.css'
 
 // ⚠️ **The app bar carries no links, and that is where they used to be.** Three
 // outbound pills lived here, with `HeaderMenu` as an overflow disclosure below
@@ -20,7 +20,7 @@ import '../css/EhrShell.css'
 // `PROJECT_LINKS` lived alongside `DESTINATIONS` in that same sidebar group
 // until the true page footer got a sidebar-shaped bug: the sidebar's height was
 // pinned to the viewport, so on any page short enough not to fill it, the
-// sidebar's sticky box visually covered `.ehr-footer` at the bottom of the page.
+// sidebar's sticky box visually covered `.app-shell__footer` at the bottom of the page.
 // The links moved down here, into the footer that already carries the SPiER
 // tagline, so they render full-width below the sidebar rather than at the
 // bottom of a column that could be obscured.
@@ -32,7 +32,7 @@ import '../css/EhrShell.css'
 // gone with the overlap is the machinery: this file held two hand-written
 // ResizeObserver hooks publishing `--ehr-header-height` and
 // `--ehr-footer-height` purely so the sidebar could subtract them from `100dvh`.
-// Both are deleted. See the note on `.ehr-shell` in EhrShell.css.
+// Both are deleted. See the note on `.app-shell` in AppShell.css.
 //
 // What the header keeps is the hamburger and the brand — plus, still, the
 // natural slot for a SMART-connection indicator.
@@ -43,7 +43,7 @@ const PROJECT_LINKS = [
   { key: 'repo', href: 'https://github.com/SPiER-Project/adoption-guide', label: 'GitHub' },
 ] as const
 
-export function EhrShell() {
+export function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   useScrollToTopOnNavigate()
@@ -51,35 +51,35 @@ export function EhrShell() {
     location.pathname.startsWith('/patient') || location.pathname.startsWith('/chart')
 
   return (
-    <div className="ehr-shell">
-      <header className="ehr-header">
-        <div className="ehr-header-content">
+    <div className="app-shell">
+      <header className="app-shell__header">
+        <div className="app-shell__header-content">
           <button
-            className="ehr-sidebar-toggle"
+            className="app-shell__nav-toggle"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             aria-expanded={sidebarOpen}
           >
-            <span className={`ehr-hamburger ${sidebarOpen ? 'ehr-hamburger--active' : ''}`} />
+            <span className={`app-shell__hamburger ${sidebarOpen ? 'app-shell__hamburger--active' : ''}`} />
           </button>
-          <Link to="/" className="ehr-brand">
-            <SpierLogo className="ehr-brand-logo" />
+          <Link to="/" className="app-shell__brand">
+            <SpierLogo className="app-shell__brand-logo" />
           </Link>
         </div>
       </header>
 
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="ehr-content">
+      <main className="app-shell__content">
         {isPatientView && <PatientBanner />}
-        <div className="ehr-content-body">
+        <div className="app-shell__body">
           <Outlet />
         </div>
       </main>
 
-      <footer className="ehr-footer">
+      <footer className="app-shell__footer">
         <span>SPiER — Setting priorities for technology-enabled suicide-safer care</span>
-        <nav className="ehr-footer-links" aria-label="Project links">
+        <nav className="app-shell__footer-links" aria-label="Project links">
           {PROJECT_LINKS.map(l => (
             <a
               key={l.key}
@@ -92,7 +92,7 @@ export function EhrShell() {
               <ExternalLink size={11} aria-hidden="true" />
             </a>
           ))}
-          <span className="ehr-footer-version">SPiER v0.1.0</span>
+          <span className="app-shell__footer-version">SPiER v0.1.0</span>
         </nav>
       </footer>
     </div>

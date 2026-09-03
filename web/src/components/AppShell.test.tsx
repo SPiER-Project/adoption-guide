@@ -3,7 +3,7 @@
  *
  * The page footer — where SPiER's project metadata (GitHub, the project site,
  * the version stamp) lives now, having moved out of `.sidebar-footer`. See the
- * note on `PROJECT_LINKS` in `EhrShell.tsx` for why it moved: the sidebar's
+ * note on `PROJECT_LINKS` in `AppShell.tsx` for why it moved: the sidebar's
  * height was pinned to the viewport, so on a page short enough to fit inside
  * it, the sidebar's sticky box visually covered whatever sat at the bottom of
  * `.sidebar-footer`.
@@ -28,19 +28,19 @@ vi.mock('../context/PatientContext', () => ({
 // unlike Sidebar.test.tsx's isolated render.
 Element.prototype.scrollTo = () => {}
 
-const { EhrShell } = await import('./EhrShell')
+const { AppShell } = await import('./AppShell')
 
 afterEach(cleanup)
 
 function renderShell() {
   return render(
     <MemoryRouter initialEntries={['/overview']}>
-      <EhrShell />
+      <AppShell />
     </MemoryRouter>,
   )
 }
 
-describe('EhrShell footer — project metadata', () => {
+describe('AppShell footer — project metadata', () => {
   it('still carries the SPiER tagline', () => {
     renderShell()
     expect(

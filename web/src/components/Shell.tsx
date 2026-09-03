@@ -1,4 +1,4 @@
-import { EhrShell } from './EhrShell'
+import { AppShell } from './AppShell'
 import { PanelShell } from './PanelShell'
 import { usePresentation } from '../context/PresentationContext'
 
@@ -12,5 +12,5 @@ import { usePresentation } from '../context/PresentationContext'
  */
 export function Shell() {
   const { chromeMode } = usePresentation()
-  return chromeMode === 'panel' ? <PanelShell /> : <EhrShell />
+  return chromeMode === 'panel' ? <PanelShell /> : <AppShell />
 }

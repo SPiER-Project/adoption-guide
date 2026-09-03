@@ -118,7 +118,7 @@ web/src/
 
 ```
 web/src/
-├── components/   (9 files: EhrShell, Sidebar, PatientBanner, QuestionnaireView, StanleyBrownView, …)
+├── components/   (9 files: AppShell, Sidebar, PatientBanner, QuestionnaireView, StanleyBrownView, …)
 ├── pages/        (10 files matching app routes)
 ├── context/      (3 contexts: PatientContext, SmartContext, ToolConfigContext)
 ├── data/

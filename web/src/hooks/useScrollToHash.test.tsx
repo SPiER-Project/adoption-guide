@@ -128,7 +128,7 @@ describe('scrollToAnchor', () => {
 
   test('ignores an ancestor that declares overflow but does not actually scroll', () => {
     // An ancestor that declares `overflow-y: auto` while the document is what
-    // actually scrolls — `.ehr-content` at mobile widths, or any card that
+    // actually scrolls — `.app-shell__content` at mobile widths, or any card that
     // declares an overflow it never uses. It must not be mistaken for the
     // scroller.
     const inert = document.createElement('div')
@@ -247,7 +247,7 @@ describe('useScrollToTopOnNavigate', () => {
     // Which of the two actually scrolls depends on content height, so both are
     // reset; on whichever is not scrolling it is a no-op.
     const content = document.createElement('div')
-    content.className = 'ehr-content'
+    content.className = 'app-shell__content'
     content.scrollTo = vi.fn()
     document.body.appendChild(content)
 

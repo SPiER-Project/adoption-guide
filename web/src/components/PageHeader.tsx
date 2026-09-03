@@ -12,8 +12,8 @@ import '../css/PageHeader.css'
  * visibly not the same page template, which is what this component exists to
  * make impossible: there is nowhere left to express a variant.
  *
- * Padding is deliberately absent. `.ehr-content-body` is the sole owner of the
- * page's inset (see EhrShell.css); a header that padded itself is exactly how
+ * Padding is deliberately absent. `.app-shell__body` is the sole owner of the
+ * page's inset (see AppShell.css); a header that padded itself is exactly how
  * the guide and the Population view ended up 24px further in than the other two.
  * `npm run check:template` enforces both halves of that.
  */

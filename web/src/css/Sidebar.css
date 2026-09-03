@@ -22,7 +22,7 @@
      element *positioned*, it painted over the page footer wherever the two met,
      which is what the footer-height subtraction was there to prevent.
 
-     `.ehr-shell` is a fixed frame now (see the note on it), so this is simply a
+     `.app-shell` is a fixed frame now (see the note on it), so this is simply a
      grid item in a row that is already exactly as tall as the space between the
      app bar and the footer. It stretches to fill that row by default — no
      `align-self: start` — and stops at the footer's top edge by construction

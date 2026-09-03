@@ -142,7 +142,7 @@
      ⚠️ **--ehr-header-height used to be added here and must not come back.** It
      joined this sum while the app bar was `position: sticky` over a scrolling
      document, where it genuinely covered anchor targets. The shell is a fixed
-     frame now: the bar sits *outside* `.ehr-content`, which is the element that
+     frame now: the bar sits *outside* `.app-shell__content`, which is the element that
      scrolls, so it can never overlap a target and adding its height would push
      every anchor ~47px too far down. The property itself is gone. */
   --anchor-scroll-offset: calc(

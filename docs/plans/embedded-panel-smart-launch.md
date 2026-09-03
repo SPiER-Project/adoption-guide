@@ -133,7 +133,7 @@ drawer toggle.
 
 The server indicator is not decoration. Once the panel is genuinely talking to a
 different origin, naming the server is the difference between a demo and a
-mockup — and `EhrShell.tsx` already carries a comment marking that slot as "the
+mockup — and `AppShell.tsx` already carries a comment marking that slot as "the
 natural slot for a SMART-connection indicator later."
 
 The identity strip is **conditional on `need_patient_banner`** (§4). SMART has a
@@ -180,7 +180,7 @@ the bucket-unwrapping walk the read path needs.
 **Do not fork the route table** — thirty-odd routes is too many to duplicate.
 Keep the single `<Route element={<Shell/>}>` in `App.tsx` and let `Shell` choose
 chrome from a presentation context established at `/redirect` (with an
-`?embed=1` override for testing). `EhrShell` for the implementer lenses,
+`?embed=1` override for testing). `AppShell` for the implementer lenses,
 `PanelShell` when embedded.
 
 ⚠️ **This is scoped to the demo build.** "One app, two chrome modes" answers
@@ -192,7 +192,7 @@ the same seam. See [`surfaces-and-distribution.md`](surfaces-and-distribution.md
 §3, which also corrects the scope of `repo-and-package-boundaries.md` §5 that
 this section inherited.
 
-⚠️ **`check:template` gains a second page-inset owner.** `.ehr-content-body` is
+⚠️ **`check:template` gains a second page-inset owner.** `.app-shell__body` is
 currently its *sole* owner by gate, and `PageHeader` the only page-title
 implementation. `PanelShell`'s body is a legitimate second owner — it must be
 **declared** to `web/scripts/check-page-template.mjs` with a reason, in the same

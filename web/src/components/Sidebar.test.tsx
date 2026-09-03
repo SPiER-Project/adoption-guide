@@ -5,7 +5,7 @@
  * back into the sidebar from the app bar.
  *
  * ⚠️ **This asserts a decision, not a rendering.** These links used to be pills
- * in `EhrShell`'s header, with a `HeaderMenu` disclosure taking over below
+ * in `AppShell`'s header, with a `HeaderMenu` disclosure taking over below
  * 640px; a fourth (the mock EHR demo) did not fit at any width, so all of them
  * moved here and `HeaderMenu` was deleted. The property worth gating is that
  * they are in **exactly one place** and that the demo host is one of them — the
@@ -19,7 +19,7 @@
  * the version stamp — but that put them at the bottom of a box whose height is
  * pinned to the viewport, so on a short page the sidebar's own sticky box
  * visually covered the real page footer sitting right below it. They now live
- * in `.ehr-footer` (see `EhrShell.test.tsx`), which runs full width below the
+ * in `.app-shell__footer` (see `AppShell.test.tsx`), which runs full width below the
  * sidebar and can't be obscured by it.
  *
  * What is NOT asserted: that they look right. The contrast bug this change

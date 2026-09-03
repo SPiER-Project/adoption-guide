@@ -13,8 +13,8 @@ export function scrollToAnchor(anchor: string) {
   // offset; fall back to the window.
   //
   // Both branches are live and which one runs is a breakpoint, not a fallback:
-  // the desktop shell scrolls `.ehr-content` while mobile hands scrolling back
-  // to the document (see EhrShell.css). The `scrollHeight > clientHeight` test
+  // the desktop shell scrolls `.app-shell__content` while mobile hands scrolling back
+  // to the document (see AppShell.css). The `scrollHeight > clientHeight` test
   // is what distinguishes them at runtime — do not shortcut it to a selector.
   //
   // Because the scroll is manual, `scroll-margin-top` does not apply on its own
@@ -111,11 +111,11 @@ export function useScrollToTopOnNavigate() {
 
   useLayoutEffect(() => {
     if (location.hash) return
-    // Which element actually scrolls is a breakpoint: `.ehr-content` is the
+    // Which element actually scrolls is a breakpoint: `.app-shell__content` is the
     // scroller in the desktop frame, the document is at mobile widths and in
     // the panel (see the note on scrollToAnchor). Zeroing both is safe — on
     // whichever one isn't scrolling it's a no-op.
-    document.querySelector<HTMLElement>('.ehr-content')?.scrollTo(0, 0)
+    document.querySelector<HTMLElement>('.app-shell__content')?.scrollTo(0, 0)
     window.scrollTo(0, 0)
   }, [routeKey, location.hash])
 }

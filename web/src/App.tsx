@@ -112,7 +112,7 @@ function AppRoutes() {
     <Suspense fallback={<RouteFallback />}>
       <FhircastListener />
       <Routes>
-      {/* SMART on FHIR — outside the EHR shell */}
+      {/* SMART on FHIR — outside the app shell */}
       <Route path="/launch" element={<SmartLaunch />} />
       <Route path="/redirect" element={<SmartRedirect />} />
 
@@ -123,7 +123,7 @@ function AppRoutes() {
           one, inside the shell, and `/` lands on it. */}
       <Route path="/" element={<Navigate to="/overview" replace />} />
 
-      {/* EHR Shell wraps the demo lenses */}
+      {/* The app shell wraps the demo lenses */}
       <Route element={<Shell />}>
         {/* Overview — the front door, a top-level lens rather than a guide
             section (the sidebar lists it above the Adoption Guide). */}
