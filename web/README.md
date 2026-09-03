@@ -7,7 +7,6 @@ React + TypeScript + Vite.
 - `npm run dev` — local dev server. `predev` runs `copy-fhir` first.
 - `npm run build` — production build. `prebuild` runs `copy-fhir`.
 - `npm run copy-fhir` — compile FSH with sushi, copy generated JSON into `packages/fhir-artifacts/generated/`, regenerate `src/data/catalog/care-plan-profiles.generated.ts`.
-- `npm run fetch-roadmap` — refresh `src/data/roadmap.generated.json` from GitHub Issues. Optional `GITHUB_TOKEN` env var for higher rate limit. The snapshot is committed so the build works offline. A weekly workflow (`.github/workflows/roadmap-snapshot.yml`) runs this too and PRs the diff.
 - `npm run lint` — ESLint.
 - `npm run lint:css` — stylelint; enforces the design-token vocabulary (no raw hex / font-size / box-shadow outside `index.css`).
 
@@ -16,9 +15,13 @@ React + TypeScript + Vite.
 Visual tokens (color, spacing, type, elevation) and shared components live in a
 documented, lint-enforced design system — see [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md).
 
-## Roadmap page data flow
+## Roadmap
 
-The Roadmap page reads `src/data/roadmap.generated.json`, which is produced by `scripts/fetch-roadmap.mjs`. Source of truth lives in GitHub Issues — see the root README for label conventions. Create issues in GitHub directly; there is no seed script.
+Tracked in [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues)
+— see the root README for label conventions. The app no longer mirrors it: the
+Roadmap page, its committed `src/data/roadmap.generated.json` snapshot,
+`scripts/fetch-roadmap.mjs` and the weekly `roadmap-snapshot.yml` workflow were
+all deleted together.
 
 ---
 

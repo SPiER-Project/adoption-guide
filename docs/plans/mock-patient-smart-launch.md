@@ -20,7 +20,7 @@ prove.
 
 | Phase | State |
 |---|---|
-| 1 — `Patient` for the 14, gated | **DONE 2026-08-18** — `ig/input/fsh/population-patients.fsh`, plus `check:patients` and check 8 of `check:scenarios`. No `Practitioner`/`Organization` needed; nothing references them. §7 |
+| 1 — `Patient` for the 14, gated | **DONE 2026-08-18** — `packages/demo-population/src/patients/` (`ig/input/fsh/population-patients.fsh` until #392/#399), plus `check:patients` and check 8 of `check:scenarios`. No `Practitioner`/`Organization` needed; nothing references them. §7 |
 | 2 — per-patient transaction Bundle export + a validator gate | **Not started.** §7 |
 | 3 — load into a real server; re-run the SMART walkthrough against it | **Not started.** §7 |
 | 4 — population-capable `SmartDataSource` (un-hardcode two pages) | **Not started.** §8 — the scope people forget |
@@ -36,7 +36,7 @@ The client side is not the gap. It is substantially built:
 |---|---|---|
 | Launch + redirect legs | [`SmartLaunch.tsx`](../../web/src/components/SmartLaunch.tsx), [`SmartRedirect.tsx`](../../web/src/components/SmartRedirect.tsx), `main.tsx` | Full EHR launch, PKCE public client, both legs bootstrapped around `HashRouter` |
 | Session | [`SmartProvider.tsx`](../../web/src/context/SmartProvider.tsx) | `sessionStorage`, rehydrated on reload |
-| Live read/write | [`smartDataSource.ts`](../../web/src/lib/dataSource/smartDataSource.ts) | 384 lines behind the `FhirDataSource` interface; QR written first, then derived Observations with `derivedFrom` pointing at the server-assigned id |
+| Live read/write | [`smartDataSource.ts`](../../packages/core/src/lib/dataSource/smartDataSource.ts) | 384 lines behind the `FhirDataSource` interface; QR written first, then derived Observations with `derivedFrom` pointing at the server-assigned id |
 | Patient context | [`smartPatient.ts`](../../web/src/lib/smartPatient.ts) | Reads the launch `Patient` and reduces it to the banner summary |
 | A documented walkthrough | [`docs/smart-sandbox-testing.md`](../smart-sandbox-testing.md) | Exact launcher config, a scripted zero-click launch, and an honest limitations section |
 
@@ -89,7 +89,9 @@ not another *app*, it is a *server with our patients on it*.
 
    **This was a conformance hole in its own right, independent of any server.**
 ⚠️ **DONE 2026-08-18.** The 14 `Patient` resources now exist as example Instances
-in [`ig/input/fsh/population-patients.fsh`](../../ig/input/fsh/population-patients.fsh),
+in [`packages/demo-population/src/patients/`](../../packages/demo-population/src/patients/)
+(they were IG example Instances in `ig/input/fsh/population-patients.fsh` until #392/#399
+moved them out — nothing in the IG referenced them),
 gated two ways: `check-scenario-resources.mjs` check 8 fails when a scenario's
 subject does not resolve, and `npm run check:patients` asserts the FSH,
 `patients.json` and `populationToFhir` agree field by field. Both were verified

@@ -8,7 +8,7 @@ Requirements source:
 — read that first; this doc assumes its panel numbering.
 
 Primary surfaces affected: [`web/src/pages/PopulationView.tsx`](../../web/src/pages/PopulationView.tsx),
-[`web/src/lib/registry.ts`](../../web/src/lib/registry.ts),
+[`packages/core/src/lib/registry.ts`](../../packages/core/src/lib/registry.ts),
 [`web/src/pages/MeasureDashboard.tsx`](../../web/src/pages/MeasureDashboard.tsx),
 [`ig/input/fsh/concept-layer.fsh`](../../ig/input/fsh/concept-layer.fsh),
 [`ig/input/fsh/measure-and-share.fsh`](../../ig/input/fsh/measure-and-share.fsh).
@@ -58,7 +58,7 @@ deck is actually asking for.
 Panel 5's table (High 7d / Moderate 14d / Low 30d / Historical as indicated) is
 described in the deck as "automatically calculated." In SPiER today it is not
 calculated at all: `Task` due dates are minted by
-[`riskEpisode.ts`](../../web/src/lib/riskEpisode.ts) from a caller-supplied
+[`riskEpisode.ts`](../../packages/core/src/lib/riskEpisode.ts) from a caller-supplied
 `dueDate`, and the only caller is a date input in
 [`SafetyTaskView.tsx:137`](../../web/src/components/SafetyTaskView.tsx:137) that
 defaults to today. The interval lives in a clinician's head.

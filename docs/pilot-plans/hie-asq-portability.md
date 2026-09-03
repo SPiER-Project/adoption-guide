@@ -66,7 +66,12 @@ A "lanes of responsibility" model defines accountability:
 
 - Finalize LOINC and SNOMED bindings for the ASQ panel.
 - Publish the pilot-specific ASQ Implementation Guide covering both C-CDA and FHIR profiles.
-- Resolve open LOINC verification questions documented in [`web/src/data/pilot-plans/asq.md`](../../web/src/data/pilot-plans/asq.md).
+- Re-confirm the ASQ's LOINC position for the pilot. It was verified in June 2026 and
+  the record now lives in the CodeSystem descriptions in
+  [`ig/input/fsh/asq.fsh`](../../ig/input/fsh/asq.fsh): the ASQ has **no** published
+  per-item or panel LOINC, so `q1`–`q5` bind to the SPiER-local `asq-item` codes and the
+  root to `asq-panel`, while the result Observation uses the real LOINC `93374-7`
+  "Suicide risk level". A published LOINC binding remains a possible pilot deliverable.
 
 ### Workstream B — HIE and originating-site integration (Months TBD)
 

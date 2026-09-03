@@ -383,7 +383,7 @@ Guardrail 1 of the plan's §1 requires the mock to reuse
 `check-scenario-resources.mjs`'s checks *"rather than inventing a second, laxer
 opinion"* — because **a lenient mock accepts writes a real EHR rejects, and the
 demo then looks better while proving less**. The rules live in
-[`web/scripts/lib/fhir-resource-rules.mjs`](../../web/scripts/lib/fhir-resource-rules.mjs)
+[`packages/core/fhir-resource-rules.mjs`](../../packages/core/fhir-resource-rules.mjs)
 and both callers share them verbatim.
 
 ⚠️ This README previously said that would have to be a *port*, "not a reuse of it
