@@ -100,8 +100,7 @@ New `docs/reference/suicide-safer-care-pathway-spec.md`: the diagram's care
 events, the four tier definitions (with their exact C-SSRS question/timeframe
 rules), the six per-tier obligation rows, the high-risk extras (every-contact
 question, STAT protocol, no-show outreach), milestone-event list, step-down
-criteria, and the three KPIs. Index it in `docs/README.md` and
-`docs/MANIFEST.md`. Docs are ungated prose — the transcription is the one
+criteria, and the three KPIs. Index it in `docs/README.md`. Docs are ungated prose — the transcription is the one
 place the diagram's claims live, so keep it verbatim-faithful and put
 editorial judgment in this plan instead.
 
@@ -501,7 +500,7 @@ the artifact; SPiER framework/LOINC publication.
 ## Documentation changes this drives
 
 - **New:** `docs/reference/suicide-safer-care-pathway-spec.md` (Phase 1a) and
-  this plan — both indexed in `docs/README.md` and `docs/MANIFEST.md`.
+  this plan — both indexed in `docs/README.md`.
 - **Amended:** [`suicide-care-dashboard.md`](suicide-care-dashboard.md) gets a
   one-line cross-reference (its Gaps 3/4 are now co-owned by this plan);
   CLAUDE.md's gate list gains `check:pathway` when the gate lands (Phase 2,

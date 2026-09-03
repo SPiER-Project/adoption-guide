@@ -1,5 +1,9 @@
 # SPiER Repository Structure Audit
 
+> Archived 2026-09-03: historical record. Every recommendation below was
+> implemented across the May–July 2026 restructure, and the tree it describes
+> no longer exists.
+
 **Status: HISTORICAL RECORD — superseded, do not act on it.** Produced 2026-05-20
 against `main` at `6315763` (post-PR #7), when the repo was seven tools old.
 

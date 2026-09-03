@@ -307,7 +307,7 @@ Phases 3 and 4 need spec answers 5/6 and 3/4 respectively.
 ## Documentation changes this drives
 
 - **New:** `docs/reference/suicide-care-dashboard-spec.md` (the deck, transcribed)
-  and this plan. Both indexed in `MANIFEST.md` and `docs/README.md`.
+  and this plan. Both indexed in `docs/README.md`.
 - **Amended:** [`stage-8-measure-and-share.md`](archive/stage-8-measure-and-share.md) —
   it currently presents seven process measures as the whole of Stage 8. The deck
   splits Stage 8 into a process half (built) and an outcome half (unmodeled),

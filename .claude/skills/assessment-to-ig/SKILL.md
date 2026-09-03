@@ -127,8 +127,8 @@ Always update `ig/input/pagecontent/zero-suicide-mapping.md` to add the new inst
 ### 7. Update cross-cutting docs
 
 - `FHIR-Resources/README.md` — add a row to the instruments table.
-- `docs/MANIFEST.md` — if instrument-level artifacts are tracked there.
-- `web/src/pages/Roadmap.tsx` — historically had a `PLANS` map; once the GitHub-Issues migration lands this becomes "open a tracking issue with the right labels."
+- `docs/README.md` — the documentation index; add an entry only if the instrument gets its own doc.
+- Open a tracking issue with the right labels (`tool:TL-XXX`, `type:epic`). GitHub Issues is the only roadmap; the app has no Roadmap page.
 - Run the quality skill's checklist one more time end-to-end.
 
 ## Output format
