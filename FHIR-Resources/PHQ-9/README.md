@@ -1,58 +1,51 @@
 # PHQ-9 — Patient Health Questionnaire-9
 
-## Overview
+## Provenance
 
-The PHQ-9 is a 9-item depression screening instrument scored 0-27. It is the most widely used depression screening tool in primary care and is the primary gateway for suicide risk identification in many EHR workflows through **Item 9**.
+A 9-item depression screener scored 0–27, and the most widely used depression
+screening tool in primary care. In SPiER it matters for a second reason: **item
+9** is the canonical suicide-risk trigger, and in many EHR workflows it is the
+gateway through which a patient at risk is first identified at all.
 
-**Developers:** Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues
+| | |
+|---|---|
+| **Developers** | Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues |
+| **Funding** | Developed with an educational grant from Pfizer Inc. |
+| **Licensing** | The Questionnaire records *"No permission required to reproduce, translate, display or distribute."* ⚠️ **No licensing-audit memo is on file** under [#64](https://github.com/SPiER-Project/adoption-guide/issues/64), and there is no `licensing/` folder here, so that notice has **not** been verified against the publisher's current terms. The status and this caveat are both on the `AdministerPHQ9` ActivityDefinition. |
 
-**Copyright:** Developed with an educational grant from Pfizer Inc. No permission required to reproduce, translate, display or distribute.
+## What's in this folder
 
-## Questions
+| File | What it is |
+|---|---|
+| `phq9-questionnaire.json` | The FHIR R4 Questionnaire — LOINC panel `44249-1`, per-item LOINC codes, standard LOINC answer codes (`LA6568-5`–`LA6571-9`) with point values as `ordinalValue` extensions, an SDC `calculatedExpression` total, and the functional-difficulty item (`69722-7`) |
 
-All 9 items ask: "Over the last 2 weeks, how often have you been bothered by..."
+The PHQ-9 is the one instrument here whose item and answer codes are **fully
+published LOINC**, so nothing is SPiER-local and no item table is restated in
+this file — read the Questionnaire.
 
-| # | Item | LOINC |
-|---|------|-------|
-| 1 | Little interest or pleasure in doing things | 44250-9 |
-| 2 | Feeling down, depressed, or hopeless | 44255-8 |
-| 3 | Trouble falling or staying asleep, or sleeping too much | 44259-0 |
-| 4 | Feeling tired or having little energy | 44254-1 |
-| 5 | Poor appetite or overeating | 44251-7 |
-| 6 | Feeling bad about yourself | 44258-2 |
-| 7 | Trouble concentrating on things | 44252-5 |
-| 8 | Moving or speaking slowly / being fidgety or restless | 44253-3 |
-| **9** | **Thoughts that you would be better off dead or of hurting yourself** | **44260-8** |
+Everything else is in [`ig/input/fsh/phq9.fsh`](../../ig/input/fsh/phq9.fsh): the
+`SPiERPHQ9TotalScore` profile (whose description carries the five severity
+tiers), the discrete `SPiERPHQ9Item9` profile, the `AdministerPHQ9`
+ActivityDefinition, and the examples.
 
-**Response options** (each item): Not at all (0), Several days (1), More than half the days (2), Nearly every day (3)
+## Item 9 is the trigger
 
-**Total score** (LOINC 44261-6): 0-27
+Any item-9 value above 0 advances the patient to Clarify Risk. That is stated on
+the item-9 profile and on the ActivityDefinition's `purpose`, and it is wired as
+a trigger on the Clarify Risk stage PlanDefinition — which is why item 9 gets its
+own discrete Observation rather than being left inside the total.
 
-**Functional difficulty question** (LOINC 69722-7): Not difficult at all / Somewhat / Very / Extremely difficult
+## Informational — not stated by any artifact
 
-## Scoring & Severity
+The published scoring guide pairs each severity tier with a proposed action. The
+tiers themselves are on the total-score profile; these actions are not on any
+artifact, are depression-treatment guidance rather than suicide-safer-care
+guidance, and should be reconciled with local protocol before use.
 
-| Score | Severity | Recommended Action |
-|-------|----------|--------------------|
-| 0-4 | Minimal | None |
-| 5-9 | Mild | Watchful waiting; repeat at follow-up |
-| 10-14 | Moderate | Treatment plan; counseling or pharmacotherapy |
-| 15-19 | Moderately Severe | Active treatment with pharmacotherapy and/or psychotherapy |
-| 20-27 | Severe | Immediate initiation of pharmacotherapy; if severe impairment or poor response, refer to mental health specialist |
-
-## Item 9 — Suicide Risk Gateway
-
-A positive response on Item 9 (score ≥ 1) indicates thoughts of death or self-harm and should trigger further suicide risk assessment using tools like the ASQ, C-SSRS, or SAFE-T.
-
-## FHIR Implementation
-
-- **LOINC panel:** 44249-1
-- **Scoring:** Uses `ordinalValue` extension on each answerOption to encode point values (0-3)
-- **Calculated total:** Uses SDC `calculatedExpression` extension with FHIRPath
-- **All answer options** use standard LOINC answer codes (LA6568-5 through LA6571-9)
-
-## FHIR Assets
-
-| Asset | Path |
-|-------|------|
-| Questionnaire | `fhir/questionnaires/questionnaire.json` |
+| Score | Severity | Proposed action |
+|---|---|---|
+| 0–4 | Minimal | None |
+| 5–9 | Mild | Watchful waiting; repeat at follow-up |
+| 10–14 | Moderate | Treatment plan; counseling or pharmacotherapy |
+| 15–19 | Moderately severe | Active treatment with pharmacotherapy and/or psychotherapy |
+| 20–27 | Severe | Immediate initiation of pharmacotherapy; on severe impairment or poor response, refer to a mental-health specialist |

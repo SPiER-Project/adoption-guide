@@ -8,7 +8,7 @@
 // Previously these PDs lived inside the tool FSH files that defined their
 // flagship ActivityDefinition (e.g. the Identify stage PD in asq.fsh). They
 // were consolidated here so each tool file declares only tool artifacts and
-// the pathway assembly happens in one place. (See docs/repo-audit.md §2.)
+// the pathway assembly happens in one place. (See docs/plans/archive/repo-audit.md §2.)
 //
 // Stage structure follows the SSC-mapped Salesforce stage tiles (see
 // docs/reference/ssc-stage-tiles-question-set.md): eight tiles, each with a

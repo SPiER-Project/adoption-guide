@@ -1,87 +1,59 @@
 # SAFE-T — Suicide Assessment Five-Step Evaluation and Triage
 
-## Overview
+## Provenance
 
-SAFE-T is a **structured clinical formulation** — not a scored survey — published by
-SAMHSA. It guides a clinician through five steps to reach a documented suicide-risk
-**level** with rationale and disposition. Because the risk level is a clinical-judgment
-determination that maps onto the common risk tiers, SAFE-T **lands directly on the SPiER
-concept layer**: its derived Observation's value binds to the shared suicide-risk-tier
-ValueSet, with no per-instrument crosswalk.
+SAFE-T is a **structured clinical formulation, not a scored survey**, published
+by SAMHSA on a pocket card. It walks a clinician through five steps to reach a
+documented suicide-risk **level** with its rationale and a disposition.
 
-**Source:** [SAMHSA SAFE-T pocket card (PEP24-01-036)](https://www.samhsa.gov/resource/dbhis/safe-t-pocket-card-suicide-assessment-five-step-evaluation-triage-safe-t-clinicians).
+| | |
+|---|---|
+| **Source** | [SAMHSA SAFE-T pocket card (PEP24-01-036)](https://www.samhsa.gov/resource/dbhis/safe-t-pocket-card-suicide-assessment-five-step-evaluation-triage-safe-t-clinicians) |
+| **Developed with** | Screening for Mental Health, Inc. and Douglas Jacobs, MD |
+| **Licensing** | Free public SAMHSA resource; no permission or fee required. The status and its basis are on the `AdministerSAFET` ActivityDefinition; the evidence is in [`licensing/MEMO.md`](licensing/MEMO.md). |
 
-**SPiER tool ID / stage:** TL-006, `define-risk-picture` (Stage 3 — Define the Risk Picture).
+## What's in this folder
 
-## Pilot status — ⚠️ READ THIS FIRST
+| File | What it is |
+|---|---|
+| `safet-questionnaire.json` | The FHIR R4 Questionnaire — the five steps as they appear on the card, `observationExtract` on the risk-level item only, and the risk-level value bound to the shared tier |
+| `licensing/MEMO.md` | The licensing audit |
 
-This Questionnaire is `status: draft` / `experimental: true`. The risk-factor and
-protective-factor checklists use SPiER-local CodeSystems marked `no-standard-binding`.
-The one **verified** binding is on the risk-level item, which carries LOINC `93374-7`
-("Suicide risk level"); its **value** is a code from the shared
-`spier-suicide-risk-tier` CodeSystem (`low` / `moderate` / `high`).
+Everything else is in [`ig/input/fsh/safet.fsh`](../../ig/input/fsh/safet.fsh):
+the panel code, the Step 1 risk-factor and Step 2 protective-factor CodeSystems
+and ValueSets (each concept carrying the card's own wording), the
+`SPiERSAFETRiskLevel` profile, the `AdministerSAFET` ActivityDefinition with its
+stage membership and licensing, and the examples.
 
-## The five steps
+## Why this tool needs no crosswalk
 
-1. **Identify risk factors** — note those that can be modified to reduce risk (checklist).
-2. **Identify protective factors** — note those that can be enhanced (checklist). *Even if present, protective factors may not counteract significant acute risk.*
-3. **Conduct suicide inquiry** — ideation (frequency, intensity, duration), plan (timing, location, lethality, availability, preparatory acts), behaviors (past/aborted attempts, rehearsals vs. NSSI), and intent (expectation of carrying out; belief in lethality; ambivalence).
-4. **Determine risk level & intervention** — clinical judgment after steps 1–3. Develop a safety plan for all individuals at low, moderate, and high risk.
-5. **Document** — risk level and rationale, treatment plan, counseling on access to lethal means, and follow-up.
+SAFE-T's risk level is a clinical-judgment determination that already speaks in
+tiers, so the derived Observation's **value binds directly** to the shared
+`spier-suicide-risk-tier` ValueSet (`low` / `moderate` / `high`) — SAFE-T lands
+on the concept layer with no per-instrument ConceptMap in between, the same
+design as PSS-Full. The item itself carries LOINC `93374-7` (*Suicide risk
+level*); the risk-factor and protective-factor checklists are SPiER-local and
+marked `no-standard-binding`, since they are captured for context rather than
+extracted. `status: draft` / `experimental: true`.
 
-## Risk level → tier / intervention (from the SAMHSA card)
+Because the level is a judgment rather than a computation, the Questionnaire also
+captures a `clinical-judgment-override` flag and an `override-rationale`, so a
+clinician can document overriding what the factors and the inquiry would
+otherwise suggest. The mapper folds both into the result Observation's `note`.
+
+## Informational — the card's triage chart
+
+The risk-level→intervention chart below is transcribed from the SAMHSA card. It
+is **not** carried by any artifact, and — in the card's own words, as recorded in
+the ActivityDefinition's `copyright` — it is an **example range rather than a
+determination**. Do not implement it as a rule.
 
 | Risk level | Suicidality | Possible intervention |
 |---|---|---|
 | **Low** | Thoughts of death; no plan, intent, or behavior | Outpatient referral with a warm handoff; symptom reduction; 988 Lifeline |
-| **Moderate** | Suicidal ideation with plan, but no intent or behavior | Admission may be necessary; give emergency/crisis numbers incl. 988 |
-| **High** | Ideation with plan, method, and intent to carry out | Emergency psychiatric treatment in a secure setting may be necessary |
+| **Moderate** | Suicidal ideation with a plan, but no intent or behavior | Admission may be necessary; give emergency and crisis numbers including 988 |
+| **High** | Ideation with plan, method, and intent to carry it out | Emergency psychiatric treatment in a secure setting may be necessary |
 
-The risk level maps 1:1 onto the shared `spier-suicide-risk-tier` codes (`low` / `moderate`
-/ `high`) — **no crosswalk needed.** The SPiER SAFE-T result profile binds its value to
-`spier-suicide-risk-tier-vs`.
-
-## Override / rationale (SSC-023/024)
-
-SAFE-T's risk level is a clinical-judgment call. The Questionnaire captures a
-`clinical-judgment-override` flag and an `override-rationale` free-text item so a clinician
-can document when their judgment overrides what the risk/protective factors and suicide
-inquiry would otherwise suggest — supporting the SSC override/rationale questions. The
-mapper folds the rationale and override reason into the result Observation's `note`.
-
-## Derived Observation
-
-The observation mapper (`web/src/lib/observationMappers/safet.ts`) emits a single derived
-Observation:
-
-| Observation code | System | Value | From item |
-|---|---|---|---|
-| `93374-7` "Suicide risk level" | LOINC | `spier-suicide-risk-tier` code (low/moderate/high) | `risk-level` |
-
-Only the risk-level item declares `observationExtract`; the risk/protective-factor
-checklists and the inquiry free-text are recorded in the QuestionnaireResponse for context.
-The extract code MUST stay in sync with `web/scripts/check-observation-extract.mjs`
-(`EXPECTED`).
-
-## FHIR Assets
-
-| Asset | Path | Description |
-|---|---|---|
-| Questionnaire | `safet-questionnaire.json` | FHIR R4 Questionnaire; 5 steps, `observationExtract` on the risk-level, value bound to the shared tier |
-| FSH source | `../../ig/input/fsh/safet.fsh` | ActivityDefinition, factor CodeSystems/ValueSets, SPiERSAFETRiskLevel profile, example instances |
-| Licensing memo | `licensing/MEMO.md` | Public-resource (SAMHSA) licensing audit |
-
-## Clinical Pathway Integration
-
-SAFE-T is a **Define the Risk Picture** stage tool — it documents the current risk status
-and the clinical reasoning that guides next steps:
-
-```
-Identify Possible Risk → Clarify Risk → Define the Risk Picture (SAFE-T / CAMS worksheet) → Document Safety Actions → …
-```
-
-## Copyright
-
-The SAFE-T pocket card is a public resource of SAMHSA (developed with Screening for Mental
-Health, Inc. and Douglas Jacobs, MD). Distributed free; no permission or fee is required
-for use. See `licensing/MEMO.md`.
+One clinical note the card makes and the artifacts do not: a safety plan is
+developed for individuals at **low, moderate and high** risk, not only the top
+tier.

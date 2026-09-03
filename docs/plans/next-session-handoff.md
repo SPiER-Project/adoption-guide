@@ -664,7 +664,7 @@ references it cannot resolve.
     claims outside the repo. ⚠️ **`ed-scenario-11.json` is the source; the `.md`
     and everything in `dist/` are generated.**
 
-[`../MANIFEST.md`](../MANIFEST.md) indexes the wider doc set, though not every plan.
+[`../README.md`](../README.md) indexes the wider doc set, this folder included.
 
 ⚠️ **Docs have no CI gate here** — only `docs/use-cases/**` and `docs/outreach/**`
 are gated. Every plan doc and this handoff are ungated prose, which is why #349

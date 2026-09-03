@@ -1,75 +1,79 @@
-# CAMS Data Flow & Implementation Guide
+# CAMS — Collaborative Assessment and Management of Suicidality
 
-This document defines the "wiring" between the various CAMS FHIR artifacts. It explains how data captured in one form (Questionnaire) is persisted and re-used in subsequent steps of the clinical workflow.
+## Provenance
 
-## 1. The "Driver" Lifecycle (Problem Tracking)
-The core of CAMS is identifying and treating specific "Drivers" (problems) that cause suicidality.
+CAMS is a therapeutic framework rather than a single instrument: a clinician and
+patient assess suicidality collaboratively, name the specific *drivers* of it,
+and work them down over a series of sessions. Its assessment instrument is the
+**Suicide Status Form (SSF)**.
 
-### Step 1: Identification (Session 1)
-*   **Source:** `CAMS_SSF5_SectionB_Questionnaire.json`
-*   **Fields:**
-    *   `driver-1-desc` (Description)
-    *   `driver-1-type` (Direct vs Indirect)
-*   **Action:** The EHR backend MUST extract these answers and create **FHIR Condition** resources.
-    *   `Condition.code.text` = `driver-1-desc`
-    *   `Condition.category` = `suicide-driver` (System: `http://thespierproject.org/fhir/CodeSystem/cams-driver-category`) — required, `1..1`
-    *   `Condition.category` = `direct` / `indirect` from `driver-1-type` (System: `http://thespierproject.org/fhir/CodeSystem/cams-driver-type`) — optional, `0..1`, required-bound when present
-    *   `Condition.clinicalStatus` = `active`
+| | |
+|---|---|
+| **Author** | David A. Jobes, PhD |
+| **Distributed by** | CAMS-care, LLC and Guilford Press |
+| **Licensing** | ⚠️ **Commercial.** Use requires training and a license from CAMS-care, and the SSF must not be reproduced without that agreement. The status and terms are on each `AdministerCAMS*` ActivityDefinition. **No licensing-audit memo is on file** for CAMS under [#64](https://github.com/SPiER-Project/adoption-guide/issues/64), so the terms recorded there come from the notice on the SPiER Questionnaires and have **not** been verified against CAMS-care's current published terms. |
 
-    Both systems are SPiER-local and defined in `ig/input/fsh/cams.fsh`; see the
-    `SPiERCAMSSuicideDriver` profile, where each is a named slice on
-    `Condition.category`. Earlier revisions of this file and of the demo mapper
-    named `http://cams-care.com/…` URLs, which are not resolvable terminology
-    (#265).
+## What's in this folder
 
-### Step 2: Exploration (Interim Sessions)
-*   **Source:** `Condition` resources (Query: `category=suicide-driver&status=active`)
-*   **Target:** `CAMS_Therapeutic_Worksheet_Questionnaire.json`
-*   **Logic:** The EHR should **pre-populate** the worksheet headers ("Problem #2", "Problem #3") with the titles of the active drivers identified in Session 1.
+| File | What it is |
+|---|---|
+| `cams-ssf5-section-a.json` | SSF-5 Section A — the patient's six Core Assessment ratings. Also the form used for every interim-session re-rating |
+| `cams-ssf5-section-b.json` | SSF-5 Section B — the clinician's driver identification |
+| `cams-therapeutic-worksheet.json` | The Therapeutic Worksheet used between sessions |
+| `cams-stabilization-plan.json` | The Stabilization Plan, reviewed at the start of every session |
+| `cams-ssf5-outcome-disposition.json` | The final-session outcome and disposition form |
+| `Stabilization_CarePlan_Template.json` | A hand-authored CarePlan template, kept for reference; the conformance target is the `SPiERCAMSStabilizationPlan` profile |
+| `references/build-kit/` | The fillable SSF-5, Therapeutic Worksheet and Stabilization Support Plan PDFs, plus the Guilford/CAMS-care content-distribution agreement |
+| `references/specs/` | The CAMS EHR build specs and the EHR→dashboard translation workbook |
+| `references/training-transcripts/` | Transcripts of the CAMS clinical demonstration, introduction and conclusion training sessions |
+| `references/focus-groups/` | The CAMS focus-group question set |
 
-### Step 3: Resolution (Final Session)
-*   **Action:** When a driver is no longer relevant, the clinician marks it as "Resolved" in the SSF Outcome form (to be built), updating the `Condition.clinicalStatus` to `resolved`.
+Everything about the FHIR shapes is defined in
+[`ig/input/fsh/cams.fsh`](../../ig/input/fsh/cams.fsh) and rendered in the
+published IG: the SSF measure, driver-category, driver-type, disposition and
+CarePlan-section CodeSystems; the `SPiERCAMSSSFVital`,
+`SPiERCAMSSuicideDriver`, `SPiERCAMSStabilizationPlan`,
+`SPiERCAMSTherapeuticWorksheet` and `SPiERCAMSOutcomeDisposition` profiles; the
+six ActivityDefinitions with their stage membership and licensing; and the
+example instances.
 
-## 2. Core Assessment Scoring (The "CAMS Vitals")
-The patient rates 5 key markers (1-5 scale) at the start of *every* session.
+⚠️ **The driver category systems are SPiER-local.** Earlier revisions of this
+file and of the demo mapper named `http://cams-care.com/…` URLs, which are not
+resolvable terminology ([#265](https://github.com/SPiER-Project/adoption-guide/issues/265)).
+Both live systems are declared in the FSH as named slices on
+`Condition.category` in the `SPiERCAMSSuicideDriver` profile.
 
-*   **Source:** `CAMS_SSF5_SectionA_Questionnaire.json`
-*   **Fields:**
-    *   `1-score` (Psychological Pain)
-    *   `2-score` (Stress)
-    *   `3-score` (Agitation)
-    *   `4-score` (Hopelessness)
-    *   `5-score` (Self-Hate)
-    *   `6-score` (Overall Risk)
-*   **Action:** Extract each score to a **FHIR Observation** resource.
-    *   `Observation.code` = [Local Code or LOINC]
-    *   `Observation.valueInteger` = [1-5]
-    *   `Observation.effectiveDateTime` = [Session Date]
-*   **Goal:** This allows the EHR to plot a line graph of these 5 metrics over time, a key visual tool in CAMS treatment.
+## The episode, not the form — how the pieces wire together
 
-## 3. Stabilization Plan Persistence
-The plan is a "living document" that spans the entire episode of care.
+The profiles above define each resource's shape. What they do not say is how the
+resources relate across a course of CAMS treatment, which is the thing CAMS
+implementers get wrong: **CAMS is an episode, and every artifact here is
+longitudinal.**
 
-*   **Source:** `CAMS_Stabilization_Plan_Questionnaire.json`
-*   **Persistence:** **FHIR CarePlan** (Hybrid Model).
-    *   Similar to the Stanley-Brown approach, the "Coping Strategies" and "Lethal Means" actions should be stored in `CarePlan.activity.detail.description`.
-*   **Workflow:**
-    *   **Session 1:** Create `CarePlan`.
-    *   **Interim Sessions:** The EHR should display the *current* Stabilization Plan and allow the clinician/patient to edit it. Updates overwrite the active `CarePlan` (or create a new version).
+**Session 1.** Section A produces six separate `SPiERCAMSSSFVital` Observations
+— one per SSF measure, `valueInteger` 1–5 — deliberately not one composite, so
+an EHR can chart each measure over time. Section B's driver answers become
+`SPiERCAMSSuicideDriver` `Condition` resources with
+`clinicalStatus: active`. The Stabilization Plan becomes a CarePlan.
 
-## 4. Summary Table: Field Mapping
+**Interim sessions.** Section A is re-administered each time
+(`AdministerCAMSInterimSession`), producing a fresh set of six Observations for
+the trend. Two behaviours are expected of the host and are stated nowhere else:
 
-| Concept | Questionnaire Field | FHIR Resource | Purpose |
-| :--- | :--- | :--- | :--- |
-| **Pain Rating** | `SectionA/1-score` | `Observation` | Trending Graph |
-| **Direct Driver** | `SectionB/driver-1-desc` | `Condition` | Problem List Tracking |
-| **Lethal Means** | `Stabilization/lethal-means-list` | `CarePlan` | Safety Planning |
-| **Coping Strategy** | `Stabilization/coping-list` | `CarePlan` | Safety Planning |
-| **Emergency Contact** | `Stabilization/emergency-contact` | `CarePlan` | Crisis Support |
+- **Pre-populate the Therapeutic Worksheet from the chart, not from memory.**
+  Query the patient's active drivers (`Condition?category=suicide-driver&clinical-status=active`)
+  and fill the worksheet's problem headers from them, so the worksheet tracks
+  the drivers that were actually identified rather than asking the clinician to
+  retype them.
+- **Show the current Stabilization Plan and let it be edited.** Updates revise
+  the active CarePlan rather than creating an unrelated one — it is a living
+  document spanning the episode, not a per-session snapshot.
 
-## 5. Longitudinal Workflow (Sequence Diagram)
-
-The following diagram visualizes how the CAMS FHIR resources interact across the entire episode of care.
+**Final session.** The Outcome-Disposition form records the disposition;
+resolved drivers move to `clinicalStatus: resolved` and the CarePlan to
+`status: completed`. `AdministerCAMSInterimSession` states the resolution
+criterion CAMS uses: three consecutive interim sessions showing low overall
+risk.
 
 ```mermaid
 sequenceDiagram
@@ -79,34 +83,31 @@ sequenceDiagram
 
     rect rgb(240, 248, 255)
         Note over P,F: Session 1: Initial Assessment
-        P->>E: Completes SSF5 Section A (Pain/Risk Ratings)
-        E->>F: Saves Observations (Vitals)
-        P->>E: Completes SSF5 Section B (Driver ID)
+        P->>E: Completes SSF-5 Section A (six Core Assessment ratings)
+        E->>F: Saves six SSF Vital Observations
+        P->>E: Completes SSF-5 Section B (driver identification)
         E->>F: Creates Conditions (category=suicide-driver)
         P->>E: Completes Stabilization Plan
-        E->>F: Creates Hybrid CarePlan
+        E->>F: Creates CarePlan
     end
 
     rect rgb(240, 255, 240)
-        Note over P,F: Interim Sessions (Repeated)
-        P->>E: Completes SSF5 Section A (Pain/Risk Ratings)
-        E->>F: Saves new Observations (Vitals for Trending)
-        E->>F: Queries Active Conditions (Drivers)
-        F-->>E: Returns Active Conditions
-        E->>P: Pre-populates Therapeutic Worksheet with Drivers
-        P->>E: Completes Therapeutic Worksheet
-        E->>F: Saves QuestionnaireResponse
-        P->>E: Reviews/Edits Stabilization Plan
-        E->>F: Updates active CarePlan
+        Note over P,F: Interim Sessions (repeated)
+        P->>E: Completes SSF-5 Section A again
+        E->>F: Saves a fresh set of six Observations for the trend
+        E->>F: Queries active suicide-driver Conditions
+        F-->>E: Returns the active drivers
+        E->>P: Pre-populates the Therapeutic Worksheet with them
+        P->>E: Completes the Therapeutic Worksheet
+        E->>F: Saves the QuestionnaireResponse
+        P->>E: Reviews and edits the Stabilization Plan
+        E->>F: Updates the active CarePlan
     end
 
     rect rgb(255, 240, 245)
-        Note over P,F: Final Session: Disposition
-        P->>E: Reviews Outcomes / Completes Final Form
-        E->>F: Updates Conditions (status=resolved)
+        Note over P,F: Final Session: Outcome and Disposition
+        P->>E: Completes the Outcome-Disposition form
+        E->>F: Updates resolved Conditions (clinicalStatus=resolved)
         E->>F: Updates CarePlan (status=completed)
     end
 ```
-
----
-*Created: 2026-02-04*

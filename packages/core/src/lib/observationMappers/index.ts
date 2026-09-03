@@ -18,7 +18,7 @@
  *
  * ⚠️ DEMO ONLY — No data is persisted to a server.
  *
- * See ../../docs/repo-audit.md §4 for the per-tool split rationale.
+ * See docs/plans/archive/repo-audit.md §4 for the per-tool split rationale.
  */
 
 export type { RiskAlert, MapperResult, DispatchProvenance } from './shared'

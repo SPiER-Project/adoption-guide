@@ -37,7 +37,7 @@ TL-014 is a **combined** acute-care instrument, not a single fixed proprietary q
 - Output: `SPiERPSSFullRiskLevel` Observation, value bound to `spier-suicide-risk-tier-vs` (lands on the concept layer; no crosswalk).
 - FSH: `ig/input/fsh/pss-full.fsh` header documents composition and licensing basis.
 
-- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerPSSFull` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `web/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
+- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerPSSFull` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `packages/core/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
 
 ## Open questions
 

@@ -1,66 +1,39 @@
-# Stanley Brown Data Mapping Guide
+# Stanley-Brown: QuestionnaireResponse → CarePlan
 
-This document defines the "wiring" between the Stanley Brown FHIR `Questionnaire` (the data capture tool) and the `Hybrid_CarePlan` (the persistence model). 
+**This document is a pointer.** The mapping it used to describe in prose is now
+declared as a FHIR StructureMap and executed by a runtime mapper, and the two
+are held in agreement by a golden file — so a prose table here could only go
+stale against three things at once.
 
-It explains exactly how an EHR should extract answers from a submitted `QuestionnaireResponse` and map them into the `CarePlan` so that the safety plan is accessible and interoperable.
+| | |
+|---|---|
+| **The declaration** | [`ig/input/resources/maps/StanleyBrownQRToCarePlan.fml`](../../../ig/input/resources/maps/StanleyBrownQRToCarePlan.fml) — every step's `linkId`, its target activity, and the exact string formatting, including how repeating answers are joined and how step 5 appends the local emergency department. It is what the Document Safety Actions stage names in `PlanDefinition.action.transform`. |
+| **The runtime** | `packages/core/src/lib/carePlanMappers/stanleyBrown.ts` — the executable implementation the demo runs |
+| **The golden file** | `scripts/fixtures/stanley-brown/careplan-expected.json` — both sides are compared against it: the FML by `node scripts/check-fml.mjs --tx https://tx.fhir.org`, the TypeScript by `stanleyBrown.parity.test.ts` |
+| **The conformance target** | The `SPiERStanleyBrownSafetyPlan` profile in [`ig/input/fsh/stanley-brown.fsh`](../../../ig/input/fsh/stanley-brown.fsh), which declares all seven steps as named slices |
 
-## The "Hybrid" CarePlan Approach
-The `Hybrid_CarePlan.json` relies on duplicating textual data from the patient's answers directly into the `CarePlan.activity.detail.description` fields. While FHIR technically allows a CarePlan to simply reference a resulting `QuestionnaireResponse`, doing so means the receiving system *must* be capable of resolving that reference to actually read the safety plan. 
+⚠️ **Change the transformation and you change both sides.** They exist twice on
+purpose, and `CLAUDE.md` explains the arrangement and which fields the parity
+comparison deliberately excludes.
 
-By embedding the text into the `activity` array, any standard EHR can immediately display the patient's coping strategies and emergency contacts without needing to perform secondary lookups.
+## Why the text is embedded rather than referenced
 
-## Field Mapping Table
+This is the one design decision the artifacts cannot express on their own, so it
+is worth stating plainly — it is now also carried in the StructureMap's own
+published description.
 
-The following table dictates how fields from the `Stanley_Brown_FHIR_Questionnaire` should be extracted and concatenated to form the `CarePlan` activity descriptions.
+The CarePlan duplicates the patient's answers into
+`activity.detail.description` instead of simply referencing the
+QuestionnaireResponse that produced them. FHIR permits the reference, and it
+would avoid the duplication. But it makes reading the safety plan conditional on
+the receiving system being able and willing to resolve that reference — and a
+safety plan a clinician cannot read the moment they open the chart is not
+functioning as a safety plan. Embedding lets any standard EHR display the coping
+strategies and emergency contacts with no secondary lookup. The
+QuestionnaireResponse remains the provenance record; the CarePlan is the copy
+meant to be read.
 
-| Clinical Step | Questionnaire `linkId` | Target `CarePlan` Element | Formatting Logic (Example) |
-| :--- | :--- | :--- | :--- |
-| **Step 1: Warning Signs** | `1-1-warning-sign` | `activity[0].detail.description` | Comma-separated list: `"Thinking I am a burden, pacing, isolating myself"` |
-| **Step 2: Internal Coping** | `2-1-coping-strategy` | `activity[1].detail.description` | Comma-separated list: `"Walking the dog, listening to music, playing guitar"` |
-| **Step 3: Distraction Contacts**| `3-1-name-place`<br>`3-2-contact-info` | `activity[2].detail.description` | Formatted pairs: `"Coffee shop (Main St), John Doe (555-0100)"` |
-| **Step 4: Crisis Support** | `4-1-name`<br>`4-2-contact-info` | `activity[3].detail.description` | Formatted pairs: `"Jane Doe (555-0101), Dr. Smith (555-0102)"` |
-| **Step 5: Professionals** | `5-1-name`<br>`5-2-contact-info`<br>`5-3-name`<br>`5-4-address`<br>`5-5-phone` | `activity[4].detail.description` | Combine clinician and ED info: `"Dr. Jones (555-0103) / Unity Hospital ED (123 Main St, 555-9999)"` |
-| **Step 6: Lethal Means** | `6-1-safety-action` | `activity[5].detail.description` | Comma-separated list: `"Guns locked in safe, keys given to brother"` |
-| **Step 7: Reason for Living** | `7-1-worth-living` | `activity[6].detail.description` | Direct text: `"My daughter's graduation"` |
-
-## Implementation Workflow
-
-1.  **Form Submission:** The patient or clinician completes the Stanley Brown `Questionnaire`.
-2.  **Resource Generation:** The EHR generates a FHIR `QuestionnaireResponse`.
-3.  **Data Extraction:** A backend service or integration engine runs the mapping logic defined above.
-4.  **CarePlan Creation/Update:** 
-    *   If no active Safety Plan exists, generate a new `CarePlan` using `Hybrid_CarePlan.json` as the template. Populate the `activity.detail.description` strings.
-    *   If an active Safety Plan *does* exist, update the existing `CarePlan` with the new strings (or create a new version of the resource).
-5.  **Persistence:** Store the `CarePlan` for long-term retrieval and cross-network sharing.
-
-### Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    participant P as Patient/Clinician
-    participant E as EHR System
-    participant B as Backend Service
-    participant C as FHIR Repository
-
-    P->>E: Completes Stanley Brown Questionnaire
-    E->>B: Submits Questionnaire data
-    B->>C: Creates QuestionnaireResponse resource
-    
-    B->>C: Queries for active Stanley Brown CarePlan
-    C-->>B: Returns existing CarePlan or None
-    
-    Note over B: Executes Mapping Logic<br/>(Extracts Text, Formats Arrays)
-    
-    alt Active CarePlan Exists
-        B->>C: Updates existing CarePlan.activity descriptions
-    else No Active CarePlan
-        B->>B: Clones Hybrid_CarePlan.json template
-        B->>C: Creates new CarePlan resource
-    end
-    
-    C-->>E: Acknowledges CarePlan save
-    E-->>P: Displays saved Safety Plan
-```
-
----
-*Created: 2026-02-23*
+A related consequence, declared in the map: a step with no content still gets an
+activity, carrying an explicit *"No … provided."* description rather than being
+omitted. The profile requires all seven, and an absent activity would otherwise
+be indistinguishable from an unanswered one.

@@ -48,7 +48,7 @@
 - IG page attribution block: *Not yet authored — will live in `ig/input/pagecontent/asq.md` when that page is created.*
 - FSH source attribution: `ig/input/fsh/asq.fsh` — `AdministerASQ` now carries the copyright notice and licensing status (see the bullet below).
 
-- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerASQ` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `web/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
+- `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerASQ` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `packages/core/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
 
 ## Open questions
 

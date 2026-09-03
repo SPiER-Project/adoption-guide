@@ -1,101 +1,70 @@
 # C-SSRS — Columbia-Suicide Severity Rating Scale
 
-## Overview
+## Provenance
 
-The C-SSRS is the gold-standard suicide risk assessment tool, developed at Columbia University. It provides a hierarchical assessment of suicidal ideation severity (5 levels) and suicidal behavior, with standardized risk stratification.
+The C-SSRS is the reference suicide-risk assessment instrument, developed at
+Columbia University. It assesses suicidal ideation on a five-level severity
+hierarchy plus a suicidal-behavior item, with published risk stratification.
 
-**Authors:** Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J.
+| | |
+|---|---|
+| **Authors** | Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. |
+| **Rights holder** | © 2008 The Research Foundation for Mental Hygiene, Inc. |
+| **Registration** | [cssrs.columbia.edu](https://cssrs.columbia.edu) — free to use but copyrighted and permission-based. An adopting system registers with the Columbia Lighthouse Project; some administration contexts require training; **item wording may not be altered**; the copyright notice must be retained on every version. |
+| **Licensing** | Status `registration`, with the conditions above, on each `AdministerCSSRS*` ActivityDefinition (`instrument-licensing-status` + `copyright`). The evidence and the one open item — whether a FHIR representation is covered by a site's own registration — are in [`licensing/MEMO.md`](licensing/MEMO.md). |
 
-**Copyright:** © 2008 The Research Foundation for Mental Hygiene, Inc. Training required for administration. Contact: posnerk@nyspi.columbia.edu
+## What's in this folder
 
-## Versions Implemented
+Four administrations of the instrument, all deriving the same
+`SPiERCSSRSRiskLevel` Observation (`none` / `low` / `moderate` / `high`) so they
+share one crosswalk into the common suicide-risk tier.
 
-### C-SSRS Screener (Recent)
-- **6 items** with three-tier risk stratification
-- LOINC panel: **93373-9**
-- Quick assessment for universal screening contexts
+| File | Administration | Root panel |
+|---|---|---|
+| `cssrs-screener.json` | Screener with Triage Points (recent) — the 6-item set | LOINC `93373-9` |
+| `cssrs-full-lifetime-recent.json` | Full scale: 5 ideation levels over a dual lifetime + past-month timeframe, 5 intensity ratings (frequency, duration, controllability, deterrents, reasons), and the full behavior section (actual, interrupted and aborted attempts, preparatory acts, lethality) | LOINC `93245-9` |
+| `cssrs-since-last-contact.json` | The same 6-item set scoped to the interval since the patient's prior contact — a repeat assessment | **None.** LOINC codes C-SSRS items only for lifetime, 1-month and 3-month windows, and none of those is this reference period; a LOINC item code here would assert a window the instrument does not claim, so the items bind to the SPiER-local `cssrs-interval-item` CodeSystem. The ideation and behavior *sections* keep their LOINC codes (`93278-0`, `93304-4`) |
+| `cssrs-pediatric.json` | The validated 6-item screener targeted at pediatric/adolescent settings — pediatric `useContext`, age Child, with a parent/guardian involvement instruction | LOINC `93373-9` |
+| `licensing/MEMO.md` | The licensing audit and its open item | |
 
-### C-SSRS Full (Lifetime/Recent)
-- **5 ideation levels** (dual timeframe: Lifetime + Past Month)
-- **5 intensity ratings** (frequency, duration, controllability, deterrents, reasons)
-- **Full behavior section** (actual attempts, interrupted, aborted, preparatory acts, lethality)
-- LOINC panel: **93245-9**
+Two things about those administrations are worth knowing before implementing
+them, because neither is visible from the file:
 
-### C-SSRS Since Last Visit / Since Last Contact (TL-019)
-- **Same 6-item set + LOINC codes** as the Screener, scoped to the **interval since the patient's prior contact** (a repeat assessment) rather than lifetime/recent.
-- Shares the LOINC screener panel **93373-9** and the derived `SPiERCSSRSRiskLevel` risk-level Observation (none/low/moderate/high), so it reuses the same crosswalk to the common suicide-risk tier.
-- The interval framing is expressed in the title/description/instruction; item wording is unchanged (per the Columbia registration terms). The interval-scoped behavior item drops the "within past 3 months" recency sub-question.
-- Belongs to the **Clarify Risk** stage as a repeat assessment.
+- The interval form's framing lives in its title, description and instruction
+  only. **Item wording is unchanged**, per the registration terms, and its
+  behavior item drops the "within the past 3 months" recency sub-question
+  because its whole reference period is already the interval since last contact.
+- The pediatric form uses the standard **adolescent**-validated wording. The
+  Columbia Lighthouse Project's separate simplified wording for younger children
+  is a pending licensing and verification gate (see the MEMO) — it is not
+  approximated here.
 
-### C-SSRS Pediatric / Adolescent Screener (TL-027)
-- Same **validated 6-item screener** set + LOINC codes, targeted at **pediatric/adolescent** settings (pediatric `useContext`, age = Child), with a parent/guardian involvement instruction.
-- Shares the LOINC screener panel **93373-9** and the derived `SPiERCSSRSRiskLevel` Observation, so it reuses the same crosswalk to the common suicide-risk tier.
-- Uses the standard adolescent-validated wording. The Columbia Lighthouse Project's separate younger-child "Children's" simplified wording is a **pending licensing/verification gate** (see `licensing/MEMO.md`) — not fabricated here.
-- Belongs to the **Identify Possible Risk** stage.
+Everything else is defined in the IG and rendered there:
+[`ig/input/fsh/cssrs.fsh`](../../ig/input/fsh/cssrs.fsh) holds the risk-level
+and interval-item CodeSystems, the `SPiERCSSRSRiskLevel` profile, the four
+ActivityDefinitions with their stage membership and licensing, and the example
+instances; [`ig/input/fsh/crosswalk-cssrs.fsh`](../../ig/input/fsh/crosswalk-cssrs.fsh)
+holds the ConceptMap onto the common tier.
 
-## Suicidal Ideation Hierarchy (5 Levels)
+## The risk ladder, and where it is stated
 
-| Level | Description | Risk Tier |
-|-------|-------------|-----------|
-| 1 | Wish to be Dead | Low |
-| 2 | Non-Specific Active Suicidal Thoughts | Low |
-| 3 | Active Ideation with Any Methods (Not Plan), No Intent | Moderate |
-| 4 | Active Ideation with Some Intent, No Specific Plan | High |
-| 5 | Active Ideation with Specific Plan and Intent | High |
+The item→level ladder is **not** restated here. Each concept in
+`CSSRSRiskLevelCodes` carries its own criteria — including that item 6 endorsed
+*within the past three months* scores `high` while lifetime-only item 6 scores
+`moderate` — so the definition renders in the IG next to the code it defines.
 
-## Screener Risk Stratification
+Two notes that the artifacts do not carry:
 
-The published C-SSRS Screener with Triage Points, verified against the
-CMS-hosted 2008 "Screen Version — Recent" PDF and the Columbia Lighthouse
-Project's 2026 "Screen with Triage Points for Primary Care" — the two agree
-item-for-item. Record:
-[`docs/reference/suicide-safer-care-pathway-spec.md`](../../docs/reference/suicide-safer-care-pathway-spec.md)
-§ *Published-instrument verification (Phase 1b)*.
-
-| Risk Level | Criteria |
-|------------|----------|
-| **Low** | Q1 or Q2 = Yes (wish to be dead or non-specific thoughts) |
-| **Moderate** | Q3 = Yes (method, no intent), **or** Q6 = Yes but *not* within the past three months |
-| **High** | Q4 = Yes (some intent) or Q5 = Yes (specific plan with intent), **or** Q6 = Yes within the past three months |
-
-Two notes on the behavior item. First, the Since Last Visit / Since Last
-Contact form asks **no** recency follow-up, because its whole reference period
-is the interval since the patient's last contact — a positive Q6 there is
-recent by construction and scores High. Second, the source pathway diagram
-places lifetime-only Q6 in a separate "Historical" tier below Low; that tier is
-deliberately **not** implemented, because neither published source defines a
-fourth level and both score that pattern Moderate. Whether SPiER carries
-historical risk as an orthogonal *flag* is an open clinical question — see
-[`docs/plans/suicide-safer-care-pathway.md`](../../docs/plans/suicide-safer-care-pathway.md)
-open question 2.
-
-## FHIR Assets
-
-| Asset | Path | LOINC Panel |
-|-------|------|-------------|
-| Screener | `fhir/questionnaires/screener.json` | 93373-9 |
-| Full Lifetime/Recent | `fhir/questionnaires/full-lifetime-recent.json` | 93245-9 |
-
-## Key LOINC Codes
-
-| Code | Description |
-|------|-------------|
-| 93246-7 | Wish to be dead |
-| 93247-5 | Non-specific active suicidal thoughts |
-| 93248-3 | Active ideation with methods, no intent |
-| 93249-1 | Active ideation with some intent |
-| 93250-9 | Active ideation with specific plan and intent |
-| 93267-3 | Suicidal behavior (done/started/prepared to end life) |
-| 93269-9 | Was this within past 3 months |
-| 93271-5 | Actual lethality/medical damage |
-| 93374-7 | Suicide risk level |
-
-## Clinical Pathway Integration
-
-The C-SSRS sits in the **Assessment** phase:
-
-```
-PHQ-9 Item 9+ or ASQ+ (Screening) → C-SSRS (Assessment) → Risk Stratification → Safety Planning
-```
-
-The screener is appropriate for initial triage. The full version provides comprehensive assessment for treatment planning.
+- **The ladder is verified against published sources.** It was checked against
+  the CMS-hosted 2008 *Screen Version — Recent* PDF and the Columbia Lighthouse
+  Project's 2026 *Screen with Triage Points for Primary Care*, which agree
+  item-for-item. Record:
+  [`docs/reference/suicide-safer-care-pathway-spec.md`](../../docs/reference/suicide-safer-care-pathway-spec.md)
+  § *Published-instrument verification (Phase 1b)*.
+- **The source pathway diagram's fourth tier is deliberately not implemented.**
+  That diagram places lifetime-only item 6 in a separate "Historical" tier below
+  Low. Neither published source defines a fourth level, and both score that
+  pattern Moderate. Whether SPiER should instead carry historical risk as an
+  orthogonal *flag* is an open clinical question — see
+  [`docs/plans/suicide-safer-care-pathway.md`](../../docs/plans/suicide-safer-care-pathway.md),
+  open question 2.
