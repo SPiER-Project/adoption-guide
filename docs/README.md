@@ -33,9 +33,13 @@ the FSH or in `CLAUDE.md`.
 
 ## Strategy and education
 
-* [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) — mission statement and technical roadmap.
+The project narrative — mission, Capture → Translate → Act, the eight-stage
+pathway, why interoperability blocks care — lives in the
+[repository README](../README.md) and nowhere else. `PROJECT_OVERVIEW.md` was a
+near-verbatim second copy of it and has been folded in.
+
 * [`engagement-strategy.md`](engagement-strategy.md) — the three-tier engagement model (HIE / mid-range aggregator / direct EHR) plus the cross-cutting standards-body and federal-regulator layer.
-* [`one-pager.md`](one-pager.md) — a short prose pitch. The **outreach** one-pager that gets sent to people is built from HTML instead; see [`outreach/README.md`](outreach/README.md).
+* [`one-pager.md`](one-pager.md) — a pointer at the outreach one-pager, which is built from `web/public/SPiER-Overview-Care-Pathway.html`; see [`outreach/README.md`](outreach/README.md).
 * [`standards-landscape.md`](standards-landscape.md) — the surrounding standards ecosystem SPiER sits inside: US Core, SDC, Gravity, USCDI+ BH, and the federal behavioral-health IT initiatives.
 * [`best-practices/consent-vs-ds4p.md`](best-practices/consent-vs-ds4p.md) — educational guide on FHIR Consent and data-segmentation standards.
 * [`best-practices/strategy-consent.md`](best-practices/strategy-consent.md) — architectural plan for cross-practice data sharing.

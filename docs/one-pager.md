@@ -1,47 +1,29 @@
-# SPiER — Suicide Prevention in Electronic Health Records
+# The one-pager
 
-**Making suicide-safer care the standard everywhere — by making suicide-safer-care data portable across every system a patient touches.**
+**This file is a pointer, not a document.** SPiER's outreach one-pager is built
+from HTML, not from Markdown.
 
----
+| | |
+|---|---|
+| **Source** | [`web/public/SPiER-Overview-Care-Pathway.html`](../web/public/SPiER-Overview-Care-Pathway.html) — edit this |
+| **PDF** | `web/public/SPiER-Overview-Care-Pathway.pdf` — generated, don't edit |
+| **How to rebuild it, and where it is published** | [`outreach/README.md`](outreach/README.md) |
 
-## What SPiER is
+For the project narrative in prose — mission, Capture → Translate → Act, the
+eight-stage pathway, and why interoperability is the blocker — see the
+[repository README](../README.md), which is its single home.
 
-SPiER is translating the research-validated suicide prevention tools clinicians already trust — the **ASQ** screener, the **Columbia (C-SSRS)**, the **Stanley-Brown Safety Plan**, **CAMS**, and others — out of paper and PDF and into structured, machine-readable **HL7 FHIR** resources that any EHR or health information exchange can implement the same way.
+## Why this file is a stub
 
-We organize this work around an **8-stage Suicide Safer Care Pathway** — from flagging risk through safety planning, care transitions, follow-up, and population measurement — so that an implementation supports the whole longitudinal journey of a patient at risk, not just a single screen.
-
-**The standards are free and open.** SPiER gives the field open Implementation Guides, FHIR profiles, value sets, and reference examples that vendors adopt at no cost — nothing needs to be purchased to use them. Alongside the standards, SPiER partners with organizations to embed and implement these tools, providing subject-matter expertise, training, and technical assistance, and helping them strengthen suicide-safer care over time.
-
-## Who's behind it — and why that matters
-
-SPiER is led by **Kelly Samuelson, MSW, LADC**, and built by a team with deep roots in the **Zero Suicide** movement, working as its technology-enablement counterpart. Where Zero Suicide defines the clinical and organizational framework for suicide-safer care, SPiER builds the data-standards layer that lets that model actually travel between systems.
-
-The standards themselves are **vendor-neutral**: SPiER doesn't sell an EHR, an integration engine, or a screening product, so no vendor owns the canonical shape for suicide-care data and every vendor can adopt it for free.
-
-## Why interoperability is a blocker to care
-
-A patient at risk moves through many hands — emergency department, inpatient, outpatient, primary care, crisis line, community provider. Today the safety plan and risk assessment too often stay behind in the chart that created them.
-
-National standards like **US Core** and **USCDI** cover demographics, diagnoses, and medications — but they don't yet specify *how* a suicide screener, risk formulation, or safety plan should be captured. So every EHR records them a little differently: same questions, different shapes. The result is data that can't be shared, can't be measured, and can't be acted on downstream.
-
-> A patient screened with the ASQ in an ED, assessed with the Columbia, and discharged with a Stanley-Brown Safety Plan is too often re-screened from scratch at an outpatient clinic 48 hours later. The next clinician should be able to see what's already been done — and pick up where the ED left off.
-
-## What we provide — Capture → Translate → Act
-
-Everything that matters in suicide prevention currently lives only in human-readable form. SPiER makes each layer machine-actionable, in three steps that build on each other:
-
-1. **Capture.** A canonical FHIR shape for each validated instrument, so the ASQ (or Columbia, or Stanley-Brown) is captured and exchanged identically everywhere it's used.
-
-2. **Translate.** Partners don't all use the same instruments — one site screens with the ASQ, another with the Columbia, another with PHQ-9 Item 9. SPiER defines a harmonized, instrument-agnostic **concept layer** — a common suicide-risk representation that every tool maps *into* — so a receiving system can act on a result **without having to run the same tool that produced it.** This mirrors the approach HL7's Gravity Project took for social determinants of health (SDOH) screening.
-
-3. **Act.** The clinical response to a positive screen already exists as endorsed, written protocol — it just can't fire on its own. SPiER encodes it as executable logic (`PlanDefinition` + CDS Hooks) so the right next step surfaces at the right moment. It's an *encoding* problem, not a *consensus* problem. SPiER recommends; the clinician decides.
-
-## What turns this into standard practice
-
-SPiER is building these artifacts to a "show up done" standard — proving them in a live health-information-exchange pilot, then bringing them to the relevant HL7 work groups. The lever that turns a strong reference implementation into standard practice nationwide is a clear signal that **discrete suicide-care data elements are expected — not optional — in certified EHRs and interoperability datasets.**
-
-We'd welcome the chance to walk any partner — regulator, EHR vendor, health information exchange, or health system — through the work and where it fits existing interoperability priorities.
-
----
-
-*theSPiERproject.org · Kelly Samuelson, MSW, LADC — Project Director*
+It held a Markdown draft of the one-pager, written in June 2026 (PRs
+[#88](https://github.com/SPiER-Project/adoption-guide/pull/88),
+[#100](https://github.com/SPiER-Project/adoption-guide/pull/100),
+[#101](https://github.com/SPiER-Project/adoption-guide/pull/101)). The
+two-sided HTML one-pager that superseded it landed later
+([#290](https://github.com/SPiER-Project/adoption-guide/pull/290)) and became
+the artifact that actually gets sent to people — it carries the funding and
+administration credits, the licensing table, and the full eight-stage tool
+chart, none of which the draft had. Nothing referenced the draft, and it had no
+build or gate of its own, so it was a fourth copy of the pitch that no check
+could keep honest. The prose is recoverable from git history if a Markdown
+version is ever wanted again.
