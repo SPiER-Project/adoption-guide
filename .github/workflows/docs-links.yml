@@ -1,0 +1,45 @@
+name: Docs — markdown links
+
+# Every relative `[text](path)` in a tracked .md file must resolve.
+#
+# This is the only workflow that triggers on docs/** and the root README.md.
+# web-lint.yml covers web/**, services/**, FHIR-Resources/** and ig/**, so a
+# docs-only change triggered NOTHING before this existed — which is how #389 and
+# #392 left fourteen dead links across the plan docs and two READMEs with
+# nothing going red. Plan docs are ungated prose by design; this gates the one
+# property of them a machine can actually check.
+#
+# .gitignore is in the trigger list because the gate asks git which paths are
+# build output, so an ignore-rule change moves what it skips.
+#
+# No dependencies and no checkout cost beyond the repo itself — it runs in
+# milliseconds, so it deliberately does not reuse a heavier job.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.md'
+      - '.gitignore'
+      - 'scripts/check-md-links.mjs'
+      - '.github/workflows/docs-links.yml'
+  pull_request:
+    paths:
+      - '**.md'
+      - '.gitignore'
+      - 'scripts/check-md-links.mjs'
+      - '.github/workflows/docs-links.yml'
+  workflow_dispatch:
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      # The gate resolves links against the working tree and asks git about
+      # ignore rules, so it needs the files but no history.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/check-md-links.mjs

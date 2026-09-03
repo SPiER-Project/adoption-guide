@@ -99,7 +99,7 @@ Two entry points, and the second is the interesting one:
 
 - an EHR-native activity button (vendor-configured; boring; real), and
 - **a CDS Hooks card whose link is `type: "smart"`.** `CdsLink.type` in
-  [`web/src/lib/cdsHooks/types.ts`](../../web/src/lib/cdsHooks/types.ts) already
+  [`packages/core/src/lib/cdsHooks/types.ts`](../../packages/core/src/lib/cdsHooks/types.ts) already
   declares `'smart'` with the comment *"unused by SPiER today"*. This is what it
   was left open for: `patient-view` fires → a card says "positive PSS-3, C-SSRS
   Full indicated" → the link opens the panel already scoped to that tool. It
@@ -219,7 +219,7 @@ The read side is mechanical. The SMART stub is where the credibility is.
 | `GET /authorize`, `POST /token` | PKCE S256, launch context |
 
 **`/metadata` is the one to get right.** `parseCapabilityStatement`
-([`web/src/lib/writeback/capability.ts`](../../web/src/lib/writeback/capability.ts))
+([`packages/core/src/lib/writeback/capability.ts`](../../packages/core/src/lib/writeback/capability.ts))
 reads it to decide what SPiER may create. Make the CapabilityStatement
 **runtime-configurable from the mock EHR's own UI** and the writeback ladder
 stops being a slide — see §5.
@@ -236,7 +236,7 @@ open UX questions directly:
   already reads a `?tool=` param for `stampLaunchStage`; `intent` is the outer,
   spec-blessed form of the same information.) **Live since step 5.** The
   vocabulary is `open-<launch-path-slug>` and is **derived from the tool catalog
-  in both directions** ([`web/src/lib/smartIntent.ts`](../../web/src/lib/smartIntent.ts)),
+  in both directions** ([`packages/core/src/lib/smartIntent.ts`](../../packages/core/src/lib/smartIntent.ts)),
   so a new tool is reachable by intent the day it has a launch action and nothing
   has to be kept in sync. An intent this build does not know resolves to null and
   lands on the pathway — the host is a different system on a different release
@@ -399,7 +399,7 @@ script is Node reading StructureDefinitions off a filesystem)". That was true of
 the script and false of the rules: the rules need the conformance resources only
 as **data**, and `import.meta.glob` inlines them into a Worker exactly as it
 already inlines the Patients. So the rules moved to
-[`web/scripts/lib/fhir-resource-rules.mjs`](../../web/scripts/lib/fhir-resource-rules.mjs)
+[`packages/core/fhir-resource-rules.mjs`](../../packages/core/fhir-resource-rules.mjs)
 and both callers share them **verbatim** — the bodies were moved unchanged into a
 closure that supplies `fail` and `structureDefs`, so the diff on the rules
 themselves is empty and this refactor cannot have quietly loosened one. Proven by

@@ -260,6 +260,45 @@ missing block, a missing section or zero parsed entries is an error — the
 #232/#261 family, which this gate is deliberately built against. It runs in
 `ig.yml` **before** the compile, since it needs neither SUSHI nor the network.
 
+Also at the repo root and dependency-free — every relative markdown link in a
+tracked `.md` file must resolve:
+```
+node scripts/check-md-links.mjs   # every relative link in a tracked .md resolves
+```
+⚠️ **This is the ONLY gate that triggers on `docs/**` or the root `README.md`.**
+`web-lint.yml` covers `web/`, `services/`, `FHIR-Resources/` and `ig/`, so a
+docs-only change triggered no workflow at all — which is how the `packages/`
+reorganizations left **14 dead links** across the plan docs and two READMEs:
+#389 (`web/src/lib/` → `packages/core/src/lib/`), #392 (`web/src/data/fhir/` →
+`packages/fhir-artifacts/generated/`), and the Roadmap page's deletion, which took
+`roadmap-snapshot.yml` and `fetch-roadmap.mjs` with it. #470 fixed 4 of the 14
+by hand while consolidating `docs/`; the other 10 needed this gate to find. One
+was `services/mock-ehr/README.md` → the shared FHIR resource rules, the file this
+document tells you to read before changing a write validation. It runs in its own
+`docs-links.yml`.
+
+It asserts only that a target **resolves** — not that it points at the right
+thing, and a `:137` suffix is checked as far as the file, since pinning a line
+number would churn on every edit above it. Four skips, each for its own reason:
+`http(s):`/`mailto:`/bare `#anchor`; **`.html`**, which the IG Publisher resolves
+at render time and `check-ig-menu.mjs` owns; targets containing **`…`**, prose
+ellipsis in inline code shaped like a link (`StructureDefinition-…`) rather than a
+path; and **gitignored** build output like `ig/fsh-generated/`, which is correct
+to link to and absent from a clean checkout — asked of `git` rather than
+hardcoded, and note git needs a **trailing slash** to match a directory-only
+pattern against a path that does not exist.
+
+⚠️ **Fenced code blocks are deliberately IN scope.** A link in a fence never
+renders as a link, so skipping them would be defensible — but a stale *path* in a
+code block is exactly the drift worth catching, and this is what found
+`FHIR-Resources/README.md` documenting copy-fhir's destination as
+`web/src/data/fhir/*.json` long after #392 moved it. The cost is that prose
+*about* link syntax trips the gate; write such an example without the parentheses.
+
+Liveness is the #232/#261 guard: it fails when it finds no markdown files, and
+when the count of resolved links drops under `LINK_FLOOR` (~half the real count,
+printed on every run). All five failure modes were planted and watched to fail.
+
 At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
 caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
 ```
