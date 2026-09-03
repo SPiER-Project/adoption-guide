@@ -6,8 +6,8 @@ This guide follows the information architecture used by [HL7 US Core](https://hl
 
 - **Home** — what SPiER is, its status, and who it's for.
 - **Getting Started** — how to obtain the artifacts and validate your own resources against them.
-- **Guidance** — this page, plus the Zero Suicide ↔ SPiER mapping.
-- **Conformance** — what it means to conform to SPiER (actor roles, Must-Support — in progress).
+- **Guidance** — this page, the [relationship to other HL7 IGs](relationship-to-other-igs.html), the [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html), and [Stage 8 measurement](measurement.html).
+- **Conformance** — what it means to conform to SPiER (actor roles, Must-Support).
 - **Quick Starts** — per-instrument RESTful search patterns to read SPiER data.
 - **Artifacts** — the full machine-readable list of every profile, extension, value set, code system, and example (generated).
 - **Downloads** — the IG package and resource definitions for tooling (generated).
@@ -19,7 +19,7 @@ Each profile (e.g. *SPiER ASQ Screening Result Observation*) shows the base reso
 - **Cardinality** — `1..1` means required, `0..*` optional and repeating, etc.
 - **Bindings** — `required` means a value **must** come from the named value set; `extensible`/`preferred` are looser.
 - **`draft` / `experimental`** — every SPiER profile currently carries these flags. They are correct for a pre-publication IG and signal that definitions may still change; plan for it.
-- **Must-Support** — not yet flagged on SPiER profiles. Formal Must-Support (which elements a producer must populate and a consumer must process) is being added next; see [Conformance](conformance.html).
+- **Must-Support** — flagged on SPiER profiles: which elements a producer must be capable of populating and a consumer must be capable of processing without erroring. Defined, but still draft/experimental and not yet balloted; see [Conformance](conformance.html).
 
 <a id="two-layer-model"></a>
 
@@ -33,7 +33,7 @@ SPiER's organizing idea is that every layer of suicide prevention currently live
 | **Translate** (harmonized) | "Positive screen, this severity tier, this date" | derived `Observation`, `ConceptMap` / `StructureMap` | One common suicide-risk tier on generic LOINC `93374-7` — lower, universally consumable |
 | **Act** (response) | "Given that tier, recommend this next step" | `PlanDefinition`, `ActivityDefinition`, CDS Hooks | Encodes already-settled protocol; recommends, does not decide |
 
-**Capture** and **Translate** are the historical "two-layer model": the Translate (concept) layer is **derived from** the Capture layer and linked back via `Observation.derivedFrom` — it never replaces it. Instruments with a coded disposition (ASQ, C-SSRS) map via **ConceptMaps**; score-based instruments (PHQ-9 Item 9, SBQ-R) map via **StructureMaps**. The derived concept is a **screening-level, unconfirmed** signal — it flags a need for follow-up, not a diagnosis. This pattern is modeled on the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and [SDC](https://hl7.org/fhir/uv/sdc/).
+**Capture** and **Translate** are the historical "two-layer model": the Translate (concept) layer is **derived from** the Capture layer and linked back via `Observation.derivedFrom` — it never replaces it. Each instrument maps into the concept layer via a **ConceptMap** (coded disposition) or a **StructureMap** (score/ordinal-based) — see the [harmonization status table](conformance.html#harmonization-status) for the current, per-instrument list. The derived concept is a **screening-level, unconfirmed** signal — it flags a need for follow-up, not a diagnosis. This pattern is modeled on the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and [SDC](https://hl7.org/fhir/uv/sdc/).
 
 **Act** is the newest and least-built step. It is an *encoding* problem rather than a *consensus* problem — the clinical response to a given risk tier is already endorsed in guidelines; SPiER's contribution is rendering it as executable logic so the right recommendation surfaces at the right moment. The clinician, or the institution's configured policy, remains the decision-maker.
 
@@ -45,5 +45,12 @@ You do not need clinical training to implement SPiER. The instruments, in one li
 - **C-SSRS** (Columbia-Suicide Severity Rating Scale) — graded ideation/behavior items yielding a none/low/moderate/high risk level; a Screener and a fuller Lifetime/Recent variant.
 - **PHQ-9** — a depression screen whose **Item 9** ("thoughts of being better off dead or self-harm", scored 0–3) is the suicide-relevant signal.
 - **SBQ-R** (Suicide Behaviors Questionnaire-Revised) — a 4-item total score (3–18) with validated cutoffs (≥7 general population, ≥8 inpatient).
+- **BSSA** (NIMH Brief Suicide Safety Assessment) — a disposition-oriented assessment used after a positive brief screen (e.g. ASQ), yielding a disposition result.
+- **PSS-3** (Patient Safety Screener-3) — a brief universal suicide-risk screen for acute-care settings, yielding a binary suicide-risk result; a positive result triggers the Clarify Risk stage.
+- **PSS-Full** (Patient Safety Screener / Suicide Risk Screener, Full) — the public ED-SAFE PSS-3 items combined with a site-defined risk-stratification step, yielding a suicide-risk-level result.
+- **SAFE-T** (SAMHSA Suicide Assessment Five-Step Evaluation and Triage) — a structured clinical formulation yielding a suicide-risk level that binds directly to the shared tier.
+- **CAMS** (Collaborative Assessment and Management of Suicidality) — a Suicide Status Form-based collaborative process: patient-completed vitals (Section A), clinician-identified drivers (Section B), a therapeutic worksheet, a stabilization plan, and interim-session re-rating; the SSF "overall risk" measure is its risk-level component.
+- **CRP** (Crisis Response Plan, Bryan & Rudd) — a five-section collaborative safety plan, an alternative/complement to the Stanley-Brown Safety Plan.
+- **Stanley-Brown** (Stanley-Brown Safety Plan) — a seven-step collaborative safety plan persisted as a `CarePlan`.
 
 All of these map onto the common suicide-risk tier described above.
