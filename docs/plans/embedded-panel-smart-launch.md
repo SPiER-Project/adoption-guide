@@ -767,14 +767,52 @@ So this frame demonstrates the **shape** of a hosted activity and nothing about
 interoperability. That is the honest claim and it is the one printed on the page.
 
 **The upgrade still has a real payoff.** A user-scoped launch is what would make
-this a genuine SMART panel *and* what would let the adoption guide retire its own
-`/population` and `/patient/chart` routes — the stated long-term direction, since
-those two views are EHR surfaces rather than implementer ones. Until that lands,
-the frame stays labelled.
+this a genuine SMART panel. Until that lands, the frame stays labelled.
 
-⚠️ **The demo patient data does NOT move with them.** It is tempting to conclude
-that if the population and chart views belong to the EHR, so do the fixtures.
-They do not: `packages/demo-population/` has consumers in all three packages and at
+⚠️ ~~*and what would let the adoption guide retire its own `/population` and
+`/patient/chart` routes — the stated long-term direction, since those two views
+are EHR surfaces rather than implementer ones.*~~ **Reversed 2026-09-03 (Brad).
+The routes stay; what changes is where their data comes from.**
+
+The reasoning behind the retirement was sound and its conclusion did not follow.
+Those two views *are* EHR surfaces — but the defect they have is that the guide
+holds the patient data they render, not that the guide renders them at all. A
+user-scoped launch fixes the defect directly: the roster and every chart read
+come from `services/mock-ehr` over HTTP, and the guide keeps zero patient data
+of its own. Retiring the routes would remove the screens *and* leave the
+bundled fixtures, which is the wrong half.
+
+The settled shape, three parts:
+
+1. **The mock EHR is the system of record.** All patient context lives there.
+   `packages/demo-population` becomes its fixture source rather than something
+   the guide also imports for reads. (⚠️ The files do **not** move — see the
+   note below on the gate net, the workbook and the measure engine, all of
+   which consume them and all of which stay in the guide.)
+2. **The guide keeps `/population` and `/patient/chart`, reading live.** The
+   Population lens becomes a population-level SMART app computing its
+   statistics from the roster it fetched, which is what it has always claimed
+   to be and has never been — it is the one screen in the app not reading FHIR
+   today (`POPULATION_PATIENTS` is compiled straight into the guide's JS, and
+   `FhirDataSource` has no cohort read to offer it).
+3. **A guide page explains the dashboard rather than substituting for it.** The
+   report/dashboard view gets described where implementers read; the live one
+   runs against patient data. Those are two jobs and the guide was doing both
+   with one screen. Filed as **#466**, together with the page that states how
+   the four surfaces relate at all — which is the thing whose absence made this
+   whole question hard to answer from the product.
+
+Recorded here rather than at the end of the work, deliberately: this doc and
+[`user-scoped-smart-launch.md`](user-scoped-smart-launch.md) held opposite
+directions for two days, and "record the reversal when it lands" is what let
+that sit. The work itself is still unstarted.
+
+⚠️ **The demo patient data does NOT move to the mock EHR.** It is tempting to
+conclude that if the mock EHR is the system of record, the fixtures belong in
+it. They do not — and note this survives the reversal above rather than being
+undone by it: the conclusion was always about where the *files* live, and that
+is unchanged whether the guide's two lenses are retired or kept and re-pointed.
+The reason: `packages/demo-population/` has consumers in all three packages and at
 the repo root — the gate net (`check-scenario-*`, `check-stage-ids`,
 `check-population-patients`, `shift-scenario-dates`, `validate-fhir`), the HL7
 use-case workbook's walkthrough linkage, the CDS service's fallback path, and the
