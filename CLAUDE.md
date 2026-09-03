@@ -60,11 +60,22 @@ npm run check:guide-boundary # the Adoption Guide holds no patient data — it e
                          # (#391). Walks the guide's pages TRANSITIVELY, so a guide page
                          # importing a component that reads fixtures is caught too
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
-                         # questionnaire URLs BOTH ways / per-AD licensing metadata).
+                         # questionnaire URLs BOTH ways / per-AD licensing metadata /
+                         # per-AD tool-id identifiers).
                          # Check B stops a TOOL from reaching the app with no
                          # ActivityDefinition; check C stops the artifact one
                          # layer down — a Questionnaire in FHIR-Resources/ that
-                         # no AD administers, which was ungated until 2026-08-20
+                         # no AD administers, which was ungated until 2026-08-20.
+                         # ⚠️ Check F reads the tool-id identifier SYSTEM off the
+                         # NamingSystem that publishes it, never a retyped copy:
+                         # a stale copy here AND in tools.ts would agree with each
+                         # other and pass while the app decatalogued all 43 tools.
+                         # Its load-bearing rule is the MULTI_AD_TOOLS allowlist —
+                         # one tool id on several ADs is legitimate (the CAMS SSF-5
+                         # is one tool, four session forms) and INDISTINGUISHABLE
+                         # from a pasted-in duplicate, and the catalog merges the
+                         # group either way, so the second tool does not go missing
+                         # loudly — it goes missing inside the first one
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almost
                          # entirely REFERENCES — tier codes, stage codes, and
@@ -872,6 +883,21 @@ which is filed separately.
   *current* published terms** — `docs/best-practices/licensing-verification-backlog.md`
   is the standing list of what is owed, and of why a recorded notice is not a
   verification.
+- **Tool ids live in the FSH too, as `ActivityDefinition.identifier`.** A
+  `TL-0NN` names one catalogued entry on a stage tile, and every catalogued AD
+  carries it in `http://thespierproject.org/fhir/identifier/tool-id` — a system
+  the IG publishes as a `NamingSystem`, with the reasoning in
+  `ig/input/fsh/tool-id-identifier.fsh`. `tools.ts` **derives** the pairing;
+  the hand-written `AD_TO_TOOL_ID` map it used to carry is deleted, with no
+  fallback, and `check:catalog` fails if it comes back. That map could only
+  ever check itself: the IG published no ids, so the app's pairing was
+  unverifiable and an IG page naming `TL-017` named nothing a reader could
+  resolve — which is why those ids were stripped out of the rendered pages.
+  ⚠️ **`TL-0NN` is not an AD id, and the mapping is many-to-one on purpose.**
+  The CAMS SSF-5 is one tool (TL-020) across four session-form ADs, all
+  carrying the same identifier. Prose in the IG should still link the AD page
+  under the tool's *name* rather than quoting a bare id — the id is for
+  machines, and a named link is what a reader can act on.
 
 ## Skills (`.claude/skills/`)
 

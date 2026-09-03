@@ -89,6 +89,8 @@ Title: "Author Crisis Response Plan / Crisis Planning"
 Description: "Collaboratively complete a Crisis Response Plan (CRP) with the patient and persist the result as a CarePlan with one activity per CRP section."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AuthorCrisisResponsePlan"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-015"
 * name = "AuthorCrisisResponsePlan"
 * version = "1.0.0"
 * title = "Author Crisis Response Plan / Crisis Planning"

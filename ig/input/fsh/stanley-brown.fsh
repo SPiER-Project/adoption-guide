@@ -85,6 +85,8 @@ Title: "Author Stanley-Brown Safety Plan"
 Description: "Collaboratively complete a Stanley-Brown Safety Plan with the patient and persist the result as a CarePlan with one activity per step."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerStanleyBrown"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-007"
 * name = "AdministerStanleyBrown"
 * version = "0.1.0"
 * title = "Author Stanley-Brown Safety Plan"

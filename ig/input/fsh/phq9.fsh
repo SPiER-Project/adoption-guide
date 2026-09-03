@@ -73,6 +73,8 @@ Title: "Administer PHQ-9"
 Description: "Capture a PHQ-9 depression screen, persist as a QuestionnaireResponse, and derive total-score and item-9 Observations. Item 9 advances the patient to Clarify Risk."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerPHQ9"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-002"
 * name = "AdministerPHQ9"
 * version = "0.1.0"
 * title = "Administer PHQ-9"

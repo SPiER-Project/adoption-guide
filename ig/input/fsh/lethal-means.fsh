@@ -142,6 +142,8 @@ Title: "Provide Lethal Means Safety Counseling / Means Safety Actions"
 Description: "Provide lethal-means safety counseling and document the counseling (Procedure) plus the concrete per-method means-safety actions (Observations)."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/ProvideMeansSafetyCounseling"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-008"
 * name = "ProvideMeansSafetyCounseling"
 * version = "1.0.0"
 * title = "Provide Lethal Means Safety Counseling / Means Safety Actions"

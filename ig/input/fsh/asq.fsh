@@ -150,6 +150,8 @@ Title: "Administer ASQ Suicide Screen"
 Description: "Capture an ASQ screen from the patient (or proxy), persist responses as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER ASQ Result profile."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerASQ"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-001"
 * name = "AdministerASQ"
 * version = "0.1.0"
 * title = "Administer ASQ Suicide Screen"

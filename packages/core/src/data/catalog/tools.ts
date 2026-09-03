@@ -114,6 +114,7 @@ export interface Tool {
 interface ActivityDefinitionDoc {
   id: string
   url: string
+  identifier?: Array<{ system?: string; value?: string }>
   title?: string
   description?: string
   purpose?: string
@@ -190,58 +191,39 @@ const STAGE_BY_AD_URL = (() => {
 })()
 
 // ─────────────────────────────────────────────────────────────
-// AD-id → Tool-id mapping (multiple ADs can map to one Tool)
+// AD → Tool-id, read off the ActivityDefinition
 // ─────────────────────────────────────────────────────────────
 
-const AD_TO_TOOL_ID: Record<string, string> = {
-  AdministerASQ: 'TL-001',
-  AdministerPHQ9: 'TL-002',
-  AdministerCSSRSScreener: 'TL-003',
-  AdministerCSSRSFull: 'TL-004',
-  AdministerStanleyBrown: 'TL-007',
-  // The CAMS SSF-5 is ONE catalogued tool (per the SSC stage tiles) — every
-  // session-form AD (Section A/B, interim re-rating, outcome/disposition)
-  // collapses to TL-020 at the Clarify Risk stage.
-  AdministerCAMSSectionA: 'TL-020',
-  AdministerCAMSSectionB: 'TL-020',
-  AdministerCAMSInterimSession: 'TL-020',
-  AdministerCAMSOutcomeDisposition: 'TL-020',
-  AdministerCAMSStabilizationPlan: 'TL-021',
-  AdministerCAMSTherapeuticWorksheet: 'TL-024',
-  AdministerSBQR: 'TL-025',
-  // Minimal placeholder ActivityDefinitions (ig/input/fsh/pathway-tool-placeholders.fsh).
-  // Clinical fields come from the AD; UI metadata stays keyed by these TL ids.
-  AdministerCSSRSPediatric: 'TL-027',
-  AdministerPSS3: 'TL-011',
-  TriggerSuicideRiskWorkflow: 'TL-026',
-  AdministerBSSA: 'TL-005',
-  AdministerCSSRSSinceLastContact: 'TL-019',
-  AdministerPSSFull: 'TL-014',
-  AdministerCARSS: 'TL-028',
-  AdministerLocalRiskAssessment: 'TL-029',
-  AdministerSAFET: 'TL-006',
-  ProvideMeansSafetyCounseling: 'TL-008',
-  AuthorCrisisResponsePlan: 'TL-015',
-  ShareCrisisResources: 'TL-013',
-  RecordTransitionCheckpoint: 'TL-009',
-  GenerateDischargeSafetyPacket: 'TL-030',
-  SendRapidReferral: 'TL-017',
-  ScheduleFollowUpAppointment: 'TL-031',
-  RecordConsentSharingStatus: 'TL-032',
-  RecordFollowUpOutreach: 'TL-033',
-  SendCaringContact: 'TL-010',
-  TrackFollowUpAppointment: 'TL-034',
-  FollowUpMissedAppointment: 'TL-035',
-  EscalateFollowUp: 'TL-036',
-  MaintainRiskRegistry: 'TL-037',
-  TrackRiskEpisodeStatus: 'TL-038',
-  ScheduleRiskReassessment: 'TL-039',
-  TrackOpenSafetyActions: 'TL-040',
-  EscalateOverdueRisk: 'TL-041',
-  ReportSuicideSaferCareMeasures: 'TL-042',
-  ProvideReportingDashboard: 'TL-043',
-  ExportSuicideSaferCareData: 'TL-044',
-  ShareSuicideSaferCareData: 'TL-045',
+/**
+ * The identifier system that publishes SPiER tool ids. Declared, with the
+ * reasoning and a NamingSystem, in ig/input/fsh/tool-id-identifier.fsh.
+ */
+const TOOL_ID_SYSTEM = 'http://thespierproject.org/fhir/identifier/tool-id'
+
+/**
+ * Read a tool id (`TL-0NN`) off an ActivityDefinition.
+ *
+ * DERIVED, not hand-maintained. Until this was published as an identifier
+ * (task C2 of docs/plans/docs-and-ig-content-consolidation.md) the pairing
+ * lived in a hand-written `AD_TO_TOOL_ID` map here and in ~80 FSH comment
+ * lines, with nothing comparing the two — an AD could be renamed, or an id
+ * reassigned, and the app would keep the stale pairing. `npm run check:catalog`
+ * now asserts the contract in both directions.
+ *
+ * There is deliberately NO fallback to a hand map: a fallback would silently
+ * absorb exactly the drift this closes. An AD with no tool-id identifier is
+ * not catalogued, and says so.
+ *
+ * Returns undefined — rather than guessing — when the identifier is absent or
+ * when an AD carries more than one, since neither has a single right answer.
+ */
+function toolIdFromAD(ad: ActivityDefinitionDoc): string | undefined {
+  const ids = (ad.identifier ?? [])
+    .filter((i) => i.system === TOOL_ID_SYSTEM)
+    .map((i) => i.value)
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+  if (ids.length !== 1) return undefined
+  return ids[0]
 }
 
 // Where the per-AD FHIR title/purpose is too narrow for the Tool's combined
@@ -315,9 +297,12 @@ function buildFhirBackedTools(): Tool[] {
   // Group ADs by Tool id so multi-AD tools (TL-020) collapse to one entry.
   const groups = new Map<string, ActivityDefinitionDoc[]>()
   for (const ad of ACTIVITY_DEFS) {
-    const toolId = AD_TO_TOOL_ID[ad.id]
+    const toolId = toolIdFromAD(ad)
     if (!toolId) {
-      console.warn(`[catalog] ActivityDefinition ${ad.id} has no Tool mapping`)
+      console.warn(
+        `[catalog] ActivityDefinition ${ad.id} carries no single ${TOOL_ID_SYSTEM} ` +
+          `identifier — not catalogued`,
+      )
       continue
     }
     const list = groups.get(toolId) ?? []

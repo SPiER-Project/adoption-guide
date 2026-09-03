@@ -86,6 +86,8 @@ Title: "Share Patient-Facing Crisis Resources / Coping Supports"
 Description: "Document that patient-facing crisis resources or coping supports (988, Crisis Text Line, Now Matters Now, a safety-plan copy, local crisis lines) were provided, as a SPiERCrisisResourcesShared Communication."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/ShareCrisisResources"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-013"
 * name = "ShareCrisisResources"
 * version = "1.0.0"
 * title = "Share Patient-Facing Crisis Resources / Coping Supports"

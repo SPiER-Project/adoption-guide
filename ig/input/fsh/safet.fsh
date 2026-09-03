@@ -138,6 +138,8 @@ Title: "Administer SAFE-T"
 Description: "Conduct a SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) structured formulation, persist it as a QuestionnaireResponse, and derive a suicide-risk-level Observation conformant to the SPiER SAFE-T Risk Level profile (value = a common suicide-risk tier)."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerSAFET"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-006"
 * name = "AdministerSAFET"
 * version = "1.0.0"
 * title = "Administer SAFE-T"
