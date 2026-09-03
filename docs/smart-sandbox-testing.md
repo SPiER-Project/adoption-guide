@@ -80,8 +80,9 @@ Patient ids can be listed from the open endpoint:
    tier's outcome is rendered by the **writeback scorecard** on the chart. See
    [`plans/smart-filler-writeback-ladder.md`](plans/smart-filler-writeback-ladder.md).
 3. **Round-trip:** the chart refreshes from the server after the save — the
-   response, its Observations (staged under *Flag Risk* via their pathway
-   `meta.tag`), and the recomputed risk alert appear. Confirm server-side:
+   response, its Observations (staged under *Identify Possible Risk* via their
+   pathway `meta.tag`), and the recomputed risk alert appear. Confirm
+   server-side:
 
    ```sh
    curl -s -H "Authorization: Bearer <token>" \
