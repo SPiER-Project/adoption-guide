@@ -18,7 +18,7 @@ Each profile (e.g. *SPiER ASQ Screening Result Observation*) shows the base reso
 - **Cardinality** — `1..1` means required, `0..*` optional and repeating, etc.
 - **Bindings** — `required` means a value **must** come from the named value set; `extensible`/`preferred` are looser.
 - **`draft` / `experimental`** — every SPiER profile currently carries these flags. They are correct for a pre-publication IG and signal that definitions may still change; plan for it.
-- **Must-Support** — not yet flagged on SPiER profiles. Formal Must-Support (which elements a producer must populate and a consumer must process) is being added next; see [Conformance](conformance.html).
+- **Must-Support** — flagged on SPiER profiles. Must-Support (which elements a producer must populate and a consumer must process) is defined operationally, by actor role; see [Conformance](conformance.html).
 
 <a id="two-layer-model"></a>
 
@@ -32,7 +32,7 @@ SPiER's organizing idea is that every layer of suicide prevention currently live
 | **Translate** (harmonized) | "Positive screen, this severity tier, this date" | derived `Observation`, `ConceptMap` / `StructureMap` | One common suicide-risk tier on generic LOINC `93374-7` — lower, universally consumable |
 | **Act** (response) | "Given that tier, recommend this next step" | `PlanDefinition`, `ActivityDefinition`, CDS Hooks | Encodes already-settled protocol; recommends, does not decide |
 
-**Capture** and **Translate** are the historical "two-layer model": the Translate (concept) layer is **derived from** the Capture layer and linked back via `Observation.derivedFrom` — it never replaces it. Instruments with a coded disposition (ASQ, C-SSRS) map via **ConceptMaps**; score-based instruments (PHQ-9 Item 9, SBQ-R) map via **StructureMaps**. The derived concept is a **screening-level, unconfirmed** signal — it flags a need for follow-up, not a diagnosis. This pattern is modeled on the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and [SDC](https://hl7.org/fhir/uv/sdc/).
+**Capture** and **Translate** are the historical "two-layer model": the Translate (concept) layer is **derived from** the Capture layer and linked back via `Observation.derivedFrom` — it never replaces it. Every instrument's crosswalk into the harmonized tier — which use a **ConceptMap**, which a **StructureMap**, and why — is listed in [Conformance](conformance.html#harmonization-status). The derived concept is a **screening-level, unconfirmed** signal — it flags a need for follow-up, not a diagnosis. This pattern is modeled on the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and [SDC](https://hl7.org/fhir/uv/sdc/).
 
 ### Where the tier comes from, and why an empty answer is not always missing data {#tier-derivation}
 
@@ -68,8 +68,15 @@ This is stated on the artifact rather than left to instrument knowledge. The ite
 You do not need clinical training to implement SPiER. The instruments, in one line each:
 
 - **ASQ** (Ask Suicide-Screening Questions) — a 4+1-item yes/no screen; a positive item plus the acuity question yields negative / non-acute-positive / acute-positive.
+- **BSSA** (Brief Suicide Safety Assessment) — a post-positive-screen clinician interview that derives a coded disposition.
 - **C-SSRS** (Columbia-Suicide Severity Rating Scale) — graded ideation/behavior items yielding a none/low/moderate/high risk level; a Screener and a fuller Lifetime/Recent variant.
 - **PHQ-9** — a depression screen whose **Item 9** ("thoughts of being better off dead or self-harm", scored 0–3) is the suicide-relevant signal.
+- **PSS-3** (Patient Safety Screener, 3-item) — a universal acute-care screen (depression, active ideation, lifetime attempt/recency) yielding a binary suicide-risk result.
+- **PSS-Full** — the PSS-3 plus a site-defined risk-stratification step, yielding a risk level directly on the shared tier.
+- **SAFE-T** (Suicide Assessment Five-Step Evaluation and Triage) — a five-step structured clinical formulation yielding a risk level directly on the shared tier.
 - **SBQ-R** (Suicide Behaviors Questionnaire-Revised) — a 4-item total score (3–18) with validated cutoffs (≥7 general population, ≥8 inpatient).
+- **CAMS** (Collaborative Assessment and Management of Suicidality) — a patient-completed Suicide Status Form (Section A: six vital ratings including self-rated overall risk) plus a clinician-completed driver assessment (Section B).
+- **CRP** (Crisis Response Plan) — a collaboratively completed crisis plan recorded as a CarePlan, an alternative to Stanley-Brown.
+- **Stanley-Brown Safety Plan** — a collaboratively completed seven-step safety plan recorded as a CarePlan.
 
 All of these map onto the common suicide-risk tier described above.

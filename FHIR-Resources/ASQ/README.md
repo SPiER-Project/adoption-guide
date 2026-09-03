@@ -103,10 +103,10 @@ Local code system URLs use the `http://thespierproject.org/fhir/CodeSystem/...` 
 
 ## Clinical Pathway Integration
 
-The ASQ is a **Flag Risk** stage tool in the SPiER pathway:
+The ASQ is an **Identify Possible Risk** stage tool in the SPiER pathway:
 
 ```
-Flag Risk (ASQ) → Clarify Risk (C-SSRS/BSSA) → Set Risk Status → Document Safety Actions → Coordinate Handoffs → Track Follow-Up
+Identify Possible Risk (ASQ) → Clarify Risk (C-SSRS/BSSA) → Define the Risk Picture → Document Safety Actions → Coordinate Handoffs → Track Follow-Up
 ```
 
 A positive ASQ screen (acute or non-acute) should trigger a more comprehensive Clarify Risk instrument (C-SSRS Full, BSSA, or CAMS SSF-5) or direct safety planning depending on acuity.

@@ -32,6 +32,6 @@ The **[interactive companion app](https://spier-project.github.io/adoption-guide
 ## 4. Give feedback / track progress
 
 - File questions and issues on [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues).
-- Track build status on the [Roadmap](https://spier-project.github.io/adoption-guide/#/guide/roadmap).
+- Track build status on the [Roadmap](https://github.com/SPiER-Project/adoption-guide/milestones).
 
 > SPiER is **draft / FMM 0–1**. Definitions may change before Trial-Use. If you're implementing against it now, pin to version `0.1.0` and watch the repo for updates.

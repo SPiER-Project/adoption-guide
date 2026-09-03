@@ -1,8 +1,6 @@
 # SPiER FHIR Implementation Guide
 
-This directory contains the FSH (FHIR Shorthand) source for the **SPiER FHIR
-Implementation Guide**. The IG is compiled with [Sushi](https://fshschool.org/docs/sushi/)
-and rendered with the [HL7 IG Publisher](https://github.com/HL7/fhir-ig-publisher).
+FSH (FHIR Shorthand) source for the **SPiER FHIR Implementation Guide**, compiled with [SUSHI](https://fshschool.org/docs/sushi/) and rendered with the [HL7 IG Publisher](https://github.com/HL7/fhir-ig-publisher).
 
 ## Layout
 
@@ -11,80 +9,71 @@ ig/
 ├── sushi-config.yaml           # IG metadata (id, canonical URL, dependencies)
 ├── input/
 │   ├── fsh/                    # FSH sources for profiles, ValueSets, CodeSystems, instances
+│   ├── cql/                    # CQL, compiled to ELM by the IG Publisher
 │   ├── resources/maps/         # FHIR Mapping Language (.fml) → published StructureMaps
 │   └── pagecontent/            # Narrative IG pages (Markdown)
-├── drafts/                     # NOT in the build — see below
+├── drafts/                     # NOT in the build — see that folder's README
 └── README.md                   # This file
 ```
 
 `input/resources/maps/` is scanned only because `sushi-config.yaml` declares
-`path-resource: input/resources/maps` — the IG Publisher's default scan of
-`input/resources` does not recurse. See that folder's README for the authoring
-rules and for what each gate does and does not check.
-
-`input/cql/` is compiled — the IG Publisher translates it to ELM and attaches
-the result to `Library/SPiERSuicideSaferCareMeasures`. As with `maps/`, that
-happens only because `sushi-config.yaml` says so: `path-binary: input/cql` is
-the CQL loader's activation switch, and without it the publisher skips the
-folder without a word. Both folders are one config line away from silently not
-being built, which is why each carries the same warning.
-
-`drafts/` is now empty. It holds sources deliberately outside the build; the
-four StructureMap drafts were promoted in #92 / #229 and the Stage-8 measure CQL
-in #212. `scripts/check-fml.mjs` still compiles any `.fml` parked there, so a
-map being written in `drafts/` is gated before it moves.
+`path-resource: input/resources/maps` (the publisher's default scan of
+`input/resources` does not recurse); see that folder's README for authoring
+rules and gate coverage. `input/cql/` is compiled to ELM and attached to
+`Library/SPiERSuicideSaferCareMeasures` only because `sushi-config.yaml` sets
+`path-binary: input/cql`, the CQL loader's activation switch. Both folders are
+one config line away from silently not being built.
 
 ## Local compile
 
 ```bash
-# Install Sushi (one-time)
+# Install SUSHI (one-time)
 npm install -g fsh-sushi
 
-# Compile FSH → FHIR JSON resources (output: ig/fsh-generated/)
-cd ig && sushi .
-
-# (Optional) Run the full IG Publisher to produce a hostable site
-# Requires Java 11+; first run downloads ~500MB of dependencies.
-./_genonce.sh    # macOS/Linux
-_genonce.bat     # Windows
-# Output: ig/output/index.html
+# Compile FSH → FHIR JSON resources (output: fsh-generated/)
+# The package is fsh-sushi, so a bare `sushi .` fetches the wrong package.
+npx fsh-sushi .
 ```
 
-## Validation
+Rendering a hostable site needs the full IG Publisher (Java 17+, a
+`publisher.jar` from the [HL7/fhir-ig-publisher releases](https://github.com/HL7/fhir-ig-publisher/releases),
+run as `java -jar publisher.jar -ig .` here) — it refuses paths with a space
+and needs Jekyll; see the IG section of `CLAUDE.md` at the repo root.
 
-Sushi alone catches FSH-level errors. For full FHIR conformance validation,
-use the [HL7 FHIR Validator](https://github.com/hapifhir/org.hl7.fhir.core)
-against `ig/fsh-generated/resources/`:
+## Verification
 
-```bash
-java -jar validator_cli.jar ig/fsh-generated/resources/*.json \
-  -version 4.0.1 \
-  -ig hl7.fhir.us.core#6.1.0
-```
+Run before committing an IG change; a clean SUSHI run does not imply the
+others passed. Rationale for each gate is in `CLAUDE.md` at the repo root.
+
+| Command | Run from | What it catches |
+|---|---|---|
+| `npx fsh-sushi .` | `ig/` | FSH syntax, unresolved FSH references |
+| `node scripts/check-sushi-output.mjs` | repo root | SUSHI warnings beyond the expected advisories |
+| `node scripts/check-ig-menu.mjs` | repo root | Guidance-menu prose vs `sushi-config.yaml`, both directions |
+| `node scripts/validate-fhir.mjs` | repo root | resource-level conformance: cardinality, extension context, required items |
+| `node scripts/check-fml.mjs` | repo root | FML syntax and StructureMap parity — a parser, not a profile checker |
+| IG Publisher (`ig-publish.yml`, or locally) | `ig/` | FHIRPath invariants, narrative link integrity, CQL→ELM translation |
 
 ## Authoring rules
 
 - **FSH-first.** New artifacts are written in FSH, not raw JSON.
-- **Reference, don't duplicate.** When an existing Questionnaire lives under
+- **Reference, don't duplicate.** When a Questionnaire already lives under
   `FHIR-Resources/<stage>/<tool>/...`, the IG's ActivityDefinition references
   it via canonical URL rather than re-defining it.
 - **LOINC/SNOMED where published.** Use local CodeSystems only when no
   authoritative code exists. Note the substitution intent in the FSH source.
 - **Profile thoughtfully.** Tight profiles for SPiER-specific Observations
-  (e.g. ASQ result); use US Core as the baseline for patient demographics
-  and generic encounter data.
-- **Don't set `^url` on CodeSystems, ValueSets, or Profiles.** Sushi
-  auto-generates `url` as `[canonical]/[resourceType]/[id]` from
-  `sushi-config.yaml`'s canonical (`http://thespierproject.org/fhir`) and the resource's
-  declared `Id`. Setting `^url` explicitly duplicates this information and
-  creates drift risk — we hit exactly that bug in PR #4. On `Instance:`
-  declarations (e.g. ActivityDefinition, PlanDefinition) you do set
-  `* url = "..."` directly because that's a regular resource field, not
-  metadata.
+  (e.g. ASQ result); use US Core as the baseline for demographics and generic
+  encounter data.
+- **Don't set `^url`** on CodeSystems, ValueSets, or Profiles — SUSHI derives
+  it from the canonical (`http://thespierproject.org/fhir`) plus the declared
+  `Id`, and setting it explicitly is drift risk (PR #4). `Instance:`
+  declarations (e.g. ActivityDefinition) do set `* url = "..."` directly,
+  since that's a resource field, not metadata.
 
 ## Status
 
-**Draft / continuous build.** The first conformant artifact set targets the
-**ASQ (Ask Suicide-Screening Questions)** screener. Subsequent tools follow
-the same artifact template once ASQ ships and is signed off by the Zero
-Suicide Institute.
+**Draft / continuous build.** Per-tool state (build status, recommendation
+tier, target integration depth) is tracked in the companion app's
+[Adoption Readiness page](https://spier-project.github.io/adoption-guide/#/guide/adoption-readiness),
+not here.

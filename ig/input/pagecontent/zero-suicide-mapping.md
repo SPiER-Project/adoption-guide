@@ -55,7 +55,7 @@ EHR workflow steps:
 
 All eight stages have a published `PlanDefinition`; how far each one's actions
 are modelled varies, and that state is tracked per tool in the companion app's
-[Roadmap](https://spier-project.github.io/adoption-guide/#/guide/roadmap) rather
+[Roadmap](https://github.com/SPiER-Project/adoption-guide/milestones) rather
 than restated here.
 
 ### Notes on the mapping

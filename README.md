@@ -27,13 +27,13 @@ The three steps are a dependency chain, and a roadmap: you can't translate a res
 **Why this matters.** Captured, translated, and made actionable, a patient's safety information can travel across systems — EHRs hold the data, Health Information Exchanges move it between organizations — and be available wherever the patient shows up next. A patient screened with the ASQ in an ED, assessed with the Columbia Scale, and discharged with a Stanley-Brown Safety Plan is often re-screened from scratch at an outpatient clinic 48 hours later. With SPiER's work in place, the next clinician can see what's already been done — what screener, what risk level, what coping strategies the patient identified — and pick up where the ED left off. The same standardized data also gives systems a foundation for measurement and quality improvement at the population level.
 
 ## The SPiER Pathway
-1.  **Flag Risk:** Capture suicide-related signals (e.g., ASQ, PHQ-9 Item 9).
+1.  **Identify Possible Risk:** Capture suicide-related signals (e.g., ASQ, PHQ-9 Item 9).
 2.  **Clarify Risk:** Detailed assessment (e.g., C-SSRS Full, CAMS SSF-5).
-3.  **Set Risk Status:** Clinical formulation and risk level documentation (e.g., SAFE-T).
+3.  **Define the Risk Picture:** Clinical formulation and risk level documentation (e.g., SAFE-T).
 4.  **Document Safety Actions:** Collaborative safety planning and means counseling (e.g., Stanley-Brown).
 5.  **Coordinate Handoffs:** Ensuring safety data follows the patient during transitions.
 6.  **Track Follow-Up:** Closed-loop outreach and caring contacts.
-7.  **Manage Active Risk:** Ongoing monitoring and treatment updates for in-episode patients.
+7.  **Track Risk Over Time:** Ongoing monitoring and treatment updates for in-episode patients.
 8.  **Measure and Share:** Pathway analytics and quality improvement.
 
 ## Repository Structure
