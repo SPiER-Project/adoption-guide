@@ -28,6 +28,16 @@ on:
       - 'packages/demo-population/src/scenarios/**'
       - 'scripts/validate-fhir.mjs'
       - 'scripts/check-ig-menu.mjs'
+      - 'scripts/check-ig-narrative.mjs'
+      - 'scripts/lib/ig-config.mjs'
+      # check-ig-narrative's check G resolves the IG's `#/route` links against
+      # the app's live routes and the guide's own section list. A route rename
+      # or a deleted guide section breaks those links with NO `ig/` change at
+      # all — which is exactly what #440 did, leaving three pages pointing at
+      # `#/guide/roadmap`. Without these two paths the gate would exist and sit
+      # idle for the only change that can break what it checks.
+      - 'web/src/App.tsx'
+      - 'web/src/data/guideSections.ts'
       - 'web/scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
@@ -45,6 +55,16 @@ on:
       - 'packages/demo-population/src/scenarios/**'
       - 'scripts/validate-fhir.mjs'
       - 'scripts/check-ig-menu.mjs'
+      - 'scripts/check-ig-narrative.mjs'
+      - 'scripts/lib/ig-config.mjs'
+      # check-ig-narrative's check G resolves the IG's `#/route` links against
+      # the app's live routes and the guide's own section list. A route rename
+      # or a deleted guide section breaks those links with NO `ig/` change at
+      # all — which is exactly what #440 did, leaving three pages pointing at
+      # `#/guide/roadmap`. Without these two paths the gate would exist and sit
+      # idle for the only change that can break what it checks.
+      - 'web/src/App.tsx'
+      - 'web/src/data/guideSections.ts'
       - 'web/scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
@@ -129,6 +149,18 @@ jobs:
       - name: Gate the shape of SUSHI's warnings
         working-directory: ${{ github.workspace }}
         run: node scripts/check-sushi-output.mjs ig/sushi-output.log
+
+      # Checks E–H over ig/input/pagecontent/*.md: no repo internals in prose a
+      # stranger reads, and every tool id, app route and internal .html link it
+      # points at actually resolves. A sibling of check-ig-menu.mjs rather than
+      # more of it, because F and H resolve against fsh-generated/ and so cannot
+      # run before the compile — see that script's header. It is also the OWNER
+      # of `.html` links: check-md-links.mjs skips them on purpose, since the
+      # publisher resolves those at render time and a file-existence test cannot
+      # model it.
+      - name: Check the IG narrative
+        working-directory: ${{ github.workspace }}
+        run: node scripts/check-ig-narrative.mjs
 
       - name: Check concept-layer crosswalks
         working-directory: ${{ github.workspace }}
