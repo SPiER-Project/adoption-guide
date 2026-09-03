@@ -1,108 +1,47 @@
 # Outreach assets
 
-## The two-sided one-pager
+Standing question lists for the two external conversations SPiER keeps open.
+Both are working documents: they are meant to be taken into a call and updated
+with what came back, not archived.
 
-Front page is the pitch, back page is the eight-stage care pathway. It exists in
-two forms from **one file**: a web page to link, and a PDF to attach.
-
-| | |
+| File | What it is |
 |---|---|
-| **Source** | `../../web/public/SPiER-Overview-Care-Pathway.html` (edit this) |
-| **PDF** | `../../web/public/SPiER-Overview-Care-Pathway.pdf` (generated — don't edit) |
-| **Pin** | `onepager.build.json` (generated — don't edit) |
-| **Rebuild** | `node scripts/build-onepager.mjs` from the repo root |
-| **Gate** | `node scripts/build-onepager.mjs --check`, in `.github/workflows/onepager.yml` |
+| [`2026-08-11-suicide-care-dashboard-questions.md`](2026-08-11-suicide-care-dashboard-questions.md) | Questions for the author of the suicide-care dashboard SPiER's Stage-8 work is modelled against. |
+| [`zero-suicide-institute-mapping-questions.md`](zero-suicide-institute-mapping-questions.md) | Open questions behind the Zero Suicide ↔ SPiER mapping, which the IG publishes as a Guidance page. |
 
-Published by both hosts:
+The **pitch** itself is not here. `README.md` at the repo root is its one home,
+and the app's Overview page loads the same three-step framing from
+`web/src/content/overview.ts`.
 
-| Host | Page |
-|---|---|
-| Cloudflare (primary) | `https://spier-adoption-guide.bbthorson.workers.dev/SPiER-Overview-Care-Pathway` |
-| GitHub Pages | `https://spier-project.github.io/adoption-guide/SPiER-Overview-Care-Pathway` |
+## The two-sided one-pager was removed
 
-The PDF sits at the same path with `.pdf` on the end; only `.html` gets rewritten,
-so that extension always stays.
+`web/public/SPiER-Overview-Care-Pathway.html` and its committed PDF were the
+outreach handout: front page the pitch, back page the eight-stage pathway, one
+file serving as both a web page and a printable PDF. It has not been distributed
+for some time, so it was deleted rather than kept current — an outreach artifact
+nobody sends is a claim nobody is checking, and this one carried its own build
+step, a committed 197KB binary, a hash-pinning manifest and a CI workflow to
+hold the two in agreement.
 
-**Share the page without the `.html`.** Both forms resolve on both hosts, but
-Cloudflare Workers static assets defaults to `html_handling:
-auto-trailing-slash`, which 307-redirects `/SPiER-Overview-Care-Pathway.html` to
-the extensionless path; GitHub Pages serves either directly with no redirect. So
-the extensionless URL is the one that behaves identically everywhere and costs no
-extra round trip. Measured on both hosts, 2026-08-11.
+Removed with it: `scripts/build-onepager.mjs`, `onepager.build.json`,
+`.github/workflows/onepager.yml`, and `docs/one-pager.md` (already only a
+pointer). Nothing else referenced the HTML — no app route, no Worker config.
 
-The page carries a "Download PDF" link, so a recipient of either form can reach
-the other.
+**Both published URLs now 404**, which is the one consequence worth knowing:
 
-⚠️ **A `200` from these paths does not prove a deploy landed.** `wrangler.jsonc`
-sets `not_found_handling: "single-page-application"`, so any path the Worker
-cannot resolve returns the SPA's `index.html` with a `200` — about 820 bytes.
-While the responsive page was mid-deploy, requesting it returned exactly that:
-a success status carrying the wrong document. Check a marker string in the body
-(or the PDF's byte length) rather than the status code, and follow redirects —
-a bare `curl` without `-L` reports `0` bytes for the page and looks like a
-failure when nothing is wrong.
+- `https://spier-adoption-guide.bbthorson.workers.dev/SPiER-Overview-Care-Pathway`
+- `https://spier-project.github.io/adoption-guide/SPiER-Overview-Care-Pathway`
 
-### Editing it
+⚠️ Only on GitHub Pages will that read as a 404. The Worker sets
+`not_found_handling: "single-page-application"`, so an unresolvable path returns
+the SPA's `index.html` with a **200** — about 820 bytes. That behaviour predates
+this removal and is documented here because it is the thing that makes "is it
+still served?" an unreliable question to answer by status code.
 
-Edit the HTML, then re-export and commit all three files together:
-
-```bash
-node scripts/build-onepager.mjs
-```
-
-CI fails if you commit an HTML change without the re-exported PDF, or a PDF this
-script didn't produce. That gate exists because the PDF silently drifted once
-already: PR #276 reworded both pages and the committed PDF kept the retired
-"Suicide Prevention in Electronic Records" wording for three days, surfacing only
-because an unrelated text search ran over the repo.
-
-You need Chrome to re-export (`CHROME_PATH` overrides discovery). The script
-kills it once the PDF is complete — `--print-to-pdf` writes the file and then
-never exits on its own.
-
-### ⚠️ One file, two media — check both
-
-The stylesheet is in two halves, and **neither half can see the other's
-failures**:
-
-| | Print layer (top of the `<style>`) | Screen layer (below the banner comment) |
-|---|---|---|
-| Governs | the PDF, and the desktop preview | the web page below 900px |
-| Seen by | `--print-to-pdf`, which resolves `print` media | browsers only |
-| Verified by | `build-onepager.mjs` (2 pages, letter MediaBox, Poppins ×4) | looking at it |
-
-So: editing the screen layer can never fix the PDF, and a browser can never show
-you a print regression. If you touch shared rules — anything above the banner —
-re-export **and** open the page at a narrow width.
-
-The one trap this has already sprung: the footer URLs are real `<a>` elements so
-they work on the web and stay clickable in the PDF. Their `color: inherit;
-text-decoration: none` reset **must** live in the print layer. Put it in the
-screen layer and the printed pages get the browser's default underline.
-
-### Why these files live under `web/public/`
-
-So they get stable URLs for free. Vite copies `web/public/` into `web/dist/`, the
-Worker's `stage:assets` copies that wholesale into `web-dist/`, and
-`services/cds-hooks/wrangler.jsonc` serves it.
-
-Keeping the HTML there — rather than authoring it in `docs/` and copying — means
-the served page and the PDF's source are literally the same bytes, so there is no
-second copy to drift.
-
-The PDF stays **committed** rather than generated during the build on purpose.
-The Cloudflare deployment is configured in the Cloudflare dashboard (Workers
-Builds), not in this repo, so a build-time render would need Chrome in a
-container we don't control — and if only GitHub Actions generated it, the
-Cloudflare host would 404 the path. Committing the artifact and pinning it by
-hash gets the same anti-drift guarantee with no browser in either deploy path.
-
-### Layout notes
-
-The print layer is absolute by necessity: fixed 8.5in × 11in pages, `pt` type,
-`overflow: hidden`. The screen layer keeps exactly that geometry above 900px — a
-wide screen shows the real sheet, centred and shadowed — and below it drops the
-pretence: page heights go `auto`, every multi-column arrangement stacks, and the
-7–10pt print sizes are restated in px, because 7.8pt is ~10px on a phone.
-Between 620px and 900px the pathway grid stays two-up, since one column of stage
-cards leaves too long a measure.
+If it is ever wanted back, `git log -- web/public/SPiER-Overview-Care-Pathway.html`
+has every version, and the last one is at the commit that removed it. Two things
+about that file are worth reading before reviving it rather than rediscovering:
+its stylesheet had a print layer and a `@media screen` layer that could not see
+each other's failures (so a browser could never show you a print regression),
+and the PDF was committed rather than built because the Cloudflare deploy is
+dashboard-configured and cannot be given a browser.

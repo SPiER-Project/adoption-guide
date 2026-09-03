@@ -79,7 +79,7 @@ Eight stages, from the first signal to population measurement, so that an implem
 * **`packages/`** — `core/` (the React-free domain layer shared by the app and both Workers), `demo-population/` (the demo patients and scenario slices), and `fhir-artifacts/generated/` (SUSHI output, gitignored).
 * **`services/`** — two Cloudflare Workers: `cds-hooks/` serves the live `/cds-services` endpoint, and `mock-ehr/` is the host chart the demo launches from.
 * **`docs/`** — strategy, requirements sources, research, and plans. [`docs/README.md`](docs/README.md) is the index.
-* **`scripts/`** — repo-level tooling: the FHIR validator and FML gates, the IG-menu and SUSHI-output checks, and the one-pager and use-case-workbook builders.
+* **`scripts/`** — repo-level tooling: the FHIR validator and FML gates, the IG-menu, IG-narrative, markdown-link and SUSHI-output checks, and the use-case-workbook builder.
 
 Build commands, verification gates and the reasoning behind them live in [`CLAUDE.md`](CLAUDE.md), which is the one home for that material.
 

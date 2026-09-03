@@ -5,7 +5,7 @@
  *
  * The repo root has no package.json and every script under `scripts/` runs on
  * Node builtins alone (see the imports in check-fml.mjs, validate-fhir.mjs,
- * build-onepager.mjs). Adding `exceljs` for one generator would introduce a
+ * check-md-links.mjs). Adding `exceljs` for one generator would introduce a
  * root dependency tree, a lockfile, and an `npm ci` step to every workflow that
  * wants to run it. The subset of OOXML needed here — inline strings, merged
  * ranges, a handful of cell styles, column widths — is about 150 lines.
@@ -24,10 +24,10 @@
  *     id, GUID, or "last modified by".
  *
  * So `build === committed` is a meaningful comparison, and the gate can simply
- * regenerate and diff. That is a stronger check than build-onepager.mjs's
- * recorded-hash approach — which exists only because Chrome's PDF bytes are not
- * reproducible even between two runs of the same binary. Do not copy the hash
- * pattern here; do not break reproducibility there.
+ * regenerate and diff — a stronger check than pinning a recorded hash, which is
+ * the fallback for a generator that CANNOT be made reproducible (a
+ * browser-rendered PDF, say: Chrome's bytes differ between two runs of the same
+ * binary). Do not introduce that pattern here.
  *
  * ─── What this deliberately does not support ────────────────────────────────
  *

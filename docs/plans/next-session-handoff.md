@@ -122,9 +122,12 @@ confirmation step. Pass only the flags you mean.
 
 ⚠️ **A `web/src/App.tsx` change triggers `use-case-workbook.yml`**, which resolves
 tool launch paths against `App.tsx`. A route-table edit is inside its blast
-radius. Likewise **`docs/outreach/**` triggers `onepager.yml`**, and touching
-`ig/input/**` invalidates `deploy.yml`'s IG render cache — that last one is
-desirable, since the re-render is the gate that validates narrative links.
+radius. Likewise **`ig/input/**` and `web/src/App.tsx` both trigger `ig.yml`**,
+whose narrative gate resolves the IG's `#/route` links against the app's live
+routes; and touching `ig/input/**` invalidates `deploy.yml`'s IG render cache —
+that last one is desirable, since the re-render is the gate that validates
+narrative links. (`docs/outreach/**` used to trigger `onepager.yml`; both the
+one-pager and that workflow are gone.)
 
 ⚠️ **Commit messages containing backticks need a heredoc, not an inline `-m`.**
 
