@@ -134,14 +134,19 @@
      --patient-banner-height (0 on routes without a banner). Anchor scrolling is
      done by hand in useScrollToHash, which reads the computed scroll-margin-top
      and subtracts it. */
-  /* Everything sticky above an anchor target, plus breathing room. Both heights
-     are measured at runtime and published by their own components, and both fall
-     back to 0px — so this reads correctly on the panel (no app bar, no banner)
-     and on a non-patient route (bar, no banner) without branching.
-     ⚠️ --ehr-header-height joined this when the app bar became sticky; before
-     that the bar scrolled away and could be left out. */
+  /* Everything sticky above an anchor target *inside the scrollport*, plus
+     breathing room. The height is measured at runtime and published by
+     PatientBanner, and falls back to 0px — so this reads correctly on the panel
+     and on a non-patient route (no banner) without branching.
+
+     ⚠️ **--ehr-header-height used to be added here and must not come back.** It
+     joined this sum while the app bar was `position: sticky` over a scrolling
+     document, where it genuinely covered anchor targets. The shell is a fixed
+     frame now: the bar sits *outside* `.ehr-content`, which is the element that
+     scrolls, so it can never overlap a target and adding its height would push
+     every anchor ~47px too far down. The property itself is gone. */
   --anchor-scroll-offset: calc(
-    var(--ehr-header-height, 0px) + var(--patient-banner-height, 0px) + var(--space-4)
+    var(--patient-banner-height, 0px) + var(--space-4)
   );
 
   /* Height of the panel code drawer's collapsed bar. ONE definition, two

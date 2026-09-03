@@ -127,8 +127,10 @@ describe('scrollToAnchor', () => {
   })
 
   test('ignores an ancestor that declares overflow but does not actually scroll', () => {
-    // This is `.ehr-content`: `overflow-y: auto` while the document is what
-    // scrolls. It must not be mistaken for the scroller.
+    // An ancestor that declares `overflow-y: auto` while the document is what
+    // actually scrolls — `.ehr-content` at mobile widths, or any card that
+    // declares an overflow it never uses. It must not be mistaken for the
+    // scroller.
     const inert = document.createElement('div')
     inert.style.overflowY = 'auto'
     Object.defineProperty(inert, 'scrollHeight', { value: 400, configurable: true })

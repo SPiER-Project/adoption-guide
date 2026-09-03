@@ -1,6 +1,37 @@
 /* ===========================
    EHR Shell Layout
    =========================== */
+/* ⚠️ **A fixed frame, not a document that grows — and that is the whole fix.**
+ *
+ * This was `min-height: 100vh`, so the *document* scrolled and the shell grew
+ * with its content. Everything else here was built to make that behave like a
+ * frame anyway, and each piece cost something:
+ *
+ *   - `.sidebar` was `position: sticky` at `height: calc(100dvh - header -
+ *     footer)`, with BOTH of those measured at runtime by two hand-written
+ *     ResizeObserver hooks in EhrShell.tsx, because a `100dvh` column overhung
+ *     the fold and painted over the footer on short pages;
+ *   - `.ehr-header` was `position: sticky` for one reason — to make that
+ *     subtraction a constant rather than a moving target;
+ *   - `--anchor-scroll-offset` had to fold the bar's height back in, since a
+ *     sticky bar covers an anchor target;
+ *   - and the page footer still only appeared after scrolling an entire long
+ *     page, which is the symptom none of it addressed. The sidebar, sized to
+ *     the viewport rather than to its links, ran out of content partway down
+ *     and left a void above its "Elsewhere" group.
+ *
+ * A real frame makes all of that unnecessary rather than solved: the grid is
+ * exactly one viewport tall, `.ehr-content` is the only scroller, and the
+ * header, sidebar and footer are simply always where they are. No sticky, no
+ * measurement, no overlap to arbitrate. Two published custom properties
+ * (`--ehr-header-height`, `--ehr-footer-height`) and their hooks were deleted
+ * with it.
+ *
+ * `100dvh` rather than `100vh`: on mobile browsers `vh` is the *largest*
+ * viewport, so a frame that tall hides its own footer behind the URL bar.
+ * Mobile drops back to document scrolling regardless (see the breakpoint at the
+ * bottom of this file) — `dvh` is what keeps the moment before that honest.
+ */
 .ehr-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
@@ -9,7 +40,7 @@
     "header  header"
     "sidebar content"
     "footer  footer";
-  min-height: 100vh;
+  height: 100dvh;
   background: var(--surface-page);
 }
 
@@ -23,26 +54,20 @@
   padding: 0.65rem 1.5rem;
   box-shadow: var(--shadow-md);
   /*
-   * ⚠️ **Sticky, and this is the fix rather than a preference.** The bar used to
-   * scroll away, which is what made `.sidebar`'s `height: 100dvh` wrong: the
-   * sidebar is `sticky; top: 0`, so before any scroll its box began below this
-   * bar and ran ~47px past the fold, clipping the footer. Every artifact-free
-   * alternative needed the visible remainder of a scrolling header, which CSS
-   * cannot express — so the bar stops moving instead, and the sidebar's box is
-   * `100dvh` minus a constant it can now rely on.
+   * ⚠️ **No longer sticky, and the deletion is the point.** This bar was
+   * `position: sticky; top: 0` for exactly one reason: `.sidebar` subtracted its
+   * height from `100dvh`, and that subtraction is only valid if the bar's height
+   * is the same at every scroll position. A bar that scrolls away leaves the
+   * subtraction wrong by its own height. The frame layout removes the premise —
+   * the bar is a grid row in a grid that does not scroll, so it cannot move, and
+   * `--ehr-header-height` had no consumers left once the sidebar and the anchor
+   * offset stopped needing it. Both the property and the ResizeObserver hook
+   * that published it are gone.
    *
-   * `z-index: 100` predates this and was already doing the stacking job: the
-   * patient banner is sticky at 50 and now offsets itself below this bar rather
-   * than sliding under it.
-   *
-   * Its height is published as `--ehr-header-height` by `useHeaderHeightVar` —
-   * measured, because this bar is content-sized and may wrap to two lines below
-   * 640px under scaled text. Three rules consume it and all three fall back to
-   * 0px, so a failure to publish degrades to the old behaviour rather than to a
-   * broken layout.
+   * `z-index` predates all of that and still does the stacking job — the
+   * content pane scrolls underneath this bar, and the patient banner is sticky
+   * at 50 inside that pane. Do not remove it with the sticky.
    */
-  position: sticky;
-  top: 0;
   z-index: 100;
 }
 
@@ -152,29 +177,33 @@
 /* ===========================
    Content Area
    =========================== */
-/* Deliberately NOT a scroll container.
+/* ⚠️ **The one scroll container in the shell — and this declaration has been
+ * here before, meaning something different.**
  *
- * This used to carry `overflow-y: auto`, which never scrolled: `.ehr-shell` is
- * `min-height: 100vh`, so the grid grows with its content and the *document*
- * scrolls instead. The overflow was inert in its own right — but any overflow
- * value other than `visible` makes an element the sticky scrollport for its
- * descendants, and that scrollport never moved. So `.patient-banner`'s
- * `position: sticky; top: 0` silently did nothing and the identifiers it exists
- * to keep in view scrolled away with the page. (`.sidebar` uses the same
- * declaration and has always worked, because it sits outside this element and
- * resolves against the viewport.)
+ * It carried `overflow-y: auto` once while `.ehr-shell` was `min-height: 100vh`,
+ * and that combination was a bug: the grid grew with its content so the
+ * *document* scrolled, this element never did, and yet any overflow other than
+ * `visible` still makes an element the sticky scrollport for its descendants. So
+ * `.patient-banner`'s `position: sticky` resolved against a scrollport that
+ * never moved and silently did nothing. The declaration was removed for that
+ * reason, and the note here said "deliberately NOT a scroll container".
  *
- * Removing it hands the banner the viewport as its scrollport. Nothing is lost:
- * measured at 1400px and at mobile width, on the population page (the widest
- * content) and the patient chart, this element scrolls on neither axis, and
- * document scrollWidth is identical with and without the declaration.
+ * It comes back because the premise changed, not because that reasoning was
+ * wrong. `.ehr-shell` is now exactly one viewport tall, so this element is the
+ * thing that overflows and it genuinely scrolls. The banner's scrollport is now
+ * a scrollport that moves, which is what it always wanted; `top: 0` is correct
+ * there because this pane starts *below* the app bar rather than underneath it.
  *
- * `min-width: 0` stays — that is what lets the grid column shrink below its
- * content's intrinsic width, and it is doing real work.
+ * `min-height: 0` is load-bearing in a way that is easy to delete by accident:
+ * a grid item's default `min-height: auto` refuses to shrink below its content,
+ * which would push the footer off-screen instead of scrolling here. `min-width:
+ * 0` is the same rule on the other axis and predates this.
  */
 .ehr-content {
   grid-area: content;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
@@ -227,12 +256,31 @@
    Responsive
    =========================== */
 @media (max-width: 768px) {
+  /* ⚠️ **Mobile deliberately goes back to document scrolling.** The frame above
+     exists to keep the sidebar and the footer in view beside a scrolling page —
+     and at this width there is no sidebar (it is a fixed overlay, see
+     Sidebar.css) and no room to spend on chrome. A permanently-docked footer
+     wraps to two lines here (the rule below), so a frame would hand ~70px of a
+     phone screen to an attribution line and a version stamp.
+
+     `min-height` rather than `height`, and `overflow-y: visible` rather than
+     `auto`, put the document back in charge: the page grows, the window
+     scrolls, the footer sits at the bottom of it. That is the right shape for a
+     phone, and it is also what makes `.patient-banner`'s `top: 0` keep working
+     at this width — the app bar is not sticky any more, so the top of the
+     viewport is free for the banner to occupy. */
   .ehr-shell {
     grid-template-columns: 1fr;
     grid-template-areas:
       "header"
       "content"
       "footer";
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .ehr-content {
+    overflow-y: visible;
   }
 
   /* inline-flex, not block — the base rule centers the bar with flexbox. */
