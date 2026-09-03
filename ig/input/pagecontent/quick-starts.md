@@ -168,6 +168,29 @@ positive screen it cannot evidence. Entry reasons with no structured artifact
 (`clinician-judgment`, `transition-discharge`, `manual-add`) carry no trigger, by
 design.
 
+## Reading one instrument
+
+Each block below names the `Questionnaire.url` (with version) an implementer
+searches by, the derived profile or profiles that instrument produces, and the
+reads for both layers.
+
+**One caution applies to nearly every block.** Every instrument whose derived
+result is a risk tier or a disposition fixes `Observation.code` to LOINC
+`93374-7` — the same generic code the harmonized concept carries. So
+`code=http://loinc.org|93374-7` is a **layer** filter, not an instrument
+filter: it returns the ASQ result, the C-SSRS risk level, the PSS-3 and PSS-Full
+results, the BSSA and CAMS dispositions, the SAFE-T risk level *and* the
+harmonized concept alike. The instrument-specific anchor is therefore the
+`QuestionnaireResponse?questionnaire=` read; `Observation.derivedFrom` on each
+derived resource points back to it. Where a producer stamps `meta.profile`
+**and** the server indexes it, `_profile=` narrows to a single profile — but
+`_profile` support is no more assumable than the `_revinclude` above, so it is
+not the pattern these blocks use.
+
+The instruments whose derived Observations carry an instrument-specific code
+instead are the PHQ-9 (LOINC `44261-6`, `44260-8`), the SBQ-R (SNOMED
+`225337009`) and the CAMS SSF vitals (the SPiER-local `cams-ssf` codes).
+
 ## ASQ (Ask Suicide-Screening Questions)
 
 - Questionnaire: `http://spier.org/Questionnaire/ASQ-Screening-Tool` (v1.1.0-pilot)
@@ -181,10 +204,14 @@ GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
 ## C-SSRS (Columbia-Suicide Severity Rating Scale)
 
 - Questionnaires: `http://spier.org/Questionnaire/C-SSRS-Screener` (v1.0.0), `http://spier.org/Questionnaire/C-SSRS-Full-Lifetime-Recent` (v1.0.0)
-- Derived profile: `SPiERCSSRSRiskLevel` (risk level on LOINC `93374-7`)
+  - `http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact` (v1.0.0) — the same six-item set scoped to the interval since the patient's prior contact
+  - `http://spier.org/Questionnaire/C-SSRS-Pediatric` (v1.0.0) — the validated screener item set worded for pediatric/adolescent settings
+- Derived profile: `SPiERCSSRSRiskLevel` (risk level on LOINC `93374-7`) — **all four** forms derive this one profile, so the Observation read is the same for each; only the `questionnaire=` value differs.
 
 ```
 GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/C-SSRS-Screener&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/C-SSRS-Since-Last-Contact&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/C-SSRS-Pediatric&subject=Patient/[id]
 GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
 ```
 
@@ -209,5 +236,125 @@ GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]
 GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/SBQ-R&subject=Patient/[id]
 GET [base]/Observation?code=http://snomed.info/sct|225337009&subject=Patient/[id]
 ```
+
+## PSS-3 (Patient Safety Screener 3)
+
+- Questionnaire: `http://spier.org/Questionnaire/PSS-3` (v1.0.0)
+- Derived profile: `SPiERPSS3Result` (binary negative / positive result on LOINC `93374-7`)
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/PSS-3&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+## PSS-Full (Patient Safety Screener / Suicide Risk Screener, full)
+
+- Questionnaire: `http://spier.org/Questionnaire/PSS-Full` (v1.0.0)
+- Derived profile: `SPiERPSSFullRiskLevel` (site-stratified risk level on LOINC `93374-7`)
+- **No crosswalk.** `valueCodeableConcept` is bound directly to the shared SPiER Suicide Risk Tier ValueSet, so the combined screen lands on the concept layer without a per-instrument ConceptMap or StructureMap.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/PSS-Full&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+## BSSA (NIMH Brief Suicide Safety Assessment)
+
+- Questionnaire: `http://spier.org/Questionnaire/BSSA` (v1.0.0)
+- Derived profile: `SPiERBSSADispositionResult` (one of four dispositions — emergency psychiatric evaluation / further evaluation necessary / non-urgent follow-up / no intervention — on LOINC `93374-7`)
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/BSSA&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+## SAFE-T (Suicide Assessment Five-Step Evaluation and Triage)
+
+- Questionnaire: `http://spier.org/Questionnaire/SAFE-T` (v1.0.0)
+- Derived profile: `SPiERSAFETRiskLevel` (clinician-determined risk tier on LOINC `93374-7`)
+- **No crosswalk.** As with PSS-Full, `valueCodeableConcept` is bound directly to the shared SPiER Suicide Risk Tier ValueSet — the formulation lands on the concept layer with no per-instrument mapping artifact.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/SAFE-T&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+## CAMS (Collaborative Assessment and Management of Suicidality)
+
+CAMS is one catalogued tool with five published forms, and it is the only
+instrument in this guide that produces four different resource types. Each form
+has its own `Questionnaire.url`:
+
+| Form | `Questionnaire.url` (all v1.0.0) | Produces |
+|---|---|---|
+| SSF-5 Section A — patient vitals | `.../CAMS-SSF5-SectionA` | six `SPiERCAMSSSFVital` Observations |
+| SSF-5 Section B — clinician drivers | `.../CAMS-SSF5-SectionB` | up to three `SPiERCAMSSuicideDriver` Conditions |
+| Therapeutic Worksheet | `.../CAMS-Therapeutic-Worksheet` | one `SPiERCAMSTherapeuticWorksheet` CarePlan |
+| Stabilization Plan | `.../CAMS-Stabilization-Plan` | one `SPiERCAMSStabilizationPlan` CarePlan |
+| SSF-5 Outcome / Disposition | `.../CAMS-SSF5-OutcomeDisposition` | SSF vitals plus one `SPiERCAMSOutcomeDisposition` Observation |
+
+Section A is re-administered at every interim session, so the SSF vitals are a
+longitudinal series rather than a single set.
+
+- `SPiERCAMSSSFVital` takes its `code` from the SPiER-local `cams-ssf` CodeSystem — `psychological-pain`, `stress`, `agitation`, `hopelessness`, `self-hate`, `overall-risk` — and carries `valueInteger` 1–5. No LOINC concepts have been published for the CAMS-specific scale.
+- `SPiERCAMSSuicideDriver` is a `Condition`, marked by the category `http://spier.org/CodeSystem/cams-driver-category#suicide-driver`. Its `code.text` is required and `code.coding` optional: a driver is idiographic, and no terminology carries concepts at that granularity.
+- Both CAMS CarePlans identify their sections with `activity.detail.code` from the SPiER-local `cams-careplan-section` CodeSystem, which is searchable via R4's `activity-code` parameter.
+- `SPiERCAMSOutcomeDisposition` follows the BSSA precedent — LOINC `93374-7` with a SPiER-local disposition value (continue-cams / resolved / refer-adjunctive / higher-level-care). It records a care decision, not a risk tier.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/CAMS-SSF5-SectionA&subject=Patient/[id]
+GET [base]/Observation?code=http://spier.org/CodeSystem/cams-ssf|overall-risk&subject=Patient/[id]
+GET [base]/Observation?code=http://spier.org/CodeSystem/cams-ssf|psychological-pain,http://spier.org/CodeSystem/cams-ssf|stress,http://spier.org/CodeSystem/cams-ssf|agitation,http://spier.org/CodeSystem/cams-ssf|hopelessness,http://spier.org/CodeSystem/cams-ssf|self-hate,http://spier.org/CodeSystem/cams-ssf|overall-risk&subject=Patient/[id]
+GET [base]/Condition?category=http://spier.org/CodeSystem/cams-driver-category|suicide-driver&subject=Patient/[id]
+GET [base]/CarePlan?activity-code=http://spier.org/CodeSystem/cams-careplan-section|crisis-working-model&subject=Patient/[id]
+GET [base]/CarePlan?activity-code=http://spier.org/CodeSystem/cams-careplan-section|treatment-adherence&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+The third line reads all six vitals in one request using a comma-separated
+`code` list — an OR within one parameter, which is base R4 token-search
+behaviour rather than an optional feature. The two `CarePlan` reads pick a
+section code unique to one of the two plans (`crisis-working-model` belongs only
+to the Therapeutic Worksheet, `treatment-adherence` only to the Stabilization
+Plan), which is what distinguishes them: both plans carry the same
+`category` codings.
+
+## Stanley-Brown Safety Plan
+
+The output is a `CarePlan`, not an Observation — a safety plan is a plan of
+care, and it does not produce a risk tier.
+
+- Questionnaire: `http://spier.org/Questionnaire/StanleyBrownSafetyPlan` (v1.1.0)
+- Derived profile: `SPiERStanleyBrownSafetyPlan` (CarePlan; seven activities, one per safety-plan step, each identified by a code from the SPiER-local `safety-plan-section` CodeSystem)
+- Categories: SNOMED `735324008` (treatment escalation plan), LOINC `87626-8` (suicide prevention note), and the suicide-risk domain tag
+- The transformation is a published artifact: [StructureMap: Stanley-Brown QuestionnaireResponse → CarePlan](StructureMap-StanleyBrownQRToCarePlan.html), named in `PlanDefinition.action.transform` on the Document Safety Actions stage.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/StanleyBrownSafetyPlan&subject=Patient/[id]
+GET [base]/CarePlan?category=http://loinc.org|87626-8&subject=Patient/[id]
+GET [base]/CarePlan?activity-code=http://spier.org/CodeSystem/safety-plan-section|lethal-means-safety&subject=Patient/[id]
+```
+
+## CRP (Crisis Response Plan)
+
+Also a `CarePlan`, and it deliberately **shares** the Stanley-Brown section
+CodeSystem and category codings — the two narrative safety plans are
+alternatives to each other, so a consumer that reads one reads the other
+unchanged.
+
+- Questionnaire: `http://spier.org/Questionnaire/CrisisResponsePlan` (v1.0.0)
+- Derived profile: `SPiERCrisisResponsePlan` (CarePlan; five activities from the same `safety-plan-section` CodeSystem)
+- Its ActivityDefinition is `AuthorCrisisResponsePlan` rather than `Administer…`, since the plan is authored with the patient rather than administered to them.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://spier.org/Questionnaire/CrisisResponsePlan&subject=Patient/[id]
+GET [base]/CarePlan?category=http://loinc.org|87626-8&subject=Patient/[id]
+```
+
+Because the two plans share both their `category` codings and their section
+CodeSystem, the second read returns **both**. Telling them apart means reading
+the section set — `lethal-means-safety` and `social-distraction` appear only in
+a Stanley-Brown plan — or, where the producer stamps `meta.profile` and the
+server indexes it, filtering on `_profile`.
 
 > Tip: to retrieve a patient's suicide-risk picture across *all* instruments in one query, use the harmonized-concept search at the top of this page — that's the payoff of the [two-layer model](how-to-read.html#two-layer-model).
