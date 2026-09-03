@@ -55,13 +55,19 @@ EHR workflow steps:
 
 ### Build status of the eight stages
 
-Not all eight stages are equally built out in this IG version. Stages
-**1 (Identify Possible Risk), 2 (Clarify Risk), 3 (Define the Risk
-Picture), and 4 (Document Safety Actions)** have published
-`PlanDefinition`s with wired instruments. Stages **5 (Coordinate
-Handoffs), 6 (Track Follow-Up), 7 (Track Risk Over Time), and 8
-(Measure and Share the Data)** have published `PlanDefinition`s whose
-actions are catalogued placeholder tools pending full FHIR modelling — see the [Roadmap](https://spier-project.github.io/adoption-guide/#/implementation-guide/roadmap)
+All eight stages have published `PlanDefinition`s with wired instruments.
+Three actions across the whole pathway remain catalogued placeholders —
+structural metadata only, with no Questionnaire binding or derived-Observation
+profile yet — and all three sit early in the pathway, not in the later stages:
+**Positive Screen Flag / Suicide-Risk Workflow Trigger**
+(`TriggerSuicideRiskWorkflow`, stage 1 — Identify Possible Risk);
+**Administer Cultural Assessment of Risk for Suicide (CARS-S)**
+(`AdministerCARSS`, stage 2 — Clarify Risk, blocked on licensing — no
+permission is on file for this copyrighted instrument); and **Administer Full
+Suicide-Risk Assessment / Local Assessment Tool** (`AdministerLocalRiskAssessment`,
+stage 2 — Clarify Risk, a deliberately empty slot for a site's own local
+assessment form). Every other action across all eight stages resolves to a
+built `ActivityDefinition` — see the [Roadmap](https://spier-project.github.io/adoption-guide/#/guide/roadmap)
 for per-tool build status.
 
 ### Notes on the mapping
@@ -102,7 +108,7 @@ piece:
 - **Adopt Zero Suicide directly for *Lead* and *Train*** — leadership
   commitment, workforce competency, organizational change. These are not
   EHR features.
-- **The SPiER [Adoption Rubric](https://spier-project.github.io/adoption-guide/#/implementation-guide/adoption-rubric)**
+- **The SPiER [Adoption Rubric](https://spier-project.github.io/adoption-guide/#/guide/adoption-rubric)**
   scores your EHR's capability across the eight technical stages. Use it
   alongside the Zero Suicide [Organizational Self-Study](https://zerosuicide.edc.org/toolkit/lead/zero-suicide-organizational-self-study)
   for a full picture.
