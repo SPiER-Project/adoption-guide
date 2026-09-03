@@ -45,10 +45,11 @@
  * Three independent things, reported separately so a failure names its cause:
  *
  *   currency  — regenerate both artifacts in memory and compare bytes to the
- *               committed files. This works because the writer is deterministic
- *               (see scripts/lib/xlsx-writer.mjs); it is a stronger check than
- *               build-onepager.mjs's recorded hashes, which exist only because
- *               Chrome's PDF bytes are not reproducible. Do not "unify" them.
+ *               committed files. This works only because the writer is
+ *               deterministic (see scripts/lib/xlsx-writer.mjs). Do not trade
+ *               that away for smaller files: a recorded-hash gate would be the
+ *               weaker fallback, and is only ever the right answer for a
+ *               generator whose output is NOT reproducible.
  *
  *   content   — assertions that survive a regeneration: every step has all
  *               eight columns populated (column H is the one that was empty),

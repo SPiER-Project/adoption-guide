@@ -380,35 +380,6 @@ without a terminology server):
 node scripts/check-fml.mjs --tx https://tx.fhir.org
 ```
 
-And the outreach one-pager, whose PDF is generated from HTML rather than
-hand-exported (needs Chrome to build; `--check` needs nothing but Node):
-```
-node scripts/build-onepager.mjs           # re-render web/public/SPiER-Overview-Care-Pathway.pdf
-node scripts/build-onepager.mjs --check   # gate: is that PDF current with its HTML?
-```
-⚠️ **Edit `web/public/SPiER-Overview-Care-Pathway.html`, never the PDF**, then
-re-export and commit the HTML, the PDF, and `docs/outreach/onepager.build.json`
-together — `onepager.yml` fails otherwise. The check compares *recorded hashes*
-and never re-renders, because Chrome's PDF bytes are not reproducible even
-between two runs of the same version; the structural assertions that need a
-browser (2 pages, letter MediaBox, Poppins embedded in four weights — which is
-also the "did the webfont actually load" check) run at export time instead.
-
-⚠️ **That one HTML file is both the handout's source and a served web page**, and
-its stylesheet has two halves that cannot see each other's failures. The print
-layer governs the PDF; a `@media screen` layer below a banner comment governs the
-page (fluid below 900px, exact print geometry above it) and is invisible to
-`--print-to-pdf`, which resolves `print` media. So editing the screen layer can
-never fix the PDF, and a browser can never show you a print regression — after
-touching any shared rule, re-export **and** open the page narrow. The reset that
-keeps the footer's real `<a>` elements from printing with the UA's blue underline
-has to sit in the *print* layer for that reason.
-
-Both files live under `web/public/` so both hosts serve them at stable URLs (Vite
-→ `web/dist` → the Worker's `web-dist`); the PDF stays committed because the
-Cloudflare build is dashboard-configured and can't be given a browser.
-`docs/outreach/README.md` has the full rationale.
-
 And the HL7 working-group use-case workbook, which is generated rather than
 hand-maintained (Node builtins only — no install, sub-second):
 ```
@@ -456,11 +427,13 @@ everywhere the id appears, each owing a `rationale`. Do not drop the marker to
 tidy a table, and do not renumber the original 27: a proposal takes the next
 free letter in its group. `docs/use-cases/README.md` explains what each closes.
 
-Unlike the one-pager above, this `--check` really does rebuild and byte-compare,
-because the writer (`scripts/lib/xlsx-writer.mjs`) is deterministic on purpose —
-every ZIP entry stored, never deflated, with a fixed timestamp. **Make it
-deflate and the gate starts flaking against zlib versions.** Do not unify the
-two patterns in either direction.
+This `--check` really does rebuild and byte-compare, rather than pinning a
+recorded hash, because the writer (`scripts/lib/xlsx-writer.mjs`) is
+deterministic on purpose — every ZIP entry stored, never deflated, with a fixed
+timestamp. **Make it deflate and the gate starts flaking against zlib
+versions.** A recorded-hash gate is the weaker fallback, and is only the right
+answer for a generator whose output cannot be made reproducible at all; the
+outreach one-pager was that case (a browser-rendered PDF) until it was deleted.
 
 The same `--check` gates the scenario's linkage to its demo walkthroughs — four
 ED patients, `patient-011` through `patient-014`, referenced as qualified
