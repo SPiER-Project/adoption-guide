@@ -178,6 +178,16 @@ GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Q
 GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
 ```
 
+## BSSA (NIMH Brief Suicide Safety Assessment)
+
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/BSSA` (v1.0.0)
+- Derived profile: `SPiERBSSADispositionResult` (disposition on LOINC `93374-7`) — a post-positive-screen clinician interview, used after ASQ.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/BSSA&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
 ## C-SSRS (Columbia-Suicide Severity Rating Scale)
 
 - Questionnaires: `http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener` (v1.0.0), `http://thespierproject.org/fhir/Questionnaire/C-SSRS-Full-Lifetime-Recent` (v1.0.0)
@@ -186,6 +196,46 @@ GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
 ```
 GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener&subject=Patient/[id]
 GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+Two further variants share the Screener/Full's code and derived profile (`SPiERCSSRSRiskLevel`), differing only in the Questionnaire they were captured against:
+
+- **Since-Last-Contact** — `http://thespierproject.org/fhir/Questionnaire/C-SSRS-Since-Last-Contact` (v1.0.0)
+- **Pediatric** — `http://thespierproject.org/fhir/Questionnaire/C-SSRS-Pediatric` (v1.0.0)
+
+## CAMS (Collaborative Assessment and Management of Suicidality)
+
+CAMS is one tool spanning several capture steps across the pathway; the three below produce the derived resources most consumers need. (The Therapeutic Worksheet, Stabilization Plan and Interim Session steps also have their own profiles but are session-continuation artifacts rather than a distinct suicide-risk signal, and are out of scope here.)
+
+- **Section A** (patient self-rated Suicide Status Form) — Questionnaire `http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA` (v1.0.0). Derived profile `SPiERCAMSSSFVital` (id `spier-cams-ssf-vital`) produces one Observation per SSF rating (`code` bound to the `CAMSSSFMeasureCodes` CodeSystem, required — not a fixed code). The risk-relevant rating is `overall-risk`:
+
+  ```
+  GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA&subject=Patient/[id]
+  GET [base]/Observation?code=http://thespierproject.org/fhir/CodeSystem/cams-ssf|overall-risk&subject=Patient/[id]
+  ```
+
+- **Section B** (clinician-identified drivers) — Questionnaire `http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB` (v1.0.0). Derived profile `SPiERCAMSSuicideDriver` is a **Condition**, not an Observation, surfaced on the problem list and marked with a fixed category:
+
+  ```
+  GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB&subject=Patient/[id]
+  GET [base]/Condition?category=http://thespierproject.org/fhir/CodeSystem/cams-driver-category|suicide-driver&subject=Patient/[id]
+  ```
+
+- **Outcome/Disposition** (final-session decision) — Questionnaire `http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-OutcomeDisposition` (v1.0.0). Derived profile `SPiERCAMSOutcomeDisposition` carries the same generic LOINC `93374-7` as the BSSA precedent, with a SPiER-local disposition value:
+
+  ```
+  GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-OutcomeDisposition&subject=Patient/[id]
+  GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+  ```
+
+## CRP (Crisis Response Plan)
+
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan` (v1.0.0)
+- Derived profile: `SPiERCrisisResponsePlan` — a **CarePlan**, not an Observation, one activity per CRP section (shares its section-code vocabulary with the Stanley-Brown Safety Plan). An alternative to Stanley-Brown, so distinguish it with `_profile` rather than `code`:
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan&subject=Patient/[id]
+GET [base]/CarePlan?_profile=http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan&subject=Patient/[id]
 ```
 
 ## PHQ-9 (Patient Health Questionnaire-9)
@@ -199,6 +249,36 @@ GET [base]/Observation?code=http://loinc.org|44260-8&subject=Patient/[id]
 GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]
 ```
 
+## PSS-3 (Patient Safety Screener, 3-item)
+
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/PSS-3` (v1.0.0)
+- Derived profile: `SPiERPSS3Result` (binary result on LOINC `93374-7`) — ED-SAFE's universal acute-care screen.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/PSS-3&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+## PSS-Full (Patient Safety Screener, full)
+
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/PSS-Full` (v1.0.0)
+- Derived profile: `SPiERPSSFullRiskLevel` (LOINC `93374-7`) — the PSS-3 plus a site-defined risk-stratification step. **Lands directly on the concept layer, with no per-instrument crosswalk**: the value is bound straight to the shared SPiER Suicide Risk Tier ValueSet.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/PSS-Full&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
+## SAFE-T (Suicide Assessment Five-Step Evaluation and Triage)
+
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/SAFE-T` (v1.0.0)
+- Derived profile: `SPiERSAFETRiskLevel` (LOINC `93374-7`) — a five-step clinician formulation. **Lands directly on the concept layer, with no per-instrument crosswalk**, the same as PSS-Full.
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/SAFE-T&subject=Patient/[id]
+GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+```
+
 ## SBQ-R (Suicide Behaviors Questionnaire-Revised)
 
 - Questionnaire: `http://thespierproject.org/fhir/Questionnaire/SBQ-R` (v1.0.0)
@@ -208,6 +288,16 @@ GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]
 ```
 GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/SBQ-R&subject=Patient/[id]
 GET [base]/Observation?code=http://snomed.info/sct|225337009&subject=Patient/[id]
+```
+
+## Stanley-Brown Safety Plan
+
+- Questionnaire: `http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan` (v1.1.0)
+- Derived profile: `SPiERStanleyBrownSafetyPlan` — a **CarePlan**, not an Observation, one activity per safety-plan step. Shares its section-code vocabulary with the CRP, so distinguish it with `_profile` rather than `code`:
+
+```
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan&subject=Patient/[id]
+GET [base]/CarePlan?_profile=http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan&subject=Patient/[id]
 ```
 
 > Tip: to retrieve a patient's suicide-risk picture across *all* instruments in one query, use the harmonized-concept search at the top of this page — that's the payoff of the [two-layer model](how-to-read.html#two-layer-model).
