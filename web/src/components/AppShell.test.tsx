@@ -3,11 +3,15 @@
  *
  * The page footer — where SPiER's project metadata (GitHub, the project site,
  * the version stamp) lives now, having moved out of `.sidebar-footer`. See the
- * note on `PROJECT_LINKS` in `EhrShell.tsx` and on `.sidebar` in `Sidebar.css`
- * for why: the sidebar's height is pinned to the viewport, so on a page short
- * enough to fit inside it, the sidebar's sticky box visually covered whatever
- * sat at the bottom of `.sidebar-footer`. This footer runs full width below
- * the sidebar and can't be obscured by it.
+ * note on `PROJECT_LINKS` in `AppShell.tsx` for why it moved: the sidebar's
+ * height was pinned to the viewport, so on a page short enough to fit inside
+ * it, the sidebar's sticky box visually covered whatever sat at the bottom of
+ * `.sidebar-footer`.
+ *
+ * The shell is a fixed frame now, so that overlap is gone and this footer is
+ * visible without scrolling at all — which is what makes it worth asserting the
+ * contents of. jsdom computes no layout, so nothing here can test the frame
+ * itself; these are content assertions only.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
@@ -24,28 +28,19 @@ vi.mock('../context/PatientContext', () => ({
 // unlike Sidebar.test.tsx's isolated render.
 Element.prototype.scrollTo = () => {}
 
-// jsdom has no ResizeObserver either, and the header/footer height hooks
-// construct one on mount to publish `--ehr-header-height` / `--ehr-footer-height`.
-class StubResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-vi.stubGlobal('ResizeObserver', StubResizeObserver)
-
-const { EhrShell } = await import('./EhrShell')
+const { AppShell } = await import('./AppShell')
 
 afterEach(cleanup)
 
 function renderShell() {
   return render(
     <MemoryRouter initialEntries={['/overview']}>
-      <EhrShell />
+      <AppShell />
     </MemoryRouter>,
   )
 }
 
-describe('EhrShell footer — project metadata', () => {
+describe('AppShell footer — project metadata', () => {
   it('still carries the SPiER tagline', () => {
     renderShell()
     expect(

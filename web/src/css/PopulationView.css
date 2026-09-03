@@ -1,5 +1,5 @@
 /* No padding of its own. It used to add `var(--space-6)` on top of
-   `.ehr-content-body`'s inset, which is why this page's content started 24px
+   `.app-shell__body`'s inset, which is why this page's content started 24px
    further in and further down than the Overview and Patient Chart lenses — the
    shell pads the page, and only the shell.
    The title block that used to live here (`.population-header`,

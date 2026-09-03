@@ -7,10 +7,15 @@ export function scrollToAnchor(anchor: string) {
   const el = document.getElementById(anchor)
   if (!el) return
   // Element.scrollIntoView() misbehaves in this app's shell: several ancestors
-  // declare `overflow-y: auto` but never actually scroll (their content grows
-  // the grid so the *document* scrolls instead), and scrollIntoView picks the
-  // wrong boundary and overshoots. So find the nearest ancestor that genuinely
-  // scrolls and scroll it by the element's offset; fall back to the window.
+  // declare `overflow-y: auto` without necessarily being the thing that scrolls,
+  // and scrollIntoView picks the wrong boundary and overshoots. So find the
+  // nearest ancestor that genuinely scrolls and scroll it by the element's
+  // offset; fall back to the window.
+  //
+  // Both branches are live and which one runs is a breakpoint, not a fallback:
+  // the desktop shell scrolls `.app-shell__content` while mobile hands scrolling back
+  // to the document (see AppShell.css). The `scrollHeight > clientHeight` test
+  // is what distinguishes them at runtime — do not shortcut it to a selector.
   //
   // Because the scroll is manual, `scroll-margin-top` does not apply on its own
   // — the CSS property is honored by scrollIntoView() and native fragment
@@ -106,11 +111,11 @@ export function useScrollToTopOnNavigate() {
 
   useLayoutEffect(() => {
     if (location.hash) return
-    // Which element actually scrolls depends on content height: `.ehr-content`
-    // declares `overflow-y: auto` but often lets the document scroll instead
-    // (see the note on scrollToAnchor). Zeroing both is safe — on whichever one
-    // isn't scrolling it's a no-op.
-    document.querySelector<HTMLElement>('.ehr-content')?.scrollTo(0, 0)
+    // Which element actually scrolls is a breakpoint: `.app-shell__content` is the
+    // scroller in the desktop frame, the document is at mobile widths and in
+    // the panel (see the note on scrollToAnchor). Zeroing both is safe — on
+    // whichever one isn't scrolling it's a no-op.
+    document.querySelector<HTMLElement>('.app-shell__content')?.scrollTo(0, 0)
     window.scrollTo(0, 0)
   }, [routeKey, location.hash])
 }

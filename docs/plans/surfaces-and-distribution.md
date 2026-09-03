@@ -79,7 +79,7 @@ that premise and needs the same correction.
 
 ## 3. The missing axis: build surface
 
-Two axes were already in play — **chrome mode** (`EhrShell` vs `PanelShell`) and
+Two axes were already in play — **chrome mode** (`AppShell` vs `PanelShell`) and
 **data source** (`LocalDataSource` vs `SmartDataSource`). Neither answers "what
 does a client receive." That is a third, independent axis:
 

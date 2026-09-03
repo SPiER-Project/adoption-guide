@@ -14,7 +14,7 @@
  * triggering mobile-device emulation): **252px of chrome above the first form
  * card** — 28% of a 900px panel spent before a single question is asked.
  *
- *   .ehr-header      65px   the host already has a header
+ *   .app-shell__header      65px   the host already has a header
  *   .patient-banner  73px   the host already identifies the patient
  *   .page-header     75px   eyebrow + large title + accent rule + margin
  *   body padding     16px
@@ -110,7 +110,7 @@ export function PanelShell() {
           />
         </div>
       )}
-      {/* Owns the panel's page inset, the way `.ehr-content-body` owns the
+      {/* Owns the panel's page inset, the way `.app-shell__body` owns the
           shell's. Declared as the second sanctioned owner in
           web/scripts/check-page-template.mjs — see PANEL_BODY there. */}
       <main className="panel-shell__body">

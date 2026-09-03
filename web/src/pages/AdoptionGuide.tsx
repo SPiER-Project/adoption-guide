@@ -23,7 +23,7 @@ export function AdoptionGuide() {
     <div className="implementation-guide">
       <PageHeader eyebrow={['Adoption Guide', guideGroupLabel(active.group)]} title={active.label} />
 
-      {/* A `<div>`, not a `<main>`: EhrShell already renders the document's one
+      {/* A `<div>`, not a `<main>`: AppShell already renders the document's one
           `<main>` around this outlet, and a second one nested inside it is not a
           landmark a screen reader can make sense of. */}
       <div className="ig-content">

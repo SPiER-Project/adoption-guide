@@ -1,7 +1,7 @@
 /* ===========================
    Overview — the site's front page.
-   Lives inside the EHR shell at /overview (the old standalone portal at `/`
-   redirects here), so it brings no chrome of its own: .ehr-content-body
+   Lives inside the app shell at /overview (the old standalone portal at `/`
+   redirects here), so it brings no chrome of its own: .app-shell__body
    supplies the outer padding.
 
    The hero used to live here — eyebrow, title, accent rule, lede — and was the

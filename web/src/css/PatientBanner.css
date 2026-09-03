@@ -2,22 +2,31 @@
   background: var(--surface-banner);
   border-bottom: 1px solid var(--border-strong);
   padding: 0.5rem 1.5rem;
-  /* Stick to the top of the viewport as the page scrolls so identifiers + risk
-     stay in view. The scrollport is the document, NOT .ehr-content — that
-     element must not declare an overflow, or it becomes the scrollport and this
-     never sticks, which is exactly what it used to do (see the note there).
-     z-index sits below .ehr-header (z-index: 100).
+  /* Stick to the top of the scrollport as the page scrolls, so identifiers +
+     risk stay in view. z-index sits below .app-shell__header (z-index: 100).
 
      The banner's measured height is published as --patient-banner-height by
      PatientBanner, so anchor scrolling can clear it; see --anchor-scroll-offset
      in index.css.
 
-     ⚠️ `top` is the app bar's height, not 0. It was 0 because .ehr-header used to
-     scroll away, leaving the top of the viewport free; the bar is sticky now (see
-     the note there), so a banner at top: 0 would slide underneath it and this
-     identity strip would be the thing that disappeared. */
+     ⚠️ **`top: 0` is right in all three of this app's scroll shapes, and it has
+     been wrong in two of them before — check which one you are in before
+     changing it.**
+
+       - Desktop shell: `.app-shell__content` is the scrollport and starts *below* the
+         app bar, so 0 is the top of the visible pane. (Earlier, `.app-shell__content`
+         declared an overflow while the document actually scrolled — that made
+         it a scrollport that never moved, and this rule silently did nothing.)
+       - Mobile shell: the document scrolls and the app bar is not sticky, so 0
+         is the top of the viewport and the bar scrolls away above it. (This was
+         `var(--ehr-header-height)` while the bar *was* sticky everywhere; that
+         property no longer exists.)
+       - Panel chrome: no app bar at all.
+
+     The common rule is "the top of whatever is scrolling", which is what a bare
+     0 means and what an offset would break. */
   position: sticky;
-  top: var(--ehr-header-height, 0);
+  top: 0;
   z-index: 50;
 }
 

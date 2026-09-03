@@ -2,7 +2,7 @@
    Care Pathway — the protocol, rendered from the PlanDefinition.
 
    A guide SUB-PAGE: the root deliberately carries no padding, because
-   `.ehr-content-body` owns the page inset (see PageHeader.tsx and
+   `.app-shell__body` owns the page inset (see PageHeader.tsx and
    `npm run check:template`). Tokens only — no raw colors, sizes or shadows;
    `npm run lint:css` and `npm run check:tokens` gate both directions.
    ============================================================ */
@@ -16,7 +16,7 @@
 
 /* The same protocol on the Patient View side — what the embedded SMART panel
    shows (pages/PathwayProtocol.tsx). Same rendering, different order: the
-   provenance strip leads. No padding here either; `.ehr-content-body` and
+   provenance strip leads. No padding here either; `.app-shell__body` and
    `.panel-shell__body` are the two sanctioned inset owners and this page renders
    into whichever chrome is active. */
 .pathway-protocol {

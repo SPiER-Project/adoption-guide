@@ -35,7 +35,7 @@
    than inside it. It has to exist: `.form-wrapper` is a flex row (card beside
    the FHIR debug sidebar), so a header placed in it became a third flex item.
 
-   No padding here. `.ehr-content-body` owns the page inset, same as every lens
+   No padding here. `.app-shell__body` owns the page inset, same as every lens
    — `npm run check:template` gates it, and treats these views as page roots.
    =========================== */
 .form-view {

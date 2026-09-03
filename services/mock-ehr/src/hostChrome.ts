@@ -249,7 +249,7 @@ export const COMPONENTS = `
   .app-bar__link[aria-current="page"] { color: var(--surface); font-weight: 600; }
 
   /* ── Page ─────────────────────────────────────────────────────────────────
-     The sole owner of the page inset, the same rule \`.ehr-content-body\` follows
+     The sole owner of the page inset, the same rule \`.app-shell__body\` follows
      in the app: a page that pads its own root indents its content relative to
      every other page for a reason invisible from the page itself. */
   .page { padding: var(--s5); max-width: 68rem; }

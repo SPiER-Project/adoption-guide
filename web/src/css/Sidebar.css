@@ -6,46 +6,36 @@
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;
-  /* Stay visible regardless of content length. align-self: start prevents the
-     grid from stretching the sidebar; sticky keeps it pinned to viewport top
-     once scrolled into; height matches the viewport. Sticky naturally
-     "releases" at the bottom of its grid row, so the footer can scroll into
-     view without the sidebar covering it.
+  /* ⚠️ **Nothing here pins this column any more, and the deletions are the
+     change.** This rule used to read:
 
-     ⚠️ **`100dvh` alone was a header too tall, and the app bar is why this now
-     works.** With a scrolling bar, `top: 0` pinned this box to the viewport only
-     once the page had scrolled past it; at scroll position 0 the box began below
-     the bar and ran ~47px under the fold, clipping the footer even with the
-     sidebar's own scroll bottomed out. Subtracting the bar's height would then
-     have left a 47px gap once it scrolled away — the fix had to be an app bar
-     that does not move, so `.ehr-header` is `position: sticky` and this offset is
-     a constant at every scroll position rather than a moving target.
+       position: sticky;
+       top: var(--ehr-header-height, 0);
+       height: calc(100dvh - var(--ehr-header-height, 0px) - var(--ehr-footer-height, 0px));
+       align-self: start;
 
-     `--ehr-header-height` is measured and published by `useHeaderHeightVar` (the
-     bar is content-sized and can wrap under scaled text). The 0px fallback
-     degrades to the old, clipped behaviour rather than to a broken column.
-     ⚠️ The mobile block below overrides BOTH of these — the overlay is fixed at
-     top: 0 above the bar (z-index 200 vs 100) and must stay full height.
+     — four declarations and two runtime-measured custom properties, all to keep
+     a column visible beside a scrolling document. Two consequences followed
+     from it that no amount of arithmetic could fix. Sized to the viewport
+     rather than to its own links, the column ran out of content partway down
+     and left a void above the "Elsewhere" group; and because `sticky` makes an
+     element *positioned*, it painted over the page footer wherever the two met,
+     which is what the footer-height subtraction was there to prevent.
 
-     ⚠️ **`--ehr-footer-height` is subtracted for the same reason the header's
-     height is, and its absence was a real bug, not a hypothetical one.**
-     Without it this box is exactly `100dvh` tall regardless of page length, so
-     on any page short enough to fit the viewport with room to spare, the box
-     still reaches the very bottom of the viewport — right where `.ehr-footer`
-     sits on a short page. `position: sticky` makes this a *positioned* element,
-     which paints above non-positioned content like the footer regardless of DOM
-     order, so the two didn't just sit at the same height — the sidebar visually
-     covered the footer's text. Subtracting the footer's measured height
-     (`useFooterHeightVar` in EhrShell.tsx) stops the box short of the footer's
-     row instead, on every page length. */
-  position: sticky;
-  top: var(--ehr-header-height, 0);
-  /* ⚠️ `0px` here and bare `0` above, deliberately. stylelint's
-     length-zero-no-unit wants the unitless form and is right for `top`, but
-     `calc(100dvh - 0)` is invalid CSS — calc needs the unit to type the
-     subtraction. Do not make these two match. */
-  height: calc(100dvh - var(--ehr-header-height, 0px) - var(--ehr-footer-height, 0px));
-  align-self: start;
+     `.app-shell` is a fixed frame now (see the note on it), so this is simply a
+     grid item in a row that is already exactly as tall as the space between the
+     app bar and the footer. It stretches to fill that row by default — no
+     `align-self: start` — and stops at the footer's top edge by construction
+     rather than by subtraction.
+
+     `overflow-y: auto` stays and now matters more, since it is the only thing
+     standing between a long lens list (or large text) and a clipped column.
+     `min-height: 0` is what lets a grid item shrink below its content so that
+     overflow can engage at all.
+
+     ⚠️ The mobile block at the bottom of this file re-pins it as a `fixed`
+     overlay at `z-index: 200`, above the app bar's 100. That is untouched by
+     any of this and must stay full height. */
 }
 
 .sidebar-overlay {

@@ -5,7 +5,7 @@
    This file used to carry the guide's own header (`.ig-header`, a --surface-card
    band with its own 20/24/12/24 padding) and its own body inset
    (`.ig-content > * { padding: 24px }`). Both are gone: the header is the shared
-   PageHeader and the inset is `.ehr-content-body`'s, which is what the Overview
+   PageHeader and the inset is `.app-shell__body`'s, which is what the Overview
    and Patient Chart lenses were already using. The two layers together were why
    every guide page started 24px further in — and 24px further down — than those
    two, for what looked from the page like no reason at all.

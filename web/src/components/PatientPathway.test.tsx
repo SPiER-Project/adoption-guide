@@ -18,7 +18,7 @@
  *  4. "Configure tools in your implementation", addressed to someone who is not
  *     in a host chart. Hidden in panel chrome.
  *
- * The full EHR shell keeps its behaviour in every case, and that is asserted
+ * The full app shell keeps its behaviour in every case, and that is asserted
  * too: this pass was about the panel, not about the chart.
  */
 import { describe, it, expect, afterEach } from 'vitest'
