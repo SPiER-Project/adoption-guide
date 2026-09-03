@@ -40,31 +40,31 @@ The same standardized data also gives systems a foundation for measuring whether
 ## The 8-Stage Suicide Safer Care Pathway
 We have adopted a standardized 8-stage model for suicide prevention in EHRs, ensuring that clinical workflows are supported from the first signal to the final resolution.
 
-1.  **Flag Risk:** Identifying patients via universal or targeted screening (ASQ, PHQ-9 Item 9).
+1.  **Identify Possible Risk:** Identifying patients via universal or targeted screening (ASQ, PHQ-9 Item 9).
 2.  **Clarify Risk:** Detailed clinical assessment to determine the nature and severity of risk (C-SSRS Full, CAMS SSF-5).
-3.  **Set Risk Status:** Documenting a formal risk formulation and setting the clinical disposition (SAFE-T).
+3.  **Define the Risk Picture:** Documenting a formal risk formulation and setting the clinical disposition (SAFE-T).
 4.  **Document Safety Actions:** Creating collaborative safety plans and performing means safety counseling (Stanley-Brown, CAMS Stabilization).
 5.  **Coordinate Handoffs:** Ensuring that suicide-specific data is transferred during discharge or transitions of care.
 6.  **Track Follow-Up:** Monitoring closed-loop outreach and caring contacts after a transition.
-7.  **Manage Active Risk:** Ongoing monitoring and treatment updates for patients currently in a care episode.
+7.  **Track Risk Over Time:** Ongoing monitoring and treatment updates for patients currently in a care episode.
 8.  **Measure and Share:** Aggregating data for population health, quality reporting, and cross-system sharing.
 
 ## Key Clinical Frameworks
 1.  **CAMS (Collaborative Assessment and Management of Suicidality):**
-    *   **Stages Supported:** Clarify Risk (SSF-5), Set Risk Status (Therapeutic Worksheet), Document Safety Actions (Stabilization Plan), Manage Active Risk (Interim Sessions), Coordinate Handoffs (Outcome/Disposition).
+    *   **Stages Supported:** Clarify Risk (SSF-5), Define the Risk Picture (Therapeutic Worksheet), Document Safety Actions (Stabilization Plan), Track Risk Over Time (Interim Sessions), Coordinate Handoffs (Outcome/Disposition).
     *   A clinical framework emphasizing collaborative engagement.
 2.  **Stanley-Brown Safety Plan:**
     *   **Stages Supported:** Document Safety Actions.
     *   An evidence-based intervention for identifying coping strategies and resources.
 3.  **ASQ (Ask Suicide-Screening Questions):**
-    *   **Stages Supported:** Flag Risk.
+    *   **Stages Supported:** Identify Possible Risk.
     *   A rapid screening tool used for youth and adults.
 4.  **C-SSRS (Columbia-Suicide Severity Rating Scale):**
-    *   **Stages Supported:** Flag Risk (Screener), Clarify Risk (Full Scale).
+    *   **Stages Supported:** Identify Possible Risk (Screener), Clarify Risk (Full Scale).
     *   The gold standard for assessing ideation and behavior.
 
 ## Technical Goals
-*   **Pathway-Driven Logic:** Defining automated triggers that move a patient from one stage to the next (e.g., Flag Risk → Clarify Risk).
+*   **Pathway-Driven Logic:** Defining automated triggers that move a patient from one stage to the next (e.g., Identify Possible Risk → Clarify Risk).
 *   **FHIR Standardization:** Mapping every tool to Questionnaire, Observation, and CarePlan resources.
 *   **EHR Adoption Rubric:** Providing a framework for vendors to self-assess their support for the 8-stage pathway.
 

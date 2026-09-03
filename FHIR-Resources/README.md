@@ -8,14 +8,14 @@ For the **canonical, machine-readable** SPiER FHIR artifacts — Profiles, Value
 
 | Folder | Primary stage(s) | What's here |
 |---|---|---|
-| [ASQ/](ASQ/) | Flag Risk (1) | NIMH 5-item suicide screener (4 screening questions + 1 acuity question) Questionnaire + ValueSet + 3 CodeSystems |
+| [ASQ/](ASQ/) | Identify Possible Risk (1) | NIMH 5-item suicide screener (4 screening questions + 1 acuity question) Questionnaire + ValueSet + 3 CodeSystems |
 | [BSSA/](BSSA/) | Clarify Risk (2) | NIMH Brief Suicide Safety Assessment (post-positive-screen clinician guide) Questionnaire → disposition Observation + disposition→risk-tier crosswalk |
 | [SAFE-T/](SAFE-T/) | Define the Risk Picture (3) | SAMHSA 5-step structured formulation → risk-level Observation whose value binds directly to the shared suicide-risk tier (lands on the concept layer, no crosswalk) |
-| [PHQ-9/](PHQ-9/) | Flag Risk (1) | 9-item depression screener Questionnaire (Item 9 → Clarify Risk trigger) |
+| [PHQ-9/](PHQ-9/) | Identify Possible Risk (1) | 9-item depression screener Questionnaire (Item 9 → Clarify Risk trigger) |
 | [PSS-3/](PSS-3/) | Identify Possible Risk (1) | ED-SAFE 3-item universal acute-care suicide screen → positive/negative result Observation (positive → Clarify Risk trigger) + result→risk-tier crosswalk |
-| [C-SSRS/](C-SSRS/) | Flag Risk (1), Clarify Risk (2) | Screener + Full (Lifetime/Recent) Questionnaires |
-| [SBQ-R/](SBQ-R/) | Flag Risk (1) | 4-item Suicide Behaviors Questionnaire-Revised |
-| [CAMS/](CAMS/) | Clarify Risk (2), Set Risk Status (3), Document Safety Actions (4), Manage Active Risk (7) | SSF-5 Section A/B, Therapeutic Worksheet, Stabilization Plan Questionnaires + reference material |
+| [C-SSRS/](C-SSRS/) | Identify Possible Risk (1), Clarify Risk (2) | Screener + Full (Lifetime/Recent) Questionnaires |
+| [SBQ-R/](SBQ-R/) | Identify Possible Risk (1) | 4-item Suicide Behaviors Questionnaire-Revised |
+| [CAMS/](CAMS/) | Clarify Risk (2), Define the Risk Picture (3), Document Safety Actions (4), Track Risk Over Time (7) | SSF-5 Section A/B, Therapeutic Worksheet, Stabilization Plan Questionnaires + reference material |
 | [Stanley-Brown/](Stanley-Brown/) | Document Safety Actions (4) | 7-step safety plan Questionnaire + a hybrid CarePlan template |
 | [CRP/](CRP/) | Document Safety Actions (4) | Crisis Response Plan (Bryan & Rudd) — 5-section Questionnaire → CarePlan (SPiERCrisisResponsePlan); alternative to Stanley-Brown |
 | [PSS-Full/](PSS-Full/) | Clarify Risk (2) | Combined acute-care screen — public ED-SAFE PSS-3 items + site-defined stratification → risk-level Observation on the shared tier (no crosswalk) |
