@@ -1,79 +1,25 @@
-// =============================================================
 // Safety-plan section codes
-// =============================================================
+//
 // Shared section identity for the two narrative safety-plan CarePlans SPiER
 // produces: the Stanley-Brown Safety Plan (seven steps) and the Crisis
-// Response Plan (five sections, Bryan & Rudd). Both are section-structured
-// documents whose activities were previously identified only by English prose
-// in `detail.code.text`, or — worse — by LOINC codes that do not exist.
+// Response Plan (five sections, Bryan & Rudd).
 //
-// ─── Why these codes are SPiER-local ─────────────────────────
+// The reasoning is PUBLISHED on design-decisions.md — why these codes are
+// SPiER-local, why this system and cams-careplan-section stay separate, and
+// why `87626-8` sits in `CarePlan.category` without claiming the plan is a
+// document. Do not restate it here: that page is what a reader outside this
+// repo can reach.
 //
-// The repo previously asserted six LOINC codes for these sections (76689-1,
-// 76690-9, 76691-7, 76692-5, 76693-3, 76694-1) plus 81344-4 for "reason for
-// living", and documented all seven as verified in
-// FHIR-Resources/Stanley-Brown/README.md's "Clinical Mapping Audit Table".
-// None of that verification happened:
-//
-//   * the six 766xx-x codes DO NOT EXIST in LOINC — confirmed against LOINC
-//     2.82 by both the IG Publisher and tx.fhir.org's $validate-code;
-//   * 81344-4 is real but means "Healthcare agent authority to inspect and
-//     disclose mental and physical health information Narrative - Reported".
-//     It resolves, so nothing flagged it, and a receiving system would have
-//     read reasons-for-living content as disclosure authority.
-//
-// See issue #220. Before minting anything here, LOINC 2.82 was searched
-// exhaustively per section via tx.fhir.org $expand — `warning sign(s)`,
-// `early warning`, `prodrome`, `crisis trigger`, `coping strateg`,
-// `self-management`, `distraction`, `social setting`, `crisis contact`,
-// `support person`, `crisis line`, `hotline`, `professional service`,
-// `lethal means`, `means safety`, `means restriction`, `access to means`,
-// `firearm`, `secure storage`, `reason(s) for living`, `worth living`,
-// `protective factor`, `safety plan(ning)`, `crisis response plan`.
-//
-// Result: LOINC publishes nothing at safety-plan-section granularity. The
-// nearest real concepts are all the wrong kind of thing —
-//   * 44943-9 "Self management" / 44941-3 "Barriers to self management" are
-//     generic care-plan concepts, not the Stanley-Brown coping construct;
-//   * every "reason for living" hit (61972-6, 71025-1, 91476-2, 92083-5,
-//     68005-8) is a *scaled survey item* measuring agreement over the past
-//     7 days, not a slot for narrative content;
-//   * 56796-6 "Emergency contact information panel" and its Name/Address/
-//     Phone/Relationship children are real and would fit if SPiER ever models
-//     steps 4 and 5 as structured contacts rather than free text — a genuine
-//     future opportunity, but not a section code.
-//
-// So every section code here is deliberately SPiER-local, exactly as
-// cams-careplan-section (#95 / PR #219) is, and each use is tagged
-// #no-standard-binding via the coding-verification-status extension —
-// the terminal state meaning "no published code exists for this concept".
-//
-// One real LOINC code *does* apply, at document rather than section level:
-// 87626-8 "Suicide prevention note" ($validate-code confirmed, LOINC 2.82).
-// Both CarePlan profiles carry it in `category` alongside the SNOMED
-// treatment-escalation-plan code. Note the modelling caveat: 87626-8 is a
-// LOINC document-type concept whose most precise home would be
-// Composition.type or DocumentReference.type. CarePlan.category has only an
-// example binding, so this is legal and useful for discovery, but a consumer
-// should not read it as a claim that the CarePlan *is* a document.
-//
-// ─── Overlap with cams-careplan-section ──────────────────────
-//
-// cams-careplan-section carries #lethal-means-reduction, #coping-strategies,
-// #emergency-contact and #support-network, which overlap conceptually with
-// codes here. The two systems are kept separate on purpose: CAMS sections are
-// defined by the CAMS framework (and its Stabilization Plan orders and scopes
-// them differently), while these follow the Stanley-Brown/CRP templates.
-// Collapsing them would have meant re-coding the just-landed #219 artifacts.
-// A ConceptMap between the two is the right way to relate them if a consumer
-// ever needs it — see the crosswalk-*.fsh files for the established pattern.
-// =============================================================
-
+// ⚠️ DO NOT mint a LOINC code for a section. Seven were asserted here once and
+// documented as verified: six did not exist, and `81344-4` is real but means
+// "healthcare agent authority to inspect and disclose …", so it validated
+// cleanly for months while meaning something else (issue #220). Every use below
+// is tagged #no-standard-binding via coding-verification-status.
 
 CodeSystem: SafetyPlanSectionCodes
 Id: safety-plan-section
 Title: "Safety Plan Section Codes"
-Description: "SPiER-local section codes identifying which section of a narrative safety-plan CarePlan an activity represents. Shared by the Stanley-Brown Safety Plan and the Crisis Response Plan. Local rather than LOINC because an exhaustive search of LOINC 2.82 found no published concepts at this granularity — see the file header for the search performed and the near-misses rejected."
+Description: "SPiER-local section codes identifying which section of a narrative safety-plan CarePlan an activity represents. Shared by the Stanley-Brown Safety Plan and the Crisis Response Plan. Local rather than LOINC because an exhaustive search of LOINC 2.82 found no published concepts at this granularity — the Design decisions page records the search performed and the near-misses rejected, including the emergency-contact panel that would fit if these steps were ever modelled as structured contacts."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true

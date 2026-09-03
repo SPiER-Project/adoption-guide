@@ -1,31 +1,15 @@
-// =============================================================
 // Crosswalk — SPiER suicide-risk tier → LOINC "Suicide risk level"
-// =============================================================
-// ConceptMap from the instrument-agnostic SPiER suicide-risk tier
-// (concept-layer.fsh: no-risk/low/moderate/high/imminent) INTO the
-// normative LOINC answer list for 93374-7 "Suicide risk level"
-// (LL465-6: Low / Moderate / High).
 //
-// WHY THIS EXISTS: LOINC 93374-7 carries a coded answer list, and the
-// HL7 US Behavioral Health Profiles IG populates that code with these
-// LOINC answers. SPiER's tier set is finer-grained (it adds `no-risk`
-// at the bottom and `imminent` at the top), so a consumer that only
-// understands the LOINC list needs this map to interpret a SPiER tier.
+// Egress map: the instrument-agnostic SPiER tier (concept-layer.fsh) INTO the
+// normative LOINC answer list LL465-6 for 93374-7.
 //
-// SHAPE OF THE MAPPING (3 LOINC values vs. 5 SPiER tiers):
-//  - low / moderate / high       -> equivalent (names + meaning align)
-//  - imminent                    -> High (`wider`: LOINC High subsumes
-//                                    the imminent case; LOINC has no
-//                                    distinct "imminent" answer)
-//  - no-risk                     -> NO LOINC TARGET. The LOINC list
-//                                    begins at Low; there is no "none"
-//                                    answer, so `no-risk` is intentionally
-//                                    omitted rather than forced onto Low.
+// The rationale a reader needs is PUBLISHED, not here — Description and
+// ^purpose below, and conformance.md's "Egress: harmonized tier → LOINC",
+// which states both lossy steps and what a consumer should do about them.
 //
-// !! PENDING CLINICAL SIGN-OFF !! The imminent -> High collapse is a
-// clinical-equivalence claim (the high/imminent boundary is the same one
-// flagged in crosswalk-cssrs.fsh) and must be reviewed by an SME (epic #77).
-// =============================================================
+// ⚠️ The imminent → High collapse is a clinical-equivalence claim, not a
+// terminology fact, and no SME has signed it off. Same boundary as
+// crosswalk-cssrs.fsh. Do not promote either past #draft without that review.
 
 Instance: SPiERRiskTierToLOINC
 InstanceOf: ConceptMap
@@ -38,7 +22,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
-* purpose = "Translate the instrument-agnostic SPiER suicide-risk tier into the LOINC 93374-7 answer list so HL7-aligned partner systems can consume the harmonized concept value natively."
+* purpose = "Translate the instrument-agnostic SPiER suicide-risk tier into the LOINC 93374-7 answer list so HL7-aligned partner systems can consume the harmonized concept value natively. Two tiers do not survive the trip, and both are deliberate rather than incomplete: `imminent` maps to the wider LOINC `High`, which subsumes it, because LL465-6 publishes no distinct imminent answer; and `no-risk` is omitted entirely, because the list begins at `Low` and forcing a negative screen onto `Low` would fabricate a positive one. A consumer that needs either distinction should read the SPiER-local tier alongside the LOINC value."
 * sourceCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 * targetCanonical = "http://loinc.org/vs/LL465-6"
 
@@ -70,6 +54,5 @@ Usage: #definition
 * group[0].element[3].target[0].equivalence = #wider
 * group[0].element[3].target[0].comment = "LOINC has no distinct 'imminent' answer; mapped to the wider LOINC High, which subsumes the imminent case. The imminent/high boundary is a clinical judgment — PENDING SME sign-off (epic #77)."
 
-// `no-risk` is intentionally NOT mapped: the LOINC LL465-6 answer list has
-// no "none"/"no risk" value (it begins at Low). Forcing it onto Low would
-// fabricate a positive screen, so it is omitted from this group.
+// `no-risk` is intentionally NOT mapped — see ^purpose above for why. A future
+// editor adding a target here is undoing a decision, not filling a gap.

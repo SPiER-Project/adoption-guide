@@ -8,7 +8,14 @@
  *   - generated FHIR (packages/fhir-artifacts/generated/ActivityDefinition-*.json and
  *     PlanDefinition-*.json, produced by `npm run copy-fhir`)
  *   - TOOL_UI_METADATA (tool-ui-metadata.ts) — UI overlay keyed by Tool id
- *   - AD_TO_TOOL_ID (tools.ts) — maps ActivityDefinition ids to Tool ids
+ *
+ * The AD → Tool-id pairing used to be a third such layer: a hand-written
+ * `AD_TO_TOOL_ID` map in tools.ts that this script parsed and compared against
+ * the generated ActivityDefinitions. It could only check the map against
+ * itself. The IG published no tool ids, so "AdministerSAFET is TL-006" was an
+ * unverifiable claim, and the IG narrative could not name a tool at all. Task
+ * C2 published them as `ActivityDefinition.identifier`; the map is deleted and
+ * both the app and check F below derive the pairing from the artifact.
  *
  * Every catalogued tool is FHIR-backed: it derives its clinical fields from an
  * ActivityDefinition and its stage from the PlanDefinition that references it.
@@ -20,14 +27,13 @@
  *      FHIR-backed tools get theirs from the PlanDefinition that references
  *      their ActivityDefinition)
  *   B. no orphans in the id space:
- *      - every TOOL_UI_METADATA key is a FHIR-backed Tool id (via
- *        AD_TO_TOOL_ID)
- *      - every AD_TO_TOOL_ID key is a generated ActivityDefinition, and every
- *        generated ActivityDefinition has an AD_TO_TOOL_ID entry (otherwise
- *        tools.ts drops it with only a console.warn)
+ *      - every TOOL_UI_METADATA key is a FHIR-backed Tool id
  *      - every FHIR-backed ActivityDefinition is referenced by a
  *        PlanDefinition action (otherwise the tool gets no stageId and is
  *        dropped at runtime)
+ *      The two directions that used to compare the hand map against the
+ *      generated ADs are now structural rather than checked: an id for a
+ *      nonexistent AD cannot be expressed, and an AD with no id fails in F
  *   C. the Questionnaire <-> ActivityDefinition relation holds in BOTH
  *      directions, version-stripped:
  *        - every Questionnaire canonical referenced by an ActivityDefinition
@@ -49,6 +55,13 @@
  *      (Common Mid-Tier = every `core` tool; Maximalist = all launchable) have
  *      not been re-frozen into hand-listed ids, and their derivations still
  *      match what the UI tells adopters they mean
+ * *   F. tool ids (`TL-0NN`) are published and derived, not restated: every
+ *      generated ActivityDefinition carries exactly ONE identifier in the
+ *      system the NamingSystem declares, shaped TL-NNN; tools.ts reads that
+ *      system rather than reinstating a hand map; and a tool id carried by
+ *      several ActivityDefinitions is in an allowlist with a reason, because a
+ *      legitimate multi-AD tool (the CAMS SSF-5) and a pasted-in duplicate id
+ *      look identical, and the catalog merges the group either way
  *
  * Requires `npm run copy-fhir` to have run (reads packages/fhir-artifacts/generated/).
  * Exits non-zero on drift so it can gate CI.
@@ -88,6 +101,31 @@ const stageCodes = new Set(
 )
 console.log(`pathway stages: ${[...stageCodes].join(', ')}`)
 
+// The tool-id identifier SYSTEM is read from the NamingSystem that publishes it
+// (ig/input/fsh/tool-id-identifier.fsh), never retyped here. If it were retyped,
+// a change to the FSH system URL would leave this gate checking the old string:
+// every AD would carry the new system, this check would report 43 ADs missing an
+// identifier — or, worse, a matching pair of stale copies here and in tools.ts
+// would pass while the app decatalogued every tool at runtime.
+const nsPath = join(fhirDir, 'NamingSystem-SPiERToolIdNamingSystem.json')
+if (!existsSync(nsPath)) {
+  console.error(
+    `✗ ${nsPath} not found — the NamingSystem that declares the tool-id identifier system ` +
+      `is missing from the IG build. Check F reads the system URL from it, so it cannot run.`,
+  )
+  process.exit(1)
+}
+const TOOL_ID_SYSTEM = (JSON.parse(readFileSync(nsPath, 'utf8')).uniqueId ?? []).find(
+  (u) => u.type === 'uri' && typeof u.value === 'string' && u.value.length > 0,
+)?.value
+if (!TOOL_ID_SYSTEM) {
+  console.error(
+    `✗ ${nsPath} declares no \`uri\` uniqueId — there is no system URL to check identifiers against.`,
+  )
+  process.exit(1)
+}
+console.log(`tool-id identifier system: ${TOOL_ID_SYSTEM}`)
+
 const activityDefs = [] // { id, url, questionnaireUrls: string[] }
 const pdActionAdUrls = new Set() // version-stripped AD canonicals referenced by PDs
 for (const file of readdirSync(fhirDir)) {
@@ -106,6 +144,7 @@ for (const file of readdirSync(fhirDir)) {
       questionnaireUrls,
       copyright: res.copyright,
       licensing: (res.extension ?? []).find((e) => e.url === LICENSING_EXT)?.valueCode,
+      identifier: res.identifier ?? [],
     })
   } else if (res.resourceType === 'PlanDefinition') {
     // A: PD stage useContext must be a real stage code
@@ -132,25 +171,128 @@ const toolsSrc = readFileSync(join(catalogDir, 'tools.ts'), 'utf8')
 const uiIds = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{/gm)].map((m) => m[1])
 if (uiIds.length === 0) fail('tool-ui-metadata.ts: no TOOL_UI_METADATA keys parsed — has the file shape changed?')
 
-// AD_TO_TOOL_ID block in tools.ts
-const adMapBlock = toolsSrc.match(/const AD_TO_TOOL_ID[^=]*=\s*\{([\s\S]*?)\}/)?.[1] ?? ''
-const adToTool = [...adMapBlock.matchAll(/(\w+):\s*'(TL-\d+)'/g)]
-  .map((m) => ({ adId: m[1], toolId: m[2] }))
-if (adToTool.length === 0) fail('tools.ts: no AD_TO_TOOL_ID entries parsed — has the file shape changed?')
+// ---- F: AD → tool id, read off the published identifiers -------------------
+// Until task C2 this pairing was a hand-written `AD_TO_TOOL_ID` map in tools.ts,
+// which this script parsed and compared against the generated ActivityDefinitions.
+// That could only ever check the map against itself: the IG published no tool ids
+// at all, so "the map says AdministerSAFET is TL-006" was an unverifiable claim,
+// and the IG narrative could not name a tool. The ids are now
+// `ActivityDefinition.identifier` entries in TOOL_ID_SYSTEM, so the artifact
+// states them and both the app and this gate derive them.
+//
+// tools.ts must be READING them, not restating them. These two shape assertions
+// are what stop the derivation being quietly reverted: a reinstated hand map
+// would satisfy every other check in this file while the identifiers sat unread.
+if (!toolsSrc.includes(TOOL_ID_SYSTEM)) {
+  fail(
+    `tools.ts does not mention "${TOOL_ID_SYSTEM}" — the catalog is not deriving tool ids from ` +
+      `the published identifiers. It must read them off ActivityDefinition.identifier; see ` +
+      `ig/input/fsh/tool-id-identifier.fsh.`,
+  )
+}
+if (/const\s+AD_TO_TOOL_ID\s*[:=]/.test(toolsSrc)) {
+  fail(
+    `tools.ts declares AD_TO_TOOL_ID again — the hand map was deleted in favour of the published ` +
+      `identifiers, deliberately with no fallback. A fallback absorbs exactly the drift the ` +
+      `identifier closes: the map would keep serving a stale pairing with nothing going red.`,
+  )
+}
 
-// ---- B: id-space integrity --------------------------------------------------
-const adIds = new Set(activityDefs.map((ad) => ad.id))
-const fhirToolIds = new Set(adToTool.map((m) => m.toolId))
+const TOOL_ID_SHAPE = /^TL-\d{3}$/
 
-for (const { adId } of adToTool) {
-  if (!adIds.has(adId)) {
-    fail(`tools.ts: AD_TO_TOOL_ID maps "${adId}" but no ActivityDefinition-${adId}.json is generated`)
+const adToTool = []
+for (const ad of activityDefs) {
+  const values = ad.identifier
+    .filter((i) => i.system === TOOL_ID_SYSTEM)
+    .map((i) => i.value)
+    .filter((v) => typeof v === 'string' && v.length > 0)
+  if (values.length === 0) {
+    fail(
+      `ActivityDefinition ${ad.id}: no ${TOOL_ID_SYSTEM} identifier — the catalog would drop this ` +
+        `tool with only a console.warn. Add \`* identifier[+].system\` / \`* identifier[=].value\` ` +
+        `to its FSH instance.`,
+    )
+    continue
+  }
+  if (values.length > 1) {
+    fail(
+      `ActivityDefinition ${ad.id}: ${values.length} tool-id identifiers (${values.join(', ')}). ` +
+        `An activity realises exactly one catalogued tool, and the catalog cannot choose between ` +
+        `them — it drops the AD instead.`,
+    )
+    continue
+  }
+  const [toolId] = values
+  if (!TOOL_ID_SHAPE.test(toolId)) {
+    fail(
+      `ActivityDefinition ${ad.id}: tool id "${toolId}" is not shaped TL-NNN. The app's UI metadata ` +
+        `and the use-case workbook both key on that literal form.`,
+    )
+    continue
+  }
+  adToTool.push({ adId: ad.id, toolId })
+}
+if (adToTool.length === 0) {
+  fail(
+    `no ActivityDefinition carries a tool-id identifier — this check reads them off the generated ` +
+      `resources, so an empty read makes every id-space assertion below vacuous`,
+  )
+}
+
+// A tool id on SEVERAL ActivityDefinitions is legitimate and load-bearing — the
+// CAMS SSF-5 is one catalogued tool whose four session forms are four ADs — but
+// it is INDISTINGUISHABLE from a copy-paste that pasted one AD's identifier into
+// an unrelated one. The catalog silently merges the group and lets whichever AD
+// sorts first supply the name, purpose and licensing, so the second tool does not
+// go missing loudly; it goes missing quietly, inside another tool. Hence an
+// allowlist with reasons rather than a count.
+const MULTI_AD_TOOLS = {
+  'TL-020':
+    'The CAMS SSF-5 is ONE catalogued tool per the SSC stage tiles. Its four session-form ' +
+    'ActivityDefinitions (first-session Section A and Section B, the interim re-rating, and the ' +
+    'outcome/disposition form) are phases of one instrument, collapsed at the Clarify Risk stage. ' +
+    "tools.ts's CLINICAL_OVERRIDES supplies the combined name and purpose, since no single " +
+    'session form describes the whole.',
+}
+const adsByToolId = new Map()
+for (const { adId, toolId } of adToTool) {
+  adsByToolId.set(toolId, [...(adsByToolId.get(toolId) ?? []), adId])
+}
+for (const [toolId, ads] of adsByToolId) {
+  if (ads.length === 1) {
+    if (MULTI_AD_TOOLS[toolId]) {
+      fail(
+        `tool ${toolId} is allowlisted as a multi-ActivityDefinition tool but only ` +
+          `${ads[0]} carries its id now — delete the MULTI_AD_TOOLS entry, or restore the ` +
+          `identifier the other ActivityDefinition(s) lost.`,
+      )
+    }
+    continue
+  }
+  if (!MULTI_AD_TOOLS[toolId]) {
+    fail(
+      `tool id ${toolId} is carried by ${ads.length} ActivityDefinitions (${ads.join(', ')}) and is ` +
+        `not in MULTI_AD_TOOLS. Either these really are phases of one catalogued tool — add an entry ` +
+        `saying so, in web/scripts/check-catalog-integrity.mjs — or one of them was given the wrong ` +
+        `id, in which case the catalog is silently showing one tool where there should be two: it ` +
+        `merges the group and the first AD by sort order wins the name, purpose and licensing.`,
+    )
   }
 }
+console.log(
+  `✓ tool ids: ${adToTool.length} ActivityDefinition(s) carry exactly one, ` +
+    `${adsByToolId.size} distinct tool id(s), ` +
+    `${[...adsByToolId].filter(([, a]) => a.length > 1).length} declared multi-AD tool(s)`,
+)
+
+// ---- B: id-space integrity --------------------------------------------------
+const fhirToolIds = new Set(adToTool.map((m) => m.toolId))
+
+// The two directions this used to check between the generated ADs and the hand
+// map are now structural: tool ids are read OFF the ActivityDefinitions, so an
+// id for a nonexistent AD cannot be expressed, and an AD with no id fails in F
+// above. What remains is the relation to the PlanDefinitions and to the UI layer.
 for (const ad of activityDefs) {
-  if (!adToTool.some((m) => m.adId === ad.id)) {
-    fail(`ActivityDefinition ${ad.id} has no AD_TO_TOOL_ID entry in tools.ts — tool would be dropped from the catalog`)
-  }
   if (!pdActionAdUrls.has(stripVersion(ad.url))) {
     fail(`ActivityDefinition ${ad.id} (${ad.url}) is not referenced by any PlanDefinition action — tool would get no stageId and be dropped`)
   }

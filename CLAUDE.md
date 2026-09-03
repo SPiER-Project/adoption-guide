@@ -60,11 +60,22 @@ npm run check:guide-boundary # the Adoption Guide holds no patient data — it e
                          # (#391). Walks the guide's pages TRANSITIVELY, so a guide page
                          # importing a component that reads fixtures is caught too
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
-                         # questionnaire URLs BOTH ways / per-AD licensing metadata).
+                         # questionnaire URLs BOTH ways / per-AD licensing metadata /
+                         # per-AD tool-id identifiers).
                          # Check B stops a TOOL from reaching the app with no
                          # ActivityDefinition; check C stops the artifact one
                          # layer down — a Questionnaire in FHIR-Resources/ that
-                         # no AD administers, which was ungated until 2026-08-20
+                         # no AD administers, which was ungated until 2026-08-20.
+                         # ⚠️ Check F reads the tool-id identifier SYSTEM off the
+                         # NamingSystem that publishes it, never a retyped copy:
+                         # a stale copy here AND in tools.ts would agree with each
+                         # other and pass while the app decatalogued all 43 tools.
+                         # Its load-bearing rule is the MULTI_AD_TOOLS allowlist —
+                         # one tool id on several ADs is legitimate (the CAMS SSF-5
+                         # is one tool, four session forms) and INDISTINGUISHABLE
+                         # from a pasted-in duplicate, and the catalog merges the
+                         # group either way, so the second tool does not go missing
+                         # loudly — it goes missing inside the first one
 npm run check:stages     # stage ids in population data vs canonical FSH stage list
 npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almost
                          # entirely REFERENCES — tier codes, stage codes, and
@@ -223,7 +234,9 @@ Also at the repo root, and dependency-free — `ig/input/pagecontent/how-to-read
 describes the guide's navigation in prose while `ig/sushi-config.yaml`'s `menu:`
 block defines it:
 ```
-node scripts/check-ig-menu.mjs   # the IG menu and its prose restatement agree
+node scripts/check-ig-menu.mjs      # the IG menu and its prose restatement agree
+node scripts/check-ig-narrative.mjs # what the IG's PROSE may say, and whether
+                                    # what it points at exists (checks E–H)
 ```
 ⚠️ **The IG Publisher cannot see this drift.** Its broken-link check only sees
 links that *exist*, and a bullet describing a menu entry is not a link. Both
@@ -260,6 +273,57 @@ missing block, a missing section or zero parsed entries is an error — the
 #232/#261 family, which this gate is deliberately built against. It runs in
 `ig.yml` **before** the compile, since it needs neither SUSHI nor the network.
 
+⚠️ **`check-ig-narrative.mjs` is its sibling, not a second copy of it.** They
+share `scripts/lib/ig-config.mjs` (the `pages:` reader, the `path-resource`
+reader, `GENERATED_PAGES`), and they are two scripts for one reason: **when
+they can run.** The menu gate needs no SUSHI and runs before the compile;
+the narrative gate's checks F and H resolve against `ig/fsh-generated/`, so it
+runs after. Making F and H degrade when `fsh-generated/` is absent would have
+been the worse trade — a gate that quietly checks less is the #232/#261 shape
+exactly. Its four checks:
+
+- **E. No repo internals** in `ig/input/pagecontent/*.md` — `web/src`,
+  `packages/`, `npm run`, `scripts/`, `.mjs`, `vitest`, `sushi-config`,
+  `path-binary`, and `#NNN` issue references. An IG page is read by
+  implementers who do not have this repo; build and gate prose has one home,
+  and this file is it. No opt-out marker until a real need appears.
+- **F. Every `TL-0NN` resolves** to a tool id an ActivityDefinition actually
+  carries. Before the identifiers landed, the rule could only be *prohibition*
+  — an id named nothing a reader could look up, so A3 stripped them all out.
+  Zero mentions is still a legitimate state and today's: the prose links AD
+  pages under the tool's **name**, which is better for a reader than a bare id.
+- **G. Every `#/route` link resolves** to a **non-legacy** route in
+  `web/src/App.tsx`, and `#/guide/<x>` is also a section in
+  `web/src/data/guideSections.ts`. ⚠️ *Non-legacy* is the whole point:
+  `/guide/roadmap` and `/guide/measures` still exist as `<Navigate>` redirects,
+  so a naive route scan calls a link to a page #440 deleted perfectly fine —
+  and three pages linked `#/guide/roadmap` for exactly that reason. The one
+  exception, which is the difference between a finding and a false positive: an
+  **index** route navigating to a **relative** target is picking its parent's
+  default child (`/patient` → `chart`), so the parent really does land
+  somewhere; an **absolute** target is a redirect away from a page that is gone.
+  ⚠️ Because G reads `web/src`, `ig.yml` triggers on those two files — a route
+  rename breaks the IG's links with **no `ig/` change at all**.
+- **H. Every internal `.html` link resolves** to a `pages:` entry, an artifact
+  page the publisher will emit, or a `GENERATED_PAGES` entry. ⚠️ **H is the
+  owner of `.html` links** — `check-md-links.mjs` skips them on purpose (see
+  below), because the publisher resolves them at render time and a
+  file-existence test cannot model that. Its artifact index is built from
+  `resourceType` + `id` read out of each resource rather than from filenames,
+  **and** from every `path-resource` directory: the five FML StructureMaps are
+  hand-authored `.fml` under `input/resources/maps/`, absent from
+  `fsh-generated/` entirely, so an index that read only SUSHI's output would
+  call all five StructureMap pages broken — and the natural "fix" would delete
+  the guide's only navigation to its own transformations. Anchors are checked
+  as far as the page; heading slugification is the publisher's algorithm, not
+  something to re-guess here.
+
+Thirteen defects were planted against it and each watched to fail — one per
+check, plus the false-positive controls (a LOINC code like `#93374-7` must not
+read as issue `#93374`; a published `TL-` id and a live route must pass) and
+every liveness mode: zero pages, zero `<Route>` tags, an unreadable
+`GUIDE_SECTIONS`, a missing `fsh-generated/`, and a moved `.fml`.
+
 Also at the repo root and dependency-free — every relative markdown link in a
 tracked `.md` file must resolve:
 ```
@@ -281,7 +345,8 @@ It asserts only that a target **resolves** — not that it points at the right
 thing, and a `:137` suffix is checked as far as the file, since pinning a line
 number would churn on every edit above it. Four skips, each for its own reason:
 `http(s):`/`mailto:`/bare `#anchor`; **`.html`**, which the IG Publisher resolves
-at render time and `check-ig-menu.mjs` owns; targets containing **`…`**, prose
+at render time and `check-ig-narrative.mjs`'s check H owns; targets containing
+**`…`**, prose
 ellipsis in inline code shaped like a link (`StructureDefinition-…`) rather than a
 path; and **gitignored** build output like `ig/fsh-generated/`, which is correct
 to link to and absent from a clean checkout — asked of `git` rather than
@@ -872,6 +937,21 @@ which is filed separately.
   *current* published terms** — `docs/best-practices/licensing-verification-backlog.md`
   is the standing list of what is owed, and of why a recorded notice is not a
   verification.
+- **Tool ids live in the FSH too, as `ActivityDefinition.identifier`.** A
+  `TL-0NN` names one catalogued entry on a stage tile, and every catalogued AD
+  carries it in `http://thespierproject.org/fhir/identifier/tool-id` — a system
+  the IG publishes as a `NamingSystem`, with the reasoning in
+  `ig/input/fsh/tool-id-identifier.fsh`. `tools.ts` **derives** the pairing;
+  the hand-written `AD_TO_TOOL_ID` map it used to carry is deleted, with no
+  fallback, and `check:catalog` fails if it comes back. That map could only
+  ever check itself: the IG published no ids, so the app's pairing was
+  unverifiable and an IG page naming `TL-017` named nothing a reader could
+  resolve — which is why those ids were stripped out of the rendered pages.
+  ⚠️ **`TL-0NN` is not an AD id, and the mapping is many-to-one on purpose.**
+  The CAMS SSF-5 is one tool (TL-020) across four session-form ADs, all
+  carrying the same identifier. Prose in the IG should still link the AD page
+  under the tool's *name* rather than quoting a bare id — the id is for
+  machines, and a named link is what a reader can act on.
 
 ## Skills (`.claude/skills/`)
 

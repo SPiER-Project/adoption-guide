@@ -54,6 +54,8 @@ Title: "Administer SBQ-R"
 Description: "Capture a Suicide Behaviors Questionnaire-Revised (SBQ-R) and derive a total-score Observation."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerSBQR"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-025"
 * name = "AdministerSBQR"
 * version = "0.1.0"
 * title = "Administer SBQ-R"

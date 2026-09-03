@@ -6,8 +6,15 @@
 
 # Accepted: the screening Questionnaires are maintained in FHIR-Resources/ and
 # referenced by canonical (ActivityDefinition.relatedArtifact, QuestionnaireResponse
-# .questionnaire). They are not yet rendered IN the IG — including them is blocked by
-# an IG Publisher QuestionnaireRenderer NPE (tracked as a follow-up), so these
-# unresolved-canonical messages are expected.
+# .questionnaire). They are not yet rendered IN the IG — including them was blocked
+# by an IG Publisher QuestionnaireRenderer NPE, so these unresolved-canonical
+# messages are expected.
+#
+# ⚠️ This suppression is the ONLY reason a missing Questionnaire is not a QA error,
+# and the Questionnaire is the Capture layer's central artifact — so what it hides
+# is the absence of every one of them from the Artifacts page. Tracked as issue
+# #473, which carries both candidate fixes and the repro recipe. The NPE has NOT
+# been re-tested against the publisher version now pinned; doing that is the first
+# step. Delete both patterns below when the Questionnaires render.
 %A definition could not be found for Canonical URL 'http://thespierproject.org/fhir/Questionnaire/.*'%
 %Unable to resolve the Canonical URL 'http://thespierproject.org/fhir/Questionnaire/.*'%

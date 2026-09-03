@@ -63,6 +63,8 @@ Title: "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
 Description: "Capture the full Patient Safety Screener / Suicide Risk Screener — the ED-SAFE PSS-3 universal screen plus a site-defined risk-stratification step — and derive a suicide-risk-level Observation conformant to the SPiER PSS Full Risk Level profile (value on the shared tier)."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerPSSFull"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-014"
 * name = "AdministerPSSFull"
 * version = "1.0.0"
 * title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"

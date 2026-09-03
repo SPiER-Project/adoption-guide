@@ -167,6 +167,8 @@ Title: "Administer Patient Safety Screener-3 (PSS-3)"
 Description: "Capture a PSS-3 screen (depression, active ideation, lifetime attempt + recency), persist responses as a QuestionnaireResponse, and derive a binary suicide-risk result Observation conformant to the SPiER PSS-3 Result profile."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerPSS3"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-011"
 * name = "AdministerPSS3"
 * version = "1.0.0"
 * title = "Administer Patient Safety Screener-3 (PSS-3)"

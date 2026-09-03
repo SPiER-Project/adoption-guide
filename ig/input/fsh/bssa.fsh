@@ -176,6 +176,8 @@ Title: "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
 Description: "Conduct a Brief Suicide Safety Assessment after a positive suicide-risk screen, persist the interview as a QuestionnaireResponse, and derive a disposition Observation conformant to the SPiER BSSA Disposition Result profile."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ActivityDefinition/AdministerBSSA"
+* identifier[+].system = "http://thespierproject.org/fhir/identifier/tool-id"
+* identifier[=].value = "TL-005"
 * name = "AdministerBSSA"
 * version = "1.0.0"
 * title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
