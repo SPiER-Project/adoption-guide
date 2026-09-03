@@ -104,6 +104,8 @@ pages:
     title: Care Pathway
   measurement.md:
     title: Measurement (Stage 8)
+  design-decisions.md:
+    title: Design decisions
 
 # Information architecture mirrors HL7 US Core (Home · Getting Started ·
 # Guidance · Conformance · Quick Starts · Artifacts) so adopters meet a familiar
@@ -134,6 +136,7 @@ menu:
     Zero Suicide ↔ SPiER mapping: zero-suicide-mapping.html
     Care Pathway: care-pathway.html
     Measurement (Stage 8): measurement.html
+    Design decisions: design-decisions.html
   Conformance: conformance.html
   Quick Starts: quick-starts.html
   Artifacts: artifacts.html

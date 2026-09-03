@@ -1,53 +1,23 @@
-// =============================================================
-// Instrument licensing metadata (issue #127, under the #64 audit epic)
-// =============================================================
-// Every SPiER ActivityDefinition carries two licensing facts:
+// Instrument licensing metadata
 //
-//   1. `copyright` (markdown) — the human-readable notice: who holds rights
-//      to the underlying instrument, what an adopting system must do before
-//      deploying it, and — critically — WHERE THAT CLAIM COMES FROM. Each
-//      notice ends by naming its basis: a filed licensing-audit memo under
-//      FHIR-Resources/<tool>/licensing/MEMO.md, or "as recorded on the SPiER
-//      Questionnaire, not verified at source", or an explicit statement that
-//      the status is unknown pending the #64 audit.
+// Every SPiER ActivityDefinition carries two licensing facts: a `copyright`
+// notice in prose, and this extension carrying the same fact as one filterable
+// code. The catalog's licensing field is DERIVED from the extension, so the
+// guide cannot state a position no artifact backs.
 //
-//   2. `instrument-licensing-status` (this extension) — the same fact in one
-//      machine-readable code, so a consuming system can gate on it rather
-//      than parse prose. web/src/data/catalog/tools.ts derives the catalog's
-//      `Tool.licensing` field from it; before #127 that field was hand-typed
-//      in tool-ui-metadata.ts with no link to any FHIR artifact.
+// design-decisions.md carries the reasoning — why an extension rather than R5's
+// `copyrightLabel`, why #unknown is a positive statement rather than a synonym
+// for unrestricted, and the limits an adopter must work within.
 //
-// WHY AN EXTENSION AND NOT `copyrightLabel`. Issue #127 asks for
-// `copyright` + `copyrightLabel`. `ActivityDefinition.copyrightLabel` is an
-// R5 element; this IG is R4 (fhirVersion 4.0.1 in sushi-config.yaml), so the
-// element does not exist here. A short free-text label would in any case be
-// weaker than a bound code — the point of the field is that an adopter can
-// FILTER on it. This extension is the R4 stand-in and does the copyrightLabel
-// job better; if SPiER ever moves to R5, populate `copyrightLabel` from the
-// code's display and keep the extension as the machine-readable half.
-//
-// THE NO-GUESSING RULE. #127 is explicit: where the #64 audit has not
-// confirmed a tool's status, say so rather than invent terms. Nothing below
-// asserts a licensing status that is not traceable to something already in
-// this repository — a filed memo, or the copyright notice the corresponding
-// Questionnaire in FHIR-Resources/ already carries. Where the recorded notice
-// does not actually answer "what must an adopter do?" (the SBQ-R), the status
-// is `unknown` and the copyright text says so in as many words. This is the
-// same discipline issue #220 had to learn the expensive way: a plausible
-// assertion that nothing verified is worse than an honest gap, because it
-// reads as settled.
-//
-// STILL OWED. Every status here traces to something in this repository — a
-// filed memo or a recorded Questionnaire notice — but NONE has been checked
-// against what the rights holder publishes today. Four instruments (PHQ-9,
-// SBQ-R, CAMS, Stanley-Brown) have no audit memo at all. The standing list of
-// what is outstanding, and how to close an item, is
-// docs/best-practices/licensing-verification-backlog.md. Do not upgrade a
-// status to a more permissive code without doing the source check first.
-// =============================================================
-
-
-// ─── CodeSystem / ValueSet ───────────────────────────────────
+// ⚠️ TWO RULES, here because this is the file where they would be broken:
+//   1. A status must trace to something already in this repo — a filed
+//      FHIR-Resources/<tool>/licensing/MEMO.md, or the notice the Questionnaire
+//      carries. If the notice does not answer "what must an adopter do?" (the
+//      SBQ-R), the status is #unknown and the copyright says so. A plausible
+//      assertion nothing verified reads as settled — what issue #220 cost.
+//   2. Never upgrade to a more permissive code without checking the rights
+//      holder's CURRENT terms. None here has been.
+//      docs/best-practices/licensing-verification-backlog.md is the standing list.
 
 CodeSystem: SPiERInstrumentLicensingStatusCodes
 Id: spier-instrument-licensing-status
@@ -74,7 +44,6 @@ Description: "Licensing states a SPiER ActivityDefinition's underlying instrumen
 * include codes from system SPiERInstrumentLicensingStatusCodes
 
 
-// ─── Extension ───────────────────────────────────────────────
 
 Extension: InstrumentLicensingStatus
 Id: instrument-licensing-status
@@ -88,11 +57,10 @@ Description: "Machine-readable licensing status of the instrument or workflow an
 * valueCode from SPiERInstrumentLicensingStatus (required)
 
 
-// ─── RuleSets ────────────────────────────────────────────────
-// Inserted into each ActivityDefinition. One RuleSet per distinct notice:
-// tools that genuinely share a licensing position (the six CAMS session
-// forms, the four C-SSRS versions, the workflow-only activities) share a
-// RuleSet so the notice cannot drift between them.
+// One RuleSet per distinct notice, so tools that genuinely share a licensing
+// position (the CAMS session forms, the C-SSRS versions, the workflow-only
+// activities) cannot drift apart. Instrument-specific notices sit inline in the
+// FSH file defining that ActivityDefinition, next to the artifact.
 
 RuleSet: LicensingSpiERAuthored
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
@@ -110,6 +78,4 @@ RuleSet: LicensingCSSRS
 * copyright = "© 2008 The Research Foundation for Mental Hygiene, Inc. Developed by Posner, K.; Brent, D.; Lucas, C.; Gould, M.; Stanley, B.; Brown, G.; Fisher, P.; Zelazny, J.; Burke, A.; Oquendo, M.; Mann, J. The C-SSRS is free to use but is copyrighted and permission-based: an adopting system must register through the Columbia Lighthouse Project (cssrs.columbia.edu), some administration contexts require training, item wording may not be altered, and this copyright notice must be retained on every version. Basis: FHIR-Resources/C-SSRS/licensing/MEMO.md (issue #64). Open item recorded there: confirmation that a FHIR representation is covered by a site's own registration is still to be filed."
 
 
-// The remaining ActivityDefinitions each carry an instrument-specific notice
-// inline, in the FSH file that defines them, so the notice sits next to the
-// artifact a reader is looking at.
+
