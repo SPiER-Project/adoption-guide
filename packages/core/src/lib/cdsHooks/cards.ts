@@ -12,6 +12,7 @@ import { RISK_LEVEL_ORDER } from '../observationMappers'
 import type { RiskAlert } from '../observationMappers'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
 import { intentForLaunchPath } from '../smartIntent'
+import { orderByPathwayRealization } from '../pathwayRealizations'
 import type { ObservationResource } from '../../types/fhir'
 import { makeUuid, truncateSummary } from './cardShape'
 import { buildProblemListGuidanceCard } from './problemListCard'
@@ -155,7 +156,12 @@ export function buildCdsCards({
   // Card #1: the active pathway stage.
   if (activeStageId) {
     const stage = stageById(activeStageId)
-    const stageTools = TOOLS.filter((t) => t.stageId === activeStageId && t.launchActions.length > 0)
+    // The pathway's demonstrated realization leads (PHQ-9 on the screen card,
+    // the C-SSRS Screener on Clarify Risk); every other tool follows in catalog
+    // order. Ordering only — nothing a site enabled is withheld.
+    const stageTools = orderByPathwayRealization(
+      TOOLS.filter((t) => t.stageId === activeStageId && t.launchActions.length > 0),
+    )
     const options = stageTools.flatMap((tool) =>
       tool.launchActions.filter(() => isToolEnabled(tool.id)).map((action) => ({ tool, action })),
     )
@@ -181,6 +187,18 @@ export function buildCdsCards({
       !isSmartConnected &&
       recommendedNextStep != null &&
       recommendedNextStep.stageId === activeStageId
+
+    // A live alert whose suggested action is one of THIS stage's tools is
+    // absorbed into the stage card (the dedupe below never emits it again), and
+    // the reason it fired would vanish with it: Sarah Patel's "PHQ-9 Item 9
+    // positive" became a generic "Positive screen — clarify…" the moment the
+    // C-SSRS Screener became a Clarify Risk tool. The stage card carries the
+    // absorbed alert's summary and detail instead of the stage blurb, so the
+    // card still says WHY this step is due and which instrument answers it.
+    const optionPaths = new Set(options.map(({ action }) => action.path))
+    const absorbedAlert = [...riskAlerts]
+      .sort((a, b) => RISK_LEVEL_ORDER[a.level] - RISK_LEVEL_ORDER[b.level])
+      .find((a) => a.level !== 'none' && !!a.suggestedAction && optionPaths.has(a.suggestedAction.path))
 
     const routerPaths: Record<string, string> = {}
     // ⚠️ One link per DESTINATION, not per tool. Two tools can share a launch
@@ -219,6 +237,8 @@ export function buildCdsCards({
       detail:
         useRecommendation && recommendedNextStep
           ? recommendedNextStep.rationale
+          : absorbedAlert
+            ? `${absorbedAlert.summary}. ${absorbedAlert.detail}`
           // `activeStageId` is resolved off live patient data (see
           // `derivePathwayStatus`), so it stays a plain string rather than
           // `StageId` — `isStageId` is the boundary guard for indexing the

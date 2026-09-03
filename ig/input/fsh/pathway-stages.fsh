@@ -18,13 +18,15 @@
 
 // ─── Stage 1: Identify Possible Risk ─────────────────────────
 // First pathway stage with ASQ as the flagship action. Other identification
-// tools (PHQ-9 Item 9, C-SSRS Screener, SBQ-R) are layered in as additional
-// actions — the order here is presentational; sites can enable any subset.
+// tools (PHQ-9 Item 9, SBQ-R, PSS-3) are layered in as additional actions — the
+// order here is presentational; sites can enable any subset.
+// ⚠️ The C-SSRS Screener is NOT listed here: it is the Clarify Risk stage's
+// demonstrated realization (see that stage, and suicide-safer-care-pathway.fsh).
 
 Instance: SPiERIdentifyPossibleRiskStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Identify Possible Risk Stage"
-Description: "Stage 1 of 8 in the SPiER suicide-safer care pathway: find a suicide-risk signal and determine whether more review is needed. ASQ is the flagship action; PHQ-9 Item 9, C-SSRS Screener, and SBQ-R are alternates that an implementation can enable in any combination."
+Description: "Stage 1 of 8 in the SPiER suicide-safer care pathway: find a suicide-risk signal and determine whether more review is needed. ASQ is the flagship action; PHQ-9 Item 9, SBQ-R and PSS-3 are alternates that an implementation can enable in any combination. The C-SSRS Screener with Triage Points belongs to the Clarify Risk stage as the pathway's demonstrated realization of assessing after a positive screen; its result also crosswalks into the concept layer, so a site that leads with it satisfies this stage too."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/PlanDefinition/SPiERIdentifyPossibleRiskStage"
 * name = "SPiERIdentifyPossibleRiskStage"
@@ -54,14 +56,6 @@ Usage: #definition
   * output[+]
     * type = #Observation
     * profile = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9"
-* action[+]
-  * id = "administer-cssrs-screener"
-  * title = "Administer C-SSRS Screener / Triage Points"
-  * description = "Capture a 6-item C-SSRS screener and derive a suicide-risk-level Observation."
-  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCSSRSScreener"
-  * output[+]
-    * type = #Observation
-    * profile = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
 * action[+]
   * id = "administer-sbqr"
   * title = "Administer SBQ-R"
@@ -101,7 +95,7 @@ Usage: #definition
 Instance: SPiERClarifyRiskStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Clarify Risk Stage"
-Description: "Stage 2 of 8: after a suicide-risk signal is identified, capture what is going on clinically — suicidal thoughts, plan, intent, behavior history, access to means, risk and protective factors, and whether further action is needed. Triggered by a positive ASQ result or a positive PHQ-9 Item 9. Fully modelled clarify-risk activities are C-SSRS Full and the CAMS SSF-5 (Sections A and B plus interim re-ratings and outcome/disposition)."
+Description: "Stage 2 of 8: after a suicide-risk signal is identified, capture what is going on clinically — suicidal thoughts, plan, intent, behavior history, access to means, risk and protective factors, and whether further action is needed. Triggered by a positive ASQ result or a positive PHQ-9 Item 9. Fully modelled clarify-risk activities are the C-SSRS Screener with Triage Points (the SPiER Suicide Safer Care Pathway's demonstrated realization of this step), C-SSRS Full and the CAMS SSF-5 (Sections A and B plus interim re-ratings and outcome/disposition)."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/PlanDefinition/SPiERClarifyRiskStage"
 * name = "SPiERClarifyRiskStage"
@@ -162,6 +156,25 @@ Usage: #definition
     * expression
       * language = #text/fhirpath
       * expression = "%phq9Item9Observation.value.exists() and %phq9Item9Observation.value > 0"
+// ⚠️ The C-SSRS Screener is a CLARIFY RISK tool, not a screen — moved here from
+// the Identify stage on 2026-09-02. PlanDefinition/SPiERSuicideSaferCarePathway
+// names AdministerCSSRSScreener as the demonstrated realization of "assess
+// suicide risk after a positive screen" (suicide-safer-care-pathway.fsh), and
+// the tool catalog derives EVERY tool's stage from which stage PlanDefinition
+// references its ActivityDefinition (tools.ts, STAGE_BY_AD_URL). Listed under
+// Identify, the PHQ-9 → C-SSRS workflow could not flow: a completed screener
+// landed in stage 1, "Clarify Risk" stayed active offering only the full scale,
+// and the pathway page and the chart disagreed about what the screener is for.
+// Its result still crosswalks into the concept layer, so a site that leads with
+// it satisfies the screen step as well (the pathway's Transportability note).
+* action[+]
+  * id = "administer-cssrs-screener"
+  * title = "Administer C-SSRS Screener with Triage Points"
+  * description = "Capture the 6-item C-SSRS Screener with Triage Points after a positive screen and derive the harmonized suicide-risk-level Observation the tier branch reads."
+  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/AdministerCSSRSScreener"
+  * output[+]
+    * type = #Observation
+    * profile = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
 * action[+]
   * id = "administer-cssrs-full"
   * title = "Administer C-SSRS Full Scale (Lifetime + Recent)"

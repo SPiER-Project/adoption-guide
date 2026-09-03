@@ -77,6 +77,12 @@ export interface Tool {
   purpose: string
   description?: string
   questionnaireUrls?: string[]
+  /**
+   * The ActivityDefinition canonicals (version stripped) this tool administers —
+   * the join `PlanDefinition.action.definitionCanonical` uses, so the published
+   * pathway's named realizations can be recognised (lib/pathwayRealizations.ts).
+   */
+  activityDefinitionUrls?: string[]
   /** Kind of FHIR artifact this tool produces. Defaults to 'questionnaire'. */
   workflowType: WorkflowType
   inclusionStatus: InclusionStatus
@@ -351,6 +357,7 @@ function buildFhirBackedTools(): Tool[] {
       purpose: overrides.purpose ?? primary.purpose ?? '',
       description: overrides.description ?? primary.description,
       questionnaireUrls: questionnaireUrls.length > 0 ? questionnaireUrls : undefined,
+      activityDefinitionUrls: ads.map((ad) => stripCanonicalVersion(ad.url)),
       workflowType: workflowTypeFromAD(primary),
       licensing: licensingFromAD(primary),
       copyright: primary.copyright,

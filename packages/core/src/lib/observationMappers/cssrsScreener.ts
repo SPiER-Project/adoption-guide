@@ -232,7 +232,9 @@ export function mapCSSRSScreenerCore(
   return { observations, riskAlert }
 }
 
-/** C-SSRS Screener (Recent) — the Identify Possible Risk 6-item screen. */
+/** C-SSRS Screener with Triage Points — the Clarify Risk step's demonstrated
+ *  realization (it derives the tier the pathway branches on), and a 6-item
+ *  screen where a site leads with it. */
 export function mapCSSRSScreener(response: QuestionnaireResponseResource): MapperResult {
   return mapCSSRSScreenerCore(response, 'C-SSRS Screener')
 }

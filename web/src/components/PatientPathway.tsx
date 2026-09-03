@@ -19,6 +19,7 @@ import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { STAGES, TOOLS, stageById } from '@spier/core/data/catalog'
 import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
+import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { usePresentation } from '../context/PresentationContext'
 import { ArtifactCards } from './ChartArtifacts'
@@ -213,7 +214,10 @@ function StageNode({
   // enable only a few, so both halves matter: what you can do here now, and what
   // the pathway offers that you haven't turned on.
   const { enabled: enabledTools, disabledCount } = useMemo(() => {
-    const all = TOOLS.filter(t => t.stageId === group.stageId && t.launchActions.length > 0)
+    // The pathway's named realization first, like the CDS card (cards.ts).
+    const all = orderByPathwayRealization(
+      TOOLS.filter(t => t.stageId === group.stageId && t.launchActions.length > 0),
+    )
     const enabled = all.filter(t => isToolEnabled(t.id))
     return { enabled, disabledCount: all.length - enabled.length }
   }, [group.stageId, isToolEnabled])

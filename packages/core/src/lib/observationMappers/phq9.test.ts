@@ -74,7 +74,9 @@ describe('mapPHQ9', () => {
 
     expect(riskAlert.tool).toBe('PHQ-9')
     expect(riskAlert.level).toBe('high')
-    expect(riskAlert.suggestedAction?.path).toBe('/patient/assessments/asq')
+    // The pathway's gate: item 9 positive → the C-SSRS Screener (the assessment),
+    // not another screen.
+    expect(riskAlert.suggestedAction?.path).toBe('/patient/assessments/cssrs-screener')
   })
 
   it('item 9 positive with score 1 → moderate risk alert (boundary)', () => {

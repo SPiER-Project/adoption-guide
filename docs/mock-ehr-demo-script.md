@@ -2,7 +2,7 @@
 
 A one-page walkthrough of the hosted demo: a stand-in vendor EHR at
 <https://spier-mock-ehr.bbthorson.workers.dev> with SPiER launched into a
-patient's chart over a real SMART on FHIR handshake. Ten minutes end to end.
+patient's chart over a real SMART on FHIR handshake. About ten minutes end to end.
 
 This describes the pages as they read after
 [#461](https://github.com/SPiER-Project/adoption-guide/pull/461) (host pages) and
@@ -29,6 +29,11 @@ which pixels belong to whom — so point at it once, early.
 
 ## The ten minutes
 
+The workflow this demo walks is the one the Care Pathway page publishes:
+**PHQ-9 → item 9 positive → C-SSRS Screener with Triage Points → the
+obligations of the derived tier.** Every other instrument stays available, but
+the cards lead with these two.
+
 ### 1. The front door (1 min)
 
 Open <https://spier-mock-ehr.bbthorson.workers.dev>. Read the first paragraph
@@ -37,41 +42,56 @@ SPiER.* **Start here** offers three charts. Say which you are opening and why:
 
 | Chart | Situation | Use it to show |
 |---|---|---|
-| **Marcus Chen** | Nothing on file | Screen from zero, watch the write land |
-| **Jamal Washington** | High risk, stabilization plan still to do | A patient mid-pathway with a next step |
+| **Marcus Chen** | Nothing on file | The whole PHQ-9 → C-SSRS handoff from zero, and the write landing |
+| **Sarah Patel** | PHQ-9 item 9 endorsed, risk not clarified | A patient one step in, with the C-SSRS Screener owed |
 | **Maria Alvarez** | Complete ED episode | What a finished pathway looks like |
 
 The patient table below has all fourteen, each with a one-line story. The
 caseload widget under that is SPiER embedded as a hosted activity; say once
 that it is **not** a SMART launch (the drawer at the bottom says why) and move on.
 
-### 2. Marcus Chen — screen from zero (4 min)
+### 2. Marcus Chen — PHQ-9 to C-SSRS from zero (5 min)
 
 1. Open his chart. Point at the host banner (drawn by the EHR) and the launch
    card under it. Read the card: it says what pressing the button does.
 2. **Launch SPiER.** The panel docks on the right; the SPiER bar above it says
    *Everything below this bar is drawn by SPiER.* Authorization is automatic
    (a clinician launching from a chart does not re-consent per launch).
-3. The panel lands on his chart: **Now at step 1 of 8**, one recommendation,
-   *Next step: Identify Possible Risk*, with the screeners the pathway offers.
-   Say: *SPiER has read his chart from the EHR and found no screen.*
-4. Press **Launch ASQ Screening**. Answer the questions — answer **Yes** to at
-   least one so you get a positive screen — and **Submit**.
-5. The result shows the risk level and the suggested next action. Press **View
-   in chart**: the top of the chart now shows **Saved to the EHR** — which of
-   the four things SPiER tried to save actually landed (the completed form, its
-   scores and risk level, a readable copy, and the opt-in problem-list proposal,
-   which is off by design).
-6. Back on the host page, open **Under the hood → Written to this chart**. It
-   lists what landed by type — the QuestionnaireResponse, its Observations and
-   the DocumentReference copy — within a few seconds of the submit. Say: *that
-   is the EHR's own account of what SPiER
-   wrote — the panel reporting on itself and the server reporting on the same
-   event are two statements, and only two make it checkable.*
-7. Note the rail moved: step 1 is complete and a new recommendation sits on the
-   next step.
+3. The panel lands on his chart: **Step 1 of 8**, one recommendation,
+   *Next step: Identify Possible Risk*, with **Launch PHQ-9** first among the
+   screeners. Say: *SPiER has read his chart from the EHR and found no screen.
+   The pathway names the PHQ-9 as the screen it demonstrates, so it leads.*
+4. Press **Launch PHQ-9**. Answer the questions; on item 9 pick anything above
+   **Not at all**. **Submit.**
+5. The result shows *PHQ-9 Item 9 positive* and one button: **Start C-SSRS
+   Screener →**. Say: *that is the pathway's gate — a positive item 9 leads to
+   the assessment, not to another screen.* Press it.
+6. Answer the six C-SSRS questions (answer **Yes** to Q2 or Q3 for a moderate
+   tier, Q4 or Q5 for high) and **Submit**. The result names the derived tier
+   and offers **Start Safety Plan** at moderate and high — the obligation that
+   tier carries.
+7. Press **View in chart**. Two things to point at: the rail has moved to
+   **Define the Risk Picture** with steps 1 and 2 complete, and the top of the
+   chart shows **Saved to the EHR** — which of the things SPiER tried to save
+   actually landed (each completed form, its scores and risk level, a readable
+   copy, and the opt-in problem-list proposal, which is off by design).
+8. Back on the host page, open **Under the hood → Written to this chart**. It
+   lists what landed by type — two QuestionnaireResponses, their Observations
+   and the DocumentReference copies — within a few seconds of the submit. Say:
+   *the panel reporting on itself and the server reporting on the same event
+   are two statements, and only two make it checkable.*
 
-### 3. The capability ladder (2 min, optional)
+### 3. Sarah Patel — one step in (2 min)
+
+Open her chart and launch. The host page already shows the card SPiER's
+decision-support service returned — *Next step: Clarify Risk*, whose text names
+the PHQ-9 item 9 result and whose first button is **Launch C-SSRS Screener**. In
+the panel: **Step 2 of 8 — Clarify Risk**, with the PHQ-9 recorded under step 1
+and the same card on step 2. Say: *the EHR and the panel got the same answer
+from the same rules.* Launch the screener from either card, submit, and watch
+the rail advance exactly as it did for Marcus.
+
+### 4. The capability ladder (2 min, optional)
 
 What SPiER does when the EHR cannot accept everything.
 
@@ -84,9 +104,9 @@ What SPiER does when the EHR cannot accept everything.
    signal for an adoption conversation.*
 4. Put the profile back to **full**.
 
-### 4. Maria Alvarez — a finished episode (2 min)
+### 5. Maria Alvarez — a finished episode (1 min)
 
-Open her chart and launch. **Now at step 8 of 8**; every stage is complete and
+Open her chart and launch. **All 8 stages passed**; every stage is complete and
 each opens to show what was recorded there. Two things to point at:
 
 - Completed stages carrying a recommendation are labelled **Guidance**, not
@@ -97,7 +117,7 @@ each opens to show what was recorded there. Two things to point at:
   Documents** are collapsed with their counts. Open Episode record: 17
   artifacts across 4 contacts, assembled by following FHIR references.
 
-### 5. Shared context (1 min, optional)
+### 6. Shared context (1 min, optional)
 
 On any chart, **Under the hood → Shared context (FHIRcast)**. Pick another
 patient and press **Announce patient-open**. The panel notices the context

@@ -19,7 +19,7 @@
     "gender": "Male",
     "recommendedNextStep": {
       "stageId": "identify-possible-risk",
-      "label": "Administer ASQ or PHQ-9",
+      "label": "Screen with the PHQ-9",
       "rationale": "No suicide-risk screening on file in the past 12 months."
     }
   },
@@ -31,8 +31,8 @@
     "gender": "Female",
     "recommendedNextStep": {
       "stageId": "clarify-risk",
-      "label": "Clarify risk with C-SSRS or ASQ",
-      "rationale": "PHQ-9 Item 9 endorsed; further suicide-risk assessment indicated."
+      "label": "Clarify risk with the C-SSRS Screener",
+      "rationale": "PHQ-9 Item 9 endorsed; the pathway's next step is the C-SSRS Screener with Triage Points."
     }
   },
   {

@@ -234,10 +234,10 @@
       "tool": "PHQ-9",
       "level": "moderate",
       "summary": "PHQ-9 Item 9 positive (score: 1/3)",
-      "detail": "Patient endorsed thoughts of death or self-harm. Total PHQ-9 score: 4/27 (Minimal). Further suicide risk assessment recommended.",
+      "detail": "Patient endorsed thoughts of death or self-harm. Total PHQ-9 score: 4/27 (Minimal). The pathway's next step is the C-SSRS Screener with Triage Points.",
       "suggestedAction": {
-        "label": "Start ASQ Screening",
-        "path": "/patient/assessments/asq"
+        "label": "Start C-SSRS Screener",
+        "path": "/patient/assessments/cssrs-screener"
       }
     }
   ]
