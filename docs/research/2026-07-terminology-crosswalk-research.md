@@ -9,6 +9,12 @@ the annex.
 > conflict.** Several specific codes in the body were checked against live terminology servers
 > (tx.fhir.org, loinc.org search, SNOMED browser) on 2026-07-04 and found to be **fabricated**.
 > Do not copy any code from the body into FSH without checking it against the annex.
+>
+> ⚠️ **And the annex is itself dated.** A finding of the form "no LOINC exists for X" is true
+> of a LOINC edition, not forever; the ASQ row below has since been overtaken by LOINC 2.83
+> (see *Superseded since publication*). This document is preserved as the record of what was
+> checked on 2026-07-04, so rows are annotated rather than rewritten. Before relying on any
+> "no LOINC exists" claim here, re-check it.
 
 ---
 
@@ -22,9 +28,15 @@ the annex.
 | SNOMED `82313006` Suicide attempt (event) | tx.fhir.org lookup ✓ |
 | LOINC `93373-9` C-SSRS screener panel | tx.fhir.org lookup ✓ (already used in the IG) |
 | LOINC `93374-7` Suicide risk level + LL465-6 answer list | tx.fhir.org lookup ✓ (already used in crosswalk-tier-to-loinc.fsh) |
-| No LOINC for SBQ-R, ASQ items, CAMS SSF measures, PSS-3, SAFE-T, ED-SAFE ESS-6 | Consistent with loinc.org search results and the repo's prior June 2026 verification |
+| No LOINC for SBQ-R, ~~ASQ items~~, CAMS SSF measures, PSS-3, SAFE-T, ED-SAFE ESS-6 | Consistent with loinc.org search results and the repo's prior June 2026 verification. ⚠️ **The ASQ half is superseded** — see below. The rest was re-checked 2026-09-08 and still holds. |
 | US Behavioral Health Profiles IG has **no safety-plan profile** | Verified against build.fhir.org artifacts page 2026-07-04 — there is no external alignment target for safety-plan coding |
 | Part A clinical-pathway content (NIMH ASQ tiers, C-SSRS triage bands, PHQ-9 Item 9 sensitivity/specificity, SBQ-R ≥7/≥8 cutoffs) | Consistent with the cited primary literature; suitable as the evidence base for the SME sign-off packet (#93), which is itself the final check |
+
+### 🔄 Superseded since publication
+
+| Claim | What changed | When |
+| --- | --- | --- |
+| "No LOINC for … ASQ items …" | **LOINC 2.83 published the ASQ**: panel `115564-7` plus a code for each item (`115565-4`, `115566-2`, `115567-0`, `115568-8`, `115569-6`, `115570-4`, `115571-2`, `115572-0`). SPiER adopted them and deleted the SPiER-local `asq-item` and `asq-panel` CodeSystems — [`ig/input/fsh/asq.fsh`](../../ig/input/fsh/asq.fsh) carries the mapping. The ASQ **disposition tiers** still have no LOINC equivalent, so `asq-screening-result` remains local; the original claim is narrowed, not reversed. Note `tx.fhir.org` served LOINC 2.82 as of this date and does not resolve these codes yet. | 2026-09-08 |
 
 ### ⚠️ Correct code, wrong display
 

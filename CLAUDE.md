@@ -165,6 +165,32 @@ npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+displ
                          # literal in web/src and services/, checked against tx.fhir.org
 ```
 
+⚠️ **`PENDING_TX` is its one tolerated failure, and it is built to expire.**
+tx.fhir.org lags LOINC releases, so a code SPiER adopts from a new edition can be
+correct and still not resolve — the eight ASQ codes from LOINC 2.83 against the
+server's 2.82 are the case it was written for. An entry (keyed `system|code`,
+valued with the edition and date) lets that code pass. **Two of its three rules
+FAIL rather than warn:** an entry the server *does* resolve fails the run, so a
+caught-up server forces the line's deletion instead of leaving a permanent hole;
+and an entry naming a code the scan no longer finds fails too, so a removed
+literal takes its exemption with it. That second rule caught its author on the
+first run — three of the eight ASQ codes live only in the Questionnaire JSON,
+which this script does not scan, so those exemptions could never have expired.
+Resource-side codes are `validate-fhir.mjs --tx`'s, and it has **no** allowlist
+by design; that lag is recorded in `docs/scheduled-checks-triage.md` § *Cause 1b*
+instead. A code that fails because it is *wrong* is #220 and belongs in a fix,
+never here.
+
+⚠️ **`tx.fhir.org` is not the authority — Regenstrief is, and there is a tool for
+asking it.** `bash scripts/loinc-audit/loinc-audit.sh .` checks every LOINC coding
+in every Questionnaire (76 today, ~20s) against `fhir.loinc.org`, which never lags
+a release. It is deliberately **not** a gate: it needs a personal Regenstrief
+account, so CI would mean one person's credential in Actions secrets. Run it when
+you add codings and after a LOINC release. Its README carries the two traps that
+made three earlier versions of it report confident nonsense, and the display trap
+it exists for — a `display` must be LOINC's string, not the question wording, and
+`item.text` deliberately differs from `item.code[].display` on every ASQ item.
+
 Its floors are per source **and** per vocabulary family, and the guard loop reads
 the declared floors rather than the family list — see the comment on `SCAN`. Both
 directions of that contract are now enforced rather than requested: deleting a

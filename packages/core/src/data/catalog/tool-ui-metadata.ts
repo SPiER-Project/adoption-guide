@@ -228,7 +228,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       resources: [
         { type: 'QuestionnaireResponse', description: 'All 5 items (Q1–Q4 + acuity Q5)', when: 'On submit' },
         { type: 'Observation', description: 'Screening result (negative / non-acute-positive / acute-positive)', when: 'Extracted from response' },
-        { type: 'Observation', description: 'Individual item responses (SPiER-local asq-item codes; ASQ has no per-item LOINC)', when: 'Extracted from response' },
+        { type: 'Observation', description: 'Individual item responses (published LOINC item codes, panel 115564-7)', when: 'Extracted from response' },
       ],
       workflowTrigger: 'Acute positive → STAT safety evaluation + safety plan. Non-acute positive → brief safety assessment.',
     },

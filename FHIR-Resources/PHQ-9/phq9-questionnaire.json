@@ -13,7 +13,7 @@
   "date": "2026-03-19",
   "publisher": "SPiER Project (FHIR translation)",
   "description": "FHIR Questionnaire representation of the Patient Health Questionnaire-9 (PHQ-9), a 9-item depression screening instrument. Each item is scored 0-3 (Not at all, Several days, More than half the days, Nearly every day). Total score range: 0-27. Item 9 specifically screens for suicidal ideation and is the primary screening gateway for suicide risk assessment in many clinical workflows. Developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues.",
-  "purpose": "Depression screening with suicide risk identification via Item 9. Severity levels: 0-4 Minimal, 5-9 Mild, 10-14 Moderate, 15-19 Moderately Severe, 20-27 Severe. A positive response on Item 9 (score \u22651) should trigger further suicide risk assessment (e.g., ASQ, C-SSRS).",
+  "purpose": "Depression screening with suicide risk identification via Item 9. Severity levels: 0-4 Minimal, 5-9 Mild, 10-14 Moderate, 15-19 Moderately Severe, 20-27 Severe. A positive response on Item 9 (score ≥1) should trigger further suicide risk assessment (e.g., ASQ, C-SSRS).",
   "copyright": "Developed with an educational grant from Pfizer Inc. No permission required to reproduce, translate, display or distribute.",
   "code": [
     {
@@ -36,7 +36,8 @@
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44250-9"
+          "code": "44250-9",
+          "display": "Little interest or pleasure in doing things in last 2 weeks"
         }
       ],
       "answerOption": [
@@ -102,7 +103,8 @@
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44255-8"
+          "code": "44255-8",
+          "display": "Feeling down, depressed, or hopeless in last 2 weeks"
         }
       ],
       "answerOption": [
@@ -168,7 +170,8 @@
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44259-0"
+          "code": "44259-0",
+          "display": "Trouble falling or staying asleep, or sleeping too much in last 2 weeks [Reported.PHQ]"
         }
       ],
       "answerOption": [
@@ -234,7 +237,8 @@
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44254-1"
+          "code": "44254-1",
+          "display": "Feeling tired or having little energy in last 2 weeks [Reported.PHQ]"
         }
       ],
       "answerOption": [
@@ -300,7 +304,8 @@
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44251-7"
+          "code": "44251-7",
+          "display": "Poor appetite or overeating in last 2 weeks [Reported.PHQ]"
         }
       ],
       "answerOption": [
@@ -360,13 +365,14 @@
     },
     {
       "linkId": "q6",
-      "text": "Feeling bad about yourself \u2014 or that you are a failure or have let yourself or your family down",
+      "text": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
       "type": "choice",
       "required": true,
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44258-2"
+          "code": "44258-2",
+          "display": "Feeling bad about yourself - or that you are a failure or have let yourself or your family down in last 2 weeks [Reported.PHQ]"
         }
       ],
       "answerOption": [
@@ -432,7 +438,8 @@
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44252-5"
+          "code": "44252-5",
+          "display": "Trouble concentrating on things, such as reading the newspaper or watching television in last 2 weeks [Reported.PHQ]"
         }
       ],
       "answerOption": [
@@ -492,13 +499,14 @@
     },
     {
       "linkId": "q8",
-      "text": "Moving or speaking so slowly that other people could have noticed? Or the opposite \u2014 being so fidgety or restless that you have been moving around a lot more than usual",
+      "text": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
       "type": "choice",
       "required": true,
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44253-3"
+          "code": "44253-3",
+          "display": "Moving or speaking so slowly that other people could have noticed. Or the opposite - being so fidgety or restless that you have been moving around a lot more than usual in last 2 weeks [Reported.PHQ]"
         }
       ],
       "answerOption": [
@@ -564,7 +572,8 @@
       "code": [
         {
           "system": "http://loinc.org",
-          "code": "44260-8"
+          "code": "44260-8",
+          "display": "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]"
         }
       ],
       "answerOption": [

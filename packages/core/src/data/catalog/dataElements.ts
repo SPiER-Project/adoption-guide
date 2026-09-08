@@ -39,7 +39,7 @@ export type FhirResourceType =
  * `systemLabel()` for display, rather than being the stored truth.
  */
 export interface Coding {
-  system: string                      // URL — 'http://loinc.org', 'http://thespierproject.org/fhir/CodeSystem/asq-item'
+  system: string                      // URL — 'http://loinc.org', 'http://thespierproject.org/fhir/CodeSystem/bssa-item'
   code: string
   display: string
 }
@@ -522,20 +522,26 @@ export const BINDINGS: Binding[] = [
   // ── ASQ ──
   // Every ASQ item is `type: choice`, answered with SNOMED 373066001 (Yes) /
   // 373067005 (No) — NOT valueBoolean. Each item is also observationExtract-
-  // tagged, so the same asq-item code lands on an extracted Observation.
+  // tagged, so the same LOINC code lands on an extracted Observation.
+  //
+  // The item codes are LOINC as of LOINC 2.83 (panel 115564-7); they were
+  // SPiER-local `asq-item` codes until then. The ANSWERS stay SNOMED: LOINC
+  // offers LA33-6/LA32-8, but SPiER's yes/no reader is shared across every
+  // instrument, so switching answer vocabularies is a repo-wide change and
+  // not this one.
   {
     id: 'asq-q1-wished-dead',
     name: 'Wished you were dead',
-    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'wished-dead', display: 'Wished you were dead' },
+    code: { system: 'http://loinc.org', code: '115566-2', display: 'In the past few weeks have you wished you were dead' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q1').answer.valueCoding",
     usedBy: ['TL-001'],
-    description: 'ASQ Question 1 ("In the past few weeks, have you wished you were dead?"): passive death wish. Answered with the SNOMED Yes/No codings; also extracted to an Observation carrying this same code.',
+    description: 'ASQ Question 1 ("In the past few weeks have you wished you were dead"): passive death wish. Answered with the SNOMED Yes/No codings; also extracted to an Observation carrying this same code.',
   },
   {
     id: 'asq-q2-family',
     name: 'Family better off if dead',
-    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'family-better-off-dead', display: 'Family better off if dead' },
+    code: { system: 'http://loinc.org', code: '115567-0', display: 'In the past few weeks have you felt that you or your family would be better off if you were dead' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q2').answer.valueCoding",
     usedBy: ['TL-001'],
@@ -544,38 +550,38 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-q3-thoughts',
     name: 'Thoughts about killing yourself',
-    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'thoughts-killing-self', display: 'Thoughts about killing yourself' },
+    code: { system: 'http://loinc.org', code: '115568-8', display: 'In the past week have you been having thoughts about killing yourself' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q3').answer.valueCoding",
     usedBy: ['TL-001'],
-    description: 'ASQ Question 3 ("In the past week, have you been having thoughts about killing yourself?"): active ideation. Answered with the SNOMED Yes/No codings.',
+    description: 'ASQ Question 3 ("In the past week have you been having thoughts about killing yourself"): active ideation. Answered with the SNOMED Yes/No codings.',
   },
   {
     id: 'asq-q4-ever-tried',
     name: 'Ever tried to kill yourself',
-    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'ever-attempted', display: 'Ever tried to kill yourself' },
+    code: { system: 'http://loinc.org', code: '115569-6', display: 'Have you ever tried to kill yourself' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q4').answer.valueCoding",
     usedBy: ['TL-001'],
-    description: 'ASQ Question 4 ("Have you ever tried to kill yourself?"): lifetime attempt history. Answered with the SNOMED Yes/No codings.',
+    description: 'ASQ Question 4 ("Have you ever tried to kill yourself"): lifetime attempt history. Answered with the SNOMED Yes/No codings.',
   },
   {
     id: 'asq-q4-recent-attempt',
     name: 'Most recent attempt (recency)',
-    value: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency' },
+    value: { system: 'http://loinc.org' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='screening-questions').item.where(linkId='q4-recent-attempt').answer.valueCoding",
     usedBy: ['TL-001'],
-    description: 'ASQ Question 4 follow-up: when the most recent attempt occurred. Asked only if Q4 is Yes.',
+    description: 'ASQ Question 4 follow-up: when the most recent attempt occurred. Asked only if Q4 is Yes. Answered with LOINC LA37190-8 / LA37191-6 — the only item on this form whose ANSWERS are LOINC rather than SNOMED, because LOINC publishes an answer list for it and the yes/no items stay on the shared SNOMED pair.',
   },
   {
     id: 'asq-q5-acuity',
     name: 'Acuity: Killing yourself right now',
-    code: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-item', code: 'acute-ideation-now', display: 'Killing yourself right now (acuity)' },
+    code: { system: 'http://loinc.org', code: '115571-2', display: 'Are you having thoughts of killing yourself right now' },
     fhirResource: 'QuestionnaireResponse',
     fhirPath: "QuestionnaireResponse.item.where(linkId='acuity-section').item.where(linkId='q5').answer.valueCoding",
     usedBy: ['TL-001'],
-    description: 'ASQ Question 5 ("Are you having thoughts of killing yourself right now?"): current active ideation. Only asked if Yes to any Q1–Q4. Determines acute vs non-acute positive.',
+    description: 'ASQ Question 5 ("Are you having thoughts of killing yourself right now"): current active ideation. Only asked if Yes to any Q1–Q4. Determines acute vs non-acute positive.',
   },
   {
     id: 'asq-result',

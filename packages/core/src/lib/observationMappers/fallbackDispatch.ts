@@ -170,26 +170,27 @@ export interface InstrumentSignature {
  * Supported instruments — those with real published LOINC per-item codes, which
  * is what makes Tier-2 recognition honest rather than a guess.
  *
- * ⚠️ **ASQ is deliberately absent, and this is where that decision is recorded
- * (#230).** ASQ publishes NO per-item LOINC codes: its items carry SPiER-local
- * `asq-item` codes, and the Questionnaire's own panel code carries a
- * `coding-verification-status` of `no-standard-binding` saying exactly that. The
- * only LOINC on the form is `93374-7` on the *result*, which ASQ shares with the
- * C-SSRS forms and every other harmonized tier Observation — recognizing an
- * instrument from it would identify the wrong one about as often as the right
- * one. Inventing item codes to make Tier 2 work is what #220 cost the repo (six
- * fabricated codes plus one that resolved to healthcare-agent disclosure
- * authority and so validated cleanly while meaning the wrong thing). So a
- * foreign *item-level* ASQ belongs to the ConceptMap path (#77 / #92), which
- * translates a vocabulary instead of guessing which form produced it. The Tier-3
- * shape heuristic could match ASQ's 5 yes/no items, but it is default-off and
- * "5 boolean items" describes far too many instruments to turn on for this one.
+ * ⚠️ **ASQ was deliberately absent from #230 until LOINC 2.83, and the reason it
+ * is here now is a change in LOINC, not a change of mind.** It had no per-item
+ * codes: its items carried SPiER-local `asq-item` codes, and the panel code
+ * carried a `coding-verification-status` of `no-standard-binding` saying exactly
+ * that. The only LOINC on the form was `93374-7` on the *result*, which ASQ
+ * shares with the C-SSRS forms and every other harmonized tier Observation —
+ * recognizing an instrument from it would identify the wrong one about as often
+ * as the right one, which is why `q-result` is still excluded below. Inventing
+ * item codes to make Tier 2 work is what #220 cost the repo (six fabricated
+ * codes plus one that resolved to healthcare-agent disclosure authority and so
+ * validated cleanly while meaning the wrong thing). The codes ASQ carries today
+ * are LOINC's own, so Tier-2 recognition is honest for it on the same terms as
+ * every other entry here.
  *
- * ⚠️ ASQ's absence is also why this table is not generated wholesale from the
- * Questionnaires. A generator emitting one signature per Questionnaire would put
- * ASQ straight back — on `asq-item` codes and a shared `93374-7` — with nowhere
- * to record why it should not be there. `codedLinkIds` below is the curated
- * half; only the `{system, code}` on each named linkId is derived.
+ * ⚠️ This table is still NOT generated wholesale from the Questionnaires, and
+ * ASQ's history is the argument for that rather than against it. A generator
+ * emitting one signature per Questionnaire would have put ASQ in years early, on
+ * `asq-item` codes and a shared `93374-7`, with nowhere to record why it should
+ * not be there — and would put BSSA, PSS-3 and C-SSRS Since Last Contact in
+ * today, on the SPiER-local codes they still carry. `codedLinkIds` below is the
+ * curated half; only the `{system, code}` on each named linkId is derived.
  */
 export const INSTRUMENT_SIGNATURES: InstrumentSignature[] = [
   /**
@@ -264,6 +265,32 @@ export const INSTRUMENT_SIGNATURES: InstrumentSignature[] = [
     // below is what keeps a low floor from mis-recognizing a different form.
     minCodeMatches: 2,
     answerKind: 'boolean',
+  }),
+  /**
+   * ASQ. Added when LOINC 2.83 published the panel (115564-7) and a code per
+   * item; before that the instrument had no standardized item codes at all and
+   * was excluded — see the note above the table.
+   *
+   * `q4-recent-attempt` and `q5-describe` are coded on the Questionnaire and
+   * left out here for two different reasons. The recency item is a `choice` over
+   * SPiER-local `asq-attempt-recency` codes, so `answerKind: 'boolean'` cannot
+   * describe it — the same constraint that excludes C-SSRS `actual-lethality`.
+   * The describe item is free text and carries no answer this path can normalize.
+   * Both are in the generated lookup; the omission is a decision taken here.
+   *
+   * `result-category` (93374-7) is excluded for the reason it always was: it is
+   * the form's OUTPUT, and it is the code ASQ shares with every C-SSRS form.
+   */
+  signature({
+    spierCanonical: `${SPIER_Q}/ASQ-Screening-Tool`,
+    codedLinkIds: ['q1', 'q2', 'q3', 'q4', 'q5'],
+    // q5 is `enableWhen`-gated on any of q1–q4 being Yes, so a negative screen
+    // legitimately carries only four answered items. Three is a majority of
+    // those four and none of the five codes is shared with another instrument.
+    minCodeMatches: 3,
+    answerKind: 'boolean',
+    // No `shape`: Tier 3 is default-off, and "5 boolean items" describes far too
+    // many instruments to be evidence of this one. Tier 2 is the honest path.
   }),
   /**
    * PHQ-9. `total-score` (44261-6) and `difficulty` (69722-7) are coded on the

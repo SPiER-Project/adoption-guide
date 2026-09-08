@@ -1,8 +1,10 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // The BSSA has NO published panel or per-item LOINC codes, so the discrete
-// interview findings bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/bssa-item
-// (mirroring the ASQ asq-item pattern). These codes MUST stay in sync with the
+// interview findings bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/bssa-item.
+// (The ASQ used to be the reference example of this pattern; LOINC 2.83 published
+// ASQ item codes, so it is now the example of the pattern being RETIRED — see
+// ig/input/fsh/asq.fsh.) These codes MUST stay in sync with the
 // Questionnaire item codes (FHIR-Resources/BSSA/bssa-questionnaire.json) and the
 // anti-drift check web/scripts/check-observation-extract.mjs EXPECTED list.
 const BSSA_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/bssa-item'

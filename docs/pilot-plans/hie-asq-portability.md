@@ -66,12 +66,29 @@ A "lanes of responsibility" model defines accountability:
 
 - Finalize LOINC and SNOMED bindings for the ASQ panel.
 - Publish the pilot-specific ASQ Implementation Guide covering both C-CDA and FHIR profiles.
-- Re-confirm the ASQ's LOINC position for the pilot. It was verified in June 2026 and
-  the record now lives in the CodeSystem descriptions in
-  [`ig/input/fsh/asq.fsh`](../../ig/input/fsh/asq.fsh): the ASQ has **no** published
-  per-item or panel LOINC, so `q1`–`q5` bind to the SPiER-local `asq-item` codes and the
-  root to `asq-panel`, while the result Observation uses the real LOINC `93374-7`
-  "Suicide risk level". A published LOINC binding remains a possible pilot deliverable.
+- ~~Re-confirm the ASQ's LOINC position for the pilot.~~ **Closed 2026-09-08 — and it
+  closed in the pilot's favour.** This item existed because the June 2026 check found
+  no published per-item or panel LOINC for the ASQ, leaving `q1`–`q5` on SPiER-local
+  `asq-item` codes and the root on `asq-panel`; "a published LOINC binding remains a
+  possible pilot deliverable" was the standing hope. LOINC 2.83 published the panel
+  **115564-7** with a code per item, and SPiER adopted them — see
+  [`ig/input/fsh/asq.fsh`](../../ig/input/fsh/asq.fsh), which carries the per-item
+  mapping. Both local CodeSystems are deleted. The result Observation still uses LOINC
+  `93374-7` "Suicide risk level", unchanged.
+
+  Two consequences for this pilot, both good and one with a caveat:
+
+  - **The C-CDA path gets easier.** Discrete ASQ observations can be exchanged on
+    published LOINC rather than on codes only SPiER understands, which was the weakest
+    point in the Phase 1 demonstration — the receiving site had no way to interpret
+    `asq-item` without a SPiER-specific mapping.
+  - **The disposition tiers are still SPiER-local.** LOINC publishes nothing for
+    negative / non-acute-positive / acute-positive, so `asq-screening-result` remains,
+    and the crosswalk to the shared risk tier is still how a partner consumes the
+    result. The pilot's translation work is reduced, not eliminated.
+  - ⚠️ **tx.fhir.org still serves LOINC 2.82**, so a partner validating against it will
+    see these codes reported unknown until it updates. That is an edition lag, not a
+    defect; `docs/scheduled-checks-triage.md` § *Cause 1b* has the detail.
 
 ### Workstream B — HIE and originating-site integration (Months TBD)
 

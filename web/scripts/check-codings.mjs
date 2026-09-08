@@ -262,6 +262,51 @@ const SCAN = [
   { path: 'services', exts: ['.ts'], minCodings: { loinc: 0, snomed: 0, tho: 0 } },
 ]
 
+/**
+ * Codes that are real and correct but that the terminology server does not serve
+ * YET, because it is running an older LOINC edition than the one that published
+ * them. Keyed `system|code`; the value is the reason, which must name the edition
+ * and the date the entry was made.
+ *
+ * ⚠️ This is the one place in this script where a failing lookup is tolerated, so
+ * it is built to expire rather than to accumulate. Three rules, and two of them
+ * FAIL rather than warn:
+ *
+ *  1. A pending code that does not validate is reported and skipped. This is the
+ *     tolerated case.
+ *  2. A pending code that DOES validate fails the run. The server has caught up,
+ *     the entry is now suppressing a check that would pass on its own, and the
+ *     fix is to delete the line. Without this an entry silently becomes a
+ *     permanent hole in the gate — the #232 failure mode, which this repo has
+ *     paid for twice (a stale coverage floor, a scan that stopped looking).
+ *  3. An entry naming a code no longer written anywhere fails the run, so a
+ *     removed literal takes its exemption with it.
+ *
+ * A code belongs here ONLY when its absence is the server's edition lagging.
+ * A code that is absent because it is wrong is #220, and it belongs in a fix.
+ */
+const PENDING_TX = new Map([
+  // ASQ — LOINC 2.83 published the panel and its item codes; tx.fhir.org serves
+  // 2.82 (confirmed by $lookup on 2026-09-08, which reports "Unable to find code
+  // ... in http://loinc.org version 2.82"). Codes and displays were read off the
+  // LOINC-derived Questionnaire NLM publishes for panel 115564-7. Added
+  // 2026-09-08; delete each line as tx.fhir.org picks up 2.83.
+  //
+  // ⚠️ Only the FIVE codes this script can see are listed. The panel (115564-7)
+  // and the two uncoded-by-the-mapper items (115570-4, 115572-0) are written in
+  // the Questionnaire JSON, which this script deliberately does not scan — they
+  // are `validate-fhir.mjs --tx`'s to check, and the nightly runs that too.
+  // Listing them here was rule 3's first catch: an entry for a code no scan can
+  // reach is an exemption that never expires, because nothing can ever prove it
+  // stale.
+  ['http://loinc.org|115566-2', 'ASQ q1 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115567-0', 'ASQ q2 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115568-8', 'ASQ q3 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115569-6', 'ASQ q4 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115571-2', 'ASQ q5 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+])
+
+
 // The contract between EXTERNAL_FAMILIES and SCAN, enforced rather than asked for.
 //
 // The starvation guard below is driven by the declared floors, which is what makes
@@ -403,6 +448,17 @@ async function validateCode({ system, code, display }) {
         throw new Error(body.issue?.[0]?.diagnostics ?? 'OperationOutcome from server')
       }
       const p = Object.fromEntries((body.parameter ?? []).map(x => [x.name, x.valueBoolean ?? x.valueString]))
+      // ⚠️ Strict on purpose, and it is what stops a non-conformant server reading
+      // as clean — but it also means this script cannot be pointed at
+      // fhir.loinc.org without a change. Regenstrief's service returns `result` as
+      // valueString "true"/"false" rather than the spec's valueBoolean, so every
+      // code would land here as an exception and the run would report the server
+      // unreachable. That matters because fhir.loinc.org is the obvious answer to
+      // PENDING_TX's whole reason for existing (it never lags a LOINC release):
+      // wiring it in means accepting the string form HERE, keeping the throw for a
+      // genuinely absent `result`, and solving auth — it needs a Regenstrief
+      // account, which a nightly would have to carry as a secret. Until then
+      // tx.fhir.org is the server and PENDING_TX absorbs the lag.
       if (typeof p.result !== 'boolean') throw new Error('response carried no boolean `result`')
       return { ok: p.result, message: p.message, serverDisplay: p.display }
     } catch (err) {
@@ -452,23 +508,42 @@ if (starved.length) {
 
 const drift = []
 const unreachable = []
+const pendingSeen = new Set()   // PENDING_TX keys that the scan actually found
+const pendingStale = []         // …and that the server now resolves
 
 for (const coding of codings) {
   const r = await validateCode(coding)
   const label = `${coding.code}${coding.display === undefined ? ' (code only)' : ` "${coding.display}"`}`
+  const pendingKey = `${coding.system}|${coding.code}`
+  const pendingReason = PENDING_TX.get(pendingKey)
+  if (pendingReason !== undefined) pendingSeen.add(pendingKey)
+
   if (r.unreachable) {
     unreachable.push({ coding, ...r })
     console.error(`? ${label} — server unreachable: ${r.message}`)
   } else if (!r.ok) {
-    drift.push({ coding, ...r })
-    console.error(`✗ ${label}`)
-    console.error(`    → ${(r.message ?? '').trim()}`)
-    console.error(`    in ${[...coding.files].join(', ')}`)
+    if (pendingReason !== undefined) {
+      // Rule 1: tolerated — the server's edition predates the code.
+      console.log(`… ${label} — pending: ${pendingReason}`)
+    } else {
+      drift.push({ coding, ...r })
+      console.error(`✗ ${label}`)
+      console.error(`    → ${(r.message ?? '').trim()}`)
+      console.error(`    in ${[...coding.files].join(', ')}`)
+    }
+  } else if (pendingReason !== undefined) {
+    // Rule 2: the server caught up. The entry now hides a check that would pass.
+    pendingStale.push({ key: pendingKey, label, reason: pendingReason })
+    console.error(`✗ ${label} — PENDING_TX entry is stale: ${TX} now resolves this code.`)
   } else {
     console.log(`✓ ${label}`)
   }
   await new Promise(r => setTimeout(r, 200))
 }
+
+// Rule 3: an entry for a code nothing writes any more. The literal was removed or
+// renamed and took its reason with it — the exemption must go too.
+const pendingDead = [...PENDING_TX.keys()].filter(k => !pendingSeen.has(k))
 
 // Stated explicitly rather than left implicit: this is the script's known blind
 // spot. A coding whose `code` comes from a variable or template cannot be checked
@@ -494,6 +569,25 @@ if (drift.length) {
   console.error(`✗ ${drift.length} coding(s) drift from ${TX}.`)
   console.error('  Fix the literal in code — do not change the expectation here.')
   process.exit(1)
+}
+
+// Both PENDING_TX guards fail the run. An allowlist that only ever grows is a
+// hole in the gate; these are what make an entry temporary in fact and not just
+// in its comment.
+if (pendingStale.length) {
+  for (const e of pendingStale) console.error(`✗ ${e.label} — delete the PENDING_TX entry (${e.reason}).`)
+  console.error(`✗ ${pendingStale.length} PENDING_TX entr(ies) are stale: ${TX} resolves them now.`)
+  console.error('  Remove those lines from PENDING_TX; the codes are checked normally from here on.')
+  process.exit(1)
+}
+if (pendingDead.length) {
+  for (const k of pendingDead) console.error(`✗ PENDING_TX names ${k}, which the scan no longer finds anywhere.`)
+  console.error('  Remove the entry, or restore the literal it was written for.')
+  process.exit(1)
+}
+
+if (pendingSeen.size) {
+  console.log(`note: ${pendingSeen.size} coding(s) skipped as pending a ${TX} edition update — see PENDING_TX.`)
 }
 
 console.log(`✓ all ${codings.length} external coding(s) match ${TX}`)

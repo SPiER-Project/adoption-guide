@@ -1,8 +1,10 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
 
 // The PSS-3 has NO published panel or per-item LOINC codes, so the three
-// screening items bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/pss3-item
-// (mirroring the ASQ asq-item pattern). These codes MUST stay in sync with the
+// screening items bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/pss3-item.
+// (The ASQ used to be the reference example of this pattern; LOINC 2.83 published
+// ASQ item codes, so it is now the example of the pattern being RETIRED — see
+// ig/input/fsh/asq.fsh.) These codes MUST stay in sync with the
 // Questionnaire item codes (FHIR-Resources/PSS-3/pss3-questionnaire.json) and the
 // anti-drift check web/scripts/check-observation-extract.mjs EXPECTED list.
 const PSS3_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-item'

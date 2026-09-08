@@ -403,3 +403,86 @@ describe('C-SSRS variant disambiguation (#230)', () => {
     expect(result.dispatch?.recognizedCanonical).toBe('http://thespierproject.org/fhir/Questionnaire/PHQ-9')
   })
 })
+
+/**
+ * ASQ became recognizable when LOINC 2.83 published its item codes; before that
+ * it was excluded from INSTRUMENT_SIGNATURES on the grounds that no honest
+ * Tier-2 evidence existed for it. These use LOINC's own linkId and answer
+ * conventions — `/<code>` linkIds and LA33-6/LA32-8 — which is the shape a
+ * system implementing panel 115564-7 actually emits, not a SPiER-shaped QR
+ * wearing new codes.
+ */
+describe('fallback dispatch — ASQ (LOINC 115564-7)', () => {
+  const ASQ_LOINC = ['115566-2', '115567-0', '115568-8', '115569-6', '115571-2']
+
+  /** answers keyed by LOINC item code; true = LA33-6 "Yes". */
+  function foreignAsq(answers: Record<string, boolean>): QuestionnaireResponseResource {
+    return {
+      resourceType: 'QuestionnaireResponse',
+      status: 'completed',
+      questionnaire: 'http://example.org/fhir/Questionnaire/asq-local',
+      item: Object.entries(answers).map(([code, yes]) => ({
+        linkId: `/${code}`,
+        code: [{ system: 'http://loinc.org', code }],
+        answer: [{
+          valueCoding: yes
+            ? { system: 'http://loinc.org', code: 'LA33-6', display: 'Yes' }
+            : { system: 'http://loinc.org', code: 'LA32-8', display: 'No' },
+        }],
+      })),
+    } as QuestionnaireResponseResource
+  }
+
+  it('recognizes a foreign LOINC-coded ASQ by item code', () => {
+    const recognized = recognizeInstrument(foreignAsq(Object.fromEntries(ASQ_LOINC.map(c => [c, false]))))
+    expect(recognized?.confidence).toBe('code')
+    expect(recognized?.signature.spierCanonical).toBe(
+      'http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool',
+    )
+  })
+
+  it('normalizes LOINC linkIds and yes/no answers onto the SPiER form', () => {
+    const sig = INSTRUMENT_SIGNATURES.find(s => s.spierCanonical.endsWith('/ASQ-Screening-Tool'))!
+    const normalized = normalizeToSpierQr(foreignAsq({ '115566-2': true, '115571-2': false }), sig)
+    expect(normalized).not.toBeNull()
+    expect(normalized!.item?.map(i => i.linkId)).toEqual(['q1', 'q5'])
+    expect(normalized!.item?.[0]?.answer?.[0]?.valueBoolean).toBe(true)
+    expect(normalized!.item?.[1]?.answer?.[0]?.valueBoolean).toBe(false)
+  })
+
+  it('derives acute-positive end to end from a foreign ASQ', () => {
+    // q1 endorsed, q2-q4 denied, acuity endorsed. All five items present, which
+    // is what a real administration looks like: q1-q4 are unconditional and q5
+    // is asked because q1 was Yes.
+    const result = mapResponseToObservations(foreignAsq({
+      '115566-2': true, '115567-0': false, '115568-8': false, '115569-6': false, '115571-2': true,
+    }))!
+    expect(result.dispatch?.recognizedCanonical).toBe(
+      'http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool',
+    )
+    const risk = result.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
+    expect(risk?.valueCodeableConcept?.coding?.[0]?.code).toBe('acute-positive')
+  })
+
+  it('a negative screen stays negative — the fixture is not passing by always saying Yes', () => {
+    const result = mapResponseToObservations(foreignAsq(Object.fromEntries(ASQ_LOINC.map(c => [c, false]))))!
+    const risk = result.observations.find(o => o.code?.coding?.[0]?.code === '93374-7')
+    expect(risk?.valueCodeableConcept?.coding?.[0]?.code).toBe('negative')
+  })
+
+  it('refuses a QR too thin to be an ASQ rather than guessing', () => {
+    // Two matching codes, below minCodeMatches. A real ASQ always carries q1-q4,
+    // so a two-item fragment is not evidence of this instrument.
+    expect(recognizeInstrument(foreignAsq({ '115566-2': true, '115571-2': false }))).toBeNull()
+  })
+
+  it('does not mistake a C-SSRS screener for an ASQ', () => {
+    // Both are short yes/no suicide screens; only the item codes separate them.
+    const recognized = recognizeInstrument(
+      foreignCssrs(Object.fromEntries(SCREENER_LOINC.map(c => [c, { valueBoolean: false }]))),
+    )
+    expect(recognized?.signature.spierCanonical).toBe(
+      'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener',
+    )
+  })
+})
