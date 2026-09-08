@@ -17,11 +17,22 @@ gateway through which a patient at risk is first identified at all.
 
 | File | What it is |
 |---|---|
-| `phq9-questionnaire.json` | The FHIR R4 Questionnaire — LOINC panel `44249-1`, per-item LOINC codes, standard LOINC answer codes (`LA6568-5`–`LA6571-9`) with point values as `ordinalValue` extensions, an SDC `calculatedExpression` total, and the functional-difficulty item (`69722-7`) |
+| `phq9-questionnaire.json` | The FHIR R4 Questionnaire — LOINC panel `44249-1`, per-item LOINC codes with LOINC's own displays, standard LOINC answer codes (`LA6568-5`–`LA6571-9`) with point values as `ordinalValue` extensions, an SDC `calculatedExpression` total, and the functional-difficulty item (`69722-7`) |
 
 The PHQ-9 is the one instrument here whose item and answer codes are **fully
 published LOINC**, so nothing is SPiER-local and no item table is restated in
 this file — read the Questionnaire.
+
+⚠️ **`item.code[].display` is LOINC's string and `item.text` is the patient-facing
+wording; they differ on every item and that is correct.** LOINC's display for q9
+is *"Thoughts that you would be better off dead, or of hurting yourself in some
+way in last 2 weeks [Reported.PHQ]"*; the form asks *"Thoughts that you would be
+better off dead or of hurting yourself in some way?"*. Do not reconcile them.
+The nine item codes carried **no** display at all until 2026-09-08 — legal, but it
+meant nothing could check them, since there was nothing to compare. They now
+match `tx.fhir.org` and the data dictionary, which had carried them all along.
+`bash scripts/loinc-audit/loinc-audit.sh . PHQ-9` re-checks them against
+Regenstrief.
 
 Everything else is in [`ig/input/fsh/phq9.fsh`](../../ig/input/fsh/phq9.fsh): the
 `SPiERPHQ9TotalScore` profile (whose description carries the five severity
