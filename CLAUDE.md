@@ -45,6 +45,19 @@ npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
 npm run check:template # page template: one header implementation, one owner of the page
                        # inset, one owner of the page width
+npm run check:prose    # the reading MEASURE — `--measure-prose`. Its four rules are each
+                       # written against a defect that shipped: the token must be in `em`
+                       # and in band (it was 760px, a width where a character count was
+                       # meant); every other `max-width` must be a page-width token or
+                       # classified NON_PROSE with a reason (`.dd-detail` escaped a column
+                       # budget to 52rem = 134 cpl under a comment claiming otherwise);
+                       # a `max-width: none` must be declared (`.dd-cell-desc` carried a
+                       # 46rem cap that a later `none` had always overridden); and an `em`
+                       # cap must know what type it resolves against (`.tool-config-effect`
+                       # sat at an inherited 16px while its paragraph was 14px).
+                       # ⚠️ It CANNOT see a prose run with NO cap — that needs to know
+                       # which elements hold long prose, which is content, not CSS. Measure
+                       # a wide page's prose by hand after adding it
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
                        # and the shim still covers every method its consumers call
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
@@ -794,14 +807,18 @@ which is filed separately.
   16px for a callout width, the body at its 14px for the measure — because
   dropping the box cap left a wide tinted band with the sentence stopping
   halfway; `.md-gap` caps the box, because there the box *is* the run.
-  ⚠️ **Nothing gates any of this.** `check:template` RULE 5 owns *page-root*
-  widths and says nothing about a text run, so a paragraph that reads to 180
-  characters passes every check in `verify`. The three pages that were always
-  wide sat at 145–182 characters for exactly that reason, and `.dd-detail`
-  overshot by escaping a table's column budget to 52rem — its own comment
-  claimed a prose cap while 52rem on 13px type is 134 characters. Re-measure
-  rather than trusting a green run: `.dd-detail` keeps 52rem for the data lines
-  it really does need it for, and `.dd-detail-desc` caps itself.
+  ⚠️ **`check:template` RULE 5 does not cover this — `npm run check:prose`
+  does.** RULE 5 owns *page-root* widths and says nothing about a text run,
+  which is why the three always-wide pages sat at 145–182 characters and
+  `.dd-detail` overshot to 52rem (134 characters on 13px type) under a comment
+  claiming it was the prose cap. `check:prose` is the gate for the measure
+  itself; its four rules and the one thing it cannot see are described in the
+  verify list above. `.dd-detail` keeps 52rem for the data lines that really do
+  need it, classified as NON_PROSE, and `.dd-detail-desc` caps itself.
+  ⚠️ **What it cannot see is a run with no cap at all**, so a new paragraph on a
+  wide page still wants measuring by hand. A green `check:prose` says every
+  cap that exists is a character count rather than a width; it does not say
+  every run that needs one has one.
   Two families are templated, found in different ways. The **lenses**
   (`src/pages`) are a declared allowlist, because which pages own a header is a
   decision. The **form views** (`src/components` — every assessment and workflow

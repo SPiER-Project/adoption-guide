@@ -69,6 +69,13 @@ jobs:
       - name: Check CSS token references
         run: npm run check:tokens
 
+      # The reading measure. `lint:css` and `check:tokens` between them prove a
+      # cap is spelled with a real token; neither can tell whether that token is
+      # a WIDTH where a character count was meant — which is what `--measure-prose`
+      # was for as long as it was 760px. Reads only web/src, so it belongs here.
+      - name: Check prose measure
+        run: npm run check:prose
+
       - name: Check observationExtract contract
         run: npm run check:extract
 
