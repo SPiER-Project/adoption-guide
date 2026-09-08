@@ -143,10 +143,33 @@
      tables want is not the width the sentences want. The two are separate
      decisions and this token is the second one.
 
-     760px is not a new number: it is what `.page-header__lede` already
-     hardcoded, so every page lede was already capped here while the page
-     description one line below it ran to 960 or 1040. Both read it now. */
-  --measure-prose: 760px;
+     ⚠️ **It is in `em` because a measure is a character count, not a width.**
+     This was `760px` — the number `.page-header__lede` had hardcoded — and a
+     px measure is only right for the one font size it was set against. That
+     size was `--font-size-lg`, the page lede; every other run reading this
+     token is smaller, and each one got a longer measure for it. At 760px the
+     lede itself ran ~103 characters, the 14px runs ~110 and the 12px runs
+     ~126, all of them past the 45-90 band the token exists to hold.
+
+     `em` resolves against the run's OWN font-size, so one number holds the
+     character count instead of the width. Measured in the app at a 1440px
+     viewport, 41em lands every run that reads it at **81-89 characters** — the
+     page ledes, the pathway's steps, notes, obligations and both its ledes,
+     the data dictionary's concept and detail prose, the measure dashboard's
+     caveats — across five type sizes from 11px to 15px. Uncapped those ran
+     155-205. 42em was one notch too loose: it put the CDS guide's section
+     prose at 91, which is the kind of single-site overshoot a px value cannot
+     even express. **Do not restate it in px, and do not add a second measure
+     token for small type**: the whole reason this one works at every size is
+     that it is not a width.
+
+     ⚠️ **Cap the text, not the box, when the two are set in different type.**
+     An `em` cap resolves against the element it is written on, so putting it on
+     a callout whose own font-size is the inherited 16px while its paragraph is
+     14px measures the wrong thing. `.md-caveat` and `.tool-config-effect` cap
+     their bodies for that reason; `.md-gap` caps the box, because there the box
+     *is* the run. */
+  --measure-prose: 41em;
 
   /* Breathing room above an element scrolled to via an in-page anchor. Folds in
      the sticky patient banner, whose live height PatientBanner publishes as

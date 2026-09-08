@@ -772,17 +772,36 @@ which is filed separately.
   elements) went with the same pass.
   ⚠️ **`--measure-prose` is not a third page width.** It caps a *text run*, and
   the distinction is the point: the width a table wants is not the width a
-  sentence wants, so a wide page keeps its tables wide and caps its prose. 760px
-  is not a new number — `.page-header__lede` already hardcoded it, so every page
-  lede was capped there while the page description one line below it ran to 960
-  or 1040. Put it on prose, never on a page root, or RULE 5 fails you.
-  ⚠️ **Long text runs on the pages that were *always* wide are a separate,
-  still-open issue.** `/guide/pathway`, `/guide/data-dictionary` and
-  `/population/measures` carry paragraphs at 145–182 characters a line
-  (`care-pathway__lede`, `dd-concept-intro`, `pathway-provenance__lede`,
-  `md-caveat-body`). Those predate the width standardization and are untouched
-  by it — do not read a green `check:template` as saying the prose measures are
-  all sound.
+  sentence wants, so a wide page keeps its tables wide and caps its prose. Put
+  it on prose, never on a page root, or RULE 5 fails you.
+  ⚠️ **It is `41em`, and the unit is the whole point: a measure is a character
+  count, not a width.** It was `760px` — the number `.page-header__lede` had
+  hardcoded — and a px measure is right only for the font size it was set
+  against. That size was `--font-size-lg`; every other run reading the token is
+  smaller, and each one got a *longer* measure for it. At 760px the lede itself
+  ran ~103 characters a line, the 14px runs ~110 and the 12px runs ~126 — all
+  past the 45–90 band the token exists to hold, while looking capped. `em`
+  resolves against the run's own font-size, so one number holds the count at
+  every size: 41em lands all 20 runs that read it at **77–89 characters**,
+  measured in the app at 1440px across five type sizes (11–16px). **Do not
+  restate it in px, and do not add a second measure token for small type** —
+  `--measure-body` existed for one commit before it turned out to be this.
+  ⚠️ **Cap the text, not the box, when the two are set in different type.** An
+  `em` cap resolves against the element it is written on, so a callout whose own
+  font-size is the inherited 16px while its paragraph is 14px measures the wrong
+  thing. `.md-caveat` caps its body and keeps its band full width, because that
+  band is page-level framing; `.tool-config-effect` caps both — the box at its
+  16px for a callout width, the body at its 14px for the measure — because
+  dropping the box cap left a wide tinted band with the sentence stopping
+  halfway; `.md-gap` caps the box, because there the box *is* the run.
+  ⚠️ **Nothing gates any of this.** `check:template` RULE 5 owns *page-root*
+  widths and says nothing about a text run, so a paragraph that reads to 180
+  characters passes every check in `verify`. The three pages that were always
+  wide sat at 145–182 characters for exactly that reason, and `.dd-detail`
+  overshot by escaping a table's column budget to 52rem — its own comment
+  claimed a prose cap while 52rem on 13px type is 134 characters. Re-measure
+  rather than trusting a green run: `.dd-detail` keeps 52rem for the data lines
+  it really does need it for, and `.dd-detail-desc` caps itself.
   Two families are templated, found in different ways. The **lenses**
   (`src/pages`) are a declared allowlist, because which pages own a header is a
   decision. The **form views** (`src/components` — every assessment and workflow

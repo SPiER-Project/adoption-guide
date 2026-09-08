@@ -39,6 +39,13 @@
 /* ===========================
    Cross-lens effect callout
    =========================== */
+/* ⚠️ Two caps, two jobs — not one number owned twice. This box sets no
+   font-size, so it resolves `--measure-prose` at the inherited 16px and gets a
+   CALLOUT width (656px); `__body` below resolves the same token at its own 14px
+   and gets the MEASURE (574px), which is narrower and so governs the text. The
+   box needs its own because dropping it left a full-width tinted band with the
+   sentence stopping halfway across. `.md-caveat` is the deliberate other
+   choice: page-level framing, so the band keeps the page. */
 .tool-config-effect {
   margin-bottom: var(--space-7);
   padding: var(--space-4);
@@ -51,6 +58,7 @@
 
 .tool-config-effect__body {
   margin: 0;
+  max-width: var(--measure-prose);
   color: var(--text-body);
   font-size: var(--font-size-md);
   line-height: 1.55;

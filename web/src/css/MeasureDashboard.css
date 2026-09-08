@@ -66,8 +66,13 @@
   color: var(--accent-info-text-deep);
 }
 
+/* The cap is on the paragraph, not on `.md-caveat`. The callout's own font-size
+   is the inherited 16px while its body is 14px, so an `em` cap on the box would
+   resolve against the wrong type size — and the tinted band reads as page-level
+   framing, which it stops doing at 588px. */
 .md-caveat-body {
   margin: 0 0 var(--space-2) 0;
+  max-width: var(--measure-prose);
   font-size: var(--font-size-md);
   line-height: 1.6;
   color: var(--text-body);
@@ -79,9 +84,14 @@
 
 /* Per-measure counterpart: names the one artifact this measure is waiting on.
    Sits under its table — the empty rows stay visible, since they are the
-   finding this note is explaining. */
+   finding this note is explaining.
+
+   Unlike `.md-caveat` this one IS the text run — its own font-size is the 12px
+   the prose is set in — so the cap goes on the box and the padding comes out of
+   the measure. It ran 178 characters a line under a full-width table. */
 .md-gap {
   margin: 0 0 var(--space-3) 0;
+  max-width: var(--measure-prose);
   padding: var(--space-3);
   border-left: 3px solid var(--accent-info-border);
   border-radius: var(--radius-md);

@@ -210,9 +210,14 @@
 /* ⚠️ `max-width: 300px` used to live here and never applied: under auto layout a
    max-width on a table cell is a hint the browser may squeeze past, and it did —
    to 112px. The class survives for the concept description, which is prose in a
-   block, not in a table cell. Row descriptions are in `.dd-detail-desc`. */
+   block, not in a table cell. Row descriptions are in `.dd-detail-desc`.
+
+   That is also why a cap works here now and did not then: this run is a `<p>` in
+   `.dd-concept-body`, its one and only use site, so nothing is negotiating with
+   a column budget. The cap it carried was `46rem`, and it was dead — the rule
+   below set `max-width: none` on the same element. One cap, one owner. */
 .dd-cell-desc {
-  max-width: 46rem;
+  max-width: var(--measure-prose);
   line-height: 1.4;
   color: var(--text-muted);
 }
@@ -307,13 +312,20 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  /* Prose gets a readable measure instead of a column's leftovers. This is the
-     whole point of the detail row: 386 characters at 112px was 47 lines. */
+  /* The budget for the DATA lines below — a code display, a value-set canonical,
+     a row of tool chips — which want room to stay on one line. It is not the
+     prose measure any more: this rule's comment claimed the prose cap ("386
+     characters at 112px was 47 lines") while 52rem on 13px type is 134
+     characters a line, so the escape from the column budget overshot the
+     measure. `.dd-detail-desc` caps itself now. */
   max-width: 52rem;
 }
 
+/* 134 characters a line at the container's 52rem. The sentence takes the
+   measure; the data lines keep the container. */
 .dd-detail-desc {
   margin: 0;
+  max-width: var(--measure-prose);
   line-height: 1.5;
   color: var(--text-body);
   font-size: var(--font-size-base);
@@ -443,11 +455,14 @@
 /* The concept description is the most important paragraph on the page and was
    809 characters in one 202px block. A leading size makes it a lede rather
    than a wall; the prose itself is catalog data and is not rewritten here.
-   No max-width of its own — the panel it sits in is already narrower than the
-   page, and a second, tighter cap made the paragraph look truncated against
-   the full-width table directly beneath it. */
+
+   ⚠️ This rule used to set `max-width: none`, because "the panel it sits in is
+   already narrower than the page". That stopped being true when the width pass
+   widened the guide's sub-pages to `--page-width-wide`: the panel became the
+   page, and the paragraph ran to 155 characters a line. It takes the cap from
+   `.dd-cell-desc` above now, and the font-size set here is what that `em` cap
+   resolves against. */
 .dd-concept-body > .dd-cell-desc {
-  max-width: none;
   font-size: var(--font-size-md);
   line-height: 1.6;
   color: var(--text-body);
@@ -580,8 +595,12 @@
   display: block;
 }
 
+/* 344 characters at 183 a line, directly above a full-width table — which is
+   the split `--measure-prose` exists for: the table keeps the page, the
+   sentence gets a measure. */
 .dd-concept-intro {
   margin: 0 0 var(--space-3);
+  max-width: var(--measure-prose);
   font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
