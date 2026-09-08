@@ -504,6 +504,7 @@
 
 /* Zero Suicide alignment callout (Pathway page top) */
 .journey-zs-callout {
+  max-width: var(--measure-prose);
   background: var(--accent-info-soft);
   border: 1px solid var(--accent-info);
   border-left-width: 4px;

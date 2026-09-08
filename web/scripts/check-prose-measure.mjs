@@ -102,8 +102,15 @@ const srcDir = join(webRoot, 'src')
 const MEASURE_MIN_EM = 24
 const MEASURE_MAX_EM = 41
 
-/** Half the 25 token-capped rules on main — liveness, not completeness. */
-const MEASURE_FLOOR = 12
+/**
+ * Half the 49 token-capped rules on main — liveness, not completeness.
+ *
+ * ⚠️ Nothing re-checks this ratio on its own, and it has already gone stale
+ * once: it was 12 against 25 caps, and a sweep of every route then found 24 more
+ * uncapped runs, so the floor sat at a quarter of the real count. Every run
+ * prints the live number beside it — re-read the ratio whenever the count moves.
+ */
+const MEASURE_FLOOR = 24
 
 /**
  * RULE 2 — `max-width` declarations that are deliberately NOT a reading
@@ -193,6 +200,24 @@ const subjectOf = (selector) => {
   return classes ? classes[classes.length - 1] : last.replace(/[:[].*$/, '')
 }
 
+/**
+ * ⚠️ RULE 4's key, and it is NOT just the subject. A class subject is global —
+ * BEM names are unique across the app by convention, so `.dd-cell-desc`'s
+ * font-size counts wherever it is declared. An ELEMENT-ONLY subject is not:
+ * `.overview__vignette p` and `.instrument-header__about > p` both have subject
+ * `p`, so a global set would let ANY `… p` cap satisfy RULE 4 on the strength
+ * of an unrelated rule in another file — the gate would report green over a cap
+ * whose type it never actually resolved. Element-only subjects are therefore
+ * scoped to their file.
+ *
+ * Scoping per file is still a heuristic (two `… p` rules in one stylesheet
+ * satisfy each other), which is the reason a rule capping without its own
+ * `font-size` should declare one rather than lean on this: every cap added in
+ * this codebase since does.
+ */
+const typeKeyOf = (file, subject) =>
+  subject.startsWith('.') ? subject : `${file}|${subject}`
+
 const declares = (body, prop) =>
   new RegExp(`(?:^|[;{\\s])${prop}\\s*:`).test(body)
 
@@ -214,7 +239,7 @@ for (const file of files) {
     const line = css.slice(0, m.index).split('\n').length
     allRules.push({ file: rel(file), line, selector, body })
     if (declares(body, 'font-size')) {
-      for (const part of selector.split(',')) fontSizeSubjects.add(subjectOf(part))
+      for (const part of selector.split(',')) fontSizeSubjects.add(typeKeyOf(rel(file), subjectOf(part)))
     }
   }
 }
@@ -318,7 +343,7 @@ for (const { file, line, selector, value } of maxWidths) {
 const seenInherits = new Set()
 for (const { file, line, selector } of measureCapped) {
   const subjects = selector.split(',').map((s) => subjectOf(s))
-  const unresolved = subjects.filter((s) => !fontSizeSubjects.has(s))
+  const unresolved = subjects.filter((s) => !fontSizeSubjects.has(typeKeyOf(file, s)))
   if (unresolved.length === 0) continue
   const key = `${file}|${subjects[0]}`
   if (INHERITS_TYPE[key]) { seenInherits.add(key); continue }

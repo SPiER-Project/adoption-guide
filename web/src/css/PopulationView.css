@@ -371,6 +371,7 @@
 }
 
 .population-footnote {
+  max-width: var(--measure-prose);
   margin-top: var(--space-4);
   font-size: var(--font-size-base);
   color: var(--text-muted);
@@ -544,6 +545,7 @@
 }
 
 .pop-summary-note {
+  max-width: var(--measure-prose);
   font-size: var(--font-size-2xs);
   color: var(--text-muted);
   line-height: 1.5;

@@ -243,6 +243,7 @@
 }
 
 .tool-row-purpose {
+  max-width: var(--measure-prose);
   font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.4;
