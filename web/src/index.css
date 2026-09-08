@@ -124,10 +124,29 @@
      which is one width per page rather than a template.
 
      `prose` is a reading measure and belongs to pages that are mostly sentences;
-     `wide` is for the pages built around tables and card grids. A new lens picks
-     one of the two — that choice is the whole vocabulary. */
+     `wide` is for the pages built around tables and card grids. A page that owns
+     a page header picks one of the two — that choice is the whole vocabulary,
+     and `npm run check:template` is what makes it one.
+
+     ⚠️ A page that does NOT own its header does not own its width either: it
+     renders inside a layout that already set one, and restating it there is the
+     same double-ownership that gave the guide its 24px indent. Seven of the
+     guide's sub-pages did exactly that, at five different widths (820 / 900 /
+     960 / 1040 / 1200), so the section pager changed measure as you paged
+     through one document. Their roots carry no width now. */
   --page-width-prose: 900px;
   --page-width-wide: 1200px;
+
+  /* The reading measure — a cap on a *text run*, not on a page.
+     This is what a wide page uses to keep its prose readable: a paragraph
+     stretched to 1200px runs past 150 characters a line, so the width the
+     tables want is not the width the sentences want. The two are separate
+     decisions and this token is the second one.
+
+     760px is not a new number: it is what `.page-header__lede` already
+     hardcoded, so every page lede was already capped here while the page
+     description one line below it ran to 960 or 1040. Both read it now. */
+  --measure-prose: 760px;
 
   /* Breathing room above an element scrolled to via an in-page anchor. Folds in
      the sticky patient banner, whose live height PatientBanner publishes as

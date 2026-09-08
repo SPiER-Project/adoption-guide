@@ -134,10 +134,6 @@
 /* ===========================
    Screenings Tab
    =========================== */
-.screenings-tab {
-  max-width: 1000px;
-}
-
 .screenings-section {
   margin-bottom: var(--space-8);
 }
@@ -541,10 +537,6 @@
 /* ===========================
    CarePlan Tab
    =========================== */
-.careplan-tab {
-  max-width: 1000px;
-}
-
 .careplan-list {
   display: flex;
   flex-direction: column;
@@ -669,10 +661,6 @@
 /* ===========================
    Encounters Tab
    =========================== */
-.encounters-tab {
-  max-width: 800px;
-}
-
 .encounters-note {
   color: var(--text-faint);
   font-size: var(--font-size-base);
@@ -793,10 +781,6 @@
 /* ===========================
    Tools Reference
    =========================== */
-.tools-reference {
-  max-width: 900px;
-}
-
 .tools-description {
   color: var(--text-muted);
   font-size: var(--font-size-lg);

@@ -133,6 +133,14 @@ function outletWrapperClasses(src) {
 /** Page-root and layout-wrapper classes: the containers the shell's inset owns. */
 const containers = new Map() // class → the file that declares it
 
+/**
+ * The same containers, kept apart by role, because RULE 5 asks a different
+ * question of each: a page root that owns its header owns its width too, and
+ * everything else must inherit one.
+ */
+const pageRoots = [] // { file, classes, ownsHeader }
+const outletWrappers = [] // { file, classes }
+
 /** Rules every templated page obeys, whichever family it belongs to. */
 function checkSharedRules(file, src) {
   // RULE 1 — one header implementation. The markup lives in PageHeader.tsx, so
@@ -171,7 +179,12 @@ for (const file of pageFiles) {
     fail(`${file}: is declared a lens (${LENSES[file]}) but renders no <PageHeader>`)
   }
 
-  for (const cls of [...rootClasses(file, src), ...outletWrapperClasses(src)]) {
+  const roots = rootClasses(file, src)
+  const outlets = outletWrapperClasses(src)
+  if (roots.length > 0) pageRoots.push({ file, classes: roots, ownsHeader: rendersHeader })
+  if (outlets.length > 0) outletWrappers.push({ file, classes: outlets })
+
+  for (const cls of [...roots, ...outlets]) {
     containers.set(cls, file)
   }
 }
@@ -218,6 +231,7 @@ for (const file of formViews) {
     fail(`${file}: is a form view but renders no <PageHeader> — every drill-in page states where it is and how to get back out`)
   }
 
+  pageRoots.push({ file, classes: roots, ownsHeader: /<PageHeader\b/.test(src) })
   for (const cls of roots) containers.set(cls, file)
 }
 
@@ -261,6 +275,10 @@ function* styleRules(css, offset = 0, nested = false) {
 }
 
 const PADDING = /(^|[;{\s])padding(-(top|right|bottom|left|inline|block)(-(start|end))?)?\s*:/
+/** A width ceiling, in either the physical or the logical spelling. */
+const MAX_WIDTH = /(^|[;{\s])max-(width|inline-size)\s*:\s*([^;}]+)/g
+/** The whole page-width vocabulary. A third value is drift, not a third option. */
+const PAGE_WIDTHS = ['var(--page-width-prose)', 'var(--page-width-wide)']
 const lineOf = (src, index) => src.slice(0, index).split('\n').length
 
 /**
@@ -286,6 +304,15 @@ const cssFiles = cssFilesUnder(SRC_DIR)
 /** Which declared inset owners were actually found padding, unconditionally. */
 const padsFound = new Set()
 
+/**
+ * class → the unconditional `max-width` values declared straight on it, with
+ * where. RULE 5 reads this; only unconditional rules land here, for the same
+ * reason RULE 4a ignores nested ones — a value that applies at one breakpoint
+ * says nothing about the width the page renders at. The cost is stated on
+ * RULE 5.
+ */
+const rootWidths = new Map()
+
 for (const file of cssFiles) {
   const src = readFileSync(join(SRC_DIR, file), 'utf8')
   for (const rule of styleRules(src)) {
@@ -298,6 +325,18 @@ for (const file of cssFiles) {
       // this, every check below could pass while nothing padded anything: a
       // green gate over an app with no page inset at all.
       if (Object.hasOwn(INSET_OWNERS, selector) && pads && !rule.nested) padsFound.add(selector)
+
+      // Gather for RULE 5: a `max-width` set straight on a single class, not on
+      // one of its descendants — `.foo .bar` styles the child, and a page's
+      // *content* is free to cap its own measure (that is what
+      // `--measure-prose` is for).
+      const bare = /^\.([A-Za-z0-9_-]+)$/.exec(selector)
+      if (bare && !rule.nested) {
+        for (const m of rule.body.matchAll(MAX_WIDTH)) {
+          if (!rootWidths.has(bare[1])) rootWidths.set(bare[1], [])
+          rootWidths.get(bare[1]).push({ value: m[3].trim(), at })
+        }
+      }
 
       // RULE 1 (CSS half) — no page-header rules outside PageHeader.css, so a
       // per-page override cannot reintroduce a variant from the stylesheet side.
@@ -344,6 +383,109 @@ for (const [selector, owner] of Object.entries(INSET_OWNERS)) {
   }
 }
 
+// ── RULE 5 — one owner of the page width ──────────────────────────────────────
+//
+// The sibling of RULE 4, and it exists for the same defect one property over.
+// `.app-shell__body` owns the page inset; the question here is who owns the
+// page *measure*, and the answer has to be one place per route.
+//
+// index.css says the vocabulary is two tokens, `--page-width-prose` and
+// `--page-width-wide`. Nothing enforced that, and it had gone: seven page roots
+// hardcoded pixels, four of them at values that are neither token, so the
+// Adoption Guide's seven sections rendered at FIVE different widths — 1200 /
+// 960 / 1200 / 1040 / 820 / 1040 / 900 — while the sidebar's pager walked a
+// reader straight through them. Two mistakes were tangled together there:
+//
+//   a. a root declaring a width that is not one of the two tokens. `1200px` was
+//      the worst of these precisely because it *looked* right: it is the value
+//      of `--page-width-wide` today, so the page agreed with the template by
+//      coincidence and would stop the moment the token moved.
+//   b. a root declaring a width at all when it renders inside a layout that
+//      already set one. `.implementation-guide` is `--page-width-wide`; a
+//      sub-page that also sets a width is two owners for one number, which is
+//      exactly the shape of the padding bug RULE 4 was written for.
+//
+// So the rule keys off header ownership, which the checks above already know
+// and which is the same distinction: a page that renders its own <PageHeader>
+// is the top of its own route and owns both; a page that inherits its header
+// from a layout inherits the layout's width too. No second allowlist — this
+// falls out of RULE 3's data.
+//
+// ⚠️ Limits, stated rather than discovered later. It reads unconditional rules
+// only, so a `max-width` inside a media query is invisible to it (there are
+// none on a page root today; RULE 4a ignores nested rules for the same reason).
+// And like RULE 4b it sees the containers it can scrape from the JSX, so a
+// width put on some intermediate wrapper inside a page is out of its view.
+{
+  const widthsOf = classes =>
+    classes.flatMap(cls => (rootWidths.get(cls) ?? []).map(d => ({ cls, ...d })))
+
+  let tokenedRoots = 0
+
+  for (const { file, classes, ownsHeader } of pageRoots) {
+    const found = widthsOf(classes)
+
+    if (!ownsHeader) {
+      // RULE 5a — a page that inherits its header inherits its width.
+      for (const d of found) {
+        fail(
+          `${d.at}: \`.${d.cls}\` sets \`max-width: ${d.value}\` on a page root that renders no <PageHeader> (${file}) — ` +
+            'it renders inside a layout that already set a width; cap the text run with `--measure-prose` if the prose needs a narrower measure',
+        )
+      }
+      continue
+    }
+
+    // RULE 5b — a page that owns its header declares exactly one page width,
+    // and it is one of the two tokens.
+    if (found.length === 0) {
+      fail(
+        `${file}: renders <PageHeader> but no page width is declared on its root (\`${classes.map(c => `.${c}`).join(' ')}\`) — ` +
+          `pick ${PAGE_WIDTHS.join(' or ')}`,
+      )
+      continue
+    }
+    if (found.length > 1) {
+      fail(
+        `${file}: its root declares ${found.length} page widths (${found.map(d => `.${d.cls} → ${d.value} at ${d.at}`).join('; ')}) — one root, one width`,
+      )
+    }
+    for (const d of found) {
+      if (!PAGE_WIDTHS.includes(d.value)) {
+        fail(
+          `${d.at}: \`.${d.cls}\` sets \`max-width: ${d.value}\` on a page root (${file}) — ` +
+            `the page-width vocabulary is ${PAGE_WIDTHS.join(' and ')}, and nothing else. ` +
+            'A raw length that happens to equal a token still stops tracking it',
+        )
+      } else {
+        tokenedRoots++
+      }
+    }
+  }
+
+  // RULE 5c — a layout's outlet wrapper is not a second place for a width. The
+  // root above it already declared one, and this is where a "just for the guide"
+  // override would land.
+  for (const { file, classes } of outletWrappers) {
+    for (const d of widthsOf(classes)) {
+      fail(
+        `${d.at}: \`.${d.cls}\` sets \`max-width: ${d.value}\` on a layout's outlet wrapper (${file}) — ` +
+          'the layout root owns the width; an outlet wrapper that narrows it makes the sub-pages disagree with their own header',
+      )
+    }
+  }
+
+  // Liveness. Every check above is satisfied by an app in which no page
+  // declares a width at all, which is the #232 / #261 failure mode: a green
+  // gate over nothing. If the tokens stop being used, this must go red.
+  if (tokenedRoots === 0) {
+    fail(
+      `no page root declares ${PAGE_WIDTHS.join(' or ')} — either the tokens were renamed, in which case fix ` +
+        'PAGE_WIDTHS here, or nothing about page width was verified',
+    )
+  }
+}
+
 // ── Report ────────────────────────────────────────────────────────────────────
 
 if (errors.length > 0) {
@@ -357,5 +499,6 @@ console.log(
   `✓ page template: ${pageFiles.length} pages (${Object.keys(LENSES).length} lens headers), ` +
     `${formViews.length} form views, ` +
     `${Object.keys(INSET_OWNERS).length} inset owners, ` +
+    `${pageRoots.length} page roots (${pageRoots.filter(r => r.ownsHeader).length} owning a page width), ` +
     `${containers.size} containers checked against ${cssFiles.length} stylesheets`,
 )

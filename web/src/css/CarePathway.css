@@ -7,11 +7,18 @@
    `npm run lint:css` and `npm run check:tokens` gate both directions.
    ============================================================ */
 
+/* `.care-pathway` sets no width.
+   This page renders inside the /guide layout, and `.implementation-guide`
+   already set one; a sub-page that restates its width is the same
+   double-ownership that gave the guide its 24px indent. Seven sub-pages did
+   it, at five different widths (820 / 900 / 960 / 1040 / 1200), so the
+   section pager changed measure as you paged through one document.
+   `npm run check:template` now forbids it. Prose that needs a narrower
+   measure caps the text run with `--measure-prose`, not the page. */
 .care-pathway {
   display: flex;
   flex-direction: column;
   gap: var(--space-7);
-  max-width: var(--page-width-wide);
 }
 
 /* The same protocol on the Patient View side — what the embedded SMART panel
