@@ -14,7 +14,7 @@
 
 // ─── Per-item codes: now LOINC ───────────────────────────────
 // The ASQ items carry published LOINC codes. LOINC 2.83 added the panel
-// 115564-7 "Ask Suicide-Screening Questions (ASQ) Tool" and a code for each
+// 115564-7 "Ask Suicide-Screening Questions Tool [ASQ]" and a code for each
 // item, so the Questionnaire, the observation mapper and the data dictionary
 // all bind to LOINC and there is no SPiER-local item CodeSystem any more:
 //
@@ -46,28 +46,34 @@
 // ship. The codes above were read off the LOINC-derived Questionnaire that NLM
 // publishes for panel 115564-7, item by item.
 //
-// ⚠️ "LOINC 2.83" is the release attributed by loinc.org's own 2.83 highlights
-// page, read via search summary rather than fetched (loinc.org refuses automated
-// requests). What IS directly checked: the codes exist in NLM's LOINC-derived
-// Questionnaire for panel 115564-7, and they are absent from LOINC 2.82. If the
-// exact release matters for a citation, confirm it before quoting it.
+// ⚠️ VERIFIED against Regenstrief, and the first attempt got every display
+// WRONG. Both facts belong here, because the second is the reusable one.
 //
-// ⚠️ The codings are `unverified`, not `verified`, and that is deliberate.
-// `coding-verification-status#verified` means checked against the PUBLISHING
-// AUTHORITY. These were read off the LOINC-derived Questionnaire NLM publishes
-// for panel 115564-7 (lforms-fhir.nlm.nih.gov) — a good source, and not that
-// one. Regenstrief's own service (fhir.loinc.org) needs an account, loinc.org
-// refuses automated requests, and BOTH public terminology servers checked on
-// 2026-09-08 — tx.fhir.org and CSIRO's ontoserver — still serve LOINC 2.82 and
-// report all eight codes unknown. So there is currently no way to complete the
-// check, and #220 is what claiming otherwise costs. `unverified` blocks the
-// Questionnaire leaving `draft`, which is the correct consequence: before this
-// change its codings were `no-standard-binding`, a TERMINAL state meaning
-// nothing existed to verify. Something exists now, and it is owed.
+// The codes were first taken from the LOINC-derived Questionnaire NLM publishes
+// for panel 115564-7 (lforms-fhir.nlm.nih.gov). The CODES were right. Every
+// DISPLAY was wrong, because NLM puts the question wording in `display`
+// ("In the past few weeks, have you wished you were dead?") while LOINC's own
+// display drops the comma and the question mark. All eight failed
+// `$validate-code` with "The code exists but the display is not valid" — the
+// #220 defect shape exactly: a real code carrying a string its authority does
+// not publish, which no amount of code-only checking would ever surface.
 //
-// To close it: look the eight codes up in a LOINC 2.83+ source and flip the
-// extension. `docs/scheduled-checks-triage.md` § Cause 1b tracks the same lag
-// from the gate side.
+// The displays below are LOINC 2.83's, read from fhir.loinc.org `$lookup` on
+// 2026-09-08 (a free Regenstrief account; the service is authenticated). That
+// run also confirmed the release is 2.83, which until then was only attributed
+// by a search summary of loinc.org's highlights page. `LA37190-8`, `LA37191-6`
+// and `93374-7` passed on the first attempt and were not changed.
+//
+// ⚠️ Do NOT re-derive these from a rendering of the instrument, from NLM's
+// LForms conversion, or from the Questionnaire's own `item.text`. `item.text`
+// is the human wording and deliberately keeps its punctuation; `code.display`
+// is LOINC's string and must match it byte for byte. They differ on every item
+// here, and that difference is correct.
+//
+// ⚠️ tx.fhir.org and CSIRO's ontoserver both still served LOINC 2.82 on that
+// date and report all eight codes unknown. That is why the nightly is expected
+// to stay red on the resource half — `docs/scheduled-checks-triage.md`
+// § Cause 1b — and it is a server lag, not a defect in these codes.
 //
 // ⚠️ The ANSWERS split, and the split is the point:
 //  - **q4-recent-attempt IS on LOINC** (LA37190-8 "Within last 12 months" /

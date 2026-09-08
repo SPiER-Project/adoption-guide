@@ -448,6 +448,17 @@ async function validateCode({ system, code, display }) {
         throw new Error(body.issue?.[0]?.diagnostics ?? 'OperationOutcome from server')
       }
       const p = Object.fromEntries((body.parameter ?? []).map(x => [x.name, x.valueBoolean ?? x.valueString]))
+      // ⚠️ Strict on purpose, and it is what stops a non-conformant server reading
+      // as clean — but it also means this script cannot be pointed at
+      // fhir.loinc.org without a change. Regenstrief's service returns `result` as
+      // valueString "true"/"false" rather than the spec's valueBoolean, so every
+      // code would land here as an exception and the run would report the server
+      // unreachable. That matters because fhir.loinc.org is the obvious answer to
+      // PENDING_TX's whole reason for existing (it never lags a LOINC release):
+      // wiring it in means accepting the string form HERE, keeping the throw for a
+      // genuinely absent `result`, and solving auth — it needs a Regenstrief
+      // account, which a nightly would have to carry as a secret. Until then
+      // tx.fhir.org is the server and PENDING_TX absorbs the lag.
       if (typeof p.result !== 'boolean') throw new Error('response carried no boolean `result`')
       return { ok: p.result, message: p.message, serverDisplay: p.display }
     } catch (err) {

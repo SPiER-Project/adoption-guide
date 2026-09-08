@@ -71,20 +71,23 @@ collision shows up the same way.
 `coding-verification-status` extension, so the open items are readable off the
 artifact rather than out of this file.
 
-⚠️ **The LOINC recoding moved the ASQ further from `active`, not closer, and
-that is the honest direction.** Its eight new LOINC codings read `unverified`,
-which blocks leaving draft. Before the recoding they were `no-standard-binding`
-— a *terminal* state meaning no published concept existed to check against, so
-nothing was owed. Something exists now and has not been checked against the
-publishing authority: the codes came from NLM's LOINC-derived Questionnaire, and
-as of 2026-09-08 Regenstrief's own service needs an account while tx.fhir.org
-and CSIRO's ontoserver both still serve LOINC 2.82 and report all eight unknown.
-The one remaining `no-standard-binding` is the result-category item, whose
-disposition tiers LOINC still does not publish.
+All eleven LOINC codings read `verified` — checked against Regenstrief's own
+`fhir.loinc.org` on 2026-09-08, which is also what confirmed the release is
+LOINC 2.83. The single `no-standard-binding` left is the result-category item,
+whose disposition tiers LOINC still does not publish. Nothing reads
+`unverified`, so the Questionnaire is eligible to flip to `active`.
 
-Flipping those eight to `verified` against a LOINC 2.83+ source is what returns
-the ASQ to where it was. When nothing reads `unverified`, the Questionnaire can
-flip to `active`.
+⚠️ **The first pass had all eight displays wrong, and it is worth knowing why.**
+The codes were taken from NLM's LOINC-derived Questionnaire, which puts the
+question wording in `display`; LOINC's own display drops the comma and the
+question mark. Every one failed `$validate-code` with *"The code exists but the
+display is not valid"* — a real code carrying a string its authority does not
+publish, which is the #220 shape. If you ever re-derive these, take them from
+`$lookup` and not from a rendering of the form.
+
+⚠️ `item.text` and `code[].display` deliberately differ on every item here.
+`item.text` is what a patient reads and keeps its punctuation; `code[].display`
+must match LOINC byte for byte. Do not "fix" one to match the other.
 
 How SPiER relates to USCDI+ Behavioral Health and the HL7 US Behavioral Health
 Profiles IG is stated once, on the IG's

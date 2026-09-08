@@ -68,11 +68,11 @@
     {
       "system": "http://loinc.org",
       "code": "115564-7",
-      "display": "Ask Suicide-Screening Questions (ASQ) Tool",
+      "display": "Ask Suicide-Screening Questions Tool [ASQ]",
       "extension": [
         {
           "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-          "valueCode": "unverified"
+          "valueCode": "verified"
         }
       ]
     }
@@ -108,11 +108,11 @@
             {
               "system": "http://loinc.org",
               "code": "115566-2",
-              "display": "In the past few weeks, have you wished you were dead?",
+              "display": "In the past few weeks have you wished you were dead",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }
@@ -149,11 +149,11 @@
             {
               "system": "http://loinc.org",
               "code": "115567-0",
-              "display": "In the past few weeks, have you felt that you or your family would be better off if you were dead?",
+              "display": "In the past few weeks have you felt that you or your family would be better off if you were dead",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }
@@ -190,11 +190,11 @@
             {
               "system": "http://loinc.org",
               "code": "115568-8",
-              "display": "In the past week, have you been having thoughts about killing yourself?",
+              "display": "In the past week have you been having thoughts about killing yourself",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }
@@ -231,11 +231,11 @@
             {
               "system": "http://loinc.org",
               "code": "115569-6",
-              "display": "Have you ever tried to kill yourself?",
+              "display": "Have you ever tried to kill yourself",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }
@@ -297,11 +297,11 @@
             {
               "system": "http://loinc.org",
               "code": "115570-4",
-              "display": "If yes, when was the most recent attempt?",
+              "display": "If yes when was the most recent attempt",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }
@@ -378,11 +378,11 @@
             {
               "system": "http://loinc.org",
               "code": "115571-2",
-              "display": "Are you having thoughts of killing yourself right now?",
+              "display": "Are you having thoughts of killing yourself right now",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }
@@ -415,11 +415,11 @@
             {
               "system": "http://loinc.org",
               "code": "115572-0",
-              "display": "If yes, describe briefly:",
+              "display": "If yes describe briefly",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "unverified"
+                  "valueCode": "verified"
                 }
               ]
             }

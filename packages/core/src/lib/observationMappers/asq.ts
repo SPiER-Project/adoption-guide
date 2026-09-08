@@ -50,11 +50,11 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   // codes and web/scripts/check-observation-extract.mjs EXPECTED.
   const LOINC = 'http://loinc.org'
   const itemMap = [
-    { linkId: 'q1', code: '115566-2', display: 'In the past few weeks, have you wished you were dead?' },
-    { linkId: 'q2', code: '115567-0', display: 'In the past few weeks, have you felt that you or your family would be better off if you were dead?' },
-    { linkId: 'q3', code: '115568-8', display: 'In the past week, have you been having thoughts about killing yourself?' },
-    { linkId: 'q4', code: '115569-6', display: 'Have you ever tried to kill yourself?' },
-    { linkId: 'q5', code: '115571-2', display: 'Are you having thoughts of killing yourself right now?' },
+    { linkId: 'q1', code: '115566-2', display: 'In the past few weeks have you wished you were dead' },
+    { linkId: 'q2', code: '115567-0', display: 'In the past few weeks have you felt that you or your family would be better off if you were dead' },
+    { linkId: 'q3', code: '115568-8', display: 'In the past week have you been having thoughts about killing yourself' },
+    { linkId: 'q4', code: '115569-6', display: 'Have you ever tried to kill yourself' },
+    { linkId: 'q5', code: '115571-2', display: 'Are you having thoughts of killing yourself right now' },
   ]
 
   for (const { linkId, code, display } of itemMap) {
