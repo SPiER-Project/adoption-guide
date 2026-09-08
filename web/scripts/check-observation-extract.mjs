@@ -53,12 +53,12 @@ const EXPECTED = {
   'FHIR-Resources/C-SSRS/cssrs-pediatric.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
-  // ASQ has NO published per-item LOINC codes (verified June 2026), so the five
-  // screening items bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/asq-item.
-  // These are NOT LOINC codes; they match packages/core/src/lib/observationMappers/asq.ts.
+  // ASQ items carry published LOINC codes as of LOINC 2.83, which added the ASQ
+  // panel 115564-7 and its eight item codes. Until then the ASQ had none and the
+  // five screening items bound to the SPiER-local asq-item CodeSystem, now
+  // deleted. Match packages/core/src/lib/observationMappers/asq.ts.
   'FHIR-Resources/ASQ/asq-questionnaire.json': [
-    'wished-dead', 'family-better-off-dead', 'thoughts-killing-self',
-    'ever-attempted', 'acute-ideation-now',
+    '115566-2', '115567-0', '115568-8', '115569-6', '115571-2',
   ],
   // BSSA has NO published panel/per-item LOINC codes. The disposition item
   // carries the generic LOINC 93374-7 ("Suicide risk level"); the discrete

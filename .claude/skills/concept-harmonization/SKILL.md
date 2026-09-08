@@ -1,6 +1,6 @@
 ---
 name: concept-harmonization
-description: Enforce SPiER's cross-instrument *concept layer* — the instrument-agnostic, actionable representation that disparate suicide-risk tools (ASQ, C-SSRS, PHQ-9 Item 9, SBQ-R, CAMS) all map into. Use this skill whenever the work is about translating *between* instruments rather than coding a single one: building or reviewing a common suicide-risk-tier CodeSystem/ValueSet, a ConceptMap or StructureMap that derives a shared concept from an instrument response, a "derived" / "interpretation" Observation that sits downstream of an instrument-specific result, or any request for a "translation layer," "crosswalk," "common code set," "harmonization," or "map tool A to tool B." Trigger when a partner can't consume an instrument's native codes (e.g. ASQ has no LOINC item codes but produces data comparable to C-SSRS) and needs a universally consumable summary. This is the cross-instrument counterpart to `assessment-to-ig` (authoring one instrument) and `fhir-questionnaire-quality` (reviewing one Questionnaire) — use those for instrument-scoped work, this one for the layer that spans instruments.
+description: Enforce SPiER's cross-instrument *concept layer* — the instrument-agnostic, actionable representation that disparate suicide-risk tools (ASQ, C-SSRS, PHQ-9 Item 9, SBQ-R, CAMS) all map into. Use this skill whenever the work is about translating *between* instruments rather than coding a single one: building or reviewing a common suicide-risk-tier CodeSystem/ValueSet, a ConceptMap or StructureMap that derives a shared concept from an instrument response, a "derived" / "interpretation" Observation that sits downstream of an instrument-specific result, or any request for a "translation layer," "crosswalk," "common code set," "harmonization," or "map tool A to tool B." Trigger when a partner can't consume an instrument's native codes (e.g. the BSSA and PSS-3 have no LOINC item codes but produce data comparable to C-SSRS) and needs a universally consumable summary. This is the cross-instrument counterpart to `assessment-to-ig` (authoring one instrument) and `fhir-questionnaire-quality` (reviewing one Questionnaire) — use those for instrument-scoped work, this one for the layer that spans instruments.
 ---
 
 # Concept-Layer Harmonization
@@ -15,10 +15,12 @@ This is the same pattern HL7's **Gravity Project** used to harmonize ~135 SDOH s
 
 | Layer | Vocabulary | Fidelity | Who consumes it |
 |---|---|---|---|
-| **Capture** (instrument) | Instrument LOINC items, SNOMED Yes/No, local item codes (`asq-item`) | High — every question/answer | Authoring system, audit, re-scoring |
+| **Capture** (instrument) | Instrument LOINC items, SNOMED Yes/No, local item codes where LOINC publishes none (`bssa-item`, `pss3-item`, `cssrs-interval-item`) | High — every question/answer | Authoring system, audit, re-scoring |
 | **Concept** (this skill) | One common risk-tier ValueSet, generic LOINC `93374-7` "Suicide risk level", `interpretation` POS/NEG | Lower — the actionable summary | Every downstream/partner system |
 
 The capture layer is preserved, not replaced. The concept layer is **derived from** it and linked back via `derivedFrom`. If you ever find yourself overwriting instrument-specific data with the common concept, stop — you are losing fidelity that the capture layer is supposed to keep.
+
+⚠️ **A local item code is a stand-in, not a destination, and the ASQ is the proof.** It was this skill's worked example of an instrument with no LOINC items — until LOINC 2.83 published panel `115564-7` with a code per item, at which point SPiER deleted `asq-item` and `asq-panel` and bound to LOINC (`ig/input/fsh/asq.fsh`). So when you write a local item CodeSystem, say in its Description what would replace it and from whom, and re-check the instruments that carry one rather than treating "no LOINC exists" as settled. Note what did **not** change: the ASQ's disposition tiers still have no LOINC equivalent, so `asq-screening-result` and its crosswalk into the shared tier survived the promotion intact — which is the concept layer doing exactly its job.
 
 ## When this skill applies
 

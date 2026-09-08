@@ -183,16 +183,12 @@ Description: "Answer options for C-SSRS potential lethality (when actual lethali
 
 // ─── ASQ answer scales (referenced by the ASQ Questionnaire) ──
 
-CodeSystem: ASQAttemptRecencyCodes
-Id: asq-attempt-recency
-Title: "ASQ Attempt Recency"
-Description: "Answer options for the ASQ prior-attempt recency follow-up."
-* ^status = #draft
-* ^experimental = true
-* ^caseSensitive = true
-* ^content = #complete
-* #within-12-months "Within last 12 months"
-* #over-1-year "Over 1 year ago"
+// `asq-attempt-recency` used to live here, holding `within-12-months` and
+// `over-1-year` for the ASQ's prior-attempt follow-up (q4-recent-attempt).
+// DELETED: LOINC 2.83 gave that item a code (115570-4) with an answer list whose
+// two concepts — LA37190-8 "Within last 12 months" and LA37191-6 "Over 1 year
+// ago" — match the local pair display-for-display, so the local codes were a
+// stand-in with a published equivalent. See ig/input/fsh/asq.fsh.
 
 CodeSystem: ASQAgeGroupCodes
 Id: asq-age-group

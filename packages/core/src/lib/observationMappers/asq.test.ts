@@ -81,13 +81,23 @@ describe('mapASQ', () => {
     expect(r.riskAlert.suggestedAction).toBeUndefined()
   })
 
-  it('emits per-item Observations bound to the SPiER-local asq-item system', () => {
+  // The per-item codes are LOINC as of LOINC 2.83 (panel 115564-7). They were
+  // SPiER-local `asq-item` codes until then, and twice before that they were
+  // wrong (#220: C-SSRS panel members, then codes that did not exist). This
+  // asserts the system as well as the codes, because every one of those defects
+  // would have passed a code-only assertion.
+  it('emits per-item Observations bound to the published LOINC ASQ item codes', () => {
     const r = mapASQ(asqResponse({ q1: true, q2: false, q3: false, q4: false, q5: false }))
-    const itemObs = r.observations.filter(
-      o => o.code?.coding?.[0]?.system === 'http://thespierproject.org/fhir/CodeSystem/asq-item',
-    )
-    // one per answered item (q1–q5)
-    expect(itemObs).toHaveLength(5)
-    expect(itemObs.map(o => o.code?.coding?.[0]?.code)).toContain('wished-dead')
+    const itemObs = r.observations.filter(o => o.code?.coding?.[0]?.system === 'http://loinc.org')
+    // one per answered item (q1–q5); the disposition Observation carries 93374-7.
+    const itemCodes = itemObs.map(o => o.code?.coding?.[0]?.code).filter(c => c !== '93374-7')
+    expect(itemCodes).toEqual(['115566-2', '115567-0', '115568-8', '115569-6', '115571-2'])
+    expect(itemObs.some(o => o.code?.coding?.[0]?.code === '93374-7')).toBe(true)
+  })
+
+  it('emits no SPiER-local asq-item codings — that CodeSystem is deleted', () => {
+    const r = mapASQ(asqResponse({ q1: true, q2: true, q3: true, q4: true, q5: true }))
+    const systems = r.observations.flatMap(o => o.code?.coding?.map(c => c.system) ?? [])
+    expect(systems).not.toContain('http://thespierproject.org/fhir/CodeSystem/asq-item')
   })
 })

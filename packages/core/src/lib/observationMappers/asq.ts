@@ -40,18 +40,21 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   )
 
   // Individual item observations for discrete tracking.
-  // The ASQ has NO published per-item LOINC codes (verified against LOINC, June 2026:
-  // the codes formerly used here did not exist, and the C-SSRS panel 93373-9 codes that
-  // were on the Questionnaire items belong to C-SSRS, not ASQ). We bind to the SPiER-local
-  // http://thespierproject.org/fhir/CodeSystem/asq-item instead. These codes MUST stay in sync with the
-  // Questionnaire item codes and web/scripts/check-observation-extract.mjs EXPECTED.
-  const ASQ_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/asq-item'
+  // LOINC 2.83 published the ASQ panel (115564-7) and a code per item, so these bind
+  // to LOINC. Before that the ASQ had none and these were SPiER-local `asq-item` codes
+  // — a deliberate stand-in recorded in ig/input/fsh/asq.fsh, not an oversight, and the
+  // second such stand-in the ASQ has had: #220 removed an earlier set that were either
+  // C-SSRS panel members or nonexistent. The displays below are LOINC's own, which is
+  // what `check:codings` compares against; they read as questions rather than findings
+  // because that is how LOINC names them. MUST stay in sync with the Questionnaire item
+  // codes and web/scripts/check-observation-extract.mjs EXPECTED.
+  const LOINC = 'http://loinc.org'
   const itemMap = [
-    { linkId: 'q1', code: 'wished-dead', display: 'Wished you were dead' },
-    { linkId: 'q2', code: 'family-better-off-dead', display: 'Family better off if dead' },
-    { linkId: 'q3', code: 'thoughts-killing-self', display: 'Thoughts about killing yourself' },
-    { linkId: 'q4', code: 'ever-attempted', display: 'Ever tried to kill yourself' },
-    { linkId: 'q5', code: 'acute-ideation-now', display: 'Killing yourself right now (acuity)' },
+    { linkId: 'q1', code: '115566-2', display: 'In the past few weeks, have you wished you were dead?' },
+    { linkId: 'q2', code: '115567-0', display: 'In the past few weeks, have you felt that you or your family would be better off if you were dead?' },
+    { linkId: 'q3', code: '115568-8', display: 'In the past week, have you been having thoughts about killing yourself?' },
+    { linkId: 'q4', code: '115569-6', display: 'Have you ever tried to kill yourself?' },
+    { linkId: 'q5', code: '115571-2', display: 'Are you having thoughts of killing yourself right now?' },
   ]
 
   for (const { linkId, code, display } of itemMap) {
@@ -60,7 +63,7 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
       observations.push(
         makeObservation({
           id: `asq-${linkId}-${Date.now()}`,
-          code: { system: ASQ_ITEM_SYSTEM, code, display },
+          code: { system: LOINC, code, display },
           value: { coding: [coding], text: coding.display },
           valueType: 'codeable',
           questionnaireName: 'ASQ',

@@ -7,53 +7,86 @@
 // patient from Identify Possible Risk to Clarify Risk.
 //
 // References the existing Questionnaire authored at
-// FHIR-Resources/ASQ/fhir/questionnaires/questionnaire.json
+// FHIR-Resources/ASQ/asq-questionnaire.json
 // (canonical: http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool).
 // =============================================================
 
 
-// ─── CodeSystem ───────────────────────────────────────────────
-// Local codes for ASQ outcomes. Mirrors the codes currently used
-// by web/src/observationMappers.ts so the IG matches runtime
-// data. Replace with published LOINC codes if/when they exist.
-
-// ─── Per-item codes ──────────────────────────────────────────
-// Moved here from FHIR-Resources/ASQ/asq-item.json (#261 follow-up).
+// ─── Per-item codes: now LOINC ───────────────────────────────
+// The ASQ items carry published LOINC codes. LOINC 2.83 added the panel
+// 115564-7 "Ask Suicide-Screening Questions (ASQ) Tool" and a code for each
+// item, so the Questionnaire, the observation mapper and the data dictionary
+// all bind to LOINC and there is no SPiER-local item CodeSystem any more:
 //
-// It was the last SPiER-local CodeSystem the dictionary references that lived
-// only under FHIR-Resources/, and that had two consequences worth stating,
-// because neither was visible from the JSON:
+//   115565-4  "Ask the Patient:"  (LOINC's section header; SPiER models this as
+//                                  a `group`, so it carries no code here)
+//   115566-2  q1                  wished you were dead
+//   115567-0  q2                  you or your family better off if you were dead
+//   115568-8  q3                  thoughts about killing yourself
+//   115569-6  q4                  ever tried to kill yourself
+//   115570-4  q4-recent-attempt   when the most recent attempt was
+//   115571-2  q5                  thoughts of killing yourself right now
+//   115572-0  q5-describe         free-text description
 //
-//  1. The IG Publisher is triggered by `ig/**` alone, so it never built a page
-//     for it — `/ig/CodeSystem-asq-item.html` was a 404 while every sibling
-//     CodeSystem resolved. Once the data dictionary links a code to its
-//     definition, that 404 becomes a broken promise on the page an implementer
-//     is most likely to trust.
-//  2. Living outside `ig/` also kept it outside the publisher's terminology
-//     validation, which is the gate that catches display drift in the IG tree.
+// The `asq-item` CodeSystem that used to live here is DELETED, rather than
+// retained-and-deprecated, and that is safe only because of what it was: a
+// stand-in whose own Description said "Replace with published LOINC concepts
+// if/when NIMH/Regenstrief assign them", on an artifact that has never left
+// `status: #draft` / `experimental: true`. Nothing outside SPiER could have
+// bound to it, and nothing inside does — no ConceptMap, no crosswalk, no
+// profile. Retaining it would leave two codes for one concept and no rule for
+// which to emit.
 //
-// Concepts, displays and definitions are carried over verbatim; the ASQ
-// Questionnaire, `web/src/lib/observationMappers/asq.ts`, the data dictionary
-// and `check:extract` all bind to these exact codes, and the canonical URL is
-// unchanged (http://thespierproject.org/fhir/CodeSystem/asq-item), so this is a move rather
-// than a redefinition. The JSON is deleted in the same change — per CLAUDE.md,
-// the same canonical must never be defined in both trees.
-
-CodeSystem: ASQItemCodes
-Id: asq-item
-Title: "ASQ Screening Item Codes (local)"
-Description: "SPiER-local codes for the five NIMH ASQ screening questions (q1–q5). Used because the ASQ has NO published per-item LOINC codes: verification against LOINC (June 2026) confirmed that (a) the codes previously placed on these items (93246-7, 93247-5, 93248-3, 93249-1) are members of the C-SSRS screener panel 93373-9, not ASQ, and (b) the codes previously emitted by the observation mapper (93267-4, 93266-6, 93265-8, 93264-1, 93263-3) do not exist in LOINC at all (failed check-digits of C-SSRS suicidal-behavior codes). The ASQ is documented at the encounter level as an overall screening result; no authoritative per-question LOINC binding exists. These local codes give the items stable identifiers so the Questionnaire, the observation mapper, and the observationExtract anti-drift check can agree. Replace with published LOINC concepts if/when NIMH/Regenstrief assign them."
-* ^status = #draft
-* ^experimental = true
-* ^caseSensitive = true
-* ^content = #complete
-* ^version = "1.0.0"
-* ^publisher = "SPiER Project"
-* #wished-dead "Wished you were dead" "ASQ Q1 — In the past few weeks, have you wished you were dead? (passive death wish)"
-* #family-better-off-dead "Family better off if dead" "ASQ Q2 — In the past few weeks, have you felt that you or your family would be better off if you were dead? (perceived burdensomeness)"
-* #thoughts-killing-self "Thoughts about killing yourself" "ASQ Q3 — In the past week, have you been having thoughts about killing yourself? (active ideation)"
-* #ever-attempted "Ever tried to kill yourself" "ASQ Q4 — Have you ever tried to kill yourself? (lifetime attempt history)"
-* #acute-ideation-now "Killing yourself right now (acuity)" "ASQ Q5 (acuity) — Are you having thoughts of killing yourself right now? Asked only when any of Q1–Q4 is 'yes'."
+// ⚠️ This is the ASQ's THIRD item-coding, and the first two are why the second
+// paragraph above is stated rather than assumed. #220 found the items carrying
+// 93246-7/93247-5/93248-3/93249-1 — real LOINC codes belonging to the C-SSRS
+// screener panel 93373-9, a different instrument — and the mapper emitting
+// 93267-4/93266-6/93265-8/93264-1/93263-3, which are not LOINC codes at all
+// (failed check-digits of C-SSRS behaviour codes). Both validated far enough to
+// ship. The codes above were read off the LOINC-derived Questionnaire that NLM
+// publishes for panel 115564-7, item by item.
+//
+// ⚠️ "LOINC 2.83" is the release attributed by loinc.org's own 2.83 highlights
+// page, read via search summary rather than fetched (loinc.org refuses automated
+// requests). What IS directly checked: the codes exist in NLM's LOINC-derived
+// Questionnaire for panel 115564-7, and they are absent from LOINC 2.82. If the
+// exact release matters for a citation, confirm it before quoting it.
+//
+// ⚠️ The codings are `unverified`, not `verified`, and that is deliberate.
+// `coding-verification-status#verified` means checked against the PUBLISHING
+// AUTHORITY. These were read off the LOINC-derived Questionnaire NLM publishes
+// for panel 115564-7 (lforms-fhir.nlm.nih.gov) — a good source, and not that
+// one. Regenstrief's own service (fhir.loinc.org) needs an account, loinc.org
+// refuses automated requests, and BOTH public terminology servers checked on
+// 2026-09-08 — tx.fhir.org and CSIRO's ontoserver — still serve LOINC 2.82 and
+// report all eight codes unknown. So there is currently no way to complete the
+// check, and #220 is what claiming otherwise costs. `unverified` blocks the
+// Questionnaire leaving `draft`, which is the correct consequence: before this
+// change its codings were `no-standard-binding`, a TERMINAL state meaning
+// nothing existed to verify. Something exists now, and it is owed.
+//
+// To close it: look the eight codes up in a LOINC 2.83+ source and flip the
+// extension. `docs/scheduled-checks-triage.md` § Cause 1b tracks the same lag
+// from the gate side.
+//
+// ⚠️ The ANSWERS split, and the split is the point:
+//  - **q4-recent-attempt IS on LOINC** (LA37190-8 "Within last 12 months" /
+//    LA37191-6 "Over 1 year ago"). Its local `asq-attempt-recency` pair matched
+//    those display-for-display, so it was a stand-in with a published
+//    equivalent and the CodeSystem is deleted. This is the one item on the form
+//    whose answers are LOINC.
+//  - **The yes/no items are NOT.** LOINC binds them to LA33-6/LA32-8, but SPiER
+//    answers every yes/no item in every instrument with SNOMED 373066001 /
+//    373067005, read by the one shared `getYesNoBoolean`. Switching those is a
+//    repo-wide change (#327's family) and does not belong in an ASQ recoding.
+//    The inconsistency is deliberate and is cheaper than the alternative: a
+//    partner reading these items reads a Coding either way, and `getYesNoBoolean`
+//    already accepts the LOINC pair on the way in.
+//
+// ⚠️ Not promoted, deliberately:
+//  - The disposition tiers. LOINC publishes nothing for negative /
+//    non-acute-positive / acute-positive; ASQResultCodes below stays local, and
+//    the result Observation keeps LOINC 93374-7 "Suicide risk level".
 
 
 CodeSystem: ASQResultCodes

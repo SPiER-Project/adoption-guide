@@ -66,13 +66,13 @@
   ],
   "code": [
     {
-      "system": "http://thespierproject.org/fhir/CodeSystem/asq-panel",
-      "code": "asq-screening",
-      "display": "Ask Suicide-Screening Questions (ASQ) panel",
+      "system": "http://loinc.org",
+      "code": "115564-7",
+      "display": "Ask Suicide-Screening Questions (ASQ) Tool",
       "extension": [
         {
           "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-          "valueCode": "no-standard-binding"
+          "valueCode": "unverified"
         }
       ]
     }
@@ -106,13 +106,13 @@
           ],
           "code": [
             {
-              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
-              "code": "wished-dead",
-              "display": "Wished you were dead",
+              "system": "http://loinc.org",
+              "code": "115566-2",
+              "display": "In the past few weeks, have you wished you were dead?",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "no-standard-binding"
+                  "valueCode": "unverified"
                 }
               ]
             }
@@ -147,13 +147,13 @@
           ],
           "code": [
             {
-              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
-              "code": "family-better-off-dead",
-              "display": "Family better off if dead",
+              "system": "http://loinc.org",
+              "code": "115567-0",
+              "display": "In the past few weeks, have you felt that you or your family would be better off if you were dead?",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "no-standard-binding"
+                  "valueCode": "unverified"
                 }
               ]
             }
@@ -188,13 +188,13 @@
           ],
           "code": [
             {
-              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
-              "code": "thoughts-killing-self",
-              "display": "Thoughts about killing yourself",
+              "system": "http://loinc.org",
+              "code": "115568-8",
+              "display": "In the past week, have you been having thoughts about killing yourself?",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "no-standard-binding"
+                  "valueCode": "unverified"
                 }
               ]
             }
@@ -229,13 +229,13 @@
           ],
           "code": [
             {
-              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
-              "code": "ever-attempted",
-              "display": "Ever tried to kill yourself",
+              "system": "http://loinc.org",
+              "code": "115569-6",
+              "display": "Have you ever tried to kill yourself?",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "no-standard-binding"
+                  "valueCode": "unverified"
                 }
               ]
             }
@@ -266,15 +266,15 @@
           "answerOption": [
             {
               "valueCoding": {
-                "system": "http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency",
-                "code": "within-12-months",
+                "system": "http://loinc.org",
+                "code": "LA37190-8",
                 "display": "Within last 12 months"
               }
             },
             {
               "valueCoding": {
-                "system": "http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency",
-                "code": "over-1-year",
+                "system": "http://loinc.org",
+                "code": "LA37191-6",
                 "display": "Over 1 year ago"
               }
             }
@@ -291,6 +291,19 @@
                   }
                 ]
               }
+            }
+          ],
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "115570-4",
+              "display": "If yes, when was the most recent attempt?",
+              "extension": [
+                {
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
+                  "valueCode": "unverified"
+                }
+              ]
             }
           ]
         }
@@ -363,13 +376,13 @@
           ],
           "code": [
             {
-              "system": "http://thespierproject.org/fhir/CodeSystem/asq-item",
-              "code": "acute-ideation-now",
-              "display": "Killing yourself right now (acuity)",
+              "system": "http://loinc.org",
+              "code": "115571-2",
+              "display": "Are you having thoughts of killing yourself right now?",
               "extension": [
                 {
                   "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
-                  "valueCode": "no-standard-binding"
+                  "valueCode": "unverified"
                 }
               ]
             }
@@ -397,7 +410,20 @@
               }
             }
           ],
-          "maxLength": 500
+          "maxLength": 500,
+          "code": [
+            {
+              "system": "http://loinc.org",
+              "code": "115572-0",
+              "display": "If yes, describe briefly:",
+              "extension": [
+                {
+                  "url": "http://thespierproject.org/fhir/StructureDefinition/coding-verification-status",
+                  "valueCode": "unverified"
+                }
+              ]
+            }
+          ]
         }
       ]
     },

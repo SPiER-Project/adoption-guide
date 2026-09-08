@@ -122,8 +122,8 @@
                 "answer": [
                   {
                     "valueCoding": {
-                      "system": "http://thespierproject.org/fhir/CodeSystem/asq-attempt-recency",
-                      "code": "within-12-months",
+                      "system": "http://loinc.org",
+                      "code": "LA37190-8",
                       "display": "Within last 12 months"
                     }
                   }

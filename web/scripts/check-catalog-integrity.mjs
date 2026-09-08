@@ -515,8 +515,9 @@ console.log(
 // That was not hypothetical: `asq-item` lived only in
 // FHIR-Resources/ASQ/asq-item.json, which the publisher never builds (it is
 // triggered by `ig/**` alone), so `/ig/CodeSystem-asq-item.html` returned 404
-// while every sibling resolved. It has since moved into asq.fsh; this check is
-// what stops the next one.
+// while every sibling resolved. It moved into asq.fsh, and has since been
+// deleted outright — LOINC 2.83 published ASQ item codes, so those items bind
+// to LOINC now. The check is what stops the next one.
 //
 // Offline by construction — it compares against the generated files in
 // packages/fhir-artifacts/generated/ rather than fetching anything, so it belongs in `verify`

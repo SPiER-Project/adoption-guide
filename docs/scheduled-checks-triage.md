@@ -44,9 +44,9 @@ It files (or refreshes) one reusable issue titled **"Terminology drift: external
 codes no longer validate"**, and links the run. Start there; the logs are
 attached as artifacts for 14 days.
 
-Two causes produce a red run, and they need opposite responses. **Read the table
-in the issue body first** — it says which of the two jobs failed, and that is
-most of the diagnosis.
+Three causes produce a red run, and they need different responses. **Read the
+table in the issue body first** — it says which of the two jobs failed, and that
+is most of the diagnosis.
 
 ### Cause 1 — a code or display actually drifted
 
@@ -80,6 +80,49 @@ defect the check exists to catch.
    data dictionary) — grep the whole repo for the old value.
 3. Re-run locally: `node web/scripts/check-codings.mjs --tx https://tx.fhir.org`.
 4. The tracking issue closes itself on the next clean run.
+
+### Cause 1b — the code is right and the server's LOINC edition is behind
+
+Symptom: `✗` lines like Cause 1, but the message is `Unknown code 'NNNNN-N' in
+the CodeSystem 'http://loinc.org' version '2.82'` — an *unknown code*, not a
+wrong display — and the codes are ones SPiER added recently from a newer LOINC
+release. tx.fhir.org lags LOINC releases; a code published in 2.83 does not
+resolve there until the server updates.
+
+This looks exactly like Cause 1 and the correct response is the opposite, so
+confirm which it is before doing anything:
+
+```bash
+curl -s 'https://tx.fhir.org/r4/CodeSystem/$lookup?system=http://loinc.org&code=115564-7' | jq '.issue[0].details.text'
+```
+
+A reply naming a LOINC *version* ("Unable to find code … in http://loinc.org
+version 2.82") is this cause. A reply that finds the code, or finds it with a
+different display, is Cause 1.
+
+Response depends on which job is red, because only one of them has a mechanism:
+
+- **Codings job** (`check-codings.mjs`) — the code belongs in `PENDING_TX`, an
+  allowlist keyed `system|code` whose value must name the LOINC edition and the
+  date. It is built to expire: an entry the server *does* resolve fails the run,
+  and so does an entry naming a code the scan no longer finds. Do not add a code
+  here because it is wrong — that is Cause 1, and `PENDING_TX` would bury it.
+- **Resources job** (`validate-fhir.mjs --tx`) — **has no allowlist, on purpose.**
+  It reports through the HL7 validator's own output, so suppressing one issue
+  means pattern-matching the validator's text, and the condition is temporary by
+  definition. Record the expected failure below instead and leave the tracking
+  issue open until tx catches up. `ig.yml` runs this same script with `-tx n/a`,
+  so a PR is unaffected either way.
+
+**Currently expected, resources job:** the ASQ Questionnaire's LOINC codes —
+panel `115564-7`, items `115566-2`, `115567-0`, `115568-8`, `115569-6`,
+`115570-4`, `115571-2`, `115572-0`, and the two answer codes `LA37190-8` /
+`LA37191-6` on the recency item (which also appear in
+`packages/demo-population/src/scenarios/patient-013.json`). Published in LOINC
+2.83, adopted 2026-09-08 (see `ig/input/fsh/asq.fsh`), and not served by
+tx.fhir.org's 2.82. Delete this paragraph and the matching `PENDING_TX` lines
+together once the server updates — a lingering entry in either place is a hole
+in the gate.
 
 ### Cause 2 — `tx.fhir.org` was unreachable or erroring
 
