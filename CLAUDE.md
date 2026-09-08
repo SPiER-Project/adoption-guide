@@ -43,7 +43,8 @@ npx tsc -b             # typecheck (project references; needs generated files pr
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
-npm run check:template # page template: one header implementation, one owner of the page inset
+npm run check:template # page template: one header implementation, one owner of the page
+                       # inset, one owner of the page width
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
                        # and the shim still covers every method its consumers call
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
@@ -752,9 +753,36 @@ which is filed separately.
   `components/PageHeader.tsx` (eyebrow → title → accent rule → optional lede),
   the only definition of page-title typography in the app; a page never renders
   its own `<h2>`, so section headings start at `<h3>`. A drill-in page passes
-  `up` to make the first eyebrow segment its way back out. Root width is
-  `--page-width-prose` or `--page-width-wide`, and those two are the whole
-  vocabulary.
+  `up` to make the first eyebrow segment its way back out.
+  ⚠️ **Width has one owner per route, and the owner is whoever owns the header.**
+  A page that renders its own `<PageHeader>` declares a root width, and it is
+  `--page-width-prose` or `--page-width-wide` — those two are the whole
+  vocabulary. A page that *inherits* its header from a layout inherits the
+  layout's width too and declares none. This line used to state only the first
+  half, as intent, and the app had drifted off both: seven page roots hardcoded
+  pixels, four at values that are neither token, so the Adoption Guide's seven
+  sections rendered at **five different widths** (1200 / 960 / 1200 / 1040 / 820
+  / 1040 / 900) while the sidebar's pager walked a reader straight through them.
+  `1200px` was the most durable of those, because it *equals*
+  `--page-width-wide` today — it agreed with the template by coincidence and
+  would have stopped the moment the token moved. RULE 5 in
+  `check-page-template.mjs` is what makes the sentence true rather than
+  aspirational; five dead width rules (`.dashboard`, `.screenings-tab`,
+  `.careplan-tab`, `.encounters-tab`, `.tools-reference` — four more numbers, no
+  elements) went with the same pass.
+  ⚠️ **`--measure-prose` is not a third page width.** It caps a *text run*, and
+  the distinction is the point: the width a table wants is not the width a
+  sentence wants, so a wide page keeps its tables wide and caps its prose. 760px
+  is not a new number — `.page-header__lede` already hardcoded it, so every page
+  lede was capped there while the page description one line below it ran to 960
+  or 1040. Put it on prose, never on a page root, or RULE 5 fails you.
+  ⚠️ **Long text runs on the pages that were *always* wide are a separate,
+  still-open issue.** `/guide/pathway`, `/guide/data-dictionary` and
+  `/population/measures` carry paragraphs at 145–182 characters a line
+  (`care-pathway__lede`, `dd-concept-intro`, `pathway-provenance__lede`,
+  `md-caveat-body`). Those predate the width standardization and are untouched
+  by it — do not read a green `check:template` as saying the prose measures are
+  all sound.
   Two families are templated, found in different ways. The **lenses**
   (`src/pages`) are a declared allowlist, because which pages own a header is a
   decision. The **form views** (`src/components` — every assessment and workflow
@@ -772,6 +800,11 @@ which is filed separately.
   second page header (`LENSES` in `web/scripts/check-page-template.mjs` is an
   allowlist with reasons). It reads source text, so it cannot see padding added
   to an intermediate wrapper *inside* a page; that limit is stated on the rule.
+  RULE 5 (width) carries the same limit plus one of its own: it reads
+  **unconditional** rules only, so a `max-width` inside a media query is
+  invisible to it — verified by planting one and watching the gate stay green.
+  There are none on a page root today, and RULE 4a ignores nested rules for the
+  same reason.
   Two of its rules were written wrong and passed planted defects before being
   fixed — both worth knowing if you extend it. `/\bpage-header\b/` never matches
   `page-header__title`, because `_` is a word character (so the class rules carry

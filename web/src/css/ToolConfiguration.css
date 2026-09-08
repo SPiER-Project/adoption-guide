@@ -1,6 +1,11 @@
-.tool-config {
-  max-width: 1040px;
-}
+/* `.tool-config` sets no width, and there is deliberately no rule here to.
+   This page renders inside the /guide layout, and `.implementation-guide`
+   already set one; a sub-page that restates its width is the same
+   double-ownership that gave the guide its 24px indent. Seven sub-pages did
+   it, at five different widths (820 / 900 / 960 / 1040 / 1200), so the
+   section pager changed measure as you paged through one document.
+   `npm run check:template` now forbids it. Prose that needs a narrower
+   measure caps the text run with `--measure-prose`, not the page. */
 
 .tool-config-header {
   margin-bottom: var(--space-7);
@@ -10,7 +15,7 @@
   color: var(--text-body);
   line-height: 1.55;
   margin: 0 0 0.75rem 0;
-  max-width: 720px;
+  max-width: var(--measure-prose);
 }
 
 .tool-config-meta {
@@ -37,7 +42,7 @@
 .tool-config-effect {
   margin-bottom: var(--space-7);
   padding: var(--space-4);
-  max-width: 720px;
+  max-width: var(--measure-prose);
   background: var(--surface-muted);
   border: 1px solid var(--border-default);
   border-left: 3px solid var(--brand-accent);
@@ -172,6 +177,7 @@
   color: var(--text-muted);
   margin: 0;
   line-height: 1.45;
+  max-width: var(--measure-prose);
 }
 
 .tool-config-stage-list {

@@ -1,12 +1,18 @@
-.data-dictionary {
-  max-width: 1200px;
-}
+/* `.data-dictionary` sets no width, and there is deliberately no rule here to.
+   This page renders inside the /guide layout, and `.implementation-guide`
+   already set one; a sub-page that restates its width is the same
+   double-ownership that gave the guide its 24px indent. Seven sub-pages did
+   it, at five different widths (820 / 900 / 960 / 1040 / 1200), so the
+   section pager changed measure as you paged through one document.
+   `npm run check:template` now forbids it. Prose that needs a narrower
+   measure caps the text run with `--measure-prose`, not the page. */
 
 .dd-description {
   color: var(--text-muted);
   font-size: var(--font-size-lg);
   line-height: 1.6;
   margin: 0 0 1.5rem 0;
+  max-width: var(--measure-prose);
 }
 
 .dd-filters {

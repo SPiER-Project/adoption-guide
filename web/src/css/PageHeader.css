@@ -71,7 +71,7 @@
 
 .page-header__lede {
   margin: 0;
-  max-width: 760px;
+  max-width: var(--measure-prose);
   font-size: var(--font-size-lg);
   line-height: 1.6;
   color: var(--text-body);

@@ -1,5 +1,5 @@
 .measure-dashboard {
-  max-width: 1200px;
+  max-width: var(--page-width-wide);
 }
 
 .md-description {
@@ -7,6 +7,7 @@
   font-size: var(--font-size-lg);
   line-height: 1.6;
   margin: 0 0 1.5rem 0;
+  max-width: var(--measure-prose);
 }
 
 .md-controls {

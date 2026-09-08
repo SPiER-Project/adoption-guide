@@ -1,7 +1,3 @@
-.dashboard {
-  max-width: 1000px;
-}
-
 /* ── Demo Scenario Banner ── */
 .demo-scenario-banner {
   background: linear-gradient(135deg, var(--accent-violet-soft-bg) 0%, var(--accent-violet-soft) 100%);
