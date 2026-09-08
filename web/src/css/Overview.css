@@ -33,6 +33,7 @@
 .overview__section > p,
 .overview__section > li {
   margin: 0;
+  max-width: var(--measure-prose);
   font-size: var(--font-size-md);
   line-height: 1.65;
   color: var(--text-body);
@@ -45,6 +46,8 @@
 }
 
 .overview__note {
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-md);
   padding: var(--space-4);
   border-left: 3px solid var(--brand-primary);
   border-radius: var(--radius-lg);
@@ -63,6 +66,7 @@
 }
 
 .overview__lead {
+  max-width: var(--measure-prose);
   margin: 0;
   font-size: var(--font-size-lg);
   line-height: 1.6;
@@ -182,6 +186,7 @@
 }
 
 .overview__vignette p {
+  max-width: var(--measure-prose);
   margin: 0;
   font-size: var(--font-size-md);
   line-height: 1.6;

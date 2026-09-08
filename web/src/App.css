@@ -662,6 +662,7 @@
    Encounters Tab
    =========================== */
 .encounters-note {
+  max-width: var(--measure-prose);
   color: var(--text-faint);
   font-size: var(--font-size-base);
   margin: -1rem 0 1.5rem 0;
@@ -1054,6 +1055,8 @@
 }
 
 .instrument-header__about > p {
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-sm);
   margin: var(--space-2) 0 0;
   line-height: var(--line-height-normal);
 }

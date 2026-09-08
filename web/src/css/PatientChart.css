@@ -133,6 +133,7 @@
 }
 
 .pathway-progress {
+  max-width: var(--measure-prose);
   font-size: var(--font-size-base);
   color: var(--text-muted);
   margin: 0 0 var(--space-4) 0;
@@ -383,6 +384,7 @@
 }
 
 .pathway-node-desc {
+  max-width: var(--measure-prose);
   font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.5;
@@ -522,6 +524,7 @@
 }
 
 .cds-card-rationale {
+  max-width: var(--measure-prose);
   color: var(--text-body);
   font-size: var(--font-size-md);
   line-height: 1.5;
@@ -804,6 +807,7 @@
 }
 
 .documents-note {
+  max-width: var(--measure-prose);
   font-size: var(--font-size-base);
   color: var(--text-muted);
   margin: 0 0 var(--space-3) 0;

@@ -14,6 +14,7 @@
 }
 
 .workflow-form-hint {
+  max-width: var(--measure-prose);
   margin: 0 0 var(--space-4) 0;
   padding: var(--space-2) var(--space-3);
   background: var(--accent-info-soft);
@@ -49,6 +50,7 @@
    is not self-evident from the label — e.g. what the caring-contact opt-out
    actually does to the Stage-8 adherence measure. */
 .workflow-field-help {
+  max-width: var(--measure-prose);
   font-weight: 400;
   font-size: var(--font-size-sm);
   color: var(--text-muted);
@@ -139,6 +141,8 @@
 }
 
 .consent-gate__detail {
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-sm);
   margin: 0;
   line-height: 1.5;
 }

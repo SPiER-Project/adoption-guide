@@ -37,6 +37,7 @@
    directly under the provenance strip, where a reader who has just been told
    "this is the published artifact" is deciding what it is about. */
 .pathway-protocol__scope {
+  max-width: var(--measure-prose);
   margin: 0;
   padding: var(--space-3) var(--space-4);
   border-left: 4px solid var(--brand-accent);
@@ -361,6 +362,7 @@
 }
 
 .pathway-branch__exit {
+  max-width: var(--measure-prose);
   margin: var(--space-4) 0 0;
   padding: var(--space-3);
   border: 1px dashed var(--border-strong);
@@ -432,6 +434,7 @@
 }
 
 .pathway-sim__text {
+  max-width: var(--measure-prose);
   color: var(--text-body);
   font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
@@ -490,6 +493,7 @@
 }
 
 .pathway-pending__lede {
+  max-width: var(--measure-prose);
   margin: 0 0 var(--space-3);
   color: var(--accent-warning-text-deep);
   font-size: var(--font-size-sm);
@@ -508,6 +512,7 @@
 }
 
 .pathway-pending__list dd {
+  max-width: var(--measure-prose);
   margin: var(--space-1) 0 0;
   color: var(--text-muted);
   font-size: var(--font-size-sm);

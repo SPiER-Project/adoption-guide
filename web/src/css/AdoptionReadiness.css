@@ -129,6 +129,8 @@
 }
 
 .ar-legend-text {
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
   flex: 1;
   min-width: 0;
 }
