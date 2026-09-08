@@ -239,54 +239,61 @@ export function MeasureDashboard() {
               <h3 className="md-measure-title">{tally.title}</h3>
             </header>
 
-            <table className="md-table">
-              <thead>
-                <tr>
-                  <th scope="col">Group</th>
-                  <th scope="col">Denominator</th>
-                  <th scope="col">Excluded</th>
-                  {/* Cases an exception removed: the reason applied AND the
-                      numerator was not met. A patient who met both stays in the
-                      denominator and counts as a pass, so this column never
-                      hides a success. */}
-                  <th scope="col" title="Removed for a valid clinical or system reason, and only because the numerator was not met">
-                    Exception
-                  </th>
-                  <th scope="col">Numerator</th>
-                  <th scope="col">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tally.groups.map(g => {
-                  const effective = g.denominator - g.denominatorExclusion - g.denominatorException
-                  return (
-                    <tr key={g.code}>
-                      <th scope="row" className="md-group-name">
-                        {g.display}
-                      </th>
-                      <td>{g.denominator}</td>
-                      <td>{g.denominatorExclusion || '—'}</td>
-                      <td>{g.denominatorException || '—'}</td>
-                      <td>{g.numerator}</td>
-                      <td className="md-score">
-                        {g.score === null ? (
-                          <span className="md-empty" title="No patients in the denominator">
-                            no denominator
-                          </span>
-                        ) : (
-                          <>
-                            <span className="md-score-value">{Math.round(g.score * 100)}%</span>
-                            <span className="md-score-fraction">
-                              {g.numerator}/{effective}
+            {/* The table is six numeric columns and a group name, and
+                `.md-score` cannot wrap — so below roughly 600px it is wider
+                than the page. It used to push the whole document sideways
+                (183px of horizontal scroll on a phone); this keeps the
+                overflow inside the table's own box. */}
+            <div className="md-table-scroll">
+              <table className="md-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Group</th>
+                    <th scope="col">Denominator</th>
+                    <th scope="col">Excluded</th>
+                    {/* Cases an exception removed: the reason applied AND the
+                        numerator was not met. A patient who met both stays in the
+                        denominator and counts as a pass, so this column never
+                        hides a success. */}
+                    <th scope="col" title="Removed for a valid clinical or system reason, and only because the numerator was not met">
+                      Exception
+                    </th>
+                    <th scope="col">Numerator</th>
+                    <th scope="col">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tally.groups.map(g => {
+                    const effective = g.denominator - g.denominatorExclusion - g.denominatorException
+                    return (
+                      <tr key={g.code}>
+                        <th scope="row" className="md-group-name">
+                          {g.display}
+                        </th>
+                        <td>{g.denominator}</td>
+                        <td>{g.denominatorExclusion || '—'}</td>
+                        <td>{g.denominatorException || '—'}</td>
+                        <td>{g.numerator}</td>
+                        <td className="md-score">
+                          {g.score === null ? (
+                            <span className="md-empty" title="No patients in the denominator">
+                              no denominator
                             </span>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                          ) : (
+                            <>
+                              <span className="md-score-value">{Math.round(g.score * 100)}%</span>
+                              <span className="md-score-fraction">
+                                {g.numerator}/{effective}
+                              </span>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             <EmptyExplanation emptiness={emptiness[i] ?? { kind: 'none' }} />
 

@@ -30,6 +30,20 @@
   flex-shrink: 0;
 }
 
+/* The title is a FHIR reference — `PlanDefinition/SPiERSuicideSaferCarePathway`,
+   one unbreakable token. As a flex item it defaults to `min-width: auto`, which
+   refuses to shrink below that longest word, so on a narrow viewport it pushed
+   the whole DOCUMENT sideways rather than wrapping. Same treatment the
+   canonicals elsewhere get (`.pathway-notes__canonical`,
+   `.pathway-obligation__def`): let it shrink, and let the token break.
+
+   This component renders on many pages, so the fix is not specific to the one
+   route where the overflow was first measured. */
+.fhir-viewer-toggle-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .fhir-viewer-panel {
   margin-top: var(--space-2);
   background: var(--text-strong);

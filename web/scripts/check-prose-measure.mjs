@@ -163,6 +163,18 @@ const INHERITS_TYPE = {
   'src/css/ToolConfiguration.css|.tool-config-intro':
     'Inherits 16px from the page (measured), so the cap lands at 656px and the run at 83 characters. ' +
     'Left on inheritance rather than pinned: it is the page intro and takes the body size by default.',
+  'src/css/PatientChart.css|p':
+    'Two state-banner bodies, `.empty-chart-banner p` and `.chart-data-error p`. Both inherit ' +
+    '16px (measured; neither band sets a font-size, so this is the page body size), landing the ' +
+    'cap at 656px and the run at 82 characters — they were 146 uncapped. Left on inheritance ' +
+    'rather than pinned: this is ordinary body copy inside a tinted band, and pinning a size ' +
+    'here would make these the one place in the app whose body text stops tracking the page.',
+  'src/css/CarePathway.css|p':
+    'The pathway load-error explanation, `.pathway-load-error p`. Inherits 16px from ' +
+    '`.pathway-load-error` (measured), so the cap lands at 656px and the run at 82 characters — ' +
+    'it was 145 uncapped. Scoped to the `<p>` on purpose: the sibling ' +
+    '`.pathway-load-error__detail` is the raw canonical plus the command to run, a code run at ' +
+    '`--font-size-2xs` with its own `overflow-x`, and a reading measure is the wrong shape for it.',
   'src/css/ToolConfiguration.css|.tool-config-effect':
     'Deliberate, and the reason the box is capped at all. It sets no font-size, so it resolves the ' +
     'token at the inherited 16px and gets a CALLOUT width (656px); `.tool-config-effect__body` ' +

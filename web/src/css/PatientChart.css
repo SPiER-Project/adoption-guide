@@ -29,10 +29,15 @@
   margin-bottom: var(--space-6);
 }
 
+/* Cap the body, not the band — the tinted band is page-level framing, so it
+   keeps the page width the way `.md-caveat`'s does, while the sentence inside
+   it gets the measure. Uncapped this ran to 146 characters a line. The `em`
+   resolves against this element's own 16px, which is what the run is set in. */
 .empty-chart-banner p {
   margin: 0.4rem 0 0 0;
   color: var(--text-body);
   line-height: 1.5;
+  max-width: var(--measure-prose);
 }
 
 /* Async data-source states (SMART live reads/writes) */
@@ -55,10 +60,15 @@
   margin-bottom: var(--space-6);
 }
 
+/* `max-width` here is the same call as `.empty-chart-banner p` above — band at
+   page width, body at the measure. The text is a server error string, so its
+   length is not ours to predict; uncapped, a realistic one ran to 146
+   characters a line. */
 .chart-data-error p {
   margin: 0.4rem 0 0 0;
   line-height: 1.5;
   overflow-wrap: anywhere;
+  max-width: var(--measure-prose);
 }
 
 /* ===========================

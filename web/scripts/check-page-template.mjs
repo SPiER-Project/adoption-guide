@@ -258,7 +258,15 @@ function* styleRules(css, offset = 0, nested = false) {
     } else if (ch === '}') {
       depth--
       if (depth === 0) {
-        const prelude = text.slice(start, blockStart).trim()
+        // `start` sits just past the previous rule's `}`, so it points at the
+        // whitespace and blanked comments BEFORE this selector, not at the
+        // selector. Reporting that offset put every message on the line the gap
+        // began — `.overview` is on line 11 of Overview.css and was reported as
+        // line 1, under a ten-line comment block. Measure the trim so the line
+        // number names the rule someone has to go and edit.
+        const raw = text.slice(start, blockStart)
+        const prelude = raw.trim()
+        const preludeAt = start + (raw.length - raw.trimStart().length)
         const body = text.slice(blockStart + 1, i)
         if (prelude.startsWith('@')) {
           if (/^@(media|supports|layer|container)/.test(prelude)) {
@@ -266,7 +274,7 @@ function* styleRules(css, offset = 0, nested = false) {
             yield* styleRules(body, offset + blockStart + 1, nested || conditional)
           }
         } else if (prelude) {
-          yield { selector: prelude, body, index: offset + start, nested }
+          yield { selector: prelude, body, index: offset + preludeAt, nested }
         }
         start = i + 1
       }
@@ -279,6 +287,15 @@ const PADDING = /(^|[;{\s])padding(-(top|right|bottom|left|inline|block)(-(start
 const MAX_WIDTH = /(^|[;{\s])max-(width|inline-size)\s*:\s*([^;}]+)/g
 /** The whole page-width vocabulary. A third value is drift, not a third option. */
 const PAGE_WIDTHS = ['var(--page-width-prose)', 'var(--page-width-wide)']
+/**
+ * An auto inline margin, in every spelling that centres a block: the shorthand
+ * with two or more values (`margin: 0 auto`), the logical pair, and the two
+ * physical longhands. `margin: auto` alone counts too.
+ */
+const AUTO_INLINE_MARGIN =
+  /(^|[;{\s])margin(-(inline|left|right))?(-(start|end))?\s*:\s*([^;}]*\bauto\b[^;}]*)/
+/** The element the shell centres: whatever page root renders into the body. */
+const CENTERING_OWNER = '.app-shell__body > *'
 const lineOf = (src, index) => src.slice(0, index).split('\n').length
 
 /**
@@ -303,6 +320,10 @@ function cssFilesUnder(dir, prefix = '') {
 const cssFiles = cssFilesUnder(SRC_DIR)
 /** Which declared inset owners were actually found padding, unconditionally. */
 const padsFound = new Set()
+/** Where the shell's centring rule was found, for RULE 6. */
+let centeringAt = null
+/** class → where it sets an auto inline margin on itself. RULE 6 reads this. */
+const selfCentered = new Map()
 
 /**
  * class → the unconditional `max-width` values declared straight on it, with
@@ -318,6 +339,7 @@ for (const file of cssFiles) {
   for (const rule of styleRules(src)) {
     const selectors = rule.selector.split(',').map(s => s.trim())
     const pads = PADDING.test(rule.body)
+    const centers = AUTO_INLINE_MARGIN.test(rule.body)
     const at = `${file}:${lineOf(src, rule.index)}`
 
     for (const selector of selectors) {
@@ -325,6 +347,11 @@ for (const file of cssFiles) {
       // this, every check below could pass while nothing padded anything: a
       // green gate over an app with no page inset at all.
       if (Object.hasOwn(INSET_OWNERS, selector) && pads && !rule.nested) padsFound.add(selector)
+
+      // Gather for RULE 6 — the shell centres the page column, unconditionally.
+      if (selector.replace(/\s+/g, ' ') === CENTERING_OWNER && centers && !rule.nested) {
+        centeringAt = at
+      }
 
       // Gather for RULE 5: a `max-width` set straight on a single class, not on
       // one of its descendants — `.foo .bar` styles the child, and a page's
@@ -336,6 +363,7 @@ for (const file of cssFiles) {
           if (!rootWidths.has(bare[1])) rootWidths.set(bare[1], [])
           rootWidths.get(bare[1]).push({ value: m[3].trim(), at })
         }
+        if (centers && !selfCentered.has(bare[1])) selfCentered.set(bare[1], at)
       }
 
       // RULE 1 (CSS half) — no page-header rules outside PageHeader.css, so a
@@ -482,6 +510,50 @@ for (const [selector, owner] of Object.entries(INSET_OWNERS)) {
     fail(
       `no page root declares ${PAGE_WIDTHS.join(' or ')} — either the tokens were renamed, in which case fix ` +
         'PAGE_WIDTHS here, or nothing about page width was verified',
+    )
+  }
+}
+
+// ── RULE 6 — one owner of where the page column sits ─────────────────────────
+//
+// The third of the same family. RULE 4 asks who owns the page inset and RULE 5
+// who owns the page width; neither asked who owns the page's *horizontal
+// placement*, so nothing did, and the answer was the initial value: flush left.
+//
+// That is not a cosmetic default. The leftover space is whatever the viewport
+// has over the width token, so it grew with the screen AND differed per page —
+// at 1920px a `--page-width-wide` page used 74% of the content area and a
+// `--page-width-prose` page 56%, leaving a 716px void beside the front door.
+// Every root was already on one of the two tokens and RULE 5 was green, so the
+// app still read as "the widths are all over the place": moving from Overview
+// to any other page slid the content's right edge 300px sideways instead of
+// growing the column around a fixed axis.
+//
+// So, exactly as with the inset: one owner, and it is the shell.
+//
+// ⚠️ 6a is the liveness half, and it is the one that matters. Every check in
+// this file is satisfied by an app that centres nothing — the #232 / #261
+// failure mode — so the rule that the shell DOES centre has to be asserted
+// positively, not merely left unviolated. Same shape as RULE 4a.
+if (!centeringAt) {
+  fail(
+    `no unconditional \`${CENTERING_OWNER} { margin-inline: auto }\` rule found — ` +
+      'the shell is what centres the page column (AppShell.css). Without it every page ' +
+      'is flush left and the space left over piles up on the right, differently per ' +
+      'width token; nothing else in this gate would notice',
+  )
+}
+
+// 6b — and no page root or layout wrapper centres itself. The shell already
+// does it for all of them, so a root that repeats it is the double-ownership
+// RULE 4b and RULE 5c each forbid one property over: six of seven agreeing is a
+// disagreement nobody can see.
+for (const [cls, owner] of containers) {
+  const at = selfCentered.get(cls)
+  if (at) {
+    fail(
+      `${at}: \`.${cls}\` centres itself with an auto inline margin (${owner}) — ` +
+        `${CENTERING_OWNER} already centres every page root; one owner of where the column sits`,
     )
   }
 }
