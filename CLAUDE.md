@@ -167,6 +167,16 @@ by design; that lag is recorded in `docs/scheduled-checks-triage.md` § *Cause 1
 instead. A code that fails because it is *wrong* is #220 and belongs in a fix,
 never here.
 
+⚠️ **`tx.fhir.org` is not the authority — Regenstrief is, and there is a tool for
+asking it.** `bash scripts/loinc-audit/loinc-audit.sh .` checks every LOINC coding
+in every Questionnaire (76 today, ~20s) against `fhir.loinc.org`, which never lags
+a release. It is deliberately **not** a gate: it needs a personal Regenstrief
+account, so CI would mean one person's credential in Actions secrets. Run it when
+you add codings and after a LOINC release. Its README carries the two traps that
+made three earlier versions of it report confident nonsense, and the display trap
+it exists for — a `display` must be LOINC's string, not the question wording, and
+`item.text` deliberately differs from `item.code[].display` on every ASQ item.
+
 Its floors are per source **and** per vocabulary family, and the guard loop reads
 the declared floors rather than the family list — see the comment on `SCAN`. Both
 directions of that contract are now enforced rather than requested: deleting a
