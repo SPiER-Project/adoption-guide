@@ -47,8 +47,11 @@
   line-height: var(--line-height-normal);
 }
 
+/* 591 characters, and at the page's full width that was 165 a line. The cap is
+   on the text run, never on `.care-pathway` — see `--measure-prose`. */
 .care-pathway__lede {
   margin: 0;
+  max-width: var(--measure-prose);
   color: var(--text-muted);
   font-size: var(--font-size-md);
   line-height: var(--line-height-normal);
@@ -86,7 +89,11 @@
   list-style: none;
 }
 
+/* A note is the longest prose on the page after the lede — the worst of the 27
+   ran 183 characters a line. Capping the item rather than `.pathway-notes__text`
+   keeps the rule, the label and the wrapped text on one measure. */
 .pathway-notes__item {
+  max-width: var(--measure-prose);
   padding-left: var(--space-3);
   border-left: 2px solid var(--border-strong);
   color: var(--text-muted);
@@ -200,8 +207,12 @@
   content: counter(pathway-step) '. ';
 }
 
+/* The step card stays full width — it carries chips, gates and a definition
+   canonical — while its description is one sentence and gets a measure. It was
+   the worst run on the page at 187 characters a line. */
 .pathway-step__desc {
   margin: var(--space-2) 0 0;
+  max-width: var(--measure-prose);
   color: var(--text-body);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
@@ -232,8 +243,12 @@
   font-weight: 600;
 }
 
+/* The smallest type on the page, and so the longest measure for a given width:
+   205 characters a line uncapped. `--measure-prose` is in `em` precisely so this
+   run and the 14px lede above it land on the same character count. */
 .pathway-obligation__desc {
   margin: var(--space-1) 0 0;
+  max-width: var(--measure-prose);
   color: var(--text-muted);
   font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
@@ -372,6 +387,7 @@
 
 .pathway-sim__lede {
   margin: var(--space-2) 0 0;
+  max-width: var(--measure-prose);
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
@@ -507,8 +523,11 @@
   background-color: var(--surface-page-alt);
 }
 
+/* The panel keeps its full width: `.pathway-provenance__facts` below is an
+   auto-fit grid that uses every pixel of it. Only the sentence is capped. */
 .pathway-provenance__lede {
   margin: 0 0 var(--space-3);
+  max-width: var(--measure-prose);
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);

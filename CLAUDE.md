@@ -45,6 +45,19 @@ npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
 npm run check:template # page template: one header implementation, one owner of the page
                        # inset, one owner of the page width
+npm run check:prose    # the reading MEASURE — `--measure-prose`. Its four rules are each
+                       # written against a defect that shipped: the token must be in `em`
+                       # and in band (it was 760px, a width where a character count was
+                       # meant); every other `max-width` must be a page-width token or
+                       # classified NON_PROSE with a reason (`.dd-detail` escaped a column
+                       # budget to 52rem = 134 cpl under a comment claiming otherwise);
+                       # a `max-width: none` must be declared (`.dd-cell-desc` carried a
+                       # 46rem cap that a later `none` had always overridden); and an `em`
+                       # cap must know what type it resolves against (`.tool-config-effect`
+                       # sat at an inherited 16px while its paragraph was 14px).
+                       # ⚠️ It CANNOT see a prose run with NO cap — that needs to know
+                       # which elements hold long prose, which is content, not CSS. Measure
+                       # a wide page's prose by hand after adding it
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
                        # and the shim still covers every method its consumers call
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
@@ -772,17 +785,40 @@ which is filed separately.
   elements) went with the same pass.
   ⚠️ **`--measure-prose` is not a third page width.** It caps a *text run*, and
   the distinction is the point: the width a table wants is not the width a
-  sentence wants, so a wide page keeps its tables wide and caps its prose. 760px
-  is not a new number — `.page-header__lede` already hardcoded it, so every page
-  lede was capped there while the page description one line below it ran to 960
-  or 1040. Put it on prose, never on a page root, or RULE 5 fails you.
-  ⚠️ **Long text runs on the pages that were *always* wide are a separate,
-  still-open issue.** `/guide/pathway`, `/guide/data-dictionary` and
-  `/population/measures` carry paragraphs at 145–182 characters a line
-  (`care-pathway__lede`, `dd-concept-intro`, `pathway-provenance__lede`,
-  `md-caveat-body`). Those predate the width standardization and are untouched
-  by it — do not read a green `check:template` as saying the prose measures are
-  all sound.
+  sentence wants, so a wide page keeps its tables wide and caps its prose. Put
+  it on prose, never on a page root, or RULE 5 fails you.
+  ⚠️ **It is `41em`, and the unit is the whole point: a measure is a character
+  count, not a width.** It was `760px` — the number `.page-header__lede` had
+  hardcoded — and a px measure is right only for the font size it was set
+  against. That size was `--font-size-lg`; every other run reading the token is
+  smaller, and each one got a *longer* measure for it. At 760px the lede itself
+  ran ~103 characters a line, the 14px runs ~110 and the 12px runs ~126 — all
+  past the 45–90 band the token exists to hold, while looking capped. `em`
+  resolves against the run's own font-size, so one number holds the count at
+  every size: 41em lands all 20 runs that read it at **77–89 characters**,
+  measured in the app at 1440px across five type sizes (11–16px). **Do not
+  restate it in px, and do not add a second measure token for small type** —
+  `--measure-body` existed for one commit before it turned out to be this.
+  ⚠️ **Cap the text, not the box, when the two are set in different type.** An
+  `em` cap resolves against the element it is written on, so a callout whose own
+  font-size is the inherited 16px while its paragraph is 14px measures the wrong
+  thing. `.md-caveat` caps its body and keeps its band full width, because that
+  band is page-level framing; `.tool-config-effect` caps both — the box at its
+  16px for a callout width, the body at its 14px for the measure — because
+  dropping the box cap left a wide tinted band with the sentence stopping
+  halfway; `.md-gap` caps the box, because there the box *is* the run.
+  ⚠️ **`check:template` RULE 5 does not cover this — `npm run check:prose`
+  does.** RULE 5 owns *page-root* widths and says nothing about a text run,
+  which is why the three always-wide pages sat at 145–182 characters and
+  `.dd-detail` overshot to 52rem (134 characters on 13px type) under a comment
+  claiming it was the prose cap. `check:prose` is the gate for the measure
+  itself; its four rules and the one thing it cannot see are described in the
+  verify list above. `.dd-detail` keeps 52rem for the data lines that really do
+  need it, classified as NON_PROSE, and `.dd-detail-desc` caps itself.
+  ⚠️ **What it cannot see is a run with no cap at all**, so a new paragraph on a
+  wide page still wants measuring by hand. A green `check:prose` says every
+  cap that exists is a character count rather than a width; it does not say
+  every run that needs one has one.
   Two families are templated, found in different ways. The **lenses**
   (`src/pages`) are a declared allowlist, because which pages own a header is a
   decision. The **form views** (`src/components` — every assessment and workflow
