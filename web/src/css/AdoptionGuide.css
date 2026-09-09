@@ -15,7 +15,19 @@
    forget. (Three of the nine sub-pages had forgotten it before that rule
    existed, one of them under a class it did not even render.)
    =========================== */
+/* The guide's width, for all seven sub-pages. One owner, two values, chosen
+   per section by `width` in data/guideSections.ts — RULE 5a still forbids a
+   sub-page from declaring its own, which is the drift that gave the guide five
+   widths in seven sections.
+   `prose` is the base because it is the safe default: a section that needs the
+   room says so and gets it, while a section that does not stays at a width its
+   prose actually fills (~68% of the column at the reading measure, against
+   ~48% at `--page-width-wide` — which is what looked broken). */
 .implementation-guide {
+  max-width: var(--page-width-prose);
+}
+
+.implementation-guide--wide {
   max-width: var(--page-width-wide);
 }
 

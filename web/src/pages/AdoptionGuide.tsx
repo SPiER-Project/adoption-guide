@@ -19,8 +19,16 @@ export function AdoptionGuide() {
   const next =
     activeIndex < GUIDE_SECTIONS.length - 1 ? GUIDE_SECTIONS[activeIndex + 1] : null
 
+  // The width test is hoisted out of the JSX so the className expression below
+  // contains nothing but the two class lists. `check:template` reads the page
+  // root's classes out of this file's source — a root class it cannot see is a
+  // page width it cannot check against the two-token vocabulary — and it
+  // rejects a literal in there that is not part of the root's own block, which
+  // an inline `active.width === 'wide'` would have put there.
+  const wide = active.width === 'wide'
+
   return (
-    <div className="implementation-guide">
+    <div className={wide ? 'implementation-guide implementation-guide--wide' : 'implementation-guide'}>
       <PageHeader eyebrow={['Adoption Guide', guideGroupLabel(active.group)]} title={active.label} />
 
       {/* A `<div>`, not a `<main>`: AppShell already renders the document's one
