@@ -49,7 +49,8 @@ npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
 npm run check:template # one header implementation, one owner of the page inset, one owner of the width
-npm run check:prose    # the reading measure: --measure-prose is a character count, every cap declared
+npm run check:prose    # the reading measure: --measure-prose is a character count, every cap
+                       # declared, and prose is set at one of three sizes
 npm run check:ucum     # the UCUM shim is still safe: no quantities, and it still covers its callers
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4"
 npm run check:crosswalk        # concept-crosswalk validation
@@ -178,8 +179,19 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
 - **Design tokens only.** Vanilla CSS with custom properties. stylelint
   (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)`
   for `color`, `background-color`, `border-color`, `fill`, `font-size`,
-  `box-shadow`. Raw values are allowed only in `src/index.css` (token
+  `box-shadow`, **and every spacing property** — `padding`, `margin` and `gap`
+  with their longhands. Raw values are allowed only in `src/index.css` (token
   definitions). Class selectors must be kebab-case BEM.
+  **Spacing is a 10-step scale**, `--space-0-5` … `--space-8`; the two
+  half-steps exist because the 0.25rem grid is too coarse below 0.5rem, where
+  pill and badge padding lives. Don't add an eleventh — a step is a decision
+  every later author inherits. Three things are deliberately *not* on it:
+  `--gap-inline` (an `em`, for an icon beside its label), a derived alignment
+  (write the `calc()` over the tokens it depends on rather than typing the sum
+  — `.sidebar-link--child` and `.stage-tools` do), and a sub-step hairline
+  nudge (keeps its raw value behind a `stylelint-disable` naming why it is not
+  spacing). ⚠️ `ignoreValues` permits any `calc(…)`, so a raw length inside one
+  is unchecked; that is where a deliberate derived value lives.
   ⚠️ **stylelint checks that a token is *used*, never that it *exists*** —
   `npm run check:tokens` closes that half.
 - **One page template.** Every route under the app shell renders into
@@ -193,13 +205,26 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   `--page-width-prose` or `--page-width-wide` — those two are the whole
   vocabulary. A page that *inherits* its header from a layout inherits the
   layout's width and declares none.
+  The Adoption Guide is the one layout serving both: `.implementation-guide`
+  declares `prose` and `.implementation-guide--wide` the other, picked per
+  section by **`width` on `GuideSection`** (`data/guideSections.ts`), which is
+  required with no default. Ownership is unchanged — both declarations sit on
+  the layout's own class family — and a *sub-page* root still may not declare a
+  width. A new guide section chooses `prose` when unsure: `wide` on a prose page
+  is invisible, while `prose` on a page with a table shows up at once.
 - **`--measure-prose` is not a third page width.** It caps a *text run*, and it
   is in `em` because a measure is a character count, not a width. Put it on
   prose, never on a page root. Cap the text, not the box, when the two are set in
   different type sizes.
+  **Prose has three sizes and no others** — `--font-size-lg` (lede),
+  `--font-size-md` (body), `--font-size-base` (note) — enforced by `check:prose`
+  RULE 5. Not new role tokens: a role aliasing a size is two names for one
+  number. A smaller size does not shorten the line, because the `em` cap holds
+  the character count; it only makes the paragraph narrower than its column.
   ⚠️ `check:prose` cannot see a prose run with **no** cap — that needs to know
   which elements hold long prose, which is content, not CSS. Measure a wide
-  page's prose by hand after adding it.
+  page's prose by hand after adding it. The same blind spot covers RULE 5: an
+  uncapped run has no size for it to check either.
   The rationale for all four of these, the gates' exact limits, and the drift
   each was written against are in
   [`docs/internals/css-and-page-template.md`](docs/internals/css-and-page-template.md).
