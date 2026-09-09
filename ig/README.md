@@ -38,12 +38,13 @@ npx fsh-sushi .
 Rendering a hostable site needs the full IG Publisher (Java 17+, a
 `publisher.jar` from the [HL7/fhir-ig-publisher releases](https://github.com/HL7/fhir-ig-publisher/releases),
 run as `java -jar publisher.jar -ig .` here) — it refuses paths with a space
-and needs Jekyll; see the IG section of `CLAUDE.md` at the repo root.
+and needs Jekyll; see `docs/internals/ig-build.md` at the repo root.
 
 ## Verification
 
 Run before committing an IG change; a clean SUSHI run does not imply the
-others passed. Rationale for each gate is in `CLAUDE.md` at the repo root.
+others passed. The commands are in `CLAUDE.md` at the repo root; the rationale
+for each gate is in `docs/internals/ig-build.md`.
 
 | Command | Run from | What it catches |
 |---|---|---|

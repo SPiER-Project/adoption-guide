@@ -81,7 +81,7 @@ Eight stages, from the first signal to population measurement, so that an implem
 * **`docs/`** — strategy, requirements sources, research, and plans. [`docs/README.md`](docs/README.md) is the index.
 * **`scripts/`** — repo-level tooling: the FHIR validator and FML gates, the IG-menu, IG-narrative, markdown-link and SUSHI-output checks, and the use-case-workbook builder.
 
-Build commands, verification gates and the reasoning behind them live in [`CLAUDE.md`](CLAUDE.md), which is the one home for that material.
+Build commands, verification gates and the conventions they enforce live in [`CLAUDE.md`](CLAUDE.md); the reasoning behind each gate — what it cannot see, and the defect it was written against — is in [`docs/internals/`](docs/internals/README.md).
 
 ## Clinical frameworks
 

@@ -2,6 +2,13 @@
 
 Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-guide demo app).
 
+This file holds the layout, the commands, and the conventions as rules. The
+**reasoning** — why each gate exists, what its load-bearing rule is, and what it
+cannot see — lives in [`docs/internals/`](docs/internals/README.md), one file per
+area, linked from each section below. Read the one for the area you are changing
+**before** you change it: every ⚠️ in those files is a defect that shipped, and
+most of them are a gate that passed while checking nothing.
+
 ## Repo layout
 
 - `ig/` — FHIR Implementation Guide. FSH sources in `ig/input/fsh/` are compiled by SUSHI to `ig/fsh-generated/resources/` (gitignored). This is the **canonical, machine-readable** source for Profiles, ValueSets, CodeSystems, ActivityDefinitions, PlanDefinitions, and example Instances.
@@ -24,1002 +31,243 @@ Guidance for AI agents changing this repo (SPiER — FHIR artifacts + adoption-g
 
 Run these before considering a change done.
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, every `check:*` drift gate listed below, and the unit tests in sequence. (**Deliberately not a count.** This line said "eleven" while `verify` ran fourteen, because a pinned number goes stale silently on every gate added — the same failure as a stale `check:codings` floor in #232. If you add a gate, add it to this list; there is no number to bump.)
+### In `web/`
 
-⚠️ **CI runs `npm run verify` itself**, rather than re-listing its steps, so a
-gate added to `package.json` is enforced automatically. It did not always: the
-`verify` job in `web-lint.yml` hand-listed a subset, and **eight gates ran only
-on developer machines** — `check:template`, `check:patients`, `check:fallback`,
-`check:measures`, `check:reassessment`, `check:dates`, `check:ucum`,
-`check:fhir-r5`. All eight passed and all eight together take ~3s, so cost was
-never the reason; a hand-copied list simply has nothing to compare itself
-against. **Do not re-expand that job into individual steps.** The fast
-`lint-css` job deliberately re-runs the copy-fhir-free gates for quick feedback;
-that overlap is intentional, and nothing may live there that is not also in
-`verify`. The individual pieces, in the order `verify` runs them:
+The one-shot entry point is **`npm run verify`** — copy-fhir (forced),
+typecheck, both linters, every `check:*` gate below, and the unit tests, in
+sequence. **CI runs `npm run verify` itself** rather than re-listing its steps,
+so a gate added to `package.json` is enforced automatically; **do not re-expand
+the CI job into individual steps.**
+
+If you add a gate, add it to this list. **Deliberately not a count** — a pinned
+number goes stale silently on every gate added.
+
 ```
-npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
+npm run copy-fhir      # compile IG via SUSHI + copy resources into the generated tree (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
-npm run check:template # page template: one header implementation, one owner of the page
-                       # inset, one owner of the page width
-npm run check:prose    # the reading MEASURE — `--measure-prose`. Its four rules are each
-                       # written against a defect that shipped: the token must be in `em`
-                       # and in band (it was 760px, a width where a character count was
-                       # meant); every other `max-width` must be a page-width token or
-                       # classified NON_PROSE with a reason (`.dd-detail` escaped a column
-                       # budget to 52rem = 134 cpl under a comment claiming otherwise);
-                       # a `max-width: none` must be declared (`.dd-cell-desc` carried a
-                       # 46rem cap that a later `none` had always overridden); and an `em`
-                       # cap must know what type it resolves against (`.tool-config-effect`
-                       # sat at an inherited 16px while its paragraph was 14px).
-                       # ⚠️ It CANNOT see a prose run with NO cap — that needs to know
-                       # which elements hold long prose, which is content, not CSS. Measure
-                       # a wide page's prose by hand after adding it
-npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
-                       # and the shim still covers every method its consumers call
-npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
-                       # and the renderer still imports the specifier we alias
-npm run check:crosswalk  # concept-crosswalk validation
-npm run check:extract    # observation-extract validation
-npm run check:core-boundary # packages/core stays React-free and DOM-free — the constraint
-                         # that makes the boundary worth drawing. A feature-detected
-                         # browser API (`typeof BroadcastChannel === 'undefined'`) is
-                         # allowed; an unguarded one is not. `alert` is deliberately
-                         # NOT forbidden: `RiskAlert` values are named `alert`
-npm run check:guide-boundary # the Adoption Guide holds no patient data — it explains and
-                         # configures the pathway; the caseload lives on the EHR side
-                         # (#391). Walks the guide's pages TRANSITIVELY, so a guide page
-                         # importing a component that reads fixtures is caught too
-npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
-                         # questionnaire URLs BOTH ways / per-AD licensing metadata /
-                         # per-AD tool-id identifiers).
-                         # Check B stops a TOOL from reaching the app with no
-                         # ActivityDefinition; check C stops the artifact one
-                         # layer down — a Questionnaire in FHIR-Resources/ that
-                         # no AD administers, which was ungated until 2026-08-20.
-                         # ⚠️ Check F reads the tool-id identifier SYSTEM off the
-                         # NamingSystem that publishes it, never a retyped copy:
-                         # a stale copy here AND in tools.ts would agree with each
-                         # other and pass while the app decatalogued all 43 tools.
-                         # Its load-bearing rule is the MULTI_AD_TOOLS allowlist —
-                         # one tool id on several ADs is legitimate (the CAMS SSF-5
-                         # is one tool, four session forms) and INDISTINGUISHABLE
-                         # from a pasted-in duplicate, and the catalog merges the
-                         # group either way, so the second tool does not go missing
-                         # loudly — it goes missing inside the first one
-npm run check:stages     # stage ids in population data vs canonical FSH stage list
-npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almost
-                         # entirely REFERENCES — tier codes, stage codes, and
-                         # definitionCanonicals — and none of them is a conformance
-                         # error when wrong, so SUSHI and the validator both pass a
-                         # step pointing at nothing. This resolves all three against
-                         # the generated artifacts, reading the stage list through
-                         # the same `scripts/lib/stage-codes.mjs` that `check:stages`
-                         # uses rather than a second copy.
-                         # ⚠️ Its load-bearing rule is that the pathway carries NO
-                         # `timing[x]` at all: the reassessment cadence has exactly
-                         # one home (SPiERReassessmentSchedule) and three statements
-                         # already, held in agreement by `check:reassessment`. A
-                         # fourth here is what "reference, don't restate" prevents,
-                         # and SUSHI reports 0 errors on it — proved by planting one
-npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
-                         # declared item `type` — see the mapper-reader note below
-npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a different
-                         # question: does the NESTING each reader walks match what the
-                         # Questionnaire declares? `extractPairs` must name a `type: group`
-                         # and `extractAnswer(s)` must name a leaf. #420 — `check:readers`
-                         # scans only observationMappers, so #327's family recurred one
-                         # directory over with no gate able to see it (#418/#419).
-                         # ⚠️ It does NOT check that the readers still handle both response
-                         # nestings: a static reader cannot tell a live branch from a dead
-                         # one, and two planted defects proved it. That property is covered
-                         # by the both-shapes cases in the mapper tests instead
-npm run check:patients   # the 14 demo patients' demographics agree across all THREE
-                         # sites: demo-population/src/patients/*.json (canonical), patients.json
-                         # (display copies), and populationToFhir's MRN system in
-                         # PatientProvider.tsx — which is SCRAPED, not restated
-npm run check:scenarios  # BOTH halves of the population-scenario gate:
-                         #  check-scenario-responses.mjs — QuestionnaireResponses vs their
-                         #    Questionnaire (linkIds, nesting, answer options, ranges)
-                         #  ⚠️ the `responses` bucket is ALSO walked by
-                         #    check-scenario-resources.mjs, but for exactly two rules:
-                         #    the patient link and `authored` (#364). It was owned by
-                         #    NEITHER script before — the responses half checks the
-                         #    Questionnaire, which says nothing about `subject`, and the
-                         #    resources half skipped the bucket — so all 20 QRs carried
-                         #    neither field and a patient-scoped search matched none
-                         #  check-scenario-resources.mjs — every OTHER bucket (Observation,
-                         #    CarePlan, Communication, EpisodeOfCare, Appointment,
-                         #    ServiceRequest, Procedure, DocumentReference, Consent, Flag,
-                         #    Task) — see the scenario-gate note below for what it does NOT do
-                         #  ⚠️ it also relates two resources no other gate relates: a
-                         #    DocumentReference claiming `safety-plan-copy` may not point at
-                         #    a CarePlan with zero `activity` (#303). Scoped to the
-                         #    CONTRADICTED case — a claim with NO related CarePlan is
-                         #    unverifiable, not false (the copy may be in the attachment),
-                         #    and p009 is deliberately left green
-npm run check:dates      # the scenario fixtures' clinical dates are still coherent
-                         # RELATIVE TO their anchor — a `fulfilled` appointment dated
-                         # next week, a reassessment overdue by months. Default is
-                         # --check (validates what is on disk and writes nothing);
-                         # `--apply` is the separate re-dating command, so the script's
-                         # name says "shift" while the gate only reads
-npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
-npm run check:reassessment # the per-tier reassessment cadence agrees across all THREE
-                         # places it is stated: the PlanDefinition (FHIRPath condition
-                         # *and* action.code), the app, and the CQL's
-                         # ReassessmentIntervalDays. Also that the tiers deliberately
-                         # left out (imminent, no-risk) stay out — an interval
-                         # appearing for `imminent` would answer an open clinical
-                         # question by accident
-npm test                 # vitest
+npm run check:template # one header implementation, one owner of the page inset, one owner of the width
+npm run check:prose    # the reading measure: --measure-prose is a character count, every cap declared
+npm run check:ucum     # the UCUM shim is still safe: no quantities, and it still covers its callers
+npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4"
+npm run check:crosswalk        # concept-crosswalk validation
+npm run check:extract          # observation-extract validation
+npm run check:core-boundary    # packages/core stays React-free and DOM-free
+npm run check:guide-boundary   # the Adoption Guide holds no patient data (walks guide pages transitively)
+npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, questionnaire URLs both
+                               # ways, per-AD licensing metadata, per-AD tool-id identifiers
+npm run check:stages           # stage ids in population data vs the canonical FSH stage list
+npm run check:pathway          # the pathway PlanDefinition's tier codes, stage codes and
+                               # definitionCanonicals all resolve against the generated artifacts
+npm run check:readers          # every observation mapper's answer reads vs the Questionnaire's
+                               # declared item `type`
+npm run check:careplan-readers # the sibling rule for carePlanMappers: does the nesting each reader
+                               # walks match what the Questionnaire declares
+npm run check:patients         # the 14 demo patients' demographics agree across all three sites
+npm run check:scenarios        # scenario QRs vs their Questionnaire, plus every other resource bucket
+npm run check:dates            # the scenario fixtures' clinical dates are coherent relative to their
+                               # anchor (--check validates; --apply is the separate re-dating command)
+npm run check:measures         # Stage-8 Measure criteria vs the measures.ts engine
+npm run check:reassessment     # the per-tier reassessment cadence agrees across the PlanDefinition,
+                               # the app and the CQL
+npm test                       # vitest
 ```
 
-Deliberately **not** in `verify`, because it needs a terminology server and so
-cannot be offline-reproducible — it runs nightly instead:
+⚠️ **A green `check:*` is not proof of coverage.** Each gate has a rule it
+cannot see, and several were shipped in a form that passed a planted defect.
+[`docs/internals/web-gates.md`](docs/internals/web-gates.md) has the per-gate
+detail — read it before adding a gate, changing one, or concluding that
+something is covered.
+
+### External terminology (nightly, not in `verify`)
+
+Needs a terminology server, so it cannot be offline-reproducible:
+
 ```
-npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display
-                         # literal in web/src and services/, checked against tx.fhir.org
+npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display literal in
+                         # web/src and services/, checked against tx.fhir.org
 ```
 
-⚠️ **`PENDING_TX` is its one tolerated failure, and it is built to expire.**
-tx.fhir.org lags LOINC releases, so a code SPiER adopts from a new edition can be
-correct and still not resolve — the eight ASQ codes from LOINC 2.83 against the
-server's 2.82 are the case it was written for. An entry (keyed `system|code`,
-valued with the edition and date) lets that code pass. **Two of its three rules
-FAIL rather than warn:** an entry the server *does* resolve fails the run, so a
-caught-up server forces the line's deletion instead of leaving a permanent hole;
-and an entry naming a code the scan no longer finds fails too, so a removed
-literal takes its exemption with it. That second rule caught its author on the
-first run — three of the eight ASQ codes live only in the Questionnaire JSON,
-which this script does not scan, so those exemptions could never have expired.
-Resource-side codes are `validate-fhir.mjs --tx`'s, and it has **no** allowlist
-by design; that lag is recorded in `docs/scheduled-checks-triage.md` § *Cause 1b*
-instead. A code that fails because it is *wrong* is #220 and belongs in a fix,
-never here.
+⚠️ **`tx.fhir.org` is not the authority — Regenstrief is.**
+`bash scripts/loinc-audit/loinc-audit.sh .` checks every LOINC coding in every
+Questionnaire against `fhir.loinc.org`, which never lags a release. Run it when
+you add codings and after a LOINC release. It is not a gate: it needs a personal
+Regenstrief account.
 
-⚠️ **`tx.fhir.org` is not the authority — Regenstrief is, and there is a tool for
-asking it.** `bash scripts/loinc-audit/loinc-audit.sh .` checks every LOINC coding
-in every Questionnaire (76 today, ~20s) against `fhir.loinc.org`, which never lags
-a release. It is deliberately **not** a gate: it needs a personal Regenstrief
-account, so CI would mean one person's credential in Actions secrets. Run it when
-you add codings and after a LOINC release. Its README carries the two traps that
-made three earlier versions of it report confident nonsense, and the display trap
-it exists for — a `display` must be LOINC's string, not the question wording, and
-`item.text` deliberately differs from `item.code[].display` on every ASQ item.
+Before adding a coding, touching the `PENDING_TX` allowlist, or reading a red
+nightly, see [`docs/internals/terminology.md`](docs/internals/terminology.md) —
+including why the per-source floors are load-bearing and why an allowlist entry
+is built to expire. A red nightly has a written triage path in
+[`docs/scheduled-checks-triage.md`](docs/scheduled-checks-triage.md).
 
-Its floors are per source **and** per vocabulary family, and the guard loop reads
-the declared floors rather than the family list — see the comment on `SCAN`. Both
-directions of that contract are now enforced rather than requested: deleting a
-family from `EXTERNAL_FAMILIES` leaves its floor behind and starves, and *adding*
-one without a floor in every `SCAN` entry fails at startup. Declare a real zero
-as `0`; never leave it out.
+### In `ig/`
 
-A floor asserts **liveness, not completeness** — "did this scan still look at
-this vocabulary in this source" — so the convention is roughly half the real
-count. That needs a deliberate re-check whenever a source grows, because nothing
-re-checks it on its own: #43 doubled the manifest's SNOMED inventory from 10
-codings to 20 while its floor sat at 5, dropping it to a quarter of the real
-count with nothing going red (#232). Every run prints the live count beside each
-floor, so any recent nightly log tells you where the ratios stand.
+The package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong thing and
+fails in a fresh worktree:
 
-⚠️ **A floor only protects the source as a whole, so `SCAN` entries deliberately
-overlap.** When one path holds two independent contributors, a whole-path floor
-cannot tell them apart and losing either one stays green. #261 measured this:
-reverting the data dictionary to its old un-gated shape dropped `web/src` LOINC
-from 69 to 41, still clearing a floor of 34, while ~28 codings silently left the
-scan. The fix is a second, narrower `SCAN` entry (`web/src/data/catalog`) that
-overlaps the first — safe, because `found` is keyed by system|code|display and
-`perSource` is tallied per entry. **When you add a substantial new source of
-codings inside an already-scanned tree, give it its own entry** rather than
-assuming the parent floor covers it.
-
-⚠️ **The nightly has a named reader and a written triage path —
-`docs/scheduled-checks-triage.md`.** A red run has two causes needing opposite
-responses (real drift → fix the code; `tx.fhir.org` down → re-run), and it links
-that doc from every issue it files. Note also that `schedule` runs only from the
-default branch, and GitHub disables scheduled workflows after 60 days of repo
-inactivity.
-
-⚠️ **It is the only timer-driven workflow now.** `roadmap-snapshot.yml` was the
-second, and it was deleted with the Roadmap page — the roadmap lives in GitHub
-Issues, and mirroring it into a committed snapshot meant shipping 356KB of issue
-bodies to the browser. If you are re-adding scheduled automation, its `ROADMAP_PR_TOKEN`
-history is the thing worth reading first: the org forbids Actions from opening
-PRs, so a workflow that opens one needs a PAT, and an expired PAT falls back to
-`GITHUB_TOKEN` and silently returns to the hand-opened path.
-
-In `ig/` — the package is `fsh-sushi`, so a bare `npx sushi .` fetches the wrong
-thing and fails in a fresh worktree:
 ```
 npx fsh-sushi .        # compile FSH → fsh-generated/resources/
 ```
 
-⚠️ **A clean SUSHI run is not a quiet one.** Slicing `.category` (#271) makes
-every Instance that reaches the element by numeric index emit an advisory
-warning. **6 of those are expected today, all on `Communication`**, and they are
-the only benign shape: `category[+].text` writes a *sub-element* of index 0, so
-the concept-domain coding merges into that CodeableConcept and both survive.
+### At the repo root
 
-⚠️ **The other shape was never benign, and this file used to say it was.** A
-whole-value `* category[+] = <coding>` was being **overwritten** by the domain
-slice resolving onto index 0 — 23 of 25 example Instances silently lost their
-`survey` / `procedure` / `problem-list-item` / SNOMED category, and no gate saw
-it, because a missing optional category is not a validation error. Those profiles
-now declare their standard category as a **named slice**
-(`SurveyCategorySlice` and friends in `ig/input/fsh/concept-layer.fsh`), which
-fixed the loss, cut the warnings 31 → 6, and made the instrument Observations
-conformant to `us-core-observation-screening-assessment`. `check-sushi-output.mjs`
-now allows the warning **only for `Communication`** — if another resource type
-starts emitting it, read the generated JSON before touching the allowlist.
-
-The remaining cost is that a real warning arrives in a field of expected ones, so
-from the repo root:
 ```
-node scripts/check-sushi-output.mjs        # compile ig/ and gate the warning SHAPE
-node scripts/check-sushi-output.mjs <log>  # gate an already-captured compile log
-```
-It asserts the **shape** of every warning against a reasoned allowlist, never a
-count (a pinned number churns on each new Instance and trains people to bump it
-— what a stale `check:codings` floor already did in #232), and reconciles its own
-parse against SUSHI's `N Errors / N Warnings` summary so a change in SUSHI's
-output format fails loudly instead of passing vacuously. `ig.yml` runs it on the
-tee'd output of its compile step; a new expected warning belongs in `ALLOWED`,
-with the reason it is expected.
-
-Also at the repo root, and dependency-free — `ig/input/pagecontent/how-to-read.md`
-describes the guide's navigation in prose while `ig/sushi-config.yaml`'s `menu:`
-block defines it:
-```
-node scripts/check-ig-menu.mjs      # the IG menu and its prose restatement agree
-node scripts/check-ig-narrative.mjs # what the IG's PROSE may say, and whether
-                                    # what it points at exists (checks E–H)
-```
-⚠️ **The IG Publisher cannot see this drift.** Its broken-link check only sees
-links that *exist*, and a bullet describing a menu entry is not a link. Both
-directions had already gone wrong with nothing going red, and each is caught by a
-different rule here:
-
-- the **Guidance** bullet was missing two live sub-entries (*Relationship to Other
-  IGs* and *Measurement (Stage 8)*) until `9702356` corrected it by hand;
-- a **Downloads** bullet described a menu entry and a page that never existed —
-  introduced with the page in `bf4eb87` and still there at `dd0a53c`, so
-  `/ig/downloads.html` was a 404 for the guide's whole life while its own map
-  sent readers to it. `fhir.base.template#current` emits no `downloads.html`;
-  that is a US Core template convention, and this IG uses the base template.
-
-It asserts four things. The third: every `menu:` target must resolve to a real
-`input/pagecontent/*.md` or sit in `GENERATED_PAGES` — an allowlist with
-reasons, currently just `artifacts.html`. That is what stops the drift being
-"fixed" in the wrong direction, by declaring `Downloads: downloads.html` in
-`menu:` and shipping a broken link instead.
-
-⚠️ **The fourth is the expensive one: a page needs BOTH `menu:` and `pages:`,
-and only `pages:` makes the publisher render it.** Checks A–C cannot see that
-gap — the `.md` file genuinely exists, so C is satisfied, and SUSHI compiles
-clean either way. The menu is rendered onto *every* page, so a menu target the
-publisher never renders is one broken link **per page**: adding
-`Care Pathway: care-pathway.html` to `menu:` alone took this IG from 0 to
-**1812** broken links with `err = 0`, and only `ig-publish.yml`'s broken-link
-gate caught it — 5 minutes of Java after a green local run. Check D now compares
-the two blocks in both directions (the reverse being a rendered page nothing
-navigates to; `UNLISTED_PAGES` is the allowlist, empty today).
-
-All three parsers **bail rather than skip** on a form they cannot read, and a
-missing block, a missing section or zero parsed entries is an error — the
-#232/#261 family, which this gate is deliberately built against. It runs in
-`ig.yml` **before** the compile, since it needs neither SUSHI nor the network.
-
-⚠️ **`check-ig-narrative.mjs` is its sibling, not a second copy of it.** They
-share `scripts/lib/ig-config.mjs` (the `pages:` reader, the `path-resource`
-reader, `GENERATED_PAGES`), and they are two scripts for one reason: **when
-they can run.** The menu gate needs no SUSHI and runs before the compile;
-the narrative gate's checks F and H resolve against `ig/fsh-generated/`, so it
-runs after. Making F and H degrade when `fsh-generated/` is absent would have
-been the worse trade — a gate that quietly checks less is the #232/#261 shape
-exactly. Its four checks:
-
-- **E. No repo internals** in `ig/input/pagecontent/*.md` — `web/src`,
-  `packages/`, `npm run`, `scripts/`, `.mjs`, `vitest`, `sushi-config`,
-  `path-binary`, and `#NNN` issue references. An IG page is read by
-  implementers who do not have this repo; build and gate prose has one home,
-  and this file is it. No opt-out marker until a real need appears.
-- **F. Every `TL-0NN` resolves** to a tool id an ActivityDefinition actually
-  carries. Before the identifiers landed, the rule could only be *prohibition*
-  — an id named nothing a reader could look up, so A3 stripped them all out.
-  Zero mentions is still a legitimate state and today's: the prose links AD
-  pages under the tool's **name**, which is better for a reader than a bare id.
-- **G. Every `#/route` link resolves** to a **non-legacy** route in
-  `web/src/App.tsx`, and `#/guide/<x>` is also a section in
-  `web/src/data/guideSections.ts`. ⚠️ *Non-legacy* is the whole point:
-  `/guide/roadmap` and `/guide/measures` still exist as `<Navigate>` redirects,
-  so a naive route scan calls a link to a page #440 deleted perfectly fine —
-  and three pages linked `#/guide/roadmap` for exactly that reason. The one
-  exception, which is the difference between a finding and a false positive: an
-  **index** route navigating to a **relative** target is picking its parent's
-  default child (`/patient` → `chart`), so the parent really does land
-  somewhere; an **absolute** target is a redirect away from a page that is gone.
-  ⚠️ Because G reads `web/src`, `ig.yml` triggers on those two files — a route
-  rename breaks the IG's links with **no `ig/` change at all**.
-- **H. Every internal `.html` link resolves** to a `pages:` entry, an artifact
-  page the publisher will emit, or a `GENERATED_PAGES` entry. ⚠️ **H is the
-  owner of `.html` links** — `check-md-links.mjs` skips them on purpose (see
-  below), because the publisher resolves them at render time and a
-  file-existence test cannot model that. Its artifact index is built from
-  `resourceType` + `id` read out of each resource rather than from filenames,
-  **and** from every `path-resource` directory: the five FML StructureMaps are
-  hand-authored `.fml` under `input/resources/maps/`, absent from
-  `fsh-generated/` entirely, so an index that read only SUSHI's output would
-  call all five StructureMap pages broken — and the natural "fix" would delete
-  the guide's only navigation to its own transformations. Anchors are checked
-  as far as the page; heading slugification is the publisher's algorithm, not
-  something to re-guess here.
-
-Thirteen defects were planted against it and each watched to fail — one per
-check, plus the false-positive controls (a LOINC code like `#93374-7` must not
-read as issue `#93374`; a published `TL-` id and a live route must pass) and
-every liveness mode: zero pages, zero `<Route>` tags, an unreadable
-`GUIDE_SECTIONS`, a missing `fsh-generated/`, and a moved `.fml`.
-
-Also at the repo root and dependency-free — every relative markdown link in a
-tracked `.md` file must resolve:
-```
-node scripts/check-md-links.mjs   # every relative link in a tracked .md resolves
-```
-⚠️ **This is the ONLY gate that triggers on `docs/**` or the root `README.md`.**
-`web-lint.yml` covers `web/`, `services/`, `FHIR-Resources/` and `ig/`, so a
-docs-only change triggered no workflow at all — which is how the `packages/`
-reorganizations left **14 dead links** across the plan docs and two READMEs:
-#389 (`web/src/lib/` → `packages/core/src/lib/`), #392 (`web/src/data/fhir/` →
-`packages/fhir-artifacts/generated/`), and the Roadmap page's deletion, which took
-`roadmap-snapshot.yml` and `fetch-roadmap.mjs` with it. #470 fixed 4 of the 14
-by hand while consolidating `docs/`; the other 10 needed this gate to find. One
-was `services/mock-ehr/README.md` → the shared FHIR resource rules, the file this
-document tells you to read before changing a write validation. It runs in its own
-`docs-links.yml`.
-
-It asserts only that a target **resolves** — not that it points at the right
-thing, and a `:137` suffix is checked as far as the file, since pinning a line
-number would churn on every edit above it. Four skips, each for its own reason:
-`http(s):`/`mailto:`/bare `#anchor`; **`.html`**, which the IG Publisher resolves
-at render time and `check-ig-narrative.mjs`'s check H owns; targets containing
-**`…`**, prose
-ellipsis in inline code shaped like a link (`StructureDefinition-…`) rather than a
-path; and **gitignored** build output like `ig/fsh-generated/`, which is correct
-to link to and absent from a clean checkout — asked of `git` rather than
-hardcoded, and note git needs a **trailing slash** to match a directory-only
-pattern against a path that does not exist.
-
-⚠️ **Fenced code blocks are deliberately IN scope.** A link in a fence never
-renders as a link, so skipping them would be defensible — but a stale *path* in a
-code block is exactly the drift worth catching, and this is what found
-`FHIR-Resources/README.md` documenting copy-fhir's destination as
-`web/src/data/fhir/*.json` long after #392 moved it. The cost is that prose
-*about* link syntax trips the gate; write such an example without the parentheses.
-
-Liveness is the #232/#261 guard: it fails when it finds no markdown files, and
-when the count of resolved links drops under `LINK_FLOOR` (~half the real count,
-printed on every run). All five failure modes were planted and watched to fail.
-
-At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
-caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
-```
-node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/
-                                 # and packages/demo-population/src/scenarios/ (unwrapped —
-                                 # `responses` included since #414; excluding it left the 20
-                                 # scenario QRs the only hand-authored FHIR nothing validated)
-```
-
-Also at the repo root, the FHIR Mapping Language gate (same Java + jar; the
-`--tx` half needs the network, because the FML transform engine refuses to run
-without a terminology server):
-```
-node scripts/check-fml.mjs --tx https://tx.fhir.org
-```
-
-And the HL7 working-group use-case workbook, which is generated rather than
-hand-maintained (Node builtins only — no install, sub-second):
-```
+node scripts/check-sushi-output.mjs   # compile ig/ and gate the WARNING SHAPE against a reasoned
+                                      # allowlist (never a count); pass a path to gate a captured log
+node scripts/check-ig-menu.mjs        # the IG menu and its prose restatement agree, and every
+                                      # menu: target is also in pages: (only pages: renders a page)
+node scripts/check-ig-narrative.mjs   # what the IG's prose may say, and whether what it points at
+                                      # exists — no repo internals, TL ids / #/routes / .html resolve
+node scripts/check-md-links.mjs       # every relative link in a tracked .md resolves (the ONLY gate
+                                      # that triggers on docs/** or the root README.md)
+node scripts/validate-fhir.mjs        # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/ and
+                                      # the unwrapped scenarios (needs Java 17+; caches a ~190MB jar)
+node scripts/check-fml.mjs --tx https://tx.fhir.org   # FHIR Mapping Language gate (same Java + jar;
+                                      # --tx needs the network — the transform engine requires a tx server)
 node scripts/build-use-case-workbook.mjs           # <id>.json → dist/*.xlsx + *.csv + <id>.md
 node scripts/build-use-case-workbook.mjs --check   # gate, in use-case-workbook.yml
 ```
+
+⚠️ **A clean SUSHI run is not a quiet one, and `sushi` does not validate
+everything.** Five separate gates cover five different classes of problem, and a
+clean SUSHI run implies none of the others — the IG Publisher alone catches
+FHIRPath invariants, everything about the StructureMaps, and the CQL→ELM
+translation. What each gate covers, why the publisher's CQL compile hangs on one
+config line, and the two traps in running the publisher locally are in
+[`docs/internals/ig-build.md`](docs/internals/ig-build.md).
+
+⚠️ **A validator warning can mean "nothing was checked"** — an unresolvable
+Questionnaire or profile degrades to a PASS. That, the FML parser's limits, the
+rules shared with the mock EHR's write endpoint, and what each half of the
+scenario gate does and does not cover are in
+[`docs/internals/fhir-conformance.md`](docs/internals/fhir-conformance.md). Read
+it before editing a scenario fixture, a mapper, or an `.fml` map.
+
 ⚠️ **Edit `docs/use-cases/ed-scenario-11.json`, never `docs/use-cases/dist/` and
-never `ed-scenario-11.md`** — all three are outputs, same rule as
-`packages/fhir-artifacts/generated/`. In particular a review comment typed into the workbook is
-discarded by the next build; notes go in the JSON's `reviewNotes` and are
-rendered onto the mapping sheet.
+never `ed-scenario-11.md`** — all three are outputs. A gap claim in that workbook
+is a statement to the HL7 working group; see
+[`docs/internals/docs-gates.md`](docs/internals/docs-gates.md).
 
-Markdown is the authoritative form of the mapping prose in that JSON
-(`fhirText`, `profileBinding`, `cdsHook`), because only it can carry a link to
-the artifact it describes; the spreadsheet gets it flattened at build time. The
-document's FHIR-resource lists, its consolidated gap list and its gating-tool
-promotions are all **derived** from the per-step fields rather than restated,
-and `--check` asserts the two directions of that (a `**gap**` binding must name
-a `profileGaps` or `gatingIssues` entry, and vice versa).
+### The two Workers — easy to forget, and CI gates both
 
-⚠️ **A gap claim in that document is a statement to the HL7 working group, and
-four of them stayed true-looking long after they stopped being true (#341).**
-The workbook described BSSA, SAFE-T, Means Counseling and Transition as
-`status:planned` when all four were built, shipped and launchable in the demo —
-which is also what made a missing demo artifact read as intentional (#324). So
-`--check` now gates tool-status claims: **a `status:planned` claim, or a
-gating-tool entry, must not name a tool the app can already launch.** "Built" is
-read from the app — a TL id in `tool-ui-metadata.ts` with a launch path that
-resolves to a route in `App.tsx` — because GitHub's `status:` labels are the
-real authority but live outside the repo. Only that direction is an error; a
-built tool the document never mentions is not.
+`web/`'s `npm run verify` covers **neither**, and both import the web catalog, so
+a change to `tool-ui-metadata.ts` or the population scenarios can break them with
+`web/` green.
 
-Both parsers **fail when they read nothing** rather than passing over an unread
-file, which is the #232 / #261 failure mode and was planted-and-verified before
-this shipped. When a gap genuinely closes, promote the binding (name the profile
-and link its FSH), delete the `profileGaps` entries, drop the gating entry, and
-rebuild — the consolidated gap list and the gating-promotions list are derived,
-so neither is edited by hand. Where a profile covers only *part* of a claim,
-narrow the text to what is still missing instead of promoting it whole; eight of
-the sixteen #341 corrections were that shape.
-
-⚠️ **Ten of the 37 steps are SPiER proposals, not the scenario the working group
-circulated** — `origin: "spier-proposed"`, rendered `11.2-1C (proposed)`
-everywhere the id appears, each owing a `rationale`. Do not drop the marker to
-tidy a table, and do not renumber the original 27: a proposal takes the next
-free letter in its group. `docs/use-cases/README.md` explains what each closes.
-
-This `--check` really does rebuild and byte-compare, rather than pinning a
-recorded hash, because the writer (`scripts/lib/xlsx-writer.mjs`) is
-deterministic on purpose — every ZIP entry stored, never deflated, with a fixed
-timestamp. **Make it deflate and the gate starts flaking against zlib
-versions.** A recorded-hash gate is the weaker fallback, and is only the right
-answer for a generator whose output cannot be made reproducible at all; the
-outreach one-pager was that case (a browser-rendered PDF) until it was deleted.
-
-The same `--check` gates the scenario's linkage to its demo walkthroughs — four
-ED patients, `patient-011` through `patient-014`, referenced as qualified
-`"<patient>/<walkthrough id>"` strings — in both directions, as an allowlist with reasons rather than a
-coverage count. Each gap declares a `walkthroughGapKind`: `not-narrated` is a
-to-do (closing it means deleting the `walkthroughGapReason` *and* adding the
-narration, and the gate requires both), while `branch-exclusive` cannot be closed on
-a given patient at all, because the step describes a course they did not take
-(the ED scenario needs four patients for that reason — one negative screen, one
-deferred-then-transferred, one elopement). `--check` prints the split; all 37
-ED steps are narrated today, so both counts are zero. A narrated proposal must
-also carry `proposed: true` on its walkthrough entry, so the chart cannot show
-a SPiER proposal as settled. `docs/use-cases/README.md` has the rationale,
-including why review notes are not emitted as Excel cell comments.
-
-⚠️ **The scenario gate's per-resource rules are SHARED with the mock EHR's write
-endpoint, and that is a guardrail rather than a refactor.**
-`packages/core/fhir-resource-rules.mjs` holds the base-R4 tables, the
-profile-derived checks and the date/binding rules; `check-scenario-resources.mjs`
-and `services/mock-ehr/src/validate.ts` both call it. The embedded-panel plan §1
-permits a mock we control **only** if it validates writes with these checks
-"rather than inventing a second, laxer opinion" — a lenient mock accepts writes a
-real EHR rejects, so the demo looks better while proving less. If you change a
-rule, you change both callers at once, which is the point. The rule bodies were
-moved unchanged into a closure that supplies `fail` and `structureDefs`, so
-`git log -p` on that file shows an empty diff for the rules themselves.
-
-Two properties there are load-bearing. `assertUsableIndex` makes an **empty**
-conformance index a startup failure in both callers — otherwise every
-profile-derived rule reports nothing and the gate (or the write endpoint) green-lights
-what it never read. And the rules require an `id`, while a FHIR **create** must
-not carry one; `validate.ts` assigns the server's id *before* validating rather
-than relaxing the rule, because relaxing it would have loosened the scenario gate
-too.
-
-In `services/cds-hooks/` — **easy to forget, and CI gates it:**
 ```
-npm install && npm run verify   # typecheck + eslint + vitest for the Worker
+cd services/cds-hooks && npm install && npm run verify   # typecheck + eslint + vitest
+cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no hex outside TOKENS,
+                                                         # every var(--…) resolves)
 ```
-`web/`'s `npm run verify` does NOT cover this package, but the `cds-hooks` CI job
-does. It imports the web catalog, so a change to `tool-ui-metadata.ts` (launch
-actions especially) or to the population scenarios can break its tests without
-anything in `web/` failing.
 
-In `services/mock-ehr/` — **the same deal, and it has a CSS gate of its own:**
-```
-npm install && npm run verify   # copy-fhir + typecheck + eslint + check:host-css + vitest
-```
-`npm run check:host-css` is this Worker's stand-in for stylelint's
-`color-no-hex` and `web/`'s `check:tokens`, neither of which can see it — its
-pages are template strings inside TypeScript, with no stylesheet for a CSS
-linter to read. Two rules: **no hex outside the `TOKENS` block** in
-`src/hostChrome.ts`, and **every `var(--…)` resolves**. Both fail when they read
-nothing, and the whole thing exists because the comment version had already
-failed once: `hostChrome.ts` was extracted *from* `controlPage.ts` to give the
-palette one definition, and `controlPage.ts` then hand-typed four of those hexes
-in its own `<!doctype>` document for as long as it existed.
+⚠️ **The mock EHR is deliberately NOT styled like SPiER** — that is a demo claim,
+not a preference. See [`docs/internals/workers.md`](docs/internals/workers.md).
 
-⚠️ **The mock EHR is deliberately NOT styled like SPiER**, and that is a demo
-claim rather than a preference. Its pages say *"Everything below this bar is
-drawn by SPiER, not by the host"*, so the host is slate and steel and SPiER's
-raspberry appears in exactly one role — `--guest-brand`, on the `.guest__title`
-wordmark above a frame SPiER drew. A host control tinted with it puts the guest's
-colour on the host's button, on the page whose whole subject is which pixels
-belong to whom. `services/mock-ehr/README.md` § *The look of the host* has the
-reasoning, including why `hostChrome.ts`'s original argument for matching the app
-was reversed.
+### Measures
 
-⚠️ **`sushi` does not validate everything.** Five separate gates cover five
-different classes of problem, and a clean SUSHI run implies none of the others:
-
-| Gate | Catches | Where |
-|---|---|---|
-| `npx fsh-sushi .` | FSH syntax, unresolved FSH references — plus, via `scripts/check-sushi-output.mjs`, any warning that is not the one expected advisory | `ig.yml` |
-| `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
-| IG Publisher | FHIRPath invariants, narrative link integrity, **everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types), **and CQL→ELM translation** of `ig/input/cql` (gated on `path-binary` — see below) | `ig-publish.yml`, and the same gates in `deploy.yml` on every push to main |
-| `node scripts/check-fml.mjs` | FML syntax + the Stanley-Brown map still producing the CarePlan the runtime produces | `fml-validate.yml` |
-| `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC, SNOMED and terminology.hl7.org codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
-
-⚠️ **`check-fml.mjs` is a parser, not a profile checker.** It catches FML syntax
-and header mistakes; it does *not* catch a misspelled target element, an
-untypeable FHIRPath expression, or an `import` pointing at the wrong resource
-type. Promoting the four draft maps in #92 surfaced sixteen such errors that
-were all invisible to it and all fatal to `ig-publish.yml`. After touching an
-`.fml`, a green `fml-validate` is necessary and not sufficient — let the
-publisher run. `ig/input/resources/maps/README.md` has the specifics, including
-the two FHIRPath spellings (`repeat()` and `answer.valueString`) that execute
-correctly but fail the publisher's static analyser.
-
-That fourth row exists because of issue #220: seven LOINC codes SPiER emitted for
-safety-plan sections were fabricated or misused, and no gate could see them. Six
-did not exist in LOINC; `81344-4` resolved to healthcare-agent disclosure
-authority rather than "reason for living", so it validated cleanly while meaning
-the wrong thing. The blind spot had two halves — `validate-fhir.mjs` runs `-tx n/a`
-in CI so external codes go unchecked, and **nothing at all** validated the
-code+display literals in `packages/core/src/lib/*Mappers/`, even though those land in
-`Observation.code.coding` on every generated resource at runtime.
-
-The validator job is the only thing that checks `FHIR-Resources/` at all — the IG
-Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you can
-still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
-
-⚠️ **The IG Publisher compiles the measure CQL, and only because of one config
-line.** `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` is translated to ELM
-and attached to `Library/SPiERSuicideSaferCareMeasures`; a translation error
-fails the build. What turns it on is `path-binary: input/cql` in
-`ig/sushi-config.yaml` — the CQL loader's activation switch. **Remove that line
-and the publisher walks past `input/cql` in silence**, translating nothing and
-reporting nothing, which reads exactly like a passing gate. That silence is what
-made #201 conclude the publisher *cannot* translate CQL (it bundles the full
-cqframework translator) and move the file out of the build for a release; #212
-re-tested it, and the first real compile failed on five defects that had been
-invisible the whole time. To confirm the gate is alive, grep a publisher log for
-`Translating CQL source` — see `docs/plans/archive/stage-8-measure-and-share.md`.
-
-⚠️ **`deploy.yml` caches the rendered IG, so a push to main usually does not
-re-render it.** Pages replaces the whole site with one artifact, so the SPA
-cannot ship without a rendered IG under `dist/ig` — the two cannot be
-decoupled, and a failed render still blocks the deploy. What *is* skipped is
-re-rendering an IG that did not change: the render is cached under
-`ig-render-<hash of ig/input + sushi-config + ig.ini>-<publisher version>-<run
-id>`, and on a hit the whole Java/Ruby/Jekyll/publisher half of the job is
-skipped. Two properties hold that up, and both must survive any edit there:
-
-- the cache is written with an explicit `cache/save` **after** both gates pass,
-  never by the combined `actions/cache` action (whose post-step saves even when
-  a later step failed, which would make a broken render the cached answer);
-- `publisher.log` is cached beside `output/`, so the CQL and QA gates re-run
-  identically on the hit path. Skipping the render never skips the checks.
-
-The one input the key cannot see is `template = fhir.base.template#current` in
-`ig/ig.ini` — `#current` moves without any change here, so a template release is
-not picked up until some `ig/` input changes. `gh workflow run deploy.yml -f
-force_ig_render=true` forces it. Every run prints whether it rendered or reused,
-plus the rendered size, to the job summary.
-
-Running the IG Publisher locally is worth it before a substantial `ig/` change,
-and has two traps: it **refuses any path containing a space**, which this
-worktree's path has (`public health`), so copy `ig/` to a space-free directory
-first; and it shells out to `sushi` and `jekyll`, so pass `-no-sushi` if
-`fsh-generated/` is already built, and expect it to fail at the Jekyll step if
-Jekyll is absent. The per-resource QA results are written before Jekyll runs, in
-`temp/qa/*-validation.html` — that is where the StructureMap errors above were
-found.
-
-⚠️ **The population scenarios are hand-authored FHIR, and are gated by two
-things that cover different amounts.** `packages/demo-population/src/scenarios/patient-*.json`
-holds Observations, CarePlans, Communications, EpisodeOfCares, Appointments,
-ServiceRequests, Procedures and DocumentReferences that the Stage-8 measure
-engine reads directly, so a malformed one produces a *wrong* measure score
-rather than an empty one (issue #226). Be precise about which gate sees what:
-
-| | `npm run check:scenarios` (offline, in `verify`) | `node scripts/validate-fhir.mjs` (Java, `ig.yml`) |
-|---|---|---|
-| Runs | every `web/` verify | PR + push touching `ig/`, `FHIR-Resources/`, or the scenarios |
-| QuestionnaireResponses | linkIds, nesting, answerOption, ranges, value[x] type, plus the patient link and `authored` | full conformance, **including the scenario QRs** — `validate-fhir.mjs` unwraps the `responses` bucket since #414. It did not until then, which is how those 20 carried neither `subject` nor `authored` (#364) and hid 4 conformance errors |
-| Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage (**presence required, not just correctness** — the old rule only fired on a link pointing at the *wrong* patient, which is how #364's 20 unlinked QRs passed), **the subject Patient actually existing**, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
-| Misses | cardinality *counts*, slices, invariants, unknown elements, external codes | nothing structural — but runs `-tx n/a`, so LOINC/SNOMED displays wait for the nightly |
-
-The offline half's base-R4 required-element and status-code tables are
-hand-maintained (`BASE_REQUIRED` / `STATUS_CODES` in
-`check-scenario-resources.mjs`) because the base R4 StructureDefinitions are not
-vendored here. An omission there costs offline coverage only — the validator
-still catches the underlying defect. Everything profile-derived is read from
-`packages/fhir-artifacts/generated/StructureDefinition-*.json`, so changing FSH changes the
-check.
-
-`validate-fhir.mjs` unwraps the scenario buckets into a temp directory first
-(`collectScenarioResources`), dropping only `_savedAt` — SPiER's client-side
-persistence stamp, which `smartDataSource` also strips before writing to a real
-server. `riskAlerts` and `walkthrough` are deliberately not fed to the validator:
-neither is FHIR (`walkthrough` is `ScenarioEncounter` narration, not a FHIR
-Encounter), and the offline half checks both against their TypeScript shapes
-instead.
-
-⚠️ **The scenarios' 116 `subject: Patient/patient-0NN` references dangled for
-months, and no gate could see it.** A `subject` naming a nonexistent Patient is
-not a conformance error, so the HL7 validator passed it; the offline checker
-asserted every resource named the *right* id, never that the id resolved. The 14
-subjects now exist as hand-authored FHIR in `packages/demo-population/src/patients/`
-(they were IG example Instances until #392 moved them out — nothing in the IG
-referenced them),
-and `check-scenario-resources.mjs`'s check 8 closes the loop — it **exits non-zero
-when it finds no Patient resources at all**, rather than passing vacuously when
-`copy-fhir` has not run.
-
-Two things there are easy to get wrong. The Patient index is built **before** the
-`if (typeof doc?.url !== 'string') continue` guard, because a `Patient` has no
-`url` and would otherwise be skipped — folding it into the conformance-resource
-branch chain yields an empty set and a green gate. And `* id = "patient-0NN"` in
-the FSH is load-bearing: the Instance *name* is CamelCase, but the resource id
-must be the exact string the scenarios reference, or they dangle again.
-
-⚠️ **`encounters` used to be that narration bucket and no longer is.** #285 made
-it real FHIR `Encounter`s — the correlation hinge every other artifact reaches
-the episode through — and moved the walkthrough narration to `walkthrough`. Both
-gates now cover it (`encounters: 'Encounter'` in `check-scenario-resources.mjs`
-*and* `validate-fhir.mjs`), so an Encounter defect fails offline and in the
-validator. If you are reasoning about what SPiER does or does not emit, check the
-bucket map in those two scripts rather than trusting a doc — this line was itself
-stale for a day, and a plan doc merged on top of the stale version.
-
-⚠️ **A validator warning can mean "nothing was checked".** If the HL7 validator
-cannot resolve a QuestionnaireResponse's Questionnaire (or a claimed profile), it
-says so as a *warning* and then reports zero errors — a context-loading mistake
-degrades to a PASS. Two traps caused this in practice, both now guarded in
-`validate-fhir.mjs`: `-ig <folder>` does **not** recurse, so `-ig FHIR-Resources`
-loads 0 resources (every file is one level down); and `-output` emits a bare
-`OperationOutcome` rather than a `Bundle` when given exactly one source. The
-script now treats those warnings as errors and understands both output shapes.
-When you touch it, re-run it against a deliberately broken input and confirm it
-*fails* — a green gate you have never seen go red is not evidence of anything.
-
-The validator runs without a terminology server (`-tx n/a`) so the gate stays
-fast and offline-reproducible. Consequence: codes from **external** systems
-(LOINC, SNOMED) are not verified there — the IG Publisher covers those. Codes
-from SPiER-local CodeSystems *are* fully checked, including that every
-`Coding.display` matches the CodeSystem's display or one of its designations.
-Pass `--tx https://tx.fhir.org` to check external terminology locally.
-
-⚠️ **A mapper can read an answer shape its Questionnaire never declares, and
-every other gate will call that fine.** For months the whole C-SSRS family and
-CAMS Section B read `answer.valueBoolean`, while **not one Questionnaire in this
-repo declares a `boolean` item** — every yes/no question is `type: choice` bound
-to SNOMED Yes `373066001` / No `373067005`. So a screener filled in through
-SPiER's own form read `undefined` for every item, and the risk ladders treat
-`undefined` as "not endorsed": a patient endorsing q5, *specific plan and
-intent*, derived `tier: none`, "No risk identified" (issue #327). Three blind
-spots lined up, and each is worth knowing on its own:
-
-- **A mapper test can encode the wrong shape and then defend it.** Those suites
-  hand-built `valueBoolean` responses, so they proved the mappers correct against
-  input the app never produces. Tests now build responses with
-  `__fixtures__/nativeQr.ts`, which derives item nesting and every `value[x]`
-  from the Questionnaire JSON — a fixture that asserts the shape of the app's
-  data has to *derive* that shape from the artifact defining it.
-- **`check:scenarios:responses` does check `value[x]` against `item.type`** — it
-  simply had no C-SSRS or CAMS-B fixture *with items* to look at. `p011-cssrs-full`
-  and `p007-cssrs-pediatric` now carry coded answers, so the native shape is
-  gated.
-- **The #230 fallback normalizes a foreign QR to `valueBoolean` on purpose**, so
-  a *foreign* C-SSRS derived the right tier while a *native* one did not. That
-  inversion is the tell; `getYesNoBoolean` is now the single yes/no reader and
-  accepts both shapes, so booleans stay valid.
-
-`npm run check:readers` is the class-level fix: it parses each mapper with the
-TypeScript AST, resolves which linkId every `walkItems` read names and which
-reader is applied, and checks that reader against the item's declared `type`.
-It needs no test to exist and no fixture to be written. It resolves the linkId
-forms this codebase uses (literal, `for…of` over a code table, `.reduce` over a
-list, helper parameter fed by literal call sites) and **fails on anything it
-cannot follow** rather than skipping it — a silent skip is how a gate reports
-green while checking nothing (#232, #261). Its first run found that `getYesNoBoolean`
-is deliberately pointed at PSS-3 items offering the SNOMED pair **plus**
-`unable-to-complete` / `patient-refused`; the rule is containment, not equality,
-because a non-response must stay `undefined` rather than becoming a "No".
-
-⚠️ **A measure change lands in FOUR places, and `check:measures` only ties two
-of them together.** A population criterion lives in `ig/input/fsh/measure-and-share.fsh`
-(the published definition), `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` (the
-portable statement, compiled by the IG Publisher) and `packages/core/src/lib/measures.ts`
-(the executable reference implementation the app runs) — and if it changes
-scoring, in `MeasureDashboard.tsx` too. `check:measures` asserts the FSH
-criterion names and the TS implementations agree in both directions; the
-publisher asserts the CQL compiles. **Nothing asserts the CQL and the TypeScript
-compute the same answer** — that is a reading, not a gate.
-
-⚠️ **`denominator-exclusion` and `denominator-exception` are not
-interchangeable, and the engine treats them differently on purpose (#324).** An
-exclusion is removed outright — the case never belonged in the cohort. An
-exception is removed **only if the numerator is not met**, so a patient who met
-the criterion *and* the numerator stays in and counts as a pass. Consequences
-worth knowing before adding either:
-
-- the exception's count is `removedByException`, **not** the raw population
-  flag. Tallying the flag would subtract a case that is still being scored, and
-  the score can then exceed 100%.
-- the numerator has to be resolved before the denominator can be, which is why
-  `evaluateMeasure` computes it first.
-- lethal-means counseling is the only exception in the set today: transfer to a
-  higher level of care (not yet due) or departure before disposition (no
-  opportunity), read off `Encounter.hospitalization.dischargeDisposition`.
-
-⚠️ **The demo's narration and the demo's measures can disagree, and only one
-test looks.** Patient-011's walkthrough said "Lethal-means counseling delivered
-and documented" while her scenario carried no Procedure, so the dashboard scored
-her a *miss* on a step her own chart calls completed — for as long as the ED
-scenario had existed. `measures.narration.test.ts` gates it from both ends: a
-narrated-completed step must reach the numerator it claims, and **any** measure
-miss for a patient who has a `walkthrough` must be written down in
-`EXPLAINED_MISSES` with a reason. That allowlist is empty today, which is the
-finding — every remaining miss among the ED patients is a pass, an exclusion or
-an exception. It does NOT assert that a step materializes every resource type it
-names: 21 completed steps name a SPiER-profiled type with no artifact behind it,
-which is filed separately.
+A measure criterion lives in **four** places and `check:measures` ties only two
+of them together; nothing asserts the CQL and the TypeScript compute the same
+answer. `denominator-exclusion` and `denominator-exception` are **not**
+interchangeable. Before changing a criterion, a population, or the scoring, read
+[`docs/internals/measures.md`](docs/internals/measures.md).
 
 ## Conventions
 
-- **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for `color`, `background-color`, `border-color`, `fill`, `font-size`, `box-shadow`. Raw values are allowed only in `src/index.css` (token definitions). Class selectors must be kebab-case BEM.
-  ⚠️ **stylelint checks that a token is *used*, never that it *exists*** — any
-  `var(--…)` satisfies the rule, so `color: var(--made-up)` linted clean and
-  shipped as a value the browser drops (issue #280). `npm run check:tokens`
-  closes that half: every `var(--token)` under `web/src` must resolve to a CSS
-  declaration or to a `setProperty('--token'…)` call in the TypeScript (that
-  second source is scraped, not allowlisted, so the exemption dies with the code
-  that earns it — **one** today, `--patient-banner-height`, published by the
-  component that measures it. `--ehr-header-height` and `--ehr-footer-height`
-  were the other two until the shell became a fixed frame and nothing needed to
-  measure the bar or the footer any more). A fallback does
-  not excuse an undefined token; it just hides it. `index.css` is in stylelint's
-  `ignoreFiles` but *is* read by this check.
+- **Design tokens only.** Vanilla CSS with custom properties. stylelint
+  (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)`
+  for `color`, `background-color`, `border-color`, `fill`, `font-size`,
+  `box-shadow`. Raw values are allowed only in `src/index.css` (token
+  definitions). Class selectors must be kebab-case BEM.
+  ⚠️ **stylelint checks that a token is *used*, never that it *exists*** —
+  `npm run check:tokens` closes that half.
 - **One page template.** Every route under the app shell renders into
-  `.app-shell__body`, which is the **sole owner of the page inset** — a page
-  that pads its own root indents its content relative to every other page, for a
-  reason invisible from the page itself. The title block is
-  `components/PageHeader.tsx` (eyebrow → title → accent rule → optional lede),
-  the only definition of page-title typography in the app; a page never renders
-  its own `<h2>`, so section headings start at `<h3>`. A drill-in page passes
-  `up` to make the first eyebrow segment its way back out.
-  ⚠️ **Width has one owner per route, and the owner is whoever owns the header.**
-  A page that renders its own `<PageHeader>` declares a root width, and it is
+  `.app-shell__body`, the **sole owner of the page inset** — never pad a page's
+  own root. The title block is `components/PageHeader.tsx` (eyebrow → title →
+  accent rule → optional lede), the only definition of page-title typography; a
+  page never renders its own `<h2>`, so section headings start at `<h3>`. A
+  drill-in page passes `up` to make the first eyebrow segment its way back out.
+- **Width has one owner per route, and the owner is whoever owns the header.** A
+  page that renders its own `<PageHeader>` declares a root width, and it is
   `--page-width-prose` or `--page-width-wide` — those two are the whole
   vocabulary. A page that *inherits* its header from a layout inherits the
-  layout's width too and declares none. This line used to state only the first
-  half, as intent, and the app had drifted off both: seven page roots hardcoded
-  pixels, four at values that are neither token, so the Adoption Guide's seven
-  sections rendered at **five different widths** (1200 / 960 / 1200 / 1040 / 820
-  / 1040 / 900) while the sidebar's pager walked a reader straight through them.
-  `1200px` was the most durable of those, because it *equals*
-  `--page-width-wide` today — it agreed with the template by coincidence and
-  would have stopped the moment the token moved. RULE 5 in
-  `check-page-template.mjs` is what makes the sentence true rather than
-  aspirational; five dead width rules (`.dashboard`, `.screenings-tab`,
-  `.careplan-tab`, `.encounters-tab`, `.tools-reference` — four more numbers, no
-  elements) went with the same pass.
-  ⚠️ **`--measure-prose` is not a third page width.** It caps a *text run*, and
-  the distinction is the point: the width a table wants is not the width a
-  sentence wants, so a wide page keeps its tables wide and caps its prose. Put
-  it on prose, never on a page root, or RULE 5 fails you.
-  ⚠️ **It is `41em`, and the unit is the whole point: a measure is a character
-  count, not a width.** It was `760px` — the number `.page-header__lede` had
-  hardcoded — and a px measure is right only for the font size it was set
-  against. That size was `--font-size-lg`; every other run reading the token is
-  smaller, and each one got a *longer* measure for it. At 760px the lede itself
-  ran ~103 characters a line, the 14px runs ~110 and the 12px runs ~126 — all
-  past the 45–90 band the token exists to hold, while looking capped. `em`
-  resolves against the run's own font-size, so one number holds the count at
-  every size: 41em lands all 20 runs that read it at **77–89 characters**,
-  measured in the app at 1440px across five type sizes (11–16px). **Do not
-  restate it in px, and do not add a second measure token for small type** —
-  `--measure-body` existed for one commit before it turned out to be this.
-  ⚠️ **Cap the text, not the box, when the two are set in different type.** An
-  `em` cap resolves against the element it is written on, so a callout whose own
-  font-size is the inherited 16px while its paragraph is 14px measures the wrong
-  thing. `.md-caveat` caps its body and keeps its band full width, because that
-  band is page-level framing; `.tool-config-effect` caps both — the box at its
-  16px for a callout width, the body at its 14px for the measure — because
-  dropping the box cap left a wide tinted band with the sentence stopping
-  halfway; `.md-gap` caps the box, because there the box *is* the run.
-  ⚠️ **`check:template` RULE 5 does not cover this — `npm run check:prose`
-  does.** RULE 5 owns *page-root* widths and says nothing about a text run,
-  which is why the three always-wide pages sat at 145–182 characters and
-  `.dd-detail` overshot to 52rem (134 characters on 13px type) under a comment
-  claiming it was the prose cap. `check:prose` is the gate for the measure
-  itself; its four rules and the one thing it cannot see are described in the
-  verify list above. `.dd-detail` keeps 52rem for the data lines that really do
-  need it, classified as NON_PROSE, and `.dd-detail-desc` caps itself.
-  ⚠️ **What it cannot see is a run with no cap at all**, so a new paragraph on a
-  wide page still wants measuring by hand. A green `check:prose` says every
-  cap that exists is a character count rather than a width; it does not say
-  every run that needs one has one.
-  Two families are templated, found in different ways. The **lenses**
-  (`src/pages`) are a declared allowlist, because which pages own a header is a
-  decision. The **form views** (`src/components` — every assessment and workflow
-  recorder, reached directly by route) are *derived* from the form layout they
-  render (`.form-wrapper`), so a thirteenth view is covered the day it is
-  written. A form view's root is `.form-view`, which exists so the header can sit
-  above the layout instead of becoming a third flex item inside it — which is
-  what the old `.breadcrumb` trail was, `width: 100%` and all.
-  ⚠️ All four lenses had drifted off this before it was a template: the
-  Population view added `padding: var(--space-6)` to its root and the guide
-  padded both its header band and each sub-page container, so those two started
-  24px further in than Overview and the Patient Chart, and each lens had grown
-  its own eyebrow style and title color. `npm run check:template` gates it —
-  including in the *reverse* direction, so a guide sub-page cannot quietly grow a
-  second page header (`LENSES` in `web/scripts/check-page-template.mjs` is an
-  allowlist with reasons). It reads source text, so it cannot see padding added
-  to an intermediate wrapper *inside* a page; that limit is stated on the rule.
-  RULE 5 (width) carries the same limit plus one of its own: it reads
-  **unconditional** rules only, so a `max-width` inside a media query is
-  invisible to it — verified by planting one and watching the gate stay green.
-  There are none on a page root today, and RULE 4a ignores nested rules for the
-  same reason.
-  Two of its rules were written wrong and passed planted defects before being
-  fixed — both worth knowing if you extend it. `/\bpage-header\b/` never matches
-  `page-header__title`, because `_` is a word character (so the class rules carry
-  no trailing `\b`); and the CSS walk read `src/css/*.css` only, leaving
-  `App.css` and `index.css` — where `.form-view` and the tokens live —
-  **entirely unread**. It now walks all of `src/`.
-- **`ehr-` no longer names the app's own chrome.** The standalone browsing
-  chrome is `AppShell` / `.app-shell__*` (`__header`, `__header-content`,
-  `__brand`, `__nav-toggle`, `__hamburger`, `__content`, `__body`, `__footer`).
-  It was `EhrShell` / `.ehr-*`, from when looking like an EHR was the point;
-  now a real mock EHR exists at its own origin and wears slate chrome, so
-  `.ehr-header` named the *SPiER* bar sitting inside a page whose actual EHR
-  header is something else. The old names were also not BEM, which the
-  convention above requires.
-  ⚠️ **`.ehr-rubric` deliberately keeps its name** — `EhrAdoptionRubric` really
-  is about EHR vendors, so there the prefix means what it says. The same goes
-  for `context-ehr-patient` and the other `ehr` strings under
-  `services/mock-ehr/`, which are SMART scopes and host internals rather than
-  SPiER classes.
+  layout's width and declares none.
+- **`--measure-prose` is not a third page width.** It caps a *text run*, and it
+  is in `em` because a measure is a character count, not a width. Put it on
+  prose, never on a page root. Cap the text, not the box, when the two are set in
+  different type sizes.
+  ⚠️ `check:prose` cannot see a prose run with **no** cap — that needs to know
+  which elements hold long prose, which is content, not CSS. Measure a wide
+  page's prose by hand after adding it.
+  The rationale for all four of these, the gates' exact limits, and the drift
+  each was written against are in
+  [`docs/internals/css-and-page-template.md`](docs/internals/css-and-page-template.md).
+- **`ehr-` no longer names the app's own chrome.** The standalone browsing chrome
+  is `AppShell` / `.app-shell__*`. ⚠️ `.ehr-rubric`, `context-ehr-patient` and the
+  `ehr` strings under `services/mock-ehr/` deliberately keep the prefix — they
+  really are about EHR vendors, SMART scopes and host internals.
 - **Routing:** `HashRouter` (see `web/src/main.tsx`) — GitHub Pages compatible.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
-- **Never hand-edit `packages/fhir-artifacts/generated/`** — it's a gitignored build artifact regenerated by `copy-fhir.mjs`. To change FHIR shapes, edit FSH in `ig/input/fsh/`; to change a Questionnaire, edit the JSON in `FHIR-Resources/`.
+- **Never hand-edit generated output** — `packages/fhir-artifacts/generated/`,
+  `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`. To change
+  FHIR shapes, edit FSH in `ig/input/fsh/`; to change a Questionnaire, edit the
+  JSON in `FHIR-Resources/`.
 
 ## Gotchas
 
-- **Fresh worktrees need `npm install` in `web/`** before any npm script runs.
-- ⚠️ **A huge `git status` in the ROOT checkout usually means the ref moved, not
-  the files.** Sessions here run `git branch -f main origin/main` from linked
-  worktrees to resync after a squash-merge. That updates the shared
-  `refs/heads/main` **without touching the root worktree's files or index** — so
-  the root can sit on a weeks-old tree while `HEAD` reports today's commit, and
-  `git status` reports the whole gap as *staged* changes nobody staged. Observed
-  2026-08-13: the root's files were last updated 2026-07-29 (`eaec385`) while
-  `main` had advanced to `9d3ef83`, giving **328 "staged" files, 117 of them
-  deletions** — which reads exactly like someone reverted the repo.
-
-  **Diagnose from the reflogs before touching anything**, because the wrong
-  reading here is destructive and the right fix is one command:
-
-  ```
-  git log --oneline -1                      # what HEAD claims
-  git reflog show main --date=iso -5        # `branch: Reset to origin/main` = git branch -f
-  tail -3 .git/logs/HEAD                    # only records HEAD-mediated changes
-  ```
-
-  The tell is a **discontinuity in `.git/logs/HEAD`**: consecutive lines where one
-  entry's new value is not the next entry's old value. A checkout cannot produce
-  that, so the ref moved without one and the working tree is simply stale. Confirm
-  by hashing the tree — `git write-tree`, then look for a commit with that tree
-  (`git log --all --format='%H %T' | grep <tree>`). A clean match to an *older
-  commit* means no local work exists and `git reset --hard origin/main` is safe
-  and lossless. It is **not** evidence that someone ran `git checkout <old> -- .`;
-  this file said that for a day, and it was wrong.
-
-  Do this diagnosis FIRST. `git reset --hard` destroys the mtimes that date the
-  divergence, and `git worktree remove` deletes that worktree's
-  `.git/worktrees/<name>/logs/HEAD` — the two records that identify which session
-  moved the ref. Both were lost that way before the cause was found.
-- **Two of `@formbox/renderer`'s dependencies are aliased to shims** in
-  `vite.config.ts` (`web/src/shims/`, and therefore in vitest too), because the
-  chunk every assessment route loads carried 47% of its gzip in code this app
-  cannot execute: **391 → 208 KB gzip**. Each has a gate, each gate treats "not
-  aliased" as "nothing to guard" and passes — so the shared alias reader
-  (`web/scripts/lib/vite-alias.mjs`) **throws** on an alias form it cannot parse
-  rather than reporting an absence. Do not soften that: a quiet parse failure
-  turns both gates green over unguarded shims.
-  ⚠️ **The aliases are anchored regexes in the array form, not the object form.**
-  Object aliases match by *prefix*, so a `fhirpath` entry also swallows
-  `fhirpath/fhir-context/r4` and resolves it to `<shim>.ts/fhir-context/r4`.
-  That mistake cost a debugging round; `$` is the fix.
-  - **`fhirpath/fhir-context/r5`** → an empty object (575KB raw / 67KB gzip). The
-    renderer statically imports both models and picks by its `fhirVersion` prop,
-    which is the literal `"r4"` at both call sites. `npm run check:fhir-r5`
-    fails on any other `fhirVersion` (including a computed one it cannot read)
-    **and** if the renderer stops importing that exact specifier — the silent
-    failure being an upgrade that renames it, putting the 67KB back with the app
-    behaving completely normally. That rule first shipped as a substring
-    `includes()` and passed a planted rename to `…/r5-renamed`; it matches the
-    whole quoted specifier now.
-  - **`@lhncbc/ucum-lhc`** → a throwing shim (557KB raw / 117KB gzip). The full
-    UCUM units library, for a conversion nothing here performs: all 18
-    Questionnaires are choice/group/string/text/integer/display, and their only
-    two FHIRPath expressions are unit-free integer sums.
-  ⚠️ **It is `fhirpath` that needs UCUM, not the renderer** — `fhirpath` requires
-  it *eagerly at module scope* (`UcumLhcUtils.getInstance()` in three of its
-  files) and only uses it for Quantity arithmetic; `@formbox/renderer` builds it
-  lazily on Quantity paths alone. So a stack trace mentioning UCUM is not a
-  formbox bug, and there is no supported opt-out to reach for: fhirpath declares
-  it as a plain dependency with no optional flag and no lighter entry point.
-  The shim's methods **throw** rather than returning `{status: 'failed'}`, which
-  fhirpath would quietly fold into a result — a silently wrong instrument score
-  is the one outcome this app must not produce. `npm run check:ucum` is what makes
-  reaching one a build error: it fails if a Questionnaire grows a quantity item, a
-  `valueQuantity`/`answerQuantity`, or a unit-bearing expression, **and** it
-  derives the required method list from the installed `fhirpath` and
-  `@formbox/renderer` rather than hardcoding it, so an upgrade that calls a new
-  UCUM method fails the gate instead of a form. Same trade as the `expo-random`
-  override documented in `web/package.json` — prune what cannot execute, and say
-  why in the place someone will look.
-- **`copy-fhir` is incremental:** it skips the ~30s SUSHI compile when `packages/fhir-artifacts/generated/` is newer than every FSH input. `predev` runs it plain; `prebuild` runs it with `--force`. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
-- **Generated files must exist before `tsc -b`.** `packages/fhir-artifacts/generated/*.json` and `packages/fhir-artifacts/generated/care-plan-profiles.generated.ts` (the whole `generated/` directory is gitignored) are produced by `copy-fhir`. On a clean checkout, run `npm run copy-fhir` first or the typecheck/build fails on missing imports.
+- **Fresh worktrees need `npm install`** in `web/` before any npm script runs.
+- **`copy-fhir` is incremental:** it skips the ~30s SUSHI compile when the
+  generated tree is newer than every FSH input. `predev` runs it plain;
+  `prebuild` runs it with `--force`. If FHIR data looks stale, run
+  `npm run copy-fhir -- --force`.
+- **Generated files must exist before `tsc -b`.** On a clean checkout, run
+  `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
-  ValueSets; `FHIR-Resources/` holds Questionnaires (plus a couple of CarePlan
-  templates) and the few local CodeSystems that have no FSH counterpart. Never
-  define the same canonical URL in both trees — three ASQ CodeSystems did, and
-  the `FHIR-Resources` copies silently shadowed the IG's with drifted `display`
-  values until `validate-fhir.mjs` caught it. `node scripts/validate-fhir.mjs`
-  loads both trees, so a fresh collision shows up as a display or binding error.
-- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `packages/core/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `packages/demo-population/src/` (e.g. `patients.json`). LOINC **per-item** codes are no longer hand-copied into `packages/core/src/lib/observationMappers/fallbackDispatch.ts`: `INSTRUMENT_SIGNATURES` (used to recognize foreign QRs) names only linkIds, and their codes are resolved from `packages/fhir-artifacts/generated/instrument-signatures.generated.ts`, which `copy-fhir` derives from the Questionnaire JSON — so a linkId that stops carrying a code is a type error rather than drift. When you change any such code, **grep the whole repo** for the old value and update every site.
-- **The Stanley-Brown CarePlan transformation exists twice on purpose.**
-  `ig/input/resources/maps/StanleyBrownQRToCarePlan.fml` declares it (and is
-  what `PlanDefinition.action.transform` points at);
-  `packages/core/src/lib/carePlanMappers/stanleyBrown.ts` executes it in the demo. Both
-  are compared against one golden file,
-  `scripts/fixtures/stanley-brown/careplan-expected.json` — the FML side by
-  `scripts/check-fml.mjs` (Java + network, in `fml-validate.yml`), the
-  TypeScript side by `stanleyBrown.parity.test.ts` (offline, in `verify`).
-  Change the transformation and you must change both. The normalizer that
-  decides which fields are compared is itself duplicated
-  (`scripts/lib/careplan-parity.mjs` and the test) because `tsconfig.app.json`
-  includes only `src/`; the `.mjs` carries the rationale for every excluded
-  field and the two must be edited together.
+  ValueSets; `FHIR-Resources/` holds Questionnaires and the few local CodeSystems
+  with no FSH counterpart. Never define the same canonical URL in both trees —
+  three ASQ CodeSystems did, and the `FHIR-Resources` copies silently shadowed
+  the IG's with drifted `display` values.
+- **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes and ASQ
+  disposition codes are duplicated by hand across `ig/input/fsh/` (canonical),
+  `packages/core/src/lib/observationMappers/` and `packages/demo-population/src/`.
+  When you change any such code, **grep the whole repo** for the old value and
+  update every site.
+- **The Stanley-Brown CarePlan transformation exists twice on purpose** — the
+  `.fml` declares it, `carePlanMappers/stanleyBrown.ts` executes it in the demo,
+  and both are compared against one golden file. Change the transformation and you
+  must change both.
 - **Tool licensing lives in the FSH, and only there.** Every ActivityDefinition
-  carries `copyright` plus an `instrument-licensing-status` extension
-  (`ig/input/fsh/instrument-licensing.fsh`, issue #127); `Tool.licensing` in
-  `web/src/data/catalog/tools.ts` is *derived* from that extension. It used to
-  be hand-typed in `tool-ui-metadata.ts`, where the adoption guide could — and
-  did — state a licensing position no FHIR artifact backed. Do not reintroduce
-  a `licensing` field there. `npm run check:catalog` fails if any AD is missing
-  either half, if the code is not in the CodeSystem, or if a multi-AD tool's ADs
-  disagree. R4 has no `copyrightLabel`; the extension is the stand-in.
-  **A new tool with unsettled terms gets `#unknown`, not a permissive guess** —
-  the notice must name where its claim comes from (a filed
-  `FHIR-Resources/<tool>/licensing/MEMO.md`, or the Questionnaire's own recorded
-  notice, or nothing). **No status has been verified against the rights holder's
-  *current* published terms** — `docs/best-practices/licensing-verification-backlog.md`
-  is the standing list of what is owed, and of why a recorded notice is not a
-  verification.
-- **Tool ids live in the FSH too, as `ActivityDefinition.identifier`.** A
-  `TL-0NN` names one catalogued entry on a stage tile, and every catalogued AD
-  carries it in `http://thespierproject.org/fhir/identifier/tool-id` — a system
-  the IG publishes as a `NamingSystem`, with the reasoning in
-  `ig/input/fsh/tool-id-identifier.fsh`. `tools.ts` **derives** the pairing;
-  the hand-written `AD_TO_TOOL_ID` map it used to carry is deleted, with no
-  fallback, and `check:catalog` fails if it comes back. That map could only
-  ever check itself: the IG published no ids, so the app's pairing was
-  unverifiable and an IG page naming `TL-017` named nothing a reader could
-  resolve — which is why those ids were stripped out of the rendered pages.
-  ⚠️ **`TL-0NN` is not an AD id, and the mapping is many-to-one on purpose.**
-  The CAMS SSF-5 is one tool (TL-020) across four session-form ADs, all
-  carrying the same identifier. Prose in the IG should still link the AD page
-  under the tool's *name* rather than quoting a bare id — the id is for
-  machines, and a named link is what a reader can act on.
+  carries `copyright` plus an `instrument-licensing-status` extension;
+  `Tool.licensing` is *derived* from it. Do not reintroduce a `licensing` field in
+  `tool-ui-metadata.ts`. A new tool with unsettled terms gets `#unknown`, not a
+  permissive guess. **No status has been verified against the rights holder's
+  *current* published terms** —
+  [`docs/best-practices/licensing-verification-backlog.md`](docs/best-practices/licensing-verification-backlog.md)
+  is the standing list of what is owed.
+- **Tool ids live in the FSH too, as `ActivityDefinition.identifier`.** `tools.ts`
+  **derives** the pairing; the hand-written map is deleted with no fallback, and
+  `check:catalog` fails if it comes back. ⚠️ `TL-0NN` is not an AD id, and the
+  mapping is many-to-one on purpose (the CAMS SSF-5 is one tool across four ADs).
+  IG prose should link the AD page under the tool's *name*, not a bare id.
+- ⚠️ **A huge `git status` in the ROOT checkout usually means the ref moved, not
+  the files** — `git branch -f main origin/main` from a linked worktree updates
+  the shared ref without touching the root's files or index, and the whole gap
+  reports as *staged* changes nobody staged. **Diagnose from the reflogs before
+  touching anything**: the wrong reading here is destructive, `git reset --hard`
+  destroys the mtimes that date the divergence, and `git worktree remove` deletes
+  the record of which session moved the ref. The three commands and the
+  tree-hashing confirmation are in
+  [`docs/internals/build-gotchas.md`](docs/internals/build-gotchas.md).
+- **Two of `@formbox/renderer`'s dependencies are aliased to shims** in
+  `vite.config.ts` (and therefore in vitest): `fhirpath/fhir-context/r5` → an
+  empty object, `@lhncbc/ucum-lhc` → a throwing shim. Together they cut the
+  assessment chunk 391 → 208 KB gzip. `check:fhir-r5` and `check:ucum` guard
+  them; the shared alias reader **throws** on an alias form it cannot parse,
+  because both gates treat "not aliased" as "nothing to guard" and pass. ⚠️ The
+  aliases are anchored regexes in the array form — the object form matches by
+  prefix and would swallow more than intended. Details in
+  [`docs/internals/build-gotchas.md`](docs/internals/build-gotchas.md).
 
 ## Skills (`.claude/skills/`)
 
