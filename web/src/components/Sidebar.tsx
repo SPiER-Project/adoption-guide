@@ -65,10 +65,12 @@ import '../css/Sidebar.css'
 /**
  * Where SPiER can be reached that is not a page of this app.
  *
- * ⚠️ **"Mock" is load-bearing in the label, not modesty.** That host is
- * controlled by the same project it demonstrates, so nothing observed there is
- * evidence of interoperability — the host says so on every page, and a label
- * reading "EHR demo" would quietly drop the part that keeps the claim honest.
+ * ⚠️ **The label reads "Demo EHR" and the IDENTIFIERS still say `MOCK_EHR`.**
+ * That is deliberate, not an unfinished rename: the host's own hostname is
+ * `spier-mock-ehr.bbthorson.workers.dev`, so the constant names what it points
+ * at. The reasoning for the label — and the three assertions that now carry the
+ * honesty claim the word "Mock" used to carry alone — is in `data/surfaces.ts`,
+ * beside the string itself rather than restated here.
  *
  * ⚠️ **Notes are measured, not trimmed by feel.** The sidebar is 240px and a
  * note has 192px of it, so a longer line wraps and costs the column height it
