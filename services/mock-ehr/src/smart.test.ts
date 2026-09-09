@@ -385,3 +385,117 @@ describe('/_admin/launch', () => {
     expect(res.status).toBe(400)
   })
 })
+
+/**
+ * The worklist grant: an EHR launch whose context names NO patient (#401).
+ *
+ * ⚠️ **The negative cases here are the file's point, not padding.** A
+ * patient-less token reads every patient on this server, so the interesting
+ * question is never "does the happy path work" — it is whether the ways to get
+ * one by accident are closed. Three of them are: a context with both a patient
+ * and the flag, a context with neither (a chart launch that lost its patient),
+ * and a worklist launch that asked for no cross-patient scope and would have
+ * produced a token that 403s on its first read.
+ */
+describe('the worklist grant — a launch with no patient (#401)', () => {
+  const WORKLIST_SCOPE = 'launch openid fhirUser user/*.read'
+
+  /** An EHR launch context with no patient, the way /_admin/launch mints one. */
+  const worklistLaunch = () => mintLaunch({ userScoped: true }, {})
+
+  it('mints a token with NO patient bound, carrying the cross-patient scope', async () => {
+    const { tokenResponse } = await launchFor(BASE, {
+      launch: await worklistLaunch(),
+      scope: WORKLIST_SCOPE,
+    })
+    // Absent, not empty-string and not null — the app decides whether it has a
+    // patient in context by looking for this key.
+    expect('patient' in tokenResponse).toBe(false)
+    expect(tokenResponse.scope).toContain('user/*.read')
+  })
+
+  it('reads TWO different patients on one token — the thing a chart token cannot do', async () => {
+    const { accessToken } = await launchFor(BASE, {
+      launch: await worklistLaunch(),
+      scope: WORKLIST_SCOPE,
+    })
+    const auth = { authorization: `Bearer ${accessToken}` }
+    for (const id of ['patient-001', 'patient-002']) {
+      const res = await app.request(`${BASE}/fhir/Patient/${id}`, { headers: auth })
+      expect(res.status, id).toBe(200)
+    }
+    // And a per-patient search, which is how SPiER's registry read actually
+    // walks a cohort (N searches, not one cohort query — that is #401 Phase C).
+    const search = await app.request(`${BASE}/fhir/Observation?patient=patient-002`, { headers: auth })
+    expect(search.status).toBe(200)
+  })
+
+  it('still 403s the same cross-patient read on a PATIENT-scoped token', async () => {
+    // The planted opposite of the test above. If this ever passes, the worklist
+    // grant did not gain a capability — `denyForeignPatient` lost one, and every
+    // chart launch in the demo can now read the whole server.
+    const { accessToken } = await launchFor(BASE, { patient: 'patient-001' })
+    const res = await app.request(`${BASE}/fhir/Patient/patient-002`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+    })
+    expect(res.status).toBe(403)
+  })
+
+  it('DROPS patient/… scopes from the grant, and reports what it granted', async () => {
+    // A `patient/…` scope with no patient bound is a contradiction. Narrowing the
+    // grant and returning the narrowed scope is RFC 6749 §3.3's own model.
+    const { tokenResponse } = await launchFor(BASE, {
+      launch: await worklistLaunch(),
+      scope: 'launch user/*.read patient/Observation.read patient/CarePlan.write',
+    })
+    expect(tokenResponse.scope).toBe('launch user/*.read')
+  })
+
+  it('refuses a worklist launch that asked for no cross-patient scope', async () => {
+    // Without this the token authorizes nothing it can use: `mayCrossPatients`
+    // says no, and every read of a patient other than "none" is a 403. Failing at
+    // authorization is strictly better than failing on the first read.
+    const { params } = await goodParams({
+      patient: undefined,
+      launch: await worklistLaunch(),
+      scope: 'launch openid patient/Patient.read',
+    })
+    const result = await authorize(params, {}, FHIR_BASE)
+    const url = new URL(result.kind === 'redirect' ? result.location : '')
+    expect(url.searchParams.get('error')).toBe('invalid_scope')
+  })
+
+  it('refuses a context carrying BOTH a patient and userScoped', async () => {
+    const contradictory = await mintLaunch(
+      { patient: 'patient-001', userScoped: true } as Parameters<typeof mintLaunch>[0],
+      {},
+    )
+    const { params } = await goodParams({ patient: undefined, launch: contradictory })
+    const result = await authorize(params, {}, FHIR_BASE)
+    const url = new URL(result.kind === 'redirect' ? result.location : '')
+    expect(url.searchParams.get('error')).toBe('invalid_request')
+    expect(url.searchParams.get('error_description')).toContain('cannot be both')
+  })
+
+  it('refuses a context with NEITHER — a chart launch that lost its patient', async () => {
+    // ⚠️ The case this whole design exists for. Were absence alone enough to
+    // mean "worklist", this bug would silently hand a chart launch a token that
+    // reads every patient in the server, and the panel would look fine.
+    const patientless = await mintLaunch({} as Parameters<typeof mintLaunch>[0], {})
+    const { params } = await goodParams({ patient: undefined, launch: patientless })
+    const result = await authorize(params, {}, FHIR_BASE)
+    const url = new URL(result.kind === 'redirect' ? result.location : '')
+    expect(url.searchParams.get('error')).toBe('invalid_request')
+    expect(url.searchParams.get('error_description')).toContain('lost its patient')
+  })
+
+  it('advertises the new grant, and does NOT claim standalone launch', async () => {
+    const config = smartConfiguration(BASE)
+    expect(config.scopes_supported).toContain('user/*.read')
+    expect(config.capabilities).toContain('permission-user')
+    // The host mints the context and opens the app; the app cannot start its own
+    // flow here. Advertising `launch-standalone` would be a claim with nothing
+    // behind it — and the app-side entry point is Phase B, not this one.
+    expect(config.capabilities).not.toContain('launch-standalone')
+  })
+})
