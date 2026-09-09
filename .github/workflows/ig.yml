@@ -107,7 +107,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: .github/.nvmrc
 
       # #409: `how-to-read.md` describes the guide's navigation in prose while
       # `sushi-config.yaml` defines it, and nothing compared the two. Both
@@ -204,7 +204,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: .github/.nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
 
