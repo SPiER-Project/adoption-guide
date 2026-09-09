@@ -18,11 +18,18 @@
  *
  * ⚠️ **The "not a SMART launch" paragraph is not hedging, and must not be
  * softened.** The frame on the mock EHR's front door carries no `iss` and no
- * `launch`; a population is not one patient and every token that server issues
- * is bound to one. That is issue #401, it is stated on the host page itself, and
+ * `launch` at all. That is issue #401, it is stated on the host page itself, and
  * `embedded-panel-smart-launch.md` §6.3 requires the claim to be printed rather
- * than left in a comment. When the user-scoped launch lands, this paragraph
- * changes in the same commit — never before it.
+ * than left in a comment.
+ *
+ * ⚠️ **Narrowed once already — keep it accurate as the phases land.** Until
+ * Phase A (#489, merged 2026-09-09) the reason was twofold: the frame carried no
+ * launch *and* every token this server could issue was bound to one patient, so
+ * a caseload was unservable in principle. The mock EHR now mints a worklist
+ * grant, so only the first half is still true. What remains is the host offering
+ * that launch (Phase B) and the app having a cohort read to use it with
+ * (Phase C). Each phase edits this copy in the commit that makes it false —
+ * never before, and never after.
  */
 import { Link } from 'react-router-dom'
 import { MOCK_EHR_URL } from '../data/surfaces'
@@ -110,11 +117,13 @@ export function PopulationDashboardGuide() {
             That frame is an embedded activity, not a SMART launch &mdash; and the difference
             matters.
           </strong>{' '}
-          It carries no launch context at all. A population is not one patient, and every access
-          token that server issues is bound to a single patient by design, so it cannot serve a
-          caseload: a genuine embedded worklist needs a user-scoped launch the auth stub does not
-          yet issue. Until that lands, the frame demonstrates the <em>shape</em> of a hosted
-          worklist activity and nothing about interoperability. Tracked as{' '}
+          It carries no launch context at all &mdash; no <code>iss</code>, no{' '}
+          <code>launch</code> &mdash; so nothing about it was authorized by the host. The mock EHR
+          can now issue the kind of token a caseload needs (one with no single patient bound, which
+          it could not do until recently), but a hosted activity only becomes a SMART app when the
+          host actually launches it and the app reads the cohort it was granted. Neither has
+          happened yet, so the frame demonstrates the <em>shape</em> of a hosted worklist activity
+          and nothing about interoperability. Tracked as{' '}
           <a href={ISSUE_401_URL} target="_blank" rel="noopener noreferrer">
             issue #401
           </a>
