@@ -60,7 +60,7 @@
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   color: var(--text-body);
-  padding: 0.3rem 0.65rem;
+  padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-base);
   font-weight: 500;
   border-radius: var(--radius-pill);
@@ -100,7 +100,7 @@
 .caseload-th-controls {
   display: inline-flex;
   align-items: center;
-  gap: 0.15rem;
+  gap: var(--space-0-5);
 }
 
 /* Both header controls inherit the <th>'s uppercase micro-label styling so the
@@ -109,11 +109,11 @@
 .caseload-filter-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-1);
   background: none;
   border: 0;
-  padding: 0.1rem 0.2rem;
-  margin: -0.1rem -0.2rem;
+  padding: var(--space-0-5) var(--space-1);
+  margin: calc(-1 * var(--space-0-5)) calc(-1 * var(--space-1));
   font: inherit;
   color: inherit;
   text-align: left;
@@ -182,7 +182,7 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  padding: 0.3rem 0.45rem;
+  padding: var(--space-1) var(--space-2);
   background: none;
   border: 0;
   font: inherit;
@@ -254,7 +254,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  padding: 0.7rem 0.9rem;
+  padding: var(--space-3) var(--space-4);
   white-space: nowrap;
 }
 
@@ -286,7 +286,7 @@
 }
 
 .caseload-table td {
-  padding: 0.7rem 0.9rem;
+  padding: var(--space-3) var(--space-4);
   vertical-align: top;
 }
 
@@ -316,7 +316,7 @@
 .caseload-patient-meta {
   font-size: var(--font-size-sm);
   color: var(--text-faint);
-  margin-top: 0.1rem;
+  margin-top: var(--space-0-5);
 }
 
 .caseload-stage {
@@ -334,13 +334,13 @@
 .caseload-activity-date {
   font-size: var(--font-size-xs);
   color: var(--text-faint);
-  margin-top: 0.1rem;
+  margin-top: var(--space-0-5);
 }
 
 /* Work state and follow-up state share one cell; the gap is what tells a reader
    they are two facts rather than one four-line sentence. */
 .caseload-cell-group + .caseload-cell-group {
-  margin-top: 0.35rem;
+  margin-top: var(--space-1-5);
 }
 
 .caseload-next-label {
@@ -356,7 +356,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   line-height: 1.4;
-  margin-top: 0.15rem;
+  margin-top: var(--space-0-5);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -661,7 +661,7 @@
   height: 0.4rem;
   border-radius: var(--radius-circle);
   flex: none;
-  margin-top: 0.4rem;
+  margin-top: var(--space-1-5);
 }
 
 .pop-alert--red .pop-alert-dot { background: var(--risk-high); }
@@ -669,7 +669,7 @@
 
 .pop-alert-body {
   display: grid;
-  gap: 0.1rem;
+  gap: var(--space-0-5);
   min-width: 0;
 }
 

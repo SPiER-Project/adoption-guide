@@ -11,7 +11,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-lg);
   line-height: 1.6;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
 }
 
@@ -26,7 +26,7 @@
 .dd-search {
   flex: 1;
   min-width: 200px;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
@@ -45,7 +45,7 @@
 }
 
 .dd-select {
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
@@ -78,7 +78,7 @@
 }
 
 .dd-table th {
-  padding: 0.65rem 0.75rem;
+  padding: var(--space-3) var(--space-3);
   text-align: left;
   font-weight: 700;
   color: var(--text-body);
@@ -90,7 +90,7 @@
 }
 
 .dd-table td {
-  padding: 0.6rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--surface-muted);
   color: var(--border-emphasis);
   vertical-align: top;
@@ -163,7 +163,7 @@
    which made System the tallest cell on the page once the path column stopped
    being. Nothing is hidden by this; the qualifier just stops claiming a line. */
 .dd-system-note {
-  margin-left: 0.3rem;
+  margin-left: var(--space-1);
   font-size: var(--font-size-xs);
   font-style: italic;
   color: var(--text-faint);
@@ -285,7 +285,7 @@
   border: 0;
   background: none;
   cursor: pointer;
-  padding: 0.1rem 0.25rem;
+  padding: var(--space-0-5) var(--space-1);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: var(--font-size-sm);
@@ -303,7 +303,7 @@
 }
 
 .dd-detail-row > td {
-  padding: 0 0.75rem 0.85rem;
+  padding: 0 var(--space-3) var(--space-3);
   border-bottom: 1px solid var(--surface-muted);
   background: var(--surface-page);
 }
@@ -311,7 +311,7 @@
 .dd-detail {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-1-5);
   /* The budget for the DATA lines below — a code display, a value-set canonical,
      a row of tool chips — which want room to stay on one line. It is not the
      prose measure any more: this rule's comment claimed the prose cap ("386
@@ -335,7 +335,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.4rem;
+  gap: var(--space-1-5);
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--text-muted);
@@ -368,8 +368,8 @@
 .dd-jump-link {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.4rem;
-  padding: 0.3rem 0.65rem;
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-3);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-pill);
   background: white;
@@ -444,8 +444,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.4rem var(--space-3);
-  padding: 0.4rem 0;
+  gap: var(--space-1-5) var(--space-3);
+  padding: var(--space-1-5) 0;
 }
 
 .dd-concept-head .dd-concept-count {
@@ -475,6 +475,7 @@
   width: 1px;
   height: 1px;
   padding: 0;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- not spacing: part of the visually-hidden recipe (1px box, clipped), where -1px keeps the clipped box off the layout */
   margin: -1px;
   overflow: hidden;
   clip-path: inset(50%);
@@ -485,7 +486,7 @@
 .dd-resource-badge {
   font-size: var(--font-size-xs);
   font-weight: 600;
-  padding: 0.1rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
@@ -503,7 +504,7 @@
 .dd-tool-chip {
   font-size: var(--font-size-xs);
   font-weight: 600;
-  padding: 0.1rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   background: var(--surface-muted);
   color: var(--text-body);
@@ -514,7 +515,7 @@
   text-align: center;
   color: var(--text-faint);
   font-style: italic;
-  padding: 2rem !important;
+  padding: var(--space-8) !important;
 }
 
 .dd-empty-state {
@@ -542,7 +543,7 @@
   justify-content: space-between;
   gap: var(--space-4);
   margin-bottom: var(--space-2);
-  padding: 0 0.25rem;
+  padding: 0 var(--space-1);
 }
 
 .dd-stage-title {
@@ -579,7 +580,7 @@
 
 .dd-cross-chip {
   font-size: var(--font-size-xs);
-  padding: 0.1rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   background: var(--brand-accent-soft);
   color: var(--brand-accent-text);
@@ -619,7 +620,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-2);
-  padding: 0.15rem 0.35rem 0.15rem 0;
+  padding: var(--space-0-5) var(--space-1-5) var(--space-0-5) 0;
   border: 0;
   background: none;
   color: var(--text-strong);
@@ -677,7 +678,7 @@
 
 .dd-concept-chip {
   font-size: var(--font-size-xs);
-  padding: 0.1rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   background: var(--surface-muted);
   color: var(--text-body);

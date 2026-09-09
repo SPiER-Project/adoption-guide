@@ -109,7 +109,17 @@
   --risk-low-faded:           #86efac;
 
   /* ── Spacing scale (4-pt rem) ───────────────────────────── */
+  /* ⚠️ Two half-steps at the small end, and they are what make this scale
+     enforceable rather than aspirational. The 0.25rem grid alone is too coarse
+     below 0.5rem — pill, badge and chip padding lives there — so 250 raw
+     declarations had grown up beside it across 26 ad-hoc values, led by
+     0.4rem×45, 0.15rem×26 and 0.35rem×24. Every one of those is now a token;
+     the 26 values collapsed into these 10 in exchange for adding 2. Do not add
+     a third half-step: 0.6/0.65/0.85/0.9rem all snapped to the 4px grid with a
+     1.6px shift nobody can perceive, which is the scale doing its job. */
+  --space-0-5: 0.125rem;
   --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
@@ -117,6 +127,14 @@
   --space-6: 1.5rem;
   --space-7: 1.75rem;
   --space-8: 2rem;
+
+  /* The inline gap between an icon (or a code chip) and the label beside it.
+     Deliberately `em`, and therefore deliberately NOT a --space-* step: it sits
+     inside runs at seven different font sizes, and the gap that reads as "these
+     two things are one thing" is a fraction of the type, not a fixed distance.
+     It was 0.25em in seven places and 0.3em in three — the same intent written
+     twice. */
+  --gap-inline: 0.25em;
 
   /* ── Page widths ────────────────────────────────────────────
      The page template's two measures, set on a lens's root element. The four

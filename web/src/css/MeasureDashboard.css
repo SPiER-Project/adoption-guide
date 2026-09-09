@@ -6,7 +6,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-lg);
   line-height: 1.6;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
 }
 
@@ -25,7 +25,7 @@
 }
 
 .md-select {
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
@@ -151,7 +151,7 @@
 .md-table th,
 .md-table td {
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--border-default);
   font-size: var(--font-size-md);
   color: var(--text-strong);
@@ -204,7 +204,7 @@
 
   .md-table th,
   .md-table td {
-    padding: 0.4rem 0.5rem;
+    padding: var(--space-1-5) var(--space-2);
     font-size: var(--font-size-sm);
   }
 }

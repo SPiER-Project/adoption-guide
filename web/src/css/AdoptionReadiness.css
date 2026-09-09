@@ -11,7 +11,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-lg);
   line-height: 1.6;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
 }
 
@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-2xl);
@@ -101,7 +101,7 @@
 }
 
 .ar-legend-summary {
-  padding: 0.6rem 1rem;
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-base);
   color: var(--border-emphasis);
   cursor: pointer;
@@ -113,10 +113,10 @@
 }
 
 .ar-legend-body {
-  padding: 0.6rem 1rem;
+  padding: var(--space-2) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .ar-legend-row {
@@ -152,7 +152,7 @@
 .ar-legend-scale-item {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-1-5);
   font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
@@ -184,7 +184,7 @@
 
 .ar-table th,
 .ar-table td {
-  padding: 0.55rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   text-align: left;
   border-bottom: 1px solid var(--border-default);
   vertical-align: middle;
@@ -251,8 +251,8 @@
 .ar-tier {
   display: inline-flex;
   align-items: center;
-  gap: 0.25em;
-  padding: 0.15rem 0.5rem;
+  gap: var(--gap-inline);
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-2xs);
   font-weight: 700;
@@ -269,8 +269,8 @@
 .ar-lic {
   display: inline-flex;
   align-items: center;
-  gap: 0.25em;
-  padding: 0.15rem 0.5rem;
+  gap: var(--gap-inline);
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-2xs);
   font-weight: 700;
@@ -323,7 +323,7 @@
 /* ── Cross-links ── */
 .ar-crosslinks {
   margin-top: var(--space-8);
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   background: var(--surface-page);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -340,7 +340,7 @@
 
 .ar-crosslinks-list {
   margin: 0;
-  padding-left: 1.1rem;
+  padding-left: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -365,12 +365,12 @@
 .ar-inclusion {
   display: inline-flex;
   align-items: center;
-  gap: 0.25em;
+  gap: var(--gap-inline);
   font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.1rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-pill);
 }
 
