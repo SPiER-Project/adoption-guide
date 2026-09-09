@@ -22,6 +22,31 @@ and was false. See [`docs/internals/README.md`](README.md).
   measure the bar or the footer any more). A fallback does
   not excuse an undefined token; it just hides it. `index.css` is in stylelint's
   `ignoreFiles` but *is* read by this check.
+- **Spacing is a 10-step scale, and stylelint says so.** `--space-0-5` …
+  `--space-8`. The scale was used 498 times while 250 raw declarations grew up
+  beside it across 26 ad-hoc values (0.4rem×45, 0.15rem×26, 0.35rem×24,
+  0.6rem×22) — because `declaration-strict-value` already guarded six
+  properties and `padding`/`margin`/`gap` were simply not on the list. Of 363
+  individual values, 160 were already on a step and swapped invisibly, 149 moved
+  0.4-0.8px, and 48 moved 1.6px where 0.6/0.65/0.85/0.9rem snapped to the 4px
+  grid. That last group is the scale working, not a regression: **do not add a
+  third half-step** to avoid it, because the shift is imperceptible and a step
+  is a decision every later author inherits.
+  ⚠️ **Three kinds of value are not spacing, and a token for them would be
+  wrong.** `--gap-inline` is an `em` on purpose — it sits in runs at several
+  font sizes, and the gap that reads as "these two things are one thing" is a
+  fraction of the type. A *derived alignment* must be a `calc()` over the tokens
+  it depends on, never the typed sum: `.sidebar-link--child`'s `3rem` was the
+  link inset + icon + gap and `.stage-tools`' `2.75rem` was `.stage-number`'s
+  width + the header gap, so both would have drifted the moment a gap moved
+  (they still compute to exactly 48px and 44px, verified in the browser). A
+  *hairline nudge* — `-1px` for half a 2px rule, or the visually-hidden recipe —
+  keeps its raw value behind a `stylelint-disable` naming why.
+  ⚠️ The plugin validates **per value**, so a half-token/half-raw shorthand does
+  fail (that was the hole in the sweep script that wrote these, not in the
+  gate). But `ignoreValues` permits any `calc(…)`, so a raw length inside one is
+  unchecked — that is the intended home for a derived value, and the limit of
+  the rule.
 - **One page template.** Every route under the app shell renders into
   `.app-shell__body`, which is the **sole owner of the page inset** — a page
   that pads its own root indents its content relative to every other page, for a
@@ -46,6 +71,33 @@ and was false. See [`docs/internals/README.md`](README.md).
   aspirational; five dead width rules (`.dashboard`, `.screenings-tab`,
   `.careplan-tab`, `.encounters-tab`, `.tools-reference` — four more numbers, no
   elements) went with the same pass.
+  ⚠️ **One owner is not the same as one value, and conflating them cost the
+  guide's prose pages half their column.** RULE 5 was written against seven
+  sub-pages declaring seven widths, and the fix picked *one* width for
+  `.implementation-guide` — `--page-width-wide`, because two of its seven
+  sections have tables. The other five inherited 1200px with nothing to fill
+  it, and the reading measure then looked broken rather than the width:
+  prose capped at ~80 characters fills ~68% of a 900px column and ~48% of a
+  1200px one. Measured across every guide route, the counts were 77-85
+  everywhere — the measure was right and the page was wrong.
+  So the layout now declares both, `.implementation-guide` and
+  `.implementation-guide--wide`, chosen per section by the required `width`
+  field on `GuideSection`. Ownership survives intact: both declarations are on
+  the layout's own class family in the layout's own stylesheet, and RULE 5a
+  still rejects any sub-page root that declares a width at all. What RULE 5b
+  now forbids is a second width on the *base* class, two on one modifier, a
+  modifier duplicating the base value, or a raw length on either — all four
+  planted and watched to fail.
+  ⚠️ **`rootClasses` was mis-identifying its subject, silently.** It read
+  `/className="([^"]+)"/` against the rest of the file, so a root using the
+  expression form did not fail the gate — it matched the *next* literal
+  `className` further down, and AdoptionGuide's page width was being checked
+  against `.ig-content`. It now fails on any className it cannot parse, and on
+  a literal that is not the root's own BEM block, because a scraped class the
+  CSS lookup cannot resolve is a page width the gate only appears to check.
+  That second guard fired on the first attempt at this change, where an inline
+  `active.width === 'wide'` put `'wide'` in the attribute as a candidate class;
+  the test is hoisted out of the JSX for that reason.
   ⚠️ **`--measure-prose` is not a third page width.** It caps a *text run*, and
   the distinction is the point: the width a table wants is not the width a
   sentence wants, so a wide page keeps its tables wide and caps its prose. Put
@@ -78,8 +130,25 @@ and was false. See [`docs/internals/README.md`](README.md).
   itself; its four rules and the one thing it cannot see are described in
   [`web-gates.md`](web-gates.md). `.dd-detail` keeps 52rem for the data lines that really do
   need it, classified as NON_PROSE, and `.dd-detail-desc` caps itself.
+  ⚠️ **The measure being right at every size is exactly what hid seven sizes.**
+  53 declared prose runs were set at 10px, 11px, 12px, 13px, 14px and 15px, plus
+  six inheriting — for one job, reading a paragraph — and every one measured
+  77-85 characters, because an `em` cap holds the count at any size. Nothing
+  looked wrong from the CSS and nothing looked wrong from the character count.
+  It was visible only as width: 41em on 11px type is 451px, which on a 1200px
+  page is a paragraph filling 38% of its own column, and nine of the eighteen
+  sub-13px runs were on the Care Pathway page — the worst-measuring page in the
+  app, worse than the ones that prompted the question. `--font-size-2xs`, whose
+  own definition in `index.css` says it is for micro labels, was carrying one.
+  The three roles are `--font-size-lg` (lede), `--font-size-md` (body) and
+  `--font-size-base` (note), and deliberately not three new role tokens
+  aliasing them — that is two names for one number. RULE 5 in `check:prose`
+  enforces it; the floor across every route went 38% → 47% with the character
+  counts unmoved. INHERITS_TYPE stays exempt because choosing to track the page
+  body size is a different act from picking a size outside the three.
   ⚠️ **What it cannot see is a run with no cap at all**, so a new paragraph on a
-  wide page still wants measuring by hand. A green `check:prose` says every
+  wide page still wants measuring by hand. RULE 5 inherits that blind spot
+  exactly: a run with no cap has no font-size for it to check either. A green `check:prose` says every
   cap that exists is a character count rather than a width; it does not say
   every run that needs one has one.
   Two families are templated, found in different ways. The **lenses**

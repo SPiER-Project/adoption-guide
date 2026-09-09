@@ -31,7 +31,7 @@ npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
 npm run check:template # page template: one header implementation, one owner of the page
                        # inset, one owner of the page width
-npm run check:prose    # the reading MEASURE — `--measure-prose`. Its four rules are each
+npm run check:prose    # the reading MEASURE — `--measure-prose`. Its five rules are each
                        # written against a defect that shipped: the token must be in `em`
                        # and in band (it was 760px, a width where a character count was
                        # meant); every other `max-width` must be a page-width token or
@@ -40,10 +40,21 @@ npm run check:prose    # the reading MEASURE — `--measure-prose`. Its four rul
                        # a `max-width: none` must be declared (`.dd-cell-desc` carried a
                        # 46rem cap that a later `none` had always overridden); and an `em`
                        # cap must know what type it resolves against (`.tool-config-effect`
-                       # sat at an inherited 16px while its paragraph was 14px).
+                       # sat at an inherited 16px while its paragraph was 14px); and RULE 5,
+                       # a prose run is set at one of THREE sizes — lg lede, md body, base
+                       # note. RULE 4 asks whether a capped run declares a size, RULE 5 asks
+                       # WHICH, and that was the gap: 53 runs were spread over seven sizes
+                       # (10-15px plus six inheriting) with every character count in band,
+                       # because an `em` cap holds the count at any size. It showed up as
+                       # width — 41em on 11px is 451px, 38% of a 1200px column — and nine of
+                       # the eighteen sub-13px runs were on one page, which is why that page
+                       # measured worst. The four INHERITS_TYPE entries stay exempt: choosing
+                       # to track the page body size is a different act from picking a size
+                       # outside the three.
                        # ⚠️ It CANNOT see a prose run with NO cap — that needs to know
                        # which elements hold long prose, which is content, not CSS. Measure
-                       # a wide page's prose by hand after adding it
+                       # a wide page's prose by hand after adding it. RULE 5 inherits that
+                       # blind spot exactly: an uncapped run has no size for it to check
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
                        # and the shim still covers every method its consumers call
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
