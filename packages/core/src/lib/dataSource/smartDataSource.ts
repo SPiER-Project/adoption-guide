@@ -41,6 +41,8 @@ import type {
   WritebackReport,
   WritebackTarget,
 } from '../writeback/types'
+import type { RegistryPatient } from '../registry'
+import { toRegistryPatient } from './registryPatient'
 import type { DerivedArtifacts, FhirDataSource } from './types'
 import { LIFECYCLE_RESOURCE_TYPES } from './lifecycleTypes'
 import type {
@@ -279,6 +281,38 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       procedures: procedures as ProcedureResource[],
       encounters: encounters as EncounterResource[],
       riskAlerts,
+    }
+  }
+
+  /**
+   * The roster this session can see — `null` when it cannot see one (#401).
+   *
+   * ⚠️ **A patient-bound session returns `null`, not an empty list and not a
+   * list of one.** That is the whole reason the seam's method is optional and
+   * nullable: the population lens has to say "showing the patient in context"
+   * rather than render a caseload of one, and it certainly must not fall back to
+   * bundled demo rows while a server is connected — that was blocker 1 (#390).
+   *
+   * ⚠️ **A refusal is also `null`, not a throw.** A server that declines the
+   * roster (this mock 403s a chart token; a real one may not implement an
+   * unscoped Patient search at all) is answering the question, and the honest
+   * rendering is the same "cannot serve a cohort" state. Throwing would turn a
+   * legitimate answer into the page's error state.
+   */
+  async listCohort(): Promise<RegistryPatient[] | null> {
+    // A worklist launch has no patient in context; a chart launch does. The
+    // token's own context is the question, so ask it rather than trying the
+    // request and interpreting the failure.
+    if (this.client.patient?.id) return null
+    try {
+      const roster = await this.client.request<unknown>('Patient', { pageLimit: 0, flat: true })
+      const patients = (Array.isArray(roster) ? roster : []).filter(
+        (r): r is FhirResource =>
+          !!r && typeof r === 'object' && (r as FhirResource).resourceType === 'Patient',
+      )
+      return patients.map(toRegistryPatient)
+    } catch {
+      return null
     }
   }
 

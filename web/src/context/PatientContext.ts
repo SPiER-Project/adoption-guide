@@ -57,6 +57,15 @@ export interface PatientContextType {
   patient: PatientResource
   patientDisplay: PatientDisplay
   isSmartConnected: boolean
+  /**
+   * A SMART session exists, patient or no patient.
+   *
+   * ⚠️ Distinct from `isSmartConnected`, which means "there is a patient in
+   * context". A worklist launch (#401) is connected with NO patient, so anything
+   * asking "may I use bundled demo data" must consult this one — see the note in
+   * `PatientProvider`.
+   */
+  isSmartSession: boolean
   /** Null when no patient is selected (blank "play with forms" state). */
   activePatientId: string | null
   populationPatient: PopulationPatient | null

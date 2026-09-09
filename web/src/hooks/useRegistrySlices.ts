@@ -8,14 +8,19 @@
  * rendering bundled demo data, which looks exactly like a server read
  * (`embedded-panel-smart-launch.md` §6.3, blocker 1). Step C (#390).
  *
- * ⚠️ **The cohort question is deliberately NOT answered here.** `FhirDataSource`
- * is per-patient, and a SMART token is bound to one patient — reaching for
- * another is a 403. A genuine registry read needs a user-scoped launch
- * (`user/*.read`, no patient in context) plus a decision about what "the
- * caseload" is on a server where it is not a static list of 14.
- * `mock-patient-smart-launch.md` §8 calls that genuine design work rather than a
- * refactor, and it is blocker 2. So this hook reports its SCOPE and lets the page
- * say so, instead of quietly falling back to local data.
+ * ⚠️ **The cohort question is answered by the SOURCE now, not here** (#401).
+ * `FhirDataSource.listCohort` is what a source uses to say who is on the panel;
+ * it is optional and nullable, and `null` means "I cannot answer that" — which
+ * is a different answer from `[]`. A patient-bound SMART session returns `null`
+ * (its token 403s for anyone but its own subject), the local store returns the
+ * bundled registry because those patients genuinely are its whole population,
+ * and a worklist launch returns the roster it fetched.
+ *
+ * This hook's job is therefore to ASK and to report the resulting scope, never
+ * to decide the cohort itself — which is what it used to do, by filtering the
+ * bundled list. The rule it still enforces is the honesty one: when the source
+ * cannot serve a cohort, the page says it is showing one patient rather than
+ * quietly rendering local rows beside a live connection (blocker 1, #390).
  */
 import { useEffect, useMemo, useState } from 'react'
 import { usePatient } from '../context/PatientContext'
@@ -57,23 +62,27 @@ export interface RegistrySlices {
  * the table was to keep reading local data during a SMART session, which states
  * something false about where the rows came from.
  */
-function cohortFor(
+/**
+ * The cohort when the source cannot serve one: the patient in context, and only
+ * that patient.
+ *
+ * ⚠️ Under SMART the identity comes from the SMART context, NOT the URL:
+ * `activePatientId` is URL-derived and is null on the dashboard route, so
+ * filtering on it yielded an empty cohort. The launch patient is `patient.id`.
+ *
+ * Against the mock EHR the ids line up, because it serves these same fixtures.
+ * Against a foreign server they would not, and the cohort is then empty — which
+ * the scope notice explains rather than the page silently showing local rows.
+ * Rendering an arbitrary server patient here would need the display fields
+ * `toRegistryPatient` now builds from a `Patient` resource, so this caveat is
+ * closable — it is left standing because changing the chart-launch path is not
+ * what #401 is about.
+ */
+function inContextCohort(
   all: RegistryPatient[],
-  isSmartConnected: boolean,
   inContextId: string | null,
 ): { patients: RegistryPatient[]; scope: RegistryScope } {
-  if (!isSmartConnected) return { patients: all, scope: 'registry' }
-  // ⚠️ Under SMART the identity comes from the SMART context, NOT the URL:
-  // `activePatientId` is URL-derived and is null on /population, so filtering on
-  // it yielded an empty cohort. The launch patient is `patient.id`.
-  //
-  // Against the mock EHR the ids line up, because it serves these same fixtures.
-  // Against a foreign server they would not, and the cohort is then empty — which
-  // the scope notice explains rather than the page silently showing local rows.
-  // Rendering an arbitrary server patient here would need display fields this
-  // registry type does not carry, and that is part of blocker 2's design work.
-  const inContext = all.filter(p => p.id === inContextId)
-  return { patients: inContext, scope: 'in-context' }
+  return { patients: all.filter(p => p.id === inContextId), scope: 'in-context' }
 }
 
 /** Read every cohort patient's slice, synchronously where the source allows. */
@@ -86,17 +95,70 @@ function readSync(source: FhirDataSource, patients: RegistryPatient[]): Registry
 }
 
 export function useRegistrySlices(): RegistrySlices {
-  const { dataSource, isSmartConnected, activePatientId, patient, populationPatients } =
+  const { dataSource, isSmartConnected, isSmartSession, activePatientId, patient, populationPatients } =
     usePatient()
 
   // Under SMART the in-context patient is the launch patient (`patient.id`);
   // locally it is whatever the URL names.
   const inContextId = isSmartConnected ? (patient?.id ?? null) : activePatientId
 
-  const { patients, scope } = useMemo(
-    () => cohortFor(populationPatients, isSmartConnected, inContextId),
-    [populationPatients, isSmartConnected, inContextId],
-  )
+  // The source's answer to "who is on the panel", once it has given one. Until
+  // then, and whenever it answers `null`, the in-context fallback applies — so
+  // the first paint of a live worklist session shows one patient (or none) and
+  // widens, rather than showing bundled rows it would have to take back.
+  // ⚠️ The answer is stored WITH the source that gave it, and read back only
+  // when they still match. The obvious shape — reset to `null` at the top of the
+  // effect — is a synchronous `setState` inside an effect, which React flags as
+  // cascading renders; tagging instead invalidates a stale cohort on a source
+  // swap without a reset at all.
+  const [served, setServed] = useState<{
+    source: FhirDataSource
+    cohort: RegistryPatient[] | null
+  } | null>(null)
+
+  useEffect(() => {
+    let live = true
+    if (!dataSource.listCohort) return
+    dataSource
+      .listCohort()
+      .then(cohort => {
+        if (live) setServed({ source: dataSource, cohort })
+      })
+      // A source that throws is a source that cannot answer. Same rendering as
+      // an explicit `null`; the page's error state belongs to slice reads.
+      .catch(() => {
+        if (live) setServed({ source: dataSource, cohort: null })
+      })
+    return () => {
+      live = false
+    }
+  }, [dataSource])
+
+  const servedCohort = served && served.source === dataSource ? served.cohort : null
+
+  const { patients, scope } = useMemo(() => {
+    // What the source served, once it has served it.
+    // `!== null`, not truthiness: an empty roster is a served cohort. A server
+    // that genuinely holds no patients reports a panel of zero, which is a
+    // different statement from "this source cannot answer".
+    if (servedCohort !== null) return { patients: servedCohort, scope: 'registry' as RegistryScope }
+    // ⚠️ No server in the picture: the bundled registry IS the cohort, and it is
+    // used synchronously so the first paint is populated. `listCohort` is async
+    // even on the local source, so waiting for it here would flash a one-patient
+    // (or empty) caseload before widening — and this hook's own tests assert the
+    // first render is complete, because that is the behaviour the direct
+    // `localDataSource` import used to give.
+    // ⚠️ `isSmartSession`, NOT `isSmartConnected`. A worklist launch has no
+    // patient, so `isSmartConnected` is false for it — and this shortcut would
+    // then hand it fourteen bundled demo patients while a real server sat on the
+    // other end of the connection, labelled `scope: 'registry'`. Exactly the
+    // dishonesty blocker 1 (#390) closed, re-entering through the new door.
+    if (!isSmartSession) return { patients: populationPatients, scope: 'registry' as RegistryScope }
+    // Connected, and the source has not served a cohort: one patient, said out
+    // loud. This is a patient-bound chart launch, or a source with no
+    // `listCohort` at all.
+    return inContextCohort(populationPatients, inContextId)
+  }, [servedCohort, isSmartSession, populationPatients, inContextId])
 
   // First paint uses the sync read when the source has one, so a local session
   // renders with no loading flash — the behaviour before step C.

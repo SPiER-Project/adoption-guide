@@ -151,3 +151,105 @@ describe('useRegistrySlices — the population read goes through the seam', () =
     spy.mockRestore()
   })
 })
+
+/**
+ * The cohort read (#401). What separates a worklist session from a chart one is
+ * no longer a guess this hook makes — it is what the source answers.
+ *
+ * ⚠️ The `null` case is the one that matters. A source that cannot serve a
+ * cohort must leave the page saying "one patient", never showing bundled rows
+ * beside a live connection (blocker 1, #390) and never showing an empty caseload
+ * as though the panel were empty.
+ */
+describe('useRegistrySlices — listCohort decides the cohort', () => {
+  beforeEach(() => localStorage.clear())
+  afterEach(() => cleanup())
+
+  /**
+   * ⚠️ These drive the REAL `SmartDataSource`, not an injected fake, and they
+   * have to: `PatientProvider` builds a `SmartDataSource` whenever a SMART
+   * client exists, so a client stub deliberately wins over the `dataSource`
+   * prop. The stub is therefore a fake *client* — which is the better test
+   * anyway, since it exercises the roster request and the FHIR→registry mapping
+   * rather than trusting them.
+   *
+   * `patient.id` must exist as a property even when null: `PatientProvider`
+   * reads `smartClient?.patient.id`.
+   */
+  function clientServing(
+    patientId: string | null,
+    roster: Array<Record<string, unknown>> | Error,
+  ) {
+    return {
+      patient: { id: patientId },
+      request: (arg: unknown) => {
+        const url = typeof arg === 'string' ? arg : String((arg as { url?: string })?.url ?? '')
+        if (url === 'Patient') {
+          return roster instanceof Error ? Promise.reject(roster) : Promise.resolve(roster)
+        }
+        // Every per-patient slice search: empty, so the test is about the cohort.
+        return Promise.resolve([])
+      },
+    } as never
+  }
+
+  /** `isSmartConnected` is derived from the SMART patient having a NAME. */
+  const smartPatient = (id: string) => ({ id, name: [{ family: 'Test' }] }) as never
+
+  const FHIR_ROSTER = [
+    {
+      resourceType: 'Patient',
+      id: 'srv-1',
+      name: [{ given: ['Server'], family: 'One' }],
+      gender: 'female',
+      birthDate: '1990-01-01',
+      identifier: [{ system: 'http://thespierproject.org/fhir/identifier/mrn', value: '111' }],
+    },
+    {
+      resourceType: 'Patient',
+      id: 'srv-2',
+      name: [{ given: ['Server'], family: 'Two' }],
+      gender: 'male',
+      birthDate: '1985-02-02',
+    },
+  ]
+
+  it('serves the roster the SERVER returned, not the bundled registry', async () => {
+    // A worklist launch: a client, no patient. The ids are the server's, so a
+    // bundled fallback would show as `patient-0NN` rows instead of these.
+    renderProbe(asyncSource({}), { client: clientServing(null, FHIR_ROSTER), patient: null })
+    // ⚠️ Both assertions inside `waitFor`, and the second one is why. `scope`
+    // flips the moment the cohort resolves, but `ids` comes from `entries`,
+    // which the per-patient slice reads fill a tick later. Asserting ids right
+    // after the scope settles passed in isolation and failed under full-suite
+    // load — a race in the test, not in the hook.
+    await waitFor(() => {
+      expect(screen.getByTestId('scope').textContent).toBe('registry')
+      expect(screen.getByTestId('ids').textContent).toBe('srv-1,srv-2')
+    })
+  })
+
+  it('falls back to the patient in context on a CHART launch', async () => {
+    // A patient-bound token 403s for anyone else, so `listCohort` declines
+    // without even asking — `client.patient.id` is the question.
+    renderProbe(asyncSource({}), {
+      client: clientServing('patient-002', FHIR_ROSTER),
+      patient: smartPatient('patient-002'),
+    })
+    await waitFor(() => expect(screen.getByTestId('scope').textContent).toBe('in-context'))
+    expect(screen.getByTestId('ids').textContent).toBe('patient-002')
+  })
+
+  it('treats a REFUSED roster as "cannot answer", not as a page error', async () => {
+    // A server that declines the roster is answering the question. The honest
+    // rendering is the same one-patient state, not the error state.
+    renderProbe(asyncSource({}), {
+      client: clientServing(null, new Error('403 forbidden')),
+      patient: null,
+    })
+    await waitFor(() => expect(screen.getByTestId('scope').textContent).toBe('in-context'))
+    // No patient in context either, so the honest answer is an empty cohort —
+    // which the page's scope notice explains rather than presenting as a panel.
+    expect(screen.getByTestId('count').textContent).toBe('0')
+  })
+})

@@ -37,6 +37,28 @@ const STAGE_BLURB: Record<StageId, string> = {
   'measure-and-share': 'Use pathway activity for reporting, QI, and information sharing.',
 }
 
+/**
+ * The next step for a stage, derived from the published pathway rather than
+ * curated per patient.
+ *
+ * ⚠️ **Exported because the caseload needs the same words as the card.** The
+ * population dashboard's "Recommended Next Step" column used to read
+ * `RegistryPatient.recommendedNextStep`, which is hand-written in
+ * `patients.json` — a field no FHIR `Patient` carries, so a cohort read over
+ * real patients cannot produce it (#401). The column now falls back to this,
+ * which is the SAME expression the next-step card has always fallen back to. Two
+ * copies of it would let a caseload row and that patient's own chart recommend
+ * different things, which is precisely the disagreement the dashboard page
+ * claims cannot happen.
+ */
+export function derivedNextStep(stageId: string): { label: string; rationale: string } {
+  const stage = stageById(stageId)
+  return {
+    label: `Next step: ${stage?.title ?? stageId}`,
+    rationale: (isStageId(stageId) ? STAGE_BLURB[stageId] : undefined) ?? stage?.description ?? '',
+  }
+}
+
 // Deployed app base — links point here so a real CDS client (which has no idea
 // about SPiER's SPA routing) can still open the tool. HashRouter → the router
 // path lives after the `#`.
@@ -155,7 +177,8 @@ export function buildCdsCards({
 
   // Card #1: the active pathway stage.
   if (activeStageId) {
-    const stage = stageById(activeStageId)
+    // The stage's own title and description are read by `derivedNextStep` now,
+    // which is why nothing is bound here.
     // The pathway's demonstrated realization leads (PHQ-9 on the screen card,
     // the C-SSRS Screener on Clarify Risk); every other tool follows in catalog
     // order. Ordering only — nothing a site enabled is withheld.
@@ -232,7 +255,7 @@ export function buildCdsCards({
       summary: truncateSummary(
         useRecommendation && recommendedNextStep
           ? recommendedNextStep.label
-          : `Next step: ${stage?.title ?? activeStageId}`,
+          : derivedNextStep(activeStageId).label,
       ),
       detail:
         useRecommendation && recommendedNextStep
@@ -241,9 +264,9 @@ export function buildCdsCards({
             ? `${absorbedAlert.summary}. ${absorbedAlert.detail}`
           // `activeStageId` is resolved off live patient data (see
           // `derivePathwayStatus`), so it stays a plain string rather than
-          // `StageId` — `isStageId` is the boundary guard for indexing the
-          // hand-authored STAGE_BLURB table with it.
-          : (isStageId(activeStageId) ? STAGE_BLURB[activeStageId] : undefined) ?? stage?.description ?? '',
+          // `StageId`; `derivedNextStep` carries the `isStageId` boundary guard
+          // for indexing the hand-authored STAGE_BLURB table with it.
+          : derivedNextStep(activeStageId).rationale,
       indicator,
       source: { label: SOURCE_LABEL, url: APP_BASE_URL, topic: stageTopic(activeStageId) },
       links: links.length > 0 ? links : undefined,

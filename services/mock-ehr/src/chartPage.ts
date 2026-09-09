@@ -88,12 +88,41 @@ export const PANEL_WIDTH_KEY = 'spier-mock-ehr:panel-width'
  * Nothing between here and the viewport can invalidate it again — which is the
  * property the hand-computed offset never had.
  */
-const HOME_CSS = `
-  .activity-frame { height: 46rem; }
-
-  @container guest (min-width: 1100px) {
-    .activity-frame { height: 25rem; }
-  }
+/*
+ * ⚠️ **This block used to hold the front door's one measurement and now holds
+ * its one behaviour.** The measurement was the embedded caseload frame's height,
+ * container-queried at 1100px of FRAME width because the widget's two zones sat
+ * side by side above that and stacked below it. #401 replaced that frame with a
+ * real launch, so there is no guest frame on this page to measure — the whole
+ * rule is deleted rather than kept "in case", since a stale height on a
+ * non-existent element is the kind of thing that outlives everyone who
+ * understood it.
+ *
+ * What replaces it is the launch itself: the button POSTs for a user-scoped
+ * launch context and follows the URL the server hands back, exactly as the
+ * chart's own launch button does. Inline because this page has no bundler and
+ * one listener does not earn a module.
+ */
+const HOME_JS = `
+  document.querySelector('[data-launch-worklist]')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget
+    button.disabled = true
+    button.textContent = 'Authorizing…'
+    try {
+      const res = await fetch('/_admin/launch', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ userScoped: true }),
+      })
+      const body = await res.json()
+      if (!res.ok || !body.launchUrl) throw new Error(body.error || 'launch failed')
+      window.location.href = body.launchUrl
+    } catch (error) {
+      button.disabled = false
+      button.textContent = 'Launch caseload →'
+      alert('Could not start the caseload launch: ' + error.message)
+    }
+  })
 `
 
 /**
@@ -146,10 +175,7 @@ const HOME_CSS = `
  * and a data-source refactor; see `docs/plans/embedded-panel-smart-launch.md`
  * §6.3.
  */
-export function homePage(
-  patients: DemoPatient[],
-  { summaryPanelUrl }: { summaryPanelUrl: string },
-): string {
+export function homePage(patients: DemoPatient[]): string {
   const byId = new Map(patients.map(p => [p.id, p]))
   const picks = TRY_IT_ORDER.map(id => {
     const patient = byId.get(id)
@@ -175,12 +201,13 @@ export function homePage(
 
   return page({
     title: 'SPiER mock EHR',
-    css: HOME_CSS,
+    script: HOME_JS,
     nav: 'chart',
-    // Wide, so the framed activity can reach the 1100px at which SPiER's widget
-    // lays its two zones out side by side. At the default 68rem the frame tops
-    // out at 1040px and that branch is unreachable at every window size — see
-    // HOME_CSS above for the same trap in its earlier, arithmetic form.
+    // ⚠️ Still `wide`, but no longer for the reason it was. It was wide so the
+    // embedded caseload frame could reach the 1100px at which SPiER's widget
+    // laid its two zones side by side; that frame is gone (#401). What keeps it
+    // wide is the fourteen-row patient table, which is this page's real content
+    // and has five columns.
     variant: 'wide',
     body: `
   <h1>Patients</h1>
@@ -207,20 +234,15 @@ export function homePage(
     <tbody>${rows}</tbody>
   </table>
 
-  <h2>Caseload summary</h2>
+  <h2>Caseload</h2>
   <p class="lede">
-    SPiER embedded as a hosted activity on the host's worklist: the caseload's risk census and its
-    outstanding alerts. Embedded, but <strong>not a SMART launch</strong> — this frame shows SPiER's
-    bundled demo registry, not this server's data. The panel inside a chart is the real launch.
+    A worklist activity: SPiER reads <strong>this server's</strong> fourteen patients and reports who
+    is owed an action. Unlike a chart launch it carries no patient &mdash; the token is user-scoped,
+    so the app may read across the panel and may not write to anyone.
   </p>
-  <div class="guest">
-    <div class="guest__bar">
-      <span class="guest__title">SPiER</span>
-      <span>Embedded activity</span>
-      <span class="guest__note">Everything below this bar is drawn by SPiER, not by the host.</span>
-    </div>
-    <iframe class="activity-frame" src="${esc(summaryPanelUrl)}" title="SPiER caseload summary and alerts (embedded)"></iframe>
-  </div>
+  <p>
+    <button type="button" class="btn primary" data-launch-worklist>Launch caseload &rarr;</button>
+  </p>
 
   <details class="hood">
     <summary>About this demo, and what it does and does not prove</summary>
@@ -233,14 +255,26 @@ export function homePage(
         capability profile, a top-level launch, the write reset) are on
         <a href="/settings">Settings</a>.
       </p>
-      <h3>Why the caseload frame above is not a SMART launch</h3>
+      <h3>What the caseload launch is, and what it still does not prove</h3>
       <p class="lede">
-        It carries no <code>iss</code> and no <code>launch</code>, and the app inside it renders its
-        own bundled demo registry rather than this server's FHIR API. So it shows the <em>shape</em>
-        of a hosted activity and proves nothing about data crossing the boundary. Making it real needs
-        a user-scoped SMART launch (a caseload is not one patient, and every token this server issues
-        is bound to one) and a refactor so the view reads through the data-source seam. Tracked in the
-        panel plan &sect;6.3.
+        ⚠️ <strong>This replaced a labelled iframe.</strong> Until #401 the caseload sat in a frame
+        carrying no <code>iss</code> and no <code>launch</code>, rendering SPiER's own bundled demo
+        registry rather than this server's data &mdash; the <em>shape</em> of a hosted activity and
+        nothing more. It is now a real SMART launch: a user-scoped authorization (no patient in
+        context, <code>user/*.read</code>), a roster read against this server's FHIR API, and
+        per-patient reads on the same token. The app holds no patient data of its own.
+      </p>
+      <p class="lede">
+        What that still does not prove is interoperability. <strong>This host is written and run by
+        the same project as the app it launches</strong>, so a handshake succeeding here says the app
+        behaves correctly as a guest &mdash; not that it works against a server nobody here
+        controls. That claim needs a third-party sandbox, and the guardrail is unchanged.
+      </p>
+      <p>
+        Two things are deliberately narrower than they look. The token is enforced on exactly one
+        axis &mdash; may it read a patient other than its own &mdash; and not on resource types, so
+        do not read this as evidence that SMART scopes work in general. And a worklist token is
+        refused at write: a write is attributed to the launch's patient, and this one has none.
       </p>
       ${DISCLAIMER}
     </div>

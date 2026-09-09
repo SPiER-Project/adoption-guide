@@ -75,3 +75,50 @@ describe('parseSearch', () => {
     }
   })
 })
+
+/**
+ * The roster (#401) — the ONE unscoped search, and the rules that keep it one.
+ *
+ * ⚠️ The negative case is the important one. `Patient` is in `SEARCHABLE_TYPES`
+ * but deliberately absent from `PATIENT_LINK`, so before the roster branch
+ * existed a scoped `GET /fhir/Patient?patient=…` fell through to the patient-link
+ * match, found no link, and returned an **empty 200 Bundle** — which this
+ * module's own header calls the one thing worse than a refusal, because it is
+ * indistinguishable from a patient who does not exist.
+ */
+describe('the roster search', () => {
+  it('is unscoped when the type is Patient', () => {
+    const parsed = parseSearch(new URLSearchParams(), { type: 'Patient' })
+    expect(parsed.ok).toBe(true)
+    expect(parsed.ok && parsed.query.allPatients).toBe(true)
+    expect(parsed.ok && parsed.query.patientId).toBeUndefined()
+  })
+
+  it('REFUSES a scoped roster search rather than returning an empty Bundle', () => {
+    const parsed = parseSearch(new URLSearchParams({ patient: 'patient-011' }), { type: 'Patient' })
+    expect(parsed.ok).toBe(false)
+    expect(!parsed.ok && parsed.status).toBe(400)
+    expect(!parsed.ok && parsed.diagnostics).toContain('takes no \'patient\' parameter')
+  })
+
+  it('still requires a patient for every clinical type', () => {
+    for (const type of ['Observation', 'QuestionnaireResponse', 'CarePlan']) {
+      const parsed = parseSearch(new URLSearchParams(), { type })
+      expect(parsed.ok, type).toBe(false)
+    }
+  })
+
+  it('applySearch returns every resource of the type ONLY on the explicit flag', () => {
+    const resources = [
+      { resourceType: 'Patient', id: 'patient-001' },
+      { resourceType: 'Patient', id: 'patient-002' },
+      { resourceType: 'Observation', id: 'o1', subject: { reference: 'Patient/patient-001' } },
+    ]
+    expect(applySearch(resources, 'Patient', { allPatients: true })).toHaveLength(2)
+    // ⚠️ A missing `patientId` must NOT read as "unscoped". A bug that dropped
+    // the id would otherwise turn a patient-scoped search into a whole-server
+    // one, and the Bundle would look perfectly normal.
+    expect(applySearch(resources, 'Patient', {})).toHaveLength(0)
+    expect(applySearch(resources, 'Observation', {})).toHaveLength(0)
+  })
+})

@@ -17,6 +17,7 @@
  *     concession is the OPTIONAL `getSliceSync` hydration hook — see below.)
  */
 import type { RiskAlert } from '../observationMappers'
+import type { RegistryPatient } from '../registry'
 import type {
   FhirResource,
   ObservationResource,
@@ -52,6 +53,36 @@ export interface FhirDataSource {
    * consistent with `getSlice` (same seeding behavior).
    */
   getSliceSync?(patientId: string | null): PatientSlice
+
+  /**
+   * The cohort this source can answer for — the roster a population app indexes
+   * across (#401, blocker 2's second half).
+   *
+   * ⚠️ **OPTIONAL, and its absence is meaningful.** A source that cannot serve a
+   * cohort must not pretend to: a patient-bound SMART session is exactly such a
+   * source, and the population lens has to SAY it is showing one patient rather
+   * than silently rendering a caseload of one — or, worse, falling back to
+   * bundled demo rows and presenting them as a server read. That was blocker 1
+   * (#390). So this returns `null` for "I cannot answer that", which is a
+   * different answer from `[]` ("I can, and it is empty").
+   *
+   * ⚠️ **Deliberately NOT a FHIR search contract.** No paging, no filters, no
+   * `_count`. The question a worklist asks is "who is on the panel", and on this
+   * demo's scale the answer is a list. Modelling paging here would be inventing
+   * a contract with one implementation and no caller — and
+   * `mock-patient-smart-launch.md` §8 is explicit that how a registry scopes
+   * itself on a real server is design work, not a refactor. The settled answer
+   * for a `user/*.read` grant against the mock is "every patient it holds"
+   * (`user-scoped-smart-launch.md`); a narrower panel concept is new product
+   * scope, and it would arrive as a parameter here rather than a reshape.
+   *
+   * ⚠️ `recommendedNextStep` is `null` from any server-backed source, and that
+   * is not a gap to paper over. It is the one registry field no FHIR resource
+   * carries — hand-curated in `patients.json` for the demo — so a cohort read
+   * over real Patients cannot produce it, and callers derive the next step from
+   * the pathway instead. See `RegistryPatient`.
+   */
+  listCohort?(): Promise<RegistryPatient[] | null>
 
   /**
    * Persist a QuestionnaireResponse plus its pre-derived artifacts. `derived`

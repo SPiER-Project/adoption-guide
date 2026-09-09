@@ -328,7 +328,6 @@ export async function authorize(
   //     Narrowing the grant and returning what was granted is OAuth's own model
   //     (RFC 6749 §3.3), not a liberty taken here.
   const requested = get('scope').split(/\s+/).filter(Boolean)
-  let grantedScope = get('scope')
   if (context.userScoped) {
     if (!requested.some((sc) => /^user\/[^.]+\.(read|\*)$/.test(sc))) {
       return fail(
@@ -338,8 +337,28 @@ export async function authorize(
         + 'read, so the resulting token could not read anything.',
       )
     }
-    grantedScope = requested.filter((sc) => !sc.startsWith('patient/')).join(' ')
   }
+  // ⚠️ **Both contexts narrow, in mirror image, and that pair is what lets the
+  // app ask for ONE scope string.** SMART gives an app no way to know, before it
+  // authorizes, whether the opaque `launch` it was handed is a chart or a
+  // worklist — so SPiER's client requests the superset and the server keeps only
+  // the half that matches the context it resolved.
+  //
+  //   - a worklist grant loses `patient/…`: a patient-scoped scope with no
+  //     patient bound is a contradiction, and a token carrying one invites the
+  //     misreading that the grant is somehow both;
+  //   - a chart grant loses `user/…`: without this half a chart launch
+  //     requesting `user/*.read` would be GRANTED it, `mayCrossPatients` would
+  //     say yes, and every chart token in the demo could read all fourteen
+  //     patients — silently, since nothing about the panel would look different.
+  //
+  // Dropping rather than refusing, because asking is not the error: a client
+  // that cannot know its own context has to ask for both, and OAuth's answer to
+  // "you may not have that" is a narrower grant (RFC 6749 §3.3), reported back
+  // in the token response.
+  const grantedScope = requested
+    .filter((sc) => !sc.startsWith(context.userScoped ? 'patient/' : 'user/'))
+    .join(' ')
 
   // No consent screen — decided, not skipped: a clinician launching from a
   // chart does not re-consent per launch (that is a patient-facing

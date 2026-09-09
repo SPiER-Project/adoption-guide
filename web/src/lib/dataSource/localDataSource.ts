@@ -17,8 +17,9 @@
  * slice, and re-seeding when the fixture behind an UNTOUCHED slice changes
  * (#301 — see `spier-scenario-seeds` below).
  */
-import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import { POPULATION_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { DerivedArtifacts, FhirDataSource } from '@spier/core/lib/dataSource/types'
+import type { RegistryPatient } from '@spier/core/lib/registry'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -328,6 +329,20 @@ export class LocalDataSource implements FhirDataSource {
       if (seededFrom !== current) return this.seedFrom(patientId, scenario, current)
     }
     return existing
+  }
+
+  /**
+   * The bundled demo registry — this source's whole cohort (#401).
+   *
+   * ⚠️ Genuinely `'registry'` scope rather than a stand-in for one: the local
+   * store's patients ARE the population it can answer for, so unlike a
+   * patient-bound SMART session it is not narrowing anything or guessing. That
+   * distinction is the reason the seam's method is nullable — see
+   * `FhirDataSource.listCohort` and `SmartDataSource`'s implementation, which
+   * returns `null` precisely because a chart token cannot answer this.
+   */
+  async listCohort(): Promise<RegistryPatient[]> {
+    return POPULATION_PATIENTS
   }
 
   getSliceSync(patientId: string | null): PatientSlice {

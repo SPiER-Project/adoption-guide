@@ -86,18 +86,35 @@ export function PatientProvider({
   const isSmartConnected = !!(smartPatient && smartPatient.name)
   const smartPatientId = smartPatient?.id ?? smartClient?.patient.id ?? null
 
+  /**
+   * A SMART session exists, with or without a patient in it.
+   *
+   * ⚠️ **`isSmartConnected` cannot answer this, and the difference is the whole
+   * of #401's app half.** That flag is derived from the SMART *patient* having a
+   * name, which is right for "whose chart is this" and wrong for "is a server
+   * connected": a **worklist launch has no patient at all**, so it reads as *not
+   * connected*, and everything downstream then took the local path — the app
+   * would have rendered fourteen bundled demo patients beside a live server
+   * connection while reporting `scope: 'registry'`. That is blocker 1 (#390)
+   * reappearing through a door nobody had opened yet.
+   */
+  const isSmartSession = !!smartClient
+
   usePatientOpenBroadcast({ activePatientId, isSmartConnected })
 
   // Under SMART, chart data is read from / written to the connected FHIR
   // server via SmartDataSource; otherwise the injected source (default: the
   // localStorage/scenario store). The slice key follows suit: the SMART
   // patient id versus the population id.
+  // ⚠️ Keyed on the SESSION, not on there being a patient. A worklist launch has
+  // a client and no patient; requiring `smartPatientId` here sent it to the local
+  // store, which is the one outcome this whole phase exists to prevent. The chart
+  // still needs a patient — `SmartDataSource.getSlice(null)` throws, and the
+  // chart surfaces that as its error state, which is the honest answer to
+  // "show me a chart" in a session that has no chart.
   const smartSource = useMemo(
-    () =>
-      isSmartConnected && smartClient && smartPatientId
-        ? new SmartDataSource(smartClient)
-        : null,
-    [isSmartConnected, smartClient, smartPatientId],
+    () => (smartClient ? new SmartDataSource(smartClient) : null),
+    [smartClient],
   )
   const activeSource: FhirDataSource = smartSource ?? dataSource
   const sliceKey = smartSource ? smartPatientId : activePatientId
@@ -166,6 +183,7 @@ export function PatientProvider({
       patient: activePatient,
       patientDisplay,
       isSmartConnected,
+      isSmartSession,
       activePatientId,
       populationPatient,
       populationPatients: POPULATION_PATIENTS,
@@ -196,6 +214,7 @@ export function PatientProvider({
       activePatient,
       patientDisplay,
       isSmartConnected,
+      isSmartSession,
       activePatientId,
       populationPatient,
       walkthrough,

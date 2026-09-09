@@ -8,6 +8,7 @@
  * fast-refresh boundary.
  */
 import type { ReactNode } from 'react'
+import { derivedNextStep } from '@spier/core/lib/cdsHooks'
 import { Link } from 'react-router-dom'
 import { stageTitleById } from '@spier/core/data/catalog'
 import { ageOf } from '../lib/populationFilters'
@@ -241,16 +242,32 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
   next: {
     header: 'Recommended Next Step',
     className: 'caseload-table-next-col',
-    render: row => (
-      <>
-        <div className="caseload-next-label">{row.recommendedNextStep.label}</div>
-        {/* Clamped to three lines to keep rows scannable — a worklist row is a
-            triage cue, not the whole story. `title` keeps the full rationale
-            reachable on hover, and the patient's chart carries it in full. */}
-        <div className="caseload-next-rationale" title={row.recommendedNextStep.rationale}>
-          {row.recommendedNextStep.rationale}
-        </div>
-      </>
-    ),
+    render: row => {
+      // ⚠️ The curated line when there is one, the PATHWAY's own next step
+      // otherwise — and the fallback is the same `derivedNextStep` the CDS card
+      // uses, so a row here and that patient's own chart cannot recommend
+      // different things.
+      //
+      // `recommendedNextStep` is hand-written in patients.json and is therefore
+      // absent from any cohort read over real FHIR Patients (#401), which is
+      // what made this fallback necessary rather than merely tidy.
+      const next = row.recommendedNextStep ?? (row.currentStage ? derivedNextStep(row.currentStage) : null)
+      if (!next) {
+        // No curated line and no active stage: every stage is complete. Saying so
+        // beats an empty cell, which reads as missing data.
+        return <div className="caseload-next-label">Pathway complete</div>
+      }
+      return (
+        <>
+          <div className="caseload-next-label">{next.label}</div>
+          {/* Clamped to three lines to keep rows scannable — a worklist row is a
+              triage cue, not the whole story. `title` keeps the full rationale
+              reachable on hover, and the patient's chart carries it in full. */}
+          <div className="caseload-next-rationale" title={next.rationale}>
+            {next.rationale}
+          </div>
+        </>
+      )
+    },
   },
 }

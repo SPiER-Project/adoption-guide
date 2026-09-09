@@ -62,9 +62,9 @@ describe('the front door', () => {
       expect(body).toContain(tryIt!.why)
       expect(body).toContain(`class="btn btn--primary" href="/chart/${id}"`)
     }
-    // Before the full list, before the caseload frame, before the drawer.
+    // Before the full list, before the caseload launch, before the drawer.
     expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('<table'))
-    expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('<iframe'))
+    expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('data-launch-worklist'))
   })
 
   it('gives every row a one-line story and drops the FHIR id column', async () => {
@@ -75,34 +75,30 @@ describe('the front door', () => {
     expect(body).not.toContain('<th>FHIR id</th>')
   })
 
-  it('embeds the caseload SUMMARY, not the whole lens — one patient list on the page', async () => {
-    // ⚠️ This is the regression, and the hash is the whole assertion. Framing
-    // `#/population` puts SPiER's sortable caseload inside the iframe next to
-    // the host's own table: two patient lists on one page, and the better-looking
-    // one navigates *within the frame* rather than opening a chart here.
-    // `#/population/summary` is the part a host cannot compute for itself.
+  it('offers the caseload as a LAUNCH, with no iframe left on the page', async () => {
+    // ⚠️ **This test is the inverse of the one it replaced, and the absence is
+    // the assertion.** Until #401 the caseload sat in an `<iframe>` at
+    // `?embed=1#/population/summary` carrying no `iss` and no `launch`, and the
+    // old test pinned that URL precisely so it could not quietly widen back into
+    // the whole lens. It is a real user-scoped SMART launch now, so the frame is
+    // gone — and "gone" has to be asserted, because a leftover frame beside a
+    // launch button would put bundled demo data next to live data with nothing
+    // on the page saying which was which.
     const { body } = await html('/')
-    // Matched by the title rather than by attribute ORDER: the first version of
-    // this regex read `<iframe src="…" title="SPiER caseload summary`, so adding
-    // a class attribute in front of `src` made it match nothing and the whole
-    // assertion below evaporated into `expect(null).not.toBeNull()`. Anchoring
-    // on the one attribute that identifies the frame keeps it a test of the URL.
-    const frame = /<iframe[^>]*\stitle="SPiER caseload summary[^>]*>/.exec(body)
-    expect(frame).not.toBeNull()
-    const src = /\ssrc="([^"]+)"/.exec(frame![0])
-    expect(src).not.toBeNull()
-    const url = new URL(src![1])
-    expect(url.searchParams.get('embed')).toBe('1')
-    expect(url.hash).toBe('#/population/summary')
-    // Not merely "starts with" — that would pass for the full lens again.
-    expect(url.hash).not.toBe('#/population')
-    // No launch context: this is deliberately not a SMART launch.
-    expect(url.searchParams.has('iss')).toBe(false)
-    expect(url.searchParams.has('launch')).toBe(false)
-    expect(body).toContain('not a SMART launch')
+    expect(body).not.toContain('<iframe')
+    expect(body).toContain('data-launch-worklist')
+    // The button asks the SERVER for the launch rather than assembling one: this
+    // page never builds OAuth parameters, exactly as the chart's launch does not.
+    expect(body).toContain("fetch('/_admin/launch'")
+    expect(body).toContain('userScoped: true')
+    // ⚠️ The honesty claim MOVED rather than being dropped. The old page said
+    // "not a SMART launch" because it was not one; this one is, so what survives
+    // is the narrower sentence about who runs the host.
+    expect(body).not.toContain('Embedded, but <strong>not a SMART launch</strong>')
+    expect(body).toContain('does not prove is interoperability')
   })
 
-  it('puts the embedded activity BELOW the host\u2019s own list, and the caveats in a closed drawer', async () => {
+  it('puts the caseload launch BELOW the host\u2019s own list, and the caveats in a closed drawer', async () => {
     // \u26a0\ufe0f This inverts the previous assertion on purpose. The widget sat first
     // because that is where an EHR hangs a hosted activity \u2014 and a first-time
     // viewer then met a dense registry widget and a warning box saying it proved
@@ -112,14 +108,15 @@ describe('the front door', () => {
     // still on the page, because the panel plan \u00a71 requires the page to SAY what
     // it does not prove \u2014 not that it say so first.
     const { body } = await html('/')
-    expect(body.indexOf('<table')).toBeLessThan(body.indexOf('<iframe'))
+    const launch = body.indexOf('data-launch-worklist')
+    expect(body.indexOf('<table')).toBeLessThan(launch)
     const hood = body.indexOf('<details class="hood"')
-    expect(hood).toBeGreaterThan(body.indexOf('<iframe'))
+    expect(hood).toBeGreaterThan(launch)
     // Closed by default: `<details open>` would put the caveats back on screen.
     expect(body).not.toMatch(/<details class="hood"[^>]*\sopen/)
     // \u2026and the disclaimer lives inside it rather than being dropped.
     expect(body.indexOf('Demonstration host only')).toBeGreaterThan(hood)
-    expect(body).toContain('not a SMART launch')
+    expect(body).toContain('does not prove is interoperability')
   })
 
   it('keeps the operator bench reachable, off the front door', async () => {
