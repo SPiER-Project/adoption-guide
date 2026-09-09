@@ -197,7 +197,7 @@ export function PopulationView() {
     // follows. (The population worklist and the chart behave as two
     // context-synced FHIRcast apps; the receiving tab decides whether to honor
     // it — see FhircastListener.)
-    navigate(`/patient/chart/${row.id}`)
+    navigate(`/patient/record/${row.id}`)
   }
 
   // Which filters the current view actually offers, read from the column

@@ -77,7 +77,7 @@ export function SmartRedirect() {
                         // EHR data via SmartDataSource) is the destination.
                         // Give the user a brief moment to see success first.
                         setTimeout(() => {
-                            navigate(directed ?? '/patient/chart')
+                            navigate(directed ?? '/patient/record')
                         }, 500)
                     } else {
                         // We authenticated, but no patient was in context

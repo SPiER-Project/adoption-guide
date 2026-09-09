@@ -69,6 +69,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
+import { readRouteTable, routeResolves } from './lib/route-table.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -597,6 +598,149 @@ console.log(
   `✓ data dictionary: all ${linkable} SPiER-local CodeSystem(s) referenced have a generated ` +
     `definition, so their IG links resolve`,
 )
+
+// ─── Every declared navigation target resolves to a route ──
+//
+// ⚠️ **This gate asserted only that a tool HAD a launch action until
+// 2026-09-09** — the `/launchActions:\s*\[\s*\{/` test further up. Nothing
+// anywhere checked that the `path` it carries is a route the app registers, so a
+// renamed route left a button navigating to the catch-all: `npm run verify`
+// green, every test green, dead button in the UI. With 42 launch paths in this
+// file and a route re-addressing in progress (`user-scoped-smart-launch.md`
+// Phase 0), that is the single most likely defect in the catalog.
+//
+// A path that resolves only to a `<Navigate>` counts as resolving — the repo
+// keeps compatibility redirects for published paths on purpose, and a redirect
+// is a working button. The `*` catch-all deliberately does NOT count: landing
+// there IS the failure.
+const { paths: routePaths, redirects: routeRedirects } = readRouteTable()
+const launchBlocks = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)]
+let launchChecked = 0
+let viaRedirect = 0
+// Failures counted for THIS section, so the summary line below cannot print a ✓
+// over a ✗ it just emitted. A green line above a red one is how a reader comes
+// away believing the wrong half of the output.
+const launchFailuresBefore = failures
+for (const [, toolId, block] of launchBlocks) {
+  const actions = block.match(/launchActions:\s*\[([\s\S]*?)\]/)?.[1]
+  if (!actions) continue
+  // Object-at-a-time, then fields — deliberately NOT one regex demanding
+  // `label` before `path`. That version silently skipped any action whose keys
+  // were written the other way round, which is a formatting choice nobody would
+  // think of as load-bearing. The completeness cross-check below is what caught
+  // it; this is the fix.
+  for (const [obj] of actions.matchAll(/\{[^{}]*\}/g)) {
+    const path = obj.match(/path:\s*'([^']*)'/)?.[1]
+    if (path === undefined) continue
+    const label = obj.match(/label:\s*'([^']*)'/)?.[1] ?? '(unlabelled)'
+    launchChecked++
+    // ⚠️ A launch path may carry a query string — `…/cams-section-a?tool=TL-020`
+    // names which of the CAMS SSF-5's four ADs the panel opened for. The route
+    // is the path half; the query rides along. Matching the raw string reported
+    // two working buttons as dead when this check was first run.
+    const routePart = path.split(/[?#]/)[0]
+    if (!routeResolves(routePart, routePaths)) {
+      fail(
+        `tool-ui-metadata.ts: ${toolId} launch action "${label}" points at "${path}", which App.tsx ` +
+          `does not register. That button navigates to the catch-all, which sends the user home — ` +
+          `nothing else in verify or the test suite can see this.`,
+      )
+      continue
+    }
+    if (routeRedirects.has(routePart)) viaRedirect++
+  }
+}
+// ⚠️ Completeness cross-check, not decoration. The loop above walks structured
+// `{ label, path }` objects; this counts `path:` occurrences in the raw file. If
+// the two disagree, the object parser has stopped seeing some actions and is
+// reporting green over the ones it skipped — the #232 / #261 shape. Compared
+// rather than trusted, because "0 parsed" is only the most obvious way for a
+// scrape to check nothing; "34 of 36 parsed" is the one that survives review.
+const rawPathCount = (uiSrc.match(/\bpath:\s*'/g) ?? []).length
+if (launchChecked === 0) {
+  fail(
+    `tool-ui-metadata.ts: parsed no launch action paths, so this check verified nothing. ` +
+      `Has the launchActions shape changed?`,
+  )
+} else if (launchChecked !== rawPathCount) {
+  fail(
+    `tool-ui-metadata.ts: checked ${launchChecked} launch path(s) but the file contains ` +
+      `${rawPathCount} \`path:\` declaration(s) — the launch-action parser is skipping ` +
+      `${Math.abs(rawPathCount - launchChecked)} of them and reporting green over the gap.`,
+  )
+}
+// The panel's own landing route belongs in the same check, and was the one
+// target with NO coverage of any kind: `SmartRedirect` navigates there after a
+// SMART launch completes, there is no SmartRedirect.test.tsx, and no other test
+// exercises the launch. Rename the chart route without updating that line and
+// every gate stays green while the whole SMART demo lands on the catch-all and
+// bounces to the front page — the single most expensive way this repo could
+// break, since it only shows up in front of an audience.
+const redirectSrc = readFileSync(join(webRoot, 'src/components/SmartRedirect.tsx'), 'utf8')
+const landing = redirectSrc.match(/navigate\(\s*directed\s*\?\?\s*'([^']+)'/)?.[1]
+if (!landing) {
+  // Not a pass. If this pattern stops matching, the gate has lost sight of the
+  // landing route and cannot speak to it either way.
+  fail(
+    'SmartRedirect.tsx: could not find the post-launch landing route ' +
+      "(expected `navigate(directed ?? '<path>')`). This gate asserts that route " +
+      'resolves; it must not silently stop looking.',
+  )
+} else if (!routeResolves(landing, routePaths)) {
+  fail(
+    `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx does ` +
+      `not register. Every launch from a host would land on the catch-all and bounce to the ` +
+      `front page.`,
+  )
+} else if (routeRedirects.has(landing)) {
+  // ⚠️ Stricter than the launch-action rule above, on purpose — and this branch
+  // exists because the looser rule was tried first and PASSED a planted defect.
+  // A redirect is a fine destination for a catalog button: the reader ends up
+  // somewhere sensible. It is NOT fine for the panel's landing route, because
+  // /patient/chart and /population are now redirects to the pages that EXPLAIN
+  // these apps. A launch landing on one would drop a clinician mid-workflow onto
+  // implementer prose — resolving, harmless-looking, and completely wrong.
+  fail(
+    `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx ` +
+      `registers as a REDIRECT rather than a page. The panel must land on the app itself — ` +
+      `a redirect here sends a launched clinician wherever it points, which for ` +
+      `/patient/chart and /population is the guide page that explains the app.`,
+  )
+}
+
+// ⚠️ **Every declared guide section must be a registered route** — a real
+// product invariant (a section with no route is a dead sidebar entry and a dead
+// pager step) that doubles as the tripwire for a mis-parsed route table.
+//
+// It is here because the table WAS mis-parsed and nothing noticed. A comment in
+// App.tsx quoting `<Route …>` was read as a real unclosed route, so every guide
+// path after it parsed as `/guide/x/tools`, `/guide/x/adoption-readiness` and so
+// on: eleven phantoms, eleven real paths missing, and this gate stayed green
+// because no catalog launch path targets a `/guide/*` route. `stripComments`
+// fixes the cause; this is what would have made the symptom visible.
+const sectionsSrc = readFileSync(join(webRoot, 'src/data/guideSections.ts'), 'utf8')
+const sectionPaths = [...sectionsSrc.matchAll(/\{\s*path:\s*'([^']+)'/g)].map((m) => m[1])
+if (sectionPaths.length === 0) {
+  fail('guideSections.ts: no section paths parsed, so this check verified nothing')
+}
+for (const section of sectionPaths) {
+  if (!routeResolves(`/guide/${section}`, routePaths)) {
+    fail(
+      `guideSections.ts: section "${section}" has no route at /guide/${section} in App.tsx — ` +
+        `its sidebar entry and pager step both lead nowhere. (If the route IS declared, the ` +
+        `route table is being mis-parsed; see scripts/lib/jsx-comments.mjs.)`,
+    )
+  }
+}
+
+if (failures === launchFailuresBefore) {
+  console.log(
+    `✓ navigation targets: ${launchChecked} catalog launch path(s), ${sectionPaths.length} guide ` +
+      `section(s) and the panel's post-launch ` +
+      `landing route ("${landing}") all resolve against App.tsx's route table ` +
+      `(${routePaths.size} routes${viaRedirect ? `, ${viaRedirect} via a redirect` : ''})`,
+  )
+}
 
 if (failures) {
   console.error(`\ncatalog-integrity check FAILED (${failures} issue(s)).`)

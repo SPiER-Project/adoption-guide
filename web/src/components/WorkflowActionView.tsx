@@ -113,7 +113,7 @@ export function WorkflowActionView({
     <div className="form-view">
       <PageHeader
         eyebrow={['Patient View', 'Workflow']}
-        up="/patient/chart"
+        up="/patient/record"
         title={heading}
         lede={
           <>
@@ -184,7 +184,7 @@ export function WorkflowActionView({
           {submitted && (
             <div className="workflow-success-notice">
               {capitalize(actionNoun)} recorded to the patient chart under <strong>{stage?.title ?? stageId}</strong>.{' '}
-              <Link to="/patient/chart#activity">View in chart</Link>
+              <Link to="/patient/record#activity">View in chart</Link>
             </div>
           )}
         </div>

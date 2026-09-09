@@ -36,7 +36,7 @@ export function StanleyBrownView() {
 
   return (
     <div className="form-view">
-      <PageHeader eyebrow={['Patient View', 'Assessment']} up="/patient/chart" title="Stanley-Brown Safety Plan" />
+      <PageHeader eyebrow={['Patient View', 'Assessment']} up="/patient/record" title="Stanley-Brown Safety Plan" />
 
       <div className="form-wrapper">
         <div className="form-card">

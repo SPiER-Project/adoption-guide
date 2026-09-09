@@ -111,7 +111,7 @@ export function FollowUpAppointmentView() {
     <div className="form-view">
       <PageHeader
         eyebrow={['Patient View', 'Workflow']}
-        up="/patient/chart"
+        up="/patient/record"
         title="Next Appointment & Follow-Up Tracking"
         lede={
           <>
@@ -211,7 +211,7 @@ export function FollowUpAppointmentView() {
 
           {notice && (
             <div className="workflow-success-notice">
-              {notice} <Link to="/patient/chart#activity">View in chart</Link>
+              {notice} <Link to="/patient/record#activity">View in chart</Link>
             </div>
           )}
 

@@ -21,13 +21,13 @@ const ACTIVE_ID_KEY = 'spier-active-patient-id'
 // briefing. See issue #51 and docs/use-cases/ed-scenario-11.md.
 export const DEMO_PATIENT_ID = 'patient-011'
 
-// URL like /patient/chart/patient-005 → 'patient-005'. Returns null for any
+// URL like /patient/record/patient-005 → 'patient-005'. Returns null for any
 // other path. Also returns null for IDs that aren't in the population dataset
 // — defense against crafted URLs being used as store keys (e.g.
-// /patient/chart/__proto__) and a guard against typo'd IDs silently creating
+// /patient/record/__proto__) and a guard against typo'd IDs silently creating
 // empty patient slices.
 function deriveActiveIdFromPath(pathname: string): string | null {
-  const m = pathname.match(/^\/patient\/chart\/([^/]+)\/?$/)
+  const m = pathname.match(/^\/patient\/record\/([^/]+)\/?$/)
   if (!m) return null
   const id = decodeURIComponent(m[1])
   return POPULATION_BY_ID.has(id) ? id : null
@@ -48,15 +48,15 @@ export function useActivePatientId(): string | null {
     null,
   )
 
-  // /patient/chart?new=1 is the explicit "blank state" entry point (sidebar
-  // Patient tab). /patient/chart?demo=1 is the regulator-briefing entry point
+  // /patient/record?new=1 is the explicit "blank state" entry point (sidebar
+  // Patient tab). /patient/record?demo=1 is the regulator-briefing entry point
   // that loads the ED Scenario 11 walkthrough. Without either flag, bare
-  // /patient/chart preserves the last viewed patient so assessment-submit
+  // /patient/record preserves the last viewed patient so assessment-submit
   // redirects don't lose context.
   const search = new URLSearchParams(location.search)
-  const wantsBlank = location.pathname === '/patient/chart' && search.get('new') === '1'
+  const wantsBlank = location.pathname === '/patient/record' && search.get('new') === '1'
   const wantsDemo =
-    location.pathname === '/patient/chart' &&
+    location.pathname === '/patient/record' &&
     search.get('demo') === '1' &&
     isAllowedPatientId(DEMO_PATIENT_ID)
 

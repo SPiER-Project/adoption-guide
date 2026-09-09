@@ -132,7 +132,7 @@ function buildLenses(patientBase: string): Lens[] {
       })),
     },
     {
-      to: '/population',
+      to: '/population/caseload',
       label: 'Population View',
       icon: Users,
       matchPrefix: '/population',
@@ -141,22 +141,22 @@ function buildLenses(patientBase: string): Lens[] {
       // Adoption Guide in step D (#391) — it reads the caseload, so it belongs
       // beside it.
       children: [
-        { to: '/population', label: 'Caseload' },
+        { to: '/population/caseload', label: 'Caseload' },
         { to: '/population/measures', label: 'Measures' },
       ],
     },
     {
       // Opening the Patient lens preserves the active patient (bare
-      // /patient/chart, or the patient-specific URL when one is loaded).
+      // /patient/record, or the patient-specific URL when one is loaded).
       // Clearing to the blank "play with forms" state is now an explicit
       // action — the "Close patient" control in the patient banner
-      // (which routes to /patient/chart?new=1).
+      // (which routes to /patient/record?new=1).
       to: patientBase,
       label: 'Patient View',
       icon: User,
       matchPrefix: '/patient',
       // Anchor children carry the active patient id so a deep-linked section
-      // URL stays shareable mid-session (e.g. /patient/chart/patient-001#activity).
+      // URL stays shareable mid-session (e.g. /patient/record/patient-001#activity).
       children: [
         // #activity and #recommendations are load-bearing ids (eleven "View in
         // chart" links target #activity), so the labels move with the merged
@@ -178,8 +178,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   // opening the lens (or a section anchor) keeps the same patient rather than
   // dropping back to the blank chart.
   const patientBase = activePatientId
-    ? `/patient/chart/${activePatientId}`
-    : '/patient/chart'
+    ? `/patient/record/${activePatientId}`
+    : '/patient/record'
   const lenses = useMemo(() => buildLenses(patientBase), [patientBase])
 
   // Dismiss the mobile overlay on Escape, mirroring the click-away behavior.
@@ -201,11 +201,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   // Anchor children share the chart route, so NavLink's default isActive would
   // highlight all of them. Match on the section anchor instead: React Router's
   // HashRouter exposes it (the part after the second '#' in
-  // `#/patient/chart#activity`) as `location.hash`. Matching the chart route by
+  // `#/patient/record#activity`) as `location.hash`. Matching the chart route by
   // prefix keeps the anchor active whether or not the URL carries a patient id.
   const isChildActive = (child: LensChild) => {
     if (!child.anchor) return false
-    return location.pathname.startsWith('/patient/chart') && location.hash === `#${child.anchor}`
+    return location.pathname.startsWith('/patient/record') && location.hash === `#${child.anchor}`
   }
 
   return (
@@ -242,11 +242,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
 
                   // Anchor children combine a route path with a section
-                  // anchor (`/patient/chart#recommendations`). React Router's
+                  // anchor (`/patient/record#recommendations`). React Router's
                   // <Link>/<NavLink> strip the second '#' since they navigate
                   // via the History API, not by mutating window.location.hash.
                   // Use a plain anchor with the full HashRouter URL form
-                  // (`#/patient/chart#recommendations`) so a single hash
+                  // (`#/patient/record#recommendations`) so a single hash
                   // mutation updates both the route and the section anchor —
                   // React Router observes the resulting hashchange and
                   // surfaces the section anchor as `location.hash`.

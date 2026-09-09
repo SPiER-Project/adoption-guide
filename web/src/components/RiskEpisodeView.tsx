@@ -140,7 +140,7 @@ export function RiskEpisodeView() {
     <div className="form-view">
       <PageHeader
         eyebrow={['Patient View', 'Workflow']}
-        up="/patient/chart"
+        up="/patient/record"
         title="Suicide-Risk Episode / Pathway Status"
         lede={
           <>
@@ -262,7 +262,7 @@ export function RiskEpisodeView() {
 
           {notice && (
             <div className="workflow-success-notice">
-              {notice} <Link to="/patient/chart#activity">View in chart</Link>
+              {notice} <Link to="/patient/record#activity">View in chart</Link>
               {' · '}
               <Link to="/population">Open the risk registry</Link>
             </div>

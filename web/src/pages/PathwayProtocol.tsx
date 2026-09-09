@@ -58,7 +58,7 @@ export function PathwayProtocol() {
     <div className="pathway-protocol">
       <PageHeader
         eyebrow="Patient View"
-        up="/patient/chart"
+        up="/patient/record"
         title="Published Care Pathway"
         lede="The Suicide Safer Care protocol SPiER carries, rendered from the artifact it publishes."
       />
@@ -80,7 +80,7 @@ export function PathwayProtocol() {
             <strong>This is the definition, not this patient&rsquo;s position on it.</strong> Every step,
             gate and tier obligation below is what the protocol says for anyone; for what has been recorded
             for the patient in context, and what the rules recommend next, go back to the{' '}
-            <Link to="/patient/chart#activity">pathway rail on the chart</Link>.
+            <Link to="/patient/record#activity">pathway rail on the chart</Link>.
           </p>
 
           <PathwaySpine model={loaded.model} />

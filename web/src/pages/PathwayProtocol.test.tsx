@@ -81,14 +81,14 @@ describe('PathwayProtocol — the pathway in the embedded panel', () => {
     renderPage()
     expect(screen.getByText(/This is the definition, not this patient/)).toBeDefined()
     const back = screen.getByRole('link', { name: /pathway rail on the chart/ })
-    expect(back.getAttribute('href')).toBe('/patient/chart#activity')
+    expect(back.getAttribute('href')).toBe('/patient/record#activity')
   })
 
   it('offers a way back out — the only one the panel has', () => {
     renderPage()
     // PageHeader `up`: in panel chrome there is no sidebar, so this is the exit.
     const up = screen.getByRole('link', { name: /Patient View/ })
-    expect(up.getAttribute('href')).toBe('/patient/chart')
+    expect(up.getAttribute('href')).toBe('/patient/record')
   })
 
   it('does not carry the C-SSRS simulator', () => {

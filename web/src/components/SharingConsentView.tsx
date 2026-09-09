@@ -89,7 +89,7 @@ export function SharingConsentView() {
     <div className="form-view">
       <PageHeader
         eyebrow={['Patient View', 'Workflow']}
-        up="/patient/chart"
+        up="/patient/record"
         title="Consent / Information-Sharing Status"
         lede={
           <>
@@ -188,7 +188,7 @@ export function SharingConsentView() {
 
           {notice && (
             <div className="workflow-success-notice">
-              {notice} <Link to="/patient/chart#activity">View in chart</Link>
+              {notice} <Link to="/patient/record#activity">View in chart</Link>
             </div>
           )}
 

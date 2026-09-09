@@ -1175,7 +1175,7 @@
       "detail": "Psychological pain and hopelessness both rated 4/5. Stabilization plan completed. Follow-up scheduled.",
       "suggestedAction": {
         "label": "View Care Plan",
-        "path": "/patient/chart#care-plans"
+        "path": "/patient/record#care-plans"
       }
     }
   ],

@@ -90,6 +90,7 @@
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { resolve, join } from 'node:path'
+import { stripComments } from './lib/jsx-comments.mjs'
 
 import {
   ROOT,
@@ -355,7 +356,10 @@ function parseRoutes(src) {
   return routes
 }
 
-const routes = parseRoutes(readFileSync(APP_TSX, 'utf8'))
+// ⚠️ Comments are blanked FIRST. A comment in App.tsx quoting `<Route …>` was
+// read as a real unclosed route, mis-nested every route after it, and made this
+// gate report a live section as a dead link. See scripts/lib/jsx-comments.mjs.
+const routes = parseRoutes(stripComments(readFileSync(APP_TSX, 'utf8')))
 
 // A path resolves if a live route sits at it, or if its index child is live.
 // Both shapes occur: `/population` has no element of its own and gets its page
