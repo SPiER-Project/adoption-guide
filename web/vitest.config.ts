@@ -8,13 +8,18 @@ import { defineConfig } from 'vitest/config'
 // the other 55 files (`test.include` below reaches into packages/core/src
 // too, not just web/src — see the packages/core mirror-test note in CLAUDE.md).
 //
-// ⚠️ jsdom is pinned to ^29 because CI runs Node 20 (`node-version: 20` in
-// every workflow). jsdom 30 requires `^22.22.2 || ^24.15.0 || >=26.0.0` and
-// dies at import with `webidl.util.markAsUncloneable is not a function`. The
-// mismatch is invisible locally on a Node 22 machine — npm installs the newest
-// jsdom your own Node satisfies — so before bumping it past 29, either raise
-// the workflows' Node or check the new engines range against them. To test the
-// way CI does: `volta run --node 20 -- npm run verify`.
+// jsdom is pinned to ^29. It was pinned because CI ran Node 20 while jsdom 30
+// requires `^22.22.2 || ^24.15.0 || >=26.0.0` and dies at import with
+// `webidl.util.markAsUncloneable is not a function` — a mismatch invisible
+// locally, because npm installs the newest jsdom your OWN Node satisfies.
+//
+// That blocker is gone: the floor is Node 22 (`.github/.nvmrc`). The pin stays
+// only because nothing needs jsdom 30 — bumping it is now a normal dependency
+// decision rather than something gated on the runtime.
+//
+// ⚠️ `.nvmrc` says `22`, a floating minor, and jsdom 30's range starts at
+// 22.22.2 — so if you do bump it, check what `setup-node` actually resolves
+// rather than assuming any 22.x satisfies it.
 export default defineConfig({
   // ⚠️ This file does NOT inherit web/vite.config.ts — no `mergeConfig` — so the
   // demo-population alias is repeated here rather than shared. Verified, not

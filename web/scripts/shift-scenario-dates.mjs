@@ -208,12 +208,13 @@ function checkScenario(name, doc, anchorMs, errors, warnings) {
 /* ─── Main ───────────────────────────────────────────────── */
 
 const apply = process.argv.includes('--apply')
-// `readdirSync` + filter rather than `fs.globSync`, which needs Node 22 while
-// every workflow here pins Node 20. This script was the only globSync user in
-// the repo, and the mismatch was invisible for as long as the gate ran solely
-// on developer machines: it threw `SyntaxError: does not provide an export
-// named 'globSync'` the first time CI executed it. Every other script in
-// web/scripts enumerates with readdirSync; this now matches.
+// `readdirSync` + filter rather than `fs.globSync`. globSync needs Node 22, and
+// the floor was Node 20 when this was written: the mismatch stayed invisible for
+// as long as the gate ran only on developer machines, then threw `SyntaxError:
+// does not provide an export named 'globSync'` the first time CI executed it.
+// The floor is 22 now (`.github/.nvmrc`) so globSync would work, but this stays
+// — every other script in web/scripts enumerates with readdirSync, and matching
+// them is worth more than the one line saved. See docs/internals/build-gotchas.md.
 const files = readdirSync(scenarioDir)
   .filter(name => /^patient-.*\.json$/.test(name))
   .sort()

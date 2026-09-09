@@ -156,3 +156,50 @@ and was false. See [`docs/internals/README.md`](README.md).
 ⚠️ **An unresolvable tag must fail, never resolve to empty** — an empty tag keys the jar cache on the bare prefix `ig-publisher-` and reuses whatever jar that matches. Both call sites therefore assign and check rather than writing `echo "tag=$(node …)"`, in which spelling `echo` exits 0, `bash -e` never fires, and the step succeeds having written nothing. That is not hypothetical: the script's first draft compared `import.meta.url` against `process.argv[1]` as strings, which never matches in a checkout path containing a space — as this repo's own does (`public health`) — and printed nothing while exiting 0.
 
 Every failure mode (HTML body, HTTP 502, missing `tag_name`, blank `tag_name`, network error, and recovery on the third attempt) is asserted against a stubbed `fetch` rather than assumed.
+
+## The Node floor
+
+**Node 22**, declared once in [`.github/.nvmrc`](../../.github/.nvmrc) and read by
+every workflow through `setup-node`'s `node-version-file`. To change it, edit that
+one file.
+
+⚠️ **It must not move to the repo root** — Cloudflare Workers Builds reads a root
+`.nvmrc` (and `.node-version`) to pick the Node version for the *deploy* build.
+See [`.github/README.md`](../../.github/README.md).
+
+### Why the floor is load-bearing, and why 20 → 22 lowers risk rather than raising it
+
+The floor was Node 20, and it was a genuine compatibility contract: several
+repo-root gates carried headers saying so, because **two gates shipped that threw
+in CI and passed on a developer machine**.
+
+| incident | API | symptom |
+|---|---|---|
+| `web/scripts/shift-scenario-dates.mjs` | `fs.globSync` (Node 22+) | `SyntaxError: does not provide an export named 'globSync'` the first time CI ran it |
+| `scripts/validate-fhir.mjs` | `Iterator.prototype.map` (Node 22+) | `walkJson(...).map is not a function` |
+
+Both share one shape, and it is not "someone used a new API". It is that
+**developer machines ran Node 22 while CI ran Node 20**, so the only environment
+that could catch the mistake was the one that ran last. The old mitigation was a
+rule nobody could enforce — *a plain-node gate is not verified until it has run on
+Node 20* — which is exactly the kind of instruction that works right up until
+someone is in a hurry.
+
+Raising the floor to 22 removes the asymmetry instead of policing it: CI and
+developer machines now run the same major, so a Node 22 API that works locally
+works in CI. That is the actual argument for the bump. Node 20 being
+end-of-life (April 2026) is the lesser reason.
+
+⚠️ **The asymmetry can come back, in the other direction.** If your machine moves
+to Node 24 or 26 while this file says 22, you are in the same position with the
+signs reversed. `nvm use` in the repo root reads a root `.nvmrc`, and this one is
+not there — so match it explicitly when a plain-node gate misbehaves only in CI:
+`~/.nvm/versions/node/v22.*/bin/node <script>`, which keeps the current `PATH` so
+`java` stays available (`nvm use` in a login shell did not).
+
+The two workarounds above were **kept**, not modernised. Both are correct, both are
+covered by gates, and rewriting a tested line to use the API that once broke it
+buys nothing. `scripts/lib/crc32.mjs` likewise keeps its twelve hand-rolled lines
+over `zlib.crc32`: the version argument expired, but the real reason did not —
+`build-use-case-workbook.mjs --check` byte-diffs the `.xlsx`, so the checksum has
+to be ours rather than whatever the runtime ships.

@@ -11,8 +11,11 @@
  * #232, #261, and the reason `web/scripts/lib/vite-alias.mjs` throws too. A
  * missing block, or zero entries parsed, is an error and not a pass.
  *
- * Node 20: every workflow pins it, and this repo has already shipped two gates
- * that threw in CI on Node 22-only syntax.
+ * Node 22 is the floor (`.github/.nvmrc`, read by every workflow). It was Node
+ * 20, and this repo shipped two gates that threw in CI on Node 22-only syntax
+ * while passing on a developer machine — see docs/internals/build-gotchas.md.
+ * Raising the floor to 22 is what closes that gap rather than widening it: CI
+ * and developer machines now run the same major.
  */
 
 import { readFileSync } from 'node:fs'

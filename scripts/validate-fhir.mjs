@@ -272,10 +272,14 @@ targets.push(...scenarioTargets)
  * resources nothing validates. Added explicitly, and a zero count is an error for
  * the same reason the scenario tree's is.
  */
-// ⚠️ Spread, not `.map` on the generator: `Iterator.prototype.map` is Node 22+
-// and every workflow pins Node 20, so the direct form threw
-// `walkJson(...).map is not a function` in CI while passing on a Node 22
-// developer machine. Same class as the `fs.globSync` incident CLAUDE.md records.
+// Spread, not `.map` on the generator. `Iterator.prototype.map` is Node 22+, so
+// the direct form threw `walkJson(...).map is not a function` in CI while
+// passing on a Node 22 developer machine, back when the floor was Node 20.
+// The floor is 22 now (`.github/.nvmrc`), so `.map` would work — this stays
+// because it is correct and rewriting a tested line buys nothing. The incident
+// is worth keeping in view, though: what made it expensive was CI and
+// developer machines running different majors, which is the asymmetry the
+// bump removed. See docs/internals/build-gotchas.md.
 const patientTargets = existsSync(PATIENTS_DIR)
   ? [...walkJson(PATIENTS_DIR)].map((full) => relative(root, full))
   : []
