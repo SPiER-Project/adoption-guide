@@ -64,7 +64,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .github/.nvmrc
 
       - name: Check the use-case workbooks match their source
         run: node scripts/build-use-case-workbook.mjs --check

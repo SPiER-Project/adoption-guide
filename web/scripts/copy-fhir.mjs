@@ -8,10 +8,12 @@
 // script via `npm run copy-fhir` (also invoked by `predev` / `prebuild`).
 //
 // The SUSHI compile is slow (~30s), so this script is incremental: it skips the
-// compile when the generated artifacts are already newer than every FSH input
-// (see the "Staleness check" section below). `--force` always recompiles.
+// compile when the fingerprint recorded in `.copy-fhir-manifest` still matches
+// the inputs' content, the produced tree's content and the SUSHI version (see
+// the "Staleness check" section below). `--force` always recompiles.
 
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -39,6 +41,13 @@ const carePlanProfilesTsPath = join(destDir, 'care-plan-profiles.generated.ts')
 const instrumentSignaturesTsPath = join(destDir, 'instrument-signatures.generated.ts')
 const stageIdsTsPath = join(destDir, 'stage-ids.generated.ts')
 const generatedTsPaths = [carePlanProfilesTsPath, instrumentSignaturesTsPath, stageIdsTsPath]
+// Records the fingerprint of the inputs this tree was built from and of the
+// tree itself. Deliberately has NO `.json` extension: destDir's consumers
+// enumerate it and parse everything matching `*.json` as a FHIR resource
+// (check-scenario-resources.mjs:175, and the app's `import.meta.glob`), so a
+// `.json` marker here would be handed to a FHIR parser as a resource.
+// Gitignored along with the rest of destDir.
+const manifestPath = join(destDir, '.copy-fhir-manifest')
 
 // ImplementationGuide is IG manifest metadata, not a domain resource consumed by the app.
 const EXCLUDE_PREFIXES = ['ImplementationGuide-']
@@ -75,12 +84,32 @@ function log(msg) {
 //   that a cleaned/stale intermediate dir doesn't matter — if the app's inputs
 //   are current, there is nothing to do.
 //
-// Correctness:
-//   We skip only when the OLDEST output postdates the NEWEST input, so a single
-//   stale output forces a full rebuild. mtime ties (rare, coarse filesystems)
-//   resolve toward rebuilding — conservative by design. A fresh clone has no
-//   outputs, so the check fails and we build. `--force` bypasses the check
-//   entirely; `prebuild` passes it so release builds never trust mtimes.
+// Correctness — why this is a CONTENT fingerprint and not mtimes:
+//   This check used to compare mtimes: skip when the oldest output postdates the
+//   newest input. That is sound locally, where mtimes track edits, and useless
+//   anywhere the tree did not come from editing it. In a fresh CI checkout git
+//   stamps EVERY file with checkout time, so mtimes carry no information about
+//   what changed — which is exactly why `prebuild` passed `--force`, and why
+//   `verify` immediately followed a compile with a second, identical one 20s
+//   later (measured: 13:12:07→13:12:48, then 13:13:25→13:13:45).
+//
+//   So the skip decision now rests on a manifest written next to the artifacts,
+//   recording three things: the SUSHI version that produced them, a fingerprint
+//   of every input's CONTENT, and a fingerprint of the produced tree's content.
+//   All three must match to skip, which makes this strictly stronger than the
+//   mtime check in both directions:
+//     - a touched-but-unchanged input no longer forces a pointless ~40s compile;
+//     - a hand-edited, truncated or partially-deleted output no longer passes,
+//       whereas under mtimes a late-modified output looked NEWER and so looked
+//       fine. (The repo's recurring defect is a check that passes while having
+//       verified nothing; an output fingerprint is what stops this being one.)
+//     - a tree built by a different SUSHI is rebuilt rather than trusted.
+//   A fresh clone has no manifest and no outputs, so it builds.
+//
+//   `--force` still means what it says everywhere it is advertised (a dozen
+//   error messages, README and CLAUDE.md all tell a human to run it): skip no
+//   work, recompile unconditionally. `prebuild` no longer needs it — the reason
+//   it passed `--force` was distrust of mtimes, and there are no mtimes here now.
 
 function walkFiles(dir) {
   const out = []
@@ -98,40 +127,93 @@ function walkFiles(dir) {
   return out
 }
 
-function mtimeMs(path) {
-  try {
-    return statSync(path).mtimeMs
-  } catch {
-    return null // missing files are ignored by callers
+// Fingerprint a set of files by CONTENT. Paths are made relative to the repo
+// root and sorted, so the digest is stable across machines and checkout
+// locations, and the path is folded in alongside the bytes so that renaming or
+// deleting a file changes the digest even when the surviving bytes do not.
+function fingerprintFiles(paths) {
+  const hash = createHash('sha256')
+  const rels = paths
+    .map((p) => [p.replace(repoRoot + '/', ''), p])
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+  for (const [rel, abs] of rels) {
+    let bytes
+    try {
+      bytes = readFileSync(abs)
+    } catch {
+      continue // vanished mid-walk; the file list it came from is the record
+    }
+    hash.update(rel)
+    hash.update('\0')
+    hash.update(createHash('sha256').update(bytes).digest())
   }
+  return hash.digest('hex')
+}
+
+// Everything whose content determines the generated tree. Kept in one place so
+// the "What counts as an input" list above has exactly one implementation.
+function inputPaths() {
+  return [sushiConfig, scriptPath, ...walkFiles(fshInputDir), ...walkFiles(questionnairesDir)]
+}
+
+function inputsFingerprint() {
+  // SUSHI's version is part of the inputs' identity: the same FSH compiled by a
+  // different SUSHI can legitimately produce different output, so a version bump
+  // must invalidate the tree rather than be papered over by matching sources.
+  return createHash('sha256')
+    .update(`sushi:${SUSHI_VERSION}\n`)
+    .update(fingerprintFiles(inputPaths()))
+    .digest('hex')
+}
+
+// The tree as actually produced, so tampering or truncation is detectable. The
+// manifest itself is excluded — it cannot record its own digest.
+function outputsFingerprint() {
+  return fingerprintFiles(walkFiles(destDir).filter((p) => p !== manifestPath))
+}
+
+function writeManifest() {
+  // Written LAST, after every emitter, so a manifest existing at all means the
+  // whole pipeline ran to completion. A crash part-way leaves no manifest (or a
+  // stale one whose output digest no longer matches), and the next run rebuilds.
+  writeFileSync(
+    manifestPath,
+    JSON.stringify(
+      { sushiVersion: SUSHI_VERSION, inputs: inputsFingerprint(), outputs: outputsFingerprint() },
+      null,
+      2,
+    ) + '\n',
+    'utf8',
+  )
 }
 
 function isUpToDate() {
-  // Both consumed artifacts must be present, or there is nothing to trust:
+  // Every consumed artifact must be present, or there is nothing to trust:
   //   - the copied resource dir (must contain files), and
   //   - every generated TS file.
-  // Filtering missing paths out of the comparison would let a deleted output
-  // (empty destDir, removed generated TS) pass as "up to date" and skip a
-  // rebuild the app actually needs — so check existence explicitly first.
-  const destFiles = walkFiles(destDir)
+  // Checking existence explicitly first, rather than letting missing paths drop
+  // out of a comparison, is what stops a deleted output (empty destDir, removed
+  // generated TS) reading as "up to date" and skipping a rebuild the app needs.
+  // Excluding the manifest: a tree holding nothing BUT its own manifest is an
+  // empty tree, and must not satisfy a guard whose entire job is to be airtight.
+  const destFiles = walkFiles(destDir).filter((p) => p !== manifestPath)
   if (destFiles.length === 0) return false // fresh clone / cleaned tree → build
+  if (!generatedTsPaths.every((p) => existsSync(p))) return false // a generated TS deleted → build
 
-  const tsMtimes = generatedTsPaths.map(mtimeMs)
-  if (tsMtimes.some((t) => t === null)) return false // a generated TS deleted → build
+  // No inputs found is unexpected (a moved ig/ tree, a bad cwd); rebuild rather
+  // than silently skip on a fingerprint taken over nothing.
+  if (inputPaths().length === 0) return false
 
-  const inputFiles = [
-    sushiConfig,
-    scriptPath,
-    ...walkFiles(fshInputDir),
-    ...walkFiles(questionnairesDir),
-  ]
-  const inputTimes = inputFiles.map(mtimeMs).filter((t) => t !== null)
-  // No inputs found is unexpected; rebuild rather than silently skip.
-  if (inputTimes.length === 0) return false
-
-  const newestInput = Math.max(...inputTimes)
-  const oldestOutput = Math.min(...destFiles.map(mtimeMs), ...tsMtimes)
-  return oldestOutput > newestInput
+  let manifest
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+  } catch {
+    return false // no manifest, or unreadable → build
+  }
+  if (manifest?.sushiVersion !== SUSHI_VERSION) return false
+  if (manifest?.inputs !== inputsFingerprint()) return false
+  if (manifest?.outputs !== outputsFingerprint()) return false
+  return true
 }
 
 function runSushi() {
@@ -443,6 +525,27 @@ function writeStageIdType() {
   log(`emitted ${stageIdsTsPath.replace(repoRoot + '/', '')} with ${codes.length} stage id(s)`)
 }
 
+/**
+ * Print the inputs fingerprint and exit — the CI cache key for the generated
+ * tree.
+ *
+ * Exists so the key has ONE definition. Spelling the input set out as
+ * `hashFiles('ig/input/fsh/**', 'FHIR-Resources/**', …)` in the workflow would
+ * re-state, in YAML, the list this script's own "What counts as an input"
+ * section already owns — in several jobs at once, with nothing comparing the
+ * copies. That is the hand-copied-list failure this repo keeps paying for (the
+ * stale check:codings floor, the drifted CI step list). A key that comes from
+ * `inputsFingerprint()` cannot disagree with the staleness check that consumes
+ * the cache, because it IS the staleness check's fingerprint.
+ *
+ * Uses node builtins only (as does the whole script), so a workflow can call it
+ * before `npm ci`.
+ */
+if (process.argv.includes('--print-input-fingerprint')) {
+  process.stdout.write(inputsFingerprint() + '\n')
+  process.exit(0)
+}
+
 const force = process.argv.includes('--force')
 /**
  * Copy an ALREADY-COMPILED ig/fsh-generated into packages/fhir-artifacts/generated/, without
@@ -468,6 +571,10 @@ if (noCompile) {
   writeCarePlanProfileTypes()
   writeInstrumentItemCodes()
   writeStageIdType()
+  // This tree is as legitimate as a compiled one — it came from the same SUSHI
+  // output, just downloaded as an artifact instead of produced here — so record
+  // it, and let a later plain `copy-fhir` in the same job skip.
+  writeManifest()
   process.exit(0)
 }
 if (!force && isUpToDate()) {
@@ -482,3 +589,4 @@ copyResources()
 writeCarePlanProfileTypes()
 writeInstrumentItemCodes()
 writeStageIdType()
+writeManifest()

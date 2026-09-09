@@ -70,9 +70,14 @@ on:
 permissions:
   contents: read
 
+# ⚠️ Conditional, not `true`. This workflow triggers on `push` to main as well
+# as on PRs, and cancelling a main run leaves a MERGED commit with no verdict —
+# indistinguishable from "still running". Same reasoning as web-lint.yml and
+# ig.yml. (ig-publish.yml keeps a bare `true` correctly: it has no push trigger,
+# so it can only ever cancel a PR run.)
 concurrency:
   group: fml-validate-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   fml:
@@ -83,7 +88,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .github/.nvmrc
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -109,19 +114,57 @@ jobs:
       - name: Install SUSHI
         run: npm install -g fsh-sushi@${{ steps.sushi.outputs.version }}
 
+      # SUSHI downloads hl7.fhir.uv.tools.r4, hl7.terminology.r4 (4176
+      # resources), us.core and uv.sdc from packages.fhir.org on every cold run,
+      # and that fetch — not the compile — is the bulk of `copy-fhir`'s 40s.
+      # Same key and path the ig.yml, ig-publish.yml and deploy.yml jobs already
+      # use, so a PR restores what the last push to main saved.
+      #
+      # Safe to reuse rather than re-fetch: SUSHI still resolves the two
+      # `#latest` automatic dependencies over the network each run and only
+      # reads the cached copy when the concrete version matches, so a warm cache
+      # cannot silently pin an older package than a cold one would.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
       # The maps resolve the ConceptMaps they translate through out of the
       # generated resources, so the FSH has to be compiled first.
       - name: Compile FSH
         working-directory: ./ig
         run: sushi .
 
-      # Keyed on the pinned version in scripts/lib/validator-jar.mjs, so a
-      # version bump invalidates the cache on its own.
+      # Keyed on the VERSION parsed out of scripts/lib/validator-jar.mjs, not on
+      # a hash of the file — the same key ig.yml and terminology-nightly.yml use
+      # for the same `.fhir-validator` path. Hashing the file made this a second,
+      # divergent entry for the identical ~190MB jar: two copies of it in the
+      # repo's 10GB cache budget, and a cold 190MB download here whenever that
+      # file changed for a reason the jar does not care about — a comment edit, or
+      # #92/#229 moving VALIDATOR_VERSION into it. Sharing the key means the three
+      # gates also demonstrably judge resources with the same validator bytes.
+      #
+      # The empty-version guard is load-bearing for the same reason it is in
+      # ig.yml: a failed parse must fail the step, not silently key the cache on
+      # the empty string.
+      - name: Read pinned validator version
+        id: validator
+        run: |
+          version=$(sed -n "s/^export const VALIDATOR_VERSION = '\(.*\)'$/\1/p" scripts/lib/validator-jar.mjs)
+          if [ -z "$version" ]; then
+            echo "::error::could not read VALIDATOR_VERSION from scripts/lib/validator-jar.mjs"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Cache validator jar
         uses: actions/cache@v4
         with:
           path: .fhir-validator
-          key: fhir-validator-${{ hashFiles('scripts/lib/validator-jar.mjs') }}
+          key: fhir-validator-${{ steps.validator.outputs.version }}
 
       - name: Compile StructureMaps + check transform parity
         run: node scripts/check-fml.mjs --tx https://tx.fhir.org

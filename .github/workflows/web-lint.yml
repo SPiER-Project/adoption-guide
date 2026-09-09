@@ -35,6 +35,23 @@ on:
       - '.github/workflows/web-lint.yml'
   workflow_dispatch:
 
+# Supersede in-flight runs for the same PR, the way ig-publish.yml and
+# fml-validate.yml already do. Two PR branches were observed paying for this:
+# `claude/docs-consolidation-phase-a-rebased` got two full runs 38 SECONDS apart
+# (18:18:20 and 18:18:58 on 2026-09-03), and `claude/phase-c-tasks-39501e` two
+# three minutes apart. Only the last commit merges, so the earlier run's jobs
+# were billed for a verdict on a tree nobody would ever ship.
+#
+# ⚠️ `cancel-in-progress` is deliberately conditional on the event, NOT `true`.
+# On a PR, an obsolete commit's verdict is worthless. On `main` it is the
+# opposite: two pushes landing a minute apart (1321243/69f4df3, 43f6e89/999359f)
+# would leave the first MERGED commit with a cancelled run — no verdict at all,
+# which reads identically to "not yet finished" and is the sort of green-that-
+# checked-nothing this repo keeps rediscovering. So main runs always complete.
+concurrency:
+  group: web-lint-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Fast feedback. Every gate here ALSO runs in the `verify` job below, which
   # calls `npm run verify` wholesale — that redundancy is deliberate, not drift.
@@ -54,7 +71,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .github/.nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -117,10 +136,53 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .github/.nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # The cache key for the generated FHIR tree, taken from the one place that
+      # defines what determines that tree. `copy-fhir.mjs` is node-builtins
+      # only, so this runs before any install.
+      - name: Fingerprint the FHIR inputs
+        id: fhir
+        working-directory: ./web
+        run: echo "key=$(node scripts/copy-fhir.mjs --print-input-fingerprint)" >> "$GITHUB_OUTPUT"
+
+      # Lookup-only: this job does not restore the tree, it PRODUCES it. `verify`
+      # keeps `copy-fhir -- --force`, so exactly one job per run derives the tree
+      # from source with every gate then running against those fresh bytes. That
+      # is the liveness half of this cache — if every job restored, an input the
+      # key cannot see would let one stale tree satisfy every gate in the repo,
+      # and nothing would ever notice. This step only asks whether the entry
+      # already exists, so the save below can be skipped when it does.
+      - name: Is this tree already cached?
+        id: fhir-lookup
+        uses: actions/cache/restore@v4
+        with:
+          path: packages/fhir-artifacts/generated
+          key: fhir-generated-${{ steps.fhir.outputs.key }}
+          lookup-only: true
 
       - name: Install dependencies
         run: npm ci
+
+      # SUSHI downloads hl7.fhir.uv.tools.r4, hl7.terminology.r4 (4176
+      # resources), us.core and uv.sdc from packages.fhir.org on every cold run,
+      # and that fetch — not the compile — is the bulk of `copy-fhir`'s 40s.
+      # Same key and path the ig.yml, ig-publish.yml and deploy.yml jobs already
+      # use, so a PR restores what the last push to main saved.
+      #
+      # Safe to reuse rather than re-fetch: SUSHI still resolves the two
+      # `#latest` automatic dependencies over the network each run and only
+      # reads the cached copy when the concrete version matches, so a warm cache
+      # cannot silently pin an older package than a cold one would.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
 
       # ⚠️ ONE step on purpose: `npm run verify` runs the whole gate list, the
       # same way the cds-hooks and mock-ehr jobs below do.
@@ -148,6 +210,24 @@ jobs:
       - name: Verify (typecheck, lint, every check:* gate, unit tests)
         run: npm run verify
 
+      # After the gates, never with `if: always()` — the same rule deploy.yml's
+      # render cache follows. A tree that failed a gate must not become the
+      # cached answer for its inputs. Explicit `cache/save` rather than the
+      # combined `actions/cache` action for exactly that reason: the latter's
+      # post-step saves even when a later step failed.
+      #
+      # One entry per fingerprint, and no `github.run_id` suffix. deploy.yml
+      # needs the run id because its key cannot see `fhir.base.template#current`
+      # moving, so the newest render has to win a prefix match. Here the key
+      # fully determines the content, so a second entry for the same key could
+      # only be a duplicate.
+      - name: Cache the generated FHIR tree
+        if: steps.fhir-lookup.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: packages/fhir-artifacts/generated
+          key: fhir-generated-${{ steps.fhir.outputs.key }}
+
       # Not part of `verify` — a production build is a different question from
       # "is the source correct", and it is the slowest thing here.
       - name: Build
@@ -168,7 +248,36 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .github/.nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            services/cds-hooks/package-lock.json
+
+      # The cache key for the generated FHIR tree — one definition, in
+      # copy-fhir.mjs. Node-builtins only, so it needs no install.
+      - name: Fingerprint the FHIR inputs
+        id: fhir
+        working-directory: ./web
+        run: echo "key=$(node scripts/copy-fhir.mjs --print-input-fingerprint)" >> "$GITHUB_OUTPUT"
+
+      # Restoring the tree lets this job's `copy-fhir` skip the SUSHI compile —
+      # but nothing here TRUSTS the restored bytes. `copy-fhir` re-reads the
+      # manifest inside them and recomputes both the input and the output
+      # fingerprint; a truncated, tampered or partial entry fails that and
+      # recompiles. A bad cache therefore degrades this job to slow, never to
+      # wrong, which is why it needs no separate completeness gate of the kind
+      # deploy.yml's render cache does require.
+      #
+      # Written by the `verify` job, which compiles unconditionally. On a PR the
+      # hit comes from the last push to main; a PR that edits any FSH or
+      # Questionnaire input changes the fingerprint and these jobs compile, which
+      # is the correct answer rather than a miss to be tuned away.
+      - name: Restore the generated FHIR tree
+        uses: actions/cache/restore@v4
+        with:
+          path: packages/fhir-artifacts/generated
+          key: fhir-generated-${{ steps.fhir.outputs.key }}
 
       # The service's `pretest` shells out to `npm --prefix ../../web run
       # copy-fhir` (its tests import web's catalog and mappers), so web's
@@ -179,6 +288,24 @@ jobs:
 
       - name: Install service dependencies
         run: npm ci
+
+      # SUSHI downloads hl7.fhir.uv.tools.r4, hl7.terminology.r4 (4176
+      # resources), us.core and uv.sdc from packages.fhir.org on every cold run,
+      # and that fetch — not the compile — is the bulk of `copy-fhir`'s 40s.
+      # Same key and path the ig.yml, ig-publish.yml and deploy.yml jobs already
+      # use, so a PR restores what the last push to main saved.
+      #
+      # Safe to reuse rather than re-fetch: SUSHI still resolves the two
+      # `#latest` automatic dependencies over the network each run and only
+      # reads the cached copy when the concrete version matches, so a warm cache
+      # cannot silently pin an older package than a cold one would.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
 
       # typecheck + lint + test. `pretest` generates packages/fhir-artifacts/generated/*.json
       # and care-plan-profiles.generated.ts via copy-fhir.
@@ -203,7 +330,36 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .github/.nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            services/mock-ehr/package-lock.json
+
+      # The cache key for the generated FHIR tree — one definition, in
+      # copy-fhir.mjs. Node-builtins only, so it needs no install.
+      - name: Fingerprint the FHIR inputs
+        id: fhir
+        working-directory: ./web
+        run: echo "key=$(node scripts/copy-fhir.mjs --print-input-fingerprint)" >> "$GITHUB_OUTPUT"
+
+      # Restoring the tree lets this job's `copy-fhir` skip the SUSHI compile —
+      # but nothing here TRUSTS the restored bytes. `copy-fhir` re-reads the
+      # manifest inside them and recomputes both the input and the output
+      # fingerprint; a truncated, tampered or partial entry fails that and
+      # recompiles. A bad cache therefore degrades this job to slow, never to
+      # wrong, which is why it needs no separate completeness gate of the kind
+      # deploy.yml's render cache does require.
+      #
+      # Written by the `verify` job, which compiles unconditionally. On a PR the
+      # hit comes from the last push to main; a PR that edits any FSH or
+      # Questionnaire input changes the fingerprint and these jobs compile, which
+      # is the correct answer rather than a miss to be tuned away.
+      - name: Restore the generated FHIR tree
+        uses: actions/cache/restore@v4
+        with:
+          path: packages/fhir-artifacts/generated
+          key: fhir-generated-${{ steps.fhir.outputs.key }}
 
       # `pretest` shells out to `npm --prefix ../../web run copy-fhir` (the 14
       # Patient resources it serves are SUSHI output), and the integration test
@@ -215,6 +371,24 @@ jobs:
 
       - name: Install service dependencies
         run: npm ci
+
+      # SUSHI downloads hl7.fhir.uv.tools.r4, hl7.terminology.r4 (4176
+      # resources), us.core and uv.sdc from packages.fhir.org on every cold run,
+      # and that fetch — not the compile — is the bulk of `copy-fhir`'s 40s.
+      # Same key and path the ig.yml, ig-publish.yml and deploy.yml jobs already
+      # use, so a PR restores what the last push to main saved.
+      #
+      # Safe to reuse rather than re-fetch: SUSHI still resolves the two
+      # `#latest` automatic dependencies over the network each run and only
+      # reads the cached copy when the concrete version matches, so a warm cache
+      # cannot silently pin an older package than a cold one would.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
 
       - name: Verify
         run: npm run verify

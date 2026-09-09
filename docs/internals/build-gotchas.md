@@ -83,7 +83,15 @@ and was false. See [`docs/internals/README.md`](README.md).
   UCUM method fails the gate instead of a form. Same trade as the `expo-random`
   override documented in `web/package.json` — prune what cannot execute, and say
   why in the place someone will look.
-- **`copy-fhir` is incremental:** it skips the ~30s SUSHI compile when `packages/fhir-artifacts/generated/` is newer than every FSH input. `predev` runs it plain; `prebuild` runs it with `--force`. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
+- **`copy-fhir` is incremental on a content fingerprint, not on mtimes.** It writes `.copy-fhir-manifest` into `packages/fhir-artifacts/generated/` recording the SUSHI version, a hash of every input's content, and a hash of the tree it produced; it skips the ~30s compile only when all three still match. `predev`, `prebuild` and `pretest` run it plain; `verify` passes `--force`, which still means recompile unconditionally. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
+
+  **CI shares one compile through that same fingerprint.** `node web/scripts/copy-fhir.mjs --print-input-fingerprint` prints the inputs hash, and web-lint.yml uses it as the cache key for `packages/fhir-artifacts/generated/`. The key therefore has one definition — spelling the input set out as `hashFiles('ig/input/fsh/**', 'FHIR-Resources/**', …)` in YAML would restate, in several jobs at once, the list the script already owns, with nothing comparing the copies.
+
+  ⚠️ **Two properties keep that cache honest, and both are deliberate.** The `verify` job keeps `--force`, so exactly one job per run still derives the tree from source and runs every gate against fresh bytes — if every job restored, an input the key cannot see would let one stale tree satisfy the whole repo and nothing would notice. And the restoring jobs do not *trust* the entry: `copy-fhir` re-reads the manifest inside it and recomputes both fingerprints, so a truncated or tampered entry recompiles. A bad cache degrades those jobs to slow, never to wrong — which is why, unlike deploy.yml's render cache, this one needs no separate completeness gate. The cache is also saved by an explicit `cache/save` placed *after* the gates, never by the combined `actions/cache` action, whose post-step would save a tree whose gates had failed.
+
+  `fml-validate.yml` is deliberately NOT on this cache: it needs `ig/fsh-generated/`, which carries no manifest and so could only be trusted rather than verified. ~20s is not worth a trusted-cache path.
+
+  ⚠️ **It used to compare mtimes, and that is why `prebuild` passed `--force`.** mtimes track edits only where the tree came from editing it — in a fresh CI checkout git stamps every file with checkout time, so they carry no information at all. The cost was a second, identical ~20s compile in the `verify` job moments after the first (measured 2026-09-09: 13:12:07→13:12:48, then 13:13:25→13:13:45). The cheaper half of the fix is incidental; the load-bearing half is that mtimes were also **weaker**, because a hand-edited output looks *newer* and therefore looked fine. The manifest hashes the outputs too, so tampering and truncation rebuild. All six branches — unchanged-but-touched input, changed input, edited output, deleted generated TS, wrong SUSHI version, `--force` — were planted and observed before this landed.
 - **Generated files must exist before `tsc -b`.** `packages/fhir-artifacts/generated/*.json` and `packages/fhir-artifacts/generated/care-plan-profiles.generated.ts` (the whole `generated/` directory is gitignored) are produced by `copy-fhir`. On a clean checkout, run `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
   ValueSets; `FHIR-Resources/` holds Questionnaires (plus a couple of CarePlan
@@ -138,3 +146,13 @@ and was false. See [`docs/internals/README.md`](README.md).
   under the tool's *name* rather than quoting a bare id — the id is for
   machines, and a named link is what a reader can act on.
 
+
+## Resolving the IG Publisher release
+
+`ig-publish.yml` and `deploy.yml` both need the latest publisher release tag, because the jar is cached by version — caching the `releases/latest` URL would pin the repo to a stale publisher indefinitely. That resolution lives in **`scripts/lib/ig-publisher-release.mjs`**, one definition, the same treatment `sushi-version.mjs` and `validator-jar.mjs` get.
+
+⚠️ **It is one definition because two copies had already drifted.** `deploy.yml` carried an inline `bash -e` retry loop; `ig-publish.yml` carried a single unguarded `curl | jq` with no retry at all. The loop's two `|| true` guards were load-bearing in a way that is invisible without knowing both failure modes: a curl timeout yields empty output and `jq` exits 0, so the retry works — but an HTML error body (a GitHub API 502, the likelier flake) makes `jq` exit 5, which under `bash -e` aborts the step on attempt 1 so the loop never runs a second time.
+
+⚠️ **An unresolvable tag must fail, never resolve to empty** — an empty tag keys the jar cache on the bare prefix `ig-publisher-` and reuses whatever jar that matches. Both call sites therefore assign and check rather than writing `echo "tag=$(node …)"`, in which spelling `echo` exits 0, `bash -e` never fires, and the step succeeds having written nothing. That is not hypothetical: the script's first draft compared `import.meta.url` against `process.argv[1]` as strings, which never matches in a checkout path containing a space — as this repo's own does (`public health`) — and printed nothing while exiting 0.
+
+Every failure mode (HTML body, HTTP 502, missing `tag_name`, blank `tag_name`, network error, and recovery on the third attempt) is asserted against a stubbed `fetch` rather than assumed.
