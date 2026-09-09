@@ -2,24 +2,34 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 // Almost everything under test is a pure function walking FHIR JSON, so the
-// lightweight `node` environment is the default. The one DOM-dependent suite
-// (hooks/useScrollToHash.test.tsx) opts into jsdom with a
-// `@vitest-environment jsdom` docblock, which keeps jsdom's startup cost off
-// the other 55 files (`test.include` below reaches into packages/core/src
-// too, not just web/src — see the packages/core mirror-test note in CLAUDE.md).
+// lightweight `node` environment is the default. The DOM-dependent suites — 18
+// of the 79 test files — opt in individually with a `@vitest-environment jsdom`
+// docblock, which keeps jsdom's startup cost off the other 61. (`test.include`
+// below reaches into packages/core/src and scripts/lib too, not just web/src —
+// see the packages/core mirror-test note in CLAUDE.md.)
 //
-// jsdom is pinned to ^29. It was pinned because CI ran Node 20 while jsdom 30
-// requires `^22.22.2 || ^24.15.0 || >=26.0.0` and dies at import with
-// `webidl.util.markAsUncloneable is not a function` — a mismatch invisible
-// locally, because npm installs the newest jsdom your OWN Node satisfies.
+// jsdom is ^30. It sat at ^29 for as long as CI ran Node 20, because jsdom 30
+// requires `^22.22.2 || ^24.15.0 || >=26.0.0` and will not load on anything
+// older. That mismatch is invisible locally — npm installs the newest jsdom your
+// OWN Node satisfies — so the pin was the only thing holding the two
+// environments together. Raising the floor to Node 22 removed the reason for it.
 //
-// That blocker is gone: the floor is Node 22 (`.github/.nvmrc`). The pin stays
-// only because nothing needs jsdom 30 — bumping it is now a normal dependency
-// decision rather than something gated on the runtime.
+// ⚠️ **jsdom constrains `.github/.nvmrc` from below.** `^22.22.2` is a floor,
+// not a preference: the pin reads `22`, which resolves to the newest 22.x
+// (22.23.2 in CI today) and satisfies it, but pinning `.nvmrc` to an exact older
+// 22.x breaks every one of those 18 suites. npm will not stop you —
+// `engine-strict` is off by default, so a violating install only *warns* and the
+// failure surfaces later, at test time. Also in `.github/README.md`, where
+// someone editing the pin will be looking.
 //
-// ⚠️ `.nvmrc` says `22`, a floating minor, and jsdom 30's range starts at
-// 22.22.2 — so if you do bump it, check what `setup-node` actually resolves
-// rather than assuming any 22.x satisfies it.
+// Verified rather than assumed, on jsdom 30.0.1: Node 20.17.0 fails, 22.22.2
+// (the exact floor) passes, as do 22.22.3 and 24.18.0.
+//
+// ⚠️ Do not go looking for one specific error message. This comment used to name
+// `webidl.util.markAsUncloneable is not a function`; on 30.0.1 + Node 20.17.0 the
+// actual failure is `ERR_REQUIRE_ESM` — `require() of ES Module @exodus/bytes
+// from html-encoding-sniffer`. The symptom moves with the version; what is
+// stable is that jsdom fails to LOAD, so the tests never run at all.
 export default defineConfig({
   // ⚠️ This file does NOT inherit web/vite.config.ts — no `mergeConfig` — so the
   // demo-population alias is repeated here rather than shared. Verified, not
