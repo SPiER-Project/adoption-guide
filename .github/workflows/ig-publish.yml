@@ -116,15 +116,30 @@ jobs:
 
       # Resolve the release tag explicitly so the jar can be cached by version.
       # Caching the "latest" URL would pin us to a stale publisher indefinitely.
+      #
+      # Shared with deploy.yml through scripts/lib/ig-publisher-release.mjs, the
+      # same way sushi-version.mjs and validator-jar.mjs are shared. This step
+      # had NO retry while deploy.yml's carried a carefully-reasoned one — which
+      # is what two copies of one network call drift into. That script's header
+      # has the failure modes and why an unresolvable tag must never be empty.
       - name: Resolve IG Publisher release
         id: pub
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          tag=$(curl -sL https://api.github.com/repos/HL7/fhir-ig-publisher/releases/latest | jq -r .tag_name)
-          if [ -z "$tag" ] || [ "$tag" = "null" ]; then
-            echo "::error::could not resolve the latest fhir-ig-publisher release tag"
+          # Assigned first and checked, NEVER `echo "tag=$(node …)"`. In that
+          # spelling the substitution's failure is invisible: `echo` exits 0, so
+          # `bash -e` does not fire, and the step succeeds having written an
+          # EMPTY tag — which then keys the jar cache on the bare prefix
+          # `ig-publisher-` and reuses whatever jar happens to match. The
+          # `-z` guard covers the other half (exited 0, printed nothing), which
+          # is not hypothetical: a main-module check that mishandled the space in
+          # this repo's own path did exactly that. See the script's header.
+          tag=$(node scripts/lib/ig-publisher-release.mjs)
+          if [ -z "$tag" ]; then
+            echo "::error::the IG Publisher release resolver exited 0 but printed no tag"
             exit 1
           fi
-          echo "resolved publisher release: $tag"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Cache IG Publisher jar

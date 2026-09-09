@@ -525,6 +525,27 @@ function writeStageIdType() {
   log(`emitted ${stageIdsTsPath.replace(repoRoot + '/', '')} with ${codes.length} stage id(s)`)
 }
 
+/**
+ * Print the inputs fingerprint and exit — the CI cache key for the generated
+ * tree.
+ *
+ * Exists so the key has ONE definition. Spelling the input set out as
+ * `hashFiles('ig/input/fsh/**', 'FHIR-Resources/**', …)` in the workflow would
+ * re-state, in YAML, the list this script's own "What counts as an input"
+ * section already owns — in several jobs at once, with nothing comparing the
+ * copies. That is the hand-copied-list failure this repo keeps paying for (the
+ * stale check:codings floor, the drifted CI step list). A key that comes from
+ * `inputsFingerprint()` cannot disagree with the staleness check that consumes
+ * the cache, because it IS the staleness check's fingerprint.
+ *
+ * Uses node builtins only (as does the whole script), so a workflow can call it
+ * before `npm ci`.
+ */
+if (process.argv.includes('--print-input-fingerprint')) {
+  process.stdout.write(inputsFingerprint() + '\n')
+  process.exit(0)
+}
+
 const force = process.argv.includes('--force')
 /**
  * Copy an ALREADY-COMPILED ig/fsh-generated into packages/fhir-artifacts/generated/, without

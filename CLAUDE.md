@@ -225,6 +225,11 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   caller (`predev`, `prebuild`, `pretest`) runs it plain; only `verify` passes
   `--force`. If FHIR data looks stale, run `npm run copy-fhir -- --force` —
   that still means recompile unconditionally.
+  ⚠️ **CI's cache key for that tree comes from the same fingerprint** —
+  `copy-fhir.mjs --print-input-fingerprint`. Never restate the input set as
+  `hashFiles(...)` in a workflow; add new inputs to the script's input list and
+  every job's key follows. `verify` keeps `--force` on purpose, so one job per
+  run still compiles from source.
 - **Generated files must exist before `tsc -b`.** On a clean checkout, run
   `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and

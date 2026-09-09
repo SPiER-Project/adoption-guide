@@ -60,6 +60,13 @@ export default defineConfig({
     // packages/core's mirror tests live beside their subject under
     // packages/core/src, not under web/src (see the packages/core bullet in
     // CLAUDE.md) — reached here rather than via a fourth test pipeline.
-    include: ['src/**/*.test.{ts,tsx}', '../packages/core/src/**/*.test.{ts,tsx}'],
+    // The third entry reaches the repo-root helper scripts in scripts/lib/,
+    // which no pipeline covered before — same reasoning as packages/core above:
+    // reach them from here rather than stand up another test runner.
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      '../packages/core/src/**/*.test.{ts,tsx}',
+      '../scripts/lib/**/*.test.mjs',
+    ],
   },
 })
