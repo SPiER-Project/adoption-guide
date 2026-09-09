@@ -769,10 +769,19 @@ interoperability. That is the honest claim and it is the one printed on the page
 **The upgrade still has a real payoff.** A user-scoped launch is what would make
 this a genuine SMART panel. Until that lands, the frame stays labelled.
 
+⚠️ **As of 2026-09-09 the upgrade is not a relabelling of this frame — it
+replaces it.** The population dashboard becomes a SMART app the host *launches*,
+so what belongs on this page is a launch button beside the per-chart one, not an
+iframe with a better caption. `#401`'s "the frame's label changes" checkbox is
+superseded accordingly; see the decision at the end of this section.
+
 ⚠️ ~~*and what would let the adoption guide retire its own `/population` and
 `/patient/chart` routes — the stated long-term direction, since those two views
 are EHR surfaces rather than implementer ones.*~~ **Reversed 2026-09-03 (Brad).
-The routes stay; what changes is where their data comes from.**
+The routes stay; what changes is where their data comes from.** ⚠️ **Refined
+again 2026-09-09: the routes stay and become the *explanation*, while the live
+apps get routes of their own and are launched by the mock EHR. Read to the end
+of this section before acting on either note.**
 
 The reasoning behind the retirement was sound and its conclusion did not follow.
 Those two views *are* EHR surfaces — but the defect they have is that the guide
@@ -789,18 +798,73 @@ The settled shape, three parts:
    the guide also imports for reads. (⚠️ The files do **not** move — see the
    note below on the gate net, the workbook and the measure engine, all of
    which consume them and all of which stay in the guide.)
-2. **The guide keeps `/population` and `/patient/chart`, reading live.** The
+2. ~~**The guide keeps `/population` and `/patient/chart`, reading live.** The
    Population lens becomes a population-level SMART app computing its
    statistics from the roster it fetched, which is what it has always claimed
    to be and has never been — it is the one screen in the app not reading FHIR
    today (`POPULATION_PATIENTS` is compiled straight into the guide's JS, and
-   `FhirDataSource` has no cohort read to offer it).
+   `FhirDataSource` has no cohort read to offer it).~~ **Superseded
+   2026-09-09 — see below.** The population-level SMART app is still wanted and
+   is still described exactly this way; what changed is *which URL it answers
+   on*.
 3. **A guide page explains the dashboard rather than substituting for it.** The
    report/dashboard view gets described where implementers read; the live one
    runs against patient data. Those are two jobs and the guide was doing both
    with one screen. Filed as **#466**, together with the page that states how
    the four surfaces relate at all — which is the thing whose absence made this
-   whole question hard to answer from the product.
+   whole question hard to answer from the product. **This part survives
+   2026-09-09 intact and is promoted from a refinement to the centre of the
+   design.**
+
+#### The explainer is the page, and the app is a launch — decided 2026-09-09
+
+⚠️ **Part 2 above put the explanation and the live app on the same URL, and
+that is the thing being corrected.** Brad, 2026-09-09, naming the two published
+addresses directly:
+
+> I think that the page `…/#/population` should explain the dashboard product,
+> and point to the mock EHR to see it in action, rather than being interactive
+> on that page.
+>
+> I think the page `…/#/patient/chart` should explain the patient-level smart
+> app and how the care pathways can be configured by the system to help
+> recommend what to do.
+>
+> The adoption guide explains the tool and hosts the SMART app(s) to be launched
+> by the mock EHR.
+
+**This is a third position, not a return to the retirement.** Read the three in
+order, because the difference between the first and the third is one word:
+
+| | `/population`, `/patient/chart` | The live screens |
+|---|---|---|
+| Retirement (pre-2026-09-03) | **deleted** | the mock EHR's, somehow |
+| Reversal (2026-09-03) | the live screens, re-pointed | same URLs, real token |
+| **Settled (2026-09-09)** | **explanatory pages** | **their own routes, launched by the mock EHR** |
+
+The retirement was wrong because it deleted the screens and left the fixtures.
+The reversal was incomplete because it kept an interactive caseload on a guide
+URL, which is what made a visitor unable to tell an implementer's reference page
+from a clinician's worklist — the confusion #466 is filed against. The settled
+answer keeps *both* jobs and stops making one URL do them both: the guide
+**explains and hosts**, the mock EHR **holds and launches**.
+
+⚠️ **The consequence the previous two positions did not have: the app needs
+route addresses of its own.** `/patient/chart` is the panel's landing route
+today — `SmartRedirect.tsx:80` defaults to it and `POST /_admin/launch` sends
+the browser at it — so a prose page cannot simply take that URL over. A
+user-scoped population launch has the same problem one level up: it has to land
+somewhere, and it cannot land on prose. So this decision *forces* a split that
+`user-scoped-smart-launch.md` Phase B did not need, and that split is now the
+first phase of the work. See that plan's Phase 0.
+
+⚠️ **And it deletes a phase.** Phase B existed so the guide could initiate its
+own user-scoped launch, because `/population` needed a token to render live. A
+prose `/population` needs no token — so the launch moves to where a launch
+belongs: **a button on the mock EHR's own front door**, beside the per-chart one
+it already has, replacing the labelled iframe. An EHR launches apps; an app
+launching itself so it can show a caseload was an artifact of the guide owning
+the screen. Phase A step 3 already anticipated this button.
 
 Recorded here rather than at the end of the work, deliberately: this doc and
 [`user-scoped-smart-launch.md`](user-scoped-smart-launch.md) held opposite
