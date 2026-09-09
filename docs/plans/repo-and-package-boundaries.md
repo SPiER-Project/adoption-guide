@@ -571,7 +571,27 @@ something. Step D (#398) left the page alone on the strength of the dashboard
 plan; a reader of the table alone would have had no way to know that. Filed and
 fixed as #402.
 
-**So: nothing in the adoption guide has a durable claim on the fixtures.**
+~~**So: nothing in the adoption guide has a durable claim on the fixtures.**~~
+
+⚠️ **Overtaken 2026-09-09 — it has one now, and by decision rather than by
+drift.** The guide keeps an offline demo path (`Demo chart`, `Demo caseload`,
+`Demo measures` in the sidebar, #493) so a workflow can be walked with no host
+running: *"it's okay to not have the mock ehr up, we can still show the workflows
+in the adoption guide"* (Brad). That path is the fixtures, so the claim is
+durable for as long as the requirement is.
+
+Two rows of the table above are settled by the same work, and neither the way it
+guessed. `MeasureDashboard.tsx` — "the only guide-side maybe" — is not guide-side
+at all: it answers on `/population/measures` beside the caseload, and
+`/guide/measures` has redirected there since #391.
+`PopulationView.tsx` stayed put, as the correction below already says.
+
+What DOES still hold is the reasoning one layer up, and it is now filed where it
+can be acted on: the fixtures are untenable in a build that ships to a client,
+which is the `clinical` surface in
+[`surfaces-and-distribution.md`](surfaces-and-distribution.md) §3 — not the demo
+build a conference audience sees. `user-scoped-smart-launch.md` Phase D records
+why the "no fixture imports under `web/src`" gate moved there.
 `packages/demo-population` is the honest home — not `services/mock-ehr`, because
 while the guide still has a chart it would make the product import from the demo
 host, which is worse than today's direction.

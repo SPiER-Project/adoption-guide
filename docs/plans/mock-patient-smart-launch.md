@@ -265,16 +265,33 @@ conformance artifact.
 
 ## 8. The scope people forget
 
-**A server full of our patients is only compelling if the Population and Dashboard
-lenses can read it — and today they structurally cannot.**
+~~**A server full of our patients is only compelling if the Population and
+Dashboard lenses can read it — and today they structurally cannot.**
 `PopulationView.tsx:73` and `MeasureDashboard.tsx` reach past the
-`FhirDataSource` abstraction to `localDataSource` directly. So:
+`FhirDataSource` abstraction to `localDataSource` directly.~~ **Phase 4 is DONE,
+2026-09-09** — all three parts of it, in the order this section predicted they
+would be hard:
 
-- **Phase 4** — un-hardcode those two pages and give `SmartDataSource` a
-  population read. That means a cross-patient query surface the interface does not
-  currently have (`getSlice` is per-patient), and a decision about how a registry
-  scopes itself on a real server, where "the caseload" is not a static list of 14.
-  This is genuine design work, not a refactor.
+- both pages stopped reaching past the seam in **#390** (they read
+  `useRegistrySlices`, i.e. whatever source the provider made active);
+- `SmartDataSource` got the population read in **#491** —
+  `FhirDataSource.listCohort()`, backed by the one unscoped search the mock EHR
+  implements (`GET /fhir/Patient`, for a token that may cross patients);
+- and the design question this section flagged as *"genuine design work, not a
+  refactor"* was answered deliberately in
+  [`user-scoped-smart-launch.md`](user-scoped-smart-launch.md): for a
+  `user/*.read` grant the caseload is **all 14 demo patients, unconditionally**,
+  with no panel or care-team subdivision, because this system has one implicit
+  provider persona and inventing a narrower cohort concept would bake a wrong
+  answer into the seam.
+
+⚠️ The estimate in this section was right about where the effort was. What it
+did not see is that the cohort read needed a **user-scoped launch** first — a
+population is not one patient, and every token the mock issued was bound to one
+until #489. That was #401's blocker 2, and it is why Phase 4 took three PRs
+rather than one.
+
+- ~~**Phase 4**~~ — see above.
 - **Phase 5** — #230, so a foreign C-SSRS or ASQ payload derives rather than
   landing in "Other activity."
 
