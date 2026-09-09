@@ -338,3 +338,65 @@ describe('the chart leads with the launch, and carries no controls', () => {
     expect((await html('/settings')).body).toContain('id="reset-writes"')
   })
 })
+
+/**
+ * The worklist launch (#401) — `/_admin/launch` with no patient.
+ *
+ * ⚠️ The explicit flag is the subject here. `userScoped: true` rather than "no
+ * `patient` in the body", because a caller that simply forgot to send one would
+ * otherwise be handed a launch context that authorizes reads across every
+ * patient on the server, with nothing in the response telling it so.
+ */
+describe('POST /_admin/launch — the worklist launch', () => {
+  async function mint(payload: Record<string, unknown>) {
+    const res = await app.request(`${BASE}/_admin/launch`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    return {
+      res,
+      body: (await res.json()) as {
+        launch?: string
+        launchUrl?: string
+        patient?: string
+        userScoped?: boolean
+        error?: string
+      },
+    }
+  }
+
+  it('mints a launch with no patient when asked explicitly', async () => {
+    const { res, body } = await mint({ userScoped: true })
+    expect(res.status).toBe(200)
+    expect(body.userScoped).toBe(true)
+    // Reported as absent rather than '', matching what /token does with the
+    // same context.
+    expect('patient' in body).toBe(false)
+    expect(new URL(body.launchUrl!).searchParams.get('launch')).toBe(body.launch)
+  })
+
+  it('is still an EHR launch — iss + launch, not a standalone redirect', async () => {
+    // The mock does not advertise `launch-standalone`, so the worklist app is
+    // launched the same way the chart is: the host mints the context and opens
+    // the app's launch_uri.
+    const { body } = await mint({ userScoped: true, embed: true })
+    const url = new URL(body.launchUrl!)
+    expect(url.searchParams.get('iss')).toBe(`${BASE}/fhir`)
+    expect(url.searchParams.get('launch')).toBeTruthy()
+    expect(url.searchParams.get('embed')).toBe('1')
+  })
+
+  it('refuses a body asking for both a patient and a worklist launch', async () => {
+    const { res, body } = await mint({ userScoped: true, patient: 'patient-011' })
+    expect(res.status).toBe(400)
+    expect(body.error).toContain('not both')
+  })
+
+  it('still rejects an unknown patient on the chart path', async () => {
+    // Guards the branch order: the `userScoped` check must not have skipped the
+    // patient-existence check for ordinary launches.
+    const { res } = await mint({ patient: 'patient-999' })
+    expect(res.status).toBe(400)
+  })
+})

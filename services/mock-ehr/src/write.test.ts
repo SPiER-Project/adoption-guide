@@ -17,7 +17,8 @@
  */
 import { beforeAll, describe, expect, it } from 'vitest'
 import app, { resetProfile } from './app'
-import { authHeaderFor } from './__fixtures__/launch'
+import { authHeaderFor, launchFor } from './__fixtures__/launch'
+import { mintLaunch } from './smart'
 import { fakeStore, type FakeStoreBinding } from './__fixtures__/store'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 
@@ -471,5 +472,44 @@ describe('PUT — update-as-create, which the browser found and the plan did not
     const resource = lifecycleResource()
     const { res } = await put('EpisodeOfCare', String(resource.id), resource, { headers: foreignAuth })
     expect(res.status).toBe(403)
+  })
+})
+
+/**
+ * A worklist grant may READ across patients and may not WRITE at all (#401).
+ *
+ * ⚠️ **Found by inspection, not by a failing test, and that is the point of
+ * writing it down.** Before the patient-less grant existed, `patientForWrite`'s
+ * `?? claimed` fallback was unreachable with auth on — there was always a patient
+ * on the token. Making a patient-less token possible turned that fallback into a
+ * cross-patient WRITE for a token whose only scope is `user/*.read`: the server
+ * would have believed the resource's own `subject`, which is explicitly the
+ * weaker `MOCK_AUTH_ENFORCE=off` behaviour ("validation then checks the link
+ * against itself"). Nothing in the type system or the suite noticed, because
+ * `Grant.patient` merely became optional and every consumer still compiled.
+ *
+ * The refusal is a CONTEXT rule, not a second scope axis — #404 settled that
+ * this server enforces exactly one of those. A write is attributed to the
+ * launch's patient; a token with no patient cannot say which chart it means.
+ */
+describe('the worklist grant cannot write', () => {
+  it('refuses a create from a patient-less token, even for a well-formed resource', async () => {
+    const { accessToken } = await launchFor(BASE, {
+      launch: await mintLaunch({ userScoped: true }, {}),
+      scope: 'launch user/*.read',
+    })
+    const { res, body } = await post('Observation', validObservation(), {
+      headers: { authorization: `Bearer ${accessToken}` },
+    })
+    expect(res.status).toBe(403)
+    const issues = body?.issue as Array<{ diagnostics?: string }> | undefined
+    expect(issues?.[0]?.diagnostics).toContain('no patient in context')
+  })
+
+  it('accepts the same resource on a chart token — so the refusal is the token, not the payload', async () => {
+    // The control. Without it, a validator regression would make the test above
+    // pass for the wrong reason.
+    const { res } = await post('Observation', validObservation())
+    expect(res.status).toBe(201)
   })
 })

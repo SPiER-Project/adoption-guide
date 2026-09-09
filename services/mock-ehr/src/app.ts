@@ -543,7 +543,37 @@ function patientForWrite(
   resource: MockResource,
 ): { patientId: string } | { refusal: Response } {
   const claimed = patientOf(resource)
-  const patientId = c.get('grant')?.patient ?? claimed
+  const grant = c.get('grant')
+  // ⚠️ **A worklist grant may not write, and this is a CONTEXT rule rather than
+  // a new scope axis** (#404 settled that this server enforces exactly one scope
+  // axis, and this does not add a second). A write is attributed to the token's
+  // patient context; a token with no patient context cannot say which chart it
+  // is writing to, and the only remaining answer — believe the resource's own
+  // `subject` — is explicitly the WEAKER `MOCK_AUTH_ENFORCE=off` path, where
+  // "validation then checks the link against itself". That path must not become
+  // reachable with auth on.
+  //
+  // Found by inspection, not by a failing test: before #401 no patient-less
+  // token could exist, so `?? claimed` below was unreachable with auth on. Making
+  // one possible turned it into a cross-patient write for a token whose only
+  // scope is `user/*.read`, and nothing in the type system or the suite noticed.
+  if (grant && !grant.patient) {
+    return {
+      refusal: c.body(
+        JSON.stringify(operationOutcome(
+          'error',
+          'forbidden',
+          'This access token has no patient in context (a worklist grant), so it cannot be used '
+          + 'to write. Writes are attributed to the launch\'s patient; launch against a specific '
+          + 'patient to record anything.',
+        )),
+        // Deliberately 403 and not 400: the request is well-formed and the
+        // server understood it. What is missing is authority, not information.
+        403 as 400,
+      ),
+    }
+  }
+  const patientId = grant?.patient ?? claimed
   if (!patientId) {
     return {
       refusal: c.body(
@@ -667,6 +697,7 @@ app.put('/_admin/capabilities', async (c) => {
 app.post('/_admin/launch', async (c) => {
   type LaunchBody = {
     patient?: unknown
+    userScoped?: unknown
     intent?: unknown
     needPatientBanner?: unknown
     embed?: unknown
@@ -674,7 +705,19 @@ app.post('/_admin/launch', async (c) => {
   }
   const body = await c.req.json<LaunchBody>().catch(() => ({} as LaunchBody))
   const patient = typeof body.patient === 'string' ? body.patient : ''
-  if (!RESOURCES_BY_KEY.has(`Patient/${patient}`)) {
+  // ⚠️ `userScoped: true` is the worklist launch (#401) — a launch context with
+  // no patient, which authorizes reads across every patient on this server. It
+  // is an explicit flag rather than "no patient supplied" at THIS layer too: a
+  // caller that forgot to send `patient` would otherwise be handed a
+  // cross-patient launch, and would have no way to tell.
+  const userScoped = body.userScoped === true
+  if (userScoped && patient) {
+    return c.json(
+      { error: 'Pass either `patient` (chart launch) or `userScoped: true` (worklist launch), not both.' },
+      400,
+    )
+  }
+  if (!userScoped && !RESOURCES_BY_KEY.has(`Patient/${patient}`)) {
     return c.json({ error: `Unknown patient '${patient}'.` }, 400)
   }
   // ⚠️ A FHIRcast topic per launch, minted here unless the caller supplies one.
@@ -686,7 +729,7 @@ app.post('/_admin/launch', async (c) => {
     ? body.topic
     : `spier-${crypto.randomUUID()}`
   const launch = await mintLaunch({
-    patient,
+    ...(userScoped ? { userScoped: true as const } : { patient }),
     intent: typeof body.intent === 'string' && body.intent ? body.intent : undefined,
     needPatientBanner: typeof body.needPatientBanner === 'boolean' ? body.needPatientBanner : undefined,
     topic,
@@ -707,7 +750,14 @@ app.post('/_admin/launch', async (c) => {
   url.searchParams.set('launch', launch)
   if (body.embed === true) url.searchParams.set('embed', '1')
   url.hash = '#/launch'
-  return c.json({ launch, launchUrl: url.toString(), patient, topic })
+  return c.json({
+    launch,
+    launchUrl: url.toString(),
+    // Echoed as it was asked for: a worklist launch reports no patient rather
+    // than an empty string, matching what /token will do with the same context.
+    ...(userScoped ? { userScoped: true } : { patient }),
+    topic,
+  })
 })
 
 /**

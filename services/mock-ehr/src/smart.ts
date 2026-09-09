@@ -17,9 +17,18 @@
  *   - `aud` must be this server's FHIR base. SMART requires the app to name the
  *     server it thinks it is talking to; not checking it makes the parameter
  *     decorative.
- *   - the access token is bound to ONE patient, and a request for another
- *     patient's data is a 403. A token that reads every patient would make
- *     "patient-scoped" a claim this server does not actually support.
+ *   - a **patient-scoped** access token is bound to ONE patient, and a request
+ *     for another patient's data is a 403. A token that reads every patient
+ *     would make "patient-scoped" a claim this server does not actually support.
+ *
+ * ⚠️ **Since #401 there is a second kind of token: the user-scoped (worklist)
+ * grant, which has NO patient bound.** A population app cannot be served by a
+ * patient-bound token — that is what made the mock EHR's embedded dashboard a
+ * labelled iframe rather than a launch. Its entry point is an EHR launch whose
+ * launch context declares `userScoped`, never the mere *absence* of a patient:
+ * absence is indistinguishable from a chart launch whose `launch` parameter got
+ * dropped, and silently upgrading that to a cross-patient grant is the failure
+ * mode this design exists to avoid. See `authorize`.
  *
  * ⚠️ **PKCE can be skipped by omission, not just by laziness.** fhirclient only
  * sends a challenge when discovery advertises
@@ -101,7 +110,21 @@ export function authRequired(env: SmartEnv): boolean {
 // ── Launch context ───────────────────────────────────────────────────────────
 
 export interface LaunchContext {
-  patient: string
+  /**
+   * The patient in context.
+   *
+   * ⚠️ **Absent ONLY on a user-scoped launch, which must ALSO set
+   * `userScoped: true`.** The two are validated as exactly-one-of in
+   * `authorize`, deliberately redundantly: a bug that dropped `patient` from a
+   * chart launch would otherwise mint a token that can read every patient in
+   * the server, and it would look like it worked.
+   */
+  patient?: string
+  /**
+   * Explicit opt-in to a patient-less, cross-patient grant — the worklist
+   * launch (#401). Never set alongside `patient`.
+   */
+  userScoped?: true
   /** SMART `intent` — the spec-blessed carrier for "open C-SSRS Full". */
   intent?: string
   /** `false` tells the panel the host already draws a patient banner. */
@@ -151,12 +174,23 @@ export function smartConfiguration(origin: string): Record<string, unknown> {
       'patient/CarePlan.read', 'patient/CarePlan.write',
       'patient/Communication.read', 'patient/Communication.write',
       'patient/DocumentReference.write', 'patient/Condition.write',
+      // The worklist grant (#401). One scope, not a grammar: `mayCrossPatients`
+      // does not interpret the resource half, so advertising
+      // `user/Observation.read` would claim a precision this server does not
+      // have.
+      'user/*.read',
     ],
     capabilities: [
       'launch-ehr',
       'client-public',
       'context-ehr-patient',
       'permission-patient',
+      // ⚠️ `permission-user` is claimed; `launch-standalone` deliberately is
+      // NOT. A user-scoped session here still starts as an EHR launch — the host
+      // mints a patient-less launch context and opens the app. The app cannot
+      // initiate its own flow against this server, so advertising standalone
+      // launch would be a capability claim with nothing behind it.
+      'permission-user',
     ],
   }
 }
@@ -243,8 +277,29 @@ export async function authorize(
   if (launch) {
     const decoded = await verify<LaunchContext>(launch, secretOf(env), now)
     if (!decoded) return fail('invalid_request', 'The launch context is unknown or expired.')
+    // ⚠️ Exactly one of `patient` / `userScoped`, checked here rather than
+    // trusted from the mint. A context with neither is a bug somewhere upstream
+    // and must not resolve to "no patient in context, read everything"; a
+    // context with both is contradictory and equally must not silently pick one.
+    // This is the check that makes the absence of a patient meaningful.
+    if (decoded.userScoped && decoded.patient) {
+      return fail(
+        'invalid_request',
+        'The launch context sets both `patient` and `userScoped`. A worklist launch has no '
+        + 'patient in context; a chart launch has one. It cannot be both.',
+      )
+    }
+    if (!decoded.userScoped && !decoded.patient) {
+      return fail(
+        'invalid_request',
+        'The launch context names no patient and does not declare `userScoped`. A patient-less '
+        + 'grant reads every patient on this server, so it has to be asked for deliberately — '
+        + 'this looks like a chart launch that lost its patient.',
+      )
+    }
     context = {
       patient: decoded.patient,
+      userScoped: decoded.userScoped,
       intent: decoded.intent,
       needPatientBanner: decoded.needPatientBanner,
       topic: decoded.topic,
@@ -256,6 +311,36 @@ export async function authorize(
     return fail('invalid_request', 'No launch context: pass `launch` (EHR launch) or `patient` (standalone testing).')
   }
 
+  // ── The granted scope, which is the first thing this server has ever
+  //    narrowed rather than echoed ─────────────────────────────────────────
+  //
+  // ⚠️ The header's "granted scopes are echoed" is no longer true without
+  // qualification, and this is the exception. Two rules, both about coherence
+  // between the scope and the context rather than about permissions:
+  //
+  //   - A worklist launch MUST have asked for a `user/….read` scope. Without
+  //     one, `mayCrossPatients` says no and the token cannot read a second
+  //     patient — a session that fails on its first read instead of at
+  //     authorization, which is the worse of the two places to find out.
+  //   - `patient/…` scopes are DROPPED from a worklist grant. A patient-scoped
+  //     scope with no patient bound is a contradiction, and a token carrying one
+  //     would invite exactly the misreading that this grant is somehow both.
+  //     Narrowing the grant and returning what was granted is OAuth's own model
+  //     (RFC 6749 §3.3), not a liberty taken here.
+  const requested = get('scope').split(/\s+/).filter(Boolean)
+  let grantedScope = get('scope')
+  if (context.userScoped) {
+    if (!requested.some((sc) => /^user\/[^.]+\.(read|\*)$/.test(sc))) {
+      return fail(
+        'invalid_scope',
+        'A worklist launch needs a `user/….read` scope (e.g. `user/*.read`). The launch context '
+        + `has no patient, and the requested scope '${get('scope')}' asks for no cross-patient `
+        + 'read, so the resulting token could not read anything.',
+      )
+    }
+    grantedScope = requested.filter((sc) => !sc.startsWith('patient/')).join(' ')
+  }
+
   // No consent screen — decided, not skipped: a clinician launching from a
   // chart does not re-consent per launch (that is a patient-facing
   // standalone-launch norm), so auto-approve is the realistic behaviour here.
@@ -265,7 +350,7 @@ export async function authorize(
   const code = await sign(
     {
       ...context,
-      scope: get('scope'),
+      scope: grantedScope,
       clientId,
       redirectUri,
       challenge,
@@ -333,7 +418,12 @@ export async function token(
       token_type: 'Bearer',
       expires_in: TOKEN_TTL_SECONDS,
       scope: code.scope,
-      patient: code.patient,
+      // ⚠️ OMITTED entirely on a worklist grant, not sent as null or "". The app
+      // reads `tokenResponse.patient` to decide whether it has a patient in
+      // context; an empty string is truthy-adjacent enough to have caused a
+      // "patient ''" read somewhere, and SMART's own contract is that an absent
+      // context parameter is absent.
+      ...(code.patient ? { patient: code.patient } : {}),
       // Both are SMART launch-context parameters the panel reads off
       // `client.state.tokenResponse`; omitted when the launch did not set them.
       ...(code.needPatientBanner === undefined ? {} : { need_patient_banner: code.needPatientBanner }),
@@ -349,7 +439,15 @@ export async function token(
 
 // ── Bearer check ─────────────────────────────────────────────────────────────
 
-export interface Grant { patient: string; scope: string }
+/**
+ * What a verified bearer token carries.
+ *
+ * ⚠️ `patient` is optional since #401: a worklist grant has none. Every consumer
+ * has to mean something by its absence — `denyForeignPatient` treats it as "not
+ * this patient, so ask `mayCrossPatients`", and `patientForWrite` REFUSES,
+ * because a write with no patient context cannot say which chart it belongs to.
+ */
+export interface Grant { patient?: string; scope: string }
 
 /**
  * May this token read across patients?
