@@ -7,7 +7,7 @@
 .episode-record-note {
   max-width: var(--measure-prose);
   margin: 0 0 var(--space-4);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--text-muted);
 }
 

@@ -96,7 +96,7 @@
   border-left: 3px solid var(--accent-info-border);
   border-radius: var(--radius-md);
   background-color: var(--surface-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: 1.6;
   color: var(--text-body);
 }

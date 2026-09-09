@@ -50,6 +50,21 @@
  *           practice set `max-width: none`, so the class had two caps and the
  *           one a reader finds first had never applied to anything.
  *
+ *   RULE 5  A prose run's font-size is one of THREE sizes, and no others. This
+ *           is the drift the measure hid: 53 declared prose runs were set at
+ *           seven sizes — 10px through 15px plus six inheriting — for one job,
+ *           reading a paragraph. Every one measured 77-85 characters, because
+ *           an `em` cap holds the count at any size, so nothing looked wrong
+ *           from the CSS and nothing looked wrong from the character count. It
+ *           showed up as WIDTH: 41em on 11px type is 451px, which on a
+ *           1200px page is a paragraph filling 38% of its column. Nine of the
+ *           eighteen runs below 13px were on one page, which is why that page
+ *           measured worst.
+ *           Deliberately the three sizes that already existed and no new
+ *           tokens: `lg` is a lede, `md` is body, `base` is a note. A fourth
+ *           prose size is a decision every later author inherits, so it has to
+ *           be made here rather than in a stylesheet.
+ *
  *   RULE 4  A rule that caps with the measure token declares its own
  *           `font-size`, or some rule with the same subject class does, or it
  *           is an entry in INHERITS_TYPE with a reason recording what type it
@@ -242,6 +257,11 @@ if (files.length === 0) {
 
 const allRules = []        // { file, line, selector, body }
 const fontSizeSubjects = new Set()
+/**
+ * The same subjects, mapped to the `--font-size-*` token they declare. RULE 4
+ * only needs to know that a size exists; RULE 5 needs to know which one.
+ */
+const fontSizeOf = new Map()
 for (const file of files) {
   const css = stripComments(readFileSync(file, 'utf8'))
   for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -251,7 +271,16 @@ for (const file of files) {
     const line = css.slice(0, m.index).split('\n').length
     allRules.push({ file: rel(file), line, selector, body })
     if (declares(body, 'font-size')) {
-      for (const part of selector.split(',')) fontSizeSubjects.add(typeKeyOf(rel(file), subjectOf(part)))
+      const token = /font-size:\s*var\((--font-size-[A-Za-z0-9-]+)\)/.exec(body)?.[1]
+      for (const part of selector.split(',')) {
+        const key = typeKeyOf(rel(file), subjectOf(part))
+        fontSizeSubjects.add(key)
+        // First declaration wins, matching how a reader finds it. A raw length
+        // cannot appear here — stylelint's strict-value rule covers `font-size`
+        // everywhere but index.css — so a miss means a token this regex could
+        // not parse, and RULE 5 reports it rather than skipping it.
+        if (token && !fontSizeOf.has(key)) fontSizeOf.set(key, token)
+      }
     }
   }
 }
@@ -398,6 +427,61 @@ for (const [key, why] of Object.entries(NON_PROSE)) {
 for (const key of Object.keys(REVOKED_CAPS)) {
   if (!seenRevoked.has(key)) fail(`stale REVOKED_CAPS entry \`${key}\` — no \`max-width: none\` there any more. Delete it.`)
 }
+// ── RULE 5 — three prose sizes ────────────────────────────────────────────────
+//
+// RULE 4 asks whether a capped run declares a font-size at all. This asks
+// WHICH, and it is the half that was missing: every run passed RULE 4 and the
+// character counts were all inside the band, while prose was being set at seven
+// different sizes for one job.
+//
+// The three are the existing `--font-size-*` steps, not new aliases of them —
+// a role token that duplicates a size token is two names for one number.
+//
+// ⚠️ INHERITS_TYPE is exempt on purpose, and it is not a loophole: those four
+// entries are runs that deliberately track the page body size rather than pin
+// one, each with a measured reason under RULE 4. What this rule forbids is
+// PICKING a size outside the three, which is a different act from choosing not
+// to pick one.
+//
+// ⚠️ What it cannot see, same shape as the limit on RULE 2: a prose run with no
+// cap at all is invisible to this file entirely, so it has no font-size for
+// this rule to check either. RULE 5 governs the runs that declared themselves
+// prose by capping; it cannot find the ones that never did.
+const PROSE_SIZES = ['--font-size-lg', '--font-size-md', '--font-size-base']
+const PROSE_ROLE = { '--font-size-lg': 'lede', '--font-size-md': 'body', '--font-size-base': 'note' }
+
+let checkedSizes = 0
+for (const { file, line, selector } of measureCapped) {
+  const subject = subjectOf(selector.split(',')[0])
+  // Exempt: RULE 4 already accepted these as deliberately tracking inherited
+  // type, each with a measured reason. They pick no size, so there is none to
+  // check against the three.
+  if (INHERITS_TYPE[`${file}|${subject}`]) continue
+  const size = fontSizeOf.get(typeKeyOf(file, subject))
+  if (size === undefined) continue // RULE 4's job: it has no font-size at all
+  checkedSizes++
+  if (PROSE_SIZES.includes(size)) continue
+  fail(
+    `\`${selector}\` at ${file}:${line} caps with the reading measure but is set at \`${size}\`.\n` +
+      `    A prose run uses one of three sizes: ${PROSE_SIZES.map(t => `${t} (${PROSE_ROLE[t]})`).join(', ')}.\n` +
+      '    A smaller size does not shorten the line — the `em` cap holds the character count — it just\n' +
+      '    makes the paragraph physically narrower than the column it sits in. If this is not prose,\n' +
+      '    it should not carry `--measure-prose`; if it is, it belongs at one of the three.',
+  )
+}
+
+console.log(
+  `  ${checkedSizes} run(s) checked against the three prose sizes ` +
+  `(${PROSE_SIZES.map((t) => `${PROSE_ROLE[t]} ${t.replace('--font-size-', '')}`).join(', ')})`,
+)
+
+if (checkedSizes === 0) {
+  fail(
+    'no rule caps with the reading measure AND declares a font-size — RULE 5 checked nothing. ' +
+      'Either the token was renamed or the prose runs stopped declaring their type.',
+  )
+}
+
 for (const key of Object.keys(INHERITS_TYPE)) {
   if (!seenInherits.has(key)) fail(`stale INHERITS_TYPE entry \`${key}\` — that rule either sets a font-size now or no longer caps. Delete it.`)
 }

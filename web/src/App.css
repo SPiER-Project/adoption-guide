@@ -1056,7 +1056,7 @@
 
 .instrument-header__about > p {
   max-width: var(--measure-prose);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   margin: var(--space-2) 0 0;
   line-height: var(--line-height-normal);
 }
