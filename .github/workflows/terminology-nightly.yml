@@ -95,7 +95,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
 
       # No `npm ci`. check-codings.mjs uses only Node builtins plus global fetch,
       # so setup-node alone is the whole install.
@@ -144,7 +144,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
 
       - name: Setup Java
         uses: actions/setup-java@v4

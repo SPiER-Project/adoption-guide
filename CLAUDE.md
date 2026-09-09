@@ -217,10 +217,14 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
 ## Gotchas
 
 - **Fresh worktrees need `npm install`** in `web/` before any npm script runs.
-- **`copy-fhir` is incremental:** it skips the ~30s SUSHI compile when the
-  generated tree is newer than every FSH input. `predev` runs it plain;
-  `prebuild` runs it with `--force`. If FHIR data looks stale, run
-  `npm run copy-fhir -- --force`.
+- **`copy-fhir` is incremental, on a CONTENT fingerprint — not mtimes.** It
+  skips the ~30s SUSHI compile when `.copy-fhir-manifest` in the generated tree
+  still matches the SUSHI version, the hash of every input's content, and the
+  hash of the tree it produced. All three must agree, so a touched-but-unchanged
+  input costs nothing while a hand-edited or truncated artifact rebuilds. Every
+  caller (`predev`, `prebuild`, `pretest`) runs it plain; only `verify` passes
+  `--force`. If FHIR data looks stale, run `npm run copy-fhir -- --force` —
+  that still means recompile unconditionally.
 - **Generated files must exist before `tsc -b`.** On a clean checkout, run
   `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and

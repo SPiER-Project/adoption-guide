@@ -77,6 +77,23 @@ on:
       - '.github/workflows/ig.yml'
   workflow_dispatch:
 
+# Supersede in-flight runs for the same PR, the way ig-publish.yml and
+# fml-validate.yml already do. Two PR branches were observed paying for this:
+# `claude/docs-consolidation-phase-a-rebased` got two full runs 38 SECONDS apart
+# (18:18:20 and 18:18:58 on 2026-09-03), and `claude/phase-c-tasks-39501e` two
+# three minutes apart. Only the last commit merges, so the earlier run's jobs
+# were billed for a verdict on a tree nobody would ever ship.
+#
+# ⚠️ `cancel-in-progress` is deliberately conditional on the event, NOT `true`.
+# On a PR, an obsolete commit's verdict is worthless. On `main` it is the
+# opposite: two pushes landing a minute apart (1321243/69f4df3, 43f6e89/999359f)
+# would leave the first MERGED commit with a cancelled run — no verdict at all,
+# which reads identically to "not yet finished" and is the sort of green-that-
+# checked-nothing this repo keeps rediscovering. So main runs always complete.
+concurrency:
+  group: ig-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   sushi:
     runs-on: ubuntu-latest
@@ -90,7 +107,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
 
       # #409: `how-to-read.md` describes the guide's navigation in prose while
       # `sushi-config.yaml` defines it, and nothing compared the two. Both
@@ -187,7 +204,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Setup Java
         uses: actions/setup-java@v4

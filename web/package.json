@@ -7,7 +7,7 @@
     "copy-fhir": "node scripts/copy-fhir.mjs",
     "predev": "npm run copy-fhir",
     "dev": "vite",
-    "prebuild": "npm run copy-fhir -- --force",
+    "prebuild": "npm run copy-fhir",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.css\"",

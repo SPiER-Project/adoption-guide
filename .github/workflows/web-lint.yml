@@ -35,6 +35,23 @@ on:
       - '.github/workflows/web-lint.yml'
   workflow_dispatch:
 
+# Supersede in-flight runs for the same PR, the way ig-publish.yml and
+# fml-validate.yml already do. Two PR branches were observed paying for this:
+# `claude/docs-consolidation-phase-a-rebased` got two full runs 38 SECONDS apart
+# (18:18:20 and 18:18:58 on 2026-09-03), and `claude/phase-c-tasks-39501e` two
+# three minutes apart. Only the last commit merges, so the earlier run's jobs
+# were billed for a verdict on a tree nobody would ever ship.
+#
+# ⚠️ `cancel-in-progress` is deliberately conditional on the event, NOT `true`.
+# On a PR, an obsolete commit's verdict is worthless. On `main` it is the
+# opposite: two pushes landing a minute apart (1321243/69f4df3, 43f6e89/999359f)
+# would leave the first MERGED commit with a cancelled run — no verdict at all,
+# which reads identically to "not yet finished" and is the sort of green-that-
+# checked-nothing this repo keeps rediscovering. So main runs always complete.
+concurrency:
+  group: web-lint-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Fast feedback. Every gate here ALSO runs in the `verify` job below, which
   # calls `npm run verify` wholesale — that redundancy is deliberate, not drift.
@@ -54,7 +71,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -117,10 +136,30 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+
+      # SUSHI downloads hl7.fhir.uv.tools.r4, hl7.terminology.r4 (4176
+      # resources), us.core and uv.sdc from packages.fhir.org on every cold run,
+      # and that fetch — not the compile — is the bulk of `copy-fhir`'s 40s.
+      # Same key and path the ig.yml, ig-publish.yml and deploy.yml jobs already
+      # use, so a PR restores what the last push to main saved.
+      #
+      # Safe to reuse rather than re-fetch: SUSHI still resolves the two
+      # `#latest` automatic dependencies over the network each run and only
+      # reads the cached copy when the concrete version matches, so a warm cache
+      # cannot silently pin an older package than a cold one would.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
 
       # ⚠️ ONE step on purpose: `npm run verify` runs the whole gate list, the
       # same way the cds-hooks and mock-ehr jobs below do.
@@ -168,7 +207,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            services/cds-hooks/package-lock.json
 
       # The service's `pretest` shells out to `npm --prefix ../../web run
       # copy-fhir` (its tests import web's catalog and mappers), so web's
@@ -179,6 +222,24 @@ jobs:
 
       - name: Install service dependencies
         run: npm ci
+
+      # SUSHI downloads hl7.fhir.uv.tools.r4, hl7.terminology.r4 (4176
+      # resources), us.core and uv.sdc from packages.fhir.org on every cold run,
+      # and that fetch — not the compile — is the bulk of `copy-fhir`'s 40s.
+      # Same key and path the ig.yml, ig-publish.yml and deploy.yml jobs already
+      # use, so a PR restores what the last push to main saved.
+      #
+      # Safe to reuse rather than re-fetch: SUSHI still resolves the two
+      # `#latest` automatic dependencies over the network each run and only
+      # reads the cached copy when the concrete version matches, so a warm cache
+      # cannot silently pin an older package than a cold one would.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
 
       # typecheck + lint + test. `pretest` generates packages/fhir-artifacts/generated/*.json
       # and care-plan-profiles.generated.ts via copy-fhir.
@@ -203,7 +264,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            services/mock-ehr/package-lock.json
 
       # `pretest` shells out to `npm --prefix ../../web run copy-fhir` (the 14
       # Patient resources it serves are SUSHI output), and the integration test
@@ -215,6 +280,24 @@ jobs:
 
       - name: Install service dependencies
         run: npm ci
+
+      # SUSHI downloads hl7.fhir.uv.tools.r4, hl7.terminology.r4 (4176
+      # resources), us.core and uv.sdc from packages.fhir.org on every cold run,
+      # and that fetch — not the compile — is the bulk of `copy-fhir`'s 40s.
+      # Same key and path the ig.yml, ig-publish.yml and deploy.yml jobs already
+      # use, so a PR restores what the last push to main saved.
+      #
+      # Safe to reuse rather than re-fetch: SUSHI still resolves the two
+      # `#latest` automatic dependencies over the network each run and only
+      # reads the cached copy when the concrete version matches, so a warm cache
+      # cannot silently pin an older package than a cold one would.
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
 
       - name: Verify
         run: npm run verify
