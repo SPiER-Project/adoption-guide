@@ -110,7 +110,7 @@ export function PopulationDashboardGuide() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Open the mock EHR demo &rarr;
+            Open the Demo EHR &rarr;
           </a>
         </p>
         <p className="surface-guide__warn">
