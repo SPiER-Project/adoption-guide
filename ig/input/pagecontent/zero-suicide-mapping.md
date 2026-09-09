@@ -81,6 +81,6 @@ than restated here.
 
 - **Improve is intentionally light.** SPiER's *Measure and Share the Data* stage
   surfaces pathway-completion measures and population-level views (see the
-  companion app's [Population View](https://spier-project.github.io/adoption-guide/#/population)).
+  companion app's [population dashboard](https://spier-project.github.io/adoption-guide/#/guide/dashboard)).
   Full QI methodology — running PDSA cycles, board reporting cadence — is
   Zero Suicide's territory, not SPiER's.

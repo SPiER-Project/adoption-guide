@@ -34,6 +34,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { stripComments } from '../../../scripts/lib/jsx-comments.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const APP_TSX = resolve(here, '../../src/App.tsx')
@@ -82,7 +83,11 @@ function readTag(src, i) {
  * reading as failures.
  */
 export function readRouteTable(file = APP_TSX) {
-  const src = readFileSync(file, 'utf8')
+  // ⚠️ Comments blanked before scanning. Without this, a comment quoting
+  // `<Route …>` — App.tsx has one — parses as a real unclosed route and
+  // mis-nests everything after it, silently. See scripts/lib/jsx-comments.mjs
+  // for the eleven phantom paths that produced.
+  const src = stripComments(readFileSync(file, 'utf8'))
   const paths = new Set()
   const redirects = new Set()
   /** Stack of enclosing route paths; '' for a layout route with no path. */

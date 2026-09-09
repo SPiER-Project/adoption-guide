@@ -708,9 +708,35 @@ if (!landing) {
   )
 }
 
+// ⚠️ **Every declared guide section must be a registered route** — a real
+// product invariant (a section with no route is a dead sidebar entry and a dead
+// pager step) that doubles as the tripwire for a mis-parsed route table.
+//
+// It is here because the table WAS mis-parsed and nothing noticed. A comment in
+// App.tsx quoting `<Route …>` was read as a real unclosed route, so every guide
+// path after it parsed as `/guide/x/tools`, `/guide/x/adoption-readiness` and so
+// on: eleven phantoms, eleven real paths missing, and this gate stayed green
+// because no catalog launch path targets a `/guide/*` route. `stripComments`
+// fixes the cause; this is what would have made the symptom visible.
+const sectionsSrc = readFileSync(join(webRoot, 'src/data/guideSections.ts'), 'utf8')
+const sectionPaths = [...sectionsSrc.matchAll(/\{\s*path:\s*'([^']+)'/g)].map((m) => m[1])
+if (sectionPaths.length === 0) {
+  fail('guideSections.ts: no section paths parsed, so this check verified nothing')
+}
+for (const section of sectionPaths) {
+  if (!routeResolves(`/guide/${section}`, routePaths)) {
+    fail(
+      `guideSections.ts: section "${section}" has no route at /guide/${section} in App.tsx — ` +
+        `its sidebar entry and pager step both lead nowhere. (If the route IS declared, the ` +
+        `route table is being mis-parsed; see scripts/lib/jsx-comments.mjs.)`,
+    )
+  }
+}
+
 if (failures === launchFailuresBefore) {
   console.log(
-    `✓ navigation targets: ${launchChecked} catalog launch path(s) and the panel's post-launch ` +
+    `✓ navigation targets: ${launchChecked} catalog launch path(s), ${sectionPaths.length} guide ` +
+      `section(s) and the panel's post-launch ` +
       `landing route ("${landing}") all resolve against App.tsx's route table ` +
       `(${routePaths.size} routes${viaRedirect ? `, ${viaRedirect} via a redirect` : ''})`,
   )
