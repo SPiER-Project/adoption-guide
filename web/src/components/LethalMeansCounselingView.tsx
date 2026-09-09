@@ -156,7 +156,7 @@ export function LethalMeansCounselingView() {
   return (
     <div className="form-view">
       <PageHeader
-        eyebrow={['Patient View', 'Workflow']}
+        eyebrow={['Patient Chart', 'Workflow']}
         up="/patient/record"
         title="Lethal Means Safety Counseling"
         lede={

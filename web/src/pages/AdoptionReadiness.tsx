@@ -43,7 +43,7 @@ const READINESS_LABELS: Record<ReadinessTier, string> = {
 }
 
 const READINESS_BLURB: Record<ReadinessTier, string> = {
-  built: 'Implemented as FHIR artifacts and demoable in the Patient View; pilot plan not yet written.',
+  built: 'Implemented as FHIR artifacts and demoable in the patient app; pilot plan not yet written.',
   'in-progress': 'Catalogued and scoped; not yet launchable from the app.',
 }
 

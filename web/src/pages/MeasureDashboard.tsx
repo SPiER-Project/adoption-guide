@@ -110,7 +110,7 @@ function EmptyExplanation({ emptiness }: { emptiness: Emptiness }) {
  * TL-043 — Reporting Dashboard / Aggregate View.
  *
  * Produces no FHIR resource of its own: the tiles are a RENDERING of the
- * MeasureReports TL-042 computes, over the same registry slices Population View
+ * MeasureReports TL-042 computes, over the same registry slices the caseload
  * reads. Everything here is a query, which is the whole claim of Stage 8.
  *
  * The measurement period is a rolling window rather than a fiscal quarter — the
@@ -153,10 +153,14 @@ export function MeasureDashboard() {
   return (
     <div className="measure-dashboard">
       {/* Its own header, because this page is no longer a guide sub-page —
-          AdoptionGuide rendered one for every section it wrapped. The eyebrow
-          names the lens the way the Population caseload's does. */}
+          AdoptionGuide rendered one for every section it wrapped.
+          ⚠️ The eyebrow named the retired "Population View" lens until
+          2026-09-09. It now names its actual parent and links back to it: this
+          page and the caseload are the dashboard's two screens, and `up` is what
+          makes the trail a way out rather than a label. */}
       <PageHeader
-        eyebrow={['Population View', 'Measures']}
+        eyebrow={['Caseload', 'Measures']}
+        up="/population/caseload"
         title="Measures"
         lede="Every tile is a query over the artifacts stages 1–7 already produce — nothing on this page is stored, which is the point of Stage 8."
       />

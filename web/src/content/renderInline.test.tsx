@@ -122,7 +122,20 @@ describe('the Overview content module', () => {
   it('every lens card carries a resolvable href', () => {
     expect(OVERVIEW_LENSES.length).toBeGreaterThan(0)
     for (const lens of OVERVIEW_LENSES) {
-      expect(lens.href === 'ig' || lens.href.startsWith('/')).toBe(true)
+      // Three kinds since #466 — the IG's token, an in-app route, and an
+      // absolute URL for a surface on another origin (the Demo EHR). Enumerated
+      // rather than loosened to "any non-empty string": the point of the
+      // assertion is that `LensCards` has a branch for whatever this is, and a
+      // fourth kind would silently fall to the in-app `<Link>`.
+      const kind =
+        lens.href === 'ig'
+          ? 'ig'
+          : lens.href.startsWith('/')
+            ? 'route'
+            : /^https:\/\//.test(lens.href)
+              ? 'external'
+              : 'unknown'
+      expect(kind, lens.key).not.toBe('unknown')
       expect(lens.title.trim()).not.toBe('')
       expect(lens.cta.trim()).not.toBe('')
     }
@@ -150,5 +163,28 @@ describe('the Overview content module', () => {
         `unbalanced link brackets in: ${text.slice(0, 60)}`,
       ).toBe((text.match(/\]\(/g) ?? []).length)
     }
+  })
+})
+
+describe('renderInline — absolute URLs (#466)', () => {
+  it('renders an https link as an external anchor, not a router Link', () => {
+    // ⚠️ The failure this prevents is silent. Before the `http` branch existed,
+    // an absolute href fell through to `<Link to="https://…">`; React Router
+    // treats that as an in-app path, so the markup looked correct and the link
+    // navigated to a route that does not exist. Nothing about the rendered
+    // anchor said which kind it had become.
+    const html = draw(
+      'Open the [Demo EHR](https://spier-mock-ehr.bbthorson.workers.dev/) and launch.',
+    )
+    expect(html).toContain('href="https://spier-mock-ehr.bbthorson.workers.dev/"')
+    expect(html).toContain('target="_blank"')
+    expect(html).toContain('rel="noopener noreferrer"')
+  })
+
+  it('still renders an in-app route as a router Link', () => {
+    // The control: the new branch must not have swallowed the ordinary case.
+    const html = draw('See the [Care Pathway](/guide/pathway).')
+    expect(html).toContain('href="/guide/pathway"')
+    expect(html).not.toContain('target="_blank"')
   })
 })

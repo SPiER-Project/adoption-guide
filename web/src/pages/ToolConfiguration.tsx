@@ -75,12 +75,12 @@ export function ToolConfiguration() {
           the reader lands on the chart they were already looking at. */}
       <aside className="tool-config-effect">
         <p className="tool-config-effect__body">
-          <strong>Changes here take effect in the Patient View.</strong> Recommendation cards only
+          <strong>Changes here take effect in the patient app.</strong> Recommendation cards only
           offer launch actions for enabled tools, so this page decides what the chart can offer at
           each pathway stage &mdash; a narrower profile models a site with less tooling in place, not
           a gap to close.{' '}
           <Link to={patientBase} className="tool-config-effect__link">
-            Open the Patient View &rarr;
+            Open the patient chart &rarr;
           </Link>
         </p>
       </aside>

@@ -98,7 +98,7 @@ export function CaringContactView() {
   return (
     <div className="form-view">
       <PageHeader
-        eyebrow={['Patient View', 'Workflow']}
+        eyebrow={['Patient Chart', 'Workflow']}
         up="/patient/record"
         title="Log a Caring Contact"
         lede={

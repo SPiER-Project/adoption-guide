@@ -64,6 +64,8 @@ export interface OverviewSection {
   blocks: OverviewBlock[]
 }
 
+import { MOCK_EHR_URL } from '../data/surfaces'
+
 export const OVERVIEW_EYEBROW = 'SPiER'
 export const OVERVIEW_TITLE = 'Setting priorities for technology-enabled suicide-safer care'
 
@@ -111,58 +113,83 @@ export interface OverviewLens {
   title: string
   body: string
   cta: string
-  /** An in-app route ("/…"), or the literal `ig` for the published IG. */
+  /**
+   * An in-app route ("/…"), an absolute `https://` URL, or the literal `ig`
+   * for the published IG (whose path depends on the active Vite base).
+   */
   href: string
 }
 
+/**
+ * The four surfaces, in the order a newcomer should meet them (#466).
+ *
+ * ⚠️ **These were four "lenses" until 2026-09-09, and two of them no longer
+ * existed.** The cards read Adoption Guide / Population View / Patient View /
+ * Implementation Guide — a list of *this app’s tabs*, from before the app
+ * stopped being the only surface. It named two retired lenses, and never
+ * mentioned either the Demo EHR (where a launch starts) or the CDS Hooks service
+ * (in production since #143).
+ *
+ * The reported gap, which #466 files: *"i understand we’re launching the smart
+ * app against the data from the mock EHR, i just don’t think it’s particularly
+ * clear what the relationship is."* It was not clear because nothing stated it —
+ * and this card row was the closest the product came to trying.
+ *
+ * ⚠️ **The Demo EHR is first, and that is the point of the reorder.** A launch
+ * starts there; the guide is what gets launched. Every previous ordering put this
+ * app’s own tabs first and the host nowhere.
+ */
 export const OVERVIEW_LENSES: OverviewLens[] = [
+  {
+    key: 'host',
+    variant: 'host',
+    badge: 'Start here',
+    // Non-breaking space before the external-link arrow, so it never wraps
+    // away from the title.
+    title: 'Demo EHR\u00a0↗',
+    body:
+      'A stand-in vendor chart holding fourteen synthetic patients, with a real SMART on FHIR ' +
+      'authorization server. It is the system of record: the patient data lives there, and both ' +
+      'SPiER apps are launched from it — a chart launch from one patient, a worklist launch from ' +
+      'the patient list.',
+    cta: 'Open a chart and launch SPiER →',
+    href: MOCK_EHR_URL,
+  },
   {
     key: 'guide',
     variant: 'guide',
     badge: 'Adopt',
     title: 'Adoption Guide',
     body:
-      'How to adopt SPiER and see it running: the care pathway rendered from its published ' +
-      'PlanDefinition, a tool catalog across the eight stages, a data dictionary, an ' +
-      'adoption-readiness matrix and EHR adoption rubric, and a configurable Tool ' +
-      'Configuration that drives the Patient View.',
+      'This site: how to adopt SPiER, and the host of the two SMART apps the Demo EHR launches. ' +
+      'The care pathway rendered from its published PlanDefinition, a tool catalog across the ' +
+      'eight stages, a data dictionary, an adoption-readiness matrix and EHR adoption rubric, and ' +
+      'a Tool Configuration that decides what the patient app may recommend. It holds no patient ' +
+      'data of its own.',
     cta: 'Explore the guide →',
     href: '/guide/pathway',
   },
   {
-    key: 'population',
-    variant: 'population',
-    badge: 'Demo',
-    title: 'Population View',
+    key: 'cds',
+    variant: 'cds',
+    badge: 'Service',
+    title: 'CDS Hooks service',
     body:
-      'A behavioral-health counselor’s caseload — 14 sample patients spanning every ' +
-      'pathway stage and risk level. Each row surfaces the recommended next step regardless ' +
-      'of which specific tools an implementation has enabled.',
-    cta: 'Open the caseload →',
-    href: '/population/caseload',
-  },
-  {
-    key: 'patient',
-    variant: 'patient',
-    badge: 'Demo',
-    title: 'Patient View',
-    body:
-      'One patient’s chart, organized around the eight-stage pathway: a visual stage tracker, ' +
-      'CDS-style next-step recommendation cards, activity grouped by stage, encounter ' +
-      'timeline, and a full FHIR document list.',
-    cta: 'Open the chart →',
-    href: '/patient/record',
+      'The decision support an EHR can call without embedding anything: a hosted CDS Hooks 2.0 ' +
+      'endpoint returning the same next-step cards the patient app shows, from the same builder. ' +
+      'An EHR registers one URL and renders whatever comes back.',
+    cta: 'See the endpoint →',
+    href: '/guide/cds-service',
   },
   {
     key: 'ig',
     variant: 'ig',
     badge: 'Specification',
-    // Non-breaking space before the external-link arrow, so it never wraps
-    // away from the title.
-    title: 'Implementation Guide ↗',
+    title: 'Implementation Guide\u00a0↗',
     body:
-      'The published HL7 FHIR Implementation Guide — the normative spec: profiles, ' +
-      'value sets, code systems, and canonical Questionnaires for suicide-safer care.',
+      'The published HL7 FHIR Implementation Guide — the normative spec: profiles, value sets, ' +
+      'code systems, and canonical Questionnaires. Upstream of everything above rather than a ' +
+      'peer of it: both apps and the service read their definitions from here.',
     cta: 'Open the HL7 IG →',
     href: 'ig',
   },
@@ -281,7 +308,7 @@ export const OVERVIEW_SECTIONS: OverviewSection[] = [
           '*artifacts*. It is not what you navigate by. The app is organized around the thing a ' +
           'clinician actually moves through — the **eight-stage Suicide Safer Care Pathway**, ' +
           'which is the common entry point for every partner conversation and the vocabulary used by the ' +
-          'Patient View, the Population View, and the Measures dashboard:',
+          'the patient app, the caseload and the measure dashboard alike:',
       },
       { kind: 'pathway' },
       {
@@ -295,6 +322,67 @@ export const OVERVIEW_SECTIONS: OverviewSection[] = [
           'stage-by-stage instrument detail, or the ' +
           '[Adoption Readiness matrix](/guide/adoption-readiness) to see where each instrument ' +
           'stands today — what’s built, what its licensing requires, and how deeply it integrates.',
+      },
+    ],
+  },
+  {
+    id: 'surfaces',
+    heading: 'Four surfaces, and which one to open first',
+    blocks: [
+      {
+        kind: 'prose',
+        text:
+          '**SPiER is not one application, and the confusing part is which piece you are ' +
+          'looking at.** Four things, and only one of them is a place to start:',
+      },
+      {
+        kind: 'prose',
+        text:
+          '**The Demo EHR holds the patient data.** It is a stand-in for a vendor chart — ' +
+          'fourteen synthetic patients, a real SMART on FHIR authorization server, and a launch ' +
+          'button on every chart. Nothing about it is SPiER, and it says so on every page.',
+      },
+      {
+        kind: 'prose',
+        text:
+          '**This adoption guide explains the tools and hosts the apps.** When you press *Launch ' +
+          'SPiER* over there, the panel that docks on the right is served from here. The guide ' +
+          'holds no patient data of its own: what the panel renders, it read from that server.',
+      },
+      {
+        kind: 'prose',
+        text:
+          '**The CDS Hooks service is the same recommendations without an embed.** An EHR that ' +
+          'wants the next-step cards and nothing else registers one URL and renders what comes ' +
+          'back — no panel, no iframe. The host page shows those cards beside its own launch ' +
+          'button, and they come from the same builder the panel uses, so the two cannot ' +
+          'disagree. See the [CDS Service](/guide/cds-service) page.',
+      },
+      {
+        kind: 'prose',
+        text:
+          '**The Implementation Guide is upstream of all three, not a peer.** The profiles, ' +
+          'value sets and Questionnaires are what an implementer builds against; the apps and ' +
+          'the service read their definitions from it rather than defining anything themselves.',
+      },
+      {
+        kind: 'prose',
+        text:
+          '**In order:** open the [Demo EHR](' + MOCK_EHR_URL + '), pick one of the three charts it ' +
+          'suggests, and press *Launch SPiER*. Everything in the slate chrome is the host; ' +
+          'everything in the panel is this app. That boundary — which pixels belong to whom — is ' +
+          'the thing worth watching, and it is why the two are styled nothing alike. What each ' +
+          'app does once launched is described under ' +
+          '[Patient App](/guide/patient-app) and ' +
+          '[Population Dashboard](/guide/dashboard).',
+      },
+      {
+        kind: 'prose',
+        text:
+          '⚠️ **What none of this demonstrates is interoperability.** The host is written and run ' +
+          'by the same project as the app it launches, so a handshake succeeding there shows the ' +
+          'app behaves correctly as a guest — not that it works against a server nobody here ' +
+          'controls. That claim needs a third-party sandbox, and it has not been made.',
       },
     ],
   },

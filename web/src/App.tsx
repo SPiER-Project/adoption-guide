@@ -175,7 +175,9 @@ function AppRoutes() {
           <Route path="roadmap" element={<Navigate to="/guide/adoption-readiness" replace />} />
         </Route>
 
-        {/* Patient View lens */}
+        {/* The patient-level app: the chart, the instruments and the recorders.
+            Not a "lens" since #493 — the sidebar stopped switching between them,
+            and /patient/chart is the guide page that explains this one. */}
         <Route path="/patient">
           <Route index element={<Navigate to="record" replace />} />
           {/* The chart app. It answered on `chart` until Phase 0 of
@@ -289,7 +291,7 @@ function AppRoutes() {
           <Route path="encounters" element={<Navigate to="/patient/record#encounters" replace />} />
         </Route>
 
-        {/* Population View placeholder */}
+        {/* The population-level app: the caseload and the measures over it. */}
         {/* Population lens. `/population` itself is unchanged and load-bearing:
             the mock EHR embeds it as `?embed=1#/population`, so it stays the
             index rather than becoming /population/caseload. */}

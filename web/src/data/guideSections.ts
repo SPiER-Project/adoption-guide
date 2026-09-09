@@ -86,7 +86,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // assess, branch by tier — from the published artifact, so what the page says
   // and what SPiER publishes cannot drift. Tools is the *catalogue*: which
   // instruments and recorders exist, grouped by the eight pathway stages, with
-  // launch paths into the Patient View.
+  // launch paths into the patient app.
   //
   // ⚠️ `pathway` is a REPURPOSED path, not a new one. It served the tool
   // catalogue until Phase 3 of docs/plans/suicide-safer-care-pathway.md; the
@@ -125,7 +125,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // which is also where they would sit in a real deployment. /guide/measures
   // still redirects, because it is a published tool launch path.
   // Configure — the two sections that wire an implementation up. Tool
-  // Configuration writes ToolConfigContext, which gates the Patient View's
+  // Configuration writes ToolConfigContext, which gates the patient app's
   // launch actions; CDS Service probes the live hosted endpoint.
   // `wide`: a fixed `repeat(3, 1fr)` grid, which is 3 columns or it is nothing.
   { path: 'tool-configuration', label: 'Tool Configuration', group: 'configure', width: 'wide' },
