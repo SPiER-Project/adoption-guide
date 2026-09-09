@@ -20,7 +20,7 @@
 }
 
 .demo-scenario-content p {
-  margin: 0.25rem 0 0 0;
+  margin: var(--space-1) 0 0 0;
   font-size: var(--font-size-md);
   color: var(--text-body);
 }
@@ -30,7 +30,7 @@
   background: var(--brand-primary);
   color: white;
   border: none;
-  padding: 0.6rem 1.25rem;
+  padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-lg);
   font-size: var(--font-size-lg);
   font-weight: 600;
@@ -44,7 +44,7 @@
 }
 
 .demo-scenario-detail {
-  margin: 0.75rem 0 0 0;
+  margin: var(--space-3) 0 0 0;
   font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
@@ -59,7 +59,7 @@
   background: transparent;
   border: 1px solid var(--border-strong);
   color: var(--text-muted);
-  padding: 0.35rem 0.75rem;
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   cursor: pointer;
@@ -75,13 +75,13 @@
   font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--text-strong);
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--space-6) 0;
 }
 
 /* ── Risk Alert Banner ── */
 .risk-alert-banner {
   border-radius: var(--radius-xl);
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   margin-bottom: var(--space-6);
   border-left: 4px solid;
 }
@@ -127,7 +127,7 @@
   background: white;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  padding: 0.75rem 1rem;
+  padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-2);
 }
 
@@ -138,8 +138,8 @@
 .risk-alert-item-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.35rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1-5);
 }
 
 .risk-alert-tool {
@@ -152,7 +152,7 @@
   font-size: var(--font-size-base);
   color: var(--text-body);
   line-height: 1.5;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--space-2) 0;
 }
 
 .risk-alert-action-btn {
@@ -161,7 +161,7 @@
   font-weight: 600;
   color: white;
   background: var(--brand-primary);
-  padding: 0.4rem 0.85rem;
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-md);
   text-decoration: none;
   transition: background 0.2s;
@@ -186,7 +186,7 @@
 
 .widget-title {
   margin: 0;
-  padding: 0.75rem 1.25rem;
+  padding: var(--space-3) var(--space-5);
   font-size: var(--font-size-base);
   font-weight: 700;
   text-transform: uppercase;
@@ -203,7 +203,7 @@
 /* Risk badges */
 .risk-badge {
   display: inline-block;
-  padding: 0.3rem 0.75rem;
+  padding: var(--space-1) var(--space-3);
   border-radius: 20px;
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -222,7 +222,7 @@
 .widget-hint {
   font-size: var(--font-size-base);
   color: var(--text-faint);
-  margin: 0.75rem 0 0 0;
+  margin: var(--space-3) 0 0 0;
 }
 
 /* List items */
@@ -236,7 +236,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.4rem 0;
+  padding: var(--space-1-5) 0;
   border-bottom: 1px solid var(--surface-muted);
   font-size: var(--font-size-md);
 }
@@ -299,7 +299,7 @@
 
 .widget-action-btn {
   display: block;
-  padding: 0.55rem 1rem;
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-lg);
   font-size: var(--font-size-md);
   font-weight: 600;
@@ -335,7 +335,7 @@
    Consolidated chart sections
    =========================== */
 .chart-section {
-  margin: 2rem 0;
+  margin: var(--space-8) 0;
   scroll-margin-top: var(--anchor-scroll-offset);
 }
 
@@ -345,7 +345,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding-bottom: var(--space-2);
-  margin-bottom: 0.85rem;
+  margin-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-default);
 }
 
@@ -367,7 +367,7 @@
   .chart-section-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.15rem;
+    gap: var(--space-0-5);
   }
 }
 

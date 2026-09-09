@@ -11,7 +11,7 @@
   font-size: var(--font-size-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 0.25rem 0.6rem;
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-pill);
   color: var(--text-on-brand);
 }
@@ -34,7 +34,7 @@
    it gets the measure. Uncapped this ran to 146 characters a line. The `em`
    resolves against this element's own 16px, which is what the run is set in. */
 .empty-chart-banner p {
-  margin: 0.4rem 0 0 0;
+  margin: var(--space-1-5) 0 0 0;
   color: var(--text-body);
   line-height: 1.5;
   max-width: var(--measure-prose);
@@ -65,7 +65,7 @@
    length is not ours to predict; uncapped, a realistic one ran to 146
    characters a line. */
 .chart-data-error p {
-  margin: 0.4rem 0 0 0;
+  margin: var(--space-1-5) 0 0 0;
   line-height: 1.5;
   overflow-wrap: anywhere;
   max-width: var(--measure-prose);
@@ -134,7 +134,7 @@
   .pathway-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: var(--space-1);
   }
 
   .pathway-subtitle {
@@ -192,6 +192,7 @@
   top: 1.9rem;
   bottom: -0.15rem;
   width: 2px;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- not spacing: half the rule's own 2px width, to centre it on its axis */
   margin-left: -1px;
   background: var(--border-default);
 }
@@ -362,7 +363,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.15rem 0.5rem;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }
@@ -377,7 +378,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.15rem 0.5rem;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
   background: var(--brand-accent);
   color: var(--text-on-brand);
@@ -449,7 +450,7 @@
 
 .pathway-tool-chip {
   display: inline-block;
-  padding: 0.3rem 0.7rem;
+  padding: var(--space-1) var(--space-3);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-pill);
   background: var(--surface-card);
@@ -506,18 +507,18 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: 0.4rem;
+  margin-bottom: var(--space-1-5);
 }
 
 .cds-card-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
+  gap: var(--gap-inline);
   font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.15rem 0.5rem;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
   color: var(--text-on-brand);
 }
@@ -530,7 +531,7 @@
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-strong);
-  margin: 0 0 0.3rem 0;
+  margin: 0 0 var(--space-1) 0;
 }
 
 .cds-card-rationale {
@@ -551,7 +552,7 @@
   display: inline-block;
   background: var(--brand-primary);
   color: var(--text-on-brand);
-  padding: 0.45rem 0.85rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -598,7 +599,7 @@
 
 .stage-artifact-icon {
   font-size: var(--font-size-xl);
-  margin-top: 0.1rem;
+  margin-top: var(--space-0-5);
 }
 
 .stage-artifact-body {
@@ -616,7 +617,7 @@
 .stage-artifact-meta {
   font-size: var(--font-size-xs);
   color: var(--text-faint);
-  margin-top: 0.15rem;
+  margin-top: var(--space-0-5);
 }
 
 /* ===========================
@@ -670,7 +671,7 @@
 .encounter-row-when {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: var(--space-0-5);
 }
 
 .encounter-row-step {
@@ -701,7 +702,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.15rem 0.5rem;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
 }
 
@@ -729,7 +730,7 @@
   gap: var(--space-2);
   font-size: var(--font-size-base);
   color: var(--text-muted);
-  margin-bottom: 0.4rem;
+  margin-bottom: var(--space-1-5);
 }
 
 .encounter-row-notes {
@@ -761,7 +762,7 @@
 .encounter-artifacts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--space-1-5);
   margin: 0 0 var(--space-3) 0;
 }
 
@@ -769,7 +770,7 @@
   font-size: var(--font-size-xs);
   font-weight: 600;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  padding: 0.15rem 0.5rem;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
   background: var(--surface-muted);
   color: var(--text-muted);
@@ -783,7 +784,7 @@
 }
 
 .encounter-related-title {
-  margin: 0 0 0.4rem 0;
+  margin: 0 0 var(--space-1-5) 0;
   font-size: var(--font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -794,13 +795,13 @@
 .encounter-related-list {
   list-style: disc;
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: var(--space-5);
   font-size: var(--font-size-base);
   color: var(--text-body);
 }
 
 .encounter-related-list li {
-  margin-bottom: 0.2rem;
+  margin-bottom: var(--space-1);
 }
 
 .encounter-related-meta {
@@ -827,7 +828,7 @@
 .documents-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--space-1-5);
   margin-bottom: var(--space-3);
 }
 
@@ -862,7 +863,7 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: 0.55rem var(--space-3);
+  padding: var(--space-2) var(--space-3);
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -879,7 +880,7 @@
   font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 0.15rem 0.45rem;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-sm);
   text-align: center;
 }

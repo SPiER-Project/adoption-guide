@@ -11,7 +11,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-lg);
   line-height: 1.6;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
 }
 
@@ -29,7 +29,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   background: white;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-2xl);
@@ -83,7 +83,7 @@
 }
 
 .rubric-reset-btn {
-  padding: 0.4rem 0.75rem;
+  padding: var(--space-1-5) var(--space-3);
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-muted);
@@ -113,7 +113,7 @@
 }
 
 .rubric-legend-summary {
-  padding: 0.6rem 1rem;
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-base);
   color: var(--border-emphasis);
   cursor: pointer;
@@ -125,10 +125,10 @@
 }
 
 .rubric-legend-levels {
-  padding: 0.5rem 1rem;
+  padding: var(--space-2) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-1-5);
 }
 
 .rubric-legend-level {
@@ -159,7 +159,7 @@
 /* ── Stage Sections ── */
 .rubric-stage-section {
   margin-bottom: var(--space-6);
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   background: white;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -249,7 +249,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.15rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   background: var(--accent-warning-bg);
   color: var(--accent-warning-text);
@@ -266,8 +266,8 @@
 .rubric-tool-checkbox {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.6rem;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-2);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
@@ -332,7 +332,7 @@
 }
 
 .rubric-select {
-  padding: 0.35rem 0.4rem;
+  padding: var(--space-1-5) var(--space-1-5);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);

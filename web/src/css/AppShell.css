@@ -51,7 +51,7 @@
   grid-area: header;
   background: var(--brand-primary);
   color: white;
-  padding: 0.65rem 1.5rem;
+  padding: var(--space-3) var(--space-6);
   box-shadow: var(--shadow-md);
   /*
    * ⚠️ **No longer sticky, and the deletion is the point.** This bar was
@@ -80,7 +80,7 @@
 .app-shell__brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--space-2);
   text-decoration: none;
   color: white;
 }
@@ -120,8 +120,8 @@
   }
 
   .app-shell__header {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
   }
 }
 
@@ -209,7 +209,7 @@
 }
 
 .app-shell__body {
-  padding: 1.5rem 2rem 2rem;
+  padding: var(--space-6) var(--space-8) var(--space-8);
   flex: 1;
   min-width: 0;
 }
@@ -253,7 +253,7 @@
   grid-area: footer;
   background: var(--brand-primary-deep);
   color: var(--text-on-brand-faint);
-  padding: 0.75rem 1.5rem;
+  padding: var(--space-3) var(--space-6);
   font-size: var(--font-size-sm);
   display: flex;
   justify-content: space-between;
@@ -281,7 +281,7 @@
 .app-shell__footer-links a {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.2rem;
+  gap: var(--space-1);
 }
 
 /* ===========================

@@ -31,7 +31,7 @@
 
 .fhircast-banner-badge {
   flex: none;
-  padding: 0.125rem var(--space-2);
+  padding: var(--space-0-5) var(--space-2);
   background-color: var(--brand-primary);
   border-radius: var(--radius-pill);
   font-size: var(--font-size-2xs);

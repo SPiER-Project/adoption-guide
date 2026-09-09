@@ -11,7 +11,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-lg);
   line-height: 1.6;
-  margin: 0 0 2rem 0;
+  margin: 0 0 var(--space-8) 0;
   max-width: var(--measure-prose);
 }
 
@@ -20,8 +20,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 2.5rem;
-  padding: 1.25rem 1rem;
+  margin-bottom: var(--space-8);
+  padding: var(--space-5) var(--space-4);
   background: white;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-2xl);
@@ -59,7 +59,7 @@
 }
 
 .journey-progress-label {
-  margin-top: 0.4rem;
+  margin-top: var(--space-1-5);
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-body);
@@ -115,7 +115,7 @@
 }
 
 .stage-description {
-  margin: 0.2rem 0 0 0;
+  margin: var(--space-1) 0 0 0;
   font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.4;
@@ -127,7 +127,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--space-3);
-  margin-left: 2.75rem;
+  /* Aligns to the left edge of the stage title: past `.stage-number` (2rem) and
+     the stage header's own gap. Derived rather than typed, so it tracks the gap. */
+  margin-left: calc(2rem + var(--space-3));
   margin-bottom: var(--space-3);
 }
 
@@ -185,7 +187,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.4rem;
+  margin-bottom: var(--space-1-5);
   gap: var(--space-2);
 }
 
@@ -200,7 +202,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 0.15rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
@@ -224,13 +226,13 @@
   font-size: var(--font-size-base);
   color: var(--border-emphasis);
   line-height: 1.4;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 var(--space-1) 0;
 }
 
 .stage-tool-settings {
   font-size: var(--font-size-xs);
   color: var(--text-faint);
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--space-2) 0;
   font-style: italic;
 }
 
@@ -248,7 +250,9 @@
 
 /* ── Triggers ── */
 .stage-triggers {
-  margin-left: 2.75rem;
+  /* Aligns to the left edge of the stage title: past `.stage-number` (2rem) and
+     the stage header's own gap. Derived rather than typed, so it tracks the gap. */
+  margin-left: calc(2rem + var(--space-3));
   margin-bottom: var(--space-3);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-lg);
@@ -256,7 +260,7 @@
 }
 
 .triggers-label {
-  padding: 0.5rem 1rem;
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-sm);
   font-weight: 700;
   text-transform: uppercase;
@@ -270,7 +274,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr;
   gap: var(--space-3);
-  padding: 0.6rem 1rem;
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-base);
   border-bottom: 1px solid var(--surface-muted);
 }
@@ -296,8 +300,10 @@
 .stage-connector {
   display: flex;
   justify-content: center;
-  padding: 0.5rem 0;
-  margin-left: 2.75rem;
+  padding: var(--space-2) 0;
+  /* Aligns to the left edge of the stage title: past `.stage-number` (2rem) and
+     the stage header's own gap. Derived rather than typed, so it tracks the gap. */
+  margin-left: calc(2rem + var(--space-3));
 }
 
 .stage-connector-arrow {
@@ -308,7 +314,7 @@
 
 /* ── Tool Detail (drill-down) ── */
 .tool-detail {
-  padding: 0 1rem 1rem 1rem;
+  padding: 0 var(--space-4) var(--space-4) var(--space-4);
   border-top: 1px solid var(--surface-muted);
   background: var(--surface-page-alt);
 }
@@ -323,7 +329,7 @@
 }
 
 .tool-detail-heading {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--space-2) 0;
   font-size: var(--font-size-sm);
   font-weight: 700;
   color: var(--text-body);
@@ -332,7 +338,7 @@
 }
 
 .tool-detail-body {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 var(--space-3) 0;
   font-size: var(--font-size-md);
   line-height: 1.55;
   color: var(--border-emphasis);
@@ -342,7 +348,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-1-5);
   margin-top: var(--space-2);
   font-size: var(--font-size-sm);
 }
@@ -355,7 +361,7 @@
 
 .tool-detail-chip {
   display: inline-block;
-  padding: 0.15rem 0.5rem;
+  padding: var(--space-0-5) var(--space-2);
   background: var(--border-default);
   color: var(--border-emphasis);
   border-radius: var(--radius-pill);
@@ -384,14 +390,14 @@
 
 .tool-detail-table th {
   text-align: left;
-  padding: 0.4rem 0.5rem;
+  padding: var(--space-1-5) var(--space-2);
   border-bottom: 2px solid var(--border-default);
   color: var(--text-muted);
   font-weight: 600;
 }
 
 .tool-detail-table td {
-  padding: 0.4rem 0.5rem;
+  padding: var(--space-1-5) var(--space-2);
   border-bottom: 1px solid var(--surface-muted);
   vertical-align: top;
   color: var(--border-emphasis);
@@ -401,7 +407,7 @@
   font-size: var(--font-size-sm);
   background: var(--text-strong);
   color: var(--border-default);
-  padding: 0.1rem 0.35rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
 }
 
@@ -412,8 +418,8 @@
 }
 
 .tool-detail-trigger {
-  margin: 0.5rem 0 0 0;
-  padding: 0.5rem 0.75rem;
+  margin: var(--space-2) 0 0 0;
+  padding: var(--space-2) var(--space-3);
   background: var(--accent-warning-bg);
   border-left: 3px solid var(--accent-warning-edge);
   border-radius: var(--radius-sm);
@@ -427,7 +433,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-1-5);
 }
 
 .tool-detail-elements li {
@@ -435,7 +441,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-2);
-  padding: 0.35rem 0.5rem;
+  padding: var(--space-1-5) var(--space-2);
   background: white;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
@@ -452,7 +458,7 @@
   font-size: var(--font-size-xs);
   background: var(--border-default);
   color: var(--border-emphasis);
-  padding: 0.1rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-xs);
 }
 
@@ -476,7 +482,7 @@
 
 .tool-detail-launch-btn {
   display: inline-block;
-  padding: 0.5rem 1rem;
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
   font-weight: 600;

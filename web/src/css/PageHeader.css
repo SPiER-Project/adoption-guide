@@ -27,7 +27,7 @@
 }
 
 .page-header__eyebrow-sep {
-  margin: 0 0.25em;
+  margin: 0 var(--gap-inline);
   opacity: 0.5;
 }
 

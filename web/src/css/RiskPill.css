@@ -21,7 +21,7 @@
 .risk-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
+  gap: var(--gap-inline);
   font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -37,7 +37,7 @@
 
 .risk-pill--sm {
   font-size: var(--font-size-2xs);
-  padding: 2px var(--space-1);
+  padding: var(--space-0-5) var(--space-1);
   letter-spacing: 0.08em;
 }
 

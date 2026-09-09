@@ -44,7 +44,7 @@
 
 .sidebar-nav {
   flex: 1;
-  padding: 0.75rem 0;
+  padding: var(--space-3) 0;
 }
 
 .sidebar-section {
@@ -57,15 +57,15 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
-  padding: 0.5rem 1.25rem 0.35rem;
+  padding: var(--space-2) var(--space-5) var(--space-1-5);
   margin: 0;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 1.25rem;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
   font-size: var(--font-size-md);
   font-weight: 500;
   color: var(--border-strong);
@@ -96,6 +96,7 @@
    labels and carries no hover or active state. */
 .sidebar-group-heading {
   margin: var(--space-4) 0 var(--space-1) 0;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- an indent, not spacing: set by eye between the link inset and the label column, because this heading is deliberately NOT aligned to the links it labels */
   padding-left: 2.25rem;
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -105,7 +106,9 @@
 }
 
 .sidebar-link--child {
-  padding-left: 3rem;
+  /* Aligns the child label under its parent's: the link's own inset, plus
+     `.sidebar-icon` (1.25rem), plus the gap between them. */
+  padding-left: calc(var(--space-5) + 1.25rem + var(--space-2));
   font-size: var(--font-size-base);
   font-weight: 400;
   color: var(--text-faint);
@@ -122,7 +125,7 @@
 }
 
 .sidebar-footer {
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--border-emphasis);
   display: flex;
   flex-direction: column;
@@ -133,7 +136,7 @@
   background: var(--brand-accent);
   border: none;
   color: white;
-  padding: 0.4rem 0.75rem;
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -149,7 +152,7 @@
   background: transparent;
   border: 1px solid var(--text-body);
   color: var(--text-faint);
-  padding: 0.4rem 0.75rem;
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   cursor: pointer;
@@ -186,9 +189,9 @@
 .sidebar-outbound-link {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.35rem 0.5rem;
-  margin-left: -0.5rem;
+  gap: var(--space-0-5);
+  padding: var(--space-1-5) var(--space-2);
+  margin-left: calc(-1 * var(--space-2));
   border-radius: var(--radius-sm);
   color: var(--border-strong);
   text-decoration: none;
@@ -203,7 +206,7 @@
 .sidebar-outbound-label {
   display: flex;
   align-items: baseline;
-  gap: 0.3rem;
+  gap: var(--space-1);
   font-size: var(--font-size-base);
   font-weight: 600;
 }

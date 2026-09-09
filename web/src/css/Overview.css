@@ -97,7 +97,7 @@
 
 .overview__step-index {
   display: inline-block;
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--space-1-5);
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
@@ -106,7 +106,7 @@
 }
 
 .overview__step-name {
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--space-2);
   font-size: var(--font-size-lg);
   color: var(--brand-primary);
 }
@@ -243,7 +243,7 @@
 }
 
 .overview__lens-card h4 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--space-2);
   font-size: var(--font-size-xl);
   line-height: 1.3;
   color: var(--brand-primary);
@@ -251,7 +251,7 @@
 
 .overview__lens-card p {
   flex-grow: 1;
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-4);
   font-size: var(--font-size-md);
   line-height: 1.5;
   color: var(--text-body);

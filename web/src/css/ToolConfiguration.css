@@ -14,7 +14,7 @@
 .tool-config-intro {
   color: var(--text-body);
   line-height: 1.55;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 var(--space-3) 0;
   max-width: var(--measure-prose);
 }
 
@@ -79,7 +79,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 var(--space-3) 0;
 }
 
 /* ===========================
@@ -105,12 +105,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.4rem;
+  gap: var(--space-1-5);
   text-align: left;
   background: white;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  padding: 0.9rem 1rem;
+  padding: var(--space-4) var(--space-4);
   cursor: pointer;
   transition: all 0.15s ease;
   font: inherit;
@@ -149,11 +149,11 @@
 }
 
 .preset-custom-hint {
-  margin: 0.75rem 0 0 0;
+  margin: var(--space-3) 0 0 0;
   font-size: var(--font-size-base);
   color: var(--accent-warning-text);
   background: var(--accent-warning-bg);
-  padding: 0.4rem 0.65rem;
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-md);
   border-left: 3px solid var(--accent-warning-edge);
 }
@@ -165,19 +165,19 @@
   background: white;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  padding: 1rem 1.1rem;
+  padding: var(--space-4) var(--space-4);
   margin-bottom: var(--space-4);
 }
 
 .tool-config-stage-header {
-  margin-bottom: 0.65rem;
+  margin-bottom: var(--space-3);
 }
 
 .tool-config-stage-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-strong);
-  margin: 0 0 0.2rem 0;
+  margin: 0 0 var(--space-1) 0;
 }
 
 .tool-config-stage-desc {
@@ -191,14 +191,14 @@
 .tool-config-stage-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--space-1-5);
 }
 
 .tool-row {
   display: flex;
-  gap: 0.7rem;
+  gap: var(--space-3);
   align-items: flex-start;
-  padding: 0.55rem 0.65rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   cursor: pointer;
   border: 1px solid transparent;
@@ -211,7 +211,7 @@
 }
 
 .tool-row-toggle {
-  margin-top: 0.2rem;
+  margin-top: var(--space-1);
   width: 1rem;
   height: 1rem;
   cursor: pointer;
@@ -222,7 +222,7 @@
 .tool-row-body {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: var(--space-0-5);
   min-width: 0;
 }
 
@@ -269,8 +269,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25em;
-  margin-top: 0.15rem;
+  gap: var(--gap-inline);
+  margin-top: var(--space-0-5);
   flex-shrink: 0;
   font-size: var(--font-size-2xs);
   font-weight: 700;
@@ -278,7 +278,7 @@
   text-transform: uppercase;
   color: var(--accent-warning-text);
   background: var(--accent-warning-bg);
-  padding: 0.15rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   width: 76px;
   height: 1rem;
@@ -287,13 +287,13 @@
 .tool-row-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.25em;
-  margin-left: 0.4rem;
+  gap: var(--gap-inline);
+  margin-left: var(--space-1-5);
   font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.1rem 0.4rem;
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-pill);
 }
 

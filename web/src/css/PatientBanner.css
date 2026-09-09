@@ -1,7 +1,7 @@
 .patient-banner {
   background: var(--surface-banner);
   border-bottom: 1px solid var(--border-strong);
-  padding: 0.5rem 1.5rem;
+  padding: var(--space-2) var(--space-6);
   /* Stick to the top of the scrollport as the page scrolls, so identifiers +
      risk stay in view. z-index sits below .app-shell__header (z-index: 100).
 
@@ -52,7 +52,7 @@
 .patient-banner-field {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-1-5);
 }
 
 .patient-banner-label {
@@ -110,7 +110,7 @@
 .patient-banner-switcher-label {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-1-5);
 }
 
 .patient-banner-switcher {
@@ -119,7 +119,7 @@
   background: var(--surface-card);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  padding: 0.2rem 0.4rem;
+  padding: var(--space-1) var(--space-1-5);
   cursor: pointer;
   max-width: 180px;
 }
@@ -127,14 +127,14 @@
 .patient-banner-close {
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
+  gap: var(--gap-inline);
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-muted);
   background: transparent;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  padding: 0.25rem 0.6rem;
+  padding: var(--space-1) var(--space-2);
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
@@ -152,7 +152,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 0.2rem 0.5rem;
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   background: var(--accent-info-soft);
   color: var(--accent-info-text);
@@ -161,7 +161,7 @@
 
 @media (max-width: 768px) {
   .patient-banner {
-    padding: 0.4rem 1rem;
+    padding: var(--space-1-5) var(--space-4);
   }
 
   .patient-banner-content {

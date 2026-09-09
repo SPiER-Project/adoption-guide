@@ -3,12 +3,20 @@
   "plugins": ["stylelint-declaration-strict-value"],
   "rules": {
     "scale-unlimited/declaration-strict-value": [
-      ["color", "background-color", "border-color", "fill", "font-size", "box-shadow"],
+      [
+        "color", "background-color", "border-color", "fill", "font-size", "box-shadow",
+        "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+        "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+        "margin-inline", "margin-block",
+        "gap", "row-gap", "column-gap"
+      ],
       {
         "ignoreValues": [
           "transparent", "inherit", "none", "white", "unset",
           "/^var\\(--/",
-          "currentcolor"
+          "currentcolor",
+          "0", "auto",
+          "/^calc\\(/"
         ],
         "disableFix": true
       }
