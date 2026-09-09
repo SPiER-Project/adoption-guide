@@ -133,10 +133,19 @@
   color: var(--text-strong);
 }
 
+/* The table's own scrollport. `min-width: 0` is the load-bearing half: this is
+   a child of a flex/grid-influenced column, where the default `min-width: auto`
+   refuses to shrink below the table's content and hands the overflow up to the
+   document instead of scrolling here. */
+.md-table-scroll {
+  overflow-x: auto;
+  min-width: 0;
+  margin-bottom: var(--space-3);
+}
+
 .md-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: var(--space-3);
 }
 
 .md-table th,

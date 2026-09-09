@@ -345,6 +345,11 @@
   flex-direction: column;
   gap: var(--space-2);
   font-size: var(--font-size-base);
+  /* A list of sentences is a prose run: uncapped on a `--page-width-wide` page
+     these reached 175 characters a line. Capped on the list rather than each
+     `li`, and the list is where `font-size` is set, so the `em` resolves
+     against the type the run is actually set in. */
+  max-width: var(--measure-prose);
   color: var(--text-body);
   line-height: 1.5;
 }

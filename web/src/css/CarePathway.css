@@ -604,6 +604,14 @@
   color: var(--accent-warning-text-deep);
 }
 
+/* The explanation under the heading is prose and ran to 145 characters a line.
+   Only the `<p>`: `.pathway-load-error__detail` below is the raw canonical and
+   the command to run, a code run with its own `overflow-x`, and wrapping that
+   to a reading measure would be wrong. */
+.pathway-load-error p {
+  max-width: var(--measure-prose);
+}
+
 .pathway-load-error__title {
   margin: 0 0 var(--space-2);
   font-size: var(--font-size-md);

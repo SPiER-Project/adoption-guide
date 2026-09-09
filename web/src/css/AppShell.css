@@ -214,6 +214,38 @@
   min-width: 0;
 }
 
+/* The page column is centred, and this is the only place that says so.
+ *
+ * `.app-shell__body` owns the page inset; the page root owns the page *width*
+ * (RULE 5, two tokens and no more). Neither of them owned where that column
+ * SITS, so the answer was the initial value — flush left — and the leftover
+ * space all piled up on the right. It grew with the viewport and it differed
+ * per page, because the two width tokens leave different amounts over: at
+ * 1920px a `--page-width-wide` page used 74% of the content area and a
+ * `--page-width-prose` page 56%, dumping a 716px void beside the front door.
+ * Navigating Overview → anywhere else then moved the content's right edge
+ * 300px sideways, which is what read as "the widths are all over the place"
+ * even though every root was already on one of the two tokens.
+ *
+ * Written as `> *` rather than on each root, deliberately. Centring is one
+ * decision for the whole shell, not a per-page one — restating it in the seven
+ * page stylesheets is the double-ownership RULE 4 and RULE 5 both exist to
+ * prevent, and six of seven agreeing is a bug nobody can see. The child keeps
+ * owning its width; this owns where that width is placed.
+ *
+ * A no-op wherever the page is not narrower than the room available — mobile,
+ * and any root with no cap — because auto margins resolve to 0 with no free
+ * space to share. So it needs no breakpoint of its own.
+ *
+ * ⚠️ The chrome bars are deliberately NOT centred with it. `.app-shell__header`,
+ * `.app-shell__footer` and `.patient-banner` (a sibling of this element, not a
+ * child) stay full-bleed, which is why the banner's content does not line up
+ * with the page column under it. That is the same choice the app bar and the
+ * footer already make, and it is the one that makes the frame read as a frame. */
+.app-shell__body > * {
+  margin-inline: auto;
+}
+
 /* ===========================
    Footer
    =========================== */
