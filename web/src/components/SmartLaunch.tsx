@@ -41,6 +41,22 @@ export function SmartLaunch() {
                     // human must confirm before any Condition is created.
                     'patient/DocumentReference.write',
                     'patient/Condition.write',
+                    // ⚠️ **The worklist scope, requested on EVERY launch, and
+                    // that is deliberate.** SMART hands the app an opaque
+                    // `launch` value: there is no way to tell a chart launch
+                    // from a worklist launch (#401) before authorizing, so the
+                    // app asks for the superset and the server narrows to the
+                    // context it resolved. A chart launch is granted the
+                    // `patient/…` half and has this DROPPED — see the mirror
+                    // rules in the mock's `authorize`, without which a chart
+                    // token would keep this and could read every patient on the
+                    // server.
+                    //
+                    // Requesting it here rather than in a second code path is
+                    // the same reasoning as one scope string: two launch
+                    // initiations that differ only in scope is the drift this
+                    // repo keeps writing gates against.
+                    'user/*.read',
                 ].join(' '),
 
                 // OAuth redirect URIs cannot carry hash fragments, and GitHub

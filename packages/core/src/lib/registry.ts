@@ -53,7 +53,19 @@ export interface RegistryPatient {
   dob: string
   mrn: string
   gender: string
-  recommendedNextStep: { stageId: string; label: string; rationale: string }
+  /**
+   * The curated "next step" line, or `null`.
+   *
+   * ⚠️ **Nullable since #401, because no FHIR resource carries it.** It is
+   * hand-written per patient in `patients.json`, which is fine for a bundled
+   * demo registry and impossible for a cohort read over real `Patient`
+   * resources — a server-backed source returns `null` here and the row's next
+   * step is derived from the pathway instead (the same derivation
+   * `buildCdsCards` already falls back to, which has accepted `null` since it
+   * was written). Rendering a blank column, or inventing a label, would both be
+   * worse than saying the field is absent.
+   */
+  recommendedNextStep: { stageId: string; label: string; rationale: string } | null
 }
 
 export interface RegistryActivity {

@@ -54,7 +54,7 @@ import {
   RESOURCES_BY_KEY,
   type MockResource,
 } from './fixtures'
-import { SEARCHABLE_TYPES, applySearch, parseSearch } from './search'
+import { ROSTER_TYPE, SEARCHABLE_TYPES, applySearch, parseSearch } from './search'
 import { controlPage } from './controlPage'
 import { homePage, patientChartPage } from './chartPage'
 import { validateWrite, withAssignedId } from './validate'
@@ -329,7 +329,30 @@ app.get('/fhir/:type', async (c) => {
     )
   }
 
-  const parsed = parseSearch(new URL(c.req.url).searchParams)
+  // ⚠️ The roster search (#401), and the narrowest possible version of it: an
+  // unscoped `GET /fhir/Patient` for a token that may cross patients, and
+  // nothing else. A worklist app cannot ask "which patients are there?" one
+  // patient at a time — but every clinical type stays patient-scoped, so an
+  // unscoped Observation search is still a 400 from the search layer.
+  //
+  // The PERMISSION is a 403 raised here rather than a 400 from `parseSearch`:
+  // enumerating the roster on a chart token is a scope refusal, and the search
+  // layer only answers 400. With `MOCK_AUTH_ENFORCE=off` there is no grant, so
+  // this admits it — the same leniency `patientForWrite` documents for that
+  // mode, and part of why `off` is not the deployed setting.
+  const grant = c.get('grant')
+  if (type === ROSTER_TYPE && grant && !mayCrossPatients(grant)) {
+    return c.body(
+      JSON.stringify(operationOutcome(
+        'error',
+        'forbidden',
+        `This access token is scoped to patient '${grant.patient}' and cannot enumerate the `
+          + `${ROSTER_TYPE} roster. A cohort read needs a 'user/…' scope.`,
+      )),
+      403,
+    )
+  }
+  const parsed = parseSearch(new URL(c.req.url).searchParams, { type })
   if (!parsed.ok) {
     return c.body(JSON.stringify(operationOutcome('error', 'invalid', parsed.diagnostics)), parsed.status)
   }
@@ -911,22 +934,19 @@ app.get('/_admin/fhircast', async (c) => {
 // exercises `frame-ancestors` on the panel host — see chartPage.ts.
 
 /**
- * The front door: SPiER's caseload summary embedded as a hosted activity, then
- * the host's own patient list.
+ * The front door: the host's patient list, and the two launches it offers.
  *
  * ⚠️ `/` used to serve the operator's bench and the demo was two undiscoverable
- * clicks away. See `homePage` for the report that prompted the change — and for
- * why the frame is `#/population/summary` rather than the whole lens, which put
- * two patient lists on one page.
+ * clicks away. See `homePage` for the report that prompted the change.
+ *
+ * ⚠️ It also used to embed SPiER's caseload summary in an `<iframe>` carrying no
+ * launch context. #401 replaced that with a real user-scoped launch, so this
+ * handler no longer builds a panel URL at all — the button POSTs to
+ * `/_admin/launch` and follows what the server returns, exactly as the chart's
+ * launch button does.
  */
 app.get('/', async (c) => {
-  const panelBase = envOf(c).MOCK_PANEL_BASE_URL || DEFAULT_PANEL_BASE_URL
-  // `embed=1` puts the app in panel chrome; NO `iss`/`launch`, because this is
-  // deliberately not a SMART launch — see the label on the frame.
-  const url = new URL(panelBase)
-  url.searchParams.set('embed', '1')
-  url.hash = '#/population/summary'
-  return c.html(homePage(DEMO_PATIENTS, { summaryPanelUrl: url.toString() }))
+  return c.html(homePage(DEMO_PATIENTS))
 })
 
 // `/chart` was the patient list before the list became the front door. Kept as a

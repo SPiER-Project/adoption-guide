@@ -294,26 +294,70 @@ describe('the bearer check on /fhir', () => {
     expect(own.status).toBe(200)
   })
 
-  it('a patient-context-free search is refused by the SEARCH layer, not by scope', async () => {
+  it('a patient-context-free CLINICAL search is refused by the SEARCH layer, not by scope', async () => {
     // Worth pinning, because the obvious guess is wrong and it changed what #404
-    // had to build. `parseSearch` requires `patient`, so an all-patients search is
-    // a 400 ("This server has no all-patients search") BEFORE auth is consulted.
-    // There was never a hole where a patient-bound token could enumerate every
-    // chart by omitting the parameter — so no scope check belongs here, and one
-    // written here would be unreachable code.
+    // had to build. `parseSearch` requires `patient` for every clinical type, so
+    // an unscoped Observation search is a 400 BEFORE auth is consulted. There was
+    // never a hole where a patient-bound token could enumerate every chart by
+    // omitting the parameter — so no scope check belongs here, and one written
+    // here would be unreachable code.
+    //
+    // ⚠️ #401 added exactly ONE unscoped search — the roster, `GET /fhir/Patient`
+    // — and the two tests below are what keep that from widening. This one still
+    // covers every other type.
     const { accessToken } = await launchFor(BASE, { patient: 'patient-011' })
     const headers = { authorization: `Bearer ${accessToken}` }
     const cohort = await app.request(`${BASE}/fhir/Observation`, { headers })
     expect(cohort.status).toBe(400)
-    expect(await cohort.text()).toContain('no all-patients search')
+    expect(await cohort.text()).toContain('every clinical type is patient-scoped')
+  })
+
+  it('refuses the ROSTER search to a chart token — it is not a cohort grant', async () => {
+    // The roster is the one unscoped search, and a patient-bound token still may
+    // not run it: it would enumerate every patient on the server for a token
+    // whose whole point is being scoped to one.
+    const { accessToken } = await launchFor(BASE, { patient: 'patient-011' })
+    const roster = await app.request(`${BASE}/fhir/Patient`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+    })
+    // 403, not 400: the query is one this server implements, and the token is
+    // what it will not honour it for.
+    expect(roster.status).toBe(403)
+  })
+
+  it('serves the ROSTER to a worklist token, and still refuses an unscoped Observation search', async () => {
+    // Both halves matter. The first is what makes a population app possible; the
+    // second is what stops "may cross patients" from quietly meaning "may search
+    // the whole server for anything".
+    const { accessToken } = await launchFor(BASE, {
+      launch: await mintLaunch({ userScoped: true }, {}),
+      scope: 'launch user/*.read',
+    })
+    const headers = { authorization: `Bearer ${accessToken}` }
+
+    const roster = await app.request(`${BASE}/fhir/Patient`, { headers })
+    expect(roster.status).toBe(200)
+    const bundle = await roster.json() as { entry?: unknown[] }
+    expect(bundle.entry?.length).toBe(14)
+
+    const observations = await app.request(`${BASE}/fhir/Observation`, { headers })
+    expect(observations.status).toBe(400)
   })
 
   it('lets a user/… scope read ANOTHER patient, which is the worklist grant', async () => {
     // The ONLY scope axis this server enforces (#404 option A). SPiER's own
     // registry read is N per-patient searches, so "may this token read a patient
     // other than its own" is exactly the permission a worklist needs.
+    //
+    // ⚠️ **Launched with a `userScoped` context, and it has to be.** This test
+    // used to attach `user/*.read` to a PATIENT launch, because before #401 that
+    // was the only way to obtain the scope at all. `authorize` now drops
+    // `user/…` from a patient context — otherwise SPiER's client, which requests
+    // one superset scope string on every launch, would hand every chart token
+    // cross-patient permission. So the grant is obtained the way a worklist app
+    // really obtains it.
     const { accessToken } = await launchFor(BASE, {
-      patient: 'patient-011',
+      launch: await mintLaunch({ userScoped: true }, {}),
       scope: 'launch openid fhirUser user/*.read',
     })
     const headers = { authorization: `Bearer ${accessToken}` }
@@ -497,5 +541,47 @@ describe('the worklist grant — a launch with no patient (#401)', () => {
     // flow here. Advertising `launch-standalone` would be a claim with nothing
     // behind it — and the app-side entry point is Phase B, not this one.
     expect(config.capabilities).not.toContain('launch-standalone')
+  })
+})
+
+/**
+ * The mirror rule: a CHART launch may not keep a worklist scope (#401).
+ *
+ * ⚠️ **This is the test that keeps the patient boundary from evaporating.** The
+ * app requests one scope string on every launch — including `user/*.read` —
+ * because SMART gives it no way to know which kind of launch it is completing.
+ * If `authorize` did not drop that scope for a patient context, every chart
+ * token in the demo would satisfy `mayCrossPatients` and could read all fourteen
+ * patients, with nothing about the panel looking different.
+ */
+describe('a chart launch cannot keep a user/… scope', () => {
+  const SUPERSET = 'launch openid fhirUser patient/Patient.read user/*.read'
+
+  it('drops user/… from the granted scope of a patient launch', async () => {
+    const { tokenResponse } = await launchFor(BASE, { patient: 'patient-011', scope: SUPERSET })
+    expect(tokenResponse.scope).toBe('launch openid fhirUser patient/Patient.read')
+    expect(String(tokenResponse.scope)).not.toContain('user/')
+  })
+
+  it('still 403s a cross-patient read on that token — the boundary holds', async () => {
+    const { accessToken } = await launchFor(BASE, { patient: 'patient-011', scope: SUPERSET })
+    const res = await app.request(`${BASE}/fhir/Patient/patient-002`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+    })
+    expect(res.status).toBe(403)
+  })
+
+  it('and cannot enumerate the roster either', async () => {
+    const { accessToken } = await launchFor(BASE, { patient: 'patient-011', scope: SUPERSET })
+    const res = await app.request(`${BASE}/fhir/Patient`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+    })
+    expect(res.status).toBe(403)
+  })
+
+  it('keeps patient/… on a chart launch, so the chart still works', async () => {
+    // The control: narrowing must not have removed what the chart needs.
+    const { tokenResponse } = await launchFor(BASE, { patient: 'patient-011', scope: SUPERSET })
+    expect(String(tokenResponse.scope)).toContain('patient/Patient.read')
   })
 })

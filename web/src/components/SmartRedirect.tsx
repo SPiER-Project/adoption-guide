@@ -80,9 +80,40 @@ export function SmartRedirect() {
                             navigate(directed ?? '/patient/record')
                         }, 500)
                     } else {
-                        // We authenticated, but no patient was in context
+                        // ── Authenticated, and NO patient in context ──────────
+                        //
+                        // ⚠️ **This used to be the failure branch, and since #401
+                        // it is also a success.** A worklist launch has no patient
+                        // by design: the mock EHR mints a `userScoped` context and
+                        // the token comes back with no `patient` at all. Sending
+                        // that to `/` — written for "we authorized but something is
+                        // wrong" — would drop a launched clinician on the front
+                        // page with a live session they cannot see.
+                        //
+                        // The two cases are told apart by the GRANT, not by
+                        // guessing: a worklist grant carries a `user/…` read
+                        // scope, which is exactly the permission the server
+                        // enforces for a cross-patient read (`mayCrossPatients`).
+                        // A launch with neither a patient nor that scope really is
+                        // broken, and still lands on `/`.
+                        const scope = String(
+                            (client.state.tokenResponse as { scope?: unknown } | undefined)?.scope ?? '',
+                        )
+                        const isWorklist = scope
+                            .split(/\s+/)
+                            .some(s => /^user\/[^.]+\.(read|\*)$/.test(s))
+
                         setSmartData(client, {})
-                        navigate('/')
+                        if (isWorklist) {
+                            setStatus('Connected. Opening the caseload...')
+                            // The dashboard, not the chart: there is no chart to
+                            // open. `check:catalog` asserts this route is a PAGE
+                            // rather than a redirect, so it cannot silently become
+                            // one of the guide's explainers.
+                            setTimeout(() => navigate('/population/caseload'), 500)
+                        } else {
+                            navigate('/')
+                        }
                     }
                 } catch (fetchError) {
                     console.error('Error fetching patient data:', fetchError)

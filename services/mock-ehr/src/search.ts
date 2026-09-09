@@ -39,7 +39,21 @@ const PATIENT_LINK: Record<string, PatientLink> = {
 }
 
 /** The types this server will answer a search for. */
-export const SEARCHABLE_TYPES: string[] = Object.keys(PATIENT_LINK).sort()
+/**
+ * Types this server implements search for.
+ *
+ * ⚠️ `Patient` is in the list but NOT in `PATIENT_LINK`, and the asymmetry is
+ * the point. Every other type is searched *by* its patient; `Patient` is the
+ * roster (#401) and is searched only unscoped, which is why it has no patient
+ * link to match on. `parseSearch` refuses a scoped `GET /fhir/Patient?patient=…`
+ * rather than returning the empty Bundle a missing link would produce — an empty
+ * Bundle for a query this server does not implement is indistinguishable from a
+ * patient who does not exist.
+ */
+export const SEARCHABLE_TYPES: string[] = [...Object.keys(PATIENT_LINK), 'Patient'].sort()
+
+/** The one type searched unscoped rather than by patient — see above. */
+export const ROSTER_TYPE = 'Patient'
 
 /** Search parameters this server understands. Anything else is a 400. */
 const KNOWN_PARAMS = new Set(['patient', 'subject', 'category'])
@@ -91,8 +105,21 @@ export function matchesToken(concepts: unknown, token: string): boolean {
 }
 
 export interface SearchQuery {
-  /** The patient id the search is scoped to. */
-  patientId: string
+  /**
+   * The patient id the search is scoped to, or `undefined` for the ONE
+   * all-patients search this server implements — the roster (#401).
+   *
+   * ⚠️ `undefined` is only reachable when the caller passed
+   * `allowAllPatients`, which the route grants solely for `GET /fhir/Patient`
+   * on a token that may cross patients. `applySearch` therefore also requires
+   * `allPatients` to be set explicitly rather than inferring "unscoped" from a
+   * missing id: a bug that dropped `patientId` would otherwise turn a
+   * patient-scoped search into a whole-server one, and the Bundle would look
+   * perfectly normal.
+   */
+  patientId?: string
+  /** Set only for the roster search, so a missing `patientId` cannot pass for it. */
+  allPatients?: true
   /** `category` token, when present. */
   category?: string
 }
@@ -103,10 +130,34 @@ export type SearchParse =
 
 /**
  * Parse a search's query string. `patient` (or its `subject` alias) is
- * REQUIRED — this server has no all-patients search, because serving one would
- * let a demo look like it works while the patient scoping is broken.
+ * REQUIRED unless the caller explicitly allows the roster search.
+ *
+ * ⚠️ **This module's header said "this server has no all-patients search" until
+ * #401, and the reason it said so still applies to every type but one.** Serving
+ * an unscoped search generally would let a demo look like it works while the
+ * patient scoping is broken. What changed is that a worklist app needs a
+ * *roster*: it cannot ask "which patients are there?" one patient at a time. So
+ * exactly one unscoped search exists — `GET /fhir/Patient` — and only for a
+ * token that may cross patients. Every clinical type stays patient-scoped, which
+ * is why `allowAllPatients` is a parameter here rather than a mode this module
+ * decides for itself: the route knows the type and the grant, and this does not.
  */
-export function parseSearch(params: URLSearchParams): SearchParse {
+export function parseSearch(
+  params: URLSearchParams,
+  /**
+   * The resource type being searched. Supplying it is what lets this module
+   * apply the roster's semantics; omitting it keeps the pre-#401 behaviour
+   * (every search patient-scoped), which is what the unit tests of the parser
+   * itself rely on.
+   *
+   * ⚠️ The TYPE is a semantics question and belongs here. The PERMISSION —
+   * may this token enumerate the roster — is a 403 the route raises, because
+   * this module only ever answers 400, and the existing division of labour is
+   * that the search layer refuses what it cannot express while the auth layer
+   * refuses what it will not allow.
+   */
+  { type }: { type?: string } = {},
+): SearchParse {
   // `forEach` rather than `keys()`: @cloudflare/workers-types' URLSearchParams
   // does not declare the iterator helpers, and this file typechecks under it.
   const names: string[] = []
@@ -126,11 +177,31 @@ export function parseSearch(params: URLSearchParams): SearchParse {
     }
   }
   const raw = params.get('patient') ?? params.get('subject')
+  if (type === ROSTER_TYPE) {
+    // ⚠️ Unconditional on the grant, because it is about what the query MEANS.
+    // Without this branch a scoped roster search fell through to the
+    // patient-link match, and `Patient` has no patient link — so it returned an
+    // empty 200 Bundle, which this module's header is explicit is the one thing
+    // worse than a refusal: indistinguishable from a patient who does not exist.
+    if (raw) {
+      return {
+        ok: false,
+        status: 400,
+        diagnostics:
+          `'${ROSTER_TYPE}' search is the unscoped roster and takes no 'patient' parameter. `
+          + `To fetch one patient, read it: GET /fhir/${ROSTER_TYPE}/{id}.`,
+      }
+    }
+    return { ok: true, query: { allPatients: true } }
+  }
   if (!raw) {
     return {
       ok: false,
       status: 400,
-      diagnostics: "Missing required search parameter 'patient'. This server has no all-patients search.",
+      diagnostics:
+        "Missing required search parameter 'patient'. The only unscoped search this server "
+        + 'implements is the roster, `GET /fhir/Patient`, and only for a token that may cross '
+        + 'patients — every clinical type is patient-scoped.',
     }
   }
   // Tolerate `patient=Patient/patient-011` as well as a bare id.
@@ -147,6 +218,12 @@ export function applySearch(
 ): MockResource[] {
   return resources.filter(r => {
     if (r.resourceType !== type) return false
+    // The roster: every resource of the type, no patient filter. Gated on the
+    // explicit flag, never on `patientId` merely being absent.
+    if (query.allPatients) {
+      return query.category === undefined || matchesToken(r.category, query.category)
+    }
+    if (query.patientId === undefined) return false
     if (!belongsToPatient(r, query.patientId)) return false
     if (query.category !== undefined && !matchesToken(r.category, query.category)) return false
     return true
