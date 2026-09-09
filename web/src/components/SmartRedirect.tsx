@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import FHIR from 'fhirclient'
 import { useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
@@ -14,7 +14,29 @@ export function SmartRedirect() {
     const { setHostDrawsPatientBanner } = usePresentation()
     const navigate = useNavigate()
 
+    /**
+     * Completing a launch is a ONE-SHOT operation, and this ref is what says so.
+     *
+     * ⚠️ **Defence in depth, added after an infinite loop reached production.**
+     * The cause was unstable context callbacks in `SmartProvider` (fixed there,
+     * and the note on it has the numbers), but the deeper point is that this
+     * effect must not be re-runnable *whatever* its dependencies do: it redeems
+     * an authorization code, and a code can be redeemed exactly once. Every
+     * re-run past the first is guaranteed to fail — `/token` answers "This
+     * authorization code has already been redeemed" — so the only question is
+     * whether it fails visibly or spins.
+     *
+     * Keeping the dependency array honest (the lint rule is right that this
+     * effect uses those functions) and guarding the *body* is better than
+     * emptying the array to silence the symptom: an empty array would leave a
+     * stale-closure bug behind in place of a loop.
+     */
+    const completed = useRef(false)
+
     useEffect(() => {
+        if (completed.current) return
+        completed.current = true
+
         // This function completes the SMART on FHIR launch sequence
         // by exchanging the authorization code for an access token
         FHIR.oauth2
