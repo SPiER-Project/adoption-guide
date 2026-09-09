@@ -106,7 +106,7 @@ export function OutreachAttemptView() {
   return (
     <div className="form-view">
       <PageHeader
-        eyebrow={['Patient View', 'Workflow']}
+        eyebrow={['Patient Chart', 'Workflow']}
         up="/patient/record"
         title="Follow-Up Outreach / Contact Attempt"
         lede={

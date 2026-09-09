@@ -51,9 +51,18 @@ export function renderInline(text: string): ReactNode[] {
     const [, linkText, href, bold, italic, code] = m
 
     if (linkText !== undefined && href !== undefined) {
-      if (href === IG_TOKEN) {
+      // ⚠️ Two kinds of external destination, and the second was added for #466:
+      // the IG's token (whose path follows the active Vite base) and an absolute
+      // URL, which the Overview needs to link the Demo EHR on its own origin.
+      //
+      // Without the `http` branch an absolute href fell to the `<Link>` below,
+      // and React Router treats that as an in-app path — so the link rendered,
+      // looked right, and navigated to a route that does not exist. Silent by
+      // construction: nothing about the markup says which kind it became.
+      const externalHref = href === IG_TOKEN ? IG_HREF : /^https?:\/\//.test(href) ? href : null
+      if (externalHref !== null) {
         out.push(
-          <a key={key++} href={IG_HREF} target="_blank" rel="noopener noreferrer">
+          <a key={key++} href={externalHref} target="_blank" rel="noopener noreferrer">
             {linkText}
           </a>,
         )

@@ -57,7 +57,7 @@ export function PathwayProtocol() {
   return (
     <div className="pathway-protocol">
       <PageHeader
-        eyebrow="Patient View"
+        eyebrow="Patient Chart"
         up="/patient/record"
         title="Published Care Pathway"
         lede="The Suicide Safer Care protocol SPiER carries, rendered from the artifact it publishes."

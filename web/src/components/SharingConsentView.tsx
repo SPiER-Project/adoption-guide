@@ -88,7 +88,7 @@ export function SharingConsentView() {
   return (
     <div className="form-view">
       <PageHeader
-        eyebrow={['Patient View', 'Workflow']}
+        eyebrow={['Patient Chart', 'Workflow']}
         up="/patient/record"
         title="Consent / Information-Sharing Status"
         lede={

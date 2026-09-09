@@ -228,8 +228,9 @@
 }
 
 .overview__lens-card--guide { border-top-color: var(--brand-cyan-strong); }
-.overview__lens-card--population { border-top-color: var(--text-faint); }
-.overview__lens-card--patient { border-top-color: var(--brand-accent); }
+/* The host leads the row and takes the accent: a launch starts there (#466). */
+.overview__lens-card--host { border-top-color: var(--brand-accent); }
+.overview__lens-card--cds { border-top-color: var(--text-faint); }
 .overview__lens-card--ig { border-top-color: var(--brand-primary); }
 
 .overview__lens-badge {
@@ -264,5 +265,5 @@
 }
 
 .overview__lens-card--guide .overview__lens-cta { color: var(--brand-cyan-strong); }
-.overview__lens-card--population .overview__lens-cta { color: var(--text-muted); }
+.overview__lens-card--host .overview__lens-cta { color: var(--brand-accent); }
 .overview__lens-card--ig .overview__lens-cta { color: var(--brand-primary); }

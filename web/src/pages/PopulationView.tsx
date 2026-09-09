@@ -219,11 +219,15 @@ export function PopulationView() {
 
   return (
     <div className="population-view">
-      {/* Eyebrow names the project, not the lens: this lens is a single page, so
+      {/* ⚠️ Titled "Caseload", not "Population View" — the retired lens name.
+          The dashboard PRODUCT is explained at /guide/dashboard; this page and
+          /population/measures are its two screens, and naming this one after the
+          product would leave the reader wondering which of the two they were on.
+          Eyebrow names the project rather than a lens: this is a single page, so
           its parent is SPiER itself — same as the front door. See PageHeader. */}
       <PageHeader
         eyebrow="SPiER"
-        title="Population View"
+        title="Caseload"
         lede="Caseload of patients on the suicide-safer care pathway. Recommendations show the next best step regardless of which tools your implementation has enabled — what matters here is the patient's status and risk, not the specific instrument."
       />
 

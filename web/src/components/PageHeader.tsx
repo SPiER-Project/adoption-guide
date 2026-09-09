@@ -24,9 +24,13 @@ interface PageHeaderProps {
    * component's business, not the caller's, so a caller cannot introduce a
    * second punctuation style.
    *
-   * Required, and the rule is "name the page's parent" — the lens for a page
-   * inside one (`Patient View` → Patient Chart), the project for a lens that is
-   * a single page (`SPiER` → Population View). It started out optional, and the
+   * Required, and the rule is "name the page's parent" — what `up` points at
+   * for a drill-in (`Patient Chart` → an assessment; `Caseload` → Measures), the
+   * project for a page with no parent above it (`SPiER` → Patient Chart, and
+   * `SPiER` → Caseload). ⚠️ The examples here used to be `Patient View` and
+   * `Population View`, which were lens names, and the lenses are gone — a rule
+   * illustrated with a retired vocabulary teaches the wrong answer to whoever
+   * copies it next. It started out optional, and the
    * one page that skipped it had its title sitting 24px higher than the other
    * three: an absent eyebrow is a layout difference, not just a missing label.
    */

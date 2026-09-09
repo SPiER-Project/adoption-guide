@@ -139,7 +139,7 @@ export function RiskEpisodeView() {
   return (
     <div className="form-view">
       <PageHeader
-        eyebrow={['Patient View', 'Workflow']}
+        eyebrow={['Patient Chart', 'Workflow']}
         up="/patient/record"
         title="Suicide-Risk Episode / Pathway Status"
         lede={

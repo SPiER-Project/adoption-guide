@@ -87,7 +87,12 @@ describe('PathwayProtocol — the pathway in the embedded panel', () => {
   it('offers a way back out — the only one the panel has', () => {
     renderPage()
     // PageHeader `up`: in panel chrome there is no sidebar, so this is the exit.
-    const up = screen.getByRole('link', { name: /Patient View/ })
+    // ⚠️ Matched on "Patient Chart" since 2026-09-09, and the rename is the
+    // point rather than an incidental edit: the eyebrow used to say "Patient
+    // View" — a lens that no longer exists — while `up` already pointed at the
+    // chart. The trail now names what it links to, which is what PageHeader's
+    // contract asks for.
+    const up = screen.getByRole('link', { name: /Patient Chart/ })
     expect(up.getAttribute('href')).toBe('/patient/record')
   })
 

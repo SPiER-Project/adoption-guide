@@ -57,12 +57,20 @@ function LensCards() {
             <span className="overview__lens-cta">{lens.cta}</span>
           </>
         )
-        return lens.href === IG_TOKEN ? (
+        // Three kinds of destination, and the third is new (#466): the IG's
+        // token (whose path depends on the active Vite base), an absolute URL
+        // for a surface on another origin — the Demo EHR — and an in-app route.
+        // Both external kinds open in a new tab and say so in the name, which is
+        // the rule the sidebar's outbound links already follow.
+        const external =
+          lens.href === IG_TOKEN ? IG_HREF : lens.href.startsWith('http') ? lens.href : null
+        return external ? (
           <a
             key={lens.key}
-            href={IG_HREF}
+            href={external}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`${lens.title} (opens in a new tab)`}
             className={className}
           >
             {inner}

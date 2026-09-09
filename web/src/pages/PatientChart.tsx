@@ -161,12 +161,12 @@ export function PatientChart() {
           PageHeader.css for a panel page with no `up`. */}
       {inPanel ? (
         <PageHeader
-          eyebrow="Patient View"
+          eyebrow="SPiER"
           title="Suicide-safer care pathway"
           lede={<PathwayProgress statuses={statuses} actionCount={cdsCards.length} compact />}
         />
       ) : (
-        <PageHeader eyebrow="Patient View" title="Patient Chart" />
+        <PageHeader eyebrow="SPiER" title="Patient Chart" />
       )}
 
       {dataSourceError && (
