@@ -100,7 +100,24 @@ const pageFiles = readdirSync(PAGES_DIR)
 
 if (pageFiles.length === 0) fail('no page modules found under src/pages — nothing was checked')
 
-/** The classes on the root element of the component this file is named for. */
+/**
+ * The classes on the root element of the component this file is named for,
+ * base class first.
+ *
+ * Two attribute forms are read, and only two. `className="a b"` is the common
+ * case. The expression form — `className={cond ? 'a a--m' : 'a'}` — is for a
+ * root whose width is data-driven: the guide's, from `width` in
+ * data/guideSections.ts. Every class in it must be a string literal, because
+ * RULE 5 checks a page width by looking the root's classes up in the CSS, so a
+ * class assembled at runtime is a page width this gate cannot see at all.
+ *
+ * ⚠️ What this replaced was `/className="([^"]+)"/` run against the whole rest
+ * of the file. On a root using the expression form that did not fail — it
+ * matched the NEXT literal className further down and reported that element as
+ * the page root, so AdoptionGuide's width checks were silently being applied to
+ * `.ig-content`. Mis-identifying the subject is worse than not finding it:
+ * every branch below that cannot resolve the root `fail`s instead.
+ */
 function rootClasses(file, src) {
   const component = file.replace(/\.tsx$/, '')
   const declared = src.indexOf(`export function ${component}(`)
@@ -111,12 +128,78 @@ function rootClasses(file, src) {
     fail(`${file}: no \`export function ${component}(\` — cannot locate the page root`)
     return []
   }
-  const match = /className="([^"]+)"/.exec(src.slice(declared))
-  if (!match) {
-    fail(`${file}: no literal className on the root element — cannot locate the page root`)
+
+  const attr = 'className='
+  const at = src.indexOf(attr, declared)
+  if (at === -1) {
+    fail(`${file}: no className on the root element — cannot locate the page root`)
     return []
   }
-  return match[1].trim().split(/\s+/)
+
+  const open = src[at + attr.length]
+  let literals
+
+  if (open === '"') {
+    const end = src.indexOf('"', at + attr.length + 1)
+    if (end === -1) {
+      fail(`${file}: unterminated className on the root element — cannot locate the page root`)
+      return []
+    }
+    literals = [src.slice(at + attr.length + 1, end)]
+  } else if (open === '{') {
+    // Balanced-brace scan rather than a regex, so a nested `{}` inside the
+    // expression cannot end the match early.
+    let depth = 0
+    let i = at + attr.length
+    for (; i < src.length; i++) {
+      if (src[i] === '{') depth++
+      else if (src[i] === '}' && --depth === 0) break
+    }
+    if (depth !== 0) {
+      fail(`${file}: unbalanced className expression on the root element — cannot locate the page root`)
+      return []
+    }
+    const expr = src.slice(at + attr.length + 1, i)
+    literals = [...expr.matchAll(/'([^']*)'|"([^"]*)"|`([^`$]*)`/g)].map(m => m[1] ?? m[2] ?? m[3])
+    if (literals.length === 0) {
+      fail(
+        `${file}: the root element's className is an expression with no string literals in it — ` +
+          'RULE 5 resolves a page width by looking the root\'s classes up in the CSS, so it cannot check a class built at runtime',
+      )
+      return []
+    }
+  } else {
+    fail(`${file}: unrecognised className form on the root element — cannot locate the page root`)
+    return []
+  }
+
+  const lists = literals.map(l => l.trim().split(/\s+/).filter(Boolean))
+  if (lists.length === 0 || lists[0].length === 0) {
+    fail(`${file}: no literal class names on the root element — cannot locate the page root`)
+    return []
+  }
+
+  // The base is the first class of the first literal; everything else must be
+  // that base or a BEM modifier of it. This is what keeps the expression form
+  // from becoming a scrape: a stray literal that is not part of the root's own
+  // block (`'wide'` lifted out of the condition, say) would otherwise be
+  // reported as a page root class and looked up in the CSS as one.
+  const base = lists[0][0]
+  const classes = [base]
+  for (const list of lists) {
+    for (const cls of list) {
+      if (cls === base) continue
+      if (!cls.startsWith(`${base}--`)) {
+        fail(
+          `${file}: the root element's className includes \`${cls}\`, which is neither \`${base}\` nor a BEM ` +
+            `modifier of it — a page root's classes all belong to its own block, or this gate is guessing which element it is checking`,
+        )
+        continue
+      }
+      if (!classes.includes(cls)) classes.push(cls)
+    }
+  }
+  return classes
 }
 
 /** The classes on the element that wraps an `<Outlet />`, if the page is a layout. */
@@ -464,19 +547,63 @@ for (const [selector, owner] of Object.entries(INSET_OWNERS)) {
       continue
     }
 
-    // RULE 5b — a page that owns its header declares exactly one page width,
-    // and it is one of the two tokens.
-    if (found.length === 0) {
+    // RULE 5b — a page that owns its header declares exactly one page width per
+    // rendered variant, and every one of them is one of the two tokens.
+    //
+    // "Per variant" rather than "one, full stop", because of the guide. It is
+    // ONE layout owning the width for seven sub-pages whose content is not one
+    // kind of thing: the Data Dictionary's routes table wants 1200px and the
+    // CDS Service page — prose plus four curl blocks — does not, and giving it
+    // 1200px anyway put its paragraphs at 48% of their own column while the
+    // reading measure was doing exactly its job. So the base class carries the
+    // default and a BEM modifier of it carries the other value, chosen by
+    // `width` in data/guideSections.ts.
+    //
+    // Ownership is what the rule is actually protecting, and it survives: both
+    // declarations sit on the layout's own class family, in the layout's own
+    // stylesheet, and RULE 5a still fails any SUB-PAGE root that declares a
+    // width — which is the drift this rule was written against (seven
+    // sub-pages, five widths). What is forbidden here is a second width on the
+    // BASE class, or two on one modifier: those are the old double-ownership
+    // bug, unchanged.
+    //
+    // ⚠️ A modifier the JSX never renders is invisible to this rule, since
+    // `classes` is scraped from the source. That is not a hole for the thing
+    // RULE 5 guards — an unrendered class sets no page's width — and a raw
+    // length on one is caught anyway by `check:prose` RULE 2, which reads every
+    // `max-width` in `src/**` regardless of who renders it.
+    const base = classes[0]
+    const onBase = found.filter(d => d.cls === base)
+    const onModifiers = found.filter(d => d.cls !== base)
+
+    if (onBase.length === 0) {
       fail(
-        `${file}: renders <PageHeader> but no page width is declared on its root (\`${classes.map(c => `.${c}`).join(' ')}\`) — ` +
+        `${file}: renders <PageHeader> but no page width is declared on its root's base class (\`.${base}\`) — ` +
           `pick ${PAGE_WIDTHS.join(' or ')}`,
       )
       continue
     }
-    if (found.length > 1) {
+    if (onBase.length > 1) {
       fail(
-        `${file}: its root declares ${found.length} page widths (${found.map(d => `.${d.cls} → ${d.value} at ${d.at}`).join('; ')}) — one root, one width`,
+        `${file}: \`.${base}\` declares ${onBase.length} page widths (${onBase.map(d => `${d.value} at ${d.at}`).join('; ')}) — one root, one width`,
       )
+    }
+
+    const seen = new Map()
+    for (const d of onModifiers) {
+      if (seen.has(d.cls)) {
+        fail(
+          `${file}: \`.${d.cls}\` declares two page widths (${seen.get(d.cls).value} at ${seen.get(d.cls).at}; ${d.value} at ${d.at}) — one modifier, one width`,
+        )
+        continue
+      }
+      seen.set(d.cls, d)
+      if (d.value === onBase[0].value) {
+        fail(
+          `${file}: \`.${d.cls}\` sets \`max-width: ${d.value}\` at ${d.at}, the same width \`.${base}\` already sets — ` +
+            'a width modifier that changes nothing is a variant the data can select and no reader can see',
+        )
+      }
     }
     for (const d of found) {
       if (!PAGE_WIDTHS.includes(d.value)) {
