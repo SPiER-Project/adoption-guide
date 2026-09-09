@@ -74,7 +74,7 @@ export function PopulationAlertsPanel({ groups }: { groups: PatientAlertGroup[] 
                     </li>
                   ))}
                 </ul>
-                <Link to={`/patient/chart/${g.patientId}`} className="pop-alert-patient">
+                <Link to={`/patient/record/${g.patientId}`} className="pop-alert-patient">
                   Open {g.patientName}’s chart →
                 </Link>
               </details>

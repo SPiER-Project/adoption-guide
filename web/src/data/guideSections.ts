@@ -97,6 +97,23 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // protocol as /patient/pathway (PathwayProtocol.tsx), which is `wide` as its
   // own route — one artifact should not change measure with the chrome.
   { path: 'pathway', label: 'Care Pathway', group: 'learn', width: 'wide' },
+  // The two apps the guide HOSTS, explained where implementers read — the
+  // pathway page says what the protocol is, these say what walks it. They sit
+  // between the protocol and the catalogue because that is the reading order:
+  // what the pathway says, what runs it, then which instruments exist.
+  //
+  // ⚠️ These are also what /patient/chart and /population redirect to, decided
+  // 2026-09-09: the guide explains and hosts, the mock EHR holds and launches.
+  // Being SECTIONS rather than hand-rolled routes is load-bearing —
+  // check:guide-boundary derives the guide's page set from this list, so
+  // "an explainer holds no patient data" is gated rather than merely intended.
+  //
+  // `prose`: both are paragraphs and lists with no table and no grid, so they
+  // are the case this field's own doc comment describes — `wide` would be
+  // invisibly wrong, and every text run here is already capped at the reading
+  // measure.
+  { path: 'patient-app', label: 'Patient App', group: 'learn', width: 'prose' },
+  { path: 'dashboard', label: 'Population Dashboard', group: 'learn', width: 'prose' },
   // `wide`: two catalogue tables.
   { path: 'tools', label: 'Tools', group: 'learn', width: 'wide' },
   // `wide`: four tables, the widest being the per-concept routes table whose

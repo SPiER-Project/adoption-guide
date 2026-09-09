@@ -47,7 +47,7 @@ function patientBody(row: DerivedRegistryRow): ReactNode {
           FHIRcast broadcast happens on activation in PatientContext, so both
           paths publish without an explicit call here. */}
       <Link
-        to={`/patient/chart/${row.id}`}
+        to={`/patient/record/${row.id}`}
         className="caseload-patient-link"
         onClick={e => e.stopPropagation()}
       >

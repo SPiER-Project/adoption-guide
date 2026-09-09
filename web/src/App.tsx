@@ -58,6 +58,8 @@ const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ 
 const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
 const CdsServiceGuide = lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide })))
+const PatientAppGuide = lazy(() => import('./pages/PatientAppGuide').then(m => ({ default: m.PatientAppGuide })))
+const PopulationDashboardGuide = lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide })))
 const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
@@ -102,6 +104,14 @@ function LegacyGuideRedirect() {
   return <Navigate to={`/guide${rest ? `/${rest}` : ''}`} replace />
 }
 
+// /patient/chart/:patientId → /patient/record/:patientId. A plain <Navigate>
+// cannot do this: the id has to survive, and dropping it would land a launched
+// chart on whichever patient happened to be stored.
+function LegacyChartRedirect() {
+  const { patientId } = useParams<{ patientId: string }>()
+  return <Navigate to={patientId ? `/patient/record/${patientId}` : '/patient/record'} replace />
+}
+
 function LegacyAssessmentRedirect() {
   const { tool } = useParams<{ tool: string }>()
   return <Navigate to={tool ? `/patient/assessments/${tool}` : '/patient/assessments'} replace />
@@ -140,6 +150,12 @@ function AppRoutes() {
               deep links (/guide/pathway#stage-…) are forwarded by CarePathway
               itself — see the note there. */}
           <Route path="pathway" element={<CarePathway />} />
+          {/* ⚠️ Declared in this exact `<Route path="x" element={<Comp />}>`
+              form on purpose: check-guide-boundary.mjs reads the route table to
+              find each section's component, and a different shape would make it
+              fail to resolve the page rather than silently skip it. */}
+          <Route path="patient-app" element={<PatientAppGuide />} />
+          <Route path="dashboard" element={<PopulationDashboardGuide />} />
           <Route path="tools" element={<PatientJourney />} />
           <Route path="tool-configuration" element={<ToolConfiguration />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
@@ -161,9 +177,24 @@ function AppRoutes() {
 
         {/* Patient View lens */}
         <Route path="/patient">
-          <Route index element={<Navigate to="chart" replace />} />
-          <Route path="chart" element={<PatientChart />} />
-          <Route path="chart/:patientId" element={<PatientChart />} />
+          <Route index element={<Navigate to="record" replace />} />
+          {/* The chart app. It answered on `chart` until Phase 0 of
+              docs/plans/user-scoped-smart-launch.md, which needed that URL for
+              the page that EXPLAINS this app: the guide explains and hosts,
+              the mock EHR holds and launches, and a visitor typing
+              /patient/chart is asking the guide a question rather than opening
+              a clinician's chart. This is the app itself — the panel's landing
+              route (see SmartRedirect) and the target of every filler's "View
+              in chart". */}
+          <Route path="record" element={<PatientChart />} />
+          <Route path="record/:patientId" element={<PatientChart />} />
+          {/* /patient/chart is published, linked from CDS cards in the wild and
+              named in docs/mock-ehr-demo-script.md, so it resolves rather than
+              404s — to the explainer, which is what someone arriving at it now
+              wants. The per-patient form keeps the id: a launched chart URL
+              must not silently lose its patient. */}
+          <Route path="chart" element={<Navigate to="/guide/patient-app" replace />} />
+          <Route path="chart/:patientId" element={<LegacyChartRedirect />} />
           {/* The published protocol, beside the chart rather than in the guide
               (Phase 4 of docs/plans/suicide-safer-care-pathway.md). This is the
               route the embedded SMART panel reaches from the chart's pathway
@@ -173,7 +204,7 @@ function AppRoutes() {
               provenance leading; it renders the DEFINITION and reads no patient
               data, exactly like the guide page. */}
           <Route path="pathway" element={<PathwayProtocol />} />
-          <Route path="assessments" element={<Navigate to="/patient/chart" replace />} />
+          <Route path="assessments" element={<Navigate to="/patient/record" replace />} />
           <Route path="assessments/phq-9" element={
             <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />
           } />
@@ -254,8 +285,8 @@ function AppRoutes() {
           <Route path="workflow/crisis-resources" element={
             <WorkflowActionView toolId="TL-013" title="Record Crisis Resources Shared" actionNoun="crisis resources shared" summaryPlaceholder="e.g. 988 Lifeline + Crisis Text Line + safety-plan copy given to patient" />
           } />
-          <Route path="care-plans" element={<Navigate to="/patient/chart#care-plans" replace />} />
-          <Route path="encounters" element={<Navigate to="/patient/chart#encounters" replace />} />
+          <Route path="care-plans" element={<Navigate to="/patient/record#care-plans" replace />} />
+          <Route path="encounters" element={<Navigate to="/patient/record#encounters" replace />} />
         </Route>
 
         {/* Population View placeholder */}
@@ -263,7 +294,12 @@ function AppRoutes() {
             the mock EHR embeds it as `?embed=1#/population`, so it stays the
             index rather than becoming /population/caseload. */}
         <Route path="/population">
-          <Route index element={<PopulationView />} />
+          {/* ⚠️ `/population` was the caseload itself until Phase 0. It is now
+              the guide page that explains the dashboard product — the same
+              move as /patient/chart above, and for the same reason. The live
+              caseload is `caseload`. */}
+          <Route index element={<Navigate to="/guide/dashboard" replace />} />
+          <Route path="caseload" element={<PopulationView />} />
           {/* The summary and alerts with no table and no page header — what the
               mock EHR frames at the top of its front door. See the module
               header for why the whole lens is the wrong thing to embed. */}
@@ -272,8 +308,8 @@ function AppRoutes() {
         </Route>
 
         {/* Legacy /chart/* redirects — keep for one cycle */}
-        <Route path="/chart" element={<Navigate to="/patient/chart" replace />} />
-        <Route path="/chart/dashboard" element={<Navigate to="/patient/chart" replace />} />
+        <Route path="/chart" element={<Navigate to="/patient/record" replace />} />
+        <Route path="/chart/dashboard" element={<Navigate to="/patient/record" replace />} />
         <Route path="/chart/screenings" element={<Navigate to="/patient/assessments" replace />} />
         <Route path="/chart/screenings/:tool" element={<LegacyAssessmentRedirect />} />
         <Route path="/chart/careplan" element={<Navigate to="/patient/care-plans" replace />} />

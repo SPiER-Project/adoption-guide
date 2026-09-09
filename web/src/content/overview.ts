@@ -135,11 +135,11 @@ export const OVERVIEW_LENSES: OverviewLens[] = [
     badge: 'Demo',
     title: 'Population View',
     body:
-      'A behavioral-health counselor’s caseload — 10 sample patients spanning every ' +
+      'A behavioral-health counselor’s caseload — 14 sample patients spanning every ' +
       'pathway stage and risk level. Each row surfaces the recommended next step regardless ' +
       'of which specific tools an implementation has enabled.',
     cta: 'Open the caseload →',
-    href: '/population',
+    href: '/population/caseload',
   },
   {
     key: 'patient',
@@ -151,7 +151,7 @@ export const OVERVIEW_LENSES: OverviewLens[] = [
       'CDS-style next-step recommendation cards, activity grouped by stage, encounter ' +
       'timeline, and a full FHIR document list.',
     cta: 'Open the chart →',
-    href: '/patient/chart',
+    href: '/patient/record',
   },
   {
     key: 'ig',

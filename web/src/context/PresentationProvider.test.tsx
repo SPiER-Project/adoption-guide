@@ -36,7 +36,7 @@ vi.mock('../components/PanelShell', () => ({ PanelShell: () => <div data-testid=
 const { Shell } = await import('../components/Shell')
 
 const setSearch = (search: string) => {
-  window.history.replaceState({}, '', `/${search}#/patient/chart`)
+  window.history.replaceState({}, '', `/${search}#/patient/record`)
 }
 
 const CHROME_KEY = 'spier:chrome-mode'
@@ -90,7 +90,7 @@ describe('PresentationProvider — reading the embed flag', () => {
     // The trap this guards: `?embed=1` after the `#` is part of the route, not
     // the query. Reading `location.href` instead of `location.search` would
     // match here and put a normal deep link into panel chrome.
-    window.history.replaceState({}, '', '/#/patient/chart?embed=1')
+    window.history.replaceState({}, '', '/#/patient/record?embed=1')
     render(
       <PresentationProvider>
         <Shell />

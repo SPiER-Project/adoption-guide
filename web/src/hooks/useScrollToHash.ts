@@ -50,7 +50,7 @@ export function scrollToAnchor(anchor: string) {
  * anchor scroll isn't clobbered when a page mounts with a hash.
  *
  * In a HashRouter app the section anchor is the part after the *second* '#'
- * (`#/patient/chart#activity` → `location.hash === '#activity'`), which React
+ * (`#/patient/record#activity` → `location.hash === '#activity'`), which React
  * Router surfaces as `location.hash`.
  *
  * Returns `jumpTo(anchor)` for in-page controls (e.g. the pathway tracker): it

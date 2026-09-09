@@ -94,7 +94,7 @@ export function SafetyReferralView() {
     <div className="form-view">
       <PageHeader
         eyebrow={['Patient View', 'Workflow']}
-        up="/patient/chart"
+        up="/patient/record"
         title="Referral / Next Provider Handoff"
         lede={
           <>
@@ -185,7 +185,7 @@ export function SafetyReferralView() {
 
           {notice && (
             <div className="workflow-success-notice">
-              {notice} <Link to="/patient/chart#activity">View in chart</Link>
+              {notice} <Link to="/patient/record#activity">View in chart</Link>
             </div>
           )}
 

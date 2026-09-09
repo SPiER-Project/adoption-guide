@@ -66,6 +66,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
+import { readRouteTable, routeResolves } from './lib/route-table.mjs'
 import {
   assertUsableIndex,
   buildConformanceIndex,
@@ -81,6 +82,11 @@ const root = resolve(here, '../..') // repo root
 const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const patientsDir = join(root, 'packages/demo-population/src/patients')
+
+// Every path App.tsx registers. Read once: the reader THROWS on parsing
+// nothing, so a scenario's suggestedAction can never be validated against an
+// empty table (which would pass everything).
+const { paths: ROUTE_PATHS } = readRouteTable()
 
 let failures = 0
 const fail = (msg) => {
@@ -230,6 +236,26 @@ function checkRiskAlert(alert, where) {
       fail(`${where}: RiskAlert.suggestedAction needs both a label and a path`)
     } else if (!a.path.startsWith('/')) {
       fail(`${where}: RiskAlert.suggestedAction.path "${a.path}" is not an app route`)
+    } else if (!routeResolves(a.path.split(/[?#]/)[0], ROUTE_PATHS)) {
+      // ⚠️ This branch is the check the message above always claimed to be
+      // making. Until 2026-09-09 the only test was `startsWith('/')`: "is not
+      // an app route" fired for `foo` and passed for any well-formed string,
+      // in fixtures no test renders. Same hole `check:catalog` had for the 36
+      // catalog launch paths, closed the same way from the same shared reader.
+      //
+      // ⚠️ **What it still cannot see: a path that resolves to the WRONG
+      // place.** A redirect counts as resolving, deliberately — this repo keeps
+      // compatibility redirects for published paths and a redirect is a working
+      // link. So when the chart moved to /patient/record, this fixture's
+      // `/patient/chart#care-plans` kept resolving, to the explainer, silently
+      // dropping its `#care-plans` anchor. It was found by grep and fixed by
+      // hand. Resolving is the machine-checkable half; landing somewhere useful
+      // is not, so a route rename still owes a manual sweep of these paths.
+      fail(
+        `${where}: RiskAlert.suggestedAction.path "${a.path}" does not resolve against ` +
+          `App.tsx's route table — that button navigates to the catch-all and sends the ` +
+          `user home.`,
+      )
     }
   }
 }

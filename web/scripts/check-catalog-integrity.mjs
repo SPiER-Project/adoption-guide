@@ -599,7 +599,7 @@ console.log(
     `definition, so their IG links resolve`,
 )
 
-// ─── Every launch action resolves to a registered route ─────
+// ─── Every declared navigation target resolves to a route ──
 //
 // ⚠️ **This gate asserted only that a tool HAD a launch action until
 // 2026-09-09** — the `/launchActions:\s*\[\s*\{/` test further up. Nothing
@@ -669,10 +669,50 @@ if (launchChecked === 0) {
       `${Math.abs(rawPathCount - launchChecked)} of them and reporting green over the gap.`,
   )
 }
+// The panel's own landing route belongs in the same check, and was the one
+// target with NO coverage of any kind: `SmartRedirect` navigates there after a
+// SMART launch completes, there is no SmartRedirect.test.tsx, and no other test
+// exercises the launch. Rename the chart route without updating that line and
+// every gate stays green while the whole SMART demo lands on the catch-all and
+// bounces to the front page — the single most expensive way this repo could
+// break, since it only shows up in front of an audience.
+const redirectSrc = readFileSync(join(webRoot, 'src/components/SmartRedirect.tsx'), 'utf8')
+const landing = redirectSrc.match(/navigate\(\s*directed\s*\?\?\s*'([^']+)'/)?.[1]
+if (!landing) {
+  // Not a pass. If this pattern stops matching, the gate has lost sight of the
+  // landing route and cannot speak to it either way.
+  fail(
+    'SmartRedirect.tsx: could not find the post-launch landing route ' +
+      "(expected `navigate(directed ?? '<path>')`). This gate asserts that route " +
+      'resolves; it must not silently stop looking.',
+  )
+} else if (!routeResolves(landing, routePaths)) {
+  fail(
+    `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx does ` +
+      `not register. Every launch from a host would land on the catch-all and bounce to the ` +
+      `front page.`,
+  )
+} else if (routeRedirects.has(landing)) {
+  // ⚠️ Stricter than the launch-action rule above, on purpose — and this branch
+  // exists because the looser rule was tried first and PASSED a planted defect.
+  // A redirect is a fine destination for a catalog button: the reader ends up
+  // somewhere sensible. It is NOT fine for the panel's landing route, because
+  // /patient/chart and /population are now redirects to the pages that EXPLAIN
+  // these apps. A launch landing on one would drop a clinician mid-workflow onto
+  // implementer prose — resolving, harmless-looking, and completely wrong.
+  fail(
+    `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx ` +
+      `registers as a REDIRECT rather than a page. The panel must land on the app itself — ` +
+      `a redirect here sends a launched clinician wherever it points, which for ` +
+      `/patient/chart and /population is the guide page that explains the app.`,
+  )
+}
+
 if (failures === launchFailuresBefore) {
   console.log(
-    `✓ launch actions: all ${launchChecked} catalog launch path(s) resolve against App.tsx's ` +
-      `route table (${routePaths.size} routes${viaRedirect ? `, ${viaRedirect} via a redirect` : ''})`,
+    `✓ navigation targets: ${launchChecked} catalog launch path(s) and the panel's post-launch ` +
+      `landing route ("${landing}") all resolve against App.tsx's route table ` +
+      `(${routePaths.size} routes${viaRedirect ? `, ${viaRedirect} via a redirect` : ''})`,
   )
 }
 

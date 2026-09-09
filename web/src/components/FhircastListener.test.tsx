@@ -79,9 +79,9 @@ describe('a hub event under SMART — the EHR speaking', () => {
   it('is FOLLOWED, where the old flat rule ignored it', () => {
     // The same patient the session is scoped to, viewed from elsewhere in the
     // app: navigating to their chart is exactly what a subscribed app should do.
-    renderAt('/patient/chart')
+    renderAt('/patient/record')
     deliver('patient-011', 'hub', 'Maria Alvarez')
-    expect(navigate).toHaveBeenCalledWith('/patient/chart/patient-011')
+    expect(navigate).toHaveBeenCalledWith('/patient/record/patient-011')
     expect(marked).toEqual(['patient-011'])
     expect(screen.getByRole('status').textContent).toContain('Maria Alvarez')
   })
@@ -90,7 +90,7 @@ describe('a hub event under SMART — the EHR speaking', () => {
     // "(simulated)" was accurate for every event this component could receive
     // before step 6. Saying it about a real EHR's hub event would be a false
     // claim in the UI.
-    renderAt('/patient/chart')
+    renderAt('/patient/record')
     deliver('patient-011', 'hub', 'Maria Alvarez')
     const text = screen.getByRole('status').textContent ?? ''
     expect(text).toContain('connected EHR')
@@ -101,7 +101,7 @@ describe('a hub event under SMART — the EHR speaking', () => {
     // ⚠️ The constraint that makes an embedded panel different: the access token
     // is bound to one patient, so "follow" cannot mean "read that patient".
     // Navigating would render a chart of 403s.
-    renderAt('/patient/chart')
+    renderAt('/patient/record')
     deliver('patient-012', 'hub', 'Ana Ruiz')
     expect(navigate).not.toHaveBeenCalled()
     const alert = screen.getByRole('alert')
@@ -130,7 +130,7 @@ describe('a BroadcastChannel event — another tab of this app', () => {
   it('is ignored under SMART, which is the rule that did NOT change', () => {
     // A simulation must never override the system of record.
     smart.patient = { id: 'patient-011', name: 'Maria Alvarez' }
-    renderAt('/patient/chart')
+    renderAt('/patient/record')
     deliver('patient-012', 'broadcast', 'Ana Ruiz')
     expect(navigate).not.toHaveBeenCalled()
     expect(screen.queryByRole('alert')).toBeNull()
@@ -138,9 +138,9 @@ describe('a BroadcastChannel event — another tab of this app', () => {
   })
 
   it('is followed when standalone and on a chart route', () => {
-    renderAt('/patient/chart')
+    renderAt('/patient/record')
     deliver('patient-012', 'broadcast', 'Ana Ruiz')
-    expect(navigate).toHaveBeenCalledWith('/patient/chart/patient-012')
+    expect(navigate).toHaveBeenCalledWith('/patient/record/patient-012')
     expect(screen.getByRole('status').textContent).toContain('simulated')
   })
 
@@ -151,7 +151,7 @@ describe('a BroadcastChannel event — another tab of this app', () => {
   })
 
   it('does not re-navigate to the chart already open', () => {
-    renderAt('/patient/chart/patient-012')
+    renderAt('/patient/record/patient-012')
     deliver('patient-012', 'broadcast')
     expect(navigate).not.toHaveBeenCalled()
   })

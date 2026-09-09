@@ -58,7 +58,10 @@ npm run check:extract          # observation-extract validation
 npm run check:core-boundary    # packages/core stays React-free and DOM-free
 npm run check:guide-boundary   # the Adoption Guide holds no patient data (walks guide pages transitively)
 npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, questionnaire URLs both
-                               # ways, per-AD licensing metadata, per-AD tool-id identifiers
+                               # ways, per-AD licensing metadata, per-AD tool-id identifiers — plus
+                               # every declared navigation target resolves to a real App.tsx route:
+                               # the 36 catalog launch paths, and the panel's post-launch landing
+                               # route, which must be a PAGE and not a redirect
 npm run check:stages           # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway          # the pathway PlanDefinition's tier codes, stage codes and
                                # definitionCanonicals all resolve against the generated artifacts
@@ -67,7 +70,8 @@ npm run check:readers          # every observation mapper's answer reads vs the 
 npm run check:careplan-readers # the sibling rule for carePlanMappers: does the nesting each reader
                                # walks match what the Questionnaire declares
 npm run check:patients         # the 14 demo patients' demographics agree across all three sites
-npm run check:scenarios        # scenario QRs vs their Questionnaire, plus every other resource bucket
+npm run check:scenarios        # scenario QRs vs their Questionnaire, plus every other resource bucket;
+                               # a RiskAlert's suggestedAction.path must resolve to a route
 npm run check:dates            # the scenario fixtures' clinical dates are coherent relative to their
                                # anchor (--check validates; --apply is the separate re-dating command)
 npm run check:measures         # Stage-8 Measure criteria vs the measures.ts engine
@@ -233,6 +237,20 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   `ehr` strings under `services/mock-ehr/` deliberately keep the prefix — they
   really are about EHR vendors, SMART scopes and host internals.
 - **Routing:** `HashRouter` (see `web/src/main.tsx`) — GitHub Pages compatible.
+- **The guide explains and hosts; the mock EHR holds and launches.** `/patient/chart`
+  and `/population` are **redirects to guide pages that explain the two SMART
+  apps** (`/guide/patient-app`, `/guide/dashboard`); the apps themselves answer on
+  `/patient/record` and `/population/caseload`. Decided 2026-09-09 — see
+  [`docs/plans/embedded-panel-smart-launch.md`](docs/plans/embedded-panel-smart-launch.md)
+  §6.3, *"The explainer is the page, and the app is a launch"*.
+  ⚠️ **An explainer is a `guideSections.ts` entry, and that is load-bearing** —
+  `check:guide-boundary` derives the guide's page set from that list, so "an
+  explainer holds no patient data" is gated rather than merely intended. A
+  hand-rolled route outside the list would be unchecked.
+  ⚠️ **Renaming either app route needs the redirects too.** `check:catalog`
+  covers the catalog's launch paths and the panel's landing route; nothing can
+  see a path that still *resolves* but now lands on the explainer — that class
+  needs a grep.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
 - **Never hand-edit generated output** — `packages/fhir-artifacts/generated/`,
   `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`. To change

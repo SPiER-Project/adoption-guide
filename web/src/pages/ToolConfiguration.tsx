@@ -40,7 +40,7 @@ export function ToolConfiguration() {
 
   // Mirrors the sidebar: keep the loaded patient rather than dropping the
   // reader onto the blank chart.
-  const patientBase = activePatientId ? `/patient/chart/${activePatientId}` : '/patient/chart'
+  const patientBase = activePatientId ? `/patient/record/${activePatientId}` : '/patient/record'
 
   return (
     <div className="tool-config">

@@ -13,7 +13,7 @@ import '../css/FhircastListener.css'
 // Only a tab already viewing a patient chart follows a broadcast. This mirrors
 // real FHIRcast: a subscribed chart app follows context changes, but we never
 // yank a user out of, say, a half-filled assessment or the adoption guide.
-const CHART_ROUTE = /^\/patient\/chart(\/|$)/
+const CHART_ROUTE = /^\/patient\/record(\/|$)/
 
 /**
  * App-wide listener for FHIRcast `patient-open` events.
@@ -91,10 +91,10 @@ export function FhircastListener() {
           setOutOfScope(payload)
           return
         }
-        if (pathname === `/patient/chart/${payload.patientId}`) return
+        if (pathname === `/patient/record/${payload.patientId}`) return
         if (!CHART_ROUTE.test(pathname)) return
         markFollowing(payload.patientId, Date.now())
-        navigate(`/patient/chart/${payload.patientId}`)
+        navigate(`/patient/record/${payload.patientId}`)
         setFollowed({ payload, via })
         return
       }
@@ -104,12 +104,12 @@ export function FhircastListener() {
       if (isSmartConnected) return
       if (!CHART_ROUTE.test(pathname)) return
       // Already viewing this patient — nothing to switch, no banner.
-      if (pathname === `/patient/chart/${payload.patientId}`) return
+      if (pathname === `/patient/record/${payload.patientId}`) return
       // Mark this as a programmatic follow BEFORE navigating so PatientContext's
       // publish effect (which fires once the navigation changes the active
       // patient) suppresses it instead of rebroadcasting — no cross-tab echo.
       markFollowing(payload.patientId, Date.now())
-      navigate(`/patient/chart/${payload.patientId}`)
+      navigate(`/patient/record/${payload.patientId}`)
       setFollowed({ payload, via })
     })
   }, [navigate])

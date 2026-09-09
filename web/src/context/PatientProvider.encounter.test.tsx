@@ -120,7 +120,7 @@ function Harness({ onApi }: { onApi: (api: ChartApi) => void }) {
   return <div data-testid="active-patient">{activePatientId ?? 'none'}</div>
 }
 
-async function mount(route = '/patient/chart'): Promise<ChartApi> {
+async function mount(route = '/patient/record'): Promise<ChartApi> {
   const latest: { current: ChartApi | null } = { current: null }
   // Stored from the test's own closure rather than by mutating a prop, which the
   // React compiler lint rejects outright.
@@ -348,7 +348,7 @@ describe('the rest of the correlation funnel', () => {
     // Wait for the switch to actually take effect, rather than for anything in
     // patient-011's seeded scenario — the artifact write must happen under the
     // NEW sliceKey or the test proves nothing.
-    go('/patient/chart/patient-011')
+    go('/patient/record/patient-011')
     await waitFor(() => expect(screen.getByTestId('active-patient').textContent).toBe('patient-011'))
     await act(async () => {})
     const before = patient011().communications?.length ?? 0

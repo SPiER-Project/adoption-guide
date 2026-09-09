@@ -188,7 +188,7 @@ describe('useScrollToHash', () => {
   test('scrolls to the hash target on mount', () => {
     document.body.appendChild(makeTarget('documents', 800))
 
-    renderWithRoute('/patient/chart#documents', useScrollToHash)
+    renderWithRoute('/patient/record#documents', useScrollToHash)
 
     expect(scrollToSpy).toHaveBeenCalledWith(0, 800)
   })
@@ -196,7 +196,7 @@ describe('useScrollToHash', () => {
   test('does not scroll when the route carries no hash', () => {
     document.body.appendChild(makeTarget('documents', 800))
 
-    renderWithRoute('/patient/chart', useScrollToHash)
+    renderWithRoute('/patient/record', useScrollToHash)
 
     expect(scrollToSpy).not.toHaveBeenCalled()
   })
@@ -205,10 +205,10 @@ describe('useScrollToHash', () => {
     document.body.appendChild(makeTarget('activity', 300))
     document.body.appendChild(makeTarget('documents', 800))
 
-    const { navigate } = renderWithRoute('/patient/chart#activity', useScrollToHash)
+    const { navigate } = renderWithRoute('/patient/record#activity', useScrollToHash)
     expect(scrollToSpy).toHaveBeenCalledWith(0, 300)
 
-    act(() => navigate('/patient/chart#documents'))
+    act(() => navigate('/patient/record#documents'))
     expect(scrollToSpy).toHaveBeenCalledWith(0, 800)
   })
 })
@@ -218,16 +218,16 @@ describe('useScrollToTopOnNavigate', () => {
     const { navigate } = renderWithRoute('/population', useScrollToTopOnNavigate)
     scrollToSpy.mockClear()
 
-    act(() => navigate('/patient/chart/patient-001'))
+    act(() => navigate('/patient/record/patient-001'))
 
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
   })
 
   test('returns to the top when only the search string changes', () => {
-    const { navigate } = renderWithRoute('/patient/chart', useScrollToTopOnNavigate)
+    const { navigate } = renderWithRoute('/patient/record', useScrollToTopOnNavigate)
     scrollToSpy.mockClear()
 
-    act(() => navigate('/patient/chart?new=1'))
+    act(() => navigate('/patient/record?new=1'))
 
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
   })
@@ -238,7 +238,7 @@ describe('useScrollToTopOnNavigate', () => {
     const { navigate } = renderWithRoute('/population', useScrollToTopOnNavigate)
     scrollToSpy.mockClear()
 
-    act(() => navigate('/patient/chart/patient-001#documents'))
+    act(() => navigate('/patient/record/patient-001#documents'))
 
     expect(scrollToSpy).not.toHaveBeenCalled()
   })

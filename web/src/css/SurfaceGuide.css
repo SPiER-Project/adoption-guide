@@ -1,0 +1,112 @@
+/* The two pages that explain SPiER's clinical apps — `PatientAppGuide` and
+   `PopulationDashboardGuide`. One stylesheet, because they are the same kind of
+   page: prose about a surface, with links out to it.
+
+   `.surface-guide` sets NO width. Both render inside the /guide layout, which
+   already owns one; a sub-page that restates it is the double ownership
+   `npm run check:template` forbids in both directions. Prose that needs a
+   narrower measure caps the TEXT RUN with `--measure-prose` — a character
+   count, in `em`, per `check:prose` — never the box. */
+.surface-guide {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.surface-guide__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.surface-guide__intro p {
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  color: var(--text-body);
+  margin: 0;
+  max-width: var(--measure-prose);
+}
+
+.surface-guide__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.surface-guide__section p {
+  font-size: var(--font-size-md);
+  line-height: 1.65;
+  color: var(--text-body);
+  margin: 0;
+  max-width: var(--measure-prose);
+}
+
+.surface-guide__h3 {
+  color: var(--brand-primary);
+  font-size: var(--font-size-xl);
+  margin: 0;
+}
+
+/* Lists carry prose, so they take the same measure as a paragraph. The cap goes
+   on the `li`, not the `ul`: the marker sits outside the text run, and capping
+   the list would measure the box instead of the line. */
+.surface-guide__list,
+.surface-guide__steps {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.surface-guide__list li,
+.surface-guide__steps li {
+  font-size: var(--font-size-md);
+  line-height: 1.65;
+  color: var(--text-body);
+  max-width: var(--measure-prose);
+}
+
+.surface-guide__list {
+  list-style: disc;
+}
+
+.surface-guide__steps {
+  list-style: decimal;
+}
+
+/* A note is quieter than the prose around it; a warning is not. The warning
+   keeps body-weight text and an accent rule because the panel plan requires the
+   pages to SAY what they do not prove — a caveat set in small grey type is a
+   caveat the reader is being invited to skip. */
+.surface-guide__note,
+.surface-guide__warn {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.surface-guide__note {
+  border-left: 3px solid var(--border-default);
+}
+
+.surface-guide__warn {
+  border-left: 3px solid var(--brand-accent);
+}
+
+.surface-guide__cta {
+  display: inline-block;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.surface-guide__cta:hover,
+.surface-guide__cta:focus-visible {
+  background: var(--brand-primary-hover);
+}
