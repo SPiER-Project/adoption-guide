@@ -20,7 +20,7 @@
   background: var(--accent-info-soft);
   color: var(--accent-info-text);
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
 }
 
 .workflow-form {
@@ -52,7 +52,7 @@
 .workflow-field-help {
   max-width: var(--measure-prose);
   font-weight: 400;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--text-muted);
 }
 
@@ -142,7 +142,7 @@
 
 .consent-gate__detail {
   max-width: var(--measure-prose);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   margin: 0;
   line-height: 1.5;
 }

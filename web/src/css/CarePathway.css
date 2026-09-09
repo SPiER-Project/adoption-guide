@@ -44,7 +44,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface-muted);
   color: var(--text-body);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -98,7 +98,7 @@
   padding-left: var(--space-3);
   border-left: 2px solid var(--border-strong);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -215,7 +215,7 @@
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -251,7 +251,7 @@
   margin: var(--space-1) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-muted);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -368,7 +368,7 @@
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
 }
 
 /* ── The simulator ──────────────────────────────────────────── */
@@ -391,7 +391,7 @@
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -436,7 +436,7 @@
 .pathway-sim__text {
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -496,7 +496,7 @@
   max-width: var(--measure-prose);
   margin: 0 0 var(--space-3);
   color: var(--accent-warning-text-deep);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -515,7 +515,7 @@
   max-width: var(--measure-prose);
   margin: var(--space-1) 0 0;
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -534,7 +534,7 @@
   margin: 0 0 var(--space-3);
   max-width: var(--measure-prose);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
