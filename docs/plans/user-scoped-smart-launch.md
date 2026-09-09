@@ -416,28 +416,73 @@ reports `scope: 'in-context'`. Needs a genuine cohort query.
 `patient/*.read`, no `user/*.read`) against the new cohort endpoint and confirm
 it 403s — per ground rule 3, this is the one proof the whole plan hinges on.
 
-## Phase D — retire the bundled fallback, and only then relabel
+## Phase D — ~~retire the bundled fallback~~ PIN the boundary, and record where the gate belongs
 
-**Problem:** once A–C work, the guide should stop having any bundled-data
-fallback path, and the honesty labels that are currently true need to become
-false in the same commit that makes them actually false.
+⚠️ **Re-scoped 2026-09-09, and the reason is a decision made after this phase
+was written.** Phase D said the guide should stop having any bundled-data
+fallback. Two things then happened:
+
+- Brad, 2026-09-09: *"it's okay to not have the mock ehr up, we can still show
+  the workflows in the adoption guide."*
+- #493 put **Demo chart / Demo caseload / Demo measures** in the sidebar,
+  deliberately, as the path for exactly that.
+
+So "remove the bundled fallback" now describes deleting a feature that was just
+asked for. Measured before deciding — four non-test modules under `web/src`
+import the fixtures, and none is dead weight:
+
+| Module | What it needs them for |
+|---|---|
+| `lib/dataSource/localDataSource.ts` | the store's seed and its roster |
+| `context/PatientProvider.tsx` | the patient switcher, and the demo walkthroughs |
+| `hooks/useActivePatientId.ts` | ⚠️ the allowlist behind a deliberate crafted-URL guard (`/patient/record/__proto__`) |
+| `hooks/usePatientOpenBroadcast.ts` | FHIRcast patient-id validation |
+
+**The property Phase D wanted is real; it just belongs to the `clinical` BUILD
+rather than to the demo build.**
+[`surfaces-and-distribution.md`](surfaces-and-distribution.md) §3 already named
+that axis (`VITE_SURFACE=clinical | demo`) and states its reason in exactly these
+terms: *"A clinician inside a client's EHR reaching a patient list containing
+Jane Doe and Marcus Chen is a chart-safety problem, not an aesthetic one."* That
+is a **ship** problem. It is not a demo problem, and no client ship is
+near-term (§7).
+
+**Problem, restated:** what A–C actually won is that the guide never renders
+bundled rows *while a server is connected*. That is worth pinning, because it is
+invisible when it breaks — and it did break, twice, in the writing of A–C.
 
 **Steps:**
-1. Remove (or gate behind an explicit, clearly-labeled "offline demo" mode if
+1. ~~Remove (or gate behind an explicit, clearly-labeled "offline demo" mode if
    one is still wanted — decide this explicitly, don't default into keeping it
-   by inertia) `PatientProvider.tsx`'s `localDataSource` default.
+   by inertia) `PatientProvider.tsx`'s `localDataSource` default.~~ **Decided
+   explicitly, which is what this step asked for: the default STAYS.** It is the
+   offline demo mode, it is now named as such in the sidebar ("Demo chart",
+   "Demo caseload", "Demo measures"), and #491 removed the reason to fear it —
+   the source is keyed on the SMART *session*, so a connected app never reaches
+   it. Not kept by inertia; kept because the alternative deletes a requirement.
 2. ~~`services/mock-ehr/src/chartPage.ts:130`'s *"Embedded, but not a SMART
    launch"* label and `chartPage.test.ts`'s assertion of it: update in this
    same commit, per #401's explicit requirement — never before, never as a
    separate follow-up.~~ **Moved into Phase B step 4 (2026-09-09): the iframe is
    replaced by a launch button, so the label stops being true at that moment
    rather than at the end of the plan.**
-2b. **The gate that makes this stick.** Once step 1 lands, add the assertion that
-   *no non-test module under `web/src` imports `@spier/demo-population`*. That is
-   the machine-checkable form of "the adoption guide holds no patient data", and
-   it is strictly stronger than `check:guide-boundary`, which only walks the
-   guide's own page graph. Tests may still import the fixtures — they are not
-   shipped. Plant an import in a page and watch it go red.
+2b. ~~**The gate that makes this stick.** Once step 1 lands, add the assertion
+   that *no non-test module under `web/src` imports `@spier/demo-population`*.~~
+   **MOVED to the clinical build surface, 2026-09-09.** The assertion is right
+   and its scope was wrong: as a rule over `web/src` it forbids the offline demo
+   path, so it can only be true of a build that has no demo. It belongs to
+   `surfaces-and-distribution.md` §3's Phase C — *the clinical surface contains
+   no scenario import and no guide route* — which is also where that doc warns
+   the check is most likely to be written so it passes vacuously.
+
+   What replaces it here is a **test**, not a static gate, because the property
+   that matters is conditional: *connected to a server ⇒ no bundled row*. A
+   grep cannot see a condition. Landed as two paired assertions in
+   `PopulationSummaryEmbed.test.tsx` — a bundled patient's NAME must not appear
+   when a session cannot serve a cohort, and must appear when nothing is
+   connected — plus the cohort-scope cases in `useRegistrySlices.test.tsx`.
+   Proved by planting the exact bug #491 fixed (keying the fallback on
+   `isSmartConnected`, which a worklist launch makes false): two tests go red.
 3. ~~Record the reversal of `embedded-panel-smart-launch.md` §6.3's "retire
    `/population` and `/patient/chart`" direction explicitly in that doc.~~
    **Done 2026-09-03, ahead of this phase** — see the decision section above.
@@ -449,7 +494,7 @@ false in the same commit that makes them actually false.
    `repo-and-package-boundaries.md` §9 / `mock-patient-smart-launch.md` if
    either still describes the guide as reading bundled data.
 
-### ⚠️ The open question this phase cannot dodge — demo walkthroughs
+### ~~⚠️ The open question this phase cannot dodge — demo walkthroughs~~ — moot for now
 
 `PatientProvider.tsx:145` reads `POPULATION_SCENARIOS[activePatientId].walkthrough`,
 and `PatientChart` builds a reference index over it
@@ -471,6 +516,12 @@ is a product call rather than a refactor:
 ⚠️ **Do not let step 1 decide this by deleting the feature silently.** It is the
 one user-visible capability this plan removes, and the option chosen changes
 whether 2b's gate can pass at all.
+
+**Resolved by not arising, 2026-09-09.** Step 1 keeps the fixtures, so the
+walkthroughs keep their source and nothing has to be moved or dropped. The
+question returns with the `clinical` surface — where option 3 (pathway examples
+detached from patient ids) is the only one that survives a build with no
+fixtures — and it should be answered there rather than pre-emptively here.
 
 **Verification for the whole plan:** all three `verify` pipelines green;
 `services/mock-ehr` redeployed and the new launch flow exercised against the

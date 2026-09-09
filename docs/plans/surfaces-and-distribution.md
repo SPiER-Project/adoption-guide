@@ -132,6 +132,31 @@ chrome seam; the surface flag rides the same seam. Once two chrome modes and two
 data sources have shipped and grown assumptions about each other, adding a third
 axis means revisiting all of them.
 
+### The gate this axis inherited from #401 — added 2026-09-09
+
+`user-scoped-smart-launch.md` Phase D proposed a gate reading *no non-test module
+under `web/src` imports `@spier/demo-population`* — the machine-checkable form of
+"the adoption guide holds no patient data". **It belongs here, not there**, and
+the reason is the distinction this section exists to draw.
+
+As a rule over `web/src` it forbids the guide's offline demo path — the `Demo
+chart` / `Demo caseload` / `Demo measures` screens that let a workflow be walked
+with no host running, which is a stated requirement (Brad, 2026-09-09: *"it's
+okay to not have the mock ehr up, we can still show the workflows in the adoption
+guide"*). So it can only ever be true of a build that has no demo, which is
+precisely the `clinical` surface.
+
+⚠️ **It is therefore the same assertion as Phase C's, and it inherits Phase C's
+trap below in full**: "no scenario import" is exactly the shape that passes
+vacuously when the build it is checking was never produced. Four `web/src`
+modules import the fixtures today — `localDataSource`, `PatientProvider`,
+`useActivePatientId` (its crafted-URL allowlist) and `usePatientOpenBroadcast` —
+so a clinical build has real work behind it, not just a flag.
+
+What #401 landed instead is a **test** of the conditional property that actually
+mattered for the demo: connected to a server ⇒ no bundled row. A grep cannot see
+a condition; see that plan's Phase D.
+
 ### ⚠️ Phase C is the part that will be got wrong
 
 Every gate in this repo runs against the demo build. A clinical build that
