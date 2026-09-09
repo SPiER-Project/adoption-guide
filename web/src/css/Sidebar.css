@@ -47,20 +47,6 @@
   padding: var(--space-3) 0;
 }
 
-.sidebar-section {
-  margin-bottom: var(--space-2);
-}
-
-.sidebar-section-title {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  padding: var(--space-2) var(--space-5) var(--space-1-5);
-  margin: 0;
-}
-
 .sidebar-link {
   display: flex;
   align-items: center;
@@ -116,6 +102,43 @@
 
 .sidebar-link--child.active {
   font-weight: 600;
+}
+
+/* ── The "Try it" zone ────────────────────────────────────────────────────────
+   Its own band between the guide's sections and the footer, separated by a rule
+   rather than by space alone: it is a different KIND of thing (places to go and
+   use SPiER, one of them on another origin), and space alone reads as a wider
+   gap in one list. */
+.sidebar-try {
+  padding: var(--space-2) 0 var(--space-4);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+}
+
+/* The mock EHR leads the zone, and looks like the destination it is: this is
+   where SPiER actually runs. The demo links below it are the same screens
+   without a host, so they sit quieter. */
+.sidebar-outbound-link--lead {
+  margin-bottom: var(--space-2);
+}
+
+.sidebar-link--demo {
+  padding-left: var(--space-5);
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  color: var(--text-faint);
+}
+
+.sidebar-link--demo.active {
+  font-weight: 600;
+}
+
+/* The demo rows' icon is smaller than the Overview lens icon (16 vs 20), so it
+   needs its own box rather than inheriting the 1.25rem square. */
+.sidebar-link--demo .sidebar-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .sidebar-icon {
