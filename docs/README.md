@@ -14,7 +14,8 @@ false in another.
 |---|---|---|
 | Element definitions, bindings, why a profile is shaped this way | FSH `Description` / `^purpose` in `ig/input/fsh/` (renders in the published IG) | FSH `//` comments hold repo mechanics only |
 | How to read, query, or conform to the artifacts | `ig/input/pagecontent/` | the app links to it, never restates it |
-| Build commands, gates, tooling, repo history | [`CLAUDE.md`](../CLAUDE.md); a folder README links to it | never in an IG page |
+| Build commands, gates, tooling, conventions | [`CLAUDE.md`](../CLAUDE.md); a folder README links to it | never in an IG page |
+| Why a gate exists, what it cannot see, the defect it was written against | [`internals/`](internals/README.md), one file per area | `CLAUDE.md` states the rule and links here |
 | Mission and pitch | [`../README.md`](../README.md) | the IG index keeps two sentences and a link |
 | Stage names and tool ids | the pathway-stage CodeSystem and the ActivityDefinitions | docs quote by code, or link to the IG artifact page |
 | Adoption guidance, readiness, rubric | the app, as data modules | not JSX paragraphs |
@@ -46,6 +47,28 @@ near-verbatim second copy of it and has been folded in.
 * [`best-practices/concept-harmonization.md`](best-practices/concept-harmonization.md) — conformance rationale for the cross-instrument concept layer: mapping disparate instruments (ASQ, C-SSRS, PHQ-9) into one common suicide-risk-tier representation, modeled on HL7 Gravity + SDC. Pairs with the `concept-harmonization` skill.
 * [`best-practices/licensing-audit-template.md`](best-practices/licensing-audit-template.md) — the per-tool licensing-audit memo template, instantiated as `FHIR-Resources/<tool>/licensing/MEMO.md`.
 * [`best-practices/licensing-verification-backlog.md`](best-practices/licensing-verification-backlog.md) — what is still owed on instrument licensing. Every status published by [#127](https://github.com/SPiER-Project/adoption-guide/issues/127) is traceable in-repo, but **none is verified against the rights holder's current terms**. Standing list under epic [#64](https://github.com/SPiER-Project/adoption-guide/issues/64), which gates the org transfer.
+
+## Repo internals
+
+`CLAUDE.md` is read in full at the start of every agent session, so it holds the
+layout, the commands and the conventions as rules, and stays short enough to be
+read. [`internals/`](internals/README.md) holds the other half — **why** each
+gate exists, what its load-bearing rule is, and what it cannot see. Every ⚠️ in
+there is a defect that shipped, and most are a gate that passed while checking
+nothing ([#232](https://github.com/SPiER-Project/adoption-guide/issues/232),
+[#261](https://github.com/SPiER-Project/adoption-guide/issues/261)). Read the
+file for the area you are changing before you change it; `CLAUDE.md` links to
+each one from the section it belongs to.
+
+* [`internals/web-gates.md`](internals/web-gates.md) — everything `npm run verify` runs, per gate.
+* [`internals/terminology.md`](internals/terminology.md) — LOINC/SNOMED codings, the nightly, the expiring `PENDING_TX` allowlist, the per-source floors.
+* [`internals/ig-build.md`](internals/ig-build.md) — SUSHI's warning shape, the IG menu and narrative gates, the IG Publisher, the CQL compile, the deploy cache.
+* [`internals/fhir-conformance.md`](internals/fhir-conformance.md) — the HL7 validator, the FML maps, the rules shared with the mock EHR's write endpoint, both halves of the scenario gate, the mapper-reader rule.
+* [`internals/measures.md`](internals/measures.md) — the four homes of a measure criterion, exclusion vs exception, narration-vs-measure agreement.
+* [`internals/docs-gates.md`](internals/docs-gates.md) — the markdown link gate and the generated HL7 use-case workbook.
+* [`internals/workers.md`](internals/workers.md) — `services/cds-hooks/` and `services/mock-ehr/`, neither covered by `web/`'s verify.
+* [`internals/css-and-page-template.md`](internals/css-and-page-template.md) — one page template, two width tokens, one measure, and the gates' limits.
+* [`internals/build-gotchas.md`](internals/build-gotchas.md) — the stale-worktree diagnosis, the two aliased shims, the hand-duplicated values.
 
 ## Demos and operations
 
@@ -94,8 +117,8 @@ has landed. A finished plan moves to [`plans/archive/`](plans/archive/) with a
 
 ## Where the artifacts themselves live
 
-Prose about *how the repo is built* belongs in [`CLAUDE.md`](../CLAUDE.md);
-these are just the pointers.
+Prose about *how the repo is built* belongs in [`CLAUDE.md`](../CLAUDE.md) and
+[`internals/`](internals/README.md); these are just the pointers.
 
 * **FHIR Implementation Guide** — `ig/`. FSH sources in [`ig/input/fsh/`](../ig/input/fsh/) are the canonical, machine-readable definition of every profile, ValueSet, CodeSystem, ActivityDefinition and PlanDefinition. Narrative pages are in `ig/input/pagecontent/`. See [`ig/README.md`](../ig/README.md) for how to compile and verify it; `.github/workflows/ig.yml` compiles the FSH on every PR.
 * **Pathway stages** — the eight stage codes are defined once, in `ig/input/fsh/spier-codesystem.fsh`, and assembled into PlanDefinitions in `ig/input/fsh/pathway-stages.fsh`. Quote them by code rather than by name; three of the display names changed in July 2026.

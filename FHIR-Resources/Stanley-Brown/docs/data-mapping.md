@@ -13,8 +13,10 @@ stale against three things at once.
 | **The conformance target** | The `SPiERStanleyBrownSafetyPlan` profile in [`ig/input/fsh/stanley-brown.fsh`](../../../ig/input/fsh/stanley-brown.fsh), which declares all seven steps as named slices |
 
 ⚠️ **Change the transformation and you change both sides.** They exist twice on
-purpose, and `CLAUDE.md` explains the arrangement and which fields the parity
-comparison deliberately excludes.
+purpose; `CLAUDE.md` states the rule, and
+[`docs/internals/build-gotchas.md`](../../../docs/internals/build-gotchas.md)
+explains the arrangement and which fields the parity comparison deliberately
+excludes.
 
 ## Why the text is embedded rather than referenced
 
