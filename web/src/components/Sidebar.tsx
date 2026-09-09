@@ -1,9 +1,83 @@
-import { Fragment, useEffect, useMemo } from 'react'
+import { Fragment, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, BookOpen, Users, User, ExternalLink, type LucideIcon } from 'lucide-react'
+import { Home, ExternalLink, User, Users, type LucideIcon } from 'lucide-react'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
+import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
+
+/**
+ * The implementer's navigation. Two zones: what the guide EXPLAINS, and what you
+ * can go and TRY.
+ *
+ * ── Why it stopped being a lens switcher (2026-09-09) ───────────────────────
+ *
+ * It used to list four top-level "lenses" — Overview, Adoption Guide, Population
+ * View, Patient View — each expanding to children. That shape stopped describing
+ * the product on the day `/patient/chart` and `/population` became guide pages
+ * that EXPLAIN the two SMART apps (#487) and the mock EHR grew a real launch for
+ * the dashboard (#491). The result was four entries for two things:
+ *
+ *   Adoption Guide → Patient App            ← the explainer
+ *   Patient View   → Pathway / Next actions ← the same app, again
+ *   Adoption Guide → Population Dashboard   ← the explainer
+ *   Population View → Caseload / Measures   ← the same dashboard, again
+ *
+ * …with no way for a reader to tell which of each pair they were about to open,
+ * and with "View" and "App"/"Dashboard" naming the same screens differently.
+ *
+ * ⚠️ **The four anchor children under the patient lens were dead links most of
+ * the time.** `#activity`, `#recommendations`, `#encounters` and `#documents`
+ * are sections of a loaded chart; with no patient selected — the state a first
+ * visit is in — they navigated to a page that renders none of them. They are
+ * gone rather than conditional: the chart's own pathway rail already jumps
+ * between its sections, so nothing is lost that the page did not offer better.
+ *
+ * ── The two zones, and why the mock EHR leads the second one ────────────────
+ *
+ * The guide's own three groups (Learn / Configure / Evaluate) are the body, no
+ * longer nested under a collapsible "Adoption Guide" row that was always open on
+ * every guide page anyway. Then **Try it**, whose first entry is the mock EHR,
+ * because that is now genuinely where the product runs: SPiER is launched from a
+ * host, and the two demo screens below it are the same app on sample data for
+ * when there is no host to launch from. Putting the host first is the one thing
+ * the old sidebar got backwards — it had the mock EHR in a footer called
+ * "Elsewhere", below the app's own copies of the screens it launches.
+ *
+ * ⚠️ **Icons mark destinations, headings never carry one.** Guide sections stay
+ * plain text, exactly as they rendered when they were children, so the icon is
+ * not doing two jobs. That is also why the group headings are `<p>` and not
+ * links: a heading you can click is a fifth kind of thing in a 240px column.
+ *
+ * ⚠️ **Only the mock EHR carries a note, and that is measured.** Each demo row
+ * had a one-line note under it too ("One patient, sample data"). Three of those
+ * cost 42px, and the whole column is 850px against an 808px sidebar on a 900px
+ * viewport — so they were exactly what pushed the Spec footer below the fold, in
+ * a column whose own CSS already warns that every line does. They were also the
+ * only 10px text in here, against 11px for the outbound notes. The external
+ * link keeps its note because it is the one that earns it: it is the only entry
+ * that leaves the app, and "Mock EHR demo" alone does not say what you will find
+ * there. "Demo caseload" does.
+ */
+
+/**
+ * Where SPiER can be reached that is not a page of this app.
+ *
+ * ⚠️ **"Mock" is load-bearing in the label, not modesty.** That host is
+ * controlled by the same project it demonstrates, so nothing observed there is
+ * evidence of interoperability — the host says so on every page, and a label
+ * reading "EHR demo" would quietly drop the part that keeps the claim honest.
+ *
+ * ⚠️ **Notes are measured, not trimmed by feel.** The sidebar is 240px and a
+ * note has 192px of it, so a longer line wraps and costs the column height it
+ * does not have to spare. "Launch SPiER from a chart" fits on one line; "SPiER
+ * launched inside a vendor chart" did not.
+ */
+const MOCK_EHR = {
+  href: MOCK_EHR_URL,
+  label: MOCK_EHR_LABEL,
+  note: 'Launch SPiER from a chart',
+} as const
 
 /**
  * The published HL7 IG is a sibling static site (`web/dist/ig/`), not a hash
@@ -12,161 +86,41 @@ import '../css/Sidebar.css'
  * dev` does not serve it), `/adoption-guide/ig/` on the legacy GitHub Pages
  * deploy, whose workflow sets `VITE_BASE`. See the note in `vite.config.ts`.
  */
-const IG_HREF = `${import.meta.env.BASE_URL}ig/`
-
-/**
- * Where SPiER can be reached that is not a page of this app.
- *
- * ── Why these are in the sidebar, having been moved OUT of it ───────────────
- *
- * `AppShell` used to render these as pills in the app bar, with an overflow
- * disclosure (`HeaderMenu`) taking over below 640px. The stated reason for
- * moving the IG link there was that *"the sidebar is a switcher for in-app
- * lenses: it was the one entry that could never be 'active', because it's the
- * one entry that isn't a place you can be."*
- *
- * That reasoning was about being an entry **in the switcher**, and it still
- * holds — which is why these are in `.sidebar-footer`, below the rule, and are
- * not `NavLink`s. A separate zone with its own heading is not a lens that can
- * never light up. What forced the move back was the header running out of room:
- * a fourth link (the demo host) did not fit, and the two-renderings-swapped-by-
- * CSS arrangement that made three fit cost 121 lines of disclosure machinery —
- * Escape handling, pointerdown dismissal, blur-to-close — for links that are
- * just links once they are in a list. `HeaderMenu` is deleted, not relocated.
- *
- * ⚠️ **These are real destinations, and that's what still earns them a place
- * here.** GitHub, the project site and the version stamp used to sit below
- * these in the same `.sidebar-footer`, as quieter project metadata — but that
- * put them at the bottom of a box whose height is pinned to the viewport, so on
- * a short page the sidebar's own sticky box visually covered the real page
- * footer sitting right below it. They moved down into `.app-shell__footer` in
- * `AppShell.tsx`, which runs full width below the sidebar and can't be
- * obscured by it — see the note there and on `.sidebar` in `Sidebar.css`. The
- * IG and the mock EHR stay here because unlike a repo link they're places you
- * can actually go use SPiER, which is what "Elsewhere" means.
- */
-const DESTINATIONS = [
-  {
-    key: 'ig',
-    href: IG_HREF,
-    label: 'Implementation Guide',
-    // Said out loud because it is the one link here that is not a demo: the
-    // FSH-generated profiles, value sets and examples are what an implementer
-    // builds against.
-    note: 'The normative FHIR spec',
-  },
-  {
-    key: 'demo',
-    href: 'https://spier-mock-ehr.bbthorson.workers.dev/',
-    // ⚠️ "Mock" is load-bearing, not modesty. That host is controlled by the
-    // same project it demonstrates, so nothing observed there is evidence of
-    // interoperability — the host says so on every page, and a label reading
-    // "EHR demo" would quietly drop the part that keeps the claim honest.
-    label: 'Mock EHR demo',
-    // ⚠️ Measured, not trimmed by feel: the sidebar is 240px and a note has
-    // 192px of it, so "SPiER launched inside a vendor chart" wrapped to two
-    // lines and cost the footer 15px it does not have to spare. Every line here
-    // pushes the rest of this footer further down a column that already scrolls.
-    note: 'Inside a vendor chart',
-  },
-] as const
+const IG = {
+  href: `${import.meta.env.BASE_URL}ig/`,
+  label: 'Implementation Guide',
+  // Said out loud because it is the one outbound link that is not a demo: the
+  // FSH-generated profiles, value sets and examples are what an implementer
+  // builds against.
+  note: 'The normative FHIR spec',
+} as const
 
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
 }
 
-interface LensChild {
-  to: string
-  label: string
-  /**
-   * When set, this child represents a section anchor on the parent route.
-   * Active state is computed by matching against the current URL fragment
-   * rather than the React Router pathname, since multiple anchor children
-   * share the same path.
-   */
-  anchor?: string
-  /**
-   * Optional category heading. Rendered above this child whenever it differs
-   * from the previous child's group, so a grouped child list (the guide's
-   * sections) gets headings while a flat one (the patient lens) gets none.
-   * Requires the children to be grouped-contiguous, which GUIDE_SECTIONS is.
-   */
-  group?: string
-}
-
-interface Lens {
+interface DemoLink {
   to: string
   label: string
   icon: LucideIcon
-  matchPrefix: string
-  children?: LensChild[]
 }
 
-// The patient lens links depend on the active patient, so the lens list is
-// built per-render from the current chart base path (see the component).
-function buildLenses(patientBase: string): Lens[] {
+/**
+ * The app's own copies of the two screens the mock EHR launches, on sample data.
+ *
+ * ⚠️ These are the "no host connected" path, and they are in the nav on purpose:
+ * *"it's okay to not have the mock ehr up, we can still show the workflows in the
+ * adoption guide"* (Brad, 2026-09-09). The measure dashboard is here rather than
+ * nested under the caseload because it is a separate page with its own launch
+ * action in the tool catalog — nesting it would make the nav disagree with the
+ * catalog about whether it is a destination.
+ */
+function demoLinks(patientBase: string): DemoLink[] {
   return [
-    {
-      // The front door. `/` redirects here, so this is the durable target —
-      // pointing the lens at `/` would leave it un-highlighted on arrival,
-      // since the redirect lands the router on /overview.
-      to: '/overview',
-      label: 'Overview',
-      icon: Home,
-      matchPrefix: '/overview',
-    },
-    {
-      to: '/guide',
-      label: 'Adoption Guide',
-      icon: BookOpen,
-      matchPrefix: '/guide',
-      // Children mirror the canonical guide section list so the sidebar can never
-      // drift from the routes or the in-page pager (see data/guideSections.ts).
-      // Group labels come from the same list, so adding a section places its
-      // heading automatically.
-      children: GUIDE_SECTIONS.map(section => ({
-        to: guideHref(section.path),
-        label: section.label,
-        group: guideGroupLabel(section.group),
-      })),
-    },
-    {
-      to: '/population/caseload',
-      label: 'Population View',
-      icon: Users,
-      matchPrefix: '/population',
-      // Route children rather than the Patient lens's anchors: the caseload and
-      // the measure dashboard are separate pages. Measures moved here from the
-      // Adoption Guide in step D (#391) — it reads the caseload, so it belongs
-      // beside it.
-      children: [
-        { to: '/population/caseload', label: 'Caseload' },
-        { to: '/population/measures', label: 'Measures' },
-      ],
-    },
-    {
-      // Opening the Patient lens preserves the active patient (bare
-      // /patient/record, or the patient-specific URL when one is loaded).
-      // Clearing to the blank "play with forms" state is now an explicit
-      // action — the "Close patient" control in the patient banner
-      // (which routes to /patient/record?new=1).
-      to: patientBase,
-      label: 'Patient View',
-      icon: User,
-      matchPrefix: '/patient',
-      // Anchor children carry the active patient id so a deep-linked section
-      // URL stays shareable mid-session (e.g. /patient/record/patient-001#activity).
-      children: [
-        // #activity and #recommendations are load-bearing ids (eleven "View in
-        // chart" links target #activity), so the labels move with the merged
-        // pathway section but the anchors themselves stay put.
-        { to: `${patientBase}#activity`,        label: 'Pathway',      anchor: 'activity' },
-        { to: `${patientBase}#recommendations`, label: 'Next actions', anchor: 'recommendations' },
-        { to: `${patientBase}#encounters`,      label: 'Encounters',   anchor: 'encounters' },
-        { to: `${patientBase}#documents`,       label: 'Documents',    anchor: 'documents' },
-      ],
-    },
+    { to: patientBase, label: 'Demo chart', icon: User },
+    { to: '/population/caseload', label: 'Demo caseload', icon: Users },
+    { to: '/population/measures', label: 'Demo measures', icon: Users },
   ]
 }
 
@@ -174,13 +128,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
   const { activePatientId } = usePatient()
 
-  // Patient lens links target the active patient's URL when one is loaded, so
-  // opening the lens (or a section anchor) keeps the same patient rather than
-  // dropping back to the blank chart.
+  // The demo chart targets the active patient's URL when one is loaded, so
+  // opening it keeps the same patient rather than dropping back to the blank
+  // chart. Clearing to the blank "play with the forms" state is an explicit
+  // action — the "Close patient" control in the patient banner.
   const patientBase = activePatientId
     ? `/patient/record/${activePatientId}`
     : '/patient/record'
-  const lenses = useMemo(() => buildLenses(patientBase), [patientBase])
 
   // Dismiss the mobile overlay on Escape, mirroring the click-away behavior.
   // The listener is only attached while the sidebar is open.
@@ -193,123 +147,109 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [isOpen, onClose])
 
-  // Every lens now has a real path prefix. The Home lens used to be the
-  // exception — it pointed at `/`, which prefix-matches everything — and needed
-  // an exact-match branch plus NavLink's `end`. It is now /overview.
-  const isLensActive = (lens: Lens) => location.pathname.startsWith(lens.matchPrefix)
-
-  // Anchor children share the chart route, so NavLink's default isActive would
-  // highlight all of them. Match on the section anchor instead: React Router's
-  // HashRouter exposes it (the part after the second '#' in
-  // `#/patient/record#activity`) as `location.hash`. Matching the chart route by
-  // prefix keeps the anchor active whether or not the URL carries a patient id.
-  const isChildActive = (child: LensChild) => {
-    if (!child.anchor) return false
-    return location.pathname.startsWith('/patient/record') && location.hash === `#${child.anchor}`
-  }
+  // The demo chart's `to` carries a patient id mid-session, so NavLink's own
+  // isActive (which compares against that exact URL) would drop the highlight
+  // the moment the URL gained one. Match the route family instead.
+  const chartActive = location.pathname.startsWith('/patient/record')
 
   return (
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
-        <nav className="sidebar-nav">
-          {lenses.map(lens => {
-            const expanded = isLensActive(lens) && !!lens.children?.length
-            const LensIcon = lens.icon
+        <nav className="sidebar-nav" aria-label="Adoption Guide">
+          <NavLink
+            to="/overview"
+            className={({ isActive }) => `sidebar-link sidebar-link--lens ${isActive ? 'active' : ''}`}
+            onClick={onClose}
+          >
+            <Home aria-hidden="true" size={20} className="sidebar-icon" />
+            Overview
+          </NavLink>
+
+          {GUIDE_SECTIONS.map((section, i) => {
+            // A group heading is emitted whenever this section opens a new
+            // category, which for a grouped-contiguous list means once per
+            // group. `GUIDE_SECTIONS` is required to stay grouped-contiguous —
+            // see the note on it.
+            const group = guideGroupLabel(section.group)
+            const prev = i > 0 ? guideGroupLabel(GUIDE_SECTIONS[i - 1].group) : undefined
             return (
-              <div key={lens.to} className="sidebar-section">
+              <Fragment key={section.path}>
+                {group !== prev && <p className="sidebar-group-heading">{group}</p>}
                 <NavLink
-                  to={lens.to}
+                  to={guideHref(section.path)}
                   className={({ isActive }) =>
-                    `sidebar-link sidebar-link--lens ${
-                      isActive || isLensActive(lens) ? 'active' : ''
-                    }`
+                    `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
                   }
                   onClick={onClose}
                 >
-                  <LensIcon aria-hidden="true" size={20} className="sidebar-icon" />
-                  {lens.label}
+                  {section.label}
                 </NavLink>
-                {expanded && lens.children!.map((child, i) => {
-                  // A group heading is emitted whenever this child opens a new
-                  // category, which for a grouped-contiguous list means once
-                  // per group. Children with no `group` never produce one.
-                  const prevGroup = i > 0 ? lens.children![i - 1].group : undefined
-                  const heading =
-                    child.group && child.group !== prevGroup ? (
-                      <p className="sidebar-group-heading">{child.group}</p>
-                    ) : null
+              </Fragment>
+            )
+          })}
+        </nav>
 
+        {/* A `nav` of its own, with its own label: these are not the guide's
+            sections, and a screen reader should not have to infer that from
+            where they happen to sit. */}
+        <nav className="sidebar-try" aria-label="Try SPiER">
+          <p className="sidebar-group-heading">Try it</p>
 
-                  // Anchor children combine a route path with a section
-                  // anchor (`/patient/record#recommendations`). React Router's
-                  // <Link>/<NavLink> strip the second '#' since they navigate
-                  // via the History API, not by mutating window.location.hash.
-                  // Use a plain anchor with the full HashRouter URL form
-                  // (`#/patient/record#recommendations`) so a single hash
-                  // mutation updates both the route and the section anchor —
-                  // React Router observes the resulting hashchange and
-                  // surfaces the section anchor as `location.hash`.
-                  if (child.anchor) {
-                    const active = isChildActive(child)
-                    return (
-                      <Fragment key={child.to}>
-                        {heading}
-                        <a
-                          href={`#${child.to}`}
-                          className={`sidebar-link sidebar-link--child ${active ? 'active' : ''}`}
-                          onClick={onClose}
-                        >
-                          {child.label}
-                        </a>
-                      </Fragment>
-                    )
-                  }
-                  return (
-                    <Fragment key={child.to}>
-                      {heading}
-                      <NavLink
-                        to={child.to}
-                        className={({ isActive }) =>
-                          `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
-                        }
-                        onClick={onClose}
-                      >
-                        {child.label}
-                      </NavLink>
-                    </Fragment>
-                  )
-                })}
-              </div>
+          <a
+            className="sidebar-outbound-link sidebar-outbound-link--lead"
+            href={MOCK_EHR.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${MOCK_EHR.label} — ${MOCK_EHR.note} (opens in a new tab)`}
+            onClick={onClose}
+          >
+            <span className="sidebar-outbound-label">
+              {MOCK_EHR.label}
+              <ExternalLink className="sidebar-outbound-ext" size={12} aria-hidden="true" />
+            </span>
+            {/* aria-hidden: the accessible name above already carries it, and
+                reading it twice is worse than not styling it. */}
+            <span className="sidebar-outbound-note" aria-hidden="true">{MOCK_EHR.note}</span>
+          </a>
+
+          {demoLinks(patientBase).map(demo => {
+            const DemoIcon = demo.icon
+            return (
+              <NavLink
+                key={demo.label}
+                to={demo.to}
+                className={({ isActive }) =>
+                  `sidebar-link sidebar-link--demo ${
+                    isActive || (demo.to === patientBase && chartActive) ? 'active' : ''
+                  }`
+                }
+                onClick={onClose}
+              >
+                <DemoIcon aria-hidden="true" size={16} className="sidebar-icon" />
+                {demo.label}
+              </NavLink>
             )
           })}
         </nav>
 
         <div className="sidebar-footer">
-          {/* A `nav` of its own, with its own label: these are not the lens
-              switcher above, and a screen reader should not have to infer that
-              from where they happen to sit. */}
-          <nav className="sidebar-outbound" aria-label="SPiER elsewhere">
-            <p className="sidebar-group-heading sidebar-group-heading--footer">Elsewhere</p>
-            {DESTINATIONS.map(d => (
-              <a
-                key={d.key}
-                className="sidebar-outbound-link"
-                href={d.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${d.label} — ${d.note} (opens in a new tab)`}
-                onClick={onClose}
-              >
-                <span className="sidebar-outbound-label">
-                  {d.label}
-                  <ExternalLink className="sidebar-outbound-ext" size={12} aria-hidden="true" />
-                </span>
-                {/* aria-hidden: the accessible name above already carries it,
-                    and reading it twice is worse than not styling it. */}
-                <span className="sidebar-outbound-note" aria-hidden="true">{d.note}</span>
-              </a>
-            ))}
+          <nav className="sidebar-outbound" aria-label="The specification">
+            <p className="sidebar-group-heading sidebar-group-heading--footer">Spec</p>
+            <a
+              className="sidebar-outbound-link"
+              href={IG.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${IG.label} — ${IG.note} (opens in a new tab)`}
+              onClick={onClose}
+            >
+              <span className="sidebar-outbound-label">
+                {IG.label}
+                <ExternalLink className="sidebar-outbound-ext" size={12} aria-hidden="true" />
+              </span>
+              <span className="sidebar-outbound-note" aria-hidden="true">{IG.note}</span>
+            </a>
           </nav>
         </div>
       </aside>
