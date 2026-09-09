@@ -84,8 +84,9 @@
  * and trains people to bump it, which is what a stale `check:codings` floor
  * already did in #232.
  *
- * Node 20 is part of the contract: every workflow pins it, and this repo has
- * already shipped two gates that threw in CI on Node 22-only syntax.
+ * Node 22 is the floor (`.github/.nvmrc`, read by every workflow). It was 20,
+ * and two gates shipped that threw in CI on Node 22-only syntax while passing
+ * locally — see docs/internals/build-gotchas.md.
  */
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs'

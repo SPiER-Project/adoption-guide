@@ -62,9 +62,10 @@
  * understand — a quiet parse failure is how a gate reports green over a file it
  * never read, which is the same rule `web/scripts/lib/vite-alias.mjs` follows.
  *
- * Node 20 is part of the contract: every workflow pins it, and this repo has
- * already shipped two gates that threw in CI on Node 22-only syntax
- * (`fs.globSync`, `Iterator.prototype.map`).
+ * Node 22 is the floor (`.github/.nvmrc`, read by every workflow). It was 20,
+ * and two gates shipped that threw in CI on Node 22-only syntax (`fs.globSync`,
+ * `Iterator.prototype.map`) while passing locally. The floor moving to 22 is
+ * what removes that asymmetry — see docs/internals/build-gotchas.md.
  */
 
 import { readFileSync, existsSync } from 'node:fs'

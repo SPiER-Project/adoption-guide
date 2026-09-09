@@ -480,6 +480,12 @@ reporting success.** Kept together because the pattern is the lesson.
    that. It would have masked a missing runtime-FHIR corpus in `ig.yml`, which
    passes `--also web/.runtime-fhir`.
 
+> **Superseded 2026-09-09:** the floor is now Node 22
+> (`.github/.nvmrc`), which is what removes this whole class — CI and developer
+> machines run the same major. The incident below is why; the instruction to
+> verify against Node 20 no longer applies. See
+> [`docs/internals/build-gotchas.md`](../internals/build-gotchas.md) § *The Node floor*.
+
 ⚠️ **`Iterator.prototype.map` is Node 22+ and every workflow pins Node 20.**
 `walkJson(...).map(...)` passed on a developer machine and threw
 `walkJson(...).map is not a function` in CI. Second instance of the class

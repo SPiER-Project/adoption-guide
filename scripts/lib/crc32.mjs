@@ -1,9 +1,12 @@
 /**
  * CRC-32 (IEEE 802.3), for the ZIP entries in xlsx-writer.mjs.
  *
- * `zlib.crc32` exists from Node 20.15 and would do, but CI pins `node-version: 20`
- * — a floating minor. Twelve lines here removes the question entirely, and keeps
- * the writer's output independent of the runtime's zlib.
+ * `zlib.crc32` would now do — the floor is Node 22 (`.github/.nvmrc`) and it has
+ * existed since 20.15 — but these twelve lines stay, because the reason that
+ * outlives any version pin is the second one: they keep the writer's output
+ * independent of the runtime's zlib. `build-use-case-workbook.mjs --check`
+ * byte-diffs the .xlsx it produces, so the checksum has to be ours, not
+ * whatever the runtime ships.
  */
 
 const TABLE = new Uint32Array(256)
