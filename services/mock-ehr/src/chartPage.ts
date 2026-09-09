@@ -103,25 +103,44 @@ export const PANEL_WIDTH_KEY = 'spier-mock-ehr:panel-width'
  * chart's own launch button does. Inline because this page has no bundler and
  * one listener does not earn a module.
  */
+/*
+ * The front door's one rule. It held a container-queried frame height until
+ * #491 deleted the frame; what needs a rule now is the pair of launch buttons,
+ * which wrap on a narrow window and would otherwise sit flush against each
+ * other.
+ */
+const HOME_CSS = `
+  .worklist-launches { display: flex; flex-wrap: wrap; gap: var(--s3); }
+`
+
 const HOME_JS = `
-  document.querySelector('[data-launch-worklist]')?.addEventListener('click', async (event) => {
-    const button = event.currentTarget
-    button.disabled = true
-    button.textContent = 'Authorizing…'
-    try {
-      const res = await fetch('/_admin/launch', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ userScoped: true }),
-      })
-      const body = await res.json()
-      if (!res.ok || !body.launchUrl) throw new Error(body.error || 'launch failed')
-      window.location.href = body.launchUrl
-    } catch (error) {
-      button.disabled = false
-      button.textContent = 'Launch caseload →'
-      alert('Could not start the caseload launch: ' + error.message)
-    }
+  document.querySelectorAll('[data-launch-worklist]').forEach((button) => {
+    const original = button.textContent
+    // ⚠️ The intent rides in the launch CONTEXT, not in the URL the app is sent
+    // to. That is what makes it a SMART launch parameter rather than our own
+    // convention: the host mints it, /token returns it, and the app resolves it
+    // through the tool catalog. A worklist launch can name a tool just as a chart
+    // launch can — SmartRedirect had to be taught that; it opened the caseload
+    // regardless until 2026-09-09.
+    const intent = button.getAttribute('data-intent') || undefined
+    button.addEventListener('click', async () => {
+      button.disabled = true
+      button.textContent = 'Authorizing…'
+      try {
+        const res = await fetch('/_admin/launch', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(intent ? { userScoped: true, intent } : { userScoped: true }),
+        })
+        const body = await res.json()
+        if (!res.ok || !body.launchUrl) throw new Error(body.error || 'launch failed')
+        window.location.href = body.launchUrl
+      } catch (error) {
+        button.disabled = false
+        button.textContent = original
+        alert('Could not start the launch: ' + error.message)
+      }
+    })
   })
 `
 
@@ -201,6 +220,7 @@ export function homePage(patients: DemoPatient[]): string {
 
   return page({
     title: 'SPiER mock EHR',
+    css: HOME_CSS,
     script: HOME_JS,
     nav: 'chart',
     // ⚠️ Still `wide`, but no longer for the reason it was. It was wide so the
@@ -240,8 +260,17 @@ export function homePage(patients: DemoPatient[]): string {
     is owed an action. Unlike a chart launch it carries no patient &mdash; the token is user-scoped,
     so the app may read across the panel and may not write to anyone.
   </p>
-  <p>
+  <p class="worklist-launches">
     <button type="button" class="btn primary" data-launch-worklist>Launch caseload &rarr;</button>
+    <button type="button" class="btn" data-launch-worklist data-intent="open-measures">
+      Launch measures &rarr;
+    </button>
+  </p>
+  <p class="lede">
+    Two activities on one grant. The measures button sends a SMART
+    <code>intent</code> naming the tool &mdash; the same mechanism a CDS card uses
+    to open a specific instrument in a chart, applied to a launch that has no
+    chart.
   </p>
 
   <details class="hood">

@@ -7,15 +7,33 @@
  * `workers.dev` hostname is the shape this repo keeps writing gates against, so
  * it gets one home before the third one is written rather than after.
  *
- * ⚠️ **"Mock" is load-bearing in the label, not modesty.** That host is
- * controlled by the same project it demonstrates, so nothing observed there is
- * evidence of interoperability — the panel plan's guardrail 3. A label reading
- * "EHR demo" would quietly drop the part that keeps the claim honest, which is
- * why the string is here rather than composed at each call site.
+ * ── The label read "Mock EHR demo" until 2026-09-09 ───────────────────────
+ *
+ * This comment used to say **"Mock" is load-bearing in the label, not modesty**:
+ * a host controlled by the same project it demonstrates proves nothing about
+ * interoperability (the panel plan's guardrail 3), and a label dropping the
+ * qualifier would drop the part keeping the claim honest.
+ *
+ * ⚠️ **The claim is still load-bearing; the LABEL was not what carried it.**
+ * Decided by Brad, 2026-09-09: it reads "Demo EHR". Where a reader actually meets
+ * the caveat is not a two-word nav item — it is:
+ *
+ *   - the host's own front page, which must say *"This host is not SPiER"* and
+ *     must say it after the instruction — asserted in `chartPage.test.ts`, with
+ *     `DISCLAIMER` on every page it serves;
+ *   - `/guide/dashboard`'s warning box, which the panel plan requires: the host
+ *     is written and run by the same project as the app;
+ *   - `chartPage.ts`'s "Under the hood" drawer, which says it in full.
+ *
+ * ⚠️ **So this is not permission to soften those three.** "Demo EHR" is a name;
+ * they are the claim. The one thing given up is that "mock" said *we wrote this
+ * fake* in a single word, where "demo EHR" can be read as a real EHR being
+ * demonstrated — which is precisely why those three have to keep saying it
+ * plainly.
  */
 export const MOCK_EHR_URL = 'https://spier-mock-ehr.bbthorson.workers.dev/'
 
-export const MOCK_EHR_LABEL = 'Mock EHR demo'
+export const MOCK_EHR_LABEL = 'Demo EHR'
 
 /**
  * The three charts the demo opens with, and why — kept in the same order and

@@ -123,22 +123,28 @@
   margin-bottom: var(--space-2);
 }
 
-.sidebar-link--demo {
-  padding-left: var(--space-5);
-  gap: var(--space-2);
-  font-size: var(--font-size-base);
+/* The no-host line under the Demo EHR link. Prose, not a nav row — it replaced
+   three rows that were second ways to reach launched screens, so it must not
+   look like a fourth. Hence no hover state, no active state, and the same
+   `--font-size-xs` as the outbound note above it rather than a link's size. */
+.sidebar-try__aside {
+  margin: var(--space-2) var(--space-5) 0;
+  /* ⚠️ No `--measure-prose`, and `check:prose` RULE 5 is what settled it. The
+     first draft carried the cap at `--font-size-xs`, which the gate refused:
+     a run that caps with the reading measure must be set at one of the three
+     prose sizes. The gate's own message names the other resolution, and it is
+     the right one here — this is not a prose run. The sidebar column is 240px
+     with 192px of text, so an 80-character cap can never bind; it was
+     decoration, and keeping it would have forced the size up to `base` to
+     satisfy a constraint that does nothing. Matches the outbound note above it
+     instead. */
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
   color: var(--text-faint);
 }
 
-.sidebar-link--demo.active {
-  font-weight: 600;
-}
-
-/* The demo rows' icon is smaller than the Overview lens icon (16 vs 20), so it
-   needs its own box rather than inheriting the 1.25rem square. */
-.sidebar-link--demo .sidebar-icon {
-  width: 1rem;
-  height: 1rem;
+.sidebar-try__aside a {
+  color: var(--brand-accent-light);
 }
 
 .sidebar-icon {

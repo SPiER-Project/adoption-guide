@@ -1,9 +1,8 @@
 import { Fragment, useEffect } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
-import { Home, ExternalLink, User, Users, type LucideIcon } from 'lucide-react'
+import { Link, NavLink } from 'react-router-dom'
+import { Home, ExternalLink } from 'lucide-react'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
-import { usePatient } from '../context/PatientContext'
 import '../css/Sidebar.css'
 
 /**
@@ -33,31 +32,34 @@ import '../css/Sidebar.css'
  * gone rather than conditional: the chart's own pathway rail already jumps
  * between its sections, so nothing is lost that the page did not offer better.
  *
- * ── The two zones, and why the mock EHR leads the second one ────────────────
+ * ── The two zones ──────────────────────────────────────────────────────────
  *
  * The guide's own three groups (Learn / Configure / Evaluate) are the body, no
  * longer nested under a collapsible "Adoption Guide" row that was always open on
- * every guide page anyway. Then **Try it**, whose first entry is the mock EHR,
- * because that is now genuinely where the product runs: SPiER is launched from a
- * host, and the two demo screens below it are the same app on sample data for
- * when there is no host to launch from. Putting the host first is the one thing
- * the old sidebar got backwards — it had the mock EHR in a footer called
- * "Elsewhere", below the app's own copies of the screens it launches.
+ * every guide page anyway. Then **Try it**, which is the Demo EHR and nothing
+ * else, because that is where the product runs.
+ *
+ * ⚠️ **The three in-app demo rows are gone, one release after being added, and
+ * the reason is the same de-duplication that produced this file.** "Demo chart",
+ * "Demo caseload" and "Demo measures" were the app's own copies of the two
+ * screens the host launches — so each was a second way to reach something whose
+ * home is a launch. Brad, 2026-09-09: *"the Demo chart, Demo caseload, Demo
+ * measures should all explicitly be launched in the mock EHR."* They are, and the
+ * two explainer pages still link them for a reader who wants the no-launch view.
+ *
+ * ⚠️ **What survives of "we can still show the workflows with no host" is the
+ * INSTRUMENTS, and they were never these three.** The chart and the caseload
+ * render patient data, which is what needs a host. The 18 fillers do not:
+ * `QuestionnaireView` never reads `activePatientId`, so every instrument works on
+ * a blank slice. That is why the zone points at Tools in a sentence rather than
+ * carrying a row — a "Fill in an instrument" row would land on `/guide/tools`,
+ * which is already a row eleven lines above, and one destination behind two
+ * differently-labelled links is exactly the defect this file was written to fix.
  *
  * ⚠️ **Icons mark destinations, headings never carry one.** Guide sections stay
  * plain text, exactly as they rendered when they were children, so the icon is
  * not doing two jobs. That is also why the group headings are `<p>` and not
  * links: a heading you can click is a fifth kind of thing in a 240px column.
- *
- * ⚠️ **Only the mock EHR carries a note, and that is measured.** Each demo row
- * had a one-line note under it too ("One patient, sample data"). Three of those
- * cost 42px, and the whole column is 850px against an 808px sidebar on a 900px
- * viewport — so they were exactly what pushed the Spec footer below the fold, in
- * a column whose own CSS already warns that every line does. They were also the
- * only 10px text in here, against 11px for the outbound notes. The external
- * link keeps its note because it is the one that earns it: it is the only entry
- * that leaves the app, and "Mock EHR demo" alone does not say what you will find
- * there. "Demo caseload" does.
  */
 
 /**
@@ -100,42 +102,13 @@ interface SidebarProps {
   onClose: () => void
 }
 
-interface DemoLink {
-  to: string
-  label: string
-  icon: LucideIcon
-}
-
-/**
- * The app's own copies of the two screens the mock EHR launches, on sample data.
- *
- * ⚠️ These are the "no host connected" path, and they are in the nav on purpose:
- * *"it's okay to not have the mock ehr up, we can still show the workflows in the
- * adoption guide"* (Brad, 2026-09-09). The measure dashboard is here rather than
- * nested under the caseload because it is a separate page with its own launch
- * action in the tool catalog — nesting it would make the nav disagree with the
- * catalog about whether it is a destination.
- */
-function demoLinks(patientBase: string): DemoLink[] {
-  return [
-    { to: patientBase, label: 'Demo chart', icon: User },
-    { to: '/population/caseload', label: 'Demo caseload', icon: Users },
-    { to: '/population/measures', label: 'Demo measures', icon: Users },
-  ]
-}
-
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const location = useLocation()
-  const { activePatientId } = usePatient()
-
-  // The demo chart targets the active patient's URL when one is loaded, so
-  // opening it keeps the same patient rather than dropping back to the blank
-  // chart. Clearing to the blank "play with the forms" state is an explicit
-  // action — the "Close patient" control in the patient banner.
-  const patientBase = activePatientId
-    ? `/patient/record/${activePatientId}`
-    : '/patient/record'
-
+  // ⚠️ No `usePatient()` any more, and that is worth noticing rather than just
+  // being tidy: the sidebar's only reason to know the active patient was to
+  // build the demo chart's URL. With the chart launched from the host, this
+  // component reads no patient context at all — so it cannot be the thing that
+  // leaks one.
+  //
   // Dismiss the mobile overlay on Escape, mirroring the click-away behavior.
   // The listener is only attached while the sidebar is open.
   useEffect(() => {
@@ -146,11 +119,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [isOpen, onClose])
-
-  // The demo chart's `to` carries a patient id mid-session, so NavLink's own
-  // isActive (which compares against that exact URL) would drop the highlight
-  // the moment the URL gained one. Match the route family instead.
-  const chartActive = location.pathname.startsWith('/patient/record')
 
   return (
     <>
@@ -213,24 +181,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <span className="sidebar-outbound-note" aria-hidden="true">{MOCK_EHR.note}</span>
           </a>
 
-          {demoLinks(patientBase).map(demo => {
-            const DemoIcon = demo.icon
-            return (
-              <NavLink
-                key={demo.label}
-                to={demo.to}
-                className={({ isActive }) =>
-                  `sidebar-link sidebar-link--demo ${
-                    isActive || (demo.to === patientBase && chartActive) ? 'active' : ''
-                  }`
-                }
-                onClick={onClose}
-              >
-                <DemoIcon aria-hidden="true" size={16} className="sidebar-icon" />
-                {demo.label}
-              </NavLink>
-            )
-          })}
+          {/* The no-host path, as a sentence rather than a row — see the note
+              at the top of this file for why a row would be a duplicate. */}
+          <p className="sidebar-try__aside">
+            No host running? Every instrument fills in without one, from{' '}
+            <Link to="/guide/tools" onClick={onClose}>Tools</Link>.
+          </p>
         </nav>
 
         <div className="sidebar-footer">

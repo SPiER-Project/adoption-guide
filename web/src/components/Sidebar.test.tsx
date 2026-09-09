@@ -5,7 +5,7 @@
  *
  * ⚠️ **These assert decisions, not renderings.** The outbound links used to be
  * pills in `AppShell`'s header, with a `HeaderMenu` disclosure taking over below
- * 640px; a fourth (the mock EHR demo) did not fit at any width, so they moved
+ * 640px; a fourth (the Demo EHR) did not fit at any width, so they moved
  * here and `HeaderMenu` was deleted. The property worth gating is that they are
  * in **exactly one place** and that the demo host is one of them — the mock EHR
  * is the only surface that shows SPiER as a panel inside someone else's chart.
@@ -36,7 +36,7 @@
  * measurement is recorded in `Sidebar.css` beside the rule instead.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 // Stubbed rather than provided: PatientProvider drags in the tool-config, SMART
@@ -58,14 +58,29 @@ function renderSidebar() {
 }
 
 describe('Sidebar footer — outbound links', () => {
-  it('offers the mock EHR demo, which is the only place SPiER appears as a panel', () => {
+  it('offers the Demo EHR, which is the only place SPiER appears as a panel', () => {
     renderSidebar()
-    const demo = screen.getByRole('link', { name: /Mock EHR demo/ })
+    const demo = screen.getByRole('link', { name: /Demo EHR/ })
     expect(demo.getAttribute('href')).toBe('https://spier-mock-ehr.bbthorson.workers.dev/')
-    // ⚠️ "Mock" is load-bearing: that host is controlled by the project it
-    // demonstrates and says so on every page. A label reading "EHR demo" would
-    // drop the word that keeps the claim honest.
-    expect(demo.textContent).toContain('Mock')
+
+    // ⚠️ **This used to assert the label contained "Mock"**, on the grounds that
+    // the word was load-bearing: the host is controlled by the project it
+    // demonstrates, so a label reading "EHR demo" would drop what keeps the claim
+    // honest. Renamed to "Demo EHR" by Brad, 2026-09-09.
+    //
+    // The assertion is not deleted so much as REDUNDANT, and it was checked
+    // rather than assumed before dropping it. The claim is pinned where a reader
+    // actually meets it, in the host's own tests:
+    //
+    //   services/mock-ehr/src/chartPage.test.ts — the front page must say
+    //     "This host is not SPiER", and must say it AFTER the instruction;
+    //   the same file, twice more — the "Under the hood" drawer and the caseload
+    //     section must say "does not prove is interoperability".
+    //
+    // What this test still owes is the destination, which no other test covers:
+    // a nav entry pointing somewhere else would send a reader looking for the
+    // demo to the wrong origin.
+    expect(demo.textContent).toContain('Demo EHR')
   })
 
   it('links the IG through the Vite base path, not a hardcoded /ig/', () => {
@@ -85,7 +100,7 @@ describe('Sidebar footer — outbound links', () => {
 
   it('opens every outbound link in a new tab, and says so in the name', () => {
     renderSidebar()
-    for (const name of [/Implementation Guide/, /Mock EHR demo/]) {
+    for (const name of [/Implementation Guide/, /Demo EHR/]) {
       const link = screen.getByRole('link', { name })
       expect(link.getAttribute('target')).toBe('_blank')
       // noreferrer as well as noopener: these are third-party origins.
@@ -113,11 +128,21 @@ describe('the sidebar says each thing once', () => {
       </MemoryRouter>,
     )
 
-  it('lists every guide section exactly once, and no lens wrapper above them', async () => {
+  it('lists every guide section exactly once IN THE GUIDE NAV', async () => {
     const { GUIDE_SECTIONS } = await import('../data/guideSections')
     renderSidebar()
+    // ⚠️ Scoped to the guide's own nav, and the narrowing was forced by a real
+    // case rather than chosen: the "Try it" zone's no-host line cross-references
+    // Tools in a sentence, so an unscoped "exactly one link named Tools" failed.
+    //
+    // That is a narrowing, not a weakening. The defect this rule exists for is
+    // two NAV ROWS a reader has to choose between — "Patient View" beside
+    // "Patient App". A pointer inside a sentence is not that, any more than the
+    // explainer pages' links to Tools are; and the rule still holds exactly where
+    // it bites.
+    const guideNav = within(screen.getByRole('navigation', { name: 'Adoption Guide' }))
     for (const section of GUIDE_SECTIONS) {
-      expect(screen.getAllByRole('link', { name: section.label })).toHaveLength(1)
+      expect(guideNav.getAllByRole('link', { name: section.label })).toHaveLength(1)
     }
     // The collapsible "Adoption Guide" row is gone: it was always expanded on
     // every guide page, so it cost a row and a click-target to say nothing.
@@ -148,15 +173,25 @@ describe('the sidebar says each thing once', () => {
     expect(anchors).toEqual([])
   })
 
-  it('puts the mock EHR FIRST in "Try it", above the app’s own demo screens', () => {
-    // The ordering decision. SPiER is launched from a host; the demo screens are
-    // the same app without one. The old sidebar had this backwards.
+  it('offers NO in-app demo screens — the chart and caseload are launched', () => {
+    // ⚠️ This inverts the assertion it replaces, which pinned "the mock EHR comes
+    // first, above the app's own demo screens". Those three rows lasted one
+    // release: *"the Demo chart, Demo caseload, Demo measures should all
+    // explicitly be launched in the mock EHR"* (Brad, 2026-09-09). Each was a
+    // second way to reach a screen whose home is a launch — the same defect as
+    // the lens rows before them, one layer down.
+    //
+    // Asserted as an absence because that is what regresses quietly: re-adding
+    // one is a three-line change that looks like a convenience.
     renderSidebar()
-    const order = screen.getAllByRole('link').map(a => a.textContent ?? '')
-    const host = order.findIndex(t => t.includes('Mock EHR demo'))
-    const chart = order.findIndex(t => t.includes('Demo chart'))
-    expect(host).toBeGreaterThan(-1)
-    expect(chart).toBeGreaterThan(-1)
-    expect(host).toBeLessThan(chart)
+    const tryZone = within(screen.getByRole('navigation', { name: 'Try SPiER' }))
+    for (const gone of [/Demo chart/, /Demo caseload/, /Demo measures/]) {
+      expect(tryZone.queryAllByRole('link', { name: gone })).toHaveLength(0)
+    }
+    // What the zone DOES offer: the launch, and where to fill in an instrument
+    // with no host — the part of "show the workflows offline" that is true, since
+    // every filler works on a blank slice.
+    expect(tryZone.getByRole('link', { name: /Demo EHR/ })).toBeTruthy()
+    expect(tryZone.getByRole('link', { name: 'Tools' })).toBeTruthy()
   })
 })

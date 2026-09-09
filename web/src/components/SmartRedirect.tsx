@@ -23,38 +23,45 @@ export function SmartRedirect() {
                 setStatus('Client authenticated. Fetching patient context...')
 
                 try {
+                    // ── The launch-context parameters the host can send ──────
+                    //
+                    // Both live on the raw token response, which is where SMART
+                    // puts launch context, and all are optional: a host that sends
+                    // none gets the panel's own banner and the pathway overview.
+                    //
+                    // ⚠️ **Read BEFORE the patient branch, because a worklist
+                    // launch carries them too** — `intent` especially. The host's
+                    // measures launch names a tool on a launch that has no chart.
+                    // These were declared inside the patient branch until
+                    // 2026-09-09, which is why the worklist branch below could not
+                    // see `directed` and opened the caseload regardless of what
+                    // the host had asked for.
+                    const tokenResponse = (client.state.tokenResponse ?? {}) as {
+                        need_patient_banner?: unknown
+                        intent?: unknown
+                        'hub.url'?: unknown
+                        'hub.topic'?: unknown
+                    }
+
+                    // Only an explicit `false` suppresses our strip. Absent means
+                    // "app decides", and the app's answer is to name the patient.
+                    if (tokenResponse.need_patient_banner === false) {
+                        setHostDrawsPatientBanner(true)
+                    }
+
+                    // A DIRECTED launch: `intent` names the tool to open, so land
+                    // there instead of the default. An intent this build does not
+                    // recognize resolves to null and falls through — the host is a
+                    // different system on a different release cycle, and "open
+                    // something I have never heard of" must not be a dead end.
+                    const directed = typeof tokenResponse.intent === 'string'
+                        ? launchPathForIntent(tokenResponse.intent)
+                        : null
+
                     // If a patient is in context (from EHR launch params), fetch their basic demographics
                     if (client.patient.id) {
                         const summary = await readSmartPatientSummary(client)
                         setSmartData(client, summary)
-
-                        // ── The two launch-context parameters the host can send ──
-                        // Both live on the raw token response, which is where
-                        // SMART puts launch context, and both are optional: a
-                        // host that sends neither gets the panel's own banner and
-                        // the pathway overview.
-                        const tokenResponse = (client.state.tokenResponse ?? {}) as {
-                            need_patient_banner?: unknown
-                            intent?: unknown
-                            'hub.url'?: unknown
-                            'hub.topic'?: unknown
-                        }
-                        // Only an explicit `false` suppresses our strip. Absent
-                        // means "app decides", and the app's answer is to name the
-                        // patient.
-                        if (tokenResponse.need_patient_banner === false) {
-                            setHostDrawsPatientBanner(true)
-                        }
-
-                        // A DIRECTED launch: `intent` names the tool to open, so
-                        // land there instead of the overview. An intent this
-                        // build does not recognize resolves to null and falls
-                        // through to the chart — the host is a different system
-                        // on a different release cycle, and "open something I
-                        // have never heard of" must not be a dead end.
-                        const directed = typeof tokenResponse.intent === 'string'
-                            ? launchPathForIntent(tokenResponse.intent)
-                            : null
 
                         // ── FHIRcast (step 6) ────────────────────────────
                         // The EHR tells us where its hub is and which session
@@ -106,11 +113,20 @@ export function SmartRedirect() {
                         setSmartData(client, {})
                         if (isWorklist) {
                             setStatus('Connected. Opening the caseload...')
-                            // The dashboard, not the chart: there is no chart to
-                            // open. `check:catalog` asserts this route is a PAGE
-                            // rather than a redirect, so it cannot silently become
-                            // one of the guide's explainers.
-                            setTimeout(() => navigate('/population/caseload'), 500)
+                            // ⚠️ **`directed` first, and it was missed the first
+                            // time.** A worklist launch can name a tool too: the
+                            // host's measures launch sends `intent: open-measures`,
+                            // and this branch navigated to the caseload
+                            // unconditionally — so that button would have opened
+                            // the wrong page while looking like it worked. The
+                            // patient branch below has always honoured `directed`;
+                            // there was never a reason this one should not.
+                            //
+                            // The caseload is the fallback because a worklist
+                            // session has no chart to open. `check:catalog` asserts
+                            // that route is a PAGE rather than a redirect, so it
+                            // cannot silently become one of the guide's explainers.
+                            setTimeout(() => navigate(directed ?? '/population/caseload'), 500)
                         } else {
                             navigate('/')
                         }

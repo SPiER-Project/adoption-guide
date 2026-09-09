@@ -397,3 +397,47 @@ describe('POST /_admin/launch — the worklist launch', () => {
     expect(res.status).toBe(400)
   })
 })
+
+/**
+ * The measures launch — a worklist launch that names a tool.
+ *
+ * ⚠️ It exists because the sidebar stopped offering an in-app "Demo measures"
+ * route (*"the Demo chart, Demo caseload, Demo measures should all explicitly be
+ * launched in the mock EHR"* — Brad, 2026-09-09), and this host had **no visible
+ * path to the measure dashboard at all**: `open-measures` was reachable only
+ * through the operator page's intent datalist. Removing the in-app row without
+ * this would have made the page unreachable for anyone not reading `/settings`.
+ */
+describe('POST /_admin/launch — a worklist launch carrying an intent', () => {
+  async function mint(payload: Record<string, unknown>) {
+    const res = await app.request(`${BASE}/_admin/launch`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    return { res, body: (await res.json()) as { launch?: string; launchUrl?: string } }
+  }
+
+  it('offers both launches on the front door, and only the caseload is primary', async () => {
+    const { body } = await html('/')
+    expect(body).toContain('Launch caseload')
+    expect(body).toContain('Launch measures')
+    // Same handler for both; the intent is what differs, and it is an attribute
+    // rather than a second code path.
+    expect(body).toContain('data-intent="open-measures"')
+    expect(body).toContain("button.getAttribute('data-intent')")
+  })
+
+  it('carries the intent in the launch CONTEXT, not in the URL', async () => {
+    // ⚠️ The distinction that makes this a SMART parameter rather than our own
+    // convention: the host mints it into the context, `/token` returns it, and
+    // the app resolves it through the tool catalog. A tool named in the query
+    // string would be SPiER talking to itself.
+    const { res, body } = await mint({ userScoped: true, intent: 'open-measures' })
+    expect(res.status).toBe(200)
+    const url = new URL(body.launchUrl!)
+    expect(url.searchParams.has('intent')).toBe(false)
+    expect(url.searchParams.get('launch')).toBe(body.launch)
+    expect(url.hash).toBe('#/launch')
+  })
+})

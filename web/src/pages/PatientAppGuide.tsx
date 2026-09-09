@@ -135,7 +135,7 @@ export function PatientAppGuide() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Open the mock EHR demo &rarr;
+            Open the Demo EHR &rarr;
           </a>
         </p>
         <p>Open a chart, press <strong>Launch SPiER</strong>. Three charts are worth opening first:</p>
