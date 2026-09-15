@@ -447,11 +447,6 @@
   background: var(--risk-high-soft-bg);
 }
 
-.pop-tile--blocked {
-  border-style: dashed;
-  background: var(--surface-muted);
-}
-
 .pop-tile-label {
   font-size: var(--font-size-2xs);
   color: var(--text-muted);
@@ -467,18 +462,12 @@
   margin-top: var(--space-1);
 }
 
-.pop-tile-value--blocked {
-  color: var(--text-faint);
-  cursor: help;
-}
-
 .pop-tile-foot {
   min-height: 1rem;
   margin-top: var(--space-1);
 }
 
-.pop-tile-goal,
-.pop-tile-blocked-tag {
+.pop-tile-goal {
   font-size: var(--font-size-2xs);
   color: var(--text-faint);
 }
@@ -486,10 +475,6 @@
 .pop-tile--breached .pop-tile-goal {
   color: var(--risk-high-soft-text);
   font-weight: 700;
-}
-
-.pop-tile-blocked-tag {
-  font-style: italic;
 }
 
 /* Tier census — one bar, segments sized by patient count. */

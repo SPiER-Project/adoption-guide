@@ -311,11 +311,6 @@
   text-decoration: underline;
 }
 
-.ar-res-link--ext::after {
-  content: ' \2197';
-  font-size: var(--font-size-2xs);
-}
-
 .ar-res-empty {
   color: var(--text-faint);
 }

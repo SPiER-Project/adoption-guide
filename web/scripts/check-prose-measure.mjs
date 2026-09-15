@@ -135,9 +135,6 @@ const MEASURE_FLOOR = 24
  * no wrapped prose, and wrong for one whose job is a column budget.
  */
 const NON_PROSE = {
-  'src/App.css|.completed-item-summary':
-    'A single-line label that never wraps — `white-space: nowrap` + `text-overflow: ellipsis`. ' +
-    'This is a TRUNCATION width; a measure caps line length, and this run has exactly one line.',
   'src/css/AdoptionGuide.css|.guide-pager__link':
     'A percentage, not a length: half the pager row, so prev and next sit side by side at any page width.',
   'src/css/DataDictionary.css|.dd-code-display':

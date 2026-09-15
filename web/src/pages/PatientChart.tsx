@@ -21,7 +21,6 @@ import { workflowArtifactsOf } from '@spier/core/lib/registry'
 import { buildCdsCards } from '@spier/core/lib/cdsHooks'
 // This page is where `PatientChart.css` is imported for the whole chart — every
 // section component it composes relies on that rather than importing its own.
-import '../css/Dashboard.css'
 import '../css/PatientChart.css'
 
 export function PatientChart() {
