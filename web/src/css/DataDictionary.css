@@ -511,13 +511,6 @@
   white-space: nowrap;
 }
 
-.dd-empty {
-  text-align: center;
-  color: var(--text-faint);
-  font-style: italic;
-  padding: var(--space-8) !important;
-}
-
 .dd-empty-state {
   text-align: center;
   color: var(--text-faint);
@@ -559,23 +552,6 @@
   font-size: var(--font-size-sm);
   color: var(--text-faint);
   font-weight: 600;
-}
-
-.dd-cross-stage {
-  margin-top: var(--space-1);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  align-items: center;
-  font-weight: 400;
-}
-
-.dd-cross-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
 }
 
 .dd-cross-chip {
@@ -666,14 +642,6 @@
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   overflow-wrap: anywhere;
-}
-
-.dd-concept-ref {
-  margin-top: var(--space-1);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1);
 }
 
 .dd-concept-chip {

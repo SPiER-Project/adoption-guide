@@ -148,6 +148,7 @@
 
 .careplan-download-btn .btn-icon {
     font-size: var(--font-size-xl);
+    flex-shrink: 0;
 }
 
 .careplan-json-toggle {

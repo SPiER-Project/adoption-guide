@@ -48,6 +48,8 @@ npx tsc -b             # typecheck (project references; needs generated files pr
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
+npm run check:css-dead # every class selector is referenced by a component (or by the
+                       # formbox renderer, scraped from its installed theme)
 npm run check:template # one header implementation, one owner of the page inset, one owner of the width
 npm run check:prose    # the reading measure: --measure-prose is a character count, every cap
                        # declared, and prose is set at one of three sizes

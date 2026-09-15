@@ -17,6 +17,7 @@
  */
 import type { ReactNode } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import '../css/ChartSectionHeader.css'
 
 export function ChartSectionHeader({
   title,

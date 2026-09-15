@@ -29,6 +29,15 @@ npx tsc -b             # typecheck (project references; needs generated files pr
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
+npm run check:css-dead # every class selector in src/**/*.css is referenced by a non-test
+                       # .ts/.tsx (a literal, or a `root--${…}` template prefix) or is
+                       # a class the formbox renderer emits, SCRAPED from its installed
+                       # theme. Written after 148 selectors whose TSX had been deleted
+                       # passed both other CSS gates — 92 in App.css, 35 in a Dashboard.css
+                       # named for a page that no longer existed. ⚠️ It CANNOT see a class
+                       # whose element never renders, a class referenced only from a
+                       # test (tests are excluded on purpose), or two files defining the
+                       # same class where import order picks the winner.
 npm run check:template # page template: one header implementation, one owner of the page
                        # inset, one owner of the page width
 npm run check:prose    # the reading MEASURE — `--measure-prose`. Its five rules are each

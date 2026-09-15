@@ -6,21 +6,6 @@
   max-width: var(--page-width-wide);
 }
 
-.risk-summary {
-  display: inline-block;
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-pill);
-  color: var(--text-on-brand);
-}
-
-.risk-summary--acute    { background: var(--risk-acute); }
-.risk-summary--high     { background: var(--risk-high); }
-.risk-summary--moderate { background: var(--risk-moderate); }
-.risk-summary--low      { background: var(--risk-low); }
-
 .empty-chart-banner {
   background: var(--surface-muted);
   border: 1px solid var(--border-default);
@@ -635,6 +620,8 @@
   line-height: 1.5;
 }
 
+.encounter-card-divider { color: var(--border-strong); }
+
 .encounters-list {
   list-style: none;
   margin: 0;
@@ -908,7 +895,6 @@
 .document-body {
   padding: 0 var(--space-3) var(--space-3);
 }
-
 
 /* ===========================
    Panel variant — the pathway tracker inside a host chart.

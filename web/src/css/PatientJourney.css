@@ -236,18 +236,6 @@
   font-style: italic;
 }
 
-.stage-tool-link {
-  display: inline-block;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--brand-accent);
-  text-decoration: none;
-}
-
-.stage-tool-link:hover {
-  text-decoration: underline;
-}
-
 /* ── Triggers ── */
 .stage-triggers {
   /* Aligns to the left edge of the stage title: past `.stage-number` (2rem) and

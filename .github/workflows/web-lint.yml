@@ -88,6 +88,15 @@ jobs:
       - name: Check CSS token references
         run: npm run check:tokens
 
+      # The third CSS gate, and the first that reads CSS and TSX together:
+      # every class selector must be referenced by something that can put it
+      # on an element. `lint:css` and `check:tokens` both passed 148 selectors
+      # whose components had been deleted (2026-09-15). Reads web/src plus the
+      # installed formbox theme (for the renderer's hash classes), so it
+      # belongs in this fast job.
+      - name: Check for dead CSS selectors
+        run: npm run check:css-dead
+
       # The reading measure. `lint:css` and `check:tokens` between them prove a
       # cap is spelled with a real token; neither can tell whether that token is
       # a WIDTH where a character count was meant — which is what `--measure-prose`
