@@ -12,11 +12,7 @@
 }
 
 .episode-card {
-  padding: var(--space-4);
   margin-bottom: var(--space-4);
-  background-color: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
 }
 
 .episode-card--active {
@@ -37,21 +33,6 @@
   color: var(--text-strong);
 }
 
-.episode-status {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-2xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  background-color: var(--surface-muted);
-  border-radius: var(--radius-pill);
-}
-
-.episode-status--active {
-  color: var(--text-on-brand);
-  background-color: var(--surface-banner);
-}
-
 .episode-meta {
   display: flex;
   flex-wrap: wrap;
@@ -64,7 +45,7 @@
 .episode-meta dt {
   font-size: var(--font-size-2xs);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-faint);
 }
 
@@ -93,12 +74,6 @@
   color: var(--text-faint);
 }
 
-.episode-encounter-empty {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--text-faint);
-}
-
 .episode-artifact-list {
   padding: 0;
   margin: 0;
@@ -122,14 +97,6 @@
 .episode-artifact-type {
   font-size: var(--font-size-2xs);
   color: var(--text-faint);
-}
-
-.episode-trigger-tag {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-2xs);
-  color: var(--text-on-brand);
-  background-color: var(--surface-banner-muted);
-  border-radius: var(--radius-pill);
 }
 
 .episode-unassigned {

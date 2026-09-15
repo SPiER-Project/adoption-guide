@@ -47,36 +47,12 @@ import { Outlet } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
 import { usePresentation } from '../context/PresentationContext'
-import { RiskPill } from './RiskPill'
+import { PatientIdentityStrip } from './PatientIdentityStrip'
 import '../css/PanelShell.css'
-
-type RiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
-
-const RISK_LABEL: Record<RiskLevel, string> = {
-  acute: 'Acute',
-  high: 'High',
-  moderate: 'Moderate',
-  low: 'Low',
-  none: 'None',
-  unknown: 'Unknown',
-}
-
-/**
- * Highest active level, matching PatientBanner exactly — including that an empty
- * set is `unknown` ("no screening on file") rather than `none` ("screened, no
- * risk"). The distinction is clinical, and the shared `highestRiskLevel` in
- * observationMappers collapses it to `none`, which is why the banner has its own
- * and why this reuses the banner's rule rather than the shared one.
- */
-function highestRiskLevel(alertLevels: string[]): RiskLevel {
-  if (alertLevels.length === 0) return 'unknown'
-  const order: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none']
-  return order.find(l => alertLevels.includes(l)) ?? 'none'
-}
 
 export function PanelShell() {
   useScrollToTopOnNavigate()
-  const { patientDisplay, activePatientId, isSmartConnected, riskAlerts } = usePatient()
+  const { activePatientId, isSmartConnected } = usePatient()
   const { hostDrawsPatientBanner } = usePresentation()
 
   // Mirrors PatientBanner's rule: with no patient and no SMART context there is
@@ -88,26 +64,12 @@ export function PanelShell() {
   // the default is to draw one is that a panel which never names its patient is
   // a safety problem rather than a tidy one.
   const hasPatient = (activePatientId !== null || isSmartConnected) && !hostDrawsPatientBanner
-  const risk = highestRiskLevel(riskAlerts.map(a => a.level))
 
   return (
     <div className="panel-shell">
       {hasPatient && (
         <div className="panel-shell__patient">
-          <span className="panel-shell__name">{patientDisplay.fullName}</span>
-          <span className="panel-shell__meta">
-            {patientDisplay.dob} &middot; MRN {patientDisplay.mrn}
-          </span>
-          <RiskPill
-            level={risk}
-            label={RISK_LABEL[risk]}
-            sm
-            title={
-              risk === 'unknown'
-                ? 'No suicide-risk screening on file'
-                : `Highest active risk level: ${RISK_LABEL[risk]}`
-            }
-          />
+          <PatientIdentityStrip dense />
         </div>
       )}
       {/* Owns the panel's page inset, the way `.app-shell__body` owns the

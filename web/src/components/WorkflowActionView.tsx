@@ -1,14 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
-import { CodeDrawer } from './CodeDrawer'
-import { FhirJsonViewer } from './FhirJsonViewer'
-import { PageHeader } from './PageHeader'
 import { TOOLS, stageById } from '@spier/core/data/catalog'
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import { makeId } from '@spier/core/lib/id'
 import type { CommunicationResource } from '@spier/core/types/fhir'
-import '../css/WorkflowActionView.css'
+import { WorkflowForm, WorkflowField } from './WorkflowForm'
+import { todayLocalIso } from '../lib/dates'
 
 /**
  * Records a non-Questionnaire workflow step as a stage-tagged FHIR resource.
@@ -52,16 +49,6 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-function todayIso(): string {
-  // Build the date in the browser's local timezone. toISOString() is UTC, which
-  // would default to tomorrow's date for users behind UTC in the evening.
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 export function WorkflowActionView({
   toolId,
   title,
@@ -76,7 +63,7 @@ export function WorkflowActionView({
   const heading = title ?? tool?.name ?? 'Workflow step'
 
   const [channel, setChannel] = useState<string>(CHANNELS[0].code)
-  const [date, setDate] = useState<string>(todayIso())
+  const [date, setDate] = useState<string>(todayLocalIso())
   const [summary, setSummary] = useState<string>('')
   const [note, setNote] = useState<string>('')
   const [submitted, setSubmitted] = useState(false)
@@ -104,95 +91,65 @@ export function WorkflowActionView({
     e.preventDefault()
     addArtifact({ ...draft, id: `communication-${makeId()}` })
     setSubmitted(true)
-    setTimeout(() => {
-      document.querySelector('.workflow-success-notice')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 100)
   }
 
   return (
-    <div className="form-view">
-      <PageHeader
-        eyebrow={['Patient Chart', 'Workflow']}
-        up="/patient/record"
-        title={heading}
-        lede={
-          <>
-            Records a <strong>Communication</strong> tagged to the{' '}
-            <strong>{stage?.title ?? stageId}</strong> pathway stage. {tool?.purpose}
-          </>
-        }
-      />
+    <WorkflowForm
+      title={heading}
+      lede={
+        <>
+          Records a <strong>Communication</strong> tagged to the{' '}
+          <strong>{stage?.title ?? stageId}</strong> pathway stage. {tool?.purpose}
+        </>
+      }
+      draft={draft}
+      draftTitle="Live FHIR Communication"
+      notice={submitted ? <>{capitalize(actionNoun)} recorded to the patient chart under <strong>{stage?.title ?? stageId}</strong>.</> : undefined}
+    >
+      <form className="workflow-form" onSubmit={handleSubmit}>
+        <WorkflowField label="Contact method">
+          <select
+            className="workflow-input"
+            value={channel}
+            onChange={e => setChannel(e.target.value)}
+          >
+            {CHANNELS.map(c => (
+              <option key={c.code} value={c.code}>{c.display}</option>
+            ))}
+          </select>
+        </WorkflowField>
 
-      <div className="form-wrapper">
-        <div className="form-card">
-          {activePatientId === null && (
-            <p className="workflow-form-hint">
-              No patient selected — this will be recorded in the scratch chart. Pick a patient from the
-              Population view to attach it to a specific record.
-            </p>
-          )}
+        <WorkflowField label="Date of contact">
+          <input
+            type="date"
+            className="workflow-input"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+          />
+        </WorkflowField>
 
-          <form className="workflow-form" onSubmit={handleSubmit}>
-            <label className="workflow-field">
-              <span className="workflow-field-label">Contact method</span>
-              <select
-                className="workflow-input"
-                value={channel}
-                onChange={e => setChannel(e.target.value)}
-              >
-                {CHANNELS.map(c => (
-                  <option key={c.code} value={c.code}>{c.display}</option>
-                ))}
-              </select>
-            </label>
+        <WorkflowField label="Summary">
+          <input
+            type="text"
+            className="workflow-input"
+            placeholder={summaryPlaceholder ?? `e.g. ${capitalize(actionNoun)} — brief summary`}
+            value={summary}
+            onChange={e => setSummary(e.target.value)}
+          />
+        </WorkflowField>
 
-            <label className="workflow-field">
-              <span className="workflow-field-label">Date of contact</span>
-              <input
-                type="date"
-                className="workflow-input"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-              />
-            </label>
+        <WorkflowField label="Notes" optional="optional">
+          <textarea
+            className="workflow-input workflow-textarea"
+            rows={3}
+            placeholder={`Brief free-text note about the ${actionNoun}.`}
+            value={note}
+            onChange={e => setNote(e.target.value)}
+          />
+        </WorkflowField>
 
-            <label className="workflow-field">
-              <span className="workflow-field-label">Summary</span>
-              <input
-                type="text"
-                className="workflow-input"
-                placeholder={summaryPlaceholder ?? `e.g. ${capitalize(actionNoun)} — brief summary`}
-                value={summary}
-                onChange={e => setSummary(e.target.value)}
-              />
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">Notes <span className="workflow-field-optional">(optional)</span></span>
-              <textarea
-                className="workflow-input workflow-textarea"
-                rows={3}
-                placeholder={`Brief free-text note about the ${actionNoun}.`}
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
-            </label>
-
-            <button type="submit" className="workflow-submit-btn">Record {actionNoun}</button>
-          </form>
-
-          {submitted && (
-            <div className="workflow-success-notice">
-              {capitalize(actionNoun)} recorded to the patient chart under <strong>{stage?.title ?? stageId}</strong>.{' '}
-              <Link to="/patient/record#activity">View in chart</Link>
-            </div>
-          )}
-        </div>
-
-        <CodeDrawer>
-          <FhirJsonViewer data={draft} title="Live FHIR Communication" defaultOpen />
-        </CodeDrawer>
-      </div>
-    </div>
+        <button type="submit" className="workflow-submit-btn">Record {actionNoun}</button>
+      </form>
+    </WorkflowForm>
   )
 }

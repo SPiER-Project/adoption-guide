@@ -36,6 +36,7 @@ import { useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { usePresentation } from '../context/PresentationContext'
 import '../css/CodeDrawer.css'
+import { cx } from '../lib/cx'
 
 export function CodeDrawer({
   children,
@@ -56,7 +57,7 @@ export function CodeDrawer({
   }
 
   return (
-    <aside className={`code-drawer ${open ? 'code-drawer--open' : ''}`}>
+    <aside className={cx('code-drawer', open && 'code-drawer--open')}>
       <button
         className="code-drawer__handle"
         onClick={() => setOpen(o => !o)}

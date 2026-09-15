@@ -43,6 +43,10 @@ import { PRESETS, presetToolIds, type PresetId } from '../data/toolPresets'
 import { usePatient } from '../context/PatientContext'
 import { INCLUSION_ICON, type InclusionStatus } from '../lib/statusIcons'
 import '../css/ToolConfiguration.css'
+import { cx } from '../lib/cx'
+import { Notice } from '../components/Notice'
+import { Pill } from '../components/Pill'
+import { Card } from '../components/Card'
 
 function InclusionBadge({ status }: { status: InclusionStatus }) {
   const Icon = INCLUSION_ICON[status]
@@ -124,7 +128,7 @@ export function ToolConfiguration() {
           offering everything is a fix, not a bug, and a presenter who flips a
           preset in a host chart and sees nothing change needs to be told why
           here rather than to conclude the switch is broken. */}
-      <aside className="tool-config-effect">
+      <Card as="aside" padding="compact" tone="muted" accent className="tool-config-effect">
         {inPanel ? (
           <p className="tool-config-effect__body">
             <strong>This setting does not apply inside a host chart.</strong> Here the host{' '}
@@ -145,7 +149,7 @@ export function ToolConfiguration() {
             </Link>
           </p>
         )}
-      </aside>
+      </Card>
 
       <section className="tool-config-presets">
         <h3 className="tool-config-section-title">Presets</h3>
@@ -156,7 +160,7 @@ export function ToolConfiguration() {
               <button
                 key={preset.id}
                 type="button"
-                className={`preset-card ${isActive ? 'preset-card--active' : ''}`}
+                className={cx('preset-card', isActive && 'preset-card--active')}
                 onClick={() => setPreset(preset.id)}
                 aria-pressed={isActive}
               >
@@ -172,16 +176,16 @@ export function ToolConfiguration() {
           })}
         </div>
         {activePreset === 'custom' && (
-          <p className="preset-custom-hint">
+          <Notice tone="warning">
             You've customized the toolset. Click a preset above to reset to its baseline selection.
-          </p>
+          </Notice>
         )}
       </section>
 
       <section className="tool-config-tools">
         <h3 className="tool-config-section-title">Tools by pathway stage</h3>
         {toolsByStage.map(({ stage, tools }) => (
-          <div key={stage.id} className="tool-config-stage">
+          <Card key={stage.id} className="tool-config-stage">
             <header className="tool-config-stage-header">
               <h4 className="tool-config-stage-title">{stage.title}</h4>
               <p className="tool-config-stage-desc">{stage.description}</p>
@@ -205,10 +209,9 @@ export function ToolConfiguration() {
                         onChange={() => toggleTool(tool.id)}
                       />
                     ) : (
-                      <span className="tool-row-unbuilt-badge" title="Catalogued, but not yet launchable from this app">
-                        <Clock aria-hidden="true" size={11} />
+                      <Pill size="sm" tone="warning" icon={Clock} title="Catalogued, but not yet launchable from this app">
                         Not built
-                      </span>
+                      </Pill>
                     )}
                     <span className="tool-row-body">
                       <span className="tool-row-name">
@@ -222,7 +225,7 @@ export function ToolConfiguration() {
                 )
               })}
             </div>
-          </div>
+          </Card>
         ))}
       </section>
     </div>

@@ -1,0 +1,81 @@
+/* ===========================
+   PatientIdentityStrip — see the component for why there is one.
+   The banner's row and the panel's dense line; the containers (sticky,
+   background, inset) stay with PatientBanner.css and PanelShell.css.
+   =========================== */
+
+.identity-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--font-size-md);
+}
+
+.identity-strip__name {
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--text-strong);
+}
+
+.identity-strip__divider {
+  color: var(--border-strong);
+  font-weight: 300;
+}
+
+.identity-strip__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.identity-strip__label {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
+.identity-strip__value {
+  color: var(--border-emphasis);
+  font-weight: 500;
+}
+
+.identity-strip__value--mono {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-base);
+}
+
+/* The panel's one line. */
+.identity-strip--dense {
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.identity-strip--dense .identity-strip__name {
+  font-size: var(--font-size-sm);
+}
+
+.identity-strip__meta {
+  color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+  .identity-strip {
+    gap: var(--space-2);
+    font-size: var(--font-size-base);
+  }
+
+  .identity-strip__divider:nth-child(n+4) {
+    display: none;
+  }
+
+  /* Collapse the secondary identifiers to keep the strip compact, but always
+     keep the risk pill — the most important datum on a suicide-prevention
+     chart — visible. */
+  .identity-strip__field:nth-child(n+6):not(:has(.pill)) {
+    display: none;
+  }
+}

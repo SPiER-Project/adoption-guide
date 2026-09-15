@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { ChartSectionHeader } from './ChartSectionHeader'
+import { SectionHeader } from './SectionHeader'
 import { groupByEpisode, type EpisodeRecord } from '@spier/core/lib/episodeRecord'
-import { artifactLabel, formatDateTime } from '../lib/chartDisplay'
+import { artifactLabel } from '../lib/chartDisplay'
+import { formatDateTime } from '../lib/dates'
 import { displayFor, ENTRY_REASONS, episodeCurrentTier, RISK_TIERS } from '@spier/core/lib/riskEpisode'
 import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 import '../css/EpisodeRecord.css'
+import { EmptyState } from './EmptyState'
+import { Pill } from './Pill'
+import { Card } from './Card'
 
 /**
  * "Everything that happened in this risk episode" — the question #263 opens with,
@@ -41,9 +45,9 @@ function ArtifactRow({ resource, isTrigger }: { resource: FhirResourceLike; isTr
       <span className="episode-artifact-name">{artifactLabel(resource)}</span>
       <span className="episode-artifact-type">{resource.resourceType}</span>
       {isTrigger && (
-        <span className="episode-trigger-tag" title="The artifact whose result opened this episode">
+        <Pill size="sm" variant="label" title="The artifact whose result opened this episode">
           opened the episode
-        </span>
+        </Pill>
       )}
     </li>
   )
@@ -90,10 +94,10 @@ function EpisodeCard({ record }: { record: EpisodeRecord }) {
     trigger !== undefined && ![...byEncounter.values()].flat().includes(trigger)
 
   return (
-    <article className={`episode-card episode-card--${status}`}>
+    <Card as="article" padding="compact" className={`episode-card episode-card--${status}`}>
       <header className="episode-card-header">
         <h4 className="episode-card-title">Suicide-safer care episode</h4>
-        <span className={`episode-status episode-status--${status}`}>{status}</span>
+        <Pill size="sm" tone={status === 'active' ? 'brand' : 'neutral'}>{status}</Pill>
       </header>
 
       <dl className="episode-meta">
@@ -149,7 +153,7 @@ function EpisodeCard({ record }: { record: EpisodeRecord }) {
               </span>
             </h5>
             {items.length === 0 ? (
-              <p className="episode-encounter-empty">No artifacts recorded at this contact.</p>
+              <EmptyState>No artifacts recorded at this contact.</EmptyState>
             ) : (
               <ul className="episode-artifact-list">
                 {items.map(a => (
@@ -164,7 +168,7 @@ function EpisodeCard({ record }: { record: EpisodeRecord }) {
           </div>
         )
       })}
-    </article>
+    </Card>
   )
 }
 
@@ -189,9 +193,9 @@ export function EpisodeRecordView({
 
   return (
     <section id="episode-record" className="episode-record-section">
-      <ChartSectionHeader
+      <SectionHeader
         title="Episode record"
-        count={`${records.length} ${records.length === 1 ? 'episode' : 'episodes'}`}
+        meta={`${records.length} ${records.length === 1 ? 'episode' : 'episodes'}`}
         collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'episode-record-body' }}
       />
       {open && (

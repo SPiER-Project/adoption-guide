@@ -87,7 +87,7 @@
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps-wide);
   color: var(--text-faint);
 }
 
@@ -234,7 +234,7 @@
 }
 
 /* Mobile: sidebar as overlay */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .sidebar {
     position: fixed;
     top: 0;

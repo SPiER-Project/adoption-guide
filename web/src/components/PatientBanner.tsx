@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { usePatient } from '../context/PatientContext'
-import { RiskPill } from './RiskPill'
+import { PatientIdentityStrip } from './PatientIdentityStrip'
 import '../css/PatientBanner.css'
 
 /**
@@ -40,34 +40,8 @@ function useBannerHeightVar() {
   return setBannerEl
 }
 
-type RiskLevel = 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
-
-const RISK_LABEL: Record<RiskLevel, string> = {
-  acute: 'Acute',
-  high: 'High',
-  moderate: 'Moderate',
-  low: 'Low',
-  none: 'None',
-  unknown: 'Unknown',
-}
-
-// "Unknown" means no risk-bearing data has been captured yet (no screening on
-// file). Once any alert reports a level — even 'none' — we surface the
-// highest one.
-function highestRiskLevel(alertLevels: string[]): RiskLevel {
-  if (alertLevels.length === 0) return 'unknown'
-  const order: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none']
-  return order.find(l => alertLevels.includes(l)) ?? 'none'
-}
-
 export function PatientBanner() {
-  const {
-    patientDisplay,
-    isSmartConnected,
-    riskAlerts,
-    activePatientId,
-    populationPatients,
-  } = usePatient()
+  const { isSmartConnected, activePatientId, populationPatients } = usePatient()
   const navigate = useNavigate()
   const bannerRef = useBannerHeightVar()
 
@@ -91,40 +65,10 @@ export function PatientBanner() {
     )
   }
 
-  const risk = highestRiskLevel(riskAlerts.map(a => a.level))
-
   return (
     <div ref={bannerRef} className="patient-banner">
       <div className="patient-banner-content">
-        <span className="patient-banner-name">{patientDisplay.fullName}</span>
-        <span className="patient-banner-divider">|</span>
-        <span className="patient-banner-field">
-          <span className="patient-banner-label">DOB</span>
-          <span className="patient-banner-value">{patientDisplay.dob}</span>
-        </span>
-        <span className="patient-banner-divider">|</span>
-        <span className="patient-banner-field">
-          <span className="patient-banner-label">MRN</span>
-          <span className="patient-banner-value patient-banner-mrn">{patientDisplay.mrn}</span>
-        </span>
-        <span className="patient-banner-divider">|</span>
-        <span className="patient-banner-field">
-          <span className="patient-banner-label">Sex</span>
-          <span className="patient-banner-value">{patientDisplay.gender}</span>
-        </span>
-        <span className="patient-banner-divider">|</span>
-        <span className="patient-banner-field">
-          <span className="patient-banner-label">Risk</span>
-          <RiskPill
-            level={risk}
-            label={RISK_LABEL[risk]}
-            title={
-              risk === 'unknown'
-                ? 'No suicide-risk screening on file'
-                : `Highest active risk level: ${RISK_LABEL[risk]}`
-            }
-          />
-        </span>
+        <PatientIdentityStrip />
         {isSmartConnected ? (
           <span className="patient-banner-smart" title="Connected via SMART on FHIR">
             SMART

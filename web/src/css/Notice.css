@@ -1,0 +1,82 @@
+/* ===========================
+   Notice — see components/Notice.tsx for the recipe and what is NOT one.
+
+   The tone tokens are the app's existing accent families; a new tone is a
+   new family in index.css first, then a modifier here — never a literal.
+   =========================== */
+
+.notice {
+  max-width: var(--measure-prose);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  color: var(--text-body);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+}
+
+.notice__title {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--text-strong);
+}
+
+.notice > p {
+  margin: 0;
+}
+
+.notice > p + p {
+  margin-top: var(--space-2);
+}
+
+.notice pre {
+  margin: var(--space-2) 0 0;
+  white-space: pre-wrap;
+  font-size: var(--font-size-sm);
+}
+
+.notice--brand {
+  border-left-color: var(--brand-accent);
+}
+
+.notice--info {
+  background: var(--accent-info-soft-bg);
+  border-color: var(--accent-info-border);
+  border-left-color: var(--accent-info-mid);
+}
+
+.notice--success {
+  background: var(--accent-success-bg);
+  border-color: var(--accent-success-light);
+  border-left-color: var(--accent-success);
+  color: var(--accent-success-text);
+}
+
+.notice--success .notice__title {
+  color: inherit;
+}
+
+.notice--warning {
+  background: var(--accent-warning-bg);
+  border-color: var(--accent-warning-border);
+  border-left-color: var(--accent-warning-edge);
+  color: var(--accent-warning-text-deep);
+}
+
+.notice--warning .notice__title {
+  color: inherit;
+}
+
+.notice--danger {
+  background: var(--risk-acute-soft-bg);
+  border-color: var(--risk-acute-faded);
+  border-left-color: var(--risk-acute);
+  color: var(--risk-acute-soft-text);
+}
+
+.notice--danger .notice__title {
+  color: inherit;
+}

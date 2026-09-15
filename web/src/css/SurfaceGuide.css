@@ -80,20 +80,6 @@
    keeps body-weight text and an accent rule because the panel plan requires the
    pages to SAY what they do not prove — a caveat set in small grey type is a
    caveat the reader is being invited to skip. */
-.surface-guide__note,
-.surface-guide__warn {
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-md);
-  background: var(--surface-muted);
-}
-
-.surface-guide__note {
-  border-left: 3px solid var(--border-default);
-}
-
-.surface-guide__warn {
-  border-left: 3px solid var(--brand-accent);
-}
 
 .surface-guide__cta {
   display: inline-block;

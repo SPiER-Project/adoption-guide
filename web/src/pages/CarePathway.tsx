@@ -53,6 +53,7 @@ import { usePathway } from '../hooks/usePathway'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import { guideHref } from '../data/guideSections'
 import '../css/CarePathway.css'
+import { Card } from '../components/Card'
 
 /* ─── The simulator's questions, derived from the Questionnaire ─── */
 
@@ -162,7 +163,7 @@ export function CarePathway() {
       </p>
 
       {/* ── Simulator ─────────────────────────────────────────── */}
-      <section className="pathway-sim" aria-labelledby="pathway-sim-title">
+      <Card as="section" tone="brand" className="pathway-sim" aria-labelledby="pathway-sim-title">
         <h3 id="pathway-sim-title" className="pathway-sim__title">Try a C-SSRS result</h3>
         <p className="pathway-sim__lede">
           Answer the C-SSRS Screener below and watch the branch light up. The answers are built into a
@@ -219,7 +220,7 @@ export function CarePathway() {
             />
           )}
         </div>
-      </section>
+      </Card>
 
       {/* ── The spine ─────────────────────────────────────────── */}
       <section className="pathway-spine-section" aria-labelledby="pathway-spine-title">

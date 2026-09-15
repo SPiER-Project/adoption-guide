@@ -15,7 +15,7 @@ import { ageOf } from '../lib/populationFilters'
 import { RISK_LABEL } from '../lib/populationSummary'
 import { RiskPill } from './RiskPill'
 import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
-import { formatDaysAgo } from '../lib/relativeTime'
+import { formatDaysAgo, isoDay } from '../lib/dates'
 import type { FilterKey, SortCol } from '../lib/caseloadViews'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
@@ -70,7 +70,7 @@ function followUpBody(row: DerivedRegistryRow): ReactNode {
     return (
       <>
         <div className="caseload-activity-label">
-          Next visit {row.nextAppointment.date.slice(0, 10)}
+          Next visit {isoDay(row.nextAppointment.date)}
         </div>
         <div className="caseload-activity-date">
           {row.nextAppointment.provider ?? 'Provider not recorded'}
@@ -132,7 +132,7 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
                 {row.overdueTaskCount > 0 ? ` · ${row.overdueTaskCount} overdue` : ''}
               </div>
               <div className="caseload-activity-date">
-                {row.nextTaskDue ? `Next due ${row.nextTaskDue.slice(0, 10)}` : 'No due dates set'}
+                {row.nextTaskDue ? `Next due ${isoDay(row.nextTaskDue)}` : 'No due dates set'}
               </div>
             </>
           ) : (
@@ -178,7 +178,7 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
     render: row => (
       <>
         <div className="caseload-activity-label">
-          {row.lastAssessment ? row.lastAssessment.slice(0, 10) : 'None on record'}
+          {row.lastAssessment ? isoDay(row.lastAssessment) : 'None on record'}
         </div>
         <div className="caseload-activity-date">
           {row.reassessment.kind === 'no-cadence'

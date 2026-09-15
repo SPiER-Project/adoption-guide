@@ -1,0 +1,78 @@
+/* ===========================
+   SectionHeader — the one heading row for a section below the page title:
+   an <h3>, optional meta text on the right (a count, a one-line summary),
+   and — when the section collapses — the title as the toggle.
+
+   One look, on purpose. Before this component owned it, the same row was
+   written eleven times with four gaps, five bottom margins, three type sizes
+   and two `align-items`; picking one of each here is the decision every
+   later section inherits (maintainability audit, 2026-09-15, §2.2). The
+   type is `--font-size-xl`: the chart sections came down from 2xl and the
+   measure/scorecard heads up from lg to meet there.
+
+   This file was the live tail of `Dashboard.css` (as `ChartSectionHeader`),
+   a stylesheet named for a page that no longer existed.
+   =========================== */
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.section-header__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.section-header__meta {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Stack the title and meta on narrow screens so they don't crowd each other. */
+@media (max-width: 767px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-0-5);
+  }
+
+  .section-header__meta {
+    text-align: left;
+  }
+}
+
+/* The title as a control. Same type as the plain title — the caret is the
+   only sign it toggles — because a heading that looked like a button would
+   read as a third kind of thing on a page with two. */
+.section-header__toggle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.section-header__toggle:hover {
+  color: var(--brand-primary);
+}
+
+.section-header__caret {
+  font-size: var(--font-size-2xs);
+  color: var(--text-muted);
+}

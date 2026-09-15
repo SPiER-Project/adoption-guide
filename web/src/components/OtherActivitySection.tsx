@@ -15,6 +15,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount } from '../lib/chartDisplay'
 import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
+import { Pill } from './Pill'
 
 export function OtherActivitySection({
   responses,
@@ -52,9 +53,9 @@ export function OtherActivitySection({
             <span className="pathway-node-title">Other activity</span>
           </span>
           <span className="pathway-node-aside">
-            <span className="pathway-node-status pathway-node-status--upcoming">
+            <Pill className="pathway-node-status--upcoming">
               {count} {count === 1 ? 'item' : 'items'}
-            </span>
+            </Pill>
             <span className="pathway-node-chevron" aria-hidden>
               {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </span>

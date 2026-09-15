@@ -17,6 +17,10 @@ import {
   type StageId,
 } from '@spier/core/data/catalog'
 import '../css/DataDictionary.css'
+import { SectionHeader } from '../components/SectionHeader'
+import { EmptyState } from '../components/EmptyState'
+import { Pill } from '../components/Pill'
+import { Card } from '../components/Card'
 
 /**
  * Anchor id for a section, and the ONE place the scheme is written.
@@ -204,15 +208,17 @@ function SharedConcepts({
   const routeCount = concepts.reduce((n, c) => n + bindingsForConcept(c.id).length, 0)
 
   return (
-    <section className="dd-stage-section dd-concept-layer" id={NORMALIZATION_ANCHOR}>
-      <div className="dd-stage-header">
-        <h3 className="dd-stage-title">Cross-instrument normalization</h3>
-        <span className="dd-stage-count">
-          {concepts.length} {concepts.length === 1 ? 'concept' : 'concepts'} &middot; {routeCount}{' '}
-          {routeCount === 1 ? 'route' : 'routes'} &middot; {toolCount}{' '}
-          {toolCount === 1 ? 'tool' : 'tools'}
-        </span>
-      </div>
+    <Card as="section" padding="compact" tone="muted" accent className="dd-stage-section dd-concept-layer" id={NORMALIZATION_ANCHOR}>
+      <SectionHeader
+        title="Cross-instrument normalization"
+        meta={
+          <>
+            {concepts.length} {concepts.length === 1 ? 'concept' : 'concepts'} &middot; {routeCount}{' '}
+            {routeCount === 1 ? 'route' : 'routes'} &middot; {toolCount}{' '}
+            {toolCount === 1 ? 'tool' : 'tools'}
+          </>
+        }
+      />
       <p className="dd-concept-intro">
         Every instrument below asks its own questions in its own vocabulary. <strong>This is where
         they become one value a consumer can act on without knowing which tool produced it.</strong>{' '}
@@ -317,9 +323,9 @@ function SharedConcepts({
                             {b.value?.valueSet && <ValueSetLine canonical={b.value.valueSet} />}
                           </td>
                           <td>
-                            <span className={`dd-resource-badge dd-resource-badge--${b.fhirResource.toLowerCase()}`}>
+                            <Pill variant="label" className={`dd-resource-badge--${b.fhirResource.toLowerCase()}`}>
                               {b.fhirResource}
-                            </span>
+                            </Pill>
                           </td>
                           <td className="dd-cell-path">{b.fhirPath}</td>
                           <td>
@@ -328,9 +334,9 @@ function SharedConcepts({
                                 const tool = toolIndex.get(tid)
                                 if (!tool) return null
                                 return (
-                                  <span key={tid} className="dd-tool-chip" title={tool.name}>
+                                  <Pill key={tid} variant="label" title={tool.name}>
                                     {tool.shortName ?? tool.name}
-                                  </span>
+                                  </Pill>
                                 )
                               })}
                             </div>
@@ -345,7 +351,7 @@ function SharedConcepts({
           </div>
         )
       })}
-    </section>
+    </Card>
   )
 }
 
@@ -440,7 +446,7 @@ function BindingRow({
               </span>
             </>
           ) : (
-            <span className="dd-code-none" title="This element carries no code of its own">—</span>
+            <EmptyState as="span" title="This element carries no code of its own">—</EmptyState>
           )}
         </td>
         <td className="dd-cell-system">
@@ -457,17 +463,17 @@ function BindingRow({
           {!b.code && !b.value && '—'}
         </td>
         <td>
-          <span className={`dd-resource-badge dd-resource-badge--${b.fhirResource.toLowerCase()}`}>
+          <Pill variant="label" className={`dd-resource-badge--${b.fhirResource.toLowerCase()}`}>
             {b.fhirResource}
-          </span>
+          </Pill>
         </td>
         <td className="dd-cell-path">{b.fhirPath}</td>
         <td>
           <div className="dd-tools">
             {shown.map(t => (
-              <span key={t.id} className="dd-tool-chip" title={t.name}>
+              <Pill key={t.id} variant="label" title={t.name}>
                 {t.shortName ?? t.name}
-              </span>
+              </Pill>
             ))}
             {hidden > 0 && (
               <span className="dd-tool-more" title={tools.map(t => t.name).join(', ')}>
@@ -519,9 +525,9 @@ function BindingRow({
                 <span className="dd-detail-label">Used by</span>
                 <span className="dd-tools">
                   {tools.map(t => (
-                    <span key={t.id} className="dd-tool-chip" title={t.name}>
+                    <Pill key={t.id} variant="label" title={t.name}>
                       {t.shortName ?? t.name}
-                    </span>
+                    </Pill>
                   ))}
                 </span>
               </p>
@@ -529,7 +535,7 @@ function BindingRow({
             {concept && (
               <p className="dd-detail-line">
                 <span className="dd-detail-label">One route into</span>
-                <span className="dd-concept-chip">{concept.name}</span>
+                <Pill variant="label">{concept.name}</Pill>
               </p>
             )}
             {crossStages.length > 0 && (
@@ -537,7 +543,7 @@ function BindingRow({
                 <span className="dd-detail-label">Also used in</span>
                 <span className="dd-tools">
                   {crossStages.map(sid => (
-                    <span key={sid} className="dd-cross-chip">{stageById.get(sid)?.title ?? sid}</span>
+                    <Pill key={sid} variant="label" tone="accent">{stageById.get(sid)?.title ?? sid}</Pill>
                   ))}
                 </span>
               </p>
@@ -701,17 +707,17 @@ export function DataDictionary() {
       <JumpNav sections={jumpSections} onJump={jumpTo} />
 
       {grouped.length === 0 && (
-        <p className="dd-empty-state">No entries match your filters.</p>
+        <EmptyState panel>No entries match your filters.</EmptyState>
       )}
 
       <SharedConcepts concepts={visibleConcepts} toolIndex={toolIndex} />
 
       {grouped.map(group => (
         <section key={group.stageId} className="dd-stage-section" id={sectionAnchor(group.stageId)}>
-          <div className="dd-stage-header">
-            <h3 className="dd-stage-title">{group.stageTitle}</h3>
-            <span className="dd-stage-count">{group.bindings.length} {group.bindings.length === 1 ? 'element' : 'elements'}</span>
-          </div>
+          <SectionHeader
+            title={group.stageTitle}
+            meta={`${group.bindings.length} ${group.bindings.length === 1 ? 'element' : 'elements'}`}
+          />
 
           <div className="dd-table-wrapper">
             <table className="dd-table dd-table--fixed">

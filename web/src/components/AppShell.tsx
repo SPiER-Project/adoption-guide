@@ -6,6 +6,7 @@ import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from './SpierLogo'
 import '../css/AppShell.css'
+import { cx } from '../lib/cx'
 
 // ⚠️ **The app bar carries no links, and that is where they used to be.** Three
 // outbound pills lived here, with `HeaderMenu` as an overflow disclosure below
@@ -60,7 +61,7 @@ export function AppShell() {
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             aria-expanded={sidebarOpen}
           >
-            <span className={`app-shell__hamburger ${sidebarOpen ? 'app-shell__hamburger--active' : ''}`} />
+            <span className={cx('app-shell__hamburger', sidebarOpen && 'app-shell__hamburger--active')} />
           </button>
           <Link to="/" className="app-shell__brand">
             <SpierLogo className="app-shell__brand-logo" />

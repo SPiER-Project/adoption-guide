@@ -42,16 +42,6 @@
   font-size: var(--font-size-xs);
 }
 
-.panel-shell__name {
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  color: var(--text-strong);
-}
-
-.panel-shell__meta {
-  color: var(--text-muted);
-}
-
 /* The panel's page inset — the second sanctioned owner alongside
    `.app-shell__body`, declared in web/scripts/check-page-template.mjs so the
    template gate knows about it rather than being worked around.

@@ -34,6 +34,7 @@ import { PopulationAlertsPanel } from '../components/PopulationAlertsPanel'
 import { PopulationSummary } from '../components/PopulationSummary'
 import { useCaseloadSummary } from '../hooks/useCaseloadSummary'
 import '../css/PopulationView.css'
+import { Notice } from '../components/Notice'
 
 export function PopulationSummaryEmbed() {
   const { rows, tiles, census, alertGroups, scope, isLoading } = useCaseloadSummary()
@@ -44,15 +45,15 @@ export function PopulationSummaryEmbed() {
           access token is bound to one patient, so a census drawn from it is a
           census of one. Saying so beats a tile strip that reads like a caseload. */}
       {scope === 'in-context' && (
-        <p className="population-scope-notice">
+        <Notice tone="warning">
           <strong>Showing the patient in context only.</strong> A SMART access token is
           bound to one patient, so this connection cannot serve a caseload — nothing
           here is a cross-patient claim.
-        </p>
+        </Notice>
       )}
 
       {isLoading && rows.length === 0 && (
-        <p className="population-scope-notice">Reading the caseload from the connected server…</p>
+        <Notice tone="info">Reading the caseload from the connected server…</Notice>
       )}
 
       <div className="population-zones">

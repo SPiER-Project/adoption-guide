@@ -80,14 +80,21 @@ function node(container: HTMLElement, stageIndex: number): HTMLElement {
   return el as HTMLElement
 }
 
+/** The flag pills in a node's aside — everything that is not the state pill. */
+function flagsOf(el: HTMLElement): HTMLElement[] {
+  return [...el.querySelectorAll<HTMLElement>('.pathway-node-aside .pill')].filter(
+    p => !/pathway-node-status--/.test(p.className),
+  )
+}
+
 describe('PatientPathway — to-do versus guidance', () => {
   it('flags a card on an UPCOMING stage "Do now", and leaves the active stage to its one pill', () => {
     const { container } = renderRail('ehr', [card(3), card(5)])
     // Upcoming: the flag is the only thing saying this row is actionable.
-    expect(node(container, 5).querySelector('.pathway-node-flag')?.textContent).toBe('Do now')
+    expect(flagsOf(node(container, 5))[0]?.textContent).toBe('Do now')
     // Active: "You are here" is the one label; the open card says what to do.
-    expect(node(container, 3).querySelector('.pathway-node-flag')).toBeNull()
-    expect(node(container, 3).querySelector('.pathway-node-status')?.textContent).toBe('You are here')
+    expect(flagsOf(node(container, 3))).toHaveLength(0)
+    expect(node(container, 3).querySelector('[class*="pathway-node-status--"]')?.textContent).toBe('You are here')
     expect(node(container, 3).querySelector('.cds-card')).not.toBeNull()
     // …and the node still reads as needing attention (border), just not twice.
     expect(node(container, 3).classList.contains('pathway-node--attention')).toBe(true)
@@ -98,10 +105,11 @@ describe('PatientPathway — to-do versus guidance', () => {
     // design. The old rule flagged every stage with a card, so three completed
     // nodes read "DO NOW  COMPLETE" at once.
     const { container } = renderRail('ehr', [card(0)])
-    const flags = node(container, 0).querySelectorAll('.pathway-node-flag')
+    const flags = flagsOf(node(container, 0))
     expect(flags).toHaveLength(1)
     expect(flags[0].textContent).toBe('Guidance')
-    expect(flags[0].classList.contains('pathway-node-flag--guidance')).toBe(true)
+    // Guidance is the quiet pill; "Do now" is the brand-coloured one.
+    expect(flags[0].classList.contains('pill--neutral')).toBe(true)
     expect(node(container, 0).textContent).not.toContain('Do now')
     // …and the node still opens for it, because the card is the point.
     expect(node(container, 0).querySelector('.cds-card')).not.toBeNull()
@@ -180,7 +188,7 @@ describe('CdsCardView — long detail and the configure link', () => {
     // A card with no links and no narrative-only marker: the shell tells an
     // implementer where to enable a tool; the panel has no implementer to tell.
     //
-    // ⚠️ **Scoped to `.cds-card-no-options` on purpose, and it was not always.**
+    // ⚠️ **Scoped to the card's `.empty-state` line on purpose, and it was not always.**
     // This asserted `querySelector('a[href="/settings"]')` over the whole
     // container, which passed only while the panel had NO route to the settings
     // anywhere. The moment the panel footnote gained one (2026-09-15) that
@@ -190,11 +198,11 @@ describe('CdsCardView — long detail and the configure link', () => {
     // wide assertion cannot tell those apart, so it is the card that is checked.
     const shell = renderRail('ehr', [card(3)])
     expect(
-      shell.container.querySelector('.cds-card-no-options a[href="/settings"]'),
+      shell.container.querySelector('.cds-card .empty-state a[href="/settings"]'),
     ).not.toBeNull()
     cleanup()
     const panel = renderRail('panel', [card(3)])
-    expect(panel.container.querySelector('.cds-card-no-options a[href="/settings"]')).toBeNull()
+    expect(panel.container.querySelector('.cds-card .empty-state a[href="/settings"]')).toBeNull()
     expect(panel.container.textContent).toContain('No tool is enabled for this step.')
   })
 

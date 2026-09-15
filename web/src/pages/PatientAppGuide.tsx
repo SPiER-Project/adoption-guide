@@ -35,6 +35,7 @@
 import { Link } from 'react-router-dom'
 import { DEMO_CHART_PICKS, MOCK_EHR_URL } from '../data/surfaces'
 import '../css/SurfaceGuide.css'
+import { Notice } from '../components/Notice'
 
 export function PatientAppGuide() {
   return (
@@ -113,7 +114,7 @@ export function PatientAppGuide() {
           deliberate: an EHR calling the endpoint and a clinician looking at the panel get the same
           recommendation, because there is one implementation of the rule rather than two.
         </p>
-        <p className="surface-guide__note">
+        <Notice>
           <strong>One deliberate exception.</strong> Inside a host chart, every catalogued tool is
           offered regardless of the Tool Configuration preset. The reason is not that the setting is
           out of reach &mdash; since it moved into the app it is one tap away in the panel too. It
@@ -122,7 +123,7 @@ export function PatientAppGuide() {
           preset the host&rsquo;s cards did not would put two different answers about one patient
           side by side. In a real chart the host <em>is</em> the site; a per-site toolset the
           service could read is the thing that would replace this exception.
-        </p>
+        </Notice>
       </section>
 
       <section className="surface-guide__section">
@@ -149,12 +150,12 @@ export function PatientAppGuide() {
             </li>
           ))}
         </ul>
-        <p className="surface-guide__warn">
+        <Notice tone="brand">
           <strong>That host is ours, so nothing seen there is evidence of interoperability.</strong>{' '}
           The SMART handshake, the FHIR reads and the writes are real, and they run against a server
           this project wrote. What it demonstrates is that the app works as a guest in someone
           else&rsquo;s chart; a portability claim needs a server we do not control.
-        </p>
+        </Notice>
         <p>
           With no host connected the app still runs the instruments and recorders against sample
           data, which is the way to walk a workflow without a launch:{' '}

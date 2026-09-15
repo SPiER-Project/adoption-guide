@@ -34,7 +34,7 @@ describe('a collapsible chart section', () => {
   it('starts collapsed when asked, and the count still says what is inside', () => {
     const { container } = renderDocs(true)
     expect(container.querySelector('#documents-body')).toBeNull()
-    expect(container.querySelector('.chart-section-count')?.textContent).toBe('0 total')
+    expect(container.querySelector('.section-header__meta')?.textContent).toBe('0 total')
     expect(screen.getByRole('button', { name: /Patient Documents/ }).getAttribute('aria-expanded')).toBe('false')
   })
 

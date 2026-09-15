@@ -30,7 +30,9 @@ npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
 npm run check:css-dead # every class selector in src/**/*.css is referenced by a non-test
-                       # .ts/.tsx (a literal, or a `root--${…}` template prefix) or is
+                       # .ts/.tsx — a literal, or a `root--…${…}` template prefix, with TS
+                       # comments blanked first (a doc comment naming `.risk-pill` kept a
+                       # `:has(.risk-pill)` selector alive for a whole commit) — or is
                        # a class the formbox renderer emits, SCRAPED from its installed
                        # theme. Written after 148 selectors whose TSX had been deleted
                        # passed both other CSS gates — 92 in App.css, 35 in a Dashboard.css

@@ -18,6 +18,9 @@
  */
 import type { WritebackReport, WriteStepResult, WriteTier } from '@spier/core/lib/writeback/types'
 import '../css/WritebackScorecard.css'
+import { SectionHeader } from './SectionHeader'
+import { Notice } from './Notice'
+import { Card } from './Card'
 
 /**
  * The ladder's rungs, in ascending tier order (see writeback/types.ts).
@@ -100,24 +103,25 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
   const failed = report.result.steps.filter(s => s.outcome === 'failed')
 
   return (
-    <section className="writeback-scorecard" aria-labelledby="writeback-scorecard-heading">
-      <div className="writeback-scorecard__head">
-        <h3 className="writeback-scorecard__title" id="writeback-scorecard-heading">
-          Saved to the EHR
-        </h3>
-        <p className="writeback-scorecard__summary">
-          {written.length} of {report.result.steps.length} attempted{' '}
-          {report.result.steps.length === 1 ? 'tier' : 'tiers'} written back
-          {failed.length > 0 ? `, ${failed.length} failed` : ''}.
-        </p>
-      </div>
+    <Card as="section" className="writeback-scorecard" aria-labelledby="writeback-scorecard-heading">
+      <SectionHeader
+        id="writeback-scorecard-heading"
+        title="Saved to the EHR"
+        meta={
+          <>
+            {written.length} of {report.result.steps.length} attempted{' '}
+            {report.result.steps.length === 1 ? 'tier' : 'tiers'} written back
+            {failed.length > 0 ? `, ${failed.length} failed` : ''}.
+          </>
+        }
+      />
 
       {!report.capabilitiesKnown && (
-        <p className="writeback-scorecard__probe" role="status">
+        <Notice tone="warning" role="status">
           <strong>Could not read this server&rsquo;s CapabilityStatement.</strong> The tiers below
           were attempted without knowing what the server accepts — a skipped tier here means
           &ldquo;not advertised&rdquo;, not &ldquo;refused&rdquo;.
-        </p>
+        </Notice>
       )}
 
       <ol className="writeback-scorecard__rungs">
@@ -163,6 +167,6 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
         Written back browser-direct to the connected EHR — SPiER&rsquo;s own infrastructure never
         receives this data. An incomplete ladder is shown on purpose: it is the readiness signal.
       </p>
-    </section>
+    </Card>
   )
 }

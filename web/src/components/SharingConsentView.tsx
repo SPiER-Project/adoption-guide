@@ -1,9 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
-import { CodeDrawer } from './CodeDrawer'
-import { FhirJsonViewer } from './FhirJsonViewer'
-import { PageHeader } from './PageHeader'
 import { makeId } from '@spier/core/lib/id'
 import {
   buildSharingConsent,
@@ -13,7 +9,8 @@ import {
   displayFor,
   CONSENT_DECISIONS,
 } from '@spier/core/lib/handoffs'
-import '../css/WorkflowActionView.css'
+import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { todayLocalIso, isoDay } from '../lib/dates'
 
 /**
  * TL-032 — information-sharing consent / sharing status (Stage 5).
@@ -32,11 +29,6 @@ import '../css/WorkflowActionView.css'
  * decision; it does not enforce it.
  */
 
-function todayIso(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 function oneYearOut(): string {
   const d = new Date()
   d.setFullYear(d.getFullYear() + 1)
@@ -48,7 +40,7 @@ export function SharingConsentView() {
 
   const [decision, setDecision] = useState(CONSENT_DECISIONS[0].code)
   const [recipient, setRecipient] = useState('')
-  const [date, setDate] = useState(todayIso())
+  const [date, setDate] = useState(todayLocalIso())
   const [expiry, setExpiry] = useState(oneYearOut())
   const [deniedActor, setDeniedActor] = useState('')
   const [notice, setNotice] = useState<string | null>(null)
@@ -86,135 +78,104 @@ export function SharingConsentView() {
   }
 
   return (
-    <div className="form-view">
-      <PageHeader
-        eyebrow={['Patient Chart', 'Workflow']}
-        up="/patient/record"
-        title="Consent / Information-Sharing Status"
-        lede={
-          <>
-            Records a <strong>Consent</strong> tagged to the{' '}
-            <strong>Coordinate Handoffs</strong> stage. A patient declining is a{' '}
-            <em>deny provision</em> rather than a separate status, so the EHR can compute what may be
-            sent at a handoff instead of guessing.
-          </>
-        }
-      />
-
-      <div className="form-wrapper">
-        <div className="form-card">
-          {activePatientId === null && (
-            <p className="workflow-form-hint">
-              No patient selected — this will be recorded in the scratch chart. Pick a patient from the
-              Population view to attach it to a specific record.
-            </p>
-          )}
-
-          {current && (
-            <p className="workflow-form-hint">
-              <strong>Current consent:</strong>{' '}
-              {consentDecision(current) === 'deny' ? 'sharing declined' : 'sharing permitted'}
-              {consentRecipient(current) ? ` · recipient: ${consentRecipient(current)}` : ''}
-              {(current as { dateTime?: string }).dateTime
-                ? ` · recorded ${(current as { dateTime?: string }).dateTime!.slice(0, 10)}`
-                : ''}
-              . Recording a new decision supersedes it.
-            </p>
-          )}
-
-          <form className="workflow-form" onSubmit={handleSubmit}>
-            <label className="workflow-field">
-              <span className="workflow-field-label">Decision</span>
-              <select
-                className="workflow-input"
-                value={decision}
-                onChange={e => setDecision(e.target.value)}
-              >
-                {CONSENT_DECISIONS.map(d => (
-                  <option key={d.code} value={d.code}>{d.display}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">Recipient (provider, team, or support person)</span>
-              <input
-                type="text"
-                className="workflow-input"
-                placeholder="e.g. Riverside Behavioral Health"
-                value={recipient}
-                onChange={e => setRecipient(e.target.value)}
-              />
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">Date recorded</span>
-              <input
-                type="date"
-                className="workflow-input"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-              />
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">
-                Expires <span className="workflow-field-optional">(optional)</span>
-              </span>
-              <input
-                type="date"
-                className="workflow-input"
-                value={expiry}
-                onChange={e => setExpiry(e.target.value)}
-              />
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">
-                Specifically excluded person{' '}
-                <span className="workflow-field-optional">(optional — a nested deny provision)</span>
-              </span>
-              <input
-                type="text"
-                className="workflow-input"
-                placeholder="e.g. a named support person the patient does not want informed"
-                value={deniedActor}
-                onChange={e => setDeniedActor(e.target.value)}
-              />
-            </label>
-
-            <button type="submit" className="workflow-submit-btn">Record consent</button>
-          </form>
-
-          {notice && (
-            <div className="workflow-success-notice">
-              {notice} <Link to="/patient/record#activity">View in chart</Link>
-            </div>
-          )}
-
+    <WorkflowForm
+      title="Consent / Information-Sharing Status"
+      lede={
+        <>
+          Records a <strong>Consent</strong> tagged to the{' '}
+          <strong>Coordinate Handoffs</strong> stage. A patient declining is a{' '}
+          <em>deny provision</em> rather than a separate status, so the EHR can compute what may be
+          sent at a handoff instead of guessing.
+        </>
+      }
+      draft={draft}
+      draftTitle="Live FHIR Consent"
+      notice={notice}
+      recorded={
+        <>
           {consents.length > 1 && (
-            <>
-              <h3 className="workflow-form-title">Consent history</h3>
-              <ul>
-                {consents.map((c, idx) => {
-                  const consent = c as { id?: string; dateTime?: string }
-                  return (
-                    <li key={consent.id ?? idx}>
-                      {consent.dateTime ? consent.dateTime.slice(0, 10) : 'undated'} ·{' '}
-                      {displayFor(CONSENT_DECISIONS, consentDecision(c) ?? 'permit')}
-                      {consentRecipient(c) ? ` · ${consentRecipient(c)}` : ''}
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
+            <RecordedList title="Consent history">
+              {consents.map((c, idx) => {
+                const consent = c as { id?: string; dateTime?: string }
+                return (
+                  <li key={consent.id ?? idx}>
+                    {consent.dateTime ? isoDay(consent.dateTime) : 'undated'} ·{' '}
+                    {displayFor(CONSENT_DECISIONS, consentDecision(c) ?? 'permit')}
+                    {consentRecipient(c) ? ` · ${consentRecipient(c)}` : ''}
+                  </li>
+                )
+              })}
+            </RecordedList>
           )}
-        </div>
+        </>
+      }
+    >
+      {current && (
+        <WorkflowHint>
+          <strong>Current consent:</strong>{' '}
+          {consentDecision(current) === 'deny' ? 'sharing declined' : 'sharing permitted'}
+          {consentRecipient(current) ? ` · recipient: ${consentRecipient(current)}` : ''}
+          {(current as { dateTime?: string }).dateTime
+            ? ` · recorded ${isoDay((current as { dateTime?: string }).dateTime!)}`
+            : ''}
+          . Recording a new decision supersedes it.
+        </WorkflowHint>
+      )}
 
-        <CodeDrawer>
-          <FhirJsonViewer data={draft} title="Live FHIR Consent" defaultOpen />
-        </CodeDrawer>
-      </div>
-    </div>
+      <form className="workflow-form" onSubmit={handleSubmit}>
+        <WorkflowField label="Decision">
+          <select
+            className="workflow-input"
+            value={decision}
+            onChange={e => setDecision(e.target.value)}
+          >
+            {CONSENT_DECISIONS.map(d => (
+              <option key={d.code} value={d.code}>{d.display}</option>
+            ))}
+          </select>
+        </WorkflowField>
+
+        <WorkflowField label="Recipient (provider, team, or support person)">
+          <input
+            type="text"
+            className="workflow-input"
+            placeholder="e.g. Riverside Behavioral Health"
+            value={recipient}
+            onChange={e => setRecipient(e.target.value)}
+          />
+        </WorkflowField>
+
+        <WorkflowField label="Date recorded">
+          <input
+            type="date"
+            className="workflow-input"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+          />
+        </WorkflowField>
+
+        <WorkflowField label="Expires" optional="optional">
+          <input
+            type="date"
+            className="workflow-input"
+            value={expiry}
+            onChange={e => setExpiry(e.target.value)}
+          />
+        </WorkflowField>
+
+        <WorkflowField label="Specifically excluded person" optional="optional — a nested deny provision">
+          <input
+            type="text"
+            className="workflow-input"
+            placeholder="e.g. a named support person the patient does not want informed"
+            value={deniedActor}
+            onChange={e => setDeniedActor(e.target.value)}
+          />
+        </WorkflowField>
+
+        <button type="submit" className="workflow-submit-btn">Record consent</button>
+      </form>
+
+    </WorkflowForm>
   )
 }

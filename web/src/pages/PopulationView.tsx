@@ -23,6 +23,8 @@ import { PageHeader } from '../components/PageHeader'
 import { PopulationAlertsPanel } from '../components/PopulationAlertsPanel'
 import { PopulationSummary } from '../components/PopulationSummary'
 import '../css/PopulationView.css'
+import { cx } from '../lib/cx'
+import { Notice } from '../components/Notice'
 
 type RiskLevel = RiskAlert['level']
 
@@ -238,16 +240,16 @@ export function PopulationView() {
           user-scoped launch and a cohort read — blocker 2 in
           embedded-panel-smart-launch.md §6.3, deliberately not invented here. */}
       {scope === 'in-context' && (
-        <p className="population-scope-notice">
+        <Notice tone="warning">
           <strong>Showing the patient in context only.</strong> A SMART access token is
           bound to one patient, so this connection cannot serve a caseload. A
           registry read needs a user-scoped launch and a cohort query, which this
           server does not offer yet — so nothing here is a cross-patient claim.
-        </p>
+        </Notice>
       )}
 
       {isLoading && entries.length === 0 && (
-        <p className="population-scope-notice">Reading the caseload from the connected server…</p>
+        <Notice tone="info">Reading the caseload from the connected server…</Notice>
       )}
 
       {/* Side by side on wide screens. Stacked, these two zones cost ~640px of
@@ -272,7 +274,7 @@ export function PopulationView() {
               key={v.id}
               type="button"
               aria-pressed={v.id === viewId}
-              className={`population-view-tab ${v.id === viewId ? 'population-view-tab--active' : ''}`}
+              className={cx('population-view-tab', v.id === viewId && 'population-view-tab--active')}
               onClick={() => switchView(v.id)}
             >
               {v.label}

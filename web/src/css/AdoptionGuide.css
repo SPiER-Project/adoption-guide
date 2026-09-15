@@ -69,7 +69,7 @@
 .guide-pager__dir {
   font-size: var(--font-size-xs);
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
   color: var(--text-muted);
 }
 

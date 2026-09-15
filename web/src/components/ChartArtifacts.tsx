@@ -5,12 +5,12 @@
 import { displayFor, outreachOutcome, OUTREACH_OUTCOMES } from '@spier/core/lib/followUp'
 import {
   carePlanDisplayName,
-  formatDateTime,
   workflowArtifactDisplay,
   type ArtifactBuckets,
   type RenderableResource,
 } from '../lib/chartDisplay'
 import type { CommunicationResource, StoredResponse } from '@spier/core/types/fhir'
+import { formatDate, formatDateTime } from '../lib/dates'
 
 /** The artifact-card lists shared by pathway stage nodes and the unstaged
  *  "Other activity" bucket. */
@@ -39,7 +39,7 @@ export function ArtifactCards({
       })}
       {carePlans.map((rawCp, idx) => {
         const cp = rawCp as RenderableResource
-        const savedAt = cp._savedAt ? new Date(cp._savedAt).toLocaleDateString() : null
+        const savedAt = cp._savedAt ? formatDate(cp._savedAt) : null
         return (
           <div key={`${cp.id}-${idx}`} className="stage-artifact stage-artifact--careplan">
             <span className="stage-artifact-icon" aria-hidden>{'\u{1F4CB}'}</span>
@@ -64,7 +64,7 @@ export function ArtifactCards({
               <span className="stage-artifact-name">{name}</span>
               <span className="stage-artifact-meta">
                 Observation
-                {when && ` · ${new Date(when).toLocaleDateString()}`}
+                {when && ` · ${formatDate(when)}`}
               </span>
             </div>
           </div>
@@ -92,10 +92,7 @@ export function ArtifactCards({
               <span className="stage-artifact-meta">
                 Communication &middot; {c.status ?? 'completed'}
                 {when &&
-                  ` · ${new Date(when).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })} ${new Date(when).toLocaleDateString()}`}
+                  ` · ${formatDateTime(when)}`}
               </span>
             </div>
           </div>

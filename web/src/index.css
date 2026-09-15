@@ -117,6 +117,12 @@
      the 26 values collapsed into these 10 in exchange for adding 2. Do not add
      a third half-step: 0.6/0.65/0.85/0.9rem all snapped to the 4px grid with a
      1.6px shift nobody can perceive, which is the scale doing its job. */
+  /* Breakpoints — three, and they are NOT tokens: a custom property cannot be
+     read inside @media, so stylelint's media-feature-name-value-allowed-list
+     pins the literals instead. 640 / 768 / 1024, with max-width written as the
+     complement (639 / 767 / 1023) so a min and a max never overlap by a pixel
+     — 768 and 767 both meant "phone" in this codebase for a year. */
+
   --space-0-5: 0.125rem;
   --space-1: 0.25rem;
   --space-1-5: 0.375rem;
@@ -227,7 +233,13 @@
   --radius-circle: 50%;
 
   /* ── Typography scale ───────────────────────────────────── */
-  --font-size-2xs:  0.625rem;   /* risk-pill--sm micro labels */
+  /* Tracking for small caps — two values, not five. 0.04/0.05/0.06em were the
+     same intent spelled three ways across 34 rules; --tracking-caps is the
+     one, and --tracking-caps-wide is the eyebrow's deliberate extra air. */
+  --tracking-caps:      0.05em;
+  --tracking-caps-wide: 0.08em;
+
+  --font-size-2xs:  0.625rem;   /* .pill--sm micro labels */
   --font-size-xs:   0.6875rem;
   --font-size-sm:   0.75rem;
   --font-size-base: 0.8125rem;  /* most common body size in components */

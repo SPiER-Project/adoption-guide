@@ -1,0 +1,31 @@
+/* ===========================
+   Card — see components/Card.tsx for the decisions and the rule that a page
+   may add LAYOUT to a card and nothing else.
+   =========================== */
+
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.card--roomy {
+  padding: var(--space-5);
+}
+
+.card--compact {
+  padding: var(--space-3) var(--space-4);
+}
+
+.card--muted {
+  background: var(--surface-muted);
+}
+
+.card--brand {
+  background: var(--brand-accent-faint);
+  border-color: var(--brand-accent-light);
+}
+
+.card--accent {
+  border-left: 3px solid var(--brand-accent);
+}

@@ -159,6 +159,14 @@ and was false. See [`docs/internals/README.md`](README.md).
   written. A form view's root is `.form-view`, which exists so the header can sit
   above the layout instead of becoming a third flex item inside it — which is
   what the old `.breadcrumb` trail was, `width: 100%` and all.
+  Since 2026-09-15 the ten **workflow recorders** do not render that layout at
+  all: they render `<WorkflowForm>` (`components/WorkflowForm.tsx`), the one
+  form view that owns the frame — header, card-beside-drawer, scratch-chart
+  hint, success notice, code drawer — for all of them. The gate recognizes a
+  recorder by that element and checks the mirror image of RULE 4: it must NOT
+  also render `<PageHeader>` or the layout classes, or the page has two of
+  each. Ten copies of the frame had drifted to nine pastes of one sentence
+  (one reworded) and one view out of ten scrolling its notice into view.
   ⚠️ All four lenses had drifted off this before it was a template: the
   Population view added `padding: var(--space-6)` to its root and the guide
   padded both its header band and each sub-page container, so those two started

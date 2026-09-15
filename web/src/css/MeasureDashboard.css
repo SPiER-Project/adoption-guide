@@ -50,37 +50,11 @@
    The page-level framing for a dashboard whose tables are all empty. It is
    rendered only while at least one measure has no denominator, so it retires
    itself when a seeded cohort lands rather than lingering as stale copy. */
-.md-caveat {
-  border: 1px solid var(--accent-info-border);
-  border-left: 4px solid var(--accent-info-mid);
-  border-radius: var(--radius-lg);
-  background-color: var(--accent-info-soft-bg);
-  padding: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-.md-caveat-title {
-  margin: 0 0 var(--space-2) 0;
-  font-size: var(--font-size-md);
-  font-weight: 600;
-  color: var(--accent-info-text-deep);
-}
 
 /* The cap is on the paragraph, not on `.md-caveat`. The callout's own font-size
    is the inherited 16px while its body is 14px, so an `em` cap on the box would
    resolve against the wrong type size — and the tinted band reads as page-level
    framing, which it stops doing at 588px. */
-.md-caveat-body {
-  margin: 0 0 var(--space-2) 0;
-  max-width: var(--measure-prose);
-  font-size: var(--font-size-md);
-  line-height: 1.6;
-  color: var(--text-body);
-}
-
-.md-caveat-body:last-child {
-  margin-bottom: 0;
-}
 
 /* Per-measure counterpart: names the one artifact this measure is waiting on.
    Sits under its table — the empty rows stay visible, since they are the
@@ -89,22 +63,6 @@
    Unlike `.md-caveat` this one IS the text run — its own font-size is the 12px
    the prose is set in — so the cap goes on the box and the padding comes out of
    the measure. It ran 178 characters a line under a full-width table. */
-.md-gap {
-  margin: 0 0 var(--space-3) 0;
-  max-width: var(--measure-prose);
-  padding: var(--space-3);
-  border-left: 3px solid var(--accent-info-border);
-  border-radius: var(--radius-md);
-  background-color: var(--surface-muted);
-  font-size: var(--font-size-base);
-  line-height: 1.6;
-  color: var(--text-body);
-}
-
-.md-gap-lead {
-  color: var(--text-strong);
-  font-weight: 600;
-}
 
 .md-gap-link {
   color: var(--accent-info-text);
@@ -113,24 +71,6 @@
 
 .md-measure {
   margin-bottom: var(--space-6);
-  padding: var(--space-4);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  background: white;
-}
-
-.md-measure-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-}
-
-.md-measure-title {
-  margin: 0;
-  font-size: var(--font-size-lg);
-  color: var(--text-strong);
 }
 
 /* The table's own scrollport. `min-width: 0` is the load-bearing half: this is
@@ -161,7 +101,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   border-bottom: 1px solid var(--border-strong);
 }
 
@@ -191,13 +131,8 @@
 
 /* An empty denominator is not a zero score — it means the measure could not be
    computed for anyone, which is a different and important thing to show. */
-.md-empty {
-  color: var(--text-faint);
-  font-size: var(--font-size-sm);
-  font-style: italic;
-}
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .md-measure {
     padding: var(--space-3);
   }
@@ -213,18 +148,4 @@
    token) so the denominators are not population rates, or while an async source
    is still reading. Mirrors .population-scope-notice; both replace the same
    failure, which was rendering bundled demo data during a live SMART session. */
-.md-scope-notice {
-  margin: 0 0 var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  background: var(--accent-warning-bg);
-  border: 1px solid var(--accent-warning-border);
-  border-left-width: 4px;
-  border-radius: var(--radius-md);
-  color: var(--accent-warning-text);
-  font-size: var(--font-size-md);
-  line-height: 1.55;
-}
 
-.md-scope-notice strong {
-  color: var(--accent-warning-text-deep);
-}

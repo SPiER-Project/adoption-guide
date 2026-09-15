@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { LOINC_SYSTEM, type GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
+import { Notice } from './Notice'
+import { Pill } from './Pill'
+import { todayLocalIso } from '../lib/dates'
 
 export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
   const [showJson, setShowJson] = useState(false)
@@ -12,7 +15,7 @@ export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${idSlug}-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `${idSlug}-${todayLocalIso()}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -21,16 +24,13 @@ export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
     <div className="careplan-container">
       <div className="careplan-header">
         <h3>Generated Safety Plan (FHIR CarePlan)</h3>
-        <span className="careplan-badge">Generated</span>
+        <Pill tone="warning">Generated</Pill>
       </div>
 
-      <div className="careplan-demo-notice">
-        <span className="notice-icon">&#9888;&#65039;</span>
-        <span>
-          <strong>Demo Only</strong> — This CarePlan was generated client-side for demonstration purposes.
-          No patient data has been stored, transmitted, or persisted to any server. All data remains in your browser's localStorage.
-        </span>
-      </div>
+      <Notice tone="warning">
+        <strong>Demo Only</strong> — This CarePlan was generated client-side for demonstration purposes.
+        No patient data has been stored, transmitted, or persisted to any server. All data remains in your browser's localStorage.
+      </Notice>
 
       <div className="careplan-steps">
         {carePlan.activities.map((activity, idx) => (

@@ -309,6 +309,37 @@ if (formViews.length === 0) {
   fail(`no form views found (nothing renders className="${FORM_LAYOUT}") — either they were renamed, in which case fix this check, or nothing here was verified`)
 }
 
+// The workflow recorders no longer render the layout themselves: they render
+// <WorkflowForm>, which is the one form view that owns the frame for all of
+// them (src/components/WorkflowForm.tsx). A recorder is recognized by that
+// element, and the rule for it is the mirror image of RULE 4 — it must NOT
+// also render a header or the layout, or the page has two of each.
+const RECORDER_FRAME = 'WorkflowForm'
+const recorderViews = readdirSync(COMPONENTS_DIR)
+  .filter(f => f.endsWith('.tsx') && !f.endsWith('.test.tsx') && f !== `${RECORDER_FRAME}.tsx`)
+  .filter(f => new RegExp(`<${RECORDER_FRAME}\\b`).test(readFileSync(join(COMPONENTS_DIR, f), 'utf8')))
+  .sort()
+
+if (recorderViews.length === 0) {
+  fail(`no recorder views found (nothing renders <${RECORDER_FRAME}>) — either they were renamed, in which case fix this check, or nothing here was verified`)
+}
+if (!formViews.includes(`${RECORDER_FRAME}.tsx`)) {
+  fail(`${RECORDER_FRAME}.tsx does not render the form layout — the recorders inherit their frame from it, so it must be the form view that satisfies RULE 4`)
+}
+
+for (const file of recorderViews) {
+  const src = readFileSync(join(COMPONENTS_DIR, file), 'utf8')
+  checkSharedRules(file, src)
+  if (/<PageHeader\b/.test(src)) {
+    fail(`${file}: renders <PageHeader> AND <${RECORDER_FRAME}> — the frame renders the header, so this page would have two`)
+  }
+  for (const cls of [FORM_ROOT, FORM_LAYOUT, 'form-card']) {
+    if (src.includes(`className="${cls}"`)) {
+      fail(`${file}: renders \`${cls}\` itself — a recorder view inherits the layout from <${RECORDER_FRAME}>`)
+    }
+  }
+}
+
 for (const file of formViews) {
   const src = readFileSync(join(COMPONENTS_DIR, file), 'utf8')
   checkSharedRules(file, src)
@@ -703,7 +734,7 @@ if (errors.length > 0) {
 
 console.log(
   `✓ page template: ${pageFiles.length} pages (${Object.keys(LENSES).length} lens headers), ` +
-    `${formViews.length} form views, ` +
+    `${formViews.length} form views (${recorderViews.length} recorders framed by ${RECORDER_FRAME}), ` +
     `${Object.keys(INSET_OWNERS).length} inset owners, ` +
     `${pageRoots.length} page roots (${pageRoots.filter(r => r.ownsHeader).length} owning a page width), ` +
     `${containers.size} containers checked against ${cssFiles.length} stylesheets`,

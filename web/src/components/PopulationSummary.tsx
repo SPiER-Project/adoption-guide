@@ -10,10 +10,13 @@
  */
 import { useState } from 'react'
 import type { SummaryTile, TierCensusEntry } from '../lib/populationSummary'
+import { SectionHeader } from './SectionHeader'
+import { cx } from '../lib/cx'
+import { Card } from './Card'
 
 function Tile({ tile }: { tile: Extract<SummaryTile, { state: 'value' }> }) {
   return (
-    <div className={`pop-tile ${tile.breached ? 'pop-tile--breached' : ''}`}>
+    <div className={cx('pop-tile', tile.breached && 'pop-tile--breached')}>
       <div className="pop-tile-label">{tile.label}</div>
       <div className="pop-tile-value">{tile.value}</div>
       <div className="pop-tile-foot">
@@ -37,21 +40,14 @@ export function PopulationSummary({
   const blocked = tiles.filter((t): t is Extract<SummaryTile, { state: 'blocked' }> => t.state === 'blocked')
 
   return (
-    <section className="pop-summary" aria-label="Caseload summary">
-      <div className="pop-summary-head">
-        <h3 className="pop-summary-title">Summary</h3>
-        <button
-          type="button"
-          className="pop-summary-toggle"
-          aria-expanded={open}
-          onClick={() => setOpen(o => !o)}
-        >
-          {open ? 'Hide' : 'Show'}
-        </button>
-      </div>
+    <Card as="section" padding="compact" className="pop-summary" aria-label="Caseload summary">
+      <SectionHeader
+        title="Summary"
+        collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'pop-summary-body' }}
+      />
 
       {open && (
-        <>
+        <div id="pop-summary-body">
           <div className="pop-tiles">
             {computable.map(t => (
               <Tile key={t.id} tile={t} />
@@ -105,9 +101,9 @@ export function PopulationSummary({
               ))}
             </p>
           )}
-        </>
+        </div>
       )}
-    </section>
+    </Card>
   )
 }
 

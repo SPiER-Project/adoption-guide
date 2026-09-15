@@ -25,6 +25,9 @@ import { usePresentation } from '../context/PresentationContext'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'
 import { CDS_INDICATOR_ICON } from '../lib/statusIcons'
+import { EmptyState } from './EmptyState'
+import { Pill } from './Pill'
+import { Card as CardSurface } from './Card'
 
 /* ---------- CDS recommendation cards ---------- */
 // The chart's recommendations are real CDS Hooks 2.0 Cards, built by the shared,
@@ -86,12 +89,11 @@ export function CdsCardView({ card }: { card: Card }) {
   // tools in your implementation" is addressed to someone who is not there.
   const inPanel = usePresentation().chromeMode === 'panel'
   return (
-    <article className={`cds-card cds-card--${card.indicator}`}>
+    <CardSurface as="article" padding="compact" accent className={`cds-card cds-card--${card.indicator}`}>
       <header className="cds-card-header">
-        <span className={`cds-card-pill cds-card-pill--${card.indicator}`}>
-          <IndicatorIcon aria-hidden="true" size={12} />
+        <Pill className={`cds-card-pill--${card.indicator}`} icon={IndicatorIcon}>
           {INDICATOR_LABEL[card.indicator]}
-        </span>
+        </Pill>
       </header>
       <h5 className="cds-card-title">{card.summary}</h5>
       {card.detail && <CardDetail text={card.detail} />}
@@ -125,17 +127,17 @@ export function CdsCardView({ card }: { card: Card }) {
           })}
         </div>
       ) : narrativeOnly ? null : inPanel ? (
-        <p className="cds-card-no-options">No tool is enabled for this step.</p>
+        <EmptyState>No tool is enabled for this step.</EmptyState>
       ) : (
-        <p className="cds-card-no-options">
+        <EmptyState>
           No tools enabled for this stage in your implementation.{' '}
           <Link to="/settings">Configure tools</Link>.
-        </p>
+        </EmptyState>
       )}
       <div className="cds-card-json">
         <FhirJsonViewer data={card} title="View CDS Hooks card JSON" />
       </div>
-    </article>
+    </CardSurface>
   )
 }
 
@@ -256,16 +258,12 @@ function StageNode({
             </span>
             <span className="pathway-node-aside">
               {showTodoFlag && (
-                <span className="pathway-node-flag">
-                  {cards.length === 1 ? 'Do now' : `${cards.length} to do`}
-                </span>
+                <Pill tone="brand">{cards.length === 1 ? 'Do now' : `${cards.length} to do`}</Pill>
               )}
               {isGuidance && (
-                <span className="pathway-node-flag pathway-node-flag--guidance">Guidance</span>
+                <Pill tone="neutral">Guidance</Pill>
               )}
-              <span className={`pathway-node-status pathway-node-status--${state}`}>
-                {NODE_STATE_LABEL[state]}
-              </span>
+              <Pill className={`pathway-node-status--${state}`}>{NODE_STATE_LABEL[state]}</Pill>
               <span className="pathway-node-chevron" aria-hidden>
                 {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </span>
@@ -307,11 +305,11 @@ function StageNode({
             )}
 
             {count === 0 && cards.length === 0 && (
-              <p className="pathway-node-empty">
+              <EmptyState>
                 {state === 'passed'
                   ? 'The pathway moved past this stage without anything being recorded here.'
                   : 'Nothing recorded at this stage yet.'}
-              </p>
+              </EmptyState>
             )}
 
             {/* Only offer the tool list where it answers "what could happen
@@ -348,9 +346,9 @@ function StageNode({
                   </p>
                 )}
                 {enabledTools.length === 0 && disabledCount === 0 && (
-                  <p className="pathway-node-empty">
+                  <EmptyState>
                     SPiER has no launchable tool for this stage yet.
-                  </p>
+                  </EmptyState>
                 )}
               </div>
             )}

@@ -4,6 +4,7 @@ import { Home, ExternalLink } from 'lucide-react'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import '../css/Sidebar.css'
+import { cx } from '../lib/cx'
 
 /**
  * The implementer's navigation. Two zones: what the guide EXPLAINS, and what you
@@ -125,7 +126,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
-      <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
+      <aside className={cx('sidebar', isOpen && 'sidebar--open')}>
         <nav className="sidebar-nav" aria-label="Adoption Guide">
           <NavLink
             to="/overview"

@@ -1,9 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
-import { CodeDrawer } from './CodeDrawer'
-import { FhirJsonViewer } from './FhirJsonViewer'
-import { PageHeader } from './PageHeader'
 import { makeId } from '@spier/core/lib/id'
 import {
   buildLethalMeansCounseling,
@@ -16,7 +12,8 @@ import {
   LETHAL_MEANS_METHODS,
   MEANS_SAFETY_ACTIONS,
 } from '../lib/lethalMeans'
-import '../css/WorkflowActionView.css'
+import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
+import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 
 /**
  * TL-008 — lethal means safety counseling / means-safety actions (Stage 4).
@@ -43,12 +40,6 @@ import '../css/WorkflowActionView.css'
  * ⚠️ DEMO ONLY — nothing is persisted to a server.
  */
 
-function nowLocal(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
 /** One row of the per-means table: what was addressed, and what came of it. */
 interface MeansRow {
   action: string
@@ -61,7 +52,7 @@ const EMPTY_ROW: MeansRow = { action: MEANS_SAFETY_ACTIONS[0].code, completed: t
 export function LethalMeansCounselingView() {
   const { addArtifact, activePatientId, procedures, observations } = usePatient()
 
-  const [performed, setPerformed] = useState(nowLocal())
+  const [performed, setPerformed] = useState(nowLocalIso())
   const [protocolText, setProtocolText] = useState(COUNSELING_TEXT)
   const [note, setNote] = useState('')
   const [rows, setRows] = useState<Record<string, MeansRow>>({})
@@ -70,8 +61,7 @@ export function LethalMeansCounselingView() {
   const recorded = useMemo(() => meansSafetyActions(observations), [observations])
 
   const performedIso = useMemo(() => {
-    const t = new Date(performed).getTime()
-    return Number.isFinite(t) ? new Date(t).toISOString() : new Date().toISOString()
+    return toIsoOrNow(performed)
   }, [performed])
 
   const selectedMethods = useMemo(() => LETHAL_MEANS_METHODS.filter(m => rows[m.code]), [rows])
@@ -154,177 +144,139 @@ export function LethalMeansCounselingView() {
   }
 
   return (
-    <div className="form-view">
-      <PageHeader
-        eyebrow={['Patient Chart', 'Workflow']}
-        up="/patient/record"
-        title="Lethal Means Safety Counseling"
-        lede={
-          <>
-            Records a <strong>Procedure</strong> tagged to the{' '}
-            <strong>Document Safety Actions</strong> stage — that counseling happened — plus one{' '}
-            <strong>Observation</strong> per means addressed, saying what was actually secured. The
-            measure counts the counseling; the observations are what makes follow-up possible.
-          </>
-        }
-      />
-
-      <div className="form-wrapper">
-        <div className="form-card">
-          {activePatientId === null && (
-            <p className="workflow-form-hint">
-              No patient selected — this will be recorded in the scratch chart. Pick a patient from the
-              Population view to attach it to a specific record.
-            </p>
-          )}
-
-          <form className="workflow-form" onSubmit={handleSubmit}>
-            <label className="workflow-field">
-              <span className="workflow-field-label">Counseling provided at</span>
-              <input
-                type="datetime-local"
-                className="workflow-input"
-                value={performed}
-                onChange={e => setPerformed(e.target.value)}
-              />
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">
-                Protocol / description{' '}
-                <span className="workflow-field-optional">(SNOMED codes this as counseling)</span>
-              </span>
-              <input
-                type="text"
-                className="workflow-input"
-                placeholder={COUNSELING_TEXT}
-                value={protocolText}
-                onChange={e => setProtocolText(e.target.value)}
-              />
-            </label>
-
-            <fieldset className="workflow-field">
-              <legend className="workflow-field-label">
-                Which means were addressed?{' '}
-                <span className="workflow-field-optional">(several may apply)</span>
-              </legend>
-              {LETHAL_MEANS_METHODS.map(m => (
-                <label key={m.code}>
-                  <input
-                    type="checkbox"
-                    checked={!!rows[m.code]}
-                    onChange={() => toggleMethod(m.code)}
-                  />{' '}
-                  {m.display}
-                </label>
-              ))}
-            </fieldset>
-
-            {selectedMethods.map(m => {
-              const row = rows[m.code]
-              return (
-                <fieldset className="workflow-field" key={m.code}>
-                  <legend className="workflow-field-label">{m.display}</legend>
-                  <select
-                    className="workflow-input"
-                    aria-label={`${m.display} — action taken`}
-                    value={row.action}
-                    onChange={e => updateRow(m.code, { action: e.target.value })}
-                  >
-                    {MEANS_SAFETY_ACTIONS.map(a => (
-                      <option key={a.code} value={a.code}>{a.display}</option>
-                    ))}
-                  </select>
-                  <select
-                    className="workflow-input"
-                    aria-label={`${m.display} — status`}
-                    value={row.completed ? 'done' : 'agreed'}
-                    onChange={e => updateRow(m.code, { completed: e.target.value === 'done' })}
-                  >
-                    <option value="done">Done — the means is secured now</option>
-                    <option value="agreed">Agreed — planned, not yet confirmed</option>
-                  </select>
-                  <input
-                    type="text"
-                    className="workflow-input"
-                    aria-label={`${m.display} — responsible party and detail`}
-                    placeholder="Responsible party and detail — e.g. brother holds the key, check at follow-up"
-                    value={row.note}
-                    onChange={e => updateRow(m.code, { note: e.target.value })}
-                  />
-                </fieldset>
-              )
-            })}
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">
-                Counseling notes <span className="workflow-field-optional">(optional)</span>
-              </span>
-              <textarea
-                className="workflow-input workflow-textarea"
-                rows={3}
-                placeholder="Who was present, what was discussed, what the patient agreed to."
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
-            </label>
-
-            <button type="submit" className="workflow-submit-btn">Record counseling</button>
-          </form>
-
-          {notice && (
-            <div className="workflow-success-notice">
-              {notice} <Link to="/patient/record#activity">View in chart</Link>
-            </div>
-          )}
-
+    <WorkflowForm
+      title="Lethal Means Safety Counseling"
+      lede={
+        <>
+          Records a <strong>Procedure</strong> tagged to the{' '}
+          <strong>Document Safety Actions</strong> stage — that counseling happened — plus one{' '}
+          <strong>Observation</strong> per means addressed, saying what was actually secured. The
+          measure counts the counseling; the observations are what makes follow-up possible.
+        </>
+      }
+      draft={draft}
+      draftTitle={`Live FHIR — Procedure + ${selectedMethods.length} action Observation${selectedMethods.length === 1 ? '' : 's'}`}
+      notice={notice}
+      recorded={
+        <>
           {procedures.length > 0 && (
-            <>
-              <h3 className="workflow-form-title">Counseling on this chart</h3>
-              <ul>
-                {procedures.map((raw, idx) => {
-                  const p = raw as {
-                    id?: string
-                    code?: { text?: string }
-                    performedDateTime?: string
-                  }
-                  return (
-                    <li key={p.id ?? idx}>
-                      {p.code?.text ?? 'Lethal means safety counseling'}
-                      {p.performedDateTime ? ` · ${p.performedDateTime.slice(0, 10)}` : ''}
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
+            <RecordedList title="Counseling on this chart">
+              {procedures.map((raw, idx) => {
+                const p = raw as {
+                  id?: string
+                  code?: { text?: string }
+                  performedDateTime?: string
+                }
+                return (
+                  <li key={p.id ?? idx}>
+                    {p.code?.text ?? 'Lethal means safety counseling'}
+                    {p.performedDateTime ? ` · ${isoDay(p.performedDateTime)}` : ''}
+                  </li>
+                )
+              })}
+            </RecordedList>
           )}
 
           {recorded.length > 0 && (
-            <>
-              <h3 className="workflow-form-title">Means-safety actions on this chart</h3>
-              <ul>
-                {recorded.map((o, idx) => (
-                  <li key={o.id ?? idx}>
-                    {displayFor(LETHAL_MEANS_METHODS, meansSafetyMethod(o) ?? '')} →{' '}
-                    {displayFor(MEANS_SAFETY_ACTIONS, meansSafetyActionCode(o) ?? '')}
-                    {(o as { status?: string }).status === 'preliminary' ? ' · agreed, not confirmed' : ''}
-                  </li>
-                ))}
-              </ul>
-            </>
+            <RecordedList title="Means-safety actions on this chart">
+              {recorded.map((o, idx) => (
+                <li key={o.id ?? idx}>
+                  {displayFor(LETHAL_MEANS_METHODS, meansSafetyMethod(o) ?? '')} →{' '}
+                  {displayFor(MEANS_SAFETY_ACTIONS, meansSafetyActionCode(o) ?? '')}
+                  {(o as { status?: string }).status === 'preliminary' ? ' · agreed, not confirmed' : ''}
+                </li>
+              ))}
+            </RecordedList>
           )}
-        </div>
-
-        <CodeDrawer>
-          <FhirJsonViewer
-            data={draft}
-            title={`Live FHIR — Procedure + ${selectedMethods.length} action Observation${
-              selectedMethods.length === 1 ? '' : 's'
-            }`}
-            defaultOpen
+        </>
+      }
+    >
+      <form className="workflow-form" onSubmit={handleSubmit}>
+        <WorkflowField label="Counseling provided at">
+          <input
+            type="datetime-local"
+            className="workflow-input"
+            value={performed}
+            onChange={e => setPerformed(e.target.value)}
           />
-        </CodeDrawer>
-      </div>
-    </div>
+        </WorkflowField>
+
+        <WorkflowField label="Protocol / description" optional="SNOMED codes this as counseling">
+          <input
+            type="text"
+            className="workflow-input"
+            placeholder={COUNSELING_TEXT}
+            value={protocolText}
+            onChange={e => setProtocolText(e.target.value)}
+          />
+        </WorkflowField>
+
+        <fieldset className="workflow-field">
+          <legend className="workflow-field-label">
+            Which means were addressed?{' '}
+            <span className="workflow-field-optional">(several may apply)</span>
+          </legend>
+          {LETHAL_MEANS_METHODS.map(m => (
+            <label key={m.code}>
+              <input
+                type="checkbox"
+                checked={!!rows[m.code]}
+                onChange={() => toggleMethod(m.code)}
+              />{' '}
+              {m.display}
+            </label>
+          ))}
+        </fieldset>
+
+        {selectedMethods.map(m => {
+          const row = rows[m.code]
+          return (
+            <fieldset className="workflow-field" key={m.code}>
+              <legend className="workflow-field-label">{m.display}</legend>
+              <select
+                className="workflow-input"
+                aria-label={`${m.display} — action taken`}
+                value={row.action}
+                onChange={e => updateRow(m.code, { action: e.target.value })}
+              >
+                {MEANS_SAFETY_ACTIONS.map(a => (
+                  <option key={a.code} value={a.code}>{a.display}</option>
+                ))}
+              </select>
+              <select
+                className="workflow-input"
+                aria-label={`${m.display} — status`}
+                value={row.completed ? 'done' : 'agreed'}
+                onChange={e => updateRow(m.code, { completed: e.target.value === 'done' })}
+              >
+                <option value="done">Done — the means is secured now</option>
+                <option value="agreed">Agreed — planned, not yet confirmed</option>
+              </select>
+              <input
+                type="text"
+                className="workflow-input"
+                aria-label={`${m.display} — responsible party and detail`}
+                placeholder="Responsible party and detail — e.g. brother holds the key, check at follow-up"
+                value={row.note}
+                onChange={e => updateRow(m.code, { note: e.target.value })}
+              />
+            </fieldset>
+          )
+        })}
+
+        <WorkflowField label="Counseling notes" optional="optional">
+          <textarea
+            className="workflow-input workflow-textarea"
+            rows={3}
+            placeholder="Who was present, what was discussed, what the patient agreed to."
+            value={note}
+            onChange={e => setNote(e.target.value)}
+          />
+        </WorkflowField>
+
+        <button type="submit" className="workflow-submit-btn">Record counseling</button>
+      </form>
+
+    </WorkflowForm>
   )
 }

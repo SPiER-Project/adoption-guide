@@ -35,42 +35,6 @@
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
-  font-size: var(--font-size-md);
-}
-
-.patient-banner-name {
-  font-weight: 700;
-  color: var(--text-strong);
-  font-size: var(--font-size-lg);
-}
-
-.patient-banner-divider {
-  color: var(--border-strong);
-  font-weight: 300;
-}
-
-.patient-banner-field {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-}
-
-.patient-banner-label {
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.patient-banner-value {
-  color: var(--border-emphasis);
-  font-weight: 500;
-}
-
-.patient-banner-mrn {
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: var(--font-size-base);
 }
 
 .patient-banner--unassigned {
@@ -113,6 +77,14 @@
   gap: var(--space-1-5);
 }
 
+.patient-banner-label {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
 .patient-banner-switcher {
   font-size: var(--font-size-base);
   color: var(--border-emphasis);
@@ -151,7 +123,7 @@
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   background: var(--accent-info-soft);
@@ -159,24 +131,9 @@
   border: 1px solid var(--accent-info-border);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .patient-banner {
     padding: var(--space-1-5) var(--space-4);
   }
 
-  .patient-banner-content {
-    gap: var(--space-2);
-    font-size: var(--font-size-base);
-  }
-
-  .patient-banner-divider:nth-child(n+4) {
-    display: none;
-  }
-
-  /* Collapse the secondary identifiers to keep the banner compact, but always
-     keep the risk pill — the most important datum on a suicide-prevention
-     chart — visible. */
-  .patient-banner-field:nth-child(n+6):not(:has(.risk-pill)) {
-    display: none;
-  }
 }

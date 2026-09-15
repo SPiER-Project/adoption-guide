@@ -8,12 +8,15 @@
  */
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { ChartSectionHeader } from './ChartSectionHeader'
+import { SectionHeader } from './SectionHeader'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { carePlanDisplayName, type RenderableResource } from '../lib/chartDisplay'
 import { stageForResponse } from '@spier/core/lib/patientPathway'
 import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
 import type { StoredResponse } from '@spier/core/types/fhir'
+import { cx } from '../lib/cx'
+import { EmptyState } from './EmptyState'
+import { formatDate } from '../lib/dates'
 
 // Sortable sentinel for FHIR resources missing an authoritative timestamp.
 // Keeps the date-driven memo deterministic and pushes undated rows to the bottom
@@ -91,9 +94,9 @@ export function PatientDocuments({
 
   return (
     <section id="documents" className="documents-section">
-      <ChartSectionHeader
+      <SectionHeader
         title="Patient Documents"
-        count={`${docs.length} total`}
+        meta={`${docs.length} total`}
         collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'documents-body' }}
       />
       {open && (
@@ -107,7 +110,7 @@ export function PatientDocuments({
           <button
             key={opt}
             type="button"
-            className={`filter-chip ${filter === opt ? 'filter-chip--active' : ''}`}
+            className={cx('filter-chip', filter === opt && 'filter-chip--active')}
             onClick={() => setFilter(opt)}
           >
             {opt === 'all' && `All (${docs.length})`}
@@ -118,7 +121,7 @@ export function PatientDocuments({
         ))}
       </div>
       <ul className="documents-list">
-        {filtered.length === 0 && <li className="documents-empty">No documents.</li>}
+        {filtered.length === 0 && <EmptyState as="li" panel>No documents.</EmptyState>}
         {filtered.map(d => {
           const isOpen = openDoc === d.key
           return (
@@ -134,7 +137,7 @@ export function PatientDocuments({
                 </span>
                 <span className="document-title">{d.title}</span>
                 <span className="document-when">
-                  {d.when === UNDATED_SENTINEL ? 'Undated' : new Date(d.when).toLocaleDateString()}
+                  {d.when === UNDATED_SENTINEL ? 'Undated' : formatDate(d.when)}
                 </span>
                 <span className="document-toggle">
                   {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}

@@ -2,6 +2,10 @@ import { useMemo } from 'react'
 import { RUBRIC_CRITERIA, RUBRIC_TOOLS, STAGE_ORDER, STAGE_DESCRIPTIONS } from '../data/ehrAdoptionData'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import '../css/EhrAdoptionRubric.css'
+import { cx } from '../lib/cx'
+import { Pill } from '../components/Pill'
+import { SCALE_TONES } from '../lib/scaleTones'
+import { Card } from '../components/Card'
 
 interface RubricState {
   supported: Record<string, boolean>                    // toolId → checked
@@ -103,7 +107,7 @@ export function EhrAdoptionRubric() {
       </p>
 
       {/* Overall summary */}
-      <div className="rubric-summary">
+      <Card className="rubric-summary">
         <div className="rubric-summary-stat">
           <span className="rubric-summary-value">{overallStats.coveredStages}/{overallStats.totalStages}</span>
           <span className="rubric-summary-label">Stages Covered</span>
@@ -119,7 +123,7 @@ export function EhrAdoptionRubric() {
           <div className="rubric-summary-fill rubric-summary-fill--maturity" style={{ width: `${overallStats.maturityPct}%` }} />
         </div>
         <button className="rubric-reset-btn" onClick={resetAll}>Reset All</button>
-      </div>
+      </Card>
 
       {/* Legend */}
       <div className="rubric-legend">
@@ -131,9 +135,7 @@ export function EhrAdoptionRubric() {
             <div className="rubric-legend-levels">
               {criterion.levels.map(l => (
                 <div key={l.level} className="rubric-legend-level">
-                  <span className={`rubric-level-chip rubric-level-chip--${l.level}`}>
-                    {l.level}
-                  </span>
+                  <Pill variant="label" tone={SCALE_TONES[l.level]}>{l.level}</Pill>
                   <strong>{l.label}</strong> &mdash; {l.description}
                 </div>
               ))}
@@ -147,10 +149,10 @@ export function EhrAdoptionRubric() {
         const tools = toolsByStage[stage] ?? []
         const stats = stageStats[stage]
         return (
-          <div key={stage} className={`rubric-stage-section ${stats.covered ? 'rubric-stage-section--covered' : ''}`}>
+          <Card key={stage} className={cx('rubric-stage-section', stats.covered && 'rubric-stage-section--covered')}>
             <div className="rubric-stage-header">
               <div className="rubric-stage-title-row">
-                <span className={`rubric-stage-indicator ${stats.covered ? 'rubric-stage-indicator--covered' : ''}`}>
+                <span className={cx('rubric-stage-indicator', stats.covered && 'rubric-stage-indicator--covered')}>
                   {stats.covered ? '\u2713' : '\u2015'}
                 </span>
                 <div className="rubric-stage-title-block">
@@ -161,17 +163,17 @@ export function EhrAdoptionRubric() {
                 </div>
               </div>
               <div className="rubric-stage-counts">
-                <span className={`rubric-stage-coverage ${stats.allSupported ? 'rubric-stage-coverage--all' : ''}`}>
+                <span className={cx('rubric-stage-coverage', stats.allSupported && 'rubric-stage-coverage--all')}>
                   {stats.supportedCount}/{stats.totalCount} tools
                 </span>
-                {stats.allSupported && <span className="rubric-bonus-badge">All tools!</span>}
+                {stats.allSupported && <Pill size="sm" tone="warning">All tools!</Pill>}
               </div>
             </div>
 
             {/* Tool checkboxes */}
             <div className="rubric-tool-list">
               {tools.map(tool => (
-                <label key={tool.toolId} className={`rubric-tool-checkbox ${isSupported(tool.toolId) ? 'rubric-tool-checkbox--checked' : ''}`}>
+                <label key={tool.toolId} className={cx('rubric-tool-checkbox', isSupported(tool.toolId) && 'rubric-tool-checkbox--checked')}>
                   <input
                     type="checkbox"
                     checked={isSupported(tool.toolId)}
@@ -207,7 +209,7 @@ export function EhrAdoptionRubric() {
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         )
       })}
     </div>

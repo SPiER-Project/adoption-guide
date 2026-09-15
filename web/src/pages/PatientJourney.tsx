@@ -12,12 +12,18 @@ import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import { useScrollToHash } from '../hooks/useScrollToHash'
 import { guideHref } from '../data/guideSections'
 import '../css/PatientJourney.css'
+import { cx } from '../lib/cx'
+import { Notice } from '../components/Notice'
+import { Pill, type PillTone } from '../components/Pill'
+import { Card } from '../components/Card'
 
 const STATUS_LABELS: Record<Tool['inclusionStatus'], string> = {
   core: 'Core',
   optional: 'Optional',
   future: 'Future',
 }
+
+const STAGE_TOOL_TONE: Record<string, PillTone> = { core: 'success', optional: 'info', future: 'neutral' }
 
 interface ToolDetailProps {
   tool: Tool
@@ -35,14 +41,14 @@ function ToolDetail({ tool }: ToolDetailProps) {
           <div className="tool-detail-meta">
             <span className="tool-detail-meta-label">Settings:</span>
             {tool.settings.map(s => (
-              <span key={s} className="tool-detail-chip">{s}</span>
+              <Pill key={s} variant="label">{s}</Pill>
             ))}
           </div>
           {tool.tags && tool.tags.length > 0 && (
             <div className="tool-detail-meta">
               <span className="tool-detail-meta-label">Tags:</span>
               {tool.tags.map(t => (
-                <span key={t} className="tool-detail-chip tool-detail-chip--tag">{t}</span>
+                <Pill key={t} variant="label" tone="warning">{t}</Pill>
               ))}
             </div>
           )}
@@ -160,7 +166,7 @@ export function PatientJourney() {
         <Link to={guideHref('pathway')}>Care Pathway</Link>.
       </p>
 
-      <aside className="journey-zs-callout">
+      <Notice as="aside" tone="info">
         <strong>Aligned with Zero Suicide.</strong>{' '}
         SPiER's 8 technical stages are a FHIR-native instantiation of the workflow layers of the{' '}
         <a href="https://zerosuicide.edc.org/" target="_blank" rel="noopener noreferrer">Zero Suicide</a>{' '}
@@ -168,10 +174,10 @@ export function PatientJourney() {
         stages 5&ndash;6 model <em>Transition</em>; stage 7 models <em>Treat</em>;
         stage 8 models <em>Improve</em>. The organizational layers (<em>Lead</em>, <em>Train</em>)
         are out of SPiER's EHR-pathway scope.
-      </aside>
+      </Notice>
 
       {/* Horizontal progress bar */}
-      <div className="journey-progress">
+      <Card className="journey-progress">
         {STAGES.map((stage, idx) => (
           <div key={stage.id} className="journey-progress-step">
             <a href={`#${guideHref('tools')}#stage-${stage.id}`} className="journey-progress-dot">
@@ -181,7 +187,7 @@ export function PatientJourney() {
             {idx < STAGES.length - 1 && <div className="journey-progress-line" />}
           </div>
         ))}
-      </div>
+      </Card>
 
       {/* Stage detail sections */}
       <div className="journey-stages">
@@ -209,7 +215,7 @@ export function PatientJourney() {
                     return (
                       <div
                         key={tool.id}
-                        className={`stage-tool-card stage-tool-card--${tool.inclusionStatus} ${isExpanded ? 'stage-tool-card--expanded' : ''}`}
+                        className={cx('stage-tool-card', `stage-tool-card--${tool.inclusionStatus}`, isExpanded && 'stage-tool-card--expanded')}
                       >
                         <button
                           type="button"
@@ -219,9 +225,9 @@ export function PatientJourney() {
                         >
                           <div className="stage-tool-header">
                             <span className="stage-tool-name">{tool.name}</span>
-                            <span className={`stage-tool-badge stage-tool-badge--${tool.inclusionStatus}`}>
+                            <Pill size="sm" tone={STAGE_TOOL_TONE[tool.inclusionStatus]}>
                               {STATUS_LABELS[tool.inclusionStatus]}
-                            </span>
+                            </Pill>
                           </div>
                           <p className="stage-tool-purpose">{tool.purpose}</p>
                           {tool.settings.length > 0 && (
