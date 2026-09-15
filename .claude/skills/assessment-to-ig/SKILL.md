@@ -22,7 +22,7 @@ For each new assessment, produce all of the following artifacts. The skill is no
    - Any local `CodeSystem` and `ValueSet` definitions the Questionnaire references (e.g. an answer-option code system if no LOINC AnswerList applies)
 4. **Stage wiring** in `ig/input/fsh/pathway-stages.fsh` — add the new ActivityDefinition to the relevant stage's PlanDefinition action(s). An instrument that spans multiple stages (e.g. CAMS) gets multiple actions.
 5. **IG page content** — if the instrument warrants its own narrative page (most do), add it under `ig/input/pagecontent/` and reference from `ig/sushi-config.yaml` `pages:` and `menu:`. At minimum, the existing `zero-suicide-mapping.md` should be updated to mention which Zero Suicide step the instrument supports.
-6. **React catalog entry** in `web/src/data/catalog/tools.ts` — a new `Tool` record with `id`, `name`, `shortName`, `stages[]`, `inclusionStatus`, and `launchActions[]` that loads the Questionnaire JSON.
+6. **React catalog entry** in `packages/core/src/data/catalog/` — a new `Tool` record with `id`, `name`, `shortName`, `stages[]`, `inclusionStatus`, and `launchActions[]` that loads the Questionnaire JSON.
 7. **Optional reference material** under `FHIR-Resources/<INSTRUMENT>/references/` — original PDF, scoring guide, training transcripts. Useful for future contributors; not part of the published IG.
 
 ## Inputs the skill needs from the user
@@ -35,7 +35,7 @@ Before producing artifacts, gather (or explicitly defer) the following. Don't si
 - **Response options:** Likert scale? Yes/No? Free text? Numeric range? For each, are coded answer values published (LOINC AnswerList, SNOMED, or instrument-specific)?
 - **Scoring rules:** How is the total derived? Are there subscale scores? Severity tiers? Cut-points that trigger clinical action?
 - **Conditional logic:** Are any items only asked given a positive answer elsewhere? (Critical for `enableWhen` modeling and for the "asked vs. not asked" semantics in QuestionnaireResponse.)
-- **Pathway stage(s):** Which of SPiER's 8 stages does this instrument support? See `ig/input/fsh/pathway-stages.fsh` and `web/src/data/catalog/stages.ts`.
+- **Pathway stage(s):** Which of SPiER's 8 stages does this instrument support? See `ig/input/fsh/pathway-stages.fsh` and `packages/core/src/data/catalog/stages.ts`.
 - **Trigger semantics:** Does completing this instrument trigger another stage's action? (e.g. PHQ-9 Item 9 ≥ 1 → Clarify Risk.) Capture as `PlanDefinition.action.trigger` later.
 - **Licensing status:** Public domain (ASQ, PHQ-9 by Pfizer policy, SBQ-R, BSSA) vs. registration-required (C-SSRS) vs. commercially licensed (CAMS). This goes into `ActivityDefinition.copyright` / `copyrightLabel` and surfaces on the IG.
 
@@ -94,7 +94,7 @@ If the instrument introduces a stage-transition trigger (e.g. PHQ-9 Item 9 → C
 
 ### 5. Wire into the React catalog
 
-Open `web/src/data/catalog/tools.ts`. Add a `Tool` record:
+Open `packages/core/src/data/catalog/tool-ui-metadata.ts`. Add a `Tool` record:
 
 ```ts
 {
@@ -114,7 +114,9 @@ Open `web/src/data/catalog/tools.ts`. Add a `Tool` record:
 }
 ```
 
-If the instrument is built but not yet exercised by a UI launch, leave `launchActions: []` and the Roadmap page will mark it `planned` automatically (see `buildStatusOf` in `web/src/pages/Roadmap.tsx`).
+~~If the instrument is built but not yet exercised by a UI launch, leave `launchActions: []` and the Roadmap page will mark it `planned` automatically (see `buildStatusOf` in `web/src/pages/Roadmap.tsx`).~~
+
+⚠️ **The Roadmap page and `buildStatusOf` were deleted** — this step no longer has an automatic consequence anywhere. `launchActions: []` is still the right thing for an instrument with no UI launch; it just does not derive a status any more. Run `npm --prefix web run check:catalog`, which is what now holds the catalog's wiring together.
 
 Run `npm --prefix web run build` to confirm typings and imports compile.
 

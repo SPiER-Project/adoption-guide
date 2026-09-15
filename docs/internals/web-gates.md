@@ -24,7 +24,7 @@ against. **Do not re-expand that job into individual steps.** The fast
 that overlap is intentional, and nothing may live there that is not also in
 `verify`. The individual pieces, in the order `verify` runs them:
 ```
-npm run copy-fhir      # compile IG via SUSHI + copy resources into src/data/fhir/ (do this FIRST)
+npm run copy-fhir      # compile IG via SUSHI + copy resources into the generated tree (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)

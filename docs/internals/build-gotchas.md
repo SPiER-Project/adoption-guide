@@ -117,7 +117,7 @@ and was false. See [`docs/internals/README.md`](README.md).
 - **Tool licensing lives in the FSH, and only there.** Every ActivityDefinition
   carries `copyright` plus an `instrument-licensing-status` extension
   (`ig/input/fsh/instrument-licensing.fsh`, issue #127); `Tool.licensing` in
-  `web/src/data/catalog/tools.ts` is *derived* from that extension. It used to
+  `packages/core/src/data/catalog/tools.ts` is *derived* from that extension. It used to
   be hand-typed in `tool-ui-metadata.ts`, where the adoption guide could — and
   did — state a licensing position no FHIR artifact backed. Do not reintroduce
   a `licensing` field there. `npm run check:catalog` fails if any AD is missing

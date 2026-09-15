@@ -50,7 +50,8 @@ Four things get counted as "applications." Two of them are not.
 **Two apps today, three with the mock EHR.**
 
 ⚠️ **The IG is upstream of everything, not a peer.** `fsh-sushi` compiles
-`ig/input/fsh` and `copy-fhir.mjs` feeds the result into `web/src/data/fhir/`.
+`ig/input/fsh` and `copy-fhir.mjs` feeds the result into
+`packages/fhir-artifacts/generated/`.
 Counting it as an application inverts the dependency direction, which is why
 [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §1 says so
 explicitly. Where its *rendered output* is hosted is a real question (§4); that

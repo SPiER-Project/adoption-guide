@@ -114,7 +114,7 @@ Patient ids can be listed from the open endpoint:
 
 - **Mapper dispatch is canonical-URL-first, with a narrow code-based fallback.**
   Dispatch prefers `http://thespierproject.org/fhir/Questionnaire/*` canonicals
-  (`web/src/lib/observationMappers/index.ts`). A foreign QR whose canonical does
+  (`packages/core/src/lib/observationMappers/index.ts`). A foreign QR whose canonical does
   not match **still derives when its instrument is recognized from standardized
   LOINC item codes** (#230, `observationMappers/fallbackDispatch.ts`) — but that
   fallback covers **PHQ-9 only** today, and results are stamped as inferred. The

@@ -48,7 +48,7 @@ There must be a **single** instrument-agnostic risk-tier CodeSystem (e.g. `http:
 
 ### 2. The mapping must exist as a portable FHIR resource, not only as code
 
-SPiER's per-instrument logic lives in TypeScript (`web/src/lib/observationMappers/*.ts`). That is fine as the *runtime*, but a TS function is not interoperable — a partner can't consume it. For each instrument, the response→concept mapping must **also** exist as a publishable FHIR artifact:
+SPiER's per-instrument logic lives in TypeScript (`packages/core/src/lib/observationMappers/*.ts`). That is fine as the *runtime*, but a TS function is not interoperable — a partner can't consume it. For each instrument, the response→concept mapping must **also** exist as a publishable FHIR artifact:
 
 - **ConceptMap** when it's a simple answer-code → tier lookup (one source code → one tier) — e.g. ASQ disposition (`crosswalk-asq.fsh`) or C-SSRS risk level (`crosswalk-cssrs.fsh`).
 - **StructureMap** (FHIR Mapping Language) when the concept is inferred from *multiple* items, or when the instrument emits a **score/ordinal** rather than a coded disposition (PHQ-9 Item 9 = 0–3; SBQ-R total = 3–18). A ConceptMap maps code→code and cannot express score→tier, so these are StructureMap-only (`ig/drafts/*.fml`). Keep the thresholds aligned with the runtime mapper's own bands so the FHIR map and the TS mapper can't diverge.

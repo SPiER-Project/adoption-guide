@@ -58,7 +58,7 @@ works:
 ✗ 86849004 "Suicide attempt"
     → Wrong Display Name 'Suicide attempt' for http://snomed.info/sct#86849004.
       Valid display is one of 4 choices: 'Suicidal poisoning' (en), …
-    in web/src/lib/observationMappers/sbqr.ts
+    in packages/core/src/lib/observationMappers/sbqr.ts
 ```
 
 Response: **fix the code, not the expectation.** This is the whole discipline
@@ -75,9 +75,10 @@ defect the check exists to catch.
    cleanly and still be the wrong concept. `81344-4` did, in #220, and
    `86849004` does here.
 2. Fix every site. Codes are hand-duplicated across `ig/input/fsh/`,
-   `web/src/lib/observationMappers/`, `web/src/lib/carePlanMappers/`,
-   `packages/demo-population/` and `web/src/data/catalog/dataElements.ts` (the
-   data dictionary) — grep the whole repo for the old value.
+   `packages/core/src/lib/observationMappers/`,
+   `packages/core/src/lib/carePlanMappers/`, `packages/demo-population/` and
+   `packages/core/src/data/catalog/dataElements.ts` (the data dictionary) —
+   grep the whole repo for the old value.
 3. Re-run locally: `node web/scripts/check-codings.mjs --tx https://tx.fhir.org`.
 4. The tracking issue closes itself on the next clean run.
 

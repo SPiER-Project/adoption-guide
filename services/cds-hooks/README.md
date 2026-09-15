@@ -122,7 +122,7 @@ binding. After `wrangler login`:
 npm run deploy       # build + wrangler deploy (Worker script + web-dist assets)
 ```
 
-CI does the same on push to `main` via `.github/workflows/deploy-cloudflare.yml`
+CI does the same on push to `main` via `.github/workflows/deploy.yml`
 (needs repo secrets `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`). The Worker
 is created on first deploy — no pre-provisioning.
 
@@ -133,5 +133,5 @@ Point the CDS Hooks Sandbox's *Discovery Endpoint* at
 > **Transition note:** during the GitHub Pages → Cloudflare migration the app is
 > hosted on both. The rendered IG is built only on GitHub Pages, so `/ig/*`
 > redirects there. At cutover: render the IG into `web-dist/ig`, drop the
-> redirect, flip `APP_BASE_URL` in `web/src/lib/cdsHooks/cards.ts`, and retire the
+> redirect, flip `APP_BASE_URL` in `packages/core/src/lib/cdsHooks/cards.ts`, and retire the
 > GitHub Pages workflow.
