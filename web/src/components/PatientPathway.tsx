@@ -545,11 +545,26 @@ export function PatientPathway({
         ))}
       </ol>
 
+      {/* The panel's link strip — its only chrome-level navigation, since
+          PanelShell deliberately carries no nav (it exists to give the vertical
+          budget back to the form).
+
+          ⚠️ **Tool configuration is reachable here and NOT from the two
+          "Configure tools" links above, which is the opposite of how it looks.**
+          Those two sit inside "this tool is disabled" messages, and nothing is
+          disabled in panel chrome: `toolEnablementFor` returns `() => true`, so
+          `disabledCount` is always 0 and the remaining message means the catalog
+          has no launchable tool for that step — which no setting can change.
+          Offering the switch there would promise a fix it cannot deliver. Here
+          it is honest: the page itself says what the setting does and does not
+          do in a host chart. */}
       {inPanel && (
         <p className="pathway-footnote">
           <Link to="/patient/pathway">The published protocol</Link>
           {' · '}
           <Link to="/guide/cds-service">How these recommendations are served</Link>
+          {' · '}
+          <Link to="/settings">Tools this deployment offers</Link>
         </p>
       )}
     </section>
