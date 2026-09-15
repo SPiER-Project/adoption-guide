@@ -22,7 +22,7 @@ For each new assessment, produce all of the following artifacts. The skill is no
    - Any local `CodeSystem` and `ValueSet` definitions the Questionnaire references (e.g. an answer-option code system if no LOINC AnswerList applies)
 4. **Stage wiring** in `ig/input/fsh/pathway-stages.fsh` — add the new ActivityDefinition to the relevant stage's PlanDefinition action(s). An instrument that spans multiple stages (e.g. CAMS) gets multiple actions.
 5. **IG page content** — if the instrument warrants its own narrative page (most do), add it under `ig/input/pagecontent/` and reference from `ig/sushi-config.yaml` `pages:` and `menu:`. At minimum, the existing `zero-suicide-mapping.md` should be updated to mention which Zero Suicide step the instrument supports.
-6. **React catalog entry** in `packages/core/src/data/catalog/` — a new `Tool` record with `id`, `name`, `shortName`, `stages[]`, `inclusionStatus`, and `launchActions[]` that loads the Questionnaire JSON.
+6. **React catalog UI metadata** in `packages/core/src/data/catalog/tool-ui-metadata.ts` — a `ToolUiMetadata` entry keyed by the TL-id. ⚠️ **UI concerns only.** `id`, `name`, `purpose`, `stageId` and `questionnaireUrl` are **derived from the FSH ActivityDefinition** by `tools.ts`; hand-typing any of them here reintroduces exactly the drift that derivation removed.
 7. **Optional reference material** under `FHIR-Resources/<INSTRUMENT>/references/` — original PDF, scoring guide, training transcripts. Useful for future contributors; not part of the published IG.
 
 ## Inputs the skill needs from the user
@@ -94,25 +94,30 @@ If the instrument introduces a stage-transition trigger (e.g. PHQ-9 Item 9 → C
 
 ### 5. Wire into the React catalog
 
-Open `packages/core/src/data/catalog/tool-ui-metadata.ts`. Add a `Tool` record:
+Open `packages/core/src/data/catalog/tool-ui-metadata.ts`. Add a `ToolUiMetadata`
+entry, keyed by the TL-id:
 
 ```ts
-{
-  id: 'TL-NNN',                  // Next available TL-ID
-  name: 'Instrument full name',
+'TL-NNN': {                      // the TL-id is the KEY, not a field
   shortName: 'Acronym',
-  stages: ['stage-id-1', ...],   // From catalog/stages.ts
-  inclusionStatus: 'core' | 'recommended' | 'optional',
-  launchActions: [
-    {
-      label: 'Administer …',
-      questionnaire: '<canonical questionnaire URL>',
-      // …
-    },
-  ],
-  // …
+  inclusionStatus: 'core',       // 'core' | 'optional' | 'future'
+  settings: ['ambulatory', 'primary care'],
+  badge: { label: 'Screening', variant: 'screening' },
+  launchActions: [{ label: 'Launch …', path: '/patient/assessments/<slug>' }],
+  tags: ['9 items', 'LOINC coded'],
+  targetMaturity: { electronic: 3, writeback: 3, triggering: 3 },
+  // recordingPattern? and fhirExamples? are optional
 }
 ```
+
+⚠️ **This file is UI concerns ONLY, and the record is not a `Tool`.** Its own
+header says it: *"The clinical fields (id/name/purpose/stageId/questionnaireUrl)
+come from FHIR ActivityDefinitions in `ig/input/fsh/` and are wired up in
+`tools.ts`."* There is no `id`, no `name` and no `stages[]` to write — the id is
+the key, the rest are derived. A `launchActions` entry is `{ label, path }`
+pointing at an **app route**; the Questionnaire is reached through the derived
+`questionnaireUrl`, not named here. `settings`, `badge` and `targetMaturity` are
+required and easy to miss.
 
 ~~If the instrument is built but not yet exercised by a UI launch, leave `launchActions: []` and the Roadmap page will mark it `planned` automatically (see `buildStatusOf` in `web/src/pages/Roadmap.tsx`).~~
 
