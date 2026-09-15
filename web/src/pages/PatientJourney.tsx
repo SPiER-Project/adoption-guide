@@ -16,6 +16,7 @@ import { cx } from '../lib/cx'
 import { Notice } from '../components/Notice'
 import { Pill, type PillTone } from '../components/Pill'
 import { Card } from '../components/Card'
+import { DataTable } from '../components/DataTable'
 
 const STATUS_LABELS: Record<Tool['inclusionStatus'], string> = {
   core: 'Core',
@@ -58,8 +59,7 @@ function ToolDetail({ tool }: ToolDetailProps) {
       {tool.recordingPattern && (
         <section className="tool-detail-section">
           <h4 className="tool-detail-heading">Implementation</h4>
-          <div className="tool-detail-table-scroll">
-            <table className="tool-detail-table">
+          <DataTable tableClassName="tool-detail-table">
               <thead>
                 <tr>
                   <th>FHIR Resource</th>
@@ -76,8 +76,7 @@ function ToolDetail({ tool }: ToolDetailProps) {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
           {tool.recordingPattern.workflowTrigger && (
             <p className="tool-detail-trigger">
               <strong>Workflow trigger:</strong> {tool.recordingPattern.workflowTrigger}

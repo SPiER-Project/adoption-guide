@@ -19,6 +19,7 @@ import { EmptyState } from '../components/EmptyState'
 import { Notice } from '../components/Notice'
 import { Card } from '../components/Card'
 import { isoDay } from '../lib/dates'
+import { DataTable } from '../components/DataTable'
 
 const WINDOWS: { days: number; label: string }[] = [
   { days: 30, label: 'Last 30 days' },
@@ -251,8 +252,7 @@ export function MeasureDashboard() {
                 than the page. It used to push the whole document sideways
                 (183px of horizontal scroll on a phone); this keeps the
                 overflow inside the table's own box. */}
-            <div className="md-table-scroll">
-              <table className="md-table">
+            <DataTable>
                 <thead>
                   <tr>
                     <th scope="col">Group</th>
@@ -299,8 +299,7 @@ export function MeasureDashboard() {
                     )
                   })}
                 </tbody>
-              </table>
-            </div>
+            </DataTable>
 
             <EmptyExplanation emptiness={emptiness[i] ?? { kind: 'none' }} />
 

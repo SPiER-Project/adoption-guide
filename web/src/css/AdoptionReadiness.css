@@ -165,45 +165,6 @@
   color: var(--text-strong);
 }
 
-.ar-table-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  background: var(--surface-card);
-}
-
-.ar-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-base);
-}
-
-.ar-table th,
-.ar-table td {
-  padding: var(--space-2) var(--space-3);
-  text-align: left;
-  border-bottom: 1px solid var(--border-default);
-  vertical-align: middle;
-}
-
-.ar-table thead th {
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps);
-  color: var(--text-faint);
-  background: var(--surface-page);
-  white-space: nowrap;
-}
-
-.ar-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.ar-table tbody tr:hover {
-  background: var(--surface-page);
-}
-
 .ar-col-tool {
   white-space: nowrap;
 }

@@ -28,7 +28,7 @@ That file is the single source of truth; this doc summarizes the scales.
 
 ## Components
 
-Six components own every surface below the page header; a page never
+Seven components own every surface below the page header; a page never
 redeclares their padding, radius, type or colour. Each one's header comment
 records the decision it makes and what is deliberately *not* it. A page may
 pass `className` for **layout or a domain colour only**.
@@ -40,6 +40,7 @@ pass `className` for **layout or a domain colour only**.
 | `Pill` | a small inline marker: `--radius-pill`, `sm`/`md`, `status`/`label`, tones incl. the risk ramp solid and soft | [`src/components/Pill.tsx`](src/components/Pill.tsx) |
 | `Notice` | a tinted message box with a 3px left edge, six tones, `role` from tone | [`src/components/Notice.tsx`](src/components/Notice.tsx) |
 | `EmptyState` | "nothing here": inline, or `panel` for an empty region | [`src/components/EmptyState.tsx`](src/components/EmptyState.tsx) |
+| `DataTable` | the table shell: scroll wrapper, optional frame, header type, `compact`/`comfortable` cells, dividers; the page writes its own `<thead>`/`<tbody>` | [`src/components/DataTable.tsx`](src/components/DataTable.tsx) |
 | `WorkflowForm` | the recorder frame: header, card-beside-drawer, hint, notice, code drawer | [`src/components/WorkflowForm.tsx`](src/components/WorkflowForm.tsx) |
 
 ### Risk pill — `RiskPill`

@@ -14,6 +14,7 @@ import type { CaseloadView, FilterKey, FilterOption, SortCol, SortDir, SortState
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 import { cx } from '../lib/cx'
 import { EmptyState } from './EmptyState'
+import { DataTable } from './DataTable'
 
 const MENU_EDGE_GAP = 8
 
@@ -108,7 +109,7 @@ export function HeaderFilter({
       const t = trigger.getBoundingClientRect()
       // Horizontally scrolled out of the table's viewport: nothing left to anchor
       // to, so dismiss rather than leave the panel stranded over other columns.
-      const scroller = trigger.closest('.caseload-table-wrapper')?.getBoundingClientRect()
+      const scroller = trigger.closest('.data-table')?.getBoundingClientRect()
       if (scroller && (t.right < scroller.left || t.left > scroller.right)) {
         setPos(null)
         return
@@ -254,8 +255,15 @@ export function CaseloadTable({
   }
 
   return (
-    <section className="caseload-table-wrapper" ref={wrapperRef}>
-      <table className="caseload-table" ref={tableRef}>
+    <DataTable
+      as="section"
+      framed
+      density="comfortable"
+      tableClassName="caseload-table"
+      wrapperRef={wrapperRef}
+      tableRef={tableRef}
+      after={rows.length === 0 && <EmptyState panel>No patients match the active filters.</EmptyState>}
+    >
         <thead>
           <tr>
             {columns.map(({ key, col }) => {
@@ -309,8 +317,6 @@ export function CaseloadTable({
             </tr>
           ))}
         </tbody>
-      </table>
-      {rows.length === 0 && <EmptyState panel>No patients match the active filters.</EmptyState>}
-    </section>
+    </DataTable>
   )
 }

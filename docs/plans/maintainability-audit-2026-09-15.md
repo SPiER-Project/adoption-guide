@@ -34,7 +34,10 @@ Notice, Pill, Card): the decisions are written in each component's header,
 rubric ramps became the soft risk tones. Deliberately not converted: the
 consent gate, the FHIRcast banner, the pathway-pending panel, the two
 interactive tiles (`preset-card`, `stage-tool-card`), and the Overview's
-dynamically classed cards. `DataTable` (§2.4's last item) is not started. §2.5 follows on
+dynamically classed cards. `DataTable` (§2.4's last item) follows on `claude/data-table`: a shell that
+owns the wrapper, header type, cell padding and dividers while the page keeps
+its own `<thead>`/`<tbody>` — the five bodies were too different for a
+`columns[]` API. §2.5 is on
 `claude/audit-2-5`: `PatientIdentityStrip` over one `lib/riskLabel.ts`
 (the banner and the panel strip, the three `RISK_LABEL`s), `lib/dates.ts`
 absorbing `relativeTime` and `chartDisplay.formatDateTime` plus the 15

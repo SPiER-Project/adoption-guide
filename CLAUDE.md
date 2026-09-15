@@ -216,9 +216,10 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   accent rule → optional lede), the only definition of page-title typography; a
   page never renders its own `<h2>`, so section headings start at `<h3>`. A
   drill-in page passes `up` to make the first eyebrow segment its way back out.
-- **Below the page header, six components own the surfaces.** `SectionHeader`
+- **Below the page header, seven components own the surfaces.** `SectionHeader`
   (the `<h3>` row), `Card` (a bordered panel), `Pill` (a small inline marker),
-  `Notice` (a tinted message box), `EmptyState` ("nothing here"), and
+  `Notice` (a tinted message box), `EmptyState` ("nothing here"), `DataTable`
+  (the table shell: wrapper, header type, cell padding, dividers), and
   `WorkflowForm` (the recorder frame) each make one decision about padding,
   radius, type and colour, and a page never redeclares it. A page may pass a
   `className` for **layout or a domain colour only** — where a card sits, the
@@ -226,7 +227,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   background. Before these existed 76 card surfaces used 29 padding/radius
   combinations and ~40 pills 12 paddings; the gates check that a value is on
   the token scale, not which value a role gets, so only a component can hold
-  that. Reach for one of the six before writing a new class; if none fits,
+  that. Reach for one of the seven before writing a new class; if none fits,
   the audit at `docs/plans/maintainability-audit-2026-09-15.md` §2.4 says how
   a variant is added (a named prop, never a seventh look).
 - **Width has one owner per route, and the owner is whoever owns the header.** A

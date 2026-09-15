@@ -1,0 +1,63 @@
+/* ===========================
+   DataTable — see components/DataTable.tsx for the decisions and the rule
+   that a page's `tableClassName` carries layout only.
+   =========================== */
+
+.data-table {
+  /* A wide table scrolls inside its own box, never the page. `min-width: 0`
+     is load-bearing inside a flex/grid column, where the default `auto`
+     refuses to shrink below the table and hands the overflow up. */
+  min-width: 0;
+  overflow-x: auto;
+  margin-bottom: var(--space-3);
+}
+
+.data-table--framed {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.data-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-base);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table__table--fixed {
+  table-layout: fixed;
+}
+
+.data-table__table th,
+.data-table__table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.data-table__table--comfortable th,
+.data-table__table--comfortable td {
+  padding: var(--space-3) var(--space-4);
+}
+
+.data-table__table thead th {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  white-space: nowrap;
+}
+
+.data-table__table tbody tr:hover {
+  background: var(--surface-page);
+}
+
+/* Inside a frame the box draws the bottom edge; a divider under the last
+   row would double it. */
+.data-table--framed .data-table__table tbody tr:last-child td {
+  border-bottom: none;
+}

@@ -21,6 +21,7 @@ import { SectionHeader } from '../components/SectionHeader'
 import { EmptyState } from '../components/EmptyState'
 import { Pill } from '../components/Pill'
 import { Card } from '../components/Card'
+import { DataTable } from '../components/DataTable'
 
 /**
  * Anchor id for a section, and the ONE place the scheme is written.
@@ -291,8 +292,7 @@ function SharedConcepts({
                     )}
                   </p>
                 )}
-                <div className="dd-table-wrapper">
-                  <table className="dd-table dd-table--fixed">
+                <DataTable framed fixed>
                     {/* Same budget as the stage tables. Omitting it here was an
                         oversight in #432, and a visible one: this table kept auto
                         layout, so its rows ran 92–110px against the 64px median
@@ -344,8 +344,7 @@ function SharedConcepts({
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </div>
+                </DataTable>
               </div>
             )}
           </div>
@@ -719,8 +718,7 @@ export function DataDictionary() {
             meta={`${group.bindings.length} ${group.bindings.length === 1 ? 'element' : 'elements'}`}
           />
 
-          <div className="dd-table-wrapper">
-            <table className="dd-table dd-table--fixed">
+          <DataTable framed fixed>
               {/*
                 The column budget. `table-layout: fixed` means these percentages
                 are honoured rather than negotiated, which is the whole fix — see
@@ -771,8 +769,7 @@ export function DataDictionary() {
                   )
                 })}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
         </section>
       ))}
     </div>
