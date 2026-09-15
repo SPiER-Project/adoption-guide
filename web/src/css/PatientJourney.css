@@ -318,36 +318,6 @@
   margin-right: var(--space-1);
 }
 
-/* Scroll on the wrapper, not the table, so the table keeps its native
-   semantics/layout for assistive tech while still scrolling on narrow
-   viewports when the columns can't fit. */
-.tool-detail-table-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: var(--space-2);
-}
-
-.tool-detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-base);
-}
-
-.tool-detail-table th {
-  text-align: left;
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 2px solid var(--border-default);
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.tool-detail-table td {
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 1px solid var(--surface-muted);
-  vertical-align: top;
-  color: var(--border-emphasis);
-}
-
 .tool-detail-table code {
   font-size: var(--font-size-sm);
   background: var(--text-strong);

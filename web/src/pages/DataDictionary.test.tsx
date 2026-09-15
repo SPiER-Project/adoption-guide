@@ -138,10 +138,10 @@ describe('both tables carry the column budget', () => {
     // 92–110px → 75–88px, no horizontal overflow). What is gated here is the
     // #432 oversight itself — the routes table was left on auto layout while
     // every stage table got the budget.
-    const tables = [...container.querySelectorAll('.dd-table')]
+    const tables = [...container.querySelectorAll('.data-table__table')]
     expect(tables.length).toBeGreaterThan(1)
     for (const t of tables) {
-      expect(t.classList.contains('dd-table--fixed')).toBe(true)
+      expect(t.classList.contains('data-table__table--fixed')).toBe(true)
       expect(t.querySelector('colgroup')).toBeTruthy()
     }
   })

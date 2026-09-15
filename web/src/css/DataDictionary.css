@@ -60,46 +60,6 @@
   margin-left: auto;
 }
 
-.dd-table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  background: white;
-}
-
-.dd-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-base);
-}
-
-.dd-table thead {
-  background: var(--surface-page);
-}
-
-.dd-table th {
-  padding: var(--space-3) var(--space-3);
-  text-align: left;
-  font-weight: 700;
-  color: var(--text-body);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps);
-  font-size: var(--font-size-xs);
-  border-bottom: 2px solid var(--border-default);
-  white-space: nowrap;
-}
-
-.dd-table td {
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--surface-muted);
-  color: var(--border-emphasis);
-  vertical-align: top;
-}
-
-.dd-table tbody tr:hover {
-  background: var(--surface-page);
-}
-
 .dd-cell-field {
   font-weight: 600;
   color: var(--text-strong);
@@ -233,9 +193,6 @@
  * total would either overflow or leave a gap at some widths. The toggle column
  * is the one exception — it holds a 1.5rem caret and has no reason to scale.
  */
-.dd-table--fixed {
-  table-layout: fixed;
-}
 
 /*
  * ⚠️ **Rebalanced against measurement, not guessed twice.** The first budget gave
@@ -247,8 +204,8 @@
 .dd-col-field    { width: 18%; }
 .dd-col-code     { width: 16%; }
 .dd-col-system   { width: 15%; }
-.dd-col-resource { width: 11%; }
-.dd-col-path     { width: 24%; }
+.dd-col-resource { width: 14%; }
+.dd-col-path     { width: 21%; }
 .dd-col-usedby   { width: 13%; }
 .dd-col-toggle   { width: 2.25rem; }
 
@@ -393,8 +350,8 @@
 
 .dd-rcol-route    { width: 18%; }
 .dd-rcol-value    { width: 22%; }
-.dd-rcol-resource { width: 12%; }
-.dd-rcol-path     { width: 26%; }
+.dd-rcol-resource { width: 15%; }
+.dd-rcol-path     { width: 23%; }
 .dd-rcol-usedby   { width: 22%; }
 
 /* ===========================

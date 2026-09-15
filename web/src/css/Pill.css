@@ -36,6 +36,11 @@
   font-weight: 600;
   letter-spacing: normal;
   text-transform: none;
+  /* A label carries a name — "CAMS Suicide Status Form", a FHIR resource type —
+     and lives in table cells with a fixed column budget. A status word stays on
+     one line; a name wraps at its spaces. (Not mid-word: a column that cannot
+     fit "QuestionnaireResponse" whole is a column-budget problem, fixed there.) */
+  white-space: normal;
 }
 
 /* ---- tones: the accent families ---- */

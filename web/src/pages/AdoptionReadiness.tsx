@@ -7,6 +7,7 @@ import { EmptyState } from '../components/EmptyState'
 import { Pill, type PillTone } from '../components/Pill'
 import { SCALE_TONES } from '../lib/scaleTones'
 import { Card } from '../components/Card'
+import { DataTable } from '../components/DataTable'
 
 // ─────────────────────────────────────────────────────────────
 // Adoption Readiness matrix
@@ -291,8 +292,7 @@ export function AdoptionReadiness() {
       {groups.map(({ stage, rows }) => (
         <section key={stage.id} className="ar-stage">
           <h3 className="ar-stage-title">{stage.title}</h3>
-          <div className="ar-table-wrap">
-            <table className="ar-table">
+          <DataTable framed>
               <thead>
                 <tr>
                   <th scope="col" className="ar-col-tool">Instrument</th>
@@ -346,8 +346,7 @@ export function AdoptionReadiness() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
         </section>
       ))}
 
