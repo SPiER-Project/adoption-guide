@@ -18,6 +18,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync,
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { SUSHI_VERSION } from '../../scripts/lib/sushi-version.mjs'
+import { retrySync } from '../../scripts/lib/retry.mjs'
 
 const scriptPath = fileURLToPath(import.meta.url)
 const __dirname = dirname(scriptPath)
@@ -216,20 +217,71 @@ function isUpToDate() {
   return true
 }
 
+/**
+ * How many times to attempt the SUSHI compile before giving up.
+ *
+ * Retried because SUSHI downloads seven FHIR packages from `packages.fhir.org`
+ * on a cold cache, and a few minutes of registry trouble there killed the
+ * Cloudflare deploy of the public demo on 2026-09-15 — a failure with nothing
+ * to do with the commit being built. `scripts/lib/retry.mjs` has the log
+ * excerpt, and the argument for retrying every failure rather than trying to
+ * recognise a network one.
+ *
+ * ⚠️ Overridable so a developer debugging a REAL FSH error can stop paying for
+ * two extra compiles (`COPY_FHIR_SUSHI_ATTEMPTS=1 npm run copy-fhir`). A bad
+ * value falls back to one attempt rather than zero — `retrySync` guarantees the
+ * step runs at least once, because "attempts: 0" quietly skipping the compile
+ * would leave `copyResources` copying a tree that was never built.
+ */
+const SUSHI_ATTEMPTS = Number(process.env.COPY_FHIR_SUSHI_ATTEMPTS) || 3
+
 function runSushi() {
   log('compiling FSH with sushi...')
   // Pinned to SUSHI_VERSION above rather than resolving whatever `fsh-sushi`
   // npx finds — it is no longer a web/ devDependency, so there is no locked
   // local copy for npx to prefer over the registry. Pass igDir as an argument
   // — sushi treats it as the project folder and writes to ig/fsh-generated/.
-  const result = spawnSync('npx', ['-y', `fsh-sushi@${SUSHI_VERSION}`, igDir], {
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  })
-  if (result.status !== 0) {
-    console.error('[copy-fhir] sushi failed — aborting copy')
+  //
+  // `stdio: 'inherit'` is kept on purpose: a cold compile spends minutes
+  // downloading packages, and piping the output to inspect it would hold the
+  // whole log until the process exits. That choice is what rules out retrying
+  // only on a recognised error string — see scripts/lib/retry.mjs.
+  const result = retrySync(
+    () =>
+      withOk(
+        spawnSync('npx', ['-y', `fsh-sushi@${SUSHI_VERSION}`, igDir], {
+          stdio: 'inherit',
+          shell: process.platform === 'win32',
+        }),
+      ),
+    {
+      attempts: SUSHI_ATTEMPTS,
+      onRetry: ({ attempt, attempts, waitMs }) =>
+        log(
+          `sushi failed (attempt ${attempt} of ${attempts}) — retrying in ${waitMs / 1000}s. ` +
+            'This is usually packages.fhir.org being slow; a real FSH error will fail again.',
+        ),
+    },
+  )
+  if (!result.ok) {
+    console.error(
+      `[copy-fhir] sushi failed after ${result.attemptsUsed} attempt(s) — aborting copy`,
+    )
     process.exit(result.status ?? 1)
   }
+  if (result.attemptsUsed > 1) log(`sushi succeeded on attempt ${result.attemptsUsed}`)
+}
+
+/**
+ * Adapt a `spawnSync` result to what `retrySync` reads.
+ *
+ * ⚠️ `status` is null when the process was killed by a signal or never
+ * spawned at all, so "status !== 0" is the test rather than "status" being
+ * truthy — a null status is a failure, and reading it as success would march
+ * on to copy a tree SUSHI never wrote.
+ */
+function withOk(result) {
+  return { ...result, ok: result.status === 0 }
 }
 
 function clearDest() {
