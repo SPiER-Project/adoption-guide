@@ -61,7 +61,9 @@ npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, q
                                # ways, per-AD licensing metadata, per-AD tool-id identifiers — plus
                                # every declared navigation target resolves to a real App.tsx route:
                                # the 36 catalog launch paths, and the panel's post-launch landing
-                               # route, which must be a PAGE and not a redirect
+                               # route, which must be a PAGE and not a redirect — and every
+                               # <Navigate> TARGET still points at a real route, so a compatibility
+                               # redirect kept for a published path cannot rot into the catch-all
 npm run check:stages           # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway          # the pathway PlanDefinition's tier codes, stage codes and
                                # definitionCanonicals all resolve against the generated artifacts
@@ -237,6 +239,17 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   `ehr` strings under `services/mock-ehr/` deliberately keep the prefix — they
   really are about EHR vendors, SMART scopes and host internals.
 - **Routing:** `HashRouter` (see `web/src/main.tsx`) — GitHub Pages compatible.
+- **The guide does not configure.** Settled 2026-09-15: the Adoption Guide's
+  "Configure" group is gone, and with it the last guide section that wrote state
+  another surface read. Tool Configuration lives at **`/settings`**, a page of
+  the SMART app — which instruments a deployment offers is a fact about SPiER's
+  own deployment, not about the EHR (the EHR never sees the tool catalog; its
+  `/metadata` capability profile is the different, genuinely EHR-side fact).
+  CDS Service stayed in the guide but moved to **Learn**: it configures nothing,
+  and it is the third thing that runs the pathway beside the two apps.
+  ⚠️ **`/settings` still does nothing in panel chrome**, and that is load-bearing
+  rather than unfinished — `web/src/lib/toolEnablement.ts` has the four reasons,
+  one of which this move retired. Read it before wiring the preset into the panel.
 - **The guide explains and hosts; the mock EHR holds and launches.** `/patient/chart`
   and `/population` are **redirects to guide pages that explain the two SMART
   apps** (`/guide/patient-app`, `/guide/dashboard`); the apps themselves answer on
@@ -248,9 +261,10 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   explainer holds no patient data" is gated rather than merely intended. A
   hand-rolled route outside the list would be unchecked.
   ⚠️ **Renaming either app route needs the redirects too.** `check:catalog`
-  covers the catalog's launch paths and the panel's landing route; nothing can
-  see a path that still *resolves* but now lands on the explainer — that class
-  needs a grep.
+  covers the catalog's launch paths, the panel's landing route, and (since
+  2026-09-15) every redirect's target — so a rename that strands a `<Navigate>`
+  now fails. What still nothing can see is a path that *resolves* but now lands
+  on the explainer rather than the app — that class needs a grep.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
 - **Never hand-edit generated output** — `packages/fhir-artifacts/generated/`,
   `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`. To change

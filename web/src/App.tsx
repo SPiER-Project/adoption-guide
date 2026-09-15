@@ -157,7 +157,12 @@ function AppRoutes() {
           <Route path="patient-app" element={<PatientAppGuide />} />
           <Route path="dashboard" element={<PopulationDashboardGuide />} />
           <Route path="tools" element={<PatientJourney />} />
-          <Route path="tool-configuration" element={<ToolConfiguration />} />
+          {/* Tool Configuration moved to /settings on 2026-09-15: it is a
+              setting of the SMART app, which owns the tool catalog, not a
+              section of a guide that explains and hosts. The redirect stays —
+              the path was published and is linked from the chart, both surface
+              explainers and docs/mock-ehr-demo-script.md. */}
+          <Route path="tool-configuration" element={<Navigate to="/settings" replace />} />
           <Route path="data-dictionary" element={<DataDictionary />} />
           {/* Measures moved to the EHR side (step D, #391): it is the only guide
               section that read patient data, and the guide explains and
@@ -174,6 +179,13 @@ function AppRoutes() {
               Readiness is what survives of "where is each tool". */}
           <Route path="roadmap" element={<Navigate to="/guide/adoption-readiness" replace />} />
         </Route>
+
+        {/* The SMART app's own settings. Top-level rather than under /patient:
+            it is a fact about the DEPLOYMENT, not about a patient, and it
+            applies to the caseload as much as to the chart. Reachable in both
+            chromes because it is one route table (see Shell.tsx) — in panel
+            chrome the page says why it has no effect there. */}
+        <Route path="/settings" element={<ToolConfiguration />} />
 
         {/* The patient-level app: the chart, the instruments and the recorders.
             Not a "lens" since #493 — the sidebar stopped switching between them,

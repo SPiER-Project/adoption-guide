@@ -23,7 +23,8 @@
  * The brief was *"explain the patient-level smart app and how the care pathways
  * can be configured by the system to help recommend what to do."* That second
  * half is the one thing about SPiER no page states end to end: `/guide/pathway`
- * publishes the protocol, `/guide/tool-configuration` sets what a site enabled,
+ * publishes the protocol, `/settings` sets what a site enabled (a page of the
+ * APP since 2026-09-15, not of this guide — see pages/ToolConfiguration.tsx),
  * and the chart renders the cards — three pages each holding a third of one
  * mechanism. The "How it decides" section below is the join, and it is written
  * to point at those three rather than restate them.
@@ -103,7 +104,7 @@ export function PatientAppGuide() {
           <li>
             <strong>What this implementation has turned on.</strong> A card naming a tool the site
             does not use is a recommendation nobody can act on, so it is dropped.{' '}
-            <Link to="/guide/tool-configuration">Tool Configuration</Link> is where that is set.
+            <Link to="/settings">Tool Configuration</Link> is where that is set.
           </li>
         </ol>
         <p>
@@ -114,11 +115,13 @@ export function PatientAppGuide() {
         </p>
         <p className="surface-guide__note">
           <strong>One deliberate exception.</strong> Inside a host chart, every catalogued tool is
-          offered regardless of the Tool Configuration preset. That preset is implementer equipment
-          &mdash; it is set on a guide page the panel cannot reach and stored in the app&rsquo;s own
-          browser storage, not in anything the EHR said. In a real chart the host <em>is</em> the
-          site, so letting a sandbox setting from another surface suppress a clinician&rsquo;s
-          recommendation would be arbitrary.
+          offered regardless of the Tool Configuration preset. The reason is not that the setting is
+          out of reach &mdash; since it moved into the app it is one tap away in the panel too. It
+          is that the host&rsquo;s <em>own</em> cards come from SPiER&rsquo;s hosted CDS service,
+          which is stateless and cannot read this browser&rsquo;s storage. A panel honouring a
+          preset the host&rsquo;s cards did not would put two different answers about one patient
+          side by side. In a real chart the host <em>is</em> the site; a per-site toolset the
+          service could read is the thing that would replace this exception.
         </p>
       </section>
 

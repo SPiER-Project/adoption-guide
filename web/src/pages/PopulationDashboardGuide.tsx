@@ -85,7 +85,7 @@ export function PopulationDashboardGuide() {
           Per patient, the same four inputs the chart uses &mdash; the published{' '}
           <Link to="/guide/pathway">pathway</Link>, the{' '}
           <Link to="/guide/tools">tool catalog</Link>, that patient&rsquo;s record, and what the
-          site has <Link to="/guide/tool-configuration">enabled</Link> &mdash; then grouped rather
+          site has <Link to="/settings">enabled</Link> &mdash; then grouped rather
           than rendered one at a time.
         </p>
         <p>
