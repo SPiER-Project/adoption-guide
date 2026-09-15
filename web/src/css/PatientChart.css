@@ -6,55 +6,17 @@
   max-width: var(--page-width-wide);
 }
 
-.empty-chart-banner {
-  background: var(--surface-muted);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
 /* Cap the body, not the band — the tinted band is page-level framing, so it
    keeps the page width the way `.md-caveat`'s does, while the sentence inside
    it gets the measure. Uncapped this ran to 146 characters a line. The `em`
    resolves against this element's own 16px, which is what the run is set in. */
-.empty-chart-banner p {
-  margin: var(--space-1-5) 0 0 0;
-  color: var(--text-body);
-  line-height: 1.5;
-  max-width: var(--measure-prose);
-}
 
 /* Async data-source states (SMART live reads/writes) */
-.chart-loading-banner {
-  background: var(--accent-info-soft);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  color: var(--accent-info);
-  font-weight: 600;
-  padding: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-.chart-data-error {
-  background: var(--risk-acute-soft-bg);
-  border: 1px solid var(--risk-acute-faded);
-  border-radius: var(--radius-xl);
-  color: var(--risk-acute-soft-text);
-  padding: var(--space-4);
-  margin-bottom: var(--space-6);
-}
 
 /* `max-width` here is the same call as `.empty-chart-banner p` above — band at
    page width, body at the measure. The text is a server error string, so its
    length is not ours to predict; uncapped, a realistic one ran to 146
    characters a line. */
-.chart-data-error p {
-  margin: var(--space-1-5) 0 0 0;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-  max-width: var(--measure-prose);
-}
 
 /* ===========================
    Vertical pathway rail
@@ -115,7 +77,7 @@
 
 /* On narrow screens the long subtitle collides with the title under
    space-between; stack them instead. */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .pathway-header {
     flex-direction: column;
     align-items: flex-start;
@@ -309,7 +271,7 @@
    at the foot of this file, which overrides this on specificity. A phone has
    vertical room to spare and no horizontal room; a docked panel is the other way
    round, and this rule was quietly applying to both. */
-@media (max-width: 600px) {
+@media (max-width: 639px) {
   .pathway-node-toggle {
     flex-direction: column;
     align-items: flex-start;
@@ -325,7 +287,7 @@
 .pathway-node-step {
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps-wide);
   text-transform: uppercase;
   color: var(--text-faint);
 }
@@ -343,32 +305,10 @@
   color: var(--text-muted);
 }
 
-.pathway-node-status {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: var(--space-0-5) var(--space-2);
-  border-radius: var(--radius-pill);
-  white-space: nowrap;
-}
-
 .pathway-node-status--done     { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
 .pathway-node-status--active   { background: var(--accent-magenta-soft); color: var(--accent-magenta-text); }
 .pathway-node-status--passed   { background: var(--surface-muted); color: var(--text-muted); }
 .pathway-node-status--upcoming { background: var(--surface-muted); color: var(--text-faint); }
-
-.pathway-node-flag {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: var(--space-0-5) var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--brand-accent);
-  color: var(--text-on-brand);
-  white-space: nowrap;
-}
 
 .pathway-node-chevron {
   font-size: var(--font-size-2xs);
@@ -390,7 +330,7 @@
 .pathway-node-section-title {
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps-wide);
   text-transform: uppercase;
   color: var(--text-faint);
   margin: 0 0 var(--space-2) 0;
@@ -412,17 +352,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-}
-
-.pathway-node-empty {
-  font-size: var(--font-size-base);
-  color: var(--text-faint);
-  margin: 0;
-}
-
-.pathway-node-empty a {
-  color: var(--brand-accent);
-  text-decoration: underline;
 }
 
 /* "Potential actions" — the tools that would satisfy a stage. Secondary to a
@@ -476,13 +405,6 @@
 /* ===========================
    CDS cards (rendered inside their pathway stage)
    =========================== */
-.cds-card {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-left-width: 4px;
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-}
 
 .cds-card--critical { border-left-color: var(--risk-acute); }
 .cds-card--warning  { border-left-color: var(--risk-moderate); }
@@ -495,22 +417,9 @@
   margin-bottom: var(--space-1-5);
 }
 
-.cds-card-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gap-inline);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: var(--space-0-5) var(--space-2);
-  border-radius: var(--radius-pill);
-  color: var(--text-on-brand);
-}
-
-.cds-card-pill--critical { background: var(--risk-acute); }
-.cds-card-pill--warning  { background: var(--risk-moderate); }
-.cds-card-pill--info     { background: var(--accent-info); }
+.cds-card-pill--critical { background: var(--risk-acute); color: var(--text-on-brand); }
+.cds-card-pill--warning  { background: var(--risk-moderate); color: var(--text-on-brand); }
+.cds-card-pill--info     { background: var(--accent-info); color: var(--text-on-brand); }
 
 .cds-card-title {
   font-size: var(--font-size-xl);
@@ -547,17 +456,6 @@
 
 .cds-card-action-btn:hover {
   background: var(--brand-primary-hover);
-}
-
-.cds-card-no-options {
-  font-size: var(--font-size-base);
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.cds-card-no-options a {
-  color: var(--brand-accent);
-  text-decoration: underline;
 }
 
 .cds-card-json {
@@ -664,7 +562,7 @@
 .encounter-row-step {
   font-size: var(--font-size-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   color: var(--accent-info);
   font-variant-numeric: tabular-nums;
 }
@@ -682,25 +580,6 @@
 .encounter-row-type {
   font-size: var(--font-size-md);
   color: var(--text-body);
-}
-
-.encounter-row-status {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: var(--space-0-5) var(--space-2);
-  border-radius: var(--radius-pill);
-}
-
-.encounter-row-status--completed {
-  background: var(--risk-low-faded);
-  color: var(--risk-low-soft-text);
-}
-
-.encounter-row-status--scheduled {
-  background: var(--accent-info-soft);
-  color: var(--accent-info);
 }
 
 .encounter-row-toggle {
@@ -731,7 +610,7 @@
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-caps);
   color: var(--accent-warning-text);
 }
 
@@ -742,7 +621,7 @@
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-caps);
   color: var(--accent-info-text);
 }
 
@@ -751,17 +630,6 @@
   flex-wrap: wrap;
   gap: var(--space-1-5);
   margin: 0 0 var(--space-3) 0;
-}
-
-.encounter-artifact-chip {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  padding: var(--space-0-5) var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  border: 1px solid var(--border-default);
 }
 
 .encounter-related {
@@ -774,7 +642,7 @@
   margin: 0 0 var(--space-1-5) 0;
   font-size: var(--font-size-sm);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-muted);
   font-weight: 700;
 }
@@ -829,13 +697,6 @@
   overflow: hidden;
 }
 
-.documents-empty {
-  padding: var(--space-5);
-  text-align: center;
-  color: var(--text-faint);
-  font-style: italic;
-}
-
 .document-row {
   border-top: 1px solid var(--border-default);
 }
@@ -866,7 +727,7 @@
 .document-kind {
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps);
   padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-sm);
   text-align: center;
@@ -973,10 +834,6 @@
 /* A recommendation on a stage already completed is guidance, not a to-do, and
    is coloured like the "Complete" pill's quieter cousin rather than like the
    blue "Do now" flag it replaces there. */
-.pathway-node-flag--guidance {
-  background: var(--surface-muted);
-  color: var(--text-muted);
-}
 
 /* In panel chrome the header's two subtitle lines become one footnote under
    the rail. The links survive: in the panel the protocol link is the only way

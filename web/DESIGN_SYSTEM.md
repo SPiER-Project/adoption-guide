@@ -28,39 +28,40 @@ That file is the single source of truth; this doc summarizes the scales.
 
 ## Components
 
-### Risk pill — `.risk-pill`
+Six components own every surface below the page header; a page never
+redeclares their padding, radius, type or colour. Each one's header comment
+records the decision it makes and what is deliberately *not* it. A page may
+pass `className` for **layout or a domain colour only**.
 
-The single canonical severity chip, defined in
-[`src/css/RiskPill.css`](src/css/RiskPill.css). It replaced three divergent
-per-page implementations (`.patient-banner-risk`, `.caseload-risk`,
-`.risk-alert-level`) so the same severity renders identically everywhere.
+| Component | Owns | File |
+|---|---|---|
+| `SectionHeader` | the `<h3>` row: title, right-hand meta, optional title-as-toggle | [`src/components/SectionHeader.tsx`](src/components/SectionHeader.tsx) |
+| `Card` | a bordered panel: `--radius-lg`, `roomy`/`compact` padding, `card`/`muted`/`brand` tone, optional brand `accent` edge | [`src/components/Card.tsx`](src/components/Card.tsx) |
+| `Pill` | a small inline marker: `--radius-pill`, `sm`/`md`, `status`/`label`, tones incl. the risk ramp solid and soft | [`src/components/Pill.tsx`](src/components/Pill.tsx) |
+| `Notice` | a tinted message box with a 3px left edge, six tones, `role` from tone | [`src/components/Notice.tsx`](src/components/Notice.tsx) |
+| `EmptyState` | "nothing here": inline, or `panel` for an empty region | [`src/components/EmptyState.tsx`](src/components/EmptyState.tsx) |
+| `WorkflowForm` | the recorder frame: header, card-beside-drawer, hint, notice, code drawer | [`src/components/WorkflowForm.tsx`](src/components/WorkflowForm.tsx) |
 
-Compose a **size** (optional) with a **severity** modifier:
+### Risk pill — `RiskPill`
 
-| Class | Effect |
-|---|---|
-| `.risk-pill` | Default size (banner, caseload table) |
-| `.risk-pill--sm` | Smaller; for dense alert lists |
-| `.risk-pill--acute` / `--high` / `--moderate` | Solid severity background + white text |
-| `.risk-pill--low` | Faded green background + dark green text (better low-severity contrast / WCAG AA) |
-| `.risk-pill--none` / `--unknown` | Muted background + muted text (`--unknown` italic) |
+[`src/components/RiskPill.tsx`](src/components/RiskPill.tsx) is a wrapper over
+`Pill` in a solid risk tone (`acute`/`high`/`moderate`/`low`/`none`/`unknown`),
+led by the level's icon from `lib/statusIcons.tsx`. It replaced three
+divergent per-page implementations so the same severity renders identically
+everywhere; its colours now live in [`src/css/Pill.css`](src/css/Pill.css).
 
-```html
-<span class="risk-pill risk-pill--acute">Acute</span>
-<span class="risk-pill risk-pill--sm risk-pill--moderate">Moderate</span>
+```tsx
+<RiskPill level="acute" label="Acute" />
+<RiskPill level="moderate" label="Moderate" sm />
 ```
 
-### Buttons — `.btn-*`
+### Buttons
 
-The canonical button family lives in [`src/App.css`](src/App.css) (search
-`.btn-primary`). Do **not** redefine buttons in per-page CSS — earlier
-duplicates in the since-deleted `Home.css` were removed so the family has one
-home.
-
-- `.btn-primary` — maroon-filled primary action.
-- `.btn-secondary` — bordered secondary action (icon + label).
-- `.btn-icon` — leading icon inside a button.
-- `.btn-meta` — trailing muted metadata text.
+There is no shared button family. The `.btn-primary` / `.btn-secondary` /
+`.btn-meta` rules once documented here were dead — nothing rendered them —
+and were deleted by `check:css-dead` in 2026-09. `.workflow-submit-btn`
+(recorders) and `.careplan-download-btn` (CarePlan) are the two live button
+styles; a shared `Button` is a candidate for a later pass.
 
 ## Authoring rules
 

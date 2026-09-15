@@ -22,6 +22,7 @@ import { buildCdsCards } from '@spier/core/lib/cdsHooks'
 // This page is where `PatientChart.css` is imported for the whole chart — every
 // section component it composes relies on that rather than importing its own.
 import '../css/PatientChart.css'
+import { Notice } from '../components/Notice'
 
 export function PatientChart() {
   const {
@@ -169,16 +170,13 @@ export function PatientChart() {
       )}
 
       {dataSourceError && (
-        <div className="chart-data-error" role="alert">
-          <strong>EHR data error.</strong>
-          <p>{dataSourceError}</p>
-        </div>
+        <Notice tone="danger" title="EHR data error.">
+          {dataSourceError}
+        </Notice>
       )}
 
       {isSliceLoading && (
-        <div className="chart-loading-banner" role="status" aria-live="polite">
-          Loading chart data from the connected EHR…
-        </div>
+        <Notice tone="info">Loading chart data from the connected EHR…</Notice>
       )}
 
       {/* Sits with dataSourceError deliberately: both are SMART-session
@@ -187,8 +185,7 @@ export function PatientChart() {
       <WritebackScorecard report={writebackReport} />
 
       {!hasData && !isSliceLoading && !dataSourceError && (
-        <div className="empty-chart-banner">
-          <strong>This chart is empty.</strong>
+        <Notice title="This chart is empty.">
           <p>
             {isSmartConnected
               ? 'No SPiER artifacts on the connected EHR for this patient yet. Launch an assessment from the recommendation below to write one back.'
@@ -196,7 +193,7 @@ export function PatientChart() {
                 ? 'Launch an assessment from the recommendation below to try the forms, or pick a patient from the Population view.'
                 : 'No artifacts yet for this patient. Launch an assessment from the recommendation below to populate the chart.'}
           </p>
-        </div>
+        </Notice>
       )}
 
       <PatientPathway

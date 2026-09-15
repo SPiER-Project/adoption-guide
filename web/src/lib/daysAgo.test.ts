@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDaysAgo } from './relativeTime'
+import { formatDaysAgo } from './dates'
 
 // Build an ISO timestamp `n` days before now. A sub-millisecond elapse between
 // this and Date.now() inside the function only ever rounds *up* toward n, so

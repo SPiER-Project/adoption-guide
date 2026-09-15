@@ -1,10 +1,12 @@
 /**
  * The severity chip shared by the patient banner, the panel shell, the
- * caseload table and the post-submit result — see `RiskPill.css` for why
- * there is one shape. Centralized here (rather than five copies of the same
- * span) so the icon that now leads every pill can't drift from its label.
+ * caseload table and the post-submit result: a `Pill` in a solid risk tone,
+ * led by the level's icon so the two can't drift apart. Kept as its own
+ * component because five call sites pass a RiskLevel and should not each
+ * have to know that a level is also a Pill tone.
  */
 import { RISK_ICON, type RiskLevel } from '../lib/statusIcons'
+import { Pill } from './Pill'
 
 export function RiskPill({
   level,
@@ -18,11 +20,9 @@ export function RiskPill({
   sm?: boolean
   title?: string
 }) {
-  const Icon = RISK_ICON[level]
   return (
-    <span className={`risk-pill ${sm ? 'risk-pill--sm ' : ''}risk-pill--${level}`} title={title}>
-      <Icon aria-hidden="true" size={12} className="risk-pill-icon" />
+    <Pill tone={level} size={sm ? 'sm' : 'md'} icon={RISK_ICON[level]} title={title}>
       {label}
-    </span>
+    </Pill>
   )
 }

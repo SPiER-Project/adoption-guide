@@ -51,7 +51,7 @@ describe('the normalization layer leads the page', () => {
   it('is named for what it is, and counts tools rather than instruments', () => {
     const { container } = renderPage()
     expect(screen.getByText('Cross-instrument normalization')).toBeTruthy()
-    const count = container.querySelector('.dd-concept-layer .dd-stage-count')!.textContent!
+    const count = container.querySelector('.dd-concept-layer .section-header__meta')!.textContent!
     // ⚠️ "tools", not "instruments". `usedBy` holds catalog tool ids and one
     // instrument family owns several — C-SSRS alone contributes four — so the
     // derived number is 11 while the concept's own description correctly says
@@ -113,7 +113,7 @@ describe('the jump nav', () => {
       // Every label must name a section that is actually present.
       const label = link.textContent!.replace(/\d+$/, '')
       expect(
-        [...container.querySelectorAll('.dd-stage-title')].some(t =>
+        [...container.querySelectorAll('.section-header__title')].some(t =>
           (t.textContent ?? '').includes(label.trim()),
         ),
       ).toBe(true)

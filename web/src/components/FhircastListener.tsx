@@ -9,6 +9,7 @@ import {
   type PatientOpenPayload,
 } from '@spier/core/lib/fhircast'
 import '../css/FhircastListener.css'
+import { Pill } from './Pill'
 
 // Only a tab already viewing a patient chart follows a broadcast. This mirrors
 // real FHIRcast: a subscribed chart app follows context changes, but we never
@@ -118,7 +119,7 @@ export function FhircastListener() {
     const who = outOfScope.displayName ?? `patient ${outOfScope.patientId}`
     return (
       <div className="fhircast-banner fhircast-banner--warn" role="alert">
-        <span className="fhircast-banner-badge">FHIRcast</span>
+        <Pill size="sm" tone="brand">FHIRcast</Pill>
         <span className="fhircast-banner-text">
           The chart moved to <strong>{who}</strong>. This panel was launched for a different
           patient, so it cannot show them — <strong>relaunch from their chart</strong>. What is
@@ -142,7 +143,7 @@ export function FhircastListener() {
 
   return (
     <div className="fhircast-banner" role="status" aria-live="polite">
-      <span className="fhircast-banner-badge">FHIRcast</span>
+      <Pill size="sm" tone="brand">FHIRcast</Pill>
       <span className="fhircast-banner-text">
         Context changed to <strong>{who}</strong> via FHIRcast{' '}
         {followed.via === 'hub'

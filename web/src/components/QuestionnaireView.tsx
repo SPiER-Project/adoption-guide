@@ -14,6 +14,8 @@ import { stampLaunchStage } from '../lib/launchStage'
 import type { GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import { EmptyState } from './EmptyState'
+import { Notice } from './Notice'
 
 const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   acute:    { className: 'alert--acute',    label: 'ACUTE' },
@@ -143,10 +145,10 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
             </div>
           )}
           {submitted && !carePlan && !submitResult && (
-            <div className="submit-success-notice">
+            <Notice tone="success">
               Response saved to patient chart.{' '}
               <Link to="/patient/record#activity">View in chart</Link>
-            </div>
+            </Notice>
           )}
         </div>
 
@@ -174,10 +176,10 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
           {writebackReport ? (
             <FhirJsonViewer data={writebackReport} title="Written to the EHR (writeback ladder)" />
           ) : (
-            <p className="code-drawer__empty">
+            <EmptyState>
               <strong>Nothing written back yet.</strong> Submitting against a connected
               EHR records each ladder tier&rsquo;s outcome here.
-            </p>
+            </EmptyState>
           )}
         </CodeDrawer>
       </div>

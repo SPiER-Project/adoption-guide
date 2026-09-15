@@ -34,6 +34,9 @@ import {
   type PathwayModel,
 } from '@spier/core/lib/pathway'
 import '../css/CarePathway.css'
+import { cx } from '../lib/cx'
+import { Notice } from './Notice'
+import { Card } from './Card'
 
 /* ─── Loading ────────────────────────────────────────────────── */
 
@@ -43,14 +46,13 @@ import '../css/CarePathway.css'
 
 export function PathwayLoadError({ error }: { error: string | null }) {
   return (
-    <div className="pathway-load-error" role="alert">
-      <h3 className="pathway-load-error__title">The pathway artifact could not be read</h3>
+    <Notice tone="warning" title="The pathway artifact could not be read">
       <p>
         This page renders <code>PlanDefinition/SPiERSuicideSaferCarePathway</code> and has nothing to
         show without it. Run <code>npm run copy-fhir -- --force</code> in <code>web/</code>.
       </p>
-      <pre className="pathway-load-error__detail">{error}</pre>
-    </div>
+      <pre>{error}</pre>
+    </Notice>
   )
 }
 
@@ -157,7 +159,7 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
   // every non-last `.pathway-step`, so it now shows up in a screen reader's
   // and a browser extension's DOM the same way any other icon does.
   const renderStep = (step: PathwayAction, showConnector: boolean) => (
-    <li key={step.id} id={`pathway-${step.id}`} className="pathway-step">
+    <Card as="li" accent key={step.id} id={`pathway-${step.id}`} className="pathway-step">
       <div className="pathway-step__head">
         {step.stage && <span className="pathway-stage-chip">{step.stage.display ?? step.stage.code}</span>}
         <h4 className="pathway-step__title">{step.title}</h4>
@@ -173,14 +175,14 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
         </ul>
       )}
       {showConnector && <ChevronDown className="pathway-step-connector" aria-hidden="true" size={20} />}
-    </li>
+    </Card>
   )
 
   return (
     <ol className="pathway-spine">
       {before.map(step => renderStep(step, true))}
 
-      <li id={`pathway-${branch.id}`} className="pathway-step pathway-step--branch">
+      <Card as="li" accent id={`pathway-${branch.id}`} className="pathway-step pathway-step--branch">
         <div className="pathway-step__head">
           {branch.stage && (
             <span className="pathway-stage-chip">{branch.stage.display ?? branch.stage.code}</span>
@@ -228,7 +230,7 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
         {after.length > 0 && (
           <ChevronDown className="pathway-step-connector" aria-hidden="true" size={20} />
         )}
-      </li>
+      </Card>
 
       {after.map((step, i) => renderStep(step, i < after.length - 1))}
     </ol>
@@ -304,8 +306,10 @@ export interface PathwayProvenanceProps {
 export function PathwayProvenance({ model, variant = 'footer', children }: PathwayProvenanceProps) {
   const lead = variant === 'lead'
   return (
-    <section
-      className={`pathway-provenance${lead ? ' pathway-provenance--lead' : ''}`}
+    <Card
+      as="section"
+      tone="muted"
+      className={cx('pathway-provenance', lead && 'pathway-provenance--lead')}
       aria-labelledby="pathway-provenance-title"
     >
       <h3 id="pathway-provenance-title" className="pathway-section-title">
@@ -364,6 +368,6 @@ export function PathwayProvenance({ model, variant = 'footer', children }: Pathw
       )}
 
       <FhirJsonViewer title="PlanDefinition/SPiERSuicideSaferCarePathway" data={model.raw} />
-    </section>
+    </Card>
   )
 }

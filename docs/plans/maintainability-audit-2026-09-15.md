@@ -21,7 +21,26 @@ largest is collapsing ten workflow views that share one skeleton.
 **Status 2026-09-15:** §2.1 is done on branch
 `claude/app-maintainability-audit-650a61` — the dead CSS is deleted,
 `Dashboard.css` became `ChartSectionHeader.css`, and `check:css-dead` is in
-`verify` and the fast CI job.
+`verify` and the fast CI job (PR #506). §2.2 follows on branch
+`claude/section-header-cx`, stacked on it: `lib/cx.ts`, and `SectionHeader`
+replacing the six matching hand-rolled heads (the four card/stage heads with
+a pill, indicator or description block wait for §2.4's `Card`). §2.3 follows on
+`claude/workflow-form`, stacked again: `WorkflowForm` + `WorkflowField` +
+`WorkflowHint` + `RecordedList` + `lib/dates.ts`; the ten recorders lose ~360
+lines and `check:template` now recognizes a recorder by the frame it renders.
+§2.4 follows on `claude/primitives-pill-card` (four commits: EmptyState +
+Notice, Pill, Card): the decisions are written in each component's header,
+`RiskPill` is a wrapper over `Pill`, and the byte-identical maturity and
+rubric ramps became the soft risk tones. Deliberately not converted: the
+consent gate, the FHIRcast banner, the pathway-pending panel, the two
+interactive tiles (`preset-card`, `stage-tool-card`), and the Overview's
+dynamically classed cards. `DataTable` (§2.4's last item) is not started. §2.5 follows on
+`claude/audit-2-5`: `PatientIdentityStrip` over one `lib/riskLabel.ts`
+(the banner and the panel strip, the three `RISK_LABEL`s), `lib/dates.ts`
+absorbing `relativeTime` and `chartDisplay.formatDateTime` plus the 15
+inline `.slice(0, 10)` / `toLocaleDateString` sites, two tracking tokens,
+and the three breakpoints pinned by stylelint. Not done: the optional
+`SharedConcepts` / `ToolDetail` extractions.
 
 On frameworks: keep one React app. Six of the eight guide pages compute live
 against the pathway engine and catalog, the drift gates all assume one route

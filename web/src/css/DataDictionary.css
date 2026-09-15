@@ -83,7 +83,7 @@
   font-weight: 700;
   color: var(--text-body);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   font-size: var(--font-size-xs);
   border-bottom: 2px solid var(--border-default);
   white-space: nowrap;
@@ -148,9 +148,6 @@
 }
 
 /* An element that genuinely carries no code of its own. */
-.dd-code-none {
-  color: var(--text-faint);
-}
 
 /*
  * Marks a system as a value-side vocabulary rather than the element's own code
@@ -346,7 +343,7 @@
   font-size: var(--font-size-2xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-faint);
 }
 
@@ -412,30 +409,6 @@
  * someone had emphasised — reported as "looks a bit off". The tint and the inset
  * are what separate an explanation from one more group of rows.
  */
-.dd-concept-layer {
-  border: 1px solid var(--border-default);
-  border-left: 3px solid var(--brand-accent);
-  border-radius: var(--radius-xl);
-  background: var(--surface-page);
-  padding: var(--space-4);
-}
-
-/* The panel's own left border already carries the accent (above) — the shared
-   `.dd-stage-title` rule adds a SECOND one plus a redundant left inset, which
-   read as two competing lines rather than one. Both are panel-only overrides;
-   plain stage-section titles keep their accent rule. */
-.dd-concept-layer .dd-stage-title {
-  border-left: none;
-  padding-left: 0;
-}
-
-/* `.dd-stage-header`'s own horizontal padding exists to give a title breathing
-   room from the bare page edge — inside this panel it only stacks on top of
-   the panel's own padding, insetting the header a few px further than the
-   body content below it. */
-.dd-concept-layer .dd-stage-header {
-  padding: 0;
-}
 
 /* The head is a flex ROW containing the toggle, the code link and the count as
    siblings — see the note in the TSX for why the link is no longer inside the
@@ -483,14 +456,6 @@
   border: 0;
 }
 
-.dd-resource-badge {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-}
-
 .dd-resource-badge--careplan { background: var(--accent-info-soft); color: var(--accent-info-text); }
 .dd-resource-badge--observation { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
 .dd-resource-badge--condition { background: var(--accent-magenta-soft); color: var(--accent-magenta-text); }
@@ -501,26 +466,6 @@
   gap: var(--space-1);
 }
 
-.dd-tool-chip {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-sm);
-  background: var(--surface-muted);
-  color: var(--text-body);
-  white-space: nowrap;
-}
-
-.dd-empty-state {
-  text-align: center;
-  color: var(--text-faint);
-  font-style: italic;
-  padding: var(--space-8);
-  background: white;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-xl);
-}
-
 /* ── Journey-grouped stage sections ── */
 .dd-stage-section {
   /* Every jump target clears whatever is sticky above it. `scrollToAnchor` reads
@@ -528,39 +473,6 @@
      why the CSS property alone would sit dead here. */
   scroll-margin-top: var(--anchor-scroll-offset);
   margin-bottom: var(--space-8);
-}
-
-.dd-stage-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-bottom: var(--space-2);
-  padding: 0 var(--space-1);
-}
-
-.dd-stage-title {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--text-strong);
-  border-left: 3px solid var(--brand-accent);
-  padding-left: var(--space-2);
-}
-
-.dd-stage-count {
-  font-size: var(--font-size-sm);
-  color: var(--text-faint);
-  font-weight: 600;
-}
-
-.dd-cross-chip {
-  font-size: var(--font-size-xs);
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-sm);
-  background: var(--brand-accent-soft);
-  color: var(--brand-accent-text);
-  border: 1px solid var(--accent-orange-mid);
 }
 
 /* ── Shared concepts (#260) ─────────────────────────────────
@@ -644,11 +556,3 @@
   overflow-wrap: anywhere;
 }
 
-.dd-concept-chip {
-  font-size: var(--font-size-xs);
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-sm);
-  background: var(--surface-muted);
-  color: var(--text-body);
-  border: 1px solid var(--border-default);
-}

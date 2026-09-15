@@ -8,11 +8,12 @@
         "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
         "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
         "margin-inline", "margin-block",
-        "gap", "row-gap", "column-gap"
+        "gap", "row-gap", "column-gap",
+        "letter-spacing"
       ],
       {
         "ignoreValues": [
-          "transparent", "inherit", "none", "white", "unset",
+          "transparent", "inherit", "none", "white", "unset", "normal",
           "/^var\\(--/",
           "currentcolor",
           "0", "auto",
@@ -21,6 +22,10 @@
         "disableFix": true
       }
     ],
+    "media-feature-name-value-allowed-list": {
+      "max-width": ["639px", "767px", "1023px"],
+      "min-width": ["640px", "768px", "1024px"]
+    },
     "color-no-hex": [true, { "severity": "error" }],
     "selector-class-pattern": [
       "^[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)*$",

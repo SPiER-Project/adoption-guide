@@ -287,7 +287,7 @@
 /* ===========================
    Responsive
    =========================== */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   /* ⚠️ **Mobile deliberately goes back to document scrolling.** The frame above
      exists to keep the sidebar and the footer in view beside a scrolling page —
      and at this width there is no sidebar (it is a fixed overlay, see

@@ -56,12 +56,7 @@
    choice: page-level framing, so the band keeps the page. */
 .tool-config-effect {
   margin-bottom: var(--space-7);
-  padding: var(--space-4);
   max-width: var(--measure-prose);
-  background: var(--surface-muted);
-  border: 1px solid var(--border-default);
-  border-left: 3px solid var(--brand-accent);
-  border-radius: var(--radius-md);
 }
 
 .tool-config-effect__body {
@@ -85,7 +80,7 @@
   font-size: var(--font-size-base);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-muted);
   margin: 0 0 var(--space-3) 0;
 }
@@ -103,7 +98,7 @@
   gap: var(--space-3);
 }
 
-@media (min-width: 720px) {
+@media (min-width: 768px) {
   .preset-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -146,7 +141,7 @@
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-faint);
 }
 
@@ -156,24 +151,10 @@
   line-height: 1.4;
 }
 
-.preset-custom-hint {
-  margin: var(--space-3) 0 0 0;
-  font-size: var(--font-size-base);
-  color: var(--accent-warning-text);
-  background: var(--accent-warning-bg);
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--accent-warning-edge);
-}
-
 /* ===========================
    Stage list / tool rows
    =========================== */
 .tool-config-stage {
-  background: white;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4) var(--space-4);
   margin-bottom: var(--space-4);
 }
 
@@ -247,7 +228,7 @@
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-faint);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
 }
 
 .tool-row-purpose {
@@ -273,25 +254,6 @@
   border-color: transparent;
 }
 
-.tool-row-unbuilt-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--gap-inline);
-  margin-top: var(--space-0-5);
-  flex-shrink: 0;
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent-warning-text);
-  background: var(--accent-warning-bg);
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-sm);
-  width: 76px;
-  height: 1rem;
-}
-
 .tool-row-status {
   display: inline-flex;
   align-items: center;
@@ -299,7 +261,7 @@
   margin-left: var(--space-1-5);
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-pill);

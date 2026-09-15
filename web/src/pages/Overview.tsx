@@ -12,6 +12,7 @@ import {
 } from '../content/overview'
 import { IG_HREF, IG_TOKEN, renderInline } from '../content/renderInline'
 import '../css/Overview.css'
+import { Notice } from '../components/Notice'
 
 function StepCards() {
   return (
@@ -90,7 +91,7 @@ function Block({ block }: { block: OverviewBlock }) {
     case 'lead':
       return <p className="overview__lead">{renderInline(block.text)}</p>
     case 'note':
-      return <p className="overview__note">{renderInline(block.text)}</p>
+      return <Notice tone="brand">{renderInline(block.text)}</Notice>
     case 'prose':
       return <p>{renderInline(block.text)}</p>
     case 'vignette':

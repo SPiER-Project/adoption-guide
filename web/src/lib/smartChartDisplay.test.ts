@@ -5,7 +5,8 @@
  * render — the mappers were right and the presentation was wrong.
  */
 import { describe, expect, it } from 'vitest'
-import { formatDateTime } from './chartDisplay'
+import { } from './chartDisplay'
+import { formatDateTime } from './dates'
 import { formatPatientDisplay } from '../data/demoPatient'
 
 describe('formatDateTime', () => {

@@ -16,7 +16,7 @@
   font-weight: 600;
   color: var(--border-emphasis);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   transition: background 0.2s;
   text-align: left;
 }

@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
 import { INCLUSION_ICON, LICENSING_ICON, READINESS_TIER_ICON, type InclusionStatus } from '../lib/statusIcons'
 import '../css/AdoptionReadiness.css'
+import { EmptyState } from '../components/EmptyState'
+import { Pill, type PillTone } from '../components/Pill'
+import { SCALE_TONES } from '../lib/scaleTones'
+import { Card } from '../components/Card'
 
 // ─────────────────────────────────────────────────────────────
 // Adoption Readiness matrix
@@ -114,45 +118,45 @@ function readinessTier(buildStatus: BuildStatus): ReadinessTier {
   return buildStatus === 'built' ? 'built' : 'in-progress'
 }
 
+const INCLUSION_TONE: Record<InclusionStatus, PillTone> = { core: 'info', optional: 'neutral', future: 'warning' }
+
 function InclusionBadge({ status }: { status: InclusionStatus }) {
-  const Icon = INCLUSION_ICON[status]
   return (
-    <span className={`ar-inclusion ar-inclusion--${status}`}>
-      <Icon aria-hidden="true" size={11} />
+    <Pill size="sm" tone={INCLUSION_TONE[status]} icon={INCLUSION_ICON[status]}>
       {status}
-    </span>
+    </Pill>
   )
 }
 
+/** Licensing keeps a page-owned palette (five statuses, one of them violet) — colour only, see AdoptionReadiness.css. */
 function LicensingBadge({ licensing, title }: { licensing: Licensing; title?: string }) {
-  const Icon = LICENSING_ICON[licensing]
   return (
-    <span className={`ar-lic ar-lic--${licensing}`} title={title}>
-      <Icon aria-hidden="true" size={11} />
+    <Pill size="sm" variant="label" className={`ar-lic--${licensing}`} icon={LICENSING_ICON[licensing]} title={title}>
       {LICENSING_LABELS[licensing]}
-    </span>
+    </Pill>
   )
 }
+
+const READINESS_TONE: Record<ReadinessTier, PillTone> = { built: 'soft-low', 'in-progress': 'warning' }
 
 function ReadinessBadge({ tier, title }: { tier: ReadinessTier; title?: string }) {
-  const Icon = READINESS_TIER_ICON[tier]
   return (
-    <span className={`ar-tier ar-tier--${tier}`} title={title}>
-      <Icon aria-hidden="true" size={11} />
+    <Pill size="sm" tone={READINESS_TONE[tier]} icon={READINESS_TIER_ICON[tier]} title={title}>
       {READINESS_LABELS[tier]}
-    </span>
+    </Pill>
   )
 }
 
 function MaturityChip({ level, dimension }: { level: MaturityLevel; dimension: string }) {
   return (
-    <span
-      className={`ar-mat-chip ar-mat-chip--${level}`}
+    <Pill
+      variant="label"
+      tone={SCALE_TONES[level]}
       title={`${dimension}: ${level} — ${MATURITY_LEVEL_LABELS[level]}`}
       aria-label={`${dimension}: ${level} of 3, ${MATURITY_LEVEL_LABELS[level]}`}
     >
       {level}
-    </span>
+    </Pill>
   )
 }
 
@@ -208,7 +212,7 @@ export function AdoptionReadiness() {
       </p>
 
       {/* Summary */}
-      <div className="ar-summary">
+      <Card className="ar-summary">
         <div className="ar-summary-stat">
           <span className="ar-summary-value">{stats.builtOrBetter}/{stats.total}</span>
           <span className="ar-summary-label">Built</span>
@@ -229,7 +233,7 @@ export function AdoptionReadiness() {
           </div>
           <span className="ar-summary-bar-caption">{stats.depthPct}% avg target integration depth</span>
         </div>
-      </div>
+      </Card>
 
       {/* Legend */}
       <div className="ar-legend">
@@ -256,7 +260,7 @@ export function AdoptionReadiness() {
             <div className="ar-legend-row ar-legend-row--scale">
               {MATURITY_LEVEL_LABELS.map((label, level) => (
                 <span key={level} className="ar-legend-scale-item">
-                  <span className={`ar-mat-chip ar-mat-chip--${level}`}>{level}</span> {label}
+                  <Pill variant="label" tone={SCALE_TONES[level]}>{level}</Pill> {label}
                 </span>
               ))}
             </div>
@@ -272,7 +276,7 @@ export function AdoptionReadiness() {
               </div>
             ))}
             <div className="ar-legend-row">
-              <span className="ar-lic ar-lic--not-recorded">—</span>
+              <Pill size="sm" variant="label" className="ar-lic--not-recorded">—</Pill>
               <span className="ar-legend-text">
                 No licensing status on the tool&rsquo;s ActivityDefinition. Every one carries a status
                 today, so this should not appear &mdash; <code>npm run check:catalog</code> fails the
@@ -318,7 +322,7 @@ export function AdoptionReadiness() {
                           title={tool.copyright ?? LICENSING_BLURB[tool.licensing]}
                         />
                       ) : (
-                        <span className="ar-lic ar-lic--not-recorded" title="No licensing status on this tool's ActivityDefinition">—</span>
+                        <Pill size="sm" variant="label" className="ar-lic--not-recorded" title="No licensing status on this tool's ActivityDefinition">—</Pill>
                       )}
                     </td>
                     <td>
@@ -335,7 +339,7 @@ export function AdoptionReadiness() {
                           </Link>
                         )}
                         {!tool.launchActions[0] && (
-                          <span className="ar-res-empty">—</span>
+                          <EmptyState as="span">—</EmptyState>
                         )}
                       </div>
                     </td>
@@ -348,7 +352,7 @@ export function AdoptionReadiness() {
       ))}
 
       {/* Cross-links */}
-      <section className="ar-crosslinks">
+      <Card as="section" tone="muted" className="ar-crosslinks">
         <h3 className="ar-crosslinks-title">Where to go next</h3>
         <ul className="ar-crosslinks-list">
           <li>
@@ -364,7 +368,7 @@ export function AdoptionReadiness() {
             system's maturity against these same dimensions.
           </li>
         </ul>
-      </section>
+      </Card>
     </div>
   )
 }

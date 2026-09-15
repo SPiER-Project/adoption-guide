@@ -1,0 +1,61 @@
+/* ===========================
+   Pill — see components/Pill.tsx for the four decisions and the rule that a
+   page may add a COLOUR modifier and nothing else.
+
+   Tone colours are the app's existing families. The solid risk tones are
+   what RiskPill renders (and used to carry in RiskPill.css); the darker text
+   on the two muted grounds clears WCAG AA for small caps — `--risk-low-faded`
+   with `--risk-low-soft-text` landed at 3.54:1, with `--accent-success-text`
+   it is above 5:1.
+   =========================== */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-inline);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+}
+
+.pill__icon {
+  flex: none;
+}
+
+.pill--sm {
+  padding: var(--space-0-5) var(--space-1-5);
+  font-size: var(--font-size-2xs);
+}
+
+.pill--label {
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* ---- tones: the accent families ---- */
+.pill--neutral  { background: var(--surface-muted);       color: var(--text-body); }
+.pill--brand    { background: var(--brand-accent);        color: var(--text-on-brand); }
+.pill--accent   { background: var(--brand-accent-soft);   color: var(--brand-accent-text); }
+.pill--info     { background: var(--accent-info-soft);    color: var(--accent-info-text-deep); }
+.pill--success  { background: var(--accent-success-bg);   color: var(--accent-success-text); }
+.pill--warning  { background: var(--accent-warning-bg);   color: var(--accent-warning-text); }
+
+/* ---- tones: the risk ramp, solid (a risk level) ---- */
+.pill--acute    { background: var(--risk-acute);          color: var(--text-on-brand); }
+.pill--high     { background: var(--risk-high);           color: var(--text-on-brand); }
+.pill--moderate { background: var(--risk-moderate);       color: var(--text-on-brand); }
+.pill--low      { background: var(--risk-low-faded);      color: var(--accent-success-text); }
+.pill--none     { background: var(--border-default);      color: var(--text-body); }
+.pill--unknown  { background: var(--border-default);      color: var(--text-body); font-style: italic; }
+
+/* ---- tones: the risk ramp, soft (a 4-step scale that is not a risk level) ---- */
+.pill--soft-acute    { background: var(--risk-acute-faded);    color: var(--risk-acute-soft-text); }
+.pill--soft-high     { background: var(--risk-high-faded);     color: var(--risk-high-soft-text); }
+.pill--soft-moderate { background: var(--risk-moderate-faded); color: var(--risk-moderate-soft-text); }
+.pill--soft-low      { background: var(--risk-low-faded);      color: var(--risk-low-soft-text); }

@@ -35,40 +35,6 @@
     color: var(--brand-primary);
 }
 
-.careplan-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1-5);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: var(--space-1) var(--space-3);
-    border-radius: 20px;
-    background: linear-gradient(135deg, var(--accent-warning-bg), var(--risk-moderate-faded));
-    color: var(--accent-warning-text);
-}
-
-.careplan-demo-notice {
-    background: linear-gradient(135deg, var(--accent-warning-bg) 0%, var(--accent-orange-soft) 100%);
-    border: 1px solid var(--accent-warning-border);
-    border-radius: var(--radius-xl);
-    padding: var(--space-3) var(--space-5);
-    margin-bottom: var(--space-6);
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-2);
-    font-size: var(--font-size-md);
-    color: var(--accent-warning-text);
-    line-height: 1.5;
-}
-
-.careplan-demo-notice .notice-icon {
-    flex-shrink: 0;
-    font-size: var(--font-size-xl);
-    margin-top: var(--space-0-5);
-}
-
 .careplan-steps {
     display: flex;
     flex-direction: column;
@@ -93,7 +59,7 @@
     font-size: var(--font-size-base);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tracking-caps);
     color: var(--text-muted);
     margin: 0 0 var(--space-1-5) 0;
 }

@@ -76,7 +76,7 @@
   color: var(--accent-info-text-deep);
   font-size: var(--font-size-2xs);
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -107,7 +107,7 @@
   color: var(--text-strong);
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
@@ -144,7 +144,7 @@
   color: var(--text-faint);
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
@@ -173,12 +173,6 @@
 
 .pathway-step {
   position: relative;
-  padding: var(--space-5);
-  border: 1px solid var(--border-default);
-  border-left: 4px solid var(--brand-accent);
-  border-radius: var(--radius-lg);
-  background-color: var(--surface-card);
-  box-shadow: var(--shadow-sm);
   counter-increment: pathway-step;
   scroll-margin-top: var(--anchor-scroll-offset);
 }
@@ -373,13 +367,6 @@
 
 /* ── The simulator ──────────────────────────────────────────── */
 
-.pathway-sim {
-  padding: var(--space-5);
-  border: 1px solid var(--brand-accent-light);
-  border-radius: var(--radius-lg);
-  background-color: var(--brand-accent-faint);
-}
-
 .pathway-sim__title {
   margin: 0;
   color: var(--text-strong);
@@ -461,7 +448,7 @@
   color: var(--text-faint);
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
@@ -521,13 +508,6 @@
 
 /* ── Provenance ─────────────────────────────────────────────── */
 
-.pathway-provenance {
-  padding: var(--space-5);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  background-color: var(--surface-page-alt);
-}
-
 /* The panel keeps its full width: `.pathway-provenance__facts` below is an
    auto-fit grid that uses every pixel of it. Only the sentence is capped. */
 .pathway-provenance__lede {
@@ -549,7 +529,7 @@
   color: var(--text-faint);
   font-size: var(--font-size-2xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
@@ -596,39 +576,12 @@
 
 /* ── Load failure ───────────────────────────────────────────── */
 
-.pathway-load-error {
-  padding: var(--space-5);
-  border: 1px solid var(--accent-warning-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--accent-warning-bg);
-  color: var(--accent-warning-text-deep);
-}
-
 /* The explanation under the heading is prose and ran to 145 characters a line.
    Only the `<p>`: `.pathway-load-error__detail` below is the raw canonical and
    the command to run, a code run with its own `overflow-x`, and wrapping that
    to a reading measure would be wrong. */
-.pathway-load-error p {
-  max-width: var(--measure-prose);
-}
 
-.pathway-load-error__title {
-  margin: 0 0 var(--space-2);
-  font-size: var(--font-size-md);
-  font-weight: 700;
-}
-
-.pathway-load-error__detail {
-  overflow-x: auto;
-  margin: var(--space-3) 0 0;
-  padding: var(--space-3);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface-card);
-  color: var(--text-body);
-  font-size: var(--font-size-2xs);
-}
-
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .pathway-branch {
     grid-auto-columns: minmax(15rem, 1fr);
   }

@@ -57,7 +57,7 @@
 
 .code-drawer__handle-label {
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-strong);
 }
@@ -88,9 +88,4 @@
 
 /* The Written section's empty state. Deliberately a statement of absence rather
    than a preview — see the comment at its call site in QuestionnaireView. */
-.code-drawer__empty {
-  margin: var(--space-2) 0 0 0;
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
-  color: var(--text-muted);
-}
+

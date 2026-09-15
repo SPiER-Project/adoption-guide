@@ -14,6 +14,11 @@ import { PageHeader } from '../components/PageHeader'
 import { useRegistrySlices } from '../hooks/useRegistrySlices'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import '../css/MeasureDashboard.css'
+import { SectionHeader } from '../components/SectionHeader'
+import { EmptyState } from '../components/EmptyState'
+import { Notice } from '../components/Notice'
+import { Card } from '../components/Card'
+import { isoDay } from '../lib/dates'
 
 const WINDOWS: { days: number; label: string }[] = [
   { days: 30, label: 'Last 30 days' },
@@ -79,30 +84,30 @@ function EmptyExplanation({ emptiness }: { emptiness: Emptiness }) {
 
   if (emptiness.kind === 'all-excluded') {
     return (
-      <p className="md-gap">
-        <strong className="md-gap-lead">Nothing left to score.</strong> Patients met the cohort
+      <Notice tone="info">
+        <strong>Nothing left to score.</strong> Patients met the cohort
         criteria, but every one of them fell into a denominator exclusion — so the effective
         denominator is empty. That is a valid result, not a missing one.
-      </p>
+      </Notice>
     )
   }
 
   if (emptiness.kind === 'window') {
     return (
-      <p className="md-gap">
-        <strong className="md-gap-lead">No qualifying activity in this period.</strong> This measure
+      <Notice tone="info">
+        <strong>No qualifying activity in this period.</strong> This measure
         does compute over a longer measurement period — widen the window above to see it.
-      </p>
+      </Notice>
     )
   }
 
   const { gap } = emptiness
   return (
-    <p className="md-gap">
-      <strong className="md-gap-lead">Not yet measurable.</strong> The denominator counts{' '}
+    <Notice tone="info">
+      <strong>Not yet measurable.</strong> The denominator counts{' '}
       {gap.denominator}, and no patient in the demo registry qualifies. {gap.missing} Tracked as{' '}
       <IssueLinks issues={gap.issues} />.
-    </p>
+    </Notice>
   )
 }
 
@@ -177,15 +182,15 @@ export function MeasureDashboard() {
           real cohort need a user-scoped launch and a cohort read — blocker 2 in
           embedded-panel-smart-launch.md §6.3, deliberately not invented here. */}
       {scope === 'in-context' && (
-        <p className="md-scope-notice">
+        <Notice tone="warning">
           <strong>Scoped to the patient in context.</strong> A SMART access token is bound to
           one patient, so every denominator below counts that patient only — these are not
           population rates.
-        </p>
+        </Notice>
       )}
 
       {isLoading && entries.length === 0 && (
-        <p className="md-scope-notice">Reading the cohort from the connected server…</p>
+        <Notice tone="info">Reading the cohort from the connected server…</Notice>
       )}
 
       <div className="md-controls">
@@ -205,18 +210,18 @@ export function MeasureDashboard() {
           ))}
         </select>
         <span className="md-period">
-          {period.start.slice(0, 10)} → {period.end.slice(0, 10)}
+          {isoDay(period.start)} → {isoDay(period.end)}
         </span>
       </div>
 
       {emptyCount > 0 && (
-        <aside className="md-caveat" aria-label="Why some measures have no denominator">
-          {/* h3, not h2: the guide's page header owns this page's only h2
-              ("Measures"), and these sit under it. */}
-          <h3 className="md-caveat-title">
-            {emptyCount} of {tallies.length} measures have no denominator in this period
-          </h3>
-          <p className="md-caveat-body">
+        <Notice
+          as="aside"
+          tone="info"
+          ariaLabel="Why some measures have no denominator"
+          title={`${emptyCount} of ${tallies.length} measures have no denominator in this period`}
+        >
+          <p>
             An empty denominator is not a score of zero. It means no patient in the registry meets
             that measure&rsquo;s cohort criteria, so there is nothing to score — a different finding
             from &ldquo;we measured, and the answer was none.&rdquo;
@@ -224,7 +229,7 @@ export function MeasureDashboard() {
           {/* Deliberately says nothing about WHICH artifacts are missing: that
               belongs on each measure, where it stops rendering as soon as that
               measure computes. A list up here would outlive the gap it names. */}
-          <p className="md-caveat-body">
+          <p>
             The definitions below are live — every table is computed and every MeasureReport is
             assembled at render time. What is missing is the data they read: the demo registry does
             not yet contain conforming artifacts for every stage these measures query. Each empty
@@ -232,16 +237,14 @@ export function MeasureDashboard() {
             completeness that way is what a measure layer is for, so the zeros are the finding
             rather than a bug.
           </p>
-        </aside>
+        </Notice>
       )}
 
       {tallies.map((tally, i) => {
         const spec = MEASURE_SPECS[i]
         return (
-          <section className="md-measure" key={tally.measureId}>
-            <header className="md-measure-header">
-              <h3 className="md-measure-title">{tally.title}</h3>
-            </header>
+          <Card as="section" padding="compact" className="md-measure" key={tally.measureId}>
+            <SectionHeader title={tally.title} />
 
             {/* The table is six numeric columns and a group name, and
                 `.md-score` cannot wrap — so below roughly 600px it is wider
@@ -280,9 +283,9 @@ export function MeasureDashboard() {
                         <td>{g.numerator}</td>
                         <td className="md-score">
                           {g.score === null ? (
-                            <span className="md-empty" title="No patients in the denominator">
+                            <EmptyState as="span" title="No patients in the denominator">
                               no denominator
-                            </span>
+                            </EmptyState>
                           ) : (
                             <>
                               <span className="md-score-value">{Math.round(g.score * 100)}%</span>
@@ -305,7 +308,7 @@ export function MeasureDashboard() {
               data={buildSummaryMeasureReport(tally, spec, period, reportedAt, 'SPiER demo registry')}
               title={`MeasureReport — ${tally.title}`}
             />
-          </section>
+          </Card>
         )
       })}
     </div>

@@ -1,0 +1,25 @@
+/* ===========================
+   EmptyState — see components/EmptyState.tsx for the two roles and why
+   there are exactly two.
+   =========================== */
+
+.empty-state {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-style: italic;
+  color: var(--text-faint);
+}
+
+.empty-state a {
+  color: var(--brand-accent);
+  text-decoration: underline;
+}
+
+.empty-state--panel {
+  display: block;
+  padding: var(--space-6);
+  text-align: center;
+  background: var(--surface-card);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}

@@ -19,36 +19,38 @@
  */
 import { Link } from 'react-router-dom'
 import { UNAVAILABLE_RULES, type PatientAlertGroup } from '../lib/populationAlerts'
+import { SectionHeader } from './SectionHeader'
+import { EmptyState } from './EmptyState'
+import { Pill } from './Pill'
+import { Card } from './Card'
 
 export function PopulationAlertsPanel({ groups }: { groups: PatientAlertGroup[] }) {
   const total = groups.reduce((n, g) => n + g.alerts.length, 0)
   const red = groups.reduce((n, g) => n + g.alerts.filter(a => a.severity === 'red').length, 0)
 
   return (
-    <section className="pop-alerts" aria-label="Alerts">
-      <div className="pop-alerts-head">
-        <h3 className="pop-alerts-title">Alerts</h3>
-        <span className="pop-alerts-count">
-          {total === 0
+    <Card as="section" padding="compact" className="pop-alerts" aria-label="Alerts">
+      <SectionHeader
+        title="Alerts"
+        meta={
+          total === 0
             ? 'Nothing outstanding'
-            : `${total} · ${groups.length} patient${groups.length === 1 ? '' : 's'} · ${red} urgent`}
-        </span>
-      </div>
+            : `${total} · ${groups.length} patient${groups.length === 1 ? '' : 's'} · ${red} urgent`
+        }
+      />
 
       {groups.length === 0 ? (
-        <p className="pop-alerts-empty">
+        <EmptyState>
           No measure group reports a failure for any patient in this period. That is a real
           result, not an empty state — but read it against the unwatched rules below.
-        </p>
+        </EmptyState>
       ) : (
         <ul className="pop-alerts-list">
           {groups.map(g => (
             <li key={g.patientId}>
               <details className={`pop-alert-group pop-alert-group--${g.severity}`}>
                 <summary className="pop-alert-group-head">
-                  <span className={`pop-alert-badge pop-alert-badge--${g.severity}`}>
-                    {g.alerts.length}
-                  </span>
+                  <Pill size="sm" tone={g.severity === 'red' ? 'high' : 'warning'}>{g.alerts.length}</Pill>
                   <span className="pop-alert-group-name">{g.patientName}</span>
                   {/* The labels, comma-joined, are the scannable payload: enough
                       to triage without expanding anything. */}
@@ -95,6 +97,6 @@ export function PopulationAlertsPanel({ groups }: { groups: PatientAlertGroup[] 
           ))}
         </ul>
       </details>
-    </section>
+    </Card>
   )
 }

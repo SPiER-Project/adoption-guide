@@ -35,6 +35,7 @@
 import { Link } from 'react-router-dom'
 import { MOCK_EHR_URL } from '../data/surfaces'
 import '../css/SurfaceGuide.css'
+import { Notice } from '../components/Notice'
 
 const ISSUE_401_URL = 'https://github.com/SPiER-Project/adoption-guide/issues/401'
 
@@ -113,7 +114,7 @@ export function PopulationDashboardGuide() {
             Open the Demo EHR &rarr;
           </a>
         </p>
-        <p className="surface-guide__warn">
+        <Notice tone="brand">
           <strong>A real SMART launch, and still not evidence of interoperability.</strong> The
           authorization is genuine &mdash; a user-scoped grant with no patient in context, so the
           app may read across the panel and is refused if it tries to write to anyone &mdash; and
@@ -126,7 +127,7 @@ export function PopulationDashboardGuide() {
             issue #401
           </a>
           .
-        </p>
+        </Notice>
         <p>
           With no host connected the same screen runs against sample patients, which is how to see
           the derivation without a launch:{' '}

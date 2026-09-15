@@ -17,6 +17,10 @@
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 import type { ObservationResource, PatientSlice } from '@spier/core/types/fhir'
+import { RISK_LABEL } from './riskLabel'
+
+/** Re-exported for the caseload and the filter menu, which index it by the five registry levels. */
+export { RISK_LABEL }
 
 type RiskLevel = RiskAlert['level']
 
@@ -51,13 +55,6 @@ export interface TierCensusEntry {
   share: number
 }
 
-export const RISK_LABEL: Record<RiskLevel, string> = {
-  acute: 'Acute',
-  high: 'High',
-  moderate: 'Moderate',
-  low: 'Low',
-  none: 'None',
-}
 
 /** Highest risk first — the order a triage reader wants, and the census order. */
 export const CENSUS_ORDER: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none']

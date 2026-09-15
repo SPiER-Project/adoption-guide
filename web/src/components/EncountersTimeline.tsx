@@ -12,10 +12,12 @@
  */
 import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { ChartSectionHeader } from './ChartSectionHeader'
+import { SectionHeader } from './SectionHeader'
 import { resolveRelatedRefs, type RelatedArtifact } from '../lib/chartDisplay'
 import { stageById } from '@spier/core/data/catalog'
 import type { ScenarioEncounter } from '@spier/core/types/fhir'
+import { Pill } from './Pill'
+import { formatDate } from '../lib/dates'
 
 export function EncountersTimeline({
   walkthrough,
@@ -37,9 +39,9 @@ export function EncountersTimeline({
 
   return (
     <section id="encounters" className="encounters-timeline-section">
-      <ChartSectionHeader
+      <SectionHeader
         title="Scenario walkthrough"
-        count={`${walkthrough.length} ${walkthrough.length === 1 ? 'step' : 'steps'}`}
+        meta={`${walkthrough.length} ${walkthrough.length === 1 ? 'step' : 'steps'}`}
         collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'encounters-body' }}
       />
       {open && (
@@ -71,18 +73,11 @@ export function EncountersTimeline({
                     <span className="encounter-row-when">
                       {enc.step && <span className="encounter-row-step">{enc.step}</span>}
                       <span className="encounter-row-date">
-                        {new Date(enc.date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          timeZone: 'UTC',
-                        })}
+                        {formatDate(enc.date)}
                       </span>
                     </span>
                     <span className="encounter-row-type">{enc.title}</span>
-                    <span className={`encounter-row-status encounter-row-status--${enc.status}`}>
-                      {enc.status}
-                    </span>
+                    <Pill tone={enc.status === 'completed' ? 'soft-low' : 'info'}>{enc.status}</Pill>
                     <span className="encounter-row-toggle">
                       {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </span>
@@ -110,7 +105,7 @@ export function EncountersTimeline({
                       {enc.fhirArtifacts && enc.fhirArtifacts.length > 0 && (
                         <div className="encounter-artifacts">
                           {enc.fhirArtifacts.map(a => (
-                            <span key={a} className="encounter-artifact-chip">{a}</span>
+                            <Pill key={a} variant="label">{a}</Pill>
                           ))}
                         </div>
                       )}

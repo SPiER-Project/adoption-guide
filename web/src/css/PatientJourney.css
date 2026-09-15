@@ -21,10 +21,6 @@
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: var(--space-8);
-  padding: var(--space-5) var(--space-4);
-  background: white;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-2xl);
   overflow-x: auto;
 }
 
@@ -197,31 +193,6 @@
   color: var(--text-strong);
 }
 
-.stage-tool-badge {
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-}
-
-.stage-tool-badge--core {
-  background: var(--accent-success-bg);
-  color: var(--accent-success-text);
-}
-
-.stage-tool-badge--optional {
-  background: var(--accent-info-soft);
-  color: var(--accent-info-text-deep);
-}
-
-.stage-tool-badge--future {
-  background: var(--surface-muted);
-  color: var(--text-faint);
-}
-
 .stage-tool-purpose {
   font-size: var(--font-size-base);
   color: var(--border-emphasis);
@@ -252,7 +223,7 @@
   font-size: var(--font-size-sm);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-body);
   background: var(--surface-page);
   border-bottom: 1px dashed var(--border-default);
@@ -322,7 +293,7 @@
   font-weight: 700;
   color: var(--text-body);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps);
 }
 
 .tool-detail-body {
@@ -345,20 +316,6 @@
   color: var(--text-muted);
   font-weight: 600;
   margin-right: var(--space-1);
-}
-
-.tool-detail-chip {
-  display: inline-block;
-  padding: var(--space-0-5) var(--space-2);
-  background: var(--border-default);
-  color: var(--border-emphasis);
-  border-radius: var(--radius-pill);
-  font-size: var(--font-size-xs);
-}
-
-.tool-detail-chip--tag {
-  background: var(--accent-warning-bg);
-  color: var(--risk-moderate-soft-text);
 }
 
 /* Scroll on the wrapper, not the table, so the table keeps its native
@@ -497,30 +454,4 @@
 }
 
 /* Zero Suicide alignment callout (Pathway page top) */
-.journey-zs-callout {
-  max-width: var(--measure-prose);
-  background: var(--accent-info-soft);
-  border: 1px solid var(--accent-info);
-  border-left-width: 4px;
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-  margin: var(--space-4) 0 var(--space-6);
-  font-size: var(--font-size-lg);
-  line-height: 1.55;
-  color: var(--text-strong);
-}
 
-.journey-zs-callout strong {
-  color: var(--accent-info);
-}
-
-.journey-zs-callout a {
-  color: var(--accent-info);
-  text-decoration: underline;
-}
-
-.journey-zs-callout em {
-  font-style: normal;
-  font-weight: 600;
-  color: var(--text-strong);
-}

@@ -1,6 +1,12 @@
 /**
- * The heading row every chart section renders: a title, an optional count, and
- * — when the section can be collapsed — the title as the toggle.
+ * The heading row for a section below the page title: an <h3>, optional meta
+ * text on the right (a count, a one-line summary), and — when the section can
+ * be collapsed — the title as the toggle.
+ *
+ * This is the ONLY section heading row. Eleven hand-rolled copies of it had
+ * drifted to four gaps, five margins and three type sizes by 2026-09-15; the
+ * page template gate (`check:template`) already fixes the <h2> level, and
+ * this component fixes the <h3> level the same way — by owning it.
  *
  * ── Why the sections became collapsible ─────────────────────────────────────
  *
@@ -13,35 +19,40 @@
  * collapsed, and the count on the header says what is inside.
  *
  * One component rather than three copies of the header markup, because the
- * three sections had already drifted into three copies of it.
+ * three sections had already drifted into three copies of it. (It was
+ * `ChartSectionHeader` until the audit found eight more copies outside the
+ * chart.)
  */
 import type { ReactNode } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import '../css/ChartSectionHeader.css'
+import '../css/SectionHeader.css'
 
-export function ChartSectionHeader({
+export function SectionHeader({
   title,
-  count,
+  meta,
   collapsible,
+  id,
 }: {
   title: string
-  /** "3 episodes", "10 total" — rendered to the right of the title. */
-  count?: ReactNode
+  /** "3 episodes", "10 total", "4 of 5 tiers written back" — right of the title. */
+  meta?: ReactNode
   /** Present when the section body can be hidden; the title becomes the control. */
   collapsible?: { open: boolean; onToggle: () => void; controls: string }
+  /** On the <h3>, for a section's `aria-labelledby`. */
+  id?: string
 }) {
   return (
-    <header className="chart-section-header">
-      <h3 className="chart-section-title">
+    <header className="section-header">
+      <h3 className="section-header__title" id={id}>
         {collapsible ? (
           <button
             type="button"
-            className="chart-section-toggle"
+            className="section-header__toggle"
             aria-expanded={collapsible.open}
             aria-controls={collapsible.controls}
             onClick={collapsible.onToggle}
           >
-            <span className="chart-section-caret" aria-hidden>
+            <span className="section-header__caret" aria-hidden>
               {collapsible.open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </span>
             {title}
@@ -50,7 +61,7 @@ export function ChartSectionHeader({
           title
         )}
       </h3>
-      {count !== undefined && <span className="chart-section-count">{count}</span>}
+      {meta !== undefined && <p className="section-header__meta">{meta}</p>}
     </header>
   )
 }

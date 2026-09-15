@@ -20,10 +20,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
-  padding: var(--space-4) var(--space-5);
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-2xl);
   margin-bottom: var(--space-6);
   flex-wrap: wrap;
 }
@@ -47,7 +43,7 @@
   color: var(--text-faint);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-caps);
   margin-top: var(--space-1);
 }
 
@@ -194,7 +190,7 @@
   font-size: var(--font-size-2xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-faint);
   background: var(--surface-page);
   white-space: nowrap;
@@ -230,52 +226,10 @@
 }
 
 /* ── Maturity chips (0–3 risk-tinted scale, matches the rubric) ── */
-.ar-mat-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.ar-mat-chip--0 { background: var(--risk-acute-faded);    color: var(--risk-acute-soft-text); }
-.ar-mat-chip--1 { background: var(--risk-high-faded);     color: var(--risk-high-soft-text); }
-.ar-mat-chip--2 { background: var(--risk-moderate-faded); color: var(--risk-moderate-soft-text); }
-.ar-mat-chip--3 { background: var(--risk-low-faded);      color: var(--risk-low-soft-text); }
 
 /* ── Readiness tier pills ── */
-.ar-tier {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gap-inline);
-  padding: var(--space-0-5) var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.ar-tier--pilot-ready { background: var(--accent-success-bg); color: var(--accent-success-text); }
-.ar-tier--built       { background: var(--risk-low-faded);    color: var(--risk-low-soft-text); }
-.ar-tier--in-progress { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
 
 /* ── Licensing pills ── */
-.ar-lic {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gap-inline);
-  padding: var(--space-0-5) var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  white-space: nowrap;
-}
 
 .ar-lic--public-domain  { background: var(--accent-info-soft);      color: var(--accent-info-text-deep); }
 .ar-lic--registration   { background: var(--accent-warning-bg);     color: var(--accent-warning-text); }
@@ -311,17 +265,9 @@
   text-decoration: underline;
 }
 
-.ar-res-empty {
-  color: var(--text-faint);
-}
-
 /* ── Cross-links ── */
 .ar-crosslinks {
   margin-top: var(--space-8);
-  padding: var(--space-4) var(--space-5);
-  background: var(--surface-page);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
 }
 
 .ar-crosslinks-title {
@@ -329,7 +275,7 @@
   font-size: var(--font-size-base);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--tracking-caps);
   color: var(--text-faint);
 }
 
@@ -357,18 +303,4 @@
    gone; keeping its prefix on a class that never described the roadmap in the
    first place would leave a name pointing at nothing. `inclusionStatus` comes
    from the catalog and is unaffected by the removal. */
-.ar-inclusion {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gap-inline);
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-pill);
-}
 
-.ar-inclusion--core     { background: var(--accent-info-soft);  color: var(--accent-info); }
-.ar-inclusion--optional { background: var(--surface-muted);     color: var(--text-muted); border: 1px solid var(--border-default); }
-.ar-inclusion--future   { background: var(--accent-warning-bg); color: var(--accent-warning-text); }

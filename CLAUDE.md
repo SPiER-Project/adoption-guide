@@ -200,6 +200,14 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   nudge (keeps its raw value behind a `stylelint-disable` naming why it is not
   spacing). ⚠️ `ignoreValues` permits any `calc(…)`, so a raw length inside one
   is unchecked; that is where a deliberate derived value lives.
+  **Tracking has two tokens** — `--tracking-caps` for any small-caps label and
+  `--tracking-caps-wide` for an eyebrow — and `letter-spacing` is on the
+  strict-value list. **Breakpoints are three literals, not tokens**, because
+  `var()` cannot be read inside `@media`: 640 / 768 / 1024, with `max-width`
+  written as the complement (639 / 767 / 1023) so a min and a max never
+  overlap by a pixel; stylelint's `media-feature-name-value-allowed-list` pins
+  them, and a content-driven width (a table that fits at 1100, a title that
+  wraps at 340) is a `stylelint-disable-next-line` naming why.
   ⚠️ **stylelint checks that a token is *used*, never that it *exists*** —
   `npm run check:tokens` closes that half.
 - **One page template.** Every route under the app shell renders into
@@ -208,6 +216,19 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   accent rule → optional lede), the only definition of page-title typography; a
   page never renders its own `<h2>`, so section headings start at `<h3>`. A
   drill-in page passes `up` to make the first eyebrow segment its way back out.
+- **Below the page header, six components own the surfaces.** `SectionHeader`
+  (the `<h3>` row), `Card` (a bordered panel), `Pill` (a small inline marker),
+  `Notice` (a tinted message box), `EmptyState` ("nothing here"), and
+  `WorkflowForm` (the recorder frame) each make one decision about padding,
+  radius, type and colour, and a page never redeclares it. A page may pass a
+  `className` for **layout or a domain colour only** — where a card sits, the
+  colour of a FHIR resource type's pill — never a radius, padding, border or
+  background. Before these existed 76 card surfaces used 29 padding/radius
+  combinations and ~40 pills 12 paddings; the gates check that a value is on
+  the token scale, not which value a role gets, so only a component can hold
+  that. Reach for one of the six before writing a new class; if none fits,
+  the audit at `docs/plans/maintainability-audit-2026-09-15.md` §2.4 says how
+  a variant is added (a named prop, never a seventh look).
 - **Width has one owner per route, and the owner is whoever owns the header.** A
   page that renders its own `<PageHeader>` declares a root width, and it is
   `--page-width-prose` or `--page-width-wide` — those two are the whole

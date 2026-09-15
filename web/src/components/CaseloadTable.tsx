@@ -12,6 +12,8 @@ import { COLUMNS } from './caseloadColumns'
 import { RiskPill } from './RiskPill'
 import type { CaseloadView, FilterKey, FilterOption, SortCol, SortDir, SortState } from '../lib/caseloadViews'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
+import { cx } from '../lib/cx'
+import { EmptyState } from './EmptyState'
 
 const MENU_EDGE_GAP = 8
 
@@ -19,7 +21,7 @@ function SortIcon({ dir }: { dir: SortDir | null }) {
   const Icon = dir === 'asc' ? ArrowUp : dir === 'desc' ? ArrowDown : ChevronsUpDown
   return (
     <Icon
-      className={`caseload-sort-icon ${dir ? 'caseload-sort-icon--active' : ''}`}
+      className={cx('caseload-sort-icon', dir && 'caseload-sort-icon--active')}
       size={12}
       aria-hidden="true"
     />
@@ -45,7 +47,7 @@ function SortHeader({
   return (
     <button
       type="button"
-      className={`caseload-sort-button ${active ? 'caseload-sort-button--active' : ''}`}
+      className={cx('caseload-sort-button', active && 'caseload-sort-button--active')}
       onClick={() => onSort(col)}
     >
       <span>{label}</span>
@@ -167,7 +169,7 @@ export function HeaderFilter({
       <button
         ref={triggerRef}
         type="button"
-        className={`caseload-filter-trigger ${value !== 'all' ? 'caseload-filter-trigger--active' : ''}`}
+        className={cx('caseload-filter-trigger', value !== 'all' && 'caseload-filter-trigger--active')}
         aria-haspopup="true"
         aria-expanded={open}
         aria-label={value === 'all' ? `Filter by ${srLabel}` : `Filter by ${srLabel} (1 active)`}
@@ -308,7 +310,7 @@ export function CaseloadTable({
           ))}
         </tbody>
       </table>
-      {rows.length === 0 && <p className="caseload-empty">No patients match the active filters.</p>}
+      {rows.length === 0 && <EmptyState panel>No patients match the active filters.</EmptyState>}
     </section>
   )
 }

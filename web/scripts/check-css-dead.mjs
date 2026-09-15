@@ -46,6 +46,8 @@
  *     would be needed to forbid the duplicate definition.
  *   - A class referenced only in a test. Tests are excluded from the blob
  *     deliberately: a test asserting on a class does not render it.
+ *   - A class named only in a TS comment: also excluded (comments are
+ *     blanked before the scan), for the same reason.
  *
  * Exits non-zero on drift so it can gate CI.
  */
@@ -108,7 +110,16 @@ for (const file of cssFiles) {
 
 // ---- references: source that can put a class on an element -------------------
 const tsFiles = walk(srcDir, ['.ts', '.tsx']).filter((f) => !/\.test\.tsx?$/.test(f))
-let blob = tsFiles.map((f) => readFileSync(f, 'utf8')).join('\n')
+/**
+ * Comments are not references. A class named in a TS doc comment ("see
+ * .risk-pill") kept `.risk-pill` alive in a `:has()` selector for a whole
+ * commit after the component stopped rendering it. Block comments and
+ * whole-line `//` comments are blanked; a trailing `// …` after code is left
+ * alone so a `'https://…'` string literal is never mistaken for one.
+ */
+const stripTsComments = (src) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, blank).replace(/^\s*\/\/.*$/gm, blank)
+let blob = tsFiles.map((f) => stripTsComments(readFileSync(f, 'utf8'))).join('\n')
 if (existsSync(indexHtml)) blob += '\n' + readFileSync(indexHtml, 'utf8')
 
 if (!existsSync(vendorThemeCss)) {

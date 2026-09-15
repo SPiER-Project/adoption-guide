@@ -1,9 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
-import { CodeDrawer } from './CodeDrawer'
-import { FhirJsonViewer } from './FhirJsonViewer'
-import { PageHeader } from './PageHeader'
 import { makeId } from '@spier/core/lib/id'
 import {
   buildCaringContact,
@@ -13,7 +9,8 @@ import {
   hasOptedOutOfCaringContacts,
   OUTREACH_CHANNELS,
 } from '@spier/core/lib/followUp'
-import '../css/WorkflowActionView.css'
+import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 
 /**
  * TL-010 — caring contacts (Stage 6).
@@ -40,12 +37,6 @@ import '../css/WorkflowActionView.css'
 
 const DEFAULT_MESSAGE = 'Thinking of you and hoping things are going well. No reply needed.'
 
-function nowLocal(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
 export function CaringContactView() {
   const { addArtifact, activePatientId, communications } = usePatient()
 
@@ -56,15 +47,14 @@ export function CaringContactView() {
   )
 
   const [channel, setChannel] = useState(OUTREACH_CHANNELS[1].code) // Letter / card
-  const [sent, setSent] = useState(nowLocal())
+  const [sent, setSent] = useState(nowLocalIso())
   const [message, setMessage] = useState(DEFAULT_MESSAGE)
   const [optOut, setOptOut] = useState(false)
   const [note, setNote] = useState('')
   const [notice, setNotice] = useState<string | null>(null)
 
   const sentIso = useMemo(() => {
-    const t = new Date(sent).getTime()
-    return Number.isFinite(t) ? new Date(t).toISOString() : new Date().toISOString()
+    return toIsoOrNow(sent)
   }, [sent])
 
   const params = useMemo(
@@ -96,138 +86,109 @@ export function CaringContactView() {
   }
 
   return (
-    <div className="form-view">
-      <PageHeader
-        eyebrow={['Patient Chart', 'Workflow']}
-        up="/patient/record"
-        title="Log a Caring Contact"
-        lede={
-          <>
-            Records a <strong>Communication</strong> on the{' '}
-            <strong>SPiER Caring Contact</strong> profile, tagged to the{' '}
-            <strong>Track Follow-Up</strong> stage. A caring contact asks nothing of the patient, so
-            it has no reached/unreached outcome — what it carries instead is the{' '}
-            <em>opt-out</em>, which is what stops the schedule.
-          </>
-        }
-      />
-
-      <div className="form-wrapper">
-        <div className="form-card">
-          {activePatientId === null && (
-            <p className="workflow-form-hint">
-              No patient selected — this will be recorded in the scratch chart. Pick a patient from the
-              Population view to attach it to a specific record.
-            </p>
-          )}
-
-          {alreadyOptedOut && (
-            <p className="workflow-form-hint">
-              This patient has <strong>opted out</strong> of the caring-contact series. Stopping is the
-              correct action — the Stage-8 adherence measure excludes them from its denominator rather
-              than scoring the missing contacts as a failure.
-            </p>
-          )}
-
-          <form className="workflow-form" onSubmit={handleSubmit}>
-            <label className="workflow-field">
-              <span className="workflow-field-label">Contact method</span>
-              <select
-                className="workflow-input"
-                value={channel}
-                onChange={e => setChannel(e.target.value)}
-              >
-                {OUTREACH_CHANNELS.map(c => (
-                  <option key={c.code} value={c.code}>{c.display}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">Sent at</span>
-              <input
-                type="datetime-local"
-                className="workflow-input"
-                value={sent}
-                onChange={e => setSent(e.target.value)}
-              />
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">
-                Message <span className="workflow-field-optional">(what the patient receives)</span>
-              </span>
-              <textarea
-                className="workflow-input workflow-textarea"
-                rows={3}
-                placeholder={DEFAULT_MESSAGE}
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-              />
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">
-                <input
-                  type="checkbox"
-                  checked={optOut}
-                  onChange={e => setOptOut(e.target.checked)}
-                />{' '}
-                The patient has opted out of the caring-contact series
-              </span>
-              <span className="workflow-field-help">
-                Stamps the <code>caring-contact-opt-out</code> extension. This is what excludes the
-                patient from the adherence measure&rsquo;s denominator, so honoring the request cannot
-                read as a missed contact.
-              </span>
-            </label>
-
-            <label className="workflow-field">
-              <span className="workflow-field-label">
-                Internal note <span className="workflow-field-optional">(optional)</span>
-              </span>
-              <textarea
-                className="workflow-input workflow-textarea"
-                rows={2}
-                placeholder="Not sent to the patient — e.g. how the opt-out was communicated."
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
-            </label>
-
-            <button type="submit" className="workflow-submit-btn">Record caring contact</button>
-          </form>
-
-          {notice && (
-            <div className="workflow-success-notice">
-              {notice} <Link to="/patient/record#activity">View in chart</Link>
-            </div>
-          )}
-
+    <WorkflowForm
+      title="Log a Caring Contact"
+      lede={
+        <>
+          Records a <strong>Communication</strong> on the{' '}
+          <strong>SPiER Caring Contact</strong> profile, tagged to the{' '}
+          <strong>Track Follow-Up</strong> stage. A caring contact asks nothing of the patient, so
+          it has no reached/unreached outcome — what it carries instead is the{' '}
+          <em>opt-out</em>, which is what stops the schedule.
+        </>
+      }
+      draft={draft}
+      draftTitle="Live FHIR Communication (caring contact)"
+      notice={notice}
+      recorded={
+        <>
           {contacts.length > 0 && (
-            <>
-              <h3 className="workflow-form-title">Caring contacts on this chart</h3>
-              <ul>
-                {contacts.map((contact, idx) => {
-                  const c = contact as { id?: string; sent?: string; medium?: { coding?: { code?: string }[] }[] }
-                  const code = c.medium?.[0]?.coding?.[0]?.code ?? ''
-                  return (
-                    <li key={c.id ?? idx}>
-                      {c.sent ? c.sent.slice(0, 10) : 'undated'} ·{' '}
-                      {displayFor(OUTREACH_CHANNELS, code)}
-                      {caringContactOptedOut(contact) ? ' · OPTED OUT' : ''}
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
+            <RecordedList title="Caring contacts on this chart">
+              {contacts.map((contact, idx) => {
+                const c = contact as { id?: string; sent?: string; medium?: { coding?: { code?: string }[] }[] }
+                const code = c.medium?.[0]?.coding?.[0]?.code ?? ''
+                return (
+                  <li key={c.id ?? idx}>
+                    {c.sent ? isoDay(c.sent) : 'undated'} ·{' '}
+                    {displayFor(OUTREACH_CHANNELS, code)}
+                    {caringContactOptedOut(contact) ? ' · OPTED OUT' : ''}
+                  </li>
+                )
+              })}
+            </RecordedList>
           )}
-        </div>
+        </>
+      }
+    >
+      {alreadyOptedOut && (
+        <WorkflowHint>
+          This patient has <strong>opted out</strong> of the caring-contact series. Stopping is the
+          correct action — the Stage-8 adherence measure excludes them from its denominator rather
+          than scoring the missing contacts as a failure.
+        </WorkflowHint>
+      )}
 
-        <CodeDrawer>
-          <FhirJsonViewer data={draft} title="Live FHIR Communication (caring contact)" defaultOpen />
-        </CodeDrawer>
-      </div>
-    </div>
+      <form className="workflow-form" onSubmit={handleSubmit}>
+        <WorkflowField label="Contact method">
+          <select
+            className="workflow-input"
+            value={channel}
+            onChange={e => setChannel(e.target.value)}
+          >
+            {OUTREACH_CHANNELS.map(c => (
+              <option key={c.code} value={c.code}>{c.display}</option>
+            ))}
+          </select>
+        </WorkflowField>
+
+        <WorkflowField label="Sent at">
+          <input
+            type="datetime-local"
+            className="workflow-input"
+            value={sent}
+            onChange={e => setSent(e.target.value)}
+          />
+        </WorkflowField>
+
+        <WorkflowField label="Message" optional="what the patient receives">
+          <textarea
+            className="workflow-input workflow-textarea"
+            rows={3}
+            placeholder={DEFAULT_MESSAGE}
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+          />
+        </WorkflowField>
+
+        <WorkflowField
+          label={
+            <>
+              <input type="checkbox" checked={optOut} onChange={e => setOptOut(e.target.checked)} />{' '}
+              The patient has opted out of the caring-contact series
+            </>
+          }
+          help={
+            <>
+              Stamps the <code>caring-contact-opt-out</code> extension. This is what excludes the
+              patient from the adherence measure&rsquo;s denominator, so honoring the request cannot
+              read as a missed contact.
+            </>
+          }
+        />
+
+        <WorkflowField label="Internal note" optional="optional">
+          <textarea
+            className="workflow-input workflow-textarea"
+            rows={2}
+            placeholder="Not sent to the patient — e.g. how the opt-out was communicated."
+            value={note}
+            onChange={e => setNote(e.target.value)}
+          />
+        </WorkflowField>
+
+        <button type="submit" className="workflow-submit-btn">Record caring contact</button>
+      </form>
+
+    </WorkflowForm>
   )
 }
