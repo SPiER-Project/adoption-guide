@@ -110,7 +110,13 @@
    use SPiER, one of them on another origin), and space alone reads as a wider
    gap in one list. */
 .sidebar-try {
-  padding: var(--space-2) 0 var(--space-4);
+  /* ⚠️ The horizontal inset is load-bearing, not tidying. `.sidebar-outbound-link`
+     pulls itself left by `--space-2` so its hover background bleeds past its
+     label — which is written against `.sidebar-footer`'s own `--space-5` inset.
+     With no inset here the two cancelled exactly and the Demo EHR row rendered
+     flush at x=0, the only thing in the column that did. Matching the footer
+     puts the label back on the `--space-5` line the nav links use. */
+  padding: var(--space-2) var(--space-5) var(--space-4);
   border-top: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
@@ -128,7 +134,8 @@
    look like a fourth. Hence no hover state, no active state, and the same
    `--font-size-xs` as the outbound note above it rather than a link's size. */
 .sidebar-try__aside {
-  margin: var(--space-2) var(--space-5) 0;
+  /* Inline inset comes from `.sidebar-try` now; repeating it here would double it. */
+  margin: var(--space-2) 0 0;
   /* ⚠️ No `--measure-prose`, and `check:prose` RULE 5 is what settled it. The
      first draft carried the cap at `--font-size-xs`, which the gate refused:
      a run that caps with the reading measure must be set at one of the three
@@ -207,9 +214,14 @@
   gap: var(--space-1);
 }
 
-/* The nav's group headings are indented to clear a lens icon. There is no icon
-   column down here, so that inset would leave the heading floating right of
-   the links it labels. */
+/* The nav's group headings are indented to clear a lens icon. Neither the Try
+   zone nor the footer has an icon column, so that inset would leave the heading
+   floating right of the rows it labels — and in the Try zone it would now stack
+   on top of that zone's own inset. */
+.sidebar-try .sidebar-group-heading {
+  padding-left: 0;
+}
+
 .sidebar-group-heading--footer {
   margin-top: 0;
   padding-left: 0;
