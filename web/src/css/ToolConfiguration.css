@@ -1,11 +1,19 @@
-/* `.tool-config` sets no width, and there is deliberately no rule here to.
-   This page renders inside the /guide layout, and `.implementation-guide`
-   already set one; a sub-page that restates its width is the same
-   double-ownership that gave the guide its 24px indent. Seven sub-pages did
-   it, at five different widths (820 / 900 / 960 / 1040 / 1200), so the
-   section pager changed measure as you paged through one document.
-   `npm run check:template` now forbids it. Prose that needs a narrower
-   measure caps the text run with `--measure-prose`, not the page. */
+/* `.tool-config` DOES set a width now, and the flip is the whole point of the
+   2026-09-15 move rather than a loosened rule. Width has one owner per route and
+   the owner is whoever owns the header: while this page was a /guide sub-page,
+   `.implementation-guide` owned both and a restated width here was the
+   double-ownership `check:template` RULE 5a forbids (seven sub-pages once did
+   it, at five different widths, so the pager changed measure mid-document). At
+   `/settings` the page renders its own <PageHeader> into `.app-shell__body` or
+   `.panel-shell__body`, so it owns the header and therefore owes a width.
+
+   `wide`, not `prose`: the preset grid is the same auto-fit multi-column layout
+   that earned the guide section `width: 'wide'`, and nothing about the content
+   changed. Prose inside it is still capped at `--measure-prose` on the text run,
+   never on this box. */
+.tool-config {
+  max-width: var(--page-width-wide);
+}
 
 .tool-config-header {
   margin-bottom: var(--space-7);

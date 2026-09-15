@@ -129,7 +129,7 @@ export function CdsCardView({ card }: { card: Card }) {
       ) : (
         <p className="cds-card-no-options">
           No tools enabled for this stage in your implementation.{' '}
-          <Link to="/guide/tool-configuration">Configure tools</Link>.
+          <Link to="/settings">Configure tools</Link>.
         </p>
       )}
       <div className="cds-card-json">
@@ -344,7 +344,7 @@ function StageNode({
                       : `${disabledCount} ${disabledCount === 1 ? 'tool' : 'tools'} `}
                     {disabledCount === 1 ? 'is' : 'are'} catalogued for this stage but not enabled
                     in your implementation.{' '}
-                    <Link to="/guide/tool-configuration">Configure tools</Link>.
+                    <Link to="/settings">Configure tools</Link>.
                   </p>
                 )}
                 {enabledTools.length === 0 && disabledCount === 0 && (

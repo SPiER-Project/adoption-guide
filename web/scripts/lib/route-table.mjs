@@ -76,11 +76,26 @@ function readTag(src, i) {
 /**
  * Every path `App.tsx` registers, fully composed through nesting.
  *
- * Returns `{ paths, redirects }` — `paths` is every registered pattern
- * (including `:params` and the `*` catch-all as written), `redirects` is the
- * subset whose element is a `<Navigate>`. A launch path that resolves only to a
- * redirect still resolves, which is what keeps compatibility redirects from
+ * Returns `{ paths, redirects, redirectTargets }` — `paths` is every registered
+ * pattern (including `:params` and the `*` catch-all as written), `redirects` is
+ * the subset whose element is a `<Navigate>`. A launch path that resolves only
+ * to a redirect still resolves, which is what keeps compatibility redirects from
  * reading as failures.
+ *
+ * `redirectTargets` maps each redirect's registered path to where it sends the
+ * reader, so a caller can ask the OTHER half of the question. Added 2026-09-15,
+ * when Tool Configuration moved to `/settings` and the guide kept
+ * `/guide/tool-configuration` as a compatibility redirect: `redirects` alone
+ * says a published path still resolves, and says nothing about whether it
+ * resolves to anywhere. The repo keeps ten-odd such redirects precisely because
+ * their paths were published — a rotted target is a 404 for exactly the reader
+ * the redirect was kept for.
+ *
+ * A relative `to` is joined against the redirect's PARENT, which is correct for
+ * the index routes that use one (`<Route index element={<Navigate to="pathway"/>}>`
+ * under `/guide` → `/guide/pathway`) and is the only relative form in the table.
+ * A relative `to` on a non-index route would resolve differently in React Router,
+ * so it is reported as unresolvable rather than guessed at.
  */
 export function readRouteTable(file = APP_TSX) {
   // ⚠️ Comments blanked before scanning. Without this, a comment quoting
@@ -90,6 +105,8 @@ export function readRouteTable(file = APP_TSX) {
   const src = stripComments(readFileSync(file, 'utf8'))
   const paths = new Set()
   const redirects = new Set()
+  /** Registered redirect path → where its <Navigate> sends the reader. */
+  const redirectTargets = new Map()
   /** Stack of enclosing route paths; '' for a layout route with no path. */
   const stack = []
 
@@ -114,7 +131,16 @@ export function readRouteTable(file = APP_TSX) {
 
     if (own !== undefined || isIndex) {
       paths.add(full)
-      if (/element=\{<Navigate\b/.test(attrs)) redirects.add(full)
+      if (/element=\{<Navigate\b/.test(attrs)) {
+        redirects.add(full)
+        const to = attrs.match(/<Navigate\s+to="([^"]*)"/)?.[1]
+        if (to !== undefined) {
+          // Relative only on an index route, where the parent IS the current
+          // path; anything else is left as written so the caller reports it
+          // rather than this function inventing a resolution for it.
+          redirectTargets.set(full, to.startsWith('/') || !isIndex ? to : joinPaths(parent, to))
+        }
+      }
     }
     if (!selfClosing) stack.push(own !== undefined ? full : parent)
     i = end + 1
@@ -127,7 +153,7 @@ export function readRouteTable(file = APP_TSX) {
         'checking nothing — fix the parser rather than the caller.',
     )
   }
-  return { paths, redirects }
+  return { paths, redirects, redirectTargets }
 }
 
 /**

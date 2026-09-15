@@ -179,11 +179,17 @@ describe('CdsCardView — long detail and the configure link', () => {
   it('offers "Configure tools" in the shell and not in the panel', () => {
     // A card with no links and no narrative-only marker: the shell tells an
     // implementer where to enable a tool; the panel has no implementer to tell.
+    //
+    // The href moved to /settings on 2026-09-15 (the setting belongs to the app,
+    // not the guide) and the panel suppression did NOT move with it: in panel
+    // chrome every catalogued tool is offered, so pointing a clinician at a
+    // switch that cannot change what they see is worse than saying nothing.
+    // See lib/toolEnablement.ts.
     const shell = renderRail('ehr', [card(3)])
-    expect(shell.container.querySelector('a[href="/guide/tool-configuration"]')).not.toBeNull()
+    expect(shell.container.querySelector('a[href="/settings"]')).not.toBeNull()
     cleanup()
     const panel = renderRail('panel', [card(3)])
-    expect(panel.container.querySelector('a[href="/guide/tool-configuration"]')).toBeNull()
+    expect(panel.container.querySelector('a[href="/settings"]')).toBeNull()
     expect(panel.container.textContent).toContain('No tool is enabled for this step.')
   })
 })

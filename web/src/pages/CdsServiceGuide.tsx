@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import {
   CDS_DISCOVERY_URL,
   CDS_INVOKE_URL,
@@ -52,8 +53,20 @@ export function CdsServiceGuide() {
         <p>
           The endpoint runs the <strong>same browser-free derivation code</strong> as the in-app
           Patient Chart &mdash; the <code>observationMappers</code>, <code>derivePathwayStatus</code>,
-          and <code>buildCdsCards</code> in <code>web/src/lib/</code> &mdash; so the wire response and
-          the chart emit byte-identical CDS Hooks 2.0 cards.
+          and <code>buildCdsCards</code> in <code>packages/core/src/lib/</code> &mdash; so the wire
+          response and the chart emit byte-identical CDS Hooks 2.0 cards. That package is React-free
+          and DOM-free by gate (<code>npm run check:core-boundary</code>), which is what lets one
+          implementation serve a Worker and a browser rather than two that drift.
+        </p>
+        <p>
+          That claim has a running demonstration rather than only a curl command. Open a chart in
+          the{' '}
+          <a className="cds-service-guide__link" href={MOCK_EHR_URL} target="_blank" rel="noreferrer">
+            {MOCK_EHR_LABEL}
+          </a>
+          : the host calls this endpoint itself on <code>patient-view</code> and renders whatever
+          comes back, beside the SPiER panel it launches from a card. Two surfaces, one builder,
+          visibly agreeing.
         </p>
       </section>
 

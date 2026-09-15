@@ -1,8 +1,44 @@
+/**
+ * Tool Configuration — which instruments THIS SPiER deployment offers.
+ *
+ * ── Why this is a page of the app and not a section of the guide ───────────
+ *
+ * It lived at `/guide/tool-configuration` until 2026-09-15, in a guide group
+ * called "Configure". That was wrong twice over, and the second one is the
+ * interesting one.
+ *
+ * The obvious problem: since the 2026-09-09 boundary the guide EXPLAINS and
+ * HOSTS — it does not configure. This was the only guide section with side
+ * effects on another surface, and it had to carry a hand-written callout saying
+ * so because nothing else in the UI did.
+ *
+ * The subtler problem: the argument that first moved it off the guide pointed at
+ * the mock EHR, because `toolPresets.ts` and `services/mock-ehr/src/capability.ts`
+ * describe themselves in almost the same sentence — "what does a site like ours
+ * have turned on?" against "what this server says it can do". They are NOT the
+ * same fact. The capability profile is a fact about the EHR: which FHIR writes
+ * land. The toolset is a fact about SPiER's own deployment — the EHR never sees
+ * the tool catalog and has no opinion on whether a site offers CAMS. A SMART app
+ * is configured by whoever deploys it, so the setting belongs in the app that
+ * owns the catalog. Hence `/settings`, beside the chart rather than above it.
+ *
+ * ⚠️ **This page still does nothing in panel chrome, and that is not an
+ * oversight.** `lib/toolEnablement.ts` offers every catalogued tool inside a
+ * host chart. Moving this page into the app dissolved ONE of that rule's four
+ * reasons (it is no longer "set on a guide page the panel cannot reach") and
+ * left the load-bearing one standing: the host's own CDS cards come from the
+ * stateless Worker, which cannot read this browser's localStorage, so a panel
+ * honouring the preset would disagree with the host chart beside it — exactly
+ * the defect fixed on 2026-09-02. The banner below says this out loud rather
+ * than letting a presenter flip a switch and watch nothing happen.
+ */
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import { TOOLS, groupToolsByStage, launchableTools } from '@spier/core/data/catalog'
+import { PageHeader } from '../components/PageHeader'
 import { useToolConfig } from '../context/ToolConfigContext'
+import { usePresentation } from '../context/PresentationContext'
 import { PRESETS, presetToolIds, type PresetId } from '../data/toolPresets'
 import { usePatient } from '../context/PatientContext'
 import { INCLUSION_ICON, type InclusionStatus } from '../lib/statusIcons'
@@ -21,6 +57,7 @@ function InclusionBadge({ status }: { status: InclusionStatus }) {
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
   const { activePatientId } = usePatient()
+  const inPanel = usePresentation().chromeMode === 'panel'
 
   const toolsByStage = useMemo(() => groupToolsByStage(TOOLS, { skipEmpty: true }), [])
   const launchable = useMemo(() => launchableTools(), [])
@@ -44,10 +81,22 @@ export function ToolConfiguration() {
 
   return (
     <div className="tool-config">
+      {/* Owns its own header, like PathwayProtocol beside it: the Patient lens
+          has no layout component to render one, and in panel chrome `up` is the
+          page's only way back to the chart. */}
+      <PageHeader
+        eyebrow="Settings"
+        up="/patient/record"
+        title="Tool Configuration"
+        lede="Which suicide-prevention tools this SPiER deployment offers. Sites differ in what they have in place; this is where that is set."
+      />
+
       <header className="tool-config-header">
         <p className="tool-config-intro">
-          Choose which suicide-prevention tools your implementation supports &mdash; mirroring how
-          different EHRs and sites vary in what they're set up to do. Tools that aren't yet built in
+          This is a setting of <strong>the app</strong>, not of the EHR it connects to. An EHR
+          advertises which FHIR resources it will accept &mdash; that is its{' '}
+          <em>capability</em>, and the Demo EHR has its own switch for it. It never sees SPiER's tool
+          catalog and has no opinion on whether a site offers CAMS. Tools that aren't yet built in
           SPiER are listed but cannot be toggled.
         </p>
         <p className="tool-config-meta">
@@ -70,19 +119,32 @@ export function ToolConfiguration() {
         </p>
       </header>
 
-      {/* This is the only guide section whose state leaves the guide, and
-          nothing else in the UI says so. The link carries the active patient so
-          the reader lands on the chart they were already looking at. */}
+      {/* Two different true statements, because the rule really does differ by
+          chrome. See the ⚠️ on this file and lib/toolEnablement.ts — the panel
+          offering everything is a fix, not a bug, and a presenter who flips a
+          preset in a host chart and sees nothing change needs to be told why
+          here rather than to conclude the switch is broken. */}
       <aside className="tool-config-effect">
-        <p className="tool-config-effect__body">
-          <strong>Changes here take effect in the patient app.</strong> Recommendation cards only
-          offer launch actions for enabled tools, so this page decides what the chart can offer at
-          each pathway stage &mdash; a narrower profile models a site with less tooling in place, not
-          a gap to close.{' '}
-          <Link to={patientBase} className="tool-config-effect__link">
-            Open the patient chart &rarr;
-          </Link>
-        </p>
+        {inPanel ? (
+          <p className="tool-config-effect__body">
+            <strong>This setting does not apply inside a host chart.</strong> Here the host{' '}
+            <em>is</em> the site, and its own recommendation cards come from SPiER's hosted CDS
+            service, which cannot read this browser's storage. If the chart beside you honoured a
+            preset the host's cards did not, the two would disagree about the same patient &mdash;
+            so in a panel every catalogued tool is offered. Flip presets on the standalone app to
+            see them take effect.
+          </p>
+        ) : (
+          <p className="tool-config-effect__body">
+            <strong>Changes here take effect on the patient chart.</strong> Recommendation cards
+            only offer launch actions for enabled tools, so this page decides what the chart can
+            offer at each pathway stage &mdash; a narrower profile models a site with less tooling
+            in place, not a gap to close.{' '}
+            <Link to={patientBase} className="tool-config-effect__link">
+              Open the patient chart &rarr;
+            </Link>
+          </p>
+        )}
       </aside>
 
       <section className="tool-config-presets">

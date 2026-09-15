@@ -72,7 +72,7 @@ const INSET_OWNERS = {
 
 const LENSES = {
   'Overview.tsx': 'the front door: brand eyebrow + the project tagline as title',
-  'AdoptionGuide.tsx': 'the /guide layout — renders the header for all nine sub-pages',
+  'AdoptionGuide.tsx': 'the /guide layout — renders the header for every sub-page in GUIDE_SECTIONS',
   'PopulationView.tsx': 'the Population lens\u2019s index page; its eyebrow names the project rather than a section',
   // Added in step D (#391), when Measures moved out of the Adoption Guide to the
   // EHR side. It is a sub-page of the Population lens, but that lens has no
@@ -87,6 +87,13 @@ const LENSES = {
   // panel chrome there is no sidebar, so the header's `up` back to the chart is
   // the page's only way out.
   'PathwayProtocol.tsx': 'the Patient View lens’s protocol page; the lens has no header-rendering layout, and in the panel its `up` is the only exit',
+  // Added 2026-09-15, when Tool Configuration stopped being a guide section and
+  // became the SMART app's own settings page at /settings. It inherited a
+  // header from `.implementation-guide` for as long as it was a sub-page; at a
+  // top-level route there is no layout above it to draw one, so it owns its own
+  // — and with it, its width (RULE 5). Same shape as PathwayProtocol above,
+  // including that `up` is the panel's only way back to the chart.
+  'ToolConfiguration.tsx': 'the app’s settings page; a top-level route with no layout above it, and in the panel its `up` is the only exit',
 }
 
 const errors = []

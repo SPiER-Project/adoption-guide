@@ -6,18 +6,22 @@
 // lazy-loaded page component); keep the `path` values here aligned with those
 // route paths under /guide.
 //
-// Sections are additionally bucketed into three GUIDE_GROUPS, because the eight
-// sections are not eight of the same kind of thing: some explain concepts, two
-// carry live state that changes what *another lens* does, and the rest score an
-// organization's readiness. The sidebar renders a heading per group and the page
-// header names the active section's group.
+// Sections are additionally bucketed into GUIDE_GROUPS, because they are not
+// all the same kind of thing: most explain concepts and reference material, and
+// the rest score an organization's readiness. The sidebar renders a heading per
+// group and the page header names the active section's group.
+//
+// ⚠️ **No section here has side effects any more, and that is the invariant
+// the groups now encode.** The one that did — Tool Configuration — left for
+// /settings on 2026-09-15. A new section that writes state another surface reads
+// does not belong in this list; it belongs in the app that owns that state.
 //
 // ⚠️ The flat order below must stay grouped-contiguous — all of one group's
 // sections together, in GUIDE_GROUPS order. The pager walks this list linearly,
 // so an out-of-place section would make prev/next bounce between groups.
 
 /** Ordered categories the sections fall into. */
-export type GuideGroupId = 'learn' | 'configure' | 'evaluate'
+export type GuideGroupId = 'learn' | 'evaluate'
 
 export interface GuideGroup {
   id: GuideGroupId
@@ -28,7 +32,14 @@ export interface GuideGroup {
 /** Reading order of the groups, top to bottom. */
 export const GUIDE_GROUPS: GuideGroup[] = [
   { id: 'learn', label: 'Learn' },
-  { id: 'configure', label: 'Configure' },
+  // ⚠️ There was a third group, 'Configure', and it is gone rather than
+  // empty (2026-09-15). It held two sections that were not the same kind of
+  // thing: Tool Configuration, which had side effects on another surface, and
+  // CDS Service, which configures nothing and is pure reference. The first
+  // moved to /settings in the SMART app that owns the tool catalog; the second
+  // moved into Learn, beside the other two things that run the pathway. What
+  // emptied the group is the 2026-09-09 boundary finally being applied here:
+  // the guide explains and hosts — it does not configure.
   { id: 'evaluate', label: 'Evaluate' },
 ]
 
@@ -114,6 +125,17 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // measure.
   { path: 'patient-app', label: 'Patient App', group: 'learn', width: 'prose' },
   { path: 'dashboard', label: 'Population Dashboard', group: 'learn', width: 'prose' },
+  // The THIRD thing that runs the pathway, which is why it sits with the other
+  // two rather than in a group of its own: an EHR that embeds neither app can
+  // still call the hosted endpoint and render the same cards. It was filed
+  // under "Configure" until 2026-09-15, which misread it — the page configures
+  // nothing, it is prose, four curl blocks and a read-only probe of the live
+  // discovery document.
+  //
+  // `prose`: the only guide section with no wide content at all. Its curl
+  // blocks hold their commands comfortably at 900px, and it was the clearest
+  // case of the 48% problem the `width` field exists to fix.
+  { path: 'cds-service', label: 'CDS Service', group: 'learn', width: 'prose' },
   // `wide`: two catalogue tables.
   { path: 'tools', label: 'Tools', group: 'learn', width: 'wide' },
   // `wide`: four tables, the widest being the per-concept routes table whose
@@ -124,16 +146,6 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // patient data, and measures over a caseload belong beside the caseload —
   // which is also where they would sit in a real deployment. /guide/measures
   // still redirects, because it is a published tool launch path.
-  // Configure — the two sections that wire an implementation up. Tool
-  // Configuration writes ToolConfigContext, which gates the patient app's
-  // launch actions; CDS Service probes the live hosted endpoint.
-  // `wide`: a fixed `repeat(3, 1fr)` grid, which is 3 columns or it is nothing.
-  { path: 'tool-configuration', label: 'Tool Configuration', group: 'configure', width: 'wide' },
-  // `prose`: the only guide section with no wide content at all — explanatory
-  // prose plus four curl blocks, which hold their commands comfortably at
-  // 900px. It was the clearest case of the 48% problem the `width` field
-  // exists to fix.
-  { path: 'cds-service', label: 'CDS Service', group: 'configure', width: 'prose' },
   // Evaluate — scoring where an adopter (or SPiER itself) actually stands.
   // `wide`: two scoring tables, one of them per-tool across five columns.
   { path: 'adoption-readiness', label: 'Adoption Readiness', group: 'evaluate', width: 'wide' },
