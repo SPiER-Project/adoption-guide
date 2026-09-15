@@ -23,8 +23,8 @@ prove.
 | 1 — `Patient` for the 14, gated | **DONE 2026-08-18** — `packages/demo-population/src/patients/` (`ig/input/fsh/population-patients.fsh` until #392/#399), plus `check:patients` and check 8 of `check:scenarios`. No `Practitioner`/`Organization` needed; nothing references them. §7 |
 | 2 — per-patient transaction Bundle export + a validator gate | **Not started.** §7 |
 | 3 — load into a real server; re-run the SMART walkthrough against it | **Not started.** §7 |
-| 4 — population-capable `SmartDataSource` (un-hardcode two pages) | **Not started.** §8 — the scope people forget |
-| 5 — extend mapper dispatch past PHQ-9 (#230) | **Open issue, unscheduled.** §8 |
+| 4 — population-capable `SmartDataSource` (un-hardcode two pages) | ~~**Not started.**~~ ⚠️ **DONE** — and §8 below already said so while this row did not. It took three PRs, not one: the user-scoped launch (#489), the cohort read on the seam (#491), and the boundary pinned (#494). §8 |
+| 5 — extend mapper dispatch past PHQ-9 (#230) | ~~**Open issue, unscheduled.**~~ ⚠️ **#230 closed as completed 2026-08-13.** §8 |
 
 ---
 

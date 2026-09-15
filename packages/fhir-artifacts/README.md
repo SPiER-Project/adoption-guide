@@ -18,7 +18,13 @@ application's source tree*, so two Workers and ten gates read one app's
 This is step **E1** (#392) — the *output location* only. The rest of step E
 (moving the SUSHI build itself so `fsh-sushi` leaves the React app's
 devDependencies, and the open question of whether the 14 demo `Patient`s should
-leave the IG) is deliberately **not** done here.
+leave the IG) was deliberately **not** done here.
+
+⚠️ **It is done now, elsewhere — this paragraph described an open remainder for
+two weeks after there was none.** The `Patient`s left the IG in #399 (E2a), and
+the build moved in E2b: `fsh-sushi` is out of `web/package.json`, and
+`scripts/lib/sushi-version.mjs` exports the `SUSHI_VERSION` that `copy-fhir.mjs`,
+`check-sushi-output.mjs` and five CI workflows all read. #392 closed 2026-09-15.
 
 ⚠️ **It was moved before step B (#389), reversing the plan's A–E order, and that
 was deliberate.** §4 assigns `data/catalog` to `packages/core`, but

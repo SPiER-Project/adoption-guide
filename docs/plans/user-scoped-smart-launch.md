@@ -490,9 +490,17 @@ invisible when it breaks — and it did break, twice, in the writing of A–C.
    (zero occurrences). It corrects with `~~strikethrough~~` plus a
    `⚠️ **bold**` paragraph, which is what was used. What remains here is to
    *check* the note still matches what shipped.
-4. Close `#401` referencing whichever PR(s) did this. Update
+4. ~~Close `#401` referencing whichever PR(s) did this. Update
    `repo-and-package-boundaries.md` §9 / `mock-patient-smart-launch.md` if
-   either still describes the guide as reading bundled data.
+   either still describes the guide as reading bundled data.~~
+   **#401 closed 2026-09-09 (#494); the doc half was done 2026-09-15, six days
+   late and wider than written.** ⚠️ Worth recording, because the instruction
+   named two files and the drift was in **nine**: the two above plus
+   `docs/README.md`, `packages/fhir-artifacts/README.md`,
+   `docs/smart-sandbox-testing.md`, `embedded-panel-smart-launch.md`,
+   `next-session-handoff.md`, `services/mock-ehr/README.md`, and this file. A
+   fix-list written at plan time is a **sample**; the sweep is the class —
+   every doc line asserting an issue's state, checked against the issue.
 
 ### ~~⚠️ The open question this phase cannot dodge — demo walkthroughs~~ — moot for now
 
