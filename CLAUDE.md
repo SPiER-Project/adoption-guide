@@ -287,6 +287,19 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   `hashFiles(...)` in a workflow; add new inputs to the script's input list and
   every job's key follows. `verify` keeps `--force` on purpose, so one job per
   run still compiles from source.
+  ⚠️ **The SUSHI compile is retried 3× (10s, then 30s), and that is about the
+  CLOUDFLARE deploy, not about flaky FSH.** SUSHI downloads seven FHIR packages
+  from `packages.fhir.org` on a cold cache; a few minutes of trouble there failed
+  the Workers build of the public demo on 2026-09-15, on a commit that touched no
+  FHIR at all. The exposure is asymmetric — Actions caches the generated tree on
+  the fingerprint above and usually skips SUSHI entirely, while Cloudflare has no
+  equivalent and compiles from scratch on every deploy. It retries EVERY failure
+  rather than matching a network error string, because a signature list is a
+  guard that can silently stop guarding; a real FSH error just fails again, fast,
+  since the first attempt warmed the package cache. `COPY_FHIR_SUSHI_ATTEMPTS=1`
+  turns it off while debugging a real error. See `scripts/lib/retry.mjs`.
+  ⚠️ `scripts/check-sushi-output.mjs` invokes SUSHI too and is **not** retried —
+  it is a CI gate you can re-run, not a deploy.
 - **Generated files must exist before `tsc -b`.** On a clean checkout, run
   `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
