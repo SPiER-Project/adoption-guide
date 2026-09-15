@@ -92,7 +92,7 @@ Needs a terminology server, so it cannot be offline-reproducible:
 
 ```
 npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display literal in
-                         # web/src and services/, checked against tx.fhir.org
+                         # packages/core/src, web/src and services/, checked against tx.fhir.org
 ```
 
 ⚠️ **`tx.fhir.org` is not the authority — Regenstrief is.**

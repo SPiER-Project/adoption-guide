@@ -122,9 +122,17 @@ binding. After `wrangler login`:
 npm run deploy       # build + wrangler deploy (Worker script + web-dist assets)
 ```
 
-CI does the same on push to `main` via `.github/workflows/deploy.yml`
-(needs repo secrets `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`). The Worker
-is created on first deploy — no pre-provisioning.
+Cloudflare does the same on push to `main` via **Workers Builds**, the
+dashboard's Git integration. The Worker is created on first deploy — no
+pre-provisioning.
+
+⚠️ **There is no GitHub Actions workflow for this, and no `CLOUDFLARE_*` repo
+secrets.** This paragraph named `.github/workflows/deploy-cloudflare.yml` until
+2026-09-15; that file was deleted by #143 precisely because it duplicated Workers
+Builds on the same trigger and — *lacking the CLOUDFLARE_\* repo secrets (Workers
+Builds uses its own token)* — only ever produced a failing check on every merge.
+`deploy.yml` is **GitHub Pages**, a different target; do not read it as the
+Cloudflare path.
 
 Point the CDS Hooks Sandbox's *Discovery Endpoint* at
 `https://<worker-name>.<subdomain>.workers.dev/cds-services`; the app itself is at

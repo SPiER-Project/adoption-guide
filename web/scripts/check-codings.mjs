@@ -24,7 +24,7 @@
  *
  * ─── What it does ────────────────────────────────────────────
  *
- * Scans TypeScript under web/src and services/
+ * Scans TypeScript under packages/core/src, web/src and services/
  * for object literals carrying an external system (LOINC, SNOMED CT, or any HL7
  * terminology.hl7.org CodeSystem), then asks a terminology server to confirm each
  * `code` exists and — where a `display` is written — that the display is one the

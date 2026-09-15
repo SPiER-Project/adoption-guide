@@ -34,14 +34,21 @@ and it is permitted only with the guardrails in §1 of that plan.
 
 Data is the app's own files, with **no second copy of anything**: the scenarios
 from `packages/demo-population/src/scenarios/patient-0NN.json` and the 14 Patients
-from the FSH-generated `packages/fhir-artifacts/generated/Patient-patient-0NN.json`. Both are
+from `packages/demo-population/src/patients/patient-0NN.json`. Both are
 inlined by the Vite build, because a Worker has no filesystem — the same
 arrangement `services/cds-hooks` uses, and the reason `main` in `wrangler.jsonc`
 points at `dist/index.js` rather than at source.
 
-**`npm run copy-fhir` in `web/` is a prerequisite.** Without it there are no
-Patient resources; the loader throws rather than serving an empty server that
-looks like a working one.
+⚠️ **This said the Patients were FSH-generated, read from
+`packages/fhir-artifacts/generated/`, and that `copy-fhir` had to run or the
+loader would throw for want of them. All of that was the state before #399**, and
+it describes the exact dependency step E existed to remove — `fixtures.ts` says
+so in place: *"should not depend on a SUSHI compile, and the IG was publishing 14
+examples that referenced none of its own profiles."*
+
+`npm run copy-fhir` in `web/` is still a prerequisite for this package's
+`verify` — the tool catalog reads generated artifacts — but **not for the Patient
+roster**, which no longer needs a SUSHI compile at all.
 
 ## What it refuses to do, and why
 
