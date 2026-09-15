@@ -176,20 +176,39 @@ describe('CdsCardView — long detail and the configure link', () => {
     expect(container.querySelector('.cds-card-rationale')?.textContent).toBe('Short and complete.')
   })
 
-  it('offers "Configure tools" in the shell and not in the panel', () => {
+  it('offers "Configure tools" on a disabled-tool card in the shell, never in the panel', () => {
     // A card with no links and no narrative-only marker: the shell tells an
     // implementer where to enable a tool; the panel has no implementer to tell.
     //
-    // The href moved to /settings on 2026-09-15 (the setting belongs to the app,
-    // not the guide) and the panel suppression did NOT move with it: in panel
-    // chrome every catalogued tool is offered, so pointing a clinician at a
-    // switch that cannot change what they see is worse than saying nothing.
-    // See lib/toolEnablement.ts.
+    // ⚠️ **Scoped to `.cds-card-no-options` on purpose, and it was not always.**
+    // This asserted `querySelector('a[href="/settings"]')` over the whole
+    // container, which passed only while the panel had NO route to the settings
+    // anywhere. The moment the panel footnote gained one (2026-09-15) that
+    // spelling failed — correctly, but for the wrong reason: the rule was never
+    // "the panel cannot reach the settings", it is "a card that says a tool is
+    // unavailable does not offer a switch that cannot change that". A container-
+    // wide assertion cannot tell those apart, so it is the card that is checked.
     const shell = renderRail('ehr', [card(3)])
-    expect(shell.container.querySelector('a[href="/settings"]')).not.toBeNull()
+    expect(
+      shell.container.querySelector('.cds-card-no-options a[href="/settings"]'),
+    ).not.toBeNull()
     cleanup()
     const panel = renderRail('panel', [card(3)])
-    expect(panel.container.querySelector('a[href="/settings"]')).toBeNull()
+    expect(panel.container.querySelector('.cds-card-no-options a[href="/settings"]')).toBeNull()
     expect(panel.container.textContent).toContain('No tool is enabled for this step.')
+  })
+
+  it('reaches the settings from the panel footnote, and the shell does not need to', () => {
+    // The other half of the rule above, and the reason the assertion there had
+    // to get narrower rather than be deleted. PanelShell carries no nav — it
+    // exists to give the vertical budget back to the form — so this strip is the
+    // panel's only chrome-level navigation, and without a row here the settings
+    // are unreachable from inside a host chart.
+    const panel = renderRail('panel', [card(3)])
+    expect(panel.container.querySelector('.pathway-footnote a[href="/settings"]')).not.toBeNull()
+    cleanup()
+    // The shell has a sidebar and a full header; the footnote is panel-only.
+    const shell = renderRail('ehr', [card(3)])
+    expect(shell.container.querySelector('.pathway-footnote')).toBeNull()
   })
 })
