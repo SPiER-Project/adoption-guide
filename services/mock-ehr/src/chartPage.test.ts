@@ -62,9 +62,11 @@ describe('the front door', () => {
       expect(body).toContain(tryIt!.why)
       expect(body).toContain(`class="btn btn--primary" href="/chart/${id}"`)
     }
-    // Before the full list, before the caseload launch, before the drawer.
+    // Before the full list and before the drawer. ⚠️ It is no longer before the
+    // caseload launch — see the ordering test below for why that flipped, and
+    // why the property that mattered was never "picks first".
     expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('<table'))
-    expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('data-launch-worklist'))
+    expect(body.indexOf('Start here')).toBeLessThan(body.indexOf('<details class="hood"'))
   })
 
   it('gives every row a one-line story and drops the FHIR id column', async () => {
@@ -98,20 +100,29 @@ describe('the front door', () => {
     expect(body).toContain('does not prove is interoperability')
   })
 
-  it('puts the caseload launch BELOW the host\u2019s own list, and the caveats in a closed drawer', async () => {
-    // \u26a0\ufe0f This inverts the previous assertion on purpose. The widget sat first
-    // because that is where an EHR hangs a hosted activity \u2014 and a first-time
-    // viewer then met a dense registry widget and a warning box saying it proved
-    // nothing before reaching the instruction to open a chart. The one thing the
-    // page disclaims was the first thing on it. The picks and the list come
-    // first now; the frame follows; every caveat is one click away in `.hood`,
-    // still on the page, because the panel plan \u00a71 requires the page to SAY what
-    // it does not prove \u2014 not that it say so first.
+  it('keeps the instruction above the caseload launch, and the caveats in a closed drawer', async () => {
+    // \u26a0\ufe0f **This assertion has now been written three ways, and only the parts
+    // kept below survived all three.** It once pinned the caseload FIRST, then
+    // pinned it BELOW the patient table, and now the caseload is first again.
+    // The position is not the property \u2014 `chartPage.ts`'s ordering comment has
+    // the full history \u2014 so what is asserted here is what each pass was actually
+    // defending:
+    //
+    //   1. the instruction ("Open a chart") outranks every section, including
+    //      this one, so a viewer is never met by an activity before being told
+    //      what the page is for; and
+    //   2. the caveats are in a CLOSED drawer rather than inline beside the
+    //      launch, which is the half that made moving it up safe at all.
+    //
+    // A bare `toBeLessThan` on the launch and the table would be pinning taste.
     const { body } = await html('/')
     const launch = body.indexOf('data-launch-worklist')
-    expect(body.indexOf('<table')).toBeLessThan(launch)
+    expect(body.indexOf('Open a chart')).toBeLessThan(launch)
     const hood = body.indexOf('<details class="hood"')
     expect(hood).toBeGreaterThan(launch)
+    // The launch is a launch, not an inlined warning box: nothing from the
+    // drawer's caveat prose may appear above it.
+    expect(body.indexOf('does not prove is interoperability')).toBeGreaterThan(launch)
     // Closed by default: `<details open>` would put the caveats back on screen.
     expect(body).not.toMatch(/<details class="hood"[^>]*\sopen/)
     // \u2026and the disclaimer lives inside it rather than being dropped.
