@@ -65,6 +65,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..')
@@ -227,6 +228,13 @@ for (const file of mapperFiles) {
 if (callSites === 0) {
   fail('no reader call sites found in any carePlan mapper — the scan read nothing [treated as a failure]')
 }
+// ⚠️ The zero-check above catches a scan that read NOTHING. It cannot see a scan
+// that read a tenth of what it should — a narrowed glob, a partial move, a
+// renamed mapper. That is what these floors are for.
+reportFloors([
+  { source: 'carePlanMappers', dimension: 'reader call site(s)', actual: callSites, floor: 16 },
+  { source: 'carePlanMappers', dimension: 'mapper file(s)', actual: mapperFiles.length, floor: 2 },
+], fail)
 
 // --- Report -----------------------------------------------------------------
 if (failures) {

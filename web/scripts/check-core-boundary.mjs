@@ -21,6 +21,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..')
@@ -125,6 +126,13 @@ for (const f of tsFiles) {
     }
   }
 }
+
+// The whole claim of this gate is "every file in packages/core is React-free".
+// Scanning three files and saying so is the failure mode; the floor is what makes
+// the sentence mean something.
+reportFloors([
+  { source: 'packages/core/src', dimension: 'file(s) scanned', actual: files.length, floor: 56 },
+], fail)
 
 if (failures) {
   console.error(`\ncore-boundary check FAILED (${failures} issue(s)).`)

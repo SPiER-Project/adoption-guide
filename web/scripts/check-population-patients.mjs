@@ -36,6 +36,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const root = join(webRoot, '..') // repo root
@@ -147,6 +148,12 @@ if (compared === 0) {
   console.error('[check:patients] compared 0 patients — nothing was actually checked.')
   process.exit(1)
 }
+
+// 14 patients agreeing across three sites is the claim. Two patients agreeing
+// across three sites is also "no disagreement found", and reads identically.
+reportFloors([
+  { source: 'demo-population/src/patients', dimension: 'patient(s) compared', actual: compared, floor: 7 },
+], fail)
 
 if (failures > 0) {
   console.error(`\npatient demographics check FAILED (${failures} issue(s)).`)

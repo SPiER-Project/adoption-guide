@@ -47,6 +47,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..') // repo root
@@ -209,6 +210,14 @@ for (const expr of [...implemented].sort()) {
 console.log(
   `✓ measures: ${measures.length} Measure(s), ${groupCount} group(s), ${referenced.size} criterion reference(s) matched against ${implemented.size} implementation(s)`,
 )
+
+// Measures and criteria are floored separately: the generated tree can stop
+// yielding Measures, or the Measures can survive while their criteria stop being
+// extracted. Either one alone leaves a green run over nothing.
+reportFloors([
+  { source: 'fhir-artifacts/generated', dimension: 'Measure(s)', actual: measures.length, floor: 4 },
+  { source: 'fhir-artifacts/generated', dimension: 'criterion reference(s)', actual: referenced.size, floor: 11 },
+], fail)
 
 if (failures) {
   console.error(`\nmeasure drift check FAILED (${failures} issue(s)).`)

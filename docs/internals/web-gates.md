@@ -155,3 +155,41 @@ npm run check:reassessment # the per-tier reassessment cadence agrees across all
 npm test                 # vitest
 ```
 
+
+## Per-source liveness floors
+
+`scripts/lib/floors.mjs` — `reportFloors(entries, fail)`. Nine gates call it, and
+each prints `scanned <source>: <dimension> N (floor M)` on every run.
+
+**Why, in one sentence:** #500 proved that a gate whose tree is *gone* goes red
+(after three fixes), and nothing was watching for a tree that is merely
+*smaller* — which is the likelier accident and reads identically in the output.
+`validate-fhir` printed `0 unwrapped from the population scenarios` and passed;
+it would equally have printed `3` and passed.
+
+The convention is `check-codings.mjs`'s, copied rather than re-derived, and the
+reasoning for each rule is in that file and in `floors.mjs`:
+
+1. **Per source AND per dimension — never a single total.** A global floor was
+   check-codings' first attempt and testing found the hole in it. #236 then found
+   the same hole one level down. A guard with a blind spot shaped like the thing
+   it guards is the recurring failure here.
+2. **Roughly half the real count, rounded down.** A floor proves *liveness*, not
+   completeness: deleting things is allowed to lower the count.
+3. **Floors go stale upward and nothing re-checks them** (#43/#232). `reportFloors`
+   prints a `⚠ floor is now under 1/4 of the real count` note when it detects
+   this. Deliberately a note, not a failure — a stale floor is weak, not wrong,
+   and failing a green build over one teaches people to raise floors without
+   thinking.
+
+⚠️ **A floor's `source` label must name the directory the gate actually reads.**
+`check:crosswalk`'s was first written as `fhir-artifacts/generated` — the tree the
+other artifact gates read — when it in fact reads `ig/fsh-generated/resources`.
+Thinning the labelled tree to one file left the gate reporting six and passing.
+A floor whose label names the wrong tree is worse than no floor, because the next
+person reads the label rather than the `genDir` twenty lines above it.
+
+⚠️ **A floor is the last line, not the first.** Shrinking `observationMappers`
+trips `check:readers`' own "mapper serves no Questionnaire" error before the floor
+is reached, and that is the better outcome — a named error beats a count. Floors
+catch what the specific checks cannot see.

@@ -43,6 +43,7 @@ import { fileURLToPath } from 'node:url'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
+import { reportFloors } from './lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -305,6 +306,17 @@ if (!existsSync(PATIENTS_DIR)) {
   fail(`${relative(root, PATIENTS_DIR)} exists but holds no Patient resources`)
 }
 targets.push(...patientTargets)
+
+// ⚠️ **#503 made a MISSING tree an error here; this is the other half.** Both
+// guards above fire on absence, and neither can see either tree arriving
+// short — a partial move, a narrowed extension filter, a scenario bucket
+// dropped from SCENARIO_FHIR_BUCKETS. The unwrapped count was already printed
+// on every run and simply not asserted: a run reporting `0 unwrapped` passed,
+// and so would one reporting `3`.
+reportFloors([
+  { source: 'demo-population/src/scenarios', dimension: 'unwrapped resource(s)', actual: scenarioTargets.length, floor: 67 },
+  { source: 'demo-population/src/patients', dimension: 'Patient(s)', actual: patientTargets.length, floor: 7 },
+], fail)
 
 /**
  * `--also` directories. A named-but-empty directory is an error for the same
