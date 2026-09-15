@@ -29,6 +29,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..') // repo root
@@ -247,6 +248,20 @@ if (existsSync(draftsDir)) {
     console.log(`✓ ${file}: ${n} tier reference(s) checked`)
   }
 }
+
+// #500 made an all-missing mapper list a failure. This is the other half: the
+// ConceptMaps themselves are read from SUSHI's output, and a narrowed glob there
+// leaves every remaining map checked and every dropped one unmentioned.
+//
+// ⚠️ The source is `ig/fsh-generated/resources`, NOT
+// `packages/fhir-artifacts/generated`. This floor was first written with the
+// latter label — the copied tree the *other* artifact gates read — and it was
+// wrong: thinning that tree to one file left this gate still reporting six. A
+// floor whose label names the wrong tree is worse than none, because the next
+// person reads the label and not the `genDir` twenty lines up.
+reportFloors([
+  { source: 'ig/fsh-generated/resources', dimension: 'ConceptMap(s)', actual: conceptMaps.length, floor: 3 },
+], fail)
 
 if (failures) {
   console.error(`\nconcept-crosswalk drift check FAILED (${failures} issue(s)).`)

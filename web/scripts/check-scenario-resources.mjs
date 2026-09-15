@@ -76,6 +76,7 @@ import {
   patientLinkProblems,
   validateResource,
 } from '../../packages/core/fhir-resource-rules.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..') // repo root
@@ -769,6 +770,14 @@ console.log(
     `${correlation.triggers} episode trigger(s) resolve; ` +
     `${walkthroughRefs.resolved} walkthrough ref(s) resolve.`,
 )
+
+// Scenario files and the links found inside them are floored separately: the
+// directory can shrink, or stay whole while extraction stops finding links.
+reportFloors([
+  { source: 'demo-population/src/scenarios', dimension: 'scenario file(s)', actual: scenarioFiles.length, floor: 7 },
+  { source: 'demo-population/src/scenarios', dimension: 'Encounter-linked artifact(s)', actual: correlation.linked, floor: 39 },
+  { source: 'demo-population/src/scenarios', dimension: 'walkthrough ref(s)', actual: walkthroughRefs.resolved, floor: 24 },
+], fail)
 
 if (failures) {
   console.error(`\nscenario-resource check FAILED (${failures} issue(s)).`)

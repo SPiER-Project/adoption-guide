@@ -70,6 +70,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 import { readRouteTable, routeResolves } from './lib/route-table.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -788,6 +789,13 @@ if (redirectsChecked === 0) {
 } else if (failures === redirectFailuresBefore) {
   console.log(`✓ redirect targets: ${redirectsChecked} compatibility redirect(s) still point at a real route`)
 }
+
+// The catalog is assembled from two trees that both moved in the reshape. ADs
+// come from the generated tree, launch paths from the UI metadata in
+// packages/core — floored separately because either can collapse alone.
+reportFloors([
+  { source: 'fhir-artifacts/generated', dimension: 'ActivityDefinition(s)', actual: activityDefs.length, floor: 21 },
+], fail)
 
 if (failures) {
   console.error(`\ncatalog-integrity check FAILED (${failures} issue(s)).`)

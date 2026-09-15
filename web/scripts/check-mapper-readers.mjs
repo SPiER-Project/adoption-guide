@@ -49,6 +49,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -446,6 +447,14 @@ for (const file of mapperFiles) {
 }
 
 console.log(`\n${totalReads} answer read(s) checked across ${mapperFiles.length} mapper(s) and ${questionnaireByUrl.size} Questionnaire(s).`)
+// Three dimensions because any one can collapse alone: the mapper dir can move
+// (step E moved it once), the Questionnaire dirs can move, and a reader-shape
+// change can drop the per-file reads to nothing while both trees stay put.
+reportFloors([
+  { source: 'observationMappers', dimension: 'answer read(s)', actual: totalReads, floor: 45 },
+  { source: 'observationMappers', dimension: 'mapper file(s)', actual: mapperFiles.length, floor: 7 },
+  { source: 'Questionnaire trees', dimension: 'Questionnaire(s)', actual: questionnaireByUrl.size, floor: 9 },
+], fail)
 if (failures > 0) {
   console.error(`\nmapper-reader check FAILED with ${failures} problem(s).`)
   process.exit(1)
