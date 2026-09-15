@@ -189,7 +189,25 @@ for (const { id, resource } of conceptMaps) {
         .filter(({ path }) => existsSync(path))
         .map(({ rel, path }) => ({ rel, txt: readFileSync(path, 'utf8') }))
       if (present.length === 0) {
-        console.log(`  note: no mapper file found for ${group.source} — skipping coverage check`)
+        // ⚠️ **This was a `note:` and a skip until #500, and that was the second
+        // half of the same hole.** The header above records the FIRST half — an
+        // *unlisted* source skipping check F in silence — and fixed it. A listed
+        // source whose every mapper file is MISSING took this branch instead and
+        // still reported green, so moving the mapper directory (as step E did,
+        // `web/src/lib` → `packages/core/src/lib`) would have disabled check F
+        // for every source at once while the gate printed "passed".
+        //
+        // Proved rather than assumed: with the directory moved away, the gate
+        // went from 0 skips to 4 and still exited 0. It now exits 1.
+        //
+        // Partial absence is still tolerated — the cssrs source lists two files
+        // and only one need exist — because the coverage question is "does some
+        // producer carry this code", not "do all listed producers".
+        fail(
+          `${id}: every mapper file listed for ${group.source} is missing ` +
+          `(${mapperRels.join(', ')}) — check F would skip silently. Either the ` +
+          `paths are stale (did the mappers move?) or MAPPER_FOR_SOURCE is wrong.`,
+        )
       } else {
         for (const code of mapped) {
           const found = present.some(({ txt }) => txt.includes(`'${code}'`) || txt.includes(`"${code}"`) || txt.includes(`\`${code}\``))

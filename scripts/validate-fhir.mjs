@@ -228,9 +228,20 @@ function collectScenarioResources(dir) {
   try {
     files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort()
   } catch {
+    // ⚠️ **Both of these returns were silent until #500.** Two other guards in
+    // this file — the Patients one below and the `--also` one under it — justify
+    // themselves "for the same reason the scenario tree's is", and the scenario
+    // tree had no such reason: it had this. Moving the directory (step E moved
+    // it once already, out of `web/src/data/population/`) dropped 134 of 450
+    // resources — 30% of the validation surface — and the gate still printed
+    // "✓ no FHIR conformance errors".
+    fail(`${relative(root, dir)} could not be read — the population scenarios are 134 of this gate's 450 resources; refusing to validate without them`)
     return { paths, labels, tmpDir: null }
   }
-  if (files.length === 0) return { paths, labels, tmpDir: null }
+  if (files.length === 0) {
+    fail(`${relative(root, dir)} holds no scenario JSON — see above; a zero-scenario run is not a clean run`)
+    return { paths, labels, tmpDir: null }
+  }
 
   const tmpDir = mkdtempSync(join(tmpdir(), 'spier-scenarios-'))
   for (const file of files) {
@@ -283,7 +294,14 @@ targets.push(...scenarioTargets)
 const patientTargets = existsSync(PATIENTS_DIR)
   ? [...walkJson(PATIENTS_DIR)].map((full) => relative(root, full))
   : []
-if (existsSync(PATIENTS_DIR) && patientTargets.length === 0) {
+// ⚠️ **The `existsSync` ternary made this guard miss the case it was written
+// for.** It fails an `exists-but-empty` directory and says nothing about a
+// directory that is GONE — which is what a path change does, and what #392 did
+// to these very files. Both are now errors; there is no state in which this
+// gate validates zero Patients and reports success.
+if (!existsSync(PATIENTS_DIR)) {
+  fail(`${relative(root, PATIENTS_DIR)} does not exist — did the demo Patients move again? (#392 moved them here from the IG)`)
+} else if (patientTargets.length === 0) {
   fail(`${relative(root, PATIENTS_DIR)} exists but holds no Patient resources`)
 }
 targets.push(...patientTargets)
