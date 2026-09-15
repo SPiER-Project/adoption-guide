@@ -192,7 +192,7 @@ manifest:
 | `packages/ui` | `PageHeader`, `FhirJsonViewer`, the token definitions, the page template | `check:tokens` and `check:template` are gates *about* this package and should live in it. |
 | `packages/core` (root, not `src/`) | **`fhir-resource-rules.mjs`** + its hand-written `.d.mts` | §9.2's open question, answered by #396. The single opinion on whether a FHIR resource is valid, imported by a Node CLI gate (`check-scenario-resources.mjs`) **and** by the mock EHR's write endpoint at runtime. It sits at the package root rather than under `src/` because it is plain ESM outside the TypeScript tree and must stay importable from a bare `node scripts/…` with nothing compiled. |
 | `packages/demo-population` | the 14 patients, their scenario slices, and their `Patient` resources | §9.3. Shipped as #394; the `Patient`s joined it in #399 (E2a). |
-| `packages/fhir-artifacts` | the SUSHI **output** (`generated/`, gitignored) | §6 phase 1. The output location shipped as #395 (E1); ⚠️ **the build itself has not moved** — E2b, blocked on #387. |
+| `packages/fhir-artifacts` | the SUSHI **output** (`generated/`, gitignored) | §6 phase 1. The output location shipped as #395 (E1). ✏️ **This row said "the build itself has not moved — E2b, blocked on #387" until 2026-09-15.** E2b resolved 2026-08-31 and #387 was never the unblocker — see §9.8: `fsh-sushi` is out of `web/package.json` and `scripts/lib/sushi-version.mjs` pins it for every caller. |
 | `apps/adoption-guide` | all 12 pages, the EHR shell, routing | §5 — one app, not two |
 | `apps/cds-hooks` | the Worker | The `../../../` imports become `@spier/core` |
 | `apps/patient` | — | §5, phase 3 |
@@ -714,7 +714,7 @@ is meant** anywhere it appears in a decision. Filed and fixed as #402.
 | **0 — a workspace mechanism** (#387) | Neither A nor B can start without one. Shipped as declared **aliases**, workspaces deferred | Everything below; a third consumer having anywhere honest to import from |
 | **A — `packages/demo-population`** | Settles a question that is live now. ⚠️ **Not** the smallest — see correction 2 | Done (#394) |
 | **B — `packages/core`** (§6 phase 0, now 21 imports) | Cheap and reversible per §8; the lint constraint is the point | Done (#396) — deep imports **21 → 0**, and the `validate.ts` crossing in §9.2 got a home |
-| **C — `PopulationView` + `MeasureDashboard` onto the `FhirDataSource` seam** | The gate on everything after it | Done (#397) — closed blocker 1 of §6.3. Blocker 2 (user-scoped launch + cohort read) is **#401**, still open |
+| **C — `PopulationView` + `MeasureDashboard` onto the `FhirDataSource` seam** | The gate on everything after it | Done (#397) — closed blocker 1 of §6.3. ✏️ **Blocker 2 (user-scoped launch + cohort read) is closed too**, by #489 + #491; #401 itself closed with #494. This cell read "**#401**, still open" for six days after that |
 | **D — the measure dashboard to the EHR side** | Only safe once C removes the `localDataSource` coupling | Done (#398). The guide holds no patient data, gated by `check:guide-boundary`. ⚠️ **This row used to say something else — see correction 3** |
 | **E1 — the generated FHIR out of `web/src`** | Had to precede B — see correction 1 above | Done (#395) |
 | **E2a — the 14 Patients out of the IG** | Nothing in the IG referenced them | Done (#392). The mock EHR's roster no longer needs a SUSHI compile |
@@ -729,19 +729,19 @@ quietly stops being the plan. It has issues now, so the sequencing goes stale
 
 | Step | Issue | State |
 |---|---|---|
-| Epic | [#386](https://github.com/SPiER-Project/adoption-guide/issues/386) | open |
+| Epic | [#386](https://github.com/SPiER-Project/adoption-guide/issues/386) | ✏️ **closed 2026-09-15** — every step above is on `main`, and §9.5's open product decision (does `MeasureDashboard` stay in the guide?) was settled by #398: it moved to the EHR side, gated by `check:guide-boundary` |
 | 0 — workspace mechanism | [#387](https://github.com/SPiER-Project/adoption-guide/issues/387) | ✏️ **closed 2026-08-31** — decided as tsconfig `paths` + aliases, *not* workspaces (§9.8) |
 | A — `packages/demo-population` | [#388](https://github.com/SPiER-Project/adoption-guide/issues/388) | closed (#394) |
 | B — `packages/core` | [#389](https://github.com/SPiER-Project/adoption-guide/issues/389) | closed (#396) |
 | C — the `FhirDataSource` seam | [#390](https://github.com/SPiER-Project/adoption-guide/issues/390) | closed (#397) |
 | D — measures to the EHR side | [#391](https://github.com/SPiER-Project/adoption-guide/issues/391) | closed (#398) |
-| E1 + E2a + E2b | [#392](https://github.com/SPiER-Project/adoption-guide/issues/392) | ✏️ **all landed** (#395, #399, and E2b per §9.8) |
+| E1 + E2a + E2b | [#392](https://github.com/SPiER-Project/adoption-guide/issues/392) | ✏️ **all landed** (#395, #399, and E2b per §9.8); issue **closed 2026-09-15**, with one "Done when" box left unticked on purpose — the plant-a-defect re-prove pass over every verify step, which nobody can confirm was run |
 
 Two things that came out of the reshape and are tracked outside it:
 
 | | |
 |---|---|
-| [#401](https://github.com/SPiER-Project/adoption-guide/issues/401) | blocker 2 of §6.3 — the embedded dashboard is a labelled iframe, not a SMART panel. Needs a user-scoped launch, **scope enforcement** (the stub has none), and a cohort read |
+| [#401](https://github.com/SPiER-Project/adoption-guide/issues/401) | blocker 2 of §6.3 — the embedded dashboard is a labelled iframe, not a SMART panel. ✏️ **Closed by #494.** All three parts shipped: the user-scoped launch (#489), scope enforcement and the cohort read (#491). The iframe was not relabelled — it was **deleted**, and the host launches the dashboard instead; see `user-scoped-smart-launch.md` |
 | [#402](https://github.com/SPiER-Project/adoption-guide/issues/402) | the corrections in this document, including the two above |
 
 ### 9.7 What is left of step E, and why it is blocked

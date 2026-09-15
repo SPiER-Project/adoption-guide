@@ -760,8 +760,11 @@ been closed for weeks:**
 - **A population is not one patient, and every token this server issues is bound
   to one** (`denyForeignPatient`). A genuine embedded worklist needs a
   *user-scoped* launch — no patient in context, `user/*.read` — which the auth
-  stub does not do, plus a cohort read this server does not offer. That is #401,
-  and it is the whole remaining blocker.
+  stub does not do, plus a cohort read this server does not offer. ~~That is #401,
+  and it is the whole remaining blocker.~~ ⚠️ **Shipped 2026-09-09.** The auth
+  stub issues a patient-less `user/*.read` grant (#489) and the server answers a
+  cohort read (#491); #401 closed with #494. Everything above describes the
+  *frame*, which no longer exists — see the 2026-09-09 note below.
 
 So this frame demonstrates the **shape** of a hosted activity and nothing about
 interoperability. That is the honest claim and it is the one printed on the page.
@@ -1145,12 +1148,20 @@ been unreachable code; one was written on that assumption and removed. The axis
 that matters is per-patient permission, because SPiER's own registry read is N
 per-patient searches.
 
-**So what does this leave for #401?** The permission now exists; the *capability*
+~~**So what does this leave for #401?** The permission now exists; the *capability*
 does not. A worklist needs either a genuine cohort search on this server or a
 launch with no patient in context, and both are #401 — along with the design
 question §8 of `mock-patient-smart-launch.md` refuses to hand-wave, about what a
 caseload even is on a server where it is not a static list of 14. **This decision
-unblocks that work; it does not do it.**
+unblocks that work; it does not do it.**~~
+
+⚠️ **Done, and the prediction in the last sentence held exactly.** This decision
+did unblock the work rather than doing it: the launch with no patient in context
+is #489, the cohort search is #491, and #494 closed #401. The design question was
+not hand-waved either — `user-scoped-smart-launch.md` answers it outright: for a
+`user/*.read` grant the caseload is **all 14 demo patients, unconditionally**, no
+panel or care-team subdivision, because this system has one implicit provider
+persona and a narrower cohort concept would bake a wrong answer into the seam.
 
 ### 10.1 Why there is no consent screen
 

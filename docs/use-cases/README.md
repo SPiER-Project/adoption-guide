@@ -16,8 +16,8 @@ ed-scenario-11.md                           ← the FHIR / functional mapping
 ```
 
 ⚠️ **Never hand-edit `dist/` or `ed-scenario-11.md`.** Same rule as
-`web/src/data/fhir/`: the next build silently discards your change. Edit the
-JSON and rebuild.
+`packages/fhir-artifacts/generated/`: the next build silently discards your
+change. Edit the JSON and rebuild.
 
 ```bash
 node scripts/build-use-case-workbook.mjs

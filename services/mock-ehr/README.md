@@ -33,15 +33,22 @@ and it is permitted only with the guardrails in §1 of that plan.
 | Launch API | `POST /_admin/launch` |
 
 Data is the app's own files, with **no second copy of anything**: the scenarios
-from `web/src/data/population/scenarios/patient-0NN.json` and the 14 Patients
-from the FSH-generated `packages/fhir-artifacts/generated/Patient-patient-0NN.json`. Both are
+from `packages/demo-population/src/scenarios/patient-0NN.json` and the 14 Patients
+from `packages/demo-population/src/patients/patient-0NN.json`. Both are
 inlined by the Vite build, because a Worker has no filesystem — the same
 arrangement `services/cds-hooks` uses, and the reason `main` in `wrangler.jsonc`
 points at `dist/index.js` rather than at source.
 
-**`npm run copy-fhir` in `web/` is a prerequisite.** Without it there are no
-Patient resources; the loader throws rather than serving an empty server that
-looks like a working one.
+⚠️ **This said the Patients were FSH-generated, read from
+`packages/fhir-artifacts/generated/`, and that `copy-fhir` had to run or the
+loader would throw for want of them. All of that was the state before #399**, and
+it describes the exact dependency step E existed to remove — `fixtures.ts` says
+so in place: *"should not depend on a SUSHI compile, and the IG was publishing 14
+examples that referenced none of its own profiles."*
+
+`npm run copy-fhir` in `web/` is still a prerequisite for this package's
+`verify` — the tool catalog reads generated artifacts — but **not for the Patient
+roster**, which no longer needs a SUSHI compile at all.
 
 ## What it refuses to do, and why
 
@@ -165,8 +172,14 @@ first-time viewer met, in order: "this is not SPiER", a dense registry widget, a
 warning box saying the widget proves nothing, and only then "open a chart" — the
 one thing the page disclaims was the first thing on it. Reviewed as a user:
 *"there's a lot of technical information about how the thing is built, but it
-doesn't make it easy to understand what the heck I'm supposed to do."* The page
-now reads **start here → patient list → caseload → about**: `demoStories.ts`
+doesn't make it easy to understand what the heck I'm supposed to do."* ⚠️ **The
+order moved a third time on 2026-09-15 and now reads caseload → start here →
+patient list → about** — not a revert, because #401 deleted the dense frame this
+paragraph is about, leaving a heading, two sentences and two buttons. What did
+not move: the instruction still outranks every section, and the caveats are still
+in the closed drawer. `chartPage.ts`'s ordering comment carries all three passes
+and the condition that would send it back down. The rest of this paragraph is
+about the content, which is unchanged: `demoStories.ts`
 carries a one-line story per patient (host voice, no demographics — not a fifth
 copy of the patient data, and `demoStories.test.ts` pins its key set to
 `DEMO_PATIENTS`) plus the three `TRY_IT_ORDER` picks, chosen so the "fill one in
@@ -176,10 +189,16 @@ and a complete ED episode (patient-011). Every caveat moved into a closed
 `<details class="hood">` — still on the page, because the panel plan §1 requires
 the page to SAY what it does not prove; it does not require that first.
 
-⚠️ **It is still NOT a SMART launch**, and the page says so: panel chrome, no
+⚠️ ~~**It is still NOT a SMART launch**, and the page says so: panel chrome, no
 `iss`, no `launch`. The remaining blocker is **one** thing, a user-scoped launch —
 a caseload is not one patient and every token here is bound to one — plus a cohort
-read this server does not offer (#401). ⚠️ This README previously also blamed
+read this server does not offer (#401).~~ **It IS a SMART launch now, and the
+frame is gone entirely.** #489 made the auth stub issue a patient-less
+`user/*.read` grant, #491 gave this server the cohort read, #494 closed #401. The
+page carries a launch button, not an iframe — so the honesty claim narrowed rather
+than disappearing: what it does not prove is *interoperability*, because this host
+is written and run by the same project as the app it launches. ⚠️ This README
+previously also blamed
 `PopulationView` for importing `localDataSource` directly. **That was closed by
 step C (#390)** and stayed written down here for weeks: the lens and the widget
 both read through the `FhirDataSource` seam, and the frame shows bundled data

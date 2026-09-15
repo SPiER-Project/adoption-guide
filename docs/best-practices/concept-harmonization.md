@@ -67,7 +67,7 @@ Reference: [SDC — Form Data Extraction](https://hl7.org/fhir/uv/sdc/extraction
 
 ## 4. Applying it to SPiER
 
-SPiER is partway there. The ASQ mapper (`web/src/lib/observationMappers/asq.ts`) already emits a result Observation on the **generic** LOINC `93374-7` "Suicide risk level" with a v3 `interpretation` flag — that is the correct universal anchor. What's missing:
+SPiER is partway there. The ASQ mapper (`packages/core/src/lib/observationMappers/asq.ts`) already emits a result Observation on the **generic** LOINC `93374-7` "Suicide risk level" with a v3 `interpretation` flag — that is the correct universal anchor. What's missing:
 
 1. **One common risk-tier vocabulary.** Today the ASQ uses `asq-screening-result` (`negative` / `non-acute-positive` / `acute-positive`) and the alert layer uses `none` / `moderate` / `acute` — two instrument-local sets for one concept. Define a single canonical set (e.g. `no-risk | low | moderate | high | imminent`) and map every instrument into it.
 2. **Portable FHIR maps.** The mapping logic lives only in TypeScript. Each instrument needs a StructureMap (or ConceptMap) so the derivation is interoperable and balloteable — the TS stays the runtime, the FHIR map is the shareable contract.

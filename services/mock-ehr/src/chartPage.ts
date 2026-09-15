@@ -168,24 +168,41 @@ const HOME_JS = `
  * own table — which owns the links into `/chart/{id}` — is the only list on the
  * page.
  *
- * ── Why the page reads: start here → patients → caseload → about ────────────
+ * ── Why the page reads: caseload → start here → patients → about ────────────
  *
- * ⚠️ **The widget came FIRST until 2026-09, and that was the same defect a third
- * time.** It is where an EHR hangs a hosted activity, so it was placed where an
- * EHR would place it — and a first-time viewer then met, in order: a sentence
- * saying "this is not SPiER", a dense widget full of registry vocabulary, a long
- * warning box saying the widget proves nothing, and only then the instruction to
- * open a chart. The one thing on the page the page itself disclaims was the
- * first thing on it. Reviewed as a user (2026-09-01): *"there's a lot of
- * technical information about how the thing is built, but it doesn't make it
- * easy to understand what the heck I'm supposed to do."*
+ * ⚠️ **This order has now been set three ways, and the thing being ordered
+ * changed underneath it. Read the whole history before moving it a fourth
+ * time.**
  *
- * So the order is now what a viewer needs: which charts to open and why
- * (`TRY_IT_ORDER`), the list of all fourteen with a one-line story each, then
- * the caseload widget with a one-sentence note, then a closed "About this demo"
- * drawer holding every caveat in full. The caveats are not softened — the panel
- * plan §1 requires the page to SAY what it does not prove — they are one click
- * away instead of first.
+ * 1. **Caseload first, until 2026-09** — where an EHR hangs a hosted activity,
+ *    so that is where it was put. A first-time viewer then met, in order: a
+ *    sentence saying "this is not SPiER", a dense iframe full of registry
+ *    vocabulary, a long warning box saying the frame proves nothing, and only
+ *    then the instruction to open a chart. The one thing on the page the page
+ *    itself disclaims was the first thing on it. Reviewed as a user
+ *    (2026-09-01): *"there's a lot of technical information about how the thing
+ *    is built, but it doesn't make it easy to understand what the heck I'm
+ *    supposed to do."*
+ * 2. **Caseload demoted below the patient table**, so the page led with which
+ *    charts to open and why.
+ * 3. **Caseload back on top (2026-09-15, by request)** — and this is not a
+ *    revert, because what sits here is no longer what was demoted. #401 deleted
+ *    the iframe: the section is now a heading, two sentences and two buttons,
+ *    and the warning box that used to follow it lives in the `.hood` drawer.
+ *    The defect step 2 was written against was *density before instruction*, and
+ *    the density is gone.
+ *
+ * **What must stay true whatever the order is**, because these are the rules
+ * the three passes were actually about, not the sequence itself:
+ *
+ * - The instruction comes before the disclaimer. "Open a chart" is in the first
+ *   paragraph, above everything including the caseload.
+ * - The caveats are not softened — the panel plan §1 requires the page to SAY
+ *   what it does not prove — they are one click away in `.hood` rather than
+ *   inline. Never inline them again to "balance" a section that moved up.
+ * - The section is a launch, not a widget. If it ever regains an embedded
+ *   frame it must go back below the table, because step 1's defect returns
+ *   with it.
  *
  * ⚠️ Read the label on the frame either way. It is still not a SMART launch: no
  * `iss`, no `launch`, and the app renders its own bundled registry rather than
@@ -238,22 +255,6 @@ export function homePage(patients: DemoPatient[]): string {
     The slate chrome is the host; the panel is SPiER. This host is not SPiER.
   </p>
 
-  <h2>Start here</h2>
-  <p class="lede">
-    Three charts that show the pathway at different points. Any of the ${patients.length} works; these
-    three are where the demo has something to do.
-  </p>
-  <ul class="try">${picks}</ul>
-
-  <h2>Patient list</h2>
-  <p class="lede">
-    ${patients.length} synthetic patients. Each line says what that chart is a story about.
-  </p>
-  <table class="table">
-    <thead><tr><th>Name</th><th>Story</th><th>MRN</th><th>Born</th><th>Sex</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-
   <h2>Caseload</h2>
   <p class="lede">
     A worklist activity: SPiER reads <strong>this server's</strong> fourteen patients and reports who
@@ -272,6 +273,23 @@ export function homePage(patients: DemoPatient[]): string {
     to open a specific instrument in a chart, applied to a launch that has no
     chart.
   </p>
+
+  <h2>Start here</h2>
+  <p class="lede">
+    Three charts that show the pathway at different points. Any of the ${patients.length} works; these
+    three are where the demo has something to do.
+  </p>
+  <ul class="try">${picks}</ul>
+
+  <h2>Patient list</h2>
+  <p class="lede">
+    ${patients.length} synthetic patients. Each line says what that chart is a story about.
+  </p>
+  <table class="table">
+    <thead><tr><th>Name</th><th>Story</th><th>MRN</th><th>Born</th><th>Sex</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+
 
   <details class="hood">
     <summary>About this demo, and what it does and does not prove</summary>

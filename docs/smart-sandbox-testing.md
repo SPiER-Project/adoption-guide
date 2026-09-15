@@ -114,7 +114,7 @@ Patient ids can be listed from the open endpoint:
 
 - **Mapper dispatch is canonical-URL-first, with a narrow code-based fallback.**
   Dispatch prefers `http://thespierproject.org/fhir/Questionnaire/*` canonicals
-  (`web/src/lib/observationMappers/index.ts`). A foreign QR whose canonical does
+  (`packages/core/src/lib/observationMappers/index.ts`). A foreign QR whose canonical does
   not match **still derives when its instrument is recognized from standardized
   LOINC item codes** (#230, `observationMappers/fallbackDispatch.ts`) — but that
   fallback covers **PHQ-9 only** today, and results are stamped as inferred. The
@@ -132,8 +132,11 @@ Patient ids can be listed from the open endpoint:
   **step C (#390) closed**: it and the summary widget both read through
   `useRegistrySlices`, i.e. through whatever `FhirDataSource` is active. What a
   SMART session cannot give them is a *caseload* — the token is bound to one
-  patient, so the cohort is that patient and the page says so. A real registry
-  needs a user-scoped launch and a cohort read (#401), not a refactor.
+  patient, so the cohort is that patient and the page says so. ⚠️ **The last
+  sentence here said a real registry "needs a user-scoped launch and a cohort
+  read (#401)" — it has both now** (#489, #491, closed by #494). This bullet is
+  still true of a *patient-scoped* launch, which is what a chart launch is; the
+  caseload is a separate, user-scoped grant issued by the host.
 - **Session lifetime.** The SMART session lives in `sessionStorage` and is
   rehydrated on reload, but expires with the sandbox token (~1 h); re-launch
   from the EHR/launcher to reconnect.

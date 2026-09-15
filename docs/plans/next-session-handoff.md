@@ -605,15 +605,14 @@ note #342 corrected it — the upstream tracker is *disabled*, not unattended.
 
 Nothing here is urgent; listed so it is not re-derived each session.
 
-⚠️ **#401 — the embedded population dashboard — is unblocked but NOT smaller.**
-#404 settled the scope question, so the *permission* to read across patients now
-exists. The *capability* does not: this server has no cohort search (a
-patient-less search is a deliberate 400, *"no all-patients search"*), and there is
-no patient-less launch. Both are #401's work, and it also carries the design
-question §8 of `mock-patient-smart-launch.md` refuses to hand-wave — *how a
-registry scopes itself on a real server, where "the caseload" is not a static list
-of 14.* **Do not start at the code.** Nothing currently misleads anyone: the
-frame's label already says it is not a SMART launch.
+⚠️ ~~**#401 — the embedded population dashboard — is unblocked but NOT smaller.**~~
+**#401 is CLOSED (2026-09-09, by #494)** — this entry survived here for six days
+after the work landed, which is rule 2 of this file being broken by the session
+that merged it. It said the *capability* was missing: no cohort search, no
+patient-less launch. Both exist now (#489, #491), the design question was answered
+rather than hand-waved (`user-scoped-smart-launch.md`: for a `user/*.read` grant
+the caseload is all 14, unconditionally), and the labelled frame it worried about
+was deleted rather than relabelled. The host launches the dashboard.
 
 | Issue | What | Milestone |
 |---|---|---|

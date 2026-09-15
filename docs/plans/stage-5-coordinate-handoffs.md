@@ -154,7 +154,7 @@ Delivered:
 ## The consent gate (issue #227)
 
 The packet recorder now reads the TL-032 consent before asserting what the
-packet carries. `applySharingConsent()` in `web/src/lib/handoffs.ts` is the
+packet carries. `applySharingConsent()` in `packages/core/src/lib/handoffs.ts` is the
 whole rule set; `DischargePacketView` only renders its answer.
 
 **What made this more than plumbing** is that the TL-032 recorder could express

@@ -52,8 +52,8 @@ switch to.
 they are **erased at build time and create no runtime dependency** — but they are
 still the wrong direction, and they are not hidden:
 
-- `PopulationPatient` is an alias of `RegistryPatient` in `web/src/lib/registry`
-- `PatientSlice` / `ScenarioEncounter` live in `web/src/types/fhir`
+- `PopulationPatient` is an alias of `RegistryPatient` in `packages/core/src/lib/registry`
+- `PatientSlice` / `ScenarioEncounter` live in `packages/core/src/types/fhir`
 
 §4 of the plan assigns **both** modules to `packages/core`, so step B
 ([#389](https://github.com/SPiER-Project/adoption-guide/issues/389)) closes both
