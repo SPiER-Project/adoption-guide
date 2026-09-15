@@ -90,23 +90,6 @@
   white-space: normal;
 }
 
-/*
- * The code, linked to its definition. Underline-on-hover rather than always-on:
- * every populated row has one, and 60-odd permanently underlined codes read as
- * noise in a dense table.
- */
-.dd-code-link {
-  color: inherit;
-  text-decoration: none;
-  border-bottom: 1px dotted var(--border-default);
-}
-
-.dd-code-link:hover,
-.dd-code-link:focus-visible {
-  border-bottom-style: solid;
-  text-decoration: none;
-}
-
 /* An element that genuinely carries no code of its own. */
 
 /*
@@ -114,41 +97,10 @@
  * — the distinction the flat schema could not express, and the reason
  * `asq-result` once documented its value system in the code column.
  */
-/* ⚠️ Inline, not `display: block`. As a block each note was its own line plus a
-   top margin, so a row naming both a code system and a value system spent FOUR
-   lines and two margins on this cell — measured at 167px in a 112px column,
-   which made System the tallest cell on the page once the path column stopped
-   being. Nothing is hidden by this; the qualifier just stops claiming a line. */
-.dd-system-note {
-  margin-left: var(--space-1);
-  font-size: var(--font-size-xs);
-  font-style: italic;
-  color: var(--text-faint);
-}
 
 .dd-cell-system {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
-}
-
-/*
- * The bindable ValueSet, under the value system it narrows (#281). Indented and
- * quieter than the system above it: the system answers "which vocabulary", this
- * answers "which subset is allowed here", and the second only makes sense as a
- * qualifier of the first.
- */
-.dd-valueset {
-  display: block;
-  margin-top: var(--space-1);
-  padding-left: var(--space-2);
-  font-size: var(--font-size-xs);
-  overflow-wrap: anywhere;
-}
-
-.dd-valueset-label {
-  display: block;
-  font-style: italic;
-  color: var(--text-faint);
 }
 
 .dd-cell-path {
@@ -345,16 +297,6 @@
 }
 
 /* ===========================
-   Routes-table column budget
-   =========================== */
-
-.dd-rcol-route    { width: 18%; }
-.dd-rcol-value    { width: 22%; }
-.dd-rcol-resource { width: 15%; }
-.dd-rcol-path     { width: 23%; }
-.dd-rcol-usedby   { width: 22%; }
-
-/* ===========================
    The normalization layer
    =========================== */
 
@@ -366,37 +308,6 @@
  * someone had emphasised — reported as "looks a bit off". The tint and the inset
  * are what separate an explanation from one more group of rows.
  */
-
-/* The head is a flex ROW containing the toggle, the code link and the count as
-   siblings — see the note in the TSX for why the link is no longer inside the
-   button. */
-.dd-concept-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1-5) var(--space-3);
-  padding: var(--space-1-5) 0;
-}
-
-.dd-concept-head .dd-concept-count {
-  margin-left: auto;
-}
-
-/* The concept description is the most important paragraph on the page and was
-   809 characters in one 202px block. A leading size makes it a lede rather
-   than a wall; the prose itself is catalog data and is not rewritten here.
-
-   ⚠️ This rule used to set `max-width: none`, because "the panel it sits in is
-   already narrower than the page". That stopped being true when the width pass
-   widened the guide's sub-pages to `--page-width-wide`: the panel became the
-   page, and the paragraph ran to 155 characters a line. It takes the cap from
-   `.dd-cell-desc` above now, and the font-size set here is what that `em` cap
-   resolves against. */
-.dd-concept-body > .dd-cell-desc {
-  font-size: var(--font-size-md);
-  line-height: 1.6;
-  color: var(--text-body);
-}
 
 /* Visually hidden, still in the accessibility tree — the details column has no
    visible header but a screen reader should not meet a blank one. */
@@ -431,85 +342,3 @@
   scroll-margin-top: var(--anchor-scroll-offset);
   margin-bottom: var(--space-8);
 }
-
-/* ── Shared concepts (#260) ─────────────────────────────────
-   One concept, several routes into it. The section sits above the stage
-   tables; each concept collapses to a single line so the page does not grow a
-   second full table's worth of height by default. */
-
-.dd-system {
-  display: block;
-}
-
-/* 344 characters at 183 a line, directly above a full-width table — which is
-   the split `--measure-prose` exists for: the table keeps the page, the
-   sentence gets a measure. */
-.dd-concept-intro {
-  margin: 0 0 var(--space-3);
-  max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
-  color: var(--text-muted);
-}
-
-.dd-concept {
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-2);
-  overflow: hidden;
-}
-
-/* ⚠️ No longer `width: 100%` with a filled background — it WAS the whole row,
-   and it is now one control in `.dd-concept-head` beside the code link and the
-   count. Left at full width it pushed both siblings out of the row. */
-.dd-concept-toggle {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-0-5) var(--space-1-5) var(--space-0-5) 0;
-  border: 0;
-  background: none;
-  color: var(--text-strong);
-  font-family: inherit;
-  font-size: var(--font-size-md);
-  font-weight: 700;
-  text-align: left;
-  cursor: pointer;
-}
-
-.dd-concept-toggle:hover {
-  color: var(--brand-accent);
-}
-
-.dd-concept-caret {
-  flex: none;
-  color: var(--text-faint);
-}
-
-.dd-concept-name {
-  font-weight: 700;
-}
-
-.dd-concept-code {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.dd-concept-count {
-  flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--text-faint);
-  font-weight: 600;
-}
-
-.dd-concept-body {
-  padding: var(--space-3);
-  border-top: 1px solid var(--border-default);
-}
-
-.dd-concept-valueset {
-  margin: var(--space-2) 0;
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  overflow-wrap: anywhere;
-}
-

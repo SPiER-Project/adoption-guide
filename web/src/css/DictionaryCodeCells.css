@@ -1,0 +1,62 @@
+/* ===========================
+   DictionaryCodeCells — a code link, a system label, a bindable-set line.
+   Shared by the data dictionary's stage rows and its concept layer.
+   =========================== */
+
+/*
+ * The code, linked to its definition. Underline-on-hover rather than always-on:
+ * every populated row has one, and 60-odd permanently underlined codes read as
+ * noise in a dense table.
+ */
+.dd-code-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--border-default);
+}
+
+.dd-code-link:hover,
+.dd-code-link:focus-visible {
+  border-bottom-style: solid;
+  text-decoration: none;
+}
+
+/* ⚠️ Inline, not `display: block`. As a block each note was its own line plus a
+   top margin, so a row naming both a code system and a value system spent FOUR
+   lines and two margins on this cell — measured at 167px in a 112px column,
+   which made System the tallest cell on the page once the path column stopped
+   being. Nothing is hidden by this; the qualifier just stops claiming a line. */
+.dd-system-note {
+  margin-left: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-style: italic;
+  color: var(--text-faint);
+}
+
+/*
+ * The bindable ValueSet, under the value system it narrows (#281). Indented and
+ * quieter than the system above it: the system answers "which vocabulary", this
+ * answers "which subset is allowed here", and the second only makes sense as a
+ * qualifier of the first.
+ */
+.dd-valueset {
+  display: block;
+  margin-top: var(--space-1);
+  padding-left: var(--space-2);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.dd-valueset-label {
+  display: block;
+  font-style: italic;
+  color: var(--text-faint);
+}
+
+/* ── Shared concepts (#260) ─────────────────────────────────
+   One concept, several routes into it. The section sits above the stage
+   tables; each concept collapses to a single line so the page does not grow a
+   second full table's worth of height by default. */
+
+.dd-system {
+  display: block;
+}
