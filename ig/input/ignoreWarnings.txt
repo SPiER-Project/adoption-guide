@@ -1,38 +1,11 @@
 == Suppressed Messages ==
 
 # IG Publisher suppressed-messages file (new format; header line above required).
-# Add one reviewed/accepted QA message per line — either the exact message text
-# or a %regex% pattern. Keep minimal and documented; do not suppress real errors.
+# Suppresses WARNINGS, hints and broken links only — the publisher cannot suppress
+# an error, and lists every non-blank line here (comments included) with a use
+# count on qa.html. Keep it minimal; document every entry.
 #
-# The two patterns that used to live here hid every unresolved
-# `http://thespierproject.org/fhir/Questionnaire/*` canonical. Since #473 the
-# Questionnaires are loaded from FHIR-Resources/ (via the
-# input/resources/questionnaires symlink named in sushi-config.yaml), so those
-# canonicals resolve and that suppression would only hide a real regression.
-#
-# ─── ASQ: LOINC 2.83 codes that tx.fhir.org (LOINC 2.82) cannot resolve yet ───
-#
-# The ASQ Questionnaire binds its panel, its seven items and the two answer codes
-# on the recency item to LOINC codes published in LOINC 2.83 (adopted 2026-09-08,
-# verified against Regenstrief — see FHIR-Resources/ASQ/README.md and
-# ig/input/fsh/asq.fsh). The publisher validates against tx.fhir.org, which still
-# serves 2.82, so each is reported as an ERROR that would fail the QA gate for a
-# code that is correct. This is the publisher-side twin of `PENDING_TX` in
-# web/scripts/check-codings.mjs and of the "currently expected" paragraph in
-# docs/scheduled-checks-triage.md § Cause 1b; the three are deleted TOGETHER when
-# the server updates.
-#
-# ⚠️ Every line is pinned to version '2.82' on purpose. If tx.fhir.org moves to
-# 2.83 and still cannot resolve a code, the message will say '2.83', match
-# nothing here, and surface as the real error it would then be. If it resolves
-# them, these lines simply stop matching — delete them then.
-Unknown code '115564-7' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code '115566-2' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code '115567-0' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code '115568-8' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code '115569-6' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code '115570-4' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code '115571-2' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code '115572-0' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code 'LA37190-8' in the CodeSystem 'http://loinc.org' version '2.82'
-Unknown code 'LA37191-6' in the CodeSystem 'http://loinc.org' version '2.82'
+# Empty on purpose. The two patterns that used to live here hid every unresolved
+# `http://thespierproject.org/fhir/Questionnaire/*` canonical; since #473 the
+# Questionnaires are IG artifacts (input/resources/questionnaires, a symlink to
+# FHIR-Resources/, named in sushi-config.yaml) and those canonicals resolve.

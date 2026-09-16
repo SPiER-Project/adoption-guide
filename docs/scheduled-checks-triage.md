@@ -117,11 +117,14 @@ Response depends on which job is red, because only one of them has a mechanism:
 - **IG Publisher** (`ig-publish.yml`, `deploy.yml`) — since #473 the
   Questionnaires are IG artifacts, so the publisher validates their codes against
   tx.fhir.org too, and an unknown code there is an ERROR that fails the QA gate
-  and blocks the deploy. The only lever is `ig/input/ignoreWarnings.txt`, so the
-  affected messages are suppressed there **verbatim, pinned to the server's LOINC
-  version** — a pin that makes the suppression expire on its own: once the server
-  moves to a newer edition the message text changes and either stops appearing
-  (code resolves) or stops matching (code still unknown, and now reported).
+  and blocks the deploy. `ignoreWarnings.txt` cannot help: it suppresses
+  warnings, hints and broken links only (tried on #512; qa.html says so in its
+  heading). The only lever is the IG parameter `no-validate`, scoped to the one
+  resource (`Questionnaire/ASQ-Screening-Tool` in `ig/sushi-config.yaml`), which
+  skips the publisher's validation of that resource entirely — so it is listed
+  below as a third thing to delete when the server updates, and the resource
+  stays covered by `validate-fhir.mjs` (structure, every PR), this nightly
+  (codes) and the loinc-audit in the meantime.
 
 **Currently expected, resources job:** the ASQ Questionnaire's LOINC codes —
 panel `115564-7`, items `115566-2`, `115567-0`, `115568-8`, `115569-6`,
@@ -130,9 +133,9 @@ panel `115564-7`, items `115566-2`, `115567-0`, `115568-8`, `115569-6`,
 `packages/demo-population/src/scenarios/patient-013.json`). Published in LOINC
 2.83, adopted 2026-09-08 (see `ig/input/fsh/asq.fsh`), and not served by
 tx.fhir.org's 2.82. Delete this paragraph, the matching `PENDING_TX` lines and
-the ten `Unknown code … version '2.82'` lines in `ig/input/ignoreWarnings.txt`
-together once the server updates — a lingering entry in any of the three is a
-hole in the gate.
+the `no-validate: Questionnaire/ASQ-Screening-Tool` parameter in
+`ig/sushi-config.yaml` together once the server updates — a lingering entry in
+any of the three is a hole in the gate, and the `no-validate` one is the widest.
 
 ### Cause 2 — `tx.fhir.org` was unreachable or erroring
 

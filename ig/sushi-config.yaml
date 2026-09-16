@@ -105,6 +105,24 @@ parameters:
   # …/input/cql", and the first compile immediately failed on five real defects.
   path-binary:
     - input/cql
+  # ⚠️ TEMPORARY, and built to be deleted. The ASQ Questionnaire binds its panel,
+  # its seven items and the two answer codes on the recency item to LOINC codes
+  # published in LOINC 2.83 (adopted 2026-09-08; verified against Regenstrief —
+  # FHIR-Resources/ASQ/README.md). tx.fhir.org still serves 2.82, so the publisher
+  # reports ten "Unknown code … version '2.82'" ERRORS, and an error cannot be
+  # suppressed — ignoreWarnings.txt covers warnings, hints and broken links only
+  # (tried; qa.html said so). This is the same edition lag `check:codings`
+  # tolerates through PENDING_TX and docs/scheduled-checks-triage.md § Cause 1b
+  # records as expected, so validation of this ONE resource is switched off in
+  # the publisher rather than keeping the Capture layer's flagship instrument out
+  # of the guide. What still checks it: validate-fhir.mjs (structure, every PR),
+  # the terminology nightly (codes, with the lag recorded) and the loinc-audit
+  # against Regenstrief. Delete this parameter together with the PENDING_TX
+  # lines and the triage paragraph once tx.fhir.org serves 2.83 — the IG
+  # parameters CodeSystem is blunt that suppressing validation is generally a
+  # bad idea, and it is right.
+  no-validate:
+    - Questionnaire/ASQ-Screening-Tool
 
 # Pages and menu structure
 pages:

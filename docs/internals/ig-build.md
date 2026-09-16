@@ -203,11 +203,18 @@ four CAMS Questionnaires carried ids (`cams-ssf5-section-a`, …) that did not
 match the last segment of their canonical URL, which the publisher rejects
 (fixed — the ids now equal the URL tail, as every other Questionnaire's already
 did); and the ASQ's ten LOINC 2.83 codes are unknown to tx.fhir.org's LOINC
-2.82, the same edition lag `check:codings` tolerates through `PENDING_TX`. Those
-ten are suppressed in `ignoreWarnings.txt` by exact message text pinned to
-`version '2.82'`, so the suppression expires when the server moves on — see
-[`docs/scheduled-checks-triage.md`](../scheduled-checks-triage.md) § Cause 1b
-for the three places that are deleted together. A resource under
+2.82, the same edition lag `check:codings` tolerates through `PENDING_TX`.
+⚠️ **`ignoreWarnings.txt` cannot suppress an error** — its qa.html heading
+reads *Suppressed Messages (Warnings, hints, broken links)*, and #512's first
+run proved it with ten pinned lines that matched nothing. The one lever the
+publisher offers is the `no-validate` IG parameter, scoped to
+`Questionnaire/ASQ-Screening-Tool` in `sushi-config.yaml`; it skips that
+resource's publisher validation entirely (structure is still checked by
+`validate-fhir.mjs` on every PR, codes by the nightly), and it is the third of
+three things deleted together when the server updates — see
+[`docs/scheduled-checks-triage.md`](../scheduled-checks-triage.md) § Cause 1b.
+Also: every non-blank line in `ignoreWarnings.txt`, comments included, is
+listed on qa.html with a use count, so keep it short. A resource under
 `path-resource` with no `id` is now a gate failure rather than a page the
 publisher names unpredictably (the Stanley-Brown Questionnaire had none).
 
