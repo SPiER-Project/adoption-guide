@@ -99,7 +99,7 @@ exactly. Its four checks:
 
 - **E. No repo internals** in `ig/input/pagecontent/*.md` — `web/src`,
   `packages/`, `npm run`, `scripts/`, `.mjs`, `vitest`, `sushi-config`,
-  `path-binary`, and `#NNN` issue references. An IG page is read by
+  `path-binary`, a bare `check:<name>` gate name, and `#NNN` issue references. An IG page is read by
   implementers who do not have this repo; build and gate prose lives in
   `CLAUDE.md` and `docs/internals/`, never in an IG page. No opt-out marker
   until a real need appears.
