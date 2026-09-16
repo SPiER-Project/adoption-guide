@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { BookOpen, Monitor, ScrollText, Zap } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { STAGES } from '@spier/core/data/catalog/stages'
 import {
@@ -19,6 +20,9 @@ function StepCards() {
     <ol className="overview__steps">
       {OVERVIEW_STEPS.map((step, i) => (
         <li key={step.key} className="overview__step-card">
+          <span className={`overview__step-tile overview__step-tile--${step.key}`} aria-hidden="true">
+            {i + 1}
+          </span>
           <span className="overview__step-index">Step {i + 1}</span>
           <h4 className="overview__step-name">{step.name}</h4>
           <p className="overview__step-body">
@@ -45,13 +49,26 @@ function PathwayStages() {
   )
 }
 
+// One line icon per lens, in the tinted tile that leads its card. Decorative:
+// the badge under it carries the same meaning in words.
+const LENS_ICONS: Record<string, typeof Monitor> = {
+  host: Monitor,
+  guide: BookOpen,
+  cds: Zap,
+  ig: ScrollText,
+}
+
 function LensCards() {
   return (
     <div className="overview__lens-grid">
       {OVERVIEW_LENSES.map(lens => {
         const className = `overview__lens-card overview__lens-card--${lens.variant}`
+        const Icon = LENS_ICONS[lens.variant] ?? BookOpen
         const inner = (
           <>
+            <span className={`overview__lens-tile overview__lens-tile--${lens.variant}`} aria-hidden="true">
+              <Icon size={22} />
+            </span>
             <span className="overview__lens-badge">{lens.badge}</span>
             <h4>{lens.title}</h4>
             <p>{lens.body}</p>

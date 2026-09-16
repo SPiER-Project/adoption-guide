@@ -1,7 +1,12 @@
 .sidebar {
   grid-area: sidebar;
-  background: var(--text-strong);
-  color: var(--border-default);
+  /* On the page ground, not a dark column: the 2026 redesign has no dark
+     chrome anywhere, and the website's one navigation state is a peach pill
+     behind the active label. A hairline is what separates the column from the
+     page now; the old design used its darkness for that. */
+  background: var(--surface-page);
+  color: var(--text-body);
+  border-right: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -44,37 +49,42 @@
 
 .sidebar-nav {
   flex: 1;
-  padding: var(--space-3) 0;
+  /* An inline inset too, now: a pill needs air on both sides, where the old
+     full-bleed rows ran edge to edge under a left rail. */
+  padding: var(--space-3) var(--space-3);
 }
 
+/* The active state is a pill, not a rail. `border-left` is gone with the dark
+   column — a 3px bar reads on a dark ground and vanishes on a light one — and
+   the row itself is the marker: peach-soft under plum, the website's nav state.
+   `.sidebar-link--child` derives its inset from this rule's `--space-3`. */
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
   font-size: var(--font-size-md);
   font-weight: 500;
-  color: var(--border-strong);
+  color: var(--text-body);
   text-decoration: none;
-  border-left: 3px solid transparent;
   transition: all 0.15s ease;
 }
 
 .sidebar-link:hover {
-  background: var(--border-emphasis);
-  color: var(--surface-muted);
+  background: var(--surface-muted);
+  color: var(--brand-primary);
 }
 
 .sidebar-link.active {
-  background: var(--border-emphasis);
-  color: var(--text-on-brand);
-  border-left-color: var(--tint-peach);
+  background: var(--tint-peach-soft);
+  color: var(--brand-primary);
   font-weight: 600;
 }
 
 .sidebar-link--lens {
   font-weight: 600;
-  color: var(--border-default);
+  color: var(--brand-primary);
 }
 
 /* Category heading above a group of child links (the guide's Learn / Configure /
@@ -88,16 +98,16 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
-  color: var(--text-faint);
+  color: var(--brand-terracotta-text);
 }
 
 .sidebar-link--child {
   /* Aligns the child label under its parent's: the link's own inset, plus
      `.sidebar-icon` (1.25rem), plus the gap between them. */
-  padding-left: calc(var(--space-5) + 1.25rem + var(--space-2));
+  padding-left: calc(var(--space-3) + 1.25rem + var(--space-2));
   font-size: var(--font-size-base);
   font-weight: 400;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .sidebar-link--child.active {
@@ -147,11 +157,11 @@
      instead. */
   font-size: var(--font-size-xs);
   line-height: 1.45;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .sidebar-try__aside a {
-  color: var(--tint-sky);
+  color: var(--brand-link);
 }
 
 .sidebar-icon {
@@ -162,7 +172,7 @@
 
 .sidebar-footer {
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--border-emphasis);
+  border-top: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -202,14 +212,14 @@
   padding: var(--space-1-5) var(--space-2);
   margin-left: calc(-1 * var(--space-2));
   border-radius: var(--radius-sm);
-  color: var(--border-strong);
+  color: var(--text-body);
   text-decoration: none;
   transition: all 0.15s ease;
 }
 
 .sidebar-outbound-link:hover {
-  background: var(--border-emphasis);
-  color: var(--surface-muted);
+  background: var(--surface-muted);
+  color: var(--brand-primary);
 }
 
 .sidebar-outbound-label {
@@ -222,10 +232,12 @@
 
 /* The one-line "what is this" under each destination. Muted rather than hidden
    below a breakpoint: the sidebar is a fixed 260px on mobile and the same width
-   in the grid, so there is no width at which this needs to disappear. */
+   in the grid, so there is no width at which this needs to disappear.
+   `--text-muted`, not `--text-faint`: faint was legible on the old dark column
+   and measures 2.3:1 on the light ground. */
 .sidebar-outbound-note {
   font-size: var(--font-size-xs);
-  color: var(--text-faint);
+  color: var(--text-muted);
   line-height: 1.3;
 }
 
