@@ -42,8 +42,12 @@ its own `<thead>`/`<tbody>` — the five bodies were too different for a
 (the banner and the panel strip, the three `RISK_LABEL`s), `lib/dates.ts`
 absorbing `relativeTime` and `chartDisplay.formatDateTime` plus the 15
 inline `.slice(0, 10)` / `toLocaleDateString` sites, two tracking tokens,
-and the three breakpoints pinned by stylelint. Not done: the optional
-`SharedConcepts` / `ToolDetail` extractions.
+and the three breakpoints pinned by stylelint. The two optional extractions
+followed on `claude/page-extractions`: `ToolDetail` (118 lines and 22 CSS
+rules out of the Tools page) and `SharedConcepts` + `DictionaryCodeCells`
+(the concept layer and the three coding cells it shares with the stage rows,
+out of the 777-line dictionary page, now 513). With that, every item in §2
+is done.
 
 On frameworks: keep one React app. Six of the eight guide pages compute live
 against the pathway engine and catalog, the drift gates all assume one route
