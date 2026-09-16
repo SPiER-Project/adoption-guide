@@ -129,6 +129,10 @@ node scripts/check-ig-menu.mjs        # the IG menu and its prose restatement ag
                                       # menu: target is also in pages: (only pages: renders a page)
 node scripts/check-ig-narrative.mjs   # what the IG's prose may say, and whether what it points at
                                       # exists — no repo internals, TL ids / #/routes / .html resolve
+node scripts/build-ig-groups.mjs      # regenerate the `groups:` block of sushi-config.yaml from the FSH
+                                      # tree (one rule per source file; the Artifacts page reads by purpose)
+node scripts/build-ig-groups.mjs --check   # gate: every source has a rule, the block is current, and
+                                      # every compiled resource carries a groupingId (needs SUSHI first)
 node scripts/check-md-links.mjs       # every relative link in a tracked .md resolves (the ONLY gate
                                       # that triggers on docs/** or the root README.md)
 node scripts/validate-fhir.mjs        # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/ and

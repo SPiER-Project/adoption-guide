@@ -142,6 +142,33 @@ every liveness mode: zero pages, zero `<Route>` tags, an unreadable
 `GUIDE_SECTIONS`, a missing `fsh-generated/`, and a moved `.fml`.
 
 
+Also at the repo root, after SUSHI — the Artifacts page's groups are generated,
+not hand-kept:
+```
+node scripts/build-ig-groups.mjs           # regenerate the groups: block of sushi-config.yaml
+node scripts/build-ig-groups.mjs --check   # every source has a rule; block current; every
+                                           # compiled resource carries a groupingId
+```
+⚠️ **Without `groups:` the publisher renders `artifacts.html` by resource
+type** — 300+ rows in 15 sections, every ActivityDefinition in one block and
+every CodeSystem in another — and SUSHI's `groups:` names each member by
+`<Type>/<id>` with no wildcards, so a hand-kept block is ~300 lines that rot on
+every artifact added, silently: a new Instance nobody lists lands under a
+default heading and nothing goes red. So membership is *derived* from where an
+artifact is defined (one rule per FSH file, tool folder or `.fml`), the block
+is regenerated between two marker comments, and `--check` gates three things:
+every source has a rule (an unassigned file is named), the block matches what
+the rules produce byte for byte, and — reading the compiled
+ImplementationGuide — every published resource carries a `groupingId` that is
+declared. All three were planted and watched to fail. What it cannot see is
+whether a resource is in the *right* group; a file that mixes concerns puts
+everything under one heading, so keep FSH files single-purpose.
+⚠️ **The five FML StructureMaps go through `resources:`, not `groups:`.** SUSHI
+never loads `.fml`, so naming a map under a group is a SUSHI error
+("configured with nonexistent resource"); a `resources:` entry with a
+`groupingId` is the sanctioned way to pre-declare a publisher-loaded resource,
+and the generator emits those five there.
+
 ⚠️ **`sushi` does not validate everything.** Five separate gates cover five
 different classes of problem, and a clean SUSHI run implies none of the others:
 
