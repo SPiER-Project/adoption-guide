@@ -297,7 +297,8 @@ flag is how the apps-only deployable is produced.* Then do the three pieces
 of prep that are cheap now and needed regardless:
 
 1. Make the CDS Hooks host a configured value rather than one derived from
-   the panel origin.
+   the panel origin. *(Done 2026-09-16: `MOCK_CDS_BASE_URL`, defaulting to
+   the panel origin so today's one-Worker deployment is unchanged.)*
 2. Keep the guide off the app's `localStorage` — already true except
    `spier.toolConfig.v2`, which `/settings` owns.
 3. Land `VITE_SURFACE` (§3 of `surfaces-and-distribution.md`) so the
