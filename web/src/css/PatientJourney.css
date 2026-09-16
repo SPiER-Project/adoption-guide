@@ -50,7 +50,7 @@
 }
 
 .journey-progress-dot:hover {
-  background: var(--brand-accent);
+  background: var(--brand-primary);
   transform: scale(1.1);
 }
 
@@ -138,7 +138,7 @@
 }
 
 .stage-tool-card--expanded {
-  border-color: var(--brand-accent);
+  border-color: var(--brand-primary);
   box-shadow: var(--shadow-brand-glow);
   grid-column: 1 / -1;
 }
@@ -163,7 +163,7 @@
   margin-top: var(--space-2);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--brand-accent);
+  color: var(--brand-link);
 }
 
 .stage-tool-card--core {

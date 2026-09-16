@@ -12,7 +12,7 @@
  *            ground (the pathway simulator).
  *   padding  `roomy` (`--space-5`) for a page section; `compact`
  *            (`--space-3 --space-4`) for an item inside one.
- *   accent   a 3px left edge in `--brand-accent`, for the panel that is the
+ *   accent   a 3px left edge in `--brand-primary`, for the panel that is the
  *            page's point (a pathway step, the concept layer). A page with
  *            a domain colour for that edge — a CDS card's indicator — keeps
  *            ONLY the `border-left-color` rule, as a className modifier.

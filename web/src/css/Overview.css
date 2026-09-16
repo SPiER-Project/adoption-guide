@@ -81,7 +81,7 @@
 
 .overview__step-card {
   padding: var(--space-5);
-  border-left: 3px solid var(--brand-accent);
+  border-left: 3px solid var(--tint-peach);
   border-radius: var(--radius-lg);
   background: var(--surface-muted);
 }
@@ -93,7 +93,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
-  color: var(--brand-accent);
+  color: var(--brand-terracotta-text);
 }
 
 .overview__step-name {
@@ -120,7 +120,7 @@
   gap: var(--space-2);
   margin: var(--space-2) 0;
   padding: var(--space-4) var(--space-5);
-  border-left: 3px solid var(--brand-accent);
+  border-left: 3px solid var(--tint-peach);
   border-radius: var(--radius-md);
   background: var(--surface-muted);
   list-style: none;
@@ -218,9 +218,9 @@
   box-shadow: var(--shadow-xl);
 }
 
-.overview__lens-card--guide { border-top-color: var(--brand-cyan-strong); }
+.overview__lens-card--guide { border-top-color: var(--tint-sky); }
 /* The host leads the row and takes the accent: a launch starts there (#466). */
-.overview__lens-card--host { border-top-color: var(--brand-accent); }
+.overview__lens-card--host { border-top-color: var(--tint-peach); }
 .overview__lens-card--cds { border-top-color: var(--text-faint); }
 .overview__lens-card--ig { border-top-color: var(--brand-primary); }
 
@@ -252,9 +252,9 @@
 .overview__lens-cta {
   font-size: var(--font-size-md);
   font-weight: 600;
-  color: var(--brand-accent);
+  color: var(--brand-link);
 }
 
-.overview__lens-card--guide .overview__lens-cta { color: var(--brand-cyan-strong); }
-.overview__lens-card--host .overview__lens-cta { color: var(--brand-accent); }
+.overview__lens-card--guide .overview__lens-cta { color: var(--brand-link); }
+.overview__lens-card--host .overview__lens-cta { color: var(--brand-link); }
 .overview__lens-card--ig .overview__lens-cta { color: var(--brand-primary); }

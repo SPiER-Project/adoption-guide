@@ -9,7 +9,33 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
-- **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for `color`, `background-color`, `border-color`, `fill`, `font-size`, `box-shadow`. Raw values are allowed only in `src/index.css` (token definitions). Class selectors must be kebab-case BEM.
+- **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for `color`, `background-color`, `border-color`, `fill`, `font-size`, `box-shadow`, `font-family`, `letter-spacing` and every spacing property. Raw values are allowed only in `src/index.css` (token definitions). Class selectors must be kebab-case BEM.
+  ⚠️ **`font-family` joined the list on 2026-09-16, and it was the one visual
+  property with no owner.** Eight stylesheets each spelled a monospace stack
+  their own way (`'SF Mono', 'Fira Code'` ×4, `ui-monospace, SFMono-Regular,
+  Menlo` ×2, bare `monospace`, `ui-monospace, monospace`), and the body face
+  was a literal on `:root`. Three tokens now — `--font-display`,
+  `--font-body`, `--font-mono` — and the gate refuses a fourth spelling.
+  `inherit` stays legal (it is on `ignoreValues`), which is what a control
+  that adopts its parent's face wants.
+  **Brand colour is role-named.** The 2026 website redesign dropped the
+  raspberry accent, which the app had used for 63 unrelated jobs across 19
+  stylesheets — eyebrow, link, focus ring, selected node, sidebar bar, footer
+  link, pill fill, card edge. Each is now a token named for the job
+  (`--brand-terracotta-text`, `--brand-link`, `--tint-peach-soft`,
+  `--brand-primary`, `--gradient-brand`), so the next palette change is a
+  value edit per role rather than a 63-site triage. Retiring the old name was
+  the guard: `check:tokens` fails on any `var(--brand-accent)` the sweep
+  missed, because the definition is gone — no allowlist to maintain.
+  ⚠️ **Two brand values are deliberately not the design's.** Terracotta
+  `#d0784a` measures 2.95:1 on the page ground and the sky link `#5fa9be`
+  2.66:1 on white; the app sets eyebrows at 11px bold and links at 13–14px,
+  so both text tokens are deepened to clear 4.5:1 and the design's values are
+  kept for fills and rules only. If the agency's variables land lighter, the
+  `-text` tokens stay deeper; this is a WCAG decision, not a sampling error.
+  The logo's five gradient stops are tokens too (`--brand-gradient-1…5`), read
+  by `SpierLogo.tsx` through inline `stop-color`, so the wordmark and every
+  gradient rule share one definition.
   ⚠️ **stylelint checks that a token is *used*, never that it *exists*** — any
   `var(--…)` satisfies the rule, so `color: var(--made-up)` linted clean and
   shipped as a value the browser drops (issue #280). `npm run check:tokens`

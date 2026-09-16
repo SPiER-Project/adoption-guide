@@ -58,7 +58,7 @@
   margin: 0;
   color: var(--border-default);
   font-size: var(--font-size-sm);
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-family: var(--font-mono);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-all;

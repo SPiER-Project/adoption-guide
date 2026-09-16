@@ -572,7 +572,7 @@
 .pop-alert-source {
   font-size: var(--font-size-2xs);
   color: var(--text-faint);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .pop-alerts-unwatched {

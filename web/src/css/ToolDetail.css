@@ -102,7 +102,7 @@
 }
 
 .tool-detail-element-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   background: var(--border-default);
   color: var(--border-emphasis);
@@ -113,7 +113,7 @@
 .tool-detail-element-path {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
 }
 
 .tool-detail-examples {
@@ -138,20 +138,20 @@
 }
 
 .tool-detail-launch-btn--primary {
-  background: var(--brand-accent);
+  background: var(--brand-primary);
   color: white;
 }
 
 .tool-detail-launch-btn--primary:hover {
-  background: var(--brand-accent-text);
+  background: var(--brand-primary-hover);
 }
 
 .tool-detail-launch-btn--secondary {
   background: white;
-  color: var(--brand-accent);
-  border: 1px solid var(--brand-accent);
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
 }
 
 .tool-detail-launch-btn--secondary:hover {
-  background: var(--brand-accent-soft);
+  background: var(--tint-peach-soft);
 }

@@ -187,9 +187,22 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
 - **Design tokens only.** Vanilla CSS with custom properties. stylelint
   (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)`
   for `color`, `background-color`, `border-color`, `fill`, `font-size`,
-  `box-shadow`, **and every spacing property** — `padding`, `margin` and `gap`
-  with their longhands. Raw values are allowed only in `src/index.css` (token
-  definitions). Class selectors must be kebab-case BEM.
+  `box-shadow`, `font-family`, **and every spacing property** — `padding`,
+  `margin` and `gap` with their longhands. Raw values are allowed only in
+  `src/index.css` (token definitions). Class selectors must be kebab-case BEM.
+  **Type has three families and no others** — `--font-display` (headings,
+  buttons; names Area Normal, renders Manrope until the licence lands — the
+  `@font-face` note at the top of `index.css` says why), `--font-body`
+  (Poppins) and `--font-mono`.
+  **Brand colour is role-named, and the raspberry is gone.** Since the 2026
+  website redesign there is no `--brand-accent`: an eyebrow is
+  `--brand-terracotta-text`, a link is `--brand-link`, a selected or active
+  state is `--tint-peach-soft` under plum, focus and accent bars are
+  `--brand-primary`, and the four tints (`--tint-peach/sand/sage/sky`, each
+  with a `-soft`) plus `--gradient-brand` are the rest of the palette.
+  ⚠️ Values commented `sampled` in `index.css` were read off the rendered
+  Figma, not its variables — replace them from the file, do not tune them by
+  eye. Two are deliberately deeper than the design for WCAG AA at app sizes.
   **Spacing is a 10-step scale**, `--space-0-5` … `--space-8`; the two
   half-steps exist because the 0.25rem grid is too coarse below 0.5rem, where
   pill and badge padding lives. Don't add an eleventh — a step is a decision

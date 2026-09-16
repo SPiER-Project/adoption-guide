@@ -109,6 +109,17 @@ third-party caveat worth re-reading if their scope changes:
   hand-authored transcriptions. They are the best in-repo evidence, which is why
   #127 used them, but transcription is not verification.
 
+## Not an instrument: the brand typeface
+
+**Area Normal** (Blaze Type) is the display face of the 2026 website redesign,
+and `web/src/index.css` names it first in `--font-display`. **No web licence is
+on file**, so the app ships no Area files and renders headings in Manrope; the
+`@font-face` block is commented out at the top of that file. The live site's own
+WOFFs are not a source — one is named `fonnts.com-…`, a free-download mirror.
+To close: obtain a Blaze Type web licence covering the app's origins, drop the
+licensed WOFF2 files into `web/public/fonts/area/`, uncomment the block, and
+record the licence and its retrieval date here.
+
 ## How to close an item
 
 1. Retrieve the rights holder's current published terms; record the URL and the

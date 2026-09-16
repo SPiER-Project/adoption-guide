@@ -23,7 +23,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
-  color: var(--brand-accent);
+  color: var(--brand-terracotta-text);
 }
 
 .page-header__eyebrow-sep {
@@ -37,12 +37,12 @@
 .page-header__up {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: var(--brand-accent-faint);
+  text-decoration-color: var(--brand-terracotta-faint);
   text-underline-offset: 2px;
 }
 
 .page-header__up:hover {
-  text-decoration-color: var(--brand-accent);
+  text-decoration-color: var(--brand-terracotta-text);
 }
 
 /* Plum, not --text-strong: three of the four lenses used the neutral heading
@@ -66,7 +66,7 @@
   max-width: 300px;
   margin: var(--space-4) 0;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--brand-accent), var(--brand-accent-light));
+  background: var(--gradient-brand);
 }
 
 .page-header__lede {
@@ -80,7 +80,7 @@
 /* Keeps the *lens* titles on one line. A wrapped title makes the header taller
    on that page alone, and the eight guide sub-pages have to line up with each
    other — that is the case this breakpoint is for. The longest of those titles,
-   "Adoption Readiness", measures 247px at 24px Poppins; below 768px the sidebar
+   "Adoption Readiness", measures 247px at 24px in the display face; below 768px the sidebar
    collapses to a drawer and the header's content box is the viewport minus 80px
    of chrome, so 247px runs out at a 327px viewport — narrower than any
    mainstream phone (360 and 375 both clear it). Step the size down just below

@@ -167,7 +167,7 @@
 .submit-result-link {
   font-size: var(--font-size-base);
   font-weight: 600;
-  color: var(--brand-accent);
+  color: var(--brand-link);
   text-decoration: none;
 }
 
@@ -265,7 +265,7 @@
 .form-card .s7gz39z.b1fzc7cb:focus-visible,
 .form-card .b1xzeqmh:focus-visible,
 .form-card .nm2d3cn:focus-visible {
-  outline: 2px solid var(--brand-accent);
+  outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
 
@@ -322,7 +322,7 @@
 }
 
 .instrument-header__about > summary:hover {
-  color: var(--brand-accent);
+  color: var(--brand-link);
 }
 
 .instrument-header__about > p {

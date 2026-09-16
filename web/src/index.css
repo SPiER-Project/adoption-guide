@@ -1,4 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+
+/* ── Area Normal — the brand's display face, NOT shipped yet ──────────────
+   thespierproject.org sets headings and buttons in Area Normal (Blaze Type, a
+   commercial face). The app names it first in --font-display so the day the
+   files are licensed it is a drop-in; until then Manrope, a metric-close
+   geometric grotesque on Google Fonts, renders every heading.
+   ⚠️ Do NOT enable this block, and do not copy the WOFFs off the WordPress
+   site — one of those is named `fonnts.com-…`, a free-download mirror, which
+   is not a licence. The web licence is a standing item in
+   docs/best-practices/licensing-verification-backlog.md.
+
+@font-face {
+  font-family: 'Area Normal';
+  src: url('/fonts/area/AreaNormal-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Area Normal';
+  src: url('/fonts/area/AreaNormal-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+*/
 
 /* ============================================================
    Design tokens
@@ -7,10 +31,13 @@
    references in component CSS over hex literals or magic numbers.
    ============================================================ */
 :root {
-  /* ── Surfaces (warm neutrals — matches thespierproject.org) ─ */
-  --surface-page:        #fafaf9; /* app background — warm off-white */
+  /* ── Surfaces (warm neutrals — the 2026 website redesign's ground) ─
+     --surface-page is the one value here confirmed against the live site's
+     CSS (body background rgb(244 244 242)); the rest are derived to sit one
+     step either side of it and carry the same warm grey cast. */
+  --surface-page:        #f4f4f2; /* app background — warm grey off-white */
   --surface-card:        #ffffff; /* cards, panels */
-  --surface-muted:       #f5f5f4; /* subtle wash (hover, secondary) */
+  --surface-muted:       #ebeae6; /* subtle wash (hover, secondary) — one step below the ground */
   --surface-elevated:    #ffffff;
 
   /* ── Text (warm neutral grays) ──────────────────────────── */
@@ -23,21 +50,65 @@
   --text-on-brand-faint: rgb(255 255 255 / 0.5); /* faint meta on brand bg */
   --text-base:           #292524; /* default :root text color */
 
-  /* ── Borders & dividers (warm) ──────────────────────────── */
-  --border-default:      #e7e5e4;
-  --border-strong:       #d6d3d1;
+  /* ── Borders & dividers (warm hairlines) ───────────────── */
+  --border-default:      #e4e2de;
+  --border-strong:       #d3d0ca;
   --border-emphasis:     #44403c;
 
-  /* ── Brand (matches thespierproject.org) ────────────────── */
-  --brand-primary:       #341528; /* deep plum/aubergine — logo, headings, CTA pills */
+  /* ── Brand — the 2026 website redesign ("SPiER Website — Round 4") ──
+     Plum stays. The raspberry accent is GONE: nothing in the eight design
+     frames uses it, and every job it did here is now a role-named token below
+     — eyebrow, link, selected state, focus, accent bar — so a colour is chosen
+     by what the element is, not by "the accent". The logo's dot gradient
+     (peach → sand → sage → sky) is the rest of the palette.
+
+     ⚠️ Values marked `sampled` were read off the rendered Figma prototype, not
+     its variables (the file is view-only to us). They are close, not exact:
+     swap them from `get_variable_defs` in one commit when edit access lands.
+
+     ⚠️ Two of the design's colours fail WCAG AA at the sizes this app sets
+     text: terracotta #d0784a is 2.95:1 on the ground, the sky link #5fa9be is
+     2.66:1 on white. The `-text` / `--brand-link` values are deepened to clear
+     4.5:1 (4.69 and 4.69 measured); the design's own values are kept for
+     fills, tiles and rules, where contrast is not a text requirement. */
+  --brand-primary:       #341528; /* deep plum/aubergine — ink, headings, buttons, solid pills */
   --brand-primary-hover: #4a2038;
-  --brand-primary-deep:  #26101d; /* footer */
-  --brand-accent:        #cc3366; /* raspberry/magenta — links, highlights */
-  --brand-accent-hover:  #b02a56;
-  --brand-accent-light:  #e06088; /* lighter raspberry gradient stop */
-  --brand-accent-faint:  rgb(204 51 102 / 0.3); /* translucent raspberry (underlines, hairlines) */
-  --brand-cyan:          #d2edf3; /* signature soft-cyan secondary (hero wash, panels) */
-  --brand-cyan-strong:   #2c7a8c; /* legible cyan-teal for accents/text (same hue as --brand-cyan) */
+  --brand-primary-deep:  #26101d; /* footer (until the shell goes light) */
+  --brand-terracotta:      #d0784a; /* sampled — fills, rules, the eyebrow pill's outline */
+  --brand-terracotta-text: #a8572d; /* deeper for AA: eyebrows and small-caps labels (4.69:1 on the ground) */
+  --brand-terracotta-faint: rgb(168 87 45 / 0.35); /* the eyebrow back-link's resting underline */
+  --brand-link:            #2f7d94; /* deeper than the design's sky-teal for AA on white (4.69:1) */
+  --brand-link-hover:      #256478;
+
+  /* The four tints, each in a tile weight (icon squares, category tags) and a
+     soft weight (selected rows, tinted cards). Plum on every one of the eight
+     clears 9:1, so text on a tint is always plum. */
+  --tint-peach:      #f2b48f; /* sampled */
+  --tint-peach-soft: #f7d2be; /* sampled */
+  --tint-sand:       #d9c9a6; /* sampled */
+  --tint-sage:       #c6dec3; /* sampled */
+  --tint-sage-soft:  #dcebd8; /* sampled */
+  --tint-sky:        #a6dde8; /* sampled */
+  --tint-sky-soft:   #c8ebf1; /* sampled */
+  --brand-cyan:      var(--tint-sky-soft); /* alias for the old cyan's five uses; retire with them */
+
+  /* The brand gradient. These five stops ARE the logo's dot — SpierLogo.tsx
+     reads them from here, so the wordmark and every gradient rule or label in
+     the app come from one definition. Exact, not sampled: they were lifted
+     from the official SVG. */
+  --brand-gradient-1: #fab998;
+  --brand-gradient-2: #f1bd9c;
+  --brand-gradient-3: #d8c9a7;
+  --brand-gradient-4: #b4dbb8;
+  --brand-gradient-5: #91d6e6;
+  --gradient-brand: linear-gradient(
+    90deg,
+    var(--brand-gradient-1) 0%,
+    var(--brand-gradient-2) 20%,
+    var(--brand-gradient-3) 40%,
+    var(--brand-gradient-4) 80%,
+    var(--brand-gradient-5) 100%
+  );
   --brand-logo-height:    1.875rem; /* wordmark height in the standalone front-door header */
   --brand-logo-height-sm: 1.625rem; /* wordmark height in the compact EHR header */
 
@@ -74,18 +145,16 @@
   --accent-magenta-soft:   #fce7f3;
   --accent-magenta-text:   #9d174d;
 
-  /* ── Brand-accent soft tones (orange-tinted surfaces) ───── */
-  --brand-accent-soft:     #fef5f1;
-  --brand-accent-text:     #b8573a;
-
-  /* ── Banner-muted surfaces (subnav buttons, header chips) ─ */
-  --surface-banner-muted:       #f5f0f4;
-  --surface-banner-muted-hover: #ebe1e8;
-  --border-banner-muted:        #d4c0cf;
-  --border-banner-muted-hover:  #b89aaf;
+  /* ── Banner-muted surfaces (subnav buttons, header chips) ─
+     Warm neutrals now, not plum-tinted: on the new grey-warm ground a pink
+     cast read as a stain rather than a family resemblance. */
+  --surface-banner-muted:       #efece9;
+  --surface-banner-muted-hover: #e5e1dc;
+  --border-banner-muted:        #d3cdc5;
+  --border-banner-muted-hover:  #b8afa4;
 
   /* ── Alternate page surface (slightly off-white) ────────── */
-  --surface-page-alt:      #fafbfc;
+  --surface-page-alt:      #f8f8f6;
 
   /* ── Risk-level scale (clinical severity) ──────────────── */
   --risk-acute:               #dc2626;
@@ -228,7 +297,7 @@
   --radius-md:  6px;
   --radius-lg:  8px;
   --radius-xl:  10px;
-  --radius-2xl: 12px;
+  --radius-2xl: 14px; /* the design's card corner; one line re-rounds every card */
   --radius-pill: 999px;
   --radius-circle: 50%;
 
@@ -261,16 +330,27 @@
 
   /* ── Specialty shadows (non-elevation semantic uses) ────── */
   --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* mobile slide-out sidebar */
-  --shadow-focus-ring:   0 0 0 2px rgb(204 51 102 / 0.3);          /* brand-tinted focus halo */
-  --shadow-card-outline: 0 0 0 1px var(--brand-cyan);              /* selected-card soft outline (brand cyan) */
-  --shadow-brand-glow:   0 1px 12px rgb(204 51 102 / 0.15);        /* brand-accent tinted halo */
+  --shadow-focus-ring:   0 0 0 2px rgb(52 21 40 / 0.3);            /* plum-tinted focus halo */
+  --shadow-card-outline: 0 0 0 1px var(--tint-sky);                /* selected-card soft outline */
+  --shadow-brand-glow:   0 1px 12px rgb(52 21 40 / 0.15);          /* plum-tinted halo */
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
-  --surface-banner:      #f5f5f4; /* patient banner background (warm) */
+  --surface-banner:      #ebeae6; /* patient banner background (warm) */
   --accent-info-text:    #1d4ed8; /* deep info blue for text on info surfaces */
   --text-error:          #d32f2f; /* error/destructive copy */
 
-  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  /* ── Type families ──────────────────────────────────────────
+     Three, and stylelint's strict-value list now includes `font-family`, so
+     a stylesheet cannot name a face directly. Display is the brand face for
+     headings and buttons (see the @font-face note at the top of this file for
+     why Area is named but Manrope renders); body is Poppins, as on the site;
+     mono is the code face the dictionary, the JSON viewer and the identity
+     strip had each spelled differently. */
+  --font-display: 'Area Normal', 'Manrope', system-ui, sans-serif;
+  --font-body:    'Poppins', system-ui, -apple-system, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
   color: var(--text-base);

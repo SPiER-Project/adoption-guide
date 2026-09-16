@@ -86,7 +86,7 @@
 }
 
 .dd-concept-toggle:hover {
-  color: var(--brand-accent);
+  color: var(--brand-link);
 }
 
 .dd-concept-caret {
