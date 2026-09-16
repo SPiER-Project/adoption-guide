@@ -36,6 +36,7 @@ import { Link } from 'react-router-dom'
 import { MOCK_EHR_URL } from '../data/surfaces'
 import '../css/SurfaceGuide.css'
 import { Notice } from '../components/Notice'
+import { Button } from '../components/Button'
 
 const ISSUE_401_URL = 'https://github.com/SPiER-Project/adoption-guide/issues/401'
 
@@ -105,14 +106,9 @@ export function PopulationDashboardGuide() {
           its patient list, which mints the launch and opens the app:
         </p>
         <p>
-          <a
-            className="surface-guide__cta"
-            href={MOCK_EHR_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open the Demo EHR &rarr;
-          </a>
+          <Button href={MOCK_EHR_URL} target="_blank" rel="noopener noreferrer" accent arrow>
+            Open the Demo EHR
+          </Button>
         </p>
         <Notice tone="brand">
           <strong>A real SMART launch, and still not evidence of interoperability.</strong> The

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { cx } from '../lib/cx'
 import '../css/PageHeader.css'
 
 /**
@@ -47,6 +48,13 @@ interface PageHeaderProps {
    * the trail stays text, and a caller cannot smuggle arbitrary markup into it.
    */
   up?: string
+  /**
+   * How the trail is drawn. `text` (default): terracotta small caps, the
+   * website's section label. `pill`: the same words inside an outlined
+   * terracotta pill — the website's treatment on every page BELOW the home
+   * page, so here it marks a drill-in (a page with `up`), never a lens.
+   */
+  eyebrowStyle?: 'text' | 'pill'
   /** The page title. Rendered as the page's only `<h2>`. */
   title: ReactNode
   /**
@@ -56,12 +64,12 @@ interface PageHeaderProps {
   lede?: ReactNode
 }
 
-export function PageHeader({ eyebrow, up, title, lede }: PageHeaderProps) {
+export function PageHeader({ eyebrow, up, eyebrowStyle = 'text', title, lede }: PageHeaderProps) {
   const trail = Array.isArray(eyebrow) ? eyebrow : [eyebrow]
 
   return (
     <header className="page-header">
-      <p className="page-header__eyebrow">
+      <p className={cx('page-header__eyebrow', eyebrowStyle === 'pill' && 'page-header__eyebrow--pill')}>
         {trail.map((part, i) => (
           <span key={part}>
             {/* The slash is decoration; the spaces around it are real, so the

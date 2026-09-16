@@ -6,6 +6,7 @@ import { makeId } from '@spier/core/lib/id'
 import type { CommunicationResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField } from './WorkflowForm'
 import { todayLocalIso } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * Records a non-Questionnaire workflow step as a stage-tagged FHIR resource.
@@ -148,7 +149,7 @@ export function WorkflowActionView({
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record {actionNoun}</button>
+        <Button type="submit">Record {actionNoun}</Button>
       </form>
     </WorkflowForm>
   )

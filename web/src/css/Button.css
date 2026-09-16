@@ -1,0 +1,91 @@
+/* ===========================
+   Button — see components/Button.tsx for the four decisions and the rule that
+   a page may add LAYOUT to a button and nothing else.
+   =========================== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-inline);
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button--sm {
+  padding: var(--space-1-5) var(--space-4);
+  font-size: var(--font-size-base);
+}
+
+/* ---- variants ---- */
+.button--primary {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-brand);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+}
+
+.button--secondary {
+  background: var(--surface-card);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: var(--tint-peach-soft);
+}
+
+.button--link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-link);
+}
+
+.button--link:hover:not(:disabled) {
+  color: var(--brand-link-hover);
+  text-decoration: underline;
+}
+
+/* ---- the gradient label ----
+   The website's signature: the label filled with the brand gradient on the
+   plum pill. `color: transparent` plus the clipped background is the whole
+   trick; every stop measures above 9:1 on plum, so the label stays legible.
+   The arrow keeps the pill's text colour — one gradient run, not two. */
+.button--accent .button__label {
+  background: var(--gradient-brand);
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- the arrow ---- */
+.button__arrow {
+  flex: none;
+  transition: transform 0.15s ease;
+}
+
+.button:hover:not(:disabled) .button__arrow {
+  transform: translateX(2px);
+}

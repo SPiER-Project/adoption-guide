@@ -11,6 +11,7 @@ import {
 } from '@spier/core/lib/handoffs'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { todayLocalIso, isoDay } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-032 — information-sharing consent / sharing status (Stage 5).
@@ -173,7 +174,7 @@ export function SharingConsentView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record consent</button>
+        <Button type="submit">Record consent</Button>
       </form>
 
     </WorkflowForm>

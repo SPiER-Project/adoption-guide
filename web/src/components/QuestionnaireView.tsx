@@ -16,6 +16,7 @@ import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import { EmptyState } from './EmptyState'
 import { Notice } from './Notice'
+import { Button } from './Button'
 
 const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   acute:    { className: 'alert--acute',    label: 'ACUTE' },
@@ -135,11 +136,11 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
                 </div>
               )}
               <div className="submit-result-actions">
-                <Link to="/patient/record#activity" className="submit-result-link">View in chart</Link>
+                <Button to="/patient/record#activity" variant="link" size="sm">View in chart</Button>
                 {submitResult.riskAlert.suggestedAction && (
-                  <Link to={submitResult.riskAlert.suggestedAction.path} className="submit-result-action-btn">
-                    {submitResult.riskAlert.suggestedAction.label} &rarr;
-                  </Link>
+                  <Button to={submitResult.riskAlert.suggestedAction.path} size="sm" arrow>
+                    {submitResult.riskAlert.suggestedAction.label}
+                  </Button>
                 )}
               </div>
             </div>

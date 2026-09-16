@@ -36,6 +36,7 @@ import { Link } from 'react-router-dom'
 import { DEMO_CHART_PICKS, MOCK_EHR_URL } from '../data/surfaces'
 import '../css/SurfaceGuide.css'
 import { Notice } from '../components/Notice'
+import { Button } from '../components/Button'
 
 export function PatientAppGuide() {
   return (
@@ -133,14 +134,9 @@ export function PatientAppGuide() {
           SPiER runs a stand-in vendor EHR for exactly this:
         </p>
         <p>
-          <a
-            className="surface-guide__cta"
-            href={MOCK_EHR_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open the Demo EHR &rarr;
-          </a>
+          <Button href={MOCK_EHR_URL} target="_blank" rel="noopener noreferrer" accent arrow>
+            Open the Demo EHR
+          </Button>
         </p>
         <p>Open a chart, press <strong>Launch SPiER</strong>. Three charts are worth opening first:</p>
         <ul className="surface-guide__list">

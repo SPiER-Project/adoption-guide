@@ -18,6 +18,7 @@ import {
 import type { FlagResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint } from './WorkflowForm'
 import { todayLocalIso } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-038 — open and close a suicide-safer care episode (Stage 7).
@@ -172,7 +173,7 @@ export function RiskEpisodeView() {
                 onChange={e => setEndDate(e.target.value)}
               />
             </WorkflowField>
-            <button type="submit" className="workflow-submit-btn">Close episode</button>
+            <Button type="submit">Close episode</Button>
           </form>
         </>
       ) : (
@@ -229,9 +230,7 @@ export function RiskEpisodeView() {
               onChange={e => setStartDate(e.target.value)}
             />
           </WorkflowField>
-          <button type="submit" className="workflow-submit-btn" disabled={triggerMissing}>
-            Open episode
-          </button>
+          <Button type="submit" disabled={triggerMissing}>Open episode</Button>
           {triggerMissing && (
             <p className="workflow-field-help">
               {triggerCandidates.length === 0

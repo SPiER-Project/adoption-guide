@@ -6,10 +6,10 @@
  * this existed, in 29 (padding, radius) combinations with no combination
  * over 15% (maintainability audit 2026-09-15, §2.4). The decisions, once:
  *
- *   surface  `--surface-card` on a 1px `--border-default`, `--radius-lg`.
- *            Tone `muted` swaps the ground for `--surface-muted` (a panel
- *            that explains rather than holds); `brand` for a brand-tinted
- *            ground (the pathway simulator).
+ *   surface  `--surface-card` on a 1px `--border-default`, `--radius-2xl`
+ *            (the website's card corner). Tone `muted` swaps the ground for
+ *            `--surface-muted` (a panel that explains rather than holds);
+ *            `brand` for a peach-soft ground (the pathway simulator).
  *   padding  `roomy` (`--space-5`) for a page section; `compact`
  *            (`--space-3 --space-4`) for an item inside one.
  *   accent   a 3px left edge in `--brand-primary`, for the panel that is the

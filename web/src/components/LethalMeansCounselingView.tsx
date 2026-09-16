@@ -14,6 +14,7 @@ import {
 } from '../lib/lethalMeans'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-008 — lethal means safety counseling / means-safety actions (Stage 4).
@@ -274,7 +275,7 @@ export function LethalMeansCounselingView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record counseling</button>
+        <Button type="submit">Record counseling</Button>
       </form>
 
     </WorkflowForm>
