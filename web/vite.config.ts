@@ -36,7 +36,17 @@ export default defineConfig({
         // shims above are anchored: a bare string `find` matches by prefix.
         find: /^@spier\/demo-population$/,
         replacement: fileURLToPath(
-          new URL('../packages/demo-population/src/index.ts', import.meta.url),
+          // The build surface (src/lib/surface.ts): on `clinical` the demo
+          // population resolves to an empty shim, so the scenario glob is never
+          // compiled in. One alias entry, two possible targets — the shim
+          // gates' alias reader (scripts/lib/vite-alias.mjs) scans the pattern
+          // list and must keep seeing exactly one entry for this package.
+          new URL(
+            process.env.VITE_SURFACE === 'clinical'
+              ? './src/shims/demo-population.clinical.ts'
+              : '../packages/demo-population/src/index.ts',
+            import.meta.url,
+          ),
         ),
       },
       {

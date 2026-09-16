@@ -22,15 +22,15 @@ measurements it rests on.
 |---|---|
 | **1 — the IG is not an application** | **RESTATED**, from [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §1, because the framing keeps recurring. §1 |
 | **2 — guide and clinical demo stay ONE app** | **UPHELD, and its scope corrected.** §5 of that doc answered a demo question, not a distribution one. §2 |
-| **3 — a third axis: build surface (`demo` / `clinical`)** | **PROPOSED.** One codebase, one route table, two builds. §3 |
+| **3 — a third axis: build surface (`demo` / `clinical`)** | **SHIPPED 2026-09-15.** One codebase, one route table, two builds: `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`). §3 |
 | **4 — the IG stays on GitHub Pages** | **PROPOSED.** §4 |
 | **5 — mock EHR gets its own Worker** | **PROPOSED**, per [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §3. §4 |
 
 | Phase | State |
 |---|---|
 | A — measure the IG's file count | **Not started.** One line in `deploy.yml`. §4 |
-| B — surface flag + clinical build | **Deferred** — no client ship is near-term (§7). The one constraint to honor now is that the panel must run without a server. §3, §8 |
-| C — a gate asserting the clinical surface is clean | **Deferred with B.** §3 |
+| B — surface flag + clinical build | **Done 2026-09-15.** `npm run build:clinical` → `web/dist-clinical/`. The guide routes and their chunks fold out; `@spier/demo-population` resolves to an empty shim (`web/src/shims/demo-population.clinical.ts`) so no scenario is compiled in. Not deployed anywhere yet — no client ship is near-term (§7). §3 |
+| C — a gate asserting the clinical surface is clean | **Done 2026-09-15.** `npm run check:surface` (`web/scripts/check-surface.mjs`) reads BOTH builds and checks every derived marker both ways — absent from clinical, present in demo — so a stale marker fails rather than proving nothing. In the build job of `web-lint.yml`, not in `verify` (it needs the builds). Proven red on two plants before it was trusted. §3 |
 | D — licensing verification before any client ships | **Off the critical path, not off the list.** A conference showing is lower stakes than a ship, not zero. §6, §8 |
 
 ---
@@ -157,6 +157,32 @@ so a clinical build has real work behind it, not just a flag.
 What #401 landed instead is a **test** of the conditional property that actually
 mattered for the demo: connected to a server ⇒ no bundled row. A grep cannot see
 a condition; see that plan's Phase D.
+
+### What shipped (2026-09-15)
+
+`web/src/lib/surface.ts` exports `SURFACE` and `IS_DEMO`, folded from
+`import.meta.env.VITE_SURFACE` at build time. In `App.tsx` every demo-only page
+is declared `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface` — inline, not
+through a helper, because an `import()` inside an arrow passed to a function is
+reachable as far as the bundler knows — and the guide lens, the Overview, the
+legacy guide redirects and the `/` → `/overview` front door sit in `IS_DEMO`
+blocks; the clinical front door is `/patient/record`. Conditional redirects are
+written as two literal `<Route>`s under the condition, because
+`scripts/lib/route-table.mjs` reads `<Navigate to="…">` literally. The sidebar
+shows the two apps and settings instead of the guide. `vite.config.ts` points
+the `@spier/demo-population` alias at an empty shim on `clinical` — one alias
+entry, two targets, so `scripts/lib/vite-alias.mjs` still sees one — and the
+four importers see a population of nobody with no code path changed. The
+clinical bundle is 39 chunks to the demo's 54; the ten guide pages' chunks are
+not emitted.
+
+⚠️ The first run of the gate found two things, and only one was a leak worth the
+name. `"pathway"` and `"tools"` are route segments under `/patient` and keys in
+the catalog as well as guide sections, and `patient-001` / `patient-011` are
+literals in the app itself (a localStorage migration, the demo default id). A
+marker has to name something that exists nowhere but the thing it guards —
+the patients' display names, the `/guide` and `/overview` route roots, the page
+chunks — and the gate now says which markers it chose and why.
 
 ### ⚠️ Phase C is the part that will be got wrong
 
