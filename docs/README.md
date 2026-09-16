@@ -12,7 +12,8 @@ false in another.
 
 | Kind of prose | Home | Everything else |
 |---|---|---|
-| Element definitions, bindings, why a profile is shaped this way | FSH `Description` / `^purpose` in `ig/input/fsh/` (renders in the published IG) | FSH `//` comments hold repo mechanics only |
+| What an artifact is and when it is used, plus the one consequence an implementer acts on | FSH `Description` in `ig/input/fsh/` (renders in the published IG) | FSH `//` comments hold repo mechanics only |
+| Why an artifact is shaped the way it is — the argument, the rejected alternatives, what would reopen it | [`decisions/`](decisions/README.md), one record per decision. ⚠️ Not `^purpose` on a profile, code system or value set: `fhir.base.template` renders `purpose` only on PlanDefinition and ConceptMap pages, so on the others it is invisible except in the raw JSON/XML views | the IG states the *rule* (usually on Conformance); the app's Learn group is the intended long-term home |
 | How to read, query, or conform to the artifacts | `ig/input/pagecontent/` | the app links to it, never restates it |
 | Build commands, gates, tooling, conventions | [`CLAUDE.md`](../CLAUDE.md); a folder README links to it | never in an IG page |
 | Why a gate exists, what it cannot see, the defect it was written against | [`internals/`](internals/README.md), one file per area | `CLAUDE.md` states the rule and links here |
@@ -21,7 +22,6 @@ false in another.
 | Adoption guidance, readiness, rubric | the app, as data modules | not JSX paragraphs |
 | Plans and status | GitHub issues, plus each plan doc's own status table | finished plans move to [`plans/archive/`](plans/archive/) with a banner |
 | Licensing evidence | `FHIR-Resources/<tool>/licensing/MEMO.md` | the FSH extension states the *status*; the MEMO is the evidence — both are kept |
-| Why an artifact is shaped the way it is — the argument, the rejected alternatives, what would reopen it | [`decisions/`](decisions/README.md), one record per decision | the IG states the *rule* (usually on Conformance) and links nothing back; the app's Learn group is the intended long-term home |
 
 ⚠️ **Docs have no CI gate** — only [`use-cases/`](use-cases/) and
 [`outreach/`](outreach/) are checked by a workflow. Everything else here is

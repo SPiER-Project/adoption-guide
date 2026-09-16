@@ -168,6 +168,14 @@ never loads `.fml`, so naming a map under a group is a SUSHI error
 `groupingId` is the sanctioned way to pre-declare a publisher-loaded resource,
 and the generator emits those five there.
 
+⚠️ **`^purpose` is invisible on a profile, code system or value set page.**
+`fhir.base.template#current` renders `purpose` in the narrative of PlanDefinition
+and ConceptMap pages and nowhere else — on a StructureDefinition or CodeSystem it
+appears only in the raw JSON/XML/Turtle views. Probed 2026-09-16 with marker text
+on one of each: only the PlanDefinition's reached an `-html.xhtml` fragment. So
+rationale that must be read goes to `docs/decisions/`, and `^purpose` is used only
+where the page shows it; a `^purpose` on a profile is text nobody will see.
+
 ⚠️ **`sushi` does not validate everything.** Five separate gates cover five
 different classes of problem, and a clean SUSHI run implies none of the others:
 

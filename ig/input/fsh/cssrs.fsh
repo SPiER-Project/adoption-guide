@@ -21,7 +21,7 @@
 CodeSystem: CSSRSRiskLevelCodes
 Id: cssrs-risk-level
 Title: "C-SSRS Risk Level Codes"
-Description: "SPiER-local code system for the derived risk level from a C-SSRS screener or full assessment. LOINC 93374-7 'Suicide risk level' carries a normative answer list (LL465-6: Low / Moderate / High); this local system extends that list with a `none` value (no C-SSRS items endorsed) that LOINC does not provide, and aligns display names with the SPiER suicide-risk tier. The derived Observation SHOULD dual-code its value with the matching LOINC answer code (LA9194-7 / LA6751-7 / LA9193-9) so HL7-aligned consumers — e.g. the HL7 US Behavioral Health Profiles IG — can interpret it without understanding the SPiER-local vocabulary."
+Description: "The risk level derived from a C-SSRS screener or full assessment: LOINC 93374-7's normative answer list (LL465-6: Low / Moderate / High) plus a `none` value for no items endorsed, with displays aligned to the SPiER suicide-risk tier. A derived Observation SHOULD dual-code its value with the matching LOINC answer code (LA9194-7 / LA6751-7 / LA9193-9) so consumers that do not know this vocabulary can read it."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true

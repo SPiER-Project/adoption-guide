@@ -19,7 +19,7 @@
 CodeSystem: SafetyPlanSectionCodes
 Id: safety-plan-section
 Title: "Safety Plan Section Codes"
-Description: "SPiER-local section codes identifying which section of a narrative safety-plan CarePlan an activity represents. Shared by the Stanley-Brown Safety Plan and the Crisis Response Plan. Local rather than LOINC because an exhaustive search of LOINC 2.82 found no published concepts at this granularity — the decision record at https://github.com/SPiER-Project/adoption-guide/blob/main/docs/decisions/safety-plan-section-codes.md lists the search performed and the near-misses rejected, including the emergency-contact panel that would fit if these steps were ever modelled as structured contacts."
+Description: "Section codes identifying which section of a narrative safety-plan CarePlan an activity represents, shared by the Stanley-Brown Safety Plan and the Crisis Response Plan. SPiER-local because LOINC publishes nothing at section granularity; the search and its near-misses are at https://github.com/SPiER-Project/adoption-guide/blob/main/docs/decisions/safety-plan-section-codes.md."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true

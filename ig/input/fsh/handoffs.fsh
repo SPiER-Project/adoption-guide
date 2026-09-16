@@ -111,7 +111,7 @@ Description: "Reasons an item was withheld from a suicide-safety discharge packe
 Extension: HandoffWithheldItem
 Id: handoff-withheld-item
 Title: "Handoff Withheld Item"
-Description: "One item deliberately left OUT of a suicide-safety discharge packet, paired with the basis for leaving it out. The counterpart to handoff-content-item: together they let a packet state both what it carries and what it does not, so a reader can distinguish a respected patient preference from a missing section. Contexted on DocumentReference only — the TL-009 handoff Communication has no assembly step to gate."
+Description: "One item deliberately left out of a suicide-safety discharge packet, paired with the basis for leaving it out — the counterpart to handoff-content-item, so a packet states both what it carries and what it does not. Contexted on DocumentReference only."
 * ^status = #draft
 * ^experimental = true
 * ^context[+].type = #element
@@ -206,7 +206,7 @@ Profile: SPiERDischargeSafetyPacket
 Parent: DocumentReference
 Id: spier-discharge-safety-packet
 Title: "SPiER Discharge Safety Packet DocumentReference"
-Description: "The bundle of suicide-safety material given to a patient (and/or the next provider) at discharge or transition. DocumentReference rather than Communication because the packet is an ARTIFACT that persists and can be re-retrieved, not a one-time transmission: `content.attachment` is the packet itself, `context.related` points at the live resources it was assembled from (safety plan CarePlan, risk Observation, follow-up Appointment), and the repeating handoff-content-item extensions record what was included even where no discrete resource exists. Where the patient's sharing consent (TL-032) excluded something, the packet says so: the withheld item and its basis ride as handoff-withheld-item extensions, and the governing Consent is itself listed in `context.related` so a reader can see the preference that produced the omission."
+Description: "The bundle of suicide-safety material given to a patient and/or the next provider at discharge or transition. `content.attachment` is the packet; `context.related` points at the live resources it was assembled from; the handoff-content-item extensions record what was included, and the handoff-withheld-item extensions what the patient's sharing consent excluded, with the governing Consent itself in `context.related`."
 * ^status = #draft
 * ^experimental = true
 * status 1..1
@@ -289,7 +289,7 @@ Profile: SPiERInformationSharingConsent
 Parent: Consent
 Id: spier-information-sharing-consent
 Title: "SPiER Suicide-Safety Information-Sharing Consent"
-Description: "Whether suicide-safety information may be shared with another provider, team, or support person — and with whom, for how long. Modelled with native Consent structures rather than SPiER-local codes: `provision.type` permit/deny is the grant-or-decline decision (so 'patient declined' is a deny provision, not a separate status), `provision.actor` names the recipient, and `provision.period` carries any expiry. Nested deny provisions carry the exclusions: `provision.provision.actor` a recipient the patient excluded, `provision.provision.code` the content categories they excluded (from the TL-009/TL-030 handoff-content vocabulary). This record is not decorative — the discharge safety packet (TL-030) reads it before asserting what it carries, and records anything it withheld. Only the category is SPiER-local, marking the record as governing suicide-safety sharing."
+Description: "Whether suicide-safety information may be shared with another provider, team or support person — with whom, and for how long. `provision.type` permit/deny is the decision (a declined share is a deny provision, not a status), `provision.actor` the recipient, `provision.period` any expiry; nested deny provisions carry an excluded recipient or excluded handoff-content categories. The discharge safety packet reads this record before asserting what it carries."
 * ^status = #draft
 * ^experimental = true
 * status 1..1

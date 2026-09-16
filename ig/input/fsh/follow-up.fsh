@@ -148,7 +148,7 @@ Profile: SPiEROutreachAttempt
 Parent: Communication
 Id: spier-outreach-attempt
 Title: "SPiER Follow-Up Outreach Attempt"
-Description: "One follow-up contact attempt and what came of it. Serves BOTH routine follow-up outreach (TL-033) and missed-appointment / no-show follow-up (TL-035) — the artifact is the same; the outreach-prompt extension records which. `sent` is the attempt time, `medium` the method, and the outreach-outcome extension the result (Communication has no native outcome element). A new safety concern is flagged separately from the outcome because the two are orthogonal."
+Description: "One follow-up contact attempt and what came of it: `sent` is the attempt time, `medium` the method, the outreach-outcome extension the result, and a new safety concern is flagged separately. Serves both routine follow-up outreach and missed-appointment follow-up; the outreach-prompt extension records which."
 * ^status = #draft
 * ^experimental = true
 * status 1..1
@@ -174,7 +174,7 @@ Profile: SPiERCaringContact
 Parent: Communication
 Id: spier-caring-contact
 Title: "SPiER Caring Contact"
-Description: "A caring contact: a brief, non-demanding supportive message sent on a schedule after an episode of risk — an evidence-based intervention in its own right, not an outreach attempt. Kept distinct from SPiEROutreachAttempt because it asks nothing of the patient and has no 'outcome' to record: what matters is that it was sent, by what method, and whether the patient has opted out. Deliberately a LOW floor so the existing demo recorder's plain Communication stays conformant."
+Description: "A caring contact: a brief, non-demanding supportive message sent on a schedule after an episode of risk — an intervention in its own right, not an outreach attempt. Records that it was sent, by what method, and whether the patient has opted out; it asks nothing of the patient and has no outcome."
 * ^status = #draft
 * ^experimental = true
 * status 1..1

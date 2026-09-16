@@ -14,7 +14,7 @@
 Instance: SPiERRiskTierToLOINC
 InstanceOf: ConceptMap
 Title: "SPiER Suicide Risk Tier → LOINC Suicide Risk Level"
-Description: "Maps the instrument-agnostic SPiER suicide-risk tiers (no-risk/low/moderate/high/imminent) onto the normative LOINC answer list LL465-6 (Low/Moderate/High) for LOINC 93374-7 'Suicide risk level', so consumers expecting the LOINC-coded value — e.g. the HL7 US Behavioral Health Profiles IG — can interpret a SPiER harmonized concept. `no-risk` has no LOINC equivalent and is omitted; `imminent` maps to the wider LOINC High. Proposed crosswalk pending clinical sign-off (epic #77)."
+Description: "Maps the instrument-agnostic SPiER suicide-risk tiers (no-risk / low / moderate / high / imminent) onto the normative LOINC answer list LL465-6 (Low / Moderate / High) for 93374-7, so consumers expecting the LOINC-coded value can read a SPiER harmonized concept. `no-risk` is omitted and `imminent` maps to the wider `High`. Proposed crosswalk pending clinical sign-off."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ConceptMap/SPiERRiskTierToLOINC"
 * version = "0.1.0"

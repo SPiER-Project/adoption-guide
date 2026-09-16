@@ -26,8 +26,9 @@
 Instance: SPiERIdentifyPossibleRiskStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Identify Possible Risk Stage"
-Description: "Stage 1 of 8 in the SPiER suicide-safer care pathway: find a suicide-risk signal and determine whether more review is needed. ASQ is the flagship action; PHQ-9 Item 9, SBQ-R and PSS-3 are alternates that an implementation can enable in any combination. The C-SSRS Screener with Triage Points belongs to the Clarify Risk stage as the pathway's demonstrated realization of assessing after a positive screen; its result also crosswalks into the concept layer, so a site that leads with it satisfies this stage too."
+Description: "Stage 1 of 8: find a suicide-risk signal and determine whether more review is needed. ASQ is the flagship action; PHQ-9 Item 9, SBQ-R and PSS-3 are alternates a site can enable in any combination."
 Usage: #definition
+* purpose = "The C-SSRS Screener with Triage Points belongs to the Clarify Risk stage as the pathway's demonstrated realization of assessing after a positive screen; its result also crosswalks into the concept layer, so a site that leads with it satisfies this stage too."
 * url = "http://thespierproject.org/fhir/PlanDefinition/SPiERIdentifyPossibleRiskStage"
 * name = "SPiERIdentifyPossibleRiskStage"
 * version = "0.1.0"
@@ -95,8 +96,9 @@ Usage: #definition
 Instance: SPiERClarifyRiskStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Clarify Risk Stage"
-Description: "Stage 2 of 8: after a suicide-risk signal is identified, capture what is going on clinically — suicidal thoughts, plan, intent, behavior history, access to means, risk and protective factors, and whether further action is needed. Triggered by a positive ASQ result or a positive PHQ-9 Item 9. Fully modelled clarify-risk activities are the C-SSRS Screener with Triage Points (the SPiER Suicide Safer Care Pathway's demonstrated realization of this step), C-SSRS Full and the CAMS SSF-5 (Sections A and B plus interim re-ratings and outcome/disposition)."
+Description: "Stage 2 of 8: after a suicide-risk signal is identified, capture what is going on clinically — suicidal thoughts, plan, intent, behavior history, access to means, risk and protective factors — and whether further action is needed. Triggered by a positive ASQ result or a positive PHQ-9 Item 9."
 Usage: #definition
+* purpose = "The fully modelled clarify-risk activities are the C-SSRS Screener with Triage Points — the Suicide Safer Care Pathway's demonstrated realization of this step — the C-SSRS Full, and the CAMS SSF-5 (Sections A and B, interim re-ratings and the outcome/disposition)."
 * url = "http://thespierproject.org/fhir/PlanDefinition/SPiERClarifyRiskStage"
 * name = "SPiERClarifyRiskStage"
 * version = "0.1.0"
