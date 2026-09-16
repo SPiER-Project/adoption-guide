@@ -21,6 +21,11 @@
   background: var(--surface-muted);
 }
 
+.card--wash {
+  background: var(--gradient-wash);
+  border-color: transparent;
+}
+
 .card--brand {
   background: var(--tint-peach-soft);
   border-color: var(--tint-peach);

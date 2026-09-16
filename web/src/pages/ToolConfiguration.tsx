@@ -91,6 +91,7 @@ export function ToolConfiguration() {
       <PageHeader
         eyebrow="Settings"
         up="/patient/record"
+        eyebrowStyle="pill"
         title="Tool Configuration"
         lede="Which suicide-prevention tools this SPiER deployment offers. Sites differ in what they have in place; this is where that is set."
       />

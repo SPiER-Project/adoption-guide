@@ -260,10 +260,10 @@
 .pathway-obligation__def {
   overflow-wrap: anywhere;
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--accent-violet-border);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  background-color: var(--accent-violet-soft-bg);
-  color: var(--accent-violet-deep);
+  background-color: var(--tint-sand);
+  color: var(--brand-primary);
   font-family: var(--font-mono);
   font-size: var(--font-size-2xs);
 }
@@ -301,7 +301,7 @@
   padding: var(--space-4);
   border: 1px solid var(--border-default);
   border-top: 4px solid var(--border-strong);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-2xl);
   background-color: var(--surface-card);
   transition: opacity 0.15s ease, box-shadow 0.15s ease;
 }

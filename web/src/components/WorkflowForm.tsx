@@ -60,7 +60,7 @@ export function WorkflowForm({
   const { activePatientId } = usePatient()
   return (
     <div className="form-view">
-      <PageHeader eyebrow={['Patient Chart', 'Workflow']} up="/patient/record" title={title} lede={lede} />
+      <PageHeader eyebrowStyle="pill" eyebrow={['Patient Chart', 'Workflow']} up="/patient/record" title={title} lede={lede} />
 
       <div className="form-wrapper">
         <div className="form-card">

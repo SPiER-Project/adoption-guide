@@ -2,6 +2,11 @@
 
 **Date:** 2026-09-15 · **Branch audited:** `main` at `190081f` · **Status:** §2.1 applied on the audit branch; everything else is a recommendation
 
+**Status 2026-09-16 (reskin):** §2 is complete and merged (#506–#509). The 2026
+website reskin (#513, #514, #515, #524) added the eighth surface owner, `Button`, retired
+the raspberry accent for role-named tokens, and put `font-family` on the
+strict-value list — see `docs/internals/css-and-page-template.md`.
+
 The question that prompted this: spacing and padding keep drifting even though
 every value is on the token scale and three gates say so. This audit measured
 the drift, found where it comes from, and gives a take on two architecture

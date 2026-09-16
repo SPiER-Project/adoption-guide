@@ -167,6 +167,7 @@ export function MeasureDashboard() {
       <PageHeader
         eyebrow={['Caseload', 'Measures']}
         up="/population/caseload"
+        eyebrowStyle="pill"
         title="Measures"
         lede="Every tile is a query over the artifacts stages 1–7 already produce — nothing on this page is stored, which is the point of Stage 8."
       />

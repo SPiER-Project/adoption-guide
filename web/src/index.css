@@ -45,9 +45,7 @@
   --text-body:           #44403c; /* body copy */
   --text-muted:          #57534e; /* secondary copy */
   --text-faint:          #a8a29e; /* placeholder, meta */
-  --text-on-brand:       #ffffff; /* text on dark brand bg */
-  --text-on-brand-muted: rgb(255 255 255 / 0.7); /* subtitles, footer copy on brand bg */
-  --text-on-brand-faint: rgb(255 255 255 / 0.5); /* faint meta on brand bg */
+  --text-on-brand:       #ffffff; /* text on the plum fill */
   --text-base:           #292524; /* default :root text color */
 
   /* ── Borders & dividers (warm hairlines) ───────────────── */
@@ -73,7 +71,6 @@
      fills, tiles and rules, where contrast is not a text requirement. */
   --brand-primary:       #341528; /* deep plum/aubergine — ink, headings, buttons, solid pills */
   --brand-primary-hover: #4a2038;
-  --brand-primary-deep:  #26101d; /* footer (until the shell goes light) */
   --brand-terracotta:      #d0784a; /* sampled — fills, rules, the eyebrow pill's outline */
   --brand-terracotta-text: #a8572d; /* deeper for AA: eyebrows and small-caps labels (4.69:1 on the ground) */
   --brand-terracotta-faint: rgb(168 87 45 / 0.35); /* the eyebrow back-link's resting underline */
@@ -90,7 +87,10 @@
   --tint-sage-soft:  #dcebd8; /* sampled */
   --tint-sky:        #a6dde8; /* sampled */
   --tint-sky-soft:   #c8ebf1; /* sampled */
-  --brand-cyan:      var(--tint-sky-soft); /* alias for the old cyan's five uses; retire with them */
+
+  /* The website's "Saving lives worldwide" band: the soft tints as a wash
+     behind a stat trio. `Card tone="wash"` is its one consumer. */
+  --gradient-wash: linear-gradient(135deg, var(--tint-peach-soft) 0%, var(--tint-sage-soft) 50%, var(--tint-sky-soft) 100%);
 
   /* The brand gradient. These five stops ARE the logo's dot — SpierLogo.tsx
      reads them from here, so the wordmark and every gradient rule or label in
@@ -109,8 +109,7 @@
     var(--brand-gradient-4) 80%,
     var(--brand-gradient-5) 100%
   );
-  --brand-logo-height:    1.875rem; /* wordmark height in the standalone front-door header */
-  --brand-logo-height-sm: 1.625rem; /* wordmark height in the compact EHR header */
+  --brand-logo-height-sm: 1.625rem; /* wordmark height in the app bar */
 
   /* ── Semantic accents ───────────────────────────────────── */
   --accent-info:           #2563eb;
@@ -133,17 +132,6 @@
   --accent-orange-mid:     #fed7aa;
   --accent-orange-strong:  #fb923c; /* stronger orange (rubric mid) */
   --accent-red-light:      #f87171; /* light red (rubric low) */
-
-  /* ── Accent — violet/indigo family (Dashboard hero, badges) */
-  --accent-violet:         #7c3aed;
-  --accent-violet-deep:    #3730a3;
-  --accent-violet-soft:    #e0e7ff;
-  --accent-violet-soft-bg: #ede9fe;
-  --accent-violet-border:  #c7d2fe;
-
-  /* ── Accent — magenta (screening badge family) ──────────── */
-  --accent-magenta-soft:   #fce7f3;
-  --accent-magenta-text:   #9d174d;
 
   /* ── Banner-muted surfaces (subnav buttons, header chips) ─
      Warm neutrals now, not plum-tinted: on the new grey-warm ground a pink
@@ -331,7 +319,6 @@
   /* ── Specialty shadows (non-elevation semantic uses) ────── */
   --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* mobile slide-out sidebar */
   --shadow-focus-ring:   0 0 0 2px rgb(52 21 40 / 0.3);            /* plum-tinted focus halo */
-  --shadow-card-outline: 0 0 0 1px var(--tint-sky);                /* selected-card soft outline */
   --shadow-brand-glow:   0 1px 12px rgb(52 21 40 / 0.15);          /* plum-tinted halo */
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
@@ -385,11 +372,15 @@ a {
   color: inherit;
 }
 
+/* Every heading in the display face, once. PageHeader and SectionHeader
+   declare it too — they own their look — but the pages' own <h3>/<h4> rules
+   (26 of them) inherit it from here rather than each naming a family. */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
+  font-family: var(--font-display);
   line-height: 1.2;
 }

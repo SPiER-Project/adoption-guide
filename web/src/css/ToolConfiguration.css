@@ -112,7 +112,7 @@
   text-align: left;
   background: white;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-2xl);
   padding: var(--space-4) var(--space-4);
   cursor: pointer;
   transition: all 0.15s ease;
