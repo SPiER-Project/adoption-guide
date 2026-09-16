@@ -9,7 +9,8 @@
         "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
         "margin-inline", "margin-block",
         "gap", "row-gap", "column-gap",
-        "letter-spacing"
+        "letter-spacing",
+        "font-family"
       ],
       {
         "ignoreValues": [

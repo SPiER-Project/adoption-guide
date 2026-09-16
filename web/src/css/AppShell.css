@@ -262,13 +262,13 @@
 }
 
 .app-shell__footer a {
-  color: var(--brand-accent);
+  color: var(--tint-sky);
   text-decoration: underline;
-  text-decoration-color: var(--brand-accent-faint);
+  text-decoration-color: var(--text-on-brand-faint);
 }
 
 .app-shell__footer a:hover {
-  text-decoration-color: var(--brand-accent);
+  text-decoration-color: var(--tint-sky);
 }
 
 .app-shell__footer-links {

@@ -68,7 +68,7 @@
 .sidebar-link.active {
   background: var(--border-emphasis);
   color: var(--text-on-brand);
-  border-left-color: var(--brand-accent);
+  border-left-color: var(--tint-peach);
   font-weight: 600;
 }
 
@@ -151,7 +151,7 @@
 }
 
 .sidebar-try__aside a {
-  color: var(--brand-accent-light);
+  color: var(--tint-sky);
 }
 
 .sidebar-icon {

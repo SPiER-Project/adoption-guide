@@ -20,7 +20,7 @@
    as well as coloured because this one sits mid-paragraph in muted text, where
    colour alone is both a weak affordance and a contrast-only signal. */
 .rubric-description a {
-  color: var(--brand-accent);
+  color: var(--brand-link);
   text-decoration: underline;
 }
 

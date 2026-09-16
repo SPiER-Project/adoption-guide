@@ -35,9 +35,9 @@
 }
 
 .md-select:focus {
-  outline: 2px solid var(--brand-accent);
+  outline: 2px solid var(--brand-primary);
   outline-offset: -1px;
-  border-color: var(--brand-accent);
+  border-color: var(--brand-primary);
 }
 
 .md-period {

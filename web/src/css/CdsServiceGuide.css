@@ -47,7 +47,7 @@
 }
 
 .cds-service-guide__link {
-  color: var(--brand-accent);
+  color: var(--brand-link);
   overflow-wrap: anywhere;
 }
 
@@ -55,7 +55,7 @@
   margin: 0;
   padding: var(--space-4) var(--space-5);
   background: var(--surface-muted, rgba(0, 0, 0, 0.025));
-  border-left: 3px solid var(--brand-accent);
+  border-left: 3px solid var(--brand-primary);
   border-radius: var(--radius-md);
   overflow-x: auto;
 }

@@ -22,10 +22,10 @@
 }
 
 .card--brand {
-  background: var(--brand-accent-faint);
-  border-color: var(--brand-accent-light);
+  background: var(--tint-peach-soft);
+  border-color: var(--tint-peach);
 }
 
 .card--accent {
-  border-left: 3px solid var(--brand-accent);
+  border-left: 3px solid var(--brand-primary);
 }

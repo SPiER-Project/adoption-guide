@@ -45,8 +45,8 @@
 
 /* ---- tones: the accent families ---- */
 .pill--neutral  { background: var(--surface-muted);       color: var(--text-body); }
-.pill--brand    { background: var(--brand-accent);        color: var(--text-on-brand); }
-.pill--accent   { background: var(--brand-accent-soft);   color: var(--brand-accent-text); }
+.pill--brand    { background: var(--brand-primary);        color: var(--text-on-brand); }
+.pill--accent   { background: var(--tint-peach-soft);    color: var(--brand-primary); }
 .pill--info     { background: var(--accent-info-soft);    color: var(--accent-info-text-deep); }
 .pill--success  { background: var(--accent-success-bg);   color: var(--accent-success-text); }
 .pill--warning  { background: var(--accent-warning-bg);   color: var(--accent-warning-text); }

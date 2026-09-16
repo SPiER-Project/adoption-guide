@@ -2,8 +2,14 @@ import { useId } from 'react'
 
 // Official SPiER wordmark (from thespierproject.org's SPiER-Logo_RGB_Primary).
 // The wordmark glyphs use `currentColor` so the logo can render plum on light
-// backgrounds and white on the plum header; the dot over the "i" keeps its
-// signature peach→green→cyan gradient in both.
+// backgrounds and white on a dark one; the dot over the "i" keeps its
+// signature peach→sand→sage→sky gradient in both.
+//
+// The five gradient stops are read from the `--brand-gradient-1…5` tokens in
+// index.css rather than typed here: since the 2026 redesign that gradient IS
+// the brand palette (tiles, rules, button labels), and an inline SVG's
+// `stop-color` can read a CSS custom property like any other style. One
+// definition, so the wordmark and the page can never drift apart.
 interface SpierLogoProps {
   className?: string
   title?: string
@@ -30,11 +36,11 @@ export function SpierLogo({ className, title = 'SPiER' }: SpierLogoProps) {
       <path d="M50.4857 8.48503C52.6907 8.48503 54.4782 6.69752 54.4782 4.49251C54.4782 2.28751 52.6907 0.5 50.4857 0.5C48.2807 0.5 46.4932 2.28751 46.4932 4.49251C46.4932 6.69752 48.2807 8.48503 50.4857 8.48503Z" fill={`url(#${dotGradientId})`} />
       <defs>
         <linearGradient id={dotGradientId} x1="47.651" y1="7.3272" x2="53.3004" y2="1.67779" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#FAB998" />
-          <stop offset="0.2" stopColor="#F1BD9C" />
-          <stop offset="0.4" stopColor="#D8C9A7" />
-          <stop offset="0.8" stopColor="#B4DBB8" />
-          <stop offset="1" stopColor="#91D6E6" />
+          <stop style={{ stopColor: 'var(--brand-gradient-1)' }} />
+          <stop offset="0.2" style={{ stopColor: 'var(--brand-gradient-2)' }} />
+          <stop offset="0.4" style={{ stopColor: 'var(--brand-gradient-3)' }} />
+          <stop offset="0.8" style={{ stopColor: 'var(--brand-gradient-4)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--brand-gradient-5)' }} />
         </linearGradient>
       </defs>
     </svg>
