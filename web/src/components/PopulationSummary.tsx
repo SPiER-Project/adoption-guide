@@ -40,7 +40,7 @@ export function PopulationSummary({
   const blocked = tiles.filter((t): t is Extract<SummaryTile, { state: 'blocked' }> => t.state === 'blocked')
 
   return (
-    <Card as="section" padding="compact" className="pop-summary" aria-label="Caseload summary">
+    <Card as="section" padding="compact" tone="wash" className="pop-summary" aria-label="Caseload summary">
       <SectionHeader
         title="Summary"
         collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'pop-summary-body' }}

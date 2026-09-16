@@ -94,7 +94,7 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
 
   return (
     <div className="form-view">
-      <PageHeader eyebrow={['Patient Chart', 'Assessment']} up="/patient/record" title={title} />
+      <PageHeader eyebrowStyle="pill" eyebrow={['Patient Chart', 'Assessment']} up="/patient/record" title={title} />
 
       <div className="form-wrapper">
         <div className="form-card">

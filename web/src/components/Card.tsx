@@ -9,7 +9,9 @@
  *   surface  `--surface-card` on a 1px `--border-default`, `--radius-2xl`
  *            (the website's card corner). Tone `muted` swaps the ground for
  *            `--surface-muted` (a panel that explains rather than holds);
- *            `brand` for a peach-soft ground (the pathway simulator).
+ *            `brand` for a peach-soft ground (the pathway simulator);
+ *            `wash` for the brand gradient at its soft weight, the website's
+ *            stat band (the caseload summary).
  *   padding  `roomy` (`--space-5`) for a page section; `compact`
  *            (`--space-3 --space-4`) for an item inside one.
  *   accent   a 3px left edge in `--brand-primary`, for the panel that is the
@@ -42,7 +44,7 @@ export function Card({
 }: {
   as?: 'div' | 'section' | 'article' | 'aside' | 'li'
   padding?: 'roomy' | 'compact'
-  tone?: 'card' | 'muted' | 'brand'
+  tone?: 'card' | 'muted' | 'brand' | 'wash'
   accent?: boolean
   /** Layout and state only — see the header. */
   className?: string

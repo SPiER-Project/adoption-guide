@@ -189,7 +189,7 @@
 .pathway-node-card {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-2xl);
   padding: var(--space-3) var(--space-4);
   min-width: 0;
 }
@@ -306,7 +306,7 @@
 }
 
 .pathway-node-status--done     { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
-.pathway-node-status--active   { background: var(--accent-magenta-soft); color: var(--accent-magenta-text); }
+.pathway-node-status--active   { background: var(--tint-peach-soft); color: var(--brand-primary); }
 .pathway-node-status--passed   { background: var(--surface-muted); color: var(--text-muted); }
 .pathway-node-status--upcoming { background: var(--surface-muted); color: var(--text-faint); }
 
@@ -397,7 +397,7 @@
   scroll-margin-top: var(--anchor-scroll-offset);
   background: var(--surface-muted);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-2xl);
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-8);
 }
@@ -525,7 +525,7 @@
   margin: 0;
   padding: 0;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-2xl);
   background: var(--surface-card);
   overflow: hidden;
 }
@@ -692,7 +692,7 @@
   margin: 0;
   padding: 0;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-2xl);
   background: var(--surface-card);
   overflow: hidden;
 }

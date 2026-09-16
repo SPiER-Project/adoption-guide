@@ -21,7 +21,7 @@
 .writeback-scorecard__rung {
   border: 1px solid var(--border-default);
   border-left: 3px solid var(--border-strong);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-2xl);
   padding: var(--space-3) var(--space-4);
   background: var(--surface-muted);
 }

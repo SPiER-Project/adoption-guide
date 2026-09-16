@@ -58,13 +58,13 @@
 .ar-summary-bar {
   height: 10px;
   background: var(--surface-muted);
-  border-radius: 5px;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
 .ar-summary-fill {
   height: 100%;
-  border-radius: 5px;
+  border-radius: var(--radius-md);
   transition: width 0.3s ease;
 }
 
@@ -92,7 +92,7 @@
 
 .ar-legend-block {
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-2xl);
   overflow: hidden;
 }
 
@@ -194,7 +194,7 @@
 
 .ar-lic--public-domain  { background: var(--accent-info-soft);      color: var(--accent-info-text-deep); }
 .ar-lic--registration   { background: var(--accent-warning-bg);     color: var(--accent-warning-text); }
-.ar-lic--commercial     { background: var(--accent-violet-soft);    color: var(--accent-violet-deep); }
+.ar-lic--commercial     { background: var(--tint-sand);            color: var(--brand-primary); }
 .ar-lic--spier-authored { background: var(--surface-muted);         color: var(--text-muted); }
 
 /* `unknown` means the #64 audit has not established the terms — an open

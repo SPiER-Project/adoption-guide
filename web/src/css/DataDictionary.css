@@ -26,12 +26,12 @@
 .dd-search {
   flex: 1;
   min-width: 200px;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   font-size: var(--font-size-md);
   color: var(--text-strong);
-  background: white;
+  background: var(--surface-card);
 }
 
 .dd-search:focus {
@@ -45,12 +45,12 @@
 }
 
 .dd-select {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   font-size: var(--font-size-md);
   color: var(--text-strong);
-  background: white;
+  background: var(--surface-card);
   cursor: pointer;
 }
 
@@ -71,7 +71,7 @@
 .dd-cell-code {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
-  color: var(--accent-violet);
+  color: var(--brand-primary);
   overflow-wrap: anywhere;
 }
 
@@ -326,7 +326,7 @@
 
 .dd-resource-badge--careplan { background: var(--accent-info-soft); color: var(--accent-info-text); }
 .dd-resource-badge--observation { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
-.dd-resource-badge--condition { background: var(--accent-magenta-soft); color: var(--accent-magenta-text); }
+.dd-resource-badge--condition { background: var(--tint-peach-soft); color: var(--brand-primary); }
 
 .dd-tools {
   display: flex;
