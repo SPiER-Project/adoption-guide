@@ -67,12 +67,15 @@
 .overview__steps {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-4);
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* The website's three-up feature row: cells divided by hairlines, each led by
+   a tinted tile, on the section's own white ground. Stacked, the divider runs
+   along the top of every cell but the first; side by side, along its left. */
 @media (min-width: 768px) {
   .overview__steps {
     grid-template-columns: repeat(3, 1fr);
@@ -81,13 +84,46 @@
 
 .overview__step-card {
   padding: var(--space-5);
-  border-left: 3px solid var(--tint-peach);
-  border-radius: var(--radius-lg);
-  background: var(--surface-muted);
+  border-top: 1px solid var(--border-default);
 }
 
+.overview__step-card:first-child {
+  border-top: none;
+}
+
+@media (min-width: 768px) {
+  .overview__step-card {
+    border-top: none;
+    border-left: 1px solid var(--border-default);
+  }
+
+  .overview__step-card:first-child {
+    border-left: none;
+  }
+}
+
+/* The step's number, in a tile. One tint per step in pathway order, so the
+   trio reads as the logo's gradient walked left to right. */
+.overview__step-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+.overview__step-tile--capture   { background: var(--tint-peach); }
+.overview__step-tile--translate { background: var(--tint-sage); }
+.overview__step-tile--act       { background: var(--tint-sky); }
+
 .overview__step-index {
-  display: inline-block;
+  display: block;
   margin-bottom: var(--space-1-5);
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -204,10 +240,8 @@
   flex-direction: column;
   padding: var(--space-6);
   border: 1px solid var(--border-default);
-  border-top: 4px solid transparent;
   border-radius: var(--radius-2xl);
   background: var(--surface-card);
-  box-shadow: var(--shadow-sm);
   color: inherit;
   text-decoration: none;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -215,14 +249,28 @@
 
 .overview__lens-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
 }
 
-.overview__lens-card--guide { border-top-color: var(--tint-sky); }
-/* The host leads the row and takes the accent: a launch starts there (#466). */
-.overview__lens-card--host { border-top-color: var(--tint-peach); }
-.overview__lens-card--cds { border-top-color: var(--text-faint); }
-.overview__lens-card--ig { border-top-color: var(--brand-primary); }
+/* The website's resource card: led by a tinted square holding a line icon.
+   The tint is the card's identity — it replaced a coloured top edge that was
+   invisible at 4px — and the host leads the row in peach because a launch
+   starts there (#466). */
+.overview__lens-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-xl);
+  color: var(--brand-primary);
+}
+
+.overview__lens-tile--host  { background: var(--tint-peach); }
+.overview__lens-tile--guide { background: var(--tint-sage); }
+.overview__lens-tile--cds   { background: var(--tint-sky); }
+.overview__lens-tile--ig    { background: var(--tint-sand); }
 
 .overview__lens-badge {
   display: inline-block;
@@ -254,7 +302,3 @@
   font-weight: 600;
   color: var(--brand-link);
 }
-
-.overview__lens-card--guide .overview__lens-cta { color: var(--brand-link); }
-.overview__lens-card--host .overview__lens-cta { color: var(--brand-link); }
-.overview__lens-card--ig .overview__lens-cta { color: var(--brand-primary); }

@@ -47,12 +47,18 @@
 /* ===========================
    Header
    =========================== */
+/* Light chrome, per the 2026 website redesign: a white bar with the plum
+   wordmark, separated from the page by a hairline rather than a shadow. It was
+   a plum bar with a white wordmark — the OLD site's header — and against the
+   redesign's warm ground that read as a different brand sitting on top of this
+   one. The wordmark follows `currentColor`, so the colour lives once, on
+   `.app-shell__brand`. */
 .app-shell__header {
   grid-area: header;
-  background: var(--brand-primary);
-  color: white;
+  background: var(--surface-card);
+  color: var(--brand-primary);
   padding: var(--space-3) var(--space-6);
-  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid var(--border-default);
   /*
    * ⚠️ **No longer sticky, and the deletion is the point.** This bar was
    * `position: sticky; top: 0` for exactly one reason: `.sidebar` subtracted its
@@ -82,13 +88,13 @@
   align-items: center;
   gap: var(--space-2);
   text-decoration: none;
-  color: white;
+  color: var(--brand-primary);
 }
 
 .app-shell__brand-logo {
   height: var(--brand-logo-height-sm);
   width: auto;
-  /* wordmark fill follows currentColor (white) from .app-shell__brand */
+  /* wordmark fill follows currentColor (plum) from .app-shell__brand */
 }
 
 /* ===========================
@@ -151,7 +157,7 @@
   display: block;
   width: 20px;
   height: 2px;
-  background: white;
+  background: var(--brand-primary);
   position: relative;
   transition: background 0.2s;
 }
@@ -163,7 +169,7 @@
   left: 0;
   width: 20px;
   height: 2px;
-  background: white;
+  background: var(--brand-primary);
   transition: transform 0.3s, top 0.3s;
 }
 
@@ -251,8 +257,9 @@
    =========================== */
 .app-shell__footer {
   grid-area: footer;
-  background: var(--brand-primary-deep);
-  color: var(--text-on-brand-faint);
+  background: var(--surface-page);
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-default);
   padding: var(--space-3) var(--space-6);
   font-size: var(--font-size-sm);
   display: flex;
@@ -262,13 +269,13 @@
 }
 
 .app-shell__footer a {
-  color: var(--tint-sky);
+  color: var(--brand-primary);
   text-decoration: underline;
-  text-decoration-color: var(--text-on-brand-faint);
+  text-decoration-color: var(--border-strong);
 }
 
 .app-shell__footer a:hover {
-  text-decoration-color: var(--tint-sky);
+  text-decoration-color: var(--brand-primary);
 }
 
 .app-shell__footer-links {
