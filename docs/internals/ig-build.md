@@ -172,9 +172,61 @@ in CI so external codes go unchecked, and **nothing at all** validated the
 code+display literals in `packages/core/src/lib/*Mappers/`, even though those land in
 `Observation.code.coding` on every generated resource at runtime.
 
-The validator job is the only thing that checks `FHIR-Resources/` at all — the IG
-Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you can
-still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
+`FHIR-Resources/` is checked by the validator job **and**, since #473, by the
+IG Publisher: `ig/input/resources/questionnaires` is a tracked symlink to that
+folder, and each tool folder under it is a `path-resource` entry in
+`sushi-config.yaml`, so the 18 Questionnaires, the two CarePlan templates and
+the ASQ yes/no ValueSet are loaded, validated and rendered as IG artifacts.
+⚠️ **Per folder, never the recursive `questionnaires/*` form.** The publisher
+tries to load every file it finds — SUSHI skips non-JSON/XML, the publisher does
+not — and the tools' `references/` subfolders hold PDFs, DOCX and XLSX. The
+first CI run with `/*` logged 34 *Error loading … as Turtle* lines, spilled the
+binaries' bytes into `publisher.log`, and GNU grep then refused to read the QA
+counts out of a "binary" file: the QA step died under `bash -e` with no message
+while the QA itself was 0 errors / 0 broken links (#512). Both workflows now
+grep with `-a` and fail by name on an unparsed count, and
+`check-ig-narrative.mjs` fails on a resource JSON one folder below a listed
+directory that no entry reaches, so a new tool folder cannot be silently
+unpublished. `ig-publish.yml` therefore triggers on `FHIR-Resources/**/*.json`
+too, and `deploy.yml`'s render cache key hashes it — a Questionnaire edit with
+no `ig/` change must not reuse a cached render. After a substantial change you
+can still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
+
+⚠️ **Why a symlink and not `path-resource: ../FHIR-Resources/*`.** The
+publisher refuses any resource path that escapes the IG root — *"Computed path
+does not start with first element"* — before it loads a single resource. The
+Questionnaires cannot move under `ig/` without splitting every per-tool folder
+(README, licensing memo, references) across two trees and re-pointing some
+thirty consumers of the `FHIR-Resources/` path, so the IG reaches out through
+a symlink instead. SUSHI, the publisher and `check-ig-narrative.mjs` all follow
+it; a Windows checkout without symlink support gets a text file where the
+directory should be, and the publisher fails loudly on the missing path.
+
+⚠️ **The `QuestionnaireRenderer` NPE that kept the Questionnaires out is gone,
+and the suppression that covered for it was hiding real defects.**
+`ignoreWarnings.txt` suppressed every unresolved Questionnaire canonical for
+the guide's whole life on the strength of a crash observed against an older
+publisher and never re-tested. Re-tested on 2.3.4 (2026-09-16): all 18 render.
+The first run then reported **18 errors on the Questionnaires themselves**,
+none of which any gate had seen because the files were never in the build: the
+four CAMS Questionnaires carried ids (`cams-ssf5-section-a`, …) that did not
+match the last segment of their canonical URL, which the publisher rejects
+(fixed — the ids now equal the URL tail, as every other Questionnaire's already
+did); and the ASQ's ten LOINC 2.83 codes are unknown to tx.fhir.org's LOINC
+2.82, the same edition lag `check:codings` tolerates through `PENDING_TX`.
+⚠️ **`ignoreWarnings.txt` cannot suppress an error** — its qa.html heading
+reads *Suppressed Messages (Warnings, hints, broken links)*, and #512's first
+run proved it with ten pinned lines that matched nothing. The one lever the
+publisher offers is the `no-validate` IG parameter, scoped to
+`Questionnaire/ASQ-Screening-Tool` in `sushi-config.yaml`; it skips that
+resource's publisher validation entirely (structure is still checked by
+`validate-fhir.mjs` on every PR, codes by the nightly), and it is the third of
+three things deleted together when the server updates — see
+[`docs/scheduled-checks-triage.md`](../scheduled-checks-triage.md) § Cause 1b.
+Also: every non-blank line in `ignoreWarnings.txt`, comments included, is
+listed on qa.html with a use count, so keep it short. A resource under
+`path-resource` with no `id` is now a gate failure rather than a page the
+publisher names unpredictably (the Stanley-Brown Questionnaire had none).
 
 ⚠️ **The IG Publisher compiles the measure CQL, and only because of one config
 line.** `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` is translated to ELM

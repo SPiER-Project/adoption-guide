@@ -1,6 +1,6 @@
 {
   "resourceType": "Questionnaire",
-  "id": "cams-ssf5-section-b",
+  "id": "CAMS-SSF5-SectionB",
   "url": "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB",
   "version": "1.0.0",
   "name": "SSF5_SectionB",

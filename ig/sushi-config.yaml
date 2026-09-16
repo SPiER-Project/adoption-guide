@@ -71,8 +71,48 @@ parameters:
   # scan of input/resources does not recurse into subfolders. Naming the
   # subfolder explicitly is what makes ig/input/resources/maps/*.fml become
   # published StructureMaps (issues #92 / #229).
+  #
+  # The Questionnaires are the Capture layer's central artifact and live OUTSIDE
+  # ig/, in FHIR-Resources/<tool>/ at the repo root, because the app imports the
+  # same JSON at runtime and "one canonical URL, one definition" forbids a second
+  # copy. `input/resources/questionnaires` is a SYMLINK to that tree (tracked in
+  # git), and naming its tool folders here is what publishes them: SUSHI lists
+  # every JSON it finds in the ImplementationGuide resource and the publisher
+  # renders each as Questionnaire-<id>.html, so ActivityDefinition.relatedArtifact
+  # and QuestionnaireResponse.questionnaire finally resolve (#473).
+  #
+  # ⚠️ A symlink, not `../FHIR-Resources`: the publisher refuses any
+  # path-resource that escapes the IG root ("Computed path does not start with
+  # first element"), and the alternative — moving the JSON under ig/ — would split
+  # every per-tool folder across two trees and touch ~30 consumers of the
+  # FHIR-Resources path.
+  #
+  # ⚠️ One entry PER TOOL FOLDER, never the recursive `questionnaires/*` form.
+  # The publisher (unlike SUSHI) tries to load every file it finds, and the
+  # tools' `references/` subfolders hold PDFs, DOCX and XLSX: the first CI run
+  # with `/*` logged 34 "Error loading … as Turtle" lines, spilled their bytes
+  # into publisher.log, and grep then refused to read the QA counts as text
+  # (#512). A tool folder's top level holds only its JSON and a README, which
+  # the publisher skips. A folder missing from this list is a Questionnaire the
+  # IG silently does not publish — `check-ig-narrative.mjs` fails on a resource
+  # JSON sitting one level below a listed directory that no entry reaches, so
+  # add the new tool's line here when you add its folder. The two CarePlan
+  # templates and the ASQ yes/no ValueSet that sit beside the Questionnaires
+  # come along as examples, which is correct: they are FHIR resources the app
+  # ships.
   path-resource:
     - input/resources/maps
+    - input/resources/questionnaires/ASQ
+    - input/resources/questionnaires/BSSA
+    - input/resources/questionnaires/C-SSRS
+    - input/resources/questionnaires/CAMS
+    - input/resources/questionnaires/CRP
+    - input/resources/questionnaires/PHQ-9
+    - input/resources/questionnaires/PSS-3
+    - input/resources/questionnaires/PSS-Full
+    - input/resources/questionnaires/SAFE-T
+    - input/resources/questionnaires/SBQ-R
+    - input/resources/questionnaires/Stanley-Brown
   # THE CQL LOADER'S ACTIVATION SWITCH. The IG-parameters CodeSystem defines
   # path-binary as files "only used in the context of the CQL loader" — without
   # this line the publisher walks past input/cql in total silence, translating
@@ -83,6 +123,24 @@ parameters:
   # …/input/cql", and the first compile immediately failed on five real defects.
   path-binary:
     - input/cql
+  # ⚠️ TEMPORARY, and built to be deleted. The ASQ Questionnaire binds its panel,
+  # its seven items and the two answer codes on the recency item to LOINC codes
+  # published in LOINC 2.83 (adopted 2026-09-08; verified against Regenstrief —
+  # FHIR-Resources/ASQ/README.md). tx.fhir.org still serves 2.82, so the publisher
+  # reports ten "Unknown code … version '2.82'" ERRORS, and an error cannot be
+  # suppressed — ignoreWarnings.txt covers warnings, hints and broken links only
+  # (tried; qa.html said so). This is the same edition lag `check:codings`
+  # tolerates through PENDING_TX and docs/scheduled-checks-triage.md § Cause 1b
+  # records as expected, so validation of this ONE resource is switched off in
+  # the publisher rather than keeping the Capture layer's flagship instrument out
+  # of the guide. What still checks it: validate-fhir.mjs (structure, every PR),
+  # the terminology nightly (codes, with the lag recorded) and the loinc-audit
+  # against Regenstrief. Delete this parameter together with the PENDING_TX
+  # lines and the triage paragraph once tx.fhir.org serves 2.83 — the IG
+  # parameters CodeSystem is blunt that suppressing validation is generally a
+  # bad idea, and it is right.
+  no-validate:
+    - Questionnaire/ASQ-Screening-Tool
 
 # Pages and menu structure
 pages:

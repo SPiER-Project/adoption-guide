@@ -134,6 +134,7 @@ Always update `ig/input/pagecontent/zero-suicide-mapping.md` to add the new inst
 ### 7. Update cross-cutting docs
 
 - `FHIR-Resources/README.md` — add a row to the instruments table.
+- `ig/sushi-config.yaml` — add `- input/resources/questionnaires/<INSTRUMENT>` to `path-resource` (that directory is a symlink to `FHIR-Resources/`, #473). This is what publishes the Questionnaire JSON on the IG's Artifacts page; `check-ig-narrative.mjs` fails if the folder holds JSON and no entry names it. Two things the publisher enforces on the JSON: the resource has an `id`, and that `id` equals the last segment of its `url` (`.../Questionnaire/PHQ-9` → `"id": "PHQ-9"`); the gate fails on a missing id, the publisher on a mismatch. Keep reference PDFs and spreadsheets in `references/` (a subfolder), never beside the JSON — the publisher tries to load every top-level file.
 - `docs/README.md` — the documentation index; add an entry only if the instrument gets its own doc.
 - Open a tracking issue with the right labels (`tool:TL-XXX`, `type:epic`). GitHub Issues is the only roadmap; the app has no Roadmap page.
 - Run the quality skill's checklist one more time end-to-end.

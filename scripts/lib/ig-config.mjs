@@ -126,10 +126,16 @@ export function parsePathResource(text, bail) {
     if (line.trim() === '' || /^\s*#/.test(line)) continue
     const item = /^\s{4}-\s+(\S.*?)\s*$/.exec(line)
     if (!item) break // end of the sequence (a sibling key, or a dedent)
-    if (/["'|>&*]/.test(item[1])) {
+    // A trailing `/*` is not YAML — it is the IG Publisher's own "and every
+    // subfolder" form, which SUSHI implements identically (#473 uses it to load
+    // FHIR-Resources/<tool>/ without naming each tool). Only that one shape is
+    // allowed through; any other `*`, quote or block indicator is still a form
+    // this parser does not read.
+    const value = item[1].replace(/\/\*$/, '')
+    if (/["'|>&*]/.test(value)) {
       bail(`\`path-resource\` item at ${rel(CONFIG)}:${i + 1} uses YAML syntax this parser does not read — ${item[1]}`)
     }
-    dirs.push(item[1])
+    dirs.push({ dir: value, recursive: value !== item[1] })
   }
 
   if (dirs.length === 0) {
