@@ -168,11 +168,26 @@ describe('one patient chart', () => {
     expect(body).toContain('id="panel"')
   })
 
-  it('points the CDS call at the panel’s own origin', async () => {
+  it('points the CDS call at the panel’s own origin by default', async () => {
     const { body } = await html('/chart/patient-011')
     // Default panel base is the deployed Worker; the service lives on the same
-    // origin because one Worker serves both.
+    // origin because one Worker serves both, so with MOCK_CDS_BASE_URL blank
+    // the endpoint is derived from the panel base.
     expect(body).toContain('https://spier-adoption-guide.bbthorson.workers.dev/cds-services/spier-patient-view')
+  })
+
+  it('points the CDS call elsewhere when MOCK_CDS_BASE_URL says so, and still frames the panel from its own base', async () => {
+    // The own-domain move (surfaces-and-distribution.md §5) leaves the service
+    // behind while the apps move. Only the ORIGIN is taken from the var — a
+    // path on it is ignored, because the service path is this Worker's to know.
+    const res = await app.request(`${BASE}/chart/patient-011`, {}, {
+      MOCK_PANEL_BASE_URL: 'https://app.example.org/',
+      MOCK_CDS_BASE_URL: 'https://cds.example.org/some/path',
+    })
+    const body = await res.text()
+    expect(body).toContain('"https://cds.example.org/cds-services/spier-patient-view"')
+    expect(body).toContain('"https://app.example.org"')
+    expect(body).not.toContain('app.example.org/cds-services')
   })
 
   it('404s a patient this server does not hold', async () => {

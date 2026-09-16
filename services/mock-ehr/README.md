@@ -271,6 +271,8 @@ nothing failing. `chartPage.test.ts` pins the ordering.
 # services/mock-ehr/.dev.vars
 MOCK_PANEL_BASE_URL=http://localhost:8788/
 MOCK_REDIRECT_URIS=http://localhost:8788/
+# Only if the CDS Hooks service is NOT on the panel's origin (it is, locally):
+# MOCK_CDS_BASE_URL=http://localhost:8788/
 
 # services/cds-hooks/.dev.vars
 PANEL_FRAME_ANCESTORS='self' http://localhost:8787

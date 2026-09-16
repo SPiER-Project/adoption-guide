@@ -57,6 +57,11 @@
     "MOCK_AUTH_ENFORCE": "require",
     // Where the panel lives, for the launch URL the control page mints.
     "MOCK_PANEL_BASE_URL": "https://spier-adoption-guide.bbthorson.workers.dev/",
+    // Where the CDS Hooks service lives. Blank = the panel's own origin (one
+    // Worker serves both today). Set it when the SMART apps move to their own
+    // domain and the service stays behind — then the chart page calls the
+    // service here and frames the panel from MOCK_PANEL_BASE_URL.
+    "MOCK_CDS_BASE_URL": "",
     // Comma-separated EXACT redirect URIs, replacing the built-in defaults in
     // src/smart.ts. The app computes its own as `import.meta.env.BASE_URL`
     // against its origin, so the hosted forms differ by path: `/` on the

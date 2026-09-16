@@ -90,6 +90,13 @@ export interface Env extends SmartEnv {
   MOCK_CAPABILITY_PROFILE?: string
   /** Where the panel app lives, for the launch URL the control page builds. */
   MOCK_PANEL_BASE_URL?: string
+  /**
+   * Where the CDS Hooks service lives. Blank = the panel's own origin, which is
+   * where it is today (one Worker serves both). Set when the two are hosted
+   * apart — the SMART apps on their own domain, the service left where it was —
+   * so that split is a redeploy, not a code change.
+   */
+  MOCK_CDS_BASE_URL?: string
 }
 
 /** Default panel origin for a minted launch URL; overridden by the env var. */
@@ -959,10 +966,16 @@ app.get('/chart/:patientId', async (c) => {
   const patient = DEMO_PATIENTS_BY_ID.get(c.req.param('patientId'))
   if (!patient) return c.notFound()
   const panelBase = envOf(c).MOCK_PANEL_BASE_URL || DEFAULT_PANEL_BASE_URL
-  // The panel host serves the SPA and the CDS Hooks API from ONE Worker, so the
-  // service lives at the panel's own origin. Deriving it (rather than taking a
-  // second env var) means a redeploy cannot point the two at different hosts.
   const panelOrigin = new URL(panelBase).origin
+  // The CDS Hooks service is at the panel's own origin BY DEFAULT — one Worker
+  // serves the SPA and `/cds-services/*` today, and deriving it kept the two
+  // from being pointed at different hosts by accident. It is now a separate
+  // var with that derivation as its default, because the planned own-domain
+  // move for the SMART apps (surfaces-and-distribution.md §5) leaves the
+  // service where it is: the split has to be a redeploy, not a code change.
+  // Only the origin is taken from the var; the service path is this Worker's
+  // to know (see CDS_SERVICE_PATH).
+  const cdsOrigin = new URL(envOf(c).MOCK_CDS_BASE_URL || panelOrigin).origin
   // ⚠️ No capability profile is passed any more, and that is not a regression.
   // The chart is the demo surface; the switch is operator equipment and lives on
   // /settings. Flipping it there in a second tab still changes what THIS chart's
@@ -970,7 +983,7 @@ app.get('/chart/:patientId', async (c) => {
   // than in module memory — see `liveProfile`. That was not true when the switch
   // was added to this page, which is part of why it was added here.
   return c.html(patientChartPage(patient, {
-    cdsEndpoint: `${panelOrigin}${CDS_SERVICE_PATH}`,
+    cdsEndpoint: `${cdsOrigin}${CDS_SERVICE_PATH}`,
     panelOrigin,
     // Everyone except the patient whose chart this is — the FHIRcast affordance
     // announces a move to a DIFFERENT patient, so offering this one would
