@@ -179,6 +179,14 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/check-ig-narrative.mjs
 
+      # After SUSHI, like the narrative gate: the "published" half reads the
+      # compiled ImplementationGuide to assert every resource carries a
+      # groupingId. The other two halves (every source file has a rule; the
+      # generated block in sushi-config.yaml is current) need no compile.
+      - name: Check the IG artifact groups
+        working-directory: ${{ github.workspace }}
+        run: node scripts/build-ig-groups.mjs --check
+
       - name: Check concept-layer crosswalks
         working-directory: ${{ github.workspace }}
         run: node web/scripts/check-concept-crosswalk.mjs

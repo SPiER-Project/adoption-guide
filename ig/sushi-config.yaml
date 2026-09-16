@@ -142,6 +142,367 @@ parameters:
   no-validate:
     - Questionnaire/ASQ-Screening-Tool
 
+# Artifacts-page groups. GENERATED between the two markers below by
+# `node scripts/build-ig-groups.mjs` from one rule per FSH file / tool folder /
+# .fml map (the RULES table in that script); `--check` fails in ig.yml when the
+# block is stale or a source has no rule. The eight groups and why the page is
+# grouped by purpose rather than by resource type: docs/plans/ig-cleanup-audit-2026-09-16.md §4.
+# The FML StructureMaps sit under `resources:` rather than `groups:` because SUSHI
+# never loads .fml and rejects a group member it did not load.
+# ── BEGIN generated groups — node scripts/build-ig-groups.mjs; do not edit by hand ──
+groups:
+  instruments:
+    name: "Screening and assessment instruments (Capture)"
+    description: "Each validated instrument as SPiER publishes it: the Questionnaire itself, the ActivityDefinition that administers it, the profile its result lands in, the answer vocabularies, and one worked QuestionnaireResponse and Observation per form."
+    resources:
+      - Questionnaire/ASQ-Screening-Tool
+      - Questionnaire/BSSA
+      - Questionnaire/C-SSRS-Full-Lifetime-Recent
+      - Questionnaire/C-SSRS-Pediatric
+      - Questionnaire/C-SSRS-Screener
+      - Questionnaire/C-SSRS-Since-Last-Contact
+      - Questionnaire/CAMS-SSF5-OutcomeDisposition
+      - Questionnaire/CAMS-SSF5-SectionA
+      - Questionnaire/CAMS-SSF5-SectionB
+      - Questionnaire/CAMS-Stabilization-Plan
+      - Questionnaire/CAMS-Therapeutic-Worksheet
+      - Questionnaire/PHQ-9
+      - Questionnaire/PSS-3
+      - Questionnaire/PSS-Full
+      - Questionnaire/SAFE-T
+      - Questionnaire/SBQ-R
+      - ActivityDefinition/AdministerASQ
+      - ActivityDefinition/AdministerBSSA
+      - ActivityDefinition/AdministerCAMSInterimSession
+      - ActivityDefinition/AdministerCAMSOutcomeDisposition
+      - ActivityDefinition/AdministerCAMSSectionA
+      - ActivityDefinition/AdministerCAMSSectionB
+      - ActivityDefinition/AdministerCAMSStabilizationPlan
+      - ActivityDefinition/AdministerCAMSTherapeuticWorksheet
+      - ActivityDefinition/AdministerCSSRSFull
+      - ActivityDefinition/AdministerCSSRSPediatric
+      - ActivityDefinition/AdministerCSSRSScreener
+      - ActivityDefinition/AdministerCSSRSSinceLastContact
+      - ActivityDefinition/AdministerPHQ9
+      - ActivityDefinition/AdministerPSS3
+      - ActivityDefinition/AdministerPSSFull
+      - ActivityDefinition/AdministerSAFET
+      - ActivityDefinition/AdministerSBQR
+      - StructureDefinition/spier-asq-result
+      - StructureDefinition/spier-bssa-disposition-result
+      - StructureDefinition/spier-cams-outcome-disposition
+      - StructureDefinition/spier-cams-ssf-vital
+      - StructureDefinition/spier-cams-stabilization-plan
+      - StructureDefinition/spier-cams-suicide-driver
+      - StructureDefinition/spier-cams-therapeutic-worksheet
+      - StructureDefinition/spier-cssrs-risk-level
+      - StructureDefinition/spier-phq9-item9
+      - StructureDefinition/spier-phq9-total-score
+      - StructureDefinition/spier-pss-full-risk-level
+      - StructureDefinition/spier-pss3-result
+      - StructureDefinition/spier-safet-risk-level
+      - StructureDefinition/spier-sbqr-total-score
+      - CodeSystem/asq-age-group
+      - CodeSystem/asq-screening-result
+      - CodeSystem/bssa-disposition
+      - CodeSystem/bssa-item
+      - CodeSystem/bssa-panel
+      - CodeSystem/bssa-symptom
+      - CodeSystem/cams-careplan-section
+      - CodeSystem/cams-disposition
+      - CodeSystem/cams-driver-category
+      - CodeSystem/cams-driver-type
+      - CodeSystem/cams-ssf
+      - CodeSystem/cams-ssf-overall-risk
+      - CodeSystem/cssrs-controllability
+      - CodeSystem/cssrs-deterrents
+      - CodeSystem/cssrs-duration
+      - CodeSystem/cssrs-frequency
+      - CodeSystem/cssrs-interval-item
+      - CodeSystem/cssrs-lethality
+      - CodeSystem/cssrs-potential-lethality
+      - CodeSystem/cssrs-reasons
+      - CodeSystem/cssrs-risk-level
+      - CodeSystem/pss3-answer
+      - CodeSystem/pss3-attempt-recency
+      - CodeSystem/pss3-item
+      - CodeSystem/pss3-panel
+      - CodeSystem/pss3-result
+      - CodeSystem/safet-panel
+      - CodeSystem/safet-protective-factor
+      - CodeSystem/safet-risk-factor
+      - CodeSystem/sbqr-q1
+      - CodeSystem/sbqr-q2
+      - CodeSystem/sbqr-q3
+      - CodeSystem/sbqr-q4
+      - ValueSet/asq-result
+      - ValueSet/asq-result-positive
+      - ValueSet/bssa-disposition-elevated
+      - ValueSet/bssa-disposition-vs
+      - ValueSet/bssa-symptom-vs
+      - ValueSet/cams-disposition-vs
+      - ValueSet/cams-driver-type-vs
+      - ValueSet/cams-ssf-measure
+      - ValueSet/cams-ssf-overall-risk
+      - ValueSet/cams-stabilization-plan-section
+      - ValueSet/cams-therapeutic-worksheet-section
+      - ValueSet/cssrs-interval-item
+      - ValueSet/cssrs-risk-level
+      - ValueSet/pss3-attempt-recency-vs
+      - ValueSet/pss3-result-positive
+      - ValueSet/pss3-result-vs
+      - ValueSet/safet-protective-factor-vs
+      - ValueSet/safet-risk-factor-vs
+      - ValueSet/yes-no
+      - CarePlan/cams-stabilization-careplan-example
+      - CarePlan/ExampleCAMSStabilizationPlan
+      - CarePlan/ExampleCAMSTherapeuticWorksheet
+      - Condition/ExampleCAMSSuicideDriver
+      - Observation/ExampleASQResultAcutePositive
+      - Observation/ExampleASQResultNonAcutePositive
+      - Observation/ExampleBSSADispositionEmergency
+      - Observation/ExampleBSSADispositionFurtherEval
+      - Observation/ExampleCAMSOutcomeDispositionResolved
+      - Observation/ExampleCAMSSSFPsychologicalPain
+      - Observation/ExampleCSSRSFullModerateRisk
+      - Observation/ExampleCSSRSPediatricLowRisk
+      - Observation/ExampleCSSRSScreenerHighRisk
+      - Observation/ExampleCSSRSSinceLastContactModerateRisk
+      - Observation/ExamplePHQ9Item9Positive
+      - Observation/ExamplePHQ9TotalScore18
+      - Observation/ExamplePSS3Positive
+      - Observation/ExamplePSSFullModerateRisk
+      - Observation/ExampleSAFETRiskLevelModerate
+      - Observation/ExampleSBQRTotalScore9
+      - QuestionnaireResponse/ExampleASQResponseNonAcute
+      - QuestionnaireResponse/ExampleBSSAResponse
+      - QuestionnaireResponse/ExampleCAMSOutcomeDispositionResponse
+      - QuestionnaireResponse/ExampleCSSRSPediatricResponse
+      - QuestionnaireResponse/ExampleCSSRSScreenerResponse
+      - QuestionnaireResponse/ExampleCSSRSSinceLastContactResponse
+      - QuestionnaireResponse/ExamplePHQ9Response
+      - QuestionnaireResponse/ExamplePSS3ResponsePositive
+      - QuestionnaireResponse/ExamplePSSFullResponse
+      - QuestionnaireResponse/ExampleSAFETResponse
+      - QuestionnaireResponse/ExampleSBQRResponse
+  concept-layer:
+    name: "Suicide-risk concept layer (Translate)"
+    description: "The instrument-agnostic risk tier every tool maps into — the concept Observation, its tier and domain vocabularies, and the ConceptMaps and StructureMaps that derive it."
+    resources:
+      - StructureDefinition/coding-verification-status
+      - StructureDefinition/spier-suicide-risk-concept
+      - StructureDefinition/tier-derivation
+      - ConceptMap/ASQDispositionToRiskTier
+      - ConceptMap/BSSADispositionToRiskTier
+      - ConceptMap/CAMSOverallRiskToRiskTier
+      - ConceptMap/CSSRSRiskLevelToRiskTier
+      - ConceptMap/PSS3ResultToRiskTier
+      - ConceptMap/SPiERRiskTierToLOINC
+      - CodeSystem/spier-coding-verification-status
+      - CodeSystem/spier-concept-domain
+      - CodeSystem/spier-suicide-risk-tier
+      - CodeSystem/spier-tier-derivation
+      - ValueSet/spier-coding-verification-status-vs
+      - ValueSet/spier-concept-domain-vs
+      - ValueSet/spier-suicide-risk-tier-vs
+      - ValueSet/spier-tier-derivation-vs
+      - Observation/ExampleSuicideRiskConceptFromASQ
+      - Observation/ExampleSuicideRiskConceptFromCSSRS
+      - Observation/ExampleSuicideRiskConceptFromPHQ9
+      - Observation/ExampleSuicideRiskConceptFromSBQR
+  safety-planning:
+    name: "Safety planning and means safety"
+    description: "The Stanley-Brown and Crisis Response Plan CarePlans, their shared section vocabulary, lethal-means counseling and crisis-resource sharing."
+    resources:
+      - Questionnaire/CrisisResponsePlan
+      - Questionnaire/StanleyBrownSafetyPlan
+      - ActivityDefinition/AdministerStanleyBrown
+      - ActivityDefinition/AuthorCrisisResponsePlan
+      - ActivityDefinition/ProvideMeansSafetyCounseling
+      - ActivityDefinition/ShareCrisisResources
+      - StructureDefinition/crisis-resource-code
+      - StructureDefinition/spier-crisis-resources-shared
+      - StructureDefinition/spier-crisis-response-plan
+      - StructureDefinition/spier-lethal-means-counseling
+      - StructureDefinition/spier-means-safety-action
+      - StructureDefinition/spier-stanley-brown-safety-plan
+      - CodeSystem/safety-plan-section
+      - CodeSystem/spier-crisis-resource
+      - CodeSystem/spier-lethal-means-method
+      - CodeSystem/spier-means-safety-action
+      - ValueSet/crisis-response-plan-section
+      - ValueSet/spier-crisis-resource-vs
+      - ValueSet/spier-lethal-means-method-vs
+      - ValueSet/spier-means-safety-action-vs
+      - ValueSet/stanley-brown-safety-plan-section
+      - CarePlan/ExampleCrisisResponsePlan
+      - CarePlan/ExampleStanleyBrownSafetyPlan
+      - CarePlan/stanley-brown-safety-plan-hybrid-example
+      - Communication/ExampleCrisisResourcesShared
+      - Observation/ExampleMeansSafetyActionFirearm
+      - Observation/ExampleMeansSafetyActionMedication
+      - Procedure/ExampleLethalMeansCounseling
+  handoffs-follow-up:
+    name: "Handoffs and follow-up"
+    description: "Transitions of care and what happens after them: the handoff, the discharge safety packet, referral, follow-up appointment, sharing consent, outreach attempts and caring contacts."
+    resources:
+      - ActivityDefinition/EscalateFollowUp
+      - ActivityDefinition/FollowUpMissedAppointment
+      - ActivityDefinition/GenerateDischargeSafetyPacket
+      - ActivityDefinition/RecordConsentSharingStatus
+      - ActivityDefinition/RecordFollowUpOutreach
+      - ActivityDefinition/RecordTransitionCheckpoint
+      - ActivityDefinition/ScheduleFollowUpAppointment
+      - ActivityDefinition/SendCaringContact
+      - ActivityDefinition/SendRapidReferral
+      - ActivityDefinition/TrackFollowUpAppointment
+      - StructureDefinition/caring-contact-opt-out
+      - StructureDefinition/handoff-content-item
+      - StructureDefinition/handoff-withheld-item
+      - StructureDefinition/outreach-outcome
+      - StructureDefinition/outreach-prompt
+      - StructureDefinition/safety-concern-identified
+      - StructureDefinition/spier-caring-contact
+      - StructureDefinition/spier-discharge-safety-packet
+      - StructureDefinition/spier-follow-up-appointment
+      - StructureDefinition/spier-information-sharing-consent
+      - StructureDefinition/spier-outreach-attempt
+      - StructureDefinition/spier-safety-handoff
+      - StructureDefinition/spier-safety-referral
+      - CodeSystem/spier-consent-category
+      - CodeSystem/spier-handoff-content
+      - CodeSystem/spier-outreach-outcome
+      - CodeSystem/spier-outreach-prompt
+      - CodeSystem/spier-referral-reason
+      - CodeSystem/spier-withholding-basis
+      - ValueSet/spier-consent-category-vs
+      - ValueSet/spier-handoff-content-vs
+      - ValueSet/spier-outreach-outcome-vs
+      - ValueSet/spier-outreach-prompt-vs
+      - ValueSet/spier-referral-reason-vs
+      - ValueSet/spier-withholding-basis-vs
+      - Appointment/ExampleFollowUpAppointment
+      - Communication/ExampleCaringContact
+      - Communication/ExampleOutreachAttemptNoShow
+      - Communication/ExampleOutreachAttemptReached
+      - Communication/ExampleSafetyHandoff
+      - Consent/ExampleInformationSharingConsent
+      - DocumentReference/ExampleDischargeSafetyPacket
+      - ServiceRequest/ExampleSafetyReferral
+  risk-episode:
+    name: "Risk episode and registry"
+    description: "The suicide-safer care episode, its encounters, risk flag, open safety tasks, the reassessment schedule, and the verified problem-list vocabulary for clinician-asserted findings."
+    resources:
+      - ActivityDefinition/EscalateOverdueRisk
+      - ActivityDefinition/MaintainRiskRegistry
+      - ActivityDefinition/ScheduleRiskReassessment
+      - ActivityDefinition/TrackOpenSafetyActions
+      - ActivityDefinition/TrackRiskEpisodeStatus
+      - PlanDefinition/SPiERReassessmentSchedule
+      - StructureDefinition/episode-closure-reason
+      - StructureDefinition/episode-current-risk-tier
+      - StructureDefinition/episode-entry-reason
+      - StructureDefinition/episode-trigger
+      - StructureDefinition/escalation-trigger
+      - StructureDefinition/spier-encounter
+      - StructureDefinition/spier-safety-task
+      - StructureDefinition/spier-suicide-related-condition
+      - StructureDefinition/spier-suicide-risk-episode
+      - StructureDefinition/spier-suicide-risk-flag
+      - CodeSystem/spier-episode-closure-reason
+      - CodeSystem/spier-episode-entry-reason
+      - CodeSystem/spier-episode-type
+      - CodeSystem/spier-escalation-trigger
+      - CodeSystem/spier-risk-flag
+      - CodeSystem/spier-safety-task-type
+      - ValueSet/spier-episode-closure-reason-vs
+      - ValueSet/spier-episode-entry-reason-vs
+      - ValueSet/spier-episode-type-vs
+      - ValueSet/spier-escalation-trigger-vs
+      - ValueSet/spier-risk-flag-vs
+      - ValueSet/spier-safety-task-type-vs
+      - ValueSet/spier-suicide-related-problem-vs
+      - Condition/ExamplePreviousSuicideAttemptProblem
+      - Condition/ExampleSuicidalIdeationProblem
+      - Encounter/ExampleEdEncounter
+      - Encounter/ExampleFollowUpEncounter
+      - EpisodeOfCare/ExampleActiveSuicideRiskEpisode
+      - EpisodeOfCare/ExampleClosedSuicideRiskEpisode
+      - Flag/ExampleSuicideRiskFlag
+      - Task/ExampleCareGapTask
+      - Task/ExampleEscalationTask
+      - Task/ExampleReassessmentDueTask
+  pathway:
+    name: "The care pathway (Act)"
+    description: "The eight stage PlanDefinitions and the Suicide Safer Care Pathway drawn from them, the placeholder steps, and the tool-id, licensing and coding-verification metadata every ActivityDefinition carries."
+    resources:
+      - ActivityDefinition/AdministerCARSS
+      - ActivityDefinition/AdministerLocalRiskAssessment
+      - ActivityDefinition/TriggerSuicideRiskWorkflow
+      - PlanDefinition/SPiERClarifyRiskStage
+      - PlanDefinition/SPiERCoordinateHandoffsStage
+      - PlanDefinition/SPiERDefineRiskPictureStage
+      - PlanDefinition/SPiERDocumentSafetyActionsStage
+      - PlanDefinition/SPiERIdentifyPossibleRiskStage
+      - PlanDefinition/SPiERMeasureAndShareStage
+      - PlanDefinition/SPiERSuicideSaferCarePathway
+      - PlanDefinition/SPiERTrackFollowUpStage
+      - PlanDefinition/SPiERTrackRiskOverTimeStage
+      - StructureDefinition/instrument-licensing-status
+      - CodeSystem/spier-instrument-licensing-status
+      - CodeSystem/spier-pathway-stage
+      - ValueSet/spier-instrument-licensing-status-vs
+      - NamingSystem/SPiERToolIdNamingSystem
+  measures:
+    name: "Measures (Stage 8)"
+    description: "The quality measures scored over the artifacts above, the CQL Library they share, example MeasureReports, and the reporting, export and sharing activities."
+    resources:
+      - ActivityDefinition/ExportSuicideSaferCareData
+      - ActivityDefinition/ProvideReportingDashboard
+      - ActivityDefinition/ReportSuicideSaferCareMeasures
+      - ActivityDefinition/ShareSuicideSaferCareData
+      - Measure/SPiERCaringContactAdherence
+      - Measure/SPiERFollowUpTimeliness
+      - Measure/SPiERLethalMeansCounselingCompleted
+      - Measure/SPiERReassessmentOnTime
+      - Measure/SPiERReferralCompletion
+      - Measure/SPiERRiskStatusDocumented
+      - Measure/SPiERSafetyPlanBeforeDischarge
+      - Measure/SPiERScreenToAssessment
+      - Library/SPiERSuicideSaferCareMeasures
+      - CodeSystem/spier-measure-group
+      - ValueSet/spier-measure-group-vs
+      - Appointment/ExampleMeasuredFollowUpAppointment
+      - Communication/ExampleMeasuredOutreachAttempt
+      - MeasureReport/ExampleCaringContactAdherenceReportSummary
+      - MeasureReport/ExampleFollowUpTimelinessReportIndividual
+      - MeasureReport/ExampleFollowUpTimelinessReportSummary
+  conformance:
+    name: "Conformance"
+    description: "The CapabilityStatement for each system role this guide defines."
+    resources:
+      - CapabilityStatement/hie-intermediary
+      - CapabilityStatement/quality-reporter
+      - CapabilityStatement/risk-consumer
+      - CapabilityStatement/screening-source-ehr
+resources:
+  StructureMap/ASQResultToSuicideRiskConcept:
+    name: "ASQResultToSuicideRiskConcept"
+    groupingId: concept-layer
+  StructureMap/CSSRSRiskLevelToSuicideRiskConcept:
+    name: "CSSRSRiskLevelToSuicideRiskConcept"
+    groupingId: concept-layer
+  StructureMap/PHQ9Item9ToSuicideRiskConcept:
+    name: "PHQ9Item9ToSuicideRiskConcept"
+    groupingId: concept-layer
+  StructureMap/SBQRTotalScoreToSuicideRiskConcept:
+    name: "SBQRTotalScoreToSuicideRiskConcept"
+    groupingId: concept-layer
+  StructureMap/StanleyBrownQRToCarePlan:
+    name: "StanleyBrownQRToCarePlan"
+    groupingId: safety-planning
+# ── END generated groups ──
+
 # Pages and menu structure
 pages:
   index.md:
