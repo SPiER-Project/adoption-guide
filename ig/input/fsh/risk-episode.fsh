@@ -363,7 +363,7 @@ Profile: SPiEREncounter
 Parent: Encounter
 Id: spier-encounter
 Title: "SPiER Encounter"
-Description: "A contact during which suicide-safer care happened. This is the correlation hinge for the whole pathway: artifacts reference their Encounter through the native `.encounter` element they already have, and this Encounter references the episode, so a consumer can assemble one episode's record with standard search parameters rather than a SPiER-specific extension. Instances SHOULD carry meta.tag = SPiERPathwayStage#<stage> where the contact maps to a single pathway stage."
+Description: "A contact during which suicide-safer care happened. Artifacts reference it through their native `.encounter` element and it references the episode, so one episode's record is assembled with standard search parameters. Instances SHOULD carry `meta.tag = SPiERPathwayStage#<stage>` where the contact maps to a single pathway stage."
 * ^status = #draft
 * ^experimental = true
 * status 1..1
@@ -423,7 +423,7 @@ Profile: SPiERSafetyTask
 Parent: Task
 Id: spier-safety-task
 Title: "SPiER Safety Task"
-Description: "One piece of open suicide-safety work with an owner and a due date. ONE profile serves three Stage-7 tools, differentiated by Task.code: reassessment-due is the Reassessment / Risk Review Schedule (TL-039); the care-gap codes are Open Safety Actions / Care Gap Tracking (TL-040); the escalation code plus the escalation-trigger extension is the Risk Escalation / Overdue Workflow (TL-041). Task.restriction.period.end carries the due date, so 'overdue' is a computed query (restriction.period.end < now AND status != completed) rather than a stored state that can go stale."
+Description: "One piece of open suicide-safety work with an owner and a due date. One profile serves the reassessment schedule, care-gap tracking and overdue escalation, differentiated by `Task.code` (plus the escalation-trigger extension for escalations). `Task.restriction.period.end` carries the due date, so overdue is the query `restriction.period.end < now AND status != completed`, never a stored state."
 * ^status = #draft
 * ^experimental = true
 * status 1..1

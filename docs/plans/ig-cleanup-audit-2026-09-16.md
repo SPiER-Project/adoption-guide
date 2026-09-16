@@ -26,7 +26,7 @@ decision.
 | 5 — Quick Starts | in progress — instrument blocks first, each now linking its Questionnaire page and its result profile page (the navigation #473 made possible); then the harmonized read, the domain queries with the three no-`category` exceptions as one bullet each, the two-hop episode read, one paragraph on `_revinclude`. The three R4 tables (no-`category` types, elements that cannot reference an EpisodeOfCare, the episode exceptions) are `docs/decisions/record-retrieval-in-r4.md`. 1,925 → 1071 words. |
 | 6 — Care Pathway + Measures | in progress — Care Pathway 1,282 → 908 words (the not-encoded table is one clause per row; the drift-gate paragraph, the step-down detail and the historical-tier verification are `docs/decisions/pathway-not-encoded.md`); Measures 1,626 → 911 (the Stage 5–7 design-call defence and the dashboard/export/sharing essay are `docs/decisions/measure-design.md`; the three tools are one bullet each). Both above target because the KPI table, the seven-measure table and the denominator rules stayed whole. Check E now also fails on a bare `check:<name>` gate name (F8), planted and controlled. |
 | 7 — Relationship + Zero Suicide | in progress — Relationship 898 → 439 words (shared foundation, the complementary table, the three terminology bullets, one paragraph on why no dependency; the ED-nurse story, the fixtures paragraph and the 2026-08-12 inspection are `docs/decisions/behavioral-health-profiles-alignment.md`); Zero Suicide 765 → 516 (the two tables and a status line; the decomposition notes are `docs/decisions/zero-suicide-mapping.md`). |
-| 8 — FSH `Description` → `^purpose` | not started — see *Sequence* |
+| 8 — FSH `Description` → `^purpose` | in progress — 16 of the 17 Descriptions over 60 words rewritten to what/when plus the consequence an implementer acts on (the MeasureReport example's narration left alone); the two stage PlanDefinitions gain a rendered `purpose`, the two ConceptMaps already had one; the design defence goes to three new records (`handoff-artifact-shapes`, `follow-up-artifact-shapes`, `stage-7-artifact-shapes`) and an addition to `suicide-related-problem-set`. Verified by compiling before and after and diffing every leaf: only `description`/`purpose`/narrative paths differ. ⚠️ The probe that decided the shape: `^purpose` does not render on profile or code-system pages. |
 
 ## 1. What is there today, measured
 
@@ -79,8 +79,11 @@ reader needs the rule. Examples, with rough word counts:
 | How to Read | the C-SSRS `required`-item war story under tier derivation | ~100 | the rule: a `computed` item is `readOnly`, not `required`, and a filler must not demand it |
 | Design decisions | the whole page | 1,976 | six SHALL/SHOULD one-liners; the rest is rationale |
 
-**F5. Rationale is in `Description`, not `^purpose`.** The publisher renders
-`Description` at the top of every artifact page and `Purpose` further down.
+**F5. Rationale is in `Description`, not `^purpose`.** ⚠️ *Corrected 2026-09-16 in PR 8:*
+the base template renders `purpose` only on PlanDefinition and ConceptMap pages;
+on a profile, code system or value set it is invisible outside the raw views,
+so the split there is `Description` (what, when, the consequence an implementer
+acts on) plus a `docs/decisions/` record, not `^purpose`.
 SPiER puts both in `Description`, so a profile page opens with a 100-word
 paragraph that starts with what the profile is and ends with why a binding is
 extensible. Fourteen artifacts exceed 60 words (8 profiles, 2 CodeSystems, 2

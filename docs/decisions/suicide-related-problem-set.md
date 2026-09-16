@@ -16,6 +16,16 @@ fabrication the crosswalks refuse when they map a low-fidelity instrument to
 the widest defensible tier rather than the most alarming one. So SPiER derives
 no `Condition` from any screen, and no mapper in the app does either.
 
+## Why `verificationStatus` is required and `code` is extensible
+
+`verificationStatus` is required so that a consumer can tell a confirmed assertion
+apart from a provisional or differential one without inferring it from context.
+The `code` binding is extensible rather than required: the enumerated set is the
+reviewed one, but a real problem list will eventually carry a suicide-related
+finding nobody anticipated, and blocking it would push sites into `code.text` —
+losing the coding for the nine concepts that are covered along with the one that
+is not.
+
 ## Enumerated, not intensional
 
 The value set lists its nine SNOMED CT concepts explicitly rather than defining

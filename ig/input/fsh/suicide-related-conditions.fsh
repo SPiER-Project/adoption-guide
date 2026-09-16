@@ -24,7 +24,7 @@
 ValueSet: SPiERSuicideRelatedProblem
 Id: spier-suicide-related-problem-vs
 Title: "SPiER Suicide-Related Problem"
-Description: "Verified SNOMED CT concepts for suicide-related findings that may appear on a patient's problem list. Every member was checked against the publishing authority by $lookup and $validate-code, and the guide says so because the alternative has a price — a real code that means something adjacent validates cleanly while narrowing the finding. Enumerated rather than defined as a subsumption query so that a person reviewed each member; extensible, so a site with a finding outside the list is not blocked. Ordered as the clinical progression a pathway walks. Conformance states the rule; the decision record at https://github.com/SPiER-Project/adoption-guide/blob/main/docs/decisions/suicide-related-problem-set.md has the per-group reasoning and why depression is verified but not a member."
+Description: "Nine SNOMED CT concepts for suicide-related findings on a problem list — risk status, ideation through attempt, history of attempt, self-harm — each verified against the publishing authority and ordered as the clinical progression a pathway walks. Enumerated rather than intensional, and extensible. Depression is verified but deliberately not a member; the reasoning is at https://github.com/SPiER-Project/adoption-guide/blob/main/docs/decisions/suicide-related-problem-set.md."
 * ^status = #draft
 * ^experimental = true
 
@@ -52,7 +52,7 @@ Profile: SPiERSuicideRelatedCondition
 Parent: Condition
 Id: spier-suicide-related-condition
 Title: "SPiER Suicide-Related Condition"
-Description: "A suicide-related finding asserted by a clinician and carried on the patient's problem list. This profile is for clinician assertions only — a positive screening or assessment result is a SPiERSuicideRiskConcept Observation, and SPiER does not derive a Condition from one. `verificationStatus` is required so that a consumer can tell an assertion apart from a provisional or differential one without inferring it from context. The `code` binding is extensible rather than required: the enumerated set is the reviewed one, but a real problem list will eventually carry a suicide-related finding nobody anticipated, and blocking it would push sites into `code.text` — losing the coding for the nine concepts that ARE covered along with the one that is not."
+Description: "A suicide-related finding asserted by a clinician and carried on the patient's problem list. For clinician assertions only: a positive screening or assessment result is a SPiERSuicideRiskConcept Observation, and SPiER derives no Condition from one. `verificationStatus` is required so a consumer can tell a confirmed assertion from a provisional or differential one; `code` is bound extensibly so a finding outside the reviewed set is coded rather than pushed into `code.text`."
 * ^status = #draft
 * ^experimental = true
 

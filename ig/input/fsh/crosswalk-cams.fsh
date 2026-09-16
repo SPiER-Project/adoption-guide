@@ -31,7 +31,7 @@
 Instance: CAMSOverallRiskToRiskTier
 InstanceOf: ConceptMap
 Title: "CAMS SSF Overall Risk → SPiER Suicide Risk Tier"
-Description: "Maps the CAMS SSF self-rated Overall Risk of Suicide rating (1–5) to the common SPiER suicide-risk tiers (1–2 → low, 3 → moderate, 4–5 → high). Decision-support guidance intended to be clinician-overridable: CAMS is a collaborative therapeutic process, not a predictive screener, and no published psychometric stratification of the SSF Overall Risk rating exists (verified July 2026). No rating maps to `imminent` — escalation to imminent risk requires separate clinical triage. Proposed crosswalk pending clinical sign-off (#93)."
+Description: "Maps the CAMS SSF self-rated Overall Risk of Suicide rating (1–5) to the SPiER suicide-risk tiers: 1–2 → low, 3 → moderate, 4–5 → high. No rating maps to `imminent`; every row is clinician-overridable decision support. Proposed crosswalk pending clinical sign-off."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ConceptMap/CAMSOverallRiskToRiskTier"
 * version = "0.1.0"
@@ -39,7 +39,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
-* purpose = "Translate the SPiER-local CAMS SSF Overall Risk rating into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume a CAMS SSF self-rating without understanding CAMS — while preserving that the assignment is clinician-overridable decision support, not a predictive score."
+* purpose = "Translate the SPiER-local CAMS SSF Overall Risk rating into the instrument-agnostic suicide-risk-tier ValueSet so partner systems can consume a CAMS SSF self-rating without understanding CAMS — while preserving that the assignment is clinician-overridable decision support, not a predictive score. CAMS is a collaborative therapeutic process, not a predictive screener, and no published psychometric stratification of the SSF Overall Risk rating exists (verified July 2026); escalation to imminent risk is a separate clinical triage decision a self-rating cannot make."
 * sourceCanonical = "http://thespierproject.org/fhir/ValueSet/cams-ssf-overall-risk"
 * targetCanonical = "http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs"
 

@@ -266,7 +266,7 @@ Profile: SPiERSuicideRiskConcept
 Parent: Observation
 Id: spier-suicide-risk-concept
 Title: "SPiER Suicide Risk Concept Observation"
-Description: "The instrument-agnostic, actionable suicide-risk concept derived from a completed screening/assessment. Carries the generic LOINC 93374-7 ('Suicide risk level'), a common risk-tier value, a universal interpretation flag, a domain category, and a derivedFrom link back to the source QuestionnaireResponse (and/or instrument-specific Observations). This is a screening-level, UNCONFIRMED concept that flags a need for follow-up — it does not confirm a diagnosis and should be verified by a care team member."
+Description: "The instrument-agnostic suicide-risk concept derived from a completed screening or assessment: LOINC 93374-7, a common risk-tier value, an interpretation flag, the domain category, and a derivedFrom link to the source QuestionnaireResponse or instrument Observations. A screening-level, unconfirmed signal that flags a need for follow-up — not a diagnosis, and to be verified by a care team member."
 * ^status = #draft
 * ^experimental = true
 * status = #final (exactly)
