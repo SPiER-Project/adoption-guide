@@ -297,8 +297,13 @@ jobs:
           # `${errs:-?}` fallbacks dead code and left the real hole visible only
           # by reading bash semantics. Made explicit here: an unparseable report
           # is a failure, never an unknown count that passes the check below.
-          errs=$(grep -oiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+' || true)
-          broken=$(grep -oiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+' || true)
+          # `-a`: the publisher log can carry bytes GNU grep classifies as binary
+          # (it did once the Questionnaires were loaded, #512); without -a grep
+          # prints "binary file matches" instead of the match and the count
+          # below reads as unparsed — which this step correctly refuses, but
+          # it would have refused every deploy.
+          errs=$(grep -aoiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+' || true)
+          broken=$(grep -aoiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+' || true)
           echo "IG QA → errors=${errs:-unparsed} brokenLinks=${broken:-unparsed}"
           if [ -z "$errs" ] || [ -z "$broken" ]; then
             echo "::error::could not read the QA counts (errors='${errs}' brokenLinks='${broken}') from ig/output/qa.txt and ig/publisher.log — the publisher's output format may have changed. Refusing to deploy on an unknown count."

@@ -21,11 +21,14 @@ ig/
 `path-resource: input/resources/maps` (the publisher's default scan of
 `input/resources` does not recurse); see that folder's README for authoring
 rules and gate coverage. `input/resources/questionnaires` is a **symlink** to
-`FHIR-Resources/` at the repo root, listed as `path-resource:
-input/resources/questionnaires/*` (the trailing `/*` recurses into each tool's
-folder); it is a symlink because the publisher refuses a `path-resource` that
-escapes the IG root, and the Questionnaires cannot move — the app imports the
-same files. `input/cql/` is compiled to ELM and attached to
+`FHIR-Resources/` at the repo root, and each tool folder under it is its own
+`path-resource` entry (`input/resources/questionnaires/ASQ`, …); it is a
+symlink because the publisher refuses a `path-resource` that escapes the IG
+root, and the Questionnaires cannot move — the app imports the same files. One
+entry per folder rather than the recursive `/*` form, because the publisher
+tries to load every file it finds and the `references/` subfolders hold PDFs;
+a new tool folder needs its line here, and `check-ig-narrative.mjs` fails when
+one is missing. `input/cql/` is compiled to ELM and attached to
 `Library/SPiERSuicideSaferCareMeasures` only because `sushi-config.yaml` sets
 `path-binary: input/cql`, the CQL loader's activation switch. All three are
 one config line away from silently not being built.

@@ -224,10 +224,21 @@ jobs:
           fi
           # qa.txt header line format (IG Publisher 2.x): "err = N, warn = M, info = K"
           # Broken-link total is reported in the publisher log: "Broken Links: N"
-          errs=$(grep -oiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+')
-          warns=$(grep -oiE 'warn *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+')
-          broken=$(grep -oiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+')
-          echo "QA → errors=${errs:-?} warnings=${warns:-?} brokenLinks=${broken:-?}"
+          # `-a`: the publisher log can carry bytes GNU grep classifies as binary
+          # (it did the moment the Questionnaires were loaded, #512), and without
+          # -a grep prints "binary file matches" INSTEAD of the match — the count
+          # parses empty, the `$(…)` substitution exits non-zero, and under
+          # `bash -e` the step dies with no message at all. `|| true` then an
+          # explicit emptiness check turn that into a named failure instead of
+          # a silent one, the same shape deploy.yml already uses.
+          errs=$(grep -aoiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+' || true)
+          warns=$(grep -aoiE 'warn *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+' || true)
+          broken=$(grep -aoiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+' || true)
+          echo "QA → errors=${errs:-unparsed} warnings=${warns:-unparsed} brokenLinks=${broken:-unparsed}"
+          if [ -z "$errs" ] || [ -z "$broken" ]; then
+            echo "::error::could not read the QA counts (errors='${errs}' brokenLinks='${broken}') from output/qa.txt and publisher.log — the publisher's output format may have changed. Refusing to pass on an unknown count."
+            exit 1
+          fi
           {
             echo "### IG Publisher QA"
             echo ""
@@ -239,8 +250,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           # Gate: fail on any IG Publisher error or broken link. The baseline is
           # 0 / 0 as of Phase 2a (#84); this guards against regressions.
-          if { [ -n "$errs" ] && [ "$errs" != "0" ]; } || { [ -n "$broken" ] && [ "$broken" != "0" ]; }; then
-            echo "::error::IG Publisher reported ${errs:-?} error(s) and ${broken:-?} broken link(s) — see the qa.html artifact"
+          if [ "$errs" != "0" ] || [ "$broken" != "0" ]; then
+            echo "::error::IG Publisher reported ${errs} error(s) and ${broken} broken link(s) — see the qa.html artifact"
             exit 1
           fi
 

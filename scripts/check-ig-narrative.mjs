@@ -89,12 +89,13 @@
  * locally — see docs/internals/build-gotchas.md.
  */
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs'
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { stripComments } from './lib/jsx-comments.mjs'
 
 import {
   ROOT,
+  CONFIG,
   PAGECONTENT,
   FSH_GENERATED,
   GENERATED_PAGES,
@@ -236,13 +237,41 @@ function* resourceFiles(dir, recursive) {
   }
 }
 
-for (const { dir, recursive } of parsePathResource(configText, bail)) {
+const pathResourceDirs = parsePathResource(configText, bail)
+const declaredDirs = new Set(pathResourceDirs.map(({ dir }) => resolve(ROOT, 'ig', dir)))
+for (const { dir, recursive } of pathResourceDirs) {
   const abs = resolve(ROOT, 'ig', dir)
   if (!existsSync(abs)) {
     bail(
       `\`path-resource\` names ${dir}, but ${rel(abs)} does not exist — the publisher loads that ` +
         `directory, so check H cannot resolve links to what is in it`,
     )
+  }
+  // ⚠️ The Questionnaires are listed one tool FOLDER at a time (see the
+  // path-resource comment in sushi-config.yaml for why not `/*`), so a new tool
+  // folder that nobody adds to the list is a Questionnaire the IG silently does
+  // not publish — SUSHI compiles clean, the app imports the file, and only the
+  // Artifacts page is missing an entry. The forgotten folder is a SIBLING of the
+  // listed ones (questionnaires/CRP beside questionnaires/ASQ), so the walk is
+  // over each listed directory's parent: any sibling directory that no entry
+  // names and that holds resource JSON at its top level is a bail. Subfolders
+  // of a listed directory get the same test, for the same reason.
+  if (!recursive) {
+    for (const parent of [resolve(abs, '..'), abs]) {
+      for (const entry of readdirSync(parent, { withFileTypes: true })) {
+        const sub = join(parent, entry.name)
+        const isDir = entry.isDirectory() || (entry.isSymbolicLink() && existsSync(sub) && statSync(sub).isDirectory())
+        if (!isDir || declaredDirs.has(sub)) continue
+        const stray = readdirSync(sub).filter((f) => f.endsWith('.json'))
+        if (stray.length) {
+          bail(
+            `${rel(sub)} holds ${stray.length} resource JSON file(s) (${stray[0]}…) but no \`path-resource\` entry ` +
+              `names it — the publisher will not load it, so the IG silently omits it. Add ` +
+              `\`- ${rel(sub).replace(/^ig\//, '')}\` to path-resource in ${rel(CONFIG)}.`,
+          )
+        }
+      }
+    }
   }
   for (const path of resourceFiles(abs, recursive)) {
     const file = path.slice(abs.length + 1)

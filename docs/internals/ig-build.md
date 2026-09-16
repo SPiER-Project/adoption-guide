@@ -174,10 +174,20 @@ code+display literals in `packages/core/src/lib/*Mappers/`, even though those la
 
 `FHIR-Resources/` is checked by the validator job **and**, since #473, by the
 IG Publisher: `ig/input/resources/questionnaires` is a tracked symlink to that
-folder, named in `sushi-config.yaml` as `path-resource:
-input/resources/questionnaires/*`, so the 18 Questionnaires, the two CarePlan
-templates and the ASQ yes/no ValueSet are loaded, validated and rendered as IG
-artifacts. `ig-publish.yml` therefore triggers on `FHIR-Resources/**/*.json`
+folder, and each tool folder under it is a `path-resource` entry in
+`sushi-config.yaml`, so the 18 Questionnaires, the two CarePlan templates and
+the ASQ yes/no ValueSet are loaded, validated and rendered as IG artifacts.
+⚠️ **Per folder, never the recursive `questionnaires/*` form.** The publisher
+tries to load every file it finds — SUSHI skips non-JSON/XML, the publisher does
+not — and the tools' `references/` subfolders hold PDFs, DOCX and XLSX. The
+first CI run with `/*` logged 34 *Error loading … as Turtle* lines, spilled the
+binaries' bytes into `publisher.log`, and GNU grep then refused to read the QA
+counts out of a "binary" file: the QA step died under `bash -e` with no message
+while the QA itself was 0 errors / 0 broken links (#512). Both workflows now
+grep with `-a` and fail by name on an unparsed count, and
+`check-ig-narrative.mjs` fails on a resource JSON one folder below a listed
+directory that no entry reaches, so a new tool folder cannot be silently
+unpublished. `ig-publish.yml` therefore triggers on `FHIR-Resources/**/*.json`
 too, and `deploy.yml`'s render cache key hashes it — a Questionnaire edit with
 no `ig/` change must not reuse a cached render. After a substantial change you
 can still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
