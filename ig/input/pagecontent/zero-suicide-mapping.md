@@ -1,86 +1,47 @@
 # Zero Suicide ↔ SPiER mapping
 
-## Why this mapping matters
-
 [Zero Suicide](https://zerosuicide.edc.org/) is a framework for systematic
-suicide-safer care, organized around seven foundational elements. SPiER is
-a FHIR-native technical implementation of the **clinical workflow layers**
-of that framework — the layers that an EHR can actually execute, store,
-and exchange.
+suicide-safer care organized around seven elements. SPiER is a FHIR
+implementation of the framework's **clinical workflow layers** — the ones an
+EHR can execute, store and exchange. This page states which elements SPiER
+models and which are organizational concerns it deliberately does not encode.
 
-The mapping below makes the scope split explicit: which Zero Suicide
-elements SPiER models, and which are organizational concerns that the
-framework addresses but SPiER does not (and should not) try to encode in
-FHIR.
+> **Draft for Zero Suicide Institute review.** This is SPiER's interpretation
+> from publicly available Zero Suicide materials; the Institute has not yet
+> reviewed it.
 
-> **Status: draft for Zero Suicide Institute review.** This page reflects
-> SPiER's interpretation of the mapping based on publicly available Zero
-> Suicide materials. It has not yet been reviewed by the Zero Suicide
-> Institute.
+## The seven elements
 
-## The seven elements of Zero Suicide
-
-| # | Element       | What it means                                                                     | SPiER scope?     |
-|---|---------------|-----------------------------------------------------------------------------------|------------------|
-| 1 | **Lead**      | Create a leadership-driven, safety-oriented culture committed to reducing suicide | Out of scope     |
-| 2 | **Train**     | Develop a competent, confident, and caring workforce                              | Out of scope     |
-| 3 | **Identify**  | Systematically identify and assess suicide risk among all people receiving care   | In scope         |
-| 4 | **Engage**    | Ensure every individual has a pathway to care that is both timely and adequate    | In scope         |
-| 5 | **Treat**     | Use effective, evidence-based treatments that target suicidality directly         | In scope         |
-| 6 | **Transition**| Provide continuous contact and support, especially after acute care               | In scope         |
-| 7 | **Improve**   | Apply a data-driven quality improvement approach to inform system changes         | In scope         |
-
-**Out of scope (organizational, not encoded in FHIR):**
-*Lead* and *Train* are essential to a Zero Suicide implementation but live
-above the EHR layer. They involve organizational commitment, leadership
-buy-in, staff training, and competency assessment. SPiER assumes these are
-in place; it does not model them as FHIR resources.
+| # | Element | What it means | SPiER scope |
+|---|---|---|---|
+| 1 | **Lead** | A leadership-driven, safety-oriented culture committed to reducing suicide | Out of scope — organizational, above the EHR |
+| 2 | **Train** | A competent, confident and caring workforce | Out of scope — organizational, above the EHR |
+| 3 | **Identify** | Systematically identify and assess suicide risk among all people receiving care | In scope |
+| 4 | **Engage** | Ensure every individual has a timely, adequate pathway to care | In scope |
+| 5 | **Treat** | Use effective, evidence-based treatments that target suicidality directly | In scope (the pathway view of treatment) |
+| 6 | **Transition** | Continuous contact and support, especially after acute care | In scope |
+| 7 | **Improve** | A data-driven quality-improvement approach | In scope (measures and population views) |
 
 ## SPiER stages ↔ Zero Suicide elements
 
-SPiER's eight technical stages decompose Zero Suicide's *Identify*,
-*Engage*, *Treat*, *Transition*, and *Improve* elements into actionable
-EHR workflow steps:
+SPiER's eight technical stages decompose *Identify*, *Engage*, *Treat*,
+*Transition* and *Improve* into EHR workflow steps, each published as a
+PlanDefinition (the [pathway group](artifacts.html#6) on the Artifacts page):
 
-| SPiER stage                | Maps to Zero Suicide  | What the EHR does at this stage                                                                                  |
-|----------------------------|-----------------------|------------------------------------------------------------------------------------------------------------------|
-| 1. **Identify Possible Risk** | Identify              | Capture a suicide-related signal (positive screen, behavioral cue) and indicate that further review is needed.   |
-| 2. **Clarify Risk**        | Identify              | Capture the nature, severity, and context of risk via structured assessment.                                     |
-| 3. **Define the Risk Picture** | Identify              | Document the current risk status and the clinical reasoning that determines next steps.                          |
-| 4. **Document Safety Actions** | Engage            | Document concrete safety-promoting actions: safety planning, means counseling, lethal-means restriction.        |
-| 5. **Coordinate Handoffs** | Transition            | Transfer suicide-safety information, responsibility, and follow-up across people, settings, and time points.     |
-| 6. **Track Follow-Up**     | Transition            | Track whether outreach (caring contacts, scheduled follow-ups) actually occurs after the immediate encounter.    |
-| 7. **Track Risk Over Time** | Treat                 | Keep active suicide-safer care episodes visible, trackable, and escalated when needed.                           |
-| 8. **Measure and Share the Data** | Improve               | Make pathway activity usable for reporting, QI, accountability, and information sharing.                         |
+| SPiER stage | Zero Suicide element | What the EHR does at this stage |
+|---|---|---|
+| 1. **Identify Possible Risk** | Identify | Capture a suicide-related signal (positive screen, behavioral cue) and indicate that further review is needed |
+| 2. **Clarify Risk** | Identify | Capture the nature, severity and context of risk via structured assessment |
+| 3. **Define the Risk Picture** | Identify | Document the current risk status and the clinical reasoning that determines next steps |
+| 4. **Document Safety Actions** | Engage | Document concrete safety-promoting actions: safety planning, means counseling, lethal-means restriction |
+| 5. **Coordinate Handoffs** | Transition | Transfer suicide-safety information, responsibility and follow-up across people, settings and time |
+| 6. **Track Follow-Up** | Transition | Track whether outreach (caring contacts, scheduled follow-ups) actually occurs after the encounter |
+| 7. **Track Risk Over Time** | Treat | Keep active suicide-safer care episodes visible, trackable and escalated when needed |
+| 8. **Measure and Share the Data** | Improve | Make pathway activity usable for reporting, QI, accountability and information sharing |
 
-All eight stages have a published `PlanDefinition`; how far each one's actions
-are modelled varies, and that state is tracked per tool in the companion app's
-[Roadmap](https://github.com/SPiER-Project/adoption-guide/milestones) rather
-than restated here.
-
-### Notes on the mapping
-
-- **Identify decomposes into three SPiER stages**, not one. The framework
-  treats *Identify* as a single element; SPiER separates the *signal*
-  (Identify Possible Risk), the *structured assessment* (Clarify Risk),
-  and the *clinical disposition* (Define the Risk Picture) because each produces distinct
-  FHIR resources with distinct workflow triggers between them.
-
-- **Transition decomposes into Coordinate Handoffs and Track Follow-Up.**
-  Coordination is the act of handing off; tracking is the act of confirming
-  the receiving side picked up. They are temporally distinct and produce
-  different FHIR resources (`ServiceRequest`/`Task` for coordination;
-  `Communication`/`Procedure` for follow-up tracking).
-
-- **Treat maps to a single stage (Track Risk Over Time).** SPiER's scope here
-  is the *pathway view* of treatment — tracking that someone is in an
-  active suicide-focused care episode (e.g., CAMS), updating that episode
-  with new sessions and SSF measures. Specific therapeutic modalities are
-  Zero Suicide's *Treat* element in full but are out of SPiER's
-  EHR-pathway scope.
-
-- **Improve is intentionally light.** SPiER's *Measure and Share the Data* stage
-  surfaces pathway-completion measures and population-level views (see the
-  companion app's [population dashboard](https://spier-project.github.io/adoption-guide/#/guide/dashboard)).
-  Full QI methodology — running PDSA cycles, board reporting cadence — is
-  Zero Suicide's territory, not SPiER's.
+*Identify* spans three stages because signal, structured assessment and
+clinical disposition each produce distinct FHIR resources with a workflow
+trigger between them; *Transition* spans two because handing off and
+confirming the receiving side picked up are temporally distinct and produce
+different resources. The other decompositions, and what SPiER leaves to the
+framework, are recorded with the artifacts' design decisions.

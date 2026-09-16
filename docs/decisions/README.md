@@ -17,6 +17,7 @@ exists, this folder is the record.
 A record keeps its historical wording and dates. If a decision is reversed,
 add a dated note at the top rather than rewriting the record.
 
+* [`behavioral-health-profiles-alignment.md`](behavioral-health-profiles-alignment.md) — same LOINC codes as the HL7 US Behavioral Health Profiles IG, no package dependency on it: the fixtures that prove the alignment and the August 2026 inspection that deferred the dependency.
 * [`crosswalk-kinds.md`](crosswalk-kinds.md) — ConceptMap for coded dispositions, StructureMap for values, why the ASQ and C-SSRS carry both, and why no CAMS rating maps to `imminent`.
 * [`domain-category-required.md`](domain-category-required.md) — why the suicide-risk domain slice is `1..1`, additive and orthogonal to the stage axis, and the category-loss defect that shaped the named slices.
 * [`interpretation-vocabularies.md`](interpretation-vocabularies.md) — `POS`/`NEG` on the concept layer, `A`/`H`/`L` on the instrument layer: an open inconsistency, recorded as such.
@@ -28,3 +29,4 @@ add a dated note at the top rather than rewriting the record.
 * [`safety-plan-section-codes.md`](safety-plan-section-codes.md) — the LOINC 2.82 search that came up empty and its three near-misses; `87626-8` as a discoverability tag, not a document claim; why the safety-plan and CAMS section systems stay separate.
 * [`suicide-related-problem-set.md`](suicide-related-problem-set.md) — enumerated not intensional, the `86849004` mis-citation, the reasoning inside each grouping, why depression is verified but not a member, and why a CAMS driver stays narrative.
 * [`tier-derivation-required-items.md`](tier-derivation-required-items.md) — why a Questionnaire item whose value is computed is never `required`, and the three C-SSRS forms that got it wrong.
+* [`zero-suicide-mapping.md`](zero-suicide-mapping.md) — why Lead and Train are out of scope, why *Identify* is three stages and *Transition* two, why *Treat* is one and *Improve* is light.
