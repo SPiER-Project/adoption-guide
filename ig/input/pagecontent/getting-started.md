@@ -6,7 +6,7 @@ This page gets a developer from zero to validating their own resources against S
 
 Three ways, depending on your tooling:
 
-- **Browse** — the [Artifacts](artifacts.html) page lists every profile, value set, code system, ConceptMap, and example. Each example is downloadable as JSON.
+- **Browse** — the [Artifacts](artifacts.html) page lists every Questionnaire, profile, value set, code system, ConceptMap, and example. Each is downloadable as JSON; the Questionnaires (for example the [ASQ](Questionnaire-ASQ-Screening-Tool.html) and the [PHQ-9](Questionnaire-PHQ-9.html)) are the forms themselves, ready to load into an SDC-capable form filler.
 - **IG package** — the IG publishes a FHIR NPM package, `thespierproject.fhir` (canonical `http://thespierproject.org/fhir`). Point your FHIR tooling (Sushi, the HL7 validator, a Firely/HAPI server) at it to load all definitions at once.
 - **Build locally** — clone [the repo](https://github.com/SPiER-Project/adoption-guide), then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the FSH sources to FHIR JSON (`fsh-generated/`), and the HL7 IG Publisher to render this site.
 

@@ -46,6 +46,11 @@ on:
   pull_request:
     paths:
       - 'ig/input/**'
+      # The Questionnaires are IG inputs too, loaded from outside ig/ via
+      # `path-resource: ../FHIR-Resources/*` (#473). A Questionnaire edit renders
+      # differently and can break a QuestionnaireResponse example's validation,
+      # so it must trigger the full publisher like any other ig/input change.
+      - 'FHIR-Resources/**/*.json'
       - 'ig/sushi-config.yaml'
       - 'ig/ig.ini'
       - '.github/workflows/ig-publish.yml'

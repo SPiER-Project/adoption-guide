@@ -134,6 +134,7 @@ Always update `ig/input/pagecontent/zero-suicide-mapping.md` to add the new inst
 ### 7. Update cross-cutting docs
 
 - `FHIR-Resources/README.md` — add a row to the instruments table.
+- Nothing to wire for the IG's Artifacts page: every `*.json` under `FHIR-Resources/<INSTRUMENT>/` is published automatically through the `ig/input/resources/questionnaires` symlink (#473). Two things the publisher enforces on it: the resource has an `id`, and that `id` equals the last segment of its `url` (`.../Questionnaire/PHQ-9` → `"id": "PHQ-9"`); `check-ig-narrative.mjs` fails on a missing id, the publisher on a mismatch.
 - `docs/README.md` — the documentation index; add an entry only if the instrument gets its own doc.
 - Open a tracking issue with the right labels (`tool:TL-XXX`, `type:epic`). GitHub Issues is the only roadmap; the app has no Roadmap page.
 - Run the quality skill's checklist one more time end-to-end.

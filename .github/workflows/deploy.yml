@@ -128,8 +128,11 @@ jobs:
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       # Keyed on every input that determines the render: the IG sources, the
-      # SUSHI config (canonical, version, dependencies), ig.ini (template +
-      # entry point) and the publisher version. The key carries the run id so
+      # Questionnaire JSON under FHIR-Resources/ (loaded into the IG via
+      # `path-resource: ../FHIR-Resources/*` since #473 — a Questionnaire edit
+      # with no ig/ change must NOT reuse a cached render), the SUSHI config
+      # (canonical, version, dependencies), ig.ini (template + entry point) and
+      # the publisher version. The key carries the run id so
       # every render saves successfully; `restore-keys` does the actual matching
       # on the prefix. Consequence to keep in mind: a match is a *prefix* match,
       # so the newest render for this (inputs, publisher) pair wins.
@@ -145,9 +148,9 @@ jobs:
           path: |
             ig/output
             ig/publisher.log
-          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+          key: ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
           restore-keys: |
-            ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-
+            ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-
 
       # A restored render is only usable if it is actually complete. A truncated
       # or partially-uploaded cache entry would otherwise deploy a broken IG, so
@@ -315,7 +318,7 @@ jobs:
           path: |
             ig/output
             ig/publisher.log
-          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+          key: ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
 
       # The render size is reported because it is the one number this design does
       # not know in advance and that could make it a bad trade: every render

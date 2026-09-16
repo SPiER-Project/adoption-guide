@@ -212,7 +212,31 @@ if (generatedRead === 0) {
 // Hand-authored resources the publisher loads via `path-resource` — see
 // parsePathResource for why the five FML StructureMaps depend on this.
 const configText = readConfig()
-for (const dir of parsePathResource(configText, bail)) {
+//
+// A `/*` entry (FHIR-Resources/*, #473) means the directory AND every subfolder,
+// which is what the publisher and SUSHI both do with that form — so the walk here
+// mirrors it, or the Questionnaires would be published and this index would
+// still call every link to them broken.
+//
+// ⚠️ A resource file with no `id` is a bail, not a skip. The publisher names the
+// rendered page `<Type>-<id>.html`, so an id-less resource either fails the
+// publisher or renders under a name nothing can predict; either way a link to it
+// cannot be checked, and skipping it quietly would make check H pass over a page
+// it never indexed. The Stanley-Brown Questionnaire shipped without an id for
+// its whole life before #473 — the app never needed one — which is exactly the
+// file this would have caught.
+function* resourceFiles(dir, recursive) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (recursive) yield* resourceFiles(p, true)
+    } else {
+      yield p
+    }
+  }
+}
+
+for (const { dir, recursive } of parsePathResource(configText, bail)) {
   const abs = resolve(ROOT, 'ig', dir)
   if (!existsSync(abs)) {
     bail(
@@ -220,24 +244,33 @@ for (const dir of parsePathResource(configText, bail)) {
         `directory, so check H cannot resolve links to what is in it`,
     )
   }
-  for (const file of readdirSync(abs)) {
+  for (const path of resourceFiles(abs, recursive)) {
+    const file = path.slice(abs.length + 1)
     if (file.endsWith('.json')) {
+      let res
       try {
-        const res = JSON.parse(readFileSync(join(abs, file), 'utf8'))
-        if (typeof res?.resourceType === 'string' && typeof res?.id === 'string') {
-          artifactPages.add(`${res.resourceType}-${res.id}.html`)
-        }
+        res = JSON.parse(readFileSync(path, 'utf8'))
       } catch {
-        bail(`${rel(join(abs, file))} is not readable JSON — the artifact index would be incomplete`)
+        bail(`${rel(path)} is not readable JSON — the artifact index would be incomplete`)
       }
+      if (typeof res?.resourceType !== 'string') {
+        bail(`${rel(path)} has no resourceType — the publisher will try to load it as a resource and fail`)
+      }
+      if (typeof res.id !== 'string' || res.id === '') {
+        bail(
+          `${rel(path)} (${res.resourceType}) has no id — the publisher names its page <Type>-<id>.html, ` +
+            `so no link to it can be checked; give it an id (for a canonical resource, the last segment of its url)`,
+        )
+      }
+      artifactPages.add(`${res.resourceType}-${res.id}.html`)
     } else if (file.endsWith('.fml')) {
       // `map "<canonical>/StructureMap/<id>" = "<name>"` — the id is what names
       // the rendered page.
-      const text = readFileSync(join(abs, file), 'utf8')
+      const text = readFileSync(path, 'utf8')
       const m = /^map\s+"([^"]*\/StructureMap\/([^"/]+))"/m.exec(text)
       if (!m) {
         bail(
-          `${rel(join(abs, file))} has no \`map "…/StructureMap/<id>" = …\` header this gate can read — ` +
+          `${rel(path)} has no \`map "…/StructureMap/<id>" = …\` header this gate can read — ` +
             `its rendered page name is unknown, so a link to it could not be resolved`,
         )
       }

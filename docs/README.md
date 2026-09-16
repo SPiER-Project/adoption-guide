@@ -93,6 +93,7 @@ has landed. A finished plan moves to [`plans/archive/`](plans/archive/) with a
 
 * [`plans/next-session-handoff.md`](plans/next-session-handoff.md) — start here. Deliberately short: it says which plan to read first and why, and records what happens when a plan doc is not kept current.
 * [`plans/docs-and-ig-content-consolidation.md`](plans/docs-and-ig-content-consolidation.md) — this consolidation: repo mechanics leaked into the IG pages, normative rationale leaked out into FSH `//` comments the publisher never renders, and the pitch and stage list were each copied five to seven times. Three phases; its Status table says what has landed.
+* [`plans/ig-cleanup-audit-2026-09-16.md`](plans/ig-cleanup-audit-2026-09-16.md) — the IG read for a vendor implementer: per-page keep/cut/move verdicts (11.9k → ~5.2k words), artifact groups instead of pruning, the Questionnaires-are-absent finding, and five decisions to make before any edit.
 * [`plans/structure-simplification-scope.md`](plans/structure-simplification-scope.md) — phased simplification of the repo's layout; one PR per phase, never combined.
 * [`plans/repo-and-package-boundaries.md`](plans/repo-and-package-boundaries.md) — one repo with declared packages, and why the answer to "separate repos?" turned out to be a different question.
 * [`plans/surfaces-and-distribution.md`](plans/surfaces-and-distribution.md) — what counts as an app, what ships to whom, and where each surface runs.

@@ -71,8 +71,30 @@ parameters:
   # scan of input/resources does not recurse into subfolders. Naming the
   # subfolder explicitly is what makes ig/input/resources/maps/*.fml become
   # published StructureMaps (issues #92 / #229).
+  #
+  # The Questionnaires are the Capture layer's central artifact and live OUTSIDE
+  # ig/, in FHIR-Resources/<tool>/ at the repo root, because the app imports the
+  # same JSON at runtime and "one canonical URL, one definition" forbids a second
+  # copy. `input/resources/questionnaires` is a SYMLINK to that tree (tracked in
+  # git), and naming it here is what publishes them: SUSHI lists every JSON it
+  # finds in the ImplementationGuide resource and the publisher renders each as
+  # Questionnaire-<id>.html, so ActivityDefinition.relatedArtifact and
+  # QuestionnaireResponse.questionnaire finally resolve (#473).
+  #
+  # ⚠️ A symlink, not `../FHIR-Resources/*`: the publisher refuses any
+  # path-resource that escapes the IG root ("Computed path does not start with
+  # first element"), and the alternative — moving the JSON under ig/ — would split
+  # every per-tool folder across two trees and touch ~30 consumers of the
+  # FHIR-Resources path. The trailing `/*` is the publisher's own "recurse into
+  # subfolders" form — SUSHI implements the same rule — so a new tool folder is
+  # published without a config edit, and the non-JSON files in those folders
+  # (READMEs, licensing memos, reference PDFs) are skipped by both loaders. The
+  # two CarePlan templates and the ASQ yes/no ValueSet that sit beside the
+  # Questionnaires come along as examples, which is correct: they are FHIR
+  # resources the app ships.
   path-resource:
     - input/resources/maps
+    - input/resources/questionnaires/*
   # THE CQL LOADER'S ACTIVATION SWITCH. The IG-parameters CodeSystem defines
   # path-binary as files "only used in the context of the CQL loader" — without
   # this line the publisher walks past input/cql in total silence, translating

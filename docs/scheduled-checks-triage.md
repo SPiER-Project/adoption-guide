@@ -114,6 +114,14 @@ Response depends on which job is red, because only one of them has a mechanism:
   definition. Record the expected failure below instead and leave the tracking
   issue open until tx catches up. `ig.yml` runs this same script with `-tx n/a`,
   so a PR is unaffected either way.
+- **IG Publisher** (`ig-publish.yml`, `deploy.yml`) — since #473 the
+  Questionnaires are IG artifacts, so the publisher validates their codes against
+  tx.fhir.org too, and an unknown code there is an ERROR that fails the QA gate
+  and blocks the deploy. The only lever is `ig/input/ignoreWarnings.txt`, so the
+  affected messages are suppressed there **verbatim, pinned to the server's LOINC
+  version** — a pin that makes the suppression expire on its own: once the server
+  moves to a newer edition the message text changes and either stops appearing
+  (code resolves) or stops matching (code still unknown, and now reported).
 
 **Currently expected, resources job:** the ASQ Questionnaire's LOINC codes —
 panel `115564-7`, items `115566-2`, `115567-0`, `115568-8`, `115569-6`,
@@ -121,9 +129,10 @@ panel `115564-7`, items `115566-2`, `115567-0`, `115568-8`, `115569-6`,
 `LA37191-6` on the recency item (which also appear in
 `packages/demo-population/src/scenarios/patient-013.json`). Published in LOINC
 2.83, adopted 2026-09-08 (see `ig/input/fsh/asq.fsh`), and not served by
-tx.fhir.org's 2.82. Delete this paragraph and the matching `PENDING_TX` lines
-together once the server updates — a lingering entry in either place is a hole
-in the gate.
+tx.fhir.org's 2.82. Delete this paragraph, the matching `PENDING_TX` lines and
+the ten `Unknown code … version '2.82'` lines in `ig/input/ignoreWarnings.txt`
+together once the server updates — a lingering entry in any of the three is a
+hole in the gate.
 
 ### Cause 2 — `tx.fhir.org` was unreachable or erroring
 

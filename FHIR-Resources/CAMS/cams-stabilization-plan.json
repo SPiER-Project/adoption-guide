@@ -1,6 +1,6 @@
 {
   "resourceType": "Questionnaire",
-  "id": "cams-stabilization-plan",
+  "id": "CAMS-Stabilization-Plan",
   "url": "http://thespierproject.org/fhir/Questionnaire/CAMS-Stabilization-Plan",
   "version": "1.0.0",
   "name": "CAMS_Stabilization_Plan",

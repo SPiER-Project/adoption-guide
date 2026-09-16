@@ -172,9 +172,44 @@ in CI so external codes go unchecked, and **nothing at all** validated the
 code+display literals in `packages/core/src/lib/*Mappers/`, even though those land in
 `Observation.code.coding` on every generated resource at runtime.
 
-The validator job is the only thing that checks `FHIR-Resources/` at all — the IG
-Publisher is triggered by `ig/**` alone. After a substantial `ig/` change you can
-still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
+`FHIR-Resources/` is checked by the validator job **and**, since #473, by the
+IG Publisher: `ig/input/resources/questionnaires` is a tracked symlink to that
+folder, named in `sushi-config.yaml` as `path-resource:
+input/resources/questionnaires/*`, so the 18 Questionnaires, the two CarePlan
+templates and the ASQ yes/no ValueSet are loaded, validated and rendered as IG
+artifacts. `ig-publish.yml` therefore triggers on `FHIR-Resources/**/*.json`
+too, and `deploy.yml`'s render cache key hashes it — a Questionnaire edit with
+no `ig/` change must not reuse a cached render. After a substantial change you
+can still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
+
+⚠️ **Why a symlink and not `path-resource: ../FHIR-Resources/*`.** The
+publisher refuses any resource path that escapes the IG root — *"Computed path
+does not start with first element"* — before it loads a single resource. The
+Questionnaires cannot move under `ig/` without splitting every per-tool folder
+(README, licensing memo, references) across two trees and re-pointing some
+thirty consumers of the `FHIR-Resources/` path, so the IG reaches out through
+a symlink instead. SUSHI, the publisher and `check-ig-narrative.mjs` all follow
+it; a Windows checkout without symlink support gets a text file where the
+directory should be, and the publisher fails loudly on the missing path.
+
+⚠️ **The `QuestionnaireRenderer` NPE that kept the Questionnaires out is gone,
+and the suppression that covered for it was hiding real defects.**
+`ignoreWarnings.txt` suppressed every unresolved Questionnaire canonical for
+the guide's whole life on the strength of a crash observed against an older
+publisher and never re-tested. Re-tested on 2.3.4 (2026-09-16): all 18 render.
+The first run then reported **18 errors on the Questionnaires themselves**,
+none of which any gate had seen because the files were never in the build: the
+four CAMS Questionnaires carried ids (`cams-ssf5-section-a`, …) that did not
+match the last segment of their canonical URL, which the publisher rejects
+(fixed — the ids now equal the URL tail, as every other Questionnaire's already
+did); and the ASQ's ten LOINC 2.83 codes are unknown to tx.fhir.org's LOINC
+2.82, the same edition lag `check:codings` tolerates through `PENDING_TX`. Those
+ten are suppressed in `ignoreWarnings.txt` by exact message text pinned to
+`version '2.82'`, so the suppression expires when the server moves on — see
+[`docs/scheduled-checks-triage.md`](../scheduled-checks-triage.md) § Cause 1b
+for the three places that are deleted together. A resource under
+`path-resource` with no `id` is now a gate failure rather than a page the
+publisher names unpredictably (the Stanley-Brown Questionnaire had none).
 
 ⚠️ **The IG Publisher compiles the measure CQL, and only because of one config
 line.** `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` is translated to ELM

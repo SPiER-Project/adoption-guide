@@ -3,18 +3,36 @@
 # IG Publisher suppressed-messages file (new format; header line above required).
 # Add one reviewed/accepted QA message per line — either the exact message text
 # or a %regex% pattern. Keep minimal and documented; do not suppress real errors.
-
-# Accepted: the screening Questionnaires are maintained in FHIR-Resources/ and
-# referenced by canonical (ActivityDefinition.relatedArtifact, QuestionnaireResponse
-# .questionnaire). They are not yet rendered IN the IG — including them was blocked
-# by an IG Publisher QuestionnaireRenderer NPE, so these unresolved-canonical
-# messages are expected.
 #
-# ⚠️ This suppression is the ONLY reason a missing Questionnaire is not a QA error,
-# and the Questionnaire is the Capture layer's central artifact — so what it hides
-# is the absence of every one of them from the Artifacts page. Tracked as issue
-# #473, which carries both candidate fixes and the repro recipe. The NPE has NOT
-# been re-tested against the publisher version now pinned; doing that is the first
-# step. Delete both patterns below when the Questionnaires render.
-%A definition could not be found for Canonical URL 'http://thespierproject.org/fhir/Questionnaire/.*'%
-%Unable to resolve the Canonical URL 'http://thespierproject.org/fhir/Questionnaire/.*'%
+# The two patterns that used to live here hid every unresolved
+# `http://thespierproject.org/fhir/Questionnaire/*` canonical. Since #473 the
+# Questionnaires are loaded from FHIR-Resources/ (via the
+# input/resources/questionnaires symlink named in sushi-config.yaml), so those
+# canonicals resolve and that suppression would only hide a real regression.
+#
+# ─── ASQ: LOINC 2.83 codes that tx.fhir.org (LOINC 2.82) cannot resolve yet ───
+#
+# The ASQ Questionnaire binds its panel, its seven items and the two answer codes
+# on the recency item to LOINC codes published in LOINC 2.83 (adopted 2026-09-08,
+# verified against Regenstrief — see FHIR-Resources/ASQ/README.md and
+# ig/input/fsh/asq.fsh). The publisher validates against tx.fhir.org, which still
+# serves 2.82, so each is reported as an ERROR that would fail the QA gate for a
+# code that is correct. This is the publisher-side twin of `PENDING_TX` in
+# web/scripts/check-codings.mjs and of the "currently expected" paragraph in
+# docs/scheduled-checks-triage.md § Cause 1b; the three are deleted TOGETHER when
+# the server updates.
+#
+# ⚠️ Every line is pinned to version '2.82' on purpose. If tx.fhir.org moves to
+# 2.83 and still cannot resolve a code, the message will say '2.83', match
+# nothing here, and surface as the real error it would then be. If it resolves
+# them, these lines simply stop matching — delete them then.
+Unknown code '115564-7' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code '115566-2' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code '115567-0' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code '115568-8' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code '115569-6' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code '115570-4' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code '115571-2' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code '115572-0' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code 'LA37190-8' in the CodeSystem 'http://loinc.org' version '2.82'
+Unknown code 'LA37191-6' in the CodeSystem 'http://loinc.org' version '2.82'

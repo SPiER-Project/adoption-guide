@@ -11,6 +11,7 @@ ig/
 │   ├── fsh/                    # FSH sources for profiles, ValueSets, CodeSystems, instances
 │   ├── cql/                    # CQL, compiled to ELM by the IG Publisher
 │   ├── resources/maps/         # FHIR Mapping Language (.fml) → published StructureMaps
+│   ├── resources/questionnaires -> ../../../FHIR-Resources   # symlink: the Questionnaires, published as-is
 │   └── pagecontent/            # Narrative IG pages (Markdown)
 ├── drafts/                     # NOT in the build — see that folder's README
 └── README.md                   # This file
@@ -19,9 +20,14 @@ ig/
 `input/resources/maps/` is scanned only because `sushi-config.yaml` declares
 `path-resource: input/resources/maps` (the publisher's default scan of
 `input/resources` does not recurse); see that folder's README for authoring
-rules and gate coverage. `input/cql/` is compiled to ELM and attached to
+rules and gate coverage. `input/resources/questionnaires` is a **symlink** to
+`FHIR-Resources/` at the repo root, listed as `path-resource:
+input/resources/questionnaires/*` (the trailing `/*` recurses into each tool's
+folder); it is a symlink because the publisher refuses a `path-resource` that
+escapes the IG root, and the Questionnaires cannot move — the app imports the
+same files. `input/cql/` is compiled to ELM and attached to
 `Library/SPiERSuicideSaferCareMeasures` only because `sushi-config.yaml` sets
-`path-binary: input/cql`, the CQL loader's activation switch. Both folders are
+`path-binary: input/cql`, the CQL loader's activation switch. All three are
 one config line away from silently not being built.
 
 ## Local compile
