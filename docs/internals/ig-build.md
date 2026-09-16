@@ -46,35 +46,34 @@ output format fails loudly instead of passing vacuously. `ig.yml` runs it on the
 tee'd output of its compile step; a new expected warning belongs in `ALLOWED`,
 with the reason it is expected.
 
-Also at the repo root, and dependency-free — `ig/input/pagecontent/how-to-read.md`
-describes the guide's navigation in prose while `ig/sushi-config.yaml`'s `menu:`
-block defines it:
+Also at the repo root, and dependency-free — `ig/sushi-config.yaml`'s `menu:`
+and `pages:` blocks each have to be right, and right about each other:
 ```
-node scripts/check-ig-menu.mjs      # the IG menu and its prose restatement agree
+node scripts/check-ig-menu.mjs      # every menu: target is a page; menu: and pages: agree both ways
 node scripts/check-ig-narrative.mjs # what the IG's PROSE may say, and whether
                                     # what it points at exists (checks E–H)
 ```
-⚠️ **The IG Publisher cannot see this drift.** Its broken-link check only sees
-links that *exist*, and a bullet describing a menu entry is not a link. Both
-directions had already gone wrong with nothing going red, and each is caught by a
-different rule here:
+⚠️ **The menu gate used to compare `menu:` against a prose restatement**
+(how-to-read.md's "## The menu", checks A and B, #409/#410), because that
+restatement had drifted twice with nothing going red — two live Guidance
+sub-entries missing, and a **Downloads** bullet describing a page
+`fhir.base.template#current` never emits, so `/ig/downloads.html` was a 404 for
+the guide's whole life while its own map sent readers to it. The IG cleanup
+(2026-09-16) removed the restatement rather than keep gating it: the navigation
+bar is the menu, and Home's "Find what you need" table sends readers by task,
+with every link in it resolved by the narrative gate's check H. Checks A and B
+went with the prose; the letters C and D are kept so this history reads true.
+The publisher still cannot see either class of drift — its broken-link check
+only sees links that *exist*.
 
-- the **Guidance** bullet was missing two live sub-entries (*Relationship to Other
-  IGs* and *Measurement (Stage 8)*) until `9702356` corrected it by hand;
-- a **Downloads** bullet described a menu entry and a page that never existed —
-  introduced with the page in `bf4eb87` and still there at `dd0a53c`, so
-  `/ig/downloads.html` was a 404 for the guide's whole life while its own map
-  sent readers to it. `fhir.base.template#current` emits no `downloads.html`;
-  that is a US Core template convention, and this IG uses the base template.
+Check C: every `menu:` target must resolve to a real `input/pagecontent/*.md`
+or sit in `GENERATED_PAGES` — an allowlist with reasons, currently just
+`artifacts.html`. That is what stops a drift being "fixed" in the wrong
+direction, by declaring `Downloads: downloads.html` in `menu:` and shipping a
+broken link.
 
-It asserts four things. The third: every `menu:` target must resolve to a real
-`input/pagecontent/*.md` or sit in `GENERATED_PAGES` — an allowlist with
-reasons, currently just `artifacts.html`. That is what stops the drift being
-"fixed" in the wrong direction, by declaring `Downloads: downloads.html` in
-`menu:` and shipping a broken link instead.
-
-⚠️ **The fourth is the expensive one: a page needs BOTH `menu:` and `pages:`,
-and only `pages:` makes the publisher render it.** Checks A–C cannot see that
+⚠️ **Check D is the expensive one: a page needs BOTH `menu:` and `pages:`,
+and only `pages:` makes the publisher render it.** Check C cannot see that
 gap — the `.md` file genuinely exists, so C is satisfied, and SUSHI compiles
 clean either way. The menu is rendered onto *every* page, so a menu target the
 publisher never renders is one broken link **per page**: adding
@@ -84,8 +83,8 @@ gate caught it — 5 minutes of Java after a green local run. Check D now compar
 the two blocks in both directions (the reverse being a rendered page nothing
 navigates to; `UNLISTED_PAGES` is the allowlist, empty today).
 
-All three parsers **bail rather than skip** on a form they cannot read, and a
-missing block, a missing section or zero parsed entries is an error — the
+Both parsers **bail rather than skip** on a form they cannot read, and a
+missing block or zero parsed entries is an error — the
 #232/#261 family, which this gate is deliberately built against. It runs in
 `ig.yml` **before** the compile, since it needs neither SUSHI nor the network.
 

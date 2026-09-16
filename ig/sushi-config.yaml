@@ -510,7 +510,7 @@ pages:
   getting-started.md:
     title: Getting Started
   how-to-read.md:
-    title: How to Read This Guide
+    title: Reading the artifacts
   relationship-to-other-igs.md:
     title: Relationship to Other IGs
   conformance.md:
@@ -522,7 +522,7 @@ pages:
   care-pathway.md:
     title: Care Pathway
   measurement.md:
-    title: Measurement (Stage 8)
+    title: Measures
   design-decisions.md:
     title: Design decisions
 
@@ -537,10 +537,13 @@ pages:
 # package is still published — `package.tgz` and `full-ig.zip` sit at the IG
 # root — and `getting-started.md` is where readers are pointed at it.
 #
-# ⚠️ `how-to-read.md` restates this block in prose. `scripts/check-ig-menu.mjs`
-# holds the two together (#409); change them in the same commit.
+# `how-to-read.md` used to restate this block in prose ("## The menu"), gated by
+# `scripts/check-ig-menu.mjs` checks A/B (#409). The restatement went in the IG
+# cleanup (2026-09-16): the navigation bar is the menu, Home's "Find what you
+# need" table sends readers by task rather than by menu entry, and every link
+# in it is checked by check-ig-narrative's check H. Checks C and D below remain.
 #
-# ⚠️ AND a page needs BOTH blocks. `menu:` makes it reachable; `pages:` above is
+# ⚠️ A page needs BOTH blocks. `menu:` makes it reachable; `pages:` above is
 # what makes the publisher render it. A menu entry whose page is missing from
 # `pages:` is not one broken link — the menu is on every rendered page, so it is
 # one per page: adding `care-pathway.html` to `menu:` alone took the IG from 0 to
@@ -550,11 +553,11 @@ menu:
   Home: index.html
   Getting Started: getting-started.html
   Guidance:
-    How to Read This Guide: how-to-read.html
+    Reading the artifacts: how-to-read.html
     Relationship to Other IGs: relationship-to-other-igs.html
     Zero Suicide ↔ SPiER mapping: zero-suicide-mapping.html
     Care Pathway: care-pathway.html
-    Measurement (Stage 8): measurement.html
+    Measures: measurement.html
     Design decisions: design-decisions.html
   Conformance: conformance.html
   Quick Starts: quick-starts.html

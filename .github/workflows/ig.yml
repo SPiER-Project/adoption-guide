@@ -120,7 +120,7 @@ jobs:
       #
       # Needs no dependencies and no compile, so it runs first — a menu typo
       # fails in seconds instead of after SUSHI.
-      - name: Check the IG menu against its prose
+      - name: Check the IG menu against pages:
         working-directory: ${{ github.workspace }}
         run: node scripts/check-ig-menu.mjs
 

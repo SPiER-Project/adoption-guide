@@ -1,66 +1,62 @@
 #!/usr/bin/env node
 /**
- * IG menu gate — `how-to-read.md` describes the guide's navigation in prose, and
- * `sushi-config.yaml` defines it. Nothing compared the two.
+ * IG menu gate — every `menu:` entry in sushi-config.yaml resolves to a page,
+ * and `menu:` and `pages:` agree in both directions.
  *
  * ─── Why this exists ─────────────────────────────────────────────────────────
  *
- * `ig/input/pagecontent/how-to-read.md`'s "## The menu" section restates
- * `ig/sushi-config.yaml`'s `menu:` block by hand — the hand-duplicated-constant
- * shape this repo keeps catching, one layer up from code. It had already drifted
- * twice before this gate existed: once with two live entries missing from the
- * prose, and once (#409) with a **Downloads** bullet describing a menu entry and
- * a page that do not exist. `fhir.base.template#current` emits no
- * `downloads.html` — that is a US Core template convention — so `/ig/downloads.html`
- * was a 404 while the prose sent readers looking for it.
+ * A page needs BOTH blocks and they do different jobs: `menu:` makes it
+ * reachable, `pages:` is what makes the publisher render it at all. The menu is
+ * rendered onto EVERY page, so a menu target the publisher never renders is one
+ * broken link per page: adding `Care Pathway: care-pathway.html` to `menu:`
+ * alone took this IG from 0 to **1812** broken links, with `err = 0` and a green
+ * SUSHI run, and the `publish` job's broken-link gate was the only thing that
+ * caught it — 5 minutes of Java after a green local run. SUSHI compiles clean
+ * either way, because the `.md` file genuinely exists.
  *
- * The IG Publisher could not see either drift. Its broken-link check only sees
- * links that exist, and a bullet *describing* a menu entry is not a link. There
- * was no relationship between the two files that any tool could read.
+ * ─── History: checks A and B, retired 2026-09-16 ─────────────────────────────
+ *
+ * This gate began (#409/#410) as a comparison between `menu:` and a "## The
+ * menu" section in how-to-read.md that restated the navigation in prose — a
+ * hand-duplicated constant one layer up from code, which had drifted twice
+ * (two live entries missing; a **Downloads** bullet describing a page that never
+ * existed, so `/ig/downloads.html` was a 404 for the guide's whole life while
+ * its own map sent readers to it). The IG cleanup removed the restatement: the
+ * navigation bar is the menu, and Home's "Find what you need" table sends
+ * readers by task, with every link in it resolved by check-ig-narrative's check
+ * H. With no prose to compare, checks A (entry sets agree) and B (a bullet's
+ * links are exactly its entry's pages) have nothing to assert and are gone. If
+ * a prose restatement ever comes back, so must they — a menu described in
+ * prose and defined in YAML will drift again.
  *
  * ─── Why it lives here and not in `web`'s verify ─────────────────────────────
  *
  * Both inputs are under `ig/`, like `check-sushi-output.mjs` and `check-fml.mjs`.
  * `ig.yml` triggers on `ig/**`; `web-lint.yml` does not, so a `sushi-config.yaml`-only
  * edit would leave a `web`-hosted gate idle for exactly the change that breaks it.
- * It needs no dependencies and no SUSHI compile, so it runs in milliseconds.
- *
- * ⚠️ That last property is why `check-ig-narrative.mjs` (checks E–H over the
- * page PROSE) is a separate script rather than more of this one: its checks F
- * and H resolve against `ig/fsh-generated/`, so they can only run after the
- * compile. The two share their parsers through `lib/ig-config.mjs`.
+ * It needs no dependencies and no SUSHI compile, so it runs in milliseconds —
+ * and BEFORE the compile in `ig.yml`, which is why `check-ig-narrative.mjs`
+ * (checks E–H over the page PROSE, two of which need `fsh-generated/`) is a
+ * separate script sharing this one's parsers through `lib/ig-config.mjs`.
  *
  * ─── What it asserts ─────────────────────────────────────────────────────────
  *
- *   A. The top-level entry sets agree, in BOTH directions — every `menu:` key is
- *      a bolded bullet, and every bolded bullet is a `menu:` key.
- *   B. Per entry, the `.html` links inside its bullet are exactly right: a parent
- *      must link every child it declares, and no bullet may link a page that
- *      entry does not point at.
  *   C. Every `menu:` target resolves to a real `input/pagecontent/<name>.md`, or
  *      is a page the IG Publisher generates (allowlist with reasons, below).
- *      This is what stops the drift being "fixed" in the wrong direction — adding
- *      `Downloads: downloads.html` to `menu:` would satisfy A and B and ship a
- *      broken link.
- *   D. `menu:` and `pages:` agree, in BOTH directions. A page needs both blocks
- *      and they do different jobs: `menu:` makes it reachable, `pages:` is what
- *      makes the publisher render it at all. Checks A–C could not see the gap,
- *      because the `.md` file genuinely exists — C looks at the filesystem, and
- *      SUSHI compiles clean either way.
+ *      This is what stops a drift being "fixed" in the wrong direction — adding
+ *      `Downloads: downloads.html` to `menu:` would ship a broken link.
+ *   D. `menu:` and `pages:` agree, in BOTH directions. The reverse direction is
+ *      the milder defect of the same shape — a page the publisher renders that
+ *      nothing navigates to (`UNLISTED_PAGES` is the allowlist, empty today).
  *
- *      The cost is not one broken link. The menu is rendered onto EVERY page, so
- *      a menu target the publisher never renders is one broken link per page:
- *      adding `Care Pathway: care-pathway.html` to `menu:` alone took this IG
- *      from 0 to **1812** broken links, with `err = 0` and a green SUSHI run,
- *      and the `publish` job's broken-link gate was the only thing that caught
- *      it. The reverse direction is the milder defect of the same shape — a page
- *      the publisher renders that nothing navigates to.
+ * The letters are kept so the history above and the docs that cite "check D"
+ * still read true.
  *
  * Reading nothing is an ERROR, not a pass (#232, #261, and four more since): a
- * missing `menu:` block, a missing "## The menu" section, or zero entries parsed
- * on either side fails. So does any YAML or bullet form the parsers do not
- * understand — a quiet parse failure is how a gate reports green over a file it
- * never read, which is the same rule `web/scripts/lib/vite-alias.mjs` follows.
+ * missing `menu:` block or zero entries parsed fails. So does any YAML form the
+ * parser does not understand — a quiet parse failure is how a gate reports
+ * green over a file it never read, which is the same rule
+ * `web/scripts/lib/vite-alias.mjs` follows.
  *
  * Node 22 is the floor (`.github/.nvmrc`, read by every workflow). It was 20,
  * and two gates shipped that threw in CI on Node 22-only syntax (`fs.globSync`,
@@ -75,7 +71,6 @@ import { resolve } from 'node:path'
 // `check-ig-narrative.mjs` (checks E–H) rather than written twice — see that
 // file's header for why the two are separate gates.
 import {
-  ROOT,
   CONFIG,
   PAGECONTENT,
   GENERATED_PAGES,
@@ -83,20 +78,6 @@ import {
   makeBail,
   parsePages,
 } from './lib/ig-config.mjs'
-
-const DOC = resolve(ROOT, 'ig/input/pagecontent/how-to-read.md')
-
-/**
- * The page the prose itself lives on. Its bullet says "this page" rather than
- * linking `how-to-read.html`, so it is exempt from check B's link requirement.
- *
- * ⚠️ The limit of that exemption, stated rather than left implicit: if this page
- * moved to a different parent in `menu:`, the prose could keep describing it
- * under the old one and only check B's *link* half would notice. What is still
- * asserted is that it appears in the menu at all — a page that describes the
- * menu and is not in it is the drift this gate exists for.
- */
-const SELF_PAGE = 'how-to-read.html'
 
 /**
  * Pages the publisher renders that the menu deliberately does not navigate to,
@@ -160,102 +141,16 @@ function parseMenu(text) {
   return entries
 }
 
-// --- Parse the "## The menu" bullets out of how-to-read.md ------------------
-function parseProse(text) {
-  const lines = text.split('\n')
-  const start = lines.findIndex((l) => /^##\s+The menu\s*$/.test(l))
-  if (start === -1) bail(`no \`## The menu\` section in ${rel(DOC)} — nothing to compare against`)
-
-  /** @type {{ label: string, body: string, line: number }[]} */
-  const bullets = []
-
-  for (let i = start + 1; i < lines.length; i++) {
-    const line = lines[i]
-    if (/^##\s/.test(line)) break // next section ends it
-    if (line.trim() === '') continue
-
-    if (/^\s*[-*]\s/.test(line)) {
-      const m = /^-\s+\*\*(.+?)\*\*\s*(.*)$/.exec(line)
-      if (!m) {
-        bail(
-          `bullet at ${rel(DOC)}:${i + 1} is not the \`- **Name** — …\` form this gate reads.\n` +
-            `    ${line.trim()}\n` +
-            `    Every bullet under "## The menu" names a menu entry; an unreadable one would be skipped silently.`,
-        )
-      }
-      bullets.push({ label: m[1], body: m[2], line: i + 1 })
-    } else if (bullets.length > 0) {
-      bullets[bullets.length - 1].body += ` ${line.trim()}` // wrapped continuation
-    }
-  }
-
-  if (bullets.length === 0) bail(`parsed 0 bullets from \`## The menu\` in ${rel(DOC)} — refusing to pass vacuously`)
-  return bullets
-}
-
 const menu = parseMenu(readFileSync(CONFIG, 'utf8'))
-const bullets = parseProse(readFileSync(DOC, 'utf8'))
 const pages = parsePages(readFileSync(CONFIG, 'utf8'), bail)
 
 const problems = []
-
-// --- A. The top-level entry sets agree, both directions ---------------------
-const menuKeys = menu.map((e) => e.key)
-const proseLabels = bullets.map((b) => b.label)
-
-for (const key of menuKeys) {
-  if (!proseLabels.includes(key)) {
-    problems.push(`\`menu:\` declares "${key}", but ${rel(DOC)}'s "## The menu" never describes it`)
-  }
-}
-for (const b of bullets) {
-  if (!menuKeys.includes(b.label)) {
-    problems.push(
-      `${rel(DOC)}:${b.line} describes a "${b.label}" menu entry that \`menu:\` does not declare — ` +
-        `readers are sent to navigation that does not exist`,
-    )
-  }
-}
-
-// --- B. A bullet's links are exactly the pages that entry points at ---------
-for (const b of bullets) {
-  const entry = menu.find((e) => e.key === b.label)
-  if (!entry) continue // already reported by check A
-
-  const linked = new Set()
-  for (const m of b.body.matchAll(/\[[^\]]*\]\(([^)]+\.html)\)/g)) linked.add(m[1])
-
-  const allowed = entry.target ? new Set([entry.target]) : new Set(entry.children.values())
-  const required = entry.target ? new Set() : new Set(entry.children.values())
-  required.delete(SELF_PAGE) // "this page" — see SELF_PAGE
-
-  for (const target of required) {
-    if (!linked.has(target)) {
-      const child = [...entry.children].find(([, t]) => t === target)?.[0]
-      problems.push(`${rel(DOC)}:${b.line} — "${b.label}" does not link its child page "${child}" (${target})`)
-    }
-  }
-  for (const target of linked) {
-    if (!allowed.has(target)) {
-      problems.push(
-        `${rel(DOC)}:${b.line} — the "${b.label}" bullet links ${target}, which is not a page that entry points at`,
-      )
-    }
-  }
-}
 
 // --- C. Every menu target is a real page ------------------------------------
 const targets = []
 for (const e of menu) {
   if (e.target) targets.push([e.key, e.target])
   for (const [k, t] of e.children) targets.push([`${e.key} › ${k}`, t])
-}
-
-if (!targets.some(([, t]) => t === SELF_PAGE)) {
-  problems.push(
-    `\`menu:\` does not point at ${SELF_PAGE} anywhere, but ${rel(DOC)} is that page and describes the menu — ` +
-      `the guide's own map is no longer in the guide`,
-  )
 }
 
 for (const [label, target] of targets) {
@@ -305,17 +200,14 @@ for (const md of pages) {
 if (problems.length) {
   console.error(`\n✗ check-ig-menu: ${problems.length} problem(s):\n`)
   for (const p of problems) console.error(`  • ${p}`)
-  console.error(
-    `\n  \`menu:\` is the definition (${rel(CONFIG)}); "## The menu" in ${rel(DOC)} restates it for readers.\n` +
-      `  Both have to change together.\n`,
-  )
+  console.error(`\n  A page needs BOTH \`menu:\` and \`pages:\` in ${rel(CONFIG)}; every target must be a real page.\n`)
   process.exit(1)
 }
 
 const childCount = menu.reduce((n, e) => n + e.children.size, 0)
 console.log(
-  `✓ check-ig-menu: ${menu.length} menu entries (${childCount} sub-entries) agree between ` +
-    `${rel(CONFIG)} and ${rel(DOC)}, and every target resolves to a page.`,
+  `✓ check-ig-menu: ${menu.length} menu entries (${childCount} sub-entries) in ${rel(CONFIG)}, ` +
+    `every target resolves to a page.`,
 )
 console.log(
   `  ${pages.length} \`pages:\` entries agree with \`menu:\` in both directions ` +
