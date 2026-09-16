@@ -25,7 +25,8 @@
  *
  *   E. No repo internals. An IG page is read by implementers who do not have
  *      this repo, so `web/src`, `packages/`, `npm run`, `scripts/`, `.mjs`,
- *      `vitest`, `sushi-config`, `path-binary` and `#NNN` issue references are
+ *      `vitest`, `sushi-config`, `path-binary`, `check:<name>` gate names and
+ *      `#NNN` issue references are
  *      all addressed to the wrong reader. Per the content contract in
  *      docs/plans/docs-and-ig-content-consolidation.md, build/gate/tooling
  *      prose has one home — CLAUDE.md — and "never in an IG page". A3 cleaned
@@ -146,6 +147,12 @@ const INTERNALS = [
   ['the test runner', /\bvitest\b/gi, 'how SPiER tests itself is not IG content'],
   ['the SUSHI config', /\bsushi-config\b/g, 'how this IG is built is not part of what it specifies'],
   ['an IG-Publisher parameter', /\bpath-binary\b/g, 'a build parameter; its rationale lives in the config and in CLAUDE.md'],
+  // A bare gate name. `check:pathway` sat on the Care Pathway page for a release
+  // and passed, because none of the patterns above matched the `check:<name>`
+  // form the web/package.json scripts use (found by the 2026-09-16 audit, F8).
+  // The lookbehind keeps a URL scheme (`https:`) and a YAML key out; the name
+  // must start with a letter and be kebab-case, like every gate this repo has.
+  ['a repo gate name', /(?<![\w/])check:[a-z][a-z-]+\b/g, 'a gate is this repo\'s discipline, not part of the specification; state the rule the gate protects'],
   // GitHub issue references. The lookarounds keep LOINC/SNOMED codes and page
   // anchors out: `#93374-7` must not match as `#93374`, and `#harmonization`
   // is letters. Bounded to four digits for the same reason.

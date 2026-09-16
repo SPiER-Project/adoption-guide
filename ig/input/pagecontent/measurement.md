@@ -1,9 +1,7 @@
 Stage 8 of the SPiER pathway makes pathway activity usable for reporting,
-quality improvement, accountability, and information sharing.
-
-It is the shortest stage in the guide, and that is the point. Every measure
-below is a **query over artifacts the previous seven stages already produce**.
-Nothing here asks a site to capture anything new. If you encoded stages 1–7,
+quality improvement, accountability and information sharing. Every measure
+below is a **query over artifacts the previous seven stages already produce**;
+nothing asks a site to capture anything new. If you encoded stages 1–7,
 measurement is a read.
 
 ### The seven measures
@@ -21,91 +19,45 @@ measurement is a read.
 Each `Measure.group.population.criteria` names one definition, and every
 `Measure.library` points at
 [Library/SPiERSuicideSaferCareMeasures](Library-SPiERSuicideSaferCareMeasures.html),
-which carries the CQL and the ELM the IG Publisher compiles from it. So the
-measures are portable: you can evaluate them without reimplementing the
-criteria. See *What is and isn't verified* at the end of this page for what that
-does and does not prove.
+which carries the CQL and the ELM compiled from it — so the measures can be
+evaluated without reimplementing the criteria. See *What is and isn't
+verified* for what that does and does not prove.
 
-### Why the episode is the denominator
+### The denominators
 
-Measures need a cohort with an index date. Before Stage 7 there was no
-resource that said *"this patient is currently in suicide-safer care, starting
-on this date"* — so a measure would have had to invent its cohort out of loose
-observations, and two sites would have invented different ones.
+**The episode is the cohort.** Measures need a cohort with an index date, and
+before Stage 7 no resource said *"this patient is in suicide-safer care,
+starting on this date"*.
+[SPiERSuicideRiskEpisode](StructureDefinition-spier-suicide-risk-episode.html)
+supplies it: `period.start` is the index for episode-wide measures, and a
+numerator artifact has to fall inside the episode to count.
 
-`SPiERSuicideRiskEpisode` supplies it. `period.start` is the index for
-episode-wide measures, and a numerator artifact has to fall inside the episode
-to count. This is the main reason Stage 7 was worth encoding before Stage 8.
-
-### Post-discharge measures index on the transition, not the episode
-
-You cannot measure 7-day post-discharge follow-up without a discharge. So the
-follow-up, caring-contact, and safety-plan measures use a narrower denominator:
-patients with a **documented care transition** — a
+**Post-discharge measures index on the transition.** You cannot measure 7-day
+follow-up without a discharge, so the follow-up, caring-contact and
+safety-plan measures use a narrower denominator: patients with a documented
+care transition — a
 [SPiERSafetyHandoff](StructureDefinition-spier-safety-handoff.html) or a
 [SPiERDischargeSafetyPacket](StructureDefinition-spier-discharge-safety-packet.html)
-— with that artifact's date as the index. Where a patient has more than one
-transition in the period, the most recent is the index.
+— with that artifact's date as the index (the most recent, where there are
+several). The consequence is deliberate: **a site that has not documented a
+handoff or a discharge packet cannot compute the follow-up measures at all.**
+That is a true finding about the site's pathway, not a gap in the measure.
 
-The consequence is deliberate and worth naming plainly: **a site that has not
-documented a [SPiERSafetyHandoff](StructureDefinition-spier-safety-handoff.html)
-or a [SPiERDischargeSafetyPacket](StructureDefinition-spier-discharge-safety-packet.html)
-cannot compute the follow-up measures at all.** That is a true finding about
-that site's pathway, not a gap in the measure. A follow-up rate computed
-against an undefined discharge is not a number anyone should act on.
+**Lethal-means counseling carries an exception, not an exclusion.** A patient
+who went to a higher level of care (`psy`, `hosp`, `long`, `rehab`) or left
+before disposition (`aadvice`) — read from
+`Encounter.hospitalization.dischargeDisposition` — is a *denominator
+exception*: removed only if the numerator is not met, so a patient counseled
+before transfer still counts as a pass and a site cannot lift its score by
+transferring people. It is the only exception in the set; everything else
+that leaves a denominator is an exclusion, because it never belonged in the
+cohort.
 
-### Measurement is where the Stage 5–7 design calls get tested
-
-Three modelling decisions from earlier stages exist specifically so that these
-measures are computable. Stage 8 is where they pay off — or would have failed.
-
-**Referral loop closure needs `ServiceRequest`.**
-[SPiERSafetyReferral](StructureDefinition-spier-safety-referral.html) could have
-been a `Communication`, and an earlier draft of the demo recorder made it one. But a
-Communication records only that a referral was **sent**. Sent-versus-completed
-*is* the measure, and `ServiceRequest.status` carries `draft → active →
-completed` natively. With the Communication shape this measure would have been
-uncomputable.
-
-**Follow-up timeliness needs `Appointment.status`, not a tracking resource.**
-The 7- and 30-day groups require `status = fulfilled`, not `booked`. A
-scheduled visit the patient never attended is not follow-up. This is exactly
-the distinction the
-[follow-up tracking activity](ActivityDefinition-TrackFollowUpAppointment.html)
-exists to make — and it is why Stage 6 deliberately
-added *no* appointment-tracking resource: `Appointment.status` already carries
-`fulfilled` / `noshow` / `cancelled`, and a parallel resource would only have
-created something to keep in sync.
-
-**Caring-contact adherence needs the opt-out extension.** A patient who has
-opted out of the caring-contacts series is a **denominator exclusion**, not a
-numerator failure. Honoring an opt-out is correct behavior; a measure that
-scored it as a miss would pressure sites to ignore the patient's wish. This is
-the reason `caring-contact-opt-out` sits on the contact resource.
-
-**Patient copy of the safety plan needs one shared vocabulary.** "Did the
-patient leave with a copy?" is answerable because
-[SPiERSafetyHandoff](StructureDefinition-spier-safety-handoff.html) and
-[SPiERDischargeSafetyPacket](StructureDefinition-spier-discharge-safety-packet.html)
-agreed on a single content code list, so `safety-plan-copy` means the same
-thing on a handoff and on a discharge packet.
-
-**Lethal-means counseling needs an *exception*, not another exclusion.** Two
-ways an open episode carries no counseling without anyone having failed: the
-patient went to a higher level of care (`psy`, `hosp`, `long`, `rehab` — the
-counseling belongs at the eventual discharge to the community, and is owed by
-the receiving facility), or left before disposition (`aadvice`). Both are read
-from `Encounter.hospitalization.dischargeDisposition`, so nothing new had to be
-recorded to answer them.
-
-They are a **denominator exception** rather than a denominator exclusion, and
-the difference is load-bearing: an exception is removed from the denominator
-*only if the numerator is not met*. A patient who **was** counseled before being
-transferred still counts as a pass instead of vanishing from the measure — and
-a site cannot lift its score by transferring people. An exclusion would do both
-of those things wrong. This is the only exception in the set; everything else
-that leaves a denominator here is an exclusion, because it never belonged in the
-cohort at all.
+**Every measure is patient-based.** A patient with two positive screens or
+two referrals in one period counts once; where that matters, the criterion
+states its tie-break rule. Counting screens, episodes or referrals as the unit
+would need a non-Patient population basis and a dependency on the CQF Measures
+IG, which is more machinery than these draft measures justify.
 
 ### Choices you may want to make differently
 
@@ -113,94 +65,54 @@ Two criteria are judgment calls rather than settled standards, and both are
 one-line changes to the CQL:
 
 - **The 48-hour group counts an outreach *attempt*, not a successful contact.**
-  The attempt is what the care team controls; whether the patient picks up is
-  not. A site that wants the stricter reading should add a filter on the
-  `outreach-outcome` extension for `patient-reached` (or also
+  The attempt is what the care team controls. A stricter reading adds a filter
+  on the `outreach-outcome` extension for `patient-reached` (or also
   `reached-support-person`).
 - **`revoked` referrals are not excluded.** A referral withdrawn without an
-  alternative arranged is a genuine loop failure. A site that revokes referrals
+  alternative arranged is a genuine loop failure; a site that revokes referrals
   for legitimate clinical reasons may want them excluded instead.
 
-Two measures on the SSC's list are **not** authored: CARS-S completion, because
-the instrument is a licensing no-go for SPiER, and SCS-R treatment-response
-monitoring, because SPiER has no SCS-R artifact to measure over. Both are
-listed here rather than silently omitted, so the gap is visible.
+Two measures on the source list are **not** authored and are named here so the
+gap is visible: CARS-S completion (the instrument is a licensing no-go for
+SPiER) and SCS-R treatment-response monitoring (SPiER has no SCS-R artifact).
 
-### Population basis
+### Dashboards, exports and sharing
 
-Every measure is **patient-based**: each criterion answers "is this patient in
-this population", which is the default and by far the most widely implemented
-basis. Counting screens, episodes, or referrals as the population unit would
-require a non-Patient population basis — the CQFM `cqfm-populationBasis`
-extension and a dependency on `hl7.fhir.us.cqfmeasures` — which is more
-machinery than these draft measures justify.
-
-The cost: a patient with two positive screens or two referrals in one period
-counts once. Where that matters, the criterion states its tie-break rule
-explicitly.
-
-### Dashboards, exports, and sharing
-
-The remaining three Stage-8 tools define no artifact of their own, because none
-of them is a new kind of data:
+The remaining three Stage-8 tools define no artifact of their own, because
+none is a new kind of data:
 
 - **[The reporting dashboard](ActivityDefinition-ProvideReportingDashboard.html)**
-  is a *rendering*. Measure tiles read summary MeasureReports; operational
-  counts (screening volume, active episodes, overdue items) read the same
-  registry query the
+  is a *rendering*: measure tiles read summary MeasureReports, and operational
+  counts read the registry query the
   [active-registry activity](ActivityDefinition-MaintainRiskRegistry.html)
-  defines,
-  `EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on`.
-  The SSC's filter list maps onto search parameters over those two reads. Note that
-  `_revinclude` support is optional in FHIR — see *Do not assume `_revinclude`* in
-  [Quick Starts](quick-starts.html); a server without it needs a second read of
-  `Task?encounter=` or `Task?based-on=`.
+  defines (`EpisodeOfCare?type=suicide-safer-care&status=active`, plus the
+  open Tasks — see *Do not assume `_revinclude`* on
+  [Quick Starts](quick-starts.html)).
 - **[Data export](ActivityDefinition-ExportSuicideSaferCareData.html)** is a
-  *serialization*. The SSC's real requirement is that an extract carry
-  structured fields **and the timestamps needed for measurement** — which the
-  profiles already guarantee, since every one mandates a discrete date
-  (`Observation.effective`, `Procedure.performed`, `Communication.sent`,
-  `Appointment.start`, `ServiceRequest.authoredOn`, `EpisodeOfCare.period`,
-  `Task.authoredOn`). The conforming export is a Bulk Data `$export` of those
-  types; CSV and warehouse extracts are flattenings of the same set.
+  *serialization*: a Bulk Data `$export` of the profiled types, every one of
+  which already mandates the discrete date measurement needs.
 - **[Data sharing](ActivityDefinition-ShareSuicideSaferCareData.html)** is a
-  *transport*. Every item on the SSC's shareable list is already a SPiER
-  profile. For a receiving system that does not know the originating
-  instrument, the harmonized
+  *transport*: every item on the shareable list is already a SPiER profile, the
+  harmonized
   [SPiERSuicideRiskConcept](StructureDefinition-spier-suicide-risk-concept.html)
-  is the minimum viable payload. Sharing restrictions are enforced from the
-  [SPiERInformationSharingConsent](StructureDefinition-spier-information-sharing-consent.html),
-  recorded via the
-  [consent-recording activity](ActivityDefinition-RecordConsentSharingStatus.html)
-  — a deny provision naming a recipient is what withholds
-  data from that recipient, and a deny provision naming a
-  [content category](CodeSystem-spier-handoff-content.html) is what withholds
-  one part of a payload from an otherwise permitted recipient. The
+  is the minimum viable payload, and restrictions are enforced from the
+  [SPiERInformationSharingConsent](StructureDefinition-spier-information-sharing-consent.html)
+  at assembly time — the
   [discharge safety packet](StructureDefinition-spier-discharge-safety-packet.html)
-  is the worked example: it is assembled *after* reading the consent, carries
-  only what the consent allows, and records anything it left out as a
-  handoff-withheld-item extension with a
-  [basis](CodeSystem-spier-withholding-basis.html). Note the scope of that
-  claim — it covers what this artifact asserts at assembly time. Enforcing
-  consent on arbitrary reads of the record is a server responsibility SPiER
-  does not profile.
+  is the worked example, recording anything withheld and its basis.
 
-What these three *do* require is that the workflow resources are readable,
-searchable, and movable. That is a conformance requirement rather than a
-profile, so it lives in the
-[CapabilityStatements](conformance.html) — including a fourth role,
-**SPiER Quality Reporter**, whose access pattern is population-wide rather than
-per-patient.
+What these three require is that the workflow resources are readable,
+searchable and movable — a conformance requirement, stated by the
+[Quality Reporter](CapabilityStatement-quality-reporter.html)
+CapabilityStatement, whose access pattern is population-wide.
 
 ### What is and isn't verified
 
-The `Measure` resources are validated by SUSHI and by the IG Publisher's QA
-run, and the **CQL is compiled** — the publisher translates it to ELM on every
-build and fails on a translation error. Translation proves the logic is
-well-formed and that its definitions resolve; it does not execute the CQL
-against data, so it does not prove the criteria compute the right answer.
-
-A reference implementation of the same measures exists in the companion app,
-covered by its own test suite and tied to these `Measure` resources by name.
-That the CQL and the reference implementation compute equivalent answers is
-asserted, not yet tested — a cross-engine parity test is the honest next step.
+The `Measure` resources are validated, and the **CQL is compiled** — the
+publisher translates it to ELM on every build and fails on a translation
+error. Translation proves the logic is well-formed and its definitions
+resolve; it does not execute the CQL against data. A reference implementation
+of the same measures exists in the companion app, covered by its own test
+suite and tied to these `Measure` resources by name. That the CQL and the
+reference implementation compute equivalent answers is asserted, not yet
+tested.
