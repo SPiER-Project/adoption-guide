@@ -12,10 +12,12 @@
  *            for table cells and dense lists)
  *   variant  `status` (default): uppercase, tracked, 700 — a state word.
  *            `label`: sentence case, 600 — a name or a code.
- *   tone     the app's accent families, plus the risk ramp in its solid form
- *            (`acute`…`unknown`, what RiskPill renders) and its soft form
- *            (`soft-acute`…`soft-low`, for anything scored on a 4-step scale
- *            that is NOT a risk level — maturity, rubric levels, "done").
+ *   tone     the app's accent families, the three brand tints (`peach`,
+ *            `sage`, `sky` — the website's category tags, plum on a soft
+ *            tint), plus the risk ramp in its solid form (`acute`…`unknown`,
+ *            what RiskPill renders) and its soft form (`soft-acute`…
+ *            `soft-low`, for anything scored on a 4-step scale that is NOT a
+ *            risk level — maturity, rubric levels, "done").
  *
  * A page that owns a genuine domain palette — the colour of each FHIR
  * resource type in the data dictionary, each licensing status, each CDS
@@ -29,6 +31,7 @@ import '../css/Pill.css'
 
 export type PillTone =
   | 'neutral' | 'brand' | 'accent' | 'info' | 'success' | 'warning'
+  | 'peach' | 'sage' | 'sky'
   | 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
   | 'soft-acute' | 'soft-high' | 'soft-moderate' | 'soft-low'
 

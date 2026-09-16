@@ -16,6 +16,7 @@ import {
 } from '@spier/core/lib/riskEpisode'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { todayLocalIso, isoDay } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-039 / TL-040 / TL-041 — open, owned, due-dated safety work (Stage 7).
@@ -118,13 +119,9 @@ export function SafetyTaskView() {
                     {isTaskOpen(t) && (
                       <>
                         {' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => addArtifact(completeTask(t))}
-                        >
+                        <Button size="sm" onClick={() => addArtifact(completeTask(t))}>
                           Mark complete
-                        </button>
+                        </Button>
                       </>
                     )}
                   </li>
@@ -198,7 +195,7 @@ export function SafetyTaskView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record task</button>
+        <Button type="submit">Record task</Button>
       </form>
 
     </WorkflowForm>

@@ -233,12 +233,17 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   accent rule → optional lede), the only definition of page-title typography; a
   page never renders its own `<h2>`, so section headings start at `<h3>`. A
   drill-in page passes `up` to make the first eyebrow segment its way back out.
-- **Below the page header, seven components own the surfaces.** `SectionHeader`
+- **Below the page header, eight components own the surfaces.** `SectionHeader`
   (the `<h3>` row), `Card` (a bordered panel), `Pill` (a small inline marker),
   `Notice` (a tinted message box), `EmptyState` ("nothing here"), `DataTable`
-  (the table shell: wrapper, header type, cell padding, dividers), and
-  `WorkflowForm` (the recorder frame) each make one decision about padding,
-  radius, type and colour, and a page never redeclares it. A page may pass a
+  (the table shell: wrapper, header type, cell padding, dividers),
+  `WorkflowForm` (the recorder frame) and `Button` (the plum pill: `primary` /
+  `secondary` / `link`, `accent` for a gradient label, `arrow` for one that
+  navigates; renders a Link, an anchor or a button by which of `to` / `href` /
+  neither it is given) each make one decision about padding, radius, type and
+  colour, and a page never redeclares it. ⚠️ The formbox renderer's submit is
+  vendor DOM and copies `Button`'s decisions by token in `App.css` — move one,
+  move both. A page may pass a
   `className` for **layout or a domain colour only** — where a card sits, the
   colour of a FHIR resource type's pill — never a radius, padding, border or
   background. Before these existed 76 card surfaces used 29 padding/radius

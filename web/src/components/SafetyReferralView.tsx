@@ -13,6 +13,7 @@ import {
 import type { ServiceRequestResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
 import { isoDay } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-017 — referral / next-provider handoff (Stage 5).
@@ -127,20 +128,12 @@ export function SafetyReferralView() {
                     {open && (
                       <>
                         {' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => advance(referral, 'completed')}
-                        >
+                        <Button size="sm" onClick={() => advance(referral, 'completed')}>
                           Mark completed
-                        </button>{' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => advance(referral, 'revoked')}
-                        >
+                        </Button>{' '}
+                        <Button size="sm" onClick={() => advance(referral, 'revoked')}>
                           Revoke
-                        </button>
+                        </Button>
                       </>
                     )}
                   </li>
@@ -206,7 +199,7 @@ export function SafetyReferralView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record referral</button>
+        <Button type="submit">Record referral</Button>
       </form>
 
     </WorkflowForm>

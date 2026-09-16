@@ -17,6 +17,7 @@ import {
 } from '@spier/core/lib/followUp'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-033 (routine follow-up outreach) + TL-035 (missed-appointment / no-show
@@ -210,7 +211,7 @@ export function OutreachAttemptView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record attempt</button>
+        <Button type="submit">Record attempt</Button>
       </form>
 
     </WorkflowForm>

@@ -81,18 +81,3 @@
    pages to SAY what they do not prove — a caveat set in small grey type is a
    caveat the reader is being invited to skip. */
 
-.surface-guide__cta {
-  display: inline-block;
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-pill);
-  background: var(--brand-primary);
-  color: var(--text-on-brand);
-  font-size: var(--font-size-md);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.surface-guide__cta:hover,
-.surface-guide__cta:focus-visible {
-  background: var(--brand-primary-hover);
-}

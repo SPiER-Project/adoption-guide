@@ -164,43 +164,21 @@
   align-items: center;
 }
 
-.submit-result-link {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--brand-link);
-  text-decoration: none;
-}
-
-.submit-result-link:hover {
-  text-decoration: underline;
-}
-
-.submit-result-action-btn {
-  display: inline-block;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: white;
-  background: var(--brand-primary);
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.submit-result-action-btn:hover {
-  background: var(--brand-primary-hover);
-}
-
 /* ===========================
    Formbox Button Overrides
    =========================== */
+/* ⚠️ Copies `Button`'s decisions (components/Button.tsx) by token — the
+   renderer's DOM cannot become the component. Move a decision there, move it
+   here. */
 .form-card .pon106y.b1fzc7cb {
   background: var(--brand-primary);
   color: var(--text-on-brand);
   border-color: var(--brand-primary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-pill);
   padding: var(--space-2) var(--space-5);
-  font-size: var(--font-size-lg);
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  font-weight: 600;
   transition: background-color 0.2s, transform 0.15s;
 }
 
@@ -211,19 +189,19 @@
 }
 
 .form-card .s7gz39z.b1fzc7cb {
-  background: var(--surface-page);
-  color: var(--text-body);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-pill);
   padding: var(--space-2) var(--space-5);
-  font-size: var(--font-size-lg);
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  font-weight: 600;
   transition: all 0.2s;
 }
 
 .form-card .s7gz39z.b1fzc7cb:hover {
-  background: var(--surface-muted);
-  border-color: var(--text-faint);
-  color: var(--brand-primary);
+  background: var(--tint-peach-soft);
 }
 
 /* The renderer's "Cancel" button is a no-op: formbox exposes no onCancel prop,

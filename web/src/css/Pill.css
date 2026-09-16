@@ -51,6 +51,11 @@
 .pill--success  { background: var(--accent-success-bg);   color: var(--accent-success-text); }
 .pill--warning  { background: var(--accent-warning-bg);   color: var(--accent-warning-text); }
 
+/* ---- tones: the brand tints (the website's category tags) ---- */
+.pill--peach    { background: var(--tint-peach-soft);     color: var(--brand-primary); }
+.pill--sage     { background: var(--tint-sage-soft);      color: var(--brand-primary); }
+.pill--sky      { background: var(--tint-sky-soft);       color: var(--brand-primary); }
+
 /* ---- tones: the risk ramp, solid (a risk level) ---- */
 .pill--acute    { background: var(--risk-acute);          color: var(--text-on-brand); }
 .pill--high     { background: var(--risk-high);           color: var(--text-on-brand); }

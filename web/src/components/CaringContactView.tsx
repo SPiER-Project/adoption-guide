@@ -11,6 +11,7 @@ import {
 } from '@spier/core/lib/followUp'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-010 — caring contacts (Stage 6).
@@ -186,7 +187,7 @@ export function CaringContactView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record caring contact</button>
+        <Button type="submit">Record caring contact</Button>
       </form>
 
     </WorkflowForm>

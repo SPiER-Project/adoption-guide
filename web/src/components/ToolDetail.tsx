@@ -8,12 +8,12 @@
  * lists the tools. Extracted so the page is the list and this is the detail
  * (maintainability audit 2026-09-15, §2.5).
  */
-import { Link } from 'react-router-dom'
 import { bindingsUsedByTool, systemLabel, type Tool } from '@spier/core/data/catalog'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { Pill } from './Pill'
 import { DataTable } from './DataTable'
 import '../css/ToolDetail.css'
+import { Button } from './Button'
 
 interface ToolDetailProps {
   tool: Tool
@@ -119,13 +119,9 @@ export function ToolDetail({ tool }: ToolDetailProps) {
           <h4 className="tool-detail-heading">Launch</h4>
           <div className="tool-detail-launch">
             {tool.launchActions.map(action => (
-              <Link
-                key={action.path}
-                to={action.path}
-                className={`tool-detail-launch-btn tool-detail-launch-btn--${action.variant ?? 'primary'}`}
-              >
-                {action.label} &rarr;
-              </Link>
+              <Button key={action.path} to={action.path} variant={action.variant ?? 'primary'} size="sm" arrow>
+                {action.label}
+              </Button>
             ))}
           </div>
         </section>

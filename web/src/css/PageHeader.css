@@ -14,9 +14,11 @@
 }
 
 /* Uppercase micro-trail: what the page sits inside. Always present — see the
-   prop docs in PageHeader.tsx for why it is not optional. Raspberry rather
-   than muted grey — it is the brand's accent and reads as a label rather than
-   as demoted body copy. 4.93:1 on --surface-page, so it clears AA at this size. */
+   prop docs in PageHeader.tsx for why it is not optional. Terracotta rather
+   than muted grey — it is the website's section label and reads as a label
+   rather than as demoted body copy. `--brand-terracotta-text` is the deepened
+   shade: 4.69:1 on --surface-page, so it clears AA at this size where the
+   design's own value (2.95:1) would not. */
 .page-header__eyebrow {
   margin: 0 0 var(--space-2);
   font-size: var(--font-size-xs);
@@ -24,6 +26,18 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
   color: var(--brand-terracotta-text);
+}
+
+/* The website's sub-page eyebrow: the same words in an outlined pill. The
+   outline takes the design's own terracotta — a hairline is not text, so the
+   contrast rule does not bind it. `inline-flex` so the pill hugs the trail
+   rather than spanning the header. */
+.page-header__eyebrow--pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-5) var(--space-2);
+  border: 1px solid var(--brand-terracotta);
+  border-radius: var(--radius-pill);
 }
 
 .page-header__eyebrow-sep {
@@ -47,12 +61,15 @@
 
 /* Plum, not --text-strong: three of the four lenses used the neutral heading
    color and the front door used the brand. One of them had to win, and the
-   brand is the one that makes a page title recognizable as a page title. */
+   brand is the one that makes a page title recognizable as a page title.
+   The display face at 600 and a tighter leading are the website's headline
+   setting scaled to the app's title size. */
 .page-header__title {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--font-size-3xl);
-  font-weight: 700;
-  line-height: 1.25;
+  font-weight: 600;
+  line-height: 1.15;
   color: var(--brand-primary);
 }
 

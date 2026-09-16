@@ -15,6 +15,7 @@ import { deriveAppointmentTracking } from '@spier/core/lib/followUp'
 import type { AppointmentResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { toIsoOrNow } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-031 (book the next appointment) + TL-034 (track whether it happened).
@@ -134,27 +135,15 @@ export function FollowUpAppointmentView() {
                     {isOpen && (
                       <>
                         {' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => updateStatus(appointment, 'fulfilled')}
-                        >
+                        <Button size="sm" onClick={() => updateStatus(appointment, 'fulfilled')}>
                           Attended
-                        </button>{' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => updateStatus(appointment, 'noshow')}
-                        >
+                        </Button>{' '}
+                        <Button size="sm" onClick={() => updateStatus(appointment, 'noshow')}>
                           No-show
-                        </button>{' '}
-                        <button
-                          type="button"
-                          className="workflow-submit-btn"
-                          onClick={() => updateStatus(appointment, 'cancelled')}
-                        >
+                        </Button>{' '}
+                        <Button size="sm" onClick={() => updateStatus(appointment, 'cancelled')}>
                           Cancelled
-                        </button>
+                        </Button>
                       </>
                     )}
                   </li>
@@ -232,7 +221,7 @@ export function FollowUpAppointmentView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Book appointment</button>
+        <Button type="submit">Book appointment</Button>
       </form>
 
     </WorkflowForm>

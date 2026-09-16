@@ -18,6 +18,7 @@ import type { SharingDecision } from '@spier/core/lib/handoffs'
 import type { ConsentResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { todayLocalIso, isoDay } from '../lib/dates'
+import { Button } from './Button'
 
 /**
  * TL-030 — assemble the discharge safety packet (Stage 5).
@@ -442,7 +443,7 @@ export function DischargePacketView() {
           />
         </WorkflowField>
 
-        <button type="submit" className="workflow-submit-btn">Record packet</button>
+        <Button type="submit">Record packet</Button>
       </form>
 
     </WorkflowForm>
