@@ -21,6 +21,7 @@ false in another.
 | Adoption guidance, readiness, rubric | the app, as data modules | not JSX paragraphs |
 | Plans and status | GitHub issues, plus each plan doc's own status table | finished plans move to [`plans/archive/`](plans/archive/) with a banner |
 | Licensing evidence | `FHIR-Resources/<tool>/licensing/MEMO.md` | the FSH extension states the *status*; the MEMO is the evidence — both are kept |
+| Why an artifact is shaped the way it is — the argument, the rejected alternatives, what would reopen it | [`decisions/`](decisions/README.md), one record per decision | the IG states the *rule* (usually on Conformance) and links nothing back; the app's Learn group is the intended long-term home |
 
 ⚠️ **Docs have no CI gate** — only [`use-cases/`](use-cases/) and
 [`outreach/`](outreach/) are checked by a workflow. Everything else here is
@@ -29,8 +30,9 @@ person reads it. Verify before you write, and prefer a link to a restatement.
 
 A new doc goes in `reference/` if it transcribes an external source, `plans/`
 if it proposes work, `research/` if it reports an investigation,
-`best-practices/` if it is guidance, and nowhere at all if the fact belongs in
-the FSH or in `CLAUDE.md`.
+`best-practices/` if it is guidance, `decisions/` if it records why an artifact
+is shaped as it is, and nowhere at all if the fact belongs in the FSH or in
+`CLAUDE.md`.
 
 ## Strategy and education
 
@@ -47,6 +49,10 @@ near-verbatim second copy of it and has been folded in.
 * [`best-practices/concept-harmonization.md`](best-practices/concept-harmonization.md) — conformance rationale for the cross-instrument concept layer: mapping disparate instruments (ASQ, C-SSRS, PHQ-9) into one common suicide-risk-tier representation, modeled on HL7 Gravity + SDC. Pairs with the `concept-harmonization` skill.
 * [`best-practices/licensing-audit-template.md`](best-practices/licensing-audit-template.md) — the per-tool licensing-audit memo template, instantiated as `FHIR-Resources/<tool>/licensing/MEMO.md`.
 * [`best-practices/licensing-verification-backlog.md`](best-practices/licensing-verification-backlog.md) — what is still owed on instrument licensing. Every status published by [#127](https://github.com/SPiER-Project/adoption-guide/issues/127) is traceable in-repo, but **none is verified against the rights holder's current terms**. Standing list under epic [#64](https://github.com/SPiER-Project/adoption-guide/issues/64), which gates the org transfer.
+
+## Decision records
+
+* [`decisions/README.md`](decisions/README.md) — rationale moved off the IG pages by the 2026-09 cleanup, one record per decision: what was decided, why, what was rejected, what would reopen it. The IG keeps the rule; these keep the argument.
 
 ## Repo internals
 

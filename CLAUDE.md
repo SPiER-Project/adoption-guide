@@ -125,8 +125,8 @@ npx fsh-sushi .        # compile FSH → fsh-generated/resources/
 ```
 node scripts/check-sushi-output.mjs   # compile ig/ and gate the WARNING SHAPE against a reasoned
                                       # allowlist (never a count); pass a path to gate a captured log
-node scripts/check-ig-menu.mjs        # the IG menu and its prose restatement agree, and every
-                                      # menu: target is also in pages: (only pages: renders a page)
+node scripts/check-ig-menu.mjs        # every menu: target is a real page, and menu: and pages: agree
+                                      # both ways (only pages: renders a page; the menu is on every page)
 node scripts/check-ig-narrative.mjs   # what the IG's prose may say, and whether what it points at
                                       # exists — no repo internals, TL ids / #/routes / .html resolve
 node scripts/build-ig-groups.mjs      # regenerate the `groups:` block of sushi-config.yaml from the FSH

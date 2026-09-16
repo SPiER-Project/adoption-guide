@@ -1,18 +1,30 @@
 # Getting Started
 
-This page gets a developer from zero to validating their own resources against SPiER.
+From zero to validating your own resources against SPiER.
 
 ## 1. Get the artifacts
 
-Three ways, depending on your tooling:
-
-- **Browse** — the [Artifacts](artifacts.html) page lists every Questionnaire, profile, value set, code system, ConceptMap, and example. Each is downloadable as JSON; the Questionnaires (for example the [ASQ](Questionnaire-ASQ-Screening-Tool.html) and the [PHQ-9](Questionnaire-PHQ-9.html)) are the forms themselves, ready to load into an SDC-capable form filler.
-- **IG package** — the IG publishes a FHIR NPM package, `thespierproject.fhir` (canonical `http://thespierproject.org/fhir`). Point your FHIR tooling (Sushi, the HL7 validator, a Firely/HAPI server) at it to load all definitions at once.
-- **Build locally** — clone [the repo](https://github.com/SPiER-Project/adoption-guide), then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the FSH sources to FHIR JSON (`fsh-generated/`), and the HL7 IG Publisher to render this site.
+- **Browse** — the [Artifacts](artifacts.html) page lists everything in eight
+  groups. The first, [Screening and assessment instruments](artifacts.html#1),
+  holds each instrument's Questionnaire (for example the
+  [ASQ](Questionnaire-ASQ-Screening-Tool.html) and the
+  [PHQ-9](Questionnaire-PHQ-9.html)), ready to load into an SDC-capable form
+  filler, beside the ActivityDefinition that administers it and the profile its
+  result lands in. Every artifact is downloadable as JSON.
+- **IG package** — the IG publishes a FHIR NPM package, `thespierproject.fhir`
+  (canonical `http://thespierproject.org/fhir`). Point your FHIR tooling
+  (SUSHI, the HL7 validator, a Firely or HAPI server) at it to load every
+  definition at once.
+- **Build locally** — clone [the repository](https://github.com/SPiER-Project/adoption-guide),
+  then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the
+  FSH sources to FHIR JSON and the HL7 IG Publisher to render this site.
 
 ## 2. Validate a resource against a SPiER profile
 
-Use the official HL7 validator. Download `validator_cli.jar` from the [validator releases](https://github.com/hapifhir/org.hl7.fhir.core/releases), then validate an instance against a SPiER profile — loading the SPiER IG so the profile resolves:
+Use the official HL7 validator. Download `validator_cli.jar` from the
+[validator releases](https://github.com/hapifhir/org.hl7.fhir.core/releases),
+then validate an instance against a SPiER profile, loading the SPiER IG so the
+profile resolves:
 
 ```bash
 java -jar validator_cli.jar my-observation.json \
@@ -21,17 +33,39 @@ java -jar validator_cli.jar my-observation.json \
   -profile http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept
 ```
 
-Or use a **public FHIR R4 test server** that supports `$validate` (see HL7's [public test servers list](https://confluence.hl7.org/spaces/FHIR/pages/35718859/Public+Test+Servers)). Note: a server can only validate against SPiER profiles once the SPiER IG package has been loaded into it — many public servers only carry the base spec and US Core, so the local `validator_cli.jar` route is the most reliable for custom profiles today.
+A public FHIR R4 test server with `$validate` works only once the SPiER
+package has been loaded into it; most public servers carry the base spec and
+US Core alone, so the local `validator_cli.jar` route is the reliable one. A
+good first instance is one of the published examples — the ASQ result
+Observation, say — edited to your own data.
 
-A good first instance to validate is one of the published [examples](artifacts.html) (e.g. the ASQ result Observation), edited to your own data.
+## 3. Decide which role you are
 
-## 3. See it working
+SPiER states conformance per system role, each with a CapabilityStatement:
 
-The **[interactive companion app](https://spier-project.github.io/adoption-guide/)** is a runnable reference implementation: it captures each instrument, persists `QuestionnaireResponse`s, derives the Observations (including the harmonized suicide-risk concept), and walks the 8-stage pathway in a simulated chart. Use it to see the expected shapes end-to-end before you build.
+- [Screening-Source EHR](CapabilityStatement-screening-source-ehr.html) —
+  captures an instrument and produces the derived Observations.
+- [HIE Intermediary](CapabilityStatement-hie-intermediary.html) — stores and
+  forwards them across organizations.
+- [Risk Consumer](CapabilityStatement-risk-consumer.html) — reads the
+  harmonized risk tier at the point of care.
+- [Quality Reporter](CapabilityStatement-quality-reporter.html) — evaluates
+  the measures over a population.
 
-## 4. Give feedback / track progress
+[Conformance](conformance.html) defines what Must-Support means for each.
 
-- File questions and issues on [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues).
-- Track build status on the [Roadmap](https://github.com/SPiER-Project/adoption-guide/milestones).
+## 4. See it working
 
-> SPiER is **draft / FMM 0–1**. Definitions may change before Trial-Use. If you're implementing against it now, pin to version `0.1.0` and watch the repo for updates.
+The **[companion app](https://spier-project.github.io/adoption-guide/)** is a
+runnable reference implementation: it captures each instrument, persists the
+QuestionnaireResponses, derives the Observations (including the harmonized
+suicide-risk concept) and walks the eight-stage pathway in a simulated chart.
+Use it to see the expected shapes end to end before you build. Its source, and
+this guide's, is the same [repository](https://github.com/SPiER-Project/adoption-guide).
+
+## 5. Give feedback
+
+File questions and issues on
+[GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues); build
+status per tool is on the
+[milestones](https://github.com/SPiER-Project/adoption-guide/milestones).

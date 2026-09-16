@@ -133,4 +133,4 @@ was invented to make the list look complete**:
   `workflow-definition` cataloguing what a stage *can* contain. This pathway is
   a `clinical-protocol`: one course of care drawn from that catalogue, which is
   what the stage codes on its action groups tie back to.
-- [Measurement (Stage 8)](measurement.html) — how the Measures above are scored.
+- [Measures](measurement.html) — how the Measures above are scored.

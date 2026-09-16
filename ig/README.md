@@ -59,7 +59,7 @@ for each gate is in `docs/internals/ig-build.md`.
 |---|---|---|
 | `npx fsh-sushi .` | `ig/` | FSH syntax, unresolved FSH references |
 | `node scripts/check-sushi-output.mjs` | repo root | SUSHI warnings beyond the expected advisories |
-| `node scripts/check-ig-menu.mjs` | repo root | Guidance-menu prose vs `sushi-config.yaml`, both directions |
+| `node scripts/check-ig-menu.mjs` | repo root | every `menu:` target is a page, and `menu:` ↔ `pages:` agree both ways |
 | `node scripts/build-ig-groups.mjs --check` | repo root (after SUSHI) | every artifact sits in exactly one Artifacts-page group; the generated `groups:` block is current |
 | `node scripts/validate-fhir.mjs` | repo root | resource-level conformance: cardinality, extension context, required items |
 | `node scripts/check-fml.mjs` | repo root | FML syntax and StructureMap parity — a parser, not a profile checker |

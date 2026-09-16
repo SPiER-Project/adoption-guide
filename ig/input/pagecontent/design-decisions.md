@@ -147,7 +147,7 @@ SPiER's own examples follow that split consistently. Nothing enforces it, and
 harmonizing the two has not been done. Until it is, **a consumer SHOULD NOT
 assume a single interpretation vocabulary across the two layers**, and SHOULD
 read the `derivedFrom` chain to know which layer a given Observation belongs
-to. [How to Read This Guide](how-to-read.html#two-layer-model) describes the
+to. [Reading the artifacts](how-to-read.html#two-layer-model) describes the
 two layers.
 
 ## The suicide-related problem set is enumerated, not intensional

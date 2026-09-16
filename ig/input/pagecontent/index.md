@@ -8,39 +8,39 @@
 | **FHIR version** | R4 (4.0.1) |
 | **Realm** | US |
 
-A FHIR-native reference implementation of the suicide-safer care pathway, developed in alignment with the **[Zero Suicide framework](https://zerosuicide.edc.org/)**. SPiER's mission is to make suicide-safer care the standard everywhere; it turns research-validated suicide-prevention instruments into portable FHIR artifacts so that a screen captured in one system can be **understood and acted on anywhere the patient is next seen**. The artifacts are free and open — vendors and health systems adopt them at no cost, and no vendor owns the canonical shape.
+SPiER publishes the suicide-safer care pathway as FHIR: the validated screening
+and assessment instruments as Questionnaires, one instrument-agnostic
+suicide-risk tier that every instrument maps into, and the PlanDefinitions,
+ActivityDefinitions and Measures that turn the clinical response into
+executable logic. The artifacts are free and open, and no vendor owns the
+canonical shape. The project story behind them is in the
+[repository README](https://github.com/SPiER-Project/adoption-guide#readme).
 
-That is the scope of this guide. The project narrative behind it — why each layer is modeled the way it is, and how the artifacts reach a published standard — is in the [repository README](https://github.com/SPiER-Project/adoption-guide#readme) rather than restated here.
+Written for **software developers and integrators** — EHR vendors, HIE teams
+moving suicide-risk data between organizations, and HL7 work groups evaluating
+the artifacts.
 
-> **New here? Read [Getting Started](getting-started.html) and [How to Read This Guide](how-to-read.html).** You should be able to grasp the scope, who it's for, and what implementing it involves in about 30 minutes.
+## Find what you need
 
-> **Clinical review status:** the cross-instrument risk-tier harmonization (the concept layer) is a **proposed reference model** authored by SPiER. It has not yet been reviewed by suicide-prevention subject-matter experts or the Zero Suicide Institute, and clinical co-authorship is being pursued. Adopters should validate the tier assignments against their own clinical protocols before relying on them — see [Harmonization status](conformance.html#harmonization-status).
+| You want to… | Go to |
+|---|---|
+| Load an instrument's form (ASQ, PHQ-9, C-SSRS, …) | the [instruments group](artifacts.html#1) on the Artifacts page — each Questionnaire is downloadable as JSON |
+| Get the package and validate your own resources | [Getting Started](getting-started.html) |
+| Query a FHIR server for SPiER data | [Quick Starts](quick-starts.html) |
+| Know what conforming to SPiER means | [Conformance](conformance.html) |
+| Run the pathway as a protocol | [Care Pathway](care-pathway.html) |
+| Score the quality measures | [Measures](measurement.html) |
+| Understand the model and the clinical terms | [Reading the artifacts](how-to-read.html) |
+| Browse everything | [Artifacts](artifacts.html), in eight groups |
 
-## What's in this guide
+## Status
 
-SPiER models the screening instruments and the eight technical stages of suicide-safer care as FHIR `Questionnaire`, `Observation`, `CarePlan`, `PlanDefinition`, and `ActivityDefinition` resources, in three layers — **Capture → Translate → Act**. The vocabulary matters for reading the rest of the guide, so it is defined here:
-
-- **Capture** — instrument-specific profiles (ASQ, C-SSRS, PHQ-9, SBQ-R, Stanley-Brown, CAMS) modeled as `Questionnaire` / `QuestionnaireResponse` with their native LOINC/SNOMED coding, in full fidelity. This is the **capture layer**.
-- **Translate** — a single, instrument-agnostic *suicide-risk tier* (carried on the generic LOINC `93374-7`) that every instrument maps into, so a downstream system can consume a result without understanding the originating tool. This is the **concept layer**; see [How to Read This Guide](how-to-read.html#capture-translate-act).
-- **Act** — `PlanDefinition` and `ActivityDefinition` that turn the already-settled clinical response into executable recommendations. SPiER recommends the next step; the clinician (or the institution's configured policy) decides.
-
-## Who this is for
-
-Written first for **software developers and integrators**:
-
-- **EHR vendors** supporting suicide-safer-care workflows in their products.
-- **HIE / interoperability teams** moving suicide-risk data across organizations (this IG anchors a cross-EHR portability pilot with a state HIE).
-- **HL7 work groups and IG authors** evaluating SPiER as a basis for standardized suicide-prevention FHIR artifacts.
-
-A short clinical primer for the screening terms is in [How to Read This Guide](how-to-read.html#clinical-primer); the [Conformance](conformance.html) page describes what conforming to SPiER means.
-
-## Companion resources
-
-- **[Interactive companion app](https://spier-project.github.io/adoption-guide/)** — a React application demonstrating the pathway in a simulated EHR (8-stage patient chart, population view, tool configuration, adoption readiness). It doubles as a working **reference implementation**.
-- **[GitHub repository](https://github.com/SPiER-Project/adoption-guide)** — source for both this IG and the companion app; use [Issues](https://github.com/SPiER-Project/adoption-guide/issues) for feedback.
-
-## Status & expectations
-
-**Draft / continuous build.** Profiles are `draft` / `experimental`; the concept-layer crosswalks are drafted but pending clinical sign-off. Formal conformance artifacts (Must-Support, CapabilityStatements) are defined — see [Conformance](conformance.html). Maturity is signaled honestly: SPiER is early (FMM 0–1) and advancing through real-world piloting toward independent multi-system validation.
-
-See the [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) for how the pathway relates to the broader Zero Suicide framework, and the [Roadmap](https://github.com/SPiER-Project/adoption-guide/milestones) for build status across the catalogued tools.
+Profiles, crosswalks and CapabilityStatements are `draft` / `experimental` and
+may change before Trial-Use; if you implement now, pin version `0.1.0`. The
+cross-instrument risk-tier harmonization is a **proposed reference model**
+authored by SPiER and not yet reviewed by suicide-prevention subject-matter
+experts or the Zero Suicide Institute — validate the tier assignments against
+your own clinical protocols before relying on them (see
+[Harmonization status](conformance.html#harmonization-status)). How the
+pathway relates to the Zero Suicide framework is on the
+[Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) page.

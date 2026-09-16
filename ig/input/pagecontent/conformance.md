@@ -28,7 +28,21 @@ Must-Support identifies *what must be supported* — it does **not** constrain m
 
 ## The concept layer is screening-level
 
-The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived, unconfirmed** signal: it indicates a screen result warranting follow-up, not a confirmed clinical finding. Consumers SHOULD treat it as a triage/routing signal and preserve the `derivedFrom` link to the originating `QuestionnaireResponse`. See [How to Read This Guide](how-to-read.html#two-layer-model).
+The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived, unconfirmed** signal: it indicates a screen result warranting follow-up, not a confirmed clinical finding. Consumers SHOULD treat it as a triage/routing signal and preserve the `derivedFrom` link to the originating `QuestionnaireResponse`. See [Reading the artifacts](how-to-read.html#two-layer-model).
+
+### Tier derivation on the Questionnaire {#tier-derivation}
+
+Every instrument's `risk-level` item carries a
+[Tier Derivation](StructureDefinition-tier-derivation.html) extension valued
+`computed` (the tier is derived from the other answers — the C-SSRS forms) or
+`clinician-assigned` (the tier is the clinician's judgment — SAFE-T, PSS-Full).
+A `computed` item SHALL be `readOnly` and SHALL NOT be `required`: no filler
+produces its value, so an absent answer is the expected state, and a
+QuestionnaireResponse that omits it is conformant. A `clinician-assigned` item
+SHALL be `required`, and a consumer reads the tier from the response. Marking a
+computed item `required` is a defect in the Questionnaire, not a stricter form
+of it. [Reading the artifacts](how-to-read.html#tier-derivation) shows the two
+cases side by side.
 
 ## Suicide-related problems: what SPiER asserts, and what it refuses to
 
