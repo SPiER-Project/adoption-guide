@@ -5,7 +5,7 @@
 // code. The catalog's licensing field is DERIVED from the extension, so the
 // guide cannot state a position no artifact backs.
 //
-// design-decisions.md carries the reasoning — why an extension rather than R5's
+// docs/decisions/licensing-status-code.md carries the reasoning — why an extension rather than R5's
 // `copyrightLabel`, why #unknown is a positive statement rather than a synonym
 // for unrestricted, and the limits an adopter must work within.
 //

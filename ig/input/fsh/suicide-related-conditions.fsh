@@ -4,7 +4,7 @@
 // concept layer and the problem list cannot pick them twice and differently.
 // The reasoning is PUBLISHED and is the substance of this file — do not restate
 // it. conformance.md carries the scoping decision (what SPiER asserts and what
-// it refuses to), being conformance statements; design-decisions.md carries the
+// it refuses to), being conformance statements; docs/decisions/suicide-related-problem-set.md carries the
 // enumerated-vs-subsumption choice, the per-group reasoning, and why depression
 // (35489007) is verified but deliberately not a member.
 //
@@ -17,14 +17,14 @@
 // gate. Record new codes in docs/terminology-manifest.json or it stops watching
 // them.
 
-// Membership, ordering and the per-group reasoning are on design-decisions.md.
+// Membership, ordering and the per-group reasoning are in docs/decisions/suicide-related-problem-set.md.
 // ⚠️ The grouping is not cosmetic: the self-harm pair implies no suicidal
 // intent, which is why it is not folded into the ideation group.
 
 ValueSet: SPiERSuicideRelatedProblem
 Id: spier-suicide-related-problem-vs
 Title: "SPiER Suicide-Related Problem"
-Description: "Verified SNOMED CT concepts for suicide-related findings that may appear on a patient's problem list. Every member was checked against the publishing authority by $lookup and $validate-code, and the guide says so because the alternative has a price — a real code that means something adjacent validates cleanly while narrowing the finding. Enumerated rather than defined as a subsumption query so that a person reviewed each member; extensible, so a site with a finding outside the list is not blocked. Ordered as the clinical progression a pathway walks. See the Design decisions page for why depression is verified but not a member."
+Description: "Verified SNOMED CT concepts for suicide-related findings that may appear on a patient's problem list. Every member was checked against the publishing authority by $lookup and $validate-code, and the guide says so because the alternative has a price — a real code that means something adjacent validates cleanly while narrowing the finding. Enumerated rather than defined as a subsumption query so that a person reviewed each member; extensible, so a site with a finding outside the list is not blocked. Ordered as the clinical progression a pathway walks. Conformance states the rule; the decision record at https://github.com/SPiER-Project/adoption-guide/blob/main/docs/decisions/suicide-related-problem-set.md has the per-group reasoning and why depression is verified but not a member."
 * ^status = #draft
 * ^experimental = true
 
