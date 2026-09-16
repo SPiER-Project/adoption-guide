@@ -290,6 +290,18 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   now fails. What still nothing can see is a path that *resolves* but now lands
   on the explainer rather than the app — that class needs a grep.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
+- **Two build surfaces, one route table.** `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`)
+  builds the two SMART apps with no guide route registered and no synthetic
+  patient compiled in — `@spier/demo-population` resolves to an empty shim. A
+  demo-only page is declared `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface`
+  **inline** (a helper would keep the import reachable), a demo-only route sits in
+  an `IS_DEMO && (…)` block, and a redirect that differs by surface is two literal
+  `<Route>`s (the route-table reader wants `<Navigate to="…">` verbatim).
+  `npm run build:clinical` then `npm run check:surface` reads BOTH bundles and
+  checks every marker both ways; it is in the CI build job, not in `verify`.
+  ⚠️ The alias reader scans `vite.config.ts` for the literal `find:` — even in a
+  comment — and throws on one it cannot parse; that is why the config's comments
+  say "alias entry" and not the property name.
 - **Never hand-edit generated output** — `packages/fhir-artifacts/generated/`,
   `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`. To change
   FHIR shapes, edit FSH in `ig/input/fsh/`; to change a Questionnaire, edit the

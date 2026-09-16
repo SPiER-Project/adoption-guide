@@ -48,20 +48,36 @@ import { Shell } from './components/Shell'
 // Cross-tab patient-context sync (simulated FHIRcast). Eager + always mounted
 // so a chart tab is listening regardless of which lens the user loaded first.
 import { FhircastListener } from './components/FhircastListener'
+import { IS_DEMO } from './lib/surface'
 
 // Route pages and views are code-split (React.lazy) so each lens loads on
 // demand. Named exports are adapted to lazy()'s default-export contract.
-const Overview = lazy(() => import('./pages/Overview').then(m => ({ default: m.Overview })))
-const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide })))
-const CarePathway = lazy(() => import('./pages/CarePathway').then(m => ({ default: m.CarePathway })))
-const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney })))
-const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
+/**
+ * A page that exists on the demo surface only is declared as
+ * `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface`. `IS_DEMO` is a
+ * build-time literal, so on the clinical build the ternary folds and the
+ * dynamic import is dropped with it: the guide's chunks are not emitted
+ * rather than emitted-and-dark. (Inline, not through a helper — an import
+ * inside an arrow passed to a function is reachable as far as the bundler
+ * knows, and would be kept.) The fallback is never rendered — no clinical
+ * route points at it — but the symbol has to be a component so the JSX below
+ * typechecks on both surfaces.
+ */
+function NotOnThisSurface() {
+  return <Navigate to="/" replace />
+}
+
+const Overview = IS_DEMO ? lazy(() => import('./pages/Overview').then(m => ({ default: m.Overview }))) : NotOnThisSurface
+const AdoptionGuide = IS_DEMO ? lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide }))) : NotOnThisSurface
+const CarePathway = IS_DEMO ? lazy(() => import('./pages/CarePathway').then(m => ({ default: m.CarePathway }))) : NotOnThisSurface
+const PatientJourney = IS_DEMO ? lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney }))) : NotOnThisSurface
+const DataDictionary = IS_DEMO ? lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary }))) : NotOnThisSurface
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
-const CdsServiceGuide = lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide })))
-const PatientAppGuide = lazy(() => import('./pages/PatientAppGuide').then(m => ({ default: m.PatientAppGuide })))
-const PopulationDashboardGuide = lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide })))
-const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
-const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
+const CdsServiceGuide = IS_DEMO ? lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide }))) : NotOnThisSurface
+const PatientAppGuide = IS_DEMO ? lazy(() => import('./pages/PatientAppGuide').then(m => ({ default: m.PatientAppGuide }))) : NotOnThisSurface
+const PopulationDashboardGuide = IS_DEMO ? lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide }))) : NotOnThisSurface
+const EhrAdoptionRubric = IS_DEMO ? lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric }))) : NotOnThisSurface
+const AdoptionReadiness = IS_DEMO ? lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness }))) : NotOnThisSurface
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
@@ -131,54 +147,63 @@ function AppRoutes() {
           Overview said, from a second chrome the rest of the app never showed —
           two front doors a visitor had to choose between. The two pages are now
           one, inside the shell, and `/` lands on it. */}
-      <Route path="/" element={<Navigate to="/overview" replace />} />
+      {IS_DEMO ? (
+        <Route path="/" element={<Navigate to="/overview" replace />} />
+      ) : (
+        <Route path="/" element={<Navigate to="/patient/record" replace />} />
+      )}
 
       {/* The app shell wraps the demo lenses */}
       <Route element={<Shell />}>
         {/* Overview — the front door, a top-level lens rather than a guide
             section (the sidebar lists it above the Adoption Guide). */}
-        <Route path="/overview" element={<Overview />} />
+        {/* The guide lenses exist on the demo surface only — see lib/surface.ts. */}
+        {IS_DEMO && (
+          <>
+          <Route path="/overview" element={<Overview />} />
 
-        {/* Adoption Guide lens */}
-        <Route path="/guide" element={<AdoptionGuide />}>
-          <Route index element={<Navigate to="pathway" replace />} />
-          {/* ⚠️ /guide/pathway is REPURPOSED, not renamed. It served the
-              stage-organized tool catalogue until Phase 3 of
-              docs/plans/suicide-safer-care-pathway.md; it is now the pathway
-              itself, rendered from PlanDefinition/SPiERSuicideSaferCarePathway,
-              and the catalogue lives one route down at /guide/tools. Anchored
-              deep links (/guide/pathway#stage-…) are forwarded by CarePathway
-              itself — see the note there. */}
-          <Route path="pathway" element={<CarePathway />} />
-          {/* ⚠️ Declared in this exact `<Route path="x" element={<Comp />}>`
-              form on purpose: check-guide-boundary.mjs reads the route table to
-              find each section's component, and a different shape would make it
-              fail to resolve the page rather than silently skip it. */}
-          <Route path="patient-app" element={<PatientAppGuide />} />
-          <Route path="dashboard" element={<PopulationDashboardGuide />} />
-          <Route path="tools" element={<PatientJourney />} />
-          {/* Tool Configuration moved to /settings on 2026-09-15: it is a
-              setting of the SMART app, which owns the tool catalog, not a
-              section of a guide that explains and hosts. The redirect stays —
-              the path was published and is linked from the chart, both surface
-              explainers and docs/mock-ehr-demo-script.md. */}
-          <Route path="tool-configuration" element={<Navigate to="/settings" replace />} />
-          <Route path="data-dictionary" element={<DataDictionary />} />
-          {/* Measures moved to the EHR side (step D, #391): it is the only guide
-              section that read patient data, and the guide explains and
-              configures the pathway rather than holding a caseload. The redirect
-              stays — /guide/measures is a published tool launch path and is
-              already linked from CDS cards in the wild. */}
-          <Route path="measures" element={<Navigate to="/population/measures" replace />} />
-          <Route path="cds-service" element={<CdsServiceGuide />} />
-          <Route path="adoption-readiness" element={<AdoptionReadiness />} />
-          <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
-          {/* /guide/roadmap was published, so it gets a redirect rather than
-              falling through to the catch-all. The page mirrored GitHub Issues
-              onto the site; the issues are the roadmap now, and Adoption
-              Readiness is what survives of "where is each tool". */}
-          <Route path="roadmap" element={<Navigate to="/guide/adoption-readiness" replace />} />
-        </Route>
+          {/* Adoption Guide lens */}
+          <Route path="/guide" element={<AdoptionGuide />}>
+            <Route index element={<Navigate to="pathway" replace />} />
+            {/* ⚠️ /guide/pathway is REPURPOSED, not renamed. It served the
+                stage-organized tool catalogue until Phase 3 of
+                docs/plans/suicide-safer-care-pathway.md; it is now the pathway
+                itself, rendered from PlanDefinition/SPiERSuicideSaferCarePathway,
+                and the catalogue lives one route down at /guide/tools. Anchored
+                deep links (/guide/pathway#stage-…) are forwarded by CarePathway
+                itself — see the note there. */}
+            <Route path="pathway" element={<CarePathway />} />
+            {/* ⚠️ Declared in this exact `<Route path="x" element={<Comp />}>`
+                form on purpose: check-guide-boundary.mjs reads the route table to
+                find each section's component, and a different shape would make it
+                fail to resolve the page rather than silently skip it. */}
+            <Route path="patient-app" element={<PatientAppGuide />} />
+            <Route path="dashboard" element={<PopulationDashboardGuide />} />
+            <Route path="tools" element={<PatientJourney />} />
+            {/* Tool Configuration moved to /settings on 2026-09-15: it is a
+                setting of the SMART app, which owns the tool catalog, not a
+                section of a guide that explains and hosts. The redirect stays —
+                the path was published and is linked from the chart, both surface
+                explainers and docs/mock-ehr-demo-script.md. */}
+            <Route path="tool-configuration" element={<Navigate to="/settings" replace />} />
+            <Route path="data-dictionary" element={<DataDictionary />} />
+            {/* Measures moved to the EHR side (step D, #391): it is the only guide
+                section that read patient data, and the guide explains and
+                configures the pathway rather than holding a caseload. The redirect
+                stays — /guide/measures is a published tool launch path and is
+                already linked from CDS cards in the wild. */}
+            <Route path="measures" element={<Navigate to="/population/measures" replace />} />
+            <Route path="cds-service" element={<CdsServiceGuide />} />
+            <Route path="adoption-readiness" element={<AdoptionReadiness />} />
+            <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
+            {/* /guide/roadmap was published, so it gets a redirect rather than
+                falling through to the catch-all. The page mirrored GitHub Issues
+                onto the site; the issues are the roadmap now, and Adoption
+                Readiness is what survives of "where is each tool". */}
+            <Route path="roadmap" element={<Navigate to="/guide/adoption-readiness" replace />} />
+          </Route>
+          </>
+        )}
 
         {/* The SMART app's own settings. Top-level rather than under /patient:
             it is a fact about the DEPLOYMENT, not about a patient, and it
@@ -207,7 +232,11 @@ function AppRoutes() {
               404s — to the explainer, which is what someone arriving at it now
               wants. The per-patient form keeps the id: a launched chart URL
               must not silently lose its patient. */}
-          <Route path="chart" element={<Navigate to="/guide/patient-app" replace />} />
+          {IS_DEMO ? (
+            <Route path="chart" element={<Navigate to="/guide/patient-app" replace />} />
+          ) : (
+            <Route path="chart" element={<Navigate to="/patient/record" replace />} />
+          )}
           <Route path="chart/:patientId" element={<LegacyChartRedirect />} />
           {/* The published protocol, beside the chart rather than in the guide
               (Phase 4 of docs/plans/suicide-safer-care-pathway.md). This is the
@@ -312,7 +341,11 @@ function AppRoutes() {
               the guide page that explains the dashboard product — the same
               move as /patient/chart above, and for the same reason. The live
               caseload is `caseload`. */}
-          <Route index element={<Navigate to="/guide/dashboard" replace />} />
+          {IS_DEMO ? (
+            <Route index element={<Navigate to="/guide/dashboard" replace />} />
+          ) : (
+            <Route index element={<Navigate to="caseload" replace />} />
+          )}
           <Route path="caseload" element={<PopulationView />} />
           {/* The summary and alerts with no table and no page header — what the
               mock EHR frames at the top of its front door. See the module
@@ -321,33 +354,37 @@ function AppRoutes() {
           <Route path="measures" element={<MeasureDashboard />} />
         </Route>
 
-        {/* Legacy /chart/* redirects — keep for one cycle */}
-        <Route path="/chart" element={<Navigate to="/patient/record" replace />} />
-        <Route path="/chart/dashboard" element={<Navigate to="/patient/record" replace />} />
-        <Route path="/chart/screenings" element={<Navigate to="/patient/assessments" replace />} />
-        <Route path="/chart/screenings/:tool" element={<LegacyAssessmentRedirect />} />
-        <Route path="/chart/careplan" element={<Navigate to="/patient/care-plans" replace />} />
-        <Route path="/chart/encounters" element={<Navigate to="/patient/encounters" replace />} />
-        <Route path="/chart/implementation-guide" element={<Navigate to="/guide" replace />} />
-        {/* Both of these meant "the tool catalogue", which is /guide/tools now. */}
-        <Route path="/chart/workflow" element={<Navigate to="/guide/tools" replace />} />
-        <Route path="/chart/workflow/:slug/plan" element={<LegacyWorkflowRedirect />} />
-        <Route path="/chart/ehr-rubric" element={<Navigate to="/guide/adoption-rubric" replace />} />
-        <Route path="/chart/data-dictionary" element={<Navigate to="/guide/data-dictionary" replace />} />
-        <Route path="/chart/tools" element={<Navigate to="/guide/tools" replace />} />
+        {IS_DEMO && (
+          <>
+          {/* Legacy /chart/* redirects — keep for one cycle */}
+          <Route path="/chart" element={<Navigate to="/patient/record" replace />} />
+          <Route path="/chart/dashboard" element={<Navigate to="/patient/record" replace />} />
+          <Route path="/chart/screenings" element={<Navigate to="/patient/assessments" replace />} />
+          <Route path="/chart/screenings/:tool" element={<LegacyAssessmentRedirect />} />
+          <Route path="/chart/careplan" element={<Navigate to="/patient/care-plans" replace />} />
+          <Route path="/chart/encounters" element={<Navigate to="/patient/encounters" replace />} />
+          <Route path="/chart/implementation-guide" element={<Navigate to="/guide" replace />} />
+          {/* Both of these meant "the tool catalogue", which is /guide/tools now. */}
+          <Route path="/chart/workflow" element={<Navigate to="/guide/tools" replace />} />
+          <Route path="/chart/workflow/:slug/plan" element={<LegacyWorkflowRedirect />} />
+          <Route path="/chart/ehr-rubric" element={<Navigate to="/guide/adoption-rubric" replace />} />
+          <Route path="/chart/data-dictionary" element={<Navigate to="/guide/data-dictionary" replace />} />
+          <Route path="/chart/tools" element={<Navigate to="/guide/tools" replace />} />
 
-        {/* The guide's Overview merged with the old standalone front door and
-            moved up to /overview. Declared here rather than as a child of
-            /guide so the redirect doesn't first paint the guide's header and
-            pager. LegacyGuideRedirect funnels /adoption-guide/overview and
-            /implementation-guide/overview through this same hop. */}
-        <Route path="/guide/overview" element={<Navigate to="/overview" replace />} />
+          {/* The guide's Overview merged with the old standalone front door and
+              moved up to /overview. Declared here rather than as a child of
+              /guide so the redirect doesn't first paint the guide's header and
+              pager. LegacyGuideRedirect funnels /adoption-guide/overview and
+              /implementation-guide/overview through this same hop. */}
+          <Route path="/guide/overview" element={<Navigate to="/overview" replace />} />
 
-        {/* Legacy guide routes → /guide/* (lens renamed from /implementation-guide, then /adoption-guide) */}
-        <Route path="/implementation-guide" element={<LegacyGuideRedirect />} />
-        <Route path="/implementation-guide/*" element={<LegacyGuideRedirect />} />
-        <Route path="/adoption-guide" element={<LegacyGuideRedirect />} />
-        <Route path="/adoption-guide/*" element={<LegacyGuideRedirect />} />
+          {/* Legacy guide routes → /guide/* (lens renamed from /implementation-guide, then /adoption-guide) */}
+          <Route path="/implementation-guide" element={<LegacyGuideRedirect />} />
+          <Route path="/implementation-guide/*" element={<LegacyGuideRedirect />} />
+          <Route path="/adoption-guide" element={<LegacyGuideRedirect />} />
+          <Route path="/adoption-guide/*" element={<LegacyGuideRedirect />} />
+          </>
+        )}
       </Route>
 
       {/* Anything else → home */}

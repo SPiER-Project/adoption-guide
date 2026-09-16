@@ -22,7 +22,7 @@ const styleRules = {
 }
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dist-clinical']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

@@ -242,6 +242,17 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The second build surface (src/lib/surface.ts): the two SMART apps with
+      # no guide route and no synthetic patient. Built here because the gate
+      # below reads the OUTPUT — a folded route block and a switched alias are
+      # bundle properties no source gate can see — and checks every marker both
+      # ways, so a marker the demo build lacks fails too rather than proving
+      # nothing (surfaces-and-distribution.md §3, "Phase C").
+      - name: Build the clinical surface
+        run: npm run build:clinical
+      - name: Check the clinical surface is clean
+        run: npm run check:surface
+
   # The CDS Hooks Worker: typecheck, lint, and unit tests. Runs as its own job
   # so a service-only change gets a signal, and so a web change that breaks the
   # Worker's imports fails here rather than at deploy time.

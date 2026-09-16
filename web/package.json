@@ -9,6 +9,8 @@
     "dev": "vite",
     "prebuild": "npm run copy-fhir",
     "build": "tsc -b && vite build",
+    "build:clinical": "tsc -b && VITE_SURFACE=clinical vite build --outDir dist-clinical",
+    "check:surface": "node scripts/check-surface.mjs",
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.css\"",
     "check:tokens": "node scripts/check-css-tokens.mjs",

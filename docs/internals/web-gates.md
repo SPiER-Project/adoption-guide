@@ -167,6 +167,29 @@ npm test                 # vitest
 ```
 
 
+## The clinical surface (in the CI build job, not in `verify`)
+
+```
+npm run build:clinical   # VITE_SURFACE=clinical → web/dist-clinical/ (src/lib/surface.ts)
+npm run check:surface    # both bundles exist; every derived marker — the guide pages' chunks,
+                         # the "/guide" and "/overview" route literals, the demo patients'
+                         # display names — is ABSENT from the clinical bundle AND PRESENT in
+                         # the demo bundle
+```
+
+⚠️ It reads build output, so it cannot live in `verify`, and it FAILS rather than
+skipping when a bundle is missing. The both-ways check is the load-bearing half:
+a marker the demo bundle lacks has stopped matching, and a clean clinical bundle
+over it proves nothing. Two things its plants taught (2026-09-15): its first
+markers — the guide section segments and the patient ids — were things the app
+spells elsewhere (`pathway` is a route under `/patient`; `patient-001` is a
+localStorage migration key), so the markers are names and route roots; and its
+first page list came from the `IS_DEMO ? lazy(` guards, so a page that LOST its
+guard dropped out of the list it was checked against and the planted defect
+passed. The list now comes from the guide sections and the route table — from
+something the defect cannot change — with a source-level check that names the
+line. See `docs/plans/surfaces-and-distribution.md` §3.
+
 ## Per-source liveness floors
 
 `scripts/lib/floors.mjs` — `reportFloors(entries, fail)`. Nine gates call it, and
