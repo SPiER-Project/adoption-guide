@@ -3,7 +3,7 @@
 // Pathway steps catalogued but not yet fully FHIR-modelled: structural
 // metadata only, and deliberately NO LOINC/SNOMED code, NO sdc-questionnaire
 // binding and NO derived-Observation profile — each needs verified terminology
-// and an authored Questionnaire. design-decisions.md says what a consumer
+// and an authored Questionnaire. docs/decisions/placeholder-activitydefinitions.md says what a consumer
 // should read into that, and why plausible placeholder values are the thing not
 // to do. Once a tool has both, move it to its own <instrument>.fsh and enrich
 // it there (the `assessment-to-ig` skill drives that).

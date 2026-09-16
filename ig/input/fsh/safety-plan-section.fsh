@@ -4,7 +4,7 @@
 // produces: the Stanley-Brown Safety Plan (seven steps) and the Crisis
 // Response Plan (five sections, Bryan & Rudd).
 //
-// The reasoning is PUBLISHED on design-decisions.md — why these codes are
+// The reasoning is recorded in docs/decisions/safety-plan-section-codes.md — why these codes are
 // SPiER-local, why this system and cams-careplan-section stay separate, and
 // why `87626-8` sits in `CarePlan.category` without claiming the plan is a
 // document. Do not restate it here: that page is what a reader outside this
@@ -19,7 +19,7 @@
 CodeSystem: SafetyPlanSectionCodes
 Id: safety-plan-section
 Title: "Safety Plan Section Codes"
-Description: "SPiER-local section codes identifying which section of a narrative safety-plan CarePlan an activity represents. Shared by the Stanley-Brown Safety Plan and the Crisis Response Plan. Local rather than LOINC because an exhaustive search of LOINC 2.82 found no published concepts at this granularity — the Design decisions page records the search performed and the near-misses rejected, including the emergency-contact panel that would fit if these steps were ever modelled as structured contacts."
+Description: "SPiER-local section codes identifying which section of a narrative safety-plan CarePlan an activity represents. Shared by the Stanley-Brown Safety Plan and the Crisis Response Plan. Local rather than LOINC because an exhaustive search of LOINC 2.82 found no published concepts at this granularity — the decision record at https://github.com/SPiER-Project/adoption-guide/blob/main/docs/decisions/safety-plan-section-codes.md lists the search performed and the near-misses rejected, including the emergency-contact panel that would fit if these steps were ever modelled as structured contacts."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true

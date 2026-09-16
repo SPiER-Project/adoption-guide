@@ -1,34 +1,53 @@
 # Conformance
 
-> **Status: draft.** SPiER is a draft IG (FMM 0–1). Must-Support flags and the role CapabilityStatements described below are now defined, but remain draft/experimental — treat them as the intended conformance contract, not yet balloted.
+> **Status: draft** (FMM 0–1). Must-Support flags, the role CapabilityStatements
+> and every rule below are the intended conformance contract, not yet balloted.
+> Advancing maturity needs independently developed implementations; per-tool
+> readiness is tracked in the companion app's
+> [Adoption Readiness matrix](https://spier-project.github.io/adoption-guide/#/guide/adoption-readiness).
 
 ## Actor roles
 
-Rather than a single monolithic specification, SPiER defines conformance per **system role** (the approach used by the HL7 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/)). The roles map directly onto SPiER's audiences and its cross-EHR portability pilot:
+SPiER defines conformance per **system role**, the approach of the HL7
+[Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/). Each role has a
+`CapabilityStatement` declaring the resources and interactions it supports:
 
-- **Screening-source EHR** — captures an instrument as a `QuestionnaireResponse` and produces the derived instrument Observation(s) and the harmonized suicide-risk concept Observation.
-- **HIE intermediary** — stores and forwards those resources across organizations without losing fidelity or provenance.
-- **Risk consumer / client** — reads the harmonized concept (and, optionally, the underlying capture data) to surface actionable suicide-risk information at the point of care.
-
-Each role has a `CapabilityStatement` declaring the resources and interactions it supports:
-
-- [Screening-Source EHR](CapabilityStatement-screening-source-ehr.html) — produces the screening data.
-- [HIE Intermediary](CapabilityStatement-hie-intermediary.html) — stores and forwards it.
-- [Risk Consumer](CapabilityStatement-risk-consumer.html) — reads the harmonized concept.
+- [Screening-Source EHR](CapabilityStatement-screening-source-ehr.html) —
+  captures an instrument as a `QuestionnaireResponse` and produces the derived
+  instrument Observation(s) and the harmonized suicide-risk concept Observation.
+- [HIE Intermediary](CapabilityStatement-hie-intermediary.html) — stores and
+  forwards those resources across organizations without losing fidelity or
+  provenance.
+- [Risk Consumer](CapabilityStatement-risk-consumer.html) — reads the
+  harmonized concept (and, optionally, the underlying capture data) to surface
+  actionable suicide-risk information at the point of care.
+- [Quality Reporter](CapabilityStatement-quality-reporter.html) — evaluates the
+  Stage-8 Measures over a population; its access pattern is population-wide
+  rather than per patient.
 
 ## What "Must-Support" means
 
-Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html), Must-Support is defined **operationally, by role**:
+Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html),
+Must-Support is defined **operationally, by role**:
 
-- A **producer** (screening-source EHR) *SHALL be capable of populating* every Must-Support element.
-- A **consumer** (risk client) *SHALL be capable of processing* instances containing those elements *without erroring or failing*.
-- **Missing-data semantics:** when an element's absence reason is unknown, a producer SHALL omit the element, and a consumer SHALL interpret a missing element as *data not present* (not as an error).
+- A **producer** (screening-source EHR) *SHALL be capable of populating* every
+  Must-Support element.
+- A **consumer** (risk client) *SHALL be capable of processing* instances
+  containing those elements *without erroring or failing*.
+- **Missing data:** when an element's absence reason is unknown, a producer
+  SHALL omit the element, and a consumer SHALL interpret a missing element as
+  *data not present*, not as an error.
 
-Must-Support identifies *what must be supported* — it does **not** constrain maximum cardinality, so source systems are never forced to strip data out.
+Must-Support says *what must be supported*; it does **not** constrain maximum
+cardinality, so a source system is never forced to strip data out.
 
 ## The concept layer is screening-level
 
-The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived, unconfirmed** signal: it indicates a screen result warranting follow-up, not a confirmed clinical finding. Consumers SHOULD treat it as a triage/routing signal and preserve the `derivedFrom` link to the originating `QuestionnaireResponse`. See [Reading the artifacts](how-to-read.html#two-layer-model).
+The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived,
+unconfirmed** signal: a screen result warranting follow-up, not a confirmed
+clinical finding. Consumers SHOULD treat it as a triage/routing signal and
+preserve the `derivedFrom` link to the originating `QuestionnaireResponse`.
+See [Reading the artifacts](how-to-read.html#two-layer-model).
 
 ### Tier derivation on the Questionnaire {#tier-derivation}
 
@@ -37,55 +56,86 @@ Every instrument's `risk-level` item carries a
 `computed` (the tier is derived from the other answers — the C-SSRS forms) or
 `clinician-assigned` (the tier is the clinician's judgment — SAFE-T, PSS-Full).
 A `computed` item SHALL be `readOnly` and SHALL NOT be `required`: no filler
-produces its value, so an absent answer is the expected state, and a
-QuestionnaireResponse that omits it is conformant. A `clinician-assigned` item
-SHALL be `required`, and a consumer reads the tier from the response. Marking a
-computed item `required` is a defect in the Questionnaire, not a stricter form
-of it. [Reading the artifacts](how-to-read.html#tier-derivation) shows the two
-cases side by side.
+produces its value, so a QuestionnaireResponse that omits it is conformant. A
+`clinician-assigned` item SHALL be `required`, and a consumer reads the tier
+from the response. [Reading the artifacts](how-to-read.html#tier-derivation)
+shows the two cases side by side.
 
-## Suicide-related problems: what SPiER asserts, and what it refuses to
+### `Observation.interpretation` differs by layer
 
-The rule above has a direct consequence for the problem list, and it is a
-conformance statement rather than a style preference.
+The concept-layer Observation carries `POS` / `NEG` (positive or negative for
+follow-up); the instrument-layer Observations carry `A`, `H`, `L` (a native
+result read against the instrument's own thresholds). Both come from the
+standard observation-interpretation value set and the profiles do not choose
+between them. A consumer SHOULD NOT assume one interpretation vocabulary across
+the two layers, and SHOULD read the `derivedFrom` chain to know which layer an
+Observation belongs to.
 
-**A screen never becomes a `Condition`.** A positive ASQ, C-SSRS, PHQ-9 item 9 or
-SBQ-R produces a [SPiER Suicide Risk Concept](StructureDefinition-spier-suicide-risk-concept.html)
-Observation and nothing else. Systems implementing this guide SHALL NOT derive a
-problem-list `Condition` from a screening or assessment result. A problem-list
-entry is a clinician's assertion about a patient; a screen is a signal that one
-may be warranted. Deriving the first from the second manufactures diagnostic
-precision the instrument cannot support — the same fabrication the crosswalks
-refuse when they map a low-fidelity instrument to the widest defensible tier
-rather than the most alarming one.
+## The problem list
 
-**A CAMS driver stays narrative.** [SPiER CAMS Suicide Driver](StructureDefinition-spier-cams-suicide-driver.html)
-requires `code.text` and leaves `code.coding` optional, with an `example`
-binding. A driver is idiographic — *"relationship conflict with spouse — feeling
-trapped and hopeless"* — and no terminology carries concepts at that
-granularity. Requiring a code would replace what the clinician and patient
-identified with a coarser label meaning something else.
+**A screen never becomes a `Condition`.** A positive ASQ, C-SSRS, PHQ-9 item 9
+or SBQ-R produces a
+[SPiER Suicide Risk Concept](StructureDefinition-spier-suicide-risk-concept.html)
+Observation and nothing else. Systems implementing this guide SHALL NOT derive
+a problem-list `Condition` from a screening or assessment result; a problem-list
+entry is a clinician's assertion, and a screen is a signal that one may be
+warranted.
 
-**A clinician-asserted suicide-related problem is coded**, and that is what
-[SPiER Suicide-Related Condition](StructureDefinition-spier-suicide-related-condition.html)
-is for. It requires `verificationStatus`, so a consumer can tell a confirmed
-assertion from a provisional one without inferring it from context, and binds
-`code` extensibly to [SPiER Suicide-Related Problem](ValueSet-spier-suicide-related-problem-vs.html)
-— nine SNOMED CT concepts spanning risk status, ideation → plan → intent →
-behavior → attempt, history of attempt, and self-harm.
+**A clinician-asserted suicide-related problem is coded** with
+[SPiER Suicide-Related Condition](StructureDefinition-spier-suicide-related-condition.html),
+which requires `verificationStatus` and binds `code` extensibly to
+[SPiER Suicide-Related Problem](ValueSet-spier-suicide-related-problem-vs.html):
+nine SNOMED CT concepts, each verified against the publishing authority,
+spanning risk status, ideation → plan → intent → behavior → attempt, history of
+attempt, and self-harm. Depression (`35489007`) is deliberately **not** a member:
+a PHQ-9 score is a severity screen, and a system SHALL NOT assert a depressive
+disorder from one.
 
-Every SCTID in that set was verified against the publishing authority, and the
-guide says so because the alternative has a price. One example from this exact
-subject area: `86849004` is widely mis-cited as "suicide attempt". Its Fully
-Specified Name is *Suicidal poisoning (disorder)* — a real code that validates
-structurally while silently narrowing every attempt on the problem list to a
-poisoning. The correct code is `82313006`. SPiER publishes the verified set so
-that sites, the concept layer, and the Stage-7 registry all name the same
-finding the same way.
+**A CAMS driver stays narrative.**
+[SPiER CAMS Suicide Driver](StructureDefinition-spier-cams-suicide-driver.html)
+requires `code.text` and leaves `code.coding` optional with an `example`
+binding, because no terminology carries concepts at a driver's granularity.
+
+## Categories and codes every profile carries
+
+- **The domain category is required.** Every SPiER resource with a native
+  `category` element carries
+  `http://thespierproject.org/fhir/CodeSystem/spier-concept-domain#suicide-risk`
+  as a `1..1` slice, *in addition to* its standard clinical category (`survey`,
+  `procedure`, `problem-list-item`, …). Slicing is open, so a resource may carry
+  further categories. [Quick Starts](quick-starts.html) has the queries this
+  enables, including why `Appointment` uses `service-category`.
+- **`87626-8` in `CarePlan.category` is not a document claim.** The two
+  narrative safety plans —
+  [Stanley-Brown](StructureDefinition-spier-stanley-brown-safety-plan.html) and
+  [Crisis Response Plan](StructureDefinition-spier-crisis-response-plan.html) —
+  carry LOINC `87626-8` "Suicide prevention note" in `category` for
+  discoverability. It is a document-type concept placed in an `example`-bound
+  element; a consumer SHALL NOT read it as a claim that the CarePlan is a
+  document. The two CAMS plans do not carry it.
+- **Safety-plan section codes are SPiER-local**
+  ([safety-plan-section](CodeSystem-safety-plan-section.html)), because LOINC
+  publishes nothing at section granularity, and they are kept separate from the
+  [CAMS care-plan sections](CodeSystem-cams-careplan-section.html), which the
+  CAMS framework orders and scopes differently. No ConceptMap between the two is
+  published.
+- **Licensing status is a code, and it may say `unknown`.** Every
+  ActivityDefinition carries a `copyright` notice and a coded
+  [instrument-licensing-status](StructureDefinition-instrument-licensing-status.html).
+  `unknown` is a positive statement that SPiER's audit has not established the
+  answer, not a synonym for unrestricted. No status has been checked against
+  what the rights holder publishes *today*; an adopter SHALL verify licensing
+  against the rights holder's current terms before deploying an instrument.
+- **A code-less ActivityDefinition is a catalogue entry, not a modelled
+  instrument.** A few pathway steps are published with structural metadata only
+  — no LOINC or SNOMED codes, no Questionnaire binding, no derived-Observation
+  profile — because inventing those would assert things nothing verified. Each
+  is still referenced by exactly one stage PlanDefinition action.
 
 ## Harmonization status
 
-Every crosswalk below is now an artifact in this guide, and **none have clinical sign-off yet**. Two things are being tracked separately here, and the distinction matters: whether the artifact is *published and machine-readable*, and whether its tier assignments are *clinically ratified*. The first column pair is now complete; the second is not.
+Every crosswalk is a published, machine-readable artifact; **none has clinical
+sign-off yet**. Those are two different facts, and only the first is complete.
 
 | Instrument | Tier-mapping artifact | Kind | Status |
 |---|---|---|---|
@@ -93,33 +143,37 @@ Every crosswalk below is now an artifact in this guide, and **none have clinical
 | PSS-3 | [ConceptMap: PSS-3 Result → Risk Tier](ConceptMap-PSS3ResultToRiskTier.html) | Coded disposition | Published — pending clinical sign-off |
 | C-SSRS | [ConceptMap: C-SSRS Risk Level → Risk Tier](ConceptMap-CSSRSRiskLevelToRiskTier.html) · [StructureMap: C-SSRS Risk Level → Concept](StructureMap-CSSRSRiskLevelToSuicideRiskConcept.html) | Coded disposition | Published — pending clinical sign-off |
 | BSSA | [ConceptMap: BSSA Disposition → Risk Tier](ConceptMap-BSSADispositionToRiskTier.html) | Coded disposition | Published — pending clinical sign-off |
-| CAMS (SSF overall risk) | [ConceptMap: CAMS SSF Overall Risk → Risk Tier](ConceptMap-CAMSOverallRiskToRiskTier.html) | Coded disposition | Published — pending clinical sign-off; clinician-overridable decision support (see below) |
+| CAMS (SSF overall risk) | [ConceptMap: CAMS SSF Overall Risk → Risk Tier](ConceptMap-CAMSOverallRiskToRiskTier.html) | Coded disposition | Published — pending clinical sign-off; clinician-overridable |
 | PHQ-9 (Item 9) | [StructureMap: PHQ-9 Item 9 → Concept](StructureMap-PHQ9Item9ToSuicideRiskConcept.html) | Ordinal threshold | Published — pending clinical sign-off |
 | SBQ-R (total score) | [StructureMap: SBQ-R Total Score → Concept](StructureMap-SBQRTotalScoreToSuicideRiskConcept.html) | Numeric cutoff | Published — pending clinical sign-off |
 
-**Why some crosswalks are ConceptMaps and others are StructureMaps.** A ConceptMap maps code to code. Instruments that publish a coded disposition (ASQ, PSS-3, C-SSRS, BSSA, CAMS) therefore use one. The PHQ-9's suicide-relevant signal is Item 9, an ordinal integer 0–3, and the SBQ-R produces a numeric total against validated cutoffs; neither is a code-to-code mapping, so both are expressed as StructureMaps keyed on the value. The ASQ and C-SSRS carry a StructureMap *as well as* a ConceptMap because deriving the harmonized Observation involves resource shaping — provenance via `derivedFrom`, category codings, interpretation — around the ConceptMap `translate()` call.
+A coded disposition maps code to code, hence a ConceptMap; an ordinal or
+numeric result is keyed on the value, hence a StructureMap; the ASQ and C-SSRS
+carry both because deriving the Observation also shapes the resource
+(`derivedFrom`, categories, interpretation) around the `translate()` call. All
+are `status = draft`, `experimental = true`.
 
-Every ConceptMap and StructureMap above is published with `status = draft` and `experimental = true`.
+CAMS is a collaborative therapeutic process, not a predictive screener, and no
+published stratification of the SSF Overall Risk rating exists: its map is
+clinician-overridable decision support, every row carries a `wider`
+equivalence, and **no rating maps to `imminent`**.
 
-The CAMS map differs in kind from the others and adopters should treat it accordingly. CAMS is a **collaborative therapeutic process, not a predictive screener**, and no published psychometric stratification of the SSF Overall Risk rating exists. Its tier assignment is therefore explicitly clinician-overridable decision support: every row carries a `wider` equivalence, and **no rating maps to `imminent`** — escalation to the imminent tier is a separate clinical triage decision that a patient self-rating cannot make.
+**Declared transformation.**
+[Stanley-Brown QuestionnaireResponse → CarePlan](StructureMap-StanleyBrownQRToCarePlan.html)
+states how a completed safety-plan questionnaire becomes a safety-plan
+`CarePlan`; the Document Safety Actions stage names it in
+`PlanDefinition.action.transform`.
 
-### Declared transformations
+**Egress: harmonized tier → LOINC.**
+[SPiER Risk Tier → LOINC LL465-6](ConceptMap-SPiERRiskTierToLOINC.html) maps
+the tier onto the normative LOINC answer list for `93374-7`, so a consumer
+expecting the LOINC-coded value can read a SPiER concept without the local
+vocabulary. Two steps are lossy: `imminent` collapses onto LOINC `High`, so a
+consumer reading only the LOINC value SHOULD read the SPiER tier alongside it
+where the distinction matters; and `no-risk` is omitted, having no LOINC
+equivalent.
 
-One further StructureMap has a different job. [Stanley-Brown QuestionnaireResponse → CarePlan](StructureMap-StanleyBrownQRToCarePlan.html) describes how a completed safety-plan questionnaire becomes a safety-plan `CarePlan`, and the Document Safety Actions stage names it in `PlanDefinition.action.transform` on its `administer-stanley-brown` action. An implementer can therefore see not only that a safety plan yields a `CarePlan`, but how each of the seven Stanley-Brown steps lands in it.
-
-### Egress: harmonized tier → LOINC
-
-One further ConceptMap handles egress rather than ingress. [SPiER Risk Tier → LOINC LL465-6](ConceptMap-SPiERRiskTierToLOINC.html) maps the instrument-agnostic tier onto the normative LOINC answer list for `93374-7`, so a consumer expecting the LOINC-coded value — for example the HL7 US Behavioral Health Profiles IG — can interpret a SPiER harmonized concept without understanding the SPiER-local vocabulary.
-
-Two lossy steps in that map are called out deliberately, and both are pending the same clinical sign-off:
-
-- **`imminent` collapses onto LOINC `High`.** LL465-6 provides no distinct "imminent" answer. A consumer reading only the LOINC value therefore cannot distinguish imminent from high risk, and SHOULD read the SPiER-local tier alongside it where the distinction matters clinically.
-- **`no-risk` is omitted**, having no LOINC equivalent.
-
-Until sign-off by suicide-prevention subject-matter experts, the tier assignments in these artifacts are **illustrative reference logic**, not clinical guidance. Adopters SHALL validate tier assignments against their own clinical protocols before using the harmonized tier to drive care decisions.
-
-## Maturity
-
-SPiER is FMM 0–1. Advancing maturity requires evidence from **independently developed implementations** (FMM 2 expects interoperability across 3+ such systems); the current HIE portability pilot and planned HL7 Connectathon participation are the path there. Maturity is tracked per artifact, not coupled mechanically to ballot status.
-
-Per-instrument maturity is tracked in the companion reference application. The [**Adoption Readiness matrix**](https://spier-project.github.io/adoption-guide/#/guide/adoption-readiness) scores every catalogued instrument on its build status, recommendation tier, and target integration depth (electronic capture / discrete write-back / workflow triggering), and links each to its pilot plan, live demo, and tracking epic.
+Until sign-off by suicide-prevention subject-matter experts, every tier
+assignment above is **illustrative reference logic**. Adopters SHALL validate
+tier assignments against their own clinical protocols before using the
+harmonized tier to drive care decisions.

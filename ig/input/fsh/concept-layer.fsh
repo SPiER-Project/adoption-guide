@@ -124,7 +124,7 @@ Description: "On a Questionnaire item that carries a suicide-risk tier (LOINC 93
 //
 // Gravity's leverage is not the domain list; it is the SAME code riding on
 // `.category` of every resource in the chain, so one query assembles the whole
-// record. See quick-starts.md for the searches and design-decisions.md for why
+// record. See quick-starts.md for the searches and docs/decisions/domain-category-required.md for why
 // the slice is 1..1 and why domain and pathway-stage are orthogonal axes.
 //
 // ⚠️ Written ONCE and inserted, never copied — ~28 profiles' worth of a
@@ -231,7 +231,7 @@ RuleSet: SafetyPlanAndSuicideRiskCategory
 // `suicidePreventionNote` is 1..1 — required on the two NARRATIVE safety plans
 // (Stanley-Brown, CRP) and nothing else. The CAMS plans share the runtime
 // factory but not the code, and use the plain rule set above.
-// design-decisions.md carries the caveat that makes it defensible: `87626-8` is
+// docs/decisions/safety-plan-section-codes.md carries the caveat that makes it defensible: `87626-8` is
 // a document-type concept carried for discoverability, NOT a claim that the
 // plan is a document.
 //
@@ -288,7 +288,7 @@ Description: "The instrument-agnostic, actionable suicide-risk concept derived f
 * category[suicideRisk] MS
 * derivedFrom MS
 // Universal actionable flag. SPiER's examples use POS/NEG; the instrument layer
-// uses A/H/L, and nothing enforces either — design-decisions.md records that
+// uses A/H/L, and nothing enforces either — docs/decisions/interpretation-vocabularies.md records that
 // split, which is unresolved rather than settled.
 * interpretation 1..1
 * interpretation from http://hl7.org/fhir/ValueSet/observation-interpretation (extensible)

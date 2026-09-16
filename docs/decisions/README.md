@@ -17,4 +17,11 @@ exists, this folder is the record.
 A record keeps its historical wording and dates. If a decision is reversed,
 add a dated note at the top rather than rewriting the record.
 
+* [`crosswalk-kinds.md`](crosswalk-kinds.md) — ConceptMap for coded dispositions, StructureMap for values, why the ASQ and C-SSRS carry both, and why no CAMS rating maps to `imminent`.
+* [`domain-category-required.md`](domain-category-required.md) — why the suicide-risk domain slice is `1..1`, additive and orthogonal to the stage axis, and the category-loss defect that shaped the named slices.
+* [`interpretation-vocabularies.md`](interpretation-vocabularies.md) — `POS`/`NEG` on the concept layer, `A`/`H`/`L` on the instrument layer: an open inconsistency, recorded as such.
+* [`licensing-status-code.md`](licensing-status-code.md) — a coded extension rather than R5's `copyrightLabel`, why `unknown` is a real value, and the limit of every status.
+* [`placeholder-activitydefinitions.md`](placeholder-activitydefinitions.md) — why the three placeholder steps carry no codes, and what a code-less ActivityDefinition means to a consumer.
+* [`safety-plan-section-codes.md`](safety-plan-section-codes.md) — the LOINC 2.82 search that came up empty and its three near-misses; `87626-8` as a discoverability tag, not a document claim; why the safety-plan and CAMS section systems stay separate.
+* [`suicide-related-problem-set.md`](suicide-related-problem-set.md) — enumerated not intensional, the `86849004` mis-citation, the reasoning inside each grouping, why depression is verified but not a member, and why a CAMS driver stays narrative.
 * [`tier-derivation-required-items.md`](tier-derivation-required-items.md) — why a Questionnaire item whose value is computed is never `required`, and the three C-SSRS forms that got it wrong.
