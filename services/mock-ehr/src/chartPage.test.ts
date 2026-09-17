@@ -77,22 +77,41 @@ describe('the front door', () => {
     expect(body).not.toContain('<th>FHIR id</th>')
   })
 
-  it('offers the caseload as a LAUNCH, with no iframe left on the page', async () => {
-    // ⚠️ **This test is the inverse of the one it replaced, and the absence is
-    // the assertion.** Until #401 the caseload sat in an `<iframe>` at
-    // `?embed=1#/population/summary` carrying no `iss` and no `launch`, and the
-    // old test pinned that URL precisely so it could not quietly widen back into
-    // the whole lens. It is a real user-scoped SMART launch now, so the frame is
-    // gone — and "gone" has to be asserted, because a leftover frame beside a
-    // launch button would put bundled demo data next to live data with nothing
-    // on the page saying which was which.
+  it('frames the caseload as a real LAUNCH, never as a hardcoded URL', async () => {
+    // ⚠️ **This test has now been written three ways, and what it pins is the
+    // FRAME'S PROVENANCE rather than the frame's presence.**
+    //
+    //   1. Until #401 the caseload sat in an `<iframe>` at
+    //      `?embed=1#/population/summary` carrying no `iss` and no `launch`. The
+    //      test of the day pinned that URL so the frame could not quietly widen
+    //      into the whole lens.
+    //   2. #401 replaced it with a launch button and the test inverted: the
+    //      assertion became `not.toContain('<iframe')`, because a leftover frame
+    //      beside a launch button would have put bundled demo data next to live
+    //      data with nothing saying which was which.
+    //   3. 2026-09-17: the frame is back, and that objection is answered rather
+    //      than ignored — there is only one caseload on the page now and it is
+    //      the live one, because the frame IS the launch.
+    //
+    // So "is there a frame" is not the property. The property is that nothing in
+    // the markup names a destination: the page ships `about:blank` and asks the
+    // server for a context, exactly as the chart's dock does.
     const { body } = await html('/')
-    expect(body).not.toContain('<iframe')
-    expect(body).toContain('data-launch-worklist')
-    // The button asks the SERVER for the launch rather than assembling one: this
-    // page never builds OAuth parameters, exactly as the chart's launch does not.
+    expect(body).toContain('<iframe id="activity"')
+    expect(body).toContain('src="about:blank"')
+    // ⚠️ The regression this guards is a launch context minted at CACHE time and
+    // handed to whoever loads the page next. No `iss`, no `launch` and no app
+    // origin may appear in server-rendered markup.
+    expect(body).not.toMatch(/<iframe[^>]*src="https?:/)
+    expect(body).not.toContain('#/population/summary')
+    // The page asks the SERVER for the launch rather than assembling one: it
+    // never builds OAuth parameters, exactly as the chart's launch does not.
     expect(body).toContain("fetch('/_admin/launch'")
     expect(body).toContain('userScoped: true')
+    // ⚠️ `embed: true` is what makes it a panel rather than a whole app in a box,
+    // and it is also what makes the app land on the SUMMARY rather than on a
+    // second sortable patient list above this page's own patient table.
+    expect(body).toContain('embed: true')
     // ⚠️ The honesty claim MOVED rather than being dropped. The old page said
     // "not a SMART launch" because it was not one; this one is, so what survives
     // is the narrower sentence about who runs the host.
@@ -118,6 +137,12 @@ describe('the front door', () => {
     const { body } = await html('/')
     const launch = body.indexOf('data-launch-worklist')
     expect(body.indexOf('Open a chart')).toBeLessThan(launch)
+    // ⚠️ And above the FRAME too, which is the half that matters since
+    // 2026-09-17. The rule the three earlier passes were defending is
+    // *instruction before density*, and a framed activity is the densest thing
+    // on the page — so the instruction outranking the launch button is not
+    // enough on its own any more.
+    expect(body.indexOf('Open a chart')).toBeLessThan(body.indexOf('<iframe id="activity"'))
     const hood = body.indexOf('<details class="hood"')
     expect(hood).toBeGreaterThan(launch)
     // The launch is a launch, not an inlined warning box: nothing from the
@@ -446,7 +471,9 @@ describe('POST /_admin/launch — a worklist launch carrying an intent', () => {
 
   it('offers both launches on the front door, and only the caseload is primary', async () => {
     const { body } = await html('/')
-    expect(body).toContain('Launch caseload')
+    // Renamed 2026-09-17: the summary is framed on the page, so this button is
+    // the way to the FULL caseload rather than the only way to the caseload.
+    expect(body).toContain('Open the full caseload')
     expect(body).toContain('Launch measures')
     // Same handler for both; the intent is what differs, and it is an attribute
     // rather than a second code path.

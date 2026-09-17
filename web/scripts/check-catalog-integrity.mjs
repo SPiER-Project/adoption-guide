@@ -71,6 +71,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 import { readRouteTable, routeResolves } from './lib/route-table.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
+import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -677,36 +678,75 @@ if (launchChecked === 0) {
 // every gate stays green while the whole SMART demo lands on the catch-all and
 // bounces to the front page — the single most expensive way this repo could
 // break, since it only shows up in front of an audience.
-const redirectSrc = readFileSync(join(webRoot, 'src/components/SmartRedirect.tsx'), 'utf8')
-const landing = redirectSrc.match(/navigate\(\s*directed\s*\?\?\s*'([^']+)'/)?.[1]
-if (!landing) {
+//
+// ⚠️ **EVERY landing route, not the first one.** This used to read
+// `redirectSrc.match(…)?.[1]`, which returns the FIRST match and nothing else —
+// so it only ever checked the patient branch's `/patient/record`. The worklist
+// branch's `/population/caseload` was never checked, while a comment beside it
+// in SmartRedirect.tsx said it was. A gate that checks one of three landings and
+// a comment claiming it checks them all is worse than no gate, because it
+// retires the question. There are three since 2026-09-17: a patient launch, an
+// embedded worklist launch and a top-level one.
+//
+// ⚠️ **Comments blanked before scanning, and that is not belt-and-braces.** The
+// first version of the multi-landing check matched FOUR landings in a file with
+// three, because a comment in SmartRedirect.tsx quotes the very shape this
+// pattern looks for — `navigate(directed ?? '…')` — to tell the next author to
+// keep spelling it that way. That is the same phantom-match that gave
+// route-table.mjs eleven imaginary guide routes, from a comment written for the
+// same reason; see scripts/lib/jsx-comments.mjs.
+const redirectSrc = stripComments(readFileSync(join(webRoot, 'src/components/SmartRedirect.tsx'), 'utf8'))
+const landings = [...redirectSrc.matchAll(/navigate\(\s*directed\s*\?\?\s*'([^']+)'/g)].map((m) => m[1])
+if (landings.length === 0) {
   // Not a pass. If this pattern stops matching, the gate has lost sight of the
-  // landing route and cannot speak to it either way.
+  // landing routes and cannot speak to them either way.
   fail(
-    'SmartRedirect.tsx: could not find the post-launch landing route ' +
-      "(expected `navigate(directed ?? '<path>')`). This gate asserts that route " +
-      'resolves; it must not silently stop looking.',
+    'SmartRedirect.tsx: could not find any post-launch landing route ' +
+      "(expected `navigate(directed ?? '<path>')`). This gate asserts those routes " +
+      'resolve; it must not silently stop looking.',
   )
-} else if (!routeResolves(landing, routePaths)) {
+} else if (landings.length < 2) {
+  // ⚠️ A floor, not a count. Two branches have existed since #401 (a patient
+  // launch and a worklist launch) and a third since the worklist split by
+  // chrome. Dropping below two means a branch stopped spelling its landing as a
+  // literal — most likely by hoisting it into a variable, which this text-based
+  // gate cannot follow.
   fail(
-    `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx does ` +
-      `not register. Every launch from a host would land on the catch-all and bounce to the ` +
-      `front page.`,
+    `SmartRedirect.tsx: found only ${landings.length} literal landing route(s). Every branch must ` +
+      `spell its destination as \`navigate(directed ?? '<path>')\` — a landing held in a variable ` +
+      `is one this gate cannot see, and it treats what it cannot see as a pass.`,
   )
-} else if (routeRedirects.has(landing)) {
-  // ⚠️ Stricter than the launch-action rule above, on purpose — and this branch
-  // exists because the looser rule was tried first and PASSED a planted defect.
-  // A redirect is a fine destination for a catalog button: the reader ends up
-  // somewhere sensible. It is NOT fine for the panel's landing route, because
-  // /patient/chart and /population are now redirects to the pages that EXPLAIN
-  // these apps. A launch landing on one would drop a clinician mid-workflow onto
-  // implementer prose — resolving, harmless-looking, and completely wrong.
-  fail(
-    `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx ` +
-      `registers as a REDIRECT rather than a page. The panel must land on the app itself — ` +
-      `a redirect here sends a launched clinician wherever it points, which for ` +
-      `/patient/chart and /population is the guide page that explains the app.`,
-  )
+}
+let landingsChecked = 0
+for (const landing of landings) {
+  if (!routeResolves(landing, routePaths)) {
+    fail(
+      `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx does ` +
+        `not register. Every launch from a host would land on the catch-all and bounce to the ` +
+        `front page.`,
+    )
+    continue
+  }
+  if (routeRedirects.has(landing)) {
+    // ⚠️ Stricter than the launch-action rule above, on purpose — and this branch
+    // exists because the looser rule was tried first and PASSED a planted defect.
+    // A redirect is a fine destination for a catalog button: the reader ends up
+    // somewhere sensible. It is NOT fine for a landing route, because
+    // /patient/chart and /population are now redirects to the pages that EXPLAIN
+    // these apps. A launch landing on one would drop a clinician mid-workflow onto
+    // implementer prose — resolving, harmless-looking, and completely wrong.
+    fail(
+      `SmartRedirect.tsx: a completed SMART launch navigates to "${landing}", which App.tsx ` +
+        `registers as a REDIRECT rather than a page. The panel must land on the app itself — ` +
+        `a redirect here sends a launched clinician wherever it points, which for ` +
+        `/patient/chart and /population is the guide page that explains the app.`,
+    )
+    continue
+  }
+  landingsChecked++
+}
+if (landingsChecked === landings.length && landings.length > 0) {
+  console.log(`✓ landing routes: ${landingsChecked} SMART launch landing(s) resolve to a page, not a redirect`)
 }
 
 // ⚠️ **Every declared guide section must be a registered route** — a real
@@ -737,8 +777,8 @@ for (const section of sectionPaths) {
 if (failures === launchFailuresBefore) {
   console.log(
     `✓ navigation targets: ${launchChecked} catalog launch path(s), ${sectionPaths.length} guide ` +
-      `section(s) and the panel's post-launch ` +
-      `landing route ("${landing}") all resolve against App.tsx's route table ` +
+      `section(s) and ${landings.length} post-launch ` +
+      `landing route(s) (${landings.join(', ')}) all resolve against App.tsx's route table ` +
       `(${routePaths.size} routes${viaRedirect ? `, ${viaRedirect} via a redirect` : ''})`,
   )
 }

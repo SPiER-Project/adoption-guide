@@ -10,6 +10,7 @@ import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { SectionHeader } from './SectionHeader'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { useInspect } from '../context/InspectContext'
 import { carePlanDisplayName, type RenderableResource } from '../lib/chartDisplay'
 import { stageForResponse } from '@spier/core/lib/patientPathway'
 import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
@@ -37,6 +38,7 @@ export function PatientDocuments({
   /** Start closed — the embedded panel does, the full shell does not. */
   defaultCollapsed?: boolean
 }) {
+  const inspect = useInspect()
   const [open, setOpen] = useState(!defaultCollapsed)
   const [filter, setFilter] = useState<DocFilter>('all')
   const [openDoc, setOpenDoc] = useState<string | null>(null)
@@ -124,26 +126,42 @@ export function PatientDocuments({
         {filtered.length === 0 && <EmptyState as="li" panel>No documents.</EmptyState>}
         {filtered.map(d => {
           const isOpen = openDoc === d.key
+          // ⚠️ **The row only expands where there is something to expand INTO.**
+          // This disclosure's entire body is the resource's JSON, and a
+          // clinician does not see that (context/InspectContext.ts). Leaving the
+          // chevron and the button in place would give every row an affordance
+          // that opens onto nothing — worse than no affordance. So without
+          // inspection the row is a plain line: what is on file, of what kind,
+          // and when, which is the clinical content of this list either way.
+          const fields = (
+            <>
+              <span className={`document-kind document-kind--${d.kind}`}>
+                {d.kind === 'response' ? 'QR' : d.kind === 'careplan' ? 'CP' : 'OBS'}
+              </span>
+              <span className="document-title">{d.title}</span>
+              <span className="document-when">
+                {d.when === UNDATED_SENTINEL ? 'Undated' : formatDate(d.when)}
+              </span>
+            </>
+          )
           return (
             <li key={d.key} className="document-row">
-              <button
-                type="button"
-                className="document-row-header"
-                onClick={() => setOpenDoc(isOpen ? null : d.key)}
-                aria-expanded={isOpen}
-              >
-                <span className={`document-kind document-kind--${d.kind}`}>
-                  {d.kind === 'response' ? 'QR' : d.kind === 'careplan' ? 'CP' : 'OBS'}
-                </span>
-                <span className="document-title">{d.title}</span>
-                <span className="document-when">
-                  {d.when === UNDATED_SENTINEL ? 'Undated' : formatDate(d.when)}
-                </span>
-                <span className="document-toggle">
-                  {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </span>
-              </button>
-              {isOpen && (
+              {inspect ? (
+                <button
+                  type="button"
+                  className="document-row-header"
+                  onClick={() => setOpenDoc(isOpen ? null : d.key)}
+                  aria-expanded={isOpen}
+                >
+                  {fields}
+                  <span className="document-toggle">
+                    {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  </span>
+                </button>
+              ) : (
+                <div className="document-row-header">{fields}</div>
+              )}
+              {inspect && isOpen && (
                 <div className="document-body">
                   <FhirJsonViewer data={d.resource} title={`FHIR ${d.kind}`} />
                 </div>

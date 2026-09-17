@@ -178,6 +178,18 @@ cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no 
 ⚠️ **The mock EHR is deliberately NOT styled like SPiER** — that is a demo claim,
 not a preference. See [`docs/internals/workers.md`](docs/internals/workers.md).
 
+⚠️ **An embedded activity gets a VIEWPORT; never size a guest frame to its
+content.** Both the chart's dock and the front door's caseload frame are fixed
+heights that the guest scrolls inside. The panel's own chrome is `position:
+fixed` — the code drawer, the FHIRcast notice — so a frame sized to its content
+strands that chrome below the fold. Three attempts at a content height are on
+the record in `chartPage.ts`; read them before trying a fourth.
+
+⚠️ **A framed launch is minted at RUNTIME, never baked into the markup.** Both
+frames ship `src="about:blank"` and POST to `/_admin/launch`. A launch URL in
+server-rendered HTML is a context minted at cache time and handed to whoever
+loads the page next; `chartPage.test.ts` asserts no absolute iframe `src`.
+
 ### Measures
 
 A measure criterion lives in **four** places and `check:measures` ties only two
@@ -291,14 +303,30 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   the SMART app — which instruments a deployment offers is a fact about SPiER's
   own deployment, not about the EHR (the EHR never sees the tool catalog; its
   `/metadata` capability profile is the different, genuinely EHR-side fact).
-  CDS Service stayed in the guide but moved to **Learn**: it configures nothing,
-  and it is the third thing that runs the pathway beside the two apps.
+  CDS Service stayed in the guide: it configures nothing, and it is the third
+  thing that runs the pathway beside the two apps — which is the group it is in
+  since 2026-09-17.
+- **The guide's sidebar has three groups, and they are a claim about kind.**
+  `GUIDE_GROUPS` (`data/guideSections.ts`) is **The standard** (Care Pathway,
+  Tools, Data Dictionary — published artifacts and the contract over them),
+  **The applications** (Provider App, Population Dashboard, CDS Service — the
+  three things that run it) and **Evaluate** (Adoption Rubric). `GUIDE_SECTIONS`
+  must stay **grouped-contiguous** in that order, because the pager walks it
+  linearly; `guideSections.test.ts` pins that, plus the subsection rules below.
+  ⚠️ **A page under `/guide` that is not in that file is checked by nothing** —
+  `check:guide-boundary` and `check:catalog` both derive from it. A page that is
+  reachable but should not be a sidebar row or a pager step is declared as a
+  **`subsections` entry** on its owning section, whose `path` is the FULL
+  sub-path (`tools/readiness`, never `readiness`) because both gates build
+  `/guide/${path}`. Adoption Readiness is the one that exists: it renders one
+  row per catalogued instrument entirely from the catalog, so it is a view of
+  Tools rather than a peer of it.
   ⚠️ **`/settings` still does nothing in panel chrome**, and that is load-bearing
   rather than unfinished — `web/src/lib/toolEnablement.ts` has the four reasons,
   one of which this move retired. Read it before wiring the preset into the panel.
 - **The guide explains and hosts; the mock EHR holds and launches.** `/patient/chart`
   and `/population` are **redirects to guide pages that explain the two SMART
-  apps** (`/guide/patient-app`, `/guide/dashboard`); the apps themselves answer on
+  apps** (`/guide/provider-app`, `/guide/dashboard`); the apps themselves answer on
   `/patient/record` and `/population/caseload`. Decided 2026-09-09 — see
   [`docs/plans/embedded-panel-smart-launch.md`](docs/plans/embedded-panel-smart-launch.md)
   §6.3, *"The explainer is the page, and the app is a launch"*.
@@ -311,6 +339,34 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   2026-09-15) every redirect's target — so a rename that strands a `<Navigate>`
   now fails. What still nothing can see is a path that *resolves* but now lands
   on the explainer rather than the app — that class needs a grep.
+- **The clinician-facing app shows no raw FHIR; the guide does.** One
+  invariant, one gate point: `InspectContext` (`web/src/context/InspectContext.ts`)
+  defaults to **false**, and only the `/guide` layout and `/guide/tools/:slug/try`
+  turn it on. `FhirJsonViewer` and `CodeDrawer` return `null` without it, and the
+  four call sites that wrap them in chrome of their own — `PatientDocuments`'
+  disclosure, `PatientPathway`'s `.cds-card-json`, `CarePlanDisplay`'s JSON
+  toggle and download, `ToolDetail`'s examples — check it too, because an empty
+  wrapper is its own defect.
+  ⚠️ **A FOURTH axis, not chrome mode, build surface or data source.** A
+  standalone `/patient/record` browse is still the clinician's app; the public
+  demo is the `demo` surface and is exactly where the app most needs to look
+  production-grade. The reasoning is beside the context, not restated here.
+  ⚠️ **The leaf gate cannot see a component that does its own `JSON.stringify`** —
+  `CarePlanDisplay` did, and was missed by the plan's inventory. Anything new
+  that dumps a resource opts into `useInspect()` by hand.
+  ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
+  (`web/src/data/toolViews.tsx`), rendered by two route families: the clinician's
+  published `/patient/assessments/*` and `/patient/workflow/*` paths (the
+  catalog's 36 launch paths, every CDS card's `type: "smart"` link, every SMART
+  `intent`) and the guide's `/guide/tools/:slug/try`. They must stay one
+  definition — two copies drift on a `persistName` and the guide then documents a
+  resource the app does not write. `toolViews.test.ts` pins that the map and
+  App.tsx's route lookups agree, by parsing both as text.
+  ⚠️ `/guide/tools/:slug/try` is a SIBLING of the `/guide` layout, not a child:
+  the views render their own `PageHeader`, and nesting would put two on a page.
+  It is also deliberately not a `guideSections.ts` entry — it renders recorders
+  that write to patient context, so it is not a guide page and `check:guide-boundary`'s
+  premise does not hold for it.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
 - **Two build surfaces, one route table.** `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`)
   builds the two SMART apps with no guide route registered and no synthetic

@@ -10,7 +10,7 @@
  * mock EHR to see it in action; the live caseload answers on
  * `/population/caseload`.
  *
- * Same boundary property as its sibling `PatientAppGuide`: declared in
+ * Same boundary property as its sibling `ProviderAppGuide`: declared in
  * `data/guideSections.ts`, so `check:guide-boundary` walks this module
  * transitively and fails if it ever reaches the fixtures or a data source. This
  * page therefore cannot show a single number about a real cohort, which is the
@@ -70,7 +70,7 @@ export function PopulationDashboardGuide() {
           </li>
           <li>
             <strong>A next step per patient</strong> &mdash; the same recommendation the{' '}
-            <Link to="/guide/patient-app">patient-level app</Link> would show in that
+            <Link to="/guide/provider-app">Provider App</Link> would show in that
             person&rsquo;s chart, from the same derivation, so a caseload and a chart cannot
             disagree.
           </li>

@@ -25,13 +25,26 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { CarePathway } from './CarePathway'
+import { InspectContext } from '../context/InspectContext'
 
 afterEach(cleanup)
 
+/**
+ * ⚠️ **`InspectContext` is supplied here because the LAYOUT supplies it in the
+ * app, not because this test wants a special mode.** Raw FHIR renders inside
+ * `/guide` and nowhere else (see context/InspectContext.ts), and the provider
+ * sits on the `AdoptionGuide` layout that every `/guide/*` route renders into.
+ * Mounting the page component on its own skips that layout, so without this the
+ * page's `FhirJsonViewer` returns null and the simulator's QuestionnaireResponse
+ * assertion below has nothing to read — a false failure describing a state no
+ * reader can reach.
+ */
 function renderPage() {
   return render(
     <MemoryRouter initialEntries={['/guide/pathway']}>
-      <CarePathway />
+      <InspectContext.Provider value>
+        <CarePathway />
+      </InspectContext.Provider>
     </MemoryRouter>,
   )
 }

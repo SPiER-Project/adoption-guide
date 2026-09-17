@@ -5,29 +5,6 @@ import './CarePlan.css'
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 
-// FHIR Questionnaires — sourced from the single registry (web/src/data/questionnaires.ts).
-import {
-  asqQuestionnaire,
-  bssaQuestionnaire,
-  pss3Questionnaire,
-  safetQuestionnaire,
-  phq9Questionnaire,
-  sbqrQuestionnaire,
-  cssrsScreener,
-  cssrsSinceLastContact,
-  cssrsPediatric,
-  cssrsFull,
-  camsSectionA,
-  camsSectionB,
-  camsOutcomeDisposition,
-  camsStabilizationPlan,
-  camsTherapeuticWorksheet,
-  crpQuestionnaire,
-  pssFullQuestionnaire,
-} from '@spier/core/data/questionnaires'
-import { generateStabilizationCarePlan } from '@spier/core/lib/carePlanMappers'
-import { generateTherapeuticCarePlan } from '@spier/core/lib/carePlanMappers'
-import { generateCrisisResponseCarePlan } from '@spier/core/lib/carePlanMappers'
 
 // Context Providers. Each context is split in two — the provider component in
 // *Provider.tsx, its context object and hook in *Context.ts — so the provider
@@ -49,6 +26,12 @@ import { Shell } from './components/Shell'
 // so a chart tab is listening regardless of which lens the user loaded first.
 import { FhircastListener } from './components/FhircastListener'
 import { IS_DEMO } from './lib/surface'
+
+// Every instrument filler and workflow recorder, defined ONCE and rendered by
+// two route families: the clinician's /patient/* paths below, and the guide's
+// /guide/tools/:slug/try. See data/toolViews.tsx for why they must be one
+// definition rather than two.
+import { TOOL_VIEWS } from './data/toolViews'
 
 // Route pages and views are code-split (React.lazy) so each lens loads on
 // demand. Named exports are adapted to lazy()'s default-export contract.
@@ -74,27 +57,16 @@ const PatientJourney = IS_DEMO ? lazy(() => import('./pages/PatientJourney').the
 const DataDictionary = IS_DEMO ? lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary }))) : NotOnThisSurface
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
 const CdsServiceGuide = IS_DEMO ? lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide }))) : NotOnThisSurface
-const PatientAppGuide = IS_DEMO ? lazy(() => import('./pages/PatientAppGuide').then(m => ({ default: m.PatientAppGuide }))) : NotOnThisSurface
+const ProviderAppGuide = IS_DEMO ? lazy(() => import('./pages/ProviderAppGuide').then(m => ({ default: m.ProviderAppGuide }))) : NotOnThisSurface
 const PopulationDashboardGuide = IS_DEMO ? lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide }))) : NotOnThisSurface
 const EhrAdoptionRubric = IS_DEMO ? lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric }))) : NotOnThisSurface
 const AdoptionReadiness = IS_DEMO ? lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness }))) : NotOnThisSurface
+const ToolTryIt = IS_DEMO ? lazy(() => import('./pages/ToolTryIt').then(m => ({ default: m.ToolTryIt }))) : NotOnThisSurface
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
 const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
-const StanleyBrownView = lazy(() => import('./components/StanleyBrownView').then(m => ({ default: m.StanleyBrownView })))
-const QuestionnaireView = lazy(() => import('./components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
-const WorkflowActionView = lazy(() => import('./components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
-const RiskEpisodeView = lazy(() => import('./components/RiskEpisodeView').then(m => ({ default: m.RiskEpisodeView })))
-const SafetyTaskView = lazy(() => import('./components/SafetyTaskView').then(m => ({ default: m.SafetyTaskView })))
-const DischargePacketView = lazy(() => import('./components/DischargePacketView').then(m => ({ default: m.DischargePacketView })))
-const SafetyReferralView = lazy(() => import('./components/SafetyReferralView').then(m => ({ default: m.SafetyReferralView })))
-const FollowUpAppointmentView = lazy(() => import('./components/FollowUpAppointmentView').then(m => ({ default: m.FollowUpAppointmentView })))
-const SharingConsentView = lazy(() => import('./components/SharingConsentView').then(m => ({ default: m.SharingConsentView })))
-const OutreachAttemptView = lazy(() => import('./components/OutreachAttemptView').then(m => ({ default: m.OutreachAttemptView })))
-const CaringContactView = lazy(() => import('./components/CaringContactView').then(m => ({ default: m.CaringContactView })))
-const LethalMeansCounselingView = lazy(() => import('./components/LethalMeansCounselingView').then(m => ({ default: m.LethalMeansCounselingView })))
 
 function RouteFallback() {
   return (
@@ -177,9 +149,23 @@ function AppRoutes() {
                 form on purpose: check-guide-boundary.mjs reads the route table to
                 find each section's component, and a different shape would make it
                 fail to resolve the page rather than silently skip it. */}
-            <Route path="patient-app" element={<PatientAppGuide />} />
+            <Route path="provider-app" element={<ProviderAppGuide />} />
+            {/* Renamed 2026-09-17: the app is the clinician's, launched from a
+                patient's chart. `/guide/patient-app` was published and was what
+                /patient/chart pointed at, so it redirects rather than 404s.
+                check:catalog validates every <Navigate> target, so this cannot
+                rot into the catch-all. */}
+            <Route path="patient-app" element={<Navigate to="/guide/provider-app" replace />} />
             <Route path="dashboard" element={<PopulationDashboardGuide />} />
             <Route path="tools" element={<PatientJourney />} />
+            {/* Adoption Readiness is a SUBSECTION of Tools since 2026-09-17: it
+                renders one row per catalogued instrument, entirely from the
+                catalog, so it is a second view of Tools rather than a peer of it.
+                ⚠️ Declared in guideSections.ts `subsections` as well, and that is
+                what makes it CHECKED — check:guide-boundary derives the guide's
+                page set from that file, and a route under /guide that the file
+                does not name is walked by nothing. */}
+            <Route path="tools/readiness" element={<AdoptionReadiness />} />
             {/* Tool Configuration moved to /settings on 2026-09-15: it is a
                 setting of the SMART app, which owns the tool catalog, not a
                 section of a guide that explains and hosts. The redirect stays —
@@ -194,14 +180,31 @@ function AppRoutes() {
                 already linked from CDS cards in the wild. */}
             <Route path="measures" element={<Navigate to="/population/measures" replace />} />
             <Route path="cds-service" element={<CdsServiceGuide />} />
-            <Route path="adoption-readiness" element={<AdoptionReadiness />} />
+            {/* Published path, kept as a redirect after the move under Tools. */}
+            <Route path="adoption-readiness" element={<Navigate to="/guide/tools/readiness" replace />} />
             <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
             {/* /guide/roadmap was published, so it gets a redirect rather than
                 falling through to the catch-all. The page mirrored GitHub Issues
                 onto the site; the issues are the roadmap now, and Adoption
-                Readiness is what survives of "where is each tool". */}
-            <Route path="roadmap" element={<Navigate to="/guide/adoption-readiness" replace />} />
+                Readiness is what survives of "where is each tool".
+                ⚠️ Points at the real page, not at /guide/adoption-readiness,
+                which became a redirect itself on 2026-09-17. Two chained
+                <Navigate>s work but cost a render, and check:catalog reads a
+                redirect's target literally — it would report this one as
+                resolving while a reader bounced twice. */}
+            <Route path="roadmap" element={<Navigate to="/guide/tools/readiness" replace />} />
           </Route>
+
+          {/* The implementer's view of an instrument: the same recorder the
+              clinician's /patient/* route renders, with the FHIR opened up.
+              ⚠️ A SIBLING of the /guide layout above, not a child of it — the
+              recorders render their own PageHeader, and nesting them inside
+              AdoptionGuide would put two on one page (check:template forbids
+              it). ToolTryIt provides InspectContext itself for the same reason.
+              ⚠️ Also deliberately not a guideSections entry; see the note at the
+              top of pages/ToolTryIt.tsx for why a route that writes to patient
+              context must not be declared a guide page. */}
+          <Route path="/guide/tools/:slug/try" element={<ToolTryIt />} />
           </>
         )}
 
@@ -233,7 +236,7 @@ function AppRoutes() {
               wants. The per-patient form keeps the id: a launched chart URL
               must not silently lose its patient. */}
           {IS_DEMO ? (
-            <Route path="chart" element={<Navigate to="/guide/patient-app" replace />} />
+            <Route path="chart" element={<Navigate to="/guide/provider-app" replace />} />
           ) : (
             <Route path="chart" element={<Navigate to="/patient/record" replace />} />
           )}
@@ -248,86 +251,48 @@ function AppRoutes() {
               data, exactly like the guide page. */}
           <Route path="pathway" element={<PathwayProtocol />} />
           <Route path="assessments" element={<Navigate to="/patient/record" replace />} />
-          <Route path="assessments/phq-9" element={
-            <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />
-          } />
-          <Route path="assessments/asq" element={
-            <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaire={asqQuestionnaire} persistName="ASQ Screening" />
-          } />
-          <Route path="assessments/bssa" element={
-            <QuestionnaireView title="BSSA — Brief Suicide Safety Assessment" questionnaire={bssaQuestionnaire} persistName="BSSA" />
-          } />
-          <Route path="assessments/pss-3" element={
-            <QuestionnaireView title="PSS-3 — Patient Safety Screener" questionnaire={pss3Questionnaire} persistName="PSS-3" />
-          } />
-          <Route path="assessments/safe-t" element={
-            <QuestionnaireView title="SAFE-T — Suicide Assessment Five-Step Evaluation and Triage" questionnaire={safetQuestionnaire} persistName="SAFE-T" />
-          } />
-          <Route path="assessments/sbq-r" element={
-            <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />
-          } />
-          <Route path="assessments/cssrs-screener" element={
-            <QuestionnaireView title="C-SSRS Screener (Recent)" questionnaire={cssrsScreener} persistName="C-SSRS Screener" />
-          } />
-          <Route path="assessments/cssrs-full" element={
-            <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />
-          } />
-          <Route path="assessments/cssrs-since-last-contact" element={
-            <QuestionnaireView title="C-SSRS — Since Last Visit / Since Last Contact" questionnaire={cssrsSinceLastContact} persistName="C-SSRS Since Last Visit" />
-          } />
-          <Route path="assessments/cssrs-pediatric" element={
-            <QuestionnaireView title="C-SSRS — Pediatric / Adolescent Screener" questionnaire={cssrsPediatric} persistName="C-SSRS Pediatric" />
-          } />
-          <Route path="assessments/stanley-and-brown" element={<StanleyBrownView />} />
-          <Route path="assessments/cams-section-a" element={
-            <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />
-          } />
-          <Route path="assessments/cams-section-b" element={
-            <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />
-          } />
-          <Route path="assessments/cams-outcome-disposition" element={
-            <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaire={camsOutcomeDisposition} persistName="CAMS SSF-5: Outcome/Disposition" />
-          } />
-          <Route path="assessments/cams-stabilization-plan" element={
-            <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />
-          } />
-          <Route path="assessments/cams-therapeutic-worksheet" element={
-            <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />
-          } />
-          <Route path="assessments/crisis-response-plan" element={
-            <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaire={crpQuestionnaire} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />
-          } />
-          <Route path="assessments/pss-full" element={
-            <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaire={pssFullQuestionnaire} persistName="PSS Full" />
-          } />
+          <Route path="assessments/phq-9" element={TOOL_VIEWS['phq-9']} />
+          <Route path="assessments/asq" element={TOOL_VIEWS['asq']} />
+          <Route path="assessments/bssa" element={TOOL_VIEWS['bssa']} />
+          <Route path="assessments/pss-3" element={TOOL_VIEWS['pss-3']} />
+          <Route path="assessments/safe-t" element={TOOL_VIEWS['safe-t']} />
+          <Route path="assessments/sbq-r" element={TOOL_VIEWS['sbq-r']} />
+          <Route path="assessments/cssrs-screener" element={TOOL_VIEWS['cssrs-screener']} />
+          <Route path="assessments/cssrs-full" element={TOOL_VIEWS['cssrs-full']} />
+          <Route path="assessments/cssrs-since-last-contact" element={TOOL_VIEWS['cssrs-since-last-contact']} />
+          <Route path="assessments/cssrs-pediatric" element={TOOL_VIEWS['cssrs-pediatric']} />
+          <Route path="assessments/stanley-and-brown" element={TOOL_VIEWS['stanley-and-brown']} />
+          <Route path="assessments/cams-section-a" element={TOOL_VIEWS['cams-section-a']} />
+          <Route path="assessments/cams-section-b" element={TOOL_VIEWS['cams-section-b']} />
+          <Route path="assessments/cams-outcome-disposition" element={TOOL_VIEWS['cams-outcome-disposition']} />
+          <Route path="assessments/cams-stabilization-plan" element={TOOL_VIEWS['cams-stabilization-plan']} />
+          <Route path="assessments/cams-therapeutic-worksheet" element={TOOL_VIEWS['cams-therapeutic-worksheet']} />
+          <Route path="assessments/crisis-response-plan" element={TOOL_VIEWS['crisis-response-plan']} />
+          <Route path="assessments/pss-full" element={TOOL_VIEWS['pss-full']} />
           {/* Non-Questionnaire workflow recorders */}
           {/* caring-contact used to render the generic Communication recorder,
               which stamped neither the SPiERCaringContact profile nor the
               opt-out extension — so the Stage-8 adherence measure could not see
               its output and its opt-out exclusion could never fire. */}
-          <Route path="workflow/caring-contact" element={<CaringContactView />} />
-          <Route path="workflow/transition" element={
-            <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />
-          } />
+          <Route path="workflow/caring-contact" element={TOOL_VIEWS['caring-contact']} />
+          <Route path="workflow/transition" element={TOOL_VIEWS['transition']} />
           {/* Stage 5 — Coordinate Handoffs. rapid-referral used to render the
               generic Communication recorder; TL-017 is a ServiceRequest so the
               referral can be tracked past "sent" — see SafetyReferralView. The
               old path is kept as a redirect so existing links don't 404. */}
-          <Route path="workflow/referral" element={<SafetyReferralView />} />
+          <Route path="workflow/referral" element={TOOL_VIEWS['referral']} />
           <Route path="workflow/rapid-referral" element={<Navigate to="/patient/workflow/referral" replace />} />
-          <Route path="workflow/discharge-packet" element={<DischargePacketView />} />
-          <Route path="workflow/follow-up-appointment" element={<FollowUpAppointmentView />} />
-          <Route path="workflow/sharing-consent" element={<SharingConsentView />} />
+          <Route path="workflow/discharge-packet" element={TOOL_VIEWS['discharge-packet']} />
+          <Route path="workflow/follow-up-appointment" element={TOOL_VIEWS['follow-up-appointment']} />
+          <Route path="workflow/sharing-consent" element={TOOL_VIEWS['sharing-consent']} />
           {/* Stage 6 — Track Follow-Up */}
-          <Route path="workflow/outreach" element={<OutreachAttemptView />} />
+          <Route path="workflow/outreach" element={TOOL_VIEWS['outreach']} />
           {/* Stage 7 — Track Risk Over Time */}
-          <Route path="workflow/risk-episode" element={<RiskEpisodeView />} />
-          <Route path="workflow/safety-tasks" element={<SafetyTaskView />} />
+          <Route path="workflow/risk-episode" element={TOOL_VIEWS['risk-episode']} />
+          <Route path="workflow/safety-tasks" element={TOOL_VIEWS['safety-tasks']} />
           {/* Stage 4 — Document Safety Actions */}
-          <Route path="workflow/lethal-means" element={<LethalMeansCounselingView />} />
-          <Route path="workflow/crisis-resources" element={
-            <WorkflowActionView toolId="TL-013" title="Record Crisis Resources Shared" actionNoun="crisis resources shared" summaryPlaceholder="e.g. 988 Lifeline + Crisis Text Line + safety-plan copy given to patient" />
-          } />
+          <Route path="workflow/lethal-means" element={TOOL_VIEWS['lethal-means']} />
+          <Route path="workflow/crisis-resources" element={TOOL_VIEWS['crisis-resources']} />
           <Route path="care-plans" element={<Navigate to="/patient/record#care-plans" replace />} />
           <Route path="encounters" element={<Navigate to="/patient/record#encounters" replace />} />
         </Route>

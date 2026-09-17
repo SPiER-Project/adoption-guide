@@ -92,5 +92,5 @@ for each gate is in `docs/internals/ig-build.md`.
 
 **Draft / continuous build.** Per-tool state (build status, recommendation
 tier, target integration depth) is tracked in the companion app's
-[Adoption Readiness page](https://spier-project.github.io/adoption-guide/#/guide/adoption-readiness),
+[Adoption Readiness page](https://spier-project.github.io/adoption-guide/#/guide/tools/readiness),
 not here.

@@ -215,7 +215,7 @@ only expressible once the assignment has an owner.
 ## 3. Frameworks: keep one React app
 
 **The premise that the guide is static does not hold.** Of the eight guide
-sections, only `PatientAppGuide` and `PopulationDashboardGuide` are prose.
+sections, only `ProviderAppGuide` (then `PatientAppGuide`) and `PopulationDashboardGuide` are prose.
 `CarePathway` renders the `PlanDefinition` through `usePathway` *and* builds a
 synthetic `QuestionnaireResponse`, runs `mapCSSRSScreener`, and shows the
 derived Observations in `FhirJsonViewer`. `PatientJourney`, `DataDictionary`

@@ -21,6 +21,7 @@ import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
 import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { useInspect } from '../context/InspectContext'
 import { usePresentation } from '../context/PresentationContext'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'
@@ -88,6 +89,7 @@ export function CdsCardView({ card }: { card: Card }) {
   // In the embedded panel there is no sidebar and no implementer: "configure
   // tools in your implementation" is addressed to someone who is not there.
   const inPanel = usePresentation().chromeMode === 'panel'
+  const inspect = useInspect()
   return (
     <CardSurface as="article" padding="compact" accent className={`cds-card cds-card--${card.indicator}`}>
       <header className="cds-card-header">
@@ -134,9 +136,15 @@ export function CdsCardView({ card }: { card: Card }) {
           <Link to="/settings">Configure tools</Link>.
         </EmptyState>
       )}
-      <div className="cds-card-json">
-        <FhirJsonViewer data={card} title="View CDS Hooks card JSON" />
-      </div>
+      {/* The card's own JSON, for an implementer reading the guide. A clinician
+          sees the card and not the wire format behind it — the wrapper is
+          checked as well as the viewer so the surface does not keep a gap where
+          the accordion used to be. See context/InspectContext.ts. */}
+      {inspect && (
+        <div className="cds-card-json">
+          <FhirJsonViewer data={card} title="View CDS Hooks card JSON" />
+        </div>
+      )}
     </CardSurface>
   )
 }
