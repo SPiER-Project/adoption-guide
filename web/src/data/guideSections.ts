@@ -97,7 +97,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // assess, branch by tier — from the published artifact, so what the page says
   // and what SPiER publishes cannot drift. Tools is the *catalogue*: which
   // instruments and recorders exist, grouped by the eight pathway stages, with
-  // launch paths into the patient app.
+  // launch paths into the provider app.
   //
   // ⚠️ `pathway` is a REPURPOSED path, not a new one. It served the tool
   // catalogue until Phase 3 of docs/plans/suicide-safer-care-pathway.md; the
@@ -123,7 +123,17 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // are the case this field's own doc comment describes — `wide` would be
   // invisibly wrong, and every text run here is already capped at the reading
   // measure.
-  { path: 'patient-app', label: 'Patient App', group: 'learn', width: 'prose' },
+  //
+  // ⚠️ **`provider-app` was `patient-app` until 2026-09-17, and the rename is
+  // about the USER, not the subject.** A clinician launches it from a patient's
+  // chart; the patient is what it is *about*. Naming it for its subject made it
+  // read as something a patient opens, and it occupied the name the genuinely
+  // patient-facing app would want if one is ever built. `/guide/patient-app`
+  // stays as a redirect — it was published and is what /patient/chart pointed
+  // at. ⚠️ The "patient app" in repo-and-package-boundaries.md and
+  // licensing-verification-backlog.md means that FUTURE patient-facing app and
+  // is deliberately not renamed.
+  { path: 'provider-app', label: 'Provider App', group: 'learn', width: 'prose' },
   { path: 'dashboard', label: 'Population Dashboard', group: 'learn', width: 'prose' },
   // The THIRD thing that runs the pathway, which is why it sits with the other
   // two rather than in a group of its own: an EHR that embeds neither app can

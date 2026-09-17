@@ -17,6 +17,8 @@
  * sections: `Patient View` beside the `Patient App` page that explains it, and
  * `Population View` beside `Population Dashboard`. Four entries for two things,
  * named inconsistently, with no way to tell which of a pair you were opening.
+ * (That page is `Provider App` since 2026-09-17 — the history below keeps the
+ * labels as they stood when the defect was fixed.)
  * The de-duplication is what the tests below pin, along with the ordering
  * decision that the mock EHR comes FIRST in the "Try it" zone — it is where the
  * product actually runs, and it spent a release in a footer called "Elsewhere",
@@ -153,7 +155,7 @@ describe('the sidebar says each thing once', () => {
     renderSidebar()
     // The explainers are guide sections; the demos are in "Try it". Neither
     // name may appear twice, and the old lens labels must not come back.
-    expect(screen.getAllByRole('link', { name: 'Patient App' })).toHaveLength(1)
+    expect(screen.getAllByRole('link', { name: 'Provider App' })).toHaveLength(1)
     expect(screen.getAllByRole('link', { name: 'Population Dashboard' })).toHaveLength(1)
     for (const gone of ['Patient View', 'Population View']) {
       expect(screen.queryByRole('link', { name: gone })).toBeNull()

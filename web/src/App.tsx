@@ -74,7 +74,7 @@ const PatientJourney = IS_DEMO ? lazy(() => import('./pages/PatientJourney').the
 const DataDictionary = IS_DEMO ? lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary }))) : NotOnThisSurface
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
 const CdsServiceGuide = IS_DEMO ? lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide }))) : NotOnThisSurface
-const PatientAppGuide = IS_DEMO ? lazy(() => import('./pages/PatientAppGuide').then(m => ({ default: m.PatientAppGuide }))) : NotOnThisSurface
+const ProviderAppGuide = IS_DEMO ? lazy(() => import('./pages/ProviderAppGuide').then(m => ({ default: m.ProviderAppGuide }))) : NotOnThisSurface
 const PopulationDashboardGuide = IS_DEMO ? lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide }))) : NotOnThisSurface
 const EhrAdoptionRubric = IS_DEMO ? lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric }))) : NotOnThisSurface
 const AdoptionReadiness = IS_DEMO ? lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness }))) : NotOnThisSurface
@@ -177,7 +177,13 @@ function AppRoutes() {
                 form on purpose: check-guide-boundary.mjs reads the route table to
                 find each section's component, and a different shape would make it
                 fail to resolve the page rather than silently skip it. */}
-            <Route path="patient-app" element={<PatientAppGuide />} />
+            <Route path="provider-app" element={<ProviderAppGuide />} />
+            {/* Renamed 2026-09-17: the app is the clinician's, launched from a
+                patient's chart. `/guide/patient-app` was published and was what
+                /patient/chart pointed at, so it redirects rather than 404s.
+                check:catalog validates every <Navigate> target, so this cannot
+                rot into the catch-all. */}
+            <Route path="patient-app" element={<Navigate to="/guide/provider-app" replace />} />
             <Route path="dashboard" element={<PopulationDashboardGuide />} />
             <Route path="tools" element={<PatientJourney />} />
             {/* Tool Configuration moved to /settings on 2026-09-15: it is a
@@ -233,7 +239,7 @@ function AppRoutes() {
               wants. The per-patient form keeps the id: a launched chart URL
               must not silently lose its patient. */}
           {IS_DEMO ? (
-            <Route path="chart" element={<Navigate to="/guide/patient-app" replace />} />
+            <Route path="chart" element={<Navigate to="/guide/provider-app" replace />} />
           ) : (
             <Route path="chart" element={<Navigate to="/patient/record" replace />} />
           )}

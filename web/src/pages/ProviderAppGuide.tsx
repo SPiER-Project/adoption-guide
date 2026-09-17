@@ -1,6 +1,17 @@
 /**
- * PatientAppGuide — what the patient-level SMART app is, and how the pathway
+ * ProviderAppGuide — what the clinician-facing SMART app is, and how the pathway
  * decides what it recommends.
+ *
+ * ── Why it is the Provider App and not the Patient App ──────────────────────
+ *
+ * Renamed 2026-09-17 (Brad). The old name named the app's SUBJECT; a clinician
+ * is its USER. It is launched from a patient's chart, by a chart activity or a
+ * CDS Hooks card, and the person holding it is the person treating the patient.
+ *
+ * ⚠️ **The old name is not free for reuse by accident.** It now means the
+ * patient-facing app SPiER does not ship — see the closing Notice below, which
+ * says so on the page rather than only here. `/guide/patient-app` remains a
+ * redirect because it was published and is what `/patient/chart` pointed at.
  *
  * ── Why this page exists ────────────────────────────────────────────────────
  *
@@ -38,20 +49,34 @@ import '../css/SurfaceGuide.css'
 import { Notice } from '../components/Notice'
 import { Button } from '../components/Button'
 
-export function PatientAppGuide() {
+export function ProviderAppGuide() {
   return (
     <div className="surface-guide">
       <section className="surface-guide__intro">
         <p>
-          SPiER&rsquo;s patient-level surface is a <strong>SMART on FHIR app</strong>. An EHR
-          launches it from a patient&rsquo;s chart; it docks as a panel beside that chart, reads the
-          patient&rsquo;s record over FHIR, and writes back what the clinician records.
+          The Provider App is a <strong>SMART on FHIR app a clinician launches from a
+          patient&rsquo;s chart</strong>. The EHR opens it with that patient in context; it docks as
+          a panel beside the chart, reads the record over FHIR, and writes back what the clinician
+          records.
+        </p>
+        <p>
+          Two things open it, and both come from the host: a chart activity button, or a{' '}
+          <strong>CDS Hooks card whose link is <code>type: &quot;smart&quot;</code></strong>. The
+          second is the interesting one, because the card names the instrument &mdash; so the panel
+          opens already scoped to the tool the pathway called for, rather than to a menu.
         </p>
         <p>
           It keeps nothing of its own. Every stage, score and recommendation you see in it is
           derived from what is already in the record, which is what lets the same app run against
           any server that holds the right resources.
         </p>
+        <Notice>
+          <strong>This is the clinician&rsquo;s app, not the patient&rsquo;s.</strong> It was called
+          the Patient App until 2026-09-17, which named its subject rather than its user. A
+          patient-facing surface &mdash; something a person opens for their own safety plan or
+          caring contacts &mdash; is a separate app, and SPiER does not ship one today. The name is
+          reserved for it.
+        </Notice>
       </section>
 
       <section className="surface-guide__section">

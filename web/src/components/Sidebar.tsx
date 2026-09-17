@@ -19,7 +19,7 @@ import { IS_DEMO } from '../lib/surface'
  * that EXPLAIN the two SMART apps (#487) and the mock EHR grew a real launch for
  * the dashboard (#491). The result was four entries for two things:
  *
- *   Adoption Guide → Patient App            ← the explainer
+ *   Adoption Guide → Patient App            ← the explainer (now Provider App)
  *   Patient View   → Pathway / Next actions ← the same app, again
  *   Adoption Guide → Population Dashboard   ← the explainer
  *   Population View → Caseload / Measures   ← the same dashboard, again

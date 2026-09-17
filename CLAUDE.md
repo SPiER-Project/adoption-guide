@@ -298,7 +298,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   one of which this move retired. Read it before wiring the preset into the panel.
 - **The guide explains and hosts; the mock EHR holds and launches.** `/patient/chart`
   and `/population` are **redirects to guide pages that explain the two SMART
-  apps** (`/guide/patient-app`, `/guide/dashboard`); the apps themselves answer on
+  apps** (`/guide/provider-app`, `/guide/dashboard`); the apps themselves answer on
   `/patient/record` and `/population/caseload`. Decided 2026-09-09 — see
   [`docs/plans/embedded-panel-smart-launch.md`](docs/plans/embedded-panel-smart-launch.md)
   §6.3, *"The explainer is the page, and the app is a launch"*.

@@ -164,7 +164,7 @@ export const OVERVIEW_LENSES: OverviewLens[] = [
       'This site: how to adopt SPiER, and the host of the two SMART apps the Demo EHR launches. ' +
       'The care pathway rendered from its published PlanDefinition, a tool catalog across the ' +
       'eight stages, a data dictionary, an adoption-readiness matrix and EHR adoption rubric, and ' +
-      'a Tool Configuration that decides what the patient app may recommend. It holds no patient ' +
+      'a Tool Configuration that decides what the provider app may recommend. It holds no patient ' +
       'data of its own.',
     cta: 'Explore the guide →',
     href: '/guide/pathway',
@@ -176,7 +176,7 @@ export const OVERVIEW_LENSES: OverviewLens[] = [
     title: 'CDS Hooks service',
     body:
       'The decision support an EHR can call without embedding anything: a hosted CDS Hooks 2.0 ' +
-      'endpoint returning the same next-step cards the patient app shows, from the same builder. ' +
+      'endpoint returning the same next-step cards the provider app shows, from the same builder. ' +
       'An EHR registers one URL and renders whatever comes back.',
     cta: 'See the endpoint →',
     href: '/guide/cds-service',
@@ -308,7 +308,7 @@ export const OVERVIEW_SECTIONS: OverviewSection[] = [
           '*artifacts*. It is not what you navigate by. The app is organized around the thing a ' +
           'clinician actually moves through — the **eight-stage Suicide Safer Care Pathway**, ' +
           'which is the common entry point for every partner conversation and the vocabulary used by the ' +
-          'the patient app, the caseload and the measure dashboard alike:',
+          'the provider app, the caseload and the measure dashboard alike:',
       },
       { kind: 'pathway' },
       {
@@ -373,7 +373,7 @@ export const OVERVIEW_SECTIONS: OverviewSection[] = [
           'everything in the panel is this app. That boundary — which pixels belong to whom — is ' +
           'the thing worth watching, and it is why the two are styled nothing alike. What each ' +
           'app does once launched is described under ' +
-          '[Patient App](/guide/patient-app) and ' +
+          '[Provider App](/guide/provider-app) and ' +
           '[Population Dashboard](/guide/dashboard).',
       },
       {

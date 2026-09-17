@@ -32,7 +32,7 @@ Grep, then read each hit before changing it.
 | `web/src/data/guideSections.ts` | `{ path: 'patient-app', label: 'Patient App' }` → `{ path: 'provider-app', label: 'Provider App' }`. Section comments above it. |
 | `web/src/App.tsx` | `<Route path="patient-app" element={<PatientAppGuide />} />` → `provider-app`. Add `<Route path="patient-app" element={<Navigate to="/guide/provider-app" replace />} />`. Repoint `/patient/chart`'s `<Navigate>`. |
 | `web/src/pages/PatientAppGuide.tsx` | Rename file → `ProviderAppGuide.tsx`, export → `ProviderAppGuide`. Update the header comment and the prose (see "Describe it as a chart launch"). |
-| `web/src/content/overview.ts` | `[Patient App](/guide/patient-app)` link, plus the three prose uses of "the patient app". |
+| `web/src/content/overview.ts` | the `Patient App` markdown link pointing at `/guide/patient-app`, plus the three prose uses of "the patient app". ⚠️ Write route paths as inline code here, never as a markdown link — `check-md-links.mjs` reads a root-relative link as a file path and aborts. |
 | `web/src/components/Sidebar.tsx` | The history comment's `Adoption Guide → Patient App` line. |
 | `web/src/components/Sidebar.test.tsx` | `getAllByRole('link', { name: 'Patient App' })` and the two comments naming it. |
 | `web/src/pages/AdoptionReadiness.tsx` | `'…demoable in the patient app…'`. |
