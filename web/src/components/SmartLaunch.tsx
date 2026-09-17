@@ -41,11 +41,48 @@ export function SmartLaunch() {
                     'patient/CarePlan.write',
                     'patient/Communication.read',
                     'patient/Communication.write',
-                    // Writeback ladder: Tier 0 (DocumentReference floor) and
-                    // Tier 3 (opt-in Condition proposal). Requesting Condition
-                    // write is harmless — the tier stays OFF by default and a
-                    // human must confirm before any Condition is created.
+
+                    // ⚠️ **Stages 4–7: every one of these was READ and WRITTEN
+                    // without a scope asking for it.** `getSlice` searches 13
+                    // resource types and `saveArtifact` writes the same set;
+                    // this list covered four of them. It survived because
+                    // neither server SPiER had met enforces read scopes — the
+                    // mock says so in its own README ("no read is refused for a
+                    // missing scope. Do not describe this mock as proving SMART
+                    // scopes work") and Medplum granted the blanket
+                    // `user/*.read` below, which covers the gap by accident.
+                    //
+                    // Against an EHR that grants what is asked for and enforces
+                    // it, the reads fail SILENTLY — every one is wrapped in
+                    // `.catch(() => [])` so the chart renders a patient with a
+                    // thin record instead of a broken integration — and the
+                    // writes fail loudly, after the clinician has filled the
+                    // form in. `smartScopes.test.ts` now derives both sides
+                    // from the code rather than trusting this list.
+                    'patient/DocumentReference.read',
                     'patient/DocumentReference.write',
+                    'patient/EpisodeOfCare.read',
+                    'patient/EpisodeOfCare.write',
+                    'patient/Flag.read',
+                    'patient/Flag.write',
+                    'patient/Task.read',
+                    'patient/Task.write',
+                    'patient/ServiceRequest.read',
+                    'patient/ServiceRequest.write',
+                    'patient/Appointment.read',
+                    'patient/Appointment.write',
+                    'patient/Consent.read',
+                    'patient/Consent.write',
+                    'patient/Procedure.read',
+                    'patient/Procedure.write',
+                    'patient/Encounter.read',
+                    'patient/Encounter.write',
+
+                    // Writeback ladder Tier 3 (opt-in Condition proposal).
+                    // Requesting Condition write is harmless — the tier stays
+                    // OFF by default and a human must confirm before any
+                    // Condition is created. Write-only on purpose: nothing
+                    // reads Condition back.
                     'patient/Condition.write',
                     // ⚠️ **The worklist scope, requested on EVERY launch, and
                     // that is deliberate.** SMART hands the app an opaque
