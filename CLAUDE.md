@@ -343,10 +343,18 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   invariant, one gate point: `InspectContext` (`web/src/context/InspectContext.ts`)
   defaults to **false**, and only the `/guide` layout and `/guide/tools/:slug/try`
   turn it on. `FhirJsonViewer` and `CodeDrawer` return `null` without it, and the
-  four call sites that wrap them in chrome of their own — `PatientDocuments`'
-  disclosure, `PatientPathway`'s `.cds-card-json`, `CarePlanDisplay`'s JSON
-  toggle and download, `ToolDetail`'s examples — check it too, because an empty
-  wrapper is its own defect.
+  **three** call sites that would otherwise leave an empty wrapper behind check
+  it too: `PatientDocuments`' disclosure row, `PatientPathway`'s
+  `.cds-card-json`, and `CarePlanDisplay`'s JSON toggle and download. An empty
+  wrapper is its own defect — a disclosure that opens onto nothing reads worse
+  than no disclosure.
+  ⚠️ **`ToolDetail` is NOT one of them, and this list said it was** until
+  2026-09-17. It wraps its FHIR examples in a `<section>` with a heading and
+  calls no `useInspect()`. It is safe only because `PatientJourney` is its one
+  caller and that page is inside the guide, so inspection is always on where it
+  renders; render it anywhere else and the heading outlives its content. The
+  five files that check for themselves are `FhirJsonViewer`, `CodeDrawer` and
+  the three above — `grep -rl useInspect web/src` is the list.
   ⚠️ **A FOURTH axis, not chrome mode, build surface or data source.** A
   standalone `/patient/record` browse is still the clinician's app; the public
   demo is the `demo` surface and is exactly where the app most needs to look
