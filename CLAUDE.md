@@ -178,6 +178,18 @@ cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no 
 ⚠️ **The mock EHR is deliberately NOT styled like SPiER** — that is a demo claim,
 not a preference. See [`docs/internals/workers.md`](docs/internals/workers.md).
 
+⚠️ **An embedded activity gets a VIEWPORT; never size a guest frame to its
+content.** Both the chart's dock and the front door's caseload frame are fixed
+heights that the guest scrolls inside. The panel's own chrome is `position:
+fixed` — the code drawer, the FHIRcast notice — so a frame sized to its content
+strands that chrome below the fold. Three attempts at a content height are on
+the record in `chartPage.ts`; read them before trying a fourth.
+
+⚠️ **A framed launch is minted at RUNTIME, never baked into the markup.** Both
+frames ship `src="about:blank"` and POST to `/_admin/launch`. A launch URL in
+server-rendered HTML is a context minted at cache time and handed to whoever
+loads the page next; `chartPage.test.ts` asserts no absolute iframe `src`.
+
 ### Measures
 
 A measure criterion lives in **four** places and `check:measures` ties only two

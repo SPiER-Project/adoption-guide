@@ -104,16 +104,83 @@ export const PANEL_WIDTH_KEY = 'spier-mock-ehr:panel-width'
  * one listener does not earn a module.
  */
 /*
- * The front door's one rule. It held a container-queried frame height until
- * #491 deleted the frame; what needs a rule now is the pair of launch buttons,
- * which wrap on a narrow window and would otherwise sit flush against each
- * other.
+ * The front door's own rules: the framed activity, and the launch buttons beside
+ * it.
+ *
+ * ── The frame is a VIEWPORT, not a fitted box ──────────────────────────────
+ *
+ * ⚠️ **Do not try to make this frame the height of its content again.** Two
+ * separate attempts are on the record and both failed, in different ways:
+ *
+ *   1. A media query at 1148px — 1100 plus the body padding that made the frame
+ *      narrower than the window. The page later grew a `max-width`, the offset
+ *      became wrong by far more than 48px, and the side-by-side branch was
+ *      unreachable at every window width. Nobody could see it.
+ *   2. A container query on `.guest` (still declared in hostChrome.ts, still the
+ *      right instinct) with two measured heights, 387px side by side and 717px
+ *      stacked. #401 deleted the frame and the numbers went stale with it.
+ *
+ * The chart's dock settled this from the other side and its comment has the
+ * measurement: a 2073px chart column gave a 1961px iframe in a 1000px window,
+ * and the panel's own `position: fixed` chrome — the code drawer, the FHIRcast
+ * notice — was pinned a thousand pixels below the fold. **An embedded activity
+ * gets a viewport, so the frame has to be one.** A frame sized to its content
+ * has no viewport, and the guest's fixed chrome has nothing to pin to.
+ *
+ * So: a fixed height, the guest scrolls inside it, and no number here depends on
+ * anything inside the panel. `clamp` keeps it honest on a laptop and on a
+ * projector — the floor is roughly the summary's two zones stacked, the ceiling
+ * stops it eating a tall display, and 62vh is what leaves the patient table
+ * visibly below the fold-line rather than pushed off it.
  */
 const HOME_CSS = `
   .worklist-launches { display: flex; flex-wrap: wrap; gap: var(--s3); }
+  .activity iframe { height: clamp(420px, 62vh, 760px); }
 `
 
 const HOME_JS = `
+  /*
+   * The framed activity: mint a user-scoped launch and point the iframe at it.
+   *
+   * ⚠️ **The launch URL is minted here rather than baked into the HTML**, the
+   * same reason the chart's dock starts at about:blank. A launch context in
+   * server-rendered markup is a context minted at cache time, handed to whoever
+   * loads the page next.
+   *
+   * ⚠️ **\`embed: true\` is what makes it a panel rather than a whole app in a
+   * box.** It puts \`?embed=1\` on the launch URL, before the fragment, which is
+   * where the app reads it — and the app's SmartRedirect then lands an EMBEDDED
+   * worklist launch on the caseload SUMMARY rather than the full caseload. That
+   * is deliberate: a sortable patient list framed above this page's own patient
+   * table is two lists on one page, and the row clicks in the frame navigate
+   * inside the frame rather than opening a chart here.
+   *
+   * ⚠️ **No \`topic\`.** The chart reuses one FHIRcast topic across every launch
+   * it makes so the host and the panel share a session. This page has no chart
+   * to stay in step with, so it lets the server mint a fresh one.
+   */
+  (async () => {
+    const frame = document.getElementById('activity')
+    const status = document.getElementById('activity-status')
+    if (!frame) return
+    try {
+      const res = await fetch('/_admin/launch', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ userScoped: true, embed: true }),
+      })
+      const body = await res.json()
+      if (!res.ok || !body.launchUrl) throw new Error(body.error || 'launch failed')
+      frame.src = body.launchUrl
+      if (status) status.textContent = 'Launched';
+    } catch (error) {
+      // The frame stays at about:blank rather than showing a broken page. The
+      // bar says so, because an empty bordered box with no explanation reads as
+      // a layout bug rather than a failed handshake.
+      if (status) status.textContent = 'Could not launch: ' + error.message;
+    }
+  })();
+
   document.querySelectorAll('[data-launch-worklist]').forEach((button) => {
     const original = button.textContent
     // ⚠️ The intent rides in the launch CONTEXT, not in the URL the app is sent
@@ -191,25 +258,43 @@ const HOME_JS = `
  *    and the warning box that used to follow it lives in the `.hood` drawer.
  *    The defect step 2 was written against was *density before instruction*, and
  *    the density is gone.
+ * 4. **The frame comes back, and stays on top (2026-09-17, by request).**
+ *    Reported directly: the caseload button *"takes you back to the adoption
+ *    guide, but in reality, this is an iframed app that is running against the
+ *    EHRs data."* That was accurate — the button did
+ *    `window.location.href = launchUrl`, navigating the whole page away to
+ *    another origin, which reads as the demo giving up rather than as an
+ *    activity running inside a host.
+ *
+ * ⚠️ **Step 3 left a rule saying a regained frame must go BELOW the table, and
+ * this is not a violation of it — read what the rule was about.** Its stated
+ * reason is "step 1's defect returns with it", and step 1's defect is named in
+ * the three bullets below: *density before instruction*. What sat on top in
+ * step 1 was a dense iframe of registry vocabulary followed by a long warning
+ * box, with the instruction underneath all of it. What sits on top now is the
+ * instruction (the `<h1>` lede, which still says open a chart and press Launch
+ * SPiER), then one sentence, then the frame; the warning box is still in
+ * `.hood`. The defect the rule protects against is the ordering of INSTRUCTION
+ * against DENSITY, not the ordering of a frame against a table. If a later pass
+ * wants to move it again, that is the question to ask.
  *
  * **What must stay true whatever the order is**, because these are the rules
- * the three passes were actually about, not the sequence itself:
+ * the four passes were actually about, not the sequence itself:
  *
  * - The instruction comes before the disclaimer. "Open a chart" is in the first
  *   paragraph, above everything including the caseload.
  * - The caveats are not softened — the panel plan §1 requires the page to SAY
  *   what it does not prove — they are one click away in `.hood` rather than
  *   inline. Never inline them again to "balance" a section that moved up.
- * - The section is a launch, not a widget. If it ever regains an embedded
- *   frame it must go back below the table, because step 1's defect returns
- *   with it.
+ * - A frame on top must be preceded by the instruction and followed by the
+ *   patient table. That is the shape step 1 got wrong and step 4 gets right.
  *
- * ⚠️ Read the label on the frame either way. It is still not a SMART launch: no
- * `iss`, no `launch`, and the app renders its own bundled registry rather than
- * this server's FHIR API. Calling it an embedded SMART view would be the kind of
- * claim §1 guardrail 3 exists to stop. Upgrading it needs a user-scoped launch
- * and a data-source refactor; see `docs/plans/embedded-panel-smart-launch.md`
- * §6.3.
+ * ⚠️ **The frame's claim changed with #401 and again here, so read the label.**
+ * It is no longer the labelled fake: it carries a real `iss` and `launch`, over
+ * a user-scoped authorization, reading this server's FHIR API. What it still
+ * does not prove is interoperability — this host is written and run by the same
+ * project as the app it launches — and that paragraph stays unsoftened in the
+ * `.hood` drawer where §1 guardrail 3 put it.
  */
 export function homePage(patients: DemoPatient[]): string {
   const byId = new Map(patients.map(p => [p.id, p]))
@@ -257,21 +342,33 @@ export function homePage(patients: DemoPatient[]): string {
 
   <h2>Caseload</h2>
   <p class="lede">
-    A worklist activity: SPiER reads <strong>this server's</strong> fourteen patients and reports who
-    is owed an action. Unlike a chart launch it carries no patient &mdash; the token is user-scoped,
-    so the app may read across the panel and may not write to anyone.
+    A worklist activity, running here rather than somewhere else: SPiER reads <strong>this
+    server's</strong> fourteen patients over FHIR and reports who is owed an action. Unlike a chart
+    launch it carries no patient &mdash; the token is user-scoped, so the app may read across the
+    panel and may not write to anyone.
+  </p>
+  <section class="activity guest" aria-label="SPiER caseload activity">
+    <div class="guest__bar">
+      <span class="guest__title">SPiER</span>
+      <span>Caseload summary &middot; user-scoped launch</span>
+      <span class="guest__note" id="activity-status">Authorizing&hellip;</span>
+    </div>
+    <iframe id="activity" title="SPiER caseload summary" src="about:blank"></iframe>
+  </section>
+  <p class="lede">
+    Everything inside that border is drawn by SPiER; everything around it is this host. It is a real
+    SMART launch, minted the way the chart's panel is &mdash; not a picture of one.
   </p>
   <p class="worklist-launches">
-    <button type="button" class="btn primary" data-launch-worklist>Launch caseload &rarr;</button>
+    <button type="button" class="btn primary" data-launch-worklist>Open the full caseload &rarr;</button>
     <button type="button" class="btn" data-launch-worklist data-intent="open-measures">
       Launch measures &rarr;
     </button>
   </p>
   <p class="lede">
-    Two activities on one grant. The measures button sends a SMART
-    <code>intent</code> naming the tool &mdash; the same mechanism a CDS card uses
-    to open a specific instrument in a chart, applied to a launch that has no
-    chart.
+    Both open top-level, in this tab, the way an EHR opens an activity that wants the whole window.
+    The measures button sends a SMART <code>intent</code> naming the tool &mdash; the same mechanism
+    a CDS card uses to open a specific instrument in a chart, applied to a launch that has no chart.
   </p>
 
   <h2>Start here</h2>
@@ -302,14 +399,24 @@ export function homePage(patients: DemoPatient[]): string {
         capability profile, a top-level launch, the write reset) are on
         <a href="/settings">Settings</a>.
       </p>
-      <h3>What the caseload launch is, and what it still does not prove</h3>
+      <h3>What the framed caseload is, and what it still does not prove</h3>
       <p class="lede">
-        ⚠️ <strong>This replaced a labelled iframe.</strong> Until #401 the caseload sat in a frame
-        carrying no <code>iss</code> and no <code>launch</code>, rendering SPiER's own bundled demo
-        registry rather than this server's data &mdash; the <em>shape</em> of a hosted activity and
-        nothing more. It is now a real SMART launch: a user-scoped authorization (no patient in
-        context, <code>user/*.read</code>), a roster read against this server's FHIR API, and
-        per-patient reads on the same token. The app holds no patient data of its own.
+        ⚠️ <strong>The frame at the top of this page is not the frame that used to be there.</strong>
+        Until #401 the caseload sat in an iframe carrying no <code>iss</code> and no
+        <code>launch</code>, rendering SPiER's own bundled demo registry rather than this server's
+        data &mdash; the <em>shape</em> of a hosted activity and nothing more. What is framed now is
+        a real SMART launch, minted the same way the chart's panel is: a user-scoped authorization
+        (no patient in context, <code>user/*.read</code>), a roster read against this server's FHIR
+        API, and per-patient reads on the same token. The app holds no patient data of its own.
+      </p>
+      <p class="lede">
+        It shows the caseload <em>summary</em> rather than the sortable worklist, and that is a
+        judgement about this page rather than a limit of the launch. A patient list framed above
+        this page's own patient table is two lists on one screen, and the rows in the frame
+        navigate inside the frame &mdash; so the more useful-looking list would be the one that
+        opens no chart. The summary is the part a host cannot compute for itself.
+        <strong>Open the full caseload</strong> gives you the worklist, top-level, where its rows
+        are the only navigation there is.
       </p>
       <p class="lede">
         What that still does not prove is interoperability. <strong>This host is written and run by

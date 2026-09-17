@@ -11,7 +11,7 @@ export function SmartRedirect() {
     const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...')
     const [error, setError] = useState<string | null>(null)
     const { setSmartData } = useSmart()
-    const { setHostDrawsPatientBanner } = usePresentation()
+    const { setHostDrawsPatientBanner, chromeMode } = usePresentation()
     const navigate = useNavigate()
 
     /**
@@ -146,9 +146,38 @@ export function SmartRedirect() {
                             //
                             // The caseload is the fallback because a worklist
                             // session has no chart to open. `check:catalog` asserts
-                            // that route is a PAGE rather than a redirect, so it
-                            // cannot silently become one of the guide's explainers.
-                            setTimeout(() => navigate(directed ?? '/population/caseload'), 500)
+                            // every landing route here is a PAGE rather than a
+                            // redirect, so neither can silently become one of the
+                            // guide's explainers.
+                            //
+                            // ⚠️ **An EMBEDDED worklist lands on the summary, not
+                            // the caseload, and that is the app's own stated
+                            // design rather than a host preference.**
+                            // `PopulationSummaryEmbed`'s header says it: what a
+                            // host cannot compute for itself is the part ABOVE a
+                            // worklist — the tiles, the risk-tier census, the
+                            // alert groups — and a caseload framed inline on a
+                            // page that already has a patient list puts two lists
+                            // on one page, where the more useful-looking one is
+                            // the one whose row clicks navigate inside the iframe
+                            // and open no chart.
+                            //
+                            // A top-level or docked worklist launch owns its
+                            // viewport and its rows are the only navigation there
+                            // is, so it still gets the full caseload.
+                            // ⚠️ Two literal `navigate(directed ?? '…')` calls
+                            // rather than one with a computed constant, for the
+                            // same reason App.tsx spells out a per-surface
+                            // redirect twice: `check:catalog` reads this file as
+                            // TEXT and matches that exact shape. A landing route
+                            // held in a variable is a landing route the gate
+                            // cannot see, and the gate treats "cannot see" as a
+                            // pass.
+                            if (chromeMode === 'panel') {
+                                setTimeout(() => navigate(directed ?? '/population/summary'), 500)
+                            } else {
+                                setTimeout(() => navigate(directed ?? '/population/caseload'), 500)
+                            }
                         } else {
                             navigate('/')
                         }
@@ -162,7 +191,7 @@ export function SmartRedirect() {
                 console.error('SMART Ready Error:', err)
                 setError(err.message || 'Failed to complete SMART on FHIR authorization.')
             })
-    }, [navigate, setSmartData, setHostDrawsPatientBanner])
+    }, [navigate, setSmartData, setHostDrawsPatientBanner, chromeMode])
 
     if (error) {
         return (

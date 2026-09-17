@@ -1,6 +1,28 @@
 # Plan 4 — Frame the caseload on the mock EHR's front door
 
-**Status:** planned, 2026-09-17. Touches `services/mock-ehr/` only. Independent
+**Status:** IMPLEMENTED 2026-09-17. Kept for the reasoning. Three things went
+differently from the plan below:
+
+1. **The frame is a fixed-height viewport, not a re-measured fitted box.** The
+   plan said to re-measure the container query. The chart's dock had already
+   settled this from the other side, with a measurement on the record: a 2073px
+   chart column gave a 1961px iframe and the panel's own `position: fixed`
+   chrome was stranded a thousand pixels below the fold. *An embedded activity
+   gets a viewport, so the frame has to be one.* A frame sized to its content has
+   no viewport for the guest's fixed chrome to pin to, so the third attempt at a
+   content height would have failed the way the first two did.
+2. **It frames the caseload SUMMARY, not the caseload.** `PopulationSummaryEmbed`
+   exists for exactly this and its header says why: a sortable patient list
+   framed above this page's own patient table is two lists on one screen, and
+   the frame's rows navigate inside the frame. That needed a change in the app —
+   `SmartRedirect` now lands an *embedded* worklist launch on the summary and a
+   top-level one on the full caseload.
+3. **A gate was checking one of three landing routes while a comment said it
+   checked them all.** `check:catalog` used `.match()`, which returns the first
+   match only, so it only ever saw `/patient/record`. Fixed to `matchAll`, with
+   comments stripped first — the first version of that fix matched four landings
+   in a file with three, because a comment quotes the shape the pattern looks
+   for. Touches `services/mock-ehr/` only. Independent
 of plans 1–3.
 
 ## What is wrong today
