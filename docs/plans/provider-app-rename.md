@@ -1,6 +1,6 @@
 # Plan 1 — "Patient App" becomes "Provider App"
 
-**Status:** planned, 2026-09-17. Self-contained. Run this BEFORE
+**Status:** IMPLEMENTED 2026-09-17. Kept for the reasoning. Self-contained. Run this BEFORE
 [`guide-navigation-regroup.md`](guide-navigation-regroup.md), which reorders the
 same file.
 

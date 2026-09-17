@@ -4,7 +4,7 @@
 > and every rule below are the intended conformance contract, not yet balloted.
 > Advancing maturity needs independently developed implementations; per-tool
 > readiness is tracked in the companion app's
-> [Adoption Readiness matrix](https://spier-project.github.io/adoption-guide/#/guide/adoption-readiness).
+> [Adoption Readiness matrix](https://spier-project.github.io/adoption-guide/#/guide/tools/readiness).
 
 ## Actor roles
 

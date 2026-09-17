@@ -320,7 +320,7 @@ export const OVERVIEW_SECTIONS: OverviewSection[] = [
           '[Care Pathway](/guide/pathway) for the protocol itself — rendered from the ' +
           'published PlanDefinition — the [Tools](/guide/tools) catalog for the ' +
           'stage-by-stage instrument detail, or the ' +
-          '[Adoption Readiness matrix](/guide/adoption-readiness) to see where each instrument ' +
+          '[Adoption Readiness matrix](/guide/tools/readiness) to see where each instrument ' +
           'stands today — what’s built, what its licensing requires, and how deeply it integrates.',
       },
     ],

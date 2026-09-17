@@ -186,6 +186,14 @@ function AppRoutes() {
             <Route path="patient-app" element={<Navigate to="/guide/provider-app" replace />} />
             <Route path="dashboard" element={<PopulationDashboardGuide />} />
             <Route path="tools" element={<PatientJourney />} />
+            {/* Adoption Readiness is a SUBSECTION of Tools since 2026-09-17: it
+                renders one row per catalogued instrument, entirely from the
+                catalog, so it is a second view of Tools rather than a peer of it.
+                ⚠️ Declared in guideSections.ts `subsections` as well, and that is
+                what makes it CHECKED — check:guide-boundary derives the guide's
+                page set from that file, and a route under /guide that the file
+                does not name is walked by nothing. */}
+            <Route path="tools/readiness" element={<AdoptionReadiness />} />
             {/* Tool Configuration moved to /settings on 2026-09-15: it is a
                 setting of the SMART app, which owns the tool catalog, not a
                 section of a guide that explains and hosts. The redirect stays —
@@ -200,13 +208,19 @@ function AppRoutes() {
                 already linked from CDS cards in the wild. */}
             <Route path="measures" element={<Navigate to="/population/measures" replace />} />
             <Route path="cds-service" element={<CdsServiceGuide />} />
-            <Route path="adoption-readiness" element={<AdoptionReadiness />} />
+            {/* Published path, kept as a redirect after the move under Tools. */}
+            <Route path="adoption-readiness" element={<Navigate to="/guide/tools/readiness" replace />} />
             <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
             {/* /guide/roadmap was published, so it gets a redirect rather than
                 falling through to the catch-all. The page mirrored GitHub Issues
                 onto the site; the issues are the roadmap now, and Adoption
-                Readiness is what survives of "where is each tool". */}
-            <Route path="roadmap" element={<Navigate to="/guide/adoption-readiness" replace />} />
+                Readiness is what survives of "where is each tool".
+                ⚠️ Points at the real page, not at /guide/adoption-readiness,
+                which became a redirect itself on 2026-09-17. Two chained
+                <Navigate>s work but cost a render, and check:catalog reads a
+                redirect's target literally — it would report this one as
+                resolving while a reader bounced twice. */}
+            <Route path="roadmap" element={<Navigate to="/guide/tools/readiness" replace />} />
           </Route>
           </>
         )}

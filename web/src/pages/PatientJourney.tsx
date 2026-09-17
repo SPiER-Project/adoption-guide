@@ -41,6 +41,11 @@ export function PatientJourney() {
         serve &mdash; screen, gate, assess, branch by risk tier &mdash; see the{' '}
         <Link to={guideHref('pathway')}>Care Pathway</Link>.
       </p>
+      <p className="journey-description">
+        For the same catalogue scored rather than described &mdash; where each instrument is in the
+        build, how strongly it is recommended, and how deeply it integrates &mdash; see{' '}
+        <Link to={guideHref('tools/readiness')}>Adoption Readiness</Link>.
+      </p>
 
       <Notice as="aside" tone="info">
         <strong>Aligned with Zero Suicide.</strong>{' '}

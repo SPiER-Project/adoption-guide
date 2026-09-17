@@ -291,8 +291,24 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   the SMART app — which instruments a deployment offers is a fact about SPiER's
   own deployment, not about the EHR (the EHR never sees the tool catalog; its
   `/metadata` capability profile is the different, genuinely EHR-side fact).
-  CDS Service stayed in the guide but moved to **Learn**: it configures nothing,
-  and it is the third thing that runs the pathway beside the two apps.
+  CDS Service stayed in the guide: it configures nothing, and it is the third
+  thing that runs the pathway beside the two apps — which is the group it is in
+  since 2026-09-17.
+- **The guide's sidebar has three groups, and they are a claim about kind.**
+  `GUIDE_GROUPS` (`data/guideSections.ts`) is **The standard** (Care Pathway,
+  Tools, Data Dictionary — published artifacts and the contract over them),
+  **The applications** (Provider App, Population Dashboard, CDS Service — the
+  three things that run it) and **Evaluate** (Adoption Rubric). `GUIDE_SECTIONS`
+  must stay **grouped-contiguous** in that order, because the pager walks it
+  linearly; `guideSections.test.ts` pins that, plus the subsection rules below.
+  ⚠️ **A page under `/guide` that is not in that file is checked by nothing** —
+  `check:guide-boundary` and `check:catalog` both derive from it. A page that is
+  reachable but should not be a sidebar row or a pager step is declared as a
+  **`subsections` entry** on its owning section, whose `path` is the FULL
+  sub-path (`tools/readiness`, never `readiness`) because both gates build
+  `/guide/${path}`. Adoption Readiness is the one that exists: it renders one
+  row per catalogued instrument entirely from the catalog, so it is a view of
+  Tools rather than a peer of it.
   ⚠️ **`/settings` still does nothing in panel chrome**, and that is load-bearing
   rather than unfinished — `web/src/lib/toolEnablement.ts` has the four reasons,
   one of which this move retired. Read it before wiring the preset into the panel.

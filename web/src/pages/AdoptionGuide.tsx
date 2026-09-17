@@ -1,20 +1,24 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
-import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
+import { GUIDE_SECTIONS, guideGroupLabel, guideHref, resolveGuidePath } from '../data/guideSections'
 import '../css/AdoptionGuide.css'
 
 export function AdoptionGuide() {
   const location = useLocation()
 
-  // The active section is the last path segment under /guide. The index route
-  // redirects /guide → /guide/pathway, so a bare /guide falls back to the
-  // first section rather than rendering a titleless header.
-  const segment = location.pathname.replace(/^\/guide\/?/, '').split('/')[0]
-  const activeIndex = Math.max(
-    0,
-    GUIDE_SECTIONS.findIndex(s => s.path === segment),
-  )
-  const active = GUIDE_SECTIONS[activeIndex]
+  // Which section owns this path, and whether the path names one of its
+  // subsections. The index route redirects /guide → /guide/pathway, so a bare
+  // /guide falls back to the first section rather than rendering a titleless
+  // header.
+  const resolved = resolveGuidePath(location.pathname)
+  const active = resolved?.section ?? GUIDE_SECTIONS[0]
+  const subsection = resolved?.subsection
+  const activeIndex = Math.max(0, GUIDE_SECTIONS.indexOf(active))
+  // ⚠️ The pager walks SECTIONS, and a subsection borrows its owner's
+  // neighbours rather than becoming a step. Making it a step would put a page
+  // in the linear read that the sidebar does not list, so a reader paging
+  // through the guide would land somewhere they cannot navigate back to by the
+  // same means.
   const prev = activeIndex > 0 ? GUIDE_SECTIONS[activeIndex - 1] : null
   const next =
     activeIndex < GUIDE_SECTIONS.length - 1 ? GUIDE_SECTIONS[activeIndex + 1] : null
@@ -29,7 +33,23 @@ export function AdoptionGuide() {
 
   return (
     <div className={wide ? 'implementation-guide implementation-guide--wide' : 'implementation-guide'}>
-      <PageHeader eyebrow={['Adoption Guide', guideGroupLabel(active.group)]} title={active.label} />
+      {/* A subsection is a DRILL-IN, so it follows PageHeader's documented rule
+          for one rather than the guide's rule for a section: the eyebrow names
+          the page's parent, `up` points at it, and the pill marks it as a page
+          below a lens. That renders "← Tools" over "Adoption Readiness".
+          ⚠️ `up` links the FIRST eyebrow segment, so the trail cannot keep
+          "Adoption Guide" in front — it would make that word the way back to
+          Tools. A section keeps the two-segment group trail and no `up`. */}
+      {subsection ? (
+        <PageHeader
+          eyebrow={active.label}
+          up={guideHref(active.path)}
+          eyebrowStyle="pill"
+          title={subsection.label}
+        />
+      ) : (
+        <PageHeader eyebrow={['Adoption Guide', guideGroupLabel(active.group)]} title={active.label} />
+      )}
 
       {/* A `<div>`, not a `<main>`: AppShell already renders the document's one
           `<main>` around this outlet, and a second one nested inside it is not a
