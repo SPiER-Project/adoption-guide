@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import FHIR from 'fhirclient'
 
+import { clientIdForIssuer } from '../lib/smartClients'
+
 export function SmartLaunch() {
     const [error, setError] = useState<string | null>(null)
 
@@ -12,9 +14,13 @@ export function SmartLaunch() {
         // from the app base URL under the hash router).
         FHIR.oauth2
             .authorize({
-                // The client_id is typically registered with the EHR.
-                // For the SMART Launcher, it can be anything if we don't specify one in the launch params.
-                client_id: 'spier-client',
+                // Registered per EHR — see lib/smartClients. The `iss` the
+                // host sent names the server whose registration applies; an
+                // unknown one falls back to the mock EHR's literal, so every
+                // existing launch is unchanged.
+                client_id: clientIdForIssuer(
+                    new URLSearchParams(window.location.search).get('iss'),
+                ),
 
                 // Read + write scopes for the chart's live data path
                 // (SmartDataSource): read the patient's existing
