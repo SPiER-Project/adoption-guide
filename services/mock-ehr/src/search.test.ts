@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { HELD_RESOURCES } from './fixtures'
-import { applySearch, belongsToPatient, matchesToken, parseSearch } from './search'
+import { applySearch, belongsToPatient, matchesIdentifier, matchesToken, parseSearch } from './search'
 
 const ALL = HELD_RESOURCES.map(h => h.resource)
 
@@ -120,5 +120,68 @@ describe('the roster search', () => {
     // one, and the Bundle would look perfectly normal.
     expect(applySearch(resources, 'Patient', {})).toHaveLength(0)
     expect(applySearch(resources, 'Observation', {})).toHaveLength(0)
+  })
+})
+
+/**
+ * ⚠️ **`identifier` search exists because the app stopped minting resource ids.**
+ * SPiER's lifecycle writes used to be `PUT <Type>/<client id>`, which this server
+ * accepted and real servers refuse. The client id is a business identifier now,
+ * and `SmartDataSource.findServerId` looks a resource up by it to learn the id
+ * the SERVER assigned. That lookup is best-effort in the app, so leaving this
+ * unimplemented would not have failed loudly — it would have silently degraded
+ * cross-launch convergence, and a second episode would have appeared where one
+ * was expected.
+ */
+describe('identifier search', () => {
+  const CLIENT_SYS = 'http://thespierproject.org/fhir/identifier/client-id'
+  const held = [
+    {
+      resourceType: 'EpisodeOfCare',
+      id: 'srv-7',
+      patient: { reference: 'Patient/patient-001' },
+      identifier: [{ system: CLIENT_SYS, value: 'episode-abc' }],
+    },
+    {
+      resourceType: 'EpisodeOfCare',
+      id: 'srv-8',
+      patient: { reference: 'Patient/patient-001' },
+      identifier: [{ system: CLIENT_SYS, value: 'episode-xyz' }],
+    },
+  ]
+
+  it('is an accepted parameter rather than a 400', () => {
+    const parsed = parseSearch(
+      new URLSearchParams({ patient: 'patient-001', identifier: `${CLIENT_SYS}|episode-abc` }),
+      { type: 'EpisodeOfCare' },
+    )
+    expect(parsed.ok).toBe(true)
+  })
+
+  it('narrows to the one resource carrying that identifier', () => {
+    const found = applySearch(held, 'EpisodeOfCare', {
+      patientId: 'patient-001',
+      identifier: `${CLIENT_SYS}|episode-abc`,
+    })
+    expect(found.map(r => r.id)).toEqual(['srv-7'])
+  })
+
+  it('returns nothing for an identifier no resource carries — not everything', () => {
+    // The failure a lenient server makes: ignoring the parameter and answering
+    // with the whole set, which reads as "found it" to a caller taking [0].
+    const found = applySearch(held, 'EpisodeOfCare', {
+      patientId: 'patient-001',
+      identifier: `${CLIENT_SYS}|episode-never-written`,
+    })
+    expect(found).toEqual([])
+  })
+
+  it('matches the three token spellings, and does not confuse systems', () => {
+    const ids = [{ system: CLIENT_SYS, value: 'episode-abc' }]
+    expect(matchesIdentifier(ids, 'episode-abc')).toBe(true)
+    expect(matchesIdentifier(ids, `${CLIENT_SYS}|episode-abc`)).toBe(true)
+    expect(matchesIdentifier(ids, `http://elsewhere.example|episode-abc`)).toBe(false)
+    // `|value` means "no system", which this one has.
+    expect(matchesIdentifier(ids, '|episode-abc')).toBe(false)
   })
 })

@@ -159,13 +159,13 @@
           "display": "Risk for suicide"
         }
       ],
-      "_savedAt": "2026-07-28T16:30:00.000Z",
       "title": "Stanley-Brown Safety Plan",
       "note": [
         {
           "text": "Outpatient referral sent \u2014 awaiting receipt confirmation."
         }
-      ]
+      ],
+      "created": "2026-07-28T16:30:00.000Z"
     }
   ],
   "riskAlerts": [
@@ -197,8 +197,7 @@
       "encounter": {
         "reference": "Encounter/p007-enc-index"
       },
-      "sent": "2026-07-30T10:00:00.000Z",
-      "_savedAt": "2026-07-30T10:00:00.000Z"
+      "sent": "2026-07-30T10:00:00.000Z"
     }
   ],
   "episodes": [

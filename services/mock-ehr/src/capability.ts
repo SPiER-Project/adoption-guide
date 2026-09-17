@@ -57,11 +57,26 @@ export const PROFILE_DESCRIPTIONS: Record<CapabilityProfile, string> = {
 const WRITABLE_TYPES = ['QuestionnaireResponse', 'Observation', 'Condition', 'DocumentReference']
 
 export function creatableTypes(profile: CapabilityProfile): string[] {
-  return CREATABLE[profile]
+  if (profile === 'read-only') return CREATABLE[profile]
+  // ⚠️ **The lifecycle types are creatable because CREATE is now how they come
+  // into existence.** They used to reach this server only by `PUT` at a
+  // client-minted id — update-as-create — so they belonged to the *update* axis
+  // alone. That is exactly the behaviour a real server refuses, so the app POSTs
+  // them now and PUTs against the id the server assigns.
+  //
+  // They stay off the ladder's axis: the four profiles model how far the
+  // writeback LADDER climbs (Tiers 0–3), and an episode is SPiER's own
+  // bookkeeping rather than a tier. `no-observation` still turns Tier 2 down
+  // without touching an Encounter. `read-only` is the one profile that refuses
+  // these too, because "nothing may be written" has to mean it.
+  return [...new Set([...CREATABLE[profile], ...LIFECYCLE_RESOURCE_TYPES])]
 }
 
 /**
- * Types this server accepts by `PUT` (FHIR update-as-create).
+ * Types this server accepts by `PUT`.
+ *
+ * ⚠️ **No longer update-as-create.** A `PUT` to an id this server does not hold
+ * is a 404; being on this list means the type may be UPDATED, not conjured.
  *
  * ⚠️ **A SECOND axis, and collapsing it into `CREATABLE` was a real bug.** The
  * four profiles model how capable an EHR is *for the writeback ladder* — Tiers

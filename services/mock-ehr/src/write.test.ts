@@ -362,7 +362,7 @@ describe('reset', () => {
   })
 })
 
-describe('PUT — update-as-create, which the browser found and the plan did not list', () => {
+describe('PUT — an UPDATE, and only an update', () => {
   /**
    * A lifecycle resource of the kind `SmartDataSource.saveArtifact` PUTs. Derived
    * from the scenario fixtures for the same reason as the Observation above: a
@@ -392,13 +392,34 @@ describe('PUT — update-as-create, which the browser found and the plan did not
     return { res, body: (await res.json().catch(() => null)) as Record<string, unknown> | null }
   }
 
-  it('keeps the CLIENT’s id, unlike POST', async () => {
-    // The whole point: an episode opened and later closed has to converge on ONE
-    // resource, which only works if the id survives the round trip.
+  /**
+   * ⚠️ **This server used to CREATE on a PUT to an unknown id, and that defect is
+   * the reason this block was rewritten.** `SmartDataSource` wrote its lifecycle
+   * types as `PUT <Type>/<client-minted id>`; this server accepted it, so the
+   * whole writeback passed here and failed at the first server nobody on this
+   * project wrote — Medplum answers 400 to a prefixed id and 404 to a bare UUID
+   * it does not hold. FHIR permits update-as-create; real servers frequently
+   * refuse it, and a mock that accepts it certifies a client that cannot ship.
+   */
+  it('REFUSES to create on a PUT to an id it does not hold', async () => {
+    const resource = lifecycleResource()
+    const { res, body } = await put('EpisodeOfCare', 'episode-never-seen-before', {
+      ...resource,
+      id: 'episode-never-seen-before',
+    })
+    expect(res.status).toBe(404)
+    // And it says what to do instead, because a 404 on a write reads as a broken
+    // route unless it explains itself.
+    expect(JSON.stringify(body)).toMatch(/does not implement update-as-create/)
+  })
+
+  it('keeps the id of a resource it DOES hold, unlike POST', async () => {
+    // An episode opened and later closed has to converge on ONE resource, which
+    // only works if the id survives the round trip.
     const resource = lifecycleResource()
     const id = String(resource.id)
     const { res, body } = await put('EpisodeOfCare', id, resource)
-    expect([200, 201]).toContain(res.status)
+    expect(res.status).toBe(200)
     expect(body?.id).toBe(id)
     expect(body?.id).not.toMatch(/^srv-/)
   })
@@ -408,12 +429,13 @@ describe('PUT — update-as-create, which the browser found and the plan did not
     const resource = lifecycleResource()
     const id = String(resource.id)
 
+    // Both are updates now: the id is a FIXTURE the server already serves, so
+    // there was never anything to create. A PUT is 200 or it is nothing.
     const first = await put('EpisodeOfCare', id, resource, { env })
-    expect(first.res.status).toBe(201)
+    expect(first.res.status).toBe(200)
 
     const closed = { ...resource, status: 'finished' }
     const second = await put('EpisodeOfCare', id, closed, { env })
-    // 200, not 201 — a client should be able to tell a replacement from a create.
     expect(second.res.status).toBe(200)
 
     const stored = await env.state.list()

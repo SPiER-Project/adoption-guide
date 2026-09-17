@@ -24,7 +24,7 @@ and it is permitted only with the guardrails in §1 of that plan.
 | FHIR base | `/fhir` |
 | Discovery | `GET /fhir/.well-known/smart-configuration` |
 | Read | `GET /fhir/{Type}/{id}` |
-| Search | `GET /fhir/{Type}?patient={id}[&category={token}]` → searchset `Bundle` |
+| Search | `GET /fhir/{Type}?patient={id}[&category={token}][&identifier={token}]` → searchset `Bundle` |
 | Capability | `GET /fhir/metadata` |
 | Authorize | `GET /authorize` — PKCE S256 required |
 | Token | `POST /token` |
@@ -365,7 +365,7 @@ about the frame, so the query now asks the frame.
 | Route | |
 |---|---|
 | `POST /fhir/{Type}` | create — capability-gated, validated, patient-scoped. 201 + representation + `Location`, with a **server-minted** id (`srv-N`) |
-| `PUT /fhir/{Type}/{id}` | update-as-create for the lifecycle types, keeping the **client's** id. 201 first, 200 on replacement |
+| `PUT /fhir/{Type}/{id}` | **update only** — 200, or **404** if this server does not already hold that id |
 | `GET /_admin/writes` | the server's own account of what it stored |
 | `POST /_admin/reset` | discard the writes; the capability profile survives |
 
@@ -373,12 +373,30 @@ Reads reflect writes: the fixtures and the store are merged keyed by `Type/id`,
 with a written resource replacing a fixture of the same id, so an episode opened
 and later closed converges on one resource instead of appearing twice.
 
-⚠️ **`PUT` exists because a browser found it, not because the spec asked.** The
-plan's §4 lists `POST` only, but `SmartDataSource.saveArtifact` PUTs the eight
-LIFECYCLE types so open→close converges. Following the spec exactly produced a
-panel whose save aborted on the CORS preflight — with a console error about
-`Access-Control-Allow-Methods`, which reads as configuration rather than a
-missing route. `Prefer` had to join `allowHeaders` for the same reason.
+⚠️ **This server did update-as-create for months, and that was the single most
+expensive thing it ever got wrong.** It accepted `PUT /fhir/{Type}/{client-minted
+id}` and created the resource, because `SmartDataSource.saveArtifact` wrote the
+eight LIFECYCLE types that way and the alternative was a demo that did not save.
+The note here used to say *"`PUT` exists because a browser found it, not because
+the spec asked"* — candid, and candour did not make it safe.
+
+FHIR permits update-as-create; real servers frequently refuse it. Medplum answers
+`400 Invalid id` to a prefixed id and `404` to a bare UUID it does not hold, and
+because `ensureEncounter()` runs before nearly every save, that one refusal
+blocked **every** write. SPiER's entire writeback passed here and failed at the
+first server nobody on this project had written — see
+[`docs/plans/medplum-spike-2026-09-17.md`](../../docs/plans/medplum-spike-2026-09-17.md).
+
+**That is the hazard of a mock you control: when the app and the server disagree,
+the server is what moves.** A `PUT` to an id this server does not hold is a 404
+now, and says what to do instead. The app POSTs to create, PUTs against the
+server's id, and carries its own id as an `identifier` — which is why
+`?identifier=` joined the search surface.
+
+The CORS note survives the rewrite and is unrelated: `PUT` in `allowMethods` and
+`Prefer` in `allowHeaders` are still required, and omitting either aborts the
+save on the preflight with a console error that reads as configuration rather
+than a missing route.
 
 ⚠️ **`POST` must mint an id, and cannot do otherwise.**
 `SmartDataSource.toCreatePayload` deletes the client's `id` before POSTing, so
@@ -429,7 +447,7 @@ discovered.
 
 ## Not here
 
-**No transaction Bundle, no delete, no search beyond `patient` + `category`** —
+**No transaction Bundle, no delete, no search beyond `patient` + `category` + `identifier`** —
 the writeback ladder POSTs one resource at a time, and an endpoint nothing
 exercises is an endpoint nobody has watched reject anything. **No encounter page, no user, no login**
 — `patient-view` needs a patient, and a fabricated practitioner would be theatre.

@@ -69,7 +69,7 @@ export function PatientDocuments({
         title: carePlanDisplayName(cpRead),
         // Stable sentinel so this useMemo stays deterministic across recomputes
         // when an artifact is missing its timestamp. Undated entries sort to the bottom.
-        when: cpRead._savedAt ?? UNDATED_SENTINEL,
+        when: cpRead.created ?? cpRead._savedAt ?? UNDATED_SENTINEL,
         resource: cp,
       })
     }

@@ -136,6 +136,11 @@ function bestArtifactDate(resource: FhirResourceLike): string | undefined {
     dateTime?: string
     start?: string
     period?: { start?: string; end?: string }
+    // CarePlan's own record-time field, and the FHIR home of what the demo
+    // fixtures used to keep in `_savedAt`. It sits beside `_savedAt` rather than
+    // up with the clinical fields because both answer "when was this written
+    // down", not "when did it happen".
+    created?: string
     _savedAt?: string
     meta?: { lastUpdated?: string }
   }
@@ -151,6 +156,7 @@ function bestArtifactDate(resource: FhirResourceLike): string | undefined {
     // An episode that has closed is most meaningfully dated by its end.
     r.period?.end ??
     r.period?.start ??
+    r.created ??
     r._savedAt ??
     // Resources read back from a SMART server carry no `_savedAt`; the server's
     // own stamp is the last resort before the row goes undated.

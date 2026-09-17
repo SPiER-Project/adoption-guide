@@ -1097,7 +1097,6 @@
         }
       ],
       "created": "2026-08-02T15:10:00.000Z",
-      "_savedAt": "2026-08-02T15:10:00.000Z",
       "title": "Stanley-Brown Safety Plan",
       "activity": [
         {
@@ -1324,7 +1323,6 @@
         "reference": "Encounter/p011-enc-ed"
       },
       "sent": "2026-08-03T12:00:00.000Z",
-      "_savedAt": "2026-08-03T12:00:00.000Z",
       "extension": [
         {
           "url": "http://thespierproject.org/fhir/StructureDefinition/handoff-content-item",

@@ -100,13 +100,13 @@
       "encounter": {
         "reference": "Encounter/p009-enc-caring-contact"
       },
-      "_savedAt": "2026-05-21T14:00:00.000Z",
       "title": "Caring contacts series complete",
       "note": [
         {
           "text": "7-day and 30-day caring contacts complete. Patient enrolled in active CAMS episode."
         }
-      ]
+      ],
+      "created": "2026-05-21T14:00:00.000Z"
     }
   ],
   "riskAlerts": [

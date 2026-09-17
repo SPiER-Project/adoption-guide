@@ -1002,7 +1002,6 @@
         }
       ],
       "created": "2026-08-02T14:00:00.000Z",
-      "_savedAt": "2026-08-02T14:00:00.000Z",
       "activity": [
         {
           "detail": {
@@ -1138,13 +1137,13 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "_savedAt": "2026-08-04T09:00:00.000Z",
       "title": "Outpatient referral sent",
       "note": [
         {
           "text": "Referral sent to outpatient behavioral health following the safety plan; caring-contact cadence to begin once receipt is confirmed."
         }
-      ]
+      ],
+      "created": "2026-08-04T09:00:00.000Z"
     }
   ],
   "riskAlerts": [

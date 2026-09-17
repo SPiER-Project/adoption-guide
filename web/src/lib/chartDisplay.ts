@@ -25,6 +25,9 @@ export interface RenderableResource {
   reasonCode?: CodeableConcept[]
   category?: CodeableConcept[]
   sent?: string
+  // CarePlan's record-time field; the fixtures carry it instead of `_savedAt`,
+  // which only a runtime save stamps.
+  created?: string
   _savedAt?: string
 }
 
@@ -135,7 +138,7 @@ export function workflowArtifactDisplay(resource: FhirResourceLike): {
       return {
         icon: '\u{1F4C4}',
         name: resource.resourceType ?? 'Resource',
-        meta: `${resource.resourceType ?? 'Resource'}${on(r._savedAt)}`,
+        meta: `${resource.resourceType ?? 'Resource'}${on(r.created ?? r._savedAt)}`,
       }
   }
 }

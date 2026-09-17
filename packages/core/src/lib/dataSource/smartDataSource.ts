@@ -170,6 +170,24 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    * up through the existing `subscribe` notification.
    */
   private lastWriteback: WritebackReport | null = null
+  /**
+   * `<Type>/<client id>` → the server's id for that resource, learned from the
+   * create that produced it (or from a lookup by identifier).
+   *
+   * ⚠️ **This is what replaced update-as-create, and the replacement was not
+   * optional.** SPiER used to write the eight `LIFECYCLE_RESOURCE_TYPES` as
+   * `PUT <Type>/<client-minted id>`, which needs the server to create a
+   * resource at an id the client chose. FHIR permits that; real servers
+   * frequently refuse it. Medplum answers `400 Invalid id` to a prefixed id and
+   * `404` to a bare UUID that does not exist yet — so the id FORMAT was never
+   * the issue, it has no update-as-create at all. Since `ensureEncounter()`
+   * runs before nearly every save, that one refusal blocked EVERY write.
+   *
+   * POST-to-create plus PUT-by-server-id uses only the two write interactions
+   * every FHIR server supports. The cost is that the server's id has to be
+   * remembered, which is what this map is.
+   */
+  private readonly serverIds = new Map<string, string>()
 
   constructor(client: Client, writebackConfig: WritebackConfig = {}) {
     this.client = client
@@ -322,6 +340,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    * the Location header for servers that return 201 with no body.
    */
   private async create(resource: FhirResource): Promise<string | undefined> {
+    resource = this.rewriteReferences(resource)
     const { body, response } = await this.client.request<{
       body: FhirResource | null
       response: Response
@@ -383,8 +402,10 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
   }
 
   /**
-   * Write a lifecycle resource with PUT (update-as-create), keeping the
-   * client-supplied id.
+   * Write a lifecycle resource with PUT, against the id the SERVER gave it.
+   *
+   * ⚠️ This used to PUT the client-minted id (update-as-create). See
+   * `serverIds` for why that had to go.
    *
    * These are the resources that are *mutated* rather than appended — an
    * episode is opened then closed, a flag raised then cleared, a task created
@@ -400,6 +421,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    * caller's save-error handling rather than being swallowed.
    */
   private async put(resource: FhirResource): Promise<void> {
+    resource = this.rewriteReferences(resource)
     await this.client.request({
       url: `${resource.resourceType}/${resource.id}`,
       method: 'PUT',
@@ -546,6 +568,90 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     }
   }
 
+  /**
+   * The system SPiER's client-minted id travels under once it stops being a
+   * resource id.
+   *
+   * A business identifier is the right home for it: it is a value SPiER assigns
+   * and needs to recognise again, which is exactly what `identifier` is for,
+   * whereas `id` belongs to the server. It also makes a resource traceable back
+   * to the session that wrote it without consulting this instance's map.
+   */
+  private static readonly CLIENT_ID_SYSTEM =
+    'http://thespierproject.org/fhir/identifier/client-id'
+
+  /**
+   * The server's id for a client-minted one, from this session's map and then —
+   * best effort — from a search by identifier.
+   *
+   * ⚠️ **The search is best effort on purpose.** `?identifier=` is a standard
+   * search parameter, but not every server SPiER launches from implements it:
+   * SPiER's own mock answers an unknown search parameter with a 400 by design,
+   * *"an unknown search parameter is a 400, not an ignored one"*. A server that
+   * cannot answer leaves the in-session map, which covers open→close inside one
+   * launch — the case that actually arises. Cross-session convergence is what
+   * the search buys where it works.
+   */
+  private async findServerId(resourceType: string, clientId: string): Promise<string | undefined> {
+    const key = `${resourceType}/${clientId}`
+    const known = this.serverIds.get(key)
+    if (known) return known
+    try {
+      const found = await this.client.request<unknown>(
+        `${resourceType}?identifier=${encodeURIComponent(`${SmartDataSource.CLIENT_ID_SYSTEM}|${clientId}`)}`,
+        { pageLimit: 0, flat: true },
+      )
+      const first = (Array.isArray(found) ? found : []).find(
+        (r): r is FhirResource => !!r && typeof r === 'object' && typeof (r as FhirResource).id === 'string',
+      )
+      if (first?.id) {
+        this.serverIds.set(key, first.id)
+        return first.id
+      }
+    } catch {
+      // The server cannot answer this search. Fall through to the map.
+    }
+    return undefined
+  }
+
+  /**
+   * Rewrite `<Type>/<client id>` references to the ids the server actually
+   * assigned.
+   *
+   * ⚠️ **Without this, POST-to-create silently produces dangling references.**
+   * `useCorrelatedSave` stamps the Encounter it just wrote onto every artifact
+   * that follows (`stampEncounter`), and an Encounter closing an episode names
+   * it — all by the id SPiER minted. Once the server assigns its own, those
+   * strings point at resources it has never held. The server accepts them
+   * (a reference is just a string) and the chart quietly loses its correlation,
+   * which is the failure `executeWritePlan` already guards for the narrower
+   * `Observation.derivedFrom → QuestionnaireResponse` case.
+   *
+   * ⚠️ **Applied in `create` and `put` rather than in `saveArtifact`, and that
+   * placement is the whole point.** It lived in `saveArtifact` first, which
+   * fixed nothing visible: the QuestionnaireResponse and its Observations are
+   * written by the writeback LADDER (`saveResponse` → `executeWritePlan` →
+   * `createResource`), a path that never goes through `saveArtifact`. The first
+   * live write against Medplum landed a chart whose QR and both Observations
+   * pointed at `Encounter/encounter-82d1eeff-…`, an id that server has never
+   * held. Rewriting at the two primitives every write funnels through is what
+   * makes it true of all of them.
+   */
+  private rewriteReferences<T>(node: T): T {
+    if (Array.isArray(node)) return node.map(n => this.rewriteReferences(n)) as unknown as T
+    if (!node || typeof node !== 'object') return node
+    const out: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+      if (key === 'reference' && typeof value === 'string' && this.serverIds.has(value)) {
+        const slash = value.indexOf('/')
+        out[key] = `${value.slice(0, slash)}/${this.serverIds.get(value)}`
+      } else {
+        out[key] = this.rewriteReferences(value)
+      }
+    }
+    return out as T
+  }
+
   async saveArtifact(patientId: string | null, resource: FhirResource): Promise<void> {
     const pid = this.resolvePatientId(patientId)
     const payload = this.toCreatePayload(resource, pid)
@@ -561,12 +667,48 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       payload.meta = { ...meta, tag: [...(meta.tag ?? []), { system: PATHWAY_STAGE_SYSTEM, code: stageId }] }
     }
     if (LIFECYCLE_RESOURCE_TYPES.has(resource.resourceType) && resource.id) {
-      // Preserve the client id so open→close converges on one resource.
-      await this.put({ ...payload, id: resource.id })
+      // A lifecycle resource is MUTATED rather than appended — an episode opens
+      // then closes, a flag is raised then cleared — so every transition has to
+      // land on the one resource rather than leaving the superseded version
+      // behind. Create it once, then update the server's copy.
+      const clientId = resource.id
+      const key = `${resource.resourceType}/${clientId}`
+      const withIdentifier = this.withClientIdentifier(payload, clientId)
+      const serverId = await this.findServerId(resource.resourceType, clientId)
+      if (serverId) {
+        await this.put({ ...withIdentifier, id: serverId })
+      } else {
+        const created = await this.create(withIdentifier)
+        // ⚠️ A server that returns neither a body nor a Location leaves this
+        // unset, and the next transition then creates a SECOND resource rather
+        // than updating this one. Nothing can be done about it from here, but
+        // it is a duplicate rather than a lost write, and the identifier makes
+        // the pair findable afterwards.
+        if (created) this.serverIds.set(key, created)
+      }
     } else {
       await this.create(payload)
     }
     this.notify()
+  }
+
+  /**
+   * Carry the client-minted id as a business identifier.
+   *
+   * Idempotent: a resource written twice in a session (open, then close) passes
+   * through here each time, and a second copy of the same identifier would make
+   * the lookup ambiguous on servers that reject a multi-match conditional read.
+   */
+  private withClientIdentifier<T extends FhirResource>(payload: T, clientId: string): T {
+    const withId = payload as T & { identifier?: { system?: string; value?: string }[] }
+    const existing = withId.identifier ?? []
+    if (existing.some(i => i.system === SmartDataSource.CLIENT_ID_SYSTEM && i.value === clientId)) {
+      return payload
+    }
+    return {
+      ...payload,
+      identifier: [...existing, { system: SmartDataSource.CLIENT_ID_SYSTEM, value: clientId }],
+    }
   }
 
   subscribe(listener: () => void): () => void {
