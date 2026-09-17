@@ -1,8 +1,14 @@
 # Research — Medplum as the mock EHR
 
-**Status:** research note, 2026-09-17. No work planned. Answers Brad's question
-on plan 4: *"are you able to research the UI of Medplum as something we could use
-as our mock EHR?"*
+**Status:** research note, 2026-09-17. Answers Brad's question on plan 4: *"are
+you able to research the UI of Medplum as something we could use as our mock
+EHR?"*
+
+> **The spike proposed below has been run.** Its results — including the answers
+> to the four questions in *"What to check in a spike, in order"* and four
+> defects it found in SPiER — are in
+> [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md). Read that first;
+> this note is what was believed beforehand.
 
 ⚠️ `medplum.com` is blocked by this environment's egress proxy, so the findings
 below come from the GitHub repos, npm and search summaries. Confirm the API
