@@ -174,6 +174,10 @@ export function mapCSSRSScreenerCore(
   observations.push(
     makeObservation({
       id: `cssrs-risk-level-${Date.now()}`,
+      // One stamp serves TL-003, TL-019 and TL-027: the adult screener, the
+    // since-last-contact administration and the pediatric screener all run this
+    // core, and all three declare the same output profile.
+      profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
         // display = the CodeSystem's display; the narrative goes in `text`.

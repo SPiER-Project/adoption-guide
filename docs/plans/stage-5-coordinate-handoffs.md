@@ -145,10 +145,19 @@ Delivered:
 - Stage 8 (Measure and Share) — the 7-/30-day follow-up measures compute over
   exactly these appointments. `attendedWithinDays()` in `lib/followUp.ts` is
   the definition they should reuse rather than restate.
-- **TL-009 content checklist.** The handoff recorder still emits a plain
-  stage-tagged Communication with no `handoff-content-item` extensions. That is
-  conformant (the profile is a low floor by design) but under-uses the shared
-  vocabulary the discharge packet now populates.
+- ~~**TL-009 content checklist.**~~ **Done — 2026-09-17**, and it was worse than
+  this item said. The claim that the plain stage-tagged Communication was
+  "conformant (the profile is a low floor by design)" stopped being true when
+  #262 added the required 1..1 `category:suicideRisk` slice, and it was never
+  the real problem: the generic recorder stamped no `meta.profile` at all, and
+  `measures.ts` filters Communications on exactly that canonical. So the handoff
+  half of `transitionDates` — the index event for every post-transition measure
+  — counted nothing the app wrote. It read as healthy because the TL-030 packet
+  is the other index resource and did claim its profile, and because three demo
+  scenarios carry a hand-authored handoff with the profile on it.
+  `buildSafetyHandoff()` in `packages/core/src/lib/handoffs.ts` now stamps the
+  profile, the domain category and the content checklist;
+  `components/SafetyHandoffView.tsx` is the recorder over it.
 - ~~**Consent is recorded, not enforced.**~~ **Done** — issue #227, see below.
 
 ## The consent gate (issue #227)

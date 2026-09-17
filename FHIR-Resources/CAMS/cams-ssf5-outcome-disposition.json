@@ -34,12 +34,78 @@
       "text": "SSF Core Assessment (rate each 1–5)",
       "type": "group",
       "item": [
-        { "linkId": "1-score", "text": "Psychological Pain (1 = low, 5 = high)", "type": "integer", "required": false },
-        { "linkId": "2-score", "text": "Stress (1 = low, 5 = high)", "type": "integer", "required": false },
-        { "linkId": "3-score", "text": "Agitation (1 = low, 5 = high)", "type": "integer", "required": false },
-        { "linkId": "4-score", "text": "Hopelessness (1 = low, 5 = high)", "type": "integer", "required": false },
-        { "linkId": "5-score", "text": "Self-Hate (1 = low, 5 = high)", "type": "integer", "required": false },
-        { "linkId": "6-score", "text": "Overall Risk of Suicide (1 = extremely low, 5 = extremely high)", "type": "integer", "required": false }
+        {
+          "linkId": "1-score",
+          "text": "Psychological Pain (1 = low, 5 = high)",
+          "type": "integer",
+          "required": false,
+          "code": [
+            { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "Psychological Pain" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        },
+        {
+          "linkId": "2-score",
+          "text": "Stress (1 = low, 5 = high)",
+          "type": "integer",
+          "required": false,
+          "code": [
+            { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "stress", "display": "Stress" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        },
+        {
+          "linkId": "3-score",
+          "text": "Agitation (1 = low, 5 = high)",
+          "type": "integer",
+          "required": false,
+          "code": [
+            { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "agitation", "display": "Agitation" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        },
+        {
+          "linkId": "4-score",
+          "text": "Hopelessness (1 = low, 5 = high)",
+          "type": "integer",
+          "required": false,
+          "code": [
+            { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "hopelessness", "display": "Hopelessness" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        },
+        {
+          "linkId": "5-score",
+          "text": "Self-Hate (1 = low, 5 = high)",
+          "type": "integer",
+          "required": false,
+          "code": [
+            { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "self-hate", "display": "Self-Hate" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        },
+        {
+          "linkId": "6-score",
+          "text": "Overall Risk of Suicide (1 = extremely low, 5 = extremely high)",
+          "type": "integer",
+          "required": false,
+          "code": [
+            { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "overall-risk", "display": "Overall Risk of Suicide" }
+          ],
+          "extension": [
+            { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
+          ]
+        }
       ]
     },
     {
@@ -65,6 +131,9 @@
       "linkId": "disposition",
       "text": "Disposition / next step",
       "type": "choice",
+      "code": [
+        { "system": "http://loinc.org", "code": "93374-7", "display": "Suicide risk level" }
+      ],
       "required": true,
       "answerOption": [
         { "valueCoding": { "system": "http://thespierproject.org/fhir/CodeSystem/cams-disposition", "code": "continue-cams", "display": "Continue CAMS outpatient care" } },
@@ -78,7 +147,8 @@
           "valueCodeableConcept": {
             "coding": [{ "system": "http://hl7.org/fhir/questionnaire-item-control", "code": "drop-down", "display": "Drop down" }]
           }
-        }
+        },
+        { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
       ]
     }
   ]

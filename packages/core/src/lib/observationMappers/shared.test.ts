@@ -28,6 +28,7 @@ type ObsView = {
   category?: Array<{ coding?: Array<{ code?: string }> }>
   subject?: { reference?: string }
   note?: Array<{ text?: string }>
+  meta?: { profile?: string[] }
 }
 const view = (o: unknown): ObsView => o as ObsView
 
@@ -163,6 +164,39 @@ describe('makeObservation', () => {
     expect(obs.code?.text).toBe('Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]')
     expect(view(obs).subject?.reference).toBe('Patient/demo-patient')
     expect(obs.effectiveDateTime).toBeDefined()
+  })
+
+  /**
+   * ⚠️ The regression these two pin is the one `check:outputs` found: NOTHING
+   * stamped a profile, so ~80 emitted Observations validated against base
+   * `Observation` while twelve published profiles asserted constraints nobody
+   * checked. `validate-fhir.mjs` could not have caught it — a resource claiming
+   * no profile validates against nothing and PASSES.
+   */
+  it('claims the profile it is given, and nothing when it is given none', () => {
+    const profiled = makeObservation({
+      id: 'obs-p',
+      code: baseCode,
+      value: 6,
+      valueType: 'integer',
+      questionnaireName: 'PHQ-9',
+      profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score',
+    })
+    expect(view(profiled).meta?.profile).toEqual([
+      'http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score',
+    ])
+    // The per-item Observations beside a result have no published profile, and
+    // `meta` must stay ABSENT rather than become an empty shell: `deriveFromResponse`
+    // merges its stage tag into whatever is there, and an empty `meta.profile: []`
+    // would read as a claim to conform to nothing.
+    const unprofiled = makeObservation({
+      id: 'obs-u',
+      code: baseCode,
+      value: 6,
+      valueType: 'integer',
+      questionnaireName: 'PHQ-9',
+    })
+    expect(view(unprofiled).meta).toBeUndefined()
   })
 
   it('routes each valueType to the matching Observation.value[x] field', () => {

@@ -61,6 +61,7 @@ export function mapBSSA(response: QuestionnaireResponseResource): MapperResult {
   observations.push(
     makeObservation({
       id: `bssa-disposition-${Date.now()}`,
+      profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-bssa-disposition-result',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
         coding: [{ system: BSSA_DISPOSITION_SYSTEM, code: dispositionCode, display: dispositionDisplay }],

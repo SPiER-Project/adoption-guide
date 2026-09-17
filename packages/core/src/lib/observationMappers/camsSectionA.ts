@@ -30,6 +30,7 @@ export function mapCAMSSectionA(response: QuestionnaireResponseResource): Mapper
 
       const obs = makeObservation({
         id: `cams-${vital.code}-${Date.now()}`,
+        profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital',
         // `display` is the cams-ssf CodeSystem's own wording (ig/input/fsh/cams.fsh)
         // — CAMS_VITALS[].display is kept identical to it on purpose. The "CAMS
         // SSF:" prefix a reader wants is `.text`, not a redefinition of the code.

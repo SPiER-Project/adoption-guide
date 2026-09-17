@@ -55,7 +55,8 @@
  * A linkId is resolved across EVERY SPiER Questionnaire rather than against one
  * associated form, because the carePlan mappers declare no canonical→mapper
  * registry the way `observationMappers/index.ts` does — the association lives in
- * `App.tsx`'s route props and, for Stanley-Brown, inside its bespoke view. That
+ * `web/src/data/toolViews.tsx`'s `carePlanMapper` props (it was `App.tsx`'s route
+ * props until 2026-09-17) and, for Stanley-Brown, inside its bespoke view. That
  * is sound here because the question is binary (group or leaf) and every linkId
  * these mappers read resolves the same way in every form that declares it. If
  * two forms ever disagree, that is an ERROR, not a coin toss — see AMBIGUOUS.

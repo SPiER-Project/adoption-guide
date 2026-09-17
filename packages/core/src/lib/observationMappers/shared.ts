@@ -15,6 +15,12 @@ import type {
   QuestionnaireResponseItem,
 } from '../../types/fhir'
 import { suicideRiskCategory } from '../conceptDomain'
+// The union of Observation profile canonicals, DERIVED from the FSH by
+// copy-fhir.mjs. Re-exported so a mapper imports the type from the module it
+// already imports `makeObservation` from.
+import type { ObservationProfileUrl } from '@spier/fhir-artifacts/generated/observation-profiles.generated'
+
+export type { ObservationProfileUrl }
 
 /** The C-SSRS risk-level system, and its CANONICAL displays. */
 export const CSSRS_RISK_LEVEL_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level'
@@ -241,6 +247,30 @@ export function interpretationOf(code: InterpretationCode, summary: string): Cod
  * `code.text` / `interpretation.text` default to the coding's `display`. Set
  * them when the phrase a clinician should read differs from what the code system
  * publishes — the display must stay the authority's either way.
+ *
+ * ── `profile`, and why it is per-CALL rather than per-mapper ─────────────────
+ *
+ * A mapper emits two kinds of Observation and only one of them has a profile.
+ * The *result* — the disposition, the tier, the total score — is what the IG
+ * declares as the tool's `PlanDefinition.action.output`, and it claims that
+ * profile. The *per-item* Observations beside it (one per questionnaire item)
+ * are the raw answers; the IG publishes no profile for them and they pass
+ * `profile` undefined. `phq9.ts` is the case that settles the shape: its two
+ * calls claim two DIFFERENT profiles, so this cannot be a property of the mapper.
+ *
+ * ⚠️ **Until 2026-09-17 no instrument Observation claimed anything**, and the
+ * consequence was invisible by construction: `validate-fhir.mjs` validates a
+ * resource against the profiles it CLAIMS, so an unclaimed profile degrades to a
+ * PASS (docs/internals/fhir-conformance.md). ~80 emitted Observations were
+ * checked against base `Observation` while twelve published profiles asserted
+ * constraints nothing verified. `check:outputs` is what related the IG's
+ * declared outputs to the emitted corpus and made the gap visible.
+ *
+ * The type is the union GENERATED from the FSH
+ * (`@spier/fhir-artifacts/generated/observation-profiles.generated`), so a
+ * mistyped canonical is a compile error rather than a claim on a profile nobody
+ * published — the same treatment `carePlanMappers/shared.ts` already gives
+ * `CarePlanProfileUrl`.
  */
 export function makeObservation(params: {
   id: string
@@ -250,10 +280,13 @@ export function makeObservation(params: {
   interpretation?: CodedText
   note?: string
   questionnaireName: string
+  /** The SPiER profile this Observation conforms to, when the IG declares one. */
+  profile?: ObservationProfileUrl
 }): ObservationResource {
   const obs: ObservationResource = {
     resourceType: 'Observation',
     id: params.id,
+    ...(params.profile ? { meta: { profile: [params.profile] } } : {}),
     status: 'final',
     category: [
       {

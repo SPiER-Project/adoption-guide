@@ -20,9 +20,10 @@
 // can track that a referral was "accepted or completed" (Stage Tile 5, tool 3,
 // question 5). ServiceRequest.status models that lifecycle natively;
 // Communication — which only records that something was *sent* — cannot.
-// NOTE: the current demo recorder at /patient/workflow/rapid-referral still
-// emits a Communication. That app/IG gap is deliberate and tracked, not
-// silent drift; see docs/plans/stage-5-coordinate-handoffs.md.
+// The app/IG gap this note used to record is closed: /patient/workflow/referral
+// (renamed from rapid-referral, with the old path kept as a redirect) renders
+// SafetyReferralView, which builds a ServiceRequest through
+// packages/core/src/lib/handoffs.ts.
 //
 // Resources conformant to these profiles carry the pathway-stage meta.tag
 // (coordinate-handoffs) so patientPathway.ts stages them unchanged.
@@ -183,7 +184,7 @@ Profile: SPiERSafetyHandoff
 Parent: Communication
 Id: spier-safety-handoff
 Title: "SPiER Suicide-Safety Handoff Communication"
-Description: "A documented suicide-safety handoff at a transition of care: who it went to, when, and what suicide-safety context travelled with it. The content checklist rides as repeating handoff-content-item extensions. Deliberately a LOW floor — the existing demo recorder emits a plain stage-tagged Communication, and this profile is written so that output stays conformant while richer coded capture is possible."
+Description: "A documented suicide-safety handoff at a transition of care: who it went to, when, and what suicide-safety context travelled with it. The content checklist rides as repeating handoff-content-item extensions. The content checklist is deliberately 0..* — a transition recorded with nothing itemised is still a transition, and it still starts the follow-up clock. Everything this profile does REQUIRE is either native to the act (status, subject, sent) or the concept-domain category every SPiER resource carries, so claiming it costs a recorder nothing it was not already writing. This is one of the two resources the post-transition measures index on; the other is SPiERDischargeSafetyPacket."
 * ^status = #draft
 * ^experimental = true
 * status 1..1

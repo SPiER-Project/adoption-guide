@@ -110,6 +110,12 @@ InstanceOf: SPiERCrisisResourcesShared
 Title: "Example — Crisis Resources Shared"
 Description: "Sample Communication recording that the 988 Lifeline, Crisis Text Line, and a copy of the safety plan were shared with the patient."
 Usage: #example
+// The profile's description says this resource is "tagged to the Document
+// Safety Actions pathway stage via meta.tag", and this example did not carry
+// one — so the only published instance of the profile contradicted it, and an
+// implementer copying it got a resource patientPathway.ts cannot stage. A
+// missing optional element is not a validation error, so nothing caught it.
+* meta.tag[+] = SPiERPathwayStage#document-safety-actions
 * status = #completed
 * category[+].text = "Crisis resources shared"
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk

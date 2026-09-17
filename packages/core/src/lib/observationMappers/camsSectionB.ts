@@ -1,14 +1,20 @@
 import { walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, type FhirResource } from './shared'
+import { suicideRiskCategory } from '../conceptDomain'
 
 export function mapCAMSSectionB(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
   const observations: ObservationResource[] = []
 
   // Extract identified drivers (Problem #1-3)
+  // `slug` exists because `label` cannot be one. The id used to be built as
+  // `label.replace(/\s+/g, '-')`, which leaves the `#` — and `#` is not a legal
+  // FHIR id character, so EVERY Condition this mapper has ever produced carried
+  // an invalid id. The validator said so the first time one was emitted under a
+  // profile claim (2026-09-17); before that the resource was checked by nothing.
   const driverLinkIds = [
-    { descLinkId: 'driver-1-desc', typeLinkId: 'driver-1-type', label: 'Driver #1' },
-    { descLinkId: 'driver-2-desc', typeLinkId: 'driver-2-type', label: 'Driver #2' },
-    { descLinkId: 'driver-3-desc', typeLinkId: 'driver-3-type', label: 'Driver #3' },
+    { descLinkId: 'driver-1-desc', typeLinkId: 'driver-1-type', label: 'Driver #1', slug: 'driver-1' },
+    { descLinkId: 'driver-2-desc', typeLinkId: 'driver-2-type', label: 'Driver #2', slug: 'driver-2' },
+    { descLinkId: 'driver-3-desc', typeLinkId: 'driver-3-type', label: 'Driver #3', slug: 'driver-3' },
   ]
 
   const conditions: FhirResource[] = []
@@ -22,7 +28,13 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
     if (description) {
       conditions.push({
         resourceType: 'Condition',
-        id: `cams-driver-${Date.now()}-${driver.label.replace(/\s+/g, '-')}`,
+        id: `cams-driver-${Date.now()}-${driver.slug}`,
+        // The one non-Observation an instrument mapper produces, and the reason
+        // this is a hand-built literal rather than a `makeObservation` call.
+        // ⚠️ Claimed since 2026-09-17. Nothing had ever validated this resource:
+        // it claimed no profile, and no fixture ran this mapper — which is how
+        // the missing required category three lines below survived #302.
+        meta: { profile: ['http://thespierproject.org/fhir/StructureDefinition/spier-cams-suicide-driver'] },
         clinicalStatus: {
           coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-clinical', code: 'active', display: 'Active' }],
         },
@@ -49,6 +61,14 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
               display: driverType.display,
             }],
           }] : []),
+          // ⚠️ REQUIRED 1..1 by SPiERCAMSSuicideDriver, and missing until
+          // 2026-09-17. #271 made the concept-domain slice required on ~28
+          // profiles and #302 fixed the runtime builders that had never written
+          // it — but this one was missed, and could not be caught: the resource
+          // claimed no profile, and a resource that claims nothing validates
+          // against nothing. Adding the profile claim above without this line
+          // would have turned a silent gap into a red validator.
+          suicideRiskCategory(),
         ],
         code: { text: description },
         subject: { reference: 'Patient/demo-patient' },

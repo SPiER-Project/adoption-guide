@@ -232,6 +232,16 @@ Usage: #definition
   * title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
   * description = "Disposition-oriented assessment after a positive ASQ. Yields a disposition Observation (SPiERBSSADispositionResult) crosswalked to the common suicide-risk tier."
   * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/AdministerBSSA"
+  // Added 2026-09-17 by the first run of `check:outputs`. BSSA was the ONE
+  // launchable recorder in the whole catalogue with no `output` declaration —
+  // while the comment three lines above already called it fully FHIR-modelled,
+  // this action's own description already named SPiERBSSADispositionResult, and
+  // bssa.fsh has published the profile all along. The declaration was simply
+  // never written, and until the gate existed nothing compared the prose to the
+  // structure.
+  * output[+]
+    * type = #Observation
+    * profile = "http://thespierproject.org/fhir/StructureDefinition/spier-bssa-disposition-result"
 * action[+]
   * id = "administer-cssrs-since-last-contact"
   * title = "Administer C-SSRS Since Last Visit / Since Last Contact"

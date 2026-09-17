@@ -27,6 +27,9 @@
               "linkId": "1-score",
               "text": "Rating (1=Low pain, 5=High pain)",
               "type": "integer",
+              "code": [
+                { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "psychological-pain", "display": "Psychological Pain" }
+              ],
               "extension": [
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -46,7 +49,8 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
                   "valueInteger": 5
-                }
+                },
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
               ]
             },
             {
@@ -65,6 +69,9 @@
               "linkId": "2-score",
               "text": "Rating (1=Low stress, 5=High stress)",
               "type": "integer",
+              "code": [
+                { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "stress", "display": "Stress" }
+              ],
               "extension": [
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/minValue",
@@ -73,7 +80,8 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
                   "valueInteger": 5
-                }
+                },
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
               ]
             },
             {
@@ -92,6 +100,9 @@
               "linkId": "3-score",
               "text": "Rating (1=Low agitation, 5=High agitation)",
               "type": "integer",
+              "code": [
+                { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "agitation", "display": "Agitation" }
+              ],
               "extension": [
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/minValue",
@@ -100,7 +111,8 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
                   "valueInteger": 5
-                }
+                },
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
               ]
             },
             {
@@ -119,6 +131,9 @@
               "linkId": "4-score",
               "text": "Rating (1=Low hopelessness, 5=High hopelessness)",
               "type": "integer",
+              "code": [
+                { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "hopelessness", "display": "Hopelessness" }
+              ],
               "extension": [
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/minValue",
@@ -127,7 +142,8 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
                   "valueInteger": 5
-                }
+                },
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
               ]
             },
             {
@@ -146,6 +162,9 @@
               "linkId": "5-score",
               "text": "Rating (1=Low self-hate, 5=High self-hate)",
               "type": "integer",
+              "code": [
+                { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "self-hate", "display": "Self-Hate" }
+              ],
               "extension": [
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/minValue",
@@ -154,7 +173,8 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
                   "valueInteger": 5
-                }
+                },
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
               ]
             },
             {
@@ -173,6 +193,9 @@
               "linkId": "6-score",
               "text": "Rating (1=Extremely low risk/will not kill self, 5=Extremely high risk/will kill self)",
               "type": "integer",
+              "code": [
+                { "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf", "code": "overall-risk", "display": "Overall Risk of Suicide" }
+              ],
               "extension": [
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/minValue",
@@ -181,7 +204,8 @@
                 {
                   "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
                   "valueInteger": 5
-                }
+                },
+                { "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract", "valueBoolean": true }
               ]
             }
           ]

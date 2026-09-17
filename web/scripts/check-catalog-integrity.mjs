@@ -45,6 +45,15 @@
  *          a Questionnaire the app can import while the IG describes no tool
  *          that administers it, and so publishes no stage, no licensing
  *          status and no clinical metadata for it
+ *        - and every Questionnaire JSON in FHIR-Resources/ is imported by
+ *          packages/core/src/data/questionnaires.ts, which CLAIMS to be the
+ *          single owner of those paths. ⚠️ It was not: `StanleyBrownView` held
+ *          its own raw import, so eighteen Questionnaires shipped and the
+ *          registry held seventeen, and neither direction above could see it —
+ *          both relate the tree to the ActivityDefinitions, and an AD says
+ *          nothing about which TypeScript module loads the file. A second
+ *          importer is how `QUESTIONNAIRE_BY_URL` silently stops covering an
+ *          instrument, which is where the SDC `weight()` join lives
  *   D. every ActivityDefinition carries licensing metadata (issue #127):
  *      a `copyright` notice AND an `instrument-licensing-status` extension
  *      whose code is real, and the ADs of a multi-AD tool agree on it.
@@ -376,6 +385,37 @@ for (const [canonical, [path]] of questionnaireFiles) {
       `Questionnaire.`,
   )
 }
+// C-registry: every Questionnaire file is imported by the registry module that
+// claims to own those paths. Read as TEXT and matched on the FILE PATH, not on
+// the canonical: the point is which module holds the `import … from
+// '…/FHIR-Resources/…'` specifier, and a canonical-based check would pass on a
+// second importer that resolves the same URL — which is exactly the defect.
+const registryPath = 'packages/core/src/data/questionnaires.ts'
+const registrySrc = readFileSync(join(root, registryPath), 'utf8')
+const registryImports = new Set(
+  [...registrySrc.matchAll(/from\s+'[^']*\/FHIR-Resources\/([^']+\.json)'/g)].map((m) => m[1]),
+)
+if (registryImports.size === 0) {
+  fail(
+    `${registryPath} imports no FHIR-Resources/ Questionnaire JSON — this check reads that module ` +
+      `as text, so a moved registry or a changed import form makes it vacuous`,
+  )
+}
+// The reverse direction is deliberately NOT checked: the registry may name a
+// file this tree no longer holds only by breaking the build, so tsc already
+// owns it, and a second rule here would just restate the compiler.
+for (const [, [path]] of questionnaireFiles) {
+  const rel = path.slice('FHIR-Resources/'.length)
+  if (registryImports.has(rel)) continue
+  fail(
+    `${path}: Questionnaire is not imported by ${registryPath}, which is the single owner of the ` +
+      `FHIR-Resources/ JSON paths. A component importing the raw JSON itself keeps the resource out ` +
+      `of QUESTIONNAIRE_BY_URL — so the SDC weight() join, the fallback dispatcher and anything else ` +
+      `resolving a canonical cannot see it — while every other gate stays green. Export it from the ` +
+      `registry and import it from there.`,
+  )
+}
+
 console.log(
   `✓ questionnaires: ${qRefs} ActivityDefinition reference(s) resolve, and ` +
     `${questionnaireFiles.size - orphans}/${questionnaireFiles.size} Questionnaire(s) in FHIR-Resources/ ` +

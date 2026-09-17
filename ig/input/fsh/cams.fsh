@@ -731,6 +731,43 @@ Usage: #example
 * note.text = "Three consecutive sessions with overall risk 2/5, managing thoughts, behaviorally stable. Disposition: resolved."
 
 
+// ⚠️ Authored 2026-09-17 because its ABSENCE was load-bearing. Section B was the
+// only mapped Questionnaire with neither a demo scenario nor an example here, so
+// `mapCAMSSectionB` ran nowhere: the Condition it derives was emitted by nothing,
+// validated by nothing, and had been missing the concept-domain category #271
+// made required since #302 fixed every other runtime builder. `check:outputs`
+// surfaced it as a declared output profile nothing claimed, and
+// runtimeFhir.emit.test.ts's "covers every mapper" assertion is what keeps the
+// fixture set from quietly shrinking back.
+Instance: ExampleCAMSSectionBResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS SSF-5 Section B QuestionnaireResponse (clinician risk assessment)"
+Description: "Source CAMS SSF-5 Section B QuestionnaireResponse: ideation and plan present, two suicidal drivers identified. The derived SPiERCAMSSuicideDriver Conditions are what a CAMS treatment plan is organised around."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB"
+* subject = Reference(Patient/example)
+* authored = "2026-07-15T16:00:00Z"
+* item[+].linkId = "risk-assessment"
+* item[=].item[+].linkId = "ideation"
+* item[=].item[=].item[+].linkId = "ideation-present"
+* item[=].item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[=].item[+].linkId = "plan"
+* item[=].item[=].item[+].linkId = "plan-present"
+* item[=].item[=].item[=].answer.valueCoding = http://snomed.info/sct#373066001 "Yes"
+* item[+].linkId = "drivers"
+* item[=].item[+].linkId = "driver-1"
+* item[=].item[=].item[+].linkId = "driver-1-desc"
+* item[=].item[=].item[=].answer.valueString = "Unbearable guilt about the relapse"
+* item[=].item[=].item[+].linkId = "driver-1-type"
+* item[=].item[=].item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/cams-driver-type#direct "Direct Driver"
+* item[=].item[+].linkId = "driver-2"
+* item[=].item[=].item[+].linkId = "driver-2-desc"
+* item[=].item[=].item[=].answer.valueString = "Loss of housing after the separation"
+* item[=].item[=].item[+].linkId = "driver-2-type"
+* item[=].item[=].item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/cams-driver-type#indirect "Indirect Driver"
+
+
 Instance: ExampleCAMSOutcomeDispositionResponse
 InstanceOf: QuestionnaireResponse
 Title: "Example — CAMS Outcome/Disposition QuestionnaireResponse (resolved)"
