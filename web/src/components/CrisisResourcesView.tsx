@@ -87,11 +87,21 @@ export function CrisisResourcesView() {
       title="Record Crisis Resources Shared"
       lede={
         <>
-          Records a <strong>Communication</strong> on the{' '}
-          <strong>SPiER Crisis Resources Shared</strong> profile, tagged to the{' '}
-          <strong>Document Safety Actions</strong> stage. Each resource is a coded
-          payload rather than a line of prose, so &ldquo;did this patient leave with crisis
-          contacts?&rdquo; is a query.
+          Records what the patient was actually given, under{' '}
+          <strong>Document Safety Actions</strong>. Each resource is ticked from a list
+          rather than typed as a note, so &ldquo;did this patient leave with crisis
+          contacts?&rdquo; is something the chart can answer later.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>Communication</strong> on the{' '}
+          <strong>SPiERCrisisResourcesShared</strong> profile, one payload per resource,
+          each coded with a <code>crisis-resource-code</code> extension —{' '}
+          <code>Communication.payload.content[x]</code> is string, Attachment or Reference
+          with no coded choice, so the code rides beside the human-readable line. The profile
+          requires <code>payload 1..*</code>, which is why an empty selection is not
+          recordable rather than being silently dropped.
         </>
       }
       draft={draft}
@@ -116,10 +126,9 @@ export function CrisisResourcesView() {
     >
       {codes.length === 0 && (
         <WorkflowHint>
-          Select at least one resource. The profile requires{' '}
-          <code>payload 1..*</code> — a payload is what names a resource, so
-          &ldquo;none shared&rdquo; has no conformant representation and recording it
-          would mean claiming a profile this resource fails.
+          Select at least one resource. &ldquo;Nothing shared&rdquo; is not something this
+          form can record — if no crisis resource was given, there is nothing here to
+          document, and recording an empty hand-off would misstate what the patient left with.
         </WorkflowHint>
       )}
 
@@ -154,7 +163,7 @@ export function CrisisResourcesView() {
           <WorkflowField
             label="Local line details"
             optional="optional"
-            help="The one thing a shared code list cannot carry: this site's actual number. It is appended to the patient-facing text on the local-line and warmline entries."
+            help="The one thing a shared list cannot carry: this site's actual number. It is added to the local-line and warmline entries the patient is given."
           >
             <input
               type="text"

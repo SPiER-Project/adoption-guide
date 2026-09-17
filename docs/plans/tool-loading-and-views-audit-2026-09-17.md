@@ -4,6 +4,15 @@
 are *loaded*; how the tool *views* are defined) and folded into one, because both
 halves meet at the same declaration and neither can see the join alone.
 
+⚠️ **A second pass over the same files landed on `main` while this one was open**
+— #528, whose reasoning lives in
+[`docs/internals/tool-views.md`](../internals/tool-views.md). Read that first for
+the recorders' *shape*; this document is about the FHIR **contract** over them.
+Where the two overlapped they agreed, and #528 got there first on one point: the
+Stanley-Brown registry bypass in [§8](#8-what-this-audit-changed), and the
+verdict that `StanleyBrownView` was a fork rather than a load-bearing recorder
+([§4](#4-which-of-the-10-bespoke-recorders-are-load-bearing-nine-of-them)).
+
 Everything below was read against the repo on the date in the title. The three
 code changes this audit made are listed in [§8](#8-what-this-audit-changed); every
 other finding is scoped, not fixed.
@@ -293,15 +302,25 @@ noticing (see [§8](#8-what-this-audit-changed)).
 
 ---
 
-## 4. Which of the 10 bespoke recorders are load-bearing?
+## 4. Which of the 10 bespoke recorders are load-bearing? (Nine of them.)
 
-**All ten. None is an accumulated one-off, every one has its reason written in
-its own header, and the reasons are not stylistic — each names a different FHIR
-resource type or a profile a measure reads.**
+**Nine of ten. Every one has its reason written in its own header, and the
+reasons are not stylistic — each names a different FHIR resource type or a
+profile a measure reads.**
+
+⚠️ **The tenth was a fork, and #528 found it while this audit was in flight.**
+`StanleyBrownView` was a near-copy of `QuestionnaireView` whose divergence was
+*not* load-bearing: it had drifted out of four things the shared view had grown
+(the `?tool=` launch-stage stamp, the observation summary, the writeback panel,
+and honouring a care plan's `isEmpty`), and it was also the one instrument
+bypassing the Questionnaire registry. `stanley-and-brown` now renders
+`QuestionnaireView` with `carePlanMapper={generateCarePlan}` like its three CAMS
+and CRP siblings. This audit had it in the load-bearing column, on the strength
+of its header — which is the lesson: a documented reason is evidence that
+someone thought about it, not that the conclusion still holds.
 
 | Slug | Component | Writes | Reason it is not `WorkflowActionView` |
 |---|---|---|---|
-| `stanley-and-brown` | `StanleyBrownView` | CarePlan (`spier-stanley-brown-safety-plan`) | A questionnaire whose submit runs a CarePlan mapper and renders the plan |
 | `caring-contact` | `CaringContactView` | Communication + `SPiERCaringContact` + opt-out ext | The generic recorder stamped neither, so `SPiERCaringContactAdherence` could not see it and its `denominator-exclusion` could never fire (#211) |
 | `referral` | `SafetyReferralView` | ServiceRequest | A Communication cannot be tracked past "sent"; `ServiceRequest.status` models `draft → active → completed \| revoked` natively |
 | `discharge-packet` | `DischargePacketView` | DocumentReference | The handoff is an *event*, the packet is an *object*; `context.related` points at live resources; the one screen where a recorded preference changes an artifact (#227) |
@@ -313,7 +332,7 @@ resource type or a profile a measure reads.**
 | `lethal-means` | `LethalMeansCounselingView` | Procedure + Observation(s) | Two halves because the FHIR has two: the counseling (`SPiERLethalMeansCounselingCompleted`'s numerator, structurally unreachable before this existed — #210) and what was secured, with `status` separating *done* from *agreed* |
 
 **Do not merge any of them.** The right generalisation is not "make the generic
-recorder do more"; the ten are already thin — nine of ten build no FHIR at all,
+recorder do more"; the nine are already thin — eight of nine build no FHIR at all,
 they call a builder in `packages/core/src/lib/` (`followUp.ts`, `handoffs.ts`,
 `riskEpisode.ts`) and render a form over it. The FHIR shape is already factored;
 what differs is the form, and a form over `Consent.provision` and a form over
@@ -423,7 +442,8 @@ The obvious gate — "stringifies FHIR but has no `useInspect()` in the same fil
 — is the wrong gate, for the reason the brief names: file-locality is not the
 property. Thirteen non-test files render `FhirJsonViewer` or `CodeDrawer`; five
 call `useInspect` and **eight are correct without it**, three inheriting through
-`CodeDrawer` (`WorkflowForm`, `QuestionnaireView`, `StanleyBrownView`) and five
+`CodeDrawer` (`WorkflowForm`, `QuestionnaireView`, and — until #528 collapsed it
+into `QuestionnaireView` — `StanleyBrownView`) and five
 through the leaf itself (`PathwayView`, `ToolDetail`, `MeasureDashboard`,
 `CarePathway`, `CdsServiceGuide`). Eight false positives on a gate whose whole
 value is that a failure means something.
@@ -545,7 +565,7 @@ the data is *consumed* and beside the point about whether it is *checked*. See
 
 ### The assessment
 
-Generating a *UI* from the AD is the wrong ambition. The ten bespoke recorders
+Generating a *UI* from the AD is the wrong ambition. The nine bespoke recorders
 differ in what a clinician has to decide — a deny provision with a named actor, a
 per-means table with done-vs-agreed, a modal open/close — and none of that is
 expressible in an ActivityDefinition or worth inventing an extension for. The
@@ -596,11 +616,11 @@ statement about a capability that does not exist. That leaves rule 1 with an
 | 2 | TL-013 likewise emits a Communication that cannot satisfy `spier-crisis-resources-shared` | medium — a conformance claim the IG makes and the app breaks | **fixed**, [§8](#8-what-this-audit-changed) |
 | 3 | Nothing relates `PlanDefinition.action.output.profile` (38 declarations) to what the app writes | **high** — the mechanism that would have caught #1, #2 and #211, and will catch the next one | **fixed** — `check:outputs`, [§8](#8-what-this-audit-changed) |
 | 4 | `check:extract`'s `EXPECTED` is a hand list; **4** mappers' Questionnaires are absent — two of which emit literal per-item Observations with no `observationExtract` declaration, and two whose absence of one was an unrecorded decision | medium | **fixed**, [§8](#8-what-this-audit-changed) |
-| 5 | The Questionnaire registry claimed to be the single owner of the `FHIR-Resources/` imports and was not — `StanleyBrownView` held its own | low (no live consequence: no `ordinalValue`) but exactly the drift CLAUDE.md warns about | **fixed + gated**, [§8](#8-what-this-audit-changed) |
+| 5 | The Questionnaire registry claimed to be the single owner of the `FHIR-Resources/` imports and was not — `StanleyBrownView` held its own | low (no live consequence: no `ordinalValue`) but exactly the drift CLAUDE.md warns about | **fixed by #528**, and **gated here** — [§8](#8-what-this-audit-changed) |
 | 6 | `check:catalog` strips the version on both sides, so an AD pinning a version the file does not carry would pass | low (0 disagreements today) | one-line addition, [§1](#1-should-questionnaires-be-resolved-by-canonical-from-the-launched-server) |
 | 7 | `spier-safety-handoff`'s published profile Description still claims the generic recorder's output "stays conformant"; `#262`'s 1..1 domain-category slice made that false | low — IG prose | **fixed**, [§8](#8-what-this-audit-changed) |
 | 8 | `ToolDetail` is an unguarded wrapper, safe only by its single caller's route | low | classify in the proposed gate, [§5](#5-is-a-jsonstringify-gate-worth-building) |
-| 9 | `lethalMeans.ts` is the only FHIR-shape builder outside `packages/core` | low | trivial move, [§4](#4-which-of-the-10-bespoke-recorders-are-load-bearing) |
+| 9 | `lethalMeans.ts` is the only FHIR-shape builder outside `packages/core` | low | trivial move, [§4](#4-which-of-the-10-bespoke-recorders-are-load-bearing-nine-of-them) |
 | 10 | TL-005 (BSSA) was the one launchable recorder with no `output` declaration, while the action's own description named the profile and the comment above it called BSSA "fully FHIR-modelled" | medium | **fixed** — found by `check:outputs`' first run |
 | 11 | The instrument mappers stamp no `meta.profile`, so ~80 emitted Observations are validated against base `Observation` only and 12 declared profiles' runtime conformance is verified by nothing | medium | **fixed** — [§8](#8-what-this-audit-changed) |
 | 12 | `camsSectionB` built `Condition.id` from a label containing `#`, an illegal FHIR id character, on every driver it has ever produced | medium | **fixed** — found the first time that Condition was validated |
@@ -610,8 +630,8 @@ statement about a capability that does not exist. That leaves rule 1 with an
 
 Explicitly **not** findings, recorded so the next audit does not re-open them:
 the two CarePlan templates (reference material, correctly placed —
-[§2](#2-are-the-two-fhir-resources-careplan-templates-live)); the ten bespoke
-recorders (all load-bearing — [§4](#4-which-of-the-10-bespoke-recorders-are-load-bearing));
+[§2](#2-are-the-two-fhir-resources-careplan-templates-live)); nine of the ten
+bespoke recorders (load-bearing — [§4](#4-which-of-the-10-bespoke-recorders-are-load-bearing-nine-of-them));
 the `as unknown as` casts ([§1](#1-should-questionnaires-be-resolved-by-canonical-from-the-launched-server));
 `$populate` ([§3](#3-which-sdc-operations-are-genuinely-applicable)); and the
 `weight()` hand-roll ([§3](#3-which-sdc-operations-are-genuinely-applicable)).
@@ -629,14 +649,15 @@ the app's own builders.
 
 ### Pass 1 — the registry bypass (audit findings)
 
-1. **`StanleyBrownView` now imports its Questionnaire from the registry.** It
-   held its own `import … from '../../../FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json'`,
-   so eighteen Questionnaires shipped and `packages/core/src/data/questionnaires.ts`
-   — whose header says it is "the single owner of the hand-authored Questionnaire
-   JSON imports" — held seventeen. `stanleyBrownQuestionnaire` is now exported
-   from the registry and is the 18th `QUESTIONNAIRE_BY_URL` entry. No behaviour
-   changes: the Stanley-Brown safety plan carries no `ordinalValue`, which is
-   why the absence had no visible symptom and why it survived.
+1. **The Stanley-Brown registry bypass.** `StanleyBrownView` held its own
+   `import … from '../../../FHIR-Resources/…'`, so eighteen Questionnaires
+   shipped and `packages/core/src/data/questionnaires.ts` — whose header says it
+   is "the single owner of the hand-authored Questionnaire JSON imports" — held
+   seventeen. No behaviour depended on it: the safety plan carries no
+   `ordinalValue`, which is why the absence had no visible symptom and why it
+   survived. **#528 landed the same fix independently while this branch was open**
+   (it deleted the view outright as a fork of `QuestionnaireView`), so what
+   remains from this branch is the second half — the gate.
 2. **`check:catalog` check C gained a third direction**: every Questionnaire JSON
    under `FHIR-Resources/` must be imported by that registry module. Matched on
    the **file path**, read as text — deliberately not on the canonical, because a

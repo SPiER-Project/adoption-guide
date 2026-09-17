@@ -95,11 +95,25 @@ export function SafetyHandoffView() {
       title="Record a Suicide-Safety Handoff"
       lede={
         <>
-          Records a <strong>Communication</strong> on the{' '}
-          <strong>SPiER Safety Handoff</strong> profile, tagged to the{' '}
-          <strong>Coordinate Handoffs</strong> stage. This is the{' '}
-          <em>index transition</em> the 7- and 30-day follow-up measures count from, so
-          what it carries is what a reviewer can later prove travelled with the patient.
+          Records the transfer of care under <strong>Coordinate Handoffs</strong> — who the
+          patient was handed to, when, and what safety context went with them. This is the
+          moment the <em>follow-up clock</em> starts, so what you tick here is what anyone
+          reviewing the care later can see actually travelled.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>Communication</strong> on the <strong>SPiERSafetyHandoff</strong>{' '}
+          profile, with each checklist item as a repeating{' '}
+          <code>handoff-content-item</code> extension — the same vocabulary the discharge
+          packet uses, so the two tools&rsquo; answers are comparable. This profile and{' '}
+          <strong>SPiERDischargeSafetyPacket</strong> are the two resources{' '}
+          <code>transitionDates</code> counts, which makes it the index event for every
+          post-transition measure. Until 2026-09-17 the route rendered the generic recorder,
+          which stamped no profile, so the measure counted none of it. The receiving team is a{' '}
+          <code>Reference.display</code> with no <code>reference</code>: the demo holds no
+          Organization to point at, and asserting one would be a dangling reference rather than
+          a missing optional.
         </>
       }
       draft={draft}
@@ -156,7 +170,7 @@ export function SafetyHandoffView() {
         <WorkflowField
           label="Receiving provider or team"
           optional="optional"
-          help="Recorded as a named party on Communication.recipient. The demo holds no Organization resources to point at, so this is a display-only reference."
+          help="Recorded by name. This demo holds no directory to look a team up in, so the name is stored as you type it."
         >
           <input
             type="text"
