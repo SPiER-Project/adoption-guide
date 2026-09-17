@@ -498,12 +498,41 @@ app.put('/fhir/:type/:id', async (c) => {
     return c.body(JSON.stringify({ resourceType: 'OperationOutcome', issue: problems }), 422)
   }
 
-  const existed = (await store.list()).some(
-    w => w.resource.resourceType === type && w.resource.id === id,
+  // ⚠️ **This server used to do update-as-create, and that was a defect it
+  // spent months certifying.** A PUT to an id it had never held returned 201 and
+  // created the resource, because `SmartDataSource` PUT the eight lifecycle
+  // types at client-minted ids and the alternative was a demo that did not save.
+  // The README was candid about it — *"`PUT` exists because a browser found it,
+  // not because the spec asked"* — and being candid did not make it safe: FHIR
+  // permits update-as-create, real servers frequently refuse it, and Medplum
+  // refuses it outright. So SPiER's whole writeback passed here and failed at
+  // the first server nobody on this project had written.
+  //
+  // That is the hazard of a mock you control: when the app and the server
+  // disagree, the server is what moves. It refuses now, so it can go back to
+  // answering the question it is actually for — what happens when a server says
+  // no — instead of quietly answering yes.
+  const existing = (await servableFor(c)).find(
+    r => r.resourceType === type && r.id === id,
   )
+  if (!existing) {
+    c.header('allow', 'GET, POST')
+    return c.body(
+      JSON.stringify(operationOutcome(
+        'error',
+        'not-found',
+        `No ${type} with id '${id}' on this server. This server does not implement `
+        + 'update-as-create: POST to create a resource and let the server assign the id, '
+        + 'then PUT against that id. Carry your own id as an `identifier` if you need to '
+        + 'find it again — `GET /fhir/' + type + '?identifier=<system>|<value>` is supported.',
+      )),
+      404,
+    )
+  }
+
   const stored = await store.upsert(patientId, candidate)
   c.header('location', `${fhirBase(c.req.url)}/${type}/${id}`)
-  return c.body(JSON.stringify(stored), existed ? 200 : 201)
+  return c.body(JSON.stringify(stored), 200)
 })
 
 /**

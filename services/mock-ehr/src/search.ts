@@ -56,7 +56,22 @@ export const SEARCHABLE_TYPES: string[] = [...Object.keys(PATIENT_LINK), 'Patien
 export const ROSTER_TYPE = 'Patient'
 
 /** Search parameters this server understands. Anything else is a 400. */
-const KNOWN_PARAMS = new Set(['patient', 'subject', 'category'])
+const KNOWN_PARAMS = new Set(['patient', 'subject', 'category', 'identifier'])
+
+/**
+ * ⚠️ **`identifier` exists because the app stopped minting resource ids.**
+ * SPiER used to write its lifecycle types as `PUT <Type>/<client id>` —
+ * update-as-create — and this server accepted it, which is precisely why nobody
+ * noticed that real servers do not. Now the client id travels as a business
+ * identifier and `SmartDataSource.findServerId` looks the resource up by it to
+ * find the id the SERVER assigned.
+ *
+ * That lookup is best-effort in the app, so leaving this unimplemented would not
+ * have broken anything — it would have quietly degraded cross-launch
+ * convergence to the in-session map, and a demo that closed an episode opened in
+ * an earlier launch would have created a second one. Silent and plausible, which
+ * is the failure mode this whole service is written against.
+ */
 
 function referenceId(value: unknown): string | undefined {
   const ref = (value as { reference?: unknown } | undefined)?.reference
@@ -104,6 +119,28 @@ export function matchesToken(concepts: unknown, token: string): boolean {
   return false
 }
 
+/**
+ * FHIR token match against an `identifier` array.
+ *
+ * Separate from `matchesToken` rather than shared with it: an Identifier is
+ * `{system, value}` and a CodeableConcept is `{coding: [{system, code}]}`, so
+ * one function over both would have to guess which shape it was handed. The
+ * three token spellings are the same, though — `value`, `system|value` and
+ * `|value` for "no system".
+ */
+export function matchesIdentifier(identifiers: unknown, token: string): boolean {
+  const [left, right] = token.includes('|') ? token.split('|', 2) : [undefined, token]
+  const list = Array.isArray(identifiers) ? identifiers : identifiers ? [identifiers] : []
+  for (const entry of list) {
+    const i = entry as { system?: unknown; value?: unknown }
+    if (i?.value !== right) continue
+    if (left === undefined) return true
+    if (left === '' && i.system === undefined) return true
+    if (left === i.system) return true
+  }
+  return false
+}
+
 export interface SearchQuery {
   /**
    * The patient id the search is scoped to, or `undefined` for the ONE
@@ -122,6 +159,8 @@ export interface SearchQuery {
   allPatients?: true
   /** `category` token, when present. */
   category?: string
+  /** `identifier` token, when present. */
+  identifier?: string
 }
 
 export type SearchParse =
@@ -192,7 +231,7 @@ export function parseSearch(
           + `To fetch one patient, read it: GET /fhir/${ROSTER_TYPE}/{id}.`,
       }
     }
-    return { ok: true, query: { allPatients: true } }
+    return { ok: true, query: { allPatients: true, identifier: params.get('identifier') ?? undefined } }
   }
   if (!raw) {
     return {
@@ -207,7 +246,8 @@ export function parseSearch(
   // Tolerate `patient=Patient/patient-011` as well as a bare id.
   const patientId = raw.startsWith('Patient/') ? raw.slice('Patient/'.length) : raw
   const category = params.get('category') ?? undefined
-  return { ok: true, query: { patientId, category } }
+  const identifier = params.get('identifier') ?? undefined
+  return { ok: true, query: { patientId, category, identifier } }
 }
 
 /** Apply a parsed search to the held resources of one type. */
@@ -220,6 +260,9 @@ export function applySearch(
     if (r.resourceType !== type) return false
     // The roster: every resource of the type, no patient filter. Gated on the
     // explicit flag, never on `patientId` merely being absent.
+    if (query.identifier !== undefined && !matchesIdentifier(r.identifier, query.identifier)) {
+      return false
+    }
     if (query.allPatients) {
       return query.category === undefined || matchesToken(r.category, query.category)
     }
