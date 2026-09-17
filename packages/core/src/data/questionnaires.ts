@@ -36,6 +36,12 @@ import camsStabilizationPlanJson from '../../../../FHIR-Resources/CAMS/cams-stab
 import camsTherapeuticWorksheetJson from '../../../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
 import crpJson from '../../../../FHIR-Resources/CRP/crp-questionnaire.json'
 import pssFullJson from '../../../../FHIR-Resources/PSS-Full/pss-full-questionnaire.json'
+// ⚠️ Stanley-Brown was imported straight into `web/src/components/StanleyBrownView.tsx`
+// until 2026-09-17 — the one instrument that bypassed this module, and the
+// reason it was not in `QUESTIONNAIRE_BY_URL`. It has no ordinal-scored answers
+// so nothing read the gap, but "single owner of the JSON imports" was only true
+// of seventeen of the eighteen. See docs/internals/tool-views.md §2.
+import stanleyBrownJson from '../../../../FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json'
 
 const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
 
@@ -57,6 +63,7 @@ export const camsStabilizationPlan = camsStabilizationPlanJson as unknown as Que
 export const camsTherapeuticWorksheet = camsTherapeuticWorksheetJson as unknown as QuestionnaireResource
 export const crpQuestionnaire = crpJson as unknown as QuestionnaireResource
 export const pssFullQuestionnaire = pssFullJson as unknown as QuestionnaireResource
+export const stanleyBrownQuestionnaire = stanleyBrownJson as unknown as QuestionnaireResource
 
 const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   asqQuestionnaire,
@@ -76,6 +83,7 @@ const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   camsTherapeuticWorksheet,
   crpQuestionnaire,
   pssFullQuestionnaire,
+  stanleyBrownQuestionnaire,
 ]
 
 /** Canonical (version-stripped) Questionnaire URL → Questionnaire resource. */

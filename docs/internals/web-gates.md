@@ -66,6 +66,36 @@ npm run check:prose    # the reading MEASURE — `--measure-prose`. Its five rul
                        # which elements hold long prose, which is content, not CSS. Measure
                        # a wide page's prose by hand after adding it. RULE 5 inherits that
                        # blind spot exactly: an uncapped run has no size for it to check
+npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `InspectContext` is the
+                       # invariant — inspection ON inside `/guide`, OFF everywhere else — and
+                       # `FhirJsonViewer`/`CodeDrawer` self-gate on it, so a new call site gets
+                       # the clinician's answer by default. ⚠️ That covers only what goes
+                       # THROUGH the leaf: `CarePlanDisplay` wrote its own
+                       # `<pre>{JSON.stringify(carePlan.resource)}</pre>` plus a JSON download,
+                       # and so was MISSING from the inventory in
+                       # `docs/plans/production-clinical-surface.md`, which was built by
+                       # listing the viewer's call sites. This derives the list instead: a
+                       # non-test `.tsx` under `web/src` that serializes to JSON or renders a
+                       # `<pre>` must call `useInspect()`, or carry an entry in
+                       # NOT_A_RESOURCE_VIEW saying why it is not one.
+                       # ⚠️ **The rule is FILE-LOCAL, and the reachability version does not
+                       # work.** Walking the non-guide routes the way `check:guide-boundary`
+                       # walks the guide's reaches `QuestionnaireView`, `WorkflowForm`,
+                       # `CarePlanDisplay` and `FhirJsonViewer` itself — all four are ONE
+                       # implementation rendered by both `/patient/assessments/*` and
+                       # `/guide/tools/:slug/try`. The audience is a property of the render,
+                       # not of the module graph, which is the same reason `InspectContext` is
+                       # a context and not a prop.
+                       # ⚠️ Three things it cannot see, one of them proved by planting:
+                       # a file that calls `useInspect()` and ignores the answer PASSES
+                       # (disconnecting CarePlanDisplay's three `inspect &&` guards while
+                       # leaving the hook call was green); a dump assembled in a `.ts` helper
+                       # and rendered by a `.tsx` that never writes `JSON.stringify`; and a
+                       # resource rendered without being serialized at all — a table over
+                       # `Object.entries(resource)`, a `<code>` holding a coding. Prose is a
+                       # fourth: every workflow recorder's lede names its FHIR resource type
+                       # on the clinician's route, and whether that is a defect is a design
+                       # decision — see `docs/internals/tool-views.md` §4
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
                        # and the shim still covers every method its consumers call
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",

@@ -58,14 +58,15 @@ import {
   camsTherapeuticWorksheet,
   crpQuestionnaire,
   pssFullQuestionnaire,
+  stanleyBrownQuestionnaire,
 } from '@spier/core/data/questionnaires'
 import {
+  generateCarePlan,
   generateStabilizationCarePlan,
   generateTherapeuticCarePlan,
   generateCrisisResponseCarePlan,
 } from '@spier/core/lib/carePlanMappers'
 
-const StanleyBrownView = lazy(() => import('../components/StanleyBrownView').then(m => ({ default: m.StanleyBrownView })))
 const QuestionnaireView = lazy(() => import('../components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
 const WorkflowActionView = lazy(() => import('../components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
 const RiskEpisodeView = lazy(() => import('../components/RiskEpisodeView').then(m => ({ default: m.RiskEpisodeView })))
@@ -98,7 +99,14 @@ export const TOOL_VIEWS: Record<string, ReactNode> = {
   'cssrs-full': <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />,
   'cssrs-since-last-contact': <QuestionnaireView title="C-SSRS — Since Last Visit / Since Last Contact" questionnaire={cssrsSinceLastContact} persistName="C-SSRS Since Last Visit" />,
   'cssrs-pediatric': <QuestionnaireView title="C-SSRS — Pediatric / Adolescent Screener" questionnaire={cssrsPediatric} persistName="C-SSRS Pediatric" />,
-  'stanley-and-brown': <StanleyBrownView />,
+  // ⚠️ Rendered by `StanleyBrownView`, its own near-copy of `QuestionnaireView`,
+  // until 2026-09-17. The fork had no load-bearing divergence and had drifted
+  // out of four things the shared view had grown: the `?tool=` launch-stage
+  // stamp, the observation summary, the writeback panel, and honouring a care
+  // plan's `isEmpty`. It also imported the Questionnaire JSON straight out of
+  // `FHIR-Resources/`, the only instrument to bypass the core registry. See
+  // docs/internals/tool-views.md §2.
+  'stanley-and-brown': <QuestionnaireView title="Stanley-Brown Safety Plan" questionnaire={stanleyBrownQuestionnaire} persistName="Stanley-Brown Safety Plan" carePlanMapper={generateCarePlan} />,
   'cams-section-a': <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />,
   'cams-section-b': <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />,
   'cams-outcome-disposition': <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaire={camsOutcomeDisposition} persistName="CAMS SSF-5: Outcome/Disposition" />,

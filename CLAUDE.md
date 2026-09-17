@@ -53,6 +53,8 @@ npm run check:css-dead # every class selector is referenced by a component (or b
 npm run check:template # one header implementation, one owner of the page inset, one owner of the width
 npm run check:prose    # the reading measure: --measure-prose is a character count, every cap
                        # declared, and prose is set at one of three sizes
+npm run check:fhir-render # the clinician sees no raw FHIR: a component that serializes a resource
+                       # or renders a <pre> has asked useInspect() in the same file
 npm run check:ucum     # the UCUM shim is still safe: no quantities, and it still covers its callers
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4"
 npm run check:crosswalk        # concept-crosswalk validation
@@ -292,6 +294,20 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   The rationale for all four of these, the gates' exact limits, and the drift
   each was written against are in
   [`docs/internals/css-and-page-template.md`](docs/internals/css-and-page-template.md).
+- **The 29 tool views are one map, and the clinician sees no raw FHIR.** Every
+  instrument filler and workflow recorder is an entry in
+  `web/src/data/toolViews.tsx`, rendered by both the clinician's route and the
+  guide's `/guide/tools/:slug/try`. 18 fillers are `QuestionnaireView`; of the
+  11 recorders, 2 are the generic `WorkflowActionView` and 9 are bespoke because
+  they write something other than one Communication. ⚠️ **"It is only a
+  Communication" is not grounds to merge one** — `caring-contact` was the
+  generic recorder and stamped neither its profile nor the opt-out extension, so
+  a Stage-8 measure's exclusion could never fire. Raw FHIR renders only where
+  `useInspect()` says so (`web/src/context/InspectContext.ts`), and
+  `check:fhir-render` is what stops a new component dumping a resource without
+  asking. Which recorders are load-bearing, what that gate cannot see, and why
+  a view cannot be derived from its ActivityDefinition are in
+  [`docs/internals/tool-views.md`](docs/internals/tool-views.md).
 - **`ehr-` no longer names the app's own chrome.** The standalone browsing chrome
   is `AppShell` / `.app-shell__*`. ⚠️ `.ehr-rubric`, `context-ehr-patient` and the
   `ehr` strings under `services/mock-ehr/` deliberately keep the prefix — they

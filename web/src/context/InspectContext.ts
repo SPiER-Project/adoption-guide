@@ -20,13 +20,20 @@ import { createContext, useContext } from 'react'
  * guide layout turns it on (see `App.tsx`), and the guide's "try it" routes
  * inherit it by sitting under that layout.
  *
- * That is why this is a context rather than a prop on the views. Seven
- * components render FHIR — `CodeDrawer` and `FhirJsonViewer` plus the five that
- * call the viewer directly — and four of them are rendered by BOTH surfaces
- * (`QuestionnaireView`, `StanleyBrownView`, `WorkflowForm` and `PathwayView` are
- * one implementation each, reached from the guide and from the app). A prop
- * would have to be threaded through every page that renders any of them, and
- * the one page that forgot would be a clinician looking at JSON.
+ * That is why this is a context rather than a prop on the views. A handful of
+ * components render FHIR — `CodeDrawer` and `FhirJsonViewer` plus the ones that
+ * call the viewer directly — and three of them are rendered by BOTH surfaces
+ * (`QuestionnaireView`, `WorkflowForm` and `PathwayView` are one implementation
+ * each, reached from the guide and from the app). A prop would have to be
+ * threaded through every page that renders any of them, and the one page that
+ * forgot would be a clinician looking at JSON.
+ *
+ * ⚠️ **Which is also why `check:fhir-render` is a FILE-LOCAL rule and not a
+ * reachability walk.** Those three, and `FhirJsonViewer` itself, are reached
+ * from the clinician's routes and from `/guide/tools/:slug/try` alike: the
+ * audience is a property of the render, not of the module graph. The gate can
+ * only ask whether a file consulted this hook — see
+ * `web/scripts/check-fhir-render.mjs` and `docs/internals/tool-views.md` §3.
  *
  * ⚠️ **A FOURTH axis, and deliberately not any of the other three.**
  *
