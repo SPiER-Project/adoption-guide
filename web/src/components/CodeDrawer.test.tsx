@@ -15,17 +15,37 @@
  *     one tap away from any scroll position — which is a `position: fixed`
  *     concern in CSS, and here is pinned as "the handle always renders, even
  *     when the body does not".
+ *  3. **It renders nothing at all outside the Adoption Guide** (2026-09-17).
+ *     Inspection is on inside `/guide` and off everywhere else — see
+ *     `context/InspectContext.ts`. That is why every render below supplies the
+ *     context: properties 1 and 2 are about the drawer's CHROME, which only
+ *     exists where inspection is on, and testing them without it would assert
+ *     nothing. Property 3 gets its own block at the bottom.
  */
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { CodeDrawer } from './CodeDrawer'
 import { PresentationProvider } from '../context/PresentationProvider'
+import { InspectContext } from '../context/InspectContext'
 
 // vitest runs without `globals: true` here, so RTL's auto-cleanup never
 // registers — see vitest.config.ts.
 afterEach(cleanup)
 
+/** Both chromes, with inspection ON — the only state in which this renders. */
 const renderIn = (mode: 'ehr' | 'panel') =>
+  render(
+    <PresentationProvider initialMode={mode}>
+      <InspectContext.Provider value>
+        <CodeDrawer>
+          <div data-testid="payload">the FHIR</div>
+        </CodeDrawer>
+      </InspectContext.Provider>
+    </PresentationProvider>,
+  )
+
+/** The same tree with no provider, i.e. every surface outside the guide. */
+const renderUngated = (mode: 'ehr' | 'panel') =>
   render(
     <PresentationProvider initialMode={mode}>
       <CodeDrawer>
@@ -93,5 +113,27 @@ describe('CodeDrawer — panel chrome', () => {
   it('labels the drawer, defaulting to FHIR', () => {
     const { container } = renderIn('panel')
     expect(container.querySelector('.code-drawer__handle-label')?.textContent).toBe('FHIR')
+  })
+})
+
+describe('CodeDrawer — outside the guide it does not exist', () => {
+  // ⚠️ The gate is on the DRAWER as well as on `FhirJsonViewer` because this
+  // component draws chrome of its own. Letting only the children return null
+  // would leave a handle that opens onto nothing, which reads worse than either
+  // outcome — so the assertion is that the chrome is absent too, not just the
+  // payload.
+  it.each(['ehr', 'panel'] as const)('renders nothing in %s chrome with no InspectContext', mode => {
+    const { container } = renderUngated(mode)
+    expect(container.querySelector('aside.debug-sidebar')).toBeNull()
+    expect(container.querySelector('.code-drawer')).toBeNull()
+    expect(container.querySelector('.code-drawer__handle')).toBeNull()
+    expect(screen.queryByTestId('payload')).toBeNull()
+  })
+
+  it('defaults to hidden, so a new surface gets the clinician answer', () => {
+    // The default matters more than the explicit-false case: the failure mode
+    // this guards is a surface that never thinks about inspection at all.
+    const { container } = renderUngated('panel')
+    expect(container.innerHTML).toBe('')
   })
 })
