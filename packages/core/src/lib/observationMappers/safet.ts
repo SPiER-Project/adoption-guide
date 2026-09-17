@@ -46,6 +46,7 @@ export function mapSAFET(response: QuestionnaireResponseResource): MapperResult 
   observations.push(
     makeObservation({
       id: `safet-risk-level-${Date.now()}`,
+      profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-safet-risk-level',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
         coding: [{ system: RISK_TIER_SYSTEM, code: tierCode, display: tierDisplay }],

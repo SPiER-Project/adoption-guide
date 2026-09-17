@@ -6,6 +6,7 @@ import {
   appointmentStatus,
   buildDischargePacket,
   buildFollowUpAppointment,
+  buildSafetyHandoff,
   buildSafetyReferral,
   buildSharingConsent,
   consentDecision,
@@ -15,20 +16,137 @@ import {
   deniedRecipients,
   handoffContentCodes,
   handoffWithheldItems,
+  safetyHandoffs,
   isReferralOpen,
   referralPerformer,
   setAppointmentStatus,
   setReferralStatus,
   CONSENT_CATEGORY_SYSTEM,
+  HANDOFF_CHANNELS,
   HANDOFF_CONTENT_ITEM_EXT,
   HANDOFF_CONTENT_SYSTEM,
   HANDOFF_WITHHELD_ITEM_EXT,
   WITHHOLDING_BASIS_SYSTEM,
   REFERRAL_REASON_SYSTEM,
+  SAFETY_HANDOFF_PROFILE,
 } from '@spier/core/lib/handoffs'
 import { CONCEPT_DOMAIN_SYSTEM } from '@spier/core/lib/conceptDomain'
 import { PATHWAY_STAGE_SYSTEM, stageForArtifact } from '@spier/core/lib/patientPathway'
-import type { ConsentResource } from '@spier/core/types/fhir'
+import type { CommunicationResource, ConsentResource } from '@spier/core/types/fhir'
+
+describe('safety handoff (TL-009)', () => {
+  const base = {
+    id: 'handoff-1',
+    patientId: 'patient-001',
+    sent: '2026-08-11T10:00:00Z',
+    contentCodes: ['current-risk-status', 'follow-up-plan'],
+  }
+
+  /**
+   * The regression this whole builder exists for. Before 2026-09-17 the route
+   * rendered the generic Communication recorder, which stamped no profile — and
+   * `measures.ts` filters Communications on exactly this canonical, so the
+   * handoff half of `transitionDates` counted nothing the app wrote.
+   */
+  it('claims the profile the Stage-8 measure filters on', () => {
+    const handoff = buildSafetyHandoff(base)
+    expect((handoff.meta as { profile?: string[] }).profile).toEqual([SAFETY_HANDOFF_PROFILE])
+  })
+
+  /**
+   * The other half of the same defect, and the one a profile check alone would
+   * miss: #262 made `category:suicideRisk` a required 1..1 slice, so a
+   * Communication carrying only `category[0].text` fails the profile it claims.
+   */
+  it('carries the concept-domain category alongside its own text', () => {
+    const category = buildSafetyHandoff(base).category as {
+      text?: string
+      coding?: { system?: string }[]
+    }[]
+    expect(category[0]).toEqual({ text: 'Suicide-safety handoff' })
+    expect(category[1].coding?.[0]?.system).toBe(CONCEPT_DOMAIN_SYSTEM)
+  })
+
+  it('stages under Coordinate Handoffs', () => {
+    expect(stageForArtifact(buildSafetyHandoff(base))).toBe('coordinate-handoffs')
+    const tag = (buildSafetyHandoff(base).meta as { tag?: { system?: string }[] }).tag
+    expect(tag?.[0]?.system).toBe(PATHWAY_STAGE_SYSTEM)
+  })
+
+  it('records what travelled as repeating handoff-content-item extensions', () => {
+    const handoff = buildSafetyHandoff(base)
+    expect(handoffContentCodes(handoff)).toEqual(['current-risk-status', 'follow-up-plan'])
+    const ext = handoff.extension as { url?: string; valueCodeableConcept?: { coding?: { system?: string }[] } }[]
+    expect(ext.every(e => e.url === HANDOFF_CONTENT_ITEM_EXT)).toBe(true)
+    expect(ext[0].valueCodeableConcept?.coding?.[0]?.system).toBe(HANDOFF_CONTENT_SYSTEM)
+  })
+
+  /**
+   * A handoff with nothing recorded is a real state — it still starts the
+   * follow-up clock — so the builder must not refuse it or invent content. It is
+   * the CRISIS-RESOURCE profile (`payload 1..*`) that has a lower bound, not
+   * this one.
+   */
+  it('accepts an empty content list without inventing items', () => {
+    const handoff = buildSafetyHandoff({ ...base, contentCodes: [] })
+    expect(handoff.extension).toEqual([])
+    expect(handoff.sent).toBe(base.sent)
+  })
+
+  it('names an unreferencable recipient by display only', () => {
+    const handoff = buildSafetyHandoff({ ...base, recipient: 'Riverside BH' })
+    const recipient = handoff.recipient as { display?: string; reference?: string }[]
+    expect(recipient).toEqual([{ display: 'Riverside BH' }])
+    // No `reference`: the demo holds no Organization to point at, and asserting
+    // one would be a dangling reference rather than a missing optional.
+    expect(recipient[0].reference).toBeUndefined()
+  })
+
+  it('omits medium entirely when no channel is given', () => {
+    expect(buildSafetyHandoff(base).medium).toBeUndefined()
+    const medium = buildSafetyHandoff({ ...base, channel: 'PHONE' }).medium as {
+      coding?: { system?: string; code?: string; display?: string }[]
+    }[]
+    expect(medium[0].coding?.[0]).toEqual({
+      system: 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode',
+      code: 'PHONE',
+      display: 'telephone',
+    })
+  })
+
+  /**
+   * `validate-fhir.mjs` checks every `Coding.display` against its CodeSystem, so
+   * an unknown channel code silently producing a coding would be a validator
+   * failure one commit later. It produces none instead.
+   */
+  it('ignores a channel code that is not in the list', () => {
+    expect(buildSafetyHandoff({ ...base, channel: 'CARRIER-PIGEON' }).medium).toBeUndefined()
+  })
+
+  it('separates the handoff narrative from the internal note', () => {
+    const handoff = buildSafetyHandoff({ ...base, summary: 'Warm handoff', note: 'Confirmed by phone' })
+    expect(handoff.payload).toEqual([{ contentString: 'Warm handoff' }])
+    expect(handoff.note).toEqual([{ text: 'Confirmed by phone' }])
+  })
+
+  it('finds handoffs by profile, most recent first, and ignores other Communications', () => {
+    const early = buildSafetyHandoff({ ...base, id: 'a', sent: '2026-08-01T10:00:00Z' })
+    const late = buildSafetyHandoff({ ...base, id: 'b', sent: '2026-08-20T10:00:00Z' })
+    const unprofiled: CommunicationResource = {
+      resourceType: 'Communication',
+      id: 'c',
+      status: 'completed',
+      sent: '2026-08-30T10:00:00Z',
+    }
+    expect(safetyHandoffs([early, late, unprofiled]).map(h => h.id)).toEqual(['b', 'a'])
+  })
+
+  it('offers only channels a clinician-to-clinician handoff uses', () => {
+    // Not the patient-facing list: a handoff goes to the next clinician, so SMS
+    // and email are deliberately absent.
+    expect(HANDOFF_CHANNELS.map(c => c.code)).toEqual(['PHONE', 'FACE', 'WRITTEN', 'ELECTRONIC'])
+  })
+})
 
 describe('discharge safety packet (TL-030)', () => {
   const packet = buildDischargePacket({

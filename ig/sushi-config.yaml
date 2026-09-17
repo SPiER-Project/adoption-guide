@@ -277,6 +277,7 @@ groups:
       - QuestionnaireResponse/ExampleASQResponseNonAcute
       - QuestionnaireResponse/ExampleBSSAResponse
       - QuestionnaireResponse/ExampleCAMSOutcomeDispositionResponse
+      - QuestionnaireResponse/ExampleCAMSSectionBResponse
       - QuestionnaireResponse/ExampleCSSRSPediatricResponse
       - QuestionnaireResponse/ExampleCSSRSScreenerResponse
       - QuestionnaireResponse/ExampleCSSRSSinceLastContactResponse

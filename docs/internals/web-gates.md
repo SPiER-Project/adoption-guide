@@ -127,7 +127,26 @@ npm run check:ucum     # the UCUM shim is still safe: no quantities in the Quest
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
                        # and the renderer still imports the specifier we alias
 npm run check:crosswalk  # concept-crosswalk validation
-npm run check:extract    # observation-extract validation
+npm run check:extract    # the SDC observationExtract contract. Three rules: a declaring item
+                         # carries a `code`; the declared code set equals the literal Observation
+                         # codes its mapper emits; and EVERY mapper's Questionnaire is classified.
+                         # ⚠️ The third was missing and was the whole hole — EXPECTED is a hand
+                         # list of paths, and a Questionnaire simply absent from it was not
+                         # "checked and found empty" but NEVER OPENED. Four of the fourteen
+                         # mappers were in that state, and the gate printed ten green ✓ lines and
+                         # said nothing about them. `camsSectionA` and `camsOutcomeDisposition`
+                         # each emit six literal per-item SSF-vital Observations (plus, for the
+                         # latter, a coded disposition) against Questionnaires declaring ZERO
+                         # extracts; `cssrsFull` and `camsSectionB` genuinely have none, but
+                         # nothing recorded that as a decision. The "ought to be checked" set is
+                         # now DERIVED from `MAPPER_BY_QUESTIONNAIRE_URL`, so a fifteenth mapper
+                         # is classified or the gate goes red, and a classification for a
+                         # Questionnaire no mapper serves is itself a failure.
+                         # ⚠️ What it still cannot see: whether a declared extraction is the RIGHT
+                         # one. `camsSectionA`'s seventh Observation re-codes the same `6-score`
+                         # answer under LOINC 93374-7 and is deliberately undeclared, because
+                         # `$extract` yields ONE Observation per item — that judgement is a
+                         # comment in EXPECTED, not a rule
 npm run check:core-boundary # packages/core stays React-free and DOM-free — the constraint
                          # that makes the boundary worth drawing. A feature-detected
                          # browser API (`typeof BroadcastChannel === 'undefined'`) is
@@ -220,7 +239,102 @@ npm run check:reassessment # the per-tier reassessment cadence agrees across all
                          # appearing for `imminent` would answer an open clinical
                          # question by accident
 npm test                 # vitest
+npm run check:outputs    # ⚠️ LAST, and after `npm test` on purpose — see below
 ```
+
+## `check:outputs` — the producing half of a tool's contract
+
+The only gate in `verify` that runs **after** the tests, because the tests are
+what produce its input.
+
+SPiER declares both halves of what a tool does, in FHIR:
+`ActivityDefinition.relatedArtifact` names the Questionnaire it **consumes**,
+and `PlanDefinition.action.output` names the type + profile it **produces** —
+40 entries across the stage PlanDefinitions, 39 with a profile. `check:catalog`
+has resolved the consuming half both ways since 2026-08-20. The producing half
+was related to nothing at all until 2026-09-17, and **three tools were wrong as
+a direct result**: #211 (TL-010 caring contacts), TL-009 and TL-013. All three
+emitted a Communication with no `meta.profile`, so the measures that filter on
+those profiles matched none of it.
+
+⚠️ **TL-009 is the one to keep in mind, because it failed QUIETLY.** Its profile
+is the index event for every post-transition measure, but `transitionDates` also
+counts the TL-030 packet — which *does* claim its profile — so the measure family
+stayed computable for any patient who had one, and three demo scenarios carry a
+hand-authored handoff with the profile stamped on it. Half-blind is much harder
+to notice than blind, and every gate was green throughout.
+
+Four rules:
+
+1. **DECLARED** — every tool the app can launch a recorder for (its launch path
+   lands on a `TOOL_VIEWS` slug) declares at least one output profile. Its
+   allowlist is **empty**, which is the only kind that cannot go stale. Its first
+   run found TL-005: the BSSA action's own description named
+   `SPiERBSSADispositionResult`, the comment above it called BSSA "fully
+   FHIR-modelled", `bssa.fsh` had published the profile — and the `output` block
+   was never written. Prose and structure disagreed and nothing compared them.
+2. **CLAIMED** — every declared output profile appears as `meta.profile` on a
+   resource in `web/.runtime-fhir`.
+3. **TYPED** — and on a resource of the declared `type`. Zero violations today;
+   it exists because `Condition/spier-cams-suicide-driver` is the one non-
+   Observation instrument output, and a mapper returning it as an Observation
+   would satisfy rule 2 while producing something no consumer expects.
+4. **The allowlist expires** — an `UNCLAIMED` entry naming a profile nothing
+   declares any more, or one the app has started claiming, or one whose reason is
+   too short to be a reason, all fail.
+
+⚠️ **Its load-bearing rule is that rule 2 reads the EMITTED CORPUS, not the
+source.** `web/.runtime-fhir` is what `runtimeFhir.emit.test.ts` produces by
+running every production builder — the same tree `validate-fhir.mjs --also`
+checks. **A lexical scan would have passed the TL-009 defect**:
+`spier-safety-handoff` appeared in `packages/core/src` the entire time it was
+broken, in `measures.ts`, as the constant a filter *read*. "The canonical appears
+in the source" and "something writes it" are different questions and only the
+second is the invariant. The failure message still consults the source, but only
+to tell the reader *which* of the two shapes they have.
+
+That choice is also why the gate runs last, and why it fails rather than skips
+when `web/.runtime-fhir` is missing or **older than the newest file under
+`packages/core/src/lib` or `web/src/lib`**. A stale emitted tree is the false
+green it is most exposed to: the directory exists, the read succeeds, and every
+answer describes a build nobody has. (The staleness test is an mtime comparison,
+so it is a heuristic — it catches the developer who edits a builder and re-runs
+the gate alone, which is the realistic case.)
+
+⚠️ **Its `UNCLAIMED` allowlist is empty, and that is a result rather than a
+starting condition.** It held twelve entries for about an hour on its first day:
+every instrument Observation profile plus the CAMS suicide-driver Condition,
+under one shared reason — `makeObservation` stamped no `meta.profile` on
+anything, so ~80 of the Observations the app emits validated against base
+`Observation` while twelve published profiles asserted constraints nothing
+checked. **Writing the exemptions down is what made the size of the hole
+legible**; the factory was threaded with a `profile` param the same day, which
+turned the validator on over 28 more resources and immediately found two real
+defects in `camsSectionB` (an id containing `#`, and a `Condition.derivedFrom`
+R4 does not define) on a code path that had shipped unvalidated for months. So
+before adding an entry, check that it is not simply a builder nobody has asked
+to stamp.
+
+**What it cannot see**, in rough order of how much it matters:
+
+- **Only what the emitter exercises.** A builder `runtimeFhir.emit.test.ts` does
+  not call looks unclaimed. That is deliberate — such an output is unvalidated
+  too — but it means the gate's reach is the emitter's reach. Two things hold
+  that reach open: the emitter's families list is an exact `toEqual`, and its
+  **`covers every mapper in the registry`** test names every canonical in
+  `MAPPED_QUESTIONNAIRE_URLS` rather than counting resources. The second was
+  added when this gate showed that the demo scenarios covered nine of fourteen
+  mapped instruments — a count would not have noticed, since there were 116
+  Observations either way. The emitter now also derives from the IG's own
+  example QuestionnaireResponses, which are hand-authored but validated by the
+  IG build, which is exactly the property #263's bad fixture lacked.
+- **The profile canonical, not conformance.** A resource can claim a profile it
+  violates; `validate-fhir.mjs --also web/.runtime-fhir` is what catches that,
+  and only if the claim is there to validate against.
+- **Right profile, wrong content.** A handoff with an empty content checklist is
+  conformant, countable, and says nothing travelled with the patient.
+- **Tools whose output is not written by a recorder** — a CDS service or a
+  background job is out of scope, because scope is "has a `TOOL_VIEWS` slug".
 
 
 ## The clinical surface (in the CI build job, not in `verify`)

@@ -17,6 +17,7 @@ import {
   trailingPeriod,
 } from '@spier/core/lib/measures'
 import {
+  buildSafetyHandoff,
   APPOINTMENT_PROFILE,
   HANDOFF_CONTENT_ITEM_EXT,
   PACKET_PROFILE,
@@ -98,15 +99,24 @@ function episode(params: { start: string; end?: string; closure?: string; status
   }
 }
 
+/**
+ * ⚠️ Built by the PRODUCTION builder, not hand-authored, and that is the point.
+ *
+ * This fixture used to be a literal carrying `meta.profile` — which is how the
+ * whole post-transition measure family stayed green for months while the app's
+ * TL-009 recorder (the generic `WorkflowActionView`) emitted an unprofiled
+ * Communication the same measures could not see. A test that hand-builds the
+ * resource under test proves the measure reads a profile; it cannot prove
+ * anything writes one. Going through `buildSafetyHandoff` means a regression
+ * that drops the profile fails HERE as well as in handoffs.test.ts.
+ */
 function handoff(sent: string) {
-  return {
-    resourceType: 'Communication' as const,
+  return buildSafetyHandoff({
     id: 'handoff-1',
-    status: 'completed',
-    meta: { profile: [SAFETY_HANDOFF_PROFILE] },
-    subject: { reference: 'Patient/patient-005' },
+    patientId: 'patient-005',
     sent,
-  }
+    contentCodes: ['current-risk-status', 'follow-up-plan'],
+  })
 }
 
 function outreach(params: { id: string; sent: string; outcome?: string }) {
@@ -196,6 +206,20 @@ function groupOf(evaluation: ReturnType<typeof evaluateMeasure>, code: string) {
 }
 
 // ─── The FSH ↔ TS contract ───────────────────────────────────
+
+describe('the index transition the app writes', () => {
+  /**
+   * The join this suite could not previously make. `measures.ts` filters
+   * Communications on SAFETY_HANDOFF_PROFILE; until 2026-09-17 nothing in the
+   * app stamped it, so every test below ran against a hand-authored fixture and
+   * the real recorder's output was counted by nothing. Asserting the equality
+   * directly means the two cannot drift apart silently again.
+   */
+  it('is what the measure engine filters on', () => {
+    const recorded = handoff(INDEX) as { meta?: { profile?: string[] } }
+    expect(recorded.meta?.profile).toContain(SAFETY_HANDOFF_PROFILE)
+  })
+})
 
 describe('measure specs derived from the generated FHIR', () => {
   it('loads all eight measures and eleven groups', () => {

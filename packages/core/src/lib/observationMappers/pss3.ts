@@ -41,6 +41,7 @@ export function mapPSS3(response: QuestionnaireResponseResource): MapperResult {
   observations.push(
     makeObservation({
       id: `pss3-result-${Date.now()}`,
+      profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-pss3-result',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
         coding: [{ system: PSS3_RESULT_SYSTEM, code: resultCode, display: resultDisplay }],

@@ -25,6 +25,7 @@
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import type {
   AppointmentResource,
+  CommunicationResource,
   ConsentResource,
   DocumentReferenceResource,
   FhirResource,
@@ -35,6 +36,7 @@ import { suicideRiskCategory } from './conceptDomain'
 export const STAGE_ID = 'coordinate-handoffs'
 const STAGE_TITLE = 'Coordinate Handoffs'
 
+export const SAFETY_HANDOFF_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff'
 export const PACKET_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet'
 export const REFERRAL_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-referral'
 export const APPOINTMENT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-follow-up-appointment'
@@ -232,6 +234,111 @@ export function handoffWithheldItems(resource: FhirResource): WithheldItem[] {
       basis: e.extension?.find(s => s.url === 'basis')?.valueCodeableConcept?.coding?.[0]?.code,
     }))
     .filter((w): w is WithheldItem => !!w.code && !!w.basis)
+}
+
+// ─── TL-009 — Suicide-safety handoff (Communication) ──────────
+
+/**
+ * How the handoff was made. HL7 v3 ParticipationMode, the native binding for
+ * `Communication.medium` — the same list the Stage-6 recorders use, minus the
+ * patient-facing channels: a handoff goes to the next clinician, so "letter"
+ * and "text message" are not the vocabulary. `codingDisplay` is checked against
+ * the published CodeSystem by `validate-fhir.mjs`, so it is not a free choice.
+ */
+export const HANDOFF_CHANNELS: (CodedOption & { codingDisplay: string })[] = [
+  { code: 'PHONE', display: 'Warm handoff by phone', codingDisplay: 'telephone' },
+  { code: 'FACE', display: 'In person', codingDisplay: 'face-to-face' },
+  { code: 'WRITTEN', display: 'Written summary', codingDisplay: 'written' },
+  { code: 'ELECTRONIC', display: 'Electronic / EHR message', codingDisplay: 'electronic data' },
+]
+
+const PARTICIPATION_MODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode'
+
+/**
+ * The documented suicide-safety handoff at a transition of care.
+ *
+ * ⚠️ **This existed as a profile and a measure long before it existed as a
+ * builder.** Until 2026-09-17 the route rendered the generic
+ * `WorkflowActionView`, which stamped no `meta.profile` and wrote
+ * `category: [{ text }]` with no coding — so the output satisfied neither
+ * `SAFETY_HANDOFF_PROFILE` nor the `category:suicideRisk` slice `#262` made
+ * required, and `measures.ts` (which filters Communications on exactly this
+ * profile) counted none of it. That mattered more than it looks: the handoff is
+ * one of the two resources that supply `transitionDates`, the INDEX EVENT for
+ * every post-transition measure — see `measure-and-share.fsh`. It failed
+ * quietly rather than loudly because the discharge packet is the other one and
+ * *does* claim its profile, so the measure family stayed computable for any
+ * patient who also had a packet. This is `#211` (caring contacts) one tool over.
+ *
+ * `contentCodes` is the point of the resource, not decoration: the SSC's Stage-5
+ * question is "what suicide-safety context travelled with the patient", and the
+ * shared TL-009/TL-030 vocabulary is how that becomes queryable instead of prose.
+ */
+export function buildSafetyHandoff(params: {
+  id: string
+  patientId: string | null
+  sent: string
+  /** What travelled, from HANDOFF_CONTENT_ITEMS. */
+  contentCodes: string[]
+  /** How the handoff was made, from HANDOFF_CHANNELS. */
+  channel?: string
+  /**
+   * Who received it. A free-text party, because the demo holds no Organization
+   * or Practitioner resources to reference — `Reference.display` with no
+   * `reference` is the R4-legal way to name a party you cannot point at, and is
+   * the same choice `buildSafetyReferral` makes for its performer.
+   */
+  recipient?: string
+  /** Narrative of the transfer, as `ExampleSafetyHandoff` carries it. */
+  summary?: string
+  note?: string
+}): CommunicationResource {
+  const channel = params.channel
+    ? HANDOFF_CHANNELS.find(c => c.code === params.channel)
+    : undefined
+  return {
+    resourceType: 'Communication',
+    id: params.id,
+    meta: { profile: [SAFETY_HANDOFF_PROFILE], tag: stageTag() },
+    status: 'completed',
+    category: [{ text: 'Suicide-safety handoff' }, suicideRiskCategory()],
+    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    sent: params.sent,
+    ...(channel
+      ? {
+          medium: [
+            {
+              coding: [
+                {
+                  system: PARTICIPATION_MODE_SYSTEM,
+                  code: channel.code,
+                  display: channel.codingDisplay,
+                },
+              ],
+            },
+          ],
+        }
+      : {}),
+    ...(params.recipient ? { recipient: [{ display: params.recipient }] } : {}),
+    extension: contentItemExtensions(params.contentCodes),
+    ...(params.summary ? { payload: [{ contentString: params.summary }] } : {}),
+    ...(params.note ? { note: [{ text: params.note }] } : {}),
+  }
+}
+
+/**
+ * Handoffs on a chart, most recent first. Matched on the profile, the way the
+ * Stage-8 measure matches: a handoff Communication has no required element that
+ * distinguishes it from any other Communication, which is precisely why the
+ * unprofiled output above was invisible rather than wrong-looking.
+ */
+export function safetyHandoffs(communications: CommunicationResource[]): CommunicationResource[] {
+  return communications
+    .filter(c =>
+      ((c as { meta?: { profile?: string[] } }).meta?.profile ?? []).includes(SAFETY_HANDOFF_PROFILE),
+    )
+    .slice()
+    .sort((a, b) => String(b.sent ?? '').localeCompare(String(a.sent ?? '')))
 }
 
 // ─── TL-030 — Discharge safety packet (DocumentReference) ─────

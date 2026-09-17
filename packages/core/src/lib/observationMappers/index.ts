@@ -71,6 +71,19 @@ const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: QuestionnaireResponseReso
   [`${SPIER_Q}/PSS-Full`]: mapPSSFull,
 }
 
+/**
+ * The canonicals this registry can map. Exported so `runtimeFhir.emit.test.ts`
+ * can assert that EVERY mapper is exercised by some fixture rather than only the
+ * ones the demo scenarios happen to include.
+ *
+ * ⚠️ That assertion is what keeps `check:outputs` honest. That gate reads the
+ * emitted corpus, so its reach is the emitter's reach: a mapper nothing runs
+ * produces no resource, its declared output profile looks unclaimed, and the
+ * pressure is to allowlist rather than to fix. Six instruments were in exactly
+ * that position — the scenarios cover nine canonicals, not fourteen.
+ */
+export const MAPPED_QUESTIONNAIRE_URLS = Object.keys(MAPPER_BY_QUESTIONNAIRE_URL)
+
 export interface DispatchOptions {
   /**
    * Allow Tier-3 (answer-shape heuristic) recognition. Default `false`: a

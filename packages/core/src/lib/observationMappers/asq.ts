@@ -26,6 +26,7 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   observations.push(
     makeObservation({
       id: `asq-result-${Date.now()}`,
+      profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-asq-result',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
         coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/asq-screening-result', code: resultCode, display: resultDisplay }],

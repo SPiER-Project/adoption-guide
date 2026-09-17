@@ -21,20 +21,30 @@
  *
  * ── Inputs ───────────────────────────────────────────────────────────────────
  *
- * QuestionnaireResponses come from the shipped scenarios rather than being written
- * here. Hand-authoring one is how #263 phase 4 produced a fixture that silently
- * derived zero Observations — a subtly wrong canonical looks fine and exercises
- * nothing. Coded parameters are driven from the exported option lists, every code
- * in each, so a code that is not in its bound ValueSet fails rather than hiding
- * behind a happy-path sample.
+ * QuestionnaireResponses come from the shipped scenarios and from the IG's own
+ * example instances, never written here. Hand-authoring one is how #263 phase 4
+ * produced a fixture that silently derived zero Observations — a subtly wrong
+ * canonical looks fine and exercises nothing. Coded parameters are driven from
+ * the exported option lists, every code in each, so a code that is not in its
+ * bound ValueSet fails rather than hiding behind a happy-path sample.
+ *
+ * ⚠️ **The IG examples were added 2026-09-17 and are not a convenience.** The
+ * scenarios cover nine of the fourteen mapped canonicals; SBQ-R, PSS-3,
+ * PSS-Full, SAFE-T, the C-SSRS Screener and the CAMS Outcome/Disposition had no
+ * fixture at all, so those mappers ran nowhere and the profiles they stamp were
+ * validated by nothing. The IG examples are hand-authored too — but they are
+ * validated by the IG build and by `validate-fhir.mjs`, which is precisely the
+ * property #263's bad fixture lacked. `covers every mapper` below is what stops
+ * the set going quietly back to nine.
  */
 import { describe, it, expect } from 'vitest'
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import { MAPPED_QUESTIONNAIRE_URLS } from '@spier/core/lib/observationMappers'
 import {
   generateCarePlan,
   generateStabilizationCarePlan,
@@ -57,14 +67,17 @@ import { attachEpisode, buildEncounter } from '@spier/core/lib/encounters'
 import {
   buildDischargePacket,
   buildFollowUpAppointment,
+  buildSafetyHandoff,
   buildSafetyReferral,
   buildSharingConsent,
   APPOINTMENT_STATUSES,
   CONSENT_DECISIONS,
+  HANDOFF_CHANNELS,
   HANDOFF_CONTENT_ITEMS,
   REFERRAL_REASONS,
   REFERRAL_STATUSES,
 } from '@spier/core/lib/handoffs'
+import { buildCrisisResourcesShared, CRISIS_RESOURCES } from '@spier/core/lib/crisisResources'
 import { buildCaringContact, buildOutreachAttempt, OUTREACH_OUTCOMES } from '@spier/core/lib/followUp'
 import {
   buildLethalMeansCounseling,
@@ -79,6 +92,23 @@ const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../.runtime-fh
 const PATIENT = 'patient-001'
 const WHEN = '2026-08-11T10:00:00Z'
 const DAY = '2026-08-11'
+
+/**
+ * The IG's own example QuestionnaireResponses, read out of the generated tree.
+ * Read from disk rather than imported so a new example instance is picked up by
+ * existing it, with no list here to keep in step.
+ */
+const GENERATED_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../../packages/fhir-artifacts/generated')
+
+function igExampleResponses(): { name: string; qr: QuestionnaireResponseResource }[] {
+  const out: { name: string; qr: QuestionnaireResponseResource }[] = []
+  for (const entry of readdirSync(GENERATED_DIR)) {
+    if (!entry.startsWith('QuestionnaireResponse-') || !entry.endsWith('.json')) continue
+    const qr = JSON.parse(readFileSync(join(GENERATED_DIR, entry), 'utf8')) as QuestionnaireResponseResource
+    out.push({ name: entry.replace(/^QuestionnaireResponse-|\.json$/g, ''), qr })
+  }
+  return out
+}
 
 /** Every QuestionnaireResponse the shipped scenarios contain. */
 function scenarioResponses(): { name: string; qr: QuestionnaireResponseResource }[] {
@@ -102,7 +132,10 @@ function emitRuntimeResources(): { origin: string; resource: FhirResource }[] {
   }
 
   // ── Observation mappers, via the real dispatch ──
-  for (const { name, qr } of scenarioResponses()) {
+  // Both sources, so every mapper in the registry runs. The origin prefix stays
+  // `deriveFromResponse` either way: the family list below is about which
+  // BUILDERS are exercised, not where their input came from.
+  for (const { name, qr } of [...scenarioResponses(), ...igExampleResponses()]) {
     const derived = deriveFromResponse(qr)
     for (const o of derived?.observations ?? []) add(`deriveFromResponse:${name}`, o)
   }
@@ -184,6 +217,23 @@ function emitRuntimeResources(): { origin: string; resource: FhirResource }[] {
   }
 
   // ── Stage 5: handoffs, every coded option ──
+  // Every channel, because the medium coding's `display` is checked against the
+  // published v3-ParticipationMode CodeSystem and a wrong one fails here rather
+  // than on a chart.
+  for (const channel of HANDOFF_CHANNELS) {
+    add(
+      `buildSafetyHandoff:${channel.code}`,
+      buildSafetyHandoff({
+        id: `emit-handoff-${channel.code}`,
+        patientId: PATIENT,
+        sent: WHEN,
+        channel: channel.code,
+        contentCodes: HANDOFF_CONTENT_ITEMS.map(i => i.code),
+        recipient: 'Riverside BH',
+        summary: 'Warm handoff to the receiving team.',
+      }),
+    )
+  }
   add(
     'buildDischargePacket',
     buildDischargePacket({
@@ -251,6 +301,32 @@ function emitRuntimeResources(): { origin: string; resource: FhirResource }[] {
     buildCaringContact({ id: 'emit-caring', patientId: PATIENT, sent: WHEN, channel: '' }),
   )
 
+  // ── Stage 4: crisis resources ──
+  // All codes at once (the profile is `payload 1..*`, so the interesting bound
+  // is the lower one, which the recorder enforces rather than the builder), then
+  // each code alone so every payload coding's display is validated.
+  add(
+    'buildCrisisResourcesShared',
+    buildCrisisResourcesShared({
+      id: 'emit-crisis-resources',
+      patientId: PATIENT,
+      sent: WHEN,
+      resourceCodes: CRISIS_RESOURCES.map(r => r.code),
+      localLine: 'County Crisis Line, (555) 123-4567',
+    }),
+  )
+  for (const resource of CRISIS_RESOURCES) {
+    add(
+      `buildCrisisResourcesShared:${resource.code}`,
+      buildCrisisResourcesShared({
+        id: `emit-crisis-${resource.code}`,
+        patientId: PATIENT,
+        sent: WHEN,
+        resourceCodes: [resource.code],
+      }),
+    )
+  }
+
   // ── Stage 4: lethal means ──
   add(
     'buildLethalMeansCounseling',
@@ -285,6 +361,7 @@ describe('runtime FHIR emission', () => {
     expect([...families].sort()).toEqual([
       'attachEpisode',
       'buildCaringContact',
+      'buildCrisisResourcesShared',
       'buildDischargePacket',
       'buildEpisode',
       'buildFlag',
@@ -292,6 +369,7 @@ describe('runtime FHIR emission', () => {
       'buildLethalMeansCounseling',
       'buildMeansSafetyAction',
       'buildOutreachAttempt',
+      'buildSafetyHandoff',
       'buildSafetyReferral',
       'buildSafetyTask',
       'buildSharingConsent',
@@ -306,6 +384,49 @@ describe('runtime FHIR emission', () => {
     // Guards the trap from #263 phase 4: a QR that maps to nothing looks fine.
     const derived = emitted.filter(e => e.origin.startsWith('deriveFromResponse'))
     expect(derived.length).toBeGreaterThan(10)
+  })
+
+  /**
+   * ⚠️ **Covers every mapper, not merely "some".**
+   *
+   * `check:outputs` reads this emitted tree, so its reach IS this file's reach:
+   * a mapper nothing runs produces no resource, its declared output profile
+   * looks unclaimed, and the pressure is to allowlist the profile rather than
+   * fix the coverage. Six of the fourteen mapped canonicals were in exactly that
+   * position until 2026-09-17 — the demo scenarios cover nine.
+   *
+   * A count would not have caught it (there were 116 Observations either way);
+   * only naming the canonicals does.
+   */
+  // ⚠️ EMPTY, and it held one entry for ten minutes. CAMS SSF-5 Section B was the
+  // one mapper with neither a scenario QR nor an IG example, so it ran nowhere —
+  // and it is also the only instrument mapper returning a Condition rather than
+  // an Observation, so nothing covered that shape at all. Writing the exemption
+  // down made it obvious that authoring `ExampleCAMSSectionBResponse` was the
+  // smaller job, and the expiry check below is what then refused to let the
+  // stale entry sit there. Exercising it immediately found two defects the
+  // validator had never had the chance to see: a `#` in the Condition's id and a
+  // `Condition.derivedFrom` R4 does not define.
+  const UNEXERCISED: Record<string, string> = {}
+
+  it('covers every mapper in the registry', () => {
+    const responses = [...scenarioResponses(), ...igExampleResponses()]
+    const exercised = new Set(
+      responses
+        .filter(r => (deriveFromResponse(r.qr)?.observations ?? []).length > 0)
+        .map(r => String(r.qr.questionnaire ?? '').split('|')[0]),
+    )
+    const missing = MAPPED_QUESTIONNAIRE_URLS.filter(
+      url => !exercised.has(url) && !(url in UNEXERCISED),
+    )
+    expect(missing, 'mapped canonicals no fixture exercises — add a scenario QR or an IG example').toEqual([])
+
+    // And the exemption list expires: an entry for a canonical that IS exercised
+    // now, or one the registry no longer maps, is a stale exemption.
+    for (const url of Object.keys(UNEXERCISED)) {
+      expect(MAPPED_QUESTIONNAIRE_URLS, `UNEXERCISED names ${url}, which no mapper handles`).toContain(url)
+      expect(exercised, `UNEXERCISED still names ${url}, which is now exercised — delete the entry`).not.toContain(url)
+    }
   })
 
   it('every emitted resource claims a profile or is a plain typed resource', () => {

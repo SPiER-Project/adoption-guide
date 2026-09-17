@@ -68,7 +68,8 @@ import {
 } from '@spier/core/lib/carePlanMappers'
 
 const QuestionnaireView = lazy(() => import('../components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
-const WorkflowActionView = lazy(() => import('../components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
+const SafetyHandoffView = lazy(() => import('../components/SafetyHandoffView').then(m => ({ default: m.SafetyHandoffView })))
+const CrisisResourcesView = lazy(() => import('../components/CrisisResourcesView').then(m => ({ default: m.CrisisResourcesView })))
 const RiskEpisodeView = lazy(() => import('../components/RiskEpisodeView').then(m => ({ default: m.RiskEpisodeView })))
 const SafetyTaskView = lazy(() => import('../components/SafetyTaskView').then(m => ({ default: m.SafetyTaskView })))
 const DischargePacketView = lazy(() => import('../components/DischargePacketView').then(m => ({ default: m.DischargePacketView })))
@@ -116,12 +117,23 @@ export const TOOL_VIEWS: Record<string, ReactNode> = {
   'pss-full': <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaire={pssFullQuestionnaire} persistName="PSS Full" />,
 
   // ── Workflow recorders (clinician route: /patient/workflow/<slug>) ───────
-  // ⚠️ caring-contact used to render the generic Communication recorder, which
-  // stamped neither the SPiERCaringContact profile nor the opt-out extension —
-  // so the Stage-8 adherence measure could not see its output and its opt-out
-  // exclusion could never fire.
+  // ⚠️ THREE of these used to render one generic Communication recorder
+  // (`WorkflowActionView`), which stamped no `meta.profile` and wrote a
+  // `category` carrying text and no coding — so its output could satisfy
+  // NEITHER the profile the tool's PlanDefinition action declares NOR the
+  // `category:suicideRisk` slice #262 made required on all three. The generic
+  // recorder is gone; each of the three now has a builder in packages/core
+  // that stamps what its own IG page says it produces:
+  //   caring-contact  #211 — the adherence measure could not see its output and
+  //                   the opt-out exclusion could never fire
+  //   transition      the handoff is the INDEX EVENT for every post-transition
+  //                   measure, and `measures.ts` filters on the profile it did
+  //                   not stamp. Half-blind, not blind: the TL-030 packet is the
+  //                   other index resource and DID claim its profile
+  //   crisis-resources no measure reads it — the cost was a conformance claim
+  //                   the guide made and the app broke
   'caring-contact': <CaringContactView />,
-  'transition': <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />,
+  'transition': <SafetyHandoffView />,
   // ⚠️ Stage 5 — Coordinate Handoffs. rapid-referral used to render the generic
   // Communication recorder; TL-017 is a ServiceRequest so the referral can be
   // tracked past "sent" — see SafetyReferralView. The old path is kept as a
@@ -137,7 +149,7 @@ export const TOOL_VIEWS: Record<string, ReactNode> = {
   'safety-tasks': <SafetyTaskView />,
   // Stage 4 — Document Safety Actions
   'lethal-means': <LethalMeansCounselingView />,
-  'crisis-resources': <WorkflowActionView toolId="TL-013" title="Record Crisis Resources Shared" actionNoun="crisis resources shared" summaryPlaceholder="e.g. 988 Lifeline + Crisis Text Line + safety-plan copy given to patient" />,
+  'crisis-resources': <CrisisResourcesView />,
 }
 
 /** Is `slug` something the guide can offer a "try it" link for? */

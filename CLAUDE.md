@@ -61,7 +61,12 @@ npm run check:fhir-render # the clinician sees no raw FHIR — in JSON or in wor
 npm run check:ucum     # the UCUM shim is still safe: no quantities, and it still covers its callers
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4"
 npm run check:crosswalk        # concept-crosswalk validation
-npm run check:extract          # observation-extract validation
+npm run check:extract          # the SDC observationExtract contract: a declaring item carries a code,
+                               # the declared codes equal what the mapper emits, and EVERY mapper's
+                               # Questionnaire is classified — in EXPECTED, or in NO_LITERAL_EXTRACTS
+                               # with the reason. ⚠️ That third rule is new: absence from the hand list
+                               # used to mean "checked and empty" and "never opened" indistinguishably,
+                               # and four of fourteen mappers were in the second state
 npm run check:core-boundary    # packages/core stays React-free and DOM-free
 npm run check:guide-boundary   # the Adoption Guide holds no patient data (walks guide pages transitively)
 npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, questionnaire URLs both
@@ -74,6 +79,13 @@ npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, q
 npm run check:stages           # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway          # the pathway PlanDefinition's tier codes, stage codes and
                                # definitionCanonicals all resolve against the generated artifacts
+npm run check:outputs          # the OTHER half of a tool's FHIR contract: every
+                               # PlanDefinition.action.output profile is stamped by a resource the app
+                               # actually emits, on the declared type, and every launchable recorder
+                               # declares one. ⚠️ Runs AFTER `npm test` in `verify`, because it reads
+                               # web/.runtime-fhir — the emitted corpus, not the source. A lexical scan
+                               # would have PASSED the TL-009 defect: the canonical was in the source
+                               # the whole time, in measures.ts, as the constant a filter READ
 npm run check:readers          # every observation mapper's answer reads vs the Questionnaire's
                                # declared item `type`
 npm run check:careplan-readers # the sibling rule for carePlanMappers: does the nesting each reader

@@ -37,6 +37,7 @@ import {
   HANDOFF_CONTENT_ITEM_EXT,
   PACKET_PROFILE,
   REFERRAL_PROFILE,
+  SAFETY_HANDOFF_PROFILE,
 } from './handoffs'
 import {
   CARING_CONTACT_OPT_OUT_EXT,
@@ -74,7 +75,13 @@ import type {
 // ─────────────────────────────────────────────────────────────
 
 export const RISK_CONCEPT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept'
-export const SAFETY_HANDOFF_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff'
+// Defined in handoffs.ts beside `buildSafetyHandoff`, which stamps it, and
+// re-exported here because this engine is where its consequence lives: the
+// handoff is one of the two resources supplying `transitionDates`, the index
+// event for every post-transition measure. It was declared HERE and written
+// nowhere until 2026-09-17 — a constant read by a filter and by nothing else
+// is a measure that can only ever count fixtures.
+export { SAFETY_HANDOFF_PROFILE }
 export const LETHAL_MEANS_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling'
 export const STANLEY_BROWN_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan'
 export const CRISIS_RESPONSE_PLAN_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan'
