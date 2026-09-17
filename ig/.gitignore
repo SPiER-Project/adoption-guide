@@ -10,3 +10,7 @@ output/
 temp/
 template/
 input-cache/
+
+# Snapshot-bearing SUSHI output for scripts/medplum-upload.mjs (see its header:
+# Medplum validates against `snapshot`, which the canonical build omits)
+fsh-generated-snapshot/
