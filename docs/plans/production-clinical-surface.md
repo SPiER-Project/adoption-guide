@@ -1,6 +1,22 @@
 # Plan 2 — The clinician-facing app carries no FHIR view
 
-**Status:** planned, 2026-09-17. Independent of the other three plans, but it
+**Status:** IMPLEMENTED 2026-09-17. Kept for the reasoning. Three things went
+differently from the plan below, each for a reason recorded in the code:
+
+1. **A context, not a prop.** Seven components render FHIR and four of them are
+   reached from both surfaces, so a prop would have to be threaded through every
+   page that renders any of them. `InspectContext` defaults to false and the
+   guide turns it on: the invariant became *inspection is on inside `/guide` and
+   off everywhere else*, which also picked up `PathwayView` and `MeasureDashboard`
+   — both clinician-facing, neither on the plan's list.
+2. **`CarePlanDisplay` was missing from the inventory.** It renders its own
+   `<pre>{JSON.stringify(…)}</pre>` plus a "Download CarePlan JSON" button rather
+   than going through `FhirJsonViewer`, so building the list from the viewer's
+   call sites missed it. Gated by hand.
+3. **The try route is a sibling of the `/guide` layout, not a child, and not a
+   `guideSections.ts` entry.** The views render their own `PageHeader` (two on a
+   page fails `check:template`), and a route that writes to patient context is
+   not a guide page. `toolViews.test.ts` covers it instead. Independent of the other three plans, but it
 adds routes under `/guide/tools/`, so run it before or after
 [`guide-navigation-regroup.md`](guide-navigation-regroup.md), not concurrently.
 

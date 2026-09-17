@@ -182,6 +182,18 @@ export function ProviderAppGuide() {
           data, which is the way to walk a workflow without a launch:{' '}
           <Link to="/patient/record">open the demo chart</Link>.
         </p>
+        <Notice>
+          <strong>You will not see any FHIR in it, and that is deliberate.</strong> A clinician
+          filling in a C-SSRS has no use for the wire format, so since 2026-09-17 the app shows
+          none of it &mdash; not beside an instrument, not on a recorder, not under a document in
+          the chart. That is what makes it something a health system could adopt into its own
+          SMART on FHIR application rather than a demo with the scaffolding left up. The wire
+          format lives here in the guide instead: each tool in{' '}
+          <Link to="/guide/tools">Tools</Link> has a <em>Try it with the FHIR view</em> link that
+          opens the same recorder with its Questionnaire, its QuestionnaireResponse and its
+          writeback report, and the{' '}
+          <Link to="/guide/data-dictionary">Data Dictionary</Link> holds the contract.
+        </Notice>
       </section>
     </div>
   )

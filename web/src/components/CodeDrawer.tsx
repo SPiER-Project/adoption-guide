@@ -31,10 +31,26 @@
  * almost everywhere. The accordion is already the sectioning affordance, and
  * `FhirJsonViewer` already carries the title a tab would show. If a view ever
  * needs genuine tabs, this is the component to grow them in.
+ *
+ * ── Who sees it at all (2026-09-17) ────────────────────────────────────────
+ *
+ * ⚠️ **Nobody, outside the Adoption Guide.** The reasoning above is about where
+ * the drawer sits when it renders; this is about whether it renders. Inspection
+ * is on inside `/guide` and off everywhere else — see
+ * `context/InspectContext.ts`. A clinician launching an instrument from a chart,
+ * from a CDS card, or by browsing `/patient/record` gets the form and nothing
+ * else; the guide's `/guide/tools/:slug/try` routes render the same three views
+ * with the drawer.
+ *
+ * The gate is HERE as well as on `FhirJsonViewer` because this component draws
+ * chrome of its own — an `<aside>` in EHR chrome, a bottom bar in panel chrome.
+ * Letting the children return null would leave an empty drawer bar that opens
+ * onto nothing, which reads worse than either outcome.
  */
 import { useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { usePresentation } from '../context/PresentationContext'
+import { useInspect } from '../context/InspectContext'
 import '../css/CodeDrawer.css'
 import { cx } from '../lib/cx'
 
@@ -47,7 +63,11 @@ export function CodeDrawer({
   label?: string
 }) {
   const { chromeMode } = usePresentation()
+  const inspect = useInspect()
   const [open, setOpen] = useState(false)
+
+  // The whole drawer, chrome included — see the note at the top of this file.
+  if (!inspect) return null
 
   // Unchanged from what the 12 views rendered inline before this component
   // existed. Deliberately not "improved" — a regression here is a regression in

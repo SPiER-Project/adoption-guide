@@ -1,0 +1,138 @@
+/**
+ * Every instrument filler and workflow recorder, as a ready-to-render element,
+ * keyed by its tool slug.
+ *
+ * ── Why this is a map and not 30 inline route elements ─────────────────────
+ *
+ * Until 2026-09-17 each of these was written once, inline, in `App.tsx`'s
+ * `/patient/*` route block. That was fine while there was one way to reach them.
+ * There are now two:
+ *
+ *   /patient/assessments/asq    the clinician's route — no FHIR view
+ *   /guide/tools/asq/try        the implementer's route — FHIR view on
+ *
+ * They must render *the same thing*, because the guide's claim is that what an
+ * implementer inspects is what a clinician uses. Two copies of a
+ * `<QuestionnaireView title=… questionnaire=… persistName=… />` call would be
+ * exactly the hand-duplicated drift CLAUDE.md warns about: a `persistName`
+ * changed on one side and not the other is silent, and the demo would be
+ * showing a different resource than the app writes.
+ *
+ * So the element is defined once here and both routes render it.
+ *
+ * ⚠️ **Keyed by SLUG, the last path segment, not by the sub-path.** `asq`, not
+ * `assessments/asq`. The clinician's route keeps its `assessments/` and
+ * `workflow/` grouping because those paths are published — the catalog's 36
+ * `launchActions`, every CDS card's `type: "smart"` link and every SMART
+ * `intent` resolve to them. The guide's route has no such history and reads
+ * better flat. `SLUG_IS_UNIQUE` below is what makes one key serve both.
+ *
+ * ⚠️ **The lazy() calls live here, not in App.tsx, and that is deliberate.**
+ * Moving the element definitions without moving the components would have made
+ * App.tsx import them eagerly to build the map, collapsing the assessment chunk
+ * into the main bundle — 391 KB gzip rather than 208 (see the shim note in
+ * CLAUDE.md). Declaring them beside the map keeps every filler behind its own
+ * dynamic import.
+ *
+ * ⚠️ These are NOT demo-only. A demo-only page is declared
+ * `IS_DEMO ? lazy(…) : NotOnThisSurface` inline in App.tsx so the import stays
+ * unreachable on the clinical surface; these ship on both surfaces, because the
+ * clinical build is exactly the one a clinician fills an instrument in.
+ */
+import { lazy, type ReactNode } from 'react'
+import {
+  asqQuestionnaire,
+  bssaQuestionnaire,
+  pss3Questionnaire,
+  safetQuestionnaire,
+  phq9Questionnaire,
+  sbqrQuestionnaire,
+  cssrsScreener,
+  cssrsSinceLastContact,
+  cssrsPediatric,
+  cssrsFull,
+  camsSectionA,
+  camsSectionB,
+  camsOutcomeDisposition,
+  camsStabilizationPlan,
+  camsTherapeuticWorksheet,
+  crpQuestionnaire,
+  pssFullQuestionnaire,
+} from '@spier/core/data/questionnaires'
+import {
+  generateStabilizationCarePlan,
+  generateTherapeuticCarePlan,
+  generateCrisisResponseCarePlan,
+} from '@spier/core/lib/carePlanMappers'
+
+const StanleyBrownView = lazy(() => import('../components/StanleyBrownView').then(m => ({ default: m.StanleyBrownView })))
+const QuestionnaireView = lazy(() => import('../components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
+const WorkflowActionView = lazy(() => import('../components/WorkflowActionView').then(m => ({ default: m.WorkflowActionView })))
+const RiskEpisodeView = lazy(() => import('../components/RiskEpisodeView').then(m => ({ default: m.RiskEpisodeView })))
+const SafetyTaskView = lazy(() => import('../components/SafetyTaskView').then(m => ({ default: m.SafetyTaskView })))
+const DischargePacketView = lazy(() => import('../components/DischargePacketView').then(m => ({ default: m.DischargePacketView })))
+const SafetyReferralView = lazy(() => import('../components/SafetyReferralView').then(m => ({ default: m.SafetyReferralView })))
+const FollowUpAppointmentView = lazy(() => import('../components/FollowUpAppointmentView').then(m => ({ default: m.FollowUpAppointmentView })))
+const SharingConsentView = lazy(() => import('../components/SharingConsentView').then(m => ({ default: m.SharingConsentView })))
+const OutreachAttemptView = lazy(() => import('../components/OutreachAttemptView').then(m => ({ default: m.OutreachAttemptView })))
+const CaringContactView = lazy(() => import('../components/CaringContactView').then(m => ({ default: m.CaringContactView })))
+const LethalMeansCounselingView = lazy(() => import('../components/LethalMeansCounselingView').then(m => ({ default: m.LethalMeansCounselingView })))
+
+/**
+ * Slug → the view that records it.
+ *
+ * ⚠️ Every key must match the LAST segment of that tool's clinician route in
+ * `App.tsx`, because the two are read together: the route renders
+ * `TOOL_VIEWS['asq']` and the guide's try route resolves `:slug` against the
+ * same map. `toolViews.test.ts` pins that they agree.
+ */
+export const TOOL_VIEWS: Record<string, ReactNode> = {
+  // ── Instrument fillers (clinician route: /patient/assessments/<slug>) ────
+  'phq-9': <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />,
+  'asq': <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaire={asqQuestionnaire} persistName="ASQ Screening" />,
+  'bssa': <QuestionnaireView title="BSSA — Brief Suicide Safety Assessment" questionnaire={bssaQuestionnaire} persistName="BSSA" />,
+  'pss-3': <QuestionnaireView title="PSS-3 — Patient Safety Screener" questionnaire={pss3Questionnaire} persistName="PSS-3" />,
+  'safe-t': <QuestionnaireView title="SAFE-T — Suicide Assessment Five-Step Evaluation and Triage" questionnaire={safetQuestionnaire} persistName="SAFE-T" />,
+  'sbq-r': <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />,
+  'cssrs-screener': <QuestionnaireView title="C-SSRS Screener (Recent)" questionnaire={cssrsScreener} persistName="C-SSRS Screener" />,
+  'cssrs-full': <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />,
+  'cssrs-since-last-contact': <QuestionnaireView title="C-SSRS — Since Last Visit / Since Last Contact" questionnaire={cssrsSinceLastContact} persistName="C-SSRS Since Last Visit" />,
+  'cssrs-pediatric': <QuestionnaireView title="C-SSRS — Pediatric / Adolescent Screener" questionnaire={cssrsPediatric} persistName="C-SSRS Pediatric" />,
+  'stanley-and-brown': <StanleyBrownView />,
+  'cams-section-a': <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />,
+  'cams-section-b': <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />,
+  'cams-outcome-disposition': <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaire={camsOutcomeDisposition} persistName="CAMS SSF-5: Outcome/Disposition" />,
+  'cams-stabilization-plan': <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />,
+  'cams-therapeutic-worksheet': <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />,
+  'crisis-response-plan': <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaire={crpQuestionnaire} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />,
+  'pss-full': <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaire={pssFullQuestionnaire} persistName="PSS Full" />,
+
+  // ── Workflow recorders (clinician route: /patient/workflow/<slug>) ───────
+  // ⚠️ caring-contact used to render the generic Communication recorder, which
+  // stamped neither the SPiERCaringContact profile nor the opt-out extension —
+  // so the Stage-8 adherence measure could not see its output and its opt-out
+  // exclusion could never fire.
+  'caring-contact': <CaringContactView />,
+  'transition': <WorkflowActionView toolId="TL-009" title="Record a Transition Checkpoint" actionNoun="transition" summaryPlaceholder="e.g. Pre-discharge transfer of care — accepting provider confirmed" />,
+  // ⚠️ Stage 5 — Coordinate Handoffs. rapid-referral used to render the generic
+  // Communication recorder; TL-017 is a ServiceRequest so the referral can be
+  // tracked past "sent" — see SafetyReferralView. The old path is kept as a
+  // redirect in App.tsx so existing links don't 404.
+  'referral': <SafetyReferralView />,
+  'discharge-packet': <DischargePacketView />,
+  'follow-up-appointment': <FollowUpAppointmentView />,
+  'sharing-consent': <SharingConsentView />,
+  // Stage 6 — Track Follow-Up
+  'outreach': <OutreachAttemptView />,
+  // Stage 7 — Track Risk Over Time
+  'risk-episode': <RiskEpisodeView />,
+  'safety-tasks': <SafetyTaskView />,
+  // Stage 4 — Document Safety Actions
+  'lethal-means': <LethalMeansCounselingView />,
+  'crisis-resources': <WorkflowActionView toolId="TL-013" title="Record Crisis Resources Shared" actionNoun="crisis resources shared" summaryPlaceholder="e.g. 988 Lifeline + Crisis Text Line + safety-plan copy given to patient" />,
+}
+
+/** Is `slug` something the guide can offer a "try it" link for? */
+export function isToolViewSlug(slug: string | undefined): slug is string {
+  return slug !== undefined && Object.prototype.hasOwnProperty.call(TOOL_VIEWS, slug)
+}

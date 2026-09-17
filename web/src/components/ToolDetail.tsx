@@ -14,6 +14,22 @@ import { Pill } from './Pill'
 import { DataTable } from './DataTable'
 import '../css/ToolDetail.css'
 import { Button } from './Button'
+import { isToolViewSlug } from '../data/toolViews'
+
+/**
+ * The guide's own route for a tool's recorder: the same view the clinician's
+ * launch path renders, with the FHIR opened up.
+ *
+ * ⚠️ Derived from the launch path's LAST SEGMENT rather than from a second
+ * hand-kept list. `TOOL_VIEWS` is keyed by that segment, and `isToolViewSlug`
+ * is what stops this offering a link to a slug with no view — a tool whose
+ * launch path points somewhere `TOOL_VIEWS` does not cover simply gets no
+ * "try it" button rather than a dead one.
+ */
+function tryItHref(launchPath: string): string | null {
+  const slug = launchPath.split(/[?#]/)[0].split('/').filter(Boolean).pop()
+  return isToolViewSlug(slug) ? `/guide/tools/${slug}/try` : null
+}
 
 interface ToolDetailProps {
   tool: Tool
@@ -117,12 +133,30 @@ export function ToolDetail({ tool }: ToolDetailProps) {
       {tool.launchActions.length > 0 && (
         <section className="tool-detail-section">
           <h4 className="tool-detail-heading">Launch</h4>
+          {/* Two buttons per action, and they are two different claims. The
+              first is the CLINICIAN's path — the one the catalog publishes, the
+              one a CDS card's `type: "smart"` link and a SMART `intent` both
+              resolve to — and it renders the recorder exactly as a clinician
+              meets it, with no FHIR anywhere. The second is this guide's own
+              route, which renders the same element with the wire format opened
+              up. Before 2026-09-17 there was one button and one route serving
+              both readers, which is why a clinician saw JSON. */}
           <div className="tool-detail-launch">
-            {tool.launchActions.map(action => (
-              <Button key={action.path} to={action.path} variant={action.variant ?? 'primary'} size="sm" arrow>
-                {action.label}
-              </Button>
-            ))}
+            {tool.launchActions.map(action => {
+              const tryIt = tryItHref(action.path)
+              return (
+                <span key={action.path} className="tool-detail-launch-pair">
+                  <Button to={action.path} variant={action.variant ?? 'primary'} size="sm" arrow>
+                    {action.label}
+                  </Button>
+                  {tryIt && (
+                    <Button to={tryIt} variant="secondary" size="sm">
+                      Try it with the FHIR view
+                    </Button>
+                  )}
+                </span>
+              )
+            })}
           </div>
         </section>
       )}

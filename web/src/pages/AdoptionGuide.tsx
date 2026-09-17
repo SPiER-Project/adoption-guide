@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref, resolveGuidePath } from '../data/guideSections'
+import { InspectContext } from '../context/InspectContext'
 import '../css/AdoptionGuide.css'
 
 export function AdoptionGuide() {
@@ -32,6 +33,14 @@ export function AdoptionGuide() {
   const wide = active.width === 'wide'
 
   return (
+    /* ⚠️ **This provider is where "the guide shows the wire format" stops being
+       a convention and becomes a fact about the tree.** Everything under
+       /guide — including the /guide/tools/:slug/try routes, which render the
+       same instrument views the clinician's app does — may show raw FHIR;
+       nothing outside it may, because the context defaults to false. See
+       context/InspectContext.ts for why this is a fourth axis and not chrome
+       mode, build surface or data source. */
+    <InspectContext.Provider value>
     <div className={wide ? 'implementation-guide implementation-guide--wide' : 'implementation-guide'}>
       {/* A subsection is a DRILL-IN, so it follows PageHeader's documented rule
           for one rather than the guide's rule for a section: the eyebrow names
@@ -77,5 +86,6 @@ export function AdoptionGuide() {
         </nav>
       </div>
     </div>
+    </InspectContext.Provider>
   )
 }

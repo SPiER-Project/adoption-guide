@@ -327,6 +327,34 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   2026-09-15) every redirect's target — so a rename that strands a `<Navigate>`
   now fails. What still nothing can see is a path that *resolves* but now lands
   on the explainer rather than the app — that class needs a grep.
+- **The clinician-facing app shows no raw FHIR; the guide does.** One
+  invariant, one gate point: `InspectContext` (`web/src/context/InspectContext.ts`)
+  defaults to **false**, and only the `/guide` layout and `/guide/tools/:slug/try`
+  turn it on. `FhirJsonViewer` and `CodeDrawer` return `null` without it, and the
+  four call sites that wrap them in chrome of their own — `PatientDocuments`'
+  disclosure, `PatientPathway`'s `.cds-card-json`, `CarePlanDisplay`'s JSON
+  toggle and download, `ToolDetail`'s examples — check it too, because an empty
+  wrapper is its own defect.
+  ⚠️ **A FOURTH axis, not chrome mode, build surface or data source.** A
+  standalone `/patient/record` browse is still the clinician's app; the public
+  demo is the `demo` surface and is exactly where the app most needs to look
+  production-grade. The reasoning is beside the context, not restated here.
+  ⚠️ **The leaf gate cannot see a component that does its own `JSON.stringify`** —
+  `CarePlanDisplay` did, and was missed by the plan's inventory. Anything new
+  that dumps a resource opts into `useInspect()` by hand.
+  ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
+  (`web/src/data/toolViews.tsx`), rendered by two route families: the clinician's
+  published `/patient/assessments/*` and `/patient/workflow/*` paths (the
+  catalog's 36 launch paths, every CDS card's `type: "smart"` link, every SMART
+  `intent`) and the guide's `/guide/tools/:slug/try`. They must stay one
+  definition — two copies drift on a `persistName` and the guide then documents a
+  resource the app does not write. `toolViews.test.ts` pins that the map and
+  App.tsx's route lookups agree, by parsing both as text.
+  ⚠️ `/guide/tools/:slug/try` is a SIBLING of the `/guide` layout, not a child:
+  the views render their own `PageHeader`, and nesting would put two on a page.
+  It is also deliberately not a `guideSections.ts` entry — it renders recorders
+  that write to patient context, so it is not a guide page and `check:guide-boundary`'s
+  premise does not hold for it.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
 - **Two build surfaces, one route table.** `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`)
   builds the two SMART apps with no guide route registered and no synthetic
