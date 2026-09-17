@@ -93,10 +93,19 @@ export function SafetyReferralView() {
       title="Referral / Next Provider Handoff"
       lede={
         <>
-          Records a <strong>ServiceRequest</strong> tagged to the{' '}
-          <strong>Coordinate Handoffs</strong> stage — trackable past <em>sent</em> through to
-          accepted and completed, which is what the readiness checklist scores and what a
-          Communication cannot express.
+          Sends a referral and keeps it on the chart under{' '}
+          <strong>Coordinate Handoffs</strong> — open until someone marks it completed or revoked,
+          so a referral nobody picked up does not sit there reading as done.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>ServiceRequest</strong> on the <strong>SPiERSafetyReferral</strong>{' '}
+          profile. <code>status</code> models <code>draft → active → completed | revoked</code>{' '}
+          natively, which is what the readiness checklist scores and what a{' '}
+          <strong>Communication</strong> — which only records that something was sent — cannot
+          express at all. Advancing a referral upserts the same id rather than filing a second
+          resource.
         </>
       }
       draft={draft}

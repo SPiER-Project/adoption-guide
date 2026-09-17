@@ -100,10 +100,19 @@ export function OutreachAttemptView() {
       title="Follow-Up Outreach / Contact Attempt"
       lede={
         <>
-          Records a <strong>Communication</strong> tagged to the{' '}
-          <strong>Track Follow-Up</strong> stage. One shape serves routine outreach and no-show
-          follow-up; the <em>prompt</em> says which, and the <em>outcome</em> says whether anyone
-          was actually reached.
+          Logs a contact attempt under <strong>Track Follow-Up</strong> — routine outreach or
+          following up a visit the patient missed. The <em>prompt</em> says which, and the{' '}
+          <em>outcome</em> says whether you actually reached them.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>Communication</strong>. The outcome rides as a <strong>1..1</strong>{' '}
+          extension rather than in <code>status</code>, which only ever says a message was sent —
+          an attempt with no recorded outcome is not useful data. <code>outreach-prompt</code>{' '}
+          distinguishes routine outreach from no-show follow-up, and the safety concern is its own
+          axis rather than an outcome code, because a concern can surface on a call that reached
+          the patient.
         </>
       }
       draft={draft}

@@ -22,6 +22,23 @@
  * `check:template` treats a file that renders <WorkflowForm> as a recorder
  * view: it must not ALSO render <PageHeader> or the form layout classes,
  * because then the page would have two headers.
+ *
+ * ── `lede` says what the clinician is doing; `fhirNote` says what it writes ──
+ *
+ * ⚠️ **The split is the rule, not a convenience.** Until 2026-09-17 every lede
+ * opened "Records a **Communication** tagged to the …" — and the lede renders
+ * through `PageHeader`, unconditionally, on `/patient/workflow/*`. So the
+ * clean-clinical-surface pass removed the JSON and left the wire format in the
+ * prose beside it, which is the same defect one medium over.
+ *
+ * Settled (Brad, 2026-09-17): **the recorder describes the act.** A resource
+ * type, a profile name, an extension id or a `Resource.element` path may not
+ * appear in anything a clinician reads — so they go in `fhirNote`, which
+ * renders inside the `CodeDrawer` and is therefore gated by `useInspect()`
+ * along with the draft itself. The argument an implementer came for ("a
+ * ServiceRequest so the referral can be tracked past *sent*") is not lost; it
+ * moves to where the resource already is. `check:fhir-render` RULE 3 enforces
+ * it by parsing this file's callers and reading their JSX text.
  */
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -35,6 +52,7 @@ import '../css/WorkflowForm.css'
 export function WorkflowForm({
   title,
   lede,
+  fhirNote,
   draft,
   draftTitle,
   notice,
@@ -43,8 +61,20 @@ export function WorkflowForm({
   children,
 }: {
   title: string
-  /** One or two sentences under the title: what gets recorded, tagged to which stage. */
+  /**
+   * One or two sentences under the title, in the clinician's terms: what this
+   * records and which pathway stage it lands under.
+   *
+   * ⚠️ **No FHIR here** — no resource type, profile, extension or element path.
+   * That is `fhirNote`, and `check:fhir-render` RULE 3 fails the build on it.
+   */
   lede: ReactNode
+  /**
+   * The implementer's half: what this recorder writes and why that shape. Sits
+   * at the top of the code drawer, so it is gated by `useInspect()` with the
+   * draft and appears only inside the Adoption Guide.
+   */
+  fhirNote?: ReactNode
   /** The resource the form will write, shown live in the code drawer. */
   draft: unknown
   /** The drawer's caption — "Live FHIR Communication". */
@@ -89,6 +119,7 @@ export function WorkflowForm({
         </div>
 
         <CodeDrawer>
+          {fhirNote && <Notice tone="info">{fhirNote}</Notice>}
           <FhirJsonViewer data={draft} title={draftTitle} defaultOpen />
         </CodeDrawer>
       </div>

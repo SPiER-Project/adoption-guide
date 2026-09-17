@@ -99,8 +99,16 @@ export function WorkflowActionView({
       title={heading}
       lede={
         <>
-          Records a <strong>Communication</strong> tagged to the{' '}
-          <strong>{stage?.title ?? stageId}</strong> pathway stage. {tool?.purpose}
+          Logs this step on the patient&rsquo;s chart under{' '}
+          <strong>{stage?.title ?? stageId}</strong>. {tool?.purpose}
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>Communication</strong> tagged against the SPiER pathway-stage
+          CodeSystem with <code>{stageId}</code>, so <code>stageForArtifact</code> groups it under
+          that stage and the pathway advances. The contact method is an HL7 v3 ParticipationMode
+          code on <code>medium</code>.
         </>
       }
       draft={draft}

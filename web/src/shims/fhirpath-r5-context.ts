@@ -11,8 +11,9 @@
  *     import Tr from "fhirpath/fhir-context/r5";
  *
  * — and picks one at render time from its `fhirVersion` prop. SPiER is R4-only:
- * both call sites (QuestionnaireView, StanleyBrownView) pass the literal `"r4"`,
- * so the R5 model is loaded and never selected. It cost 575KB raw / 67KB gzip of
+ * its one call site (`QuestionnaireView`; `StanleyBrownView`, the second, was
+ * folded into it on 2026-09-17) passes the literal `"r4"`, so the R5 model is
+ * loaded and never selected. It cost 575KB raw / 67KB gzip of
  * the chunk every assessment route pulls.
  *
  * ## Shape

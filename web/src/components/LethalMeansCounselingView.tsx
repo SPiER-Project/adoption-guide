@@ -149,10 +149,21 @@ export function LethalMeansCounselingView() {
       title="Lethal Means Safety Counseling"
       lede={
         <>
-          Records a <strong>Procedure</strong> tagged to the{' '}
-          <strong>Document Safety Actions</strong> stage — that counseling happened — plus one{' '}
-          <strong>Observation</strong> per means addressed, saying what was actually secured. The
-          measure counts the counseling; the observations are what makes follow-up possible.
+          Records that means-safety counseling happened, under{' '}
+          <strong>Document Safety Actions</strong>, and what was actually secured for each means
+          you addressed. <em>Agreed to</em> and <em>done</em> are recorded differently, because
+          only the second one is a secured means.
+        </>
+      }
+      fhirNote={
+        <>
+          Two halves, because the FHIR has two. One{' '}
+          <strong>Procedure</strong> (<strong>SPiERLethalMeansCounseling</strong>) is all the
+          completion measure counts, and nothing in the app wrote it before this recorder existed
+          (#210). Then one <strong>Observation</strong> per means, with the action as the value and{' '}
+          <code>status</code> separating <code>final</code> (done) from <code>preliminary</code>{' '}
+          (agreed) — which is what makes follow-up possible. Nothing is required to be secured:
+          counseling a patient who declines is still counseling.
         </>
       }
       draft={draft}
@@ -202,7 +213,7 @@ export function LethalMeansCounselingView() {
           />
         </WorkflowField>
 
-        <WorkflowField label="Protocol / description" optional="SNOMED codes this as counseling">
+        <WorkflowField label="Protocol / description" optional="what the chart records as the counseling provided">
           <input
             type="text"
             className="workflow-input"

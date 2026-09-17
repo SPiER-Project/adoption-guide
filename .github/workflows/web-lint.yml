@@ -104,6 +104,14 @@ jobs:
       - name: Check prose measure
         run: npm run check:prose
 
+      # The clinician sees no raw FHIR. A component that dumps a resource must
+      # have asked `useInspect()` first — the leaf gate on `FhirJsonViewer`
+      # cannot see one that writes its own `<pre>{JSON.stringify(…)}</pre>`,
+      # which is exactly how `CarePlanDisplay` escaped the inventory. Reads only
+      # web/src, so it belongs here.
+      - name: Check raw-FHIR rendering
+        run: npm run check:fhir-render
+
       - name: Check observationExtract contract
         run: npm run check:extract
 

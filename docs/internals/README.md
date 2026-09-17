@@ -23,6 +23,7 @@ Read the file for the area you are changing **before** you change it.
 | [`docs-gates.md`](docs-gates.md) | editing `docs/**`, the root `README.md`, or the HL7 use-case workbook |
 | [`workers.md`](workers.md) | changing `services/cds-hooks/` or `services/mock-ehr/` |
 | [`css-and-page-template.md`](css-and-page-template.md) | adding a page, a width, a design token, or a run of prose |
+| [`tool-views.md`](tool-views.md) | adding or merging an instrument filler or workflow recorder, or putting a resource on screen |
 | [`build-gotchas.md`](build-gotchas.md) | a confusing `git status`, a bundle-size question, or changing a hand-duplicated value |
 
 ## The rule that produced all of it

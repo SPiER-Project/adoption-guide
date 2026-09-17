@@ -53,6 +53,11 @@ npm run check:css-dead # every class selector is referenced by a component (or b
 npm run check:template # one header implementation, one owner of the page inset, one owner of the width
 npm run check:prose    # the reading measure: --measure-prose is a character count, every cap
                        # declared, and prose is set at one of three sizes
+npm run check:fhir-render # the clinician sees no raw FHIR — in JSON or in words. A component that
+                       # serializes a resource or renders a <pre> has asked useInspect() in the
+                       # same file; and a workflow recorder's JSX TEXT (parsed, not grepped)
+                       # names no resource type, profile, extension or element path, and holds
+                       # no <code> — that is what fhirNote is for
 npm run check:ucum     # the UCUM shim is still safe: no quantities, and it still covers its callers
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4"
 npm run check:crosswalk        # concept-crosswalk validation
@@ -292,6 +297,21 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   The rationale for all four of these, the gates' exact limits, and the drift
   each was written against are in
   [`docs/internals/css-and-page-template.md`](docs/internals/css-and-page-template.md).
+- **A recorder is bespoke because of what it writes, and it describes the ACT.**
+  (The map itself is covered under "no raw FHIR" below.) Of the 11 workflow
+  recorders in `toolViews.tsx`, 2 are the generic `WorkflowActionView` and 9 are
+  bespoke because they write something other than one Communication.
+  ⚠️ **"It is only a Communication" is not grounds to merge one** —
+  `caring-contact` WAS the generic recorder, and stamped neither its profile nor
+  the opt-out extension, so a Stage-8 measure's exclusion could never fire.
+  ⚠️ **The prose is part of "no raw FHIR".** Settled 2026-09-17: a recorder's
+  `lede`, labels and help describe the act — no resource type, profile name,
+  extension id or `Element.path`, and no `<code>` at all. The wire format goes in
+  `WorkflowForm`'s `fhirNote`, which renders inside the `useInspect()`-gated
+  `CodeDrawer`. `check:fhir-render` RULE 3 parses the JSX text to enforce it.
+  Which recorders are load-bearing, what that gate cannot see, and why a view
+  cannot be derived from its ActivityDefinition are in
+  [`docs/internals/tool-views.md`](docs/internals/tool-views.md).
 - **`ehr-` no longer names the app's own chrome.** The standalone browsing chrome
   is `AppShell` / `.app-shell__*`. ⚠️ `.ehr-rubric`, `context-ehr-patient` and the
   `ehr` strings under `services/mock-ehr/` deliberately keep the prefix — they
@@ -360,8 +380,11 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   demo is the `demo` surface and is exactly where the app most needs to look
   production-grade. The reasoning is beside the context, not restated here.
   ⚠️ **The leaf gate cannot see a component that does its own `JSON.stringify`** —
-  `CarePlanDisplay` did, and was missed by the plan's inventory. Anything new
-  that dumps a resource opts into `useInspect()` by hand.
+  `CarePlanDisplay` did, and was missed by the plan's inventory, which was built
+  by listing `FhirJsonViewer`'s call sites. **`check:fhir-render` derives that
+  list instead**, so this is a gate rather than a thing to remember: serialize a
+  resource or render a `<pre>` and you must have asked `useInspect()`. It covers
+  the prose too — see the tool-views bullet above.
   ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
   (`web/src/data/toolViews.tsx`), rendered by two route families: the clinician's
   published `/patient/assessments/*` and `/patient/workflow/*` paths (the

@@ -13,6 +13,14 @@ differently from the plan below, each for a reason recorded in the code:
    `<pre>{JSON.stringify(…)}</pre>` plus a "Download CarePlan JSON" button rather
    than going through `FhirJsonViewer`, so building the list from the viewer's
    call sites missed it. Gated by hand.
+⚠️ **Superseded in two places by the tool-view audit (2026-09-17), same day.**
+`StanleyBrownView` — §B's second row — no longer exists: it was a near-copy of
+`QuestionnaireView` with no load-bearing divergence, and it is now an entry in
+`TOOL_VIEWS` like the other seventeen fillers. And finding 2 below, the missing
+inventory entry, is now mechanically derived rather than written down: see
+`npm run check:fhir-render` and
+[`docs/internals/tool-views.md`](../internals/tool-views.md).
+
 3. **The try route is a sibling of the `/guide` layout, not a child, and not a
    `guideSections.ts` entry.** The views render their own `PageHeader` (two on a
    page fails `check:template`), and a route that writes to patient context is

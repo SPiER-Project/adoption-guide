@@ -135,9 +135,19 @@ export function RiskEpisodeView() {
       title="Suicide-Risk Episode / Pathway Status"
       lede={
         <>
-          Records an <strong>EpisodeOfCare</strong> plus its <strong>Flag</strong> chart banner,
-          tagged to the <strong>Track Risk Over Time</strong> stage. The episode is the anchor
-          safety tasks attach to.
+          Opens or closes a suicide-safer care episode under{' '}
+          <strong>Track Risk Over Time</strong>, raising or clearing the chart banner with it. The
+          episode is what safety tasks attach to and what the risk registry lists.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes an <strong>EpisodeOfCare</strong> and its <strong>Flag</strong> banner as one act,
+          so a banner cannot outlive the episode it announces. A patient may have several episodes
+          over time but only one open at once, which is why this view is modal rather than
+          validated. A <code>positive-screen</code> entry carries a profile invariant requiring the
+          episode to name the artifact that evidenced it (#263) — hence the required{' '}
+          <code>episode-trigger</code> reference.
         </>
       }
       draft={draft}
@@ -194,8 +204,8 @@ export function RiskEpisodeView() {
               label="Screening artifact that evidenced it"
               help={
                 <>
-                  A positive-screen entry SHALL name the artifact that evidenced it
-                                  (<code>episode-trigger</code>). Pick another reason if no screen is on file.
+                  A positive screen has to name the screen that found it. Pick another reason for
+                  entry if none is on file.
                 </>
               }
             >

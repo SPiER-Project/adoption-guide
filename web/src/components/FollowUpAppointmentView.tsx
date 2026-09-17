@@ -110,10 +110,18 @@ export function FollowUpAppointmentView() {
       title="Next Appointment & Follow-Up Tracking"
       lede={
         <>
-          Records an <strong>Appointment</strong> tagged to the{' '}
-          <strong>Coordinate Handoffs</strong> stage. Tracking (TL-034) stores nothing new —{' '}
-          <em>Appointment.status</em> already carries booked → attended / no-show / cancelled, so
-          the summary below is a read over the same resource.
+          Books the next visit under <strong>Coordinate Handoffs</strong>, and tracks it. Marking
+          one attended, missed or cancelled updates that same visit rather than filing a second
+          record, so the follow-up summary below can never disagree with what was booked.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes an <strong>Appointment</strong>. Tracking stores nothing new:{' '}
+          <code>status</code> already carries booked → fulfilled / noshow / cancelled and{' '}
+          <code>start</code> carries the date, so the summary below is a read over the same
+          resource and the status buttons upsert it by id. A parallel &ldquo;appointment
+          tracking&rdquo; resource would only be a second copy to keep in step.
         </>
       }
       draft={draft}
