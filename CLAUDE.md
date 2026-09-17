@@ -93,6 +93,11 @@ npm run check:outputs          # the OTHER half of a tool's FHIR contract: every
                                # web/.runtime-fhir — the emitted corpus, not the source. A lexical scan
                                # would have PASSED the TL-009 defect: the canonical was in the source
                                # the whole time, in measures.ts, as the constant a filter READ
+npm run check:published-profiles # the COMPLEMENT: every profile the IG publishes is claimed by
+                               # something the app emits, or is exempted with a reason.
+                               # check:outputs starts from what a tool DECLARES, so it is blind to a
+                               # profile no tool declares — published, read by a measure, never
+                               # written. ⚠️ Also AFTER `npm test`, same corpus
 npm run check:readers          # every observation mapper's answer reads vs the Questionnaire's
                                # declared item `type`
 npm run check:careplan-readers # the sibling rule for carePlanMappers: does the nesting each reader
