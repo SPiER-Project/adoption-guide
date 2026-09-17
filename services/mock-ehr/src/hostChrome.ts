@@ -614,6 +614,7 @@ export function page({
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>${TOKENS}${COMPONENTS}${css}</style>
 </head>
 <body>
@@ -659,3 +660,53 @@ export const DISCLAIMER = `
     It is controlled by the same project it demonstrates, so nothing observed here is evidence of
     interoperability — that claim is only made against a public sandbox.
   </p>`
+
+/**
+ * The host's own tab mark — deliberately NOT SPiER's.
+ *
+ * The mock EHR is styled to look like a different vendor's product, and that is
+ * a demo claim rather than a preference (see the note at the top of this file,
+ * and `docs/internals/workers.md`). A tab strip is where that claim is easiest
+ * to undo: two tabs carrying the same plum icon read as one product, which is
+ * exactly the impression the whole palette exists to prevent. So the host gets
+ * a plain slate record card, drawn from its own `--chrome` pair.
+ *
+ * ⚠️ **Colours are `var(--…)` and resolved here, not typed.** An SVG served on
+ * its own cannot see the page's stylesheet, so a literal hex would be the
+ * second definition of a colour — the thing `check:host-css` exists to stop.
+ * `resolveTokens` substitutes from `TOKENS`, so the mark tracks the palette and
+ * a renamed token fails the gate instead of shipping a black square.
+ */
+const FAVICON_TEMPLATE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mock EHR">
+  <title>Mock EHR</title>
+  <rect width="64" height="64" rx="12" fill="var(--chrome)"/>
+  <rect x="18" y="13" width="28" height="38" rx="3" fill="var(--chrome-ink)"/>
+  <rect x="24" y="22" width="16" height="3" rx="1.5" fill="var(--chrome)"/>
+  <rect x="24" y="30" width="16" height="3" rx="1.5" fill="var(--chrome)"/>
+  <rect x="24" y="38" width="10" height="3" rx="1.5" fill="var(--chrome)"/>
+</svg>
+`
+
+/**
+ * Replace every var() reference with the value `TOKENS` gives it.
+ *
+ * ⚠️ The prose here says "var()" with no token name on purpose:
+ * `check-host-css` scans this file's COMMENTS for rule B (only rule A
+ * strips them), so a spelled-out example name reads as a use of a token
+ * that does not exist and fails the gate.
+ *
+ * Throws rather than leaving the `var()` in place: an unresolved `var()` in a
+ * standalone SVG renders the shape black, which on a 16px icon looks like a
+ * design choice rather than a bug. `check:host-css` catches an undefined token
+ * at build time and this catches one at runtime; the two cover each other.
+ */
+export function resolveTokens(svg: string): string {
+  return svg.replace(/var\((--[\w-]+)\)/g, (_, name: string) => {
+    const match = new RegExp(`${name}\\s*:\\s*([^;]+);`).exec(TOKENS)
+    if (!match) throw new Error(`resolveTokens: ${name} is not defined in TOKENS`)
+    return match[1].trim()
+  })
+}
+
+/** The served bytes of `/favicon.svg`. */
+export const FAVICON_SVG = resolveTokens(FAVICON_TEMPLATE)

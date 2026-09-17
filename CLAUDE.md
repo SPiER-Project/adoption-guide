@@ -48,6 +48,13 @@ npx tsc -b             # typecheck (project references; needs generated files pr
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
+npm run check:favicons # the tab mark still matches the brand tokens. The icons in web/public/
+                       # are GENERATED from --brand-primary and --brand-gradient-1…5 by
+                       # scripts/build-favicons.mjs (`npm run build:favicons` rewrites them).
+                       # ⚠️ A favicon is its own document and cannot read a var(), so its six
+                       # colours are necessarily a hand-duplicated copy of the palette — which is
+                       # exactly why it is gated. The 2026 redesign would otherwise have left a
+                       # raspberry icon nobody looks at
 npm run check:css-dead # every class selector is referenced by a component (or by the
                        # formbox renderer, scraped from its installed theme)
 npm run check:template # one header implementation, one owner of the page inset, one owner of the width
@@ -194,6 +201,14 @@ cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no 
 
 ⚠️ **The mock EHR is deliberately NOT styled like SPiER** — that is a demo claim,
 not a preference. See [`docs/internals/workers.md`](docs/internals/workers.md).
+
+⚠️ **That includes its favicon.** The host serves its own slate record-card mark
+from `/favicon.svg` (`FAVICON_SVG` in `hostChrome.ts`, a Worker route because
+there is no Static Assets binding). Two tabs carrying the same plum icon read as
+one product, which is the impression the whole host palette exists to prevent —
+so its colours are `var(--chrome…)`, resolved out of `TOKENS` at module load
+rather than typed, and `check:host-css` holds them to the same one-definition
+rule as the pages.
 
 ⚠️ **An embedded activity gets a VIEWPORT; never size a guest frame to its
 content.** Both the chart's dock and the front door's caseload frame are fixed
@@ -424,7 +439,8 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   comment — and throws on one it cannot parse; that is why the config's comments
   say "alias entry" and not the property name.
 - **Never hand-edit generated output** — `packages/fhir-artifacts/generated/`,
-  `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`. To change
+  `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`, and
+  `web/public/favicon.*` + `web/public/apple-touch-icon.png`. To change
   FHIR shapes, edit FSH in `ig/input/fsh/`; to change a Questionnaire, edit the
   JSON in `FHIR-Resources/`.
 
