@@ -369,3 +369,116 @@ describe('the writeback ladder against the mock EHR (step 4)', () => {
     expect(slice.responses.some(r => r.resource.id === qr?.resource.id)).toBe(true)
   })
 })
+
+/**
+ * `saveArtifact` for the lifecycle types, against the server as it now behaves.
+ *
+ * ⚠️ **This is the pairing that was never tested, and it hid a defect in both
+ * halves at once.** SPiER wrote these as `PUT <Type>/<client-minted id>` —
+ * update-as-create — and this server accepted it. Both sides agreed, no test
+ * disagreed, and the whole writeback failed at the first server nobody on this
+ * project had written: Medplum answers 400 to a prefixed id and 404 to a bare
+ * UUID it does not hold, and since `ensureEncounter()` runs before nearly every
+ * save, that one refusal blocked EVERY write.
+ *
+ * The app POSTs to create and PUTs against the server's id now, and this server
+ * refuses to create on a PUT. Running the real client against the real server is
+ * the only thing that can show the two halves still fit — a unit test of either
+ * one asserts its own side of a contract it also defines.
+ */
+describe('saveArtifact — lifecycle writes against the strict mock', () => {
+  /** A lifecycle resource the app really writes, with its client-minted id. */
+  function episodeFor(patientId: string): Record<string, unknown> {
+    const source = POPULATION_SCENARIOS[patientId]?.episodes?.[0]
+    if (!source) throw new Error(`${patientId} has no scenario EpisodeOfCare`)
+    // A client-minted id this server has never held, so the write must CREATE.
+    return { ...(JSON.parse(JSON.stringify(source)) as Record<string, unknown>), id: 'episode-brand-new' }
+  }
+
+  afterEach(() => {
+    requestEnv = {}
+    resetProfile()
+  })
+
+  async function open(store: FakeStoreBinding) {
+    requestEnv = store as unknown as Record<string, unknown>
+    return new SmartDataSource(await clientFor('patient-011'))
+  }
+
+  it('creates with POST — the client id never reaches the URL', async () => {
+    resetProfile()
+    const store = fakeStore()
+    const source = await open(store as FakeStoreBinding)
+
+    await source.saveArtifact('patient-011', episodeFor('patient-011') as never)
+
+    const written = await (store as FakeStoreBinding).state.list()
+    const episodes = written.filter(w => w.resource.resourceType === 'EpisodeOfCare')
+    expect(episodes).toHaveLength(1)
+    // The server assigned it, which is the whole change: a PUT at
+    // 'episode-brand-new' would now be a 404.
+    expect(String(episodes[0].resource.id)).toMatch(/^srv-/)
+  })
+
+  it('carries the client-minted id as an identifier, so it can be found again', async () => {
+    resetProfile()
+    const store = fakeStore()
+    const source = await open(store as FakeStoreBinding)
+
+    await source.saveArtifact('patient-011', episodeFor('patient-011') as never)
+
+    const written = await (store as FakeStoreBinding).state.list()
+    const episode = written.find(w => w.resource.resourceType === 'EpisodeOfCare')
+    const identifiers = (episode?.resource.identifier ?? []) as { system?: string; value?: string }[]
+    expect(identifiers).toContainEqual({
+      system: 'http://thespierproject.org/fhir/identifier/client-id',
+      value: 'episode-brand-new',
+    })
+  })
+
+  it('open→close converges on ONE resource, which is what update-as-create bought', async () => {
+    resetProfile()
+    const store = fakeStore()
+    const source = await open(store as FakeStoreBinding)
+
+    const opened = episodeFor('patient-011')
+    await source.saveArtifact('patient-011', opened as never)
+    await source.saveArtifact('patient-011', { ...opened, status: 'finished' } as never)
+
+    const written = await (store as FakeStoreBinding).state.list()
+    const episodes = written.filter(w => w.resource.resourceType === 'EpisodeOfCare')
+    // Two writes, one resource, in its final state. A second `srv-` id here
+    // would mean the update had silently become a create.
+    expect(episodes).toHaveLength(1)
+    expect(episodes[0].resource.status).toBe('finished')
+  })
+
+  it('rewrites a reference to the resource the server renamed', async () => {
+    resetProfile()
+    const store = fakeStore()
+    const source = await open(store as FakeStoreBinding)
+
+    await source.saveArtifact('patient-011', episodeFor('patient-011') as never)
+    const written = await (store as FakeStoreBinding).state.list()
+    const serverId = String(written.find(w => w.resource.resourceType === 'EpisodeOfCare')?.resource.id)
+
+    // An Encounter naming the episode by its CLIENT id, as the app builds it.
+    await source.saveArtifact('patient-011', {
+      resourceType: 'Encounter',
+      id: 'encounter-brand-new',
+      status: 'in-progress',
+      class: { system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode', code: 'AMB' },
+      subject: { reference: 'Patient/patient-011' },
+      period: { start: '2026-09-17T10:00:00.000Z' },
+      episodeOfCare: [{ reference: 'EpisodeOfCare/episode-brand-new' }],
+    } as never)
+
+    const after = await (store as FakeStoreBinding).state.list()
+    const encounter = after.find(w => w.resource.resourceType === 'Encounter')
+    const refs = (encounter?.resource.episodeOfCare ?? []) as { reference?: string }[]
+    // Unrewritten this stays 'EpisodeOfCare/episode-brand-new' — a reference this
+    // server does not hold. It is stored happily either way, and the chart
+    // silently loses the link.
+    expect(refs[0]?.reference).toBe(`EpisodeOfCare/${serverId}`)
+  })
+})
