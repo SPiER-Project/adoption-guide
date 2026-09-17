@@ -81,13 +81,13 @@
       "encounter": {
         "reference": "Encounter/p010-enc-handoff"
       },
-      "_savedAt": "2026-04-15T09:00:00.000Z",
       "title": "Active risk episode — resolution documented",
       "note": [
         {
           "text": "CAMS episode resolved (3 consecutive sessions meeting criteria). Eligible for Q2 zero-suicide outcome report."
         }
-      ]
+      ],
+      "created": "2026-04-15T09:00:00.000Z"
     }
   ],
   "riskAlerts": [

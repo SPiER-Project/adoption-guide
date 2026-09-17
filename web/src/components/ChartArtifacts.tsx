@@ -39,7 +39,8 @@ export function ArtifactCards({
       })}
       {carePlans.map((rawCp, idx) => {
         const cp = rawCp as RenderableResource
-        const savedAt = cp._savedAt ? formatDate(cp._savedAt) : null
+        const written = cp.created ?? cp._savedAt
+        const savedAt = written ? formatDate(written) : null
         return (
           <div key={`${cp.id}-${idx}`} className="stage-artifact stage-artifact--careplan">
             <span className="stage-artifact-icon" aria-hidden>{'\u{1F4CB}'}</span>
