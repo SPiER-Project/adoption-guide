@@ -52,15 +52,39 @@
  *     `Object.entries(resource)`, a `<code>{obs.code.coding[0].code}</code>`, a
  *     syntax highlighter fed a resource — all read as raw FHIR to a clinician
  *     and none of them match either pattern here.
- *  4. **FHIR vocabulary in prose.** Every workflow recorder's lede says
- *     "Records a <strong>Communication</strong> tagged to the …" and that text
- *     renders on the clinician's route today. Whether that is a defect is a
- *     design decision nobody has made; see
- *     `docs/internals/tool-views.md` §4. A gate must not decide it.
+ *  4. Prose was a fourth until 2026-09-17, when Brad settled it — the recorder
+ *     describes the ACT, the wire format goes in `fhirNote`. That is RULE 3,
+ *     which does not share these blind spots because it does not share the
+ *     mechanism: it parses.
+ *
+ * ── RULE 3: the recorders' prose ────────────────────────────────────────────
+ *
+ * Every workflow recorder's lede used to open "Records a
+ * <strong>Communication</strong> tagged to the …", and `WorkflowForm` renders
+ * the lede through `PageHeader` unconditionally, on `/patient/workflow/*`. So
+ * the clean-clinical-surface pass removed the JSON and left the wire format in
+ * the prose beside it. Three recorders went further, naming an extension or a
+ * `CarePlan/{id}` reference in field help a clinician reads while filling in
+ * the form.
+ *
+ * ⚠️ **A text scan cannot do this one, and shipping one that looked like it
+ * could would be worse than nothing.** `Appointment` is a resource type in
+ * `<strong>Appointment</strong>`, an identifier in `AppointmentResource`, and a
+ * reference prefix in `` `Appointment/${a.id}` `` — one token, three meanings,
+ * and only the first is prose. So RULE 3 parses the file with TypeScript's own
+ * parser and reads **JSXText nodes only**: what is actually rendered as words.
+ * Identifiers, imports, template literals and string attributes are invisible
+ * to it by construction, which is why `draftTitle="Live FHIR Communication"`
+ * needs no exemption.
+ *
+ * The one carve-out is the `fhirNote={…}` attribute, whose entire subtree is
+ * skipped — that is the implementer's half, it renders inside `CodeDrawer`, and
+ * `CodeDrawer` is gated by `useInspect()`.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
+import ts from 'typescript'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 
@@ -158,6 +182,109 @@ for (const rel of files) {
   )
 }
 
+// ── RULE 3 — a recorder's prose describes the act, not the resource ────────
+
+/**
+ * The words that mean "this is the wire format". Resource types SPiER actually
+ * writes or reads, plus the two shapes a clinician has no use for: a
+ * `SPiER…`-prefixed profile name and an `Element.path`.
+ *
+ * ⚠️ Matched against JSXText ONLY, so `AppointmentResource` and
+ * `` `Appointment/${id}` `` never reach this list. See the header.
+ */
+const RESOURCE_TYPES = [
+  'Communication', 'ServiceRequest', 'DocumentReference', 'Appointment', 'Consent',
+  'Task', 'Procedure', 'Observation', 'EpisodeOfCare', 'Flag', 'CarePlan',
+  'QuestionnaireResponse', 'Questionnaire', 'Encounter', 'DiagnosticReport',
+]
+const PROSE_PATTERNS = [
+  { name: 'a FHIR resource type', re: new RegExp(`\\b(${RESOURCE_TYPES.join('|')})\\b`, 'g') },
+  { name: 'a SPiER profile name', re: /\bSPiER[A-Z]\w+/g },
+  { name: 'a FHIR element path', re: new RegExp(`\\b(?:${RESOURCE_TYPES.join('|')})\\.[a-z]\\w*`, 'g') },
+]
+
+/**
+ * JSX text rendered by `file`, and every `<code>` it renders, both excluding
+ * anything inside a `fhirNote={…}`.
+ *
+ * ⚠️ **`<code>` is its own rule because a word list cannot do it.** The leaks
+ * the audit found were `caring-contact-opt-out`, `episode-trigger` and a
+ * `CarePlan/{id}` reference in field help — an extension id is a kebab-case
+ * slug, and nothing distinguishes one from "no-show follow-up" or "care-gap" by
+ * spelling. What DOES distinguish them is the element: a recorder reaching for
+ * `<code>` is quoting an identifier at the reader, and a clinician filling in a
+ * form has no identifier to be shown. So the rule is the tag, not the text.
+ */
+function renderedText(file, src) {
+  const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  /** @type {{text: string, line: number}[]} */
+  const out = []
+  /** @type {number[]} */
+  const codeTags = []
+  let sawJsx = false
+  const walk = (node) => {
+    if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) sawJsx = true
+    // The implementer's half. Skipped whole: its subtree renders inside
+    // CodeDrawer, which returns null unless useInspect() says otherwise.
+    if (ts.isJsxAttribute(node) && node.name.getText(sf) === 'fhirNote') return
+    if (ts.isJsxElement(node) && node.openingElement.tagName.getText(sf) === 'code') {
+      codeTags.push(sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1)
+    }
+    if (ts.isJsxText(node)) {
+      const text = node.getText(sf)
+      if (text.trim()) {
+        out.push({ text, line: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1 })
+      }
+      return
+    }
+    ts.forEachChild(node, walk)
+  }
+  walk(sf)
+  return { runs: out, codeTags, sawJsx }
+}
+
+/** Files that render <WorkflowForm> — the recorder views, derived not listed. */
+const recorders = files.filter((rel) =>
+  /<WorkflowForm[\s>]/.test(stripComments(readFileSync(join(SRC, rel), 'utf8'))),
+)
+if (recorders.length === 0) {
+  throw new Error(
+    'check-fhir-render: no file renders <WorkflowForm> — RULE 3 derives the recorder views from ' +
+      'that, so it would now check nothing. Fix the detection rather than the rule.',
+  )
+}
+
+let proseRuns = 0
+for (const rel of recorders) {
+  const src = stripComments(readFileSync(join(SRC, rel), 'utf8'))
+  const { runs, codeTags, sawJsx } = renderedText(rel, src)
+  if (!sawJsx) {
+    fail(`${rel} renders <WorkflowForm> but the parser found no JSX in it — RULE 3 has stopped reading this file`)
+    continue
+  }
+  proseRuns += runs.length
+  for (const line of codeTags) {
+    fail(
+      `${relative(root, join(SRC, rel))}:${line}: the clinician reads a <code> — an extension id, a\n` +
+        `    reference or an element path, quoted at someone who has no identifier to be shown.\n` +
+        `    Move it into WorkflowForm's fhirNote={…}, or say the thing in words.`,
+    )
+  }
+  for (const run of runs) {
+    for (const p of PROSE_PATTERNS) {
+      p.re.lastIndex = 0
+      const hits = [...new Set([...run.text.matchAll(p.re)].map((m) => m[0]))]
+      if (hits.length === 0) continue
+      fail(
+        `${relative(root, join(SRC, rel))}:${run.line}: the clinician reads ${p.name} — ${hits.map((h) => `"${h}"`).join(', ')}\n` +
+          `    A recorder describes the ACT, not the resource (Brad, 2026-09-17). The lede and every\n` +
+          `    field label, help string and notice render on /patient/workflow/* with no inspection gate.\n` +
+          `    Move the wire format into WorkflowForm's fhirNote={…}, which renders inside the CodeDrawer.`,
+      )
+    }
+  }
+}
+
 // An allowlist entry for a file that no longer matches is a rule nobody is
 // getting, and it is how an exemption outlives its reason.
 for (const rel of Object.keys(NOT_A_RESOURCE_VIEW)) {
@@ -181,6 +308,8 @@ const floorsHeld = reportFloors(
     { source: 'web/src', dimension: 'non-test .tsx scanned', actual: files.length, floor: 38 },
     { source: 'web/src', dimension: 'JSON.stringify site(s)', actual: counts['JSON.stringify'], floor: 2 },
     { source: 'web/src', dimension: '<pre> site(s)', actual: counts['<pre>'], floor: 2 },
+    { source: 'recorder views', dimension: 'view(s) rendering <WorkflowForm>', actual: recorders.length, floor: 5 },
+    { source: 'recorder views', dimension: 'JSX text run(s) read', actual: proseRuns, floor: 90 },
   ],
   fail,
 )
@@ -191,6 +320,7 @@ if (failures) {
 }
 console.log(
   `✓ raw-FHIR rendering: ${files.length} component(s) scanned, ` +
-    `${guarded} that serialize or dump ask useInspect(), ${exempted} exempt with a reason` +
+    `${guarded} that serialize or dump ask useInspect(), ${exempted} exempt with a reason; ` +
+    `${recorders.length} recorder view(s), ${proseRuns} JSX text run(s) free of the wire format` +
     (floorsHeld ? '' : ' (floors short)'),
 )

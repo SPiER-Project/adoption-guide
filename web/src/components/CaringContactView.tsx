@@ -91,11 +91,18 @@ export function CaringContactView() {
       title="Log a Caring Contact"
       lede={
         <>
-          Records a <strong>Communication</strong> on the{' '}
-          <strong>SPiER Caring Contact</strong> profile, tagged to the{' '}
-          <strong>Track Follow-Up</strong> stage. A caring contact asks nothing of the patient, so
-          it has no reached/unreached outcome — what it carries instead is the{' '}
-          <em>opt-out</em>, which is what stops the schedule.
+          Logs a caring contact under <strong>Track Follow-Up</strong>. A caring contact asks
+          nothing of the patient, so there is no reached-or-not outcome to record — the one thing
+          that changes what happens next is whether they have asked to stop.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>Communication</strong> on the <strong>SPiERCaringContact</strong>{' '}
+          profile. The adherence measure matches its numerator on that profile, and the{' '}
+          <code>caring-contact-opt-out</code> extension is what its{' '}
+          <code>denominator-exclusion</code> reads — which is why this is not the generic recorder
+          (#211).
         </>
       }
       draft={draft}
@@ -124,8 +131,8 @@ export function CaringContactView() {
       {alreadyOptedOut && (
         <WorkflowHint>
           This patient has <strong>opted out</strong> of the caring-contact series. Stopping is the
-          correct action — the Stage-8 adherence measure excludes them from its denominator rather
-          than scoring the missing contacts as a failure.
+          correct action — the adherence report leaves them out rather than counting the contacts
+          you did not send against you.
         </WorkflowHint>
       )}
 
@@ -170,9 +177,8 @@ export function CaringContactView() {
           }
           help={
             <>
-              Stamps the <code>caring-contact-opt-out</code> extension. This is what excludes the
-              patient from the adherence measure&rsquo;s denominator, so honoring the request cannot
-              read as a missed contact.
+              Stops the series, and records on the chart that the patient asked for it — so
+              honoring the request cannot later read as a run of missed contacts.
             </>
           }
         />

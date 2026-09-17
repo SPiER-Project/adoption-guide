@@ -19,7 +19,8 @@ Three questions, answered in order:
   that now exists cannot see.
 - **§5** — whether a view can be derived from the catalog instead of written.
 
-**§4 is the one open decision**, and it is Brad's, not a gate's.
+**§4 was the one open decision.** Brad settled it the same day — the recorder
+describes the act — so it is now a rule with a gate rather than a question.
 
 ---
 
@@ -206,42 +207,111 @@ the answer is used.
    `Object.entries(resource)`, a `<code>` holding a coding, a syntax
    highlighter fed a resource. All read as raw FHIR to a clinician; none match
    either pattern.
+4. **An unguarded wrapper around `FhirJsonViewer`.** ⚠️ This one has a live
+   instance. The leaf returns `null` on its own, so a call site that renders it
+   bare is correct and needs no `useInspect()` — but a call site that wraps it
+   in chrome leaves the chrome behind when the leaf disappears.
+   `PatientDocuments`, `PatientPathway` and `CarePlanDisplay` each check for
+   that reason. **`ToolDetail` does not, and it wraps its examples in a
+   `<section>` with an "FHIR Examples" heading** — so outside the guide it would
+   render a heading over nothing. It is safe only because `PatientJourney` is
+   its one caller and that page is inside the guide (corrected in CLAUDE.md by
+   #527, which is also where the "four self-gating call sites" claim was fixed
+   to three). Neither RULE 1 nor RULE 2 can see it: `ToolDetail` neither
+   serializes nor renders a `<pre>`. A rule for it would have to ask whether a
+   `<FhirJsonViewer>` has a *sibling or ancestor inside the same conditional* —
+   answerable with the RULE 3 parser, and not attempted here.
 4. **Prose.** Which is §4.
 
 ---
 
-## 4. Open: the recorders name their FHIR resource type to the clinician
+## 4. Settled: the recorder describes the act, not the resource
 
-The clean-surface work removed the JSON. It did not touch the words, and
-`WorkflowForm` renders its `lede` through `PageHeader` unconditionally — on
-`/patient/workflow/*`, to a clinician, with no `useInspect()` anywhere near it.
-Every one of the eleven recorders says some version of:
+The clean-surface work removed the JSON and left the words. `WorkflowForm`
+renders its `lede` through `PageHeader` **unconditionally** — on
+`/patient/workflow/*`, to a clinician, with no `useInspect()` anywhere near it —
+and every one of the eleven recorders opened by naming its resource type:
 
 > Records a **Communication** tagged to the **Track Follow-Up** stage.
 > Records a **ServiceRequest** … trackable past *sent*.
 > Records an **EpisodeOfCare** plus its **Flag** chart banner.
 > Records a **DocumentReference** … the packet is a retrievable artifact.
 
-and three go further into the wire format in field help a clinician reads while
-filling the form: `caring-contact-opt-out` and `episode-trigger` as
-`<code>`, and the discharge packet's related-resource picker, which lists
-`CarePlan/{id}` and `Observation/{id}` references beside each checkbox.
+Three went further into the wire format in field help a clinician reads *while
+filling in the form*: `caring-contact-opt-out` and `episode-trigger` as
+`<code>`, and the discharge packet's related-resource picker, which printed
+`CarePlan/{id}` and `Observation/{id}` beside each checkbox. Elsewhere:
+`Appointment.status`, `Task.code`, "a nested deny provision", "SNOMED codes this
+as counseling", "the Stage-8 adherence measure excludes them from its
+denominator", and a bare `TL-032`.
 
-**This is the same class of thing as the JSON and it survived the sweep**, which
-is worth stating plainly: the JSON was found by grepping for a *mechanism*, and
-prose has no mechanism to grep for.
+**This is the same class of thing as the JSON and it survived the sweep** — the
+JSON was found by grepping for a *mechanism*, and prose has none.
 
-⚠️ **Deliberately not gated, and deliberately not changed.** Whether
-"Records a Communication tagged to the Coordinate Handoffs stage" is a defect or
-a deliberate part of SPiER's pitch is a product decision nobody has made — the
-argument for keeping it is that a recorder whose whole point is *this workflow
-step has a FHIR shape* may reasonably say so, and the pathway-stage half of
-every sentence is clinician-facing regardless. A gate must not decide that. What
-the next pass needs is Brad's answer to one question: **does the clinician's
-recorder describe the act, or the resource?** If the act, the fix is eleven
-ledes and three help strings, and it is mechanical.
+### The decision (Brad, 2026-09-17) and the split it produced
 
----
+**The recorder describes the act.** A resource type, a profile name, an
+extension id or an `Element.path` may not appear in anything a clinician reads.
+
+The implementer's half is not deleted, because the argument is worth keeping and
+`/guide/tools/:slug/try` exists to show it — it moves to a new `fhirNote` prop on
+`WorkflowForm`, rendered **inside the `CodeDrawer`**, which is already gated by
+`useInspect()` along with the draft. So "a ServiceRequest, because `status`
+models `draft → active → completed | revoked` natively and a Communication
+cannot express that at all" now sits beside the ServiceRequest it is describing,
+which is where it always belonged.
+
+| | renders | audience |
+|---|---|---|
+| `lede` | `PageHeader`, always | the clinician: what this records, under which stage |
+| `fhirNote` | `CodeDrawer`, gated | the implementer: what it writes, and why that shape |
+| `draftTitle` + `draft` | `CodeDrawer`, gated | unchanged |
+
+### And it *is* gated — `check:fhir-render` RULE 3
+
+⚠️ **A text scan cannot do this one**, and shipping one that looked like it
+could would be worse than nothing. `Appointment` is a resource type in
+`<strong>Appointment</strong>`, an identifier in `AppointmentResource`, and a
+reference prefix in `` `Appointment/${a.id}` `` — one token, three meanings, and
+only the first is prose. So RULE 3 parses each recorder with **TypeScript's own
+parser** and reads **JSXText nodes only**: what is rendered as words.
+Identifiers, imports, template literals and string attributes are invisible to
+it by construction, which is why `draftTitle="Live FHIR Communication"` needs no
+exemption. The `fhirNote={…}` subtree is skipped whole.
+
+⚠️ **A word list could not have caught the field help, so the tag is the rule
+there.** `caring-contact-opt-out` is a kebab-case slug and nothing distinguishes
+it from "no-show follow-up" or "care-gap" by spelling. What distinguishes it is
+the *element*: a recorder reaching for `<code>` is quoting an identifier at
+someone who has no identifier to be shown. So a recorder view may not render
+`<code>` outside `fhirNote` — full stop, no word list involved.
+
+Six plants, each run and reverted, and the first two are the **original text**
+restored verbatim rather than a synthetic defect:
+
+| Planted | Caught by |
+|---|---|
+| `SafetyReferralView`'s original lede | resource type — `ServiceRequest`, `Communication` |
+| `CaringContactView`'s original opt-out help | the `<code>` rule |
+| `Appointment.status` in a lede | resource type **and** element path |
+| `SPiERRiskEpisode` in a lede | profile name |
+| a resource type moved into the lede beside a correct `fhirNote` | resource type — the carve-out is the attribute, not the file |
+| the `<WorkflowForm>` detection stops matching | throws: "it would now check nothing" |
+
+### What RULE 3 still cannot see
+
+- **A resource type it has not been taught.** The list is 15 names. A recorder
+  writing an `AllergyIntolerance` would pass.
+- **A recorder that is not one.** The view set is derived from "renders
+  `<WorkflowForm>`", which is right today and is why the detection throws rather
+  than passing when it matches nothing — but a recorder built on some other
+  frame is outside the rule.
+- **`QuestionnaireView` and the fillers.** They render no lede, so there is
+  nothing to check; if one grows prose, RULE 3 will not be looking.
+- **Jargon that is not FHIR.** "denominator", "SHALL", "TL-032" and "SNOMED
+  codes this as counseling" were all fixed by hand in the same pass and none of
+  them is gated. A reader who writes "excluded from the measure denominator"
+  tomorrow gets a green build.
 
 ## 5. Deriving the view from the ActivityDefinition: **no**
 
@@ -314,8 +384,8 @@ Two candidates, in order:
    cannot see a *wrong* description, only a wrong type, which is the half that
    matters.
 
-Both are worth doing after §4 is decided, because §4 may rewrite the same
-sentences.
+Both are now unblocked: §4 is settled, and the `fhirNote` prop it produced is
+where a derived resource type would be rendered.
 
 ---
 

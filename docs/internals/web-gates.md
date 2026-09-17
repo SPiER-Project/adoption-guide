@@ -92,10 +92,36 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # leaving the hook call was green); a dump assembled in a `.ts` helper
                        # and rendered by a `.tsx` that never writes `JSON.stringify`; and a
                        # resource rendered without being serialized at all — a table over
-                       # `Object.entries(resource)`, a `<code>` holding a coding. Prose is a
-                       # fourth: every workflow recorder's lede names its FHIR resource type
-                       # on the clinician's route, and whether that is a defect is a design
-                       # decision — see `docs/internals/tool-views.md` §4
+                       # `Object.entries(resource)`, a `<code>` holding a coding; and an
+                       # UNGUARDED WRAPPER around FhirJsonViewer, which has a live instance:
+                       # ToolDetail wraps its examples in a <section> with a heading and calls
+                       # no useInspect(), so outside the guide it would render a heading over
+                       # nothing. Safe only because its one caller is a guide page (#527).
+                       # RULE 3 is the prose half, and it PARSES rather than scanning: a
+                       # recorder describes the ACT, not the resource (Brad, 2026-09-17).
+                       # ⚠️ A text scan cannot do it — `Appointment` is a resource type in
+                       # `<strong>Appointment</strong>`, an identifier in `AppointmentResource`
+                       # and a reference prefix in `Appointment/${id}`, one token and three
+                       # meanings. So it reads TypeScript's own JSXText nodes: what renders as
+                       # WORDS. Identifiers, imports, template literals and string attributes
+                       # are invisible by construction, which is why draftTitle="Live FHIR
+                       # Communication" needs no exemption, and the `fhirNote={…}` subtree —
+                       # the implementer's half, rendered inside the useInspect()-gated
+                       # CodeDrawer — is skipped whole.
+                       # ⚠️ **A word list could not have caught the field help**, so there the
+                       # TAG is the rule: `caring-contact-opt-out` is a kebab-case slug and
+                       # nothing tells it from "no-show follow-up" by spelling. What does is
+                       # the element — a recorder reaching for `<code>` is quoting an
+                       # identifier at someone who has no identifier to be shown. So a
+                       # recorder view renders no `<code>` outside `fhirNote`.
+                       # Six plants, the first two being the ORIGINAL text restored verbatim
+                       # rather than a synthetic defect. ⚠️ What RULE 3 still cannot see: a
+                       # resource type not on its 15-name list; a recorder built on some other
+                       # frame than <WorkflowForm> (the detection THROWS on matching nothing,
+                       # which is the half that is covered); the Questionnaire fillers, which
+                       # render no lede; and non-FHIR jargon — "denominator", "SHALL", a bare
+                       # "TL-032" were all fixed by hand in the same pass and none is gated.
+                       # See `docs/internals/tool-views.md` §4
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
                        # and the shim still covers every method its consumers call
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",

@@ -119,7 +119,8 @@ function ConsentGateNotice({
     title = 'Everything withheld — the patient declined sharing'
     detail = (
       <>
-        The governing consent is a deny: nothing may be released to <strong>{recipient}</strong>.{' '}
+        The consent on file declines sharing, so nothing may be released to{' '}
+        <strong>{recipient}</strong>.{' '}
         {onFile}
       </>
     )
@@ -128,8 +129,8 @@ function ConsentGateNotice({
     title = 'Everything withheld — this recipient is excluded by name'
     detail = (
       <>
-        The patient&rsquo;s consent permits sharing, but names <strong>{recipient}</strong> in a deny
-        provision. {onFile}
+        The patient&rsquo;s consent permits sharing, but names <strong>{recipient}</strong> as
+        someone not to share with. {onFile}
       </>
     )
   } else if (decision.blanketBasis === 'recipient-not-authorised') {
@@ -300,11 +301,24 @@ export function DischargePacketView() {
       title="Discharge Safety Packet / Transition Bundle"
       lede={
         <>
-          Records a <strong>DocumentReference</strong> tagged to the{' '}
-          <strong>Coordinate Handoffs</strong> stage. The packet is a retrievable artifact, not a
-          transmission — and it <em>points at</em> the live safety plan and appointment rather than
-          copying them. Where the patient&rsquo;s sharing consent excludes something, the packet
+          Assembles the discharge packet under <strong>Coordinate Handoffs</strong>. It is
+          something the patient or the next provider can go back and retrieve, and it{' '}
+          <em>points at</em> the live safety plan and appointment rather than copying them, so it
+          cannot go stale. Where the patient&rsquo;s sharing consent excludes something, the packet
           leaves it out and <em>says so</em>.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>DocumentReference</strong> (<strong>SPiERDischargeSafetyPacket</strong>)
+          rather than another <strong>Communication</strong>: the handoff is an <em>event</em>, the
+          packet is an <em>object</em> that persists. <code>context.related</code> carries the
+          live resources it was assembled from, and the included-item checklist rides as repeating{' '}
+          <code>handoff-content-item</code> extensions. This is the one screen in SPiER where a
+          recorded preference <em>changes</em> an artifact rather than sitting beside it (#227) —
+          the rules are in <code>applySharingConsent()</code>, and anything excluded is recorded as
+          a withheld item with its basis, because a packet silently missing a section is
+          indistinguishable from a bug.
         </>
       }
       draft={draft}
@@ -369,7 +383,7 @@ export function DischargePacketView() {
           label="Released to"
           optional="leave blank for a patient copy"
           help="Naming a third party makes this a disclosure, so the patient&rsquo;s recorded sharing
-            consent (TL-032) decides what the packet may carry."
+            consent decides what the packet may carry."
         >
           <input
             type="text"
@@ -416,10 +430,15 @@ export function DischargePacketView() {
           </legend>
           {relatedOptions.length === 0 ? (
             <WorkflowHint>
-              No safety plan, risk observation or appointment on this chart yet — the packet will
-              record its contents as codes only.
+              No safety plan, risk assessment or appointment on this chart yet — the packet will
+              list what it contains without linking to anything.
             </WorkflowHint>
           ) : (
+            // ⚠️ The reference itself used to render beside the label, as a
+            // `<code>CarePlan/{id}</code>`. That is the wire format on the
+            // clinician's route — see the split in WorkflowForm's header. The
+            // labels already say which safety plan and which appointment, and
+            // the references are in the drawer's draft.
             relatedOptions.map(opt => (
               <label key={opt.reference}>
                 <input
@@ -427,7 +446,7 @@ export function DischargePacketView() {
                   checked={related.includes(opt.reference)}
                   onChange={() => setRelated(prev => toggle(prev, opt.reference))}
                 />{' '}
-                {opt.label} <code>{opt.reference}</code>
+                {opt.label}
               </label>
             ))
           )}

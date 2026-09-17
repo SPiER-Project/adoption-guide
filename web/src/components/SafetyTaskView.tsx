@@ -95,8 +95,18 @@ export function SafetyTaskView() {
       title="Safety Tasks — reassessment, care gaps, escalation"
       lede={
         <>
-          Records a <strong>Task</strong> tagged to the <strong>Track Risk Over Time</strong>{' '}
-          stage. One shape serves all three tools; <em>Task.code</em> says which.
+          Puts a piece of safety work on the chart under{' '}
+          <strong>Track Risk Over Time</strong> — a reassessment coming due, a care gap to close,
+          or an escalation. It lands in the same work queue the risk registry reads.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>Task</strong>. One shape serves all three tools and{' '}
+          <code>code</code> says which: reassessment-due is the review schedule, the care-gap codes
+          are open safety actions, and <code>escalation</code> plus its repeating trigger extension
+          is the escalation workflow. Overdue is computed from the due date on every render rather
+          than stored, so the list cannot disagree with the clock.
         </>
       }
       draft={draft}

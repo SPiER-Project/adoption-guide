@@ -83,10 +83,20 @@ export function SharingConsentView() {
       title="Consent / Information-Sharing Status"
       lede={
         <>
-          Records a <strong>Consent</strong> tagged to the{' '}
-          <strong>Coordinate Handoffs</strong> stage. A patient declining is a{' '}
-          <em>deny provision</em> rather than a separate status, so the EHR can compute what may be
-          sent at a handoff instead of guessing.
+          Records what the patient has agreed may be shared, under{' '}
+          <strong>Coordinate Handoffs</strong>. Declining is recorded as a decision about a named
+          recipient rather than a blanket flag, which is what lets a handoff work out what it may
+          carry instead of guessing.
+        </>
+      }
+      fhirNote={
+        <>
+          Writes a <strong>Consent</strong> with native structures rather than SPiER-local codes,
+          so any consent engine can compute a handoff: <code>provision.type</code> permit/deny is
+          the decision, <code>provision.actor</code> the recipient, <code>provision.period</code>{' '}
+          the expiry. There is deliberately no &ldquo;patient declined&rdquo; status — declining is
+          a deny provision, and the nested one expresses the harder real case, &ldquo;share with
+          the clinic, but not with this named support person&rdquo;.
         </>
       }
       draft={draft}
@@ -164,7 +174,7 @@ export function SharingConsentView() {
           />
         </WorkflowField>
 
-        <WorkflowField label="Specifically excluded person" optional="optional — a nested deny provision">
+        <WorkflowField label="Specifically excluded person" optional="optional — someone the patient does not want told">
           <input
             type="text"
             className="workflow-input"
