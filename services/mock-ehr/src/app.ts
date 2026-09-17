@@ -57,6 +57,7 @@ import {
 import { ROSTER_TYPE, SEARCHABLE_TYPES, applySearch, parseSearch } from './search'
 import { controlPage } from './controlPage'
 import { homePage, patientChartPage } from './chartPage'
+import { FAVICON_SVG } from './hostChrome'
 import { validateWrite, withAssignedId } from './validate'
 import { storeFor } from './store'
 import type { DemoStore } from './demoStore'
@@ -955,6 +956,23 @@ app.get('/_admin/fhircast', async (c) => {
 app.get('/', async (c) => {
   return c.html(homePage(DEMO_PATIENTS))
 })
+
+/**
+ * The tab mark, served rather than linked to a static file: this Worker has no
+ * Static Assets binding (see wrangler.jsonc) — it serves FHIR and its own
+ * pages, and adding an assets bucket for one 400-byte SVG would be the larger
+ * change.
+ *
+ * Cached for a day. The icon changes about as often as the palette does, and a
+ * browser that re-fetches it on every page load is a needless request on a
+ * demo whose whole point is being watched live.
+ */
+app.get('/favicon.svg', (c) =>
+  c.body(FAVICON_SVG, 200, {
+    'content-type': 'image/svg+xml; charset=utf-8',
+    'cache-control': 'public, max-age=86400',
+  }))
+
 
 // `/chart` was the patient list before the list became the front door. Kept as a
 // redirect rather than deleted: it is in the README, in two plan docs and in

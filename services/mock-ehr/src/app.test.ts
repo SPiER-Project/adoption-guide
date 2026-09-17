@@ -231,3 +231,39 @@ describe('control surface', () => {
     expect(body).toMatchObject({ resourceType: 'OperationOutcome' })
   })
 })
+
+/**
+ * The tab mark. Two of these three assertions are about the demo claim rather
+ * than about HTTP: the host is supposed to look like someone else's product,
+ * and a tab strip is the cheapest place to accidentally undo that.
+ */
+describe('favicon', () => {
+  it('serves an SVG with every token resolved', async () => {
+    const res = await app.request(`${BASE}/favicon.svg`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('image/svg+xml')
+    const svg = await res.text()
+    expect(svg).toContain('<svg')
+    // A standalone SVG has no stylesheet to resolve against, so a surviving
+    // var() would render the shape black — the failure that looks like a
+    // design choice at 16px.
+    expect(svg).not.toMatch(/var\(/)
+    expect(svg).toMatch(/fill="#[0-9a-f]{6}"/i)
+  })
+
+  it('carries none of the guest\'s colours', async () => {
+    const svg = await (await app.request(`${BASE}/favicon.svg`)).text()
+    // --guest-brand / --guest-ink / --guest-tint. Permitted on the chrome bar
+    // where the host NAMES SPiER; not on the host's own mark.
+    for (const guest of ['#cc3366', '#341528', '#fdf5f8']) {
+      expect(svg.toLowerCase()).not.toContain(guest)
+    }
+  })
+
+  it('is linked from every page the host renders', async () => {
+    for (const path of ['/', '/settings', '/chart/patient-011']) {
+      const html = await (await app.request(`${BASE}${path}`)).text()
+      expect(html, path).toContain('<link rel="icon" type="image/svg+xml" href="/favicon.svg">')
+    }
+  })
+})
