@@ -4,9 +4,12 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 // `base` is env-driven so one codebase serves at the domain root (Cloudflare and
-// local dev — the default `/`) and under /adoption-guide/ (legacy GitHub Pages,
-// whose deploy workflow sets VITE_BASE). In-app asset + IG links read
+// local dev — the default `/`) and under /adoption-guide/ (GitHub Pages, whose
+// deploy workflow sets VITE_BASE). In-app asset + IG links read
 // import.meta.env.BASE_URL, so they follow whichever base is active.
+//
+// Neither host is legacy: both are deployed from deploy.yml on every push to
+// main, and both serve the rendered IG at <base>ig/ since 2026-09-18.
 export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE ?? '/',

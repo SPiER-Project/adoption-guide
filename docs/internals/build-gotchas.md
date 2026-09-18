@@ -167,6 +167,12 @@ one file.
 `.nvmrc` (and `.node-version`) to pick the Node version for the *deploy* build.
 See [`.github/README.md`](../../.github/README.md).
 
+⚠️ **Dormant since 2026-09-18, not retired.** Workers Builds was disconnected
+when the Cloudflare deploy moved into `deploy.yml`'s `cloudflare` job, which gets
+its Node version from `.github/.nvmrc` like every other job. The rule above costs
+nothing to keep and is the one that bites if anyone reconnects the dashboard
+integration — which `services/cds-hooks/README.md` says not to do.
+
 ### Why the floor is load-bearing, and why 20 → 22 lowers risk rather than raising it
 
 The floor was Node 20, and it was a genuine compatibility contract: several

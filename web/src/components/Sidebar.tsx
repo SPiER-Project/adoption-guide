@@ -86,11 +86,24 @@ const MOCK_EHR = {
 } as const
 
 /**
- * The published HL7 IG is a sibling static site (`web/dist/ig/`), not a hash
- * route — link it with a plain anchor built from the Vite base path so it follows
- * whichever base is active: `/ig/` on Cloudflare and in local dev (where `npm run
- * dev` does not serve it), `/adoption-guide/ig/` on the legacy GitHub Pages
- * deploy, whose workflow sets `VITE_BASE`. See the note in `vite.config.ts`.
+ * The published HL7 IG is a sibling static site, not a hash route — link it with
+ * a plain anchor built from the Vite base path so it follows whichever base is
+ * active: `/ig/` on Cloudflare, `/adoption-guide/ig/` on GitHub Pages, whose
+ * deploy workflow sets `VITE_BASE`. See the note in `vite.config.ts`.
+ *
+ * ⚠️ **Both hosts serve it for real as of 2026-09-18.** Cloudflare answered this
+ * href with a 302 to Pages until then, so the link worked but left the origin;
+ * `deploy.yml`'s `cloudflare` job now stages the render into the Worker's own
+ * Static Assets. Nothing here changed — recorded because the href looking
+ * untouched is exactly what makes the behaviour change easy to miss.
+ *
+ * ⚠️ It stays a NEW-TAB link even though Cloudflare now serves it same-origin.
+ * The IG is ~4,000 static pages with its own navigation; following it in place
+ * strands the reader outside the SPA with only Back to get home. Same-origin is
+ * a hosting fact, not a reason to merge two documents.
+ *
+ * ⚠️ Local `npm run dev` serves NEITHER — nothing renders the IG locally, so
+ * this link 404s in dev on purpose.
  */
 const IG = {
   href: `${import.meta.env.BASE_URL}ig/`,

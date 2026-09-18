@@ -5,14 +5,15 @@
  *   - the adoption-guide SPA, served from Static Assets (the `ASSETS` binding,
  *     directory ./web-dist — the web app's `vite build` output at base `/`);
  *   - the CDS Hooks 2.0 API under /cds-services/*;
- *   - a permanent /ig/* redirect to the rendered HL7 IG on GitHub Pages, which
- *     is its only host — see CANONICAL_IG_BASE
- *     (the IG is built there by the Java IG Publisher, not on this Worker).
+ *   - the rendered HL7 IG under /ig/*, served from those SAME Static Assets
+ *     (rendered by the Java IG Publisher in `deploy.yml` and staged into
+ *     ./web-dist/ig by its `cloudflare` job — never built on this Worker).
  *
  * `run_worker_first` (wrangler.jsonc) means this handler sees every request:
- * Hono routes the API + redirect, and the catch-all delegates to ASSETS (which
- * does SPA fallback). App↔API calls are same-origin; external EHR/sandbox calls
- * to /cds-services get the wide-open CORS below.
+ * Hono routes the API, and the catch-all delegates everything else — SPA and
+ * IG alike — to ASSETS (which does SPA fallback). App↔API calls are
+ * same-origin; external EHR/sandbox calls to /cds-services get the wide-open
+ * CORS below.
  *
  * CDS Hooks spec: https://cds-hooks.org/specification/current/
  */
@@ -49,24 +50,6 @@ interface Env extends CdsJwtEnv {
  * decorative.
  */
 const DEFAULT_FRAME_ANCESTORS = "'self' https://spier-mock-ehr.bbthorson.workers.dev"
-
-/**
- * Canonical GitHub Pages home of the rendered IG (see the /ig redirect below).
- *
- * ⚠️ **This Worker does not and will not serve the IG, and that is a decision
- * rather than a pending migration.** `deploy.yml` runs the Java IG Publisher and
- * nests the render into the Pages artifact; the Cloudflare build only runs
- * `npm run build` here, so there is nothing to serve.
- * [`surfaces-and-distribution.md` §4](../../../docs/plans/surfaces-and-distribution.md)
- * recommends keeping it that way — Pages is free, the 254 MB render would be
- * pushed on every deploy, and `deploy.yml` uploads the SPA and the IG as ONE
- * Pages artifact, so moving the IG means unpicking a coupling for little gain.
- *
- * ⚠️ It also names the number nobody has measured: Static Assets caps **file
- * count**, not total bytes, and `find ig/output -type f | wc -l` has never been
- * run. So "it would fit" is not currently a claim anyone can make.
- */
-const CANONICAL_IG_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
 
 const app = new Hono<{ Bindings: Env; Variables: CdsJwtVariables }>()
 
@@ -114,23 +97,24 @@ app.post(`/cds-services/${SERVICE_ID}`, cdsJwt(), async (c) => {
 // Feedback — accepted per spec but not persisted (stateless service).
 app.post(`/cds-services/${SERVICE_ID}/feedback`, cdsJwt(), (c) => c.body(null, 200))
 
-// ── IG redirect (permanent) ──────────────────────────────────────────────────
-// The rendered IG lives only on the canonical GitHub Pages site; the app's /ig/
-// links (import.meta.env.BASE_URL + 'ig/') land here.
+// ── The rendered IG (/ig/*) ──────────────────────────────────────────────────
+// No handler. `deploy.yml`'s `cloudflare` job stages the IG Publisher's render
+// into ./web-dist/ig, so the catch-all below serves it from Static Assets like
+// any other file. Adopted 2026-09-18, reversing the 2026-08-23 decision in
+// [`surfaces-and-distribution.md` §4](../../../docs/plans/surfaces-and-distribution.md).
 //
-// ⚠️ **This said "transitional" and "during the migration" for a plan nobody
-// held**, which is precisely what `surfaces-and-distribution.md` §4 warned the
-// word would do: it invites the reader to assume the IG is on its way here. It
-// was read that way and the question had to be answered by curling the live host.
-// §4's recommendation is to treat the redirect as the permanent answer or file
-// the move deliberately; this takes the first option. Filing the move is still
-// open — it just needs to be a decision with the file-count measurement behind
-// it, not an adjective.
-app.get('/ig', (c) => c.redirect(CANONICAL_IG_BASE, 302))
-app.get('/ig/*', (c) => {
-  const rest = c.req.path.slice('/ig/'.length)
-  return c.redirect(CANONICAL_IG_BASE + rest, 302)
-})
+// ⚠️ **What reversed it was a measurement, not a preference.** §4 adopted "leave
+// the IG on Pages" while flagging that the number which decides it had never
+// been taken: Static Assets caps **file count and per-file size**, not total
+// bytes. Counted from the published render's own `full-ig.zip`: **4,069 files,
+// largest 8.88 MB** against limits of 20,000 files / 25 MiB per file. It fits
+// with ~5x headroom, so re-litigating this needs a new count, not an opinion.
+//
+// ⚠️ A path under /ig/ that does not exist returns the SPA shell with **200**,
+// not a 404 — `not_found_handling: "single-page-application"` (wrangler.jsonc)
+// applies to every asset path, and GitHub Pages 404'd these. The app's routes
+// are all hash routes, so switching to `"none"` would restore real 404s without
+// breaking the SPA; that is a deliberate follow-up, not an oversight.
 
 // ── Static SPA (everything else) ─────────────────────────────────────────────
 // Delegate to Static Assets; not_found_handling: single-page-application means

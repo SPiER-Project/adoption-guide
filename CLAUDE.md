@@ -204,6 +204,16 @@ cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no 
                                                          # every var(--…) resolves)
 ```
 
+⚠️ **The SPA Worker also serves the rendered IG at `/ig/`, and CI is the only
+thing that can put it there.** `deploy.yml`'s `cloudflare` job stages the IG
+Publisher's render into `web-dist/ig` and runs `wrangler deploy`; a local
+`npm run deploy` in `services/cds-hooks` ships a Worker whose `/ig/*` 404s,
+because `stage:assets` begins with `rm -rf web-dist` and nothing local renders
+the IG. Cloudflare's **Workers Builds** git integration is disconnected on
+purpose (2026-09-18) — reconnecting it races a second, IG-less deploy against
+the Actions one. `index.ts` must NOT regain an `/ig` route; `run_worker_first`
+means any such handler shadows ~4,000 real files, and `app.test.ts` gates it.
+
 ⚠️ **The mock EHR is deliberately NOT styled like SPiER** — that is a demo claim,
 not a preference. See [`docs/internals/workers.md`](docs/internals/workers.md).
 

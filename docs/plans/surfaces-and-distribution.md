@@ -206,56 +206,82 @@ has never been seen red is not evidence of anything.
 |---|---|---|
 | Guide + panel (SPA) | Worker Static Assets | also deployed to GitHub Pages under `/adoption-guide/` |
 | CDS Hooks API | same Worker, `/cds-services/*` | `run_worker_first`, Hono |
-| Rendered IG | **GitHub Pages** | the Worker only *redirects* — see below |
+| Rendered IG | **both** — Worker Static Assets *and* GitHub Pages | one gated render, deployed twice — see below |
 | Mock EHR | its own Worker | separate origin is a requirement, not a preference |
 
-The Worker does not serve the IG. [`services/cds-hooks/src/index.ts`](../../services/cds-hooks/src/index.ts)
-redirects `/ig` and `/ig/*` to `https://spier-project.github.io/adoption-guide/ig/`.
-Verified live 2026-08-23: the Worker path returns **302**, the Pages path returns
-**200**.
+The Worker serves the IG from `web-dist/ig` as of **2026-09-18**. `deploy.yml`
+renders it once, gates it on CQL + QA, and two jobs ship the same bytes: `build`
+nests it into the Pages artifact, `cloudflare` stages it into the Worker's Static
+Assets. [`services/cds-hooks/src/index.ts`](../../services/cds-hooks/src/index.ts)
+has **no `/ig` route at all** — the catch-all serves it like any other file, and
+`app.test.ts` asserts no handler comes back to shadow it.
 
-⚠️ That comment called the redirect *"transitional"* until 2026-08-23, and the
-word did exactly the damage the recommendation below predicted — it was read as
-"the IG is on its way to the Worker", and the question *"are the IGs published on
-my worker?"* had to be settled by curling the live host. It now says permanent,
-and points here.
+⚠️ **The history is worth keeping, because this section was wrong twice in
+opposite directions.** The Worker's comment called the redirect *"transitional"*
+until 2026-08-23 — read as "the IG is on its way to the Worker", which had to be
+settled by curling the live host. It was then corrected to *"does not and will
+not serve the IG"*, which was an equally strong claim resting on a number nobody
+had. Both readings were confident; neither was measured.
 
-### The IG measurement, and the one that is missing
+### The IG measurement — taken 2026-09-18
 
 **254 MB** — `ig/output`, measured from deploy run `32155158199` (2026-08-18).
 `deploy.yml`'s summary step reports it via `du -sh ig/output`.
 
 ⚠️ **That is not the number that decides whether it fits on Workers.** Static
-Assets binds on **file count and per-file size** — on the order of 20,000 files
-and 25 MiB per file, worth re-checking against current published limits — not on
-total bytes. An IG Publisher render emits several serializations per resource
-plus package artifacts, so with ~190 resources the count could land anywhere from
-a few thousand to well past the cap, and **nothing measures it.**
-
-**Phase A is one line** in the same summary step:
+Assets binds on **file count and per-file size**, not total bytes. This section
+said that number had never been measured, and used its absence to support leaving
+the IG on Pages. It has now been measured — without a CI run, because the
+published IG ships its own `full-ig.zip`:
 
 ```sh
-find ig/output -type f | wc -l
+curl -sL -o full-ig.zip https://spier-project.github.io/adoption-guide/ig/full-ig.zip
+unzip -l full-ig.zip | tail -3          # 4,070 entries, 230 MB uncompressed
 ```
 
-### Recommendation: leave the IG on Pages — ADOPTED 2026-08-23
+| | Measured (2026-09-18) | Limit |
+|---|---|---|
+| Files | **4,069** under `site/` | 20,000 free / 100,000 paid |
+| Largest file | **8.88 MB** (`site/package.db`) | 25 MiB |
+| Uncompressed | 230 MB | no stated aggregate cap |
 
-Even if it fits. It is free, it is already canonical in the redirect, pushing
-254 MB on every deploy would be slow, and `deploy.yml` uploads the SPA and the
-IG as a single Pages artifact — CLAUDE.md notes the two cannot be decoupled, so
-moving the IG means unpicking that coupling for little gain.
+It fits with roughly 5× headroom on the binding constraint. `deploy.yml` now
+asserts the count on every deploy rather than trusting this snapshot, because the
+render grows with every profile added.
 
-✅ **The first of the two options offered here is taken.** The Worker's comment
-now calls the redirect permanent and carries the reasoning, so a reader meets the
-decision where they meet the code. Filing the move remains open — but it needs
-the file-count measurement above behind it, not an adjective.
+### Decision: serve the IG from BOTH — ADOPTED 2026-09-18, reversing 2026-08-23
+
+The 2026-08-23 recommendation (*"leave the IG on Pages, even if it fits"*) rested
+on four supports. The measurement removed one and weakened two:
+
+- ~~*Nobody knows whether it fits.*~~ It fits — 4,069 files against 20,000.
+- ~~*Pushing 254 MB on every deploy would be slow.*~~ Wrangler content-hashes
+  assets and uploads only what changed, so steady state is the handful of pages
+  that actually moved, not the tree.
+- ~~*`deploy.yml` uploads the SPA and the IG as ONE artifact, so they cannot be
+  decoupled.*~~ True of **GitHub Pages**, whose artifact replaces the whole site.
+  It was never a property of the Worker, and the `cloudflare` job is a separate
+  job precisely so the two targets fail independently.
+- *Pages is free.* Still true, and it is why Pages **stays** rather than being
+  retired. This is not a migration.
+
+What the reversal buys is one origin: the SPA, the CDS Hooks API and the IG the
+guide links to now answer on the same host, so `/ig/` is a real page instead of a
+302 off-site, and the published IG survives the Worker being the only thing a
+reader has open.
 
 ⚠️ **One consequence, recorded because it surfaced through the rename question
-(`repo-and-package-boundaries.md` §5):** Pages hosting the IG alone makes it
-**load-bearing, not legacy**, and any summary that calls Cloudflare "the primary
-public host" is describing the SPA row of the table above, not this one. Renaming
-the repository would move the only copy of the render *and* orphan
-`CANONICAL_IG_BASE` inside the Worker.
+(`repo-and-package-boundaries.md` §5):** Pages held the *only* copy of the render
+until 2026-09-18, which made it load-bearing rather than legacy. That is no longer
+true — the Worker has a full copy — so renaming the repository now costs a stale
+Pages URL rather than the render itself. `CANONICAL_IG_BASE` is gone from the
+Worker; nothing in code points at the Pages IG any more.
+
+⚠️ **A missing path under `/ig/` returns the SPA shell with 200, not a 404.**
+`not_found_handling: "single-page-application"` applies to every asset path, and
+Pages 404'd these correctly. The app is a `HashRouter`, so every app route is
+served from `/` and switching to `"none"` would restore real 404s without
+breaking the SPA — an open follow-up, deliberately not bundled into the move.
 
 ### One consequence of keeping guide and panel on one origin
 
