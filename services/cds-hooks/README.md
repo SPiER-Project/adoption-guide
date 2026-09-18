@@ -1,11 +1,28 @@
-# SPiER on Cloudflare Workers
+# The adoption-guide Worker
 
-**One** Cloudflare Worker that hosts the whole SPiER adoption guide:
+**One** Cloudflare Worker hosting three tenants:
 
-- the **adoption-guide SPA**, served from Static Assets (`./web-dist`, the web
-  app's `vite build` output at base `/`);
+- the **adoption-guide SPA** (the `demo` build surface), served from Static
+  Assets (`./web-dist`, the web app's `vite build` output at base `/`);
 - the **CDS Hooks 2.0 API** at `/cds-services/*` — a [Hono](https://hono.dev) app;
-- a transitional **`/ig/*` redirect** to the rendered HL7 IG on GitHub Pages.
+- the **rendered HL7 IG** at `/ig/*`, from those same Static Assets — staged
+  there by `deploy.yml` and never built here. A file over the 25 MiB per-file cap
+  (today just `full-ig.zip`) is not held and 302s to the Pages render.
+
+⚠️ **The Worker's name, this package's name and what it serves have never
+agreed**, which is worth knowing before reading anything below: the Worker is
+`spier-adoption-guide`, the package is `@spier/cds-hooks`, and it serves three
+things of which the API is one.
+
+⚠️ **This is no longer the only Worker serving a SPiER SMART surface.**
+[`services/clinical`](../clinical/README.md) serves the `clinical` build — the
+two SMART apps, no guide routes, no synthetic patient — on its own origin, and
+that is the one the mock EHR frames and the one a real EHR would. It hosts
+neither `/cds-services` (the endpoint's only runtime caller is a guide page, and
+`CDS_JWT_AUDIENCE` is baked to *this* Worker's URL) nor `/ig/`. What the two
+share about being an asset host — the catch-all, the SPA fallback, and the one
+`frame-ancestors` policy — is [`packages/worker-http`](../../packages/worker-http/src/spaAssets.ts),
+gated by `npm run check:csp`.
 
 App ↔ API calls are same-origin (no CORS needed); external CDS clients calling
 `/cds-services` get wide-open CORS. Nothing is persisted.

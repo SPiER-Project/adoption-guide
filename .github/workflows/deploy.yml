@@ -397,6 +397,98 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+  # ── Cloudflare Workers: the CLINICAL surface, its own Worker, its own origin ──
+  #
+  # `services/clinical` serves `web/dist-clinical` — the two SMART apps, no guide
+  # routes, no synthetic patient — and nothing else: no /cds-services, no /ig.
+  #
+  # ⚠️ **Deliberately `needs:` NOTHING.** The other Cloudflare job consumes the
+  # gated IG render and therefore has to wait for `build`; this Worker holds no
+  # IG, so making it wait would couple a clinician-facing deploy to a ~6-minute
+  # Java render it does not use, and to that render's failures. The three deploy
+  # targets fail independently, which is the rule the `cloudflare` job's own
+  # header states.
+  #
+  # ⚠️ **No `VITE_BASE`.** The clinical Worker serves at the origin root, so the
+  # default `/` is right — and unlike the Pages/Worker pair there is no second
+  # base for this build to be confused with.
+  clinical:
+    name: Deploy the clinical Worker to Cloudflare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .github/.nvmrc
+
+      # `build:clinical` runs `tsc -b` and needs the generated FHIR tree, which
+      # its own `prebuild:clinical` hook produces via copy-fhir. That is a SUSHI
+      # compile on a cold cache, so the same package cache the other jobs use is
+      # restored here too.
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Install Worker dependencies
+        working-directory: ./services/clinical
+        run: npm ci
+
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
+      # The Worker package's own script: build the clinical web surface, stage
+      # it into ./web-dist, then bundle the Worker with Vite.
+      - name: Build the Worker and stage the clinical SPA
+        working-directory: ./services/clinical
+        run: npm run build
+
+      # The SPA half of the cap assertion the `cloudflare` job carries. There is
+      # no /ig here and therefore no Pages fallback for anything, so an oversized
+      # file is a hard failure rather than a drop: silently removing a JS bundle
+      # would ship a broken app.
+      - name: Assert the Static Assets caps
+        id: stage
+        working-directory: ./services/clinical
+        run: |
+          cap=26214400   # 25 MiB, the Static Assets per-file limit
+          over=$(cd web-dist && find . -type f -size +${cap}c | sed 's|^\./||' | sort)
+          if [ -n "$over" ]; then
+            echo "::error::over the 25 MiB per-file cap, and this Worker has no fallback host for anything:"
+            printf '  %s\n' $over
+            exit 1
+          fi
+          files=$(find web-dist -type f | wc -l | tr -d ' ')
+          echo "web-dist file count: ${files}"
+          echo "files=${files}" >> "$GITHUB_OUTPUT"
+          if [ "$files" -ge 20000 ]; then
+            echo "::error::${files} files in web-dist — at or over the 20,000 Static Assets limit for the free plan."
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare
+        working-directory: ./services/clinical
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+
+      - name: Report what shipped
+        run: |
+          {
+            echo "### Cloudflare Workers — clinical"
+            echo ""
+            echo "- Worker: \`spier-clinical\`"
+            echo "- Surface: \`VITE_SURFACE=clinical\` — two SMART apps, no guide routes, no synthetic patient"
+            echo "- Static Assets: ${{ steps.stage.outputs.files }} files, no /cds-services and no /ig"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   # ── Cloudflare Workers: the SPA + the CDS API + the rendered IG, one origin ──
   #
   # Separate from `build` so the two targets fail independently: a wrangler

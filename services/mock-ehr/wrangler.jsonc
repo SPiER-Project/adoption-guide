@@ -55,12 +55,20 @@
     // "require" (default) or "off". `off` makes /fhir an open read API again,
     // which is useful for curl exploration and proves nothing about auth.
     "MOCK_AUTH_ENFORCE": "require",
-    // Where the panel lives, for the launch URL the control page mints.
-    "MOCK_PANEL_BASE_URL": "https://spier-adoption-guide.bbthorson.workers.dev/",
-    // Where the CDS Hooks service lives. Blank = the panel's own origin (one
-    // Worker serves both today). Set it when the SMART apps move to their own
-    // domain and the service stays behind — then the chart page calls the
-    // service here and frames the panel from MOCK_PANEL_BASE_URL.
+    // Where the panel lives, and where the CDS Hooks service lives. BOTH are
+    // deliberately blank: the defaults are in src/app.ts
+    // (DEFAULT_PANEL_BASE_URL / DEFAULT_CDS_BASE_URL), they are asserted by
+    // chartPage.test.ts, and a value here would be a second place for them to
+    // go stale. Set one only to point a deploy somewhere the tests do not
+    // describe — a staging host, or a locally-run app.
+    //
+    // ⚠️ They are now DIFFERENT hosts. The panel is services/clinical (the
+    // build a real EHR would get: two SMART apps, no guide, no synthetic
+    // patient); the service stayed on the adoption-guide Worker, because
+    // CDS_JWT_AUDIENCE is baked to that URL and it is published. This var was
+    // pinned to the adoption-guide Worker until 2026-09-18, which would have
+    // kept framing the guide build after the default moved.
+    "MOCK_PANEL_BASE_URL": "",
     "MOCK_CDS_BASE_URL": "",
     // Comma-separated EXACT redirect URIs, replacing the built-in defaults in
     // src/smart.ts. The app computes its own as `import.meta.env.BASE_URL`

@@ -193,17 +193,32 @@ describe('one patient chart', () => {
     expect(body).toContain('id="panel"')
   })
 
-  it('points the CDS call at the panel’s own origin by default', async () => {
+  it('frames the CLINICAL Worker by default, not the adoption guide', async () => {
+    // The host frames the build a real EHR would get: the two SMART apps, no
+    // guide routes, no synthetic patient. Pointing it at the guide build still
+    // worked — that build contains the same two apps — which is exactly why
+    // this needs an assertion rather than a default nobody re-reads.
     const { body } = await html('/chart/patient-011')
-    // Default panel base is the deployed Worker; the service lives on the same
-    // origin because one Worker serves both, so with MOCK_CDS_BASE_URL blank
-    // the endpoint is derived from the panel base.
+    expect(body).toContain('https://spier-clinical.bbthorson.workers.dev')
+    expect(body).not.toContain('spier-adoption-guide.bbthorson.workers.dev/#')
+  })
+
+  it('points the CDS call at the adoption-guide Worker by default — a DIFFERENT origin', async () => {
+    // ⚠️ This used to read "the panel's own origin", derived from the panel base
+    // because one Worker served the SPA and /cds-services together. That stopped
+    // being true when services/clinical shipped, and the derivation would then
+    // have pointed this fetch at a Worker with no such route — answering 200
+    // with the SPA's HTML rather than anything a reader would call an error.
+    const { body } = await html('/chart/patient-011')
     expect(body).toContain('https://spier-adoption-guide.bbthorson.workers.dev/cds-services/spier-patient-view')
+    // The two really are different hosts now; a regression to the derivation
+    // would put the service on the panel's origin.
+    expect(body).not.toContain('https://spier-clinical.bbthorson.workers.dev/cds-services')
   })
 
   it('points the CDS call elsewhere when MOCK_CDS_BASE_URL says so, and still frames the panel from its own base', async () => {
-    // The own-domain move (surfaces-and-distribution.md §5) leaves the service
-    // behind while the apps move. Only the ORIGIN is taken from the var — a
+    // Each var moves its own host independently — neither default is derived
+    // from the other any more. Only the ORIGIN is taken from the var — a
     // path on it is ignored, because the service path is this Worker's to know.
     const res = await app.request(`${BASE}/chart/patient-011`, {}, {
       MOCK_PANEL_BASE_URL: 'https://app.example.org/',

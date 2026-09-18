@@ -1,0 +1,54 @@
+{
+  // SPiER's clinical Worker — the `clinical` build surface on its OWN origin.
+  //
+  // What it serves: `web/dist-clinical`, the output of `VITE_SURFACE=clinical
+  // vite build` (web/src/lib/surface.ts). That build registers the two SMART
+  // apps and no guide route, and resolves `@spier/demo-population` to an empty
+  // shim, so no synthetic patient is compiled in. A clinician launched into this
+  // Worker from a real EHR can never reach a caseload containing Jane Doe.
+  //
+  // What it deliberately does NOT serve:
+  //   - **/cds-services.** Cards come from `buildCdsCards` in-process; the
+  //     endpoint's only runtime caller is `CdsServiceGuide.tsx`, a guide page
+  //     that is absent from this build. `CDS_JWT_AUDIENCE` is also baked to the
+  //     adoption-guide Worker's published URL, so moving the endpoint is a
+  //     re-registration, not a redeploy.
+  //   - **/ig.** The rendered IG is 4,000 files of implementer documentation.
+  //     It stays on the adoption-guide Worker and GitHub Pages.
+  //
+  // `main` is the Vite-bundled worker (dist/index.js). Unlike the other two
+  // Workers, nothing here imports `import.meta.glob` loaders — Vite is used for
+  // consistency of build shape, not because a glob has to be inlined.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "spier-clinical",
+  "main": "./dist/index.js",
+  "compatibility_date": "2025-07-01",
+  "assets": {
+    "directory": "./web-dist",
+    "binding": "ASSETS",
+    // The Worker runs first for every request so it can attach the
+    // `frame-ancestors` CSP — a Static Assets binding on its own cannot set a
+    // response header, and this is the Worker a real EHR frames.
+    "run_worker_first": true,
+    // "none" rather than "single-page-application", matching services/cds-hooks
+    // and for the same reason: the app is a HashRouter, so SPA fallback never
+    // carried a real navigation, and under it the binding answers EVERY miss
+    // with index.html and a 200 — which means `asset.status === 404` is never
+    // true and a Worker can no longer tell "we do not hold this file" from
+    // "this is an app route". `packages/worker-http/src/spaAssets.ts`
+    // replicates the fallback explicitly. See #534.
+    "not_found_handling": "none"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Space-separated `frame-ancestors` sources — who may embed this app in a
+    // frame. Blank = DEFAULT_FRAME_ANCESTORS in packages/worker-http, which
+    // admits 'self' and the mock EHR. One definition, shared with the
+    // adoption-guide Worker, because a header that differs between the two is a
+    // clickjacking surface on whichever copy nobody re-reads — and that is this
+    // one. `scripts/check-worker-csp.mjs` keeps a second copy from coming back.
+    "PANEL_FRAME_ANCESTORS": ""
+  }
+}

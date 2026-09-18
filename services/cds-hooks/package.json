@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "pretest": "npm --prefix ../../web run copy-fhir",
     "test": "vitest run",
-    "verify": "npm --prefix ../../web run copy-fhir && npm run typecheck && npm run lint && npm run test"
+    "check:csp": "node ../../scripts/check-worker-csp.mjs",
+    "verify": "npm --prefix ../../web run copy-fhir && npm run typecheck && npm run lint && npm run check:csp && npm run test"
   },
   "dependencies": {
     "hono": "^4.6.14",

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // @types/node is here only for vite.config.ts / vitest.config.ts, which
+    // need `node:url`'s fileURLToPath to build the @spier/worker-http alias —
+    // and fileURLToPath rather than `new URL().pathname` because a repo path
+    // can contain a space (this worktree's does), which .pathname
+    // percent-encodes. The Worker source itself uses no Node API. Same
+    // arrangement, and the same reason, as the other two services.
+    "types": ["@cloudflare/workers-types", "vite/client", "node"],
+    "strict": true,
+    "resolveJsonModule": true,
+    // Shared code resolves by declared alias, not by npm workspace (#387).
+    // Mirrors vite.config.ts and vitest.config.ts here; all three must agree.
+    "paths": {
+      "@spier/worker-http/*": ["../../packages/worker-http/src/*"]
+    },
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "vite.config.ts", "vitest.config.ts"]
+}
