@@ -83,6 +83,14 @@ npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, q
                                # route, which must be a PAGE and not a redirect — and every
                                # <Navigate> TARGET still points at a real route, so a compatibility
                                # redirect kept for a published path cannot rot into the catch-all
+npm run check:surface-links    # every in-app link a CLINICIAN can reach resolves on the CLINICAL
+                               # surface. ⚠️ A different question from `check:surface`, which reads the
+                               # two BUNDLES and asserts what is compiled in. A component that ships on
+                               # both surfaces can still link into `{IS_DEMO && (…)}`: `PatientPathway`
+                               # did, twice, one of them the embedded panel's only navigation. It does
+                               # not 404 — the `*` catch-all returns the clinician to the patient
+                               # record, silently. check:catalog resolves paths against the WHOLE route
+                               # table, so it passed this and always would have
 npm run check:stages           # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway          # the pathway PlanDefinition's tier codes, stage codes and
                                # definitionCanonicals all resolve against the generated artifacts

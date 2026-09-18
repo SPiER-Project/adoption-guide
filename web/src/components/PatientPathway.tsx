@@ -23,6 +23,7 @@ import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { useInspect } from '../context/InspectContext'
 import { usePresentation } from '../context/PresentationContext'
+import { IS_DEMO } from '../lib/surface'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'
 import { CDS_INDICATOR_ICON } from '../lib/statusIcons'
@@ -500,10 +501,21 @@ export function PatientPathway({
       {!inPanel && <header className="pathway-header">
         <h3 className="pathway-title">Suicide-safer care pathway</h3>
         <span className="pathway-subtitle">
+          {/* ⚠️ **Demo surface only, for two reasons that happen to agree.**
+              The link goes to `/guide/cds-service`, which lives inside App.tsx's
+              `{IS_DEMO && (…)}` block and is simply not registered on the
+              clinical surface — so on a real launch this silently bounced the
+              clinician back to the chart (check:surface-links). And the line is
+              implementer prose on the clinician's primary screen: "real CDS
+              Hooks 2.0 cards", "over the wire" name the wire format, which is
+              the thing the clinical surface exists not to do. A clinician loses
+              nothing; an implementer reads it in the guide, where it belongs. */}
+          {IS_DEMO && (
           <span className="pathway-subtitle__line">
             Recommendations are real CDS Hooks 2.0 cards &middot;{' '}
             <Link to="/guide/cds-service">also served over the wire</Link>
           </span>
+          )}
           {/* The way into the published protocol, and in the embedded SMART
               panel the ONLY one: the panel has no sidebar, so the chart — its
               overview — is where the definition has to be reachable from.
@@ -568,8 +580,15 @@ export function PatientPathway({
         <p className="pathway-footnote">
           <Link to="/patient/pathway">The published protocol</Link>
           {' · '}
-          <Link to="/guide/cds-service">How these recommendations are served</Link>
-          {' · '}
+          {/* ⚠️ The guide route is not registered on the clinical surface, and
+              this footnote is the panel's ONLY navigation — so on a real
+              embedded launch this link returned the clinician to the chart with
+              no explanation. The other two are `/patient/*` and `/settings`,
+              which both surfaces register. */}
+          {IS_DEMO && (<>
+            <Link to="/guide/cds-service">How these recommendations are served</Link>
+            {' · '}
+          </>)}
           <Link to="/settings">Tools this deployment offers</Link>
         </p>
       )}
