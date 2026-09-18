@@ -272,8 +272,28 @@ on four supports. The measurement removed one and weakened two:
   decoupled.*~~ True of **GitHub Pages**, whose artifact replaces the whole site.
   It was never a property of the Worker, and the `cloudflare` job is a separate
   job precisely so the two targets fail independently.
-- *Pages is free.* Still true, and it is why Pages **stays** rather than being
-  retired. This is not a migration.
+- *Pages is free.* Still true — but it is **no longer the reason Pages stays**,
+  and reading it as the reason is now a live hazard. See below.
+
+⚠️ **Pages became a FUNCTIONAL DEPENDENCY of the Worker on 2026-09-18 (#534),
+and this section justified keeping it on "it is free" for one PR before anyone
+noticed.** Files over the Static Assets per-file cap (25 MiB) are dropped from
+the Worker's copy, and `services/cds-hooks/src/index.ts` 302s them to the Pages
+render — today that is `ig/output/full-ig.zip` at 36.8 MiB. So retiring Pages
+does not cost a redundant copy; it **breaks `/ig/full-ig.zip` on the primary
+host**, and it breaks it silently, because the redirect target simply stops
+answering.
+
+The weaker reason outliving the real one is the same failure this section already
+records twice — the redirect called *"transitional"* for a plan nobody held, and
+the file-count number nobody had measured. A reason that no longer carries the
+decision is worse than no reason, because it reads as though someone checked.
+
+**To retire Pages you must first remove the dependency**: raise the cap (paid
+plan does not raise the 25 MiB per-file limit — only the file count), stop the IG
+Publisher emitting `full-ig.zip`, or host the oversized downloads somewhere the
+Worker can redirect to. Retiring Pages is not a hosting preference any more; it
+is a change to what `/ig/` serves.
 
 What the reversal buys is one origin: the SPA, the CDS Hooks API and the IG the
 guide links to now answer on the same host, so `/ig/` is a real page instead of a

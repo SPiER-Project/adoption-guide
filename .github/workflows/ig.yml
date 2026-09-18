@@ -187,6 +187,15 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/build-ig-groups.mjs --check
 
+      # AFTER the compile, and that is the whole point: a canonical can be
+      # assembled from sushi-config.yaml's base plus an id rather than written
+      # literally in the .fsh, so only SUSHI's output says what URL a resource
+      # actually claims. Placed in THIS workflow because its triggers already
+      # cover both trees the gate compares — `ig/**` and `FHIR-Resources/**`.
+      - name: Check canonical URLs are defined once
+        working-directory: ${{ github.workspace }}
+        run: node scripts/check-canonical-uniqueness.mjs
+
       - name: Check concept-layer crosswalks
         working-directory: ${{ github.workspace }}
         run: node web/scripts/check-concept-crosswalk.mjs
