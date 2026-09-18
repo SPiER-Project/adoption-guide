@@ -49,9 +49,16 @@ export class DemoStore extends DurableObject implements DemoState {
         return resource
       }
     }
-    // First write of this id: append it, but keep the CLIENT's id rather than
-    // minting one. That is what update-as-create means, and it is what lets the
-    // next PUT for the same id find this entry.
+    // Nothing WRITTEN at this id yet: append it, keeping the id it arrived with
+    // rather than minting one, so the next PUT for the same id finds this entry.
+    //
+    // ⚠️ **Still reachable after update-as-create was removed, and the reason is
+    // the fixtures.** The PUT route 404s an id nothing holds, but it checks
+    // `servableFor`, which is the written resources OVER the fixtures. So the
+    // first PUT to a fixture-derived resource — the app closing an episode it
+    // read out of the fixture set — passes that check and arrives here with no
+    // stored entry to replace. This branch is what shadows the fixture with the
+    // written version.
     const seq = ((await this.ctx.storage.get<number>(SEQ_KEY)) ?? 0) + 1
     await this.ctx.storage.put({ [SEQ_KEY]: seq, [writeKey(seq)]: { patientId, resource } })
     return resource

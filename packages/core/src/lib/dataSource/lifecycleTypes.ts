@@ -6,8 +6,14 @@
  * resolved to fulfilled or noshow, an Encounter opened and later closed (#263).
  * POSTing each transition would leave the superseded version on the server, so a
  * closed episode would still read as open — hence `SmartDataSource.saveArtifact`
- * PUTs these with the client-supplied id (FHIR update-as-create) and POSTs
- * everything else.
+ * creates these once and then PUTs each transition against the id the SERVER
+ * assigned, while everything else is simply POSTed.
+ *
+ * ⚠️ **This used to be update-as-create** — a `PUT` at the client's own id — and
+ * Medplum refused it outright, which blocked every write rather than just the
+ * lifecycle ones (`docs/plans/medplum-spike-2026-09-17.md`). The client id
+ * survives as a business `identifier`; `SmartDataSource.serverIds` holds the
+ * mapping.
  *
  * ⚠️ **Extracted into its own module because a second reader appeared, and a
  * hand-copied list of eight type names is exactly the drift `CLAUDE.md`
