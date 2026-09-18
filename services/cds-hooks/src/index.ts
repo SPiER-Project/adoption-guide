@@ -97,38 +97,69 @@ app.post(`/cds-services/${SERVICE_ID}`, cdsJwt(), async (c) => {
 // Feedback — accepted per spec but not persisted (stateless service).
 app.post(`/cds-services/${SERVICE_ID}/feedback`, cdsJwt(), (c) => c.body(null, 200))
 
-// ── The rendered IG (/ig/*) ──────────────────────────────────────────────────
-// No handler. `deploy.yml`'s `cloudflare` job stages the IG Publisher's render
+// ── The rendered IG, the SPA, and what happens when neither has the file ────
+//
+// No /ig route. `deploy.yml`'s `cloudflare` job stages the IG Publisher's render
 // into ./web-dist/ig, so the catch-all below serves it from Static Assets like
-// any other file. Adopted 2026-09-18, reversing the 2026-08-23 decision in
-// [`surfaces-and-distribution.md` §4](../../../docs/plans/surfaces-and-distribution.md).
+// any other file. Adopted 2026-09-18 (#533), reversing the 2026-08-23 decision
+// in [`surfaces-and-distribution.md` §4](../../../docs/plans/surfaces-and-distribution.md).
 //
-// ⚠️ **What reversed it was a measurement, not a preference.** §4 adopted "leave
-// the IG on Pages" while flagging that the number which decides it had never
-// been taken: Static Assets caps **file count and per-file size**, not total
-// bytes. Counted from the published render's own `full-ig.zip`: **4,069 files,
-// largest 8.88 MB** against limits of 20,000 files / 25 MiB per file. It fits
-// with ~5x headroom, so re-litigating this needs a new count, not an opinion.
+// ⚠️ **`run_worker_first` means a re-added `app.get('/ig…')` silently shadows
+// ~4,000 real files.** app.test.ts asserts none comes back.
 //
-// ⚠️ A path under /ig/ that does not exist returns the SPA shell with **200**,
-// not a 404 — `not_found_handling: "single-page-application"` (wrangler.jsonc)
-// applies to every asset path, and GitHub Pages 404'd these. The app's routes
-// are all hash routes, so switching to `"none"` would restore real 404s without
-// breaking the SPA; that is a deliberate follow-up, not an oversight.
+// ⚠️ **A handful of IG files are too big for Static Assets and are NOT here.**
+// The per-file cap is 25 MiB and `ig/output/full-ig.zip` is 36.8 MiB, so the
+// stage step drops anything over the cap. It is dropped BY SIZE, never by name:
+// #533 failed precisely because a by-name reading of the render ("the largest
+// file is 8.88 MB") was measuring inside that zip rather than beside it, and a
+// filename list would have encoded the same guess. Whatever is dropped falls
+// back to Pages below, so every link on the IG's Downloads page still resolves.
+const IG_FALLBACK_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
 
-// ── Static SPA (everything else) ─────────────────────────────────────────────
-// Delegate to Static Assets; not_found_handling: single-page-application means
-// unknown paths return index.html (harmless with the app's HashRouter).
 app.all('*', async (c) => {
+  const url = new URL(c.req.url)
   const asset = await c.env.ASSETS.fetch(c.req.raw)
-  // Re-wrapped rather than returned directly: an asset response from the
-  // binding has immutable headers, so the CSP cannot be attached in place.
+
+  // `not_found_handling: "none"` (wrangler.jsonc) means a miss is a real 404,
+  // which is what lets these two cases be told apart at all.
+  if (asset.status === 404) {
+    // An IG path we do not hold is an oversized download; the canonical Pages
+    // render has it. 302 rather than 301: what is too big is a property of this
+    // deploy, not of the URL, and a permanent redirect would outlive it in
+    // browser caches after the file shrinks or the cap rises.
+    if (url.pathname.startsWith('/ig/')) {
+      return c.redirect(IG_FALLBACK_BASE + url.pathname.slice('/ig/'.length) + url.search, 302)
+    }
+    // Everything else keeps the SPA fallback the binding used to do for us.
+    // The app is a HashRouter, so this is near-vestigial — but removing it would
+    // turn a stray /foo from "the app loads" into a 404, which is a user-visible
+    // change this file has no reason to make while fixing downloads.
+    // A plain GET, not a clone of the inbound request: this path is reached by
+    // any method, and replaying a POST at the index is not what SPA fallback
+    // meant. Status is whatever the index asset returns, so a missing index
+    // surfaces as an error rather than a 200 with no body.
+    const index = await c.env.ASSETS.fetch(new Request(new URL('/', url).toString()))
+    return withCsp(index, c.env)
+  }
+
+  return withCsp(asset, c.env)
+})
+
+/**
+ * Re-wrap an asset response so the CSP can be attached: a response from the
+ * binding has immutable headers, so it cannot be set in place.
+ *
+ * ⚠️ `new Response(body, asset)` rather than `{ ...asset }` — a Response's
+ * status/headers live on the prototype as getters, so spreading one yields an
+ * empty object and silently resets the status to 200.
+ */
+function withCsp(asset: Response, env: Env): Response {
   const response = new Response(asset.body, asset)
   response.headers.set(
     'content-security-policy',
-    `frame-ancestors ${c.env.PANEL_FRAME_ANCESTORS || DEFAULT_FRAME_ANCESTORS}`,
+    `frame-ancestors ${env.PANEL_FRAME_ANCESTORS || DEFAULT_FRAME_ANCESTORS}`,
   )
   return response
-})
+}
 
 export default app

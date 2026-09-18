@@ -239,15 +239,25 @@ curl -sL -o full-ig.zip https://spier-project.github.io/adoption-guide/ig/full-i
 unzip -l full-ig.zip | tail -3          # 4,070 entries, 230 MB uncompressed
 ```
 
-| | Measured (2026-09-18) | Limit |
-|---|---|---|
-| Files | **4,069** under `site/` | 20,000 free / 100,000 paid |
-| Largest file | **8.88 MB** (`site/package.db`) | 25 MiB |
-| Uncompressed | 230 MB | no stated aggregate cap |
+| | Measured | Limit | |
+|---|---|---|---|
+| Files | **4,176** (IG + SPA, first real deploy) | 20,000 free / 100,000 paid | ✅ ~5× under |
+| Largest file | **36.84 MiB** — `ig/output/full-ig.zip` | 25 MiB | ❌ over; dropped, redirects to Pages |
+| Next largest | 8.88 MB — `site/package.db` | 25 MiB | ✅ |
+| Uncompressed | 230 MB | no stated aggregate cap | — |
 
-It fits with roughly 5× headroom on the binding constraint. `deploy.yml` now
-asserts the count on every deploy rather than trusting this snapshot, because the
-render grows with every profile added.
+⚠️ **The first version of this table was wrong, and it failed the deploy.** It
+read the largest file **inside** `full-ig.zip` (8.88 MB) and did not notice that
+`full-ig.zip` is itself a file in `ig/output`, at 36.8 MiB. #533 shipped on that
+reading, asserted only the file count, and `wrangler deploy` refused the upload:
+*"Asset too large. We found a file … full-ig.zip with a size of 36.8 MiB."* Fixed
+in #534.
+
+The lesson is narrower than "measure twice": the zip was a *convenient* stand-in
+for the directory, and it was off by exactly the one file that mattered — itself.
+`deploy.yml` now asserts **both** caps against the real staged tree on every
+deploy, and drops oversized files **by size, never by name**, because a filename
+list would encode the same guess.
 
 ### Decision: serve the IG from BOTH — ADOPTED 2026-09-18, reversing 2026-08-23
 
@@ -277,11 +287,15 @@ true — the Worker has a full copy — so renaming the repository now costs a s
 Pages URL rather than the render itself. `CANONICAL_IG_BASE` is gone from the
 Worker; nothing in code points at the Pages IG any more.
 
-⚠️ **A missing path under `/ig/` returns the SPA shell with 200, not a 404.**
-`not_found_handling: "single-page-application"` applies to every asset path, and
-Pages 404'd these correctly. The app is a `HashRouter`, so every app route is
-served from `/` and switching to `"none"` would restore real 404s without
-breaking the SPA — an open follow-up, deliberately not bundled into the move.
+⚠️ **`not_found_handling` is `"none"`, not `"single-page-application"`** — the
+one SPA setting nobody expects. #533 left it on SPA fallback and recorded the
+consequence as a deferred follow-up; #534 had to fix it, because the oversized-file
+fallback depends on it. Under SPA fallback the binding answered a missing
+`/ig/full-ig.zip` with `index.html` and a **200**, so the browser saved HTML as a
+`.zip` — a dead download that looks like a live one. With `"none"` the miss is a
+real 404, which is what lets `src/index.ts` tell "we do not hold this IG file"
+from "this is an app route" and redirect the first to Pages. The catch-all
+replicates SPA fallback explicitly for non-IG paths, so nothing else changed.
 
 ### One consequence of keeping guide and panel on one origin
 

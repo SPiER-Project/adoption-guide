@@ -9,9 +9,12 @@
   // script so the deploy artifact is self-contained — plus the rendered HL7 IG
   // under web-dist/ig, which only CI produces (deploy.yml's `cloudflare` job).
   //
-  // ⚠️ Static Assets caps FILE COUNT (20,000 free / 100,000 paid) and per-file
-  // size (25 MiB), not total bytes. The IG render measured 4,069 files / 8.88 MB
-  // largest on 2026-09-18; deploy.yml asserts the count on every deploy.
+  // ⚠️ Static Assets caps FILE COUNT (20,000 free / 100,000 paid) and PER-FILE
+  // size (25 MiB), not total bytes. deploy.yml asserts BOTH on every deploy, and
+  // the second one is why: the first attempt (#533) measured the largest file
+  // INSIDE ig/output/full-ig.zip (8.88 MB) and missed that full-ig.zip is itself
+  // a file in that directory, at 36.8 MiB. The deploy failed on it. Anything
+  // over the cap is dropped from the copy and falls back to Pages.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "spier-adoption-guide",
   "main": "./dist/index.js",
@@ -28,7 +31,14 @@
     // Hono route for it would shadow ~4,000 real files; app.test.ts asserts it
     // stays unrouted.
     "run_worker_first": true,
-    "not_found_handling": "single-page-application"
+    // "none" rather than "single-page-application", which every other SPA uses.
+    // The app is a HashRouter: every in-app route is served from `/` with the
+    // route after the `#`, so SPA fallback never carried a real navigation here.
+    // What it DID do was answer a missing /ig/ path with index.html and a 200 —
+    // so a dead download link returned HTML that a browser saved as a .zip. The
+    // catch-all in src/index.ts now replicates the fallback explicitly for
+    // non-IG paths, and sends a missing /ig/ path to the Pages copy.
+    "not_found_handling": "none"
   },
   "observability": {
     "enabled": true

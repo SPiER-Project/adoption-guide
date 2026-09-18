@@ -474,18 +474,63 @@ jobs:
         working-directory: ./services/cds-hooks
         run: npm run build
 
+      # Static Assets has TWO caps and this step asserts both. #533 asserted only
+      # the file count and the deploy failed on the other one: `ig/output/full-ig.zip`
+      # is 36.8 MiB against a 25 MiB per-file cap. The measurement behind #533 read
+      # the largest file INSIDE that zip (8.88 MB) and missed the zip itself.
+      #
+      # Oversized files are dropped BY SIZE rather than by name, deliberately. A
+      # filename list would encode today's guess about which files are big, which
+      # is the exact shape of the mistake above; the IG Publisher's output changes
+      # with every profile added. src/index.ts redirects whatever is missing under
+      # /ig/ to the Pages render, so dropping a file costs a redirect, not a link.
       - name: Stage the rendered IG under /ig
+        id: stage
         run: |
           mkdir -p services/cds-hooks/web-dist/ig
           cp -r ig/output/. services/cds-hooks/web-dist/ig/
+
+          cap=26214400   # 25 MiB, the Static Assets per-file limit
+          # `cd` + `find .` rather than `find -printf`: -printf is GNU-only, and
+          # this block is worth being able to run on a developer machine.
+          dropped=$(cd services/cds-hooks/web-dist && find . -type f -size +${cap}c | sed 's|^\./||' | sort)
+
+          # The Worker's fallback only covers /ig/. An oversized SPA asset has
+          # nowhere to fall back to, so it is a hard failure rather than a drop:
+          # silently removing a JS bundle would ship a broken app.
+          outside=$(printf '%s\n' "$dropped" | grep -v '^ig/' | grep -v '^$' || true)
+          if [ -n "$outside" ]; then
+            echo "::error::over the 25 MiB per-file cap and NOT under /ig/, so there is no Pages fallback for it:"
+            printf '  %s\n' $outside
+            exit 1
+          fi
+
+          if [ -n "$dropped" ]; then
+            echo "dropping $(printf '%s\n' "$dropped" | wc -l | tr -d ' ') file(s) over the 25 MiB cap — the Worker redirects these to the Pages render:"
+            printf '%s\n' "$dropped" | while read -r f; do
+              [ -n "$f" ] || continue
+              printf '  %s (%s)\n' "$f" "$(du -h "services/cds-hooks/web-dist/$f" | cut -f1)"
+            done
+            find services/cds-hooks/web-dist -type f -size +${cap}c -delete
+          fi
+          echo "dropped<<EOF" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$dropped" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+          # Belt and braces: assert the cap actually holds after the delete, so a
+          # find/delete mismatch cannot reach wrangler as a rejected upload.
+          still=$(find services/cds-hooks/web-dist -type f -size +${cap}c | wc -l | tr -d ' ')
+          if [ "$still" != "0" ]; then
+            echo "::error::${still} file(s) still over the 25 MiB cap after the drop"
+            exit 1
+          fi
+
           files=$(find services/cds-hooks/web-dist -type f | wc -l | tr -d ' ')
           echo "web-dist file count: ${files}"
-          # Static Assets binds on FILE COUNT, not total bytes — 20,000 on the
-          # free plan. Measured 4,069 for the IG alone (2026-09-18, counted from
-          # the published full-ig.zip), so this is ~5x under. It is asserted
-          # rather than trusted because the render grows with every profile and
-          # the failure at the limit is a rejected deploy with a less obvious
-          # message than this one.
+          echo "files=${files}" >> "$GITHUB_OUTPUT"
+          # The other cap: 20,000 files on the free plan. Measured 4,176 on the
+          # first real deploy (2026-09-18), so this is ~5x under — asserted rather
+          # than trusted because the render grows with every profile added.
           if [ "$files" -ge 20000 ]; then
             echo "::error::${files} files in web-dist — at or over the 20,000 Static Assets limit for the free plan. Either prune the render or move to a paid plan (100,000)."
             exit 1
@@ -505,5 +550,10 @@ jobs:
             echo ""
             echo "- Worker: \`spier-adoption-guide\`"
             echo "- IG: restored from \`${{ steps.ig-cache.outputs.cache-matched-key }}\` (CQL + QA gated in \`build\`)"
-            echo "- Served at \`/ig/\` from Static Assets — no redirect"
+            echo "- Served at \`/ig/\` from Static Assets (${{ steps.stage.outputs.files }} files)"
+            dropped='${{ steps.stage.outputs.dropped }}'
+            if [ -n "$dropped" ]; then
+              echo "- Over the 25 MiB per-file cap, redirected to Pages instead:"
+              printf '  - \`%s\`\n' $dropped
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
