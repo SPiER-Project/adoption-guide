@@ -246,8 +246,11 @@ wrote, which is the only thing that corroborates the panel's scorecard.
 Two entry points, which are the two the panel plan names (§2): an activity button
 that knows only the patient, and a **CDS Hooks card whose link is
 `type: "smart"`** — the card names the instrument, so the panel opens already
-scoped to it. The card comes from the *panel* host's `/cds-services` endpoint
-(one Worker serves the SPA and that API), and its `appContext` carries
+scoped to it. The card comes from the adoption-guide Worker's `/cds-services` endpoint — which
+since 2026-09-18 is **not** the host this chart frames the panel from: the panel
+is `services/clinical` and the service stayed put, so `DEFAULT_PANEL_BASE_URL`
+and `DEFAULT_CDS_BASE_URL` in `src/app.ts` are two separate constants rather than
+one derived from the other. Its `appContext` carries
 `{"intent":"open-…"}` which this server copies into the SMART launch context.
 The division of labour is the spec's: the CDS service proposes, the EHR mints
 the launch.

@@ -9,6 +9,7 @@
     "dev": "vite",
     "prebuild": "npm run copy-fhir",
     "build": "tsc -b && vite build",
+    "prebuild:clinical": "npm run copy-fhir",
     "build:clinical": "tsc -b && VITE_SURFACE=clinical vite build --outDir dist-clinical",
     "check:surface": "node scripts/check-surface.mjs",
     "lint": "eslint .",

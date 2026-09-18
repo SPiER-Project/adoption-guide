@@ -24,6 +24,7 @@
       // drift from the version the app ships.
       "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
       "@spier/core/*": ["../../packages/core/src/*"],
+      "@spier/worker-http/*": ["../../packages/worker-http/src/*"],
       "@spier/fhir-artifacts/*": ["../../packages/fhir-artifacts/*"],
       "@spier/demo-population": ["../../packages/demo-population/src/index.ts"],
       "@spier/demo-population/*": ["../../packages/demo-population/src/*"]

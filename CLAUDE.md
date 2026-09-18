@@ -22,6 +22,10 @@ most of them are a gate that passed while checking nothing.
   referenced from `web/tsconfig.json`) and `web/vitest.config.ts`'s extended
   `test.include` are what reach them from there. Still `web`'s `npm run verify`
   and `npx tsc -b`; no fourth pipeline.
+- `packages/worker-http/` — what the two asset-serving Workers share about
+  *being an asset host*: the Static Assets catch-all, the explicit SPA fallback,
+  and the one `frame-ancestors` policy. React-free and DOM-free like
+  `packages/core`, and gated by `scripts/check-worker-csp.mjs`.
 - `packages/demo-population/` — the 14 demo patients + scenario slices (#388).
 - `packages/fhir-artifacts/generated/` — SUSHI's output, gitignored (#392).
 - `web/` — React 19 + TypeScript (strict) + Vite app. Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/` by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from `FHIR-Resources/`.
@@ -175,6 +179,11 @@ node scripts/check-canonical-uniqueness.mjs   # one canonical URL, one definitio
                                       # tree is a hard error, never a skip)
 node scripts/check-md-links.mjs       # every relative link in a tracked .md resolves (the ONLY gate
                                       # that triggers on docs/** or the root README.md)
+node scripts/check-worker-csp.mjs     # ONE frame-ancestors policy across every Worker that serves a
+                                      # SPiER SMART surface. Run from services/cds-hooks AND
+                                      # services/clinical (`npm run check:csp`) rather than from web,
+                                      # which reads none of it; it scans the whole repo, so either
+                                      # caller is sufficient
 node scripts/validate-fhir.mjs        # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/ and
                                       # the unwrapped scenarios (needs Java 17+; caches a ~190MB jar)
 node scripts/check-fml.mjs --tx https://tx.fhir.org   # FHIR Mapping Language gate (same Java + jar;
@@ -203,17 +212,41 @@ never `ed-scenario-11.md`** — all three are outputs. A gap claim in that workb
 is a statement to the HL7 working group; see
 [`docs/internals/docs-gates.md`](docs/internals/docs-gates.md).
 
-### The two Workers — easy to forget, and CI gates both
+### The three Workers — easy to forget, and CI gates all three
 
-`web/`'s `npm run verify` covers **neither**, and both import the web catalog, so
-a change to `tool-ui-metadata.ts` or the population scenarios can break them with
-`web/` green.
+`web/`'s `npm run verify` covers **none of them**, and two of the three import
+the web catalog, so a change to `tool-ui-metadata.ts` or the population
+scenarios can break them with `web/` green.
 
 ```
-cd services/cds-hooks && npm install && npm run verify   # typecheck + eslint + vitest
+cd services/cds-hooks && npm install && npm run verify   # typecheck + eslint + check:csp + vitest
+cd services/clinical  && npm install && npm run verify   # the same, minus copy-fhir — this Worker
+                                                         # imports nothing from web/src, so its
+                                                         # verify is offline and takes seconds.
+                                                         # Do not add the FHIR dance for symmetry
 cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no hex outside TOKENS,
                                                          # every var(--…) resolves)
 ```
+
+⚠️ **`services/clinical` is the Worker a real EHR frames, and that decides three
+things about it.** It serves `web/dist-clinical` (`VITE_SURFACE=clinical`) and
+nothing else — no `/cds-services` (cards come from `buildCdsCards` in-process,
+the endpoint's only runtime caller is a guide page, and `CDS_JWT_AUDIENCE` is
+baked to the adoption-guide Worker's URL) and no `/ig/`. `src/app.test.ts`
+asserts both as negative tests, because "someone copies a route across for
+parity" is the failure. The mock EHR frames **this** Worker, not the guide one
+(`DEFAULT_PANEL_BASE_URL` in `services/mock-ehr/src/app.ts`).
+
+⚠️ **The `frame-ancestors` policy lives in `packages/worker-http`, once.** Two
+Workers serve a SPiER SMART surface over Static Assets and a header that differs
+between them is a clickjacking surface on the clinical one — which is also the
+copy nobody re-reads after editing the other. `node scripts/check-worker-csp.mjs`
+(in both services' `verify`) holds five rules: the shared module still sets the
+header, no service re-types it in a string, every Worker with an `assets` block
+**value**-imports `serveSpaAsset`/`withFrameAncestors` (a type import is erased
+and cannot set a header — a planted defect passed the first version of this rule
+on exactly that), and every such Worker keeps
+`not_found_handling: "none"`.
 
 ⚠️ **The SPA Worker also serves the rendered IG at `/ig/`, and CI is the only
 thing that can put it there.** `deploy.yml`'s `cloudflare` job stages the IG

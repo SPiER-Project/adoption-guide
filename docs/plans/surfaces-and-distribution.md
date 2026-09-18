@@ -29,7 +29,7 @@ measurements it rests on.
 | Phase | State |
 |---|---|
 | A — measure the IG's file count | **Not started.** One line in `deploy.yml`. §4 |
-| B — surface flag + clinical build | **Done 2026-09-15.** `npm run build:clinical` → `web/dist-clinical/`. The guide routes and their chunks fold out; `@spier/demo-population` resolves to an empty shim (`web/src/shims/demo-population.clinical.ts`) so no scenario is compiled in. Not deployed anywhere yet — no client ship is near-term (§7). §3 |
+| B — surface flag + clinical build | **Done 2026-09-15; DEPLOYED 2026-09-18.** `npm run build:clinical` → `web/dist-clinical/`. The guide routes and their chunks fold out; `@spier/demo-population` resolves to an empty shim (`web/src/shims/demo-population.clinical.ts`) so no scenario is compiled in. `services/clinical` now serves it on its own origin, and the mock EHR frames **that** Worker. §3, §4 |
 | C — a gate asserting the clinical surface is clean | **Done 2026-09-15.** `npm run check:surface` (`web/scripts/check-surface.mjs`) reads BOTH builds and checks every derived marker both ways — absent from clinical, present in demo — so a stale marker fails rather than proving nothing. In the build job of `web-lint.yml`, not in `verify` (it needs the builds). Proven red on two plants before it was trusted. §3 |
 | D — licensing verification before any client ships | **Off the critical path, not off the list.** A conference showing is lower stakes than a ship, not zero. §6, §8 |
 
@@ -204,10 +204,21 @@ has never been seen red is not evidence of anything.
 
 | Thing | Host | Note |
 |---|---|---|
-| Guide + panel (SPA) | Worker Static Assets | also deployed to GitHub Pages under `/adoption-guide/` |
-| CDS Hooks API | same Worker, `/cds-services/*` | `run_worker_first`, Hono |
-| Rendered IG | **both** — Worker Static Assets *and* GitHub Pages | one gated render, deployed twice — see below |
+| Guide + panel (SPA), `demo` surface | `services/cds-hooks` Worker, Static Assets | also deployed to GitHub Pages under `/adoption-guide/` |
+| **The two SMART apps, `clinical` surface** | **`services/clinical` Worker, its own origin** | **added 2026-09-18. No `/cds-services`, no `/ig`. What the mock EHR frames** |
+| CDS Hooks API | `services/cds-hooks` Worker, `/cds-services/*` | `run_worker_first`, Hono. Stayed put when the apps moved: `CDS_JWT_AUDIENCE` is baked to that URL and it is published |
+| Rendered IG | **both** — `services/cds-hooks` Static Assets *and* GitHub Pages | one gated render, deployed twice — see below |
 | Mock EHR | its own Worker | separate origin is a requirement, not a preference |
+
+⚠️ **§5's "two Workers give two hostnames" is now three, and the third one is the
+point of the exercise.** `services/clinical` exists so the clinical *build* has
+somewhere to be launched into: a surface flag that is only ever built in CI
+proves nothing, and until 2026-09-18 `web/dist-clinical` had been previewed
+locally and deployed nowhere. It also makes the mock EHR's demo honest — the
+host now frames the build a real EHR would get, rather than the guide build that
+merely contains the same two apps. The `frame-ancestors` header those two
+Workers share lives once, in `packages/worker-http`; see
+[`docs/internals/workers.md`](../internals/workers.md).
 
 The Worker serves the IG from `web-dist/ig` as of **2026-09-18**. `deploy.yml`
 renders it once, gates it on CQL + QA, and two jobs ship the same bytes: `build`

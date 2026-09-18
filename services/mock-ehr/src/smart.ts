@@ -76,15 +76,30 @@ export interface SmartEnv {
 
 /**
  * Registered redirect URIs. The app computes its own as
- * `import.meta.env.BASE_URL` resolved against its origin, so the two hosted
- * forms differ by path: `/` on the Worker, `/adoption-guide/` on GitHub Pages.
- * Localhost entries are the Vite dev server.
+ * `import.meta.env.BASE_URL` resolved against its origin, so the hosted forms
+ * differ by path: `/` on either Worker, `/adoption-guide/` on GitHub Pages.
+ *
+ * ⚠️ **Exact match, and the list is the registration.** `authorize` refuses an
+ * unregistered `redirect_uri` outright rather than redirecting an error to it,
+ * so an app served from an origin missing here fails at `/authorize` with
+ * nothing in the browser but this server's own message. That is what a real
+ * authorization server does, and it is why every origin SPiER is served from
+ * has a line.
+ *
+ * Three hosted origins now: the clinical Worker (what the chart actually frames
+ * — see DEFAULT_PANEL_BASE_URL), the adoption-guide Worker, and GitHub Pages.
+ * The localhost entries are `vite dev` (5173), `vite preview` (4173), the
+ * clinical preview in .claude/launch.json (4174) and `wrangler dev` for
+ * services/clinical (8789).
  */
 const DEFAULT_REDIRECT_URIS = [
+  'https://spier-clinical.bbthorson.workers.dev/',
   'https://spier-adoption-guide.bbthorson.workers.dev/',
   'https://spier-project.github.io/adoption-guide/',
   'http://localhost:5173/',
   'http://localhost:4173/',
+  'http://localhost:4174/',
+  'http://localhost:8789/',
 ]
 
 /** The app's client id, from web/src/components/SmartLaunch.tsx. */

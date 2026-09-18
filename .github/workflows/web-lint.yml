@@ -340,6 +340,40 @@ jobs:
       - name: Verify
         run: npm run verify
 
+  # The clinical Worker: typecheck, lint, the shared-CSP gate, and unit tests.
+  #
+  # ⚠️ **No `copy-fhir` and no web install, and that is a property worth
+  # keeping.** This Worker imports nothing from `web/src` — it serves
+  # `web/dist-clinical` as bytes — so its verify is offline and takes seconds.
+  # The day something here needs the catalog is the day this job grows the FHIR
+  # cache dance the other two carry; until then, do not add it for symmetry.
+  #
+  # `check:csp` scans the WHOLE repo (both asset-serving Workers plus
+  # packages/worker-http), so it is deliberately run from this job AND from
+  # cds-hooks: either one catches a drifted `frame-ancestors` policy, and a
+  # service-only PR that touches just one of them still gets the verdict.
+  clinical:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/clinical
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .github/.nvmrc
+          cache: npm
+          cache-dependency-path: services/clinical/package-lock.json
+
+      - name: Install service dependencies
+        run: npm ci
+
+      - name: Verify
+        run: npm run verify
+
   # The mock EHR Worker: typecheck, lint, and unit tests — including the
   # integration test that drives the app's real SmartDataSource against it.
   # Its own job for the same reason as cds-hooks above, and more urgently: this

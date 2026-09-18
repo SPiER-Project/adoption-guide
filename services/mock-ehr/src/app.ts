@@ -92,20 +92,42 @@ export interface Env extends SmartEnv {
   /** Where the panel app lives, for the launch URL the control page builds. */
   MOCK_PANEL_BASE_URL?: string
   /**
-   * Where the CDS Hooks service lives. Blank = the panel's own origin, which is
-   * where it is today (one Worker serves both). Set when the two are hosted
-   * apart — the SMART apps on their own domain, the service left where it was —
-   * so that split is a redeploy, not a code change.
+   * Where the CDS Hooks service lives — a DIFFERENT Worker from the panel since
+   * the SMART apps moved to `services/clinical`. Blank = the adoption-guide
+   * Worker, which is where the service is.
    */
   MOCK_CDS_BASE_URL?: string
 }
 
-/** Default panel origin for a minted launch URL; overridden by the env var. */
-const DEFAULT_PANEL_BASE_URL = 'https://spier-adoption-guide.bbthorson.workers.dev/'
+/**
+ * Default panel origin for a minted launch URL; overridden by the env var.
+ *
+ * ⚠️ **The clinical Worker, not the adoption-guide one.** The host frames the
+ * build a real EHR would get: the two SMART apps, no guide routes, no synthetic
+ * patient. Pointing it at the guide build still *worked* — that build contains
+ * the same two apps — but it framed a panel whose in-app links can reach
+ * `/guide` pages, which is precisely the class `web`'s `check:surface-links`
+ * exists to catch and which the clinical build removes outright.
+ */
+const DEFAULT_PANEL_BASE_URL = 'https://spier-clinical.bbthorson.workers.dev/'
 
 /**
- * Where the panel host serves its CDS Hooks service. One Worker hosts both the
- * SPA and `/cds-services/*`, so this is a path on the panel's own origin.
+ * Default origin for the CDS Hooks service.
+ *
+ * ⚠️ **This used to be derived from the panel's own origin, and that derivation
+ * became false the day `services/clinical` shipped.** One Worker served the SPA
+ * and `/cds-services/*`, so "the service is where the panel is" was a fact worth
+ * deriving rather than configuring. Now the panel is on the clinical Worker and
+ * the service stayed on the adoption-guide one — `CDS_JWT_AUDIENCE` is baked to
+ * that URL and it is a published endpoint. Keeping the derivation would have
+ * left a blank `MOCK_CDS_BASE_URL` silently pointing the chart's CDS fetch at a
+ * Worker that has no such route, which is a 200 of HTML rather than an error
+ * anyone would read.
+ */
+const DEFAULT_CDS_BASE_URL = 'https://spier-adoption-guide.bbthorson.workers.dev/'
+
+/**
+ * The path the CDS Hooks service answers on, at whichever origin hosts it.
  *
  * ⚠️ Hand-written here rather than imported, because importing the service
  * module would pull the whole card builder into this Worker's bundle for one
@@ -1012,15 +1034,12 @@ app.get('/chart/:patientId', async (c) => {
   if (!patient) return c.notFound()
   const panelBase = envOf(c).MOCK_PANEL_BASE_URL || DEFAULT_PANEL_BASE_URL
   const panelOrigin = new URL(panelBase).origin
-  // The CDS Hooks service is at the panel's own origin BY DEFAULT — one Worker
-  // serves the SPA and `/cds-services/*` today, and deriving it kept the two
-  // from being pointed at different hosts by accident. It is now a separate
-  // var with that derivation as its default, because the planned own-domain
-  // move for the SMART apps (surfaces-and-distribution.md §5) leaves the
-  // service where it is: the split has to be a redeploy, not a code change.
-  // Only the origin is taken from the var; the service path is this Worker's
-  // to know (see CDS_SERVICE_PATH).
-  const cdsOrigin = new URL(envOf(c).MOCK_CDS_BASE_URL || panelOrigin).origin
+  // The panel and the CDS service are on DIFFERENT Workers now (the apps moved
+  // to services/clinical; the service stayed on the adoption-guide Worker), so
+  // each has its own default and neither is derived from the other. Only the
+  // origin is taken from the var; the service path is this Worker's to know
+  // (see CDS_SERVICE_PATH).
+  const cdsOrigin = new URL(envOf(c).MOCK_CDS_BASE_URL || DEFAULT_CDS_BASE_URL).origin
   // ⚠️ No capability profile is passed any more, and that is not a regression.
   // The chart is the demo surface; the switch is operator equipment and lives on
   // /settings. Flipping it there in a second tab still changes what THIS chart's

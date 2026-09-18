@@ -26,6 +26,19 @@
       "cwd": "services/cds-hooks"
     },
     {
+      "name": "clinical-worker",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "8789"
+      ],
+      "port": 8789,
+      "cwd": "services/clinical"
+    },
+    {
       "name": "mock-ehr",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
