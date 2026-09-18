@@ -22,7 +22,7 @@ Patient Chart uses — so the endpoint and the app emit byte-identical cards.
 | `GET /cds-services` | CDS Hooks discovery — advertises `spier-patient-view`. |
 | `POST /cds-services/spier-patient-view` | `patient-view` invocation → `{ cards: [...] }`. |
 | `POST /cds-services/spier-patient-view/feedback` | Feedback — accepted (200), not stored. |
-| `GET /ig/*` | The rendered HL7 IG — Static Assets, staged into `web-dist/ig` by `deploy.yml`. |
+| `GET /ig/*` | The rendered HL7 IG — Static Assets, staged into `web-dist/ig` by `deploy.yml`. A file over the 25 MiB asset cap (today just `full-ig.zip`) is not held here and 302s to the Pages render. |
 
 ### How CDS cards are derived
 
