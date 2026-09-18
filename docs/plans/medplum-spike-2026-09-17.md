@@ -255,12 +255,25 @@ section headed *unproven*.
 - **Framed/embedded launch**, FHIRcast against Medplum's hub, and required-binding
   validation (needs self-hosting). `PANEL_FRAME_ANCESTORS` would need the Medplum
   origin for the framed case.
-- **Launch from Medplum's Apps tab.** The spike's launch proved the handshake by
-  minting a context by hand; the `ClientApplication.launchUri` registration that
-  puts SPiER in the Apps tab on a Patient or Encounter page is a separate step.
+- ~~**Launch from Medplum's Apps tab.**~~ Registered 2026-09-18 with
   [`scripts/medplum-register-launch.mjs`](../../scripts/medplum-register-launch.mjs)
-  does it — dry run by default, `--apply` to write — but it needs credentials, so
-  it has not been run from here.
+  (dry run by default, `--apply` to write). ⚠️ **`launchUri` was not unset — it
+  was `http://localhost:5173/`**, so SPiER had been on the Apps tab all along,
+  launching a dev server nobody else can reach. It points at the workers.dev
+  deploy now; `--app http://localhost:5173/ --apply` flips it back for local
+  work, and it is one field, so the two cannot both be live. A second
+  ClientApplication would not fix that without a code change:
+  `clientIdForIssuer` keys on the ISSUER's origin, and both registrations would
+  be `api.medplum.com`.
+
+  Verified to the sign-in wall: `$smart-launch?patient=…` returns `302` to
+  `https://spier-adoption-guide.bbthorson.workers.dev/?iss=…&launch=…` — query
+  params, not a fragment — and the app's launch screen carries that into
+  Medplum's `/oauth2/authorize`, which accepts the client and asks for a user.
+  **What is still unwitnessed is everything past the login**: a bad `client_id`
+  or an unregistered `redirect_uri` errors at that point rather than presenting a
+  form, so the registration is proven; the chart rendering behind a real Apps-tab
+  click is not.
 - **Whether the mock EHR should keep the capability switch.** It still answers a
   question Medplum will not: *what happens when the server says no.* Keeping it
   was the research note's conclusion and nothing here changes it.
