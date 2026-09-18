@@ -255,9 +255,12 @@ section headed *unproven*.
 - **Framed/embedded launch**, FHIRcast against Medplum's hub, and required-binding
   validation (needs self-hosting). `PANEL_FRAME_ANCESTORS` would need the Medplum
   origin for the framed case.
-- **Launch from Medplum's Apps tab.** The spike's launch proved the handshake;
-  the `ClientApplication.launchUri` registration that puts SPiER in the Apps tab
-  on a Patient or Encounter page is a separate step and has not been done.
+- **Launch from Medplum's Apps tab.** The spike's launch proved the handshake by
+  minting a context by hand; the `ClientApplication.launchUri` registration that
+  puts SPiER in the Apps tab on a Patient or Encounter page is a separate step.
+  [`scripts/medplum-register-launch.mjs`](../../scripts/medplum-register-launch.mjs)
+  does it — dry run by default, `--apply` to write — but it needs credentials, so
+  it has not been run from here.
 - **Whether the mock EHR should keep the capability switch.** It still answers a
   question Medplum will not: *what happens when the server says no.* Keeping it
   was the research note's conclusion and nothing here changes it.
