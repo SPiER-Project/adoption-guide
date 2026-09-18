@@ -89,7 +89,8 @@ describe('Sidebar footer — outbound links', () => {
     renderSidebar()
     const ig = screen.getByRole('link', { name: /Implementation Guide/ })
     // The published IG is a sibling static site, and the base differs between
-    // Cloudflare (`/`) and the legacy Pages deploy (`/adoption-guide/`).
+    // Cloudflare (`/`) and the Pages deploy (`/adoption-guide/`). Both serve the
+    // render itself since 2026-09-18; before that Cloudflare 302'd to Pages.
     expect(ig.getAttribute('href')).toBe(`${import.meta.env.BASE_URL}ig/`)
   })
 

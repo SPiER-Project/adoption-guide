@@ -22,7 +22,7 @@ Patient Chart uses — so the endpoint and the app emit byte-identical cards.
 | `GET /cds-services` | CDS Hooks discovery — advertises `spier-patient-view`. |
 | `POST /cds-services/spier-patient-view` | `patient-view` invocation → `{ cards: [...] }`. |
 | `POST /cds-services/spier-patient-view/feedback` | Feedback — accepted (200), not stored. |
-| `GET /ig/*` | 302 → `https://spier-project.github.io/adoption-guide/ig/…`. |
+| `GET /ig/*` | The rendered HL7 IG — Static Assets, staged into `web-dist/ig` by `deploy.yml`. |
 
 ### How CDS cards are derived
 
@@ -122,17 +122,24 @@ binding. After `wrangler login`:
 npm run deploy       # build + wrangler deploy (Worker script + web-dist assets)
 ```
 
-Cloudflare does the same on push to `main` via **Workers Builds**, the
-dashboard's Git integration. The Worker is created on first deploy — no
-pre-provisioning.
+On push to `main`, the **`cloudflare` job in `.github/workflows/deploy.yml`**
+does the same — and additionally stages the rendered IG into `web-dist/ig`, which
+a local `npm run deploy` does not. Adopted 2026-09-18.
 
-⚠️ **There is no GitHub Actions workflow for this, and no `CLOUDFLARE_*` repo
-secrets.** This paragraph named `.github/workflows/deploy-cloudflare.yml` until
-2026-09-15; that file was deleted by #143 precisely because it duplicated Workers
-Builds on the same trigger and — *lacking the CLOUDFLARE_\* repo secrets (Workers
-Builds uses its own token)* — only ever produced a failing check on every merge.
-`deploy.yml` is **GitHub Pages**, a different target; do not read it as the
-Cloudflare path.
+⚠️ **Workers Builds (the dashboard's Git integration) must stay disconnected.**
+It deployed this Worker until 2026-09-18 and was turned off when the Actions job
+landed. Reconnecting it does not add redundancy — it races a second deploy
+against the first on the same trigger, and its builder has no Java, Ruby or
+Jekyll, so whichever build wins may be the one with no IG under `/ig`. This is
+the same collision that deleted `.github/workflows/deploy-cloudflare.yml` in
+#143, for the opposite reason: that file had no `CLOUDFLARE_*` secrets and only
+ever produced a failing check. The secrets exist now (`CLOUDFLARE_API_TOKEN`,
+`CLOUDFLARE_ACCOUNT_ID`, added 2026-09-18).
+
+⚠️ **A local `npm run deploy` ships a Worker with no IG.** `stage:assets` starts
+with `rm -rf web-dist`, and nothing local renders the IG, so `/ig/*` would 404
+until the next push to `main`. Use it for the SPA and the API; let CI deploy what
+the public sees.
 
 Point the CDS Hooks Sandbox's *Discovery Endpoint* at
 `https://<worker-name>.<subdomain>.workers.dev/cds-services`; the app itself is at

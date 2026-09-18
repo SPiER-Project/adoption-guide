@@ -122,6 +122,40 @@ describe('frame-ancestors (the SMART panel is embedded cross-origin)', () => {
   })
 })
 
+describe('the rendered IG is served, not redirected', () => {
+  // Until 2026-09-18 these paths 302'd to GitHub Pages, which was the IG's only
+  // host. `deploy.yml`'s `cloudflare` job now stages the render into web-dist/ig,
+  // so they must resolve through the ASSETS binding like any other file.
+  //
+  // This is a ROUTING assertion, and the thing it guards is a re-added handler:
+  // `run_worker_first` means Hono sees every request, so any `app.get('/ig...')`
+  // registered before the catch-all silently shadows 4,069 real files.
+  const igAsset = { fetch: async () => new Response('<html>IG page</html>', { headers: { 'content-type': 'text/html' } }) }
+
+  it('serves /ig/ from Static Assets', async () => {
+    const res = await app.request(`${BASE}/ig/index.html`, {}, { ...NO_AUTH, ASSETS: igAsset })
+    expect(res.status).toBe(200)
+    expect(await res.text()).toContain('IG page')
+  })
+
+  it('does not redirect anywhere', async () => {
+    for (const path of ['/ig', '/ig/', '/ig/StructureDefinition-spier-phq9.html']) {
+      const res = await app.request(`${BASE}${path}`, {}, { ...NO_AUTH, ASSETS: igAsset })
+      expect(res.status, path).toBe(200)
+      expect(res.headers.get('location'), path).toBeNull()
+    }
+  })
+
+  it('passes the request through unchanged, so nested IG paths resolve', async () => {
+    // The old handler rewrote the path (stripping the /ig/ prefix onto a new
+    // base). The catch-all must NOT — Static Assets keys on the full path.
+    let seen = ''
+    const spy = { fetch: async (req: Request) => { seen = new URL(req.url).pathname; return new Response('ok') } }
+    await app.request(`${BASE}/ig/assets/js/mermaid.js`, {}, { ...NO_AUTH, ASSETS: spy })
+    expect(seen).toBe('/ig/assets/js/mermaid.js')
+  })
+})
+
 describe('SMART launch links come from the request origin', () => {
   /**
    * The launch URL is DERIVED from the request rather than configured, and this

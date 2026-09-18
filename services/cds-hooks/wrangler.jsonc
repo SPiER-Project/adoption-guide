@@ -6,7 +6,12 @@
   // `main` is the Vite-bundled worker (dist/index.js) — Vite is required because
   // the imported catalog/scenario loaders use import.meta.glob. `web-dist` is a
   // copy of the web app's `vite build` output (base `/`), staged by the build
-  // script so the deploy artifact is self-contained.
+  // script so the deploy artifact is self-contained — plus the rendered HL7 IG
+  // under web-dist/ig, which only CI produces (deploy.yml's `cloudflare` job).
+  //
+  // ⚠️ Static Assets caps FILE COUNT (20,000 free / 100,000 paid) and per-file
+  // size (25 MiB), not total bytes. The IG render measured 4,069 files / 8.88 MB
+  // largest on 2026-09-18; deploy.yml asserts the count on every deploy.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "spier-adoption-guide",
   "main": "./dist/index.js",
@@ -14,9 +19,14 @@
   "assets": {
     "directory": "./web-dist",
     "binding": "ASSETS",
-    // Worker runs first for every request; it routes /cds-services + /ig itself
-    // and delegates everything else to ASSETS (SPA fallback below). Unambiguous,
-    // and asset-serving cost is negligible for this app.
+    // Worker runs first for every request; it routes /cds-services itself and
+    // delegates everything else to ASSETS (SPA fallback below). Unambiguous, and
+    // asset-serving cost is negligible for this app.
+    //
+    // ⚠️ /ig is NOT a Worker route — the rendered IG is staged into ./web-dist/ig
+    // by deploy.yml and served from here like any other asset. Registering a
+    // Hono route for it would shadow ~4,000 real files; app.test.ts asserts it
+    // stays unrouted.
     "run_worker_first": true,
     "not_found_handling": "single-page-application"
   },

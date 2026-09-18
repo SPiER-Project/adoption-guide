@@ -1,5 +1,15 @@
-name: Deploy to GitHub Pages
+name: Deploy (GitHub Pages + Cloudflare Workers)
 
+# TWO deploy targets from ONE gated render. The `build` job renders the IG and
+# uploads the Pages artifact; the `cloudflare` job restores that same render and
+# ships it to the Worker. They are separate jobs on purpose — a Cloudflare
+# outage must not stop the Pages deploy, and vice versa.
+#
+# ⚠️ **Cloudflare's Workers Builds git integration must stay DISCONNECTED.**
+# Both paths deploy the same Worker on push to `main`, so running both races two
+# deploys against each other. That is what got `deploy-cloudflare.yml` deleted in
+# #143 — see services/cds-hooks/README.md. Disconnected 2026-09-18.
+#
 # Publishes BOTH the companion React app (served at /adoption-guide/) and the rendered
 # HL7 IG (served at /adoption-guide/ig/) as a single GitHub Pages site. The web app is
 # built with Vite; the IG is rendered with the full HL7 IG Publisher and nested
@@ -68,6 +78,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # Handed to the `cloudflare` job so it restores the SAME render cache entry
+    # this job just gated. Passed rather than re-resolved: `ig-publisher-release.mjs`
+    # is a network call, and a publisher release landing between the two jobs
+    # would change the tag, miss the cache and fail a deploy for no reason.
+    outputs:
+      pub_tag: ${{ steps.pub.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -379,3 +396,114 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # ── Cloudflare Workers: the SPA + the CDS API + the rendered IG, one origin ──
+  #
+  # Separate from `build` so the two targets fail independently: a wrangler
+  # outage must not block the Pages deploy, and a Pages hiccup must not block
+  # the Worker. It consumes `build`'s work rather than repeating it — the IG is
+  # restored from the cache entry `build` wrote only AFTER the CQL and QA gates
+  # passed, so ungated bytes cannot reach the Worker.
+  #
+  # ⚠️ The web app is built a SECOND time here, and that is not waste: the Pages
+  # build sets `VITE_BASE=/adoption-guide/` and Cloudflare serves at the root, so
+  # the two bundles genuinely differ. Copying `web/dist` across from `build`
+  # would deploy Pages-based asset URLs to the Worker.
+  cloudflare:
+    name: Deploy to Cloudflare Workers
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .github/.nvmrc
+
+      # The same key `build` saves under, with the publisher tag passed through
+      # `needs` rather than re-resolved. `build` has completed by now, so on a
+      # fresh render the exact key hits and on a reuse the prefix does.
+      - name: Restore the gated IG render
+        id: ig-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ig/output
+            ig/publisher.log
+          key: ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ needs.build.outputs.pub_tag }}-${{ github.run_id }}
+          restore-keys: |
+            ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ needs.build.outputs.pub_tag }}-
+
+      # This job deliberately cannot render — no Java, no Ruby, no Jekyll. So a
+      # miss or a truncated entry is a hard failure rather than a fallback: the
+      # alternatives are deploying a Worker with a missing or half-written /ig,
+      # and a partial IG that returns 200s is worse than a deploy that stops.
+      # `build` succeeded (this job `needs` it), so a miss here means the key
+      # inputs disagree between the two jobs — read them before re-running.
+      - name: Assert the render is complete
+        run: |
+          matched='${{ steps.ig-cache.outputs.cache-matched-key }}'
+          if [ -z "$matched" ]; then
+            echo "::error::no cached IG render for these inputs + publisher ${{ needs.build.outputs.pub_tag }}, but the build job just gated one. The cache key inputs must agree between the two jobs — compare the `key:` lines in this file."
+            exit 1
+          fi
+          missing=''
+          for f in ig/output/index.html ig/output/qa.txt ig/publisher.log; do
+            [ -s "$f" ] || missing="$missing $f"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::restored render $matched is incomplete (missing or empty:$missing) — refusing to deploy a partial IG"
+            exit 1
+          fi
+          echo "restored $matched"
+
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Install Worker dependencies
+        working-directory: ./services/cds-hooks
+        run: npm ci
+
+      # `build` here is the Worker package's own script: it builds the web app at
+      # base `/`, stages it into ./web-dist, then bundles the Worker with Vite.
+      # Note `stage:assets` starts with `rm -rf web-dist`, which is why the IG is
+      # copied in AFTER this rather than before.
+      - name: Build the Worker and stage the SPA
+        working-directory: ./services/cds-hooks
+        run: npm run build
+
+      - name: Stage the rendered IG under /ig
+        run: |
+          mkdir -p services/cds-hooks/web-dist/ig
+          cp -r ig/output/. services/cds-hooks/web-dist/ig/
+          files=$(find services/cds-hooks/web-dist -type f | wc -l | tr -d ' ')
+          echo "web-dist file count: ${files}"
+          # Static Assets binds on FILE COUNT, not total bytes — 20,000 on the
+          # free plan. Measured 4,069 for the IG alone (2026-09-18, counted from
+          # the published full-ig.zip), so this is ~5x under. It is asserted
+          # rather than trusted because the render grows with every profile and
+          # the failure at the limit is a rejected deploy with a less obvious
+          # message than this one.
+          if [ "$files" -ge 20000 ]; then
+            echo "::error::${files} files in web-dist — at or over the 20,000 Static Assets limit for the free plan. Either prune the render or move to a paid plan (100,000)."
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare
+        working-directory: ./services/cds-hooks
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+
+      - name: Report what shipped
+        run: |
+          {
+            echo "### Cloudflare Workers"
+            echo ""
+            echo "- Worker: \`spier-adoption-guide\`"
+            echo "- IG: restored from \`${{ steps.ig-cache.outputs.cache-matched-key }}\` (CQL + QA gated in \`build\`)"
+            echo "- Served at \`/ig/\` from Static Assets — no redirect"
+          } >> "$GITHUB_STEP_SUMMARY"
