@@ -240,6 +240,7 @@ npm run check:reassessment # the per-tier reassessment cadence agrees across all
                          # question by accident
 npm test                 # vitest
 npm run check:outputs    # ⚠️ LAST, and after `npm test` on purpose — see below
+npm run check:published-profiles  # ⚠️ same, and the complement — see below
 ```
 
 ## `check:outputs` — the producing half of a tool's contract
@@ -336,6 +337,57 @@ to stamp.
 - **Tools whose output is not written by a recorder** — a CDS service or a
   background job is out of scope, because scope is "has a `TOOL_VIEWS` slug".
 
+
+## `check:published-profiles` — the complement, from the other end
+
+`check:outputs` starts from what a tool **declares** — a
+`PlanDefinition.action.output` — and asks whether the app emits a resource
+claiming it. That is the right question for a tool whose recorder drifted from
+its own IG page, and it is structurally blind to a profile **no tool declares**.
+The IG can publish one, the app can never write one, and there is nothing to
+compare.
+
+⚠️ **The gap was real when this gate was written.**
+`spier-suicide-risk-concept` is published, is read by a Stage-8 measure
+(`measures.ts`: `conformsTo(o, RISK_CONCEPT_PROFILE)`), and is claimed by
+**nothing the app emits** — the only two instances anywhere in the repo are
+hand-authored entries in the demo scenarios. So the measure computes a number
+off seeded fixtures and would report **zero** in a real deployment. TL-009's
+shape one layer up.
+
+⚠️ **`validate-fhir.mjs` cannot cover this either**, for the reason
+[`fhir-conformance.md`](fhir-conformance.md) gives: a validator checks a
+resource against the profiles it CLAIMS, so a profile nothing claims is never
+the subject of a check. Publishing more profiles can never fail that gate.
+
+So this gate starts from the published set: every `kind: resource`,
+`derivation: constraint` StructureDefinition is claimed by something in
+`web/.runtime-fhir`, or is named in `EXEMPT` with a reason. It runs after
+`npm test` for the same reason `check:outputs` does — the tests produce the
+corpus.
+
+**`EXEMPT` expires.** An entry whose profile turns up in the corpus fails, so a
+fixed gap deletes its own exemption instead of leaving a stale claim that the
+app does not write something it now does. An entry naming a profile the IG no
+longer publishes fails too.
+
+Two entries at the time of writing, and they are different kinds of thing:
+
+| Entry | Kind |
+|---|---|
+| `spier-suicide-related-condition` | a **decision** — writeback Tier 3, default off; SPiER proposes the problem-list entry through a CDS card and a clinician asserts it |
+| `spier-suicide-risk-concept` | a **debt**, written down so it is legible rather than silent |
+
+⚠️ **What it cannot see.** It checks a profile is claimed *at all*, not that
+every builder which ought to claim it does. Four C-SSRS variants sit behind one
+profile, and it would notice nothing if three stopped stamping —
+`check:outputs` has the same blind spot from the other direction. Neither is a
+substitute for the validator.
+
+⚠️ **It does not re-check corpus freshness.** `check:outputs` already asserts
+`.runtime-fhir` is newer than the builders that produce it, runs in the same
+`verify`, and fails the run first. A second copy of that logic would drift from
+the first.
 
 ## The clinical surface (in the CI build job, not in `verify`)
 
