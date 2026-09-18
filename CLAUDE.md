@@ -565,6 +565,20 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   *current* published terms** —
   [`docs/best-practices/licensing-verification-backlog.md`](docs/best-practices/licensing-verification-backlog.md)
   is the standing list of what is owed.
+- **SMART registrations live in `web/src/config/smart-registrations.json`, and
+  only there.** A SMART app does not have *a* `client_id` — it is registered
+  separately with every EHR it launches from, so the file maps an issuer's
+  ORIGIN to the id that EHR issued. ⚠️ **Deliberately a checked-in file and NOT
+  an env var**: a build-time variable lets the deployed app and the EHR's actual
+  registration disagree, and the disagreement is invisible until a launch fails
+  at someone else's authorization server. `scripts/medplum-register-launch.mjs`
+  READS this file rather than restating a UUID, which is what closes the loop;
+  `smartClients.test.ts` asserts it still does, that every key is a bare origin
+  (a FHIR base path silently never matches), and that no issuer is registered
+  under the fallback id. ⚠️ A `client_id` is not a secret — it travels in the
+  `/authorize` query string in the clear and this is a public client with PKCE.
+  The reason an adopter replaces the file is that the registrations are not
+  *theirs*, not that they are sensitive.
 - **Tool ids live in the FSH too, as `ActivityDefinition.identifier`.** `tools.ts`
   **derives** the pairing; the hand-written map is deleted with no fallback, and
   `check:catalog` fails if it comes back. ⚠️ `TL-0NN` is not an AD id, and the
