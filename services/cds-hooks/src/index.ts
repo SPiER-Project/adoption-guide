@@ -114,6 +114,12 @@ app.post(`/cds-services/${SERVICE_ID}/feedback`, cdsJwt(), (c) => c.body(null, 2
 // file is 8.88 MB") was measuring inside that zip rather than beside it, and a
 // filename list would have encoded the same guess. Whatever is dropped falls
 // back to Pages below, so every link on the IG's Downloads page still resolves.
+//
+// ⚠️ **This makes GitHub Pages a dependency, not a spare copy.** Retiring the
+// Pages deploy breaks every URL this line redirects to — silently, because the
+// target just stops answering. `surfaces-and-distribution.md` §4 justified
+// keeping Pages on "it is free" for one PR after this became true; it now says
+// what has to change before Pages can go.
 const IG_FALLBACK_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
 
 app.all('*', async (c) => {

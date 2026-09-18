@@ -162,6 +162,9 @@ node scripts/build-ig-groups.mjs      # regenerate the `groups:` block of sushi-
                                       # tree (one rule per source file; the Artifacts page reads by purpose)
 node scripts/build-ig-groups.mjs --check   # gate: every source has a rule, the block is current, and
                                       # every compiled resource carries a groupingId (needs SUSHI first)
+node scripts/check-canonical-uniqueness.mjs   # one canonical URL, one definition — across BOTH the FSH
+                                      # tree and FHIR-Resources/. Needs `ig/fsh-generated/` (a missing
+                                      # tree is a hard error, never a skip)
 node scripts/check-md-links.mjs       # every relative link in a tracked .md resolves (the ONLY gate
                                       # that triggers on docs/** or the root README.md)
 node scripts/validate-fhir.mjs        # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/ and
@@ -491,10 +494,19 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
 - **Generated files must exist before `tsc -b`.** On a clean checkout, run
   `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
-  ValueSets; `FHIR-Resources/` holds Questionnaires and the few local CodeSystems
-  with no FSH counterpart. Never define the same canonical URL in both trees —
-  three ASQ CodeSystems did, and the `FHIR-Resources` copies silently shadowed
-  the IG's with drifted `display` values.
+  ValueSets; `FHIR-Resources/` holds the 18 Questionnaires, 2 CarePlan templates
+  and one ValueSet (`ASQ/yes-no.json`). ⚠️ **No CodeSystems live there** — this
+  line said "and the few local CodeSystems with no FSH counterpart" until
+  2026-09-18, describing a category of exception that no longer exists and
+  inviting the very thing the next sentence forbids. A new CodeSystem goes in
+  FSH; there is no local-exception path.
+  Never define the same canonical URL in both trees — three ASQ CodeSystems did,
+  and the `FHIR-Resources` copies silently shadowed the IG's with drifted
+  `display` values. **`npm run`-free gate:
+  `node scripts/check-canonical-uniqueness.mjs`** (needs SUSHI output; in
+  `ig.yml`). ⚠️ SUSHI catches only *half* of this — it keys duplicates on
+  resourceType + id and never reads `FHIR-Resources/` at all, so a collision on
+  the same URL with a *different* id was caught by nothing before that gate.
 - **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes and ASQ
   disposition codes are duplicated by hand across `ig/input/fsh/` (canonical),
   `packages/core/src/lib/observationMappers/` and `packages/demo-population/src/`.
