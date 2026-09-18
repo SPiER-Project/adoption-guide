@@ -6,7 +6,7 @@
  *   GET  /fhir/{Type}/{id}        read
  *   GET  /fhir/{Type}?patient=…   patient-scoped search → searchset Bundle
  *   POST /fhir/{Type}             create — capability-gated and VALIDATED
- *   PUT  /fhir/{Type}/{id}        update-as-create, for the lifecycle types
+ *   PUT  /fhir/{Type}/{id}        update an EXISTING resource — 404 otherwise
  *   GET  /authorize               SMART authorization (PKCE S256 required)
  *   POST /token                   authorization_code → access token
  *   GET  /                        control page: capability profile + launch
@@ -189,9 +189,9 @@ async function servableFor(c: { env?: Env }): Promise<MockResource[]> {
   if (written.length === 0) return HELD_RESOURCES.map(h => h.resource)
 
   // ⚠️ Keyed by `Type/id`, with the written version REPLACING a fixture of the
-  // same id — not appended beside it. A PUT is update-as-create, so the app
-  // closing an episode that came from the fixtures sends the fixture's own id;
-  // concatenating would return both versions and the chart would show the
+  // same id — not appended beside it. The app closing an episode it read out of
+  // the fixtures PUTs the fixture's own id, because that id IS the server's id
+  // here; concatenating would return both versions and the chart would show the
   // episode as open and closed at once. Insertion order is preserved so a
   // just-written resource still lands after the fixtures.
   const byKey = new Map<string, MockResource>()
@@ -435,7 +435,7 @@ app.post('/fhir/:type', async (c) => {
 })
 
 /**
- * `PUT /fhir/{Type}/{id}` — update-as-create, keeping the client's id.
+ * `PUT /fhir/{Type}/{id}` — update a resource this server already holds.
  *
  * ⚠️ **This endpoint exists because a browser found it, not because the plan
  * asked for it.** §4's table lists `POST /fhir/{Type}` and nothing else, and the
@@ -446,17 +446,17 @@ app.post('/fhir/:type', async (c) => {
  * with a console error about `Access-Control-Allow-Methods` — a message that
  * points at configuration rather than at the missing route.
  *
+ * ⚠️ **It was update-as-create for months, and that was the defect this service
+ * existed to catch.** See the comment on the not-found branch below: a `PUT` to
+ * an id this server has never held is a **404** now, not a 201. The app creates
+ * with POST and updates against the id the server hands back.
+ *
  * Same gate, same rules, same patient scoping as POST. Two differences:
  *
  *   - the id comes from the URL and is kept, so the store upserts rather than
- *     appends (see `DemoState.upsert`);
- *   - 200 for a replacement, 201 for a first write, which is what FHIR's
- *     update-as-create says and what tells a client which one happened.
- *
- * The app's own comment notes this "relies on the server permitting
- * update-as-create (FHIR allows it, but a server may reject a client-supplied
- * id)". This server permits it. A real EHR may not, and that is a portability
- * caveat the demo must not paper over.
+ *     appends (see `DemoState.upsert`) — it replaces the resource already at
+ *     that id;
+ *   - 200 always, because a PUT here can only ever be a replacement.
  */
 app.put('/fhir/:type/:id', async (c) => {
   const { type, id } = c.req.param()
@@ -551,8 +551,6 @@ async function checkWritable(
   const profile = await liveProfile(c)
   const allowed = interaction === 'create' ? creatableTypes(profile) : updatableTypes(profile)
   if (!allowed.includes(type)) {
-    // 405 rather than 404: the resource type is understood, the interaction is
-    // not offered. `Allow` says what is, which is what a client should read.
     // 405 rather than 404: the resource type is understood, the interaction is
     // not offered. `Allow` says what is, which is what a client should read.
     c.header('allow', 'GET')

@@ -71,8 +71,13 @@ export interface DemoState {
   /** Persist a resource under a freshly minted server id; returns what was stored. */
   add(patientId: string, resource: MockResource): Promise<MockResource>
   /**
-   * Write a resource under the id the CLIENT chose, replacing any existing one
-   * with that `Type/id` — FHIR update-as-create.
+   * Replace the resource already stored at that `Type/id`.
+   *
+   * ⚠️ **The id is the one in the PUT URL, and it is a SERVER id.** This used to
+   * be update-as-create — the client chose the id and this store minted the
+   * entry — which Medplum refuses and which is why the app now creates with
+   * `add` and updates against the id it gets back. The route 404s before
+   * reaching here if nothing holds that id.
    *
    * ⚠️ Not a variant of `add` for tidiness: the app needs both, and for opposite
    * reasons. `SmartDataSource.saveArtifact` POSTs appended resources (a new
@@ -80,7 +85,7 @@ export interface DemoState {
    * opened then closed, a flag raised then cleared, a task created then
    * completed. Appending each transition would leave the superseded version on
    * the server, so a closed episode still reads as open. Convergence on one
-   * resource is the property; keeping the client id is how it is achieved.
+   * resource is the property.
    */
   upsert(patientId: string, resource: MockResource): Promise<MockResource>
   /** Everything written so far, oldest first. */

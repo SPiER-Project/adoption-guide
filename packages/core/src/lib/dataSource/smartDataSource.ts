@@ -405,20 +405,22 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    * Write a lifecycle resource with PUT, against the id the SERVER gave it.
    *
    * ⚠️ This used to PUT the client-minted id (update-as-create). See
-   * `serverIds` for why that had to go.
+   * `serverIds` for why that had to go. **Every caller now passes a server id**
+   * — `saveArtifact` only reaches here once `findServerId` or a prior create has
+   * produced one — so this is an ordinary update and needs no capability beyond
+   * `update-by-id`.
    *
    * These are the resources that are *mutated* rather than appended — an
    * episode is opened then closed, a flag raised then cleared, a task created
    * then completed, a referral tracked through to completed, an appointment
    * resolved to fulfilled or noshow. POSTing each transition would leave the
    * superseded version on the server, so a closed episode would still read as
-   * open and a completed referral as outstanding. Keeping the client id and
-   * PUTting makes the server converge on the same upsert-by-id semantics the
-   * local store uses.
+   * open and a completed referral as outstanding. Converging on one resource is
+   * the property; the id it converges on is the server's, and the client's own
+   * id rides along as a business `identifier` so it can be found again.
    *
-   * Caveat: this relies on the server permitting update-as-create (FHIR allows
-   * it, but a server may reject a client-supplied id). Failures propagate to the
-   * caller's save-error handling rather than being swallowed.
+   * Failures propagate to the caller's save-error handling rather than being
+   * swallowed.
    */
   private async put(resource: FhirResource): Promise<void> {
     resource = this.rewriteReferences(resource)

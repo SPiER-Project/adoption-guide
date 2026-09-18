@@ -148,8 +148,11 @@ Delivered in the implementation PR:
    a *lifecycle* — the close of an episode is another save of the *same*
    resource — and appending left a stale open copy behind, which showed up as a
    phantom row in the work queue. `localDataSource` now upserts these three
-   types by id, and `smartDataSource` PUTs them (update-as-create, preserving
-   the client id) instead of POSTing.
+   types by id, and `smartDataSource` PUTs them instead of POSTing. ⚠️ **It did
+   that as update-as-create, preserving the client id, until #531** — Medplum
+   refuses that outright, so the app now creates once and PUTs against the id the
+   server assigns. See
+   [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md).
 2. **`subject` is the wrong element for two of the three.** `toCreatePayload`
    hard-coded `subject`, but `EpisodeOfCare` uses `patient` and `Task` uses
    `for`. Writing `subject` would have produced invalid FHIR that a strict
@@ -176,8 +179,11 @@ The design's open questions were decided on 2026-07-15:
 
 ## Still open
 
-- **SMART update-as-create.** The PUT path assumes the server accepts a
-  client-supplied id. A server that rejects it will surface a write error rather
-  than silently duplicating — but full id-mapping for SMART mode is unbuilt.
+- ~~**SMART update-as-create.** The PUT path assumes the server accepts a
+  client-supplied id … full id-mapping for SMART mode is unbuilt.~~ **Closed by
+  #531.** The risk named here is exactly what Medplum turned out to do, and the
+  id-mapping is built: `SmartDataSource.serverIds`, plus the client id carried as
+  a business `identifier`. See
+  [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md).
 - **Registry filtering.** The work queue currently shows open work as a column;
   a dedicated "open episodes only" filter and sort-by-overdue are not yet wired.

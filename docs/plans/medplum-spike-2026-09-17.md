@@ -1,12 +1,20 @@
 # Medplum spike — results
 
-**Status:** spike complete, 2026-09-17. Answers the four questions in
-[`medplum-as-host-research.md`](medplum-as-host-research.md) and reports what
-running them found. Four defects in SPiER, one of them architectural.
+**Status:** spike complete, 2026-09-17; **the write finding was FIXED in the
+same branch** (#531) and this doc updated to say so, 2026-09-18. Answers the four
+questions in [`medplum-as-host-research.md`](medplum-as-host-research.md) and
+reports what running them found. Four defects in SPiER, one of them
+architectural.
 
-SPiER's IG and its whole demo population now live in a Medplum project, and the
-app launches from Medplum into a working chart. **Reads are portable. Writes are
-not**, and the reason is a design decision rather than a bug.
+SPiER's IG and its whole demo population now live in a Medplum project, the app
+launches from Medplum into a working chart, and it writes to it.
+
+⚠️ **This doc shipped saying writes were blocked and stayed that way for a day
+after they were not.** The fix landed in the last commits of the same PR that
+added this file, and nothing pointed the reader here at the new state — so the
+record of the most valuable finding in the spike also became the most misleading
+page in the repo. Sections below are written in the tense they are true in: the
+finding is past, the fix is present.
 
 ⚠️ The research note said `medplum.com` was blocked by this environment's egress
 proxy and its findings needed confirming. It is reachable now, and everything
@@ -21,7 +29,7 @@ against the Medplum source, not against summaries.
 | Demo population loaded | **148 of 148**, all 14 patients |
 | Launch | SMART EHR launch, public client + PKCE, patient context resolved |
 | Chart | rendered Maria Alvarez's ED episode from Medplum's copies |
-| Writes | **blocked** — see [The write finding](#the-write-finding) |
+| Writes | **blocked at first** — see [The write finding](#the-write-finding); fixed, then verified live |
 
 Two scripts do the loading, both default to a dry run and need `--apply`:
 [`scripts/medplum-upload.mjs`](../../scripts/medplum-upload.mjs) and
@@ -57,12 +65,15 @@ tier** — that path starts at the $2,000/mo plan or at self-hosting.
 
 ## The write finding
 
-Every save goes through `saveAgainstEncounter`, which calls `ensureEncounter()`
+**Fixed — see [What was done about writes](#what-was-done-about-writes). This
+section is the diagnosis, in the tense it was found in.**
+
+Every save went through `saveAgainstEncounter`, which calls `ensureEncounter()`
 **first**. That builds an Encounter with a client-minted id
 (`encounters.ts`: `` id: params.id ?? `encounter-${makeId()}` ``) and, because
 `Encounter` is one of the eight
 [`LIFECYCLE_RESOURCE_TYPES`](../../packages/core/src/lib/dataSource/lifecycleTypes.ts),
-writes it with `PUT <Type>/<client id>` — FHIR **update-as-create**.
+SPiER wrote it with `PUT <Type>/<client id>` — FHIR **update-as-create**.
 
 Medplum refuses it, and refuses the obvious repair too:
 
@@ -77,9 +88,9 @@ Medplum refuses it, and refuses the obvious repair too:
 because Medplum has no update-as-create at all. The *write method* is what does
 not port, not the identifier.
 
-And because `ensureEncounter()` runs first, this fails **every** write, not just
-the lifecycle ones. The QuestionnaireResponse is never reached. The app does
-surface it — `EHR data error.` with the full OperationOutcome — so this is loud,
+And because `ensureEncounter()` runs first, this failed **every** write, not just
+the lifecycle ones. The QuestionnaireResponse was never reached. The app did
+surface it — `EHR data error.` with the full OperationOutcome — so this was loud,
 not silent.
 
 ### Why SPiER's own testing could not have caught it
@@ -151,7 +162,10 @@ may differ on:
   accepted) and `transaction-bundles` (our loads ran with batch semantics, so a
   failure is partial rather than atomic). **Self-hosting is the way to get both.**
 
-## What to do about writes
+## What was done about writes
+
+**Shipped in #531, the same PR that added this file.** The section below is the
+choice and the reasoning; it is no longer a proposal.
 
 Conditional update was tested against Medplum and works — `PUT ?identifier=…`
 returned 201 then 200 on the same server id, converging to one resource.
@@ -171,7 +185,7 @@ Move the client-minted id into `identifier` and write
 `PUT <Type>?identifier=<system>|<id>`. Less code, no id-mapping, preserves the
 convergence semantics exactly, proven on Medplum.
 
-### Recommendation: A's write method, B's identifier
+### Chosen: A's write method, B's identifier
 
 **Not B alone, and the reason is the whole point of this exercise.** Conditional
 update is an *optional* FHIR capability. B would replace a dependency on one
@@ -179,7 +193,7 @@ optional capability (update-as-create) with a dependency on another — and we
 would have chosen it because it works on the single real server we have tested.
 That is the same move the mock EHR made when it grew a `PUT` handler to satisfy
 the app, one level up. It would very likely work, and it would leave the
-portability question exactly as open as it is today, while feeling settled.
+portability question exactly as open as it was, while feeling settled.
 
 So: **POST to create and PUT by server id** (A), **and stamp the client-minted id
 as a business identifier** (the good half of B). The identifier is legitimate
@@ -187,18 +201,63 @@ FHIR, gives correlation across sessions without a map, and leaves conditional
 update available as an optimisation on servers that advertise it — rather than as
 the thing the write path rests on.
 
-⚠️ Whatever is chosen, the mock EHR should stop accepting update-as-create, or it
-will keep certifying a write path no real server accepts.
+### What that turned into, and the trap inside it
+
+`SmartDataSource.serverIds` maps `<Type>/<client id>` → the id the server
+assigned, learned from the create or from `findServerId`'s `?identifier=` lookup.
+Identifier search is used **where it exists**, as an optimisation: a server that
+answers an unknown search parameter with a 400 — as SPiER's own mock does by
+design — still works, because the in-session map covers open→close, the case that
+actually arises.
+
+⚠️ **`rewriteReferences` lives in `create` and `put`, not in `saveArtifact`, and
+that placement is the fix rather than a detail.** It was in `saveArtifact` first.
+All seven tests passed and the first live write still landed a chart whose
+QuestionnaireResponse and both Observations pointed at
+`Encounter/encounter-82d1eeff-…`, an id Medplum has never held — because the
+writeback **ladder** writes through `createResource`, a path `saveArtifact` never
+touches. A dangling reference is accepted by any server (a reference is just a
+string) and the chart silently loses its correlation. Rewriting at the two
+primitives every write funnels through is what makes it true of all of them.
+
+**Verified live, twice:** a PHQ-9 exposed the reference bug, and an ASQ after the
+fix wrote a QuestionnaireResponse and two Observations all pointing at a real
+server id — reusing the open Encounter rather than creating a second, so
+convergence survived the change. `Encounter` and `EpisodeOfCare` both landed
+carrying their SPiER profiles, validated and accepted, extension slices included.
+This path had **no test** before; it has eight now, and the ladder-path one fails
+with the exact live symptom when the fix is removed.
+
+**And the mock EHR stopped accepting update-as-create in the same PR**, so it no
+longer certifies a write path no real server accepts. A `PUT` to an id it does
+not hold is a 404 whose OperationOutcome says what to do instead, and
+`?identifier=` joined `patient` and `category` as a supported search parameter.
 
 ## Still unproven
 
-- **Writes of any kind**, hence the conformance of what SPiER writes. The
-  CarePlan mappers stamp `meta.profile` and would be genuinely validated; the
-  observation mappers and workflow recorders stamp nothing, so those writes would
-  be checked against base R4 only — the gap CLAUDE.md records as *"instrument
-  mappers stamp no profile, so 12 profiles are allowlisted."*
+⚠️ **This list shipped with two entries that were already false**, one fixed in
+the same PR and one fixed in #529 before it. Both are struck below rather than
+deleted, because the reason a stale entry survives is that nobody re-reads a
+section headed *unproven*.
+
+- ~~**Writes of any kind.**~~ Proven — see
+  [What was done about writes](#what-was-done-about-writes). What is **partly**
+  proven is the conformance of what SPiER writes: `Encounter` and `EpisodeOfCare`
+  were validated against their SPiER profiles and accepted, and a
+  QuestionnaireResponse and two Observations landed. The other resource types
+  have not been through Medplum's validator.
+- ~~**Instrument Observations claim no profile**, so those writes are checked
+  against base R4 only.~~ Fixed in #529, before this spike ran: `makeObservation`
+  takes a `profile` from the union generated out of the FSH, and 14 of the 17
+  observation mappers pass one. `check:outputs` ties every declared
+  `PlanDefinition.action.output` to the emitted corpus and `check:published-profiles`
+  covers the complement.
 - **Framed/embedded launch**, FHIRcast against Medplum's hub, and required-binding
-  validation (needs self-hosting).
+  validation (needs self-hosting). `PANEL_FRAME_ANCESTORS` would need the Medplum
+  origin for the framed case.
+- **Launch from Medplum's Apps tab.** The spike's launch proved the handshake;
+  the `ClientApplication.launchUri` registration that puts SPiER in the Apps tab
+  on a Patient or Encounter page is a separate step and has not been done.
 - **Whether the mock EHR should keep the capability switch.** It still answers a
   question Medplum will not: *what happens when the server says no.* Keeping it
   was the research note's conclusion and nothing here changes it.
