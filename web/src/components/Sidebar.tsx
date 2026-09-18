@@ -231,6 +231,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
         )}
 
+        {/* ⚠️ **The spec link is DEMO-ONLY, and that is a broken-link fix rather
+            than a tidy-up.** `IG.href` is `${import.meta.env.BASE_URL}ig/`, which
+            `services/cds-hooks` serves for real and `services/clinical` does not
+            hold at all — so on the clinical Worker it fell through to the SPA
+            fallback and opened SPiER again in a new tab, titled "The SPiER
+            Project" instead of the IG. Verified against both deploys 2026-09-18.
+            Hosting it on the clinical Worker is not the fix: the IG is ~4,000
+            files of implementer documentation and this surface has no implementer
+            on it. See `services/clinical/README.md`. */}
+        {IS_DEMO && (
         <div className="sidebar-footer">
           <nav className="sidebar-outbound" aria-label="The specification">
             <p className="sidebar-group-heading sidebar-group-heading--footer">Spec</p>
@@ -250,6 +260,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </a>
           </nav>
         </div>
+        )}
       </aside>
     </>
   )

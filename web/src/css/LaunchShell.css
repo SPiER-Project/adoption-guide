@@ -1,0 +1,37 @@
+/* ===========================
+   Launch Shell
+   ===========================
+   The clinical surface's chrome. It reuses `.app-shell`'s frame wholesale —
+   same grid, same header, same `.app-shell__body` page inset — so everything
+   here is about the ONE region that differs: the footer, which carries a
+   connection status instead of project links.
+
+   ⚠️ No `.launch-shell__body`, and that is deliberate rather than an omission.
+   `web/scripts/check-page-template.mjs` sanctions exactly two owners of the page
+   inset and says why: "Adding a third entry should feel expensive. Two is a
+   chrome decision; three is drift." The chrome around the page diverges here;
+   the page frame does not. */
+
+/* The status line is a sentence, not a two-column footer, so it overrides the
+   `space-between` the project links needed. */
+.launch-shell__status {
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* A state dot, because "connected" is the kind of fact people check at a glance
+   rather than read. Colour is NOT the only carrier — the sentence beside it says
+   the same thing in words, which is what keeps this legible to a screen reader
+   and to anyone who cannot separate the two hues. */
+.launch-shell__dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: 50%;
+  background: var(--border-strong);
+  flex: none;
+}
+
+.launch-shell__dot--live {
+  background: var(--brand-primary);
+}
