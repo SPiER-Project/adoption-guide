@@ -67,28 +67,50 @@ function fail(msg) {
   process.exit(1)
 }
 
+/** The one file that says which client_id SPiER presents to which EHR. */
+const REGISTRATIONS = 'web/src/config/smart-registrations.json'
+
 /**
- * The `client_id` SPiER presents to Medplum, scraped out of the app's own table.
+ * The `client_id` SPiER presents to Medplum, READ OUT OF THE APP'S OWN CONFIG.
  *
- * ⚠️ **Scraped rather than restated, and that is the point of the file it comes
- * from.** `web/src/lib/smartClients.ts` exists because a registration and the
- * app's idea of it can disagree; a second copy of the UUID here would be the
- * same defect one level out — this script would cheerfully configure a
- * ClientApplication the app never presents, and the launch would fail at
- * `/authorize` with the registration looking perfect in Medplum's UI.
+ * ⚠️ **Read rather than restated, and that is the point of the file it comes
+ * from.** A registration and the app's idea of it can disagree; a second copy of
+ * the UUID here would be that defect one level out — this script would
+ * cheerfully configure a ClientApplication the app never presents, and the
+ * launch would fail at `/authorize` with the registration looking perfect in
+ * Medplum's UI.
+ *
+ * ⚠️ It used to regex the TypeScript source. The registrations became JSON on
+ * 2026-09-18 (so an adopter replaces a config file rather than editing app
+ * source), and a regex over a moved file would have found nothing and failed
+ * loudly — which is the safe direction, but parsing the real thing is better
+ * than pattern-matching its old spelling.
  */
 function clientIdFromApp(issuerOrigin) {
-  const src = readFileSync(join(REPO, 'web/src/lib/smartClients.ts'), 'utf8')
-  const re = new RegExp(`['"]${issuerOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]\\s*:\\s*['"]([^'"]+)['"]`)
-  const m = src.match(re)
-  if (!m) {
+  const path = join(REPO, REGISTRATIONS)
+  let config
+  try {
+    config = JSON.parse(readFileSync(path, 'utf8'))
+  } catch (err) {
+    fail(`could not read ${REGISTRATIONS}: ${err.message}`)
+  }
+  const byOrigin = config.byIssuerOrigin
+  if (!byOrigin || typeof byOrigin !== 'object') {
     fail(
-      `no client_id for ${issuerOrigin} in web/src/lib/smartClients.ts.\n`
-        + '  Add the registration there FIRST — that table is what the app presents at\n'
+      `${REGISTRATIONS} has no \`byIssuerOrigin\` map — this script reads it rather than\n`
+        + '  restating a UUID, so a shape change here must stop the script rather than\n'
+        + '  let it configure something the app does not present.',
+    )
+  }
+  const clientId = byOrigin[issuerOrigin]
+  if (!clientId) {
+    fail(
+      `no client_id for ${issuerOrigin} in ${REGISTRATIONS}.\n`
+        + '  Add the registration there FIRST — that map is what the app presents at\n'
         + '  /authorize, and a ClientApplication the app does not know about cannot launch.',
     )
   }
-  return m[1]
+  return clientId
 }
 
 function env(name) {
@@ -156,7 +178,7 @@ async function main() {
 
   const clientId = clientIdFromApp(issuerOrigin)
   console.log(`Medplum:     ${baseUrl}`)
-  console.log(`Client:      ClientApplication/${clientId}  (from web/src/lib/smartClients.ts)`)
+  console.log(`Client:      ClientApplication/${clientId}  (from ${REGISTRATIONS})`)
   console.log(`App base:    ${appBase}`)
   console.log(`Mode:        ${APPLY ? 'APPLY — will write' : 'dry run — nothing will be written'}\n`)
 

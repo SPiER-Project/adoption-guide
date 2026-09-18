@@ -1,0 +1,24 @@
+{
+  "$comment": [
+    "THE SMART REGISTRATIONS THIS DEPLOYMENT PRESENTS. Replace this file when you",
+    "deploy SPiER yourself — the values below are SPiER's own and are not yours.",
+    "",
+    "A SMART app does not have *a* client_id. It is registered separately with",
+    "every EHR it launches from, and each registration mints its own; that is what",
+    "registration IS. So this is a map from the ISSUER's origin to the client_id",
+    "that EHR issued you.",
+    "",
+    "A client_id is NOT a secret — it travels in the /authorize query string in the",
+    "clear, and SPiER is a public client using PKCE. This file is data rather than",
+    "a credential store, and it is checked in on purpose: see",
+    "web/src/lib/smartClients.ts for why it must not be an environment variable.",
+    "",
+    "One place, and the tooling reads it: scripts/medplum-register-launch.mjs",
+    "parses THIS file rather than restating a UUID, so a registration it writes and",
+    "the client_id the app presents cannot disagree."
+  ],
+  "default": "spier-client",
+  "byIssuerOrigin": {
+    "https://api.medplum.com": "29f945f9-1dd8-413c-a321-398755d91b90"
+  }
+}
