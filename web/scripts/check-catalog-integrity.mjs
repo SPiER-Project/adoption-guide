@@ -478,7 +478,14 @@ console.log(`✓ licensing: ${activityDefs.length} ActivityDefinition(s) carry a
 // asserts the derivation is still in force.
 const PRESET_FILE = 'src/data/toolPresets.ts'
 const presetSrc = readFileSync(join(webRoot, PRESET_FILE), 'utf8')
-const DERIVED_PRESETS = ['common-mid-tier', 'maximalist']
+// ⚠️ `guided-pathway` belongs here even though half of it is a deliberate
+// hand-picked selection: the PICKS live in their own `PATHWAY_STAGE_DEFAULTS`
+// constant, keyed by stage, so the preset's own `toolIds` must stay empty. A
+// TL-id appearing in its literal means someone froze the pathway-derived half,
+// which is exactly the second source of truth this check exists to prevent.
+// `toolPresets.test.ts` covers the picks themselves — one per stage, only where
+// the pathway names no tool.
+const DERIVED_PRESETS = ['guided-pathway', 'common-mid-tier', 'maximalist']
 
 // The regexes below are the whole check, so a rename or a move would turn this
 // into a silent pass. Assert the shape it depends on before relying on it.
