@@ -102,3 +102,78 @@ describe('the preset and the stage pages read ONE rule', () => {
     expect(guidedPathwayToolIds().length).toBeLessThan(launchableTools().length)
   })
 })
+
+describe('the licensing floor on what SPiER CHOOSES', () => {
+  /**
+   * ⚠️ **The default preset is what a deployment ships with, so what it leads
+   * with is a distribution decision, not just a UI one.** Every licensing status
+   * SPiER publishes is still unverified against the rights holder's current
+   * terms — `docs/best-practices/licensing-verification-backlog.md` is the
+   * standing list, and #64 gates open-sourcing on it. Until that is done, the
+   * defaults SPiER *chooses* must not be the ones that need somebody's
+   * permission.
+   *
+   * The split is deliberate and is the whole rule:
+   *
+   *   - The pathway's OWN named realizations are whatever the published
+   *     artifact says, `registration` included. The C-SSRS Screener and
+   *     Stanley-Brown are both `registration`, and that is the PlanDefinition's
+   *     claim to make, not this file's to override.
+   *   - `PATHWAY_STAGE_DEFAULTS` is the half SPiER picked freely, for the five
+   *     stages the pathway leaves open. There a restricted instrument is a
+   *     choice nobody had to make, so it fails here instead — and the fix is to
+   *     surface the decision, not to quietly ship it.
+   *
+   * ⚠️ It passes today by luck rather than design: all five picks happen to be
+   * `public-domain` or `spier-authored`. That is exactly why it is written down.
+   *
+   * ⚠️ **Only ONE of the three restricted statuses can currently be planted, and
+   * the limit is the catalog's, not the rule's.** Measured across the five open
+   * stages: `define-risk-picture` offers `commercial` (TL-024, the CAMS
+   * therapeutic worksheet) and `public-domain`; the other four offer nothing but
+   * `spier-authored`. So a commercial default goes red on a real plant, while
+   * `registration` and `unknown` have no instrument at any open stage to plant
+   * WITH — a substitution from another stage fails the wrong-stage test first
+   * and proves something else. Recorded rather than dressed up as three plants:
+   * the rule is still the one to hold when a stage gains a restricted
+   * alternative, which is precisely when nobody will be looking.
+   */
+  const NEEDS_NOBODYS_PERMISSION = ['public-domain', 'spier-authored']
+
+  it('reads real licensing statuses, or the rule below checks nothing', () => {
+    const recorded = launchableTools().filter(t => t.licensing !== undefined)
+    expect(recorded.length).toBe(launchableTools().length)
+    // The restricted statuses must actually exist in the catalog, or "none of
+    // the picks is restricted" is true of a catalog that has no such thing.
+    expect(launchableTools().some(t => t.licensing === 'commercial')).toBe(true)
+    expect(launchableTools().some(t => t.licensing === 'registration')).toBe(true)
+  })
+
+  it('never DEFAULTS to an instrument that needs somebody’s permission', () => {
+    for (const [stageId, toolId] of Object.entries(PATHWAY_STAGE_DEFAULTS)) {
+      const tool = launchableTools().find(t => t.id === toolId)
+      expect(
+        NEEDS_NOBODYS_PERMISSION,
+        `${stageId} defaults to ${toolId}, whose licensing is "${tool?.licensing}". `
+          + 'SPiER chose this one — the pathway does not name it — so a restricted '
+          + 'status here is a decision to surface, not to ship. See '
+          + 'docs/best-practices/licensing-verification-backlog.md.',
+      ).toContain(tool?.licensing)
+    }
+  })
+
+  it('leads with nothing commercial or unknown, anywhere', () => {
+    // Weaker than the rule above and it covers the pathway's half too: a
+    // `commercial` or `unknown` instrument as the DEFAULT experience is a
+    // distribution problem whoever named it. `registration` is deliberately
+    // permitted — two of the pathway's own realizations carry it.
+    for (const stage of STAGES) {
+      for (const tool of stageLeadTools(stage.id)) {
+        expect(
+          ['commercial', 'unknown'],
+          `${stage.id} leads with ${tool.id} (${tool.licensing})`,
+        ).not.toContain(tool.licensing)
+      }
+    }
+  })
+})
