@@ -359,6 +359,17 @@ function StageNode({
                     SPiER has no launchable tool for this stage yet.
                   </EmptyState>
                 )}
+                {/* The way into the stage's own page. The rail answers "where is
+                    this patient"; the page answers "what do I do here", with the
+                    instrument the published pathway names already chosen. This
+                    link is the ONLY way in — `check:catalog` validates declared
+                    navigation targets, and a route nothing links to is dead code
+                    no gate would notice. */}
+                <p className="pathway-node-tools-note">
+                  <Link to={`/patient/pathway/${group.stageId}`}>
+                    Open this stage &rarr;
+                  </Link>
+                </p>
               </div>
             )}
           </div>
