@@ -94,6 +94,12 @@ const LENSES = {
   // — and with it, its width (RULE 5). Same shape as PathwayProtocol above,
   // including that `up` is the panel's only way back to the chart.
   'ToolConfiguration.tsx': 'the app’s settings page; a top-level route with no layout above it, and in the panel its `up` is the only exit',
+  // Added 2026-09-18 with the stage-first clinical pages. Same shape as
+  // PathwayProtocol and MeasureDashboard above — a page of the Patient lens,
+  // which has no layout component to render a header for it — and the same
+  // extra reason: it is a drill-in from the chart's stage rail, so its `up` is
+  // how a clinician gets back, and in the panel it is the only way.
+  'PathwayStage.tsx': 'one pathway stage as a page; a drill-in from the chart’s rail, and its `up` is the way back',
 }
 
 const errors = []

@@ -65,6 +65,11 @@ const ToolTryIt = IS_DEMO ? lazy(() => import('./pages/ToolTryIt').then(m => ({ 
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
+// Both surfaces: this is the SMART app guiding a clinician through a stage,
+// not guide material. The DIFFERENCE between the surfaces is what a
+// deployment has enabled, which the page reads separately from what the
+// pathway names — see pages/PathwayStage.tsx.
+const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ default: m.PathwayStage })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
 const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
 
@@ -250,6 +255,12 @@ function AppRoutes() {
               provenance leading; it renders the DEFINITION and reads no patient
               data, exactly like the guide page. */}
           <Route path="pathway" element={<PathwayProtocol />} />
+          {/* A page per pathway stage: the instrument the published pathway
+              names, with the deployment's alternatives one disclosure away.
+              Linked from the chart's stage rail, which is the only way in —
+              an unknown stageId redirects back to the chart rather than
+              rendering a blank page. */}
+          <Route path="pathway/:stageId" element={<PathwayStage />} />
           <Route path="assessments" element={<Navigate to="/patient/record" replace />} />
           <Route path="assessments/phq-9" element={TOOL_VIEWS['phq-9']} />
           <Route path="assessments/asq" element={TOOL_VIEWS['asq']} />
