@@ -174,15 +174,22 @@ for (const page of clinicalOnlyPages) {
 // If you ever weaken rules 1 or 2, this rule silently becomes unfalsifiable.
 //
 // ⚠️ **Three names are PROSE, not data, and are allowed in the guide with a
-// reason — never a count.** `data/surfaces.ts`'s DEMO_CHART_PICKS describes
-// which patients the MOCK EHR offers as a starting point; the guide's job is to
-// send a reader there, and it cannot do that without naming them. They are
-// hand-typed strings, not fixtures: no scenario, no resource, no MRN travels
-// with them. A FOURTH name appearing is a real leak and fails.
+// reason — never a count.**
+//
+// `data/surfaces.ts`'s DEMO_CHART_PICKS names the three DISCRETE SCENARIOS the
+// demo sets out to show — a pathway from zero, a pathway part-way through, and
+// a finished one. That is the point of them (Brad, 2026-09-19): they are chosen
+// to demonstrate a progression, not merely to be a list of who happens to be in
+// the mock EHR. A guide that sends a reader to the host to watch a specific
+// scenario cannot do it without saying which patient to open.
+//
+// They are hand-typed strings, not fixtures: no scenario slice, no resource and
+// no MRN travels with them, which is what keeps rule 3's real claim intact. A
+// FOURTH name appearing is a leak and fails.
 const NAMED_IN_GUIDE_PROSE = new Map([
-  ['Marcus Chen', 'DEMO_CHART_PICKS — the mock EHR\'s "nothing on file" starting point'],
-  ['Sarah Patel', 'DEMO_CHART_PICKS — the mock EHR\'s "one step in" starting point'],
-  ['Maria Alvarez', 'DEMO_CHART_PICKS — the mock EHR\'s "finished pathway" starting point'],
+  ['Marcus Chen', 'DEMO_CHART_PICKS — the "nothing on file" scenario: the whole pathway from zero'],
+  ['Sarah Patel', 'DEMO_CHART_PICKS — the "one step in" scenario: risk raised, not yet clarified'],
+  ['Maria Alvarez', 'DEMO_CHART_PICKS — the "finished pathway" scenario: a complete ED episode'],
 ])
 for (const name of patientNames) {
   const lit = (b) => b.text.includes(`"${name}"`)
