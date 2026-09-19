@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { cx } from '../lib/cx'
-import '../css/PageHeader.css'
+import { cx } from './cx'
+import './PageHeader.css'
 
 /**
  * The one page header.

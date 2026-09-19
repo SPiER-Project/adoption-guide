@@ -15,7 +15,7 @@ import { deriveAppointmentTracking } from '@spier/core/lib/followUp'
 import type { AppointmentResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { toIsoOrNow } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-031 (book the next appointment) + TL-034 (track whether it happened).

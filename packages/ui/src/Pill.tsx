@@ -26,8 +26,8 @@
  */
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { cx } from '../lib/cx'
-import '../css/Pill.css'
+import { cx } from './cx'
+import './Pill.css'
 
 export type PillTone =
   | 'neutral' | 'brand' | 'accent' | 'info' | 'success' | 'warning'

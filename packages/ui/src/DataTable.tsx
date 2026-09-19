@@ -27,8 +27,8 @@
  * colour or a border.
  */
 import type { ReactNode, Ref } from 'react'
-import { cx } from '../lib/cx'
-import '../css/DataTable.css'
+import { cx } from './cx'
+import './DataTable.css'
 
 export function DataTable({
   as: Tag = 'div',

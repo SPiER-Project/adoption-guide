@@ -51,13 +51,12 @@
  *
  * Exits non-zero on drift so it can gate CI.
  */
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve, join, relative } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
-const srcDir = join(webRoot, 'src')
+import { allStyleFiles, relRepo, styleRootFloors, WEB_ROOT as webRoot } from './lib/style-roots.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
+
 const indexHtml = join(webRoot, 'index.html')
 // The renderer's theme, which defines every class the renderer emits.
 const vendorThemeCss = join(webRoot, 'node_modules', '@formbox', 'hs-theme', 'dist', 'index.css')
@@ -68,17 +67,7 @@ const FLOOR_CSS_FILES = 10
 const FLOOR_CLASSES = 300
 const FLOOR_TS_FILES = 40
 
-const rel = (p) => relative(webRoot, p)
-
-const walk = (dir, ext) => {
-  const out = []
-  for (const entry of readdirSync(dir).sort()) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walk(full, ext))
-    else if (ext.some((e) => entry.endsWith(e))) out.push(full)
-  }
-  return out
-}
+const rel = relRepo
 
 /** Blank a span while preserving every newline, so line numbers stay true. */
 const blank = (s) => s.replace(/[^\n]/g, ' ')
@@ -97,7 +86,7 @@ const selectorText = (css) =>
     .replace(/"[^"\n]*"|'[^'\n]*'/g, blank)
 
 // ---- selectors: every class in selector position, with its first site --------
-const cssFiles = walk(srcDir, ['.css'])
+const cssFiles = allStyleFiles(['.css'])
 const sites = new Map() // class -> [{ file, line }]
 for (const file of cssFiles) {
   const text = selectorText(readFileSync(file, 'utf8'))
@@ -109,7 +98,7 @@ for (const file of cssFiles) {
 }
 
 // ---- references: source that can put a class on an element -------------------
-const tsFiles = walk(srcDir, ['.ts', '.tsx']).filter((f) => !/\.test\.tsx?$/.test(f))
+const tsFiles = allStyleFiles(['.ts', '.tsx']).filter((f) => !/\.test\.tsx?$/.test(f))
 /**
  * Comments are not references. A class named in a TS doc comment ("see
  * .risk-pill") kept `.risk-pill` alive in a `:has()` selector for a whole
@@ -172,6 +161,21 @@ for (const [name, where] of sites) {
     if (!dead.has(file)) dead.set(file, [])
     dead.get(file).push({ line, name })
   }
+}
+
+let floorFailures = 0
+const fail = (m) => { console.error(`✗ ${m}`); floorFailures++ }
+// ⚠️ **Per ROOT, not a total.** The global floors above were what this gate had
+// when `packages/ui` was carved out of `web/src` on 2026-09-19, and 31
+// stylesheets cleared them comfortably while NINE were missing — the gate
+// reported ✓ over three-quarters of the CSS, and `check:template` did the same.
+// Only a per-root floor can see a whole tree stop being read, which is exactly
+// what a package extraction produces. Same rule as scripts/lib/floors.mjs.
+reportFloors(styleRootFloors({ css: true, src: true }), fail)
+
+if (floorFailures) {
+  console.error(`\ncss-dead check FAILED (${floorFailures} coverage floor(s) breached).`)
+  process.exit(1)
 }
 
 if (deadCount) {

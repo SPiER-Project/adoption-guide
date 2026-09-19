@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { BookOpen, Monitor, ScrollText, Zap } from 'lucide-react'
-import { PageHeader } from '../components/PageHeader'
+import { PageHeader } from '@spier/ui/PageHeader'
 import { STAGES } from '@spier/core/data/catalog/stages'
 import {
   OVERVIEW_EYEBROW,
@@ -13,7 +13,7 @@ import {
 } from '../content/overview'
 import { IG_HREF, IG_TOKEN, renderInline } from '../content/renderInline'
 import '../css/Overview.css'
-import { Notice } from '../components/Notice'
+import { Notice } from '@spier/ui/Notice'
 
 function StepCards() {
   return (

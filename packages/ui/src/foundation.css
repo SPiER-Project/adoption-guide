@@ -1,3 +1,22 @@
+/* stylelint-disable -- THE TOKEN DEFINITIONS THEMSELVES.
+ *
+ * Every rule in .stylelintrc.json says "use a var()", and this is the file the
+ * vars come from — so it is the one place raw values are not only allowed but
+ * required. It is exempt.
+ *
+ * ⚠️ **The exemption lives HERE rather than in stylelint's `ignoreFiles`, and
+ * that is the fix for a real failure.** `ignoreFiles` held a glob naming
+ * `src/index.css` until 2026-09-19. stylelint matches it against the file PATH,
+ * and when this sheet moved into packages/ui the glob stopped matching — so the
+ * token sheet started being linted and reported 85 errors for doing its job. A
+ * path-shaped exemption is one rename away from silently un-exempting, or, on a
+ * worse day, from exempting something else. A comment at the top of the file it
+ * exempts cannot drift away from it.
+ *
+ * ⚠️ And the replacement broke the file on its first attempt: a doubled star
+ * followed by a slash, written inside this comment while quoting the old glob,
+ * ends a CSS comment. Quote globs by description here, never literally.
+ */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
 
 /* ── Area Normal — the brand's display face, NOT shipped yet ──────────────

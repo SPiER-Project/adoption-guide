@@ -17,8 +17,8 @@
  * pathway-pending panel (a definition list). Those keep their own markup.
  */
 import type { ReactNode, Ref } from 'react'
-import { cx } from '../lib/cx'
-import '../css/Notice.css'
+import { cx } from './cx'
+import './Notice.css'
 
 export type NoticeTone = 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'danger'
 

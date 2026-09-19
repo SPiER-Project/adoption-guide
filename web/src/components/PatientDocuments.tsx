@@ -8,15 +8,15 @@
  */
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { SectionHeader } from './SectionHeader'
+import { SectionHeader } from '@spier/ui/SectionHeader'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { useInspect } from '../context/InspectContext'
 import { carePlanDisplayName, type RenderableResource } from '../lib/chartDisplay'
 import { stageForResponse } from '@spier/core/lib/patientPathway'
 import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
 import type { StoredResponse } from '@spier/core/types/fhir'
-import { cx } from '../lib/cx'
-import { EmptyState } from './EmptyState'
+import { cx } from '@spier/ui/cx'
+import { EmptyState } from '@spier/ui/EmptyState'
 import { formatDate } from '../lib/dates'
 
 // Sortable sentinel for FHIR resources missing an authoritative timestamp.

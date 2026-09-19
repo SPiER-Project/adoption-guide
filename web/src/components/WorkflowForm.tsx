@@ -45,8 +45,8 @@ import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
-import { PageHeader } from './PageHeader'
-import { Notice } from './Notice'
+import { PageHeader } from '@spier/ui/PageHeader'
+import { Notice } from '@spier/ui/Notice'
 import '../css/WorkflowForm.css'
 
 export function WorkflowForm({

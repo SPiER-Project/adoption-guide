@@ -12,10 +12,10 @@ import {
   type StageId,
 } from '@spier/core/data/catalog'
 import '../css/DataDictionary.css'
-import { SectionHeader } from '../components/SectionHeader'
-import { EmptyState } from '../components/EmptyState'
-import { Pill } from '../components/Pill'
-import { DataTable } from '../components/DataTable'
+import { SectionHeader } from '@spier/ui/SectionHeader'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { Pill } from '@spier/ui/Pill'
+import { DataTable } from '@spier/ui/DataTable'
 import { SharedConcepts, NORMALIZATION_ANCHOR } from '../components/SharedConcepts'
 import { CodeLink, SystemCell, ValueSetLine } from '../components/DictionaryCodeCells'
 

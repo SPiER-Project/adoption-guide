@@ -8,7 +8,7 @@
  * ## Why this is generated rather than drawn once and committed
  *
  * A favicon is a **standalone document**. It is fetched on its own, outside the
- * page, so it cannot read `index.css` — `var(--brand-primary)` in a favicon
+ * page, so it cannot read `foundation.css` — `var(--brand-primary)` in a favicon
  * resolves to nothing and the shape renders black. Every icon format therefore
  * has to hard-code the same six colours the stylesheet already defines, which
  * is precisely the hand-duplicated value this repo keeps getting bitten by
@@ -17,14 +17,14 @@
  * would have noticed, because a 16px square is the one surface no reviewer
  * looks at.
  *
- * So `web/src/index.css` stays the single definition, this script reads the six
+ * So `packages/ui/src/foundation.css` stays the single definition, this script reads the six
  * tokens out of it, and the icons are **outputs**. `--check` re-renders into
  * memory and byte-compares, which is what makes the duplication a gate instead
  * of a hope.
  *
  * ⚠️ **Never hand-edit `web/public/favicon.*` or `apple-touch-icon.png`** —
  * same rule as the other generated trees (CLAUDE.md, "Never hand-edit generated
- * output"). Change the art here, or the colour in `index.css`, and re-run.
+ * output"). Change the art here, or the colour in `foundation.css`, and re-run.
  *
  * ## The mark
  *
@@ -57,15 +57,20 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { deflateSync } from 'node:zlib'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const CSS = join(ROOT, 'src', 'index.css')
+// ⚠️ The token sheet moved to packages/ui with the components that consume it
+// (2026-09-19). This script is the SIXTH consumer of that file and the one
+// nothing pointed at — it crashed with ENOENT on the move rather than
+// generating a blank mark, which is the right direction, but it was found by
+// running `verify` rather than by anything naming it.
+const CSS = resolve(ROOT, '..', 'packages', 'ui', 'src', 'foundation.css')
 const PUBLIC = join(ROOT, 'public')
 
 /**
- * The six tokens the mark is made of, in `index.css`'s own spelling.
+ * The six tokens the mark is made of, in `foundation.css`'s own spelling.
  *
  * Read rather than allowlisted-and-copied: if one is renamed, this throws with
  * the name it could not find instead of silently rendering the old hex.

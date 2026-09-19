@@ -43,8 +43,8 @@
 import { useParams, Link } from 'react-router-dom'
 import { InspectContext } from '../context/InspectContext'
 import { TOOL_VIEWS, isToolViewSlug } from '../data/toolViews'
-import { EmptyState } from '../components/EmptyState'
-import { Notice } from '../components/Notice'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { Notice } from '@spier/ui/Notice'
 import { guideHref } from '../data/guideSections'
 
 export function ToolTryIt() {

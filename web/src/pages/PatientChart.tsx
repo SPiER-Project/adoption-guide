@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useScrollToHash } from '../hooks/useScrollToHash'
 import { usePatient } from '../context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
-import { PageHeader } from '../components/PageHeader'
+import { PageHeader } from '@spier/ui/PageHeader'
 import { usePresentation } from '../context/PresentationContext'
 import { PatientPathway, PathwayProgress } from '../components/PatientPathway'
 import { EpisodeRecordView } from '../components/EpisodeRecordView'
@@ -22,7 +22,7 @@ import { buildCdsCards } from '@spier/core/lib/cdsHooks'
 // This page is where `PatientChart.css` is imported for the whole chart — every
 // section component it composes relies on that rather than importing its own.
 import '../css/PatientChart.css'
-import { Notice } from '../components/Notice'
+import { Notice } from '@spier/ui/Notice'
 
 export function PatientChart() {
   const {

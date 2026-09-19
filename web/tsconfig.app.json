@@ -18,6 +18,26 @@
       // drift from the version the app ships.
       "fhirclient/*": ["./node_modules/fhirclient/*"],
       "@spier/core/*": ["../packages/core/src/*"],
+      "@spier/ui/*": ["../packages/ui/src/*"],
+      // packages/ui is React, and it lives OUTSIDE web/. TypeScript resolves a
+      // bare specifier by walking up from the importing FILE, so from
+      // packages/ui/src that walk reaches the repo root and finds no
+      // node_modules at all. These map the four packages those components
+      // import back to web's copy — the same arrangement `fhirclient` above
+      // already uses for packages/core, and the same one the three services use.
+      // ⚠️ Not a convenience: without them every .tsx in packages/ui fails with
+      // "Cannot find module 'react'", and adding a dependency to those
+      // components means adding a line here.
+      // ⚠️ Pointed at @types, not at the packages. TypeScript resolves types by
+      // walking up from the importing file too, so mapping these to
+      // node_modules/react would resolve the JS and then fail with "Could not
+      // find a declaration file". react-router-dom and lucide-react ship their
+      // own types, so those map to the package itself.
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-router-dom": ["./node_modules/react-router-dom"],
+      "lucide-react": ["./node_modules/lucide-react"],
       "@spier/fhir-artifacts/*": ["../packages/fhir-artifacts/*"],
       "@spier/demo-population": ["../packages/demo-population/src/index.ts"],
       "@spier/demo-population/*": ["../packages/demo-population/src/*"]
@@ -35,5 +55,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
+  // ⚠️ packages/ui is NOT included here. It is a referenced composite project
+  // (see tsconfig.json) with its own config, exactly like packages/core — which
+  // is what gives its .tsx files a tsconfig esbuild can find by walking up from
+  // them, and therefore the automatic JSX runtime. Listing its `src` here as
+  // well made web's config responsible for type-checking its colocated tests,
+  // which then could not resolve `vitest`.
   "include": ["src"]
 }

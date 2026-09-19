@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
-import './index.css'
+import '@spier/ui/foundation.css'
 import App from './App.tsx'
 
 // SMART on FHIR bootstrap for the hash router. Both legs of the OAuth dance

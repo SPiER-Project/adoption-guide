@@ -1,4 +1,4 @@
-import type { PillTone } from '../components/Pill'
+import type { PillTone } from '@spier/ui/Pill'
 
 /**
  * The soft risk ramp indexed 0 (worst) → 3 (best): the tone for a 4-step

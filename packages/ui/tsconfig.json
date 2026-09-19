@@ -1,0 +1,61 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+
+    // ⚠️ **This file's most important job is `jsx`, and not for `tsc`.**
+    // esbuild — which is what vite and vitest actually transform .tsx with —
+    // finds a tsconfig by walking up from the FILE, so from packages/ui/src that
+    // walk reaches the repo root and never sees web/tsconfig.app.json. Without a
+    // config here the eight primitives compiled to the CLASSIC JSX runtime and
+    // 22 tests died with "React is not defined", while `tsc` stayed green
+    // because it was reaching the same files through imports from web/src.
+    // Adding `../packages/ui/src` to web's `include` did not fix it; only a
+    // tsconfig esbuild can find does.
+    "jsx": "react-jsx",
+
+    // Default typeRoots discovery walks up from this file's directory looking
+    // for node_modules/@types, which never reaches web/node_modules (a sibling,
+    // not an ancestor). Same arrangement, and the same reason, as
+    // packages/core/tsconfig.json.
+    "typeRoots": ["../../web/node_modules/@types"],
+    "types": ["node"],
+    "paths": {
+      // React and friends are web's dependencies; this package deliberately
+      // keeps no second copy, which could drift from the version the app ships.
+      // Pointed at @types where the package does not carry its own.
+      "react": ["../../web/node_modules/@types/react"],
+      "react/*": ["../../web/node_modules/@types/react/*"],
+      "react-dom": ["../../web/node_modules/@types/react-dom"],
+      "react-router-dom": ["../../web/node_modules/react-router-dom"],
+      "lucide-react": ["../../web/node_modules/lucide-react"],
+      // The colocated tests import these explicitly, and this package has no
+      // node_modules of its own to walk up into.
+      "vitest": ["../../web/node_modules/vitest/dist/index.d.ts"],
+      "@testing-library/react": ["../../web/node_modules/@testing-library/react/types/index.d.ts"]
+    },
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "composite": true
+  },
+  "include": ["src"]
+}

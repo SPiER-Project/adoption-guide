@@ -27,9 +27,9 @@ import { IS_DEMO } from '../lib/surface'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'
 import { CDS_INDICATOR_ICON } from '../lib/statusIcons'
-import { EmptyState } from './EmptyState'
-import { Pill } from './Pill'
-import { Card as CardSurface } from './Card'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { Pill } from '@spier/ui/Pill'
+import { Card as CardSurface } from '@spier/ui/Card'
 
 /* ---------- CDS recommendation cards ---------- */
 // The chart's recommendations are real CDS Hooks 2.0 Cards, built by the shared,

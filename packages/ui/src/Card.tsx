@@ -28,8 +28,8 @@
  * their own rules.
  */
 import type { ReactNode } from 'react'
-import { cx } from '../lib/cx'
-import '../css/Card.css'
+import { cx } from './cx'
+import './Card.css'
 
 export function Card({
   as: Tag = 'div',

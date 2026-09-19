@@ -10,16 +10,16 @@ import {
 } from '@spier/core/lib/measures'
 import { emptinessOf, type Emptiness } from '../lib/measureGaps'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
-import { PageHeader } from '../components/PageHeader'
+import { PageHeader } from '@spier/ui/PageHeader'
 import { useRegistrySlices } from '../hooks/useRegistrySlices'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import '../css/MeasureDashboard.css'
-import { SectionHeader } from '../components/SectionHeader'
-import { EmptyState } from '../components/EmptyState'
-import { Notice } from '../components/Notice'
-import { Card } from '../components/Card'
+import { SectionHeader } from '@spier/ui/SectionHeader'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { Notice } from '@spier/ui/Notice'
+import { Card } from '@spier/ui/Card'
 import { isoDay } from '../lib/dates'
-import { DataTable } from '../components/DataTable'
+import { DataTable } from '@spier/ui/DataTable'
 
 const WINDOWS: { days: number; label: string }[] = [
   { days: 30, label: 'Last 30 days' },

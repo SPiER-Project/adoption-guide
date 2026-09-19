@@ -11,7 +11,7 @@
  * is now the strip's own.
  */
 import { usePatient } from '../context/PatientContext'
-import { cx } from '../lib/cx'
+import { cx } from '@spier/ui/cx'
 import { RISK_LABEL, highestActiveRiskLevel, riskTitle } from '../lib/riskLabel'
 import { RiskPill } from './RiskPill'
 import '../css/PatientIdentityStrip.css'

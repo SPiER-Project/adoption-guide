@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { bindingsForConcept, valueSetHref, valueSetLabel, type Concept, type Tool } from '@spier/core/data/catalog'
-import { Card } from './Card'
-import { SectionHeader } from './SectionHeader'
-import { Pill } from './Pill'
-import { DataTable } from './DataTable'
+import { Card } from '@spier/ui/Card'
+import { SectionHeader } from '@spier/ui/SectionHeader'
+import { Pill } from '@spier/ui/Pill'
+import { DataTable } from '@spier/ui/DataTable'
 import { CodeLink, SystemCell, ValueSetLine } from './DictionaryCodeCells'
 import '../css/SharedConcepts.css'
 

@@ -85,13 +85,11 @@
  *
  * Exits non-zero on drift so it can gate CI.
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve, join, relative } from 'node:path'
+import { readFileSync } from 'node:fs'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
-const srcDir = join(webRoot, 'src')
+import { allStyleFiles, relRepo, styleRootFloors } from './lib/style-roots.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
+
 
 /**
  * The band, in `em`, and where its edges come from.
@@ -135,23 +133,23 @@ const MEASURE_FLOOR = 24
  * no wrapped prose, and wrong for one whose job is a column budget.
  */
 const NON_PROSE = {
-  'src/css/AdoptionGuide.css|.guide-pager__link':
+  'web/src/css/AdoptionGuide.css|.guide-pager__link':
     'A percentage, not a length: half the pager row, so prev and next sit side by side at any page width.',
-  'src/css/DataDictionary.css|.dd-code-display':
+  'web/src/css/DataDictionary.css|.dd-code-display':
     "The publishing authority's display string inside a table column — part of the column budget " +
     'documented under `.dd-table--fixed`, not prose.',
-  'src/css/DataDictionary.css|.dd-detail':
+  'web/src/css/DataDictionary.css|.dd-detail':
     'The budget for the detail row\'s DATA lines — a code display, a value-set canonical, a row of ' +
     'tool chips — which want room to stay on one line. Its prose is `.dd-detail-desc`, which caps ' +
     'itself with the token. ⚠️ This rule USED to claim the prose cap in its comment while 52rem on ' +
     '13px type is 134 characters; that is the defect RULE 2 is written against.',
-  'src/css/FhircastListener.css|.fhircast-banner':
+  'web/src/css/FhircastListener.css|.fhircast-banner':
     'A fixed-position toast, clamped to the viewport with `min()`. A box size, and it holds one short line.',
-  'src/css/PageHeader.css|.page-header__rule':
+  'packages/ui/src/PageHeader.css|.page-header__rule':
     "The brand's 4px gradient accent rule. Not text at all.",
-  'src/css/PatientBanner.css|.patient-banner-switcher':
+  'web/src/css/PatientBanner.css|.patient-banner-switcher':
     'A control (the patient `<select>`), sized so a long name does not push the banner apart.',
-  'src/css/PopulationView.css|.caseload-filter-menu':
+  'web/src/css/PopulationView.css|.caseload-filter-menu':
     'A dropdown menu panel holding filter rows, not prose.',
 }
 
@@ -172,10 +170,10 @@ const REVOKED_CAPS = {}
  * measured, because that is the number the cap is really made of.
  */
 const INHERITS_TYPE = {
-  'src/css/ToolConfiguration.css|.tool-config-intro':
+  'web/src/css/ToolConfiguration.css|.tool-config-intro':
     'Inherits 16px from the page (measured), so the cap lands at 656px and the run at 83 characters. ' +
     'Left on inheritance rather than pinned: it is the page intro and takes the body size by default.',
-  'src/css/ToolConfiguration.css|.tool-config-effect':
+  'web/src/css/ToolConfiguration.css|.tool-config-effect':
     'Deliberate, and the reason the box is capped at all. It sets no font-size, so it resolves the ' +
     'token at the inherited 16px and gets a CALLOUT width (656px); `.tool-config-effect__body` ' +
     'resolves the same token at its own 14px and gets the MEASURE (574px), which is narrower and so ' +
@@ -185,20 +183,11 @@ const INHERITS_TYPE = {
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
-const rel = (p) => relative(webRoot, p).split('\\').join('/')
+const rel = (p) => relRepo(p).split('\\').join('/')
 
 const stripComments = (css) =>
   css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
 
-const walk = (dir) => {
-  const out = []
-  for (const entry of readdirSync(dir).sort()) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walk(full))
-    else if (entry.endsWith('.css')) out.push(full)
-  }
-  return out
-}
 
 /**
  * The subject of a selector: the class the rule is actually about. `.a > .b`
@@ -234,9 +223,9 @@ const declares = (body, prop) =>
   new RegExp(`(?:^|[;{\\s])${prop}\\s*:`).test(body)
 
 // ---- parse -------------------------------------------------------------------
-const files = walk(srcDir)
+const files = allStyleFiles(['.css'])
 if (files.length === 0) {
-  console.error(`✗ no stylesheets found under ${rel(srcDir)} — the scan is broken, not clean`)
+  console.error('✗ no stylesheets found under any declared style root — the scan is broken, not clean')
   process.exit(1)
 }
 
@@ -343,7 +332,7 @@ for (const { file, line, selector, value } of maxWidths) {
     '    Every cap is one of three things, and which one is a decision someone has to make:\n' +
     '      • a TEXT RUN     → `max-width: var(--measure-prose)`, which scales with the run\'s own type\n' +
     '      • a PAGE ROOT    → `var(--page-width-prose)` / `var(--page-width-wide)` (check:template RULE 5)\n' +
-    `      • NOT PROSE      → add \`'${key}'\` to NON_PROSE in ${rel(join(here, 'check-prose-measure.mjs'))}, with the reason\n` +
+    `      • NOT PROSE      → add \`'${key}'\` to NON_PROSE in web/scripts/check-prose-measure.mjs, with the reason\n` +
     '    A raw length on a text run reads as a considered cap and is one only by accident: `.dd-detail`\n' +
     '    escaped a column budget to 52rem, which on 13px type is 134 characters a line.',
   )
@@ -470,6 +459,9 @@ if (checkedSizes === 0) {
 for (const key of Object.keys(INHERITS_TYPE)) {
   if (!seenInherits.has(key)) fail(`stale INHERITS_TYPE entry \`${key}\` — that rule either sets a font-size now or no longer caps. Delete it.`)
 }
+
+// Per ROOT — see check-css-dead.mjs. This gate reads CSS only.
+reportFloors(styleRootFloors({ css: true, src: false }), fail)
 
 if (failures) {
   console.error(`\nprose-measure check FAILED (${failures} problem(s)).`)

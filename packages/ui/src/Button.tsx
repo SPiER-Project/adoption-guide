@@ -36,8 +36,8 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
-import { cx } from '../lib/cx'
-import '../css/Button.css'
+import { cx } from './cx'
+import './Button.css'
 
 type Variant = 'primary' | 'secondary' | 'link'
 type Size = 'md' | 'sm'

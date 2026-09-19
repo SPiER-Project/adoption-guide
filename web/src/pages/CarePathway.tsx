@@ -53,7 +53,7 @@ import { usePathway } from '../hooks/usePathway'
 import { FhirJsonViewer } from '../components/FhirJsonViewer'
 import { guideHref } from '../data/guideSections'
 import '../css/CarePathway.css'
-import { Card } from '../components/Card'
+import { Card } from '@spier/ui/Card'
 
 /* ─── The simulator's questions, derived from the Questionnaire ─── */
 

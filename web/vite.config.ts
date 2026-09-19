@@ -10,6 +10,11 @@ import react from '@vitejs/plugin-react'
 //
 // Neither host is legacy: both are deployed from deploy.yml on every push to
 // main, and both serve the rendered IG at <base>ig/ since 2026-09-18.
+const REACT_DIR = fileURLToPath(new URL('./node_modules/react', import.meta.url))
+const REACT_DOM_DIR = fileURLToPath(new URL('./node_modules/react-dom', import.meta.url))
+const ROUTER_DIR = fileURLToPath(new URL('./node_modules/react-router-dom', import.meta.url))
+const LUCIDE_DIR = fileURLToPath(new URL('./node_modules/lucide-react', import.meta.url))
+
 export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE ?? '/',
@@ -32,6 +37,25 @@ export default defineConfig({
     // `fhirpath/fhir-context/r4` and resolve it to `<shim>.ts/fhir-context/r4`.
     // That is a real mistake this file made in a draft, and `$` is the fix.
     alias: [
+      // ── React, resolved for packages/ui ──────────────────────────────
+      // packages/ui has no node_modules of its own and is not an npm workspace
+      // (#387), so Vite cannot resolve a bare `react` from it — the first
+      // symptom is `Failed to resolve import "react/jsx-dev-runtime"`. These
+      // point every React specifier at web's single copy, which is the only one
+      // in the repo, so nothing about web's own resolution changes.
+      //
+      // ⚠️ **Written as an anchored regex and a quoted prefix because those are
+      // the two forms `scripts/lib/vite-alias.mjs` can read.** That parser
+      // THROWS on an alias it cannot make sense of, and check:ucum and
+      // check:fhir-r5 both treat "not aliased" as "nothing to guard" — so an
+      // unparseable entry here would take two shim gates down with it. A form
+      // like /^react\// (no `$`) is exactly what it refuses.
+      { find: /^react$/, replacement: REACT_DIR },
+      { find: 'react/', replacement: `${REACT_DIR}/` },
+      { find: /^react-dom$/, replacement: REACT_DOM_DIR },
+      { find: 'react-dom/', replacement: `${REACT_DOM_DIR}/` },
+      { find: /^react-router-dom$/, replacement: ROUTER_DIR },
+      { find: /^lucide-react$/, replacement: LUCIDE_DIR },
       {
         // The demo population (packages/demo-population), step A of the repo
         // reshape (#388). Not an npm workspace yet (#387), so it resolves by
@@ -50,6 +74,15 @@ export default defineConfig({
               : '../packages/demo-population/src/index.ts',
             import.meta.url,
           ),
+        ),
+      },
+      {
+        // The design system (packages/ui): the eight surface primitives, the
+        // `cx` helper they share, and `foundation.css` — every token they
+        // consume. Prefix alias entry, mirroring the package's own structure.
+        find: '@spier/ui/',
+        replacement: fileURLToPath(
+          new URL('../packages/ui/src/', import.meta.url),
         ),
       },
       {

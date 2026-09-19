@@ -2,10 +2,10 @@ import { useMemo } from 'react'
 import { RUBRIC_CRITERIA, RUBRIC_TOOLS, STAGE_ORDER, STAGE_DESCRIPTIONS } from '../data/ehrAdoptionData'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import '../css/EhrAdoptionRubric.css'
-import { cx } from '../lib/cx'
-import { Pill } from '../components/Pill'
+import { cx } from '@spier/ui/cx'
+import { Pill } from '@spier/ui/Pill'
 import { SCALE_TONES } from '../lib/scaleTones'
-import { Card } from '../components/Card'
+import { Card } from '@spier/ui/Card'
 
 interface RubricState {
   supported: Record<string, boolean>                    // toolId → checked

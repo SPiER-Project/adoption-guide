@@ -4,7 +4,7 @@ import { Home, ExternalLink } from 'lucide-react'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import '../css/Sidebar.css'
-import { cx } from '../lib/cx'
+import { cx } from '@spier/ui/cx'
 import { IS_DEMO } from '../lib/surface'
 
 /**

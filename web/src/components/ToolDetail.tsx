@@ -10,10 +10,10 @@
  */
 import { bindingsUsedByTool, systemLabel, type Tool } from '@spier/core/data/catalog'
 import { FhirJsonViewer } from './FhirJsonViewer'
-import { Pill } from './Pill'
-import { DataTable } from './DataTable'
+import { Pill } from '@spier/ui/Pill'
+import { DataTable } from '@spier/ui/DataTable'
 import '../css/ToolDetail.css'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 import { isToolViewSlug } from '../data/toolViews'
 
 /**

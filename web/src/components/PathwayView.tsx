@@ -34,9 +34,9 @@ import {
   type PathwayModel,
 } from '@spier/core/lib/pathway'
 import '../css/CarePathway.css'
-import { cx } from '../lib/cx'
-import { Notice } from './Notice'
-import { Card } from './Card'
+import { cx } from '@spier/ui/cx'
+import { Notice } from '@spier/ui/Notice'
+import { Card } from '@spier/ui/Card'
 
 /* ─── Loading ────────────────────────────────────────────────── */
 

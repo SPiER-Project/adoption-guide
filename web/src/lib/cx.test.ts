@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cx } from './cx'
+import { cx } from '@spier/ui/cx'
 
 describe('cx', () => {
   it('joins strings with single spaces', () => {

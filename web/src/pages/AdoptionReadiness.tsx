@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
 import { INCLUSION_ICON, LICENSING_ICON, READINESS_TIER_ICON, type InclusionStatus } from '../lib/statusIcons'
 import '../css/AdoptionReadiness.css'
-import { EmptyState } from '../components/EmptyState'
-import { Pill, type PillTone } from '../components/Pill'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { Pill, type PillTone } from '@spier/ui/Pill'
 import { SCALE_TONES } from '../lib/scaleTones'
-import { Card } from '../components/Card'
-import { DataTable } from '../components/DataTable'
+import { Card } from '@spier/ui/Card'
+import { DataTable } from '@spier/ui/DataTable'
 
 // ─────────────────────────────────────────────────────────────
 // Adoption Readiness matrix

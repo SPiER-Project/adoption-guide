@@ -46,8 +46,8 @@
 import { Link } from 'react-router-dom'
 import { DEMO_CHART_PICKS, MOCK_EHR_URL } from '../data/surfaces'
 import '../css/SurfaceGuide.css'
-import { Notice } from '../components/Notice'
-import { Button } from '../components/Button'
+import { Notice } from '@spier/ui/Notice'
+import { Button } from '@spier/ui/Button'
 
 export function ProviderAppGuide() {
   return (

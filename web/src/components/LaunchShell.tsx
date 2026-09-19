@@ -62,7 +62,7 @@ import { Sidebar } from './Sidebar'
 import { SpierLogo } from './SpierLogo'
 import '../css/AppShell.css'
 import '../css/LaunchShell.css'
-import { cx } from '../lib/cx'
+import { cx } from '@spier/ui/cx'
 
 export function LaunchShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)

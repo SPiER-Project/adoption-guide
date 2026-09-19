@@ -17,8 +17,8 @@
  * Links inside stay readable: they take the accent colour, not the faint one.
  */
 import type { ReactNode } from 'react'
-import { cx } from '../lib/cx'
-import '../css/EmptyState.css'
+import { cx } from './cx'
+import './EmptyState.css'
 
 export function EmptyState({
   as: Tag = 'p',

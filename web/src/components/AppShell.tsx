@@ -6,7 +6,7 @@ import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from './SpierLogo'
 import '../css/AppShell.css'
-import { cx } from '../lib/cx'
+import { cx } from '@spier/ui/cx'
 
 // ⚠️ **The app bar carries no links, and that is where they used to be.** Three
 // outbound pills lived here, with `HeaderMenu` as an overflow disclosure below
