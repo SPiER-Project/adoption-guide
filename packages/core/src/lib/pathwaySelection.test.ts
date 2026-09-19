@@ -106,12 +106,18 @@ describe('the preset and the stage pages read ONE rule', () => {
 describe('the licensing floor on what SPiER CHOOSES', () => {
   /**
    * ⚠️ **The default preset is what a deployment ships with, so what it leads
-   * with is a distribution decision, not just a UI one.** Every licensing status
-   * SPiER publishes is still unverified against the rights holder's current
-   * terms — `docs/best-practices/licensing-verification-backlog.md` is the
-   * standing list, and #64 gates open-sourcing on it. Until that is done, the
-   * defaults SPiER *chooses* must not be the ones that need somebody's
-   * permission.
+   * with is a distribution decision, not just a UI one.** An instrument that
+   * needs a commercial licence, or whose terms are unsettled, should not be
+   * something a site gets by simply installing SPiER — it should be something
+   * the site turns on, having done whatever its own licensing requires.
+   *
+   * ⚠️ **This is NOT a claim that licensing blocks anything.** SPiER's licensing
+   * process lives outside this repository (Brad, 2026-09-19), and
+   * `docs/best-practices/licensing-verification-backlog.md` tracks what the
+   * repo's own recorded statuses still owe — neither is a gate on shipping, and
+   * an earlier version of this comment said otherwise. The rule below stands on
+   * its own, narrower footing: a default nobody chose deliberately should be the
+   * unencumbered one.
    *
    * The split is deliberate and is the whole rule:
    *
@@ -156,8 +162,8 @@ describe('the licensing floor on what SPiER CHOOSES', () => {
         NEEDS_NOBODYS_PERMISSION,
         `${stageId} defaults to ${toolId}, whose licensing is "${tool?.licensing}". `
           + 'SPiER chose this one — the pathway does not name it — so a restricted '
-          + 'status here is a decision to surface, not to ship. See '
-          + 'docs/best-practices/licensing-verification-backlog.md.',
+          + 'status here is a decision to surface, not to ship \u2014 make it '
+          + 'deliberately, and record why.',
       ).toContain(tool?.licensing)
     }
   })
