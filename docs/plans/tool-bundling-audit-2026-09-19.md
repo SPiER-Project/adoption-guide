@@ -8,7 +8,8 @@ PR — the measurements below describe the tree as it was when measured, and §5
 says what changed.
 
 **All three axes answer *no*.** Two of them are the wrong question as posed, and
-the third is "not yet, and here is the trigger". Per the brief's rule, **no
+the third is "not yet, and here is the trigger" — a trigger that shrank to one
+condition when §3(a)'s blocker turned out not to exist. Per the brief's rule, **no
 decision record is filed** — `docs/decisions/` records settled yeses, and there
 are none.
 
@@ -206,7 +207,7 @@ what the forms then need rather than against bundle size.
 
 ---
 
-## 3. Axis A — **Not yet.** The closure is small; three other things block it
+## 3. Axis A — **Not yet, and the reason is licensing alone.** The closure is small
 
 ### The measurement
 
@@ -247,19 +248,46 @@ number, not a per-tool one. **Per-AD keying would split the CAMS SSF-5 into
 four** exactly as warned; keyed per tool id, TL-020 comes out as one tool of 4
 ADs and 25 artifacts, the largest closure in the set.
 
-### Why "not yet", in three parts
+### Why "not yet"
 
-**(a) The IG does not publish the thing a bundle must carry.**
+**(a) ~~The IG does not publish the thing a bundle must carry.~~ — RETRACTED
+2026-09-19, the same day. It does.**
+
+This section originally read: *"every Questionnaire in a tool closure comes from
+`FHIR-Resources/` and none from the IG, so a per-tool Bundle is not a slice of
+the IG but a new publication."* The measurement behind it was real and the
+inference from it was wrong:
 
 ```
 Questionnaire nodes inside tool closures: 18 from FHIR-Resources/, 0 from ig/fsh-generated/
 ```
 
-Every one. A per-tool Bundle is therefore **not a slice of the IG** — it is a
-new publication that combines IG-published definitions with repo-held forms.
-That is the substantive version of the inversion the brief flagged, and it
-changes the act: from *"here is our IG describing how we model the C-SSRS"* to
-*"here is the C-SSRS"*.
+⚠️ **`ig/fsh-generated/` is SUSHI's output, and SUSHI never reads the
+Questionnaires.** They reach the IG through `path-resource` entries in
+`sushi-config.yaml` — one per tool folder, pointing at the tracked
+`ig/input/resources/questionnaires` symlink — which the **IG Publisher**
+consumes, not SUSHI. Measuring the SUSHI tree could never have answered the
+question it was asked. CLAUDE.md states the mechanism plainly and this audit read
+past it; the brief asserted the same false claim and it was taken on trust
+instead of checked.
+
+Verified against the live published IG, 2026-09-19:
+
+```
+curl -sL -o /dev/null -w "%{http_code}" .../ig/Questionnaire-PHQ-9.html                  # 200
+curl -sL -o /dev/null -w "%{http_code}" .../ig/Questionnaire-C-SSRS-Screener.html        # 200
+curl -sL -o /dev/null -w "%{http_code}" .../ig/Questionnaire-StanleyBrownSafetyPlan.html # 200
+curl -sL -o /dev/null -w "%{http_code}" .../ig/Questionnaire-ASQ-Screening-Tool.html     # 200
+```
+
+⚠️ Follow the redirect — a bare `curl -I` returns 307 (path normalization on the
+Worker's own origin) and reads as a failure. All ten Questionnaire-bearing tool
+folders are `path-resource` entries; the eleventh folder on disk, `CARS-S`, holds
+only a README and licensing notes and correctly is not one.
+
+**So this blocker does not exist, and Axis A is easier than this document first
+said.** The IG already publishes everything a per-tool Bundle would carry. What
+remains is (b) alone.
 
 **(b) The licence-encumbered tools are the ones an adopter most wants
 pre-packaged — and the count is smaller than it looks.**
@@ -315,10 +343,12 @@ precisely the artifact per-tool bundling is trying to avoid shipping.
 Per-tool bundles become the right unit when **both** hold for a specific
 instrument:
 
-1. its licence status is **verified** against current published terms (not
-   `#unknown`, and confirmed rather than inherited); **and**
-2. the IG publishes that instrument's Questionnaire itself, so the bundle is a
-   slice rather than a new publication.
+its licence status is **verified** against current published terms — not
+`#unknown`, and confirmed rather than inherited.
+
+That is the whole trigger. The second condition this section originally carried
+("the IG publishes that instrument's Questionnaire itself") was retracted with
+(a) above: it was already true when the audit was written.
 
 Until then the closure work is not wasted: it says the bundle would be ~11
 resources, that the sharing problem is 29 artifacts and not a tangle, and that
