@@ -81,6 +81,7 @@ import { dirname, resolve, join } from 'node:path'
 import { readRouteTable, routeResolves } from './lib/route-table.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
+import { appRoot } from './lib/app-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -742,7 +743,7 @@ if (launchChecked === 0) {
 // keep spelling it that way. That is the same phantom-match that gave
 // route-table.mjs eleven imaginary guide routes, from a comment written for the
 // same reason; see scripts/lib/jsx-comments.mjs.
-const redirectSrc = stripComments(readFileSync(join(webRoot, 'src/components/SmartRedirect.tsx'), 'utf8'))
+const redirectSrc = stripComments(readFileSync(join(appRoot('web/src'), 'components/SmartRedirect.tsx'), 'utf8'))
 const landings = [...redirectSrc.matchAll(/navigate\(\s*directed\s*\?\?\s*'([^']+)'/g)].map((m) => m[1])
 if (landings.length === 0) {
   // Not a pass. If this pattern stops matching, the gate has lost sight of the
@@ -806,7 +807,7 @@ if (landingsChecked === landings.length && landings.length > 0) {
 // on: eleven phantoms, eleven real paths missing, and this gate stayed green
 // because no catalog launch path targets a `/guide/*` route. `stripComments`
 // fixes the cause; this is what would have made the symptom visible.
-const sectionsSrc = readFileSync(join(webRoot, 'src/data/guideSections.ts'), 'utf8')
+const sectionsSrc = readFileSync(join(appRoot('web/src'), 'data/guideSections.ts'), 'utf8')
 const sectionPaths = [...sectionsSrc.matchAll(/\{\s*path:\s*'([^']+)'/g)].map((m) => m[1])
 if (sectionPaths.length === 0) {
   fail('guideSections.ts: no section paths parsed, so this check verified nothing')

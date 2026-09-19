@@ -31,15 +31,13 @@
  * PageHeader.tsx, and adding `<PageHeader>` to a page not in LENSES.
  */
 import { readFileSync, readdirSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 
 import { STYLE_ROOTS, styleRootFloors } from './lib/style-roots.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
+import { appRoot, appRootFloors } from './lib/app-roots.mjs'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const ROOT = resolve(here, '..')
-const PAGES_DIR = join(ROOT, 'src/pages')
+const PAGES_DIR = join(appRoot('web/src'), 'pages')
 const HEADER_TSX = 'packages/ui/src/PageHeader.tsx'
 // ⚠️ Repo-relative since 2026-09-19. The CSS walk spans two roots now
 // (web/src and packages/ui/src), so a name relative to one of them would match
@@ -308,7 +306,7 @@ for (const file of Object.keys(LENSES)) {
 // the page title — a second trail implementation and a third place a title could
 // live. RULE 4 says a view that uses the form layout must sit in a `.form-view`
 // root and take its header from the template.
-const COMPONENTS_DIR = join(ROOT, 'src/components')
+const COMPONENTS_DIR = join(appRoot('web/src'), 'components')
 const FORM_LAYOUT = 'form-wrapper'
 const FORM_ROOT = 'form-view'
 
@@ -749,7 +747,10 @@ for (const [cls, owner] of containers) {
 // ⚠️ Per ROOT — this gate read `web/src` alone through the packages/ui
 // extraction and reported ✓ against 31 stylesheets where it had been reading
 // 40. See lib/style-roots.mjs.
-reportFloors(styleRootFloors({ css: true, src: false }), fail)
+// ⚠️ Two root lists, because this gate reads two kinds of tree: stylesheets
+// (style-roots) and the pages/components that reference them (app-roots).
+// The second is what the `apps/` split will move out from under it.
+reportFloors([...appRootFloors(), ...styleRootFloors({ css: true, src: false })], fail)
 
 if (errors.length > 0) {
   console.error(`\n✗ page template: ${errors.length} problem${errors.length === 1 ? '' : 's'}\n`)

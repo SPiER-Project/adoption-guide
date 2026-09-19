@@ -37,12 +37,13 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
+import { appRoot } from './lib/app-roots.mjs'
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const root = join(webRoot, '..') // repo root
 const patientsDir = join(root, 'packages/demo-population/src/patients')
 const patientsJsonPath = join(root, 'packages/demo-population/src/patients.json')
-const providerPath = join(webRoot, 'src/context/PatientProvider.tsx')
+const providerPath = join(appRoot('web/src'), 'context/PatientProvider.tsx')
 
 let failures = 0
 const fail = (msg) => {

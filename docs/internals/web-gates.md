@@ -449,3 +449,60 @@ person reads the label rather than the `genDir` twenty lines above it.
 trips `check:readers`' own "mapper serves no Questionnaire" error before the floor
 is reached, and that is the better outcome — a named error beats a count. Floors
 catch what the specific checks cannot see.
+
+## App source roots — the `apps/` split's tripwire
+
+`web/scripts/lib/app-roots.mjs` — `appRoot(source)`, `appRootFloors()`. Six
+gates in `verify` call the second; ten call the first.
+
+It is [`style-roots.mjs`](../../web/scripts/lib/style-roots.mjs)'s rule applied
+to the `.ts`/`.tsx` trees, and written **before** the accident rather than after
+it. That module exists because `packages/ui` was carved out of `web/src` and
+four CSS gates went green while dropping a quarter of their input. The `apps/`
+split (`docs/plans/repo-and-package-boundaries.md`) is the same move an order of
+magnitude larger: `web/src` becomes `apps/guide/src` and `apps/clinical/src`,
+and **ten gates named `web/src` by path**, every one of which would then read one
+tree of two — or none — and print ✓.
+
+Two parts, and they answer different questions:
+
+1. **A per-root floor**, `scripts/lib/floors.mjs`'s convention unchanged. It
+   answers *is this declared root still producing files*.
+2. **A filesystem scan that hard-fails**, not a floor. It answers *is a root
+   missing* — which part 1 structurally cannot, because it would be asking the
+   very list the defect edited. `style-roots.mjs` records planting exactly that
+   (dropping `packages/ui` from `STYLE_ROOTS`) and watching two gates stay green.
+
+⚠️ **The discovery key is an entry module — `src/main.tsx` or `src/App.tsx` —
+and not a `src` glob.** `packages/core/src` and `packages/ui/src` hold plenty of
+`.ts` and `.tsx` and are legitimately not app trees, so a glob would either drag
+them in or need an exclusion list, and an exclusion list is one more thing a
+move can quietly edit. An application cannot avoid having an entry module, which
+is the property the check needs: *the list must come from something the defect
+cannot change.*
+
+**Proven red on 2026-09-19**, each plant alone, before the gate was trusted:
+
+| Plant | Result |
+|---|---|
+| `apps/guide/src/App.tsx` exists, undeclared | all five wired gates RED, naming the tree |
+| same, via `main.tsx` instead | RED |
+| same tree with no entry module (`helper.ts` only) | PASS — correctly not an app tree |
+| the root declared in `APP_ROOTS` | PASS, and the new root's count printed |
+| `floorSrc` raised above the real count (a partial move) | RED on the floor |
+| the guide's import-graph walk narrowed to nothing | RED — 47 modules → 9, which previously printed ✓ |
+| `check:surface-links`' `resolveSpec` narrowed | RED — 89 modules → 1 |
+| `APP_ROOTS` renamed without updating callers | `appRoot()` THROWS, naming the declared set |
+
+⚠️ **What it does not do yet.** The gates are wired to *a* declared root
+(`appRoot('web/src')`); they do not yet walk *every* root. That is deliberate —
+today there is one tree, so walking it is identical behaviour, and the hard
+failure above guarantees the generalization cannot be skipped: the moment a
+second app tree exists, six gates go red until someone deals with them. The
+per-gate walk is generalized when there is a second tree to walk, not before.
+
+⚠️ **`check-fhir-render.mjs`'s `NOT_A_RESOURCE_VIEW` keys are root-relative**
+(`pages/CdsServiceGuide.tsx`), as are `check-page-template.mjs`'s. Two roots
+means two files can share a key. Make those keys repo-relative in the same
+change that adds the second root, or an exemption written for one app will
+silently exempt the other's file of the same name.
