@@ -19,7 +19,7 @@ import { MemoryRouter } from 'react-router-dom'
 
 // Stubbed rather than provided: PatientProvider drags in the tool-config, SMART
 // and data-source providers, and the footer depends on none of them.
-vi.mock('../context/PatientContext', () => ({
+vi.mock('@spier/tool-views/context/PatientContext', () => ({
   usePatient: () => ({ activePatientId: null, isSmartConnected: false, riskAlerts: [], populationPatients: [] }),
 }))
 

@@ -11,7 +11,7 @@ import {
   LETHAL_MEANS_METHOD_SYSTEM,
   MEANS_SAFETY_ACTION_PROFILE,
   MEANS_SAFETY_ACTION_SYSTEM,
-} from './lethalMeans'
+} from '@spier/tool-views/lib/lethalMeans'
 import { stageForArtifact } from '@spier/core/lib/patientPathway'
 import type { ObservationResource } from '@spier/core/types/fhir'
 

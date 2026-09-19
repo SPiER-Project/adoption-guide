@@ -1,7 +1,7 @@
 import { AppShell } from './AppShell'
 import { LaunchShell } from './LaunchShell'
 import { PanelShell } from './PanelShell'
-import { usePresentation } from '../context/PresentationContext'
+import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { IS_DEMO } from '../lib/surface'
 
 /**

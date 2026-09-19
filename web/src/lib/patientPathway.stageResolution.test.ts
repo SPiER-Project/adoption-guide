@@ -8,7 +8,7 @@ import {
   type FhirResourceLike,
 } from '@spier/core/lib/patientPathway'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
-import { stampLaunchStage } from './launchStage'
+import { stampLaunchStage } from '@spier/tool-views/lib/launchStage'
 import { CAREPLAN_PROFILE_URLS } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { STAGES, TOOLS, toolForQuestionnaireUrl } from '@spier/core/data/catalog'

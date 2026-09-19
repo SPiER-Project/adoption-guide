@@ -50,7 +50,7 @@ import {
   PathwaySpine,
 } from '../components/PathwayView'
 import { usePathway } from '../hooks/usePathway'
-import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { guideHref } from '../data/guideSections'
 import '../css/CarePathway.css'
 import { Card } from '@spier/ui/Card'

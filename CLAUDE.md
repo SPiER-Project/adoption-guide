@@ -30,6 +30,20 @@ most of them are a gate that passed while checking nothing.
   its colocated tests run under `web`'s vitest; **no fourth pipeline.**
   ⚠️ `WorkflowForm` is deliberately NOT here: it reads `usePatient()`, so moving
   it would invert the dependency. See `packages/ui/README.md`.
+- `packages/tool-views/` — the **18 instrument fillers and 11 workflow
+  recorders**, defined ONCE, plus the three contexts they read
+  (`InspectContext`, `PatientContext`, `PresentationContext` +
+  `PresentationProvider`) and the frames around them (`WorkflowForm`,
+  `QuestionnaireView`, `CarePlanDisplay`, `FhirJsonViewer`, `CodeDrawer`).
+  Consumed as `@spier/tool-views/<path>`. ⚠️ **The contexts live here and that is
+  what makes the package possible** — `packages/ui` could not take `WorkflowForm`
+  because it reads `usePatient()` and ui knows nothing about patients; this
+  package owns both sides, so nothing is inverted. The *providers*
+  (`PatientProvider`, `SmartProvider`, `ToolConfigProvider`) stay in the app: a
+  provider decides where data comes from, which is an application's decision.
+  ⚠️ **No `IS_DEMO` in here, ever.** A view renders the same for a clinician and
+  an implementer; what differs is `InspectContext`, which the app turns on for
+  `/guide`. See `packages/tool-views/README.md`.
 - `packages/worker-http/` — what the two asset-serving Workers share about
   *being an asset host*: the Static Assets catch-all, the explicit SPA fallback,
   and the one `frame-ancestors` policy. React-free and DOM-free like
@@ -113,6 +127,11 @@ npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, q
                                # route, which must be a PAGE and not a redirect — and every
                                # <Navigate> TARGET still points at a real route, so a compatibility
                                # redirect kept for a published path cannot rot into the catch-all
+npm run check:tool-view-routes # the 29 tool views are ONE definition and EVERY app's route table
+                               # agrees with it, both ways. ⚠️ Replaced the App.tsx half of
+                               # toolViews.test.ts, which read `../App.tsx` by relative path — a
+                               # shape that can only ever check ONE table, while the invariant is
+                               # every table. Iterates the roots in lib/app-roots.mjs instead
 npm run check:surface-links    # every in-app link a CLINICIAN can reach resolves on the CLINICAL
                                # surface. ⚠️ A different question from `check:surface`, which reads the
                                # two BUNDLES and asserts what is compiled in. A component that ships on
@@ -505,13 +524,15 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   resource or render a `<pre>` and you must have asked `useInspect()`. It covers
   the prose too — see the tool-views bullet above.
   ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
-  (`web/src/data/toolViews.tsx`), rendered by two route families: the clinician's
+  (`packages/tool-views/src/data/toolViews.tsx` — a package since 2026-09-19, so
+  the rule is a boundary rather than a convention), rendered by two route families: the clinician's
   published `/patient/assessments/*` and `/patient/workflow/*` paths (the
   catalog's 36 launch paths, every CDS card's `type: "smart"` link, every SMART
   `intent`) and the guide's `/guide/tools/:slug/try`. They must stay one
   definition — two copies drift on a `persistName` and the guide then documents a
-  resource the app does not write. `toolViews.test.ts` pins that the map and
-  App.tsx's route lookups agree, by parsing both as text.
+  resource the app does not write. **`npm run check:tool-view-routes`** pins that
+  the map and every app's route lookups agree, by parsing both as text;
+  `toolViews.test.ts` keeps only what is local to the map itself.
   ⚠️ `/guide/tools/:slug/try` is a SIBLING of the `/guide` layout, not a child:
   the views render their own `PageHeader`, and nesting would put two on a page.
   It is also deliberately not a `guideSections.ts` entry — it renders recorders

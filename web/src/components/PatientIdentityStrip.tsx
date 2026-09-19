@@ -10,10 +10,10 @@
  * one rule (lib/riskLabel.ts), and the banner's collapse-on-narrow behaviour
  * is now the strip's own.
  */
-import { usePatient } from '../context/PatientContext'
+import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { cx } from '@spier/ui/cx'
 import { RISK_LABEL, highestActiveRiskLevel, riskTitle } from '../lib/riskLabel'
-import { RiskPill } from './RiskPill'
+import { RiskPill } from '@spier/tool-views/components/RiskPill'
 import '../css/PatientIdentityStrip.css'
 
 function Divider() {

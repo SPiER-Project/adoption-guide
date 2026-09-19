@@ -1,0 +1,85 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+
+    // ⚠️ **This file's most important job is `jsx`, and not for `tsc`** — the
+    // same trap packages/ui/tsconfig.json records. esbuild, which is what vite
+    // and vitest actually transform .tsx with, finds a tsconfig by walking up
+    // from the FILE. From packages/tool-views/src that walk reaches the repo
+    // root and never sees web/tsconfig.app.json, so without a config here every
+    // view compiles to the CLASSIC JSX runtime and dies with "React is not
+    // defined" — while `tsc` stays green, because it reaches the same files
+    // through imports from web/src.
+    "jsx": "react-jsx",
+
+    // Default typeRoots discovery walks up from this file's directory looking
+    // for node_modules/@types, which never reaches web/node_modules (a sibling,
+    // not an ancestor). Same arrangement, and the same reason, as
+    // packages/core and packages/ui.
+    "typeRoots": ["../../web/node_modules/@types"],
+    "types": ["node"],
+    "paths": {
+      // React and friends are web's dependencies; this package deliberately
+      // keeps no second copy, which could drift from the version the app ships.
+      // Pointed at @types where the package does not carry its own.
+      "react": ["../../web/node_modules/@types/react"],
+      "react/*": ["../../web/node_modules/@types/react/*"],
+      "react-dom": ["../../web/node_modules/@types/react-dom"],
+      "react-router-dom": ["../../web/node_modules/react-router-dom"],
+      "lucide-react": ["../../web/node_modules/lucide-react"],
+      "@formbox/renderer": ["../../web/node_modules/@formbox/renderer/dist/index.d.ts"],
+      "@formbox/hs-theme": ["../../web/node_modules/@formbox/hs-theme/dist/index.d.ts"],
+      // The colocated tests import these explicitly, and this package has no
+      // node_modules of its own to walk up into.
+      "vitest": ["../../web/node_modules/vitest/dist/index.d.ts"],
+      "@testing-library/react": ["../../web/node_modules/@testing-library/react/types/index.d.ts"],
+      // This package sits ON TOP of core and ui and imports both by the same
+      // specifier the apps use.
+      "@spier/core/*": ["../core/src/*"],
+      "@spier/ui/*": ["../ui/src/*"],
+      "@spier/fhir-artifacts/*": ["../fhir-artifacts/*"],
+      // Reached only through core's own sources, which are included below.
+      "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
+      // Its own alias, so a colocated test can import its subject the way a
+      // consumer does rather than by a relative path.
+      "@spier/tool-views/*": ["./src/*"]
+    },
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "composite": true
+  },
+  // ⚠️ core's and ui's sources are INCLUDED, not referenced, and that is the
+  // arrangement packages/core already uses for fhir-artifacts and
+  // demo-population. A `composite` project's program may not contain a file its
+  // own `include` does not name (TS6307), and these two are reached through the
+  // `@spier/*` path mappings above — so a reference without declaration output
+  // (every package here is `noEmit`) leaves tsc compiling their sources anyway
+  // and then objecting that they are not listed.
+  "include": ["src", "../core/src", "../ui/src", "../fhir-artifacts/generated/**/*.ts"],
+  // ⚠️ Their TESTS stay out. Including a sibling package's sources is what the
+  // TS6307 note above forces; type-checking its test suite as well would be a
+  // second opinion on files packages/core's own project already checks, and
+  // those tests reach for demo-population fixtures this package has no business
+  // resolving.
+  "exclude": ["../core/src/**/*.test.ts", "../core/src/**/*.test.tsx", "../ui/src/**/*.test.tsx"]
+}

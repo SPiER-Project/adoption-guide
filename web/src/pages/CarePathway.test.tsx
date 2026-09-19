@@ -25,7 +25,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { CarePathway } from './CarePathway'
-import { InspectContext } from '../context/InspectContext'
+import { InspectContext } from '@spier/tool-views/context/InspectContext'
 
 afterEach(cleanup)
 

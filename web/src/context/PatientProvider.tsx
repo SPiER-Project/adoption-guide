@@ -1,11 +1,11 @@
 import React, { useMemo, useCallback, useSyncExternalStore } from 'react'
-import { formatPatientDisplay } from '../data/demoPatient'
+import { formatPatientDisplay } from '@spier/tool-views/data/demoPatient'
 import { useSmart } from './SmartContext'
 import {
   PatientContext,
   type PatientContextType,
   type PopulationPatient,
-} from './PatientContext'
+} from '@spier/tool-views/context/PatientContext'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
 import type { FhirDataSource } from '@spier/core/lib/dataSource/types'

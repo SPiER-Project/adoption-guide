@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
-import { INCLUSION_ICON, LICENSING_ICON, READINESS_TIER_ICON, type InclusionStatus } from '../lib/statusIcons'
+import { INCLUSION_ICON, LICENSING_ICON, READINESS_TIER_ICON, type InclusionStatus } from '@spier/tool-views/lib/statusIcons'
 import '../css/AdoptionReadiness.css'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Pill, type PillTone } from '@spier/ui/Pill'

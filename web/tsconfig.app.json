@@ -19,6 +19,7 @@
       "fhirclient/*": ["./node_modules/fhirclient/*"],
       "@spier/core/*": ["../packages/core/src/*"],
       "@spier/ui/*": ["../packages/ui/src/*"],
+      "@spier/tool-views/*": ["../packages/tool-views/src/*"],
       // packages/ui is React, and it lives OUTSIDE web/. TypeScript resolves a
       // bare specifier by walking up from the importing FILE, so from
       // packages/ui/src that walk reaches the repo root and finds no
@@ -38,6 +39,13 @@
       "react-dom": ["./node_modules/@types/react-dom"],
       "react-router-dom": ["./node_modules/react-router-dom"],
       "lucide-react": ["./node_modules/lucide-react"],
+      // ⚠️ packages/tool-views renders the formbox questionnaire renderer, and its
+      // files are outside web/ — so the node_modules walk-up that resolves these
+      // for web's own sources never reaches web/node_modules from there. Mapped at
+      // the declaration file because a bare directory makes TS resolve the JS and
+      // then ask for types, exactly as the react entries above record.
+      "@formbox/renderer": ["./node_modules/@formbox/renderer/dist/index.d.ts"],
+      "@formbox/hs-theme": ["./node_modules/@formbox/hs-theme/dist/index.d.ts"],
       "@spier/fhir-artifacts/*": ["../packages/fhir-artifacts/*"],
       "@spier/demo-population": ["../packages/demo-population/src/index.ts"],
       "@spier/demo-population/*": ["../packages/demo-population/src/*"]

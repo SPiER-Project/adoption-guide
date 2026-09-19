@@ -33,7 +33,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { STYLE_ROOTS, styleRootFloors } from './lib/style-roots.mjs'
+import { STYLE_ROOTS, styleRootFloors, walkExt, relRepo } from './lib/style-roots.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 import { appRoot, appRootFloors } from './lib/app-roots.mjs'
 
@@ -136,7 +136,10 @@ if (pageFiles.length === 0) fail('no page modules found under src/pages — noth
  * every branch below that cannot resolve the root `fail`s instead.
  */
 function rootClasses(file, src) {
-  const component = file.replace(/\.tsx$/, '')
+  // ⚠️ The component name is the BASENAME. `file` became repo-relative when the
+  // scan grew to several component trees, and deriving the name from the whole
+  // path asked for `export function packages/tool-views/src/components/…(`.
+  const component = file.split('/').pop().replace(/\.tsx$/, '')
   const declared = src.indexOf(`export function ${component}(`)
   if (declared === -1) {
     // Not fatal to the app, but fatal to this gate: without the root element it
@@ -306,13 +309,23 @@ for (const file of Object.keys(LENSES)) {
 // the page title — a second trail implementation and a third place a title could
 // live. RULE 4 says a view that uses the form layout must sit in a `.form-view`
 // root and take its header from the template.
-const COMPONENTS_DIR = join(appRoot('web/src'), 'components')
 const FORM_LAYOUT = 'form-wrapper'
 const FORM_ROOT = 'form-view'
 
-const formViews = readdirSync(COMPONENTS_DIR)
-  .filter(f => f.endsWith('.tsx') && !f.endsWith('.test.tsx'))
-  .filter(f => readFileSync(join(COMPONENTS_DIR, f), 'utf8').includes(`className="${FORM_LAYOUT}"`))
+// ⚠️ **Every component tree, not `web/src/components`.** This read one directory
+// until the 29 tool views moved to packages/tool-views, at which point all 11
+// recorders and the form frame itself left the scan — and the failure was loud
+// only because the two `length === 0` guards below exist. Had ONE recorder
+// stayed behind, this would have checked it and reported ✓ over the other ten.
+// `componentFiles` keys repo-relative so two trees cannot share a name.
+const componentFiles = STYLE_ROOTS.flatMap(r =>
+  walkExt(r.dir, ['.tsx']).filter(p => !p.endsWith('.test.tsx')),
+)
+const readComponent = (p) => readFileSync(p, 'utf8')
+const baseName = (p) => p.split('/').pop()
+
+const formViews = componentFiles
+  .filter(p => readComponent(p).includes(`className="${FORM_LAYOUT}"`))
   .sort()
 
 if (formViews.length === 0) {
@@ -325,20 +338,21 @@ if (formViews.length === 0) {
 // element, and the rule for it is the mirror image of RULE 4 — it must NOT
 // also render a header or the layout, or the page has two of each.
 const RECORDER_FRAME = 'WorkflowForm'
-const recorderViews = readdirSync(COMPONENTS_DIR)
-  .filter(f => f.endsWith('.tsx') && !f.endsWith('.test.tsx') && f !== `${RECORDER_FRAME}.tsx`)
-  .filter(f => new RegExp(`<${RECORDER_FRAME}\\b`).test(readFileSync(join(COMPONENTS_DIR, f), 'utf8')))
+const recorderViews = componentFiles
+  .filter(p => baseName(p) !== `${RECORDER_FRAME}.tsx`)
+  .filter(p => new RegExp(`<${RECORDER_FRAME}\\b`).test(readComponent(p)))
   .sort()
 
 if (recorderViews.length === 0) {
   fail(`no recorder views found (nothing renders <${RECORDER_FRAME}>) — either they were renamed, in which case fix this check, or nothing here was verified`)
 }
-if (!formViews.includes(`${RECORDER_FRAME}.tsx`)) {
+if (!formViews.some(p => baseName(p) === `${RECORDER_FRAME}.tsx`)) {
   fail(`${RECORDER_FRAME}.tsx does not render the form layout — the recorders inherit their frame from it, so it must be the form view that satisfies RULE 4`)
 }
 
-for (const file of recorderViews) {
-  const src = readFileSync(join(COMPONENTS_DIR, file), 'utf8')
+for (const path of recorderViews) {
+  const file = relRepo(path)
+  const src = readComponent(path)
   checkSharedRules(file, src)
   if (/<PageHeader\b/.test(src)) {
     fail(`${file}: renders <PageHeader> AND <${RECORDER_FRAME}> — the frame renders the header, so this page would have two`)
@@ -350,8 +364,9 @@ for (const file of recorderViews) {
   }
 }
 
-for (const file of formViews) {
-  const src = readFileSync(join(COMPONENTS_DIR, file), 'utf8')
+for (const path of formViews) {
+  const file = relRepo(path)
+  const src = readComponent(path)
   checkSharedRules(file, src)
 
   const roots = rootClasses(file, src)

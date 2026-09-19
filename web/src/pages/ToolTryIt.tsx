@@ -41,8 +41,8 @@
  * page's root; it carries no rule of its own.
  */
 import { useParams, Link } from 'react-router-dom'
-import { InspectContext } from '../context/InspectContext'
-import { TOOL_VIEWS, isToolViewSlug } from '../data/toolViews'
+import { InspectContext } from '@spier/tool-views/context/InspectContext'
+import { TOOL_VIEWS, isToolViewSlug } from '@spier/tool-views/data/toolViews'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Notice } from '@spier/ui/Notice'
 import { guideHref } from '../data/guideSections'

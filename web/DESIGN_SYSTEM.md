@@ -41,11 +41,11 @@ pass `className` for **layout or a domain colour only**.
 | `Notice` | a tinted message box with a 3px left edge, six tones, `role` from tone | [`src/components/Notice.tsx`](../packages/ui/src/Notice.tsx) |
 | `EmptyState` | "nothing here": inline, or `panel` for an empty region | [`src/components/EmptyState.tsx`](../packages/ui/src/EmptyState.tsx) |
 | `DataTable` | the table shell: scroll wrapper, optional frame, header type, `compact`/`comfortable` cells, dividers; the page writes its own `<thead>`/`<tbody>` | [`src/components/DataTable.tsx`](../packages/ui/src/DataTable.tsx) |
-| `WorkflowForm` | the recorder frame: header, card-beside-drawer, hint, notice, code drawer | [`src/components/WorkflowForm.tsx`](src/components/WorkflowForm.tsx) |
+| `WorkflowForm` | the recorder frame: header, card-beside-drawer, hint, notice, code drawer | [`src/components/WorkflowForm.tsx`](../packages/tool-views/src/components/WorkflowForm.tsx) |
 
 ### Risk pill — `RiskPill`
 
-[`src/components/RiskPill.tsx`](src/components/RiskPill.tsx) is a wrapper over
+[`src/components/RiskPill.tsx`](../packages/tool-views/src/components/RiskPill.tsx) is a wrapper over
 `Pill` in a solid risk tone (`acute`/`high`/`moderate`/`low`/`none`/`unknown`),
 led by the level's icon from `lib/statusIcons.tsx`. It replaced three
 divergent per-page implementations so the same severity renders identically

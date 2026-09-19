@@ -9,7 +9,7 @@ import {
   type MeasurementPeriod,
 } from '@spier/core/lib/measures'
 import { emptinessOf, type Emptiness } from '../lib/measureGaps'
-import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { PageHeader } from '@spier/ui/PageHeader'
 import { useRegistrySlices } from '../hooks/useRegistrySlices'
 import type { PatientSlice } from '@spier/core/types/fhir'
@@ -18,7 +18,7 @@ import { SectionHeader } from '@spier/ui/SectionHeader'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Notice } from '@spier/ui/Notice'
 import { Card } from '@spier/ui/Card'
-import { isoDay } from '../lib/dates'
+import { isoDay } from '@spier/tool-views/lib/dates'
 import { DataTable } from '@spier/ui/DataTable'
 
 const WINDOWS: { days: number; label: string }[] = [

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FhirJsonViewer } from '../components/FhirJsonViewer'
+import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import {
   CDS_DISCOVERY_URL,

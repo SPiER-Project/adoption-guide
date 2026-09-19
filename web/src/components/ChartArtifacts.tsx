@@ -10,7 +10,7 @@ import {
   type RenderableResource,
 } from '../lib/chartDisplay'
 import type { CommunicationResource, StoredResponse } from '@spier/core/types/fhir'
-import { formatDate, formatDateTime } from '../lib/dates'
+import { formatDate, formatDateTime } from '@spier/tool-views/lib/dates'
 
 /** The artifact-card lists shared by pathway stage nodes and the unstaged
  *  "Other activity" bucket. */

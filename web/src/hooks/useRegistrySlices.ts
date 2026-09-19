@@ -23,7 +23,7 @@
  * quietly rendering local rows beside a live connection (blocker 1, #390).
  */
 import { useEffect, useMemo, useState } from 'react'
-import { usePatient } from '../context/PatientContext'
+import { usePatient } from '@spier/tool-views/context/PatientContext'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type { RegistryPatient } from '@spier/core/lib/registry'

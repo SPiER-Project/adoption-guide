@@ -24,7 +24,7 @@ afterEach(() => {
 async function shellFor(isDemo: boolean, chromeMode: 'ehr' | 'panel') {
   vi.resetModules()
   vi.doMock('../lib/surface', () => ({ SURFACE: isDemo ? 'demo' : 'clinical', IS_DEMO: isDemo }))
-  vi.doMock('../context/PresentationContext', () => ({
+  vi.doMock('@spier/tool-views/context/PresentationContext', () => ({
     usePresentation: () => ({ chromeMode, hostDrawsPatientBanner: false }),
   }))
   vi.doMock('./AppShell', () => ({ AppShell: () => <div data-testid="app-shell" /> }))

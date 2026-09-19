@@ -56,7 +56,7 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
-import { usePatient } from '../context/PatientContext'
+import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { PatientBanner } from './PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from './SpierLogo'

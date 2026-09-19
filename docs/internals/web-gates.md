@@ -506,3 +506,95 @@ per-gate walk is generalized when there is a second tree to walk, not before.
 means two files can share a key. Make those keys repo-relative in the same
 change that adds the second root, or an exemption written for one app will
 silently exempt the other's file of the same name.
+
+## `check:tool-view-routes` — one definition, now checked across every app
+
+The 18 instrument fillers and 11 workflow recorders are ONE element definition
+rendered by two route families. CLAUDE.md has always stated the rule and the
+reason — *"two copies drift on a `persistName` and the guide then documents a
+resource the app does not write."*
+
+⚠️ **It used to be a test, and the test's shape was about to become wrong.**
+`toolViews.test.ts` sat beside the map and read `../App.tsx` by relative path.
+Both premises died with `packages/tool-views`: the map is no longer beside the
+route table, and the `apps/` split turns one route table into one per app. A
+relative `../App.tsx` is not merely a stale path — it is a check that **can only
+ever see one table**, while the invariant is *every* table. A second app could
+route to a key that does not exist and the suite would stay green.
+
+So it became a gate, reading the app roots from
+[`lib/app-roots.mjs`](../../web/scripts/lib/app-roots.mjs). It walks every
+declared root's `App.tsx`, so the second app is checked the day it is declared —
+and that declaration cannot be quiet, because an undeclared app tree is already a
+hard failure.
+
+Five rules: a route's key is defined; the key equals the route's last segment (or
+`/guide/tools/<slug>/try` finds no such tool while the clinician's form works); no
+view goes unrouted by *every* app; no key defined twice; and `isToolViewSlug` uses
+`hasOwnProperty` rather than `in`, which answers yes for `toString` and hands
+`ToolTryIt` a function to render.
+
+It reads both files as TEXT, for the reason `lib/route-table.mjs` documents:
+importing `toolViews.tsx` pulls in the questionnaire registry, the care-plan
+mappers and the whole tool catalog — a 30-second SUSHI compile before the gate
+could answer a purely structural question.
+
+**Proven red, each plant alone:**
+
+| Plant | Result |
+|---|---|
+| a route looks up a key the map does not define | RED, naming the blank page |
+| a key that is not its route's last segment | RED, naming the `/try` URL that breaks |
+| a view no route renders | RED |
+| `hasOwnProperty` replaced by a bare `in` | RED |
+| the map reformatted so the key reader matches nothing | RED (29 keys "undefined") |
+| the anchor the slice ends at renamed | RED — *"fix the reader, not the callers"* |
+| **a SECOND app root whose table has a typo'd key** | RED, having read 31 lookups across 2 tables |
+
+⚠️ **What it cannot see: whether the view is the RIGHT one.** A route may look up
+a key that exists and render a recorder for a different instrument; the strings
+agree and this says nothing. `check:outputs` is what ties a slug to what it
+actually emits.
+
+⚠️ **An app that renders no tool views is skipped, not failed** — the population
+dashboard is a legitimate example. The per-app lookup counts are printed so a
+table that silently stopped matching is visible, and the floor is on the total.
+
+## What the `packages/tool-views` extraction cost, and what caught it
+
+The move was run against captured `main` baselines, per this file's own rule.
+**Four gates lost coverage. Two failed loudly; two passed.**
+
+| Gate | On `main` | After the move | Caught by |
+|---|---|---|---|
+| `check:fhir-render` | 11 recorders, 149 JSX runs | **threw** | its own `recorders.length === 0` guard |
+| `check:template` | 2 form views, 11 recorders | **3 failures** | its two `length === 0` guards |
+| `check:fhir-r5` | 1 `fhirVersion` prop | **failed** | its `versionProps === 0` guard |
+| `check:guide-boundary` | 47 modules reached | **20** | ✓ **passed** — floor 20, by equality |
+| `check:surface-links` | 89 modules reached | **61** | ✓ **passed** |
+
+The three that failed were built with a "found nothing" guard and it worked
+exactly as designed. The two that passed are the lesson:
+
+⚠️ **Both carried their own relative-only `resolveSpec`.** An `@spier/…` import
+was not followed, so each walk simply stopped at the new package boundary. For
+`check:guide-boundary` that is the whole claim — *"holds no patient data, checked
+TRANSITIVELY"* — and a `@spier/…` import is exactly how a guide page would reach
+a fixture now. It would have reported a clean guide having never opened the tool
+views. The floor caught it only by **equality**, which is luck, not design.
+
+The resolver is now declared once in
+[`lib/module-graph.mjs`](../../web/scripts/lib/module-graph.mjs) and understands
+`@spier/<pkg>/…`, derived from the filesystem rather than typed.
+
+⚠️ **And it turned out both gates had been under-reading all along.** With
+`@spier/…` followed, the graphs went to **150** and **210** — they had never
+walked into `packages/core` either, since the day it was extracted. A
+pre-existing hole that only became visible because something else broke next to
+it.
+
+⚠️ **`check:surface` reported a clean surface over builds that had just
+failed.** It asserts both `dist` directories exist, not that they are fresh, so
+it read output from the previous run. `check:outputs` guards its corpus with an
+mtime comparison for exactly this reason; `check:surface` does not, and that gap
+is unclosed.

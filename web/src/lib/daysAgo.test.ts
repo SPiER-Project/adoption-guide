@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDaysAgo } from './dates'
+import { formatDaysAgo } from '@spier/tool-views/lib/dates'
 
 // Build an ISO timestamp `n` days before now. A sub-millisecond elapse between
 // this and Date.now() inside the function only ever rounds *up* toward n, so
