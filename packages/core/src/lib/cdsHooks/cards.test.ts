@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { buildCdsCards, type BuildCdsCardsInput } from '@spier/core/lib/cdsHooks/cards'
+import type { Card } from '@spier/core/lib/cdsHooks/types'
 import { TOOLS } from '@spier/core/data/catalog'
 import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
+import { stageLeadToolIds } from '@spier/core/lib/pathwaySelection'
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import { intentForLaunchPath, launchPathForIntent } from '@spier/core/lib/smartIntent'
@@ -25,6 +27,16 @@ function alert(overrides: Partial<RiskAlert> = {}): RiskAlert {
     detail: 'detail',
     ...overrides,
   }
+}
+
+/**
+ * The ROUTER paths a card offers. `link.url` is the absolute app URL (or a SMART
+ * launch URL when one is configured), so it is the wrong thing to compare
+ * against a catalog `launchAction.path`; the builder publishes the mapping as
+ * `spier-router-paths` for exactly this reason.
+ */
+function routerPathsOf(card: Card): string[] {
+  return Object.values(card.extension?.['spier-router-paths'] ?? {}).sort()
 }
 
 function build(overrides: Partial<BuildCdsCardsInput> = {}) {
@@ -345,22 +357,114 @@ describe('buildCdsCards — one link per destination', () => {
   })
 
   it('keeps distinct destinations at the same stage', () => {
-    // The dedupe must not collapse a stage's genuinely different tools into one
-    // link — that would be the opposite defect and just as invisible.
-    for (const tool of TOOLS) {
-      const stagePaths = new Set(
-        TOOLS.filter(t => t.stageId === tool.stageId).flatMap(t => t.launchActions.map(a => a.path)),
+    // The dedupe must not collapse a stage's genuinely different destinations
+    // into one link — that would be the opposite defect and just as invisible.
+    //
+    // ⚠️ The premise changed on 2026-09-19: the card offers what the PATHWAY
+    // leads with rather than every tool at the stage, so "every launch path at
+    // this stage" is no longer what it should carry. Document Safety Actions is
+    // the stage the pathway names twice, which is what keeps this testing the
+    // dedupe rather than the narrowing.
+    for (const stageId of [...new Set(TOOLS.map(t => t.stageId))]) {
+      const leadPaths = new Set(
+        TOOLS.filter(t => stageLeadToolIds(stageId).includes(t.id))
+          .flatMap(t => t.launchActions.map(a => a.path)),
       )
-      if (stagePaths.size < 2) continue
+      if (leadPaths.size < 2) continue
       const [card] = buildCdsCards({
-        activeStageId: tool.stageId,
+        activeStageId: stageId,
         riskAlerts: [],
         isToolEnabled: () => true,
         recommendedNextStep: null,
         isSmartConnected: false,
       })
-      expect(card.links?.length).toBe(stagePaths.size)
-      break
+      expect(card.links?.length).toBe(leadPaths.size)
+      return
     }
+    throw new Error('no stage leads with two distinct destinations — this test checked nothing')
+  })
+})
+
+describe('the stage card offers a SELECTION, not a catalogue', () => {
+  /**
+   * Changed 2026-09-19. The card used to offer every enabled tool at the stage
+   * with the pathway's realization sorted first — up to EIGHT links at Clarify
+   * Risk, three of them CAMS SSF-5 sections, in a 470px clinical panel.
+   *
+   * ⚠️ **The selection is read from the published pathway, which is why it is
+   * safe to apply in the hosted service and the panel alike.** The rule
+   * `web/src/lib/toolEnablement.ts` guards is that the panel and the host's own
+   * cards must not disagree about the same patient, which happens when one
+   * consults browser-local state the other cannot see. A rule derived from
+   * `PlanDefinition/SPiERSuicideSaferCarePathway` is not state — all three
+   * surfaces bundle the same artifact.
+   */
+  const stagesWithTools = [...new Set(
+    TOOLS.filter(t => t.launchActions.length > 0).map(t => t.stageId),
+  )]
+
+  it('has stages to check, and a stage where this actually narrows something', () => {
+    expect(stagesWithTools.length).toBeGreaterThanOrEqual(6)
+    // Without a stage that offers more than the pathway names, "the card shows
+    // the lead tools" is true of a catalogue that never had alternatives.
+    const narrowed = stagesWithTools.filter(
+      s => TOOLS.filter(t => t.stageId === s && t.launchActions.length > 0).length
+        > stageLeadToolIds(s).length,
+    )
+    expect(narrowed.length).toBeGreaterThan(0)
+  })
+
+  it.each(stagesWithTools)('%s offers only what the pathway leads with, everything enabled', stageId => {
+    const [card] = build({ activeStageId: stageId, isToolEnabled: () => true })
+    const leadPaths = [...new Set(
+      TOOLS.filter(t => stageLeadToolIds(stageId).includes(t.id))
+        .flatMap(t => t.launchActions.map(a => a.path)),
+    )].sort()
+    // Compared as PATHS rather than counts: two tools can share a launch path,
+    // and the builder emits one link per destination.
+    expect(routerPathsOf(card)).toEqual(leadPaths)
+  })
+
+  it('offers ONE launch at Clarify Risk, which used to offer eight', () => {
+    const [card] = build({ activeStageId: 'clarify-risk', isToolEnabled: () => true })
+    expect(card.links?.length).toBe(1)
+    expect(card.links?.[0].label).toContain('C-SSRS Screener')
+  })
+
+  it('still offers BOTH obligations where the pathway names two', () => {
+    // Document Safety Actions is named twice — a safety plan and crisis
+    // resources. Narrowing must not collapse a published obligation.
+    const [card] = build({ activeStageId: 'document-safety-actions', isToolEnabled: () => true })
+    expect(card.links?.length).toBe(2)
+  })
+})
+
+describe('narrowing can never withhold a recommendation', () => {
+  /**
+   * ⚠️ **The 2026-09-02 defect, from the other side.** `buildCdsCards` drops a
+   * card with nothing to launch. A site whose preset excludes the pathway's
+   * instrument would get an empty stage card — Minimum Viable enables the ASQ
+   * and the pathway names the PHQ-9, so this is the real configuration, not a
+   * hypothetical one.
+   */
+  const leadId = stageLeadToolIds(launchStage)[0]
+  const other = TOOLS.find(
+    t => t.stageId === launchStage && t.launchActions.length > 0 && t.id !== leadId,
+  )
+
+  it('has a non-lead tool at this stage to fall back to', () => {
+    expect(other, 'no alternative at the stage — this whole describe would be vacuous').toBeDefined()
+  })
+
+  it('falls back to what IS enabled when no lead tool is', () => {
+    const [card] = build({ isToolEnabled: id => id === other!.id })
+    expect(card, 'the stage card vanished — a site got no recommendation at all').toBeDefined()
+    expect(card.links?.length).toBeGreaterThan(0)
+    expect(routerPathsOf(card)).toContain(other!.launchActions[0].path)
+  })
+
+  it('prefers the lead tool when BOTH are enabled', () => {
+    const [card] = build({ isToolEnabled: id => id === other!.id || id === leadId })
+    expect(routerPathsOf(card)).not.toContain(other!.launchActions[0].path)
   })
 })
