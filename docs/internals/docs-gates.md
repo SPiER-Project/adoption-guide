@@ -1,6 +1,6 @@
-# Docs gates: markdown links and the use-case workbook
+# Docs gates: markdown links, prose paths, and the use-case workbook
 
-The only gate that triggers on `docs/**`, and the generated HL7 working-group
+The only gates that trigger on `docs/**`, and the generated HL7 working-group
 workbook whose gap claims are statements to a standards body.
 
 Moved out of `CLAUDE.md`, which keeps the commands and the rules and links
@@ -119,3 +119,87 @@ also carry `proposed: true` on its walkthrough entry, so the chart cannot show
 a SPiER proposal as settled. `docs/use-cases/README.md` has the rationale,
 including why review notes are not emitted as Excel cell comments.
 
+
+
+## The other half: paths written as prose (`check-md-paths.mjs`, 2026-09-19)
+
+```
+node scripts/check-md-paths.mjs
+```
+
+The links gate resolves **links**. A path written as backticked prose —
+``` `packages/core/src/lib/measures.ts` ``` in a running sentence — is not a
+link, so it was invisible to every gate in the repo. That is precisely how it
+rotted: a scan on 2026-09-19 found **113 missing backticked repo-rooted paths
+across 34 tracked `.md` files** (82 outside `docs/plans/archive/`), accumulated
+through the `packages/{core,ui,tool-views}` extractions.
+
+⚠️ **Two of them were misses from #547 itself** — the PR that moved the tool
+views updated neither `CLAUDE.md:535` nor `docs/internals/tool-views.md`, whose
+**opening line** named the file it had just moved. A live internals doc that
+`CLAUDE.md` sends readers to began by pointing at nothing.
+
+### Why it is not a bare existence check
+
+⚠️ **Most missing paths are correct prose, and a naive gate would have demanded
+they be "fixed".** This repo supersedes rather than deletes, so a doc routinely
+names a file precisely because it is gone — "`foundation.css` is the former
+`web/src/index.css`", "they *were* `ig/input/fsh/population-patients.fsh` until
+step E2", "(now deleted)". Others point *forward*: the licensing memos name
+`ig/input/pagecontent/<tool>.md` pages not yet authored. Of the 82 live
+findings, roughly **five** were real defects.
+
+So absence is permitted only through `ALLOWED`, keyed `<md file>::<path>`, each
+entry carrying a reason — a reasoned list, never a count, the same rule as
+`check-sushi-output.mjs`'s warning allowlist.
+
+The real defects it did find are the shape worth knowing:
+
+- `docs/README.md` carried a link whose **label** named a nonexistent file while
+  its **target** pointed at a different, real one. `check-md-links` resolved the
+  target and passed; the reader sees only the label.
+- `docs/best-practices/licensing-verification-backlog.md` asserted in the
+  present tense that a deleted stylesheet "names it first in `--font-display`".
+
+### The allowlist is built to expire
+
+⚠️ An exemption that outlives its reason is worse than none, because it reads as
+"checked" forever. Two rules beyond the obvious one:
+
+- an entry whose path **now exists** fails. `apps/guide/src/App.tsx` sits in
+  here twice as a forward reference to the `apps/` split; the day that tree
+  lands, the gate demands both entries be deleted rather than letting a stale
+  exemption cover a path nobody rechecked.
+- an entry whose `(file, path)` pair **no longer occurs** fails, so a rewritten
+  sentence cannot leave its exemption behind.
+
+### What it cannot see
+
+- **A path that is wrong rather than absent.** `packages/core/src/lib/foo.ts`
+  when the file is really in `packages/tool-views/` passes, because something
+  exists at the named path. Existence is checkable; *aboutness* is not.
+- **A path not in backticks.** Bare prose paths are unscanned by construction —
+  the false-positive rate on unquoted text is far too high.
+- **A claim.** This gate checks that a path resolves, not that the sentence
+  around it is true. "Docs gate links, not claims" remains the standing hole;
+  this narrows it by one property, and `docs/plans/` is still ungated prose.
+
+⚠️ **`docs/plans/archive/` is exempt by directory** (31 of the 113). It is
+history by construction, and retargeting a path there would falsify the record
+of what was true when the plan was written.
+
+⚠️ **Floors, and why they are not optional.** Every rule above is a rule about
+paths the scan *found*, so all of them pass vacuously over a scan that finds
+nothing. `FLOOR_PATHS`/`FLOOR_FILES` fail the gate when it reads less than it
+should — the same defence `check-md-links` carries, and the same failure
+`web-gates.md` records when a module walk fell from 47 to 20 and reported ✓.
+Proven by breaking the regex: 0 paths found, floor fired.
+
+⚠️ **`docs-links.yml` deliberately has NO `paths:` filter, since 2026-09-19.**
+Both gates resolve a tracked `.md` against **the whole working tree**, so their
+input is not the `.md` files — it is those files *and every path they name*. A
+commit that only moves `web/src/Foo.tsx` rots a link and a prose path while
+touching no `.md` at all, and under the old `'**.md'` filter the workflow would
+not have run. **A workflow that does not trigger reports nothing; it does not
+report red** — the same hole one level up. The job has no dependencies and no
+build, so running it always costs seconds.

@@ -112,7 +112,7 @@ third-party caveat worth re-reading if their scope changes:
 ## Not an instrument: the brand typeface
 
 **Area Normal** (Blaze Type) is the display face of the 2026 website redesign,
-and `web/src/index.css` names it first in `--font-display`. **No web licence is
+and `packages/ui/src/foundation.css` names it first in `--font-display`. **No web licence is
 on file**, so the app ships no Area files and renders headings in Manrope; the
 `@font-face` block is commented out at the top of that file. The live site's own
 WOFFs are not a source — one is named `fonnts.com-…`, a free-download mirror.

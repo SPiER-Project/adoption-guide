@@ -9,6 +9,12 @@ This document settles the repo-vs-packages question, records the measurements it
 rests on, and scopes the migration. It does **not** propose splitting the demo
 app in two; §5 argues against that specifically.
 
+⚠️ **That last clause is superseded as a conclusion, 2026-09-19** — the split was
+reopened on an argument §5 never weighed (distribution: the SMART apps are to be
+open-sourced, the mock EHR is not). See decision 3 in the Status table. §5's
+reasoning is **not** withdrawn and is worth reading first: it answers "should
+these be two *experiences*" (no), not "should these be two *published trees*".
+
 ## Status
 
 | Decision | State |
@@ -21,10 +27,16 @@ app in two; §5 argues against that specifically.
 
 | Phase | State |
 |---|---|
-| 0 — declare `packages/core`, convert the Workers' deep imports | **Not started. Now 21 imports across TWO Workers, not nine across one.** §9.1 |
-| 1 — move the SUSHI build out of the web app's devDependencies | **Not started.** §6 |
-| 2 — `packages/ui`, gates move with it | **Not started.** §6 |
-| 3 — `apps/patient` | **Not started.** Blocked on a decision to build it at all. |
+| 0 — declare `packages/core`, convert the Workers' deep imports | ~~Not started~~ → **DONE.** `packages/core` exists (#389) and the deep imports are at zero — §9.1's own heading records the fall from 21. §9.1 |
+| 1 — move the SUSHI build out of the web app's devDependencies | ~~Not started~~ → **DONE** (E2b). `fsh-sushi` is absent from `web/package.json`; that file's own advisory note says it "left this list when it stopped being a devDependency here". §6, §9.8 |
+| 2 — `packages/ui`, gates move with it | ~~Not started~~ → **DONE** (#544), and overshot: `packages/{ui,tool-views,worker-http}` all exist (#544, #547), not just the one this row named. ⚠️ The gates did **not** all move intact — four lost coverage and two of them stayed green; `docs/internals/web-gates.md` is the record. §6 |
+| 3 — `apps/patient` | **Not started.** Blocked on a decision to build it at all. ⚠️ Not the same thing as `apps/{guide,clinical}`, which is decision 3 and is in flight. |
+
+⚠️ **This table read "Not started" on all four rows until 2026-09-19, while three
+of them had shipped** — phase 0 in #389, phase 1 as E2b, phase 2 in #544. Nothing
+gates a phase table, and it is the first thing a reader of this document sees.
+The sections below were updated as each landed; the summary at the top was not,
+which is the specific failure mode `docs/internals/docs-gates.md` names.
 
 ⚠️ Phases 1–3 are **triggered, not scheduled.** If the patient app never happens,
 phase 0 is still worth having and the rest buys little. Do not do this
@@ -206,6 +218,16 @@ server) has somewhere honest to import from.
 
 ### Do not split the guide from the clinical demo
 
+> **Superseded as a verdict, 2026-09-19 — kept in full as reasoning.** Every
+> bullet below still describes a real cost, and the two-app split must pay each
+> one rather than deny it. What overturned the conclusion is a consideration
+> absent from this list: the SMART apps are to be open-sourced and the mock EHR
+> is not, which is a *distribution* boundary a `VITE_SURFACE` flag cannot
+> express. ⚠️ The "screens have diverged" argument is **not** what reopened this,
+> and it was examined and largely failed — `/patient/pathway/:stageId` ships on
+> both surfaces by explicit design and `data/toolPresets.ts` has no surface
+> branch. Do not revive it.
+
 The product's rhetorical move is "here is the tool, and here it is working on a
 real patient." That depends on the two lenses being one artifact:
 
@@ -301,7 +323,7 @@ gate parses mapper source and Questionnaire JSON *together*. Across a repo
 boundary it cannot exist.
 
 The mock EHR is the same shape from the other side. It shares
-`web/scripts/lib/fhir-resource-rules.mjs` with `check-scenario-resources.mjs`, and
+`packages/core/fhir-resource-rules.mjs` with `check-scenario-resources.mjs`, and
 [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §1 *requires*
 that it do so "rather than inventing a second, laxer opinion" — a lenient mock
 accepts writes a real EHR rejects, so the demo looks better while proving less.
@@ -664,7 +686,9 @@ the engine currently lives inside one of its consumers. Three corrections:
    to a questionnaire set that lives outside it, and the app treats that outside
    set as the spec. That is the substantive version of "pull directly from the IG",
    and it is a conformance story rather than a folder-layout one.
-2. **The licensed app and the guide should not be separate deployables.** §5
+2. **The licensed app and the guide should not be separate deployables.**
+   ⚠️ **Superseded 2026-09-19, same as §5 — see the note there.** The reasoning
+   below stands as a cost the split pays; the verdict does not. §5
    rejected it; the panel plan re-derived the same answer independently and now has
    browser evidence. One route table, two chrome modes — and the tool routes are
    needed by *both* (the panel launches them, the guide documents them), so two

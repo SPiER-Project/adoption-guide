@@ -129,7 +129,7 @@ Prose about *how the repo is built* belongs in [`CLAUDE.md`](../CLAUDE.md) and
 
 * **FHIR Implementation Guide** — `ig/`. FSH sources in [`ig/input/fsh/`](../ig/input/fsh/) are the canonical, machine-readable definition of every profile, ValueSet, CodeSystem, ActivityDefinition and PlanDefinition. Narrative pages are in `ig/input/pagecontent/`. See [`ig/README.md`](../ig/README.md) for how to compile and verify it; `.github/workflows/ig.yml` compiles the FSH on every PR.
 * **Pathway stages** — the eight stage codes are defined once, in `ig/input/fsh/spier-codesystem.fsh`, and assembled into PlanDefinitions in `ig/input/fsh/pathway-stages.fsh`. Quote them by code rather than by name; three of the display names changed in July 2026.
-* **Hand-authored Questionnaires** — [`ig/input/resources/questionnaires/README.md`](instruments/README.md), one folder per tool, with the tool→stage table and the per-tool provenance READMEs.
+* **Hand-authored Questionnaires** — [`docs/instruments/README.md`](instruments/README.md), one folder per tool, with the tool→stage table and the per-tool provenance READMEs.
 * **Demo app** — `web/`. The React-free domain layer is `packages/core/`, the demo patients are `packages/demo-population/`, and SUSHI's output is copied into `packages/fhir-artifacts/generated/` (gitignored) by `npm run copy-fhir`.
 * **Workers** — `services/cds-hooks/` (the live `/cds-services` endpoint) and `services/mock-ehr/` (the host the demo launches from), each with its own README and its own `npm run verify`.
 

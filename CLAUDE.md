@@ -256,8 +256,24 @@ node scripts/build-ig-groups.mjs --check   # gate: every source has a rule, the 
 node scripts/check-canonical-uniqueness.mjs   # one canonical URL, one definition — across BOTH the FSH
                                       # tree and ig/input/resources/questionnaires/. Needs `ig/fsh-generated/` (a missing
                                       # tree is a hard error, never a skip)
-node scripts/check-md-links.mjs       # every relative link in a tracked .md resolves (the ONLY gate
-                                      # that triggers on docs/** or the root README.md)
+node scripts/check-md-links.mjs       # every relative link in a tracked .md resolves
+node scripts/check-md-paths.mjs       # the OTHER half: every repo-rooted path written as backticked
+                                      # PROSE exists, or is allowlisted with a reason. ⚠️ The links
+                                      # gate never saw those — a bare source path in running text is
+                                      # not a link — which is how the packages/{ui,tool-views}
+                                      # extractions rotted 45+ paths across 21 files, including the
+                                      # OPENING LINE of docs/internals/tool-views.md. ⚠️ A bare
+                                      # existence check would be mostly noise, because the convention
+                                      # here is to SUPERSEDE: "the former `web/src/index.css`" is
+                                      # correct prose about a file meant to be gone. So absence is
+                                      # allowed only WITH A REASON, and the allowlist is built to
+                                      # EXPIRE — an entry whose path comes back, or whose sentence was
+                                      # rewritten, is an error. Both gates live in docs-links.yml, the
+                                      # ONLY workflow that triggers on docs/** or the root README.md
+                                      # ⚠️ and it now has NO `paths:` filter: both resolve .md against
+                                      # the WHOLE tree, so a commit that only moves a .tsx rots them
+                                      # while touching no .md, and a workflow that does not trigger
+                                      # reports nothing rather than red
 node scripts/check-worker-csp.mjs     # ONE frame-ancestors policy across every Worker that serves a
                                       # SPiER SMART surface. Run from services/cds-hooks AND
                                       # services/clinical (`npm run check:csp`) rather than from web,
@@ -532,7 +548,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   now fails. What still nothing can see is a path that *resolves* but now lands
   on the explainer rather than the app — that class needs a grep.
 - **The clinician-facing app shows no raw FHIR; the guide does.** One
-  invariant, one gate point: `InspectContext` (`web/src/context/InspectContext.ts`)
+  invariant, one gate point: `InspectContext` (`packages/tool-views/src/context/InspectContext.ts`)
   defaults to **false**, and only the `/guide` layout and `/guide/tools/:slug/try`
   turn it on. `FhirJsonViewer` and `CodeDrawer` return `null` without it, and the
   **three** call sites that would otherwise leave an empty wrapper behind check
