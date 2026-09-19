@@ -47,7 +47,7 @@ empty.**
 ### What is true today
 
 [`packages/core/src/data/questionnaires.ts`](../../packages/core/src/data/questionnaires.ts)
-holds 18 build-time static JSON imports from `FHIR-Resources/` (17 before this
+holds 18 build-time static JSON imports from `ig/input/resources/questionnaires/` (17 before this
 audit — see [§8](#8-what-this-audit-changed)), casts each `as unknown as
 QuestionnaireResource`, and builds `QUESTIONNAIRE_BY_URL` keyed by
 version-stripped canonical.
@@ -164,7 +164,7 @@ copy it rather than cast.
 
 ---
 
-## 2. Are the two `FHIR-Resources/` CarePlan templates live?
+## 2. Are the two `ig/input/resources/questionnaires/` CarePlan templates live?
 
 **No. Nothing reads them at runtime, and they do not belong in the Questionnaire
 registry — they are not Questionnaires.**
@@ -209,7 +209,7 @@ material and would not be for anything the app read.
 
 ### The census
 
-| SDC feature | Declared in `FHIR-Resources/` | Implemented | Gated |
+| SDC feature | Declared in `ig/input/resources/questionnaires/` | Implemented | Gated |
 |---|---|---|---|
 | `sdc-questionnaire-observationExtract` | **36 items across 10 Questionnaires** | by hand, in `observationMappers/` | `check:extract` |
 | `ordinalValue` + `weight()` join | 2 Questionnaires (PHQ-9, SBQ-R) | `ordinalForAnswer` | indirectly, via `check:readers` |
@@ -616,7 +616,7 @@ statement about a capability that does not exist. That leaves rule 1 with an
 | 2 | TL-013 likewise emits a Communication that cannot satisfy `spier-crisis-resources-shared` | medium — a conformance claim the IG makes and the app breaks | **fixed**, [§8](#8-what-this-audit-changed) |
 | 3 | Nothing relates `PlanDefinition.action.output.profile` (38 declarations) to what the app writes | **high** — the mechanism that would have caught #1, #2 and #211, and will catch the next one | **fixed** — `check:outputs`, [§8](#8-what-this-audit-changed) |
 | 4 | `check:extract`'s `EXPECTED` is a hand list; **4** mappers' Questionnaires are absent — two of which emit literal per-item Observations with no `observationExtract` declaration, and two whose absence of one was an unrecorded decision | medium | **fixed**, [§8](#8-what-this-audit-changed) |
-| 5 | The Questionnaire registry claimed to be the single owner of the `FHIR-Resources/` imports and was not — `StanleyBrownView` held its own | low (no live consequence: no `ordinalValue`) but exactly the drift CLAUDE.md warns about | **fixed by #528**, and **gated here** — [§8](#8-what-this-audit-changed) |
+| 5 | The Questionnaire registry claimed to be the single owner of the `ig/input/resources/questionnaires/` imports and was not — `StanleyBrownView` held its own | low (no live consequence: no `ordinalValue`) but exactly the drift CLAUDE.md warns about | **fixed by #528**, and **gated here** — [§8](#8-what-this-audit-changed) |
 | 6 | `check:catalog` strips the version on both sides, so an AD pinning a version the file does not carry would pass | low (0 disagreements today) | one-line addition, [§1](#1-should-questionnaires-be-resolved-by-canonical-from-the-launched-server) |
 | 7 | `spier-safety-handoff`'s published profile Description still claims the generic recorder's output "stays conformant"; `#262`'s 1..1 domain-category slice made that false | low — IG prose | **fixed**, [§8](#8-what-this-audit-changed) |
 | 8 | `ToolDetail` is an unguarded wrapper, safe only by its single caller's route | low | classify in the proposed gate, [§5](#5-is-a-jsonstringify-gate-worth-building) |
@@ -650,7 +650,7 @@ the app's own builders.
 ### Pass 1 — the registry bypass (audit findings)
 
 1. **The Stanley-Brown registry bypass.** `StanleyBrownView` held its own
-   `import … from '../../../FHIR-Resources/…'`, so eighteen Questionnaires
+   `import … from '../../../ig/input/resources/questionnaires/…'`, so eighteen Questionnaires
    shipped and `packages/core/src/data/questionnaires.ts` — whose header says it
    is "the single owner of the hand-authored Questionnaire JSON imports" — held
    seventeen. No behaviour depended on it: the safety plan carries no
@@ -659,7 +659,7 @@ the app's own builders.
    (it deleted the view outright as a fork of `QuestionnaireView`), so what
    remains from this branch is the second half — the gate.
 2. **`check:catalog` check C gained a third direction**: every Questionnaire JSON
-   under `FHIR-Resources/` must be imported by that registry module. Matched on
+   under `ig/input/resources/questionnaires/` must be imported by that registry module. Matched on
    the **file path**, read as text — deliberately not on the canonical, because a
    canonical-based check passes on a second importer resolving the same URL,
    which is the defect. Proved by planting both defects: removing the

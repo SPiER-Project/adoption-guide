@@ -12,7 +12,7 @@ and was false. See [`docs/internals/README.md`](README.md).
 At the repo root, resource-level FHIR conformance (needs Java 17+; downloads and
 caches the ~190MB HL7 validator jar into `.fhir-validator/` on first run):
 ```
-node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/
+node scripts/validate-fhir.mjs   # HL7 validator_cli over ig/fsh-generated/, ig/input/resources/questionnaires/
                                  # and packages/demo-population/src/scenarios/ (unwrapped —
                                  # `responses` included since #414; excluding it left the 20
                                  # scenario QRs the only hand-authored FHIR nothing validated)
@@ -54,7 +54,7 @@ rather than an empty one (issue #226). Be precise about which gate sees what:
 
 | | `npm run check:scenarios` (offline, in `verify`) | `node scripts/validate-fhir.mjs` (Java, `ig.yml`) |
 |---|---|---|
-| Runs | every `web/` verify | PR + push touching `ig/`, `FHIR-Resources/`, or the scenarios |
+| Runs | every `web/` verify | PR + push touching `ig/`, `ig/input/resources/questionnaires/`, or the scenarios |
 | QuestionnaireResponses | linkIds, nesting, answerOption, ranges, value[x] type, plus the patient link and `authored` | full conformance, **including the scenario QRs** — `validate-fhir.mjs` unwraps the `responses` bucket since #414. It did not until then, which is how those 20 carried neither `subject` nor `authored` (#364) and hid 4 conformance errors |
 | Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage (**presence required, not just correctness** — the old rule only fired on a link pointing at the *wrong* patient, which is how #364's 20 unlinked QRs passed), **the subject Patient actually existing**, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
 | Misses | cardinality *counts*, slices, invariants, unknown elements, external codes | nothing structural — but runs `-tx n/a`, so LOINC/SNOMED displays wait for the nightly |
@@ -106,7 +106,7 @@ stale for a day, and a plan doc merged on top of the stale version.
 cannot resolve a QuestionnaireResponse's Questionnaire (or a claimed profile), it
 says so as a *warning* and then reports zero errors — a context-loading mistake
 degrades to a PASS. Two traps caused this in practice, both now guarded in
-`validate-fhir.mjs`: `-ig <folder>` does **not** recurse, so `-ig FHIR-Resources`
+`validate-fhir.mjs`: `-ig <folder>` does **not** recurse, so `-ig ig/input/resources/questionnaires`
 loads 0 resources (every file is one level down); and `-output` emits a bare
 `OperationOutcome` rather than a `Bundle` when given exactly one source. The
 script now treats those warnings as errors and understands both output shapes.

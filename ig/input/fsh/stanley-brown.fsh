@@ -104,7 +104,7 @@ Usage: #definition
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #registration
-* copyright = "The Stanley-Brown Safety Plan is copyrighted by Barbara Stanley, PhD and Gregory K. Brown, PhD (2008, 2021). Individual use of the form is permitted. **Written permission from the authors is required for any changes to the form, or for use of the form in the electronic medical record** — which is exactly what an EHR integration built from this ActivityDefinition would be. See www.suicidesafetyplan.com. Basis: the notice recorded on the SPiER Stanley-Brown Questionnaire (FHIR-Resources/Stanley-Brown/). No licensing-audit memo is on file under issue #64 and SPiER has filed no such permission, so an adopting system must obtain its own before deploying this in an EHR."
+* copyright = "The Stanley-Brown Safety Plan is copyrighted by Barbara Stanley, PhD and Gregory K. Brown, PhD (2008, 2021). Individual use of the form is permitted. **Written permission from the authors is required for any changes to the form, or for use of the form in the electronic medical record** — which is exactly what an EHR integration built from this ActivityDefinition would be. See www.suicidesafetyplan.com. Basis: the notice recorded on the SPiER Stanley-Brown Questionnaire (ig/input/resources/questionnaires/Stanley-Brown/). No licensing-audit memo is on file under issue #64 and SPiER has filed no such permission, so an adopting system must obtain its own before deploying this in an EHR."
 
 
 // ─── Example ─────────────────────────────────────────────────

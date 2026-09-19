@@ -238,7 +238,7 @@ RuleSet: SafetyPlanAndSuicideRiskCategory
 // ⚠️ What 1..1 buys is NOT "the build catches this everywhere". min=1 with a
 // fixed value means SUSHI AUTO-POPULATES the slice, so no FSH-authored Instance
 // can violate it. It bites only on HAND-AUTHORED FHIR, which never passes
-// through SUSHI — the population scenarios and FHIR-Resources/, where one
+// through SUSHI — the population scenarios and ig/input/resources/questionnaires/, where one
 // safety plan had omitted the code invisibly to every offline gate.
 //
 // The explicit `category[suicidePreventionNote] = …` lines in stanley-brown.fsh

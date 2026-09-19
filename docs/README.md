@@ -21,7 +21,7 @@ false in another.
 | Stage names and tool ids | the pathway-stage CodeSystem and the ActivityDefinitions | docs quote by code, or link to the IG artifact page |
 | Adoption guidance, readiness, rubric | the app, as data modules | not JSX paragraphs |
 | Plans and status | GitHub issues, plus each plan doc's own status table | finished plans move to [`plans/archive/`](plans/archive/) with a banner |
-| Licensing evidence | `FHIR-Resources/<tool>/licensing/MEMO.md` | the FSH extension states the *status*; the MEMO is the evidence — both are kept |
+| Licensing evidence | `ig/input/resources/questionnaires/<tool>/licensing/MEMO.md` | the FSH extension states the *status*; the MEMO is the evidence — both are kept |
 
 ⚠️ **Docs have no CI gate** — only [`use-cases/`](use-cases/) and
 [`outreach/`](outreach/) are checked by a workflow. Everything else here is
@@ -47,7 +47,7 @@ near-verbatim second copy of it and has been folded in.
 * [`best-practices/strategy-consent.md`](best-practices/strategy-consent.md) — architectural plan for cross-practice data sharing.
 * [`best-practices/validation-guide.md`](best-practices/validation-guide.md) — how to validate the artifacts, technically and clinically.
 * [`best-practices/concept-harmonization.md`](best-practices/concept-harmonization.md) — conformance rationale for the cross-instrument concept layer: mapping disparate instruments (ASQ, C-SSRS, PHQ-9) into one common suicide-risk-tier representation, modeled on HL7 Gravity + SDC. Pairs with the `concept-harmonization` skill.
-* [`best-practices/licensing-audit-template.md`](best-practices/licensing-audit-template.md) — the per-tool licensing-audit memo template, instantiated as `FHIR-Resources/<tool>/licensing/MEMO.md`.
+* [`best-practices/licensing-audit-template.md`](best-practices/licensing-audit-template.md) — the per-tool licensing-audit memo template, instantiated as `ig/input/resources/questionnaires/<tool>/licensing/MEMO.md`.
 * [`best-practices/licensing-verification-backlog.md`](best-practices/licensing-verification-backlog.md) — what is still owed on instrument licensing. Every status published by [#127](https://github.com/SPiER-Project/adoption-guide/issues/127) is traceable in-repo, but **none is verified against the rights holder's current terms**. Standing list under epic [#64](https://github.com/SPiER-Project/adoption-guide/issues/64), which gates the org transfer.
 
 ## Decision records
@@ -129,7 +129,7 @@ Prose about *how the repo is built* belongs in [`CLAUDE.md`](../CLAUDE.md) and
 
 * **FHIR Implementation Guide** — `ig/`. FSH sources in [`ig/input/fsh/`](../ig/input/fsh/) are the canonical, machine-readable definition of every profile, ValueSet, CodeSystem, ActivityDefinition and PlanDefinition. Narrative pages are in `ig/input/pagecontent/`. See [`ig/README.md`](../ig/README.md) for how to compile and verify it; `.github/workflows/ig.yml` compiles the FSH on every PR.
 * **Pathway stages** — the eight stage codes are defined once, in `ig/input/fsh/spier-codesystem.fsh`, and assembled into PlanDefinitions in `ig/input/fsh/pathway-stages.fsh`. Quote them by code rather than by name; three of the display names changed in July 2026.
-* **Hand-authored Questionnaires** — [`FHIR-Resources/README.md`](../FHIR-Resources/README.md), one folder per tool, with the tool→stage table and the per-tool provenance READMEs.
+* **Hand-authored Questionnaires** — [`ig/input/resources/questionnaires/README.md`](instruments/README.md), one folder per tool, with the tool→stage table and the per-tool provenance READMEs.
 * **Demo app** — `web/`. The React-free domain layer is `packages/core/`, the demo patients are `packages/demo-population/`, and SUSHI's output is copied into `packages/fhir-artifacts/generated/` (gitignored) by `npm run copy-fhir`.
 * **Workers** — `services/cds-hooks/` (the live `/cds-services` endpoint) and `services/mock-ehr/` (the host the demo launches from), each with its own README and its own `npm run verify`.
 

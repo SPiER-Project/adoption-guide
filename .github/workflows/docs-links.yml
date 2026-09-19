@@ -3,7 +3,7 @@ name: Docs — markdown links
 # Every relative `[text](path)` in a tracked .md file must resolve.
 #
 # This is the only workflow that triggers on docs/** and the root README.md.
-# web-lint.yml covers web/**, services/**, FHIR-Resources/** and ig/**, so a
+# web-lint.yml covers web/**, services/** and ig/**, so a
 # docs-only change triggered NOTHING before this existed — which is how #389 and
 # #392 left fourteen dead links across the plan docs and two READMEs with
 # nothing going red. Plan docs are ungated prose by design; this gates the one

@@ -31,14 +31,14 @@
  * ⚠️ The LOINC item codes are NOT written here. Each signature names the SPiER
  * linkIds it covers; the `{system, code}` on each of those linkIds is resolved
  * from `QUESTIONNAIRE_ITEM_CODES`, generated out of the very Questionnaire JSON
- * (FHIR-Resources/<tool>/*.json) that declares them. The codes used to be
+ * (ig/input/resources/questionnaires/<tool>/*.json) that declares them. The codes used to be
  * hand-copied here — a third home for a value already living in the
  * Questionnaire and in the mappers — with `check-fallback-signatures.mjs`
  * existing solely to assert the copy still matched; both are gone. What a
  * generator must NOT decide is which linkIds belong to a signature, so those,
  * their order, and the reasoning for every deliberate omission stay below.
  */
-import { answerCodingForOrdinal, ordinalForAnswer } from '../../data/questionnaires'
+import { answerCodingForOrdinal, ordinalForAnswer } from '../../data/questionnaireOrdinals'
 import { getYesNoBoolean } from './shared'
 import {
   QUESTIONNAIRE_ITEM_CODES,

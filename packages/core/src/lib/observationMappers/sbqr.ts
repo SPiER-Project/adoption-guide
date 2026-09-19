@@ -1,5 +1,5 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
-import { ordinalForAnswer } from '../../data/questionnaires'
+import { ordinalForAnswer } from '../../data/questionnaireOrdinals'
 
 export function mapSBQR(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []

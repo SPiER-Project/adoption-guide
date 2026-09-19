@@ -30,7 +30,7 @@ import { appRoot } from './lib/app-roots.mjs'
 
 const WEB = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const REPO = resolve(WEB, '..')
-const QUESTIONNAIRE_DIR = join(REPO, 'FHIR-Resources')
+const QUESTIONNAIRE_DIR = join(REPO, 'ig/input/resources/questionnaires')
 const VITE_CONFIG = join(WEB, 'vite.config.ts')
 const SHIM = join(appRoot('web/src'), 'shims/ucum-lhc.ts')
 const PACKAGE = '@lhncbc/ucum-lhc'
@@ -69,7 +69,7 @@ const shimSrc = readFileSync(SHIM, 'utf8')
 
 // ── RULE 2 — no quantities in the Questionnaires the app renders ──────────────
 //
-// Scoped to FHIR-Resources, because that is what the renderer is handed
+// Scoped to ig/input/resources/questionnaires, because that is what the renderer is handed
 // (App.tsx imports these JSON files directly). Quantities elsewhere in the repo
 // — Observation.valueQuantity in the population scenarios, say — never pass
 // through fhirpath or the renderer, so they are none of this gate's business.

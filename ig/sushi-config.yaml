@@ -7,7 +7,7 @@
 # Status: ci-build / draft. Not yet balloted or formally published.
 
 id: thespierproject.fhir
-# Canonical root matches the existing FHIR-Resources artifacts (Questionnaire
+# Canonical root matches the existing ig/input/resources/questionnaires artifacts (Questionnaire
 # url = http://thespierproject.org/fhir/Questionnaire/...) and the observationMappers code
 # systems. Keep the IG and runtime data in the same namespace.
 canonical: http://thespierproject.org/fhir
@@ -72,47 +72,39 @@ parameters:
   # subfolder explicitly is what makes ig/input/resources/maps/*.fml become
   # published StructureMaps (issues #92 / #229).
   #
-  # The Questionnaires are the Capture layer's central artifact and live OUTSIDE
-  # ig/, in FHIR-Resources/<tool>/ at the repo root, because the app imports the
-  # same JSON at runtime and "one canonical URL, one definition" forbids a second
-  # copy. `input/resources/questionnaires` is a SYMLINK to that tree (tracked in
-  # git), and naming its tool folders here is what publishes them: SUSHI lists
-  # every JSON it finds in the ImplementationGuide resource and the publisher
-  # renders each as Questionnaire-<id>.html, so ActivityDefinition.relatedArtifact
-  # and QuestionnaireResponse.questionnaire finally resolve (#473).
+  # The Questionnaires are the Capture layer's central artifact. They are
+  # hand-authored JSON, not FSH — SUSHI never reads them — and they live at
+  # `input/resources/questionnaires/<tool>/`, which is the ordinary IG Publisher
+  # mechanism for a resource authored as JSON rather than compiled from FSH.
+  # SUSHI lists every JSON it finds in the ImplementationGuide resource and the
+  # publisher renders each as `Questionnaire-<id>.html`, so
+  # ActivityDefinition.relatedArtifact and QuestionnaireResponse.questionnaire
+  # resolve (#473).
   #
-  # ⚠️ A symlink, not `../FHIR-Resources`: the publisher refuses any
-  # path-resource that escapes the IG root ("Computed path does not start with
-  # first element"), and the alternative — moving the JSON under ig/ — would split
-  # every per-tool folder across two trees and touch ~30 consumers of the
-  # FHIR-Resources path.
+  # ⚠️ **This used to be a SYMLINK to `ig/input/resources/questionnaires/` at the repo root, plus
+  # one entry per tool folder, and both were load-bearing workarounds for a
+  # layout that mixed resources with reference material.** The tool folders held
+  # PDFs, DOCX and XLSX beside the JSON, so the recursive `/*` form could not be
+  # used — the publisher tries to load every file it finds, and the first CI run
+  # with `/*` logged 34 "Error loading … as Turtle" lines and spilled their bytes
+  # into publisher.log (#512). That forced a hand-maintained list, whose failure
+  # mode was silent: **a tool folder missing from it was a Questionnaire the IG
+  # simply did not publish**, and `check-ig-narrative.mjs` had to exist to catch
+  # it. The symlink in turn existed because the publisher refuses a path-resource
+  # that escapes the IG root ("Computed path does not start with first element").
   #
-  # ⚠️ One entry PER TOOL FOLDER, never the recursive `questionnaires/*` form.
-  # The publisher (unlike SUSHI) tries to load every file it finds, and the
-  # tools' `references/` subfolders hold PDFs, DOCX and XLSX: the first CI run
-  # with `/*` logged 34 "Error loading … as Turtle" lines, spilled their bytes
-  # into publisher.log, and grep then refused to read the QA counts as text
-  # (#512). A tool folder's top level holds only its JSON and a README, which
-  # the publisher skips. A folder missing from this list is a Questionnaire the
-  # IG silently does not publish — `check-ig-narrative.mjs` fails on a resource
-  # JSON sitting one level below a listed directory that no entry reaches, so
-  # add the new tool's line here when you add its folder. The two CarePlan
-  # templates and the ASQ yes/no ValueSet that sit beside the Questionnaires
-  # come along as examples, which is correct: they are FHIR resources the app
-  # ships.
+  # The reference material now lives in `docs/instruments/<tool>/`, so these
+  # folders hold resource JSON and nothing else, and one recursive entry replaces
+  # the list. ⚠️ **Keep it that way**: put a PDF, a README or a spreadsheet in
+  # here and the publisher will try to parse it as FHIR. Reference material goes
+  # to `docs/instruments/`.
+  #
+  # The two CarePlan templates and the ASQ yes/no ValueSet sit beside the
+  # Questionnaires and come along as examples, which is correct: they are FHIR
+  # resources the app ships.
   path-resource:
     - input/resources/maps
-    - input/resources/questionnaires/ASQ
-    - input/resources/questionnaires/BSSA
-    - input/resources/questionnaires/C-SSRS
-    - input/resources/questionnaires/CAMS
-    - input/resources/questionnaires/CRP
-    - input/resources/questionnaires/PHQ-9
-    - input/resources/questionnaires/PSS-3
-    - input/resources/questionnaires/PSS-Full
-    - input/resources/questionnaires/SAFE-T
-    - input/resources/questionnaires/SBQ-R
-    - input/resources/questionnaires/Stanley-Brown
+    - input/resources/questionnaires/*
   # THE CQL LOADER'S ACTIVATION SWITCH. The IG-parameters CodeSystem defines
   # path-binary as files "only used in the context of the CQL loader" — without
   # this line the publisher walks past input/cql in total silence, translating
@@ -126,7 +118,7 @@ parameters:
   # ⚠️ TEMPORARY, and built to be deleted. The ASQ Questionnaire binds its panel,
   # its seven items and the two answer codes on the recency item to LOINC codes
   # published in LOINC 2.83 (adopted 2026-09-08; verified against Regenstrief —
-  # FHIR-Resources/ASQ/README.md). tx.fhir.org still serves 2.82, so the publisher
+  # docs/instruments/ASQ/README.md). tx.fhir.org still serves 2.82, so the publisher
   # reports ten "Unknown code … version '2.82'" ERRORS, and an error cannot be
   # suppressed — ignoreWarnings.txt covers warnings, hints and broken links only
   # (tried; qa.html said so). This is the same edition lag `check:codings`

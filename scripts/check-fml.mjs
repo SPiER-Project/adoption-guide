@@ -13,7 +13,7 @@
  *      so the `.fml` has to arrive via `-ig`. It never did.
  *   2. `-ig ig/fsh-generated` loaded 0 resources — `-ig` does not recurse, and
  *      the generated resources are one level down in `fsh-generated/resources`.
- *      (The same trap `validate-fhir.mjs` documents for `-ig FHIR-Resources`.)
+ *      (The same trap `validate-fhir.mjs` documents for `-ig ig/input/resources/questionnaires`.)
  *   3. **The validator exits 0 when the compile fails.** It prints
  *      `...Failure: Unable to locate map …`, a Java stack trace, and then
  *      `Successfully compiled map … to <path>` — and returns 0 without writing

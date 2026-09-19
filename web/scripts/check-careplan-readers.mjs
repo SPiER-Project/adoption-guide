@@ -71,7 +71,7 @@ import { reportFloors } from '../../scripts/lib/floors.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..')
 const mapperDir = join(root, 'packages/core/src/lib/carePlanMappers')
-const questionnaireDirs = [join(root, 'FHIR-Resources')]
+const questionnaireDirs = [join(root, 'ig/input/resources/questionnaires')]
 
 let failures = 0
 const fail = (msg) => {

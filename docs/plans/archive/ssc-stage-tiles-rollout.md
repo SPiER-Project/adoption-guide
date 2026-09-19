@@ -28,7 +28,7 @@ and verification. Do not combine phases into one PR.
 
 Conventions for encoded instruments (mirror ASQ/PHQ-9/SBQ-R/C-SSRS/CAMS):
 
-- Questionnaire JSON hand-authored in `FHIR-Resources/<Instrument>/`
+- Questionnaire JSON hand-authored in `ig/input/resources/questionnaires/<Instrument>/`
 - Full FSH in `ig/input/fsh/<instrument>.fsh`: ActivityDefinition (moved out
   of `pathway-tool-placeholders.fsh`), answer CodeSystems/ValueSets,
   derived-Observation (or CarePlan) profiles, example QuestionnaireResponse +
@@ -132,7 +132,7 @@ committed; Roadmap page links work.
 One instrument = one session = one PR. Waves order by licensing clarity and
 leverage; within a wave, sessions can run in parallel (different files).
 Every instrument PR must include: licensing memo
-(`FHIR-Resources/<Tool>/licensing/MEMO.md`, template at
+(`ig/input/resources/questionnaires/<Tool>/licensing/MEMO.md`, template at
 `docs/best-practices/licensing-audit-template.md`), Questionnaire JSON, full
 FSH, catalog wiring, mapper (+ fallback signature if per-item LOINC exists),
 risk-tier crosswalk where applicable, example instances, and a green

@@ -221,7 +221,7 @@ if (generatedRead === 0) {
 // parsePathResource for why the five FML StructureMaps depend on this.
 const configText = readConfig()
 //
-// A `/*` entry (FHIR-Resources/*, #473) means the directory AND every subfolder,
+// A `/*` entry (ig/input/resources/questionnaires/*, #473) means the directory AND every subfolder,
 // which is what the publisher and SUSHI both do with that form — so the walk here
 // mirrors it, or the Questionnaires would be published and this index would
 // still call every link to them broken.

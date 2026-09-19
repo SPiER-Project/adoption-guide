@@ -33,7 +33,7 @@ nothing verified reads exactly like a verified one.
 
 ## Tier 1 — no audit memo exists at all
 
-These four instruments have **no** `FHIR-Resources/<tool>/licensing/MEMO.md`.
+These four instruments have **no** `ig/input/resources/questionnaires/<tool>/licensing/MEMO.md`.
 Their published status was read off the copyright string already recorded on
 their Questionnaire, which is itself hand-authored and unverified. Highest
 priority: two of the four are restrictive, so an adopter acting on a wrong
@@ -49,7 +49,7 @@ reading has real exposure.
 ### ⚠️ CAMS is the one item here that blocks planned work, not just a claim
 
 Raised 2026-08-23: the CAMS SSF Section A questionnaire is **patient-completed**
-(`FHIR-Resources/CAMS/cams-ssf5-section-a.json` — titled "Section A (Patient)",
+(`ig/input/resources/questionnaires/CAMS/cams-ssf5-section-a.json` — titled "Section A (Patient)",
 `subjectType: [Patient]`), so it is a natural first artifact for the patient app
 that `docs/plans/repo-and-package-boundaries.md` §5 plans.
 
@@ -105,7 +105,7 @@ third-party caveat worth re-reading if their scope changes:
   also got TL-005 wrong (BSSA is the NIMH Brief Suicide Safety Assessment, not
   the Pearson Beck Scale). Useful as a starting point for who to contact; not
   usable as a basis for a `copyright` string.
-- The copyright strings on the Questionnaires in `FHIR-Resources/` — these are
+- The copyright strings on the Questionnaires in `ig/input/resources/questionnaires/` — these are
   hand-authored transcriptions. They are the best in-repo evidence, which is why
   #127 used them, but transcription is not verification.
 
@@ -124,7 +124,7 @@ record the licence and its retrieval date here.
 
 1. Retrieve the rights holder's current published terms; record the URL and the
    retrieval date.
-2. Write or update `FHIR-Resources/<tool>/licensing/MEMO.md` from
+2. Write or update `ig/input/resources/questionnaires/<tool>/licensing/MEMO.md` from
    [`licensing-audit-template.md`](licensing-audit-template.md).
 3. Update the `copyright` notice and, if it changed, the
    `instrument-licensing-status` code in `ig/input/fsh/` — the notice must name

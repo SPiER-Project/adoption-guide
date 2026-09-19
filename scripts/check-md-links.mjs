@@ -45,7 +45,7 @@
  *
  * A link inside a fence never renders as a link, so skipping fences would be
  * defensible. It is not done, because a stale *path* in a code block is exactly
- * the drift worth catching: `FHIR-Resources/README.md` documented copy-fhir's
+ * the drift worth catching: `ig/input/resources/questionnaires/README.md` documented copy-fhir's
  * destination as `web/src/data/fhir/*.json` inside a fence long after #392 moved
  * it, and only this rule saw it. The cost is that prose *about* link syntax trips
  * the gate — write such an example without the parentheses.

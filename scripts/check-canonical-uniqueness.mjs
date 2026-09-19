@@ -4,17 +4,17 @@
  *
  * SPiER defines FHIR resources in two places on purpose:
  *   - `ig/input/fsh/` → compiled by SUSHI to `ig/fsh-generated/resources/`
- *   - `FHIR-Resources/<tool>/` → hand-authored JSON, published into the IG
+ *   - `ig/input/resources/questionnaires/<tool>/` → hand-authored JSON, published into the IG
  *     through a symlink + per-folder `path-resource` entries
  *
  * CLAUDE.md's rule is that a canonical URL may be defined in exactly one of
  * them. That rule is not decorative: three ASQ CodeSystems once collided, and
- * the `FHIR-Resources` copies silently shadowed the IG's with drifted `display`
+ * the `ig/input/resources/questionnaires` copies silently shadowed the IG's with drifted `display`
  * values.
  *
  * ⚠️ **Why this gate exists when SUSHI already rejects duplicates.** SUSHI's
  * duplicate detection keys on resourceType + id, and it never reads
- * `FHIR-Resources/` at all (`copy-fhir.mjs`: "Not a SUSHI input"). So it covers
+ * `ig/input/resources/questionnaires/` at all (`copy-fhir.mjs`: "Not a SUSHI input"). So it covers
  * exactly one of the two collision shapes, and only because the pre-defined
  * resource happens to reach the publisher by another route:
  *
@@ -46,7 +46,7 @@ import { join, relative, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
-const HAND_AUTHORED = join(repoRoot, 'FHIR-Resources')
+const HAND_AUTHORED = join(repoRoot, 'ig/input/resources/questionnaires')
 const GENERATED = join(repoRoot, 'ig', 'fsh-generated', 'resources')
 
 // Scan floors. A gate that reads zero files passes every check it makes, which
@@ -105,7 +105,7 @@ if (!existsSync(GENERATED)) {
   process.exit(1)
 }
 
-const handAuthored = collect(HAND_AUTHORED, 'FHIR-Resources')
+const handAuthored = collect(HAND_AUTHORED, 'ig/input/resources/questionnaires')
 const generated = collect(GENERATED, 'ig (FSH)')
 
 if (handAuthored.length < FLOOR_HAND_AUTHORED || generated.length < FLOOR_GENERATED) {
@@ -142,7 +142,7 @@ if (collisions.length) {
     console.error('')
   }
   console.error(
-    '  `ig/` is canonical for CodeSystems and ValueSets; `FHIR-Resources/` holds Questionnaires.\n' +
+    '  `ig/` is canonical for CodeSystems and ValueSets; `ig/input/resources/questionnaires/` holds Questionnaires.\n' +
       '  Delete the duplicate, or give it its own URL — never let two resources claim one canonical.\n',
   )
   process.exit(1)

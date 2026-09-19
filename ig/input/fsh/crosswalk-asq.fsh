@@ -15,7 +15,7 @@
 // !! PENDING CLINICAL SIGN-OFF !!
 // Every row below is a clinical-equivalence claim. The tier
 // assignments are proposed from the ASQ's validated disposition
-// definitions (see asq.fsh / FHIR-Resources/ASQ/README.md) but must
+// definitions (see asq.fsh / docs/instruments/ASQ/README.md) but must
 // be reviewed by a clinical SME before this map is treated as
 // authoritative. Equivalence is marked conservatively (`relatedto`)
 // for the positive tiers because a single ASQ disposition does not

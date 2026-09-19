@@ -43,7 +43,7 @@
             "patient-014/ed14-11-2-1a"
           ],
           "fhirText": "`QuestionnaireResponse`",
-          "profileBinding": "SPiER ASQ Questionnaire ([built](../../FHIR-Resources/ASQ/)) or C-SSRS Screener ([built](../../FHIR-Resources/C-SSRS/))",
+          "profileBinding": "SPiER ASQ Questionnaire ([built](../../ig/input/resources/questionnaires/ASQ/)) or C-SSRS Screener ([built](../../ig/input/resources/questionnaires/C-SSRS/))",
           "cdsHook": null
         },
         {
@@ -352,7 +352,7 @@
             "patient-011/ed-11-4-0a"
           ],
           "fhirText": "`QuestionnaireResponse` (BSSA)",
-          "profileBinding": "SPiER BSSA Questionnaire ([built](../../FHIR-Resources/BSSA/bssa-questionnaire.json)) + AdministerBSSA ActivityDefinition ([built](../../ig/input/fsh/bssa.fsh)) — TL-005 is built and launchable at `/patient/assessments/bssa`",
+          "profileBinding": "SPiER BSSA Questionnaire ([built](../../ig/input/resources/questionnaires/BSSA/bssa-questionnaire.json)) + AdministerBSSA ActivityDefinition ([built](../../ig/input/fsh/bssa.fsh)) — TL-005 is built and launchable at `/patient/assessments/bssa`",
           "cdsHook": null
         },
         {
@@ -392,7 +392,7 @@
             "patient-011/ed-11-4-1a"
           ],
           "fhirText": "`QuestionnaireResponse` (C-SSRS Full + SAFE-T framing)",
-          "profileBinding": "C-SSRS Full ([built — `cssrs-full-lifetime-recent.json`](../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json)); SAFE-T ([built — `safet-questionnaire.json`](../../FHIR-Resources/SAFE-T/safet-questionnaire.json)) — TL-006 is built and launchable at `/patient/assessments/safe-t`",
+          "profileBinding": "C-SSRS Full ([built — `cssrs-full-lifetime-recent.json`](../../ig/input/resources/questionnaires/C-SSRS/cssrs-full-lifetime-recent.json)); SAFE-T ([built — `safet-questionnaire.json`](../../ig/input/resources/questionnaires/SAFE-T/safet-questionnaire.json)) — TL-006 is built and launchable at `/patient/assessments/safe-t`",
           "cdsHook": null
         },
         {
@@ -553,7 +553,7 @@
             "patient-011/ed-11-6-1a"
           ],
           "fhirText": "`QuestionnaireResponse` (Stanley-Brown safety plan) + `CarePlan`",
-          "profileBinding": "Stanley-Brown ([built](../../FHIR-Resources/Stanley-Brown/))",
+          "profileBinding": "Stanley-Brown ([built](../../ig/input/resources/questionnaires/Stanley-Brown/))",
           "cdsHook": null
         },
         {

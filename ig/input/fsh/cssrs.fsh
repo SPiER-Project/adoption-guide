@@ -248,7 +248,7 @@ Usage: #definition
 // the shared SPiERCSSRSRiskLevel profile. This encoding uses the validated
 // screener wording targeted at pediatric/adolescent settings; the Columbia
 // Children's-version younger-child wording is a pending licensing gate
-// (see FHIR-Resources/C-SSRS/licensing/MEMO.md).
+// (see docs/instruments/C-SSRS/licensing/MEMO.md).
 
 Instance: AdministerCSSRSPediatric
 InstanceOf: ActivityDefinition

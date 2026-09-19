@@ -139,7 +139,7 @@ export function walkItems(
   return undefined
 }
 
-// Ordinal/weight resolution moved to ../../data/questionnaires (ordinalForAnswer):
+// Ordinal/weight resolution moved to ../../data/questionnaireOrdinals (ordinalForAnswer):
 // the score lives on the Questionnaire answerOption, not the response answer, so
 // it must be resolved by joining the selected code back to the Questionnaire
 // (SDC weight() semantics) — not read off the captured answer.

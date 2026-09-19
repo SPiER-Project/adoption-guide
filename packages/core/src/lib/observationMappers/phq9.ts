@@ -1,5 +1,5 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type InterpretationCode, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
-import { ordinalForAnswer } from '../../data/questionnaires'
+import { ordinalForAnswer } from '../../data/questionnaireOrdinals'
 
 export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []

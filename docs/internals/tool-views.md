@@ -110,7 +110,7 @@ the fork:
 4. it created a CarePlan unconditionally, ignoring `GeneratedCarePlan.isEmpty`,
    so a blank submit wrote an empty safety plan to the chart.
 
-It also **imported the Questionnaire JSON straight out of `FHIR-Resources/`** —
+It also **imported the Questionnaire JSON straight out of `ig/input/resources/questionnaires/`** —
 the one instrument of eighteen to bypass `packages/core/src/data/questionnaires.ts`,
 whose header calls itself "the single owner of the hand-authored Questionnaire
 JSON imports". That claim was true of seventeen. The consequence was that

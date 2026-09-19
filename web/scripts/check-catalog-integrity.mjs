@@ -38,14 +38,14 @@
  *      directions, version-stripped:
  *        - every Questionnaire canonical referenced by an ActivityDefinition
  *          (relatedArtifact or SDC sdc-questionnaire extension) resolves to a
- *          Questionnaire JSON in FHIR-Resources/
- *        - every Questionnaire JSON in FHIR-Resources/ is referenced by some
+ *          Questionnaire JSON in ig/input/resources/questionnaires/
+ *        - every Questionnaire JSON in ig/input/resources/questionnaires/ is referenced by some
  *          ActivityDefinition. Check B stops a *tool* from reaching the app
  *          without an AD behind it; this stops the artifact one layer down —
  *          a Questionnaire the app can import while the IG describes no tool
  *          that administers it, and so publishes no stage, no licensing
  *          status and no clinical metadata for it
- *        - and every Questionnaire JSON in FHIR-Resources/ is imported by
+ *        - and every Questionnaire JSON in ig/input/resources/questionnaires/ is imported by
  *          packages/core/src/data/questionnaires.ts, which CLAIMS to be the
  *          single owner of those paths. ⚠️ It was not: `StanleyBrownView` held
  *          its own raw import, so eighteen Questionnaires shipped and the
@@ -88,7 +88,7 @@ const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const catalogDir = join(root, 'packages/core/src/data/catalog')
-const questionnairesDir = join(root, 'FHIR-Resources')
+const questionnairesDir = join(root, 'ig/input/resources/questionnaires')
 
 const STAGE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
 const SDC_QUESTIONNAIRE_EXT =
@@ -345,7 +345,7 @@ for (const p of jsonFiles(questionnairesDir)) {
   questionnaireFiles.set(stripped, [...(questionnaireFiles.get(stripped) ?? []), rel])
 }
 // A check that reads nothing must fail, not pass (#232 / #261): a moved or
-// renamed FHIR-Resources/ would otherwise make both directions vacuous.
+// renamed ig/input/resources/questionnaires/ would otherwise make both directions vacuous.
 if (questionnaireFiles.size === 0) {
   fail(`no Questionnaire JSON found under ${questionnairesDir} — this check reads that tree, so an empty read makes both directions of C vacuous`)
 }
@@ -364,7 +364,7 @@ for (const ad of activityDefs) {
     const stripped = stripVersion(canonical)
     referencedQuestionnaires.add(stripped)
     if (!questionnaireFiles.has(stripped)) {
-      fail(`ActivityDefinition ${ad.id}: questionnaire "${canonical}" resolves to no Questionnaire JSON in FHIR-Resources/`)
+      fail(`ActivityDefinition ${ad.id}: questionnaire "${canonical}" resolves to no Questionnaire JSON in ig/input/resources/questionnaires/`)
     }
   }
 }
@@ -389,16 +389,16 @@ for (const [canonical, [path]] of questionnaireFiles) {
 // C-registry: every Questionnaire file is imported by the registry module that
 // claims to own those paths. Read as TEXT and matched on the FILE PATH, not on
 // the canonical: the point is which module holds the `import … from
-// '…/FHIR-Resources/…'` specifier, and a canonical-based check would pass on a
+// '…/ig/input/resources/questionnaires/…'` specifier, and a canonical-based check would pass on a
 // second importer that resolves the same URL — which is exactly the defect.
 const registryPath = 'packages/core/src/data/questionnaires.ts'
 const registrySrc = readFileSync(join(root, registryPath), 'utf8')
 const registryImports = new Set(
-  [...registrySrc.matchAll(/from\s+'[^']*\/FHIR-Resources\/([^']+\.json)'/g)].map((m) => m[1]),
+  [...registrySrc.matchAll(/from\s+'[^']*\/ig\/input\/resources\/questionnaires\/([^']+\.json)'/g)].map((m) => m[1]),
 )
 if (registryImports.size === 0) {
   fail(
-    `${registryPath} imports no FHIR-Resources/ Questionnaire JSON — this check reads that module ` +
+    `${registryPath} imports no ig/input/resources/questionnaires/ Questionnaire JSON — this check reads that module ` +
       `as text, so a moved registry or a changed import form makes it vacuous`,
   )
 }
@@ -406,11 +406,11 @@ if (registryImports.size === 0) {
 // file this tree no longer holds only by breaking the build, so tsc already
 // owns it, and a second rule here would just restate the compiler.
 for (const [, [path]] of questionnaireFiles) {
-  const rel = path.slice('FHIR-Resources/'.length)
+  const rel = path.slice('ig/input/resources/questionnaires/'.length)
   if (registryImports.has(rel)) continue
   fail(
     `${path}: Questionnaire is not imported by ${registryPath}, which is the single owner of the ` +
-      `FHIR-Resources/ JSON paths. A component importing the raw JSON itself keeps the resource out ` +
+      `ig/input/resources/questionnaires/ JSON paths. A component importing the raw JSON itself keeps the resource out ` +
       `of QUESTIONNAIRE_BY_URL — so the SDC weight() join, the fallback dispatcher and anything else ` +
       `resolving a canonical cannot see it — while every other gate stays green. Export it from the ` +
       `registry and import it from there.`,
@@ -419,7 +419,7 @@ for (const [, [path]] of questionnaireFiles) {
 
 console.log(
   `✓ questionnaires: ${qRefs} ActivityDefinition reference(s) resolve, and ` +
-    `${questionnaireFiles.size - orphans}/${questionnaireFiles.size} Questionnaire(s) in FHIR-Resources/ ` +
+    `${questionnaireFiles.size - orphans}/${questionnaireFiles.size} Questionnaire(s) in ig/input/resources/questionnaires/ ` +
     `are administered by an ActivityDefinition`,
 )
 
@@ -468,6 +468,24 @@ const licCounts = [...licensingCodes]
   .map(([code, n]) => `${n} ${code}`)
   .join(', ')
 console.log(`✓ licensing: ${activityDefs.length} ActivityDefinition(s) carry a status + copyright (${licCounts})`)
+
+// ⚠️ **Also counted per TOOL, because that is the unit every question about this
+// line is actually asking about.** "Which instruments may we redistribute, which
+// need a licence" is a question about instruments, and a multi-AD tool is ONE
+// instrument — the CAMS SSF-5's four ActivityDefinitions are four rows above and
+// one instrument here. Reading the per-AD split as an instrument count overstates
+// the commercial group by three. The two numbers differ only for MULTI_AD_TOOLS,
+// which is precisely the merge this gate exists to keep visible, so printing one
+// without the other hands the reader a number that answers a question they did
+// not ask. Safe to derive by taking each tool's single status: the loop above
+// fails if a tool's ADs disagree.
+const perToolStatus = new Map([...licensingByTool].map(([toolId, seen]) => [toolId, [...seen.keys()][0]]))
+const toolLicCounts = [...licensingCodes]
+  .map((code) => [code, [...perToolStatus.values()].filter((c) => c === code).length])
+  .filter(([, n]) => n > 0)
+  .map(([code, n]) => `${n} ${code}`)
+  .join(', ')
+console.log(`✓ licensing: ${perToolStatus.size} catalogued tool(s) by instrument (${toolLicCounts})`)
 
 // ---- E: tool-config presets stay derived from the catalog -------------------
 // Common Mid-Tier and Maximalist are DEFINED by catalog properties
@@ -564,7 +582,7 @@ console.log(
 // link that 404s on the page an implementer is most likely to trust.
 //
 // That was not hypothetical: `asq-item` lived only in
-// FHIR-Resources/ASQ/asq-item.json, which the publisher never builds (it is
+// ig/input/resources/questionnaires/ASQ/asq-item.json, which the publisher never builds (it is
 // triggered by `ig/**` alone), so `/ig/CodeSystem-asq-item.html` returned 404
 // while every sibling resolved. It moved into asq.fsh, and has since been
 // deleted outright — LOINC 2.83 published ASQ item codes, so those items bind
@@ -641,7 +659,7 @@ for (const system of [...dictSystems].sort()) {
   fail(
     `dataElements.ts references ${system}, but no CodeSystem-${id}.json is generated — ` +
       `the data dictionary would link to /ig/CodeSystem-${id}.html, which the IG Publisher ` +
-      `will not have built. Define it in ig/input/fsh/, not FHIR-Resources/.`,
+      `will not have built. Define it in ig/input/fsh/, not ig/input/resources/questionnaires/.`,
   )
 }
 console.log(

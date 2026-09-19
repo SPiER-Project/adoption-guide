@@ -10,6 +10,8 @@ import { InstrumentHeader } from './InstrumentHeader'
 import { CarePlanDisplay } from './CarePlanDisplay'
 import { RiskPill } from './RiskPill'
 import { mapResponseToObservations } from '@spier/core/lib/observationMappers'
+import { QUESTIONNAIRE_BY_URL } from '@spier/core/data/questionnaires'
+import { stripCanonicalVersion } from '@spier/core/data/catalog'
 import { stampLaunchStage } from '../lib/launchStage'
 import type { GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
@@ -28,7 +30,21 @@ const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
 
 interface QuestionnaireViewProps {
   title: string
-  questionnaire: FhirResource
+  /**
+   * The Questionnaire's canonical URL — NOT the resource.
+   *
+   * ⚠️ **This prop is a URL on purpose, and it is load-bearing for bundle
+   * shape.** `toolViews.tsx` builds its 29 entries at module scope and `App.tsx`
+   * imports that map statically, so anything an entry *holds* is eager. While
+   * this took a resource, all 18 hand-authored Questionnaires (166.8 KB) were
+   * compiled into the entry chunk of both surfaces — including the clinical one
+   * an EHR frames — although every view component here is already `lazy()`.
+   * Taking the canonical instead defers the resource to this module, which is
+   * lazy, so the JSON lands in the assessment chunk where it belongs.
+   * `docs/plans/tool-bundling-audit-2026-09-19.md` §5.1 has the measurement, and
+   * `npm run check:eager-forms` fails if a resource is made eager again.
+   */
+  questionnaireUrl: string
   persistName?: string
   carePlanMapper?: (response: QuestionnaireResponseResource) => GeneratedCarePlan
 }
@@ -38,7 +54,13 @@ interface SubmitResult {
   observations: ObservationResource[]
 }
 
-export function QuestionnaireView({ title, questionnaire, persistName, carePlanMapper }: QuestionnaireViewProps) {
+export function QuestionnaireView({ title, questionnaireUrl, persistName, carePlanMapper }: QuestionnaireViewProps) {
+  // Resolved here rather than passed in — see `questionnaireUrl` above. The
+  // registry is the single owner of the hand-authored JSON imports, and this
+  // module is the only eager-safe place to read it from.
+  const questionnaire = QUESTIONNAIRE_BY_URL[stripCanonicalVersion(questionnaireUrl)] as
+    | FhirResource
+    | undefined
   const [response, setResponse] = useState<QuestionnaireResponseResource | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
@@ -53,8 +75,13 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
       // QuestionnaireResponse.questionnaire). Downstream lookup matches Tools
       // by this URL — see catalog/tools.ts → toolForQuestionnaireUrl. Build a
       // new object rather than mutating the (state-derived) response.
-      const qUrl = questionnaire.url as string | undefined
-      const qVersion = questionnaire.version as string | undefined
+      // `questionnaire` is guarded before render, but handleSubmit is defined
+      // above that guard, so TypeScript cannot see it is resolved here. Prefer
+      // the prop's canonical over the resolved resource's own url: they are the
+      // same value by construction (the registry is keyed by it), and reading
+      // the prop keeps the stamp independent of the lookup.
+      const qUrl = (questionnaire?.url as string | undefined) ?? questionnaireUrl
+      const qVersion = questionnaire?.version as string | undefined
       let responseToUse: QuestionnaireResponseResource =
         qUrl && !base.questionnaire
           ? { ...base, questionnaire: qVersion ? `${qUrl}|${qVersion}` : qUrl }
@@ -90,6 +117,22 @@ export function QuestionnaireView({ title, questionnaire, persistName, carePlanM
         document.querySelector('.submit-result-summary')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 100)
     }
+  }
+
+  if (!questionnaire) {
+    // Unreachable through the catalog: `questionnaireUrl` is typed as a
+    // QUESTIONNAIRE_URLS value at every call site, and check:catalog asserts the
+    // registry covers every Questionnaire under ig/input/resources/questionnaires/. Rendered rather
+    // than thrown so a stale deep link degrades to a message instead of a blank
+    // route with a console error.
+    return (
+      <div className="form-view">
+        <PageHeader eyebrowStyle="pill" eyebrow={['Patient Chart', 'Assessment']} up="/patient/record" title={title} />
+        <EmptyState title="Instrument unavailable">
+          This assessment is not part of the current build.
+        </EmptyState>
+      </div>
+    )
   }
 
   return (

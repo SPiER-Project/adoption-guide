@@ -22,7 +22,7 @@ The ASQ panel is the referenced example for "Suicide Risk Screen" in the active 
 
 - **Standardization:** Full ASQ panel coded to LOINC at the panel and per-item level.
 - **Precision coding:** Patient Yes/No responses bound to SNOMED CT codes rather than booleans. This preserves the conditional logic of the acuity follow-up item — the SNOMED-bound representation distinguishes "not asked" from "negative," which a boolean representation cannot.
-- **Source:** The SPiER FHIR Questionnaire and supporting artifacts for ASQ live at [`FHIR-Resources/ASQ/`](../../FHIR-Resources/ASQ/).
+- **Source:** The SPiER FHIR Questionnaire and supporting artifacts for ASQ live at [`ig/input/resources/questionnaires/ASQ/`](../../ig/input/resources/questionnaires/ASQ/).
 
 ---
 

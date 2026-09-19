@@ -14,7 +14,7 @@ name: Terminology — nightly external-code check
 #     fast and offline-reproducible. That means LOINC and SNOMED are NOT checked
 #     there — only SPiER-local CodeSystems are.
 #   - The IG Publisher *does* check external terminology, but is triggered by
-#     `ig/**` alone. The offending codes lived in `FHIR-Resources/` and in
+#     `ig/**` alone. The offending codes lived in the Questionnaires and in
 #     TypeScript mappers, so it never saw them.
 #   - Nothing at all validated terminology written in TypeScript, even though the
 #     mappers build `Observation.code.coding` from hand-written literals at

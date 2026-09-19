@@ -1,10 +1,10 @@
 # Tool Licensing Audit Memo — Template
 
-> **Purpose.** A standardized per-tool memo documenting the licensing status of an underlying clinical instrument and any constraints on republishing the SPiER FHIR artifacts derived from it. One memo lives in each tool's `FHIR-Resources/<tool>/licensing/` directory.
+> **Purpose.** A standardized per-tool memo documenting the licensing status of an underlying clinical instrument and any constraints on republishing the SPiER FHIR artifacts derived from it. One memo lives in each tool's `ig/input/resources/questionnaires/<tool>/licensing/` directory.
 >
 > **Why this exists.** Before the SPiER FHIR Implementation Guide is publicly hosted at scale and before the repository transfers to the SPiER organization namespace, every built tool needs a clear licensing answer on file. Discovering a license constraint after public hosting is significantly more expensive than discovering it now. Tracked under epic [#64](https://github.com/SPiER-Project/adoption-guide/issues/64).
 >
-> **How to use.** Copy this file into `FHIR-Resources/<tool>/licensing/MEMO.md` and fill in each field. Mark unknown fields explicitly as `UNKNOWN — investigate` rather than leaving blank; the audit's purpose is to surface what we don't yet know.
+> **How to use.** Copy this file into `ig/input/resources/questionnaires/<tool>/licensing/MEMO.md` and fill in each field. Mark unknown fields explicitly as `UNKNOWN — investigate` rather than leaving blank; the audit's purpose is to surface what we don't yet know.
 
 ---
 
@@ -14,7 +14,7 @@
 **Short name / abbreviation:** `<e.g. ASQ>`
 **SPiER tool ID:** `TL-<NNN>`
 **SPiER pathway stage(s):** `<identify-possible-risk | clarify-risk | …>`
-**Repository location:** `FHIR-Resources/<directory>/`
+**Repository location:** `ig/input/resources/questionnaires/<directory>/`
 **Tracking issue:** `<#NN>`
 
 ## Instrument provenance
@@ -72,7 +72,7 @@ A bulleted list of things that need further investigation, e.g.:
 
 ---
 
-## Recommended directory layout for `FHIR-Resources/<tool>/licensing/`
+## Recommended directory layout for `ig/input/resources/questionnaires/<tool>/licensing/`
 
 ```
 licensing/

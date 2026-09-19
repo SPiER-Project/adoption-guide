@@ -6,7 +6,7 @@ import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import bhpCssrs from './__fixtures__/bhp-cssrs-example.json'
 import bhpPhq9 from './__fixtures__/bhp-phq9-example.json'
 
-// SPiER PHQ-9 answer-option ordinals (FHIR-Resources/PHQ-9/phq9-questionnaire.json).
+// SPiER PHQ-9 answer-option ordinals (ig/input/resources/questionnaires/PHQ-9/phq9-questionnaire.json).
 const LA = { 0: 'LA6568-5', 1: 'LA6569-3', 2: 'LA6570-1', 3: 'LA6571-9' } as const
 // LOINC per-item codes q1..q9 (same order as the SPiER Questionnaire items).
 const ITEM_LOINC = ['44250-9', '44255-8', '44259-0', '44254-1', '44251-7', '44258-2', '44252-5', '44253-3', '44260-8']

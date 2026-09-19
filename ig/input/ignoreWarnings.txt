@@ -8,4 +8,4 @@
 # Empty on purpose. The two patterns that used to live here hid every unresolved
 # `http://thespierproject.org/fhir/Questionnaire/*` canonical; since #473 the
 # Questionnaires are IG artifacts (input/resources/questionnaires, a symlink to
-# FHIR-Resources/, named in sushi-config.yaml) and those canonicals resolve.
+# ig/input/resources/questionnaires/, named in sushi-config.yaml) and those canonicals resolve.

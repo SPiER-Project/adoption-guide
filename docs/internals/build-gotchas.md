@@ -85,7 +85,7 @@ and was false. See [`docs/internals/README.md`](README.md).
   why in the place someone will look.
 - **`copy-fhir` is incremental on a content fingerprint, not on mtimes.** It writes `.copy-fhir-manifest` into `packages/fhir-artifacts/generated/` recording the SUSHI version, a hash of every input's content, and a hash of the tree it produced; it skips the ~30s compile only when all three still match. `predev`, `prebuild` and `pretest` run it plain; `verify` passes `--force`, which still means recompile unconditionally. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
 
-  **CI shares one compile through that same fingerprint.** `node web/scripts/copy-fhir.mjs --print-input-fingerprint` prints the inputs hash, and web-lint.yml uses it as the cache key for `packages/fhir-artifacts/generated/`. The key therefore has one definition — spelling the input set out as `hashFiles('ig/input/fsh/**', 'FHIR-Resources/**', …)` in YAML would restate, in several jobs at once, the list the script already owns, with nothing comparing the copies.
+  **CI shares one compile through that same fingerprint.** `node web/scripts/copy-fhir.mjs --print-input-fingerprint` prints the inputs hash, and web-lint.yml uses it as the cache key for `packages/fhir-artifacts/generated/`. The key therefore has one definition — spelling the input set out as `hashFiles('ig/input/fsh/**', 'ig/input/resources/questionnaires/**', …)` in YAML would restate, in several jobs at once, the list the script already owns, with nothing comparing the copies.
 
   ⚠️ **Two properties keep that cache honest, and both are deliberate.** The `verify` job keeps `--force`, so exactly one job per run still derives the tree from source and runs every gate against fresh bytes — if every job restored, an input the key cannot see would let one stale tree satisfy the whole repo and nothing would notice. And the restoring jobs do not *trust* the entry: `copy-fhir` re-reads the manifest inside it and recomputes both fingerprints, so a truncated or tampered entry recompiles. A bad cache degrades those jobs to slow, never to wrong — which is why, unlike deploy.yml's render cache, this one needs no separate completeness gate. The cache is also saved by an explicit `cache/save` placed *after* the gates, never by the combined `actions/cache` action, whose post-step would save a tree whose gates had failed.
 
@@ -94,10 +94,10 @@ and was false. See [`docs/internals/README.md`](README.md).
   ⚠️ **It used to compare mtimes, and that is why `prebuild` passed `--force`.** mtimes track edits only where the tree came from editing it — in a fresh CI checkout git stamps every file with checkout time, so they carry no information at all. The cost was a second, identical ~20s compile in the `verify` job moments after the first (measured 2026-09-09: 13:12:07→13:12:48, then 13:13:25→13:13:45). The cheaper half of the fix is incidental; the load-bearing half is that mtimes were also **weaker**, because a hand-edited output looks *newer* and therefore looked fine. The manifest hashes the outputs too, so tampering and truncation rebuild. All six branches — unchanged-but-touched input, changed input, edited output, deleted generated TS, wrong SUSHI version, `--force` — were planted and observed before this landed.
 - **Generated files must exist before `tsc -b`.** `packages/fhir-artifacts/generated/*.json` and `packages/fhir-artifacts/generated/care-plan-profiles.generated.ts` (the whole `generated/` directory is gitignored) are produced by `copy-fhir`. On a clean checkout, run `npm run copy-fhir` first or the typecheck/build fails on missing imports.
 - **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
-  ValueSets; `FHIR-Resources/` holds Questionnaires (plus a couple of CarePlan
+  ValueSets; `ig/input/resources/questionnaires/` holds Questionnaires (plus a couple of CarePlan
   templates) and the few local CodeSystems that have no FSH counterpart. Never
   define the same canonical URL in both trees — three ASQ CodeSystems did, and
-  the `FHIR-Resources` copies silently shadowed the IG's with drifted `display`
+  the `ig/input/resources/questionnaires` copies silently shadowed the IG's with drifted `display`
   values until `validate-fhir.mjs` caught it. `node scripts/validate-fhir.mjs`
   loads both trees, so a fresh collision shows up as a display or binding error.
 - **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `packages/core/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `packages/demo-population/src/` (e.g. `patients.json`). LOINC **per-item** codes are no longer hand-copied into `packages/core/src/lib/observationMappers/fallbackDispatch.ts`: `INSTRUMENT_SIGNATURES` (used to recognize foreign QRs) names only linkIds, and their codes are resolved from `packages/fhir-artifacts/generated/instrument-signatures.generated.ts`, which `copy-fhir` derives from the Questionnaire JSON — so a linkId that stops carrying a code is a type error rather than drift. When you change any such code, **grep the whole repo** for the old value and update every site.
@@ -125,7 +125,7 @@ and was false. See [`docs/internals/README.md`](README.md).
   disagree. R4 has no `copyrightLabel`; the extension is the stand-in.
   **A new tool with unsettled terms gets `#unknown`, not a permissive guess** —
   the notice must name where its claim comes from (a filed
-  `FHIR-Resources/<tool>/licensing/MEMO.md`, or the Questionnaire's own recorded
+  `ig/input/resources/questionnaires/<tool>/licensing/MEMO.md`, or the Questionnaire's own recorded
   notice, or nothing). **No status has been verified against the rights holder's
   *current* published terms** — `docs/best-practices/licensing-verification-backlog.md`
   is the standing list of what is owed, and of why a recorded notice is not a

@@ -45,12 +45,12 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      # Covers the Questionnaires too: they live at
+      # ig/input/resources/questionnaires/<tool>/ and are loaded by
+      # `path-resource: input/resources/questionnaires/*`. They used to sit
+      # outside ig/ and needed a second pattern here; the move made this one line
+      # enough.
       - 'ig/input/**'
-      # The Questionnaires are IG inputs too, loaded from outside ig/ via
-      # `path-resource: ../FHIR-Resources/*` (#473). A Questionnaire edit renders
-      # differently and can break a QuestionnaireResponse example's validation,
-      # so it must trigger the full publisher like any other ig/input change.
-      - 'FHIR-Resources/**/*.json'
       - 'ig/sushi-config.yaml'
       - 'ig/ig.ini'
       - '.github/workflows/ig-publish.yml'

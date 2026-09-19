@@ -32,7 +32,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..')
 const scenariosDir = join(root, 'packages/demo-population/src/scenarios')
-const questionnaireDirs = [join(root, 'FHIR-Resources'), join(root, 'packages/fhir-artifacts/generated')]
+const questionnaireDirs = [join(root, 'ig/input/resources/questionnaires'), join(root, 'packages/fhir-artifacts/generated')]
 
 const MIN_VALUE_EXT = 'http://hl7.org/fhir/StructureDefinition/minValue'
 const MAX_VALUE_EXT = 'http://hl7.org/fhir/StructureDefinition/maxValue'
@@ -115,7 +115,7 @@ for (const dir of questionnaireDirs) {
 }
 
 if (questionnaires.size === 0) {
-  console.error('✗ no canonical Questionnaires found — is FHIR-Resources/ present?')
+  console.error('✗ no canonical Questionnaires found — is ig/input/resources/questionnaires/ present?')
   process.exit(1)
 }
 

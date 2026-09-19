@@ -14,7 +14,7 @@ tracked `.md` file must resolve:
 node scripts/check-md-links.mjs   # every relative link in a tracked .md resolves
 ```
 ⚠️ **This is the ONLY gate that triggers on `docs/**` or the root `README.md`.**
-`web-lint.yml` covers `web/`, `services/`, `FHIR-Resources/` and `ig/`, so a
+`web-lint.yml` covers `web/`, `services/`, `ig/input/resources/questionnaires/` and `ig/`, so a
 docs-only change triggered no workflow at all — which is how the `packages/`
 reorganizations left **14 dead links** across the plan docs and two READMEs:
 #389 (`web/src/lib/` → `packages/core/src/lib/`), #392 (`web/src/data/fhir/` →
@@ -40,7 +40,7 @@ pattern against a path that does not exist.
 ⚠️ **Fenced code blocks are deliberately IN scope.** A link in a fence never
 renders as a link, so skipping them would be defensible — but a stale *path* in a
 code block is exactly the drift worth catching, and this is what found
-`FHIR-Resources/README.md` documenting copy-fhir's destination as
+`ig/input/resources/questionnaires/README.md` documenting copy-fhir's destination as
 `web/src/data/fhir/*.json` long after #392 moved it. The cost is that prose
 *about* link syntax trips the gate; write such an example without the parentheses.
 
