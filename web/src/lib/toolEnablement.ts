@@ -76,7 +76,7 @@
  * clinician saw eight screeners in a 470px frame, and now means the alternatives
  * sit behind the stage page's disclosure while the card leads with one.
  */
-import type { ChromeMode } from '../context/PresentationContext'
+import type { ChromeMode } from '@spier/tool-views/context/PresentationContext'
 
 export function toolEnablementFor(
   chromeMode: ChromeMode,

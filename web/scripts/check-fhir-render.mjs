@@ -81,16 +81,16 @@
  * skipped — that is the implementer's half, it renders inside `CodeDrawer`, and
  * `CodeDrawer` is gated by `useInspect()`.
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
-import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { appRootFloors } from './lib/app-roots.mjs'
+import { STYLE_ROOTS, walkExt } from './lib/style-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const SRC = appRoot('web/src')
 const root = resolve(here, '../..')
 
 let failures = 0
@@ -106,23 +106,33 @@ const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
  * is not a reason, "writes to localStorage and returns nothing" is.
  */
 const NOT_A_RESOURCE_VIEW = {
-  'context/ToolConfigProvider.tsx':
+  'web/src/context/ToolConfigProvider.tsx':
     'serializes the tool-enablement preset INTO localStorage. Nothing is rendered, and the value is a settings object rather than a resource.',
-  'components/PathwayView.tsx':
+  'web/src/components/PathwayView.tsx':
     'the <pre> holds a CQL/pathway ERROR STRING, not a resource. The resources this view does show go through FhirJsonViewer, which gates itself.',
-  'pages/CdsServiceGuide.tsx':
+  'web/src/pages/CdsServiceGuide.tsx':
     'a guide page: the <pre> blocks are the curl invocations and the hook payload an implementer copies. Inspection is on for this whole surface by definition, so asking it again would be noise.',
 }
 
-/** Every non-test .tsx under web/src, as paths relative to it. */
-function sources(dir = SRC, out = []) {
-  for (const name of readdirSync(dir)) {
-    const p = join(dir, name)
-    if (statSync(p).isDirectory()) { sources(p, out); continue }
-    if (!name.endsWith('.tsx') || name.includes('.test.')) continue
-    out.push(relative(SRC, p))
-  }
-  return out
+/**
+ * Every non-test .tsx in every tree that holds components, keyed REPO-RELATIVE.
+ *
+ * ⚠️ **Both halves of that sentence are the fix for a silent coverage loss.**
+ * This walked `web/src` alone, so the 29 tool views moving to
+ * packages/tool-views took RULE 3's entire subject with them — the gate threw
+ * rather than passing, because `recorders.length === 0` is guarded, but the
+ * JSON/<pre> scan would simply have covered 85 files where it had covered 113.
+ *
+ * And the keys are repo-relative because two roots can hold the same path: a
+ * `components/CodeDrawer.tsx` in each would share one NOT_A_RESOURCE_VIEW entry,
+ * so an exemption written for one would silently exempt the other.
+ */
+function sources() {
+  return STYLE_ROOTS.flatMap((r) =>
+    walkExt(r.dir, ['.tsx'])
+      .filter((p) => !p.includes('.test.'))
+      .map((p) => relative(root, p)),
+  )
 }
 
 /**
@@ -160,7 +170,7 @@ for (const rel of files) {
   // both `JSON.stringify` and `<pre>`, and `CodeDrawer`'s names `<pre>` while
   // rendering none — a raw scan would be reading prose about the rule as
   // instances of it. Same reason `check-css-dead` blanks them.
-  const src = stripComments(readFileSync(join(SRC, rel), 'utf8'))
+  const src = stripComments(readFileSync(join(root, rel), 'utf8'))
   const hits = PATTERNS.filter((p) => { p.re.lastIndex = 0; return p.re.test(src) })
   for (const p of hits) {
     p.re.lastIndex = 0
@@ -175,7 +185,7 @@ for (const rel of files) {
   if (exempt) { exempted++; continue }
 
   fail(
-    `${relative(root, join(SRC, rel))} ${hits.map((h) => h.what).join(' and ')}, ` +
+    `${rel} ${hits.map((h) => h.what).join(' and ')}, ` +
       `but never calls useInspect().\n` +
       `    Raw FHIR belongs in the Adoption Guide and nowhere else — see src/context/InspectContext.ts.\n` +
       `    Either gate the output on useInspect(), render it through <FhirJsonViewer>, or add an entry to\n` +
@@ -246,7 +256,7 @@ function renderedText(file, src) {
 
 /** Files that render <WorkflowForm> — the recorder views, derived not listed. */
 const recorders = files.filter((rel) =>
-  /<WorkflowForm[\s>]/.test(stripComments(readFileSync(join(SRC, rel), 'utf8'))),
+  /<WorkflowForm[\s>]/.test(stripComments(readFileSync(join(root, rel), 'utf8'))),
 )
 if (recorders.length === 0) {
   throw new Error(
@@ -257,7 +267,7 @@ if (recorders.length === 0) {
 
 let proseRuns = 0
 for (const rel of recorders) {
-  const src = stripComments(readFileSync(join(SRC, rel), 'utf8'))
+  const src = stripComments(readFileSync(join(root, rel), 'utf8'))
   const { runs, codeTags, sawJsx } = renderedText(rel, src)
   if (!sawJsx) {
     fail(`${rel} renders <WorkflowForm> but the parser found no JSX in it — RULE 3 has stopped reading this file`)
@@ -266,7 +276,7 @@ for (const rel of recorders) {
   proseRuns += runs.length
   for (const line of codeTags) {
     fail(
-      `${relative(root, join(SRC, rel))}:${line}: the clinician reads a <code> — an extension id, a\n` +
+      `${rel}:${line}: the clinician reads a <code> — an extension id, a\n` +
         `    reference or an element path, quoted at someone who has no identifier to be shown.\n` +
         `    Move it into WorkflowForm's fhirNote={…}, or say the thing in words.`,
     )
@@ -277,7 +287,7 @@ for (const rel of recorders) {
       const hits = [...new Set([...run.text.matchAll(p.re)].map((m) => m[0]))]
       if (hits.length === 0) continue
       fail(
-        `${relative(root, join(SRC, rel))}:${run.line}: the clinician reads ${p.name} — ${hits.map((h) => `"${h}"`).join(', ')}\n` +
+        `${rel}:${run.line}: the clinician reads ${p.name} — ${hits.map((h) => `"${h}"`).join(', ')}\n` +
           `    A recorder describes the ACT, not the resource (Brad, 2026-09-17). The lede and every\n` +
           `    field label, help string and notice render on /patient/workflow/* with no inspection gate.\n` +
           `    Move the wire format into WorkflowForm's fhirNote={…}, which renders inside the CodeDrawer.`,
@@ -293,7 +303,7 @@ for (const rel of Object.keys(NOT_A_RESOURCE_VIEW)) {
     fail(`NOT_A_RESOURCE_VIEW names ${rel}, which is not a non-test .tsx under web/src — delete the entry or fix the path`)
     continue
   }
-  const src = stripComments(readFileSync(join(SRC, rel), 'utf8'))
+  const src = stripComments(readFileSync(join(root, rel), 'utf8'))
   if (!PATTERNS.some((p) => { p.re.lastIndex = 0; return p.re.test(src) })) {
     fail(`NOT_A_RESOURCE_VIEW exempts ${rel}, but it no longer serializes or renders a <pre> — delete the entry`)
   }
@@ -307,9 +317,9 @@ for (const rel of Object.keys(NOT_A_RESOURCE_VIEW)) {
 const floorsHeld = reportFloors(
   [
     ...appRootFloors(),
-    { source: 'web/src', dimension: 'non-test .tsx scanned', actual: files.length, floor: 38 },
-    { source: 'web/src', dimension: 'JSON.stringify site(s)', actual: counts['JSON.stringify'], floor: 2 },
-    { source: 'web/src', dimension: '<pre> site(s)', actual: counts['<pre>'], floor: 2 },
+    { source: 'component trees', dimension: 'non-test .tsx scanned', actual: files.length, floor: 38 },
+    { source: 'component trees', dimension: 'JSON.stringify site(s)', actual: counts['JSON.stringify'], floor: 2 },
+    { source: 'component trees', dimension: '<pre> site(s)', actual: counts['<pre>'], floor: 2 },
     { source: 'recorder views', dimension: 'view(s) rendering <WorkflowForm>', actual: recorders.length, floor: 5 },
     { source: 'recorder views', dimension: 'JSX text run(s) read', actual: proseRuns, floor: 90 },
   ],

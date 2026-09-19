@@ -74,7 +74,7 @@ not another *app*, it is a *server with our patients on it*.
    `id`, `displayName`, `dob`, `mrn`, `gender`, `recommendedNextStep`. Every
    `subject: Patient/patient-001` across the scenarios points at an id with
    nothing behind it. The only real `Patient` in the tree is `DEMO_PATIENT` in
-   [`demoPatient.ts`](../../web/src/data/demoPatient.ts), a single hand-written
+   [`demoPatient.ts`](../../packages/tool-views/src/data/demoPatient.ts), a single hand-written
    resource for the no-patient-selected mode. There are no `Practitioner` or
    `Organization` resources either, though artifacts name performers.
 

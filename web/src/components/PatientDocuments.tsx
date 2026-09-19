@@ -9,15 +9,15 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { SectionHeader } from '@spier/ui/SectionHeader'
-import { FhirJsonViewer } from './FhirJsonViewer'
-import { useInspect } from '../context/InspectContext'
+import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
+import { useInspect } from '@spier/tool-views/context/InspectContext'
 import { carePlanDisplayName, type RenderableResource } from '../lib/chartDisplay'
 import { stageForResponse } from '@spier/core/lib/patientPathway'
 import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
 import type { StoredResponse } from '@spier/core/types/fhir'
 import { cx } from '@spier/ui/cx'
 import { EmptyState } from '@spier/ui/EmptyState'
-import { formatDate } from '../lib/dates'
+import { formatDate } from '@spier/tool-views/lib/dates'
 
 // Sortable sentinel for FHIR resources missing an authoritative timestamp.
 // Keeps the date-driven memo deterministic and pushes undated rows to the bottom

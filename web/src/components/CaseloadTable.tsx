@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUp, ArrowDown, ChevronsUpDown, Check, Filter } from 'lucide-react'
 import { COLUMNS } from './caseloadColumns'
-import { RiskPill } from './RiskPill'
+import { RiskPill } from '@spier/tool-views/components/RiskPill'
 import type { CaseloadView, FilterKey, FilterOption, SortCol, SortDir, SortState } from '../lib/caseloadViews'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 import { cx } from '@spier/ui/cx'

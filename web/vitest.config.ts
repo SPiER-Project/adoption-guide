@@ -34,6 +34,8 @@ const REACT_DIR = fileURLToPath(new URL('./node_modules/react', import.meta.url)
 const REACT_DOM_DIR = fileURLToPath(new URL('./node_modules/react-dom', import.meta.url))
 const ROUTER_DIR = fileURLToPath(new URL('./node_modules/react-router-dom', import.meta.url))
 const LUCIDE_DIR = fileURLToPath(new URL('./node_modules/lucide-react', import.meta.url))
+const FORMBOX_RENDERER_DIR = fileURLToPath(new URL('./node_modules/@formbox/renderer', import.meta.url))
+const FORMBOX_THEME_DIR = fileURLToPath(new URL('./node_modules/@formbox/hs-theme', import.meta.url))
 // Test-only, so it is here and not in vite.config.ts — packages/ui's colocated
 // tests import it and have no node_modules to walk up into.
 const TESTING_LIBRARY_DIR = fileURLToPath(new URL('./node_modules/@testing-library/react', import.meta.url))
@@ -72,11 +74,35 @@ export default defineConfig({
       { find: 'react-dom/', replacement: `${REACT_DOM_DIR}/` },
       { find: /^react-router-dom$/, replacement: ROUTER_DIR },
       { find: /^lucide-react$/, replacement: LUCIDE_DIR },
+      // ── formbox, resolved for packages/tool-views ────────────────────
+      // Same problem, and the same fix, as React above: packages/tool-views has
+      // no node_modules of its own, so Vite cannot resolve a bare
+      // `@formbox/renderer` from it.
+      //
+      // ⚠️ **Anchored EXACT only — no `@formbox/hs-theme/` prefix entry.** A
+      // prefix alias rewrites the path before Vite consults the package's
+      // `exports` map, and `@formbox/hs-theme/style.css` (imported by App.tsx)
+      // is an export-map entry pointing at `dist/index.css`. Aliasing the prefix
+      // sent it looking for a `style.css` that does not exist on disk. App.tsx
+      // lives under web/ and resolves that subpath by the ordinary node_modules
+      // walk-up, so only the bare specifiers need help.
+      { find: /^@formbox\/renderer$/, replacement: FORMBOX_RENDERER_DIR },
+      { find: /^@formbox\/hs-theme$/, replacement: FORMBOX_THEME_DIR },
       { find: /^@testing-library\/react$/, replacement: TESTING_LIBRARY_DIR },
       {
         find: /^@spier\/demo-population$/,
         replacement: fileURLToPath(
           new URL('../packages/demo-population/src/index.ts', import.meta.url),
+        ),
+      },
+      {
+        // The 18 instrument fillers and 11 workflow recorders, plus the three
+        // contexts they read (packages/tool-views). ONE definition, now enforced
+        // by a package boundary rather than by a test that parses two files as
+        // text — see the package README.
+        find: '@spier/tool-views/',
+        replacement: fileURLToPath(
+          new URL('../packages/tool-views/src/', import.meta.url),
         ),
       },
       {
@@ -129,6 +155,7 @@ export default defineConfig({
       'src/**/*.test.{ts,tsx}',
       '../packages/core/src/**/*.test.{ts,tsx}',
       '../packages/ui/src/**/*.test.{ts,tsx}',
+      '../packages/tool-views/src/**/*.test.{ts,tsx}',
       '../scripts/lib/**/*.test.mjs',
     ],
   },

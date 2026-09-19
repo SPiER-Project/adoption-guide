@@ -53,12 +53,13 @@
  * rendered IG. Resolving those against the route table would report the
  * Implementation Guide as a broken link on both surfaces.
  */
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import { readSurfaceRoutes, routeResolves } from './lib/route-table.mjs'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
-import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { appRoot, appRootFloors, REPO_ROOT } from './lib/app-roots.mjs'
+import { resolveImport, spierPackageRoots } from './lib/module-graph.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -98,14 +99,11 @@ if (demoOnlySpecs.size === 0) {
   )
 }
 
-function resolveSpec(spec, fromFile) {
-  if (!spec.startsWith('.')) return null
-  const base = resolve(dirname(fromFile), spec)
-  for (const cand of [base + '.ts', base + '.tsx', join(base, 'index.ts'), join(base, 'index.tsx')]) {
-    if (existsSync(cand)) return cand
-  }
-  return null
-}
+// ⚠️ Resolves `@spier/<pkg>/…` too — a relative-only resolver stopped this walk
+// at packages/tool-views and the reach fell from 89 modules to 61 with the gate
+// still green. See lib/module-graph.mjs.
+const PACKAGE_ROOTS = spierPackageRoots(REPO_ROOT)
+const resolveSpec = (spec, fromFile) => resolveImport(spec, fromFile, REPO_ROOT, PACKAGE_ROOTS)
 
 /** Blank `{IS_DEMO && (…)}` bodies: that JSX is not in the clinical bundle. */
 function blankDemoBlocks(src) {
@@ -241,9 +239,9 @@ if (redirectsChecked === 0) {
 reportFloors(
   [
     ...appRootFloors(),
-    { source: 'clinical import graph', dimension: 'module(s) reached', actual: seen.size, floor: 40 },
+    { source: 'clinical import graph', dimension: 'module(s) reached', actual: seen.size, floor: 105 },
     { source: 'clinical route table', dimension: 'route(s)', actual: clinical.size, floor: 20 },
-    { source: 'clinical import graph', dimension: 'absolute link target(s)', actual: checked, floor: 12 },
+    { source: 'clinical import graph', dimension: 'absolute link target(s)', actual: checked, floor: 13 },
   ],
   fail,
 )

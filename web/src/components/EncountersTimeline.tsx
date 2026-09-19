@@ -17,7 +17,7 @@ import { resolveRelatedRefs, type RelatedArtifact } from '../lib/chartDisplay'
 import { stageById } from '@spier/core/data/catalog'
 import type { ScenarioEncounter } from '@spier/core/types/fhir'
 import { Pill } from '@spier/ui/Pill'
-import { formatDate } from '../lib/dates'
+import { formatDate } from '@spier/tool-views/lib/dates'
 
 export function EncountersTimeline({
   walkthrough,

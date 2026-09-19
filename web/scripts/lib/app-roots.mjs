@@ -49,7 +49,7 @@ export const REPO_ROOT = resolve(WEB_ROOT, '..')
  * at all", never "is it the right size".
  */
 export const APP_ROOTS = [
-  { source: 'web/src', dir: join(WEB_ROOT, 'src'), floorSrc: 80 },
+  { source: 'web/src', dir: join(WEB_ROOT, 'src'), floorSrc: 42 },
 ]
 
 /** Repo-relative, so a message names a file the same way whichever tree it is in. */

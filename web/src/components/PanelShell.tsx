@@ -45,8 +45,8 @@
  */
 import { Outlet } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
-import { usePatient } from '../context/PatientContext'
-import { usePresentation } from '../context/PresentationContext'
+import { usePatient } from '@spier/tool-views/context/PatientContext'
+import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { PatientIdentityStrip } from './PatientIdentityStrip'
 import '../css/PanelShell.css'
 

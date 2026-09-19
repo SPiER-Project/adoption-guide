@@ -25,8 +25,8 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, act, cleanup } from '@testing-library/react'
-import { PresentationProvider } from './PresentationProvider'
-import { usePresentation } from './PresentationContext'
+import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
+import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 
 // Stubbed so this stays a test of the selection, not of two whole shells (which
 // would drag in the patient, SMART and tool-config providers).

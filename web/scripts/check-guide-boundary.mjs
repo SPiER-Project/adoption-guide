@@ -22,6 +22,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { resolveImport, spierPackageRoots } from './lib/module-graph.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -63,14 +64,13 @@ function guideEntryPoints() {
   return entries
 }
 
-function resolveSpec(spec, fromFile) {
-  if (!spec.startsWith('.')) return null
-  const base = resolve(dirname(fromFile), spec)
-  for (const cand of [base + '.ts', base + '.tsx', join(base, 'index.ts'), join(base, 'index.tsx')]) {
-    if (existsSync(cand)) return cand
-  }
-  return null
-}
+// ⚠️ Resolves `@spier/<pkg>/…` as well as relative specifiers, and that is
+// load-bearing rather than a convenience. When the tool views moved into
+// packages/tool-views, a relative-only resolver stopped this walk at the
+// package boundary and the graph fell from 47 modules to 20 — while the gate
+// still printed ✓. See lib/module-graph.mjs.
+const PACKAGE_ROOTS = spierPackageRoots(root)
+const resolveSpec = (spec, fromFile) => resolveImport(spec, fromFile, root, PACKAGE_ROOTS)
 
 const entries = guideEntryPoints()
 const seen = new Set()
@@ -117,7 +117,7 @@ reportFloors(
   [
     ...appRootFloors(),
     { source: 'guide entry points', dimension: 'guide page(s)', actual: entries.length, floor: 4 },
-    { source: 'guide import graph', dimension: 'module(s) reached', actual: seen.size, floor: 20 },
+    { source: 'guide import graph', dimension: 'module(s) reached', actual: seen.size, floor: 75 },
   ],
   fail,
 )

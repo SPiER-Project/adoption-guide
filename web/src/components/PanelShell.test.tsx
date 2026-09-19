@@ -17,12 +17,12 @@ import { useEffect } from 'react'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { PresentationProvider } from '../context/PresentationProvider'
-import { usePresentation } from '../context/PresentationContext'
+import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
+import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 
 // Stubbed rather than provided: PatientProvider drags in the tool-config, SMART
 // and data-source providers, and none of them are what this asserts.
-vi.mock('../context/PatientContext', () => ({
+vi.mock('@spier/tool-views/context/PatientContext', () => ({
   usePatient: () => ({
     patientDisplay: { fullName: 'Maria Alvarez', dob: '1997-10-12', mrn: '11011' },
     activePatientId: 'patient-011',

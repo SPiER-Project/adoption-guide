@@ -26,10 +26,10 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { aliasedModules } from './lib/vite-alias.mjs'
 import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { STYLE_ROOTS, walkExt, relRepo } from './lib/style-roots.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const WEB = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const SRC = appRoot('web/src')
 const VITE_CONFIG = join(WEB, 'vite.config.ts')
 const SHIM = join(appRoot('web/src'), 'shims/fhirpath-r5-context.ts')
 const SPECIFIER = 'fhirpath/fhir-context/r5'
@@ -62,20 +62,17 @@ if (errors.length > 0) report()
 
 // ── RULE 2 — the app only ever renders R4 ─────────────────────────────────────
 
-const sources = []
-const collect = dir => {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name)
-    if (entry.isDirectory()) collect(path)
-    else if (/\.tsx?$/.test(entry.name)) sources.push(path)
-  }
-}
-collect(SRC)
+// ⚠️ **Every component tree, not `web/src`.** The one thing that renders a
+// Questionnaire — `QuestionnaireView`, the sole bearer of a `fhirVersion` prop —
+// moved to packages/tool-views, and a `web/src`-only scan found zero. The
+// `versionProps === 0` guard below is what turned that into a loud failure
+// instead of a shim reported safe on the strength of having checked nothing.
+const sources = STYLE_ROOTS.flatMap(r => walkExt(r.dir, ['.ts', '.tsx']))
 
 let versionProps = 0
 for (const path of sources) {
   const src = readFileSync(path, 'utf8')
-  const rel = path.replace(WEB + '/', '')
+  const rel = relRepo(path)
   for (const match of src.matchAll(/fhirVersion\s*=\s*(\{[^}]*\}|"[^"]*"|'[^']*')/g)) {
     versionProps++
     const raw = match[1]
@@ -101,7 +98,7 @@ for (const path of sources) {
 
 if (versionProps === 0) {
   fail(
-    'no fhirVersion prop found anywhere in src/ — either nothing renders a Questionnaire any ' +
+    'no fhirVersion prop found in any component tree — either nothing renders a Questionnaire any ' +
       'more (delete the shim) or this scan has stopped matching, in which case RULE 2 is checking nothing.',
   )
 }

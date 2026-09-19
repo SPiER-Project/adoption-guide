@@ -45,7 +45,7 @@ import { stageAlternativeTools, stageLeadTools } from '@spier/core/lib/pathwaySe
 import { stageById } from '@spier/core/data/catalog/stages'
 import type { Tool } from '@spier/core/data/catalog/tools'
 import { useToolConfig } from '../context/ToolConfigContext'
-import { usePresentation } from '../context/PresentationContext'
+import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { toolEnablementFor } from '../lib/toolEnablement'
 import '../css/PathwayStage.css'
 

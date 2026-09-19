@@ -143,7 +143,7 @@ honoring it is two lines and tells an informaticist the spec was read.
 ### The code drawer
 
 Today the FHIR view is a `.debug-sidebar` `<aside>` inside `.form-wrapper`
-([`QuestionnaireView.tsx`](../../web/src/components/QuestionnaireView.tsx)). It
+([`QuestionnaireView.tsx`](../../packages/tool-views/src/components/QuestionnaireView.tsx)). It
 cannot survive beside a form at panel width. It becomes a **bottom drawer with
 three tabs**:
 
@@ -896,7 +896,7 @@ gain.
 `patients.json` is app-shaped (`id`, `displayName`, `dob`, `mrn`, `gender`,
 `recommendedNextStep`). Every `subject: Patient/patient-001` across the scenarios
 points at an id with nothing behind it; the only real `Patient` in the tree is
-`DEMO_PATIENT` in [`web/src/data/demoPatient.ts`](../../web/src/data/demoPatient.ts).
+`DEMO_PATIENT` in [`web/src/data/demoPatient.ts`](../../packages/tool-views/src/data/demoPatient.ts).
 There are no `Practitioner` or `Organization` resources either, though artifacts
 name performers.
 

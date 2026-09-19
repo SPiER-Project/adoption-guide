@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { PageHeader } from '@spier/ui/PageHeader'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref, resolveGuidePath } from '../data/guideSections'
-import { InspectContext } from '../context/InspectContext'
+import { InspectContext } from '@spier/tool-views/context/InspectContext'
 import '../css/AdoptionGuide.css'
 
 export function AdoptionGuide() {

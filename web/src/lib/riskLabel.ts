@@ -1,4 +1,4 @@
-import type { RiskLevel } from './statusIcons'
+import type { RiskLevel } from '@spier/tool-views/lib/statusIcons'
 
 /**
  * The display word for each risk level — the one map. It was pasted into

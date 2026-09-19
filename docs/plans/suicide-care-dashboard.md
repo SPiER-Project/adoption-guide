@@ -60,7 +60,7 @@ described in the deck as "automatically calculated." In SPiER today it is not
 calculated at all: `Task` due dates are minted by
 [`riskEpisode.ts`](../../packages/core/src/lib/riskEpisode.ts) from a caller-supplied
 `dueDate`, and the only caller is a date input in
-[`SafetyTaskView.tsx:137`](../../web/src/components/SafetyTaskView.tsx:137) that
+[`SafetyTaskView.tsx:137`](../../packages/tool-views/src/components/SafetyTaskView.tsx:137) that
 defaults to today. The interval lives in a clinician's head.
 
 Encoding it is small — per-tier `timing` on a reassessment `ActivityDefinition`,

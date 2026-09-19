@@ -27,7 +27,7 @@
  */
 import { type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { FhirJsonViewer } from './FhirJsonViewer'
+import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import {
   type PathwayAction,
   type PathwayDocumentation,

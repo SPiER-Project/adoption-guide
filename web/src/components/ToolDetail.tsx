@@ -9,12 +9,12 @@
  * (maintainability audit 2026-09-15, §2.5).
  */
 import { bindingsUsedByTool, systemLabel, type Tool } from '@spier/core/data/catalog'
-import { FhirJsonViewer } from './FhirJsonViewer'
+import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { Pill } from '@spier/ui/Pill'
 import { DataTable } from '@spier/ui/DataTable'
 import '../css/ToolDetail.css'
 import { Button } from '@spier/ui/Button'
-import { isToolViewSlug } from '../data/toolViews'
+import { isToolViewSlug } from '@spier/tool-views/data/toolViews'
 
 /**
  * The guide's own route for a tool's recorder: the same view the clinician's

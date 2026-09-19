@@ -210,7 +210,10 @@ for (const pd of planDefinitions) {
 // reporting surfaces. The property that means "this tool records" is that one
 // of its launch paths lands on a `TOOL_VIEWS` slug, which is the same set
 // `toolViews.test.ts` and `check:catalog` already pin.
-const viewsSrc = readFileSync(join(appRoot('web/src'), 'data/toolViews.tsx'), 'utf8')
+// ⚠️ packages/tool-views, not web/src — the map became a package so that ONE
+// definition serves every app's route table (see check:tool-view-routes).
+const TOOL_VIEWS_TSX = join(root, 'packages/tool-views/src/data/toolViews.tsx')
+const viewsSrc = readFileSync(TOOL_VIEWS_TSX, 'utf8')
 const slugs = new Set([...viewsSrc.matchAll(/^ {2}'([a-z0-9-]+)':/gm)].map((m) => m[1]))
 if (slugs.size === 0) {
   fail(
@@ -415,7 +418,7 @@ reportFloors(
     ...appRootFloors(),
     { source: 'fhir-artifacts/generated', dimension: 'PlanDefinition action(s) with a definitionCanonical', actual: actionsWithDefinition, floor: 20 },
     { source: 'fhir-artifacts/generated', dimension: 'declared output profile(s)', actual: declared.size, floor: 14 },
-    { source: 'web/src/data/toolViews.tsx', dimension: 'recorder slug(s)', actual: slugs.size, floor: 14 },
+    { source: 'packages/tool-views/src/data/toolViews.tsx', dimension: 'recorder slug(s)', actual: slugs.size, floor: 14 },
     { source: 'web/.runtime-fhir', dimension: 'emitted resource(s)', actual: emittedCount, floor: 100 },
   ],
   fail,

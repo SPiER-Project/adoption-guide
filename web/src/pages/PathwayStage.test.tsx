@@ -22,7 +22,7 @@ const presentation = { chromeMode: 'ehr' as 'ehr' | 'panel' }
 vi.mock('../context/ToolConfigContext', () => ({
   useToolConfig: () => ({ isToolEnabled: (id: string) => config.enabled(id) }),
 }))
-vi.mock('../context/PresentationContext', () => ({
+vi.mock('@spier/tool-views/context/PresentationContext', () => ({
   usePresentation: () => presentation,
 }))
 

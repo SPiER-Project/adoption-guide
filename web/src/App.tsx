@@ -10,7 +10,7 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 // *Provider.tsx, its context object and hook in *Context.ts — so the provider
 // module stays component-only and Fast Refresh preserves its state on edit.
 // Consumers import the hook from the *Context module, the path they always used.
-import { PresentationProvider } from './context/PresentationProvider'
+import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
 import { SmartProvider } from './context/SmartProvider'
 import { PatientProvider } from './context/PatientProvider'
 import { ToolConfigProvider } from './context/ToolConfigProvider'
@@ -31,7 +31,7 @@ import { IS_DEMO } from './lib/surface'
 // two route families: the clinician's /patient/* paths below, and the guide's
 // /guide/tools/:slug/try. See data/toolViews.tsx for why they must be one
 // definition rather than two.
-import { TOOL_VIEWS } from './data/toolViews'
+import { TOOL_VIEWS } from '@spier/tool-views/data/toolViews'
 
 // Route pages and views are code-split (React.lazy) so each lens loads on
 // demand. Named exports are adapted to lazy()'s default-export contract.

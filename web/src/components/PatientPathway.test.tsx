@@ -27,8 +27,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { STAGES } from '@spier/core/data/catalog'
 import type { Card } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
-import { PresentationProvider } from '../context/PresentationProvider'
-import type { ChromeMode } from '../context/PresentationContext'
+import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
+import type { ChromeMode } from '@spier/tool-views/context/PresentationContext'
 import { PatientPathway, PathwayProgress } from './PatientPathway'
 
 afterEach(cleanup)

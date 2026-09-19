@@ -6,8 +6,8 @@
  */
 import { describe, expect, it } from 'vitest'
 import { } from './chartDisplay'
-import { formatDateTime } from './dates'
-import { formatPatientDisplay } from '../data/demoPatient'
+import { formatDateTime } from '@spier/tool-views/lib/dates'
+import { formatPatientDisplay } from '@spier/tool-views/data/demoPatient'
 
 describe('formatDateTime', () => {
   it('never renders "Invalid Date"', () => {

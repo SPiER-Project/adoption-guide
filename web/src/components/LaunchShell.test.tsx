@@ -20,7 +20,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 vi.mock('../lib/surface', () => ({ SURFACE: 'clinical', IS_DEMO: false }))
 
 const smart = { isSmartSession: false }
-vi.mock('../context/PatientContext', () => ({
+vi.mock('@spier/tool-views/context/PatientContext', () => ({
   usePatient: () => ({
     activePatientId: null,
     isSmartConnected: false,

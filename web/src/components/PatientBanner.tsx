@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
-import { usePatient } from '../context/PatientContext'
+import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { PatientIdentityStrip } from './PatientIdentityStrip'
 import '../css/PatientBanner.css'
 

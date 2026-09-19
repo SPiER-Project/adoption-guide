@@ -97,7 +97,7 @@ refactor:**
 
 1. **The renderer takes a resource, not a promise.** `QuestionnaireView` receives
    `questionnaire` as a prop from a ready-to-render element in
-   [`toolViews.tsx`](../../web/src/data/toolViews.tsx). An async resolve has to
+   [`toolViews.tsx`](../../packages/tool-views/src/data/toolViews.tsx). An async resolve has to
    land above that — either the map becomes slug → *canonical*, and a loader
    component resolves before rendering, or the element keeps its bundled copy as
    the initial value and swaps. The first is correct and is a real change to the
