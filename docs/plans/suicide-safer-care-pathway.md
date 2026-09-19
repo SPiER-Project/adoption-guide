@@ -341,7 +341,7 @@ layout). `check:core-boundary` applies — no React, no DOM.
 
 ### The page
 
-New `web/src/pages/CarePathway.tsx` + `web/src/css/CarePathway.css`:
+New `web/src/pages/CarePathway.tsx` + `packages/app-shell/src/css/CarePathway.css`:
 
 - **A guide sub-page, not a lens**: it inherits `AdoptionGuide`'s header and
   must **not** render `PageHeader` (`check:template` gates the reverse

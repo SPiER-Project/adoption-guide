@@ -107,8 +107,8 @@ const modules = import.meta.glob<PatientScenario>('./patient-*.json', {
 ```
 
 `POPULATION_SCENARIOS` is imported by
-[`localDataSource.ts`](../../web/src/lib/dataSource/localDataSource.ts) **and by
-[`PatientProvider.tsx`](../../web/src/context/PatientProvider.tsx)** — which
+[`localDataSource.ts`](../../packages/app-shell/src/lib/dataSource/localDataSource.ts) **and by
+[`PatientProvider.tsx`](../../packages/app-shell/src/context/PatientProvider.tsx)** — which
 `App.tsx` mounts around every route, on every build. So **14 synthetic patients
 ship in the always-loaded path**, and `/#/population` renders them as a caseload.
 

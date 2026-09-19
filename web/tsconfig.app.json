@@ -16,10 +16,18 @@
       // packages/core imports fhirclient's Client type. `fhirclient` is web's
       // dependency and no other package declares a second copy, which could
       // drift from the version the app ships.
+      // ⚠️ The BARE specifier needs its own entry now that SmartLaunch,
+      // SmartRedirect and SmartProvider live in packages/app-shell. From
+      // web/src a bare `fhirclient` resolved by walking up into
+      // web/node_modules; from packages/app-shell/src that walk reaches the
+      // repo root and finds nothing, and these files enter THIS project's
+      // program through the @spier/app-shell path mapping above.
+      "fhirclient": ["./node_modules/fhirclient/index.d.ts"],
       "fhirclient/*": ["./node_modules/fhirclient/*"],
       "@spier/core/*": ["../packages/core/src/*"],
       "@spier/ui/*": ["../packages/ui/src/*"],
       "@spier/tool-views/*": ["../packages/tool-views/src/*"],
+      "@spier/app-shell/*": ["../packages/app-shell/src/*"],
       // packages/ui is React, and it lives OUTSIDE web/. TypeScript resolves a
       // bare specifier by walking up from the importing FILE, so from
       // packages/ui/src that walk reaches the repo root and finds no

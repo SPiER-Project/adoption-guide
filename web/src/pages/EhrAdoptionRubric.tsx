@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { RUBRIC_CRITERIA, RUBRIC_TOOLS, STAGE_ORDER, STAGE_DESCRIPTIONS } from '../data/ehrAdoptionData'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useLocalStorage } from '@spier/app-shell/hooks/useLocalStorage'
 import '../css/EhrAdoptionRubric.css'
 import { cx } from '@spier/ui/cx'
 import { Pill } from '@spier/ui/Pill'

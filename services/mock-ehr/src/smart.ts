@@ -102,7 +102,7 @@ const DEFAULT_REDIRECT_URIS = [
   'http://localhost:8789/',
 ]
 
-/** The app's client id, from web/src/components/SmartLaunch.tsx. */
+/** The app's client id, from packages/app-shell/src/components/SmartLaunch.tsx. */
 const DEFAULT_CLIENT_IDS = ['spier-client']
 
 const CODE_TTL_SECONDS = 60

@@ -34,6 +34,10 @@ const REACT_DIR = fileURLToPath(new URL('./node_modules/react', import.meta.url)
 const REACT_DOM_DIR = fileURLToPath(new URL('./node_modules/react-dom', import.meta.url))
 const ROUTER_DIR = fileURLToPath(new URL('./node_modules/react-router-dom', import.meta.url))
 const LUCIDE_DIR = fileURLToPath(new URL('./node_modules/lucide-react', import.meta.url))
+// ⚠️ Needed for packages/app-shell, whose SMART components import `fhirclient`
+// BARE. From web/src that resolved by walking up into web/node_modules; from
+// packages/app-shell/src the walk reaches the repo root and finds nothing.
+const FHIRCLIENT_DIR = fileURLToPath(new URL('./node_modules/fhirclient', import.meta.url))
 const FORMBOX_RENDERER_DIR = fileURLToPath(new URL('./node_modules/@formbox/renderer', import.meta.url))
 const FORMBOX_THEME_DIR = fileURLToPath(new URL('./node_modules/@formbox/hs-theme', import.meta.url))
 // Test-only, so it is here and not in vite.config.ts — packages/ui's colocated
@@ -74,6 +78,8 @@ export default defineConfig({
       { find: 'react-dom/', replacement: `${REACT_DOM_DIR}/` },
       { find: /^react-router-dom$/, replacement: ROUTER_DIR },
       { find: /^lucide-react$/, replacement: LUCIDE_DIR },
+      { find: /^fhirclient$/, replacement: FHIRCLIENT_DIR },
+      { find: 'fhirclient/', replacement: `${FHIRCLIENT_DIR}/` },
       // ── formbox, resolved for packages/tool-views ────────────────────
       // Same problem, and the same fix, as React above: packages/tool-views has
       // no node_modules of its own, so Vite cannot resolve a bare
@@ -93,6 +99,17 @@ export default defineConfig({
         find: /^@spier\/demo-population$/,
         replacement: fileURLToPath(
           new URL('../packages/demo-population/src/index.ts', import.meta.url),
+        ),
+      },
+      {
+        // The shared application runtime (packages/app-shell): the SMART and
+        // patient plumbing, the providers, and the chrome-agnostic components
+        // BOTH apps mount. ⚠️ Anchored EXACT prefix, like its siblings — the
+        // object alias form matches by prefix and would swallow more than
+        // intended. See the package README.
+        find: '@spier/app-shell/',
+        replacement: fileURLToPath(
+          new URL('../packages/app-shell/src/', import.meta.url),
         ),
       },
       {
@@ -156,6 +173,7 @@ export default defineConfig({
       '../packages/core/src/**/*.test.{ts,tsx}',
       '../packages/ui/src/**/*.test.{ts,tsx}',
       '../packages/tool-views/src/**/*.test.{ts,tsx}',
+      '../packages/app-shell/src/**/*.test.{ts,tsx}',
       '../scripts/lib/**/*.test.mjs',
     ],
   },

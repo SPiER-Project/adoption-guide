@@ -68,7 +68,7 @@ function fail(msg) {
 }
 
 /** The one file that says which client_id SPiER presents to which EHR. */
-const REGISTRATIONS = 'web/src/config/smart-registrations.json'
+const REGISTRATIONS = 'packages/app-shell/src/config/smart-registrations.json'
 
 /**
  * The `client_id` SPiER presents to Medplum, READ OUT OF THE APP'S OWN CONFIG.

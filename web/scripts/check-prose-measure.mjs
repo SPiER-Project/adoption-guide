@@ -143,11 +143,11 @@ const NON_PROSE = {
     'tool chips — which want room to stay on one line. Its prose is `.dd-detail-desc`, which caps ' +
     'itself with the token. ⚠️ This rule USED to claim the prose cap in its comment while 52rem on ' +
     '13px type is 134 characters; that is the defect RULE 2 is written against.',
-  'web/src/css/FhircastListener.css|.fhircast-banner':
+  'packages/app-shell/src/css/FhircastListener.css|.fhircast-banner':
     'A fixed-position toast, clamped to the viewport with `min()`. A box size, and it holds one short line.',
   'packages/ui/src/PageHeader.css|.page-header__rule':
     "The brand's 4px gradient accent rule. Not text at all.",
-  'web/src/css/PatientBanner.css|.patient-banner-switcher':
+  'packages/app-shell/src/css/PatientBanner.css|.patient-banner-switcher':
     'A control (the patient `<select>`), sized so a long name does not push the banner apart.',
   'web/src/css/PopulationView.css|.caseload-filter-menu':
     'A dropdown menu panel holding filter rows, not prose.',

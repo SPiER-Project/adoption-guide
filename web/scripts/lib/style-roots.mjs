@@ -43,6 +43,7 @@ export const STYLE_ROOTS = [
   { source: 'web/src', dir: join(WEB_ROOT, 'src'), floorCss: 14, floorSrc: 42 },
   { source: 'packages/ui/src', dir: join(REPO_ROOT, 'packages/ui/src'), floorCss: 6, floorSrc: 6 },
   { source: 'packages/tool-views/src', dir: join(REPO_ROOT, 'packages/tool-views/src'), floorCss: 1, floorSrc: 12 },
+  { source: 'packages/app-shell/src', dir: join(REPO_ROOT, 'packages/app-shell/src'), floorCss: 2, floorSrc: 11 },
 ]
 
 /** Repo-relative, so a message names a file the same way whichever tree it is in. */

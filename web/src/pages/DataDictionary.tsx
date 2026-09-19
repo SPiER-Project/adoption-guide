@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useScrollToHash } from '../hooks/useScrollToHash'
+import { useScrollToHash } from '@spier/app-shell/hooks/useScrollToHash'
 import {
   STAGES,
   TOOLS,

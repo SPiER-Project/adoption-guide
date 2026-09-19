@@ -5,6 +5,7 @@
     { "path": "./tsconfig.node.json" },
     { "path": "../packages/core" },
     { "path": "../packages/ui" },
-    { "path": "../packages/tool-views" }
+    { "path": "../packages/tool-views" },
+    { "path": "../packages/app-shell" }
   ]
 }

@@ -44,10 +44,10 @@
  * - **No width opinion.** Nothing here sets a width; the host sizes the frame.
  */
 import { Outlet } from 'react-router-dom'
-import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
+import { useScrollToTopOnNavigate } from '@spier/app-shell/hooks/useScrollToHash'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
-import { PatientIdentityStrip } from './PatientIdentityStrip'
+import { PatientIdentityStrip } from '@spier/app-shell/components/PatientIdentityStrip'
 import '../css/PanelShell.css'
 
 export function PanelShell() {

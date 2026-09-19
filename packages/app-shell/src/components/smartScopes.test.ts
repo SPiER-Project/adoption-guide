@@ -43,11 +43,11 @@ import { resolve } from 'node:path'
 const here = __dirname
 const SMART_LAUNCH = readFileSync(resolve(here, 'SmartLaunch.tsx'), 'utf8')
 const SMART_DATA_SOURCE = readFileSync(
-  resolve(here, '../../../packages/core/src/lib/dataSource/smartDataSource.ts'),
+  resolve(here, '../../../core/src/lib/dataSource/smartDataSource.ts'),
   'utf8',
 )
 const LIFECYCLE_TYPES = readFileSync(
-  resolve(here, '../../../packages/core/src/lib/dataSource/lifecycleTypes.ts'),
+  resolve(here, '../../../core/src/lib/dataSource/lifecycleTypes.ts'),
   'utf8',
 )
 

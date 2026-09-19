@@ -34,10 +34,10 @@ The client side is not the gap. It is substantially built:
 
 | Piece | Where | What it does |
 |---|---|---|
-| Launch + redirect legs | [`SmartLaunch.tsx`](../../web/src/components/SmartLaunch.tsx), [`SmartRedirect.tsx`](../../web/src/components/SmartRedirect.tsx), `main.tsx` | Full EHR launch, PKCE public client, both legs bootstrapped around `HashRouter` |
-| Session | [`SmartProvider.tsx`](../../web/src/context/SmartProvider.tsx) | `sessionStorage`, rehydrated on reload |
+| Launch + redirect legs | [`SmartLaunch.tsx`](../../packages/app-shell/src/components/SmartLaunch.tsx), [`SmartRedirect.tsx`](../../packages/app-shell/src/components/SmartRedirect.tsx), `main.tsx` | Full EHR launch, PKCE public client, both legs bootstrapped around `HashRouter` |
+| Session | [`SmartProvider.tsx`](../../packages/app-shell/src/context/SmartProvider.tsx) | `sessionStorage`, rehydrated on reload |
 | Live read/write | [`smartDataSource.ts`](../../packages/core/src/lib/dataSource/smartDataSource.ts) | 384 lines behind the `FhirDataSource` interface; QR written first, then derived Observations with `derivedFrom` pointing at the server-assigned id |
-| Patient context | [`smartPatient.ts`](../../web/src/lib/smartPatient.ts) | Reads the launch `Patient` and reduces it to the banner summary |
+| Patient context | [`smartPatient.ts`](../../packages/app-shell/src/lib/smartPatient.ts) | Reads the launch `Patient` and reduces it to the banner summary |
 | A documented walkthrough | [`docs/smart-sandbox-testing.md`](../smart-sandbox-testing.md) | Exact launcher config, a scripted zero-click launch, and an honest limitations section |
 
 `SmartDataSource.getSlice` issues **14 patient-scoped searches across 13 resource
