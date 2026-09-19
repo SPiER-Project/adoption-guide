@@ -469,6 +469,24 @@ const licCounts = [...licensingCodes]
   .join(', ')
 console.log(`✓ licensing: ${activityDefs.length} ActivityDefinition(s) carry a status + copyright (${licCounts})`)
 
+// ⚠️ **Also counted per TOOL, because that is the unit every question about this
+// line is actually asking about.** "Which instruments may we redistribute, which
+// need a licence" is a question about instruments, and a multi-AD tool is ONE
+// instrument — the CAMS SSF-5's four ActivityDefinitions are four rows above and
+// one instrument here. Reading the per-AD split as an instrument count overstates
+// the commercial group by three. The two numbers differ only for MULTI_AD_TOOLS,
+// which is precisely the merge this gate exists to keep visible, so printing one
+// without the other hands the reader a number that answers a question they did
+// not ask. Safe to derive by taking each tool's single status: the loop above
+// fails if a tool's ADs disagree.
+const perToolStatus = new Map([...licensingByTool].map(([toolId, seen]) => [toolId, [...seen.keys()][0]]))
+const toolLicCounts = [...licensingCodes]
+  .map((code) => [code, [...perToolStatus.values()].filter((c) => c === code).length])
+  .filter(([, n]) => n > 0)
+  .map(([code, n]) => `${n} ${code}`)
+  .join(', ')
+console.log(`✓ licensing: ${perToolStatus.size} catalogued tool(s) by instrument (${toolLicCounts})`)
+
 // ---- E: tool-config presets stay derived from the catalog -------------------
 // Common Mid-Tier and Maximalist are DEFINED by catalog properties
 // (inclusionStatus === 'core', and "all launchable"), not by hand-listed ids.

@@ -38,7 +38,7 @@
  * generator must NOT decide is which linkIds belong to a signature, so those,
  * their order, and the reasoning for every deliberate omission stay below.
  */
-import { answerCodingForOrdinal, ordinalForAnswer } from '../../data/questionnaires'
+import { answerCodingForOrdinal, ordinalForAnswer } from '../../data/questionnaireOrdinals'
 import { getYesNoBoolean } from './shared'
 import {
   QUESTIONNAIRE_ITEM_CODES,

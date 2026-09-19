@@ -32,16 +32,22 @@ const destDir = join(repoRoot, 'packages', 'fhir-artifacts', 'generated')
 const fshInputDir = join(igDir, 'input', 'fsh')
 const sushiConfig = join(igDir, 'sushi-config.yaml')
 // Hand-authored Questionnaire JSON. Not a SUSHI input — SUSHI never reads it —
-// but it IS an input to `writeInstrumentItemCodes()` below, so editing a
-// Questionnaire has to invalidate this script's output. Leaving it out is the
-// bug the phase-2 plan flagged in advance: the generated lookup would sit there
-// stale while the Questionnaire it was derived from had moved on.
+// but it IS an input to `writeInstrumentItemCodes()`,
+// `writeQuestionnaireOrdinals()` and `writeQuestionnaireUrls()` below, so editing
+// a Questionnaire has to
+// invalidate this script's output. Leaving it out is the bug the phase-2 plan
+// flagged in advance: the generated lookup would sit there stale while the
+// Questionnaire it was derived from had moved on. ⚠️ For the ordinals that is
+// not merely stale metadata — a stale weight scores an instrument wrongly and
+// plausibly, with nothing to notice it.
 const questionnairesDir = join(repoRoot, 'FHIR-Resources')
 // The TypeScript artifacts this script emits.
 const carePlanProfilesTsPath = join(destDir, 'care-plan-profiles.generated.ts')
 const observationProfilesTsPath = join(destDir, 'observation-profiles.generated.ts')
 const instrumentSignaturesTsPath = join(destDir, 'instrument-signatures.generated.ts')
 const stageIdsTsPath = join(destDir, 'stage-ids.generated.ts')
+const questionnaireOrdinalsTsPath = join(destDir, 'questionnaire-ordinals.generated.ts')
+const questionnaireUrlsTsPath = join(destDir, 'questionnaire-urls.generated.ts')
 // ⚠️ Every emitted artifact belongs in this list: it is what the staleness
 // manifest fingerprints, so one left out would sit stale while its FSH moved on.
 const generatedTsPaths = [
@@ -49,6 +55,8 @@ const generatedTsPaths = [
   observationProfilesTsPath,
   instrumentSignaturesTsPath,
   stageIdsTsPath,
+  questionnaireOrdinalsTsPath,
+  questionnaireUrlsTsPath,
 ]
 // Records the fingerprint of the inputs this tree was built from and of the
 // tree itself. Deliberately has NO `.json` extension: destDir's consumers
@@ -557,6 +565,217 @@ function writeInstrumentItemCodes() {
  * those tables catch a typo AND a missing entry for a newly-added stage as a
  * compile error instead of silent wrong behavior.
  */
+/**
+ * Emit a TypeScript lookup of `canonical → linkId → the ordinal-weighted answer
+ * options that Questionnaire item declares`, read out of FHIR-Resources/.
+ *
+ * Why this exists, and why it is not just another convenience: the SDC
+ * `weight()` join (`ordinalForAnswer` / `answerCodingForOrdinal`) needs three
+ * fields per answer option — code, the ordinal, and the coding to rebuild — and
+ * nothing else. It used to get them by reaching into the *whole* Questionnaire
+ * through `QUESTIONNAIRE_BY_URL`, which put all 18 hand-authored Questionnaire
+ * JSON files on the import graph of `packages/core/src/lib/observationMappers/`.
+ * Those mappers are reachable from the registry and the measure engine, which
+ * are eager — so **166.8 KB of form JSON compiled into the entry chunk of both
+ * surfaces**, including the clinical one an EHR frames, and was paid by every
+ * visitor whether or not they ever opened a form
+ * (`docs/plans/tool-bundling-audit-2026-09-19.md` §5.1).
+ *
+ * ⚠️ **This is a derived table and must stay derived.** The ordinals are the
+ * scores an instrument is summed from; a hand-maintained copy is exactly the
+ * drift-prone hand-duplicated value CLAUDE.md warns about, and it would drift
+ * silently — a wrong weight produces a plausible total, not an error. There is
+ * no gate asserting the copy matches, and there deliberately is not one: the
+ * copy is regenerated from the Questionnaires on every `copy-fhir`, and
+ * `FHIR-Resources/` is already inside the manifest's input fingerprint, so
+ * editing an `ordinalValue` rebuilds this file by the same mechanism that
+ * rebuilds the SUSHI tree. A gate would be asserting that a generator ran.
+ *
+ * Only items with at least one ordinal-bearing option appear. An item whose
+ * options carry no `ordinalValue` contributes nothing, because the lookup
+ * answers "what weight does this answer score" and the answer is "none".
+ */
+function writeQuestionnaireOrdinals() {
+  const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
+  const stripVersion = (canonical) => {
+    const pipe = canonical.indexOf('|')
+    return pipe === -1 ? canonical : canonical.slice(0, pipe)
+  }
+  function* walkItems(items) {
+    for (const it of items ?? []) {
+      yield it
+      yield* walkItems(it.item)
+    }
+  }
+
+  // canonical → Map(linkId → [{ code, ordinal, system, display }])
+  const byCanonical = new Map()
+  for (const file of walkFiles(questionnairesDir)) {
+    if (!file.endsWith('.json')) continue
+    let doc
+    try {
+      doc = JSON.parse(readFileSync(file, 'utf8'))
+    } catch {
+      continue // not JSON we can read — other gates own malformed FHIR
+    }
+    if (doc?.resourceType !== 'Questionnaire' || typeof doc.url !== 'string') continue
+    // A canonical collision is already a hard error in writeInstrumentItemCodes,
+    // which reads the same directory in the same run, so it cannot reach here.
+    const linkIdOptions = new Map()
+    for (const it of walkItems(doc.item)) {
+      if (!it.linkId) continue
+      const options = []
+      for (const opt of it.answerOption ?? []) {
+        const ext = (opt.extension ?? []).find((e) => e?.url === ORDINAL_VALUE_URL)
+        if (typeof ext?.valueDecimal !== 'number') continue
+        const coding = opt.valueCoding
+        if (typeof coding?.code !== 'string') continue
+        options.push({
+          code: coding.code,
+          ordinal: ext.valueDecimal,
+          system: typeof coding.system === 'string' ? coding.system : undefined,
+          display: typeof coding.display === 'string' ? coding.display : undefined,
+        })
+      }
+      if (options.length) linkIdOptions.set(it.linkId, options)
+    }
+    if (linkIdOptions.size) byCanonical.set(stripVersion(doc.url), linkIdOptions)
+  }
+
+  if (byCanonical.size === 0) {
+    // Reading nothing must not pass as "nothing to emit" — the #232/#261 failure
+    // mode. Here it would empty the weight table, and every ordinal-scored
+    // instrument would quietly score zero.
+    console.error(
+      `[copy-fhir] found no ordinal-weighted answer options under ` +
+        `${questionnairesDir.replace(repoRoot + '/', '')} — refusing to emit an empty weight table`,
+    )
+    process.exit(1)
+  }
+
+  const q = (s) => `'${String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+  const lines = [
+    '// Auto-generated by web/scripts/copy-fhir.mjs — do not edit by hand.',
+    '// Source: FHIR-Resources/<tool>/*.json (Questionnaire.item[].answerOption with',
+    '// an SDC ordinalValue extension), keyed by version-stripped Questionnaire.url.',
+    '// Regenerated on every `npm run copy-fhir` (also runs as predev / prebuild).',
+    '//',
+    '// Consumed by packages/core/src/data/questionnaireOrdinals.ts, which is the SDC',
+    '// weight() join. It exists so the observation mappers can score an answer',
+    '// WITHOUT importing the 18 whole Questionnaires — see that file, and',
+    '// docs/plans/tool-bundling-audit-2026-09-19.md §5.1.',
+    '',
+    'export const QUESTIONNAIRE_ORDINALS = {',
+  ]
+  let optionCount = 0
+  for (const canonical of [...byCanonical.keys()].sort()) {
+    lines.push(`  ${q(canonical)}: {`)
+    const linkIdOptions = byCanonical.get(canonical)
+    for (const linkId of [...linkIdOptions.keys()].sort()) {
+      const opts = linkIdOptions
+        .get(linkId)
+        .map((o) => {
+          const parts = [`code: ${q(o.code)}`, `ordinal: ${o.ordinal}`]
+          if (o.system) parts.push(`system: ${q(o.system)}`)
+          if (o.display) parts.push(`display: ${q(o.display)}`)
+          return `{ ${parts.join(', ')} }`
+        })
+        .join(', ')
+      lines.push(`    ${q(linkId)}: [${opts}],`)
+      optionCount += linkIdOptions.get(linkId).length
+    }
+    lines.push('  },')
+  }
+  lines.push('} as const', '')
+
+  mkdirSync(destDir, { recursive: true })
+  writeFileSync(questionnaireOrdinalsTsPath, lines.join('\n'), 'utf8')
+  log(
+    `emitted ${questionnaireOrdinalsTsPath.replace(repoRoot + '/', '')} with ` +
+      `${optionCount} weighted option(s) across ${byCanonical.size} Questionnaire(s)`,
+  )
+}
+
+/**
+ * Emit `Questionnaire.id → canonical url` for every hand-authored Questionnaire.
+ *
+ * Why a generated map of eighteen strings rather than eighteen literals in
+ * `packages/tool-views/src/data/toolViews.tsx`: that file names one Questionnaire
+ * per filler entry, and it used to name it by importing the *resource*. Holding
+ * 18 resolved resources at module scope is what put 166.8 KB of form JSON into
+ * the entry chunk of both surfaces — `App.tsx` imports `TOOL_VIEWS` statically,
+ * so every Questionnaire it referenced was eager even though every view
+ * component is lazy (`docs/plans/tool-bundling-audit-2026-09-19.md` §5.1).
+ *
+ * Passing the canonical instead defers the resource to `QuestionnaireView`, which
+ * is lazy. But a canonical typed into the map by hand would be the drift-prone
+ * hand-duplicated value CLAUDE.md warns about — and a wrong one fails at runtime
+ * as "unknown questionnaire", not at build. So it is derived, and
+ * `QuestionnaireId` makes naming one that does not exist a type error.
+ *
+ * ⚠️ Keyed by `Questionnaire.id`, which the IG publisher already requires to
+ * equal the canonical's last segment (CLAUDE.md, `FHIR-Resources/`), so the key
+ * is not a second naming scheme.
+ */
+function writeQuestionnaireUrls() {
+  const byId = new Map()
+  for (const file of walkFiles(questionnairesDir)) {
+    if (!file.endsWith('.json')) continue
+    let doc
+    try {
+      doc = JSON.parse(readFileSync(file, 'utf8'))
+    } catch {
+      continue
+    }
+    if (doc?.resourceType !== 'Questionnaire') continue
+    if (typeof doc.url !== 'string' || typeof doc.id !== 'string') {
+      console.error(
+        `[copy-fhir] ${file.replace(repoRoot + '/', '')} is a Questionnaire with no ` +
+          `${typeof doc.url === 'string' ? 'id' : 'url'} — both are required to key this map`,
+      )
+      process.exit(1)
+    }
+    byId.set(doc.id, doc.url.indexOf('|') === -1 ? doc.url : doc.url.slice(0, doc.url.indexOf('|')))
+  }
+
+  if (byId.size === 0) {
+    // Same non-empty guard as its siblings: emitting {} here would make every
+    // filler's questionnaireUrl a type error, which reads as 18 broken views
+    // rather than as "the generator read nothing".
+    console.error(
+      `[copy-fhir] found no Questionnaires under ${questionnairesDir.replace(repoRoot + '/', '')} ` +
+        '— refusing to emit an empty url map',
+    )
+    process.exit(1)
+  }
+
+  const q = (s) => `'${String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+  const lines = [
+    '// Auto-generated by web/scripts/copy-fhir.mjs — do not edit by hand.',
+    '// Source: FHIR-Resources/<tool>/*.json (Questionnaire.id → Questionnaire.url).',
+    '// Regenerated on every `npm run copy-fhir` (also runs as predev / prebuild).',
+    '//',
+    '// Consumed by packages/tool-views/src/data/toolViews.tsx so the filler entries can',
+    '// name a Questionnaire WITHOUT importing one — see that file, and',
+    '// docs/plans/tool-bundling-audit-2026-09-19.md §5.1.',
+    '',
+    'export const QUESTIONNAIRE_URLS = {',
+    ...[...byId.keys()].sort().map((id) => `  ${q(id)}: ${q(byId.get(id))},`),
+    '} as const',
+    '',
+    '/** A hand-authored Questionnaire, by id. Naming one that does not exist is a type error. */',
+    'export type QuestionnaireId = keyof typeof QUESTIONNAIRE_URLS',
+    '',
+  ]
+
+  mkdirSync(destDir, { recursive: true })
+  writeFileSync(questionnaireUrlsTsPath, lines.join('\n'), 'utf8')
+  log(
+    `emitted ${questionnaireUrlsTsPath.replace(repoRoot + '/', '')} with ` +
+      `${byId.size} Questionnaire canonical(s)`,
+  )
+}
+
 function writeStageIdType() {
   const codeSystemPath = join(destDir, 'CodeSystem-spier-pathway-stage.json')
   if (!existsSync(codeSystemPath)) {
@@ -654,6 +873,8 @@ if (noCompile) {
   copyResources()
   writeCarePlanProfileTypes()
   writeInstrumentItemCodes()
+  writeQuestionnaireOrdinals()
+  writeQuestionnaireUrls()
   writeStageIdType()
   // This tree is as legitimate as a compiled one — it came from the same SUSHI
   // output, just downloaded as an artifact instead of produced here — so record
@@ -672,5 +893,7 @@ clearDest()
 copyResources()
 writeCarePlanProfileTypes()
 writeInstrumentItemCodes()
+writeQuestionnaireOrdinals()
+writeQuestionnaireUrls()
 writeStageIdType()
 writeManifest()

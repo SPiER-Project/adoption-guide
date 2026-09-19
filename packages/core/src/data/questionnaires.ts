@@ -49,8 +49,6 @@ import pssFullJson from '../../../../FHIR-Resources/PSS-Full/pss-full-questionna
 // is exactly the defect.
 import stanleyBrownJson from '../../../../FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json'
 
-const ORDINAL_VALUE_URL = 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
-
 /** Named Questionnaire resources — the canonical, typed registry entries. */
 export const asqQuestionnaire = asq as unknown as QuestionnaireResource
 export const bssaQuestionnaire = bssa as unknown as QuestionnaireResource
@@ -97,62 +95,17 @@ export const QUESTIONNAIRE_BY_URL: Record<string, unknown> = Object.fromEntries(
   ALL_QUESTIONNAIRES.filter(q => q?.url).map(q => [stripCanonicalVersion(q.url!), q]),
 )
 
-/** Depth-first search for an item by linkId (items can nest). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function findQItem(items: any[] | undefined, linkId: string): any | undefined {
-  for (const it of items ?? []) {
-    if (it.linkId === linkId) return it
-    const nested = findQItem(it.item, linkId)
-    if (nested) return nested
-  }
-  return undefined
-}
-
 /**
- * Resolve the ordinal weight of a selected answer by looking up its code in the
- * source Questionnaire's `answerOption` (the SDC `weight()` join). Returns
- * undefined when the questionnaire, item, option, or ordinalValue isn't found.
+ * ⚠️ **The SDC `weight()` join used to live here and deliberately does not any
+ * more.** `ordinalForAnswer` / `answerCodingForOrdinal` moved to
+ * `./questionnaireOrdinals.ts`, which reads a derived table instead of these
+ * whole resources — because the observation mappers call them, the mappers are
+ * eager, and importing this module from one put all 18 Questionnaires (166.8 KB)
+ * into the entry chunk of both build surfaces. See that file's header and
+ * `docs/plans/tool-bundling-audit-2026-09-19.md` §5.1.
+ *
+ * This module is now imported only where a whole Questionnaire is genuinely
+ * needed — the renderer's tool views, which are lazy. Keep it that way: a mapper
+ * importing from here re-lands the regression silently, and
+ * `npm run check:eager-forms` is what fails if one does.
  */
-export function ordinalForAnswer(
-  questionnaireUrl: string | undefined,
-  linkId: string,
-  code: string | undefined,
-): number | undefined {
-  if (!questionnaireUrl || !code) return undefined
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const q = QUESTIONNAIRE_BY_URL[stripCanonicalVersion(questionnaireUrl)] as any
-  if (!q) return undefined
-  const item = findQItem(q.item, linkId)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const option = (item?.answerOption ?? []).find((o: any) => o.valueCoding?.code === code)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ext = (option?.extension ?? []).find((e: any) => e.url === ORDINAL_VALUE_URL)
-  return ext?.valueDecimal
-}
-
-/**
- * Inverse of `ordinalForAnswer`: given an ordinal weight, return the SPiER
- * Questionnaire `answerOption.valueCoding` that carries it. Used by the
- * code-based fallback dispatcher (../lib/observationMappers/fallbackDispatch.ts)
- * to synthesize a SPiER-recognizable answer coding when a foreign QR captured a
- * bare integer (0–3) instead of a coded answer — so the unchanged mapper's
- * `ordinalForAnswer` join still resolves. Returns undefined when the
- * questionnaire, item, or a matching ordinalValue isn't found.
- */
-export function answerCodingForOrdinal(
-  questionnaireUrl: string | undefined,
-  linkId: string,
-  ordinal: number,
-): { system?: string; code?: string; display?: string } | undefined {
-  if (!questionnaireUrl) return undefined
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const q = QUESTIONNAIRE_BY_URL[stripCanonicalVersion(questionnaireUrl)] as any
-  if (!q) return undefined
-  const item = findQItem(q.item, linkId)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const option = (item?.answerOption ?? []).find((o: any) =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (o.extension ?? []).some((e: any) => e.url === ORDINAL_VALUE_URL && e.valueDecimal === ordinal),
-  )
-  return option?.valueCoding
-}

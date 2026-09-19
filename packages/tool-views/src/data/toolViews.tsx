@@ -40,26 +40,7 @@
  * clinical build is exactly the one a clinician fills an instrument in.
  */
 import { lazy, type ReactNode } from 'react'
-import {
-  asqQuestionnaire,
-  bssaQuestionnaire,
-  pss3Questionnaire,
-  safetQuestionnaire,
-  phq9Questionnaire,
-  sbqrQuestionnaire,
-  cssrsScreener,
-  cssrsSinceLastContact,
-  cssrsPediatric,
-  cssrsFull,
-  camsSectionA,
-  camsSectionB,
-  camsOutcomeDisposition,
-  camsStabilizationPlan,
-  camsTherapeuticWorksheet,
-  crpQuestionnaire,
-  pssFullQuestionnaire,
-  stanleyBrownQuestionnaire,
-} from '@spier/core/data/questionnaires'
+import { QUESTIONNAIRE_URLS } from '@spier/fhir-artifacts/generated/questionnaire-urls.generated'
 import {
   generateCarePlan,
   generateStabilizationCarePlan,
@@ -90,16 +71,16 @@ const LethalMeansCounselingView = lazy(() => import('../components/LethalMeansCo
  */
 export const TOOL_VIEWS: Record<string, ReactNode> = {
   // ── Instrument fillers (clinician route: /patient/assessments/<slug>) ────
-  'phq-9': <QuestionnaireView title="PHQ-9 Depression Screening" questionnaire={phq9Questionnaire} persistName="PHQ-9" />,
-  'asq': <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaire={asqQuestionnaire} persistName="ASQ Screening" />,
-  'bssa': <QuestionnaireView title="BSSA — Brief Suicide Safety Assessment" questionnaire={bssaQuestionnaire} persistName="BSSA" />,
-  'pss-3': <QuestionnaireView title="PSS-3 — Patient Safety Screener" questionnaire={pss3Questionnaire} persistName="PSS-3" />,
-  'safe-t': <QuestionnaireView title="SAFE-T — Suicide Assessment Five-Step Evaluation and Triage" questionnaire={safetQuestionnaire} persistName="SAFE-T" />,
-  'sbq-r': <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaire={sbqrQuestionnaire} persistName="SBQ-R" />,
-  'cssrs-screener': <QuestionnaireView title="C-SSRS Screener (Recent)" questionnaire={cssrsScreener} persistName="C-SSRS Screener" />,
-  'cssrs-full': <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaire={cssrsFull} persistName="C-SSRS Full" />,
-  'cssrs-since-last-contact': <QuestionnaireView title="C-SSRS — Since Last Visit / Since Last Contact" questionnaire={cssrsSinceLastContact} persistName="C-SSRS Since Last Visit" />,
-  'cssrs-pediatric': <QuestionnaireView title="C-SSRS — Pediatric / Adolescent Screener" questionnaire={cssrsPediatric} persistName="C-SSRS Pediatric" />,
+  'phq-9': <QuestionnaireView title="PHQ-9 Depression Screening" questionnaireUrl={QUESTIONNAIRE_URLS['PHQ-9']} persistName="PHQ-9" />,
+  'asq': <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaireUrl={QUESTIONNAIRE_URLS['ASQ-Screening-Tool']} persistName="ASQ Screening" />,
+  'bssa': <QuestionnaireView title="BSSA — Brief Suicide Safety Assessment" questionnaireUrl={QUESTIONNAIRE_URLS['BSSA']} persistName="BSSA" />,
+  'pss-3': <QuestionnaireView title="PSS-3 — Patient Safety Screener" questionnaireUrl={QUESTIONNAIRE_URLS['PSS-3']} persistName="PSS-3" />,
+  'safe-t': <QuestionnaireView title="SAFE-T — Suicide Assessment Five-Step Evaluation and Triage" questionnaireUrl={QUESTIONNAIRE_URLS['SAFE-T']} persistName="SAFE-T" />,
+  'sbq-r': <QuestionnaireView title="SBQ-R — Suicide Behaviors Questionnaire" questionnaireUrl={QUESTIONNAIRE_URLS['SBQ-R']} persistName="SBQ-R" />,
+  'cssrs-screener': <QuestionnaireView title="C-SSRS Screener (Recent)" questionnaireUrl={QUESTIONNAIRE_URLS['C-SSRS-Screener']} persistName="C-SSRS Screener" />,
+  'cssrs-full': <QuestionnaireView title="C-SSRS Full (Lifetime/Recent)" questionnaireUrl={QUESTIONNAIRE_URLS['C-SSRS-Full-Lifetime-Recent']} persistName="C-SSRS Full" />,
+  'cssrs-since-last-contact': <QuestionnaireView title="C-SSRS — Since Last Visit / Since Last Contact" questionnaireUrl={QUESTIONNAIRE_URLS['C-SSRS-Since-Last-Contact']} persistName="C-SSRS Since Last Visit" />,
+  'cssrs-pediatric': <QuestionnaireView title="C-SSRS — Pediatric / Adolescent Screener" questionnaireUrl={QUESTIONNAIRE_URLS['C-SSRS-Pediatric']} persistName="C-SSRS Pediatric" />,
   // ⚠️ Rendered by `StanleyBrownView`, its own near-copy of `QuestionnaireView`,
   // until 2026-09-17. The fork had no load-bearing divergence and had drifted
   // out of four things the shared view had grown: the `?tool=` launch-stage
@@ -107,14 +88,14 @@ export const TOOL_VIEWS: Record<string, ReactNode> = {
   // plan's `isEmpty`. It also imported the Questionnaire JSON straight out of
   // `FHIR-Resources/`, the only instrument to bypass the core registry. See
   // docs/internals/tool-views.md §2.
-  'stanley-and-brown': <QuestionnaireView title="Stanley-Brown Safety Plan" questionnaire={stanleyBrownQuestionnaire} persistName="Stanley-Brown Safety Plan" carePlanMapper={generateCarePlan} />,
-  'cams-section-a': <QuestionnaireView title="CAMS SSF-5: Section A" questionnaire={camsSectionA} persistName="CAMS SSF-5: Section A" />,
-  'cams-section-b': <QuestionnaireView title="CAMS SSF-5: Section B" questionnaire={camsSectionB} persistName="CAMS SSF-5: Section B" />,
-  'cams-outcome-disposition': <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaire={camsOutcomeDisposition} persistName="CAMS SSF-5: Outcome/Disposition" />,
-  'cams-stabilization-plan': <QuestionnaireView title="CAMS: Stabilization Plan" questionnaire={camsStabilizationPlan} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />,
-  'cams-therapeutic-worksheet': <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaire={camsTherapeuticWorksheet} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />,
-  'crisis-response-plan': <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaire={crpQuestionnaire} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />,
-  'pss-full': <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaire={pssFullQuestionnaire} persistName="PSS Full" />,
+  'stanley-and-brown': <QuestionnaireView title="Stanley-Brown Safety Plan" questionnaireUrl={QUESTIONNAIRE_URLS['StanleyBrownSafetyPlan']} persistName="Stanley-Brown Safety Plan" carePlanMapper={generateCarePlan} />,
+  'cams-section-a': <QuestionnaireView title="CAMS SSF-5: Section A" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-SSF5-SectionA']} persistName="CAMS SSF-5: Section A" />,
+  'cams-section-b': <QuestionnaireView title="CAMS SSF-5: Section B" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-SSF5-SectionB']} persistName="CAMS SSF-5: Section B" />,
+  'cams-outcome-disposition': <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-SSF5-OutcomeDisposition']} persistName="CAMS SSF-5: Outcome/Disposition" />,
+  'cams-stabilization-plan': <QuestionnaireView title="CAMS: Stabilization Plan" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-Stabilization-Plan']} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />,
+  'cams-therapeutic-worksheet': <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-Therapeutic-Worksheet']} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />,
+  'crisis-response-plan': <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaireUrl={QUESTIONNAIRE_URLS['CrisisResponsePlan']} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />,
+  'pss-full': <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaireUrl={QUESTIONNAIRE_URLS['PSS-Full']} persistName="PSS Full" />,
 
   // ── Workflow recorders (clinician route: /patient/workflow/<slug>) ───────
   // ⚠️ THREE of these used to render one generic Communication recorder

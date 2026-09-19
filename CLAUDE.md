@@ -132,6 +132,17 @@ npm run check:tool-view-routes # the 29 tool views are ONE definition and EVERY 
                                # toolViews.test.ts, which read `../App.tsx` by relative path — a
                                # shape that can only ever check ONE table, while the invariant is
                                # every table. Iterates the roots in lib/app-roots.mjs instead
+npm run check:eager-forms      # the 18 hand-authored Questionnaires stay OUT of the entry chunk.
+                               # ⚠️ Every tool view was already `lazy()` when they were IN it — laziness
+                               # of the component is not the property that matters, because `App.tsx`
+                               # imports TOOL_VIEWS statically and an eagerly-imported map's CONTENTS are
+                               # eager whatever they render. So this walks STATIC imports only (not
+                               # module-graph.mjs's reader, whose pattern also matches `import(`) from
+                               # every declared app entry. Worth ~23.8 KB gzip off first paint on both
+                               # surfaces. ⚠️ Its first version stripped block comments before line
+                               # comments, and `/patient/*` in App.tsx's own prose opened a fake block
+                               # comment that swallowed the one import it polices — it walked 104 modules
+                               # and said ✓
 npm run check:surface-links    # every in-app link a CLINICIAN can reach resolves on the CLINICAL
                                # surface. ⚠️ A different question from `check:surface`, which reads the
                                # two BUNDLES and asserts what is compiled in. A component that ships on

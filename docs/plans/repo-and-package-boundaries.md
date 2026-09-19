@@ -15,7 +15,7 @@ app in two; §5 argues against that specifically.
 |---|---|
 | **1 — separate repos per surface** | **REJECTED.** The cross-tree drift gates are the repo's strongest discipline and cannot survive version skew. §3 |
 | **2 — monorepo with declared workspace packages** | **PROPOSED, and the condition in §8 is now MET.** §9 |
-| **3 — split the adoption guide from the clinical demo into two apps** | **REJECTED, and independently re-derived since.** #316 unified them; the panel plan's chrome-mode decision reached the same answer from the other direction, and it is now proven in a browser. §5, §9.4 |
+| **3 — split the adoption guide from the clinical demo into two apps** | ~~REJECTED~~ → **REOPENED 2026-09-19, on an argument §5 never weighed.** The rejection stands on its own terms and §5 is not withdrawn: #316 unified them, the panel plan's chrome-mode decision reached the same answer from the other direction, and it is proven in a browser. What reopened it is *distribution*, not UX — **the SMART apps are to be open-sourced and the mock EHR is not**, which is a repository boundary rather than a rendering one. ⚠️ Read §5 as answering "should these be two *experiences*" (no) and not "should these be two *published trees*" (open). The gate infrastructure already assumes the split is coming: `web/scripts/lib/app-roots.mjs` was written on 2026-09-19 *specifically* for it — "`web/src` becomes `apps/guide/src` and `apps/clinical/src`" — and hard-fails the day `apps/guide/src/App.tsx` appears undeclared (`docs/internals/web-gates.md`). §5, §9.4 |
 | **4 — a patient-facing app as its own `apps/` entry** | ~~the trigger for #2~~ — **superseded as the trigger.** Still unbuilt and still legitimate, but a different consumer arrived first. §9.2 |
 | **5 — the demo fixtures get their own package** | **NEW, PROPOSED 2026-08-20.** They have no home in §4's table, which is exactly why "where should the patient data live" was hard to answer. §9.3 |
 
@@ -338,32 +338,54 @@ none of them is solved by moving files between repositories:
    at the Worker origin is worth doing on its own merit and would shrink a rename
    further.
 
-   ⚠️⚠️ **But this paragraph said "Cloudflare is the primary public host and Pages
-   is the 'also deployed' legacy one", and that is only true of the SPA.**
-   [`surfaces-and-distribution.md` §4](surfaces-and-distribution.md) — §4, not the
-   §7 this cited — has the hosting table, and its IG row reads *"Rendered IG |
-   **GitHub Pages** | the Worker only redirects"*. Verified live 2026-08-23:
-   `spier-adoption-guide.bbthorson.workers.dev/ig/` returns **302** to
-   `spier-project.github.io/adoption-guide/ig/`, which returns 200. So **Pages is
-   the sole host of the rendered IG and the Worker depends on it** — load-bearing,
-   not legacy. The summary picked the SPA row's conclusion and applied it to the
-   whole host.
+   ⚠️⚠️ **This paragraph said "Cloudflare is the primary public host and Pages is
+   the 'also deployed' legacy one", and that was only true of the SPA** — at the
+   time. Two corrections, in order, because the second reverses the first.
 
-   Two things follow, and both cut against the rename rather than for it:
+   *2026-08-23:* [`surfaces-and-distribution.md` §4](surfaces-and-distribution.md)
+   — §4, not the §7 this cited — had the hosting table, and its IG row read
+   *"Rendered IG | **GitHub Pages** | the Worker only redirects"*. Verified live
+   that day: `spier-adoption-guide.bbthorson.workers.dev/ig/` returned **302** to
+   `spier-project.github.io/adoption-guide/ig/`. So Pages was then the sole host
+   of the rendered IG. The summary had picked the SPA row's conclusion and applied
+   it to the whole host.
 
-   - **Renaming does not merely stale a link; it takes the IG down.** The Pages
-     path is the only copy of the render, and
-     `CANONICAL_IG_BASE` in `services/cds-hooks/src/index.ts` hardcodes it — so
-     the rename orphans a redirect target inside the Worker as well.
-   - **"Point the Pages URLs at the Worker" cannot apply to `/ig/` itself.** The
-     Worker has no IG to serve: `deploy.yml` runs the Java IG Publisher and nests
-     the render into the Pages artifact, while the Cloudflare build only runs
-     `npm run build` in `services/cds-hooks`. Making Cloudflare genuinely primary
-     for the IG is real work, and §4 **recommends against it** — free hosting,
-     254 MB per deploy, and a Pages artifact that couples the SPA and IG so they
-     cannot be decoupled. It also names the one thing nobody has measured: Static
-     Assets caps **file count**, not bytes, and `find ig/output -type f | wc -l`
-     has never been run.
+   ⚠️ ***2026-09-18: that is no longer true, and the conclusions drawn from it
+   below are dead.*** The Worker serves the rendered IG itself. `deploy.yml`'s
+   `cloudflare` job stages the IG Publisher's render into `web-dist/ig` before
+   `wrangler deploy`, and both hosts serve `<base>ig/` (CLAUDE.md records the same
+   thing, and `web/vite.config.ts`'s `base` comment says "**Neither host is
+   legacy**"). Re-verified live **2026-09-19**:
+
+   ```
+   curl -sI https://spier-adoption-guide.bbthorson.workers.dev/ig/          # HTTP 200
+   curl -sI https://spier-adoption-guide.bbthorson.workers.dev/ig/index.html # 307 -> /ig/
+   ```
+
+   The 307 is path normalization **on the Worker's own origin**, not the old hop
+   to Pages. ⚠️ Anyone re-checking this should curl `/ig/` rather than
+   `/ig/index.html`: the redirect is easy to mistake for the 2026-08-23 behaviour,
+   and that misreading is how this section would get "corrected" back.
+
+   **So the two consequences this section drew no longer hold**, and both had cut
+   against the rename:
+
+   - ~~**Renaming does not merely stale a link; it takes the IG down.**~~ The
+     Pages path is no longer the only copy of the render, so a rename stales links
+     without taking the IG offline. `CANONICAL_IG_BASE` in
+     `services/cds-hooks/src/index.ts` still hardcodes a Pages path and would
+     still need updating — a link fix, not an outage.
+   - ~~**"Point the Pages URLs at the Worker" cannot apply to `/ig/` itself.**~~ It
+     can; it already has. ⚠️ What remains true is the *deploy* constraint CLAUDE.md
+     records: only CI can put the IG there, because `stage:assets` begins with
+     `rm -rf web-dist` and nothing local renders the IG — so a local
+     `npm run deploy` in `services/cds-hooks` ships a Worker whose `/ig/*` 404s.
+
+   §4's recommendation against making Cloudflare primary for the IG — free
+   hosting, 254 MB per deploy, a Pages artifact coupling the SPA and IG — was
+   overtaken by the same change and should be read as history. The one thing it
+   named that **nobody has still measured** is real: Static Assets caps **file
+   count**, not bytes, and `find ig/output -type f | wc -l` has never been run.
 
    The rename itself was asked 2026-08-23 and **deferred** — the name costs
    comprehension, not correctness, so there is no hurry.
