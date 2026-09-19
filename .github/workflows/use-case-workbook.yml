@@ -40,7 +40,8 @@ on:
       - 'scripts/lib/crc32.mjs'
       - 'packages/demo-population/src/scenarios/patient-01*.json'
       - 'packages/core/src/data/catalog/tool-ui-metadata.ts'
-      - 'web/src/App.tsx'
+      - 'apps/guide/src/App.tsx'
+      - 'apps/clinical/src/App.tsx'
       - '.github/workflows/use-case-workbook.yml'
   pull_request:
     paths:
@@ -50,7 +51,8 @@ on:
       - 'scripts/lib/crc32.mjs'
       - 'packages/demo-population/src/scenarios/patient-01*.json'
       - 'packages/core/src/data/catalog/tool-ui-metadata.ts'
-      - 'web/src/App.tsx'
+      - 'apps/guide/src/App.tsx'
+      - 'apps/clinical/src/App.tsx'
       - '.github/workflows/use-case-workbook.yml'
   workflow_dispatch:
 

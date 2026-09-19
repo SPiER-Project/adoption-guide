@@ -669,7 +669,12 @@ function checkDemoLinkage(doc, label) {
  * this gate green over an unread file (the #232 / #261 failure mode).
  */
 const UI_METADATA = join(ROOT, 'packages', 'core', 'src', 'data', 'catalog', 'tool-ui-metadata.ts')
-const APP_ROUTES = join(ROOT, 'web', 'src', 'App.tsx')
+// ⚠️ TWO route tables since the apps/ split; a demo link may point at either
+// app, so this reads the union.
+const APP_ROUTES = [
+  join(ROOT, 'apps', 'guide', 'src', 'App.tsx'),
+  join(ROOT, 'apps', 'clinical', 'src', 'App.tsx'),
+]
 
 /** TL id → launch paths declared in tool-ui-metadata.ts. */
 function launchPathsByTool() {
@@ -688,7 +693,9 @@ function launchPathsByTool() {
 
 /** Route paths declared in App.tsx, nested segments included. */
 function declaredRoutes() {
-  return new Set([...readFileSync(APP_ROUTES, 'utf8').matchAll(/path="([^"]+)"/g)].map(m => m[1]))
+  return new Set(
+    APP_ROUTES.flatMap((f) => [...readFileSync(f, 'utf8').matchAll(/path="([^"]+)"/g)].map((m) => m[1])),
+  )
 }
 
 /** Is this launch path reachable? `/patient/assessments/bssa` → `assessments/bssa`. */
@@ -707,7 +714,7 @@ function checkToolStatusClaims(doc, label) {
   const routes = declaredRoutes()
 
   if (byTool.size === 0) problems.push(`${label}: read no TL launch actions from ${relative(ROOT, UI_METADATA)}`)
-  if (routes.size === 0) problems.push(`${label}: read no routes from ${relative(ROOT, APP_ROUTES)}`)
+  if (routes.size === 0) problems.push(`${label}: read no routes from ${APP_ROUTES.map((f) => relative(ROOT, f)).join(', ')}`)
   if (problems.length) return problems
 
   const built = new Set(
