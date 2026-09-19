@@ -65,7 +65,7 @@ Guide       /guide/tools/asq/try            → FHIR drawers
 
 ### A. Make inspection a prop, not a context read
 
-`web/src/components/CodeDrawer.tsx` currently reads `usePresentation()` and
+`packages/tool-views/src/components/CodeDrawer.tsx` currently reads `usePresentation()` and
 renders in both chromes. Change it to render nothing unless told to.
 
 - Add an `inspect: boolean` prop threaded from the route, not from chrome mode.

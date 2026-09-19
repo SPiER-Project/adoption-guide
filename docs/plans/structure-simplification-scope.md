@@ -47,7 +47,7 @@ merged months ago, and stale docs have repeatedly generated false-claim audits
    plan-vs-done language, and cross-check the PR numbers it names with
    `gh pr view <n> --repo SPiER-Project/adoption-guide`.
 2. **Before moving anything, grep the whole repo for each filename.**
-   Known live references: CLAUDE.md cites `docs/plans/stage-8-measure-and-share.md`
+   Known live references: CLAUDE.md cites `docs/plans/archive/stage-8-measure-and-share.md`
    and "the embedded-panel plan §1" (`embedded-panel-smart-launch.md`).
    A referenced doc either stays put or has every reference updated to the
    new path in the same commit.

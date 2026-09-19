@@ -19,7 +19,7 @@ clinical update.
 |---|---|
 | `stanley-brown-questionnaire.json` | The FHIR R4 Questionnaire — the data-capture tool, with FHIR groups mirroring the seven steps |
 | `Hybrid_CarePlan.json` | A hand-authored CarePlan template embedding the safety text directly in activity descriptions. Kept for reference; the conformance target is the `SPiERStanleyBrownSafetyPlan` profile |
-| `docs/data-mapping.md` | A pointer at the StructureMap, the runtime mapper and the golden file that hold the QR→CarePlan transformation, plus the reasoning for embedding the text rather than referencing the response |
+| `docs/instruments/Stanley-Brown/docs/data-mapping.md` | A pointer at the StructureMap, the runtime mapper and the golden file that hold the QR→CarePlan transformation, plus the reasoning for embedding the text rather than referencing the response |
 | `references/original-forms/` | The 2021 source form |
 | `references/specs/Stanley_Brown_NY_CCBHC_Dashboard_DataDictionary_v3.xlsx` | Mapping between the clinical fields and the NY CCBHC dashboard / EHR reporting requirements |
 

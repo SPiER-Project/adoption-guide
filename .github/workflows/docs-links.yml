@@ -1,45 +1,52 @@
-name: Docs — markdown links
+name: Docs — markdown links and paths
 
-# Every relative `[text](path)` in a tracked .md file must resolve.
+# Two gates over the same blind spot, in the one workflow cheap enough to run
+# unconditionally.
+#
+# 1. check-md-links.mjs — every relative `[text](path)` in a tracked .md resolves.
+# 2. check-md-paths.mjs — every repo-rooted path written as backticked PROSE
+#    exists, or is allowlisted with a reason. The links gate never saw those:
+#    `web/src/data/toolViews.tsx` in running text is not a link, which is how the
+#    packages/{ui,tool-views} extractions left 45+ rotted paths across 21 files —
+#    including the opening line of docs/internals/tool-views.md, a live internals
+#    doc CLAUDE.md sends readers to.
 #
 # This is the only workflow that triggers on docs/** and the root README.md.
-# web-lint.yml covers web/**, services/** and ig/**, so a
-# docs-only change triggered NOTHING before this existed — which is how #389 and
-# #392 left fourteen dead links across the plan docs and two READMEs with
-# nothing going red. Plan docs are ungated prose by design; this gates the one
-# property of them a machine can actually check.
+# web-lint.yml covers web/**, services/** and ig/**, so a docs-only change
+# triggered NOTHING before this existed — which is how #389 and #392 left
+# fourteen dead links across the plan docs and two READMEs with nothing going
+# red. Plan docs are ungated prose by design; this gates the two properties of
+# them a machine can actually check.
 #
-# .gitignore is in the trigger list because the gate asks git which paths are
-# build output, so an ignore-rule change moves what it skips.
+# ⚠️ **Deliberately NO `paths:` filter, since 2026-09-19.** Both gates take a
+# tracked .md file and resolve it against THE WHOLE WORKING TREE, so their input
+# is not the .md files — it is the .md files *and every path any of them names*.
+# A commit that only moves `web/src/Foo.tsx` rots both a link and a prose path
+# while touching no .md at all, and under a `'**.md'` filter the workflow would
+# not run: a workflow that does not trigger reports nothing, it does not report
+# red. That is the exact shape of the hole these gates exist to close, so
+# filtering them on .md would reintroduce it one level up.
 #
-# No dependencies and no checkout cost beyond the repo itself — it runs in
-# milliseconds, so it deliberately does not reuse a heavier job.
+# The cost of running always is a few seconds: no dependencies, no build, no
+# checkout beyond the repo itself. That is why this deliberately does not reuse
+# a heavier job.
 
 on:
   push:
     branches:
       - main
-    paths:
-      - '**.md'
-      - '.gitignore'
-      - 'scripts/check-md-links.mjs'
-      - '.github/workflows/docs-links.yml'
   pull_request:
-    paths:
-      - '**.md'
-      - '.gitignore'
-      - 'scripts/check-md-links.mjs'
-      - '.github/workflows/docs-links.yml'
   workflow_dispatch:
 
 jobs:
   links:
     runs-on: ubuntu-latest
     steps:
-      # The gate resolves links against the working tree and asks git about
-      # ignore rules, so it needs the files but no history.
+      # Both gates resolve against the working tree and ask git about ignore
+      # rules and tracked files, so they need the files but no history.
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .github/.nvmrc
       - run: node scripts/check-md-links.mjs
+      - run: node scripts/check-md-paths.mjs

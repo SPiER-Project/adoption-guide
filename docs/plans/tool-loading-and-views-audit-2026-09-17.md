@@ -414,7 +414,7 @@ next tool added without one fails exactly the same way, silently.
 
 Nine of the ten recorders' FHIR builders live in `packages/core/src/lib/`. The
 tenth, `LethalMeansCounselingView`, builds its Procedure and Observations from
-`web/src/lib/lethalMeans.ts`. The module is React-free and DOM-free, so it would
+`packages/tool-views/src/lib/lethalMeans.ts`. The module is React-free and DOM-free, so it would
 move as-is — but where it sits today it is invisible to `check:core-boundary` and
 unreachable from both Workers and from any non-React consumer. It is the only
 FHIR-shape module outside core. Low priority, trivially fixed.
@@ -667,7 +667,7 @@ the app's own builders.
    fails with eighteen.
 3. **A stale comment in `check-careplan-readers.mjs`** said the
    canonical→carePlanMapper association "lives in `App.tsx`'s route props". It
-   moved to `web/src/data/toolViews.tsx` on 2026-09-17.
+   moved to `packages/tool-views/src/data/toolViews.tsx` on 2026-09-17.
 
 ### Pass 2 — TL-009 and TL-013 get real builders (findings 1, 2, 7)
 
@@ -679,8 +679,8 @@ produces.
 |---|---|
 | `packages/core/src/lib/handoffs.ts` | `SAFETY_HANDOFF_PROFILE` (moved here from `measures.ts`, which now re-exports it), `HANDOFF_CHANNELS`, `buildSafetyHandoff`, `safetyHandoffs` |
 | `packages/core/src/lib/crisisResources.ts` | new Stage-4 module: `CRISIS_RESOURCES`, `buildCrisisResourcesShared`, `crisisResourceCodes`, `crisisResourceShares` |
-| `web/src/components/SafetyHandoffView.tsx` | the TL-009 recorder — channel, recipient, the shared TL-009/TL-030 content checklist, summary, note |
-| `web/src/components/CrisisResourcesView.tsx` | the TL-013 recorder — the coded resource checklist, a site-specific local-line field, note |
+| `packages/tool-views/src/components/SafetyHandoffView.tsx` | the TL-009 recorder — channel, recipient, the shared TL-009/TL-030 content checklist, summary, note |
+| `packages/tool-views/src/components/CrisisResourcesView.tsx` | the TL-013 recorder — the coded resource checklist, a site-specific local-line field, note |
 | `web/src/components/WorkflowActionView.tsx` | **deleted** with its last caller |
 
 Both builders stamp `meta.profile`, `stageTag()` and `suicideRiskCategory()` —

@@ -231,7 +231,8 @@ one-pager and that workflow are gone.)
   1,429 references across 181 files, plus `sushi-config.yaml`'s `canonical:`/`id:`
   and `ig.ini`'s ImplementationGuide filename, which SUSHI derives from the id.
   ⚠️ Three things worth knowing if a canonical ever moves again:
-  **`web/src/data/roadmap.generated.json` is deliberately untouched** — it is a
+  **`web/src/data/roadmap.generated.json` is deliberately untouched** (that file
+  has since been deleted along with the Roadmap page) — it was a
   committed snapshot of GitHub issue bodies, so rewriting it would falsify the
   record and be overwritten by the next snapshot; a **regex-escaped** copy in
   `mock-ehr/src/write.test.ts` (`http:\/\/spier\.org`) survived the literal

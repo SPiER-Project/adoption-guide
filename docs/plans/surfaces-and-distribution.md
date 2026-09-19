@@ -119,6 +119,19 @@ is the reason this axis exists.
 
 ### Why a flag rather than a second app
 
+> **Conclusion overturned 2026-09-19; the reasoning below is kept as history.**
+> The repo is splitting into `apps/{guide,clinical}` after all. ⚠️ **What this
+> section could not weigh is distribution**: the SMART apps are to be
+> open-sourced and the mock EHR is not, and a build-time flag over one source
+> tree cannot express a boundary about *what gets published*. Everything below
+> about the costs — one page template, shared components, the guide documenting
+> what the app does — remains true and is now a bill the split has to pay, which
+> is why `check:tool-view-routes` and the `packages/tool-views` extraction
+> (#547) came first. ⚠️ Note also that `IS_DEMO` does **not** fully disappear
+> under two apps: `PatientProvider` imports `localDataSource`, which imports the
+> demo fixtures, so either the `@spier/demo-population` empty-shim alias stays —
+> and with it a build-surface concept — or the provider splits.
+
 Splitting the repo into two applications would re-lose exactly what §5 was
 protecting — one page template, shared components, no divergence between what
 the guide documents and what the app does — to solve a problem that is not about
@@ -168,10 +181,10 @@ reachable as far as the bundler knows — and the guide lens, the Overview, the
 legacy guide redirects and the `/` → `/overview` front door sit in `IS_DEMO`
 blocks; the clinical front door is `/patient/record`. Conditional redirects are
 written as two literal `<Route>`s under the condition, because
-`scripts/lib/route-table.mjs` reads `<Navigate to="…">` literally. The sidebar
+`web/scripts/lib/route-table.mjs` reads `<Navigate to="…">` literally. The sidebar
 shows the two apps and settings instead of the guide. `vite.config.ts` points
 the `@spier/demo-population` alias at an empty shim on `clinical` — one alias
-entry, two targets, so `scripts/lib/vite-alias.mjs` still sees one — and the
+entry, two targets, so `web/scripts/lib/vite-alias.mjs` still sees one — and the
 four importers see a population of nobody with no code path changed. The
 clinical bundle is 39 chunks to the demo's 54; the ten guide pages' chunks are
 not emitted.
