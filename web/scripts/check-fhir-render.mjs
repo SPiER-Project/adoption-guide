@@ -87,9 +87,10 @@ import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
+import { appRoot, appRootFloors } from './lib/app-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const SRC = resolve(here, '../src')
+const SRC = appRoot('web/src')
 const root = resolve(here, '../..')
 
 let failures = 0
@@ -305,6 +306,7 @@ for (const rel of Object.keys(NOT_A_RESOURCE_VIEW)) {
 // dead scan actually shows up in is the file count.
 const floorsHeld = reportFloors(
   [
+    ...appRootFloors(),
     { source: 'web/src', dimension: 'non-test .tsx scanned', actual: files.length, floor: 38 },
     { source: 'web/src', dimension: 'JSON.stringify site(s)', actual: counts['JSON.stringify'], floor: 2 },
     { source: 'web/src', dimension: '<pre> site(s)', actual: counts['<pre>'], floor: 2 },

@@ -58,10 +58,12 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import { readSurfaceRoutes, routeResolves } from './lib/route-table.mjs'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
+import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const WEB = resolve(here, '..')
-const SRC = join(WEB, 'src')
+const SRC = appRoot('web/src')
 const APP = join(SRC, 'App.tsx')
 
 let failures = 0
@@ -227,6 +229,24 @@ for (const from of redirects) {
 if (redirectsChecked === 0) {
   fail('no clinical redirects were read, so RULE 2 verified nothing.')
 }
+
+// ── Liveness ────────────────────────────────────────────────────────────────
+//
+// ⚠️ Three collapsible dimensions and no floor until now. The reach is a regex
+// walk from App.tsx, the route set is parsed out of the same file, and the
+// targets are literals scraped from the modules — a narrowing in any one of
+// them leaves this printing a confident ✓ over a fraction of the surface. The
+// `demoOnlySpecs.size === 0` and `redirectsChecked === 0` guards above cover
+// the collapse-to-nothing cases; these cover the collapse-to-a-few.
+reportFloors(
+  [
+    ...appRootFloors(),
+    { source: 'clinical import graph', dimension: 'module(s) reached', actual: seen.size, floor: 40 },
+    { source: 'clinical route table', dimension: 'route(s)', actual: clinical.size, floor: 20 },
+    { source: 'clinical import graph', dimension: 'absolute link target(s)', actual: checked, floor: 12 },
+  ],
+  fail,
+)
 
 if (failures) {
   console.error(`\nsurface-links check FAILED (${failures} issue(s)).`)

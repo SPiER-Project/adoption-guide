@@ -21,11 +21,12 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
+import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
 const root = resolve(here, '../..')
-const SRC = join(webRoot, 'src')
+const SRC = appRoot('web/src')
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
@@ -102,6 +103,24 @@ while (stack.length) {
     if (next) stack.push([next, [...trail, relative(SRC, next)]])
   }
 }
+
+// ── Liveness ────────────────────────────────────────────────────────────────
+//
+// ⚠️ This gate had NO floor, and its two real dimensions are both collapsible
+// without the directory going anywhere. The entry points come from parsing
+// guideSections.ts and App.tsx; the reach comes from a regex over relative
+// import specifiers. Either can narrow to almost nothing and still print a ✓ —
+// "1 guide page, 2 modules reachable, none reading patient fixtures" is a true
+// sentence about a check that inspected nothing. The zero cases are already
+// guarded above; these catch the partial ones, which is the likelier accident.
+reportFloors(
+  [
+    ...appRootFloors(),
+    { source: 'guide entry points', dimension: 'guide page(s)', actual: entries.length, floor: 4 },
+    { source: 'guide import graph', dimension: 'module(s) reached', actual: seen.size, floor: 20 },
+  ],
+  fail,
+)
 
 if (failures) {
   console.error(`\nguide-boundary check FAILED (${failures} issue(s)).`)

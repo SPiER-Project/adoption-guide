@@ -26,12 +26,13 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { aliasedModules } from './lib/vite-alias.mjs'
+import { appRoot } from './lib/app-roots.mjs'
 
 const WEB = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const REPO = resolve(WEB, '..')
 const QUESTIONNAIRE_DIR = join(REPO, 'FHIR-Resources')
 const VITE_CONFIG = join(WEB, 'vite.config.ts')
-const SHIM = join(WEB, 'src/shims/ucum-lhc.ts')
+const SHIM = join(appRoot('web/src'), 'shims/ucum-lhc.ts')
 const PACKAGE = '@lhncbc/ucum-lhc'
 
 const errors = []

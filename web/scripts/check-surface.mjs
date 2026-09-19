@@ -38,6 +38,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join, relative } from 'node:path'
+import { appRoot } from './lib/app-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -77,7 +78,7 @@ if (demo.files.length < FLOOR_FILES) fail(`demo build has only ${demo.files.leng
 if (clinical.files.length < FLOOR_FILES / 2) fail(`clinical build has only ${clinical.files.length} js/html file(s) (floor ${FLOOR_FILES / 2}) — the build is broken, not clean`)
 
 // ---- markers, derived ----------------------------------------------------------
-const appSrc = readFileSync(join(webRoot, 'src/App.tsx'), 'utf8')
+const appSrc = readFileSync(join(appRoot('web/src'), 'App.tsx'), 'utf8')
 
 // The demo-only pages are the GUIDE's pages plus the Overview and the guide
 // layout — derived from data/guideSections.ts and the route table, the way
@@ -85,7 +86,7 @@ const appSrc = readFileSync(join(webRoot, 'src/App.tsx'), 'utf8')
 // declarations: the first version of this gate did that, and a page that lost
 // its guard dropped out of the list it was checked against, so the planted
 // defect passed. The list must come from something the defect cannot change.
-const sectionsSrc = readFileSync(join(webRoot, 'src/data/guideSections.ts'), 'utf8')
+const sectionsSrc = readFileSync(join(appRoot('web/src'), 'data/guideSections.ts'), 'utf8')
 const sectionPaths = [...sectionsSrc.matchAll(/\{\s*path:\s*'([^']+)'/g)].map((m) => m[1])
 if (sectionPaths.length < 5) fail(`only ${sectionPaths.length} guide section path(s) parsed from guideSections.ts (floor 5)`)
 const elementFor = (path) => appSrc.match(new RegExp(`<Route path="${path}" element=\\{<(\\w+)\\s*/>\\}`))?.[1]

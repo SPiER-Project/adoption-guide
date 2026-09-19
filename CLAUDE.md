@@ -96,6 +96,16 @@ npm run check:extract          # the SDC observationExtract contract: a declarin
                                # and four of fourteen mappers were in the second state
 npm run check:core-boundary    # packages/core stays React-free and DOM-free
 npm run check:guide-boundary   # the Adoption Guide holds no patient data (walks guide pages transitively)
+                               # ⚠️ This, check:surface-links, check:fhir-render, check:template,
+                               # check:fhir-r5 and check:outputs no longer name `web/src` themselves —
+                               # the root comes from web/scripts/lib/app-roots.mjs, the `.ts`/`.tsx`
+                               # twin of style-roots.mjs. Ten gates hardcoded that path, and the
+                               # `apps/` split turns one tree into two. Same two-part rule: a PER-ROOT
+                               # floor, plus a filesystem scan that HARD-FAILS on an app tree no root
+                               # declares — keyed on `src/main.tsx` or `src/App.tsx`, because an app
+                               # has an entry module by construction and a bare `src` glob would drag
+                               # in packages/core and packages/ui. The floor cannot see a root deleted
+                               # from the list; the filesystem can
 npm run check:catalog          # tool-catalog wiring: stubs, UI metadata, ADs, questionnaire URLs both
                                # ways, per-AD licensing metadata, per-AD tool-id identifiers — plus
                                # every declared navigation target resolves to a real App.tsx route:

@@ -87,6 +87,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
+import { appRoot, appRootFloors } from './lib/app-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -209,7 +210,7 @@ for (const pd of planDefinitions) {
 // reporting surfaces. The property that means "this tool records" is that one
 // of its launch paths lands on a `TOOL_VIEWS` slug, which is the same set
 // `toolViews.test.ts` and `check:catalog` already pin.
-const viewsSrc = readFileSync(join(webRoot, 'src/data/toolViews.tsx'), 'utf8')
+const viewsSrc = readFileSync(join(appRoot('web/src'), 'data/toolViews.tsx'), 'utf8')
 const slugs = new Set([...viewsSrc.matchAll(/^ {2}'([a-z0-9-]+)':/gm)].map((m) => m[1]))
 if (slugs.size === 0) {
   fail(
@@ -253,7 +254,7 @@ if (!existsSync(runtimeDir)) {
 const emittedAt = statSync(runtimeDir).mtimeMs
 let newestSource = 0
 let newestSourcePath = ''
-for (const dir of [join(root, 'packages/core/src/lib'), join(webRoot, 'src/lib')]) {
+for (const dir of [join(root, 'packages/core/src/lib'), join(appRoot('web/src'), 'lib')]) {
   const walk = (d) => {
     for (const entry of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, entry.name)
@@ -307,7 +308,7 @@ const sourceText = (() => {
     }
   }
   walk(join(root, 'packages/core/src'))
-  walk(join(webRoot, 'src'))
+  walk(appRoot('web/src'))
   return text
 })()
 
@@ -411,6 +412,7 @@ for (const [id, reason] of Object.entries(UNCLAIMED)) {
 // and a single total would let any one of them clear the bar alone.
 reportFloors(
   [
+    ...appRootFloors(),
     { source: 'fhir-artifacts/generated', dimension: 'PlanDefinition action(s) with a definitionCanonical', actual: actionsWithDefinition, floor: 20 },
     { source: 'fhir-artifacts/generated', dimension: 'declared output profile(s)', actual: declared.size, floor: 14 },
     { source: 'web/src/data/toolViews.tsx', dimension: 'recorder slug(s)', actual: slugs.size, floor: 14 },

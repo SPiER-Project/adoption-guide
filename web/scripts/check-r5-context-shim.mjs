@@ -25,11 +25,13 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { aliasedModules } from './lib/vite-alias.mjs'
+import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const WEB = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const SRC = join(WEB, 'src')
+const SRC = appRoot('web/src')
 const VITE_CONFIG = join(WEB, 'vite.config.ts')
-const SHIM = join(WEB, 'src/shims/fhirpath-r5-context.ts')
+const SHIM = join(appRoot('web/src'), 'shims/fhirpath-r5-context.ts')
 const SPECIFIER = 'fhirpath/fhir-context/r5'
 const RENDERER_DIST = join(WEB, 'node_modules/@formbox/renderer/dist')
 const SUPPORTED_VERSION = 'r4'
@@ -126,6 +128,11 @@ if (!existsSync(RENDERER_DIST)) {
     )
   }
 }
+
+// ⚠️ The `versionProps === 0` guard above catches a scan that matched nothing.
+// This catches the tree moving out from under it — which is what the `apps/`
+// split does to every gate that names an app root by path.
+reportFloors(appRootFloors(), fail)
 
 report()
 
