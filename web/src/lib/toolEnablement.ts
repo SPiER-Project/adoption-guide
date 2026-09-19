@@ -52,6 +52,29 @@
  * ⚠️ **The real fix is a per-site toolset the SERVICE can read**, carried in
  * on the SMART launch or configured against the service, so host, panel and
  * endpoint agree from one source. This is the function that should read it.
+ *
+ * ── What changed on 2026-09-19, and what did NOT ───────────────────────────
+ *
+ * The stage CARD stopped being a catalogue. `buildCdsCards` now offers what the
+ * published pathway names for the stage rather than every enabled tool at it —
+ * one launch instead of up to eight, with a fallback to the enabled tools when
+ * a site's preset excludes the pathway's instrument, so narrowing can never
+ * withhold a recommendation.
+ *
+ * ⚠️ **That did not need the per-site toolset above, and the reason is worth
+ * keeping.** The contradiction this function exists to prevent is the panel and
+ * the host's own cards disagreeing about the same patient, which happens when
+ * one of them consults browser-local state the other cannot see. The pathway is
+ * not state: the hosted Worker, the embedded panel and the standalone chart all
+ * bundle `PlanDefinition/SPiERSuicideSaferCarePathway`, so all three narrow to
+ * the same instrument with nothing transported anywhere.
+ *
+ * ⚠️ **So this function is unchanged and the rule above still stands.** The
+ * preset still governs what a site OFFERS, the panel still offers everything,
+ * and the host's cards still cannot read this origin's localStorage. What is
+ * smaller is the harm: "the panel offers every catalogued tool" used to mean a
+ * clinician saw eight screeners in a 470px frame, and now means the alternatives
+ * sit behind the stage page's disclosure while the card leads with one.
  */
 import type { ChromeMode } from '../context/PresentationContext'
 

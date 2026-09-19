@@ -13,6 +13,7 @@ import type { RiskAlert } from '../observationMappers'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
 import { intentForLaunchPath } from '../smartIntent'
 import { orderByPathwayRealization } from '../pathwayRealizations'
+import { stageLeadToolIds } from '../pathwaySelection'
 import type { ObservationResource } from '../../types/fhir'
 import { makeUuid, truncateSummary } from './cardShape'
 import { buildProblemListGuidanceCard } from './problemListCard'
@@ -177,16 +178,41 @@ export function buildCdsCards({
 
   // Card #1: the active pathway stage.
   if (activeStageId) {
-    // The stage's own title and description are read by `derivedNextStep` now,
-    // which is why nothing is bound here.
-    // The pathway's demonstrated realization leads (PHQ-9 on the screen card,
-    // the C-SSRS Screener on Clarify Risk); every other tool follows in catalog
-    // order. Ordering only — nothing a site enabled is withheld.
+    // ⚠️ **SELECTION, not ordering — changed 2026-09-19.** This used to offer
+    // every enabled tool at the stage with the pathway's realization sorted
+    // first, and said so: "Ordering only — nothing a site enabled is withheld."
+    // That made the card a catalogue with a good default: six screeners at
+    // Identify Possible Risk, eight at Clarify Risk, in a 470px clinical panel.
+    // Brad, 2026-09-18: *"the SMART app should have a defined pathway (a tool
+    // selected for each page)."*
+    //
+    // ⚠️ **The selection is read from the PUBLISHED PATHWAY, and that is what
+    // makes it safe to apply here rather than needing a per-site toolset the
+    // service can read** (the "real fix" `web/src/lib/toolEnablement.ts`
+    // describes). The contradiction that rule guards against is the panel and
+    // the host's own cards disagreeing about the same patient — which happens
+    // when one of them consults browser-local state the other cannot see. A rule
+    // derived from `PlanDefinition/SPiERSuicideSaferCarePathway` is not state:
+    // the hosted Worker, the embedded panel and the standalone chart all bundle
+    // the same artifact, so all three narrow to the same tool without anything
+    // being transported anywhere.
+    //
+    // ⚠️ **The fallback is what keeps this from re-creating the 2026-09-02
+    // defect.** `buildCdsCards` drops a card with nothing to launch, and a site
+    // whose preset does not include the pathway's instrument would otherwise get
+    // an empty stage card — Minimum Viable enables the ASQ and the pathway names
+    // the PHQ-9, so that is not hypothetical. When none of the lead tools is
+    // enabled the card falls back to everything that is, which is exactly the
+    // old behaviour. Narrowing must never be able to withhold a recommendation.
     const stageTools = orderByPathwayRealization(
       TOOLS.filter((t) => t.stageId === activeStageId && t.launchActions.length > 0),
     )
-    const options = stageTools.flatMap((tool) =>
-      tool.launchActions.filter(() => isToolEnabled(tool.id)).map((action) => ({ tool, action })),
+    const enabledTools = stageTools.filter((t) => isToolEnabled(t.id))
+    const leadIds = new Set(stageLeadToolIds(activeStageId))
+    const leadingTools = enabledTools.filter((t) => leadIds.has(t.id))
+    const offeredTools = leadingTools.length > 0 ? leadingTools : enabledTools
+    const options = offeredTools.flatMap((tool) =>
+      tool.launchActions.map((action) => ({ tool, action })),
     )
 
     // Highest-severity live alert drives urgency (this patient's own slice).
