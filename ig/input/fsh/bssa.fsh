@@ -183,7 +183,7 @@ Usage: #definition
 * title = "Administer NIMH Brief Suicide Safety Assessment (BSSA)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Conduct the NIMH Brief Suicide Safety Assessment (BSSA), a disposition-oriented assessment used after a positive brief screen (e.g. ASQ). Persist responses as a QuestionnaireResponse and derive a disposition Observation conformant to the SPiER BSSA Disposition Result profile."
 * purpose = "Gather enough information to determine a clinical disposition after a positive suicide-risk screen. Belongs to the Clarify Risk stage of the SPiER pathway."
 * kind = #ServiceRequest

@@ -18,7 +18,7 @@ to scroll past.
 
 | Workflow | Schedule | Trigger to watch | Reader |
 |---|---|---|---|
-| [`terminology-nightly.yml`](../.github/workflows/terminology-nightly.yml) | `41 4 * * *` — 04:41 UTC daily | `schedule` | Brad Thorson (repo maintainer) |
+| [`terminology-nightly.yml`](../.github/workflows/terminology-nightly.yml) | `41 4 * * *` — 04:41 UTC daily | `schedule` | Repo maintainer |
 
 The reader is one person today because the repo has one active maintainer. That
 is a fact to change, not a design: when a second maintainer joins, add the row

@@ -70,7 +70,7 @@ Usage: #definition
 * title = "Administer Patient Safety Screener / Suicide Risk Screener (Full)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Capture the full Patient Safety Screener / Suicide Risk Screener — a combined acute-care screen (public ED-SAFE PSS-3 items) with a site-defined risk-stratification step — and derive a suicide-risk-level Observation whose value is a common suicide-risk tier."
 * purpose = "Clarify suicide risk in acute care with a combined screen and a site-defined risk-stratification step. Belongs to the Clarify Risk stage."
 * kind = #ServiceRequest

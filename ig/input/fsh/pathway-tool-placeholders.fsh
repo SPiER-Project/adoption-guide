@@ -29,7 +29,7 @@ Usage: #definition
 * title = "Positive Screen Flag / Suicide-Risk Workflow Trigger"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Create a suicide-risk flag or start the suicide-risk workflow after a positive screen. Placeholder ActivityDefinition — the ASQ and PHQ-9 Item 9 cases are already FHIR-encoded as Clarify Risk stage triggers; this placeholder catalogues the generalized flag/workflow capability."
 * purpose = "Make positive screens actionable: chart flag, work-queue entry, notification, and next-step routing."
 * kind = #Task
@@ -53,7 +53,7 @@ Usage: #definition
 * title = "Administer Cultural Assessment of Risk for Suicide (CARS-S)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Administer the Cultural Assessment of Risk for Suicide (CARS-S). Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
 * purpose = "Capture cultural risk and protective factors, identity/community context, and barriers to disclosure that inform suicide-risk formulation."
 * kind = #ServiceRequest
@@ -76,7 +76,7 @@ Usage: #definition
 * title = "Administer Full Suicide-Risk Assessment / Local Assessment Tool"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Administer a site-defined full suicide-risk assessment. Placeholder ActivityDefinition — no Questionnaire binding or derived-Observation profile authored yet."
 * purpose = "Capture thoughts, plan, intent, behavior history, access to means, and risk/protective factors where a local assessment form is used instead of a named tool."
 * kind = #ServiceRequest

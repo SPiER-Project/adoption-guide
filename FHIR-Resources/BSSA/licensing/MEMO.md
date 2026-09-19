@@ -46,7 +46,7 @@
 - `Questionnaire.copyright`: "The Brief Suicide Safety Assessment is part of the Ask Suicide-Screening Questions (ASQ) Toolkit, a public domain resource developed by the National Institute of Mental Health (NIMH). No permission is required for use."
 - `Questionnaire.useContext`: `focus` = SNOMED 225337009 (Suicide risk assessment); `venue` = Outpatient / ED / Hospital / Primary Care.
 - IG page attribution block: not yet authored (no dedicated `ig/input/pagecontent/bssa.md` in this PR); provenance is carried in the FSH header and this memo.
-- FSH source attribution: `ig/input/fsh/bssa.fsh` header documents NIMH provenance and public-domain status; `AdministerBSSA.publisher = "SPiER (HTD Health)"`.
+- FSH source attribution: `ig/input/fsh/bssa.fsh` header documents NIMH provenance and public-domain status; `AdministerBSSA.publisher = "SPiER"`.
 
 - `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerBSSA` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `packages/core/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
 

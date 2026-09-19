@@ -149,7 +149,7 @@ Usage: #definition
 * title = "Provide Lethal Means Safety Counseling / Means Safety Actions"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Provide lethal-means safety counseling (e.g., CALM — Counseling on Access to Lethal Means) and document it as a SPiERLethalMeansCounseling Procedure plus one SPiERMeansSafetyAction Observation per lethal means addressed."
 * purpose = "Reduce the patient's access to lethal means as a concrete, documented, reportable safety action. Belongs to the Document Safety Actions stage."
 * kind = #ServiceRequest

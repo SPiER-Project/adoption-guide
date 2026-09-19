@@ -345,7 +345,7 @@ Usage: #definition
 * title = "Record Suicide-Safety Handoff / Transition Checkpoint"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Record that a suicide-safety handoff happened at a transition of care, capturing who received it, when, and which safety context travelled with the patient (current risk status, safety-plan status, means-safety actions, crisis resources, follow-up plan, pending tasks)."
 * purpose = "Make sure suicide-safety context survives a transition of care. Belongs to the Coordinate Handoffs stage."
 * kind = #CommunicationRequest
@@ -367,7 +367,7 @@ Usage: #definition
 * title = "Generate Discharge Safety Packet / Transition Bundle"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Assemble and record the discharge safety packet as a DocumentReference: the packet artifact in content.attachment, the live resources it was built from in context.related, and the included-item checklist as repeating handoff-content-item extensions."
 * purpose = "Give the patient and the next provider one retrievable bundle of the suicide-safety essentials. Belongs to the Coordinate Handoffs stage."
 * kind = #ServiceRequest
@@ -389,7 +389,7 @@ Usage: #definition
 * title = "Send Referral or Next Provider Handoff"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Send a suicide-safety referral to the next provider or team as a ServiceRequest, so the handoff can be tracked past 'sent' through accepted and completed. The receiving provider/team is the performer; the suicide-safety driver is the reasonCode."
 * purpose = "Close the loop on referrals rather than assuming a sent referral was received. Belongs to the Coordinate Handoffs stage."
 * kind = #ServiceRequest
@@ -411,7 +411,7 @@ Usage: #definition
 * title = "Schedule Next Appointment / Follow-Up Visit"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Schedule or document the next follow-up visit before the patient leaves, as an Appointment carrying date/time, receiving provider or team, location, and status."
 * purpose = "Ensure the patient leaves with a follow-up already in place rather than an instruction to call. Belongs to the Coordinate Handoffs stage."
 * kind = #Appointment
@@ -433,7 +433,7 @@ Usage: #definition
 * title = "Record Consent / Information-Sharing Status"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Record whether suicide-safety information may be shared with another provider, team, or support person, using native Consent provisions: permit/deny as the decision (a patient declining is a deny provision), the recipient as provision.actor, and any expiry as provision.period."
 * purpose = "Let the EHR decide what may be sent or withheld at a handoff, instead of guessing. Belongs to the Coordinate Handoffs stage."
 * kind = #ServiceRequest

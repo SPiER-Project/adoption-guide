@@ -93,7 +93,7 @@ Usage: #definition
 * title = "Share Patient-Facing Crisis Resources / Coping Supports"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Record that patient-facing crisis resources / coping supports were provided to the patient, as a stage-tagged Communication carrying the shared resources (SPiER crisis-resource codes)."
 * purpose = "Ensure the patient leaves with concrete, documented access to crisis support. Belongs to the Document Safety Actions stage."
 * kind = #CommunicationRequest

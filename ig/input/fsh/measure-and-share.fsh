@@ -151,7 +151,7 @@ Usage: #definition
 * title = "SPiER Suicide-Safer Care Measure Logic"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * type = http://terminology.hl7.org/CodeSystem/library-type#logic-library "Logic Library"
 * description = "CQL implementing every population criterion referenced by the seven SPiER suicide-safer care Measures. Retrieves filter on SPiER profiles rather than codes, because the stage-5/6/7 workflow artifacts are distinguished by conformance claim rather than by a code in a value set; the risk-concept Observations are the exception and match on LOINC 93374-7. Each definition returns a boolean, because every measure is patient-based."
 * purpose = "Makes the measures portable. Without a published library a consumer can read what each population means but must reimplement it, and two sites that reimplement independently produce numbers that are not comparable — the exact failure quality measurement exists to prevent."
@@ -178,7 +178,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "The proportion of patients with a positive suicide-risk screen who received a clarifying suicide-risk assessment within 24 hours. Both the screen and the assessment are SPiERSuicideRiskConcept Observations; they are distinguished by the SPiER pathway-stage tag (identify-possible-risk vs clarify-risk) rather than by instrument, so substituting one screening tool for another does not break the measure."
 * purpose = "A positive screen with no follow-up assessment is the single most consequential gap in a suicide-safer care pathway — the patient has been identified and then dropped. This measures that gap directly."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -220,7 +220,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "The proportion of patients in a suicide-safer care episode for whom a current suicide-risk level is documented as discrete, coded data. The numerator requires a SPiERSuicideRiskConcept Observation dated inside the episode — NOT merely the episode-current-risk-tier extension, which is a denormalized cache and could be stale or hand-set. Measuring the Observation measures the source of truth."
 * purpose = "Risk level recorded only in narrative cannot drive a work queue, a CDS card, or a handoff. This measures whether it exists as data."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -274,7 +274,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Two related proportions over the same denominator of patients with a documented care transition: (1) a safety plan — Stanley-Brown or Crisis Response Plan — existed and was active at or before the transition; (2) the patient's own copy is documented, evidenced by a discharge packet carrying the handoff-content item `safety-plan-copy`. They are separate groups because a completed plan the patient leaves without is a distinct and well-documented failure."
 * purpose = "Safety planning is only protective if the plan exists before the patient leaves and travels with them. This measures both halves."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -345,7 +345,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "The proportion of patients in a suicide-safer care episode for whom a SPiERLethalMeansCounseling Procedure was completed during the episode. Counts the counseling Procedure, not the per-method SPiERMeansSafetyAction Observations: whether counseling happened is the process measure, while which methods were addressed and secured is richer detail a site can report on separately."
 * purpose = "Means-safety counseling has among the strongest evidence bases of any suicide-prevention intervention and is among the least reliably delivered. Measuring it is the point of coding it."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -423,7 +423,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Three timeliness proportions over one denominator of patients with a documented care transition: outreach attempted within 48 hours, and a follow-up visit COMPLETED within 7 days and within 30 days. The appointment groups require Appointment.status = fulfilled rather than booked — a scheduled visit the patient did not attend is not follow-up, and distinguishing the two is precisely what TL-034 (Follow-Up Appointment Tracking) exists to do. The 48-hour group counts an attempt rather than a successful contact, because the attempt is what the care team controls; a stricter reached-only variant is a one-line change to the CQL and is described on the measurement page."
 * purpose = "The days immediately after discharge carry the highest suicide risk of any period in the pathway. These three windows are the standard Zero Suicide follow-up expectations."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -521,7 +521,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "The proportion of patients with a documented care transition who were sent at least one SPiERCaringContact within 30 days. Patients who have opted out of the caring-contacts series are a DENOMINATOR EXCLUSION rather than a numerator failure — honoring an opt-out is correct behavior, and a measure that punished it would push sites to ignore the patient's wish. This is the reason the caring-contact-opt-out extension exists on the contact resource."
 * purpose = "Caring contacts are one of the few interventions with direct randomized evidence for reducing repeat suicide attempts, and adherence to the sending schedule is the whole intervention."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -572,7 +572,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "The proportion of patients with a SPiERSafetyReferral authored during the measurement period whose referrals all reached status completed. This measure is only computable because TL-017 is modelled as a ServiceRequest: ServiceRequest.status carries draft → active → completed natively, whereas a Communication records only that a referral was sent. Referrals marked entered-in-error are excluded; revoked referrals are NOT excluded, because a referral withdrawn without an alternative being arranged is a genuine loop failure."
 * purpose = "A sent referral is not a received one. Loop closure is where suicide-safety handoffs most often fail silently."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -654,7 +654,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * library = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "The proportion of patients with at least two SPiERSuicideRiskConcept Observations in the measurement period whose most recent interval between assessments was no longer than the cadence published for the tier recorded on the EARLIER of the two — high 7 days, moderate 14 days, low 30 days, per PlanDefinition/SPiERReassessmentSchedule. Reading the tier off the earlier assessment is deliberate: the interval a site owed is the one that applied when the clock started, not the patient's tier today. Patients whose earlier assessment records a tier with no published cadence (imminent, no-risk) are a denominator exclusion rather than a failure — imminent risk is handled by escalation, and a no-risk patient is not on the pathway."
 * purpose = "Reassessment cadence is the one pathway obligation that is invisible without a schedule: nothing about a patient's chart says a review was late. This measure makes lateness reportable, and is the reason PlanDefinition/SPiERReassessmentSchedule exists as data rather than as documentation."
 * scoring = http://terminology.hl7.org/CodeSystem/measure-scoring#proportion "Proportion"
@@ -711,7 +711,7 @@ Usage: #definition
 * title = "Report Suicide-Safer Care KPIs / Measures"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Calculate the seven SPiER suicide-safer care Measures — screen-to-assessment, risk status documented, safety plan before discharge (plus patient copy), lethal means counseling, follow-up timeliness at 48 hours / 7 days / 30 days, caring-contact adherence, and referral loop closure — and emit MeasureReports. Every numerator and denominator reads resources stages 1–7 already produce; the activity captures nothing new. Summary reports answer 'how is the program doing', individual reports answer 'why is this patient in or out of the numerator' and carry evaluatedResource links back to the underlying artifacts."
 * purpose = "Turn pathway activity into numerators and denominators that quality improvement can act on. Belongs to the Measure and Share the Data stage."
 * kind = #Task
@@ -733,7 +733,7 @@ Usage: #definition
 * title = "Provide Reporting Dashboard / Aggregate View"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Present suicide-safer care activity as an aggregate view for clinicians, supervisors, care managers, QI teams, and administrators. This activity stores nothing: the measure tiles read summary MeasureReports produced by ReportSuicideSaferCareMeasures, and the operational counts (screening volume, positive screens, active episodes, overdue items) read the same registry query TL-037 defines — `EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on`. The SSC's filter list (date range, site, setting, provider/team, tool, risk level, completion status) maps onto search parameters over those two reads rather than onto a stored report definition."
 * purpose = "Give clinicians, supervisors, and QI teams a routinely refreshed aggregate view of pathway performance. Belongs to the Measure and Share the Data stage."
 * kind = #Task
@@ -755,7 +755,7 @@ Usage: #definition
 * title = "Export Data / Analytics Extract"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Export suicide-safer care data for analytics. SPiER defines no export-specific artifact deliberately: the SSC's requirement is that the extract carry STRUCTURED FIELDS AND TIMESTAMPS rather than narrative, and every SPiER profile already mandates a discrete date — Observation.effective, Procedure.performed, Communication.sent, Appointment.start, ServiceRequest.authoredOn, EpisodeOfCare.period, Task.authoredOn and restriction.period.end. The conforming export is therefore the FHIR Bulk Data `$export` of those resource types, and CSV or warehouse extracts are flattenings of the same set. The expected capability is declared on the SPiERQualityReporter CapabilityStatement."
 * purpose = "Make the structured pathway data available to analytics and evaluation without manual chart abstraction. Belongs to the Measure and Share the Data stage."
 * kind = #Task
@@ -777,7 +777,7 @@ Usage: #definition
 * title = "Share Data / Interoperability Output"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Share suicide-safer care data outside the EHR — current risk status, assessment summary, safety-plan status and document, lethal-means status, the handoff bundle, follow-up plan and completion, and measure results. Every item on the SSC's shareable list is already a SPiER profile, so sharing needs no new shape: the harmonized SPiERSuicideRiskConcept is the minimum viable payload for a receiving system that does not know the originating instrument, and the role CapabilityStatements define what each actor must support. Consent restrictions are enforced from the SPiERInformationSharingConsent recorded at TL-032 — a deny provision naming a recipient is what withholds data from that recipient."
 * purpose = "Let a patient's suicide-risk signal follow them across facilities and platforms, within consent. Belongs to the Measure and Share the Data stage."
 * kind = #CommunicationRequest
