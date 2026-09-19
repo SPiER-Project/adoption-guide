@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LOINC_SYSTEM, type GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
-import { Notice } from './Notice'
-import { Pill } from './Pill'
+import { Notice } from '@spier/ui/Notice'
+import { Pill } from '@spier/ui/Pill'
 import { useInspect } from '../context/InspectContext'
 import { todayLocalIso } from '../lib/dates'
 

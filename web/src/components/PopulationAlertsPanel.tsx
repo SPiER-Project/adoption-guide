@@ -19,10 +19,10 @@
  */
 import { Link } from 'react-router-dom'
 import { UNAVAILABLE_RULES, type PatientAlertGroup } from '../lib/populationAlerts'
-import { SectionHeader } from './SectionHeader'
-import { EmptyState } from './EmptyState'
-import { Pill } from './Pill'
-import { Card } from './Card'
+import { SectionHeader } from '@spier/ui/SectionHeader'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { Pill } from '@spier/ui/Pill'
+import { Card } from '@spier/ui/Card'
 
 export function PopulationAlertsPanel({ groups }: { groups: PatientAlertGroup[] }) {
   const total = groups.reduce((n, g) => n + g.alerts.length, 0)

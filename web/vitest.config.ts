@@ -30,7 +30,22 @@ import { defineConfig } from 'vitest/config'
 // actual failure is `ERR_REQUIRE_ESM` — `require() of ES Module @exodus/bytes
 // from html-encoding-sniffer`. The symptom moves with the version; what is
 // stable is that jsdom fails to LOAD, so the tests never run at all.
+const REACT_DIR = fileURLToPath(new URL('./node_modules/react', import.meta.url))
+const REACT_DOM_DIR = fileURLToPath(new URL('./node_modules/react-dom', import.meta.url))
+const ROUTER_DIR = fileURLToPath(new URL('./node_modules/react-router-dom', import.meta.url))
+const LUCIDE_DIR = fileURLToPath(new URL('./node_modules/lucide-react', import.meta.url))
+// Test-only, so it is here and not in vite.config.ts — packages/ui's colocated
+// tests import it and have no node_modules to walk up into.
+const TESTING_LIBRARY_DIR = fileURLToPath(new URL('./node_modules/@testing-library/react', import.meta.url))
+
 export default defineConfig({
+  // ⚠️ Vitest serves test files through a Vite dev server rooted at `web/`, and
+  // a file outside that root is fetched over `/@fs/…` — which the server
+  // refuses unless the path is allowed. packages/core's tests never hit this
+  // because they run in the `node` environment; packages/ui's run in `jsdom`,
+  // which goes through the browser-shaped module graph, and failed with
+  // "Cannot find module '/@fs/…/Button.test.tsx'".
+  server: { fs: { allow: ['..'] } },
   // ⚠️ This file does NOT inherit web/vite.config.ts — no `mergeConfig` — so the
   // demo-population alias is repeated here rather than shared. Verified, not
   // assumed: under vitest `@lhncbc/ucum-lhc` resolves to the real library, not
@@ -38,10 +53,37 @@ export default defineConfig({
   // the build or the tests, never silently both.
   resolve: {
     alias: [
+      // ── React, resolved for packages/ui ──────────────────────────────
+      // packages/ui has no node_modules of its own and is not an npm workspace
+      // (#387), so Vite cannot resolve a bare `react` from it — the first
+      // symptom is `Failed to resolve import "react/jsx-dev-runtime"`. These
+      // point every React specifier at web's single copy, which is the only one
+      // in the repo, so nothing about web's own resolution changes.
+      //
+      // ⚠️ **Written as an anchored regex and a quoted prefix because those are
+      // the two forms `scripts/lib/vite-alias.mjs` can read.** That parser
+      // THROWS on an alias it cannot make sense of, and check:ucum and
+      // check:fhir-r5 both treat "not aliased" as "nothing to guard" — so an
+      // unparseable entry here would take two shim gates down with it. A form
+      // like /^react\// (no `$`) is exactly what it refuses.
+      { find: /^react$/, replacement: REACT_DIR },
+      { find: 'react/', replacement: `${REACT_DIR}/` },
+      { find: /^react-dom$/, replacement: REACT_DOM_DIR },
+      { find: 'react-dom/', replacement: `${REACT_DOM_DIR}/` },
+      { find: /^react-router-dom$/, replacement: ROUTER_DIR },
+      { find: /^lucide-react$/, replacement: LUCIDE_DIR },
+      { find: /^@testing-library\/react$/, replacement: TESTING_LIBRARY_DIR },
       {
         find: /^@spier\/demo-population$/,
         replacement: fileURLToPath(
           new URL('../packages/demo-population/src/index.ts', import.meta.url),
+        ),
+      },
+      {
+        // The design system (packages/ui) — see vite.config.ts.
+        find: '@spier/ui/',
+        replacement: fileURLToPath(
+          new URL('../packages/ui/src/', import.meta.url),
         ),
       },
       {
@@ -78,9 +120,15 @@ export default defineConfig({
     // The third entry reaches the repo-root helper scripts in scripts/lib/,
     // which no pipeline covered before — same reasoning as packages/core above:
     // reach them from here rather than stand up another test runner.
+    // ⚠️ **A package whose tests are not in this list does not run, and
+    // `verify` stays green.** packages/ui was extracted on 2026-09-19 taking
+    // `Button.test.tsx` with it; the suite passed, 96 files, and that file
+    // executed zero times. Nothing else would have noticed — which is why the
+    // floor below exists rather than trust in this list.
     include: [
       'src/**/*.test.{ts,tsx}',
       '../packages/core/src/**/*.test.{ts,tsx}',
+      '../packages/ui/src/**/*.test.{ts,tsx}',
       '../scripts/lib/**/*.test.mjs',
     ],
   },

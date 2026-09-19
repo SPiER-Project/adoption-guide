@@ -34,13 +34,19 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+import { STYLE_ROOTS, styleRootFloors } from './lib/style-roots.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
+
+const here = dirname(fileURLToPath(import.meta.url))
+const ROOT = resolve(here, '..')
 const PAGES_DIR = join(ROOT, 'src/pages')
-const SRC_DIR = join(ROOT, 'src')
-const HEADER_TSX = 'src/components/PageHeader.tsx'
-// Paths are relative to src/, since the CSS walk covers all of it (App.css and
-// index.css included) rather than src/css/ alone.
-const HEADER_CSS = 'css/PageHeader.css'
+const HEADER_TSX = 'packages/ui/src/PageHeader.tsx'
+// ⚠️ Repo-relative since 2026-09-19. The CSS walk spans two roots now
+// (web/src and packages/ui/src), so a name relative to one of them would match
+// the wrong file or none — and "none" is the dangerous direction: every
+// `.page-header` rule would read as "from outside PageHeader.css" and the rule
+// below would fire on the component's own stylesheet.
+const HEADER_CSS = 'packages/ui/src/PageHeader.css'
 
 /**
  * The pages that own a page header, and why only these.
@@ -426,13 +432,20 @@ const CENTERING_OWNER = '.app-shell__body > *'
 const lineOf = (src, index) => src.slice(0, index).split('\n').length
 
 /**
- * Every stylesheet under src/, not just src/css/.
+ * Every stylesheet in every declared style root.
  *
  * This walked `src/css/*.css` alone at first, and a planted
  * `.form-view { padding: … }` — padding on a page root, the exact defect RULE 4b
  * exists for — passed green, because `.form-view` is declared in `src/App.css`
- * and App.css and index.css sit *beside* that directory rather than in it. Two
- * of the app's largest stylesheets were never read.
+ * and App.css sits *beside* that directory rather than in it. Two of the app's
+ * largest stylesheets were never read.
+ *
+ * ⚠️ **And it happened AGAIN, one directory up.** When `packages/ui` was carved
+ * out of `web/src` on 2026-09-19 this read `SRC_DIR` alone, so eight primitives'
+ * stylesheets — including `PageHeader.css`, whose rules RULE 5 is largely about
+ * — simply stopped being read. The gate reported ✓ against 31 stylesheets where
+ * it had been reading 40. The roots now come from `lib/style-roots.mjs`, and the
+ * per-root floors there are what make a repeat fail instead of pass.
  */
 function cssFilesUnder(dir, prefix = '') {
   const out = []
@@ -444,7 +457,9 @@ function cssFilesUnder(dir, prefix = '') {
   return out
 }
 
-const cssFiles = cssFilesUnder(SRC_DIR)
+const cssFiles = STYLE_ROOTS.flatMap((root) =>
+  cssFilesUnder(root.dir).map((name) => ({ name: `${root.source}/${name}`, path: join(root.dir, name) })),
+)
 /** Which declared inset owners were actually found padding, unconditionally. */
 const padsFound = new Set()
 /** Where the shell's centring rule was found, for RULE 6. */
@@ -461,8 +476,8 @@ const selfCentered = new Map()
  */
 const rootWidths = new Map()
 
-for (const file of cssFiles) {
-  const src = readFileSync(join(SRC_DIR, file), 'utf8')
+for (const { name: file, path: cssPath } of cssFiles) {
+  const src = readFileSync(cssPath, 'utf8')
   for (const rule of styleRules(src)) {
     const selectors = rule.selector.split(',').map(s => s.trim())
     const pads = PADDING.test(rule.body)
@@ -731,10 +746,15 @@ for (const [cls, owner] of containers) {
 
 // ── Report ────────────────────────────────────────────────────────────────────
 
+// ⚠️ Per ROOT — this gate read `web/src` alone through the packages/ui
+// extraction and reported ✓ against 31 stylesheets where it had been reading
+// 40. See lib/style-roots.mjs.
+reportFloors(styleRootFloors({ css: true, src: false }), fail)
+
 if (errors.length > 0) {
   console.error(`\n✗ page template: ${errors.length} problem${errors.length === 1 ? '' : 's'}\n`)
   for (const e of errors) console.error(`  • ${e}`)
-  console.error('\n  See web/src/components/PageHeader.tsx for what the template is and why.\n')
+  console.error(`\n  See ${HEADER_TSX} for what the template is and why.\n`)
   process.exit(1)
 }
 

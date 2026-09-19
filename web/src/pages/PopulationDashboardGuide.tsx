@@ -35,8 +35,8 @@
 import { Link } from 'react-router-dom'
 import { MOCK_EHR_URL } from '../data/surfaces'
 import '../css/SurfaceGuide.css'
-import { Notice } from '../components/Notice'
-import { Button } from '../components/Button'
+import { Notice } from '@spier/ui/Notice'
+import { Button } from '@spier/ui/Button'
 
 const ISSUE_401_URL = 'https://github.com/SPiER-Project/adoption-guide/issues/401'
 

@@ -44,14 +44,19 @@
  *
  * Exits non-zero on drift so it can gate CI.
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve, join, relative } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
-const srcDir = join(webRoot, 'src')
-const tokenFile = join(srcDir, 'index.css')
+import { REPO_ROOT, allStyleFiles, relRepo, styleRootFloors } from './lib/style-roots.mjs'
+import { reportFloors } from '../../scripts/lib/floors.mjs'
+
+// ⚠️ The tokens moved to packages/ui with the components that consume them
+// (2026-09-19). A UI package whose components reference tokens it does not
+// define is not handable — an adopter gets unstyled components and no way to
+// tell why. This gate names the file by path, so it failed loudly on the move
+// rather than passing over three-quarters of the CSS; that was luck, and
+// `styleRootFloors()` below is what makes it not luck next time.
+const tokenFile = join(REPO_ROOT, 'packages/ui/src/foundation.css')
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
@@ -65,20 +70,10 @@ const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 const stripComments = (css) =>
   css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
 
-const walk = (dir, ext) => {
-  const out = []
-  for (const entry of readdirSync(dir).sort()) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walk(full, ext))
-    else if (ext.some((e) => entry.endsWith(e))) out.push(full)
-  }
-  return out
-}
-
-const rel = (p) => relative(webRoot, p)
+const rel = relRepo
 
 // ---- definitions: custom properties declared in CSS ---------------------------
-const cssFiles = walk(srcDir, ['.css'])
+const cssFiles = allStyleFiles(['.css'])
 if (!cssFiles.includes(tokenFile)) {
   // The scan is keyed on this file existing where it is expected. If it moves,
   // every token would read as undefined — but a rename that also moved the
@@ -99,7 +94,7 @@ for (const file of cssFiles) {
 // ---- definitions: custom properties set from TypeScript at runtime ------------
 // Matched over whole-file text rather than per line, because the call is often
 // wrapped across lines by the formatter.
-const tsFiles = walk(srcDir, ['.ts', '.tsx'])
+const tsFiles = allStyleFiles(['.ts', '.tsx'])
 const runtimeSet = new Map() // token -> Set of files setting it
 for (const file of tsFiles) {
   const src = readFileSync(file, 'utf8')
@@ -151,9 +146,14 @@ for (const [token, sites] of [...uses].sort()) {
   fail(`var(${token}) is not defined in any stylesheet and is not set from TypeScript:\n    ${where}`)
 }
 
+// Per ROOT — see check-css-dead.mjs for the defect this shape is written
+// against. This gate names its token FILE by path, so it failed loudly when the
+// tokens moved; that was luck, and this is what makes it not luck.
+reportFloors(styleRootFloors({ css: true, src: true }), fail)
+
 if (failures) {
   console.error(`\ncss-token check FAILED (${failures} undefined token(s)).`)
-  console.error('Define the token in web/src/index.css, or fix the reference to an existing one.')
+  console.error('Define the token in packages/ui/src/foundation.css, or fix the reference to an existing one.')
   process.exit(1)
 }
 console.log('\ncss-token check passed.')

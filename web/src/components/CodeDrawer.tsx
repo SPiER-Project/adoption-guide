@@ -52,7 +52,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { usePresentation } from '../context/PresentationContext'
 import { useInspect } from '../context/InspectContext'
 import '../css/CodeDrawer.css'
-import { cx } from '../lib/cx'
+import { cx } from '@spier/ui/cx'
 
 export function CodeDrawer({
   children,

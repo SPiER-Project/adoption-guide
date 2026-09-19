@@ -9,7 +9,7 @@ import {
   type PatientOpenPayload,
 } from '@spier/core/lib/fhircast'
 import '../css/FhircastListener.css'
-import { Pill } from './Pill'
+import { Pill } from '@spier/ui/Pill'
 
 // Only a tab already viewing a patient chart follows a broadcast. This mirrors
 // real FHIRcast: a subscribed chart app follows context changes, but we never

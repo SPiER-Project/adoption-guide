@@ -11,7 +11,7 @@ import {
 import { displayFor } from '@spier/core/lib/handoffs'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-013 — patient-facing crisis resources / coping supports (Stage 4).

@@ -13,7 +13,7 @@
     "build:clinical": "tsc -b && VITE_SURFACE=clinical vite build --outDir dist-clinical",
     "check:surface": "node scripts/check-surface.mjs",
     "lint": "eslint .",
-    "lint:css": "stylelint \"src/**/*.css\"",
+    "lint:css": "stylelint \"src/**/*.css\" \"../packages/ui/src/**/*.css\"",
     "check:tokens": "node scripts/check-css-tokens.mjs",
     "build:favicons": "node scripts/build-favicons.mjs",
     "check:favicons": "node scripts/build-favicons.mjs --check",

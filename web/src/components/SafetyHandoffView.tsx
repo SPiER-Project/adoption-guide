@@ -10,7 +10,7 @@ import {
 } from '@spier/core/lib/handoffs'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-009 — the suicide-safety handoff / transition checkpoint (Stage 5).

@@ -19,12 +19,12 @@ import {
 } from '../lib/caseloadViews'
 import { CaseloadTable, HeaderFilter } from '../components/CaseloadTable'
 import { COLUMNS } from '../components/caseloadColumns'
-import { PageHeader } from '../components/PageHeader'
+import { PageHeader } from '@spier/ui/PageHeader'
 import { PopulationAlertsPanel } from '../components/PopulationAlertsPanel'
 import { PopulationSummary } from '../components/PopulationSummary'
 import '../css/PopulationView.css'
-import { cx } from '../lib/cx'
-import { Notice } from '../components/Notice'
+import { cx } from '@spier/ui/cx'
+import { Notice } from '@spier/ui/Notice'
 
 type RiskLevel = RiskAlert['level']
 

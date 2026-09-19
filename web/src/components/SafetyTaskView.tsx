@@ -16,7 +16,7 @@ import {
 } from '@spier/core/lib/riskEpisode'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { todayLocalIso, isoDay } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-039 / TL-040 / TL-041 — open, owned, due-dated safety work (Stage 7).

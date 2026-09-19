@@ -18,9 +18,9 @@
  */
 import type { WritebackReport, WriteStepResult, WriteTier } from '@spier/core/lib/writeback/types'
 import '../css/WritebackScorecard.css'
-import { SectionHeader } from './SectionHeader'
-import { Notice } from './Notice'
-import { Card } from './Card'
+import { SectionHeader } from '@spier/ui/SectionHeader'
+import { Notice } from '@spier/ui/Notice'
+import { Card } from '@spier/ui/Card'
 
 /**
  * The ladder's rungs, in ascending tier order (see writeback/types.ts).

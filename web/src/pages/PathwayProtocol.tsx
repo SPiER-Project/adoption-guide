@@ -41,7 +41,7 @@
  * the chart. Vertical budget is the lesser reason; that one is the reason.
  */
 import { Link } from 'react-router-dom'
-import { PageHeader } from '../components/PageHeader'
+import { PageHeader } from '@spier/ui/PageHeader'
 import {
   PathwayLoadError,
   PathwayPending,

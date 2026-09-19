@@ -15,7 +15,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { ArtifactCards } from './ChartArtifacts'
 import { artifactCount } from '../lib/chartDisplay'
 import type { FhirResourceLike, StoredResponseLike } from '@spier/core/lib/patientPathway'
-import { Pill } from './Pill'
+import { Pill } from '@spier/ui/Pill'
 
 export function OtherActivitySection({
   responses,

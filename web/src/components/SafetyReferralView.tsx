@@ -13,7 +13,7 @@ import {
 import type { ServiceRequestResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
 import { isoDay } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-017 — referral / next-provider handoff (Stage 5).

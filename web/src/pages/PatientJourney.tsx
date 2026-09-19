@@ -10,10 +10,10 @@ import { ToolDetail } from '../components/ToolDetail'
 import { useScrollToHash } from '../hooks/useScrollToHash'
 import { guideHref } from '../data/guideSections'
 import '../css/PatientJourney.css'
-import { cx } from '../lib/cx'
-import { Notice } from '../components/Notice'
-import { Pill, type PillTone } from '../components/Pill'
-import { Card } from '../components/Card'
+import { cx } from '@spier/ui/cx'
+import { Notice } from '@spier/ui/Notice'
+import { Pill, type PillTone } from '@spier/ui/Pill'
+import { Card } from '@spier/ui/Card'
 
 const STATUS_LABELS: Record<Tool['inclusionStatus'], string> = {
   core: 'Core',

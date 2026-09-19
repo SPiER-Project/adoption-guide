@@ -25,7 +25,7 @@
  */
 import type { ReactNode } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import '../css/SectionHeader.css'
+import './SectionHeader.css'
 
 export function SectionHeader({
   title,

@@ -22,6 +22,14 @@ most of them are a gate that passed while checking nothing.
   referenced from `web/tsconfig.json`) and `web/vitest.config.ts`'s extended
   `test.include` are what reach them from there. Still `web`'s `npm run verify`
   and `npx tsc -b`; no fourth pipeline.
+- `packages/ui/` — the **design system**: the eight surface primitives
+  (`Button`, `Card`, `DataTable`, `EmptyState`, `Notice`, `PageHeader`, `Pill`,
+  `SectionHeader`), the `cx` helper, and `foundation.css` — the `:root` token
+  block and global resets, formerly `web/src/index.css`. Consumed as
+  `@spier/ui/<name>`. A referenced composite project like `packages/core`, and
+  its colocated tests run under `web`'s vitest; **no fourth pipeline.**
+  ⚠️ `WorkflowForm` is deliberately NOT here: it reads `usePatient()`, so moving
+  it would invert the dependency. See `packages/ui/README.md`.
 - `packages/worker-http/` — what the two asset-serving Workers share about
   *being an asset host*: the Static Assets catch-all, the explicit SPA fallback,
   and the one `frame-ancestors` policy. React-free and DOM-free like
@@ -52,6 +60,14 @@ npx tsc -b             # typecheck (project references; needs generated files pr
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
+                       # ⚠️ This, check:css-dead, check:prose and check:template all read TWO trees
+                       # now — web/src and packages/ui/src — declared once in
+                       # web/scripts/lib/style-roots.mjs with a PER-ROOT floor. A global floor is
+                       # what they had when packages/ui was extracted, and 31 stylesheets cleared
+                       # it while nine were missing: css-dead and template reported ✓ over
+                       # three-quarters of the CSS. The floors alone still could not see a root
+                       # DELETED from the list (it takes its own floor with it), so the roots are
+                       # additionally checked against the filesystem
 npm run check:favicons # the tab mark still matches the brand tokens. The icons in web/public/
                        # are GENERATED from --brand-primary and --brand-gradient-1…5 by
                        # scripts/build-favicons.mjs (`npm run build:favicons` rewrites them).
@@ -296,7 +312,12 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   for `color`, `background-color`, `border-color`, `fill`, `font-size`,
   `box-shadow`, `font-family`, **and every spacing property** — `padding`,
   `margin` and `gap` with their longhands. Raw values are allowed only in
-  `src/index.css` (token definitions). Class selectors must be kebab-case BEM.
+  `packages/ui/src/foundation.css` (token definitions), which carries its own
+  `stylelint-disable` banner saying so. ⚠️ That exemption used to be an
+  `ignoreFiles` glob naming `src/index.css`; stylelint matches it by PATH, so
+  the move silently un-exempted the file and it reported 85 errors for doing its
+  job. A path-shaped exemption is one rename from not applying — it lives in the
+  file now. Class selectors must be kebab-case BEM.
   **Type has three families and no others** — `--font-display` (headings,
   buttons; names Area Normal, renders Manrope until the licence lands — the
   `@font-face` note at the top of `index.css` says why), `--font-body`
@@ -336,7 +357,9 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   accent rule → optional lede), the only definition of page-title typography; a
   page never renders its own `<h2>`, so section headings start at `<h3>`. A
   drill-in page passes `up` to make the first eyebrow segment its way back out.
-- **Below the page header, eight components own the surfaces.** `SectionHeader`
+- **Below the page header, eight components own the surfaces**, and seven of
+  them now live in `packages/ui` (`@spier/ui/<name>`); `WorkflowForm` stays in
+  `web/src/components` because it reads patient context. `SectionHeader`
   (the `<h3>` row), `Card` (a bordered panel), `Pill` (a small inline marker),
   `Notice` (a tinted message box), `EmptyState` ("nothing here"), `DataTable`
   (the table shell: wrapper, header type, cell padding, dividers),

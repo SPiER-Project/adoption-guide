@@ -12,9 +12,9 @@ import { COLUMNS } from './caseloadColumns'
 import { RiskPill } from './RiskPill'
 import type { CaseloadView, FilterKey, FilterOption, SortCol, SortDir, SortState } from '../lib/caseloadViews'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
-import { cx } from '../lib/cx'
-import { EmptyState } from './EmptyState'
-import { DataTable } from './DataTable'
+import { cx } from '@spier/ui/cx'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { DataTable } from '@spier/ui/DataTable'
 
 const MENU_EDGE_GAP = 8
 

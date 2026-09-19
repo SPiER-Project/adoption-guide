@@ -12,11 +12,11 @@
  */
 import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { SectionHeader } from './SectionHeader'
+import { SectionHeader } from '@spier/ui/SectionHeader'
 import { resolveRelatedRefs, type RelatedArtifact } from '../lib/chartDisplay'
 import { stageById } from '@spier/core/data/catalog'
 import type { ScenarioEncounter } from '@spier/core/types/fhir'
-import { Pill } from './Pill'
+import { Pill } from '@spier/ui/Pill'
 import { formatDate } from '../lib/dates'
 
 export function EncountersTimeline({

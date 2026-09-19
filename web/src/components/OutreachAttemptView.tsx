@@ -17,7 +17,7 @@ import {
 } from '@spier/core/lib/followUp'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-033 (routine follow-up outreach) + TL-035 (missed-appointment / no-show

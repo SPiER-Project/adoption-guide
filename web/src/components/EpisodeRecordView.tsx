@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { SectionHeader } from './SectionHeader'
+import { SectionHeader } from '@spier/ui/SectionHeader'
 import { groupByEpisode, type EpisodeRecord } from '@spier/core/lib/episodeRecord'
 import { artifactLabel } from '../lib/chartDisplay'
 import { formatDateTime } from '../lib/dates'
 import { displayFor, ENTRY_REASONS, episodeCurrentTier, RISK_TIERS } from '@spier/core/lib/riskEpisode'
 import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 import '../css/EpisodeRecord.css'
-import { EmptyState } from './EmptyState'
-import { Pill } from './Pill'
-import { Card } from './Card'
+import { EmptyState } from '@spier/ui/EmptyState'
+import { Pill } from '@spier/ui/Pill'
+import { Card } from '@spier/ui/Card'
 
 /**
  * "Everything that happened in this risk episode" — the question #263 opens with,

@@ -14,7 +14,7 @@ import {
 } from '../lib/lethalMeans'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-008 — lethal means safety counseling / means-safety actions (Stage 4).

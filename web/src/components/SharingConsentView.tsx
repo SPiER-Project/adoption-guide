@@ -11,7 +11,7 @@ import {
 } from '@spier/core/lib/handoffs'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { todayLocalIso, isoDay } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-032 — information-sharing consent / sharing status (Stage 5).

@@ -10,9 +10,9 @@
  */
 import { useState } from 'react'
 import type { SummaryTile, TierCensusEntry } from '../lib/populationSummary'
-import { SectionHeader } from './SectionHeader'
-import { cx } from '../lib/cx'
-import { Card } from './Card'
+import { SectionHeader } from '@spier/ui/SectionHeader'
+import { cx } from '@spier/ui/cx'
+import { Card } from '@spier/ui/Card'
 
 function Tile({ tile }: { tile: Extract<SummaryTile, { state: 'value' }> }) {
   return (

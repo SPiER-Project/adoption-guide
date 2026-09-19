@@ -34,7 +34,7 @@ import { PopulationAlertsPanel } from '../components/PopulationAlertsPanel'
 import { PopulationSummary } from '../components/PopulationSummary'
 import { useCaseloadSummary } from '../hooks/useCaseloadSummary'
 import '../css/PopulationView.css'
-import { Notice } from '../components/Notice'
+import { Notice } from '@spier/ui/Notice'
 
 export function PopulationSummaryEmbed() {
   const { rows, tiles, census, alertGroups, scope, isLoading } = useCaseloadSummary()

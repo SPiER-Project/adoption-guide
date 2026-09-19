@@ -18,7 +18,7 @@ import {
 import type { FlagResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint } from './WorkflowForm'
 import { todayLocalIso } from '../lib/dates'
-import { Button } from './Button'
+import { Button } from '@spier/ui/Button'
 
 /**
  * TL-038 — open and close a suicide-safer care episode (Stage 7).

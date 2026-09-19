@@ -6,7 +6,7 @@
  * have to know that a level is also a Pill tone.
  */
 import { RISK_ICON, type RiskLevel } from '../lib/statusIcons'
-import { Pill } from './Pill'
+import { Pill } from '@spier/ui/Pill'
 
 export function RiskPill({
   level,
