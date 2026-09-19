@@ -73,8 +73,13 @@ styles; a shared `Button` is a candidate for a later pass.
 2. **If you need a value that isn't tokenized, add the token first.** Add it to
    `:root` in [`packages/ui/src/foundation.css`](../packages/ui/src/foundation.css) (the only file allowed to define
    raw literals), document it here, then reference it.
-3. **Components own their own CSS file** in [`src/css/`](src/css/). Shared
-   primitives (buttons) live in `App.css`; don't reinvent them per page.
+3. **Components own their own CSS file** in their app's `src/css/` —
+   [`apps/guide/src/css/`](../apps/guide/src/css/) or
+   [`apps/clinical/src/css/`](../apps/clinical/src/css/). Shared primitives
+   (buttons) live in [`packages/ui/src/`](../packages/ui/src/), and the chrome
+   both apps mount keeps its stylesheets in
+   [`packages/app-shell/src/css/`](../packages/app-shell/src/css/); don't
+   reinvent them per page.
 4. **Genuinely intentional exceptions** (e.g. em-relative inline-code sizing,
    the `.sr-only` `clip` hack) carry an inline
    `/* stylelint-disable-next-line … -- reason */` so the intent is explicit.

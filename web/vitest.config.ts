@@ -169,6 +169,12 @@ export default defineConfig({
     // executed zero times. Nothing else would have noticed — which is why the
     // floor below exists rather than trust in this list.
     include: [
+      // ⚠️ The two apps come FIRST because they are where most of the suite
+      // now lives. Omitting them dropped the run from 96 files / 1088 tests
+      // to 70 / 845 while every gate stayed green — the exact shape of the
+      // packages/ui accident this list's own note describes.
+      '../apps/guide/src/**/*.test.{ts,tsx}',
+      '../apps/clinical/src/**/*.test.{ts,tsx}',
       'src/**/*.test.{ts,tsx}',
       '../packages/core/src/**/*.test.{ts,tsx}',
       '../packages/ui/src/**/*.test.{ts,tsx}',

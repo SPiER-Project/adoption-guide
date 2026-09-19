@@ -109,8 +109,15 @@ import {
 
 const bail = makeBail('check-ig-narrative')
 
-const APP_TSX = resolve(ROOT, 'web/src/App.tsx')
-const GUIDE_SECTIONS_TS = resolve(ROOT, 'web/src/data/guideSections.ts')
+// ⚠️ TWO route tables since the apps/ split. The IG's prose links at whichever
+// app serves the path, so check G resolves against the UNION — reading one app
+// would report every link into the other as broken.
+const APP_TSX_FILES = [
+  resolve(ROOT, 'apps/guide/src/App.tsx'),
+  resolve(ROOT, 'apps/clinical/src/App.tsx'),
+]
+const APP_TSX = APP_TSX_FILES[0]
+const GUIDE_SECTIONS_TS = resolve(ROOT, 'apps/guide/src/data/guideSections.ts')
 
 const problems = []
 const flag = (msg) => problems.push(msg)
@@ -429,7 +436,7 @@ function parseRoutes(src) {
 // ⚠️ Comments are blanked FIRST. A comment in App.tsx quoting `<Route …>` was
 // read as a real unclosed route, mis-nested every route after it, and made this
 // gate report a live section as a dead link. See scripts/lib/jsx-comments.mjs.
-const routes = parseRoutes(stripComments(readFileSync(APP_TSX, 'utf8')))
+const routes = APP_TSX_FILES.flatMap((f) => parseRoutes(stripComments(readFileSync(f, 'utf8'))))
 
 // A path resolves if a live route sits at it, or if its index child is live.
 // Both shapes occur: `/population` has no element of its own and gets its page

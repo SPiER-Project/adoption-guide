@@ -133,12 +133,12 @@ const MEASURE_FLOOR = 24
  * no wrapped prose, and wrong for one whose job is a column budget.
  */
 const NON_PROSE = {
-  'web/src/css/AdoptionGuide.css|.guide-pager__link':
+  'apps/guide/src/css/AdoptionGuide.css|.guide-pager__link':
     'A percentage, not a length: half the pager row, so prev and next sit side by side at any page width.',
-  'web/src/css/DataDictionary.css|.dd-code-display':
+  'apps/guide/src/css/DataDictionary.css|.dd-code-display':
     "The publishing authority's display string inside a table column — part of the column budget " +
     'documented under `.dd-table--fixed`, not prose.',
-  'web/src/css/DataDictionary.css|.dd-detail':
+  'apps/guide/src/css/DataDictionary.css|.dd-detail':
     'The budget for the detail row\'s DATA lines — a code display, a value-set canonical, a row of ' +
     'tool chips — which want room to stay on one line. Its prose is `.dd-detail-desc`, which caps ' +
     'itself with the token. ⚠️ This rule USED to claim the prose cap in its comment while 52rem on ' +
@@ -149,7 +149,7 @@ const NON_PROSE = {
     "The brand's 4px gradient accent rule. Not text at all.",
   'packages/app-shell/src/css/PatientBanner.css|.patient-banner-switcher':
     'A control (the patient `<select>`), sized so a long name does not push the banner apart.',
-  'web/src/css/PopulationView.css|.caseload-filter-menu':
+  'apps/clinical/src/css/PopulationView.css|.caseload-filter-menu':
     'A dropdown menu panel holding filter rows, not prose.',
 }
 
@@ -170,10 +170,10 @@ const REVOKED_CAPS = {}
  * measured, because that is the number the cap is really made of.
  */
 const INHERITS_TYPE = {
-  'web/src/css/ToolConfiguration.css|.tool-config-intro':
+  'apps/clinical/src/css/ToolConfiguration.css|.tool-config-intro':
     'Inherits 16px from the page (measured), so the cap lands at 656px and the run at 83 characters. ' +
     'Left on inheritance rather than pinned: it is the page intro and takes the body size by default.',
-  'web/src/css/ToolConfiguration.css|.tool-config-effect':
+  'apps/clinical/src/css/ToolConfiguration.css|.tool-config-effect':
     'Deliberate, and the reason the box is capped at all. It sets no font-size, so it resolves the ' +
     'token at the inherited 16px and gets a CALLOUT width (656px); `.tool-config-effect__body` ' +
     'resolves the same token at its own 14px and gets the MEASURE (574px), which is narrower and so ' +

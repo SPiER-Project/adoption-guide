@@ -31,13 +31,25 @@
  * nothing (#232 / #261). A parser that silently stopped understanding the route
  * table would make this gate pass for every path in the catalog.
  */
-import { readFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { stripComments } from '../../../scripts/lib/jsx-comments.mjs'
+import { APP_ROOTS, appRoot } from './app-roots.mjs'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const APP_TSX = resolve(here, '../../src/App.tsx')
+/**
+ * Every app's route table.
+ *
+ * ⚠️ **There are TWO now, and a default of "the first one" would be a gate
+ * quietly checking half the product.** So the default is the UNION: a path
+ * "resolves against the route table" when some app registers it, which is what
+ * the catalog's launch paths and the compatibility redirects actually mean —
+ * a published URL has to work *somewhere*. A caller that means one specific
+ * app passes that app's file, and `check-catalog-integrity` does exactly that
+ * for the guide's sections.
+ */
+const APP_TSX_FILES = APP_ROOTS.map((r) => join(r.dir, 'App.tsx')).filter((f) => existsSync(f))
+export const appTsx = (source) => join(appRoot(source), 'App.tsx')
+const APP_TSX = APP_TSX_FILES[0]
 
 /** Join a parent route path with a child's, the way React Router does. */
 function joinPaths(parent, child) {
@@ -97,6 +109,27 @@ function readTag(src, i) {
  * A relative `to` on a non-index route would resolve differently in React Router,
  * so it is reported as unresolvable rather than guessed at.
  */
+/**
+ * The union of every app's route table — see APP_TSX_FILES.
+ *
+ * Same shape as `readRouteTable`, with the sets and lists merged, so every
+ * caller that already knew how to read one table reads all of them unchanged.
+ */
+export function readAllRouteTables() {
+  const tables = APP_TSX_FILES.map((f) => ({ file: f, table: readRouteTable(f) }))
+  const paths = new Set()
+  const redirects = new Set()
+  const redirectTargets = new Map()
+  for (const { table } of tables) {
+    for (const p of table.paths) paths.add(p)
+    for (const r of table.redirects) redirects.add(r)
+    for (const [from, to] of table.redirectTargets) redirectTargets.set(from, to)
+  }
+  // `offsets` is per-file and meaningless merged; a caller that needs it must
+  // read one table, which is why this returns the file list alongside.
+  return { paths, redirects, redirectTargets, tables }
+}
+
 export function readRouteTable(file = APP_TSX) {
   // ⚠️ Comments blanked before scanning. Without this, a comment quoting
   // `<Route …>` — App.tsx has one — parses as a real unclosed route and
@@ -199,87 +232,50 @@ export function routeResolves(path, paths) {
 }
 
 /**
- * Which paths each BUILD SURFACE registers (`src/lib/surface.ts`).
+ * Which paths each APP registers.
  *
- * ⚠️ **The clinical surface is not a subset anyone maintains by hand — it is
- * whatever is left when the `IS_DEMO` blocks fold away**, and that is the only
- * honest way to compute it. `VITE_SURFACE=clinical` makes `IS_DEMO` a literal
- * `false`, so the bundler deletes `{IS_DEMO && (…)}` outright; a route inside
- * one is not registered, and a link to it lands on the `*` catch-all.
+ * ⚠️ **This used to scan `App.tsx` for `{IS_DEMO && (…)}` regions**, because
+ * one route table served both surfaces and the clinical one was "whatever is
+ * left when the blocks fold away". There are two tables now, so the question
+ * answers itself: a path is guide-only when the guide's table has it and the
+ * clinical app's does not. The region scanner, its paren matching and its two
+ * IS_DEMO forms are all gone — the axis is a directory now, not a conditional.
  *
- * Two forms carry the axis in `App.tsx` and they mean different things:
- *
- *   `{IS_DEMO && (<>…</>)}`     routes that exist on the demo surface ALONE
- *   `{IS_DEMO ? (A) : (B)}`     the SAME path, registered either way, with a
- *                               different element per surface
- *
- * So a path is demo-only when **every** registration of it sits inside an
- * `IS_DEMO &&` region. The ternaries register `/`, `/patient/chart` and
- * `/population` on both surfaces with different redirect targets, and treating
- * either branch as demo-only would report three paths as unreachable that a
- * clinician reaches on every launch.
+ * ⚠️ **The self-checks stay, and they are the reason this is not just a set
+ * difference inline at the call site.** Every rule built on this has the shape
+ * "X must be in `clinical`", so a bug that returned the whole union as clinical
+ * would pass everything while checking nothing. The two anchors below are cheap
+ * and fail loudly.
  */
-export function readSurfaceRoutes(file = APP_TSX) {
-  const src = stripComments(readFileSync(file, 'utf8'))
-  const { paths, redirects, redirectTargets, offsets } = scanRoutes(src)
-  const regions = demoOnlyRegions(src)
+export function readSurfaceRoutes() {
+  const guide = readRouteTable(appTsx('apps/guide/src'))
+  const clin = readRouteTable(appTsx('apps/clinical/src'))
 
-  const demoOnly = new Set()
-  for (const [path, regs] of offsets) {
-    if (regs.every((at) => regions.some(([from, to]) => at >= from && at < to))) demoOnly.add(path)
-  }
-  const clinical = new Set([...paths].filter((p) => !demoOnly.has(p)))
+  const demoOnly = new Set([...guide.paths].filter((p) => !clin.paths.has(p)))
+  const clinical = new Set(clin.paths)
+  const paths = new Set([...guide.paths, ...clin.paths])
 
-  // ⚠️ Self-check, for the reason `scanRoutes` throws on an empty read: every
-  // rule built on this is of the form "X must be in `clinical`", so a bug that
-  // returned the whole table as clinical would pass everything while checking
-  // nothing. These two anchors are cheap and they fail loudly.
   if (!demoOnly.has('/guide/cds-service')) {
     throw new Error(
-      'route-table: /guide/cds-service did not come back demo-only. The IS_DEMO region ' +
-        'scanner has stopped understanding App.tsx, and every surface rule built on this ' +
-        'would now pass while checking nothing — fix the scanner, not the caller.',
+      'route-table: /guide/cds-service did not come back guide-only. The two route tables are ' +
+        'no longer being read as two, and every surface rule built on this would now pass ' +
+        'while checking nothing — fix the reader, not the caller.',
     )
   }
   if (!clinical.has('/patient/record')) {
     throw new Error(
-      'route-table: /patient/record did not come back clinical. The IS_DEMO region scanner ' +
-        'is over-claiming, and real clinical routes would be reported unreachable.',
+      'route-table: /patient/record did not come back clinical. The clinical table is not ' +
+        'being read, and real clinical routes would be reported unreachable.',
     )
   }
-  return { paths, clinical, demoOnly, redirects, redirectTargets }
+  return { paths, clinical, demoOnly, redirects: clin.redirects, redirectTargets: clin.redirectTargets }
 }
 
 /**
- * Character ranges of every `{IS_DEMO && (…)}` block.
- *
- * Paren-matched from the `(`, skipping quoted strings, because an attribute
- * legitimately contains a paren — `aria-label="Tools (opens in a new tab)"` —
- * and counting those would close the region early and leak demo routes into the
- * clinical set. Comments are already blanked by the caller.
+ * ⚠️ `demoOnlyRegions` lived here: it paren-matched every `{IS_DEMO && (…)}`
+ * block in a shared `App.tsx`, skipping quoted strings so an `aria-label` with
+ * a bracket in it could not end a region early. It is deleted with the flag —
+ * there is one route table per app now, and "which surface is this route on" is
+ * answered by which file it is in. Kept as a note because the paren-matching
+ * was subtle and someone may look for it.
  */
-function demoOnlyRegions(src) {
-  const regions = []
-  const re = /\{\s*IS_DEMO\s*&&\s*\(/g
-  let m
-  while ((m = re.exec(src)) !== null) {
-    const open = src.indexOf('(', m.index)
-    let depth = 0
-    let quote = null
-    for (let i = open; i < src.length; i++) {
-      const ch = src[i]
-      if (quote) {
-        if (ch === '\\') i++
-        else if (ch === quote) quote = null
-        continue
-      }
-      if (ch === '"' || ch === "'" || ch === '`') quote = ch
-      else if (ch === '(') depth++
-      else if (ch === ')') {
-        depth--
-        if (depth === 0) { regions.push([open, i]); break }
-      }
-    }
-  }
-  return regions
-}

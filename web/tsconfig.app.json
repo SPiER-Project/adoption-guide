@@ -5,7 +5,12 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client"],
+    // ⚠️ `node` joined the list when the apps moved out. What is left under
+    // web/src is a handful of CROSS-PACKAGE tests, and several of them read
+    // fixtures off disk (`node:fs`, `__dirname`). Before the split those
+    // globals arrived incidentally through the app sources that used to live
+    // here; with only tests left, the project has to ask for them.
+    "types": ["vite/client", "node"],
     "skipLibCheck": true,
 
     /* Bundler mode */

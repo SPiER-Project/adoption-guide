@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      The tab mark. All three files are GENERATED from the brand tokens in
+      src/index.css by web/scripts/build-favicons.mjs and gated by
+      `npm run check:favicons` — a favicon is its own document and cannot
+      read a var(), so the colours are necessarily duplicated. Never edit
+      web/public/favicon.* or apple-touch-icon.png by hand.
+
+      Vite rewrites these root-relative paths with the configured base, so
+      they survive GitHub Pages serving the app under /adoption-guide/.
+    -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" sizes="32x32" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SPiER makes suicide-safer care machine-actionable — Capture validated tools as FHIR, Translate them into a shared risk concept, and Act on them with executable protocols." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <title>The SPiER Project</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

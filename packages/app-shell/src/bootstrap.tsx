@@ -1,9 +1,20 @@
 import { StrictMode } from 'react'
+import type { ComponentType } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import '@spier/ui/foundation.css'
-import App from './App.tsx'
 
+/**
+ * The entry both apps share: SMART bootstrap for the hash router, recovery from
+ * a stale-chunk blank page, and the root render.
+ *
+ * ⚠️ **It is a function here rather than 73 duplicated lines in two `main.tsx`
+ * files.** None of this is surface-specific — the OAuth leg detection and the
+ * `vite:preloadError` guard are facts about how this app is HOSTED, not about
+ * which app it is — and the reload guard in particular is subtle enough
+ * (keyed on the build id, wrong in both directions as a bare flag) that two
+ * copies would drift and only one would be right.
+ */
 // SMART on FHIR bootstrap for the hash router. Both legs of the OAuth dance
 // land on the app base URL with *real* query params — an EHR launch arrives
 // as ?iss=…&launch=… and the authorization server redirects back with
@@ -64,10 +75,12 @@ if (atDefaultRoute) {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <App />
-    </HashRouter>
-  </StrictMode>,
-)
+export function bootstrap(App: ComponentType) {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <App />
+      </HashRouter>
+    </StrictMode>,
+  )
+}

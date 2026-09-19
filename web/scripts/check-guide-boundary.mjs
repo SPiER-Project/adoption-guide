@@ -27,7 +27,7 @@ import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '../..')
-const SRC = appRoot('web/src')
+const SRC = appRoot('apps/guide/src')
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }

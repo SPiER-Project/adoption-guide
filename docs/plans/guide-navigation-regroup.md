@@ -71,7 +71,7 @@ one-section Evaluate group and open an issue for the spike.
 
 ## Scope
 
-### A. `web/src/data/guideSections.ts`
+### A. `apps/guide/src/data/guideSections.ts`
 
 - `GuideGroupId` becomes `'standard' | 'applications' | 'evaluate'` (or the
   chosen labels' ids).

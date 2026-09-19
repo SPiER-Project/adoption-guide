@@ -99,7 +99,7 @@ against planted defects. Phase 2 (per-patient transaction Bundles) is still open
 
 
 2. **SMART mode cannot reach the Population or Dashboard lenses at all.**
-   [`PopulationView.tsx:73`](../../web/src/pages/PopulationView.tsx:73) and
+   [`PopulationView.tsx:73`](../../apps/clinical/src/pages/PopulationView.tsx:73) and
    `MeasureDashboard.tsx` import `localDataSource` **directly**, bypassing the
    `FhirDataSource` abstraction that exists to prevent exactly this. So the two
    lenses that mock patients would be *for* are the two that a connected server

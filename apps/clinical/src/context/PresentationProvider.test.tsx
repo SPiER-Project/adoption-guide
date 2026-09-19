@@ -30,7 +30,10 @@ import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 
 // Stubbed so this stays a test of the selection, not of two whole shells (which
 // would drag in the patient, SMART and tool-config providers).
-vi.mock('../components/AppShell', () => ({ AppShell: () => <div data-testid="app-shell" /> }))
+// ⚠️ The standalone chrome is `LaunchShell`, not `AppShell`. `AppShell` was the
+// adoption guide's browsing chrome and left with it when the apps split; this
+// app's two chromes are the embedded panel and a launched tab.
+vi.mock('../components/LaunchShell', () => ({ LaunchShell: () => <div data-testid="launch-shell" /> }))
 vi.mock('../components/PanelShell', () => ({ PanelShell: () => <div data-testid="panel" /> }))
 
 const { Shell } = await import('../components/Shell')
@@ -63,7 +66,7 @@ describe('PresentationProvider — reading the embed flag', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
   })
 
   it('reads ?embed=1 from the real query string, not the hash', () => {
@@ -83,7 +86,7 @@ describe('PresentationProvider — reading the embed flag', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
   })
 
   it('is NOT fooled by `embed=1` appearing in the hash route', () => {
@@ -96,7 +99,7 @@ describe('PresentationProvider — reading the embed flag', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
   })
 })
 
@@ -116,7 +119,7 @@ describe('PresentationProvider — the phase-2 seam', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
     act(() => screen.getByRole('button').click())
     expect(screen.getByTestId('panel')).toBeDefined()
   })
@@ -128,7 +131,7 @@ describe('PresentationProvider — the phase-2 seam', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
   })
 })
 
@@ -172,7 +175,7 @@ describe('PresentationProvider — surviving the SMART redirect', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
   })
 
   it('lets ?embed=0 leave panel chrome without a new tab', () => {
@@ -183,7 +186,7 @@ describe('PresentationProvider — surviving the SMART redirect', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
     expect(window.sessionStorage.getItem(CHROME_KEY)).toBe('ehr')
   })
 
@@ -194,7 +197,7 @@ describe('PresentationProvider — surviving the SMART redirect', () => {
         <Shell />
       </PresentationProvider>,
     )
-    expect(screen.getByTestId('app-shell')).toBeDefined()
+    expect(screen.getByTestId('launch-shell')).toBeDefined()
   })
 
   it('survives storage being denied, which is the third-party-iframe case', () => {

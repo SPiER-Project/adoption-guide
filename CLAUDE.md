@@ -91,7 +91,30 @@ most of them are a gate that passed while checking nothing.
   `packages/core`, and gated by `scripts/check-worker-csp.mjs`.
 - `packages/demo-population/` — the 14 demo patients + scenario slices (#388).
 - `packages/fhir-artifacts/generated/` — SUSHI's output, gitignored (#392).
-- `web/` — React 19 + TypeScript (strict) + Vite app. Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/` by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from `ig/input/resources/questionnaires/`.
+- `apps/guide/` — the **Adoption Guide**: the case for the pathway, the published
+  artifacts, the Data Dictionary and a playground for every instrument. Served by
+  `services/cds-hooks`. ⚠️ **Carries no patient data and no data source** — its
+  fillers write into an unseeded local store, which is the blank "play with
+  forms" state. The chart experience belongs to the mock EHR.
+- `apps/clinical/` — the **two SMART apps**: the patient chart and the population
+  dashboard. Served by `services/clinical`, framed by the mock EHR. No guide
+  route, no `/ig/`.
+  ⚠️ **Two route tables, and `IS_DEMO` is GONE.** One `App.tsx` used to serve
+  both surfaces with `IS_DEMO ?` folding the other's pages out at build time;
+  `web/src/lib/surface.ts` is deleted. `VITE_SURFACE` survives as a build
+  **target** — which `index.html` vite starts from — read only by
+  `web/vite.config.ts`. `check:tool-view-routes` reads EVERY app's table and
+  holds them to the one tool-view definition.
+- `web/` — ⚠️ **no longer an app.** It is the TOOLING host: `package.json`, the
+  only `node_modules` (#387 — no npm workspaces), every `scripts/check-*` gate,
+  the vite/vitest configs, `public/`, and the two vite shims. What is left under
+  `web/src` is a handful of cross-package tests, which is why it is **not** in
+  `APP_ROOTS` any more — it has no entry module, so the filesystem rule in
+  `web/scripts/lib/app-roots.mjs` reaches that conclusion on its own. Moving the
+  tooling to the repo root is the next step and deliberately not this one.
+  Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/`
+  by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from
+  `ig/input/resources/questionnaires/`.
 - `docs/` — project/reference docs. `scripts/` — repo-level helper scripts.
 
 ## Verification commands
@@ -522,7 +545,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   is `AppShell` / `.app-shell__*`. ⚠️ `.ehr-rubric`, `context-ehr-patient` and the
   `ehr` strings under `services/mock-ehr/` deliberately keep the prefix — they
   really are about EHR vendors, SMART scopes and host internals.
-- **Routing:** `HashRouter` (see `web/src/main.tsx`) — GitHub Pages compatible.
+- **Routing:** `HashRouter` (see `apps/guide/src/main.tsx`) — GitHub Pages compatible.
 - **The guide does not configure.** Settled 2026-09-15: the Adoption Guide's
   "Configure" group is gone, and with it the last guide section that wrote state
   another surface read. Tool Configuration lives at **`/settings`**, a page of
@@ -548,7 +571,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   row per catalogued instrument entirely from the catalog, so it is a view of
   Tools rather than a peer of it.
   ⚠️ **`/settings` still does nothing in panel chrome**, and that is load-bearing
-  rather than unfinished — `web/src/lib/toolEnablement.ts` has the four reasons,
+  rather than unfinished — `apps/clinical/src/lib/toolEnablement.ts` has the four reasons,
   one of which this move retired. Read it before wiring the preset into the panel.
 - **The guide explains and hosts; the mock EHR holds and launches.** `/patient/chart`
   and `/population` are **redirects to guide pages that explain the two SMART
@@ -608,7 +631,8 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   premise does not hold for it.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
 - **Two build surfaces, one route table — and the flag now folds BOTH ways.**
-  `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`) builds the two SMART apps
+  `VITE_SURFACE=clinical` (a build TARGET now, read only by `web/vite.config.ts`;
+  the old `surface.ts` module and its `IS_DEMO` are deleted) builds the two SMART apps
   with no guide route registered; `demo` builds the Adoption Guide with **no
   SMART-app page** registered. A demo-only page is declared
   `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface` **inline** (a helper would

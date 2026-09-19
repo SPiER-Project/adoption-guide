@@ -112,7 +112,7 @@ correctly ignores.)
 
 | File | Unreferenced | Of | What it is |
 |---|---|---|---|
-| [`web/src/App.css`](../../web/src/App.css) | 92 | 135 | Screenings tab, tool-stage groups, available-tool grid, result badges, the old CarePlan tab, the old Encounters timeline, `.tools-grid`/`.tool-card`, `.btn-primary`/`.btn-secondary` — whole features whose TSX is gone |
+| [`packages/app-shell/src/css/App.css`](../../packages/app-shell/src/css/App.css) | 92 | 135 | Screenings tab, tool-stage groups, available-tool grid, result badges, the old CarePlan tab, the old Encounters timeline, `.tools-grid`/`.tool-card`, `.btn-primary`/`.btn-secondary` — whole features whose TSX is gone |
 | `web/src/css/Dashboard.css` (now deleted) | 35 | 45 | Lines 1–332: demo-scenario banner, risk-alert banner, dashboard-widget system. Only `.chart-section*` (334–397) is live, and it belongs to `ChartSectionHeader.tsx` |
 | `PatientChart.css` | 8 | 125 | `.risk-summary` — a second, dead copy of `.risk-pill` |
 | six others | 1–5 each | | |
@@ -284,7 +284,7 @@ a split today touches: the exact-match `redirect_uri` list
 (`services/mock-ehr/src/smart.ts:83-88`), `MOCK_PANEL_BASE_URL`, the CDS
 endpoint derivation that deliberately ties the CDS host to the panel host
 (`services/mock-ehr/src/app.ts:1035-1038`), the two hardcoded absolute URLs in
-`packages/core/src/lib/cdsHooks/endpoint.ts` and `web/src/data/surfaces.ts`,
+`packages/core/src/lib/cdsHooks/endpoint.ts` and `apps/guide/src/data/surfaces.ts`,
 `check:catalog`'s assertion that the landing route is a page in `App.tsx`,
 and the origin-scoped keys that stop crossing (`spier.toolConfig.v2`, the
 standalone FHIRcast `BroadcastChannel`).

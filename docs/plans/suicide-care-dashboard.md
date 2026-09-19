@@ -7,9 +7,9 @@ Requirements source:
 [`docs/reference/suicide-care-dashboard-spec.md`](../reference/suicide-care-dashboard-spec.md)
 — read that first; this doc assumes its panel numbering.
 
-Primary surfaces affected: [`web/src/pages/PopulationView.tsx`](../../web/src/pages/PopulationView.tsx),
+Primary surfaces affected: [`apps/clinical/src/pages/PopulationView.tsx`](../../apps/clinical/src/pages/PopulationView.tsx),
 [`packages/core/src/lib/registry.ts`](../../packages/core/src/lib/registry.ts),
-[`web/src/pages/MeasureDashboard.tsx`](../../web/src/pages/MeasureDashboard.tsx),
+[`apps/clinical/src/pages/MeasureDashboard.tsx`](../../apps/clinical/src/pages/MeasureDashboard.tsx),
 [`ig/input/fsh/concept-layer.fsh`](../../ig/input/fsh/concept-layer.fsh),
 [`ig/input/fsh/measure-and-share.fsh`](../../ig/input/fsh/measure-and-share.fsh).
 
@@ -215,7 +215,7 @@ options** — the census exists and is thrown away.
 
 Red/yellow, grouped by patient, each row linking to that chart.
 
-The insight worth building on: [`measureGaps.ts`](../../web/src/lib/measureGaps.ts)
+The insight worth building on: [`measureGaps.ts`](../../apps/clinical/src/lib/measureGaps.ts)
 already computes *which measure a patient failed and why*, keyed by `Measure.id`,
 and `MeasureDashboard` renders it **per measure**. The deck wants the same
 information **per patient**. Same engine, transposed — not a new rules engine.

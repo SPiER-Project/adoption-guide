@@ -6,6 +6,8 @@
     { "path": "../packages/core" },
     { "path": "../packages/ui" },
     { "path": "../packages/tool-views" },
-    { "path": "../packages/app-shell" }
+    { "path": "../packages/app-shell" },
+    { "path": "../apps/guide" },
+    { "path": "../apps/clinical" }
   ]
 }

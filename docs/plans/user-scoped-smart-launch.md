@@ -77,13 +77,13 @@ for, not proof SMART scopes work in general.
    a user-scoped, no-patient-in-context grant" path.
 2. The guide never *initiates* a SMART flow — `packages/app-shell/src/components/SmartLaunch.tsx`
    only *responds* to being externally launched (an `iss`+`launch` pair
-   arriving in the real query string, handled in `web/src/main.tsx:57-66`, which
+   arriving in the real query string, handled in `apps/guide/src/main.tsx:57-66`, which
    requires *both* params — an `iss`-only arrival does not even route to
    `#/launch` today). There is no "connect to the mock EHR" entry point
    anywhere in the guide.
 3. `FhirDataSource` (`packages/core/src/lib/dataSource/types.ts`) has no cohort
    read — `getSlice` is per-patient. `useRegistrySlices`
-   (`web/src/hooks/useRegistrySlices.ts:88-145`) does N per-patient calls and
+   (`apps/clinical/src/hooks/useRegistrySlices.ts:88-145`) does N per-patient calls and
    reports `scope: 'in-context'` when SMART is active; there is no
    `scope: 'registry'` path.
 4. Mock EHR discovery (`services/mock-ehr/src/smart.ts:135-162`) advertises
@@ -101,7 +101,7 @@ the code 2026-09-09:**
    `packages/app-shell/src/components/SmartRedirect.tsx:80` defaults to it, and the mock EHR's
    `POST /_admin/launch` (`services/mock-ehr/src/app.ts:709`) points the browser
    at `#/launch`, which lands there.
-2. `web/src/components/Shell.tsx` switches `AppShell` / `PanelShell` off
+2. `apps/clinical/src/components/Shell.tsx` switches `AppShell` / `PanelShell` off
    `chromeMode` over **one** route table — deliberately, so "every route is
    reachable in both chromes by construction". A URL that must be prose in one
    chrome and an app in the other breaks that invariant, which is why the fix is
@@ -118,7 +118,7 @@ the code 2026-09-09:**
    These are the *filler* screens returning to the chart, so they follow the
    chart to its new address.
 5. `web/scripts/check-guide-boundary.mjs` derives the guide's page set from
-   `web/src/data/guideSections.ts` **and** `App.tsx`'s route table, then walks it
+   `apps/guide/src/data/guideSections.ts` **and** `App.tsx`'s route table, then walks it
    transitively forbidding `@spier/demo-population`, either concrete data source,
    and `useRegistrySlices`. **Declaring the two explainers as guide sections
    makes "these pages hold no patient data" gate-backed for free** — this is the
@@ -126,7 +126,7 @@ the code 2026-09-09:**
    than hand-rolling two pages. Note the gate regexes
    `<Route path="x" element={<Comp />}>`, so the new sections must be declared in
    exactly that form.
-6. `web/src/pages/PopulationView.tsx:4` imports `resetLocalDemoData`, and
+6. `apps/clinical/src/pages/PopulationView.tsx:4` imports `resetLocalDemoData`, and
    `packages/app-shell/src/context/PatientProvider.tsx:145,171` read `POPULATION_SCENARIOS`
    walkthroughs and `POPULATION_PATIENTS`. The demo walkthroughs are
    fixture-driven narration about specific patients and have **no home** once the
@@ -255,7 +255,7 @@ broken link in a diff nobody can read.
    change is about — `/population` and `/patient/chart` — which become the
    explainers in step 4 rather than redirecting to the app.
 4. **Declare the two explainers as guide sections** in
-   `web/src/data/guideSections.ts` (`learn` group), with routes in `App.tsx` in
+   `apps/guide/src/data/guideSections.ts` (`learn` group), with routes in `App.tsx` in
    the exact `<Route path="x" element={<Comp />}>` form the boundary gate
    regexes (fact 5), and make `/population` and `/patient/chart` redirect to
    them. They get the sidebar entry, the pager, the group heading and the
@@ -349,7 +349,7 @@ failed launch. Also note the iframe is *replaced*, not relabelled — so
 button, and #401's "the frame's label changes" checkbox is superseded.
 
 **Steps:**
-1. ~~`web/src/main.tsx:57-66`'s routing (`iss && launch` → `#/launch`) is fine for
+1. ~~`apps/guide/src/main.tsx:57-66`'s routing (`iss && launch` → `#/launch`) is fine for
    the existing EHR-launch path — leave it. Add a new guide-side entry point
    (a link/button, likely near where `Sidebar.tsx:55` currently just links out
    to the mock EHR) that navigates the browser to the mock EHR's

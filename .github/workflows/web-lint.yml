@@ -16,17 +16,26 @@ name: Web — lint, typecheck & build
 # but `vite build` does not typecheck and does not run tests, so type errors and
 # failing tests in the production Worker reached deploy undetected.
 
+# ⚠️ **`apps/**` and `packages/**` are in the trigger list, and leaving them out
+# is a silent failure, not a loud one.** Every gate here reads the two app trees
+# and the six packages; before the apps/ split they all lived under `web/`, so
+# one glob covered them. A workflow that does not trigger reports NOTHING — it
+# does not report red — so an apps-only PR would have merged unverified.
 on:
   push:
     branches:
       - main
     paths:
+      - 'apps/**'
+      - 'packages/**'
       - 'web/**'
       - 'services/**'
       - 'ig/**'
       - '.github/workflows/web-lint.yml'
   pull_request:
     paths:
+      - 'apps/**'
+      - 'packages/**'
       - 'web/**'
       - 'services/**'
       - 'ig/**'

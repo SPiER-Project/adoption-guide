@@ -17,8 +17,8 @@ Primary surfaces affected:
 [`ig/input/fsh/`](../../ig/input/fsh/) (new pathway PlanDefinition),
 [`packages/core/src/lib/observationMappers/cssrsScreener.ts`](../../packages/core/src/lib/observationMappers/cssrsScreener.ts)
 (tier-ladder alignment),
-[`web/src/data/guideSections.ts`](../../web/src/data/guideSections.ts) and
-[`web/src/pages/PatientJourney.tsx`](../../web/src/pages/PatientJourney.tsx)
+[`apps/guide/src/data/guideSections.ts`](../../apps/guide/src/data/guideSections.ts) and
+[`apps/guide/src/pages/PatientJourney.tsx`](../../apps/guide/src/pages/PatientJourney.tsx)
 (guide restructure), a new pathway renderer in `packages/core`, and
 [`packages/core/src/lib/cdsHooks/cards.ts`](../../packages/core/src/lib/cdsHooks/cards.ts)
 (clinician-guidance cards).
@@ -305,7 +305,7 @@ the reassessment schedule already publishes cleanly.
 
 ### Navigation
 
-[`guideSections.ts`](../../web/src/data/guideSections.ts) Learn group becomes:
+[`guideSections.ts`](../../apps/guide/src/data/guideSections.ts) Learn group becomes:
 
 | path | label | content |
 |---|---|---|
@@ -341,7 +341,7 @@ layout). `check:core-boundary` applies — no React, no DOM.
 
 ### The page
 
-New `web/src/pages/CarePathway.tsx` + `packages/app-shell/src/css/CarePathway.css`:
+New `apps/guide/src/pages/CarePathway.tsx` + `packages/app-shell/src/css/CarePathway.css`:
 
 - **A guide sub-page, not a lens**: it inherits `AdoptionGuide`'s header and
   must **not** render `PageHeader` (`check:template` gates the reverse

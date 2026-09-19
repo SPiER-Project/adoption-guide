@@ -30,14 +30,18 @@
  * guide sub-page its own `<h2>`, hand-rolling a `page-header__title` outside
  * PageHeader.tsx, and adding `<PageHeader>` to a page not in LENSES.
  */
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { STYLE_ROOTS, styleRootFloors, walkExt, relRepo } from './lib/style-roots.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
-import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { APP_ROOTS, appRootFloors } from './lib/app-roots.mjs'
 
-const PAGES_DIR = join(appRoot('web/src'), 'pages')
+// ⚠️ EVERY app's pages, not one app's. There are two trees now, and a gate
+// that reads `apps/guide/src/pages` alone would report a clean template over
+// half the product — the exact failure app-roots.mjs exists to prevent, one
+// level up from the floors.
+const PAGES_DIRS = APP_ROOTS.map((r) => join(r.dir, 'pages')).filter((d) => existsSync(d))
 const HEADER_TSX = 'packages/ui/src/PageHeader.tsx'
 // ⚠️ Repo-relative since 2026-09-19. The CSS walk spans two roots now
 // (web/src and packages/ui/src), so a name relative to one of them would match
@@ -111,11 +115,21 @@ const fail = msg => errors.push(msg)
 
 // ── Source scraping ────────────────────────────────────────────────────────────
 
-const pageFiles = readdirSync(PAGES_DIR)
-  .filter(f => f.endsWith('.tsx') && !f.endsWith('.test.tsx'))
-  .sort()
+// Each entry carries its directory, so a message can name the app a page is in
+// — two trees can each hold a `PatientChart.tsx` and a bare basename would be
+// ambiguous in exactly the place someone is trying to find the file.
+const pageFiles = PAGES_DIRS.flatMap((dir) =>
+  readdirSync(dir)
+    .filter((f) => f.endsWith('.tsx') && !f.endsWith('.test.tsx'))
+    .sort()
+    .map((file) => ({ file, dir })),
+)
 
-if (pageFiles.length === 0) fail('no page modules found under src/pages — nothing was checked')
+if (pageFiles.length === 0) fail('no page modules found under any app\'s src/pages — nothing was checked')
+for (const dir of PAGES_DIRS) {
+  const n = readdirSync(dir).filter((f) => f.endsWith('.tsx') && !f.endsWith('.test.tsx')).length
+  if (n === 0) fail(`${relRepo(dir)} holds no page modules — this gate would read the other app only`)
+}
 
 /**
  * The classes on the root element of the component this file is named for,
@@ -268,8 +282,8 @@ function checkSharedRules(file, src) {
   }
 }
 
-for (const file of pageFiles) {
-  const src = readFileSync(join(PAGES_DIR, file), 'utf8')
+for (const { file, dir } of pageFiles) {
+  const src = readFileSync(join(dir, file), 'utf8')
   checkSharedRules(file, src)
 
   // RULE 3 — exactly the declared lenses render a header.
@@ -293,7 +307,7 @@ for (const file of pageFiles) {
 }
 
 for (const file of Object.keys(LENSES)) {
-  if (!pageFiles.includes(file)) fail(`LENSES names ${file}, which no longer exists under src/pages`)
+  if (!pageFiles.some((p) => p.file === file)) fail(`LENSES names ${file}, which no longer exists under any app's src/pages`)
 }
 
 // ── The form views ────────────────────────────────────────────────────────────
