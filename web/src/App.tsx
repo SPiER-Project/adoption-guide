@@ -25,7 +25,7 @@ import { Shell } from './components/Shell'
 // Cross-tab patient-context sync (simulated FHIRcast). Eager + always mounted
 // so a chart tab is listening regardless of which lens the user loaded first.
 import { FhircastListener } from '@spier/app-shell/components/FhircastListener'
-import { IS_DEMO } from './lib/surface'
+import { IS_DEMO, IS_CLINICAL } from './lib/surface'
 
 // Every instrument filler and workflow recorder, defined ONCE and rendered by
 // two route families: the clinician's /patient/* paths below, and the guide's
@@ -55,23 +55,23 @@ const AdoptionGuide = IS_DEMO ? lazy(() => import('./pages/AdoptionGuide').then(
 const CarePathway = IS_DEMO ? lazy(() => import('./pages/CarePathway').then(m => ({ default: m.CarePathway }))) : NotOnThisSurface
 const PatientJourney = IS_DEMO ? lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney }))) : NotOnThisSurface
 const DataDictionary = IS_DEMO ? lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary }))) : NotOnThisSurface
-const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
+const MeasureDashboard = IS_CLINICAL ? lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard }))) : NotOnThisSurface
 const CdsServiceGuide = IS_DEMO ? lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide }))) : NotOnThisSurface
 const ProviderAppGuide = IS_DEMO ? lazy(() => import('./pages/ProviderAppGuide').then(m => ({ default: m.ProviderAppGuide }))) : NotOnThisSurface
 const PopulationDashboardGuide = IS_DEMO ? lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide }))) : NotOnThisSurface
 const EhrAdoptionRubric = IS_DEMO ? lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric }))) : NotOnThisSurface
 const AdoptionReadiness = IS_DEMO ? lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness }))) : NotOnThisSurface
 const ToolTryIt = IS_DEMO ? lazy(() => import('./pages/ToolTryIt').then(m => ({ default: m.ToolTryIt }))) : NotOnThisSurface
-const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
-const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
-const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
+const ToolConfiguration = IS_CLINICAL ? lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration }))) : NotOnThisSurface
+const PatientChart = IS_CLINICAL ? lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart }))) : NotOnThisSurface
+const PathwayProtocol = IS_CLINICAL ? lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol }))) : NotOnThisSurface
 // Both surfaces: this is the SMART app guiding a clinician through a stage,
 // not guide material. The DIFFERENCE between the surfaces is what a
 // deployment has enabled, which the page reads separately from what the
 // pathway names — see pages/PathwayStage.tsx.
-const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ default: m.PathwayStage })))
-const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
-const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
+const PathwayStage = IS_CLINICAL ? lazy(() => import('./pages/PathwayStage').then(m => ({ default: m.PathwayStage }))) : NotOnThisSurface
+const PopulationView = IS_CLINICAL ? lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView }))) : NotOnThisSurface
+const PopulationSummaryEmbed = IS_CLINICAL ? lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed }))) : NotOnThisSurface
 
 function RouteFallback() {
   return (

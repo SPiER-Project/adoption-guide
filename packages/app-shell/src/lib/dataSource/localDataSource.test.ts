@@ -5,7 +5,14 @@
 // documented way to opt in, same as hooks/useScrollToHash.test.tsx.
 import { describe, it, expect, beforeEach } from 'vitest'
 import { LocalDataSource, resetLocalDemoData } from './localDataSource'
-import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import { POPULATION_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
+
+/**
+ * ⚠️ The seed corpus is INJECTED now — `LocalDataSource` no longer imports the
+ * fixtures, so neither app ships them. This suite is about the seeding
+ * machinery itself, so it supplies the real population deliberately.
+ */
+const DEMO_SEED = { patients: POPULATION_PATIENTS, scenarios: POPULATION_SCENARIOS }
 import { stageForArtifact } from '@spier/core/lib/patientPathway'
 import type { ProcedureResource, StoredResponse } from '@spier/core/types/fhir'
 
@@ -53,7 +60,7 @@ beforeEach(() => {
 
 describe('seeding a fresh browser', () => {
   it('seeds from the scenario and records a fingerprint', () => {
-    const source = new LocalDataSource()
+    const source = new LocalDataSource(DEMO_SEED)
     const slice = source.getSliceSync(PATIENT)
 
     expect(slice.responses.length).toBe(POPULATION_SCENARIOS[PATIENT].responses.length)
@@ -61,12 +68,12 @@ describe('seeding a fresh browser', () => {
   })
 
   it('does not reseed a slice whose fixture is unchanged', () => {
-    new LocalDataSource().getSliceSync(PATIENT)
+    new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
     const firstFingerprint = readSeeds()[PATIENT]
 
     // A second visit: same fixtures, so the recorded fingerprint still matches
     // and the stored slice is returned untouched.
-    const second = new LocalDataSource()
+    const second = new LocalDataSource(DEMO_SEED)
     second.getSliceSync(PATIENT)
     expect(readSeeds()[PATIENT]).toBe(firstFingerprint)
   })
@@ -74,14 +81,14 @@ describe('seeding a fresh browser', () => {
 
 describe('an untouched slice refreshes when its fixture changes', () => {
   it('reseeds and re-records the new fingerprint', () => {
-    new LocalDataSource().getSliceSync(PATIENT)
+    new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
     // Pretend the stored slice came from an older build of the fixtures.
     const store = readStore()
     store[PATIENT] = { ...store[PATIENT], responses: [] }
     window.localStorage.setItem(STORE_KEY, JSON.stringify(store))
     staleTheSeedRecord()
 
-    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const slice = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
 
     // Refreshed from the shipped scenario, not the stale copy.
     expect(slice.responses.length).toBe(POPULATION_SCENARIOS[PATIENT].responses.length)
@@ -91,7 +98,7 @@ describe('an untouched slice refreshes when its fixture changes', () => {
 
 describe('a slice the user has written to is never overwritten', () => {
   it('drops the seed record on write, so a later fixture change leaves it alone', async () => {
-    const source = new LocalDataSource()
+    const source = new LocalDataSource(DEMO_SEED)
     source.getSliceSync(PATIENT)
     expect(readSeeds()[PATIENT]).toBeTruthy()
 
@@ -102,7 +109,7 @@ describe('a slice the user has written to is never overwritten', () => {
     // A fixture refresh arrives; their submission must survive it.
     staleTheSeedRecord()
     window.localStorage.setItem(SEEDS_KEY, JSON.stringify({})) // no record at all
-    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const slice = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
     expect(slice.responses.some(r => r.id === 'user-authored-1')).toBe(true)
   })
 
@@ -116,7 +123,7 @@ describe('a slice the user has written to is never overwritten', () => {
       JSON.stringify({ [PATIENT]: { ...POPULATION_SCENARIOS[PATIENT], responses: [userResponse] } }),
     )
 
-    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const slice = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
 
     expect(slice.responses).toHaveLength(1)
     expect(slice.responses[0].id).toBe('user-authored-1')
@@ -126,7 +133,7 @@ describe('a slice the user has written to is never overwritten', () => {
 
 describe('resetLocalDemoData', () => {
   it('clears the store, the seed record, and the legacy keys', () => {
-    const source = new LocalDataSource()
+    const source = new LocalDataSource(DEMO_SEED)
     source.getSliceSync(PATIENT)
     // A legacy key left behind would let migrateLegacyStorage resurrect
     // pre-slice data on the next construct — a "reset" that restores old state.
@@ -140,14 +147,14 @@ describe('resetLocalDemoData', () => {
   })
 
   it('leaves the next construct seeding fresh from the shipped scenarios', () => {
-    const source = new LocalDataSource()
+    const source = new LocalDataSource(DEMO_SEED)
     source.getSliceSync(PATIENT)
     const store = readStore()
     store[PATIENT] = { ...store[PATIENT], responses: [userResponse] }
     window.localStorage.setItem(STORE_KEY, JSON.stringify(store))
 
     resetLocalDemoData()
-    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const slice = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
 
     expect(slice.responses.some(r => r.id === 'user-authored-1')).toBe(false)
     expect(slice.responses.length).toBe(POPULATION_SCENARIOS[PATIENT].responses.length)
@@ -206,7 +213,7 @@ describe('migrating the pre-#413 canonical', () => {
   it('rewrites the canonical in a slice the user owns', () => {
     seedUserOwnedSlice()
 
-    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const slice = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
     const procedure = slice.procedures![0] as unknown as {
       meta: { tag: { system: string }[]; profile: string[] }
       category: { coding: { system: string }[] }
@@ -225,7 +232,7 @@ describe('migrating the pre-#413 canonical', () => {
   it('restores the stage resolution the stale canonical had silently broken', () => {
     seedUserOwnedSlice()
 
-    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const slice = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
 
     // The point of the rewrite: this is what went `undefined` before it, taking
     // the Procedure out of its pathway stage and out of the measures scored on it.
@@ -235,7 +242,7 @@ describe('migrating the pre-#413 canonical', () => {
   it('keeps the user\'s own work while rewriting around it', () => {
     seedUserOwnedSlice()
 
-    const slice = new LocalDataSource().getSliceSync(PATIENT)
+    const slice = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
 
     expect(slice.responses).toHaveLength(1)
     expect(slice.responses[0].id).toBe('user-authored-1')
@@ -254,7 +261,7 @@ describe('migrating the pre-#413 canonical', () => {
       JSON.stringify([{ resourceType: 'Observation', meta: { tag: [{ system: OLD_TAG }] } }]),
     )
 
-    new LocalDataSource()
+    new LocalDataSource(DEMO_SEED)
 
     expect(window.localStorage.getItem('spier-blank-slice')).toContain(NEW_TAG)
     expect(window.localStorage.getItem('spier-blank-slice')).not.toContain(OLD_TAG)
@@ -267,17 +274,17 @@ describe('migrating the pre-#413 canonical', () => {
     // A migration that ran after the constructor's reads would return a stale
     // slice for this page load and only look right on the NEXT one — which is
     // exactly the bug being fixed, one reload later.
-    const first = new LocalDataSource().getSliceSync(PATIENT)
+    const first = new LocalDataSource(DEMO_SEED).getSliceSync(PATIENT)
 
     expect(JSON.stringify(first)).not.toContain('http://spier.org/')
   })
 
   it('is idempotent, and leaves an already-current store byte-identical', () => {
     seedUserOwnedSlice()
-    new LocalDataSource()
+    new LocalDataSource(DEMO_SEED)
     const afterFirst = window.localStorage.getItem(STORE_KEY)!
 
-    new LocalDataSource()
+    new LocalDataSource(DEMO_SEED)
 
     expect(window.localStorage.getItem(STORE_KEY)).toBe(afterFirst)
     expect(afterFirst).not.toContain('http://spier.org/')
@@ -289,7 +296,7 @@ describe('migrating the pre-#413 canonical', () => {
     // leaving it, so it is left.
     window.localStorage.setItem('spier-blank-slice', 'not json http://spier.org/CodeSystem/x')
 
-    new LocalDataSource()
+    new LocalDataSource(DEMO_SEED)
 
     expect(window.localStorage.getItem('spier-blank-slice')).toBe(
       'not json http://spier.org/CodeSystem/x',

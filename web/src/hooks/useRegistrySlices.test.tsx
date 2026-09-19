@@ -29,6 +29,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
+// ⚠️ Injected explicitly: neither app ships a roster any more, so the offline
+// registry path only has one if a caller supplies it. This suite is that path.
+import { POPULATION_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
+const DEMO_SEED = { patients: POPULATION_PATIENTS, scenarios: POPULATION_SCENARIOS }
 import { SmartContext } from '@spier/app-shell/context/SmartContext'
 import { LocalDataSource } from '@spier/app-shell/lib/dataSource/localDataSource'
 import { useRegistrySlices } from './useRegistrySlices'
@@ -65,7 +69,7 @@ function renderProbe(source: FhirDataSource, smart: Partial<typeof SMART_STUB> =
   return render(
     <MemoryRouter initialEntries={['/population']}>
       <SmartContext.Provider value={{ ...SMART_STUB, ...smart } as never}>
-        <PatientProvider dataSource={source}>
+        <PatientProvider dataSource={source} populationPatients={[...POPULATION_PATIENTS]}>
           <Probe />
         </PatientProvider>
       </SmartContext.Provider>
@@ -91,7 +95,7 @@ describe('useRegistrySlices — the population read goes through the seam', () =
   afterEach(() => cleanup())
 
   it('hydrates the whole registry from a synchronous source on first paint', async () => {
-    renderProbe(new LocalDataSource())
+    renderProbe(new LocalDataSource(DEMO_SEED))
     // No `waitFor`: a sync source must be populated on the first render, which is
     // the behaviour the direct `localDataSource` import used to provide.
     expect(screen.getByTestId('scope').textContent).toBe('registry')
@@ -120,7 +124,7 @@ describe('useRegistrySlices — the population read goes through the seam', () =
       client: { patient: { id: 'patient-011' } },
       patient: { id: 'patient-011', name: [{ family: 'Alvarez', given: ['Maria'] }] },
     }
-    renderProbe(new LocalDataSource(), smart as never)
+    renderProbe(new LocalDataSource(DEMO_SEED), smart as never)
     // ⚠️ **Wait on the COUNT, not on `scope`.** `scope` is derived in a `useMemo`,
     // so it reads 'in-context' on the very first render — before the effect that
     // loads the slice has run. Waiting on it therefore waits for nothing, and the

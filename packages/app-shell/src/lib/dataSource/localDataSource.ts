@@ -17,7 +17,6 @@
  * slice, and re-seeding when the fixture behind an UNTOUCHED slice changes
  * (#301 — see `spier-scenario-seeds` below).
  */
-import { POPULATION_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { DerivedArtifacts, FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type { RegistryPatient } from '@spier/core/lib/registry'
 import type {
@@ -271,9 +270,33 @@ export class LocalDataSource implements FhirDataSource {
   private store: PatientStore
   private blankSlice: PatientSlice
   private seeds: SeedRecord
+  private readonly patients: readonly RegistryPatient[]
+  private readonly scenarios: Readonly<Record<string, PatientSlice>>
   private readonly listeners = new Set<() => void>()
 
-  constructor() {
+  /**
+   * ⚠️ **The seed corpus is INJECTED, and the default is empty.**
+   *
+   * This class used to import `@spier/demo-population` directly, which put the
+   * 14 synthetic patients into every bundle that reached a data source — and
+   * `PatientProvider` reaches one unconditionally, so that meant the adoption
+   * guide too. The clinical build only avoided it through a vite alias to an
+   * empty shim, i.e. a build-surface concept doing a dependency's job.
+   *
+   * Nothing in either app injects a corpus now: the guide's instrument fillers
+   * want exactly the unseeded store (the blank "play with forms" state), and
+   * the clinical app reads its cohort from the server. The parameter stays
+   * because the seeding machinery is real and its tests exercise it — and
+   * because a future offline demo would inject rather than import.
+   */
+  constructor(
+    seed: {
+      patients?: readonly RegistryPatient[]
+      scenarios?: Readonly<Record<string, PatientSlice>>
+    } = {},
+  ) {
+    this.patients = seed.patients ?? []
+    this.scenarios = seed.scenarios ?? {}
     // BEFORE any read: the reads below hand slices straight to the app, so a
     // slice migrated afterwards would still be stale for this page load.
     migrateCanonicalUrls()
@@ -316,7 +339,7 @@ export class LocalDataSource implements FhirDataSource {
   private resolveSlice(patientId: string | null): PatientSlice {
     if (patientId === null) return this.blankSlice
     const existing = this.store[patientId]
-    const scenario = POPULATION_SCENARIOS[patientId]
+    const scenario = this.scenarios[patientId]
 
     if (!existing) {
       if (!scenario) return EMPTY_SLICE
@@ -342,7 +365,7 @@ export class LocalDataSource implements FhirDataSource {
    * returns `null` precisely because a chart token cannot answer this.
    */
   async listCohort(): Promise<RegistryPatient[]> {
-    return POPULATION_PATIENTS
+    return [...this.patients]
   }
 
   getSliceSync(patientId: string | null): PatientSlice {

@@ -83,19 +83,19 @@ export default defineConfig({
         // reshape (#388). Not an npm workspace yet (#387), so it resolves by
         // declared alias. Anchored exact + prefix pair, for the same reason the
         // shims above are anchored: a bare string `find` matches by prefix.
+        //
+        // ⚠️ **It no longer branches on the build surface, because no app module
+        // imports it (2026-09-19).** It used to resolve to an empty shim on the
+        // clinical build, which was a build-surface flag doing a dependency's
+        // job: `LocalDataSource` imported the fixtures outright, and
+        // `PatientProvider` reaches a data source unconditionally, so the guide
+        // compiled in all 14 synthetic patients too. The seed corpus is injected
+        // now and both apps inject nothing. This entry survives for the TESTS,
+        // which legitimately use the fixtures, and for packages/demo-population's
+        // real consumers — services/{cds-hooks,mock-ehr}.
         find: /^@spier\/demo-population$/,
         replacement: fileURLToPath(
-          // The build surface (src/lib/surface.ts): on `clinical` the demo
-          // population resolves to an empty shim, so the scenario glob is never
-          // compiled in. One alias entry, two possible targets — the shim
-          // gates' alias reader (scripts/lib/vite-alias.mjs) scans the pattern
-          // list and must keep seeing exactly one entry for this package.
-          new URL(
-            process.env.VITE_SURFACE === 'clinical'
-              ? './src/shims/demo-population.clinical.ts'
-              : '../packages/demo-population/src/index.ts',
-            import.meta.url,
-          ),
+          new URL('../packages/demo-population/src/index.ts', import.meta.url),
         ),
       },
       {
