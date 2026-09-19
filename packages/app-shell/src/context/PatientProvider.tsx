@@ -1,6 +1,17 @@
 import React, { useMemo, useCallback, useSyncExternalStore } from 'react'
 import { formatPatientDisplay } from '@spier/tool-views/data/demoPatient'
 import { useSmart } from './SmartContext'
+
+/**
+ * ⚠️ A module-level constant, not a fresh `[]` — this goes into the context
+ * value, and a new array each render would invalidate every consumer's memo.
+ *
+ * It is empty because neither app carries a demo population any more: the
+ * guide's fillers want the blank state and the clinical app reads its cohort
+ * from the server (`useRegistrySlices` takes the `servedCohort` path inside a
+ * SMART session). See LocalDataSource's constructor.
+ */
+const EMPTY_POPULATION: RegistryPatient[] = []
 import {
   PatientContext,
   type PatientContextType,
@@ -9,11 +20,7 @@ import {
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
 import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
-import {
-  POPULATION_BY_ID,
-  POPULATION_PATIENTS,
-  POPULATION_SCENARIOS,
-} from '@spier/demo-population'
+import type { RegistryPatient } from '@spier/core/lib/registry'
 import { useActivePatientId } from '../hooks/useActivePatientId'
 import { usePatientOpenBroadcast } from '../hooks/usePatientOpenBroadcast'
 import { usePatientSlice } from '../hooks/usePatientSlice'
@@ -71,15 +78,34 @@ const BLANK_PATIENT = {
 export function PatientProvider({
   children,
   dataSource = localDataSource,
+  populationPatients = EMPTY_POPULATION,
 }: {
   children: React.ReactNode
   /** Injectable for tests and the future SMART-backed source; defaults to the
    *  shared localStorage/scenario source. */
   dataSource?: FhirDataSource
+  /**
+   * The locally-known roster, for the offline path in `useRegistrySlices`.
+   *
+   * ⚠️ **Defaults to EMPTY, and neither app passes one.** It used to be
+   * `POPULATION_PATIENTS` imported straight from `@spier/demo-population`,
+   * which put 14 synthetic patients into every bundle reaching this provider —
+   * the guide's included. Injectable rather than deleted because the offline
+   * registry path is real behaviour with real tests; what changed is that
+   * nothing in production injects a roster.
+   */
+  populationPatients?: RegistryPatient[]
 }) {
   const { patient: smartPatient, client: smartClient } = useSmart()
 
-  const activePatientId = useActivePatientId()
+  // The roster doubles as the URL allowlist: an id is servable locally exactly
+  // when this deployment was given that patient. Empty by default, so a bare
+  // build refuses every id — see the hook's own note.
+  const isAllowedPatientId = useMemo(() => {
+    const ids = new Set(populationPatients.map((p) => p.id))
+    return (id: string) => ids.has(id)
+  }, [populationPatients])
+  const activePatientId = useActivePatientId(isAllowedPatientId)
 
   // SMART patient (if connected) wins over population/blank — both for the
   // Patient resource shown in the banner and for where chart data comes from.
@@ -151,7 +177,7 @@ export function PatientProvider({
   })
 
   const populationPatient =
-    activePatientId !== null ? POPULATION_BY_ID.get(activePatientId) ?? null : null
+    null
 
   // Read-only scenario walkthrough timeline. Sourced from the static scenario,
   // not the mutable store, so submitted assessments never overwrite it.
@@ -159,7 +185,7 @@ export function PatientProvider({
   const walkthrough = useMemo<ScenarioEncounter[]>(
     () =>
       !isSmartConnected && activePatientId !== null
-        ? POPULATION_SCENARIOS[activePatientId]?.walkthrough ?? []
+        ? []
         : [],
     [isSmartConnected, activePatientId],
   )
@@ -186,7 +212,7 @@ export function PatientProvider({
       isSmartSession,
       activePatientId,
       populationPatient,
-      populationPatients: POPULATION_PATIENTS,
+      populationPatients,
       walkthrough,
       carePlans: slice.carePlans,
       addCarePlan,

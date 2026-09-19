@@ -29,8 +29,8 @@ measurements it rests on.
 | Phase | State |
 |---|---|
 | A — measure the IG's file count | **Not started.** One line in `deploy.yml`. §4 |
-| B — surface flag + clinical build | **Done 2026-09-15; DEPLOYED 2026-09-18.** `npm run build:clinical` → `web/dist-clinical/`. The guide routes and their chunks fold out; `@spier/demo-population` resolves to an empty shim (`web/src/shims/demo-population.clinical.ts`) so no scenario is compiled in. `services/clinical` now serves it on its own origin, and the mock EHR frames **that** Worker. §3, §4 |
-| C — a gate asserting the clinical surface is clean | **Done 2026-09-15.** `npm run check:surface` (`web/scripts/check-surface.mjs`) reads BOTH builds and checks every derived marker both ways — absent from clinical, present in demo — so a stale marker fails rather than proving nothing. In the build job of `web-lint.yml`, not in `verify` (it needs the builds). Proven red on two plants before it was trusted. §3 |
+| B — surface flag + clinical build | **Done 2026-09-15; DEPLOYED 2026-09-18.** `npm run build:clinical` → `web/dist-clinical/`. The guide routes and their chunks fold out. ⚠️ **Superseded 2026-09-19:** the clinical build used to reach `@spier/demo-population` through an empty shim; the seed corpus is a constructor argument now and NEITHER build carries fixtures, so the shim and its alias are deleted. `services/clinical` now serves it on its own origin, and the mock EHR frames **that** Worker. §3, §4 |
+| C — a gate asserting the clinical surface is clean | **Done 2026-09-15.** `npm run check:surface` (`web/scripts/check-surface.mjs`) reads BOTH builds. ⚠️ **Three rules since 2026-09-19:** guide pages in demo only, SMART-app pages in clinical only, and the 14 patients in NEITHER — the third cannot be checked both ways, so the first two are its positive control. In the build job of `web-lint.yml`, not in `verify` (it needs the builds). Proven red on two plants before it was trusted. §3 |
 | D — licensing verification before any client ships | **Off the critical path, not off the list.** A conference showing is lower stakes than a ship, not zero. §6, §8 |
 
 ---
@@ -153,12 +153,20 @@ under `web/src` imports `@spier/demo-population`* — the machine-checkable form
 "the adoption guide holds no patient data". **It belongs here, not there**, and
 the reason is the distinction this section exists to draw.
 
-As a rule over `web/src` it forbids the guide's offline demo path — the `Demo
+As a rule over `web/src` it forbade the guide's offline demo path — the `Demo
 chart` / `Demo caseload` / `Demo measures` screens that let a workflow be walked
-with no host running, which is a stated requirement (Brad, 2026-09-09: *"it's
-okay to not have the mock ehr up, we can still show the workflows in the adoption
-guide"*). So it can only ever be true of a build that has no demo, which is
-precisely the `clinical` surface.
+with no host running. So it could only ever be true of a build with no demo,
+which was precisely the `clinical` surface.
+
+**That changed on 2026-09-19, and the rule now holds of BOTH builds.** The
+no-host requirement is narrowed to what it was really about: *the instruments*.
+Every filler still works with nothing running — `packages/tool-views` carries its
+own single `DEMO_PATIENT` and an unseeded store is exactly the blank "play with
+forms" state, which is what the sidebar's "Try it" has always pointed at. What
+the guide no longer does is stand in for a *chart*: the chart experience belongs
+to the mock EHR, which is live and is the sidebar's primary call to action. So
+the guide compiles in no patient data at all, and `check-surface.mjs` asserts the
+14 demo patients are in **neither** bundle rather than in one of them.
 
 ⚠️ **It is therefore the same assertion as Phase C's, and it inherits Phase C's
 trap below in full**: "no scenario import" is exactly the shape that passes

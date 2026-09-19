@@ -4,7 +4,6 @@
  */
 import { useEffect, useRef } from 'react'
 import { publishPatientOpen, shouldPublishOnActivation } from '@spier/core/lib/fhircast'
-import { POPULATION_BY_ID } from '@spier/demo-population'
 
 /**
  * Broadcast a `patient-open` whenever the active patient changes to a real
@@ -37,9 +36,9 @@ export function usePatientOpenBroadcast({
         now: Date.now(),
       })
     ) {
-      const p = POPULATION_BY_ID.get(activePatientId)
       publishPatientOpen(
-        { patientId: activePatientId, mrn: p?.mrn, displayName: p?.displayName },
+        // No local roster to enrich from; the id is what a follower needs.
+        { patientId: activePatientId },
         new Date().toISOString(),
       )
     }

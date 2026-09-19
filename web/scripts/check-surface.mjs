@@ -119,26 +119,84 @@ console.log(
   `${demoOnlyPages.length} demo-only page(s), ${guideRoots.length} demo-only route root(s), ${patientNames.length} patient name(s) to check`,
 )
 
-// ---- the check: absent from clinical, present in demo -----------------------------
-const bothWays = (label, present, absent) => {
-  if (!present) fail(`${label}: not found in the DEMO build either — this marker has stopped matching, so a clean clinical build would prove nothing`)
-  if (absent) fail(`${label}: present in the CLINICAL build`)
+// ---- the check ------------------------------------------------------------------
+//
+// Three rules now, not one, because the surfaces stopped being "everything" and
+// "a subset" on 2026-09-19: the guide dropped the clinical pages and BOTH builds
+// dropped the demo population.
+const bothWays = (label, present, absent, presentIn, absentFrom) => {
+  if (!present) fail(`${label}: not found in the ${presentIn} build either — this marker has stopped matching, so a clean ${absentFrom} build would prove nothing`)
+  if (absent) fail(`${label}: present in the ${absentFrom} build`)
 }
+
+// RULE 1 — the guide's pages are in the demo build and not the clinical one.
 for (const page of demoOnlyPages) {
   const chunk = (b) => b.names.some((n) => new RegExp(`(^|/)${page}-[\\w-]+\\.js$`).test(n))
-  bothWays(`demo-only page chunk ${page}-*.js`, chunk(demo), chunk(clinical))
+  bothWays(`demo-only page chunk ${page}-*.js`, chunk(demo), chunk(clinical), 'DEMO', 'CLINICAL')
 }
 for (const r of guideRoots) {
   const lit = (b) => b.text.includes(`"${r}"`)
-  bothWays(`demo-only route root "${r}"`, lit(demo), lit(clinical))
+  bothWays(`demo-only route root "${r}"`, lit(demo), lit(clinical), 'DEMO', 'CLINICAL')
 }
+
+// RULE 2 — and the SMART apps' pages are in the clinical build and not the guide.
+//
+// ⚠️ The page list comes from the FILESYSTEM minus rule 1's list, not from the
+// `IS_CLINICAL ? lazy(` guards. Same reason the header gives for rule 1: a page
+// that loses its guard must not drop out of the list it is checked against.
+const pageFiles = readdirSync(join(appRoot('web/src'), 'pages'))
+  .filter((f) => f.endsWith('.tsx') && !f.includes('.test.'))
+  .map((f) => f.replace(/\.tsx$/, ''))
+// ⚠️ `/guide/tools/:slug/try` is a guide page that is deliberately NOT a
+// guideSections entry — it renders recorders that write to patient context, so
+// it is a SIBLING of the guide layout (CLAUDE.md says why). It is demo-only all
+// the same, and without this it would be classified clinical-only and fail in
+// both directions at once.
+const EXTRA_DEMO_ONLY_PAGES = ['ToolTryIt']
+const clinicalOnlyPages = pageFiles.filter(
+  (p) => !demoOnlyPages.includes(p) && !EXTRA_DEMO_ONLY_PAGES.includes(p),
+)
+if (clinicalOnlyPages.length < 5) fail(`only ${clinicalOnlyPages.length} clinical-only page(s) derived from web/src/pages (floor 5)`)
+for (const page of clinicalOnlyPages) {
+  const chunk = (b) => b.names.some((n) => new RegExp(`(^|/)${page}-[\\w-]+\\.js$`).test(n))
+  bothWays(`clinical-only page chunk ${page}-*.js`, chunk(clinical), chunk(demo), 'CLINICAL', 'DEMO')
+}
+
+// RULE 3 — the demo population is in NEITHER build.
+//
+// ⚠️ **This one cannot be checked "both ways", and that is why rules 1 and 2 are
+// load-bearing beyond themselves.** A marker absent from everything is
+// indistinguishable from a marker that has stopped matching — the failure this
+// gate's own message warns about. There is no bundle left to find a patient name
+// in, so the POSITIVE CONTROL is the page-chunk rules above: they search the same
+// two `b.text`/`b.names` corpora with the same helpers, so if they pass, the
+// search machinery demonstrably works on both bundles and "absent" means absent.
+// If you ever weaken rules 1 or 2, this rule silently becomes unfalsifiable.
+//
+// ⚠️ **Three names are PROSE, not data, and are allowed in the guide with a
+// reason — never a count.** `data/surfaces.ts`'s DEMO_CHART_PICKS describes
+// which patients the MOCK EHR offers as a starting point; the guide's job is to
+// send a reader there, and it cannot do that without naming them. They are
+// hand-typed strings, not fixtures: no scenario, no resource, no MRN travels
+// with them. A FOURTH name appearing is a real leak and fails.
+const NAMED_IN_GUIDE_PROSE = new Map([
+  ['Marcus Chen', 'DEMO_CHART_PICKS — the mock EHR\'s "nothing on file" starting point'],
+  ['Sarah Patel', 'DEMO_CHART_PICKS — the mock EHR\'s "one step in" starting point'],
+  ['Maria Alvarez', 'DEMO_CHART_PICKS — the mock EHR\'s "finished pathway" starting point'],
+])
 for (const name of patientNames) {
   const lit = (b) => b.text.includes(`"${name}"`)
-  bothWays(`demo patient "${name}"`, lit(demo), lit(clinical))
+  if (lit(demo) && !NAMED_IN_GUIDE_PROSE.has(name)) {
+    fail(`demo patient "${name}": present in the DEMO build — the adoption guide must carry no patient data`)
+  }
+  if (!lit(demo) && NAMED_IN_GUIDE_PROSE.has(name)) {
+    fail(`demo patient "${name}" is allowed in the guide as prose but is no longer there — delete the NAMED_IN_GUIDE_PROSE entry (was: ${NAMED_IN_GUIDE_PROSE.get(name)})`)
+  }
+  if (lit(clinical)) fail(`demo patient "${name}": present in the CLINICAL build`)
 }
 
 if (failures) {
-  console.error(`\nclinical-surface check FAILED (${failures} problem(s)).`)
+  console.error(`\nsurface check FAILED (${failures} problem(s)).`)
   process.exit(1)
 }
-console.log(`\nclinical-surface check passed: ${demoOnlyPages.length} pages, ${guideRoots.length} route roots and ${patientNames.length} patients are in the demo build and none is in the clinical build.`)
+console.log(`\nsurface check passed: ${demoOnlyPages.length} guide page(s) + ${guideRoots.length} route root(s) in the demo build only, ${clinicalOnlyPages.length} SMART-app page(s) in the clinical build only, and ${patientNames.length} demo patient(s) in NEITHER.`)

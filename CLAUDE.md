@@ -607,15 +607,28 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   that write to patient context, so it is not a guide page and `check:guide-boundary`'s
   premise does not hold for it.
 - **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
-- **Two build surfaces, one route table.** `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`)
-  builds the two SMART apps with no guide route registered and no synthetic
-  patient compiled in — `@spier/demo-population` resolves to an empty shim. A
-  demo-only page is declared `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface`
-  **inline** (a helper would keep the import reachable), a demo-only route sits in
-  an `IS_DEMO && (…)` block, and a redirect that differs by surface is two literal
-  `<Route>`s (the route-table reader wants `<Navigate to="…">` verbatim).
-  `npm run build:clinical` then `npm run check:surface` reads BOTH bundles and
-  checks every marker both ways; it is in the CI build job, not in `verify`.
+- **Two build surfaces, one route table — and the flag now folds BOTH ways.**
+  `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`) builds the two SMART apps
+  with no guide route registered; `demo` builds the Adoption Guide with **no
+  SMART-app page** registered. A demo-only page is declared
+  `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface` **inline** (a helper would
+  keep the import reachable), a clinical-only page the same with `IS_CLINICAL`, a
+  demo-only route sits in an `IS_DEMO && (…)` block, and a redirect that differs
+  by surface is two literal `<Route>`s (the route-table reader wants
+  `<Navigate to="…">` verbatim).
+  ⚠️ **NEITHER build carries the demo population** (2026-09-19). It is not a
+  shim any more: `LocalDataSource` takes its seed corpus as a **constructor
+  argument** defaulting to empty, and `PatientProvider` takes `populationPatients`
+  the same way — nothing in either app passes one. The guide's fillers want
+  exactly the unseeded store, and the clinical app reads its cohort from the
+  server. The old `@spier/demo-population` → empty-shim alias is **gone**, because
+  a build-surface flag was doing a dependency's job.
+  `npm run build:clinical` then `npm run check:surface` reads BOTH bundles: guide
+  pages in demo only, SMART-app pages in clinical only, and the 14 patients in
+  neither. ⚠️ That third rule **cannot be checked both ways** — a marker absent
+  from everything is indistinguishable from one that stopped matching — so the
+  first two rules are its positive control, and weakening them makes it
+  unfalsifiable. It is in the CI build job, not in `verify`.
   ⚠️ The alias reader scans `vite.config.ts` for the literal `find:` — even in a
   comment — and throws on one it cannot parse; that is why the config's comments
   say "alias entry" and not the property name.

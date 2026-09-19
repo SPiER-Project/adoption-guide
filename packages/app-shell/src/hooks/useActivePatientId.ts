@@ -9,7 +9,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from './useLocalStorage'
-import { POPULATION_BY_ID, isAllowedPatientId } from '@spier/demo-population'
 
 // Persisted across non-chart routes so assessment-submit redirects don't lose
 // the active patient. The patient *store* keys (spier-patient-store /
@@ -26,11 +25,14 @@ export const DEMO_PATIENT_ID = 'patient-011'
 // — defense against crafted URLs being used as store keys (e.g.
 // /patient/record/__proto__) and a guard against typo'd IDs silently creating
 // empty patient slices.
-function deriveActiveIdFromPath(pathname: string): string | null {
+function deriveActiveIdFromPath(
+  pathname: string,
+  isAllowedPatientId: (id: string) => boolean,
+): string | null {
   const m = pathname.match(/^\/patient\/record\/([^/]+)\/?$/)
   if (!m) return null
   const id = decodeURIComponent(m[1])
-  return POPULATION_BY_ID.has(id) ? id : null
+  return isAllowedPatientId(id) ? id : null
 }
 
 /**
@@ -41,7 +43,21 @@ function deriveActiveIdFromPath(pathname: string): string | null {
  * writes the choice back to storage. Anything that must not act on a stale
  * patient should key off this value, not off an effect that follows it.
  */
-export function useActivePatientId(): string | null {
+export function useActivePatientId(
+  /**
+   * Whether an id names a patient this deployment can serve locally.
+   *
+   * ⚠️ **Defaults to "nobody", and neither app passes anything else.** This
+   * used to be `isAllowedPatientId` imported from `@spier/demo-population`,
+   * which is how the fixtures reached every bundle. The allowlist is the whole
+   * point of the check — it stops a crafted URL
+   * (`/patient/record/__proto__`) becoming a store key — so it stays a
+   * predicate rather than being deleted; with an empty roster it simply
+   * refuses every id, which is what the clinical build has always done (its
+   * patient comes from the SMART context, not the URL).
+   */
+  isAllowedPatientId: (id: string) => boolean = () => false,
+): string | null {
   const location = useLocation()
   const [storedActiveId, setStoredActiveId] = useLocalStorage<string | null>(
     ACTIVE_ID_KEY,
@@ -60,7 +76,7 @@ export function useActivePatientId(): string | null {
     search.get('demo') === '1' &&
     isAllowedPatientId(DEMO_PATIENT_ID)
 
-  const urlPatientId = deriveActiveIdFromPath(location.pathname)
+  const urlPatientId = deriveActiveIdFromPath(location.pathname, isAllowedPatientId)
   const safeStoredId =
     storedActiveId && isAllowedPatientId(storedActiveId) ? storedActiveId : null
   const activePatientId: string | null = wantsBlank

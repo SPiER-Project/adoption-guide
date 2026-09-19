@@ -17,6 +17,9 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useEffect } from 'react'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
+// ⚠️ Injected explicitly: neither app ships a roster any more, so the local
+// registry and URL-allowlist paths only exist when a caller supplies one.
+import { POPULATION_PATIENTS } from '@spier/demo-population'
 import { PatientProvider } from './PatientProvider'
 import { SmartContext } from './SmartContext'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
@@ -130,7 +133,7 @@ async function mount(route = '/patient/record'): Promise<ChartApi> {
   render(
     <MemoryRouter initialEntries={[route]}>
       <SmartContext.Provider value={SMART_STUB}>
-        <PatientProvider dataSource={source}>
+        <PatientProvider dataSource={source} populationPatients={[...POPULATION_PATIENTS]}>
           <Harness onApi={onApi} />
         </PatientProvider>
       </SmartContext.Provider>
