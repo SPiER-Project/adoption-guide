@@ -48,11 +48,11 @@ import {
   PathwayPending,
   PathwayProvenance,
   PathwaySpine,
-} from '../components/PathwayView'
-import { usePathway } from '../hooks/usePathway'
+} from '@spier/app-shell/components/PathwayView'
+import { usePathway } from '@spier/app-shell/hooks/usePathway'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { guideHref } from '../data/guideSections'
-import '../css/CarePathway.css'
+import '@spier/app-shell/css/CarePathway.css'
 import { Card } from '@spier/ui/Card'
 
 /* ─── The simulator's questions, derived from the Questionnaire ─── */

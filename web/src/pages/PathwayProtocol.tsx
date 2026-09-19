@@ -47,9 +47,9 @@ import {
   PathwayPending,
   PathwayProvenance,
   PathwaySpine,
-} from '../components/PathwayView'
-import { usePathway } from '../hooks/usePathway'
-import '../css/CarePathway.css'
+} from '@spier/app-shell/components/PathwayView'
+import { usePathway } from '@spier/app-shell/hooks/usePathway'
+import '@spier/app-shell/css/CarePathway.css'
 
 export function PathwayProtocol() {
   const loaded = usePathway()

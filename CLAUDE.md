@@ -67,6 +67,24 @@ most of them are a gate that passed while checking nothing.
   ⚠️ **No `IS_DEMO` in here, ever.** A view renders the same for a clinician and
   an implementer; what differs is `InspectContext`, which the app turns on for
   `/guide`. See `packages/tool-views/README.md`.
+- `packages/app-shell/` — the **runtime both apps mount**: the SMART plumbing
+  (`SmartLaunch`, `SmartRedirect`, `SmartProvider`), the providers
+  (`PatientProvider`), the patient/data seam (`localDataSource`,
+  `usePatientSlice`, `useActivePatientId`), `FhircastListener`, `PathwayView`
+  and the chrome-agnostic bits (`PatientBanner`, `PatientIdentityStrip`,
+  `SpierLogo`). Consumed as `@spier/app-shell/<path>`. Extracted 2026-09-19
+  ahead of the `apps/{guide,clinical}` split.
+  ⚠️ **A third package rather than one app importing the other, and the reason
+  is distribution** — the SMART apps are open-sourced and the mock EHR is not,
+  so `apps/clinical` must not depend on `apps/guide`'s tree.
+  ⚠️ **The pages, `Sidebar`, `Shell`, `AppShell`, `PanelShell` and `LaunchShell`
+  are deliberately NOT here.** They are runtime too, but they are where
+  `IS_DEMO` still branches — they are the chrome the split itself divides, so
+  moving them now would mean moving them twice.
+  ⚠️ **`fhirclient` is imported BARE here**, which `packages/core` never does, so
+  it needed a new alias in `vite.config.ts` AND `vitest.config.ts` and a mapping
+  in this package's tsconfig AND `web/tsconfig.app.json` — the four places
+  #387's no-workspaces arrangement always costs. See `packages/app-shell/README.md`.
 - `packages/worker-http/` — what the two asset-serving Workers share about
   *being an asset host*: the Static Assets catch-all, the explicit SPA fallback,
   and the one `frame-ancestors` policy. React-free and DOM-free like
@@ -674,7 +692,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   *current* published terms** —
   [`docs/best-practices/licensing-verification-backlog.md`](docs/best-practices/licensing-verification-backlog.md)
   is the standing list of what is owed.
-- **SMART registrations live in `web/src/config/smart-registrations.json`, and
+- **SMART registrations live in `packages/app-shell/src/config/smart-registrations.json`, and
   only there.** A SMART app does not have *a* `client_id` — it is registered
   separately with every EHR it launches from, so the file maps an issuer's
   ORIGIN to the id that EHR issued. ⚠️ **Deliberately a checked-in file and NOT

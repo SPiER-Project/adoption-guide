@@ -17,7 +17,7 @@
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 import type { ObservationResource, PatientSlice } from '@spier/core/types/fhir'
-import { RISK_LABEL } from './riskLabel'
+import { RISK_LABEL } from '@spier/app-shell/lib/riskLabel'
 
 /** Re-exported for the caseload and the filter menu, which index it by the five registry levels. */
 export { RISK_LABEL }

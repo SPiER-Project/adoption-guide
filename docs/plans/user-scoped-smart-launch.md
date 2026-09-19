@@ -7,7 +7,7 @@ and needs its own clean context.
 
 ## Why
 
-Today, `web/src/context/PatientProvider.tsx` defaults every patient-level read
+Today, `packages/app-shell/src/context/PatientProvider.tsx` defaults every patient-level read
 (`PatientChart`, every assessment/workflow view, ~30 components) and every
 population-level read (`PopulationView`, `MeasureDashboard`) to
 `localDataSource` — patient JSON bundled directly into the guide's own JS from
@@ -75,7 +75,7 @@ for, not proof SMART scopes work in general.
 1. `/authorize` requires either `launch` or `patient` in the query string —
    `services/mock-ehr/src/smart.ts:236-257`. There is no third "neither — just
    a user-scoped, no-patient-in-context grant" path.
-2. The guide never *initiates* a SMART flow — `web/src/components/SmartLaunch.tsx`
+2. The guide never *initiates* a SMART flow — `packages/app-shell/src/components/SmartLaunch.tsx`
    only *responds* to being externally launched (an `iss`+`launch` pair
    arriving in the real query string, handled in `web/src/main.tsx:57-66`, which
    requires *both* params — an `iss`-only arrival does not even route to
@@ -98,7 +98,7 @@ for, not proof SMART scopes work in general.
 **Six things make the route split (Phase 0) bigger than it looks. Verified in
 the code 2026-09-09:**
 1. `/patient/chart` is the **panel's landing route**, not just a page:
-   `web/src/components/SmartRedirect.tsx:80` defaults to it, and the mock EHR's
+   `packages/app-shell/src/components/SmartRedirect.tsx:80` defaults to it, and the mock EHR's
    `POST /_admin/launch` (`services/mock-ehr/src/app.ts:709`) points the browser
    at `#/launch`, which lands there.
 2. `web/src/components/Shell.tsx` switches `AppShell` / `PanelShell` off
@@ -127,7 +127,7 @@ the code 2026-09-09:**
    `<Route path="x" element={<Comp />}>`, so the new sections must be declared in
    exactly that form.
 6. `web/src/pages/PopulationView.tsx:4` imports `resetLocalDemoData`, and
-   `web/src/context/PatientProvider.tsx:145,171` read `POPULATION_SCENARIOS`
+   `packages/app-shell/src/context/PatientProvider.tsx:145,171` read `POPULATION_SCENARIOS`
    walkthroughs and `POPULATION_PATIENTS`. The demo walkthroughs are
    fixture-driven narration about specific patients and have **no home** once the
    guide holds no fixtures — see Phase D's open question.

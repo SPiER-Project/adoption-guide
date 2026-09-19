@@ -130,7 +130,7 @@ and says so, and Medplum granted the blanket `user/*.read` the app asks for on
 every launch, covering the gap by accident. The chart came up with 7 of 8 stages
 populated off a token never asked for most of what it used. Found by reading the
 granted scope against the code, not by any server complaining. Now gated by
-`web/src/components/smartScopes.test.ts`, which derives both sides from the
+`packages/app-shell/src/components/smartScopes.test.ts`, which derives both sides from the
 source.
 
 ## What Medplum actually does, as observed

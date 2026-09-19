@@ -1,0 +1,104 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+
+    // ⚠️ **`jsx` is this file's most important job, and not for `tsc`** — the
+    // same trap packages/ui and packages/tool-views both record. esbuild, which
+    // is what vite and vitest actually transform .tsx with, finds a tsconfig by
+    // walking up from the FILE. From packages/app-shell/src that walk reaches
+    // the repo root and never sees web/tsconfig.app.json, so without a config
+    // here every component compiles to the CLASSIC JSX runtime and dies with
+    // "React is not defined" — while `tsc` stays green, because it reaches the
+    // same files through imports from web/src.
+    "jsx": "react-jsx",
+
+    // Default typeRoots discovery walks up from this file's directory looking
+    // for node_modules/@types, which never reaches web/node_modules (a sibling,
+    // not an ancestor). Same arrangement as core, ui and tool-views.
+    "typeRoots": ["../../web/node_modules/@types"],
+    "types": ["node"],
+    "paths": {
+      // React and friends are web's dependencies; this package keeps no second
+      // copy, which could drift from the version the app ships.
+      "react": ["../../web/node_modules/@types/react"],
+      "react/*": ["../../web/node_modules/@types/react/*"],
+      "react-dom": ["../../web/node_modules/@types/react-dom"],
+      "react-router-dom": ["../../web/node_modules/react-router-dom"],
+      "lucide-react": ["../../web/node_modules/lucide-react"],
+      // ⚠️ Pointed at the declaration file, not the directory: SmartLaunch and
+      // SmartRedirect import fhirclient BARE (`import FHIR from 'fhirclient'`),
+      // which packages/core never does — it only reaches fhirclient/lib/Client.
+      "fhirclient": ["../../web/node_modules/fhirclient/index.d.ts"],
+      "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
+      // Reached only through the INCLUDED tool-views sources below.
+      "@formbox/renderer": ["../../web/node_modules/@formbox/renderer/dist/index.d.ts"],
+      "@formbox/hs-theme": ["../../web/node_modules/@formbox/hs-theme/dist/index.d.ts"],
+      // The colocated tests import these explicitly, and this package has no
+      // node_modules of its own to walk up into.
+      "vitest": ["../../web/node_modules/vitest/dist/index.d.ts"],
+      "@testing-library/react": ["../../web/node_modules/@testing-library/react/types/index.d.ts"],
+      // This package sits ON TOP of core, ui and tool-views and imports all
+      // three by the same specifier the apps use.
+      "@spier/core/*": ["../core/src/*"],
+      "@spier/ui/*": ["../ui/src/*"],
+      "@spier/tool-views/*": ["../tool-views/src/*"],
+      "@spier/fhir-artifacts/*": ["../fhir-artifacts/*"],
+      // ⚠️ localDataSource SEEDS from the demo fixtures. That is the last
+      // fixture dependency left in the runtime, and it is why the apps still
+      // need a build-surface concept; see the README.
+      "@spier/demo-population": ["../demo-population/src/index.ts"],
+      "@spier/demo-population/*": ["../demo-population/src/*"],
+      // Its own alias, so a colocated test can import its subject the way a
+      // consumer does rather than by a relative path.
+      "@spier/app-shell/*": ["./src/*"]
+    },
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "composite": true
+  },
+  // ⚠️ The sibling packages' sources are INCLUDED, not referenced — the same
+  // arrangement core, ui and tool-views already use. A `composite` project's
+  // program may not contain a file its own `include` does not name (TS6307),
+  // and these are reached through the `@spier/*` path mappings above, so a
+  // reference without declaration output (every package here is `noEmit`)
+  // leaves tsc compiling their sources anyway and then objecting.
+  "include": [
+    "src",
+    "../core/src",
+    "../ui/src",
+    "../tool-views/src",
+    // ⚠️ localDataSource seeds from these, so they are in this project's
+    // program whether or not they are listed — TS6307 otherwise.
+    "../demo-population/src/**/*.ts",
+    "../fhir-artifacts/generated/**/*.ts"
+  ],
+  // ⚠️ Their TESTS stay out — type-checking a sibling's suite would be a second
+  // opinion on files that package's own project already checks.
+  "exclude": [
+    "../core/src/**/*.test.ts",
+    "../core/src/**/*.test.tsx",
+    "../ui/src/**/*.test.tsx",
+    "../tool-views/src/**/*.test.ts",
+    "../tool-views/src/**/*.test.tsx"
+  ]
+}

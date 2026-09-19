@@ -6,9 +6,9 @@ import { describe, expect, it } from 'vitest'
 import { clientIdForIssuer, DEFAULT_CLIENT_ID } from './smartClients'
 import registrations from '../config/smart-registrations.json'
 
-const REPO = join(dirname(fileURLToPath(import.meta.url)), '../../..')
+const REPO = join(dirname(fileURLToPath(import.meta.url)), '../../../..')
 /** The path the registration script reads. Restated ONCE, and asserted below. */
-const CONFIG_PATH = 'web/src/config/smart-registrations.json'
+const CONFIG_PATH = 'packages/app-shell/src/config/smart-registrations.json'
 
 describe('clientIdForIssuer', () => {
   it('uses the mock EHR registration when the issuer is unknown', () => {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '@spier/core/data/catalog'
-import { resetLocalDemoData } from '../lib/dataSource/localDataSource'
+import { resetLocalDemoData } from '@spier/app-shell/lib/dataSource/localDataSource'
 import { type DerivedRegistryRow } from '@spier/core/lib/registry'
 import { RISK_LABEL, CENSUS_ORDER } from '../lib/populationSummary'
 import { AGE_BANDS, bandOf, ageOf } from '../lib/populationFilters'

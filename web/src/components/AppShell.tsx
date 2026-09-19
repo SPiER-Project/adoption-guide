@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
-import { useScrollToTopOnNavigate } from '../hooks/useScrollToHash'
-import { PatientBanner } from './PatientBanner'
+import { useScrollToTopOnNavigate } from '@spier/app-shell/hooks/useScrollToHash'
+import { PatientBanner } from '@spier/app-shell/components/PatientBanner'
 import { Sidebar } from './Sidebar'
-import { SpierLogo } from './SpierLogo'
+import { SpierLogo } from '@spier/app-shell/components/SpierLogo'
 import '../css/AppShell.css'
 import { cx } from '@spier/ui/cx'
 

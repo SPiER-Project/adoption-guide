@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useScrollToHash } from '../hooks/useScrollToHash'
+import { useScrollToHash } from '@spier/app-shell/hooks/useScrollToHash'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { PageHeader } from '@spier/ui/PageHeader'

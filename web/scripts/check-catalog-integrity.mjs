@@ -81,7 +81,7 @@ import { dirname, resolve, join } from 'node:path'
 import { readRouteTable, routeResolves } from './lib/route-table.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
-import { appRoot } from './lib/app-roots.mjs'
+import { appRoot, REPO_ROOT } from './lib/app-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -761,7 +761,12 @@ if (launchChecked === 0) {
 // keep spelling it that way. That is the same phantom-match that gave
 // route-table.mjs eleven imaginary guide routes, from a comment written for the
 // same reason; see scripts/lib/jsx-comments.mjs.
-const redirectSrc = stripComments(readFileSync(join(appRoot('web/src'), 'components/SmartRedirect.tsx'), 'utf8'))
+// ⚠️ SmartRedirect is in packages/app-shell, not an app tree — it is runtime
+// BOTH apps mount, so it moved with the rest of the SMART plumbing. Read by
+// package path rather than through appRoot(), which answers only for apps.
+const redirectSrc = stripComments(
+  readFileSync(join(REPO_ROOT, 'packages/app-shell/src/components/SmartRedirect.tsx'), 'utf8'),
+)
 const landings = [...redirectSrc.matchAll(/navigate\(\s*directed\s*\?\?\s*'([^']+)'/g)].map((m) => m[1])
 if (landings.length === 0) {
   // Not a pass. If this pattern stops matching, the gate has lost sight of the

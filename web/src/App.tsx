@@ -11,20 +11,20 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 // module stays component-only and Fast Refresh preserves its state on edit.
 // Consumers import the hook from the *Context module, the path they always used.
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
-import { SmartProvider } from './context/SmartProvider'
-import { PatientProvider } from './context/PatientProvider'
+import { SmartProvider } from '@spier/app-shell/context/SmartProvider'
+import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
 import { ToolConfigProvider } from './context/ToolConfigProvider'
 
 // SMART on FHIR
-import { SmartLaunch } from './components/SmartLaunch'
-import { SmartRedirect } from './components/SmartRedirect'
+import { SmartLaunch } from '@spier/app-shell/components/SmartLaunch'
+import { SmartRedirect } from '@spier/app-shell/components/SmartRedirect'
 
 // Shell — kept eager so the nav/sidebar chrome is always in the main chunk.
 import { Shell } from './components/Shell'
 
 // Cross-tab patient-context sync (simulated FHIRcast). Eager + always mounted
 // so a chart tab is listening regardless of which lens the user loaded first.
-import { FhircastListener } from './components/FhircastListener'
+import { FhircastListener } from '@spier/app-shell/components/FhircastListener'
 import { IS_DEMO } from './lib/surface'
 
 // Every instrument filler and workflow recorder, defined ONCE and rendered by

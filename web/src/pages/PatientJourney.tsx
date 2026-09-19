@@ -7,7 +7,7 @@ import {
   type Tool,
 } from '@spier/core/data/catalog'
 import { ToolDetail } from '../components/ToolDetail'
-import { useScrollToHash } from '../hooks/useScrollToHash'
+import { useScrollToHash } from '@spier/app-shell/hooks/useScrollToHash'
 import { guideHref } from '../data/guideSections'
 import '../css/PatientJourney.css'
 import { cx } from '@spier/ui/cx'
