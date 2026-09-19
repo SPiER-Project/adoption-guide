@@ -10,7 +10,7 @@
     "prebuild": "npm run copy-fhir",
     "build": "tsc -b && vite build",
     "prebuild:clinical": "npm run copy-fhir",
-    "build:clinical": "tsc -b && VITE_SURFACE=clinical vite build --outDir dist-clinical",
+    "build:clinical": "tsc -b && VITE_SURFACE=clinical vite build",
     "check:surface": "node scripts/check-surface.mjs",
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.css\" \"../packages/ui/src/**/*.css\" \"../packages/tool-views/src/**/*.css\"",

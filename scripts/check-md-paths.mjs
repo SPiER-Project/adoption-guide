@@ -45,15 +45,8 @@ const ALLOWED = new Map(Object.entries({
   //    unavoidable: a page explaining which paths rotted has to name them.
   'docs/internals/docs-gates.md::web/src/index.css': 'quoted as an example of correct supersede prose',
   'docs/internals/docs-gates.md::ig/input/fsh/population-patients.fsh': 'quoted as an example of correct supersede prose',
-  'docs/internals/docs-gates.md::apps/guide/src/App.tsx': 'quoted while explaining the built-to-expire rule; expires with the apps/ split',
   'docs/internals/docs-gates.md::packages/core/src/lib/foo.ts': 'invented path, illustrating what the gate cannot see',
   'docs/internals/docs-gates.md::web/src/Foo.tsx': 'invented path, illustrating the missing-trigger hole',
-
-  // -- forward references: the apps/ split is in flight (decision 3, reopened
-  //    2026-09-19). These two DESCRIBE the tripwire that fires when the tree
-  //    appears, so the path is absent on purpose. Delete both when it lands.
-  'docs/internals/web-gates.md::apps/guide/src/App.tsx': 'apps/ split not landed yet; this documents the hard-fail that fires when it does',
-  'docs/plans/repo-and-package-boundaries.md::apps/guide/src/App.tsx': 'same forward reference, in the decision record',
 
   // -- per-instrument IG pages that were never authored. The licensing memos
   //    say so in as many words ("when that page is created").
@@ -63,6 +56,7 @@ const ALLOWED = new Map(Object.entries({
   'docs/instruments/SAFE-T/licensing/MEMO.md::ig/input/pagecontent/safet.md': 'IG attribution page not yet authored; memo says so',
 
   // -- history: the sentence around each of these says the file is gone.
+  'CLAUDE.md::web/src/lib/surface.ts': 'names the deleted IS_DEMO flag module while saying it is deleted',
   'CLAUDE.md::web/src/index.css': 'reads "formerly web/src/index.css"; moved to packages/ui/src/foundation.css in #544',
   'packages/ui/README.md::web/src/index.css': 'reads "the former web/src/index.css"; same move',
   'web/README.md::scripts/fetch-roadmap.mjs': 'names it in a list of things "all deleted together" with the Roadmap page',

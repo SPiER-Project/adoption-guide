@@ -78,13 +78,12 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
-import { readRouteTable, routeResolves } from './lib/route-table.mjs'
+import { readAllRouteTables, routeResolves } from './lib/route-table.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 import { stripComments } from '../../scripts/lib/jsx-comments.mjs'
 import { appRoot, REPO_ROOT } from './lib/app-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const webRoot = resolve(here, '..')
 const root = resolve(here, '../..') // repo root
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
 const catalogDir = join(root, 'packages/core/src/data/catalog')
@@ -495,8 +494,10 @@ console.log(`✓ licensing: ${perToolStatus.size} catalogued tool(s) by instrume
 // marks core, covering 2 of 8 pathway stages, and still calling itself a
 // typical site. Nothing caught that, because nothing compared the two. This
 // asserts the derivation is still in force.
-const PRESET_FILE = 'src/data/toolPresets.ts'
-const presetSrc = readFileSync(join(webRoot, PRESET_FILE), 'utf8')
+// The tool presets are the CLINICAL app's: /settings is a fact about the
+// deployment this SMART app runs in, and the guide configures nothing.
+const PRESET_FILE = 'apps/clinical/src/data/toolPresets.ts'
+const presetSrc = readFileSync(join(appRoot('apps/clinical/src'), 'data/toolPresets.ts'), 'utf8')
 // ⚠️ `guided-pathway` belongs here even though half of it is a deliberate
 // hand-picked selection: the PICKS live in their own `PATHWAY_STAGE_DEFAULTS`
 // constant, keyed by stage, so the preset's own `toolIds` must stay empty. A
@@ -681,7 +682,7 @@ console.log(
 // keeps compatibility redirects for published paths on purpose, and a redirect
 // is a working button. The `*` catch-all deliberately does NOT count: landing
 // there IS the failure.
-const { paths: routePaths, redirects: routeRedirects, redirectTargets } = readRouteTable()
+const { paths: routePaths, redirects: routeRedirects, redirectTargets } = readAllRouteTables()
 const launchBlocks = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)]
 let launchChecked = 0
 let viaRedirect = 0
@@ -830,7 +831,7 @@ if (landingsChecked === landings.length && landings.length > 0) {
 // on: eleven phantoms, eleven real paths missing, and this gate stayed green
 // because no catalog launch path targets a `/guide/*` route. `stripComments`
 // fixes the cause; this is what would have made the symptom visible.
-const sectionsSrc = readFileSync(join(appRoot('web/src'), 'data/guideSections.ts'), 'utf8')
+const sectionsSrc = readFileSync(join(appRoot('apps/guide/src'), 'data/guideSections.ts'), 'utf8')
 const sectionPaths = [...sectionsSrc.matchAll(/\{\s*path:\s*'([^']+)'/g)].map((m) => m[1])
 if (sectionPaths.length === 0) {
   fail('guideSections.ts: no section paths parsed, so this check verified nothing')

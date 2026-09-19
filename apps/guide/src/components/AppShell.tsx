@@ -5,7 +5,7 @@ import { useScrollToTopOnNavigate } from '@spier/app-shell/hooks/useScrollToHash
 import { PatientBanner } from '@spier/app-shell/components/PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from '@spier/app-shell/components/SpierLogo'
-import '../css/AppShell.css'
+import '@spier/app-shell/css/AppShell.css'
 import { cx } from '@spier/ui/cx'
 
 // ⚠️ **The app bar carries no links, and that is where they used to be.** Three

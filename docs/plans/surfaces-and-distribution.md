@@ -22,7 +22,7 @@ measurements it rests on.
 |---|---|
 | **1 — the IG is not an application** | **RESTATED**, from [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §1, because the framing keeps recurring. §1 |
 | **2 — guide and clinical demo stay ONE app** | **UPHELD, and its scope corrected.** §5 of that doc answered a demo question, not a distribution one. §2 |
-| **3 — a third axis: build surface (`demo` / `clinical`)** | **SHIPPED 2026-09-15.** One codebase, one route table, two builds: `VITE_SURFACE=clinical` (`web/src/lib/surface.ts`). §3 |
+| **3 — a third axis: build surface (`demo` / `clinical`)** | ~~SHIPPED 2026-09-15~~ → **RETIRED 2026-09-19.** It was one route table folded two ways by `IS_DEMO`; there are two apps now (`apps/guide`, `apps/clinical`) and the module that exported the flag is deleted. `VITE_SURFACE` survives as a build TARGET — which `index.html` vite starts from — read only by `web/vite.config.ts`. §3 |
 | **4 — the IG stays on GitHub Pages** | **PROPOSED.** §4 |
 | **5 — mock EHR gets its own Worker** | **PROPOSED**, per [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §3. §4 |
 
@@ -181,7 +181,9 @@ a condition; see that plan's Phase D.
 
 ### What shipped (2026-09-15)
 
-`web/src/lib/surface.ts` exports `SURFACE` and `IS_DEMO`, folded from
+⚠️ **Superseded 2026-09-19 — the module below no longer exists.** The apps/
+split replaced the flag with two route tables; this records what it did.
+`lib/surface.ts` exported `SURFACE` and `IS_DEMO`, folded from
 `import.meta.env.VITE_SURFACE` at build time. In `App.tsx` every demo-only page
 is declared `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface` — inline, not
 through a helper, because an `import()` inside an arrow passed to a function is

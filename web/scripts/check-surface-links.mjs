@@ -64,7 +64,7 @@ import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const WEB = resolve(here, '..')
-const SRC = appRoot('web/src')
+const SRC = appRoot('apps/clinical/src')
 const APP = join(SRC, 'App.tsx')
 
 let failures = 0
@@ -86,56 +86,23 @@ const { clinical, demoOnly, redirects, redirectTargets } = readSurfaceRoutes()
 // declaration is `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface`, so with
 // `IS_DEMO` folded to false the import is unreachable and the chunk is not
 // emitted — which is the property `check:surface` asserts from the bundle.
-const appSrc = stripComments(readFileSync(APP, 'utf8'))
-const demoOnlySpecs = new Set(
-  [...appSrc.matchAll(/const\s+\w+\s*=\s*IS_DEMO\s*\?\s*lazy\(\s*\(\)\s*=>\s*import\(\s*['"]([^'"]+)['"]/g)]
-    .map((m) => m[1]),
-)
-if (demoOnlySpecs.size === 0) {
-  fail(
-    'App.tsx: no `IS_DEMO ? lazy(() => import(…))` declarations parsed. Every demo-only page ' +
-      'would then be walked as clinical and this gate would report links that a clinician ' +
-      'cannot reach — fix the reader, not the callers.',
-  )
-}
-
+// ⚠️ **There is nothing to skip any more, and that is the point of the split.**
+// This used to parse `IS_DEMO ? lazy(() => import(…))` out of a shared App.tsx
+// and walk around those 10 pages, because the guide's chunks were declared in
+// the same file the clinician's app was built from. They are `apps/guide` now:
+// a page this app does not import is not in this app's graph at all, so the
+// walk below is the whole clinical surface by construction.
 // ⚠️ Resolves `@spier/<pkg>/…` too — a relative-only resolver stopped this walk
 // at packages/tool-views and the reach fell from 89 modules to 61 with the gate
 // still green. See lib/module-graph.mjs.
 const PACKAGE_ROOTS = spierPackageRoots(REPO_ROOT)
 const resolveSpec = (spec, fromFile) => resolveImport(spec, fromFile, REPO_ROOT, PACKAGE_ROOTS)
 
-/** Blank `{IS_DEMO && (…)}` bodies: that JSX is not in the clinical bundle. */
-function blankDemoBlocks(src) {
-  const out = src.split('')
-  // `{!IS_DEMO && (` is deliberately NOT matched — that block is clinical-only,
-  // and its links are exactly the ones that most need resolving.
-  const re = /\{\s*IS_DEMO\s*&&\s*\(/g
-  let m
-  while ((m = re.exec(src)) !== null) {
-    const open = src.indexOf('(', m.index)
-    let depth = 0
-    let quote = null
-    for (let i = open; i < src.length; i++) {
-      const ch = src[i]
-      if (quote) {
-        if (ch === '\\') i++
-        else if (ch === quote) quote = null
-        continue
-      }
-      if (ch === '"' || ch === "'" || ch === '`') quote = ch
-      else if (ch === '(') depth++
-      else if (ch === ')') {
-        depth--
-        if (depth === 0) {
-          for (let k = open; k <= i; k++) if (out[k] !== '\n') out[k] = ' '
-          break
-        }
-      }
-    }
-  }
-  return out.join('')
-}
+// ⚠️ `blankDemoBlocks` lived here: it erased `{IS_DEMO && (…)}` JSX before
+// reading links, since that markup is not in the clinical bundle. With one app
+// per surface there is no such block to erase — a guide link in this tree is a
+// real defect, not a conditionally-compiled one, which is exactly what this
+// gate should now say.
 
 /**
  * The ROUTE part of a navigation target — everything before `#` or `?`.
@@ -161,7 +128,6 @@ while (stack.length) {
   const src = stripComments(readFileSync(file, 'utf8'))
   for (const m of src.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)) {
     const spec = m[1]
-    if (file === APP && demoOnlySpecs.has(spec)) continue
     const next = resolveSpec(spec, file)
     if (next && !next.includes('.test.')) stack.push([next, [...trail, relative(SRC, next)]])
   }
@@ -172,7 +138,7 @@ let checked = 0
 let relativeSkipped = 0
 for (const [file, trail] of seen) {
   if (file === APP) continue // RULE 2 owns the route table itself
-  const src = blankDemoBlocks(stripComments(readFileSync(file, 'utf8')))
+  const src = stripComments(readFileSync(file, 'utf8'))
   const targets = [
     ...[...src.matchAll(/\bto=["']([^"']+)["']/g)].map((m) => m[1]),
     ...[...src.matchAll(/\bnavigate\(\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
@@ -234,7 +200,7 @@ if (redirectsChecked === 0) {
 // walk from App.tsx, the route set is parsed out of the same file, and the
 // targets are literals scraped from the modules — a narrowing in any one of
 // them leaves this printing a confident ✓ over a fraction of the surface. The
-// `demoOnlySpecs.size === 0` and `redirectsChecked === 0` guards above cover
+// The `redirectsChecked === 0` guard above covers
 // the collapse-to-nothing cases; these cover the collapse-to-a-few.
 reportFloors(
   [

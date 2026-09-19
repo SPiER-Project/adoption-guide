@@ -60,7 +60,7 @@ import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { PatientBanner } from '@spier/app-shell/components/PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from '@spier/app-shell/components/SpierLogo'
-import '../css/AppShell.css'
+import '@spier/app-shell/css/AppShell.css'
 import '../css/LaunchShell.css'
 import { cx } from '@spier/ui/cx'
 

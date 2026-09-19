@@ -436,7 +436,7 @@ full read of the import graph.** Recorded because the mistake is instructive:
    and those are reachable from the eager registry and measure engine. True, and
    a real coupling — but **not the binding edge**. Fixing it alone moved
    **0 KB**, measured.
-2. *The actual cause — the route table.* `web/src/App.tsx` imports `TOOL_VIEWS`
+2. *The actual cause — the route table.* `apps/guide/src/App.tsx` imports `TOOL_VIEWS`
    **statically**, and `toolViews.tsx` builds its 29 entries as JSX elements at
    module scope. Every entry therefore *held* a resolved Questionnaire. Every
    view component was already `lazy()` — which is exactly why this hid: laziness

@@ -87,7 +87,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
-import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { APP_ROOTS, appRootFloors } from './lib/app-roots.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
@@ -257,7 +257,7 @@ if (!existsSync(runtimeDir)) {
 const emittedAt = statSync(runtimeDir).mtimeMs
 let newestSource = 0
 let newestSourcePath = ''
-for (const dir of [join(root, 'packages/core/src/lib'), join(appRoot('web/src'), 'lib')]) {
+for (const dir of [join(root, 'packages/core/src/lib'), ...APP_ROOTS.map((r) => join(r.dir, 'lib'))].filter(existsSync)) {
   const walk = (d) => {
     for (const entry of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, entry.name)
@@ -311,7 +311,7 @@ const sourceText = (() => {
     }
   }
   walk(join(root, 'packages/core/src'))
-  walk(appRoot('web/src'))
+  for (const r of APP_ROOTS) walk(r.dir)
   return text
 })()
 

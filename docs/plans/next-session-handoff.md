@@ -120,9 +120,9 @@ built to catch it.
 `gh` reports success. `gh issue edit` writes every field it is given and has no
 confirmation step. Pass only the flags you mean.
 
-⚠️ **A `web/src/App.tsx` change triggers `use-case-workbook.yml`**, which resolves
+⚠️ **A `apps/guide/src/App.tsx` change triggers `use-case-workbook.yml`**, which resolves
 tool launch paths against `App.tsx`. A route-table edit is inside its blast
-radius. Likewise **`ig/input/**` and `web/src/App.tsx` both trigger `ig.yml`**,
+radius. Likewise **`ig/input/**` and `apps/guide/src/App.tsx` both trigger `ig.yml`**,
 whose narrative gate resolves the IG's `#/route` links against the app's live
 routes; and touching `ig/input/**` invalidates `deploy.yml`'s IG render cache —
 that last one is desirable, since the re-render is the gate that validates

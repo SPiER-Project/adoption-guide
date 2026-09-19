@@ -78,7 +78,8 @@ if (demo.files.length < FLOOR_FILES) fail(`demo build has only ${demo.files.leng
 if (clinical.files.length < FLOOR_FILES / 2) fail(`clinical build has only ${clinical.files.length} js/html file(s) (floor ${FLOOR_FILES / 2}) — the build is broken, not clean`)
 
 // ---- markers, derived ----------------------------------------------------------
-const appSrc = readFileSync(join(appRoot('web/src'), 'App.tsx'), 'utf8')
+// The GUIDE's table: rule 1's markers are its pages and its route roots.
+const appSrc = readFileSync(join(appRoot('apps/guide/src'), 'App.tsx'), 'utf8')
 
 // The demo-only pages are the GUIDE's pages plus the Overview and the guide
 // layout — derived from data/guideSections.ts and the route table, the way
@@ -86,7 +87,7 @@ const appSrc = readFileSync(join(appRoot('web/src'), 'App.tsx'), 'utf8')
 // declarations: the first version of this gate did that, and a page that lost
 // its guard dropped out of the list it was checked against, so the planted
 // defect passed. The list must come from something the defect cannot change.
-const sectionsSrc = readFileSync(join(appRoot('web/src'), 'data/guideSections.ts'), 'utf8')
+const sectionsSrc = readFileSync(join(appRoot('apps/guide/src'), 'data/guideSections.ts'), 'utf8')
 const sectionPaths = [...sectionsSrc.matchAll(/\{\s*path:\s*'([^']+)'/g)].map((m) => m[1])
 if (sectionPaths.length < 5) fail(`only ${sectionPaths.length} guide section path(s) parsed from guideSections.ts (floor 5)`)
 const elementFor = (path) => appSrc.match(new RegExp(`<Route path="${path}" element=\\{<(\\w+)\\s*/>\\}`))?.[1]
@@ -96,13 +97,13 @@ const demoOnlyPages = [...new Set(
 if (demoOnlyPages.length < 5) fail(`only ${demoOnlyPages.length} demo-only page element(s) resolved from the route table (floor 5) — the \`<Route path="x" element={<Comp />}>\` shape has changed; teach this gate the new one`)
 
 // Source-level half: every one of them must be declared behind the guard.
-// The bundle check below is what proves the guard folded; this is what names
-// the line to fix when it did not.
-for (const page of demoOnlyPages) {
-  if (!new RegExp(`^const ${page} = IS_DEMO \\? lazy\\(`, 'm').test(appSrc)) {
-    fail(`${page} is a demo-only page but App.tsx does not declare it \`IS_DEMO ? lazy(…) : NotOnThisSurface\` — its chunk will ship on the clinical surface`)
-  }
-}
+// ⚠️ **The source-level half is gone, and it is not a loss.** It used to assert
+// each demo-only page was declared `IS_DEMO ? lazy(…) : NotOnThisSurface`, so a
+// page that lost its guard was named at the line to fix rather than only as a
+// chunk in a bundle. There is no guard to lose now: a page is the guide's
+// because it lives in `apps/guide/src/pages`, which is not a property a code
+// edit can quietly flip. What remains — the bundle rules below — is the half
+// that was always the real proof.
 
 // The two route roots that exist on the demo surface only, as the router sees
 // them. Taken from App.tsx so a renamed root fails here rather than matching
@@ -144,7 +145,10 @@ for (const r of guideRoots) {
 // ⚠️ The page list comes from the FILESYSTEM minus rule 1's list, not from the
 // `IS_CLINICAL ? lazy(` guards. Same reason the header gives for rule 1: a page
 // that loses its guard must not drop out of the list it is checked against.
-const pageFiles = readdirSync(join(appRoot('web/src'), 'pages'))
+// ⚠️ Rule 2's list is now literally the CLINICAL APP's pages directory, which
+// is stronger than the old "everything minus the guide's" derivation: a page
+// is clinical because of the tree it is in, which no guard can change.
+const pageFiles = readdirSync(join(appRoot('apps/clinical/src'), 'pages'))
   .filter((f) => f.endsWith('.tsx') && !f.includes('.test.'))
   .map((f) => f.replace(/\.tsx$/, ''))
 // ⚠️ `/guide/tools/:slug/try` is a guide page that is deliberately NOT a

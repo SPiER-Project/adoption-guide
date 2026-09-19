@@ -21,9 +21,42 @@ const FHIRCLIENT_DIR = fileURLToPath(new URL('./node_modules/fhirclient', import
 const FORMBOX_RENDERER_DIR = fileURLToPath(new URL('./node_modules/@formbox/renderer', import.meta.url))
 const FORMBOX_THEME_DIR = fileURLToPath(new URL('./node_modules/@formbox/hs-theme', import.meta.url))
 
+/**
+ * Which app this build is for.
+ *
+ * ⚠️ **This is a BUILD TARGET, not the old surface flag.** `VITE_SURFACE` used
+ * to fold one source tree two ways at compile time; the trees are separate now
+ * (`apps/guide`, `apps/clinical`) and nothing in either reads a flag. All this
+ * chooses is which `index.html` vite starts from and where the output lands.
+ * The name is kept because `deploy.yml`, both Workers' staging scripts and
+ * `check-surface.mjs` all speak it already, and renaming it is PR 3's business.
+ *
+ * ⚠️ The config file stays in `web/` on purpose for now: `web/` still owns
+ * package.json, node_modules and every gate script, so an app-local config
+ * would resolve its dependencies from a directory that has none (#387 — no npm
+ * workspaces). Moving the tooling to the repo root is the next step, not this
+ * one.
+ */
+const APP = process.env.VITE_SURFACE === 'clinical' ? 'clinical' : 'guide'
+const APP_ROOT = fileURLToPath(new URL(`../apps/${APP}/`, import.meta.url))
+
 export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE ?? '/',
+  root: APP_ROOT,
+  // Shared by both apps and still web's, like the rest of the tooling.
+  publicDir: fileURLToPath(new URL('./public/', import.meta.url)),
+  build: {
+    // ⚠️ ABSOLUTE, and `emptyOutDir` explicit. With `root` pointing into
+    // apps/<app>, a relative outDir would land at apps/<app>/dist — and vite
+    // refuses to empty a directory outside its root unless told to. Both
+    // Workers' staging scripts and deploy.yml still read web/dist and
+    // web/dist-clinical, so the output stays exactly where it was.
+    outDir: fileURLToPath(
+      new URL(APP === 'clinical' ? './dist-clinical/' : './dist/', import.meta.url),
+    ),
+    emptyOutDir: true,
+  },
   resolve: {
     // Two prunes of the assessment-route chunk, together 47% of its gzip: what
     // @formbox/renderer's dependency tree loads but this app can never execute.
@@ -78,6 +111,19 @@ export default defineConfig({
       // walk-up, so only the bare specifiers need help.
       { find: /^@formbox\/renderer$/, replacement: FORMBOX_RENDERER_DIR },
       { find: /^@formbox\/hs-theme$/, replacement: FORMBOX_THEME_DIR },
+      // ⚠️ **The stylesheet subpath needs its OWN anchored-exact entry now that
+      // App.tsx lives under apps/.** The note above forbids a
+      // `@formbox/hs-theme/` PREFIX alias, and that still stands — a prefix
+      // rewrite happens before Vite consults the package's `exports` map and
+      // sends `style.css` looking for a file that is not on disk. What changed
+      // is that the subpath used to resolve by the ordinary node_modules
+      // walk-up from web/src, and from apps/<app>/src that walk reaches the repo
+      // root and finds nothing (#387 — no npm workspaces). So it is spelled out
+      // exactly, resolved to what the exports map says `./style.css` means.
+      {
+        find: /^@formbox\/hs-theme\/style\.css$/,
+        replacement: `${FORMBOX_THEME_DIR}/dist/index.css`,
+      },
       {
         // The demo population (packages/demo-population), step A of the repo
         // reshape (#388). Not an npm workspace yet (#387), so it resolves by

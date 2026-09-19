@@ -66,7 +66,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
-import { readRouteTable, routeResolves } from './lib/route-table.mjs'
+import { readAllRouteTables, routeResolves } from './lib/route-table.mjs'
 import {
   assertUsableIndex,
   buildConformanceIndex,
@@ -87,7 +87,9 @@ const patientsDir = join(root, 'packages/demo-population/src/patients')
 // Every path App.tsx registers. Read once: the reader THROWS on parsing
 // nothing, so a scenario's suggestedAction can never be validated against an
 // empty table (which would pass everything).
-const { paths: ROUTE_PATHS } = readRouteTable()
+// The UNION of both apps: a RiskAlert is data, and its button has to land
+// somewhere real in whichever app renders the alert.
+const { paths: ROUTE_PATHS } = readAllRouteTables()
 
 let failures = 0
 const fail = (msg) => {

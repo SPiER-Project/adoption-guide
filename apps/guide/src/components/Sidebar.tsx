@@ -3,9 +3,8 @@ import { Link, NavLink } from 'react-router-dom'
 import { Home, ExternalLink } from 'lucide-react'
 import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
-import '../css/Sidebar.css'
+import '@spier/app-shell/css/Sidebar.css'
 import { cx } from '@spier/ui/cx'
-import { IS_DEMO } from '../lib/surface'
 
 /**
  * The implementer's navigation. Two zones: what the guide EXPLAINS, and what you
@@ -141,28 +140,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={cx('sidebar', isOpen && 'sidebar--open')}>
-        {!IS_DEMO && (
-          /* The clinical surface has no guide to navigate: the two SMART apps
-             and the app's own settings are the whole sidebar. */
-          <nav className="sidebar-nav" aria-label="SPiER">
-            {[
-              { to: '/patient/record', label: 'Patient record' },
-              { to: '/population/caseload', label: 'Caseload' },
-              { to: '/population/measures', label: 'Measures' },
-              { to: '/settings', label: 'Settings' },
-            ].map(item => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => cx('sidebar-link', 'sidebar-link--lens', isActive && 'active')}
-                onClick={onClose}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-        )}
-        {IS_DEMO && (
         <nav className="sidebar-nav" aria-label="Adoption Guide">
           <NavLink
             to="/overview"
@@ -196,12 +173,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             )
           })}
         </nav>
-        )}
 
         {/* A `nav` of its own, with its own label: these are not the guide's
             sections, and a screen reader should not have to infer that from
             where they happen to sit. */}
-        {IS_DEMO && (
         <nav className="sidebar-try" aria-label="Try SPiER">
           <p className="sidebar-group-heading">Try it</p>
 
@@ -229,7 +204,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Link to="/guide/tools" onClick={onClose}>Tools</Link>.
           </p>
         </nav>
-        )}
 
         {/* ⚠️ **The spec link is DEMO-ONLY, and that is a broken-link fix rather
             than a tidy-up.** `IG.href` is `${import.meta.env.BASE_URL}ig/`, which
@@ -240,7 +214,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             Hosting it on the clinical Worker is not the fix: the IG is ~4,000
             files of implementer documentation and this surface has no implementer
             on it. See `services/clinical/README.md`. */}
-        {IS_DEMO && (
         <div className="sidebar-footer">
           <nav className="sidebar-outbound" aria-label="The specification">
             <p className="sidebar-group-heading sidebar-group-heading--footer">Spec</p>
@@ -260,7 +233,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </a>
           </nav>
         </div>
-        )}
       </aside>
     </>
   )

@@ -25,13 +25,13 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { aliasedModules } from './lib/vite-alias.mjs'
-import { appRoot, appRootFloors } from './lib/app-roots.mjs'
+import { WEB_ROOT, appRootFloors } from './lib/app-roots.mjs'
 import { STYLE_ROOTS, walkExt, relRepo } from './lib/style-roots.mjs'
 import { reportFloors } from '../../scripts/lib/floors.mjs'
 
 const WEB = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const VITE_CONFIG = join(WEB, 'vite.config.ts')
-const SHIM = join(appRoot('web/src'), 'shims/fhirpath-r5-context.ts')
+const SHIM = join(WEB_ROOT, 'src/shims/fhirpath-r5-context.ts')
 const SPECIFIER = 'fhirpath/fhir-context/r5'
 const RENDERER_DIST = join(WEB, 'node_modules/@formbox/renderer/dist')
 const SUPPORTED_VERSION = 'r4'

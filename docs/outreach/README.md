@@ -11,7 +11,7 @@ with what came back, not archived.
 
 The **pitch** itself is not here. `README.md` at the repo root is its one home,
 and the app's Overview page loads the same three-step framing from
-`web/src/content/overview.ts`.
+`apps/guide/src/content/overview.ts`.
 
 ## The two-sided one-pager was removed
 

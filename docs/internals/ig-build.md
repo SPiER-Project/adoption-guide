@@ -109,8 +109,8 @@ exactly. Its four checks:
   Zero mentions is still a legitimate state and today's: the prose links AD
   pages under the tool's **name**, which is better for a reader than a bare id.
 - **G. Every `#/route` link resolves** to a **non-legacy** route in
-  `web/src/App.tsx`, and `#/guide/<x>` is also a section in
-  `web/src/data/guideSections.ts`. ⚠️ *Non-legacy* is the whole point:
+  `apps/guide/src/App.tsx`, and `#/guide/<x>` is also a section in
+  `apps/guide/src/data/guideSections.ts`. ⚠️ *Non-legacy* is the whole point:
   `/guide/roadmap` and `/guide/measures` still exist as `<Navigate>` redirects,
   so a naive route scan calls a link to a page #440 deleted perfectly fine —
   and three pages linked `#/guide/roadmap` for exactly that reason. The one

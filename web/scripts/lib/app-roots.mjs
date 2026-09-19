@@ -13,6 +13,13 @@
  * Eight gates hardcoded `web/src`. They are wired here instead, so adding a
  * tree means adding it in one place.
  *
+ * ⚠️ **`web/src` is deliberately NOT in the list any more.** The split moved
+ * `App.tsx` and `main.tsx` into the two apps, so that directory stopped being an
+ * application tree — what is left there is a handful of cross-package tests and
+ * the two vite shims, which no app-source gate should be reading. The
+ * entry-module rule below reaches the same conclusion on its own, which is the
+ * point of keying on something the filesystem decides.
+ *
  * ── Why the discovery rule is an ENTRY MODULE ──────────────────────────────
  *
  * The floors below prove a declared root is still producing files. They cannot
@@ -49,7 +56,8 @@ export const REPO_ROOT = resolve(WEB_ROOT, '..')
  * at all", never "is it the right size".
  */
 export const APP_ROOTS = [
-  { source: 'web/src', dir: join(WEB_ROOT, 'src'), floorSrc: 42 },
+  { source: 'apps/guide/src', dir: join(REPO_ROOT, 'apps/guide/src'), floorSrc: 12 },
+  { source: 'apps/clinical/src', dir: join(REPO_ROOT, 'apps/clinical/src'), floorSrc: 18 },
 ]
 
 /** Repo-relative, so a message names a file the same way whichever tree it is in. */

@@ -17,7 +17,7 @@ The app is served from a static host (GitHub Pages) under the Vite base path
 2. fhirclient reads `iss`/`launch` (launch leg) and `code`/`state` (redirect
    leg) from the **real query string**, not the hash.
 
-`web/src/main.tsx` therefore bootstraps both legs: when the app loads at its
+`apps/guide/src/main.tsx` therefore bootstraps both legs: when the app loads at its
 base URL with `?iss=…&launch=…` it routes to `#/launch`, and with
 `?code=…&state=…` it routes to `#/redirect`, keeping the query string intact
 for fhirclient.

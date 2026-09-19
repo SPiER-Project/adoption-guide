@@ -30,7 +30,7 @@ Stages 5–8 (Coordinate Handoffs, Track Follow-Up, Track Risk Over Time, Measur
 ```
 ig/input/resources/questionnaires/<Tool>/*.json
     ↑
-    │  imported directly by web/src/App.tsx (rendered by @formbox/renderer)
+    │  imported directly by apps/guide/src/App.tsx (rendered by @formbox/renderer)
     │
 ig/input/fsh/<tool>.fsh
     │  declares Profile / ActivityDefinition / ValueSet / CodeSystem / examples

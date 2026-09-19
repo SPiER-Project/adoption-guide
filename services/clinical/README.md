@@ -13,7 +13,8 @@ about it is what it *does not* serve, and why it exists separately at all.
 ## What it serves
 
 `web/dist-clinical` — the output of `VITE_SURFACE=clinical vite build`
-([`web/src/lib/surface.ts`](../../web/src/lib/surface.ts)). That build registers
+(a build target read by `web/vite.config.ts`; the old `surface.ts` flag module
+is deleted, and the clinical app is `apps/clinical`). That build registers
 the two SMART apps and **no `/guide` route**, and resolves
 `@spier/demo-population` to an empty shim, so the 14 demo patients are not
 compiled in at all.
@@ -83,7 +84,7 @@ other two services.
 ## Launching into it
 
 A SMART launch arrives at the bare app base with `?iss=…&launch=…`;
-`web/src/main.tsx` routes it into `#/launch` before the router mounts. **The
+`apps/guide/src/main.tsx` routes it into `#/launch` before the router mounts. **The
 registered URI is the bare base with no fragment** — an OAuth redirect URI
 cannot carry one, and a fragment already in place would put the appended query
 string after the `#`, where `location.search` cannot see it.
