@@ -96,7 +96,7 @@ Usage: #definition
 * title = "Author Crisis Response Plan / Crisis Planning"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Collaboratively complete a Crisis Response Plan (Bryan & Rudd) with the patient and persist the result as a CarePlan profiled by SPiERCrisisResponsePlan. Each of the five CRP sections becomes a CarePlan.activity carrying its SPiER-local safety-plan section code. An alternative/complement to the Stanley-Brown Safety Plan."
 * purpose = "Establish a written, individualized crisis response plan the patient can use to manage suicidal crises. Belongs to the Document Safety Actions stage of the SPiER pathway."
 * kind = #ServiceRequest

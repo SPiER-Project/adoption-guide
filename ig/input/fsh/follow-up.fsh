@@ -208,7 +208,7 @@ Usage: #definition
 * title = "Record Follow-Up Outreach / Contact Attempt"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Record a follow-up outreach attempt: when it was made, by what method, what came of it (reached / no answer / message left / unable to reach), and whether it surfaced a new safety concern."
 * purpose = "Make follow-up contact auditable attempt-by-attempt rather than as a vague 'we tried'. Belongs to the Track Follow-Up stage."
 * kind = #CommunicationRequest
@@ -230,7 +230,7 @@ Usage: #definition
 * title = "Send Caring Contact"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Send and record a caring contact: a brief, non-demanding supportive message on a defined schedule after an episode of risk. Captures method, sent date, and opt-out status. Distinct from outreach — a caring contact asks nothing of the patient, so it has no reached/unreached outcome."
 * purpose = "Sustain low-burden supportive contact after an episode of risk — one of the few interventions with direct evidence for reducing repeat attempts. Belongs to the Track Follow-Up stage."
 * kind = #CommunicationRequest
@@ -254,7 +254,7 @@ Usage: #definition
 * title = "Track Follow-Up Appointment"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Track whether the follow-up appointment occurred. This activity stores nothing new: Appointment.status already carries booked / fulfilled / cancelled / noshow and Appointment.start the date, so attended, cancelled, no-show, rescheduled, and the 7- and 30-day completion windows are all derivable from the SPiERFollowUpAppointment created at handoff (TL-031). The 7-/30-day figures are Stage-8 measures computed over these."
 * purpose = "Know whether follow-up actually happened, not just that it was booked. Belongs to the Track Follow-Up stage."
 * kind = #Appointment
@@ -276,7 +276,7 @@ Usage: #definition
 * title = "Follow Up on a Missed Appointment / No-Show"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Re-engage a patient after a missed or no-showed appointment. The attempt is a SPiEROutreachAttempt whose outreach-prompt is missed-appointment or no-show — the same artifact as routine outreach, differing only in what triggered it. The remaining SSC details compose from existing resources: a rescheduled visit is a new SPiERFollowUpAppointment, and escalation is a SPiERSafetyTask."
 * purpose = "Treat a missed appointment by a high-risk patient as a safety event rather than an empty slot. Belongs to the Track Follow-Up stage."
 * kind = #CommunicationRequest
@@ -298,7 +298,7 @@ Usage: #definition
 * title = "Run Follow-Up Escalation Workflow"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Escalate when follow-up fails — missed follow-up, no-show, unable to reach, a new safety concern, a missed outreach window, or a failed contact sequence. Deliberately reuses the Stage-7 SPiERSafetyTask (code = escalation) with its repeating escalation-trigger extension rather than defining a parallel escalation resource, so a case escalated from follow-up and one escalated from the risk registry land in the same work queue."
 * purpose = "Ensure failed follow-up is surfaced and acted on rather than quietly aging out. Belongs to the Track Follow-Up stage."
 * kind = #Task

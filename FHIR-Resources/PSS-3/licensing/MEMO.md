@@ -46,7 +46,7 @@
 - `Questionnaire.copyright`: "The Patient Safety Screener (PSS-3) was developed through the ED-SAFE study (funded by the National Institute of Mental Health) and is distributed as a free, public resource by SAMHSA and the Suicide Prevention Resource Center. No permission or fee is required for use."
 - `Questionnaire.useContext`: `focus` = SNOMED 225337009 (Suicide risk assessment); `venue` = Emergency Room / Hospital.
 - IG page attribution block: not yet authored (no dedicated `ig/input/pagecontent/pss3.md` in this PR); provenance is carried in the FSH header and this memo.
-- FSH source attribution: `ig/input/fsh/pss3.fsh` header documents ED-SAFE/SAMHSA provenance and free-use status; `AdministerPSS3.publisher = "SPiER (HTD Health)"`.
+- FSH source attribution: `ig/input/fsh/pss3.fsh` header documents ED-SAFE/SAMHSA provenance and free-use status; `AdministerPSS3.publisher = "SPiER"`.
 
 - `ActivityDefinition.copyright` + `instrument-licensing-status` extension: set on `AdministerPSS3` (status `public-domain`), carrying the notice above and naming this memo as its basis. Added by issue #127; the vocabulary and the reasoning live in `ig/input/fsh/instrument-licensing.fsh`. `packages/core/src/data/catalog/tools.ts` derives the adoption guide's licensing pill from that extension, so the guide can no longer disagree with the artifact.
 

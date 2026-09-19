@@ -87,7 +87,7 @@ Usage: #definition
 * title = "SPiER Suicide Safer Care Pathway"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "One ordered course of suicide-safer care: screen every patient with an instrument carrying a suicidality item, proceed on a positive result, clarify the risk with a suicide-risk assessment, and then apply the obligations that the resulting harmonized risk tier carries — crisis resources at every tier, collaborative safety planning at moderate and high, and reassessment on the published per-tier cadence. Steps are coded by what they accomplish and gated on the instrument-agnostic concept layer, so a site using different instruments satisfies the same protocol; the PHQ-9 and C-SSRS Screener referenced here are the demonstrated realization, not the requirement."
 * purpose = "Make an organization's suicide-safer care protocol machine-readable, so that the step a patient is owed can be derived from their record rather than remembered — and so that the same protocol can be rendered, evaluated by a CDS engine, and measured against the same published definition."
 // A protocol, not a menu of stage capabilities — see the header. The stage PDs

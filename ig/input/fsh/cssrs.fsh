@@ -228,7 +228,7 @@ Usage: #definition
 * title = "Administer C-SSRS Since Last Visit / Since Last Contact"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Capture the C-SSRS Since Last Visit / Since Last Contact version — the same 6-item C-SSRS assessment scoped to the interval since the patient's prior contact — and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
 * purpose = "Reassess suicide risk over the interval since the patient's prior contact and update the current risk workflow. Belongs to the Clarify Risk stage as a repeat assessment."
 * kind = #ServiceRequest
@@ -263,7 +263,7 @@ Usage: #definition
 * title = "Administer C-SSRS Pediatric / Adolescent Version"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Capture a C-SSRS screener for pediatric and adolescent patients (validated screener item set) and derive a suicide-risk-level Observation conformant to the shared SPiER C-SSRS Risk Level profile."
 * purpose = "Screen pediatric and adolescent patients for suicide risk at the Identify Possible Risk stage. For youth, involve a parent/guardian per protocol."
 * kind = #ServiceRequest

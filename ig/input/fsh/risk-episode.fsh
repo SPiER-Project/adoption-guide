@@ -473,7 +473,7 @@ Usage: #definition
 * title = "Maintain Active Suicide-Safer Care Registry / Work Queue"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Maintain an active suicide-safer care registry / work queue. This activity stores nothing — it reads. The canonical query is `EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on`, sorted/filtered by the episode's current-risk-tier extension and each task's restriction.period.end. Every column the SSC asks for (risk status, last assessment, next reassessment due, safety-plan status, open tasks, owner, escalation status) is derivable from that one query."
 * purpose = "Keep every active suicide-risk patient visible in one place with clear ownership and due dates. Belongs to the Track Risk Over Time stage."
 * kind = #Task
@@ -495,7 +495,7 @@ Usage: #definition
 * title = "Track Suicide-Risk Episode / Pathway Status"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Track suicide-risk episode / pathway status over time as a SPiERSuicideRiskEpisode: entry reason, current risk tier, assigned owner/team, and an open→closed lifecycle whose closure records both a reason and a final status. Raises a SPiERSuicideRiskFlag while the episode is open. This is the anchor resource for the whole Track Risk Over Time stage — reassessment, care-gap, and escalation Tasks all reference the episode via Task.basedOn."
 * purpose = "Give the active suicide-safer care episode a structured, reportable lifecycle from entry to resolution. Belongs to the Track Risk Over Time stage."
 * kind = #Task
@@ -517,7 +517,7 @@ Usage: #definition
 * title = "Schedule Reassessment / Risk Review"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Schedule reassessment / risk review as a SPiERSafetyTask coded `reassessment-due`, owned by a person or team, with the due date on restriction.period.end. Due and overdue are computed from that date rather than stored, so the schedule cannot silently go stale."
 * purpose = "Make reassessment cadence explicit and enforceable rather than dependent on memory. Belongs to the Track Risk Over Time stage."
 * kind = #Task
@@ -578,7 +578,7 @@ Usage: #definition
 * title = "SPiER Reassessment Schedule"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "The reassessment interval for each suicide-risk tier, so that a reassessment due date is derived from the patient's tier rather than typed by hand. Each action names its tier twice on purpose: as `condition[applicability]` FHIRPath for a CDS engine, and as `action.code` for consumers that read the schedule as data. Tiers with no action have no routine cadence — imminent risk is handled by escalation rather than a schedule, and no-risk patients are not on the pathway."
 * purpose = "Make the reassessment interval machine-readable. Before this existed the interval was implicit, so SPiER could not tell a clinician when a reassessment was due, could not alert on one coming due, and could not measure whether reassessments happened on time."
 * type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
@@ -635,7 +635,7 @@ Usage: #definition
 * title = "Track Open Safety Actions / Care Gaps"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Track open safety actions / care gaps as SPiERSafetyTask resources, one per gap, each with an owner and a due date and each linked to its episode via Task.basedOn. Task.code carries which gap it is; completion is Task.status = completed."
 * purpose = "Keep unfinished safety work visible and assignable until completed. Belongs to the Track Risk Over Time stage."
 * kind = #Task
@@ -657,7 +657,7 @@ Usage: #definition
 * title = "Run Risk Escalation / Overdue Workflow"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Run the risk escalation / overdue workflow as a SPiERSafetyTask coded `escalation`. The repeating escalation-trigger extension records why (high-risk status, worsening or missed reassessment, missed follow-up or appointment, overdue safety action, unable to reach, or manual clinician escalation — the SSC allows several at once); Task.owner routes it; Task.businessStatus records the outcome."
 * purpose = "Ensure worsening or stalled episodes are surfaced and acted on, not silently aged out. Belongs to the Track Risk Over Time stage."
 * kind = #Task

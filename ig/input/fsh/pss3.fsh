@@ -174,7 +174,7 @@ Usage: #definition
 * title = "Administer Patient Safety Screener-3 (PSS-3)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Capture the Patient Safety Screener 3 (PSS-3), a brief universal suicide-risk screen for acute-care settings, and derive a binary suicide-risk result Observation conformant to the SPiER PSS-3 Result profile. A positive result triggers the Clarify Risk stage."
 * purpose = "Provide a rapid universal suicide-risk screen in acute-care settings such as the emergency department. Belongs to the Identify Possible Risk stage of the SPiER pathway."
 * kind = #ServiceRequest

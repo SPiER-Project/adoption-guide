@@ -145,7 +145,7 @@ Usage: #definition
 * title = "Administer SAFE-T"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "Conduct the SAMHSA SAFE-T (Suicide Assessment Five-Step Evaluation and Triage) structured formulation and derive a suicide-risk-level Observation conformant to the SPiER SAFE-T Risk Level profile. The risk level binds directly to the shared suicide-risk tier."
 * purpose = "Support structured clinical formulation of suicide risk, the documented risk level with rationale, and corresponding triage/disposition. Belongs to the Define the Risk Picture stage of the SPiER pathway."
 * kind = #ServiceRequest

@@ -606,7 +606,7 @@ Usage: #definition
 * title = "Administer CAMS SSF-5 Outcome/Disposition (Final Session)"
 * status = #draft
 * experimental = true
-* publisher = "SPiER (HTD Health)"
+* publisher = "SPiER"
 * description = "CAMS final-session Outcome/Disposition form: re-rate the six SSF Core Assessment vitals, determine whether CAMS resolution criteria are met, capture what made the difference, and record the disposition (continue CAMS, resolved, refer to adjunctive treatment, or higher level of care). A distinct session form of the single catalogued CAMS SSF-5 tool (TL-020)."
 * purpose = "Close the CAMS episode with a documented disposition and final SSF vitals. Belongs to the Clarify Risk stage as the final CAMS session form."
 * kind = #ServiceRequest
