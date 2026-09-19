@@ -118,10 +118,10 @@ the entire FHIRPath surface in the corpus is **two expressions, textually
 identical**:
 
 ```
-grep -ro "enableWhenExpression\|calculatedExpression\|initialExpression\|answerExpression" FHIR-Resources --include="*.json" | sort | uniq -c
+grep -ro "enableWhenExpression\|calculatedExpression\|initialExpression\|answerExpression" ig/input/resources/questionnaires --include="*.json" | sort | uniq -c
 #   2 calculatedExpression        ← PHQ-9 total, SBQ-R total
 #   0 everything else
-grep -rc '"enableWhen"' FHIR-Resources --include="*.json"   # 34, all the plain non-FHIRPath kind
+grep -rc '"enableWhen"' ig/input/resources/questionnaires --include="*.json"   # 34, all the plain non-FHIRPath kind
 ```
 
 Both are `%resource.item.where(linkId.startsWith('q')).answer.weight().sum()`.
@@ -212,7 +212,7 @@ what the forms then need rather than against bundle size.
 ### The measurement
 
 The brief warned against filename grep, and it was right to: a canonical-URL
-reference graph over `ig/fsh-generated/resources` + `FHIR-Resources` (303
+reference graph over `ig/fsh-generated/resources` + `ig/input/resources/questionnaires` (303
 resources, excluding the `ImplementationGuide` resource itself, which references
 all 303 and drowns every walk).
 
@@ -254,12 +254,12 @@ ADs and 25 artifacts, the largest closure in the set.
 2026-09-19, the same day. It does.**
 
 This section originally read: *"every Questionnaire in a tool closure comes from
-`FHIR-Resources/` and none from the IG, so a per-tool Bundle is not a slice of
+`ig/input/resources/questionnaires/` and none from the IG, so a per-tool Bundle is not a slice of
 the IG but a new publication."* The measurement behind it was real and the
 inference from it was wrong:
 
 ```
-Questionnaire nodes inside tool closures: 18 from FHIR-Resources/, 0 from ig/fsh-generated/
+Questionnaire nodes inside tool closures: 18 from ig/input/resources/questionnaires/, 0 from ig/fsh-generated/
 ```
 
 ⚠️ **`ig/fsh-generated/` is SUSHI's output, and SUSHI never reads the
@@ -455,7 +455,7 @@ full read of the import graph.** Recorded because the mistake is instructive:
 - The SDC `weight()` join moved to `packages/core/src/data/questionnaireOrdinals.ts`,
   reading `questionnaire-ordinals.generated.ts` (59 weighted options across 2
   Questionnaires — PHQ-9 and SBQ-R are the only instruments with ordinals, and
-  `grep -rl ordinalValue FHIR-Resources` confirms it). This is item 1 above: it
+  `grep -rl ordinalValue ig/input/resources/questionnaires` confirms it). This is item 1 above: it
   moves nothing by itself, but it stops the domain layer dragging 18 forms
   through the registry, which would otherwise re-create the problem on the next
   eager consumer.
@@ -472,7 +472,7 @@ The assessment chunk did not grow in exchange: `QuestionnaireView` went
 their own `questionnaires-*.js` chunk rather than joining it.
 
 **Gated by `npm run check:eager-forms`** (in `verify`), which walks *static*
-imports from every declared app entry module and fails if a `FHIR-Resources/`
+imports from every declared app entry module and fails if a `ig/input/resources/questionnaires/`
 JSON is reachable, printing the import chain. Proved by planting, each run and
 reverted:
 
@@ -520,15 +520,15 @@ PROBE=no-r4-model  npx vite build --config vite.probe.config.mts   # 575.58 kB /
 #   vite preview --outDir dist-probe-no-r4-model, then #/patient/assessments/phq-9
 
 # FHIRPath surface
-grep -ro "calculatedExpression\|enableWhenExpression" FHIR-Resources --include="*.json" | sort | uniq -c
-grep -rc '"enableWhen"' FHIR-Resources --include="*.json"
+grep -ro "calculatedExpression\|enableWhenExpression" ig/input/resources/questionnaires --include="*.json" | sort | uniq -c
+grep -rc '"enableWhen"' ig/input/resources/questionnaires --include="*.json"
 
 # form JSON weight
-find FHIR-Resources -name "*.json" -exec cat {} + | wc -c        # 253592
-find FHIR-Resources -name "*.json" -exec cat {} + | gzip -9 | wc -c   # 29509
+find ig/input/resources/questionnaires -name "*.json" -exec cat {} + | wc -c        # 253592
+find ig/input/resources/questionnaires -name "*.json" -exec cat {} + | gzip -9 | wc -c   # 29509
 
 # closure graph: canonical-URL reference walk over
-#   ig/fsh-generated/resources + FHIR-Resources, ImplementationGuide excluded,
+#   ig/fsh-generated/resources + ig/input/resources/questionnaires, ImplementationGuide excluded,
 #   instances as leaves, examples anchored to the tool's Questionnaire/AD
 
 # alternatives

@@ -57,7 +57,7 @@
  * `.resource` field and is unwrapped.
  *
  * ⚠️ A QuestionnaireResponse's `questionnaire` canonical points at
- * `FHIR-Resources/`, which step 1 did NOT upload (it loaded conformance only).
+ * `ig/input/resources/questionnaires/`, which step 1 did NOT upload (it loaded conformance only).
  * Medplum does not refuse a dangling canonical, so these load — but a
  * Questionnaire-aware check on that server would find nothing behind it.
  */

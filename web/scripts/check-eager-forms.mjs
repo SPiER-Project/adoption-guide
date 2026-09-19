@@ -5,7 +5,7 @@
  *
  * ## What this is defending
  *
- * The 18 Questionnaires under `FHIR-Resources/` are 166.8 KB raw / ~24 KB gzip.
+ * The 18 Questionnaires under `ig/input/resources/questionnaires/` are 166.8 KB raw / ~24 KB gzip.
  * They belong in the lazy assessment chunk, which is the only place that renders
  * one. Until 2026-09-19 they were in the ENTRY chunk of both build surfaces —
  * including the clinical one an EHR frames — and every visitor paid for them
@@ -29,7 +29,7 @@
  * fails on the import that causes the regression rather than on its consequence.
  *
  * What it therefore CANNOT see: a form pulled in by something other than a
- * static specifier — an `import.meta.glob` over `FHIR-Resources/`, or a bundler
+ * static specifier — an `import.meta.glob` over `ig/input/resources/questionnaires/`, or a bundler
  * config that forces a module into the entry chunk. Neither exists today; both
  * would show up as the entry chunk growing by ~24 KB gzip with this gate green.
  */
@@ -42,7 +42,7 @@ import { resolveImport, spierPackageRoots } from './lib/module-graph.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 const WEB_ROOT = resolve(here, '..')
 const REPO_ROOT = resolve(WEB_ROOT, '..')
-const FORMS_DIR = join(REPO_ROOT, 'FHIR-Resources')
+const FORMS_DIR = join(REPO_ROOT, 'ig/input/resources/questionnaires')
 const rel = (p) => relative(REPO_ROOT, p)
 
 let failed = false
@@ -160,7 +160,7 @@ if (!failed && reachedTotal < FLOOR) {
   )
 }
 
-// The forms must exist to be found; an empty FHIR-Resources/ would make every
+// The forms must exist to be found; an empty ig/input/resources/questionnaires/ would make every
 // assertion above vacuously true.
 function countForms(dir) {
   let n = 0

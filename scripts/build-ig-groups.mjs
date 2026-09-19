@@ -25,7 +25,7 @@
  * added. Hand-kept, that is the hand-duplicated-constant shape this repo keeps
  * catching (a new Instance lands, nobody adds it to a group, the publisher puts
  * it under a default heading, and nothing goes red). So membership is DERIVED
- * from where an artifact is defined: each FSH file, each FHIR-Resources tool
+ * from where an artifact is defined: each FSH file, each ig/input/resources/questionnaires tool
  * folder and each FML map belongs to one group (RULES below), and the block is
  * regenerated from that. Adding an artifact to an existing file needs no edit
  * here; adding a new FSH file or tool folder needs one line in RULES, and
@@ -152,7 +152,7 @@ export const GROUPS = [
 // ─── Source → group ─────────────────────────────────────────────────────────
 //
 // Keys are basenames of `ig/input/fsh/*.fsh`, tool folders under the
-// `path-resource` tree (`FHIR-Resources/<tool>`), and `.fml` basenames under
+// `path-resource` tree (`ig/input/resources/questionnaires/<tool>`), and `.fml` basenames under
 // `input/resources/maps`. A source with no rule fails `--check` by name.
 const RULES = {
   // instruments
@@ -166,15 +166,15 @@ const RULES = {
   'safet.fsh': 'instruments',
   'sbqr.fsh': 'instruments',
   'questionnaire-answer-codesystems.fsh': 'instruments',
-  'FHIR-Resources/ASQ': 'instruments',
-  'FHIR-Resources/BSSA': 'instruments',
-  'FHIR-Resources/C-SSRS': 'instruments',
-  'FHIR-Resources/CAMS': 'instruments',
-  'FHIR-Resources/PHQ-9': 'instruments',
-  'FHIR-Resources/PSS-3': 'instruments',
-  'FHIR-Resources/PSS-Full': 'instruments',
-  'FHIR-Resources/SAFE-T': 'instruments',
-  'FHIR-Resources/SBQ-R': 'instruments',
+  'ig/input/resources/questionnaires/ASQ': 'instruments',
+  'ig/input/resources/questionnaires/BSSA': 'instruments',
+  'ig/input/resources/questionnaires/C-SSRS': 'instruments',
+  'ig/input/resources/questionnaires/CAMS': 'instruments',
+  'ig/input/resources/questionnaires/PHQ-9': 'instruments',
+  'ig/input/resources/questionnaires/PSS-3': 'instruments',
+  'ig/input/resources/questionnaires/PSS-Full': 'instruments',
+  'ig/input/resources/questionnaires/SAFE-T': 'instruments',
+  'ig/input/resources/questionnaires/SBQ-R': 'instruments',
   // concept layer
   'concept-layer.fsh': 'concept-layer',
   'coding-verification.fsh': 'concept-layer',
@@ -194,8 +194,8 @@ const RULES = {
   'safety-plan-section.fsh': 'safety-planning',
   'lethal-means.fsh': 'safety-planning',
   'crisis-resources.fsh': 'safety-planning',
-  'FHIR-Resources/Stanley-Brown': 'safety-planning',
-  'FHIR-Resources/CRP': 'safety-planning',
+  'ig/input/resources/questionnaires/Stanley-Brown': 'safety-planning',
+  'ig/input/resources/questionnaires/CRP': 'safety-planning',
   'StanleyBrownQRToCarePlan.fml': 'safety-planning',
   // handoffs and follow-up
   'handoffs.fsh': 'handoffs-follow-up',
@@ -360,7 +360,7 @@ for (const d of defs) {
 // ─── 2. path-resource: hand-authored JSON and FML the publisher loads ────────
 //
 // Read from the config's `path-resource` list through the shared parser rather
-// than hardcoding FHIR-Resources/, so a new directory is seen the day it is
+// than hardcoding ig/input/resources/questionnaires/, so a new directory is seen the day it is
 // declared. A `/*` entry recurses, as SUSHI and the publisher do.
 
 const configText = readConfig()
@@ -376,17 +376,17 @@ function* walk(dir, recursive) {
   }
 }
 
-/** Source key for a hand-authored file: `FHIR-Resources/<tool>` or the .fml basename. */
+/** Source key for a hand-authored file: `ig/input/resources/questionnaires/<tool>` or the .fml basename. */
 function sourceKey(abs) {
   const real = rel(abs)
   if (real.endsWith('.fml')) return basename(real)
-  // <root>/ig/input/resources/questionnaires -> symlink to FHIR-Resources; resolve
+  // <root>/ig/input/resources/questionnaires -> symlink to ig/input/resources/questionnaires; resolve
   // the key to the tool folder the reader knows, via the path *inside* the tree.
   const parts = real.split('/')
   const qi = parts.indexOf('questionnaires')
-  if (qi !== -1 && parts.length > qi + 2) return `FHIR-Resources/${parts[qi + 1]}`
-  const fi = parts.indexOf('FHIR-Resources')
-  if (fi !== -1 && parts.length > fi + 2) return `FHIR-Resources/${parts[fi + 1]}`
+  if (qi !== -1 && parts.length > qi + 2) return `ig/input/resources/questionnaires/${parts[qi + 1]}`
+  const fi = parts.indexOf('ig/input/resources/questionnaires')
+  if (fi !== -1 && parts.length > fi + 2) return `ig/input/resources/questionnaires/${parts[fi + 1]}`
   return real
 }
 

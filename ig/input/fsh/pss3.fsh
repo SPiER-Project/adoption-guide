@@ -10,7 +10,7 @@
 // pathway-stages.fsh), mirroring the ASQ trigger.
 //
 // References the hand-authored Questionnaire at
-// FHIR-Resources/PSS-3/pss3-questionnaire.json
+// ig/input/resources/questionnaires/PSS-3/pss3-questionnaire.json
 // (canonical: http://thespierproject.org/fhir/Questionnaire/PSS-3).
 //
 // The result -> common suicide-risk-tier crosswalk lives in
@@ -186,7 +186,7 @@ Usage: #definition
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
-* copyright = "The Patient Safety Screener (PSS-3) was developed through the ED-SAFE study, funded by the National Institute of Mental Health, and is distributed as a free public resource by SAMHSA and the Suicide Prevention Resource Center. No permission or fee is required for use. The tip sheet instructs administering the three questions exactly as worded; the SPiER Questionnaire reproduces the wording, recency options and positive-screen rule verbatim. Basis: FHIR-Resources/PSS-3/licensing/MEMO.md (issue #64)."
+* copyright = "The Patient Safety Screener (PSS-3) was developed through the ED-SAFE study, funded by the National Institute of Mental Health, and is distributed as a free public resource by SAMHSA and the Suicide Prevention Resource Center. No permission or fee is required for use. The tip sheet instructs administering the three questions exactly as worded; the SPiER Questionnaire reproduces the wording, recency options and positive-screen rule verbatim. Basis: docs/instruments/PSS-3/licensing/MEMO.md (issue #64)."
 
 
 // ─── Examples ────────────────────────────────────────────────

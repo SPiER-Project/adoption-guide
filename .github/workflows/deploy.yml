@@ -144,10 +144,10 @@ jobs:
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
-      # Keyed on every input that determines the render: the IG sources, the
-      # Questionnaire JSON under FHIR-Resources/ (loaded into the IG via
-      # `path-resource: ../FHIR-Resources/*` since #473 — a Questionnaire edit
-      # with no ig/ change must NOT reuse a cached render), the SUSHI config
+      # Keyed on every input that determines the render: the IG sources —
+      # which since the 2026-09-19 layout move include the Questionnaire JSON at
+      # ig/input/resources/questionnaires/, so `ig/input/**` alone covers what
+      # used to need a second pattern — the SUSHI config
       # (canonical, version, dependencies), ig.ini (template + entry point) and
       # the publisher version. The key carries the run id so
       # every render saves successfully; `restore-keys` does the actual matching
@@ -165,9 +165,9 @@ jobs:
           path: |
             ig/output
             ig/publisher.log
-          key: ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
           restore-keys: |
-            ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-
+            ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-
 
       # A restored render is only usable if it is actually complete. A truncated
       # or partially-uploaded cache entry would otherwise deploy a broken IG, so
@@ -340,7 +340,7 @@ jobs:
           path: |
             ig/output
             ig/publisher.log
-          key: ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
+          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ steps.pub.outputs.tag }}-${{ github.run_id }}
 
       # The render size is reported because it is the one number this design does
       # not know in advance and that could make it a bad trade: every render
@@ -523,9 +523,9 @@ jobs:
           path: |
             ig/output
             ig/publisher.log
-          key: ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ needs.build.outputs.pub_tag }}-${{ github.run_id }}
+          key: ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ needs.build.outputs.pub_tag }}-${{ github.run_id }}
           restore-keys: |
-            ig-render-${{ hashFiles('ig/input/**', 'FHIR-Resources/**/*.json', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ needs.build.outputs.pub_tag }}-
+            ig-render-${{ hashFiles('ig/input/**', 'ig/sushi-config.yaml', 'ig/ig.ini', 'scripts/lib/sushi-version.mjs') }}-${{ needs.build.outputs.pub_tag }}-
 
       # This job deliberately cannot render — no Java, no Ruby, no Jekyll. So a
       # miss or a truncated entry is a hard failure rather than a fallback: the

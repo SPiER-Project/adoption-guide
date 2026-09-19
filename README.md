@@ -74,7 +74,7 @@ Eight stages, from the first signal to population measurement, so that an implem
 ## Repository structure
 
 * **`ig/`** — the HL7 FHIR Implementation Guide. FSH sources in `input/fsh/` are compiled by SUSHI and are the **canonical, machine-readable** definition of every profile, ValueSet, CodeSystem, ActivityDefinition and PlanDefinition; narrative pages are in `input/pagecontent/`. Rendered at the [Implementation Guide](https://spier-project.github.io/adoption-guide/ig/) link above; see [`ig/README.md`](ig/README.md) to build it.
-* **`FHIR-Resources/`** — hand-authored Questionnaire JSON and per-tool reference material, one folder per instrument. [`FHIR-Resources/README.md`](FHIR-Resources/README.md) has the tool→stage table.
+* **`ig/input/resources/questionnaires/`** — hand-authored Questionnaire JSON and per-tool reference material, one folder per instrument. [`docs/instruments/README.md`](docs/instruments/README.md) has the tool→stage table.
 * **`web/`** — the SPiER companion app (React/TS): the interactive pathway demo, patient and population views, and the EHR adoption rubric. It is also a SMART on FHIR app, and doubles as the reference implementation.
 * **`packages/`** — `core/` (the React-free domain layer shared by the app, the CDS Hooks Worker and the mock EHR), `worker-http/` (what the two asset-serving Workers share about being an asset host, including the one `frame-ancestors` policy), `demo-population/` (the demo patients and scenario slices), and `fhir-artifacts/generated/` (SUSHI output, gitignored).
 * **`services/`** — three Cloudflare Workers: `cds-hooks/` serves the adoption guide, the live `/cds-services` endpoint and the rendered IG; `clinical/` serves the clinical build of the two SMART apps on its own origin; and `mock-ehr/` is the host chart the demo launches from.
@@ -87,7 +87,7 @@ Build commands, verification gates and the conventions they enforce live in [`CL
 
 Eleven instruments are modeled today: ASQ, BSSA, C-SSRS, CAMS, CRP, PHQ-9, PSS-3, PSS-Full, SAFE-T, SBQ-R and the Stanley-Brown Safety Plan. A twelfth folder, `CARS-S/`, holds a licensing audit and no artifacts — the outcome there was NO-GO pending written permission. Rather than restate stage membership or scoring here, see:
 
-- [`FHIR-Resources/README.md`](FHIR-Resources/README.md) — the tool→stage table and what each folder holds.
+- [`docs/instruments/README.md`](docs/instruments/README.md) — the tool→stage table and what each folder holds.
 - Each tool's `ActivityDefinition` in the IG — the authority for its stage, codes and licensing status.
 - [`docs/best-practices/licensing-verification-backlog.md`](docs/best-practices/licensing-verification-backlog.md) — what is and isn't verified about instrument licensing.
 

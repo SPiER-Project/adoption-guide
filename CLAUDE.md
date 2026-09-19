@@ -12,7 +12,30 @@ most of them are a gate that passed while checking nothing.
 ## Repo layout
 
 - `ig/` — FHIR Implementation Guide. FSH sources in `ig/input/fsh/` are compiled by SUSHI to `ig/fsh-generated/resources/` (gitignored). This is the **canonical, machine-readable** source for Profiles, ValueSets, CodeSystems, ActivityDefinitions, PlanDefinitions, and example Instances.
-- `FHIR-Resources/` — hand-authored FHIR Questionnaire JSON (plus a few CarePlan templates), one folder per instrument (ASQ, PHQ-9, C-SSRS, SBQ-R, CAMS, Stanley-Brown). Imported **directly** by `web/src/App.tsx` at runtime, **and published into the IG** through `ig/input/resources/questionnaires`, a tracked symlink to this folder whose tool folders are each a `path-resource` entry in `sushi-config.yaml` (#473). ⚠️ The publisher refuses a `path-resource` outside the IG root, which is why it is a symlink and not `../FHIR-Resources`; one entry **per tool folder**, never the recursive `/*` form, because the publisher tries to load every file it finds and `references/` holds PDFs (`check-ig-narrative.mjs` fails on a folder with JSON that no entry names); and every resource JSON here needs an `id` equal to its canonical's last segment, because the publisher names the page `<Type>-<id>.html` and rejects a mismatch.
+- `ig/input/resources/questionnaires/` — hand-authored FHIR Questionnaire JSON
+  (plus a few CarePlan templates and one ValueSet), one folder per instrument.
+  **Not FSH, so SUSHI never compiles them** — they are picked up by the IG
+  Publisher through the single `path-resource: input/resources/questionnaires/*`
+  entry in `sushi-config.yaml`, which is the ordinary mechanism for a resource
+  authored as JSON. The app imports the same files at runtime through
+  `packages/core/src/data/questionnaires.ts`, the single owner of those import
+  paths. ⚠️ **These folders hold resource JSON and nothing else.** Reference
+  material — READMEs, licensing memos, PDFs, transcripts, spreadsheets — lives in
+  `docs/instruments/<Tool>/`, and that separation is what lets the recursive
+  `/*` form work: the publisher tries to parse every file it finds, so one PDF in
+  here becomes an "Error loading … as Turtle" line in `publisher.log`.
+  ⚠️ Every resource JSON needs an `id` equal to its canonical's last segment,
+  because the publisher names the page `<Type>-<id>.html` and rejects a mismatch.
+  ⚠️ Until 2026-09-19 this tree lived OUTSIDE `ig/`, at `FHIR-Resources/`, and
+  reached the IG through a tracked symlink plus one hand-maintained
+  `path-resource` entry per tool folder — a list whose failure mode was silent (a
+  missing folder was a Questionnaire the IG simply did not publish). Do not
+  reintroduce either; the move is what deleted both.
+- `docs/instruments/<Tool>/` — everything about an instrument that is not a FHIR
+  resource: provenance READMEs, `licensing/MEMO.md`, original forms, training
+  transcripts, dashboard data dictionaries. Kept out of the IG input tree on
+  purpose, per the bullet above.
+
 - `packages/core/` — the **React-free domain layer** (#389): FHIR types, the tool
   catalog, instrument + care-plan mappers, the `FhirDataSource` seam, pathway /
   registry / measure logic, CDS Hooks, FHIRcast. Consumed as `@spier/core/<path>`
@@ -50,7 +73,7 @@ most of them are a gate that passed while checking nothing.
   `packages/core`, and gated by `scripts/check-worker-csp.mjs`.
 - `packages/demo-population/` — the 14 demo patients + scenario slices (#388).
 - `packages/fhir-artifacts/generated/` — SUSHI's output, gitignored (#392).
-- `web/` — React 19 + TypeScript (strict) + Vite app. Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/` by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from `FHIR-Resources/`.
+- `web/` — React 19 + TypeScript (strict) + Vite app. Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/` by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from `ig/input/resources/questionnaires/`.
 - `docs/` — project/reference docs. `scripts/` — repo-level helper scripts.
 
 ## Verification commands
@@ -231,7 +254,7 @@ node scripts/build-ig-groups.mjs      # regenerate the `groups:` block of sushi-
 node scripts/build-ig-groups.mjs --check   # gate: every source has a rule, the block is current, and
                                       # every compiled resource carries a groupingId (needs SUSHI first)
 node scripts/check-canonical-uniqueness.mjs   # one canonical URL, one definition — across BOTH the FSH
-                                      # tree and FHIR-Resources/. Needs `ig/fsh-generated/` (a missing
+                                      # tree and ig/input/resources/questionnaires/. Needs `ig/fsh-generated/` (a missing
                                       # tree is a hard error, never a skip)
 node scripts/check-md-links.mjs       # every relative link in a tracked .md resolves (the ONLY gate
                                       # that triggers on docs/** or the root README.md)
@@ -240,7 +263,7 @@ node scripts/check-worker-csp.mjs     # ONE frame-ancestors policy across every 
                                       # services/clinical (`npm run check:csp`) rather than from web,
                                       # which reads none of it; it scans the whole repo, so either
                                       # caller is sufficient
-node scripts/validate-fhir.mjs        # HL7 validator_cli over ig/fsh-generated/, FHIR-Resources/ and
+node scripts/validate-fhir.mjs        # HL7 validator_cli over ig/fsh-generated/, ig/input/resources/questionnaires/ and
                                       # the unwrapped scenarios (needs Java 17+; caches a ~190MB jar)
 node scripts/check-fml.mjs --tx https://tx.fhir.org   # FHIR Mapping Language gate (same Java + jar;
                                       # --tx needs the network — the transform engine requires a tx server)
@@ -566,7 +589,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`, and
   `web/public/favicon.*` + `web/public/apple-touch-icon.png`. To change
   FHIR shapes, edit FSH in `ig/input/fsh/`; to change a Questionnaire, edit the
-  JSON in `FHIR-Resources/`.
+  JSON in `ig/input/resources/questionnaires/`.
 
 ## Gotchas
 
@@ -599,20 +622,25 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   it is a CI gate you can re-run, not a deploy.
 - **Generated files must exist before `tsc -b`.** On a clean checkout, run
   `npm run copy-fhir` first or the typecheck/build fails on missing imports.
-- **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
-  ValueSets; `FHIR-Resources/` holds the 18 Questionnaires, 2 CarePlan templates
-  and one ValueSet (`ASQ/yes-no.json`). ⚠️ **No CodeSystems live there** — this
-  line said "and the few local CodeSystems with no FSH counterpart" until
-  2026-09-18, describing a category of exception that no longer exists and
-  inviting the very thing the next sentence forbids. A new CodeSystem goes in
-  FSH; there is no local-exception path.
-  Never define the same canonical URL in both trees — three ASQ CodeSystems did,
-  and the `FHIR-Resources` copies silently shadowed the IG's with drifted
+- **One canonical URL, one definition.** There are still **two authoring
+  sources** inside `ig/`, and the rule is about them: `ig/input/fsh/` (compiled by
+  SUSHI) is canonical for CodeSystems, ValueSets, profiles and definitions;
+  `ig/input/resources/questionnaires/` holds the 18 hand-authored Questionnaires,
+  2 CarePlan templates and one ValueSet (`ASQ/yes-no.json`), which SUSHI never
+  reads. ⚠️ **No CodeSystems live in the JSON tree** — this line said "and the few
+  local CodeSystems with no FSH counterpart" until 2026-09-18, describing a
+  category of exception that no longer exists and inviting the very thing the next
+  sentence forbids. A new CodeSystem goes in FSH; there is no local-exception path.
+  Never define the same canonical URL in both sources — three ASQ CodeSystems did,
+  and the hand-authored copies silently shadowed the FSH ones with drifted
   `display` values. **`npm run`-free gate:
   `node scripts/check-canonical-uniqueness.mjs`** (needs SUSHI output; in
   `ig.yml`). ⚠️ SUSHI catches only *half* of this — it keys duplicates on
-  resourceType + id and never reads `FHIR-Resources/` at all, so a collision on
-  the same URL with a *different* id was caught by nothing before that gate.
+  resourceType + id and never reads the JSON tree at all, so a collision on the
+  same URL with a *different* id was caught by nothing before that gate. ⚠️ Both
+  sources living under `ig/` since 2026-09-19 does **not** merge them: SUSHI
+  compiles one and the publisher loads the other, and the gate still compares two
+  trees.
 - **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes and ASQ
   disposition codes are duplicated by hand across `ig/input/fsh/` (canonical),
   `packages/core/src/lib/observationMappers/` and `packages/demo-population/src/`.

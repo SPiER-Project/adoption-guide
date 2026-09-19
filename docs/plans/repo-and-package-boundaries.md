@@ -259,7 +259,7 @@ put it at risk:
   same commit.
 - `check:catalog` then enforces the correspondence in *both* directions: a tool
   reaching the app with no ActivityDefinition fails, and a Questionnaire in
-  `FHIR-Resources/` that no ActivityDefinition administers fails.
+  `ig/input/resources/questionnaires/` that no ActivityDefinition administers fails.
 
 Across a repository boundary, "pull from the IG" becomes a dependency on
 `thespierproject.fhir@x.y.z` — a version number. Drift stops being *impossible*
@@ -279,12 +279,12 @@ check-scenario-responses    check-stage-ids             check-ucum-stub
 ```
 
 plus three at the repo root — `validate-fhir.mjs` (which needs `ig/`,
-`FHIR-Resources/` **and** `packages/demo-population/`, i.e. all three proposed
+`ig/input/resources/questionnaires/` **and** `packages/demo-population/`, i.e. all three proposed
 repos at once), `check-fml.mjs`, and `build-use-case-workbook.mjs` (whose
 tool-status claims are read off `tool-ui-metadata.ts` and `App.tsx`).
 
 `check-codings.mjs` is **not** in that list and looks like it should be: it
-deliberately excludes `ig/` and `FHIR-Resources/`, because those are resources and
+deliberately excludes `ig/` and `ig/input/resources/questionnaires/`, because those are resources and
 `validate-fhir.mjs --tx` owns them. Worth stating, because it is the one that
 makes the count a count rather than a grep.
 
@@ -653,14 +653,14 @@ the engine currently lives inside one of its consumers. Three corrections:
    *"our embedded app should be pulling directly from these resources"* — is
    phase 1, and it is **already half-true**: profiles, ValueSets, CodeSystems and
    ActivityDefinitions arrive via `copy-fhir`, but the **18 Questionnaires are
-   hand-authored in `FHIR-Resources/`, outside the IG**, and imported straight by
+   hand-authored in `ig/input/resources/questionnaires/`, outside the IG**, and imported straight by
    `App.tsx`.
 
    ⚠️ **Measured, because the sharp version is sharper than the summary: the IG
    contains ZERO `Questionnaire` resources and 11 example
    `QuestionnaireResponse`s — responses to forms it does not define.** Their
    `questionnaire` canonicals (`http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool`
-   and friends) resolve only inside `FHIR-Resources/`. So the IG publishes answers
+   and friends) resolve only inside `ig/input/resources/questionnaires/`. So the IG publishes answers
    to a questionnaire set that lives outside it, and the app treats that outside
    set as the spec. That is the substantive version of "pull directly from the IG",
    and it is a conformance story rather than a folder-layout one.
@@ -671,7 +671,7 @@ the engine currently lives inside one of its consumers. Three corrections:
    packages would duplicate or re-import them immediately. The audience boundary is
    real; a package boundary is the wrong instrument for it.
 3. **`scripts/` is not homeless.** It is cross-package by nature —
-   `validate-fhir.mjs` reads `ig/`, `FHIR-Resources/` **and** the population
+   `validate-fhir.mjs` reads `ig/`, `ig/input/resources/questionnaires/` **and** the population
    scenarios in one run. Root-level tooling in a monorepo is correct. Same caution
    on folding `docs/` into the guide: `docs/use-cases/` and `docs/outreach/` are
    **build inputs with their own CI gates**, not prose.

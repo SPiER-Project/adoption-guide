@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { mapPHQ9 } from '@spier/core/lib/observationMappers/phq9'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
-// PHQ-9 answerOption ordinals (from FHIR-Resources/PHQ-9/phq9-questionnaire.json):
+// PHQ-9 answerOption ordinals (from ig/input/resources/questionnaires/PHQ-9/phq9-questionnaire.json):
 //   LA6568-5 = 0 (Not at all)
 //   LA6569-3 = 1 (Several days)
 //   LA6570-1 = 2 (More than half the days)

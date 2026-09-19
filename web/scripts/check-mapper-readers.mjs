@@ -55,7 +55,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '..')
 const root = resolve(here, '../..')
 const mapperDir = join(root, 'packages/core/src/lib/observationMappers')
-const questionnaireDirs = [join(root, 'FHIR-Resources'), join(root, 'packages/fhir-artifacts/generated')]
+const questionnaireDirs = [join(root, 'ig/input/resources/questionnaires'), join(root, 'packages/fhir-artifacts/generated')]
 
 const SNOMED = 'http://snomed.info/sct'
 const SNOMED_YES = '373066001'

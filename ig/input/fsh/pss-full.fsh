@@ -14,7 +14,7 @@
 // Licensing: the PSS-3 screening items are the free ED-SAFE/SAMHSA/SPRC
 // public tool; the stratification step is site-defined. Used under the
 // license/permission held by the SPiER project (maintainer-confirmed
-// 2026-07-15). See FHIR-Resources/PSS-Full/licensing/MEMO.md.
+// 2026-07-15). See docs/instruments/PSS-Full/licensing/MEMO.md.
 //
 // Existing Questionnaire:
 //   http://thespierproject.org/fhir/Questionnaire/PSS-Full|1.0.0
@@ -82,7 +82,7 @@ Usage: #definition
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
-* copyright = "The universal-screen portion reproduces the free, public ED-SAFE PSS-3 items distributed by SAMHSA and the Suicide Prevention Resource Center — no permission or fee required. The risk-stratification step is site-defined (local protocol and clinician judgement), not a reproduced proprietary instrument, so no third-party item content is carried. Attribute the screen to the ED-SAFE study / SAMHSA / SPRC. Basis: FHIR-Resources/PSS-Full/licensing/MEMO.md (issue #64), which records maintainer confirmation on 2026-07-15."
+* copyright = "The universal-screen portion reproduces the free, public ED-SAFE PSS-3 items distributed by SAMHSA and the Suicide Prevention Resource Center — no permission or fee required. The risk-stratification step is site-defined (local protocol and clinician judgement), not a reproduced proprietary instrument, so no third-party item content is carried. Attribute the screen to the ED-SAFE study / SAMHSA / SPRC. Basis: docs/instruments/PSS-Full/licensing/MEMO.md (issue #64), which records maintainer confirmation on 2026-07-15."
 
 
 // ─── Examples ────────────────────────────────────────────────

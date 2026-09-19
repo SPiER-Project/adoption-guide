@@ -9,7 +9,7 @@ against `main` at `6315763` (post-PR #7), when the repo was seven tools old.
 
 ⚠️ **Every recommendation below has since been implemented, and the tree it
 describes no longer exists.** `pathway-stages.fsh` was extracted;
-`FHIR-Resources/` was restructured tool-keyed (ASQ, BSSA, C-SSRS, CAMS, CARS-S,
+`ig/input/resources/questionnaires/` was restructured tool-keyed (ASQ, BSSA, C-SSRS, CAMS, CARS-S,
 CRP, PHQ-9, PSS-3, …) rather than by numbered stage; `firebase-debug.log` and
 `.DS_Store` are untracked. Read `CLAUDE.md` for the current layout — the "Findings"
 and "Recommendation" sections here are a snapshot of a decision already made, kept
@@ -23,7 +23,7 @@ This document inventoried the repository structure as it stood in May 2026, iden
 /
 ├── README.md                  Project overview
 ├── docs/                      Strategic / methodological documentation (pre-IG)
-├── FHIR-Resources/            Hand-authored FHIR Questionnaire JSON, organized by pathway stage
+├── ig/input/resources/questionnaires/            Hand-authored FHIR Questionnaire JSON, organized by pathway stage
 ├── ig/                        Sushi/FSH-based FHIR Implementation Guide (NEW since PR #4)
 ├── web/                       React demo app (Vite + TS)
 ├── .github/workflows/         CI: deploy.yml (Pages), ig.yml (Sushi)
@@ -60,10 +60,10 @@ ig/
 
 **Open question for the refactor:** the two pathway-stage PlanDefinitions (Flag Risk and Clarify Risk) currently live in `asq.fsh`. Stage 4 lives in `stanley-brown.fsh`. Stages 3 and 7 live in `cams.fsh`. Pathway stages are conceptually orthogonal to specific tools — they could be extracted to a `pathway-stages.fsh` file so each tool file only declares tool artifacts, and pathway assembly happens in one place. **Recommend extracting** during the refactor.
 
-## 3. `FHIR-Resources/` — hand-authored Questionnaires
+## 3. `ig/input/resources/questionnaires/` — hand-authored Questionnaires
 
 ```
-FHIR-Resources/
+ig/input/resources/questionnaires/
 ├── 1-Flag-Risk/
 │   ├── ASQ/fhir/questionnaires/questionnaire.json
 │   ├── C-SSRS/fhir/questionnaires/{screener,full-lifetime-recent}.json
@@ -88,7 +88,7 @@ FHIR-Resources/
 Restructure as **tool-keyed at top level**, with stage as metadata (in README per tool):
 
 ```
-FHIR-Resources/
+ig/input/resources/questionnaires/
 ├── README.md             (cross-reference table: tool → primary stage)
 ├── ASQ/
 ├── PHQ-9/
@@ -268,7 +268,7 @@ Listed smallest/safest first. Each is a separate PR.
 | 6d.5 | **Add FHIR-resource copy step** — script that copies `ig/fsh-generated/resources/*.json` into `web/src/data/fhir/` on prebuild. Update CI. | 2 files | Low |
 | 6d.6 | **Refactor `data/catalog/`** to consume FHIR resources from `web/src/data/fhir/`. Keep React-only fields in a sibling `tool-ui-metadata.ts`. Drop `RESPONSE_NAME_TO_TOOL_ID` map (use canonical-URL lookup). | ~5 files | **Medium** (touches many consumers) |
 | 6d.7 | **Pathway PlanDefinitions to dedicated file** — extract from `asq.fsh`/`stanley-brown.fsh`/`cams.fsh` into `ig/input/fsh/pathway-stages.fsh`. | 4 FSH files | Low |
-| 6d.8 | **`FHIR-Resources/` restructure** — flatten to tool-keyed top level; cross-reference stage in README. | ~10 files moved | Medium (paths referenced by App.tsx imports) |
+| 6d.8 | **`ig/input/resources/questionnaires/` restructure** — flatten to tool-keyed top level; cross-reference stage in README. | ~10 files moved | Medium (paths referenced by App.tsx imports) |
 | 6d.9 | **CarePlan mapper profile attribution** — replace external US eCare Plan claim with SPiER profile canonicals. | 3 mapper files | Trivial |
 
 ## 8. Things to explicitly leave alone (for now)
@@ -280,7 +280,7 @@ Listed smallest/safest first. Each is a separate PR.
 
 ## 9. Open questions for review
 
-1. **Tool placement in `FHIR-Resources/`** — keep stage-numbered tree (with empty placeholders for stages 3, 5, 6, 7, 8) or flatten to tool-keyed? My recommendation is flatten; the stage→tool mapping is many-to-many and better expressed as metadata.
+1. **Tool placement in `ig/input/resources/questionnaires/`** — keep stage-numbered tree (with empty placeholders for stages 3, 5, 6, 7, 8) or flatten to tool-keyed? My recommendation is flatten; the stage→tool mapping is many-to-many and better expressed as metadata.
 2. **`tool-ui-metadata.ts`** name — better as `tool-ui-overlay.ts` or `tool-react-extras.ts`? Just bikeshedding the naming.
 3. **Per-PR or merge several?** Steps 6d.1–6d.4 could combine cleanly into one PR. Steps 6d.5–6d.6 are the substantive refactor. Steps 6d.7–6d.9 are independent tidy-ups.
 4. **CarePlan profile retrofit** (6d.9) — touches the live React app's persisted CarePlan shapes. Worth doing now or wait until catalog refactor is in?

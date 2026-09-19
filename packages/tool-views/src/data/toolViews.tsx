@@ -86,7 +86,7 @@ export const TOOL_VIEWS: Record<string, ReactNode> = {
   // out of four things the shared view had grown: the `?tool=` launch-stage
   // stamp, the observation summary, the writeback panel, and honouring a care
   // plan's `isEmpty`. It also imported the Questionnaire JSON straight out of
-  // `FHIR-Resources/`, the only instrument to bypass the core registry. See
+  // `ig/input/resources/questionnaires/`, the only instrument to bypass the core registry. See
   // docs/internals/tool-views.md §2.
   'stanley-and-brown': <QuestionnaireView title="Stanley-Brown Safety Plan" questionnaireUrl={QUESTIONNAIRE_URLS['StanleyBrownSafetyPlan']} persistName="Stanley-Brown Safety Plan" carePlanMapper={generateCarePlan} />,
   'cams-section-a': <QuestionnaireView title="CAMS SSF-5: Section A" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-SSF5-SectionA']} persistName="CAMS SSF-5: Section A" />,

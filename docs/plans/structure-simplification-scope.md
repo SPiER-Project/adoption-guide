@@ -67,7 +67,7 @@ but confirm).
 
 **Problem:** `packages/core/src/lib/observationMappers/fallbackDispatch.ts`
 hand-duplicates per-item LOINC codes from the Questionnaire JSON in
-`FHIR-Resources/`. `web/scripts/check-fallback-signatures.mjs` (npm script
+`ig/input/resources/questionnaires/`. `web/scripts/check-fallback-signatures.mjs` (npm script
 `check:fallback`) exists only to check the two agree.
 
 **Approach:** generate the signature table from the Questionnaires at
@@ -199,6 +199,6 @@ its work becomes redundant. Same planted-defect discipline.
 - **`check:patients` derivation** — patients.json display copies are
   intertwined with hand-authored data; the gate stays.
 - **Any rewrite of CLAUDE.md beyond blocks made stale by these changes.**
-- **Anything under `ig/`, `FHIR-Resources/` content, or the check scripts not
+- **Anything under `ig/`, `ig/input/resources/questionnaires/` content, or the check scripts not
   named above.** Gates that validate hand-authored FHIR against artifacts
   (`check:scenarios`, `check:readers`, `check:catalog`, etc.) earn their keep.

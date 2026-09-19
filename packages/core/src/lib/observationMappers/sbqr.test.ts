@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { mapSBQR } from '@spier/core/lib/observationMappers/sbqr'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
-// SBQ-R answerOption codes → ordinal (from FHIR-Resources/SBQ-R/sbqr-questionnaire.json):
+// SBQ-R answerOption codes → ordinal (from ig/input/resources/questionnaires/SBQ-R/sbqr-questionnaire.json):
 //   q1: "1"=1 "2"=2 "3a/3b"=3 "4a/4b"=4   (own CodeSystem per item)
 //   q2: "1"=1 … "5"=5
 //   q3: "1"=1 "2a/2b"=2 "3a/3b"=3

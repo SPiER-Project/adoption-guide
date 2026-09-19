@@ -161,7 +161,7 @@ npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDe
                          # per-AD tool-id identifiers).
                          # Check B stops a TOOL from reaching the app with no
                          # ActivityDefinition; check C stops the artifact one
-                         # layer down — a Questionnaire in FHIR-Resources/ that
+                         # layer down — a Questionnaire in ig/input/resources/questionnaires/ that
                          # no AD administers, which was ungated until 2026-08-20.
                          # ⚠️ Check F reads the tool-id identifier SYSTEM off the
                          # NamingSystem that publishes it, never a retyped copy:

@@ -128,7 +128,7 @@ export function parsePathResource(text, bail) {
     if (!item) break // end of the sequence (a sibling key, or a dedent)
     // A trailing `/*` is not YAML — it is the IG Publisher's own "and every
     // subfolder" form, which SUSHI implements identically (#473 uses it to load
-    // FHIR-Resources/<tool>/ without naming each tool). Only that one shape is
+    // ig/input/resources/questionnaires/<tool>/ without naming each tool). Only that one shape is
     // allowed through; any other `*`, quote or block indicator is still a form
     // this parser does not read.
     const value = item[1].replace(/\/\*$/, '')

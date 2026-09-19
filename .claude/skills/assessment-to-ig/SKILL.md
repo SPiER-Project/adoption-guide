@@ -13,8 +13,8 @@ It is the **authoring** counterpart to `fhir-questionnaire-quality`, which is th
 
 For each new assessment, produce all of the following artifacts. The skill is not done until every section is addressed (even if the answer for a section is an explicit "deferred, here's why").
 
-1. **Hand-authored Questionnaire JSON** at `FHIR-Resources/<INSTRUMENT>/fhir/questionnaires/questionnaire.json` (and, if the instrument has multiple forms — e.g. C-SSRS Screener vs. Lifetime/Recent, CAMS SSF Section A/B vs. Therapeutic Worksheet — one file per form, suffixed by form name).
-2. **Instrument folder README** at `FHIR-Resources/<INSTRUMENT>/README.md` documenting the items, response options, scoring, copyright/licensing, and LOINC coverage.
+1. **Hand-authored Questionnaire JSON** at `ig/input/resources/questionnaires/<INSTRUMENT>/<form>.json` (and, if the instrument has multiple forms — e.g. C-SSRS Screener vs. Lifetime/Recent, CAMS SSF Section A/B vs. Therapeutic Worksheet — one file per form, suffixed by form name).
+2. **Instrument folder README** at `docs/instruments/<INSTRUMENT>/README.md` documenting the items, response options, scoring, copyright/licensing, and LOINC coverage.
 3. **FSH artifacts** at `ig/input/fsh/<instrument>.fsh` declaring:
    - `Profile` resources for each derived Observation (total score, item-level for clinically-meaningful items, summary categorization)
    - `Instance: Administer<Instrument>` of `ActivityDefinition`, with `sdc-questionnaire` extension pointing at the hand-authored Questionnaire's canonical URL + version
@@ -23,7 +23,7 @@ For each new assessment, produce all of the following artifacts. The skill is no
 4. **Stage wiring** in `ig/input/fsh/pathway-stages.fsh` — add the new ActivityDefinition to the relevant stage's PlanDefinition action(s). An instrument that spans multiple stages (e.g. CAMS) gets multiple actions.
 5. **IG page content** — if the instrument warrants its own narrative page (most do), add it under `ig/input/pagecontent/` and reference from `ig/sushi-config.yaml` `pages:` and `menu:`. At minimum, the existing `zero-suicide-mapping.md` should be updated to mention which Zero Suicide step the instrument supports.
 6. **React catalog UI metadata** in `packages/core/src/data/catalog/tool-ui-metadata.ts` — a `ToolUiMetadata` entry keyed by the TL-id. ⚠️ **UI concerns only.** `id`, `name`, `purpose`, `stageId` and `questionnaireUrl` are **derived from the FSH ActivityDefinition** by `tools.ts`; hand-typing any of them here reintroduces exactly the drift that derivation removed.
-7. **Optional reference material** under `FHIR-Resources/<INSTRUMENT>/references/` — original PDF, scoring guide, training transcripts. Useful for future contributors; not part of the published IG.
+7. **Optional reference material** under `docs/instruments/<INSTRUMENT>/references/` — original PDF, scoring guide, training transcripts, plus `licensing/MEMO.md`. ⚠️ **Never beside the Questionnaire JSON.** `path-resource` loads `input/resources/questionnaires/*` recursively and the publisher tries to parse every file it finds, so a PDF in there becomes an "Error loading … as Turtle" line in `publisher.log`. That is why the reference material lives under `docs/` at all.
 
 ## Inputs the skill needs from the user
 
@@ -57,7 +57,7 @@ If a LOINC binding can't be verified, flag it explicitly in the artifact (`// TO
 
 ### 2. Author the Questionnaire JSON
 
-Place at `FHIR-Resources/<INSTRUMENT>/fhir/questionnaires/questionnaire.json`. Follow the structural conventions already in the repo:
+Place at `ig/input/resources/questionnaires/<INSTRUMENT>/<form>.json`. Follow the structural conventions already in the repo:
 
 - `url`: `http://thespierproject.org/fhir/Questionnaire/<INSTRUMENT>` (no version suffix in the `url`; carry version in `version`)
 - `version`: Start at `1.0.0`. Bump on material changes.
@@ -65,7 +65,7 @@ Place at `FHIR-Resources/<INSTRUMENT>/fhir/questionnaires/questionnaire.json`. F
 - `subjectType: ["Patient"]`
 - `code`: panel-level LOINC on the root.
 - `useContext`: at minimum declare a `venue` (ED / outpatient / inpatient / telehealth) and a `focus` clinical concept.
-- `copyright`: full attribution. Distinguish "public domain" from "freely available but copyrighted" — see `FHIR-Resources/PHQ-9/README.md` for the right phrasing.
+- `copyright`: full attribution. Distinguish "public domain" from "freely available but copyrighted" — see `docs/instruments/PHQ-9/README.md` for the right phrasing.
 - For each item: `linkId`, `text` (verbatim), `type`, `code` (LOINC), and for choice items either `answerValueSet` (preferred — points at a published or local ValueSet) or `answerOption` with coded values.
 - Conditional follow-ups: `enableWhen` + `enableBehavior` per the quality skill. Conditional items must be **absent** from the QuestionnaireResponse when not triggered — document this on the README.
 
@@ -133,9 +133,9 @@ Always update `ig/input/pagecontent/zero-suicide-mapping.md` to add the new inst
 
 ### 7. Update cross-cutting docs
 
-- `FHIR-Resources/README.md` — add a row to the instruments table.
-- `scripts/build-ig-groups.mjs` — add the new `.fsh` file and the new `FHIR-Resources/<INSTRUMENT>` folder to its `RULES` table (almost always `'instruments'`), then run `node scripts/build-ig-groups.mjs` to regenerate the `groups:` block in `ig/sushi-config.yaml`. `--check` in CI names any source with no rule; never edit the block by hand.
-- `ig/sushi-config.yaml` — add `- input/resources/questionnaires/<INSTRUMENT>` to `path-resource` (that directory is a symlink to `FHIR-Resources/`, #473). This is what publishes the Questionnaire JSON on the IG's Artifacts page; `check-ig-narrative.mjs` fails if the folder holds JSON and no entry names it. Two things the publisher enforces on the JSON: the resource has an `id`, and that `id` equals the last segment of its `url` (`.../Questionnaire/PHQ-9` → `"id": "PHQ-9"`); the gate fails on a missing id, the publisher on a mismatch. Keep reference PDFs and spreadsheets in `references/` (a subfolder), never beside the JSON — the publisher tries to load every top-level file.
+- `docs/instruments/README.md` — add a row to the instruments table.
+- `scripts/build-ig-groups.mjs` — add the new `.fsh` file and the new `ig/input/resources/questionnaires/<INSTRUMENT>` folder to its `RULES` table (almost always `'instruments'`), then run `node scripts/build-ig-groups.mjs` to regenerate the `groups:` block in `ig/sushi-config.yaml`. `--check` in CI names any source with no rule; never edit the block by hand.
+- `ig/sushi-config.yaml` — **nothing to add for the Questionnaire.** `path-resource` carries one recursive entry, `input/resources/questionnaires/*`, so a new instrument folder is published the moment it exists. ⚠️ It did not always: until 2026-09-19 this was one hand-maintained entry per tool folder, and a folder missing from the list was a Questionnaire the IG silently did not publish. Do not reintroduce per-folder entries. Two things the publisher still enforces on the JSON: the resource has an `id`, and that `id` equals the last segment of its `url` (`.../Questionnaire/PHQ-9` → `"id": "PHQ-9"`); `check-ig-narrative.mjs` fails on a missing id, the publisher on a mismatch. Keep reference PDFs and spreadsheets in `docs/instruments/<INSTRUMENT>/`, never in the IG tree — the publisher tries to load every file it finds.
 - `docs/README.md` — the documentation index; add an entry only if the instrument gets its own doc.
 - Open a tracking issue with the right labels (`tool:TL-XXX`, `type:epic`). GitHub Issues is the only roadmap; the app has no Roadmap page.
 - Run the quality skill's checklist one more time end-to-end.

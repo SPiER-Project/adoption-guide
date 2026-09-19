@@ -4,7 +4,7 @@
  * ── Why this file exists ─────────────────────────────────────────────────────
  *
  * Hand-authored FHIR is well gated: `ig/` by sushi + the validator + the IG
- * Publisher, `FHIR-Resources/` and the scenarios by `validate-fhir.mjs`. What the
+ * Publisher, `ig/input/resources/questionnaires/` and the scenarios by `validate-fhir.mjs`. What the
  * *app* emits at runtime was gated by nothing. Two real defects landed in that
  * blind spot: #220 (seven fabricated LOINC codes on every generated Observation)
  * and #263 phase 3, where a new profile invariant was violated by the manual

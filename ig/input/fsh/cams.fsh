@@ -268,7 +268,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // The obvious move was to reuse the LOINC codes the Stanley-Brown and Crisis
 // Response Plan CarePlans then emitted for the equivalent safety-plan sections
 // (76689-1, 76690-9, 76691-7, 76692-5, 76693-3, 76694-1), listed as verified in
-// FHIR-Resources/Stanley-Brown/README.md's "Clinical Mapping Audit Table".
+// docs/instruments/Stanley-Brown/README.md's "Clinical Mapping Audit Table".
 // Those six codes DO NOT EXIST in LOINC — confirmed against LOINC 2.82 by both
 // the IG Publisher and tx.fhir.org's $validate-code. (81344-4, used for "Reason
 // for Living", is a real code meaning "Healthcare agent authority to inspect and

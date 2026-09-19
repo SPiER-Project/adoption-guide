@@ -50,9 +50,9 @@ const EXTRACT_URL =
 // per-item / total-score Observations (i.e. the items that should declare
 // observationExtract). Keep in sync with packages/core/src/lib/observationMappers/*.
 const EXPECTED = {
-  'FHIR-Resources/PHQ-9/phq9-questionnaire.json': ['44261-6'],
-  'FHIR-Resources/SBQ-R/sbqr-questionnaire.json': ['225337009'],
-  'FHIR-Resources/C-SSRS/cssrs-screener.json': [
+  'ig/input/resources/questionnaires/PHQ-9/phq9-questionnaire.json': ['44261-6'],
+  'ig/input/resources/questionnaires/SBQ-R/sbqr-questionnaire.json': ['225337009'],
+  'ig/input/resources/questionnaires/C-SSRS/cssrs-screener.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
   // C-SSRS Since Last Visit shares the screener's 6-item set but NOT its coding.
@@ -62,43 +62,43 @@ const EXPECTED = {
   // screener's 1-month LOINC codes, which would assert a window the instrument
   // does not claim (issue #220). These are NOT LOINC codes; they match
   // packages/core/src/lib/observationMappers/cssrsSinceLastContact.ts.
-  'FHIR-Resources/C-SSRS/cssrs-since-last-contact.json': [
+  'ig/input/resources/questionnaires/C-SSRS/cssrs-since-last-contact.json': [
     'wish-to-be-dead', 'non-specific-active-thoughts', 'active-ideation-any-methods',
     'active-ideation-some-intent', 'active-ideation-plan-and-intent', 'suicidal-behavior',
   ],
   // C-SSRS Pediatric / Adolescent reuses the validated screener item set + LOINC
   // codes. Matches packages/core/src/lib/observationMappers/cssrsPediatric.ts (shared core).
-  'FHIR-Resources/C-SSRS/cssrs-pediatric.json': [
+  'ig/input/resources/questionnaires/C-SSRS/cssrs-pediatric.json': [
     '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
   ],
   // ASQ items carry published LOINC codes as of LOINC 2.83, which added the ASQ
   // panel 115564-7 and its eight item codes. Until then the ASQ had none and the
   // five screening items bound to the SPiER-local asq-item CodeSystem, now
   // deleted. Match packages/core/src/lib/observationMappers/asq.ts.
-  'FHIR-Resources/ASQ/asq-questionnaire.json': [
+  'ig/input/resources/questionnaires/ASQ/asq-questionnaire.json': [
     '115566-2', '115567-0', '115568-8', '115569-6', '115571-2',
   ],
   // BSSA has NO published panel/per-item LOINC codes. The disposition item
   // carries the generic LOINC 93374-7 ("Suicide risk level"); the discrete
   // interview findings bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/bssa-item.
   // These match packages/core/src/lib/observationMappers/bssa.ts.
-  'FHIR-Resources/BSSA/bssa-questionnaire.json': [
+  'ig/input/resources/questionnaires/BSSA/bssa-questionnaire.json': [
     '93374-7', 'current-ideation', 'suicide-plan', 'intent-scale',
     'past-suicide-attempt', 'needs-help-to-be-safe',
   ],
   // PSS-3 has NO published panel/per-item LOINC codes. The three screening
   // items bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/pss3-item; the
   // result is COMPUTED (not observationExtract-declared). Match packages/core/src/lib/observationMappers/pss3.ts.
-  'FHIR-Resources/PSS-3/pss3-questionnaire.json': [
+  'ig/input/resources/questionnaires/PSS-3/pss3-questionnaire.json': [
     'depression-2wk', 'active-ideation-2wk', 'lifetime-attempt',
   ],
   // SAFE-T is a clinical-judgment formulation; only the risk-level item is a
   // literal extraction (LOINC 93374-7). Its value binds directly to the shared
   // suicide-risk tier (no crosswalk). Matches packages/core/src/lib/observationMappers/safet.ts.
-  'FHIR-Resources/SAFE-T/safet-questionnaire.json': ['93374-7'],
+  'ig/input/resources/questionnaires/SAFE-T/safet-questionnaire.json': ['93374-7'],
   // PSS Full: only the site-defined risk-level (93374-7) is a literal extraction;
   // the PSS-3 screen items are recorded in the QR for context. Matches packages/core/src/lib/observationMappers/pssFull.ts.
-  'FHIR-Resources/PSS-Full/pss-full-questionnaire.json': ['93374-7'],
+  'ig/input/resources/questionnaires/PSS-Full/pss-full-questionnaire.json': ['93374-7'],
   // CAMS SSF-5 Section A: the six SSF Core Assessment ratings ARE literal
   // extractions — the Observation's value is the 1–5 answer and its code is the
   // item's. No LOINC concepts exist for the SSF scale, so they bind to the
@@ -109,14 +109,14 @@ const EXPECTED = {
   // produces ONE Observation per item — an item with two codes yields one
   // Observation with two codings, not two resources. A second resource from one
   // answer is mapper logic, not an extraction.
-  'FHIR-Resources/CAMS/cams-ssf5-section-a.json': [
+  'ig/input/resources/questionnaires/CAMS/cams-ssf5-section-a.json': [
     'psychological-pain', 'stress', 'agitation', 'hopelessness', 'self-hate', 'overall-risk',
   ],
   // CAMS SSF-5 Outcome/Disposition: the same six re-rated vitals, plus the
   // disposition — also literal, since the Observation's valueCodeableConcept is
   // the answer's own coding and its code is the item's (LOINC 93374-7).
   // Matches packages/core/src/lib/observationMappers/camsOutcomeDisposition.ts.
-  'FHIR-Resources/CAMS/cams-ssf5-outcome-disposition.json': [
+  'ig/input/resources/questionnaires/CAMS/cams-ssf5-outcome-disposition.json': [
     'psychological-pain', 'stress', 'agitation', 'hopelessness', 'self-hate', 'overall-risk',
     '93374-7',
   ],
@@ -134,13 +134,13 @@ const NO_LITERAL_EXTRACTS = {
   // Emits one Observation: the risk tier, computed by walking the published
   // C-SSRS triage ladder across twelve lifetime/recent items. No single answer
   // becomes an Observation, so there is nothing to extract.
-  'FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json':
+  'ig/input/resources/questionnaires/C-SSRS/cssrs-full-lifetime-recent.json':
     'one computed risk tier from the C-SSRS triage ladder over twelve items — no per-answer Observation',
   // Emits Conditions, not Observations: one suicide-driver Condition per
   // described driver, whose `code.text` is the free-text description and whose
   // categories come from a different item. `observationExtract` is defined for
   // Observations, so it cannot express this even in principle.
-  'FHIR-Resources/CAMS/cams-ssf5-section-b.json':
+  'ig/input/resources/questionnaires/CAMS/cams-ssf5-section-b.json':
     'emits SPiERCAMSSuicideDriver Conditions, not Observations — observationExtract does not apply',
 }
 
@@ -173,7 +173,7 @@ if (mappedCanonicals.length === 0) {
   )
 }
 
-/** Questionnaire canonical → its path under FHIR-Resources/. */
+/** Questionnaire canonical → its path under ig/input/resources/questionnaires/. */
 const pathByCanonical = new Map()
 function* jsonFiles(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -182,7 +182,7 @@ function* jsonFiles(dir) {
     else if (entry.name.endsWith('.json')) yield full
   }
 }
-for (const full of jsonFiles(resolve(root, 'FHIR-Resources'))) {
+for (const full of jsonFiles(resolve(root, 'ig/input/resources/questionnaires'))) {
   let doc
   try { doc = JSON.parse(readFileSync(full, 'utf8')) } catch { continue }
   if (doc.resourceType !== 'Questionnaire' || typeof doc.url !== 'string') continue
@@ -203,7 +203,7 @@ for (const canonical of mappedCanonicals) {
   if (!relPath) {
     fail(
       `observationMappers/index.ts maps "${canonical}", which resolves to no Questionnaire JSON under ` +
-        `FHIR-Resources/. check:catalog owns that relation; this rule needs it to find the file.`,
+        `ig/input/resources/questionnaires/. check:catalog owns that relation; this rule needs it to find the file.`,
     )
     continue
   }

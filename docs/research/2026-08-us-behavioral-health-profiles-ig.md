@@ -91,7 +91,7 @@ best-framed argument for SPiER's existence that we did not write ourselves.
 
 ## 3. Terminology alignment — we are already nearly exact
 
-I diffed the BHP C-SSRS example against `FHIR-Resources/C-SSRS/cssrs-screener.json` item by item.
+I diffed the BHP C-SSRS example against `ig/input/resources/questionnaires/C-SSRS/cssrs-screener.json` item by item.
 
 **All eight LOINC codes match, in the same order, with the same semantics:**
 
@@ -376,7 +376,7 @@ Consequences worth knowing:
   what found it — and, after #329's `1..1`, is what now fails on it. Note the limit of that
   gate: because the value is fixed, SUSHI *auto-populates* a required slice, so an FSH-authored
   Instance cannot violate it. The constraint protects hand-authored FHIR (the population
-  scenarios, `FHIR-Resources/`), which is exactly where the defect was.
+  scenarios, `ig/input/resources/questionnaires/`), which is exactly where the defect was.
 
 Verification: SUSHI 0 errors / 6 expected warnings · validator **0 conformance errors across 386
 resources** · `web` verify 546 tests (was 540) · `cds-hooks` 24 tests · `check:codings` 61

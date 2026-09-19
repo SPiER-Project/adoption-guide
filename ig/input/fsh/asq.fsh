@@ -7,7 +7,7 @@
 // patient from Identify Possible Risk to Clarify Risk.
 //
 // References the existing Questionnaire authored at
-// FHIR-Resources/ASQ/asq-questionnaire.json
+// ig/input/resources/questionnaires/ASQ/asq-questionnaire.json
 // (canonical: http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool).
 // =============================================================
 
@@ -211,7 +211,7 @@ Usage: #definition
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
-* copyright = "The ASQ (Ask Suicide-Screening Questions) is a public domain instrument developed by the National Institute of Mental Health (NIMH). No permission is required for use. The audit memo asks that use attribute the instrument to NIMH and cite the canonical publication. Basis: FHIR-Resources/ASQ/licensing/MEMO.md (issue #64). Open items recorded there: the permission letter it references is still to be filed in-repo, and whether item wording may be modified is not yet settled — the SPiER Questionnaire reproduces the five core items verbatim."
+* copyright = "The ASQ (Ask Suicide-Screening Questions) is a public domain instrument developed by the National Institute of Mental Health (NIMH). No permission is required for use. The audit memo asks that use attribute the instrument to NIMH and cite the canonical publication. Basis: docs/instruments/ASQ/licensing/MEMO.md (issue #64). Open items recorded there: the permission letter it references is still to be filed in-repo, and whether item wording may be modified is not yet settled — the SPiER Questionnaire reproduces the five core items verbatim."
 
 
 // ─── Examples ────────────────────────────────────────────────

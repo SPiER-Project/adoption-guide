@@ -99,7 +99,7 @@ def main():
     ap.add_argument('--responses', help='dir of canned responses, for self-test')
     a = ap.parse_args()
 
-    root = os.path.join(a.repo, 'FHIR-Resources')
+    root = os.path.join(a.repo, 'ig', 'input', 'resources', 'questionnaires')
     if not os.path.isdir(root):
         sys.exit(f'Not a SPiER checkout: {root}')
     rows = codings(root, a.filter)

@@ -36,7 +36,7 @@
  * `CodeableConcept.text` and left a fixed, checkable `display` behind, rather
  * than trying to teach this scanner to evaluate TypeScript.
  *
- * It deliberately does NOT scan FHIR-Resources/ or ig/: those are resources, and
+ * It deliberately does NOT scan ig/input/resources/questionnaires/ or ig/: those are resources, and
  * `node scripts/validate-fhir.mjs --tx <server>` already covers them. The nightly
  * workflow runs both.
  *
@@ -88,7 +88,7 @@ const EXTERNAL_SYSTEM_RE = new RegExp(EXTERNAL_FAMILIES.map(f => f.pattern).join
 const familyOf = system =>
   EXTERNAL_FAMILIES.find(f => new RegExp(`^(?:${f.pattern})$`).test(system))?.name
 
-// Scanned trees. FHIR-Resources/ and ig/ are excluded on purpose — validate-fhir.mjs
+// Scanned trees. ig/input/resources/questionnaires/ and ig/ are excluded on purpose — validate-fhir.mjs
 // --tx covers those, and double-reporting would make this output harder to act on.
 //
 // `minCodings` is a floor per source AND per vocabulary family: if a source
@@ -124,7 +124,7 @@ const familyOf = system =>
 //
 // #261 removed it. It was a hand-maintained JSON inventory of 20 distinct
 // codings, scanned here as a third source. Every one of those 20 was verified
-// to also live in `ig/` or `FHIR-Resources/` — where `validate-fhir.mjs --tx`
+// to also live in `ig/` or `ig/input/resources/questionnaires/` — where `validate-fhir.mjs --tx`
 // checks them at RESOURCE level (binding, context, cardinality, and the
 // display), which is strictly stronger than the code+display check here. So it
 // was a shadow copy, not independent coverage, and a second place to forget to

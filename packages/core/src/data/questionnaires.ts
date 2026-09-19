@@ -16,27 +16,27 @@ import { stripCanonicalVersion } from './catalog'
 import type { QuestionnaireResource } from '../types/fhir'
 
 // This module is the single owner of the hand-authored Questionnaire JSON
-// imports from FHIR-Resources/. Both the form renderer (web/src/data/toolViews.tsx)
+// imports from ig/input/resources/questionnaires/. Both the form renderer (web/src/data/toolViews.tsx)
 // and the ordinal-scoring join below consume the resources through the named
 // exports here, so the raw JSON paths live in exactly one place.
 
-import asq from '../../../../FHIR-Resources/ASQ/asq-questionnaire.json'
-import bssa from '../../../../FHIR-Resources/BSSA/bssa-questionnaire.json'
-import pss3 from '../../../../FHIR-Resources/PSS-3/pss3-questionnaire.json'
-import safet from '../../../../FHIR-Resources/SAFE-T/safet-questionnaire.json'
-import phq9 from '../../../../FHIR-Resources/PHQ-9/phq9-questionnaire.json'
-import sbqr from '../../../../FHIR-Resources/SBQ-R/sbqr-questionnaire.json'
-import cssrsScreenerJson from '../../../../FHIR-Resources/C-SSRS/cssrs-screener.json'
-import cssrsSinceLastContactJson from '../../../../FHIR-Resources/C-SSRS/cssrs-since-last-contact.json'
-import cssrsPediatricJson from '../../../../FHIR-Resources/C-SSRS/cssrs-pediatric.json'
-import cssrsFullJson from '../../../../FHIR-Resources/C-SSRS/cssrs-full-lifetime-recent.json'
-import camsSectionAJson from '../../../../FHIR-Resources/CAMS/cams-ssf5-section-a.json'
-import camsSectionBJson from '../../../../FHIR-Resources/CAMS/cams-ssf5-section-b.json'
-import camsOutcomeDispositionJson from '../../../../FHIR-Resources/CAMS/cams-ssf5-outcome-disposition.json'
-import camsStabilizationPlanJson from '../../../../FHIR-Resources/CAMS/cams-stabilization-plan.json'
-import camsTherapeuticWorksheetJson from '../../../../FHIR-Resources/CAMS/cams-therapeutic-worksheet.json'
-import crpJson from '../../../../FHIR-Resources/CRP/crp-questionnaire.json'
-import pssFullJson from '../../../../FHIR-Resources/PSS-Full/pss-full-questionnaire.json'
+import asq from '../../../../ig/input/resources/questionnaires/ASQ/asq-questionnaire.json'
+import bssa from '../../../../ig/input/resources/questionnaires/BSSA/bssa-questionnaire.json'
+import pss3 from '../../../../ig/input/resources/questionnaires/PSS-3/pss3-questionnaire.json'
+import safet from '../../../../ig/input/resources/questionnaires/SAFE-T/safet-questionnaire.json'
+import phq9 from '../../../../ig/input/resources/questionnaires/PHQ-9/phq9-questionnaire.json'
+import sbqr from '../../../../ig/input/resources/questionnaires/SBQ-R/sbqr-questionnaire.json'
+import cssrsScreenerJson from '../../../../ig/input/resources/questionnaires/C-SSRS/cssrs-screener.json'
+import cssrsSinceLastContactJson from '../../../../ig/input/resources/questionnaires/C-SSRS/cssrs-since-last-contact.json'
+import cssrsPediatricJson from '../../../../ig/input/resources/questionnaires/C-SSRS/cssrs-pediatric.json'
+import cssrsFullJson from '../../../../ig/input/resources/questionnaires/C-SSRS/cssrs-full-lifetime-recent.json'
+import camsSectionAJson from '../../../../ig/input/resources/questionnaires/CAMS/cams-ssf5-section-a.json'
+import camsSectionBJson from '../../../../ig/input/resources/questionnaires/CAMS/cams-ssf5-section-b.json'
+import camsOutcomeDispositionJson from '../../../../ig/input/resources/questionnaires/CAMS/cams-ssf5-outcome-disposition.json'
+import camsStabilizationPlanJson from '../../../../ig/input/resources/questionnaires/CAMS/cams-stabilization-plan.json'
+import camsTherapeuticWorksheetJson from '../../../../ig/input/resources/questionnaires/CAMS/cams-therapeutic-worksheet.json'
+import crpJson from '../../../../ig/input/resources/questionnaires/CRP/crp-questionnaire.json'
+import pssFullJson from '../../../../ig/input/resources/questionnaires/PSS-Full/pss-full-questionnaire.json'
 // ⚠️ Stanley-Brown was imported straight into `web/src/components/StanleyBrownView.tsx`
 // until 2026-09-17 — the one instrument that bypassed this module, and the
 // reason it was not in `QUESTIONNAIRE_BY_URL`. It has no ordinal-scored answers
@@ -44,10 +44,10 @@ import pssFullJson from '../../../../FHIR-Resources/PSS-Full/pss-full-questionna
 // of seventeen of the eighteen. See docs/internals/tool-views.md §2.
 // That view is gone (it was a fork of QuestionnaireView) and this claim is now
 // GATED rather than merely stated: `check:catalog` check C asserts that every
-// Questionnaire JSON under FHIR-Resources/ is imported here, matched on the
+// Questionnaire JSON under ig/input/resources/questionnaires/ is imported here, matched on the
 // file path — a canonical-based check would pass on a second importer, which
 // is exactly the defect.
-import stanleyBrownJson from '../../../../FHIR-Resources/Stanley-Brown/stanley-brown-questionnaire.json'
+import stanleyBrownJson from '../../../../ig/input/resources/questionnaires/Stanley-Brown/stanley-brown-questionnaire.json'
 
 /** Named Questionnaire resources — the canonical, typed registry entries. */
 export const asqQuestionnaire = asq as unknown as QuestionnaireResource

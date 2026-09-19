@@ -5,7 +5,7 @@
 carries*. **Artifacts:** `instrument-licensing-status` extension and its
 CodeSystem in [`instrument-licensing.fsh`](../../ig/input/fsh/instrument-licensing.fsh);
 the evidence behind each status is the per-tool memo at
-`FHIR-Resources/<tool>/licensing/MEMO.md`, and what is still owed is
+`ig/input/resources/questionnaires/<tool>/licensing/MEMO.md`, and what is still owed is
 [`best-practices/licensing-verification-backlog.md`](../best-practices/licensing-verification-backlog.md).
 
 ## The decision

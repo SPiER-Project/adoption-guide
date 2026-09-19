@@ -6,7 +6,7 @@
 // taken verbatim from those Questionnaires' answerOption.valueCoding
 // entries — formalizing, in the IG, the answer encodings the instruments
 // already use. (The Questionnaires themselves are maintained in
-// FHIR-Resources/ and referenced by canonical; rendering them IN the IG
+// ig/input/resources/questionnaires/ and referenced by canonical; rendering them IN the IG
 // is deferred — blocked by an IG Publisher renderer bug — so most of
 // these are defined ahead of that inclusion; sbqr-q1 is already used by
 // the SBQ-R QuestionnaireResponse example.)

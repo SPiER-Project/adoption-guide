@@ -206,7 +206,7 @@ in CI so external codes go unchecked, and **nothing at all** validated the
 code+display literals in `packages/core/src/lib/*Mappers/`, even though those land in
 `Observation.code.coding` on every generated resource at runtime.
 
-`FHIR-Resources/` is checked by the validator job **and**, since #473, by the
+`ig/input/resources/questionnaires/` is checked by the validator job **and**, since #473, by the
 IG Publisher: `ig/input/resources/questionnaires` is a tracked symlink to that
 folder, and each tool folder under it is a `path-resource` entry in
 `sushi-config.yaml`, so the 18 Questionnaires, the two CarePlan templates and
@@ -221,17 +221,17 @@ while the QA itself was 0 errors / 0 broken links (#512). Both workflows now
 grep with `-a` and fail by name on an unparsed count, and
 `check-ig-narrative.mjs` fails on a resource JSON one folder below a listed
 directory that no entry reaches, so a new tool folder cannot be silently
-unpublished. `ig-publish.yml` therefore triggers on `FHIR-Resources/**/*.json`
+unpublished. `ig-publish.yml` therefore triggers on `ig/input/resources/questionnaires/**/*.json`
 too, and `deploy.yml`'s render cache key hashes it — a Questionnaire edit with
 no `ig/` change must not reuse a cached render. After a substantial change you
 can still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
 
-⚠️ **Why a symlink and not `path-resource: ../FHIR-Resources/*`.** The
+⚠️ **Why a symlink and not `path-resource: ../ig/input/resources/questionnaires/*`.** The
 publisher refuses any resource path that escapes the IG root — *"Computed path
 does not start with first element"* — before it loads a single resource. The
 Questionnaires cannot move under `ig/` without splitting every per-tool folder
 (README, licensing memo, references) across two trees and re-pointing some
-thirty consumers of the `FHIR-Resources/` path, so the IG reaches out through
+thirty consumers of the `ig/input/resources/questionnaires/` path, so the IG reaches out through
 a symlink instead. SUSHI, the publisher and `check-ig-narrative.mjs` all follow
 it; a Windows checkout without symlink support gets a text file where the
 directory should be, and the publisher fails loudly on the missing path.

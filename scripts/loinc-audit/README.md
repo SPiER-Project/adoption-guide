@@ -6,7 +6,7 @@ bash scripts/loinc-audit/loinc-audit.sh . C-SSRS     # one folder
 python3 scripts/loinc-audit/loinc_audit.py . --dry-run   # list codings, no network, no account
 ```
 
-Walks every `Questionnaire` under `FHIR-Resources/`, extracts each distinct
+Walks every `Questionnaire` under `ig/input/resources/questionnaires/`, extracts each distinct
 `http://loinc.org` coding — panel codes, item codes and `answerOption` codings —
 and asks `fhir.loinc.org` whether the code exists and whether the `display` is
 one LOINC publishes. 76 codings, about 20 seconds.

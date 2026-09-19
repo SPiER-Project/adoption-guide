@@ -5,7 +5,7 @@ import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type Map
 // (The ASQ used to be the reference example of this pattern; LOINC 2.83 published
 // ASQ item codes, so it is now the example of the pattern being RETIRED — see
 // ig/input/fsh/asq.fsh.) These codes MUST stay in sync with the
-// Questionnaire item codes (FHIR-Resources/BSSA/bssa-questionnaire.json) and the
+// Questionnaire item codes (ig/input/resources/questionnaires/BSSA/bssa-questionnaire.json) and the
 // anti-drift check web/scripts/check-observation-extract.mjs EXPECTED list.
 const BSSA_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/bssa-item'
 const BSSA_DISPOSITION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition'

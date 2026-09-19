@@ -92,7 +92,7 @@ Usage: #definition
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
 * extension[=].valueCode = #public-domain
-* copyright = "Developed with an educational grant from Pfizer Inc. No permission required to reproduce, translate, display or distribute. Basis: the notice recorded on the SPiER PHQ-9 Questionnaire (FHIR-Resources/PHQ-9/). No licensing-audit memo is on file for the PHQ-9 under issue #64, so this notice has not been verified against the publisher's current terms."
+* copyright = "Developed with an educational grant from Pfizer Inc. No permission required to reproduce, translate, display or distribute. Basis: the notice recorded on the SPiER PHQ-9 Questionnaire (ig/input/resources/questionnaires/PHQ-9/). No licensing-audit memo is on file for the PHQ-9 under issue #64, so this notice has not been verified against the publisher's current terms."
 
 
 Instance: ExamplePHQ9TotalScore18

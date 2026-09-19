@@ -8,7 +8,7 @@
  * FHIRPath invariants and narrative link integrity, but
  *
  *   - it only runs when `ig/**` changes, so the hand-authored Questionnaires in
- *     `FHIR-Resources/` — imported directly by the app at runtime — were never
+ *     `ig/input/resources/questionnaires/` — imported directly by the app at runtime — were never
  *     validated by anything at all, and
  *   - its gate is a coarse `err = N` / `Broken Links: N` parse, not a
  *     per-resource conformance report.
@@ -58,7 +58,7 @@ const root = resolve(here, '..')
 const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
 
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
-const AUTHORED_DIR = join(root, 'FHIR-Resources')
+const AUTHORED_DIR = join(root, 'ig/input/resources/questionnaires')
 const SCENARIOS_DIR = join(root, 'packages/demo-population/src/scenarios')
 const PATIENTS_DIR = join(root, 'packages/demo-population/src/patients')
 
@@ -182,7 +182,7 @@ const targets = []
  * *context* (profiles, CodeSystems, ValueSets, and — critically —
  * Questionnaires that a QuestionnaireResponse must be validated against).
  *
- * `-ig <folder>` does NOT recurse: pointing it at `FHIR-Resources` loads
+ * `-ig <folder>` does NOT recurse: pointing it at `ig/input/resources/questionnaires` loads
  * "0 resources" because every file sits one level down in a per-instrument
  * subdirectory. That failure is silent and it degrades to a PASS — the
  * validator emits "the questionnaire … could not be resolved, so no validation

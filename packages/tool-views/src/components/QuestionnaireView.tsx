@@ -122,7 +122,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
   if (!questionnaire) {
     // Unreachable through the catalog: `questionnaireUrl` is typed as a
     // QUESTIONNAIRE_URLS value at every call site, and check:catalog asserts the
-    // registry covers every Questionnaire under FHIR-Resources/. Rendered rather
+    // registry covers every Questionnaire under ig/input/resources/questionnaires/. Rendered rather
     // than thrown so a stale deep link degrades to a message instead of a blank
     // route with a console error.
     return (

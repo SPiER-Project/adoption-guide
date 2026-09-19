@@ -19,7 +19,7 @@ decision.
 | Task | State |
 |---|---|
 | Audit (this document) | marked up 2026-09-16: all five recommendations accepted (remove Design decisions; new `docs/decisions/`; drop the menu prose + retire menu-gate A/B; keep Zero Suicide mapping short; #473 first) |
-| 1 — Questionnaires into the IG (#473) | done, #512 — `ig/input/resources/questionnaires` symlink + `path-resource: input/resources/questionnaires/*`; the publisher refuses `../FHIR-Resources/*` (path must be under the IG root), so the issue's candidate (1) needed the symlink. Publisher 2.3.4 renders all 18 with no `QuestionnaireRenderer` NPE — and its first run surfaced 18 real errors the old suppression had hidden: four CAMS ids not matching their canonical tail (fixed), ten ASQ LOINC 2.83 codes tx.fhir.org cannot resolve yet (`ignoreWarnings.txt` cannot suppress errors — CI proved it — so the publisher's validation of that one Questionnaire is switched off with `no-validate`, deleted together with `PENDING_TX` when the server updates). Narrative gate recurses `/*` and fails on an id-less resource. Full render + QA count come from `ig-publish.yml` on the PR (Jekyll is not installable on this machine's Ruby). |
+| 1 — Questionnaires into the IG (#473) | done, #512 — `ig/input/resources/questionnaires` symlink + `path-resource: input/resources/questionnaires/*`; the publisher refuses `../ig/input/resources/questionnaires/*` (path must be under the IG root), so the issue's candidate (1) needed the symlink. Publisher 2.3.4 renders all 18 with no `QuestionnaireRenderer` NPE — and its first run surfaced 18 real errors the old suppression had hidden: four CAMS ids not matching their canonical tail (fixed), ten ASQ LOINC 2.83 codes tx.fhir.org cannot resolve yet (`ignoreWarnings.txt` cannot suppress errors — CI proved it — so the publisher's validation of that one Questionnaire is switched off with `no-validate`, deleted together with `PENDING_TX` when the server updates). Narrative gate recurses `/*` and fails on an id-less resource. Full render + QA count come from `ig-publish.yml` on the PR (Jekyll is not installable on this machine's Ruby). |
 | 2 — Artifact groups + the exactly-one-group gate | done, #516 — `scripts/build-ig-groups.mjs` generates the `groups:` block from one rule per FSH file / tool folder / `.fml`; `--check` (in `ig.yml`) fails on an unassigned source, a stale block, or a compiled resource with no `groupingId`, each planted and watched to fail. The five FML maps go through `resources:` because SUSHI never loads `.fml`. Nothing pruned, as §4 concluded. |
 | 3 — Menu and the onboarding pages | done, #517 — Home 619→328 words (status table, two sentences of scope, a "Find what you need" table by task), Getting Started 367→396 (Questionnaires group, the four CapabilityStatements), How to Read → *Reading the artifacts* 1,099→811 (menu restatement gone; the tier-derivation rule moved to Conformance § *Tier derivation on the Questionnaire*; the C-SSRS war story is the first `docs/decisions/` record). Landed above the ~550 target because the tier-derivation table, its JSON sample and the 11-line primer stayed whole. Menu: *Reading the artifacts*, *Measures*. `check-ig-menu` checks A/B retired with the prose; C/D kept and re-planted. |
 | 4 — Conformance absorbs Design decisions | done, #518 — Design decisions (1,974 words) is gone as a page; its six normative statements sit under Conformance § *Categories and codes every profile carries* and § *`Observation.interpretation` differs by layer*; the rationale is seven `docs/decisions/` records. Conformance itself lost the `86849004` story, the CAMS-driver paragraph and the Maturity section (now one status line): 1,522 → 1,331 words, above the ~800 target because it absorbed the six rules — the two pages together went 3,496 → 1,331. The two rendered FSH Descriptions that cited the page now cite the record's GitHub URL; Quality Reporter joins the actor list. |
@@ -39,7 +39,7 @@ decision.
 | `^purpose` (the field the publisher renders for rationale) | used **twice** in the whole IG |
 | `artifacts.html` | one flat page, 286 rows in 13 publisher-default sections, 160 KB, no `groups:` |
 | Artifacts | 32 profiles · 15 extensions · 56 CodeSystems · 42 ValueSets · 73 definitional instances (43 ActivityDefinitions, 10 PlanDefinitions, 8 Measures, 6 ConceptMaps, 4 CapabilityStatements, 1 Library, 1 NamingSystem) · 63 examples · 5 FML StructureMaps |
-| Questionnaires (the Capture layer's central artifact) | **zero in the IG.** All 16 live in `FHIR-Resources/`; the IG only names their canonical URLs, and `ignoreWarnings.txt` suppresses the resulting unresolved-canonical QA messages ([#473](https://github.com/SPiER-Project/adoption-guide/issues/473)) |
+| Questionnaires (the Capture layer's central artifact) | **zero in the IG.** All 16 live in `ig/input/resources/questionnaires/`; the IG only names their canonical URLs, and `ignoreWarnings.txt` suppresses the resulting unresolved-canonical QA messages ([#473](https://github.com/SPiER-Project/adoption-guide/issues/473)) |
 
 ## 2. The findings that shape everything else
 
@@ -50,7 +50,7 @@ opens with a Questionnaire canonical that resolves to nothing on the site.
 A reader who wants the ASQ or PHQ-9 form has to know to leave the IG for
 GitHub. This is a navigation defect, not a prose one, and no amount of cutting
 fixes it. Issue #473 already carries both candidate fixes (`path-resource` on
-`FHIR-Resources/`, or FSH `Instance:` wrappers) and the repro recipe; the
+`ig/input/resources/questionnaires/`, or FSH `Instance:` wrappers) and the repro recipe; the
 publisher NPE that blocked it has not been re-tested on the pinned version.
 
 **F2. The Artifacts page is a 286-row list sorted by resource type.** The
@@ -156,7 +156,7 @@ prune.** Checked, not assumed:
   `AdministerCARSS`, `AdministerLocalRiskAssessment`) document real pathway
   steps and already say what they are.
 - The instrument answer CodeSystems (SBQ-R Q1–Q4, nine C-SSRS, PSS-3, BSSA…)
-  are bound from `FHIR-Resources/` Questionnaire `answerOption`s. Removing one
+  are bound from `ig/input/resources/questionnaires/` Questionnaire `answerOption`s. Removing one
   breaks a Questionnaire.
 - The app links CodeSystem and ValueSet pages by id from the Data Dictionary
   (`dataElements.ts`), so ids are pinned.
@@ -202,7 +202,7 @@ repository. Two recorded decisions bear on it, and one real case for it exists.
   generating both would produce the wrong thing for one of them, and the gates
   (menu A–D, narrative E–H) are built for `pagecontent/` as it is.
 - **The one place "pull from elsewhere" is right is the Questionnaires** — the
-  IG should pull `FHIR-Resources/` in as artifacts via `path-resource`. That is
+  IG should pull `ig/input/resources/questionnaires/` in as artifacts via `path-resource`. That is
   F1, and it is content the IG *lacks*, not prose it *restates*.
 
 Recommendation: keep the pages in `ig/input/pagecontent/`, make them short, and

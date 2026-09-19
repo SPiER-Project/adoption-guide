@@ -1,10 +1,10 @@
 // Coding verification status
 //
-// SPiER's hand-authored Questionnaires (FHIR-Resources/) annotate individual
+// SPiER's hand-authored Questionnaires (ig/input/resources/questionnaires/) annotate individual
 // codings with whether the code has been checked against an authoritative
 // source. It is a provenance marker for the *authoring* process, not clinical
 // data: a Questionnaire is only eligible to leave `status: draft` once no
-// coding on it still reads `unverified`. See FHIR-Resources/ASQ/README.md for
+// coding on it still reads `unverified`. See docs/instruments/ASQ/README.md for
 // how it is used in practice.
 //
 // The extension was in use across five Questionnaires (ASQ, BSSA, PSS-3,

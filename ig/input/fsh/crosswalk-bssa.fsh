@@ -14,7 +14,7 @@
 // !! PENDING CLINICAL SIGN-OFF !!
 // Every row below is a clinical-equivalence claim. The tier
 // assignments are proposed from the BSSA's disposition definitions
-// (see bssa.fsh / FHIR-Resources/BSSA/README.md) but must be
+// (see bssa.fsh / docs/instruments/BSSA/README.md) but must be
 // reviewed by a clinical SME before this map is treated as
 // authoritative. The positive tiers are marked conservatively
 // (`relatedto`) because a single BSSA disposition does not resolve
