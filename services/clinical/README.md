@@ -12,8 +12,8 @@ about it is what it *does not* serve, and why it exists separately at all.
 
 ## What it serves
 
-`web/dist-clinical` — the output of `VITE_SURFACE=clinical vite build`
-(a build target read by `web/vite.config.ts`; the old `surface.ts` flag module
+`dist-clinical` — the output of `VITE_SURFACE=clinical vite build`
+(a build target read by `vite.config.ts`; the old `surface.ts` flag module
 is deleted, and the clinical app is `apps/clinical`). That build registers
 the two SMART apps and **no `/guide` route**, and resolves
 `@spier/demo-population` to an empty shim, so the 14 demo patients are not

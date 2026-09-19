@@ -16,40 +16,40 @@
     // same trap packages/ui/tsconfig.json records. esbuild, which is what vite
     // and vitest actually transform .tsx with, finds a tsconfig by walking up
     // from the FILE. From packages/tool-views/src that walk reaches the repo
-    // root and never sees web/tsconfig.app.json, so without a config here every
+    // root and never sees tsconfig.app.json, so without a config here every
     // view compiles to the CLASSIC JSX runtime and dies with "React is not
     // defined" — while `tsc` stays green, because it reaches the same files
     // through imports from web/src.
     "jsx": "react-jsx",
 
     // Default typeRoots discovery walks up from this file's directory looking
-    // for node_modules/@types, which never reaches web/node_modules (a sibling,
+    // for node_modules/@types, which never reaches node_modules (a sibling,
     // not an ancestor). Same arrangement, and the same reason, as
     // packages/core and packages/ui.
-    "typeRoots": ["../../web/node_modules/@types"],
+    "typeRoots": ["../../node_modules/@types"],
     "types": ["node"],
     "paths": {
       // React and friends are web's dependencies; this package deliberately
       // keeps no second copy, which could drift from the version the app ships.
       // Pointed at @types where the package does not carry its own.
-      "react": ["../../web/node_modules/@types/react"],
-      "react/*": ["../../web/node_modules/@types/react/*"],
-      "react-dom": ["../../web/node_modules/@types/react-dom"],
-      "react-router-dom": ["../../web/node_modules/react-router-dom"],
-      "lucide-react": ["../../web/node_modules/lucide-react"],
-      "@formbox/renderer": ["../../web/node_modules/@formbox/renderer/dist/index.d.ts"],
-      "@formbox/hs-theme": ["../../web/node_modules/@formbox/hs-theme/dist/index.d.ts"],
+      "react": ["../../node_modules/@types/react"],
+      "react/*": ["../../node_modules/@types/react/*"],
+      "react-dom": ["../../node_modules/@types/react-dom"],
+      "react-router-dom": ["../../node_modules/react-router-dom"],
+      "lucide-react": ["../../node_modules/lucide-react"],
+      "@formbox/renderer": ["../../node_modules/@formbox/renderer/dist/index.d.ts"],
+      "@formbox/hs-theme": ["../../node_modules/@formbox/hs-theme/dist/index.d.ts"],
       // The colocated tests import these explicitly, and this package has no
       // node_modules of its own to walk up into.
-      "vitest": ["../../web/node_modules/vitest/dist/index.d.ts"],
-      "@testing-library/react": ["../../web/node_modules/@testing-library/react/types/index.d.ts"],
+      "vitest": ["../../node_modules/vitest/dist/index.d.ts"],
+      "@testing-library/react": ["../../node_modules/@testing-library/react/types/index.d.ts"],
       // This package sits ON TOP of core and ui and imports both by the same
       // specifier the apps use.
       "@spier/core/*": ["../core/src/*"],
       "@spier/ui/*": ["../ui/src/*"],
       "@spier/fhir-artifacts/*": ["../fhir-artifacts/*"],
       // Reached only through core's own sources, which are included below.
-      "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
+      "fhirclient/*": ["../../node_modules/fhirclient/*"],
       // Its own alias, so a colocated test can import its subject the way a
       // consumer does rather than by a relative path.
       "@spier/tool-views/*": ["./src/*"]

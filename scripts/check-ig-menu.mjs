@@ -56,7 +56,7 @@
  * missing `menu:` block or zero entries parsed fails. So does any YAML form the
  * parser does not understand — a quiet parse failure is how a gate reports
  * green over a file it never read, which is the same rule
- * `web/scripts/lib/vite-alias.mjs` follows.
+ * `scripts/lib/vite-alias.mjs` follows.
  *
  * Node 22 is the floor (`.github/.nvmrc`, read by every workflow). It was 20,
  * and two gates shipped that threw in CI on Node 22-only syntax (`fs.globSync`,

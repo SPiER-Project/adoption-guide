@@ -183,7 +183,7 @@ source. Copy that arrangement rather than reinventing it.
 
 ⚠️ **Give it its own CI-gated `verify` on day one.** `services/cds-hooks` has one
 precisely because `web/`'s does not cover it. The mock needs it *more*, because
-it reads scenario fixtures that `web/scripts/shift-scenario-dates.mjs`
+it reads scenario fixtures that `scripts/shift-scenario-dates.mjs`
 periodically re-anchors — a break there is silent and shows up as an empty chart
 in a demo. Mirror the existing script:
 

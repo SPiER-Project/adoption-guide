@@ -156,7 +156,7 @@ const INTERNALS = [
   ['an IG-Publisher parameter', /\bpath-binary\b/g, 'a build parameter; its rationale lives in the config and in CLAUDE.md'],
   // A bare gate name. `check:pathway` sat on the Care Pathway page for a release
   // and passed, because none of the patterns above matched the `check:<name>`
-  // form the web/package.json scripts use (found by the 2026-09-16 audit, F8).
+  // form the package.json scripts use (found by the 2026-09-16 audit, F8).
   // The lookbehind keeps a URL scheme (`https:`) and a YAML key out; the name
   // must start with a letter and be kebab-case, like every gate this repo has.
   ['a repo gate name', /(?<![\w/])check:[a-z][a-z-]+\b/g, 'a gate is this repo\'s discipline, not part of the specification; state the rule the gate protects'],

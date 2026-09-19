@@ -9,7 +9,7 @@ exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
 
-- **Fresh worktrees need `npm install` in `web/`** before any npm script runs.
+- **Fresh worktrees need `npm install` at the repo root** before any npm script runs.
 - ⚠️ **A huge `git status` in the ROOT checkout usually means the ref moved, not
   the files.** Sessions here run `git branch -f main origin/main` from linked
   worktrees to resync after a squash-merge. That updates the shared
@@ -43,11 +43,11 @@ and was false. See [`docs/internals/README.md`](README.md).
   `.git/worktrees/<name>/logs/HEAD` — the two records that identify which session
   moved the ref. Both were lost that way before the cause was found.
 - **Two of `@formbox/renderer`'s dependencies are aliased to shims** in
-  `vite.config.ts` (`web/src/shims/`, and therefore in vitest too), because the
+  `vite.config.ts` (`shims/`, and therefore in vitest too), because the
   chunk every assessment route loads carried 47% of its gzip in code this app
   cannot execute: **391 → 208 KB gzip**. Each has a gate, each gate treats "not
   aliased" as "nothing to guard" and passes — so the shared alias reader
-  (`web/scripts/lib/vite-alias.mjs`) **throws** on an alias form it cannot parse
+  (`scripts/lib/vite-alias.mjs`) **throws** on an alias form it cannot parse
   rather than reporting an absence. Do not soften that: a quiet parse failure
   turns both gates green over unguarded shims.
   ⚠️ **The aliases are anchored regexes in the array form, not the object form.**
@@ -81,11 +81,11 @@ and was false. See [`docs/internals/README.md`](README.md).
   derives the required method list from the installed `fhirpath` and
   `@formbox/renderer` rather than hardcoding it, so an upgrade that calls a new
   UCUM method fails the gate instead of a form. Same trade as the `expo-random`
-  override documented in `web/package.json` — prune what cannot execute, and say
+  override documented in `package.json` — prune what cannot execute, and say
   why in the place someone will look.
 - **`copy-fhir` is incremental on a content fingerprint, not on mtimes.** It writes `.copy-fhir-manifest` into `packages/fhir-artifacts/generated/` recording the SUSHI version, a hash of every input's content, and a hash of the tree it produced; it skips the ~30s compile only when all three still match. `predev`, `prebuild` and `pretest` run it plain; `verify` passes `--force`, which still means recompile unconditionally. If FHIR data looks stale, run `npm run copy-fhir -- --force`.
 
-  **CI shares one compile through that same fingerprint.** `node web/scripts/copy-fhir.mjs --print-input-fingerprint` prints the inputs hash, and web-lint.yml uses it as the cache key for `packages/fhir-artifacts/generated/`. The key therefore has one definition — spelling the input set out as `hashFiles('ig/input/fsh/**', 'ig/input/resources/questionnaires/**', …)` in YAML would restate, in several jobs at once, the list the script already owns, with nothing comparing the copies.
+  **CI shares one compile through that same fingerprint.** `node scripts/copy-fhir.mjs --print-input-fingerprint` prints the inputs hash, and web-lint.yml uses it as the cache key for `packages/fhir-artifacts/generated/`. The key therefore has one definition — spelling the input set out as `hashFiles('ig/input/fsh/**', 'ig/input/resources/questionnaires/**', …)` in YAML would restate, in several jobs at once, the list the script already owns, with nothing comparing the copies.
 
   ⚠️ **Two properties keep that cache honest, and both are deliberate.** The `verify` job keeps `--force`, so exactly one job per run still derives the tree from source and runs every gate against fresh bytes — if every job restored, an input the key cannot see would let one stale tree satisfy the whole repo and nothing would notice. And the restoring jobs do not *trust* the entry: `copy-fhir` re-reads the manifest inside it and recomputes both fingerprints, so a truncated or tampered entry recompiles. A bad cache degrades those jobs to slow, never to wrong — which is why, unlike deploy.yml's render cache, this one needs no separate completeness gate. The cache is also saved by an explicit `cache/save` placed *after* the gates, never by the combined `actions/cache` action, whose post-step would save a tree whose gates had failed.
 
@@ -181,7 +181,7 @@ in CI and passed on a developer machine**.
 
 | incident | API | symptom |
 |---|---|---|
-| `web/scripts/shift-scenario-dates.mjs` | `fs.globSync` (Node 22+) | `SyntaxError: does not provide an export named 'globSync'` the first time CI ran it |
+| `scripts/shift-scenario-dates.mjs` | `fs.globSync` (Node 22+) | `SyntaxError: does not provide an export named 'globSync'` the first time CI ran it |
 | `scripts/validate-fhir.mjs` | `Iterator.prototype.map` (Node 22+) | `walkJson(...).map is not a function` |
 
 Both share one shape, and it is not "someone used a new API". It is that

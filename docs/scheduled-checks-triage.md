@@ -79,7 +79,7 @@ defect the check exists to catch.
    `packages/core/src/lib/carePlanMappers/`, `packages/demo-population/` and
    `packages/core/src/data/catalog/dataElements.ts` (the data dictionary) —
    grep the whole repo for the old value.
-3. Re-run locally: `node web/scripts/check-codings.mjs --tx https://tx.fhir.org`.
+3. Re-run locally: `node scripts/check-codings.mjs --tx https://tx.fhir.org`.
 4. The tracking issue closes itself on the next clean run.
 
 ### Cause 1b — the code is right and the server's LOINC edition is behind
@@ -165,7 +165,7 @@ complaint that a SCAN entry declares no floor for a family.
 This is the guard on the guard, and it means the *extractor* broke rather than
 the terminology: a scanned path moved, a vocabulary family was dropped from
 `EXTERNAL_FAMILIES`, or a new family was added without a floor. Fix the scanner
-in `web/scripts/check-codings.mjs`. Do not lower a floor to make it pass —
+in `scripts/check-codings.mjs`. Do not lower a floor to make it pass —
 see the long comment on `SCAN` for the three separate times a floor that looked
 redundant turned out to be the only thing standing between this check and a
 silent pass.

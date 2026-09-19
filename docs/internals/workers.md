@@ -1,6 +1,6 @@
 # The three Workers
 
-`web/`'s `npm run verify` covers none of them. Each has its own CI-gated verify;
+the repo root's `npm run verify` covers none of them. Each has its own CI-gated verify;
 the mock EHR has a CSS gate no CSS linter could provide, and the two that serve
 Static Assets share a CSP gate.
 
@@ -13,16 +13,16 @@ In `services/cds-hooks/` — **easy to forget, and CI gates it:**
 ```
 npm install && npm run verify   # typecheck + eslint + vitest for the Worker
 ```
-`web/`'s `npm run verify` does NOT cover this package, but the `cds-hooks` CI job
+the repo root's `npm run verify` does NOT cover this package, but the `cds-hooks` CI job
 does. It imports the web catalog, so a change to `tool-ui-metadata.ts` (launch
 actions especially) or to the population scenarios can break its tests without
-anything in `web/` failing.
+anything at the repo root failing.
 
 In `services/clinical/` — **the newest one, and the one a real EHR frames:**
 ```
 npm install && npm run verify   # typecheck + eslint + check:csp + vitest
 ```
-It serves `web/dist-clinical` (`VITE_SURFACE=clinical`) and nothing else. Its
+It serves `dist-clinical` (`VITE_SURFACE=clinical`) and nothing else. Its
 verify is the odd one out for a reason worth protecting: **no `copy-fhir`, no
 web install.** This Worker imports nothing from `web/src` — it serves the built
 bytes — so it runs offline in seconds. The day something here needs the catalog
@@ -76,7 +76,7 @@ In `services/mock-ehr/` — **the same deal, and it has a CSS gate of its own:**
 npm install && npm run verify   # copy-fhir + typecheck + eslint + check:host-css + vitest
 ```
 `npm run check:host-css` is this Worker's stand-in for stylelint's
-`color-no-hex` and `web/`'s `check:tokens`, neither of which can see it — its
+`color-no-hex` and the root's `check:tokens`, neither of which can see it — its
 pages are template strings inside TypeScript, with no stylesheet for a CSS
 linter to read. Two rules: **no hex outside the `TOKENS` block** in
 `src/hostChrome.ts`, and **every `var(--…)` resolves**. Both fail when they read

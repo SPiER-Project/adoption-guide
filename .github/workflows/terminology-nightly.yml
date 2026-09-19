@@ -61,7 +61,7 @@ on:
   # PR time rather than at 04:41 the next morning.
   pull_request:
     paths:
-      - 'web/scripts/check-codings.mjs'
+      - 'scripts/check-codings.mjs'
       - 'scripts/validate-fhir.mjs'
       - '.github/workflows/terminology-nightly.yml'
 
@@ -102,7 +102,7 @@ jobs:
       - name: Check external codings
         id: run
         run: |
-          node web/scripts/check-codings.mjs --tx "$TX_SERVER" 2>&1 | tee "$RUNNER_TEMP/codings.log"
+          node scripts/check-codings.mjs --tx "$TX_SERVER" 2>&1 | tee "$RUNNER_TEMP/codings.log"
           exit "${PIPESTATUS[0]}"
 
       - name: Summarize
@@ -312,7 +312,7 @@ jobs:
             echo
             echo "| Check | Result |"
             echo "|---|---|"
-            echo "| Codings in application code (\`web/scripts/check-codings.mjs\`) | ${{ needs.codings.result == 'failure' && 'drift' || 'clean' }} |"
+            echo "| Codings in application code (\`scripts/check-codings.mjs\`) | ${{ needs.codings.result == 'failure' && 'drift' || 'clean' }} |"
             echo "| FHIR resources (\`scripts/validate-fhir.mjs --tx\`) | ${{ needs.resources.result == 'failure' && 'drift' || 'clean' }} |"
             echo
             for log in "$RUNNER_TEMP"/logs/*.log; do

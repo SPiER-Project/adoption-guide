@@ -52,7 +52,7 @@ crossings:
 ⚠️ **`tsconfig.json`'s most important job is `jsx`, and not for `tsc`.** esbuild
 — what vite and vitest actually transform `.tsx` with — finds a tsconfig by
 walking up from the FILE. From `packages/app-shell/src` that walk reaches the
-repo root and never sees `web/tsconfig.app.json`, so without `"jsx":
+repo root and never sees `tsconfig.app.json`, so without `"jsx":
 "react-jsx"` here every component compiles to the classic runtime and dies with
 "React is not defined" **while `tsc` stays green**. `packages/ui` and
 `packages/tool-views` both record the same thing.
@@ -61,9 +61,9 @@ repo root and never sees `web/tsconfig.app.json`, so without `"jsx":
 `SmartLaunch`, `SmartRedirect` and `SmartProvider` do `import FHIR from
 'fhirclient'`; `packages/core` only ever reaches `fhirclient/lib/Client`, so no
 bare entry existed. From `web/src` a bare specifier resolved by walking up into
-`web/node_modules`; from here that walk finds nothing (no npm workspaces, #387).
-It is now aliased in `web/vite.config.ts` **and** `web/vitest.config.ts`, and
-mapped in this package's `tsconfig.json` **and** `web/tsconfig.app.json` — the
+`node_modules`; from here that walk finds nothing (no npm workspaces, #387).
+It is now aliased in `vite.config.ts` **and** `vitest.config.ts`, and
+mapped in this package's `tsconfig.json` **and** `tsconfig.app.json` — the
 last because these files enter the app project's program through the
 `@spier/app-shell/*` path mapping.
 

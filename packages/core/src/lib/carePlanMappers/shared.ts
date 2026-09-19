@@ -165,7 +165,7 @@ export function makeSuicidePreventionCarePlan(options: {
    * Canonical URL of the SPiER CarePlan profile this resource conforms to.
    * The union is generated at prebuild time from every StructureDefinition
    * in packages/fhir-artifacts/generated/ whose `type === "CarePlan"` — see
-   * web/scripts/copy-fhir.mjs. FSH (ig/input/fsh/<tool>.fsh) is the single
+   * scripts/copy-fhir.mjs. FSH (ig/input/fsh/<tool>.fsh) is the single
    * source of truth; adding a new CarePlan profile in FSH automatically
    * expands this union on the next `npm run copy-fhir`.
    */

@@ -4,7 +4,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// Mirrors web/eslint.config.js. The Worker imports web source (catalog,
+// Mirrors eslint.config.js. The Worker imports web source (catalog,
 // mappers, scenarios) so the two must agree on style, but it runs on
 // workerd rather than in a browser — hence the different globals.
 export default defineConfig([

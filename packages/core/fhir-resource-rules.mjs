@@ -12,7 +12,7 @@
  *
  * Two callers, one rule set:
  *
- *   - `web/scripts/check-scenario-resources.mjs` — the offline gate over the
+ *   - `scripts/check-scenario-resources.mjs` — the offline gate over the
  *     hand-authored population scenarios (in `npm run verify`).
  *   - `services/mock-ehr/src/validate.ts` — the mock EHR's `POST /fhir/{Type}`,
  *     which refuses anything this module reports a problem with.

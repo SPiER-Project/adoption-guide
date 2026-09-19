@@ -4,8 +4,8 @@ The patient chart and the population dashboard: what a clinician is **launched
 into** from their EHR. Served by `services/clinical`, which the mock EHR frames
 (`DEFAULT_PANEL_BASE_URL`) and Medplum launches into.
 
-Built with `npm run build:clinical` from `web/`; the output is
-`web/dist-clinical`.
+Built with `npm run build:clinical` from the repo root; the output is
+`dist-clinical`.
 
 ## Nobody browsed here
 
@@ -42,7 +42,7 @@ guide's.
 ## Traps
 
 ⚠️ **`tsconfig.json` must set `jsx: "react-jsx"`** — esbuild walks up from the
-FILE and never reaches `web/`. Same note as every package here.
+FILE and never reaches the root tooling. Same note as every package here.
 
 ⚠️ **`check:surface-links` exists because a component shipping in both apps can
 still LINK into the other one.** The catch-all returns the clinician to the

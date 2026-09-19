@@ -9,7 +9,7 @@
     // ordinary walk-up: apps/<app> has no node_modules of its own (#387 — no
     // npm workspaces), so the walk reaches the repo root and finds nothing.
     // Same arrangement every package here already uses.
-    "typeRoots": ["../../web/node_modules/@types", "../../web/node_modules"],
+    "typeRoots": ["../../node_modules/@types", "../../node_modules"],
     "types": ["vite/client"],
     "skipLibCheck": true,
 
@@ -24,11 +24,11 @@
       // ⚠️ The BARE specifier needs its own entry now that SmartLaunch,
       // SmartRedirect and SmartProvider live in packages/app-shell. From
       // web/src a bare `fhirclient` resolved by walking up into
-      // web/node_modules; from packages/app-shell/src that walk reaches the
+      // node_modules; from packages/app-shell/src that walk reaches the
       // repo root and finds nothing, and these files enter THIS project's
       // program through the @spier/app-shell path mapping above.
-      "fhirclient": ["../../web/node_modules/fhirclient/index.d.ts"],
-      "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
+      "fhirclient": ["../../node_modules/fhirclient/index.d.ts"],
+      "fhirclient/*": ["../../node_modules/fhirclient/*"],
       "@spier/core/*": ["../../packages/core/src/*"],
       "@spier/ui/*": ["../../packages/ui/src/*"],
       "@spier/tool-views/*": ["../../packages/tool-views/src/*"],
@@ -47,18 +47,18 @@
       // node_modules/react would resolve the JS and then fail with "Could not
       // find a declaration file". react-router-dom and lucide-react ship their
       // own types, so those map to the package itself.
-      "react": ["../../web/node_modules/@types/react"],
-      "react/*": ["../../web/node_modules/@types/react/*"],
-      "react-dom": ["../../web/node_modules/@types/react-dom"],
-      "react-router-dom": ["../../web/node_modules/react-router-dom"],
-      "lucide-react": ["../../web/node_modules/lucide-react"],
+      "react": ["../../node_modules/@types/react"],
+      "react/*": ["../../node_modules/@types/react/*"],
+      "react-dom": ["../../node_modules/@types/react-dom"],
+      "react-router-dom": ["../../node_modules/react-router-dom"],
+      "lucide-react": ["../../node_modules/lucide-react"],
       // ⚠️ packages/tool-views renders the formbox questionnaire renderer, and its
       // files are outside web/ — so the node_modules walk-up that resolves these
-      // for web's own sources never reaches web/node_modules from there. Mapped at
+      // for web's own sources never reaches node_modules from there. Mapped at
       // the declaration file because a bare directory makes TS resolve the JS and
       // then ask for types, exactly as the react entries above record.
-      "@formbox/renderer": ["../../web/node_modules/@formbox/renderer/dist/index.d.ts"],
-      "@formbox/hs-theme": ["../../web/node_modules/@formbox/hs-theme/dist/index.d.ts"],
+      "@formbox/renderer": ["../../node_modules/@formbox/renderer/dist/index.d.ts"],
+      "@formbox/hs-theme": ["../../node_modules/@formbox/hs-theme/dist/index.d.ts"],
       "@spier/fhir-artifacts/*": ["../../packages/fhir-artifacts/*"],
       "@spier/demo-population": ["../../packages/demo-population/src/index.ts"],
       "@spier/demo-population/*": ["../../packages/demo-population/src/*"]

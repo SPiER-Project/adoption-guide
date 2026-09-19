@@ -48,7 +48,7 @@ own structure. Nine sites must agree, and each is commented:
 | `services/cds-hooks` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 | `services/mock-ehr` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 
-⚠️ `web/vitest.config.ts` does **not** inherit `web/vite.config.ts` — see
+⚠️ `vitest.config.ts` does **not** inherit `vite.config.ts` — see
 [`../demo-population/README.md`](../demo-population/README.md), where that was
 measured. Every alias is written in both.
 
@@ -65,7 +65,7 @@ they were in `web/src`, because `fhir-artifacts` is now a sibling.
   is in the mirrored path under `web/src`.**
 - **`fhir-resource-rules.mjs` is here but not under `src/`.** It is plain ESM
   with a hand-written `.d.mts`, imported by a Node CLI gate
-  (`web/scripts/check-scenario-resources.mjs`) *and* by the mock EHR's write
+  (`scripts/check-scenario-resources.mjs`) *and* by the mock EHR's write
   endpoint — the single opinion on whether a FHIR resource is valid. It sits at
   the package root because it is not part of the TypeScript source tree and must
   stay importable from a bare `node scripts/…` with nothing compiled.

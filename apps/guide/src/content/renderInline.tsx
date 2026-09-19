@@ -20,7 +20,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-// The published HL7 IG is a sibling static site (web/dist/ig/), not a hash
+// The published HL7 IG is a sibling static site (dist/ig/), not a hash
 // route — see the note on IG_HREF in AppShell.tsx for how the base resolves.
 export const IG_HREF = `${import.meta.env.BASE_URL}ig/`
 

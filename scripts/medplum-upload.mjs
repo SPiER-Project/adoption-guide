@@ -15,7 +15,7 @@
  *   node scripts/medplum-upload.mjs --reuse      # skip the ~30s compile
  *
  * `--check` is the default and `--apply` is the verb, the same split as
- * `web/scripts/shift-scenario-dates.mjs`: this one talks to a live server over
+ * `scripts/shift-scenario-dates.mjs`: this one talks to a live server over
  * the network, so the default has to be the one that cannot surprise anybody.
  *
  * ─── ⚠️ The snapshot, which is the whole reason this is a script ──────────────

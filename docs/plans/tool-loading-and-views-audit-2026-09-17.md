@@ -583,14 +583,14 @@ closes exactly the class of defect this audit found twice:
 > deliberately not claimed go on an allowlist with the reason, the way
 > `check:prose` classifies `NON_PROSE`.
 
-**Built 2026-09-17** — `web/scripts/check-output-profiles.mjs`, four rules, in
+**Built 2026-09-17** — `scripts/check-output-profiles.mjs`, four rules, in
 `verify` after `npm test`. One thing the sketch above got **wrong** and the
 implementation had to change: it proposed asserting the canonical appears "as a
 `meta.profile` literal in the view's reachable builder", which is a lexical
 test — and a lexical test *passes the TL-009 defect*, because
 `spier-safety-handoff` was in `packages/core/src` the whole time it was broken,
 in `measures.ts`, as the constant a filter reads. The gate reads the **emitted
-corpus** (`web/.runtime-fhir`) instead, which cannot confuse "named" with
+corpus** (`.runtime-fhir`) instead, which cannot confuse "named" with
 "written". See [web-gates.md](../internals/web-gates.md#checkoutputs--the-producing-half-of-a-tools-contract).
 
 That is a genuine answer to "could the two halves be one mechanism": **the
@@ -640,11 +640,11 @@ the `as unknown as` casts ([§1](#1-should-questionnaires-be-resolved-by-canonic
 
 ## 8. What this audit changed
 
-Two passes. The verification for both: `web/`'s `npm run verify` green (89 test
+Two passes. The verification for both: the repo root's `npm run verify` green (89 test
 files, 977 tests, one pre-existing `react-hooks/exhaustive-deps` warning in
 `MeasureDashboard.tsx`), `check-sushi-output.mjs` 0 errors / 6 expected warnings,
 `check-ig-narrative.mjs`, `check-md-links.mjs`, and `validate-fhir.mjs --also
-web/.runtime-fhir` at **657 resources / 0 errors**, of which 207 are emitted by
+.runtime-fhir` at **657 resources / 0 errors**, of which 207 are emitted by
 the app's own builders.
 
 ### Pass 1 — the registry bypass (audit findings)
@@ -757,9 +757,9 @@ the last being the half a profile check alone misses, since `#262` made
 
 ### Pass 3 — `check:outputs` (finding 3)
 
-`web/scripts/check-output-profiles.mjs`, wired as `npm run check:outputs` and
+`scripts/check-output-profiles.mjs`, wired as `npm run check:outputs` and
 added to `verify` **after `npm test`**, because `npm test` is what writes the
-`web/.runtime-fhir` tree it reads. Documented in
+`.runtime-fhir` tree it reads. Documented in
 [web-gates.md](../internals/web-gates.md#checkoutputs--the-producing-half-of-a-tools-contract);
 four rules, summarised in [§6](#6-could-the-views-be-derived-from-the-activitydefinition).
 

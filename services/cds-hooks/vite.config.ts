@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 // Plain Vite (not @cloudflare/vite-plugin) so the build stays decoupled from
 // asset handling — wrangler serves ./web-dist natively. This is still a Vite
 // build, so the app's `import.meta.glob` catalog + scenario loaders (imported
-// from ../../web/src) are transformed and their JSON inlined at build time.
+// from ../../packages) are transformed and their JSON inlined at build time.
 export default defineConfig({
   // The demo population resolves by declared alias, not by npm workspace
   // (#387 records why there is no workspace yet). Anchored exact + prefix

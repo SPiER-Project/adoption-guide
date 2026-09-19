@@ -395,7 +395,7 @@ where a derived resource type would be rendered.
 |---|---|
 | the map, and why it is one definition | `packages/tool-views/src/data/toolViews.tsx` |
 | the inspection invariant | `packages/tool-views/src/context/InspectContext.ts` |
-| the gate, its allowlist and its blind spots | `web/scripts/check-fhir-render.mjs`, [`web-gates.md`](web-gates.md) |
+| the gate, its allowlist and its blind spots | `scripts/check-fhir-render.mjs`, [`web-gates.md`](web-gates.md) |
 | the recorder frame every view shares | `packages/tool-views/src/components/WorkflowForm.tsx` |
 | tool → launch path | `packages/core/src/data/catalog/tool-ui-metadata.ts` |
 | tool → stage, Questionnaire, licensing | `ig/input/fsh/` (derived in `tools.ts`) |

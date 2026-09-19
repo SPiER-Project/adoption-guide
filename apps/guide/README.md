@@ -4,7 +4,7 @@ The case for the pathway, the published artifacts, the Data Dictionary, the
 adoption rubric, and a playground for every instrument. Served by
 `services/cds-hooks`, which also serves the rendered IG at `/ig/`.
 
-Built with `npm run build` from `web/`; the output is `web/dist`.
+Built with `npm run build` from the repo root; the output is `dist`.
 
 ## It holds no patient data, and that is structural
 
@@ -39,11 +39,11 @@ exactly those three by name.
 
 ⚠️ **`tsconfig.json` must set `jsx: "react-jsx"`.** esbuild finds a tsconfig by
 walking up from the FILE, and from here that walk reaches the repo root without
-passing `web/`. Every package in this repo records the same thing.
+passing the root tooling. Every package in this repo records the same thing.
 
 ⚠️ **Dependencies resolve by alias, not by walk-up** (#387 — no npm
 workspaces): React, `react-router-dom`, `lucide-react`, `fhirclient` and
-`@formbox/*` are aliased in `web/vite.config.ts` and `web/vitest.config.ts`,
+`@formbox/*` are aliased in `vite.config.ts` and `vitest.config.ts`,
 and mapped in this tsconfig. ⚠️ `@formbox/hs-theme/style.css` needs its own
 **anchored exact** entry — a prefix alias would rewrite the path before Vite
 consulted the package's `exports` map.

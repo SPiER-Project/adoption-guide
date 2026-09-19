@@ -11,7 +11,7 @@
  *
  * Nothing noticed because nothing validated runtime output. That is #302, and this
  * constant is part of its fix: the emitted corpus is now checked by the HL7
- * validator in CI (`scripts/validate-fhir.mjs --also web/.runtime-fhir`).
+ * validator in CI (`scripts/validate-fhir.mjs --also .runtime-fhir`).
  *
  * The display is not a free choice — `validate-fhir.mjs` checks every
  * `Coding.display` on a SPiER-local system against the CodeSystem, so it must

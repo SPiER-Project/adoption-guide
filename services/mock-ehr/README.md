@@ -46,7 +46,7 @@ it describes the exact dependency step E existed to remove — `fixtures.ts` say
 so in place: *"should not depend on a SUSHI compile, and the IG was publishing 14
 examples that referenced none of its own profiles."*
 
-`npm run copy-fhir` in `web/` is still a prerequisite for this package's
+`npm run copy-fhir` at the repo root is still a prerequisite for this package's
 `verify` — the tool catalog reads generated artifacts — but **not for the Patient
 roster**, which no longer needs a SUSHI compile at all.
 
@@ -468,7 +468,7 @@ npm install && npm run verify   # copy-fhir + typecheck + eslint + check:host-cs
 
 ⚠️ **CI runs `npm run verify` itself** rather than re-listing its steps, so a gate
 added to `package.json` is enforced automatically — the same arrangement, and the
-same reason, as `web/`'s. Do not expand the `mock-ehr` job in
+same reason, as the root's. Do not expand the `mock-ehr` job in
 `.github/workflows/web-lint.yml` into individual steps: a hand-copied list has
 nothing to compare itself against, and eight of `web/`'s gates once ran only on
 developer machines for exactly that reason.
@@ -503,10 +503,10 @@ frames `#/population/summary` on a panel build that has no such route, and
 `HashRouter` answers an unknown route with the app's fallback rather than an
 error, so the frame renders something plausible and wrong.
 
-`web/`'s `npm run verify` does **not** cover this package. CI runs the same
+the repo root's `npm run verify` does **not** cover this package. CI runs the same
 `verify` as its own `mock-ehr` job in `.github/workflows/web-lint.yml`, which
 triggers on `services/**` — this service reads the scenario fixtures that
-`web/scripts/shift-scenario-dates.mjs` periodically re-anchors, and that break
+`scripts/shift-scenario-dates.mjs` periodically re-anchors, and that break
 would otherwise be silent and show up as an empty chart mid-demo.
 
 Every test that reads `/fhir` obtains its token through the **real**
@@ -523,7 +523,7 @@ in `src/fixtures.ts`). It also asserts the failure direction: a 500 on a
 load-bearing search must reject, and a 500 on a best-effort one must degrade.
 
 `fhirclient` is deliberately **not** a dependency here — it is aliased to
-`web/node_modules` in `vitest.config.ts` and `tsconfig.json`. A second copy
+`node_modules` in `vitest.config.ts` and `tsconfig.json`. A second copy
 could drift from the version the app ships, and the test would then exercise a
 client the panel never uses.
 

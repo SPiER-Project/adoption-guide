@@ -4,7 +4,7 @@
  *
  * ⚠️ **Declared here rather than by pulling in `vite/client`.** That is how
  * `web` does it, and it does not work from this package: `types: ["vite/client"]`
- * is resolved against `typeRoots`, which points at `web/node_modules/@types`,
+ * is resolved against `typeRoots`, which points at `node_modules/@types`,
  * and Vite's client types do not live under `@types`. The result is
  * `TS2688: Cannot find type definition file for 'vite/client'` — a failure that
  * names the type library rather than the eight `import './X.css'` lines that

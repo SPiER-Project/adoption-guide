@@ -117,7 +117,7 @@ on file**, so the app ships no Area files and renders headings in Manrope; the
 `@font-face` block is commented out at the top of that file. The live site's own
 WOFFs are not a source — one is named `fonnts.com-…`, a free-download mirror.
 To close: obtain a Blaze Type web licence covering the app's origins, drop the
-licensed WOFF2 files into `web/public/fonts/area/`, uncomment the block, and
+licensed WOFF2 files into `public/fonts/area/`, uncomment the block, and
 record the licence and its retrieval date here.
 
 ## How to close an item
@@ -130,7 +130,7 @@ record the licence and its retrieval date here.
    `instrument-licensing-status` code in `ig/input/fsh/` — the notice must name
    the memo as its basis instead of the Questionnaire string.
 4. Re-run `npx fsh-sushi .`, `node scripts/validate-fhir.mjs`, and
-   `npm run verify` in `web/`. Move the row out of this file.
+   `npm run verify` at the repo root. Move the row out of this file.
 
 Do not upgrade a status to a more permissive code without step 1. `unknown` is a
 legitimate published state; a wrong `public-domain` is not.

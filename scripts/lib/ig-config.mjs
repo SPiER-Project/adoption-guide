@@ -8,7 +8,7 @@
  *
  * Every parser here **bails rather than skips** on a form it cannot read. A
  * quiet parse failure is how a gate reports green over a file it never read —
- * #232, #261, and the reason `web/scripts/lib/vite-alias.mjs` throws too. A
+ * #232, #261, and the reason `scripts/lib/vite-alias.mjs` throws too. A
  * missing block, or zero entries parsed, is an error and not a pass.
  *
  * Node 22 is the floor (`.github/.nvmrc`, read by every workflow). It was Node

@@ -7,7 +7,7 @@
    connection status instead of project links.
 
    ⚠️ No `.launch-shell__body`, and that is deliberate rather than an omission.
-   `web/scripts/check-page-template.mjs` sanctions exactly two owners of the page
+   `scripts/check-page-template.mjs` sanctions exactly two owners of the page
    inset and says why: "Adding a third entry should feel expensive. Two is a
    chrome decision; three is drift." The chrome around the page diverges here;
    the page frame does not. */

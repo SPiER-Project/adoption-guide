@@ -58,7 +58,7 @@ References:
 
 The transformation from a completed instrument to derived resources is standardized by HL7 **Structured Data Capture (SDC)**, which SPiER already depends on (`sushi-config.yaml` → SDC 3.0.0). Relevant mechanisms:
 
-- **Observation-based extraction** — `sdc-questionnaire-observationExtract` (boolean) marks items that become *literal* Observations. SPiER uses this today; `web/scripts/check-observation-extract.mjs` guards it against drift.
+- **Observation-based extraction** — `sdc-questionnaire-observationExtract` (boolean) marks items that become *literal* Observations. SPiER uses this today; `scripts/check-observation-extract.mjs` guards it against drift.
 - **StructureMap-based extraction** — `sdc-questionnaire-targetStructureMap` references a StructureMap for *computed/inferred* resources. This is the home for the harmonized concept.
 
 The line that matters: **literal extractions** (one item → one Observation) use `observationExtract`; **derived concepts** (a tier inferred from several items) use a StructureMap and must **not** be declared with `observationExtract`. SPiER already follows this — the ASQ composite disposition and C-SSRS risk level are computed and deliberately excluded from the extract contract.

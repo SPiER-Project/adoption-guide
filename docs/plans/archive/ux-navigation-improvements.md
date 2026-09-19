@@ -166,7 +166,7 @@ common widths, more code than deleting the bar.
 
 ## Verification
 
-Per PR: `npm run verify` in `web/`, then a preview walkthrough:
+Per PR: `npm run verify` at the repo root, then a preview walkthrough:
 
 - PR 1: every guide section reachable from the sidebar with correct active
   state; no horizontal overflow at 375/768/1280; pager cycles all 8 in order;

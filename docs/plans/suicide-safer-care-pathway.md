@@ -269,7 +269,7 @@ and runs before the compile in `ig.yml`.
 
 ### New drift gate: `check:pathway`
 
-`web/scripts/check-pathway.mjs`, in `verify` (add to `package.json` **and** to
+`scripts/check-pathway.mjs`, in `verify` (add to `package.json` **and** to
 CLAUDE.md's gate list — the list, not a count). Rules:
 
 - (a) every tier code in the pathway's actions resolves to the generated
@@ -327,7 +327,7 @@ a named risk, not a rename:
   precedent (redirect kept because it was a published launch path) if any
   published path pointed at a tool anchor under `/guide/pathway`.
 - Run `services/cds-hooks` and `services/mock-ehr` verifies — both can break
-  on this with `web/` green.
+  on this with the root verify green.
 
 ### The renderer (React-free core)
 
@@ -418,7 +418,7 @@ tier-driven guidance cards surfaced in the mock EHR through the existing
 
 | Gate | Why it's in play |
 |---|---|
-| `web/` `npm run verify` (all of it) | every phase |
+| the root `npm run verify` (all of it) | every phase |
 | **new** `check:pathway` | Phase 2+ — plant defects before trusting it |
 | `check:catalog` | Phase 3 route moves (launch paths validated both ways) |
 | `check:template` | Phase 3 — new guide sub-page must not grow a header/inset |

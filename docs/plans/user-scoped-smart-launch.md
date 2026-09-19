@@ -117,7 +117,7 @@ the code 2026-09-09:**
    link to `/patient/chart#activity` ("View in chart") — counted, not estimated.
    These are the *filler* screens returning to the chart, so they follow the
    chart to its new address.
-5. `web/scripts/check-guide-boundary.mjs` derives the guide's page set from
+5. `scripts/check-guide-boundary.mjs` derives the guide's page set from
    `apps/guide/src/data/guideSections.ts` **and** `App.tsx`'s route table, then walks it
    transitively forbidding `@spier/demo-population`, either concrete data source,
    and `useRegistrySlices`. **Declaring the two explainers as guide sections
@@ -204,9 +204,9 @@ a launch button instead of a guide URL and a self-initiated OAuth dance.
 
 1. Branch per PR, squash-merged. Phases are NOT independent this time — B
    depends on A, D depends on B and C — do them in order.
-2. Run all three `verify`s (`web/`, `services/cds-hooks/`, `services/mock-ehr/`)
+2. Run all three `verify`s (the repo root, `services/cds-hooks/`, `services/mock-ehr/`)
    for any PR touching `packages/`. Fresh worktree needs `npm install` in each,
-   plus `npm run copy-fhir` in `web/`.
+   plus `npm run copy-fhir` at the repo root.
 3. Prove a change to a security-relevant gate can fail before trusting it. In
    particular: **before this plan is done, a planted under-scoped cohort read
    must be seen to 403** — this is the one property the whole plan exists to
@@ -275,10 +275,10 @@ broken link in a diff nobody can read.
    end** — it points at a chart the unlaunched app no longer has. Suppress it
    when there is no session rather than linking a filler to prose.
 
-**Prove it:** `npm run verify` in `web/` plus the mock EHR's own — and then the
+**Prove it:** `npm run verify` at the repo root plus the mock EHR's own — and then the
 part that matters, because ⚠️ **nothing in the repo currently checks that a
 launch path resolves to a route.** Verified 2026-09-09:
-`web/scripts/check-catalog-integrity.mjs:494` asserts only that a tool *has* a
+`scripts/check-catalog-integrity.mjs:494` asserts only that a tool *has* a
 `launchActions` entry, never that its `path` is registered in `App.tsx`. So a
 stale `/patient/*` path after this re-addressing is a dead launch button that
 every gate and all the tests pass over.

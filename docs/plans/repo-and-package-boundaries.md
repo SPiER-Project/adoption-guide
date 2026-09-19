@@ -21,14 +21,14 @@ these be two *experiences*" (no), not "should these be two *published trees*".
 |---|---|
 | **1 — separate repos per surface** | **REJECTED.** The cross-tree drift gates are the repo's strongest discipline and cannot survive version skew. §3 |
 | **2 — monorepo with declared workspace packages** | **PROPOSED, and the condition in §8 is now MET.** §9 |
-| **3 — split the adoption guide from the clinical demo into two apps** | ~~REJECTED~~ → **REOPENED 2026-09-19, on an argument §5 never weighed.** The rejection stands on its own terms and §5 is not withdrawn: #316 unified them, the panel plan's chrome-mode decision reached the same answer from the other direction, and it is proven in a browser. What reopened it is *distribution*, not UX — **the SMART apps are to be open-sourced and the mock EHR is not**, which is a repository boundary rather than a rendering one. ⚠️ Read §5 as answering "should these be two *experiences*" (no) and not "should these be two *published trees*" (open). The gate infrastructure already assumes the split is coming: `web/scripts/lib/app-roots.mjs` was written on 2026-09-19 *specifically* for it — "`web/src` becomes `apps/guide/src` and `apps/clinical/src`" — and hard-fails the day `apps/guide/src/App.tsx` appears undeclared (`docs/internals/web-gates.md`). §5, §9.4 |
+| **3 — split the adoption guide from the clinical demo into two apps** | ~~REJECTED~~ → **REOPENED 2026-09-19, on an argument §5 never weighed.** The rejection stands on its own terms and §5 is not withdrawn: #316 unified them, the panel plan's chrome-mode decision reached the same answer from the other direction, and it is proven in a browser. What reopened it is *distribution*, not UX — **the SMART apps are to be open-sourced and the mock EHR is not**, which is a repository boundary rather than a rendering one. ⚠️ Read §5 as answering "should these be two *experiences*" (no) and not "should these be two *published trees*" (open). The gate infrastructure already assumes the split is coming: `scripts/lib/app-roots.mjs` was written on 2026-09-19 *specifically* for it — "`web/src` becomes `apps/guide/src` and `apps/clinical/src`" — and hard-fails the day `apps/guide/src/App.tsx` appears undeclared (`docs/internals/web-gates.md`). §5, §9.4 |
 | **4 — a patient-facing app as its own `apps/` entry** | ~~the trigger for #2~~ — **superseded as the trigger.** Still unbuilt and still legitimate, but a different consumer arrived first. §9.2 |
 | **5 — the demo fixtures get their own package** | **NEW, PROPOSED 2026-08-20.** They have no home in §4's table, which is exactly why "where should the patient data live" was hard to answer. §9.3 |
 
 | Phase | State |
 |---|---|
 | 0 — declare `packages/core`, convert the Workers' deep imports | ~~Not started~~ → **DONE.** `packages/core` exists (#389) and the deep imports are at zero — §9.1's own heading records the fall from 21. §9.1 |
-| 1 — move the SUSHI build out of the web app's devDependencies | ~~Not started~~ → **DONE** (E2b). `fsh-sushi` is absent from `web/package.json`; that file's own advisory note says it "left this list when it stopped being a devDependency here". §6, §9.8 |
+| 1 — move the SUSHI build out of the web app's devDependencies | ~~Not started~~ → **DONE** (E2b). `fsh-sushi` is absent from `package.json`; that file's own advisory note says it "left this list when it stopped being a devDependency here". §6, §9.8 |
 | 2 — `packages/ui`, gates move with it | ~~Not started~~ → **DONE** (#544), and overshot: `packages/{ui,tool-views,worker-http}` all exist (#544, #547), not just the one this row named. ⚠️ The gates did **not** all move intact — four lost coverage and two of them stayed green; `docs/internals/web-gates.md` is the record. §6 |
 | 3 — `apps/patient` | **Not started.** Blocked on a decision to build it at all. ⚠️ Not the same thing as `apps/{guide,clinical}`, which is decision 3 and is in flight. |
 
@@ -131,7 +131,7 @@ ig/input/fsh  ──fsh-sushi──▶  ig/fsh-generated  ──copy-fhir.mjs─
                                                                           │
                                      web/src/{lib,data,types}  ◀──────────┘
                                           │            │
-                                          │            └──▶ web/dist ──stage:assets──▶ services/cds-hooks/web-dist
+                                          │            └──▶ dist ──stage:assets──▶ services/cds-hooks/web-dist
                                           └────────── ../../../ ──────▶ services/cds-hooks/src
 ```
 
@@ -204,7 +204,7 @@ manifest:
 | `packages/ui` | `PageHeader`, `FhirJsonViewer`, the token definitions, the page template | `check:tokens` and `check:template` are gates *about* this package and should live in it. |
 | `packages/core` (root, not `src/`) | **`fhir-resource-rules.mjs`** + its hand-written `.d.mts` | §9.2's open question, answered by #396. The single opinion on whether a FHIR resource is valid, imported by a Node CLI gate (`check-scenario-resources.mjs`) **and** by the mock EHR's write endpoint at runtime. It sits at the package root rather than under `src/` because it is plain ESM outside the TypeScript tree and must stay importable from a bare `node scripts/…` with nothing compiled. |
 | `packages/demo-population` | the 14 patients, their scenario slices, and their `Patient` resources | §9.3. Shipped as #394; the `Patient`s joined it in #399 (E2a). |
-| `packages/fhir-artifacts` | the SUSHI **output** (`generated/`, gitignored) | §6 phase 1. The output location shipped as #395 (E1). ✏️ **This row said "the build itself has not moved — E2b, blocked on #387" until 2026-09-15.** E2b resolved 2026-08-31 and #387 was never the unblocker — see §9.8: `fsh-sushi` is out of `web/package.json` and `scripts/lib/sushi-version.mjs` pins it for every caller. |
+| `packages/fhir-artifacts` | the SUSHI **output** (`generated/`, gitignored) | §6 phase 1. The output location shipped as #395 (E1). ✏️ **This row said "the build itself has not moved — E2b, blocked on #387" until 2026-09-15.** E2b resolved 2026-08-31 and #387 was never the unblocker — see §9.8: `fsh-sushi` is out of `package.json` and `scripts/lib/sushi-version.mjs` pins it for every caller. |
 | `apps/adoption-guide` | all 12 pages, the EHR shell, routing | §5 — one app, not two |
 | `apps/cds-hooks` | the Worker | The `../../../` imports become `@spier/core` |
 | `apps/patient` | — | §5, phase 3 |
@@ -291,7 +291,7 @@ bumps it, and the two-directional check above cannot run at all.
 #### The decisive cost is the gate net, and it is countable
 
 ⚠️ **Fifteen gates read both sides of the proposed boundary.** Counted rather than
-estimated — twelve of the gate scripts under `web/scripts/`:
+estimated — twelve of the gate scripts under `scripts/`:
 
 ```
 check-careplan-readers      check-catalog-integrity     check-fallback-signatures
@@ -376,7 +376,7 @@ none of them is solved by moving files between repositories:
    below are dead.*** The Worker serves the rendered IG itself. `deploy.yml`'s
    `cloudflare` job stages the IG Publisher's render into `web-dist/ig` before
    `wrangler deploy`, and both hosts serve `<base>ig/` (CLAUDE.md records the same
-   thing, and `web/vite.config.ts`'s `base` comment says "**Neither host is
+   thing, and `vite.config.ts`'s `base` comment says "**Neither host is
    legacy**"). Re-verified live **2026-09-19**:
 
    ```
@@ -459,7 +459,7 @@ started without budget for the re-prove pass.
 
 ## 7. The honest cost
 
-**13 of `web/scripts/`'s 15 `.mjs` files hardcode paths** into `web/src/...`
+**13 of `scripts/`'s 15 `.mjs` files hardcode paths** into `web/src/...`
 and/or `../../ig/fsh-generated`, as do 3 of the 5 in the repo-root `scripts/`.
 Moving files breaks all of them at once, and **the failure mode is not red — it is
 green because the script is now looking at nothing.**
@@ -549,7 +549,7 @@ both directions, and nothing states which direction is allowed.
 ### 9.2 A crossing this document has no row for
 
 `services/mock-ehr/src/validate.ts` imports
-**`packages/core/fhir-resource-rules.mjs`** (it was `web/scripts/lib/` until step B
+**`packages/core/fhir-resource-rules.mjs`** (it was `scripts/lib/` until step B
 moved it) — a Worker taking a runtime dependency on what began as a *gate's*
 internals.
 
@@ -566,7 +566,7 @@ of an app" is not an answer once a deployable imports them at runtime. They live
 the TypeScript tree and has to stay importable from a bare `node scripts/…` with
 nothing compiled.
 
-The observation that prompted it stands: §7 counts `web/scripts/` as *things that
+The observation that prompted it stands: §7 counts `scripts/` as *things that
 break when files move* — 13 of 15 files hardcoding paths — and it was **also** a
 thing imported by a deployable. Both callers still use the one module, which is the
 guardrail §1 of the panel plan requires.
@@ -729,7 +729,7 @@ at all, still declared and still lintable, weaker than a package name).
 
 **2. Step A is not the smallest step, and B is the better first move.** "Smallest,
 no behaviour change" was wrong: A moves **17 files** and updates **29 referencing
-files across 7 trees** — 14 in `web/src`, 5 `web/scripts` gates, 2 repo-root
+files across 7 trees** — 14 in `web/src`, 5 `scripts` gates, 2 repo-root
 scripts, 4 in `services/mock-ehr`, 1 in `services/cds-hooks`,
 `ig/input/fsh/population-patients.fsh`, and 2 workflows whose **path filters name
 the old location**, so a stale filter silently stops triggering them. That is
@@ -842,14 +842,14 @@ So the three options from §9.7 got re-costed with the migration option gone:
 
 **Decided: the third option**, implemented as `scripts/lib/sushi-version.mjs`
 exporting `SUSHI_VERSION` — the exact `VALIDATOR_VERSION` pattern §9.7 already
-named as the fallback. `web/scripts/copy-fhir.mjs` and
+named as the fallback. `scripts/copy-fhir.mjs` and
 `scripts/check-sushi-output.mjs` import it directly; the five CI workflows that
 `npm install -g fsh-sushi` sed-scrape the same constant. `fsh-sushi` is out of
-`web/package.json`'s devDependencies.
+`package.json`'s devDependencies.
 
 **A real, separate bug closed as part of this:** those five workflows installed
 sushi completely **unpinned** — `npm install -g fsh-sushi`, no version — so CI's
-sushi version could already silently drift from whatever `web/package-lock.json`
+sushi version could already silently drift from whatever `package-lock.json`
 locked, independent of anything in this issue. One constant now decides the
 version everywhere, so local and CI can't disagree, and `deploy.yml`'s IG-render
 cache key now hashes `scripts/lib/sushi-version.mjs` too — a version bump with

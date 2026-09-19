@@ -14,7 +14,7 @@ tracked `.md` file must resolve:
 node scripts/check-md-links.mjs   # every relative link in a tracked .md resolves
 ```
 ⚠️ **This is the ONLY gate that triggers on `docs/**` or the root `README.md`.**
-`web-lint.yml` covers `web/`, `services/`, `ig/input/resources/questionnaires/` and `ig/`, so a
+`web-lint.yml` covers `apps/`, `packages/`, the root tooling, `services/`, `ig/input/resources/questionnaires/` and `ig/`, so a
 docs-only change triggered no workflow at all — which is how the `packages/`
 reorganizations left **14 dead links** across the plan docs and two READMEs:
 #389 (`web/src/lib/` → `packages/core/src/lib/`), #392 (`web/src/data/fhir/` →
@@ -144,7 +144,7 @@ views updated neither `CLAUDE.md:535` nor `docs/internals/tool-views.md`, whose
 ⚠️ **Most missing paths are correct prose, and a naive gate would have demanded
 they be "fixed".** This repo supersedes rather than deletes, so a doc routinely
 names a file precisely because it is gone — "`foundation.css` is the former
-`web/src/index.css`", "they *were* `ig/input/fsh/population-patients.fsh` until
+`packages/ui/src/index.css`", "they *were* `ig/input/fsh/population-patients.fsh` until
 step E2", "(now deleted)". Others point *forward*: the licensing memos name
 `ig/input/pagecontent/<tool>.md` pages not yet authored. Of the 82 live
 findings, roughly **five** were real defects.
@@ -198,7 +198,7 @@ Proven by breaking the regex: 0 paths found, floor fired.
 ⚠️ **`docs-links.yml` deliberately has NO `paths:` filter, since 2026-09-19.**
 Both gates resolve a tracked `.md` against **the whole working tree**, so their
 input is not the `.md` files — it is those files *and every path they name*. A
-commit that only moves `web/src/Foo.tsx` rots a link and a prose path while
+commit that only moves `apps/guide/src/Foo.tsx` rots a link and a prose path while
 touching no `.md` at all, and under the old `'**.md'` filter the workflow would
 not have run. **A workflow that does not trigger reports nothing; it does not
 report red** — the same hole one level up. The job has no dependencies and no

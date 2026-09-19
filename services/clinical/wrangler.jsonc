@@ -1,7 +1,7 @@
 {
   // SPiER's clinical Worker — the `clinical` build surface on its OWN origin.
   //
-  // What it serves: `web/dist-clinical`, the output of `VITE_SURFACE=clinical
+  // What it serves: `dist-clinical`, the output of `VITE_SURFACE=clinical
   // vite build` (web/src/lib/surface.ts). That build registers the two SMART
   // apps and no guide route, and resolves `@spier/demo-population` to an empty
   // shim, so no synthetic patient is compiled in. A clinician launched into this

@@ -66,7 +66,7 @@ always the authority; this line is a timestamp, not a fact to maintain.
   **pre-existing**.
 - ⚠️ **There are now three `packages/` as well as three apps**, and a fresh
   worktree still needs `npm install` in **the three app/service packages only** —
-  `packages/*` carry no dependencies of their own. Plus `npm run copy-fhir` in `web/`.
+  `packages/*` carry no dependencies of their own. Plus `npm run copy-fhir` at the repo root.
 
   | Package | What |
   |---|---|
@@ -279,7 +279,7 @@ moving files:
 - the population lens and measure dashboard read whatever source the provider made
   active, instead of always the local one;
 - the mock EHR's roster no longer needs a SUSHI compile;
-- `fsh-sushi` is out of `web/package.json`'s devDependencies, pinned instead via
+- `fsh-sushi` is out of `package.json`'s devDependencies, pinned instead via
   `scripts/lib/sushi-version.mjs` — the same fix also closed a real, separate bug
   where five CI workflows installed sushi completely unpinned.
 
@@ -479,7 +479,7 @@ reporting success.** Kept together because the pattern is the lesson.
    is a **generator**, so `found.length` is `undefined` and the comparison is
    always false. The comment directly above it said it existed to prevent exactly
    that. It would have masked a missing runtime-FHIR corpus in `ig.yml`, which
-   passes `--also web/.runtime-fhir`.
+   passes `--also .runtime-fhir`.
 
 > **Superseded 2026-09-09:** the floor is now Node 22
 > (`.github/.nvmrc`), which is what removes this whole class — CI and developer

@@ -93,6 +93,7 @@ const ALLOWED = [
 
 // SUSHI colourises when attached to a TTY. Strip ANSI so a local run parses the
 // same as a piped CI one.
+// eslint-disable-next-line no-control-regex -- ESC is the thing being stripped
 const stripAnsi = (s) => s.replace(/\[[0-9;]*m/g, '')
 
 let output

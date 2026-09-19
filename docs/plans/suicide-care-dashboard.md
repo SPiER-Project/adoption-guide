@@ -288,7 +288,7 @@ Phases 3 and 4 need spec answers 5/6 and 3/4 respectively.
 
 - **Phase 4 adds new `resourceType`s** (`CareTeam`, `PractitionerRole`,
   `Coverage`). Each needs its entries in `BASE_REQUIRED` and
-  `STATUS_CODES` in `web/scripts/check-scenario-resources.mjs` — those tables are
+  `STATUS_CODES` in `scripts/check-scenario-resources.mjs` — those tables are
   hand-maintained because base R4 StructureDefinitions are not vendored here.
 - **New measures need CQL** in `ig/input/cql/`, which the IG Publisher *does*
   compile (see the correction in
