@@ -28,6 +28,7 @@ import { esc, page } from './hostChrome'
 // options offered here cannot drift into a preference the chart refuses.
 import { DEFAULT_PANEL_WIDTH, PANEL_WIDTHS, PANEL_WIDTH_KEY } from './chartPage'
 import type { DemoPatient } from './fixtures'
+import type { SettingsClientConfig } from './client/types'
 
 /**
  * Why each width is on the list. The numbers come from the step-0 spike (panel
@@ -90,6 +91,7 @@ export function controlPage(
   resourceCount: number,
   patients: DemoPatient[],
   authRequired: boolean,
+  { scriptUrl }: { scriptUrl: string },
 ): string {
   const buttons = CAPABILITY_PROFILES.map(profile => `
       <li>
@@ -179,100 +181,14 @@ export function controlPage(
     against a public sandbox. Accepting a write is not evidence either: the mock validates against
     SPiER's own profiles, which is a guardrail against leniency, not a conformance statement.
   </p>`,
-    script: `
-  document.getElementById('launch-form').addEventListener('submit', async function (e) {
-    e.preventDefault()
-    const data = new FormData(e.target)
-    const res = await fetch('/_admin/launch', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        patient: data.get('patient'),
-        intent: data.get('intent') || undefined,
-        // Checked means the host draws the banner, i.e. need_patient_banner:false.
-        needPatientBanner: data.get('needPatientBanner') ? false : undefined,
-      }),
-    })
-    const out = document.getElementById('launch-result')
-    out.hidden = false
-    if (!res.ok) { out.textContent = 'Could not mint a launch: HTTP ' + res.status; return }
-    const body = await res.json()
-    out.innerHTML = ''
-    const a = document.createElement('a')
-    a.href = body.launchUrl
-    a.target = '_blank'
-    a.rel = 'noopener'
-    a.textContent = 'Launch the panel for ' + body.patient + ' →'
-    out.appendChild(a)
-  })
-
-  function refreshWrites() {
-    return fetch('/_admin/writes').then(function (res) {
-      return res.ok ? res.json() : null
-    }).then(function (body) {
-      var out = document.getElementById('writes-summary')
-      if (!body) { out.textContent = 'No DEMO_STORE binding — this deployment cannot persist writes.'; return }
-      if (body.count === 0) { out.textContent = 'Nothing written yet.'; return }
-      var byType = Object.keys(body.byType).sort().map(function (t) {
-        return body.byType[t] + ' ' + t
-      }).join(', ')
-      out.textContent = body.count + ' resource(s) written: ' + byType
-    }).catch(function () {
-      document.getElementById('writes-summary').textContent = 'Could not read the write log.'
-    })
-  }
-  refreshWrites()
-
-  document.getElementById('reset-writes').addEventListener('click', function () {
-    fetch('/_admin/reset', { method: 'POST' }).then(function (res) {
-      if (!res.ok) { alert('Could not reset: HTTP ' + res.status); return }
-      refreshWrites()
-    })
-  })
-
-  // ── Panel width: a per-browser preference the chart page reads ────────────
-  var WIDTH_KEY = ${JSON.stringify(PANEL_WIDTH_KEY)};
-  var WIDTHS = ${JSON.stringify(PANEL_WIDTHS)};
-  function markWidth(px) {
-    document.querySelectorAll('button[data-width]').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(Number(b.dataset.width) === px))
-    })
-  }
-  function readWidth() {
-    try {
-      var raw = Number(localStorage.getItem(WIDTH_KEY))
-      return WIDTHS.indexOf(raw) === -1 ? ${DEFAULT_PANEL_WIDTH} : raw
-    } catch (e) {
-      return ${DEFAULT_PANEL_WIDTH}
-    }
-  }
-  markWidth(readWidth())
-  document.querySelectorAll('button[data-width]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var px = Number(btn.dataset.width)
-      try {
-        localStorage.setItem(WIDTH_KEY, String(px))
-      } catch (e) {
-        alert('This browser refused to store the preference; the chart will use ' + ${DEFAULT_PANEL_WIDTH} + 'px.')
-        return
-      }
-      markWidth(px)
-    })
-  })
-
-  document.querySelectorAll('button[data-profile]').forEach(function (btn) {
-    btn.addEventListener('click', async function () {
-      const res = await fetch('/_admin/capabilities', {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ profile: btn.dataset.profile }),
-      })
-      if (!res.ok) { alert('Could not switch profile: HTTP ' + res.status); return }
-      document.querySelectorAll('button[data-profile]').forEach(function (b) {
-        b.setAttribute('aria-pressed', String(b === btn))
-      })
-    })
-  })
-`,
+    // The bench's behaviour is `src/client/settings.ts`, built and served by the
+    // Worker (clientAssets.ts). It reads these three values from the page's
+    // config block rather than having them interpolated into code.
+    config: {
+      panelWidths: PANEL_WIDTHS,
+      defaultPanelWidth: DEFAULT_PANEL_WIDTH,
+      panelWidthKey: PANEL_WIDTH_KEY,
+    } satisfies SettingsClientConfig,
+    scriptSrc: scriptUrl,
   })
 }

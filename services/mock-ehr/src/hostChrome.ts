@@ -591,14 +591,30 @@ export function page({
   title,
   css = '',
   body,
-  script = '',
+  config,
+  scriptSrc,
   nav,
   variant = 'default',
 }: {
   title: string
   css?: string
   body: string
-  script?: string
+  /**
+   * The page's inputs to its client module, rendered as one
+   * `<script type="application/json" id="spier-page-config">` block. Data,
+   * never code: the module reads it with `readConfig()` (src/client/config.ts).
+   * `<` is escaped so a value can never close the block early.
+   */
+  config?: unknown
+  /**
+   * The built client module for this page, from `clientScriptUrl()`. Loaded as
+   * `<script type="module">`, which defers until the document is parsed — the
+   * same moment the inline scripts this replaced (2026-09-20) used to run at the
+   * end of `<body>`. ⚠️ There is deliberately no `script` parameter any more:
+   * an inline string is what kept 500 lines of behaviour out of tsc, eslint
+   * and the tests (see clientAssets.ts).
+   */
+  scriptSrc?: string
   /** Which app-bar tab is current. Omit on pages that are not a tab. */
   nav?: 'chart' | 'settings'
   /**
@@ -629,9 +645,23 @@ export function page({
 <div class="${cls}">
 ${body}
 </div>
-${script ? `<script>${script}</script>` : ''}
+${config !== undefined ? `<script id="spier-page-config" type="application/json">${jsonForHtml(config)}</script>` : ''}
+${scriptSrc ? `<script type="module" src="${esc(scriptSrc)}"></script>` : ''}
 </body>
 </html>`
+}
+
+/**
+ * JSON that is safe inside a `<script type="application/json">` block: `<` is
+ * written as `\u003c` so no value — not even one containing `</script>` — can
+ * end the block, and the two Unicode line terminators JSON permits but
+ * JavaScript source did not are escaped for the same reason.
+ */
+export function jsonForHtml(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029')
 }
 
 /** A breadcrumb trail. The last entry is the current page and is not a link. */

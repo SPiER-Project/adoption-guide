@@ -43,6 +43,7 @@ import { DISCLAIMER, crumbs, esc, page } from './hostChrome'
 import type { DemoPatient } from './fixtures'
 import { TRY_IT_ORDER, storyOf } from './demoStories'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
+import type { ChartClientConfig } from './client/types'
 
 /**
  * Panel widths the demo can be set to, in CSS pixels.
@@ -138,78 +139,13 @@ const HOME_CSS = `
   .activity iframe { height: clamp(420px, 62vh, 760px); }
 `
 
-const HOME_JS = `
-  /*
-   * The framed activity: mint a user-scoped launch and point the iframe at it.
-   *
-   * ⚠️ **The launch URL is minted here rather than baked into the HTML**, the
-   * same reason the chart's dock starts at about:blank. A launch context in
-   * server-rendered markup is a context minted at cache time, handed to whoever
-   * loads the page next.
-   *
-   * ⚠️ **\`embed: true\` is what makes it a panel rather than a whole app in a
-   * box.** It puts \`?embed=1\` on the launch URL, before the fragment, which is
-   * where the app reads it — and the app's SmartRedirect then lands an EMBEDDED
-   * worklist launch on the caseload SUMMARY rather than the full caseload. That
-   * is deliberate: a sortable patient list framed above this page's own patient
-   * table is two lists on one page, and the row clicks in the frame navigate
-   * inside the frame rather than opening a chart here.
-   *
-   * ⚠️ **No \`topic\`.** The chart reuses one FHIRcast topic across every launch
-   * it makes so the host and the panel share a session. This page has no chart
-   * to stay in step with, so it lets the server mint a fresh one.
-   */
-  (async () => {
-    const frame = document.getElementById('activity')
-    const status = document.getElementById('activity-status')
-    if (!frame) return
-    try {
-      const res = await fetch('/_admin/launch', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ userScoped: true, embed: true }),
-      })
-      const body = await res.json()
-      if (!res.ok || !body.launchUrl) throw new Error(body.error || 'launch failed')
-      frame.src = body.launchUrl
-      if (status) status.textContent = 'Launched';
-    } catch (error) {
-      // The frame stays at about:blank rather than showing a broken page. The
-      // bar says so, because an empty bordered box with no explanation reads as
-      // a layout bug rather than a failed handshake.
-      if (status) status.textContent = 'Could not launch: ' + error.message;
-    }
-  })();
-
-  document.querySelectorAll('[data-launch-worklist]').forEach((button) => {
-    const original = button.textContent
-    // ⚠️ The intent rides in the launch CONTEXT, not in the URL the app is sent
-    // to. That is what makes it a SMART launch parameter rather than our own
-    // convention: the host mints it, /token returns it, and the app resolves it
-    // through the tool catalog. A worklist launch can name a tool just as a chart
-    // launch can — SmartRedirect had to be taught that; it opened the caseload
-    // regardless until 2026-09-09.
-    const intent = button.getAttribute('data-intent') || undefined
-    button.addEventListener('click', async () => {
-      button.disabled = true
-      button.textContent = 'Authorizing…'
-      try {
-        const res = await fetch('/_admin/launch', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(intent ? { userScoped: true, intent } : { userScoped: true }),
-        })
-        const body = await res.json()
-        if (!res.ok || !body.launchUrl) throw new Error(body.error || 'launch failed')
-        window.location.href = body.launchUrl
-      } catch (error) {
-        button.disabled = false
-        button.textContent = original
-        alert('Could not start the launch: ' + error.message)
-      }
-    })
-  })
-`
+/*
+ * The front door's behaviour — the framed caseload launch and the two worklist
+ * launches — is `src/client/home.ts`, built and served by the Worker (see
+ * clientAssets.ts). It was an inline script here until 2026-09-20; the rules it
+ * follows (mint the launch at runtime, never bake a URL into the markup;
+ * `embed: true`; no topic) are documented at the top of that module.
+ */
 
 /**
  * The front door.
@@ -296,7 +232,7 @@ const HOME_JS = `
  * project as the app it launches — and that paragraph stays unsoftened in the
  * `.hood` drawer where §1 guardrail 3 put it.
  */
-export function homePage(patients: DemoPatient[]): string {
+export function homePage(patients: DemoPatient[], { scriptUrl }: { scriptUrl: string }): string {
   const byId = new Map(patients.map(p => [p.id, p]))
   const picks = TRY_IT_ORDER.map(id => {
     const patient = byId.get(id)
@@ -323,7 +259,7 @@ export function homePage(patients: DemoPatient[]): string {
   return page({
     title: 'SPiER mock EHR',
     css: HOME_CSS,
-    script: HOME_JS,
+    scriptSrc: scriptUrl,
     nav: 'chart',
     // ⚠️ Still `wide`, but no longer for the reason it was. It was wide so the
     // embedded caseload frame could reach the 1100px at which SPiER's widget
@@ -590,11 +526,14 @@ export function patientChartPage(
     cdsEndpoint,
     panelOrigin,
     otherPatients,
+    scriptUrl,
   }: {
     cdsEndpoint: string
     panelOrigin: string
     /** Everyone except this patient, for the FHIRcast announce affordance. */
     otherPatients: DemoPatient[]
+    /** The built chart module, from `clientScriptUrl('chart')`. */
+    scriptUrl: string
   },
 ): string {
   // The host's one-line annotation of this chart (demoStories.ts), so the launch
@@ -736,420 +675,41 @@ export function patientChartPage(
       <iframe id="panel" title="SPiER Suicide-Safer Pathway" src="about:blank"></iframe>
     </aside>
   </div>`,
-    script: chartScript({ patient, cdsEndpoint, panelOrigin }),
+    config: chartClientConfig({ patient, cdsEndpoint, panelOrigin }),
+    scriptSrc: scriptUrl,
   })
 }
 
 /**
- * The chart page's behaviour. Plain ES2020 in a string — this Worker has no
- * Static Assets binding and no client bundle, which is also why it is small.
+ * The chart module's inputs. The behaviour itself is `src/client/chart.ts` —
+ * 408 lines of ES5 in a template literal here until 2026-09-20, with these
+ * values interpolated as `var PATIENT = ${…}`. They travel as data now, in a
+ * `<script type="application/json">` block the module reads on load; the
+ * shape is `ChartClientConfig`, shared type-only with the browser project.
  */
-function chartScript({
+function chartClientConfig({
   patient,
   cdsEndpoint,
   panelOrigin,
-}: { patient: DemoPatient; cdsEndpoint: string; panelOrigin: string }): string {
+}: { patient: DemoPatient; cdsEndpoint: string; panelOrigin: string }): ChartClientConfig {
   // Split for the FHIRcast context Patient, which carries a HumanName. Same
   // "first token is the given name" rule `buildContextPatient` uses in the app —
   // crude, and correct for every synthetic name in this repo.
   const [given, ...familyParts] = patient.name.split(' ')
-  return `
-  var PATIENT = ${JSON.stringify(patient.id)};
-  var MRN = ${JSON.stringify(patient.mrn)};
-  var GIVEN = ${JSON.stringify(given ?? '')};
-  var FAMILY = ${JSON.stringify(familyParts.join(' '))};
-  // Imported rather than restated: the MRN namespace has four sites that must
-  // agree and check:patients gates them (see fixtures.ts).
-  var MRN_SYSTEM = ${JSON.stringify(MRN_SYSTEM)};
-  // ⚠️ Displayed, not fetched. The browser calls this host's own /_admin/cds,
-  // which mints a signed JWT and invokes the service server-to-server — see the
-  // route in app.ts. This literal stays because it is what the page SHOWS the
-  // reader, and because chartPage.test.ts asserts the three origins stay
-  // distinct through it.
-  var CDS_ENDPOINT = ${JSON.stringify(cdsEndpoint)};
-  var PANEL_ORIGIN = ${JSON.stringify(panelOrigin)};
-
-  /**
-   * The FHIRcast session topic, held in sessionStorage for the TAB.
-   *
-   * Per-tab rather than per-page: opening patient-012's chart is a full page
-   * navigation, and a topic minted per load would put every chart in its own
-   * session — so the panel launched from the previous chart would never hear
-   * about the new one, which is exactly the event worth demonstrating. Per-tab
-   * also keeps two people demonstrating at once on separate sessions.
-   */
-  var TOPIC = (function () {
-    var key = 'spier-mock-ehr:fhircast-topic';
-    try {
-      var existing = sessionStorage.getItem(key);
-      if (existing) return existing;
-      var minted = 'host-' + crypto.randomUUID();
-      sessionStorage.setItem(key, minted);
-      return minted;
-    } catch (e) {
-      // Storage denied — fall back to a per-load topic. The demo degrades to
-      // "the panel does not follow", which is visible, rather than throwing.
-      return 'host-' + crypto.randomUUID();
-    }
-  })();
-
-  var dock = document.getElementById('dock');
-  var frame = document.getElementById('panel');
-  var dockContext = document.getElementById('dock-context');
-  var dockSent = document.getElementById('dock-sent');
-  var dockError = document.getElementById('dock-error');
-
-  /**
-   * Render a line of text with some substrings wrapped in <code>, without
-   * ever building HTML from a string. Every value here (patient/topic ids,
-   * SMART intents) is fixture or crypto.randomUUID() data today, but a
-   * concatenated-string innerHTML is one refactor away from reflected
-   * markup injection, and no linter or test sees inside this template
-   * literal to catch that refactor when it happens.
-   */
-  function renderInline(target, parts) {
-    while (target.firstChild) target.removeChild(target.firstChild);
-    parts.forEach(function (part) {
-      if (part && typeof part === 'object') {
-        var code = document.createElement('code');
-        code.textContent = part.code;
-        target.appendChild(code);
-      } else {
-        target.appendChild(document.createTextNode(String(part)));
-      }
-    });
+  return {
+    patient: { id: patient.id, mrn: patient.mrn, given: given ?? '', family: familyParts.join(' ') },
+    // Imported rather than restated: the MRN namespace has four sites that must
+    // agree and check:patients gates them (see fixtures.ts).
+    mrnSystem: MRN_SYSTEM,
+    // ⚠️ Displayed, not fetched. The browser calls this host's own /_admin/cds,
+    // which mints a signed JWT and invokes the service server-to-server (see
+    // routes/cds.ts). It stays because it is what the page SHOWS the reader,
+    // and because chartPage.test.ts asserts the three origins stay distinct
+    // through it.
+    cdsEndpoint,
+    panelOrigin,
+    panelWidths: PANEL_WIDTHS,
+    defaultPanelWidth: DEFAULT_PANEL_WIDTH,
+    panelWidthKey: PANEL_WIDTH_KEY,
   }
-
-  /*
-   * The panel width, read from the operator's preference and never offered here.
-   *
-   * ⚠️ **The whitelist is the point, not the default.** localStorage is
-   * attacker-writable in the sense that matters for a demo — anything on this
-   * origin can put a string there — and this value goes into an inline style, so
-   * an unvalidated read is how a preference becomes an injection. Only the three
-   * measured widths are honored; anything else is the middle one.
-   */
-  var PANEL_WIDTHS = ${JSON.stringify(PANEL_WIDTHS)};
-  function storedWidth() {
-    try {
-      var raw = Number(localStorage.getItem(${JSON.stringify(PANEL_WIDTH_KEY)}));
-      return PANEL_WIDTHS.indexOf(raw) === -1 ? ${DEFAULT_PANEL_WIDTH} : raw;
-    } catch (e) {
-      // Storage denied. The middle width is the answer, which is also the answer
-      // for every viewer who has never opened /settings.
-      return ${DEFAULT_PANEL_WIDTH};
-    }
-  }
-  // ⚠️ Published as a CUSTOM PROPERTY, not as an inline width, and that is what
-  // lets the stacked layout exist: an inline style.width outranks any media
-  // query, so a narrow-screen rule could not take the dock full-width without
-  // !important. CSS decides the layout; this only supplies the number.
-  dock.style.setProperty('--panel-width', storedWidth() + 'px');
-
-  document.getElementById('close-panel').addEventListener('click', function () {
-    // about:blank rather than removing the node: a closed panel that keeps its
-    // session alive would hide whether the next launch really re-authorizes.
-    frame.src = 'about:blank';
-    dock.hidden = true;
-  });
-
-  /**
-   * Mint a launch context and point the iframe at it.
-   *
-   * needPatientBanner is always false here because this page draws a banner
-   * two inches to the left. embed:true is what puts the app in panel chrome.
-   */
-  function launch(intent, label) {
-    dock.hidden = false;
-    dockContext.textContent = 'authorizing…';
-    dockSent.textContent = 'Minting a launch…';
-    dockError.hidden = true;
-    return fetch('/_admin/launch', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        patient: PATIENT,
-        intent: intent || undefined,
-        needPatientBanner: false,
-        embed: true,
-        // ⚠️ THIS page's topic, not a fresh one. The panel joins the session the
-        // host is already in, which is the whole point — a per-launch topic
-        // would give each side its own session and nothing would cross, while
-        // looking identical to working.
-        topic: TOPIC,
-      }),
-    }).then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    }).then(function (body) {
-      frame.src = body.launchUrl;
-      dockContext.textContent = label || 'pathway';
-      var sentParts = ['Launch context sent: ', { code: 'patient=' + PATIENT }];
-      if (intent) sentParts.push(' ', { code: 'intent=' + intent });
-      sentParts.push(' ', { code: 'need_patient_banner=false' }, ' ', { code: 'hub.topic=' + TOPIC });
-      renderInline(dockSent, sentParts);
-    }).catch(function (err) {
-      dockContext.textContent = '';
-      // In the dock itself, not only the drawer: a failure has to be visible
-      // without opening anything.
-      dockError.textContent = 'Could not mint a launch: ' + err.message;
-      dockError.hidden = false;
-      dockSent.textContent = 'Could not mint a launch: ' + err.message;
-    });
-  }
-
-  document.getElementById('open-panel').addEventListener('click', function () { launch(null, 'pathway'); });
-
-  // ── FHIRcast: subscribe, then announce this chart ─────────────────────────
-  //
-  // The subscription is the spec's: POST the hub with hub.channel.type=websocket
-  // and connect to the endpoint it hands back. Announcing patient-open on load is
-  // what a real EHR does when a chart is opened, and it is what the embedded
-  // panel reacts to.
-  var castStatus = document.getElementById('cast-status');
-  var castForm = document.getElementById('cast-form');
-  var castLog = document.getElementById('cast-log');
-
-  function logCast(text, kind) {
-    var li = document.createElement('li');
-    li.className = 'card card--' + (kind || 'info');
-    li.textContent = text;
-    castLog.insertBefore(li, castLog.firstChild);
-  }
-
-  fetch('/fhircast', {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      'hub.channel.type': 'websocket',
-      'hub.mode': 'subscribe',
-      'hub.topic': TOPIC,
-      'hub.events': 'patient-open',
-    }).toString(),
-  }).then(function (res) {
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return res.json();
-  }).then(function (body) {
-    var endpoint = body['hub.channel.endpoint'];
-    if (!endpoint) throw new Error('the hub returned no channel endpoint');
-    var socket = new WebSocket(endpoint);
-    socket.addEventListener('open', function () {
-      renderInline(castStatus, ['Subscribed on ', { code: TOPIC }, '. Announcing this chart…']);
-      announce();
-    });
-    socket.addEventListener('message', function (e) {
-      var parsed;
-      try { parsed = JSON.parse(e.data); } catch (err) { return; }
-      if (parsed['hub.mode'] === 'subscribe') {
-        logCast('Hub confirmed the subscription on topic ' + parsed['hub.topic'], 'info');
-        return;
-      }
-      var evt = parsed.event || {};
-      // The ACK the spec asks of a subscriber.
-      if (parsed.id) socket.send(JSON.stringify({ id: parsed.id, status: 'ok' }));
-      var ctx = (evt.context || [])[0] || {};
-      var who = (ctx.resource || {}).id || '(unknown)';
-      logCast(evt['hub.event'] + ' → ' + who + '  (received on the hub)', 'info');
-    });
-    socket.addEventListener('close', function () {
-      castStatus.textContent = 'The hub connection closed.';
-    });
-  }).catch(function (err) {
-    castStatus.textContent = 'Could not subscribe to the hub: ' + err.message;
-  });
-
-  castForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var id = new FormData(e.target).get('patient');
-    var option = e.target.querySelector('option[value="' + id + '"]');
-    var label = option ? option.textContent.split('\u00b7')[0].trim() : String(id);
-    var parts = label.split(' ');
-    publish(String(id), parts[0], parts.slice(1).join(' '), '');
-  });
-
-  /** Publish patient-open for THIS chart's patient. */
-  function announce() {
-    var event = {
-      timestamp: new Date().toISOString(),
-      id: crypto.randomUUID(),
-      event: {
-        'hub.topic': TOPIC,
-        'hub.event': 'patient-open',
-        context: [{
-          key: 'patient',
-          resource: {
-            resourceType: 'Patient',
-            id: PATIENT,
-            identifier: [{ system: MRN_SYSTEM, value: MRN }],
-            name: [{ given: [GIVEN], family: FAMILY }],
-          },
-        }],
-      },
-    };
-    postEvent(event, PATIENT);
-  }
-
-  /** Publish patient-open for an arbitrary patient, on this page's topic. */
-  function publish(id, given, family, mrn) {
-    postEvent({
-      timestamp: new Date().toISOString(),
-      id: crypto.randomUUID(),
-      event: {
-        'hub.topic': TOPIC,
-        'hub.event': 'patient-open',
-        context: [{
-          key: 'patient',
-          resource: {
-            resourceType: 'Patient',
-            id: id,
-            identifier: mrn ? [{ system: MRN_SYSTEM, value: mrn }] : undefined,
-            name: [{ given: [given], family: family }],
-          },
-        }],
-      },
-    }, id);
-  }
-
-  function postEvent(event, who) {
-    fetch('/fhircast/' + encodeURIComponent(TOPIC), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(event),
-    }).then(function (res) { return res.json(); }).then(function (body) {
-      renderInline(castStatus, [
-        'Announced ', { code: 'patient-open' }, ' for ' + who,
-        ' on ', { code: TOPIC }, ' — delivered to ' + body.delivered + ' subscriber(s).',
-      ]);
-      logCast('patient-open → ' + who + '  (published by this chart)', 'info');
-    }).catch(function (err) {
-      castStatus.textContent = 'Could not announce: ' + err.message;
-    });
-  }
-
-  // ── The server's own account of what was written ─────────────────────────
-  // Deliberately independent of the panel's scorecard: the ladder reporting on
-  // itself and the server reporting on the same event are two statements, and
-  // only two make it checkable.
-  function refreshWrites() {
-    return fetch('/_admin/writes').then(function (res) {
-      return res.ok ? res.json() : null;
-    }).then(function (body) {
-      var out = document.getElementById('writes-summary');
-      if (!body) { out.textContent = 'No DEMO_STORE binding — writes cannot be persisted.'; return; }
-      if (body.count === 0) { out.textContent = 'Nothing written yet.'; return; }
-      out.textContent = body.count + ' resource(s) written: ' + Object.keys(body.byType).sort().map(function (t) {
-        return body.byType[t] + ' ' + t;
-      }).join(', ');
-    }).catch(function () {
-      document.getElementById('writes-summary').textContent = 'Could not read the write log.';
-    });
-  }
-  refreshWrites();
-  // The panel writes on submit, inside a cross-origin frame we cannot observe,
-  // so poll while it is open rather than pretending to know when it finished.
-  setInterval(function () { if (!dock.hidden) refreshWrites(); }, 4000);
-
-  // ── CDS Hooks patient-view ────────────────────────────────────────────────
-  // No prefetch: see the module header. hookInstance must be unique per call.
-  //
-  // Posted to this HOST, not to the service. The host signs a JWT with the key
-  // it publishes at /.well-known/jwks.json and invokes the service itself,
-  // which is both what CDS Hooks describes (the EHR calls the service) and the
-  // only way the call can be signed at all — a browser that could sign would be
-  // a browser holding the host's private key.
-  fetch('/_admin/cds', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      hook: 'patient-view',
-      hookInstance: crypto.randomUUID(),
-      fhirServer: window.location.origin + '/fhir',
-      context: { patientId: PATIENT },
-    }),
-  }).then(function (res) {
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return res.json();
-  }).then(function (body) {
-    renderCards(body.cards || []);
-  }).catch(function (err) {
-    // Names the SERVICE, not this host: the reader wants to know which endpoint
-    // did not answer. A 401 here means this host's signed identity was refused,
-    // which the status code is what distinguishes.
-    document.getElementById('cds-status').textContent =
-      'The CDS service at ' + CDS_ENDPOINT + ' could not be reached (' + err.message + ').';
-  });
-
-  function renderCards(cards) {
-    var status = document.getElementById('cds-status');
-    var list = document.getElementById('cds-cards');
-    if (cards.length === 0) {
-      status.textContent = 'The CDS service returned no cards for this patient.';
-      return;
-    }
-    status.textContent = cards.length + (cards.length === 1 ? ' card' : ' cards') + ' returned.';
-    cards.forEach(function (card) {
-      var li = document.createElement('li');
-      li.className = 'card card--' + (card.indicator || 'info');
-
-      var summary = document.createElement('p');
-      summary.className = 'card__title';
-      summary.textContent = card.summary || '';
-      li.appendChild(summary);
-
-      if (card.detail) {
-        var detail = document.createElement('p');
-        detail.className = 'card__body';
-        // Rendered as text, not markdown: the spec allows GFM in the detail field and a
-        // markdown renderer is not worth shipping to prove a launch works.
-        detail.textContent = card.detail;
-        li.appendChild(detail);
-      }
-
-      var source = document.createElement('p');
-      source.className = 'card__meta';
-      source.textContent = 'Source: ' + ((card.source && card.source.label) || 'unknown');
-      li.appendChild(source);
-
-      var links = card.links || [];
-      if (links.length > 0) {
-        var row = document.createElement('div');
-        row.className = 'card__actions';
-        links.forEach(function (link) {
-          if (link.type === 'smart') {
-            // The host mints the launch — the card supplies the app's launch
-            // URL and its appContext, never OAuth parameters.
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn--smart';
-            btn.textContent = link.label;
-            btn.addEventListener('click', function () { launch(intentOf(link), link.label); });
-            row.appendChild(btn);
-          } else {
-            // type: "absolute" — a plain deep link. Opened in a new tab rather
-            // than the panel: it is not a SMART launch and carries no context.
-            var a = document.createElement('a');
-            a.href = link.url;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            a.textContent = link.label + ' ↗';
-            row.appendChild(a);
-          }
-        });
-        li.appendChild(row);
-      }
-      list.appendChild(li);
-    });
-  }
-
-  /** appContext is a JSON string per the CDS Hooks spec; tolerate anything else. */
-  function intentOf(link) {
-    if (!link.appContext) return null;
-    try {
-      var parsed = JSON.parse(link.appContext);
-      return parsed && typeof parsed.intent === 'string' ? parsed.intent : null;
-    } catch (e) {
-      return null;
-    }
-  }
-`
 }

@@ -5,16 +5,17 @@
   "type": "module",
   "description": "A mock EHR FHIR server on Cloudflare Workers — serves SPiER's own population scenarios as a real FHIR read API so the embedded SMART panel can be launched against a server. Demo host only; never an interoperability claim.",
   "scripts": {
-    "build": "vite build",
+    "build": "npm run build:client && vite build",
     "dev": "vite build && wrangler dev",
     "deploy": "test -n \"$CI\" || { echo 'Refusing to deploy outside CI — deploy.yml is the one place this Worker ships from. Push to main, or set CI=true to override.' >&2; exit 1; }; npm run build && wrangler deploy",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p src/client/tsconfig.json",
     "lint": "eslint .",
-    "pretest": "npm --prefix ../.. run copy-fhir",
+    "pretest": "npm --prefix ../.. run copy-fhir && npm run build:client",
     "test": "vitest run",
     "verify": "npm --prefix ../.. run copy-fhir && npm run typecheck && npm run lint && npm run check:host-css && npm run check:toolchain && npm run test",
     "check:host-css": "node scripts/check-host-css.mjs",
-    "check:toolchain": "node ../../scripts/check-service-toolchain.mjs"
+    "check:toolchain": "node ../../scripts/check-service-toolchain.mjs",
+    "build:client": "vite build -c vite.client.config.ts"
   },
   "dependencies": {
     "hono": "^4.13.8"
@@ -41,5 +42,12 @@
   ],
   "engines": {
     "node": ">=22.22.2"
-  }
+  },
+  "//client": [
+    "src/client/*.ts are the pages' browser modules, built by vite.client.config.ts",
+    "into src/client/dist/ (gitignored) and served by the Worker at /client/<name>.js.",
+    "`build` and `pretest` both run `build:client` first: the Worker bundle and the",
+    "tests import the built files, so a bare `npx vitest run` on a fresh checkout",
+    "fails until `npm run build:client` has run once. See src/clientAssets.ts."
+  ]
 }

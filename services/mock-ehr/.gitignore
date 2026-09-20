@@ -1,5 +1,7 @@
 # Vite worker bundle
 dist/
+# The pages' browser modules, built by vite.client.config.ts (npm run build:client)
+src/client/dist/
 # wrangler local state (dev cache, logs)
 .wrangler/
 # Local `wrangler dev` overrides (per-developer hosts, ports, secrets). Wrangler

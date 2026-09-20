@@ -530,7 +530,7 @@ nothing else — no `/cds-services` (cards come from `buildCdsCards` in-process,
 and the published endpoint is its own Worker) and no `/ig/`. `src/app.test.ts`
 asserts both as negative tests, because "someone copies a route across for
 parity" is the failure. The mock EHR frames **this** Worker, not the guide one
-(`DEFAULT_PANEL_BASE_URL` in `services/mock-ehr/src/app.ts`).
+(`DEFAULT_PANEL_BASE_URL` in `services/mock-ehr/src/env.ts`).
 
 ⚠️ **The `frame-ancestors` policy lives in `packages/worker-http`, once.** Two
 Workers serve a SPiER SMART surface over Static Assets and a header that differs
@@ -575,6 +575,19 @@ the record in `chartPage.ts`; read them before trying a fourth.
 frames ship `src="about:blank"` and POST to `/_admin/launch`. A launch URL in
 server-rendered HTML is a context minted at cache time and handed to whoever
 loads the page next; `chartPage.test.ts` asserts no absolute iframe `src`.
+
+⚠️ **The mock EHR's `app.ts` composes and does not handle, and its pages ship no
+inline script.** Since 2026-09-20 the 29 routes live in `services/mock-ehr/src/routes/`
+(one module per surface, each mounted at `/` with its FULL paths — Hono's
+`/fhir/*` does not match `/fhir`, so a prefix mount was avoided on purpose), and
+each page's behaviour is a browser module under `services/mock-ehr/src/client/`,
+built by `npm run build:client` (which `build` and `pretest` run) and served at
+`/client/<name>.js?v=<hash>`. The page hands the module its inputs as JSON in a
+`spier-page-config` block. ⚠️ Do not add a `script:` string back to `page()` —
+the parameter is gone because 500 lines of behaviour in template literals was
+what no gate, linter or test could see; `clientAssets.test.ts` fails a page
+that grows an inline `<script>`. See `services/mock-ehr/README.md` § *How the
+source is laid out*.
 
 ### Measures
 
