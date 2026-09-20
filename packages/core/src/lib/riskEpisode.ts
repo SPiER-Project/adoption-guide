@@ -10,7 +10,8 @@
  *
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
-import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
+import { displayFor, type CodedOption } from './codedOption'
+import { stageTag } from './stageTag'
 import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import type { RiskAlert } from './observationMappers'
 import type {
@@ -57,11 +58,6 @@ const OPEN_TASK_STATUSES = new Set([
   'in-progress',
   'on-hold',
 ])
-
-export interface CodedOption {
-  code: string
-  display: string
-}
 
 export const ENTRY_REASONS: CodedOption[] = [
   { code: 'positive-screen', display: 'Positive screen' },
@@ -121,10 +117,6 @@ export const ESCALATION_TRIGGERS: CodedOption[] = [
   { code: 'missed-outreach-window', display: 'Missed outreach window' },
   { code: 'failed-contact-sequence', display: 'Failed contact sequence' },
 ]
-
-export function displayFor(options: CodedOption[], code: string): string {
-  return options.find(o => o.code === code)?.display ?? code
-}
 
 // ─── Episode predicates ──────────────────────────────────────
 
@@ -195,10 +187,6 @@ export function tasksForEpisode(tasks: TaskResource[], episodeId: string | undef
 
 // ─── Builders ────────────────────────────────────────────────
 
-function stageTag() {
-  return [{ system: PATHWAY_STAGE_SYSTEM, code: STAGE_ID, display: 'Track Risk Over Time' }]
-}
-
 /**
  * `triggerRef` is REQUIRED when `entryReason` is `positive-screen`: the profile
  * carries a FHIRPath invariant (`spier-episode-trigger-on-positive-screen`) that
@@ -222,7 +210,7 @@ export function buildEpisode(params: {
   return {
     resourceType: 'EpisodeOfCare',
     id: params.id,
-    meta: { profile: [EPISODE_PROFILE], tag: stageTag() },
+    meta: { profile: [EPISODE_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'active',
     type: [
       {
@@ -304,7 +292,7 @@ export function buildFlag(params: { id: string; patientId: string | null; startD
   return {
     resourceType: 'Flag',
     id: params.id,
-    meta: { profile: [FLAG_PROFILE], tag: stageTag() },
+    meta: { profile: [FLAG_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'active',
     category: [
       { coding: [{ system: 'http://terminology.hl7.org/CodeSystem/flag-category', code: 'safety', display: 'Safety' }] },
@@ -346,7 +334,7 @@ export function buildSafetyTask(params: {
   return {
     resourceType: 'Task',
     id: params.id,
-    meta: { profile: [TASK_PROFILE], tag: stageTag() },
+    meta: { profile: [TASK_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'requested',
     intent: 'plan',
     code: {

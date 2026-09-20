@@ -22,7 +22,8 @@
  *
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
-import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
+import { displayFor, type CodedOption } from './codedOption'
+import { stageTag } from './stageTag'
 import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import type {
   AppointmentResource,
@@ -38,7 +39,6 @@ import { suicideRiskCategory } from './conceptDomain'
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
 // than a stage tag nothing resolves.
 export const STAGE_ID = 'coordinate-handoffs' satisfies StageId
-const STAGE_TITLE = 'Coordinate Handoffs'
 
 export const SAFETY_HANDOFF_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff'
 export const PACKET_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet'
@@ -59,11 +59,6 @@ export const HANDOFF_WITHHELD_ITEM_EXT =
 const CONSENT_SCOPE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/consentscope'
 const CONSENT_POLICY_SYSTEM = 'http://terminology.hl7.org/CodeSystem/consentpolicycodes'
 const PARTICIPATION_TYPE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ParticipationType'
-
-export interface CodedOption {
-  code: string
-  display: string
-}
 
 /**
  * The shared TL-009/TL-030 content vocabulary (spier-handoff-content). One code
@@ -150,13 +145,6 @@ export const WITHHOLDING_BASES: CodedOption[] = [
   { code: 'no-consent-recorded', display: 'No sharing consent on file' },
 ]
 
-export function displayFor(options: CodedOption[], code: string): string {
-  return options.find(o => o.code === code)?.display ?? code
-}
-
-function stageTag() {
-  return [{ system: PATHWAY_STAGE_SYSTEM, code: STAGE_ID, display: STAGE_TITLE }]
-}
 
 /**
  * The repeating handoff-content-item extensions for a set of selected codes.
@@ -303,7 +291,7 @@ export function buildSafetyHandoff(params: {
   return {
     resourceType: 'Communication',
     id: params.id,
-    meta: { profile: [SAFETY_HANDOFF_PROFILE], tag: stageTag() },
+    meta: { profile: [SAFETY_HANDOFF_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'completed',
     category: [{ text: 'Suicide-safety handoff' }, suicideRiskCategory()],
     subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
@@ -374,7 +362,7 @@ export function buildDischargePacket(params: {
   return {
     resourceType: 'DocumentReference',
     id: params.id,
-    meta: { profile: [PACKET_PROFILE], tag: stageTag() },
+    meta: { profile: [PACKET_PROFILE], tag: stageTag(STAGE_ID) },
     category: [suicideRiskCategory()],
     status: 'current',
     type: { text: 'Suicide-safety discharge packet' },
@@ -420,7 +408,7 @@ export function buildSafetyReferral(params: {
   return {
     resourceType: 'ServiceRequest',
     id: params.id,
-    meta: { profile: [REFERRAL_PROFILE], tag: stageTag() },
+    meta: { profile: [REFERRAL_PROFILE], tag: stageTag(STAGE_ID) },
     category: [suicideRiskCategory()],
     status: params.status,
     // Fixed by the profile: this is an order, not a proposal or a plan.
@@ -503,7 +491,7 @@ export function buildFollowUpAppointment(params: {
   return {
     resourceType: 'Appointment',
     id: params.id,
-    meta: { profile: [APPOINTMENT_PROFILE], tag: stageTag() },
+    meta: { profile: [APPOINTMENT_PROFILE], tag: stageTag(STAGE_ID) },
     // #272 — the domain tag. Appointment has no `category`, so it rides on
     // `serviceCategory`, which is what `Appointment?service-category=` searches.
     // Required 1..1 by the profile, exactly like `category:suicideRisk` on the
@@ -579,7 +567,7 @@ export function buildSharingConsent(params: {
   return {
     resourceType: 'Consent',
     id: params.id,
-    meta: { profile: [CONSENT_PROFILE], tag: stageTag() },
+    meta: { profile: [CONSENT_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'active',
     scope: {
       coding: [{ system: CONSENT_SCOPE_SYSTEM, code: 'patient-privacy', display: 'Privacy Consent' }],

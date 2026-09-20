@@ -700,3 +700,42 @@ passed a planted defect. Read the gate's own section here before adding one,
 changing one, or concluding that something is covered — and plant a defect
 before trusting a new rule ([`README.md`](README.md) § *The rule that produced
 all of it*).
+
+## `check:dupes` — no function is defined twice (2026-09-20)
+
+The 2026-09-20 audit found `displayFor` byte-identical in four modules,
+`stageTag` in five (four identical, one drifted to a hand-typed display),
+`effectiveOf` in two that disagreed about `effectivePeriod.start`, `toggle` in
+two views and `InclusionBadge` in both apps — none of it found by a tool,
+because each stage's builders were written in their own PR and copied the
+neighbour's helpers. `scripts/check-duplicate-code.mjs` parses every top-level
+`function` and `const f = (…) => {…}` in non-test source under `apps/`,
+`packages/` and `services/` and holds four rules: the same NAME with the same
+normalized body in two files fails; the same body of five or more lines under
+DIFFERENT names fails; a deliberate same-name pair is listed in `ALLOWED` with
+its reason (the two `describeError`s, which differ on purpose; the per-app
+`Sidebar`, `AppRoutes` and `RouteFallback`), and an entry whose pair has
+merged or vanished fails as stale; and a floor of functions, files and areas
+parsed, so a broken parser cannot report ✓.
+
+⚠️ **Two parser defects were caught by the gate's own liveness rules before it
+was trusted.** The first version matched the body brace as "the first `{` after
+the function head", which for `Sidebar({ isOpen, onClose }: Props)` is the
+destructuring pattern — so both apps' Sidebars (239 and 73 lines) compared
+"identical", and the stale-`ALLOWED` rule fired on a pair it thought had
+merged. The second treated every quote as a string delimiter, so an apostrophe
+in JSX prose (`SPiER's`) swallowed the rest of `App.tsx` and both route tables
+left the scan; the stale-`ALLOWED` rule fired again, this time on pairs it
+could no longer see. A quote after a word character is not a delimiter now.
+
+⚠️ **Its first green run was not its first finding.** The moment both
+`App.tsx` files parsed, it reported `RouteFallback` byte-identical in the two
+apps — a component the audit had listed as a deliberate per-app pair, and which
+turned out to be a plain copy whose one stylesheet rule already lived in
+`packages/app-shell`. It lives there now. The two `AppRoutes` and the two
+`Sidebar`s remain deliberately separate, and their bodies differ, which is what
+the `ALLOWED` liveness rule checks.
+
+What it cannot see: a copy edited after copying (a fork — only a reader can
+tell a fork from a variant), a duplicated fragment inside a larger function,
+and an arrow assigned to an object property rather than a top-level binding.

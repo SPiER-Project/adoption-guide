@@ -41,22 +41,12 @@ import { useToolConfig } from '../context/ToolConfigContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { PRESETS, presetToolIds, type PresetId } from '../data/toolPresets'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
-import { INCLUSION_ICON, type InclusionStatus } from '@spier/tool-views/lib/statusIcons'
+import { InclusionBadge } from '@spier/tool-views/components/InclusionBadge'
 import '../css/ToolConfiguration.css'
 import { cx } from '@spier/ui/cx'
 import { Notice } from '@spier/ui/Notice'
 import { Pill } from '@spier/ui/Pill'
 import { Card } from '@spier/ui/Card'
-
-function InclusionBadge({ status }: { status: InclusionStatus }) {
-  const Icon = INCLUSION_ICON[status]
-  return (
-    <span className={`tool-row-status tool-row-status--${status}`}>
-      <Icon aria-hidden="true" size={11} />
-      {status}
-    </span>
-  )
-}
 
 export function ToolConfiguration() {
   const { activePreset, isToolEnabled, setPreset, toggleTool } = useToolConfig()
@@ -218,7 +208,7 @@ export function ToolConfiguration() {
                       <span className="tool-row-name">
                         {tool.shortName ?? tool.name}
                         <span className="tool-row-id">{tool.id}</span>
-                        <InclusionBadge status={tool.inclusionStatus} />
+                        <InclusionBadge className="tool-row-status" status={tool.inclusionStatus} />
                       </span>
                       <span className="tool-row-purpose">{tool.purpose}</span>
                     </span>

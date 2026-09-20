@@ -34,9 +34,9 @@
  * ⚠️ DEMO ONLY — nothing is persisted to a server, and no resource is actually
  * transmitted to the patient.
  */
-import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
-import { displayFor, type CodedOption } from './handoffs'
+import { displayFor, type CodedOption } from './codedOption'
+import { stageTag } from './stageTag'
 import type { CommunicationResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
 
@@ -44,7 +44,6 @@ import { suicideRiskCategory } from './conceptDomain'
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
 // than a stage tag nothing resolves.
 export const STAGE_ID = 'document-safety-actions' satisfies StageId
-const STAGE_TITLE = 'Document Safety Actions'
 
 export const CRISIS_RESOURCES_PROFILE =
   'http://thespierproject.org/fhir/StructureDefinition/spier-crisis-resources-shared'
@@ -103,10 +102,6 @@ export function crisisResourceText(code: string): string {
   return CRISIS_RESOURCES.find(r => r.code === code)?.patientText ?? code
 }
 
-function stageTag() {
-  return [{ system: PATHWAY_STAGE_SYSTEM, code: STAGE_ID, display: STAGE_TITLE }]
-}
-
 /**
  * Record that patient-facing crisis resources were provided.
  *
@@ -130,7 +125,7 @@ export function buildCrisisResourcesShared(params: {
   return {
     resourceType: 'Communication',
     id: params.id,
-    meta: { profile: [CRISIS_RESOURCES_PROFILE], tag: stageTag() },
+    meta: { profile: [CRISIS_RESOURCES_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'completed',
     category: [{ text: 'Crisis resources shared' }, suicideRiskCategory()],
     subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },

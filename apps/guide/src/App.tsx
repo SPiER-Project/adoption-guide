@@ -1,4 +1,5 @@
 import '@formbox/hs-theme/style.css'
+import { RouteFallback } from '@spier/app-shell/components/RouteFallback'
 import '@spier/app-shell/css/App.css'
 import '@spier/app-shell/css/CarePlan.css'
 
@@ -55,14 +56,6 @@ const PopulationDashboardGuide = lazy(() => import('./pages/PopulationDashboardG
 const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
 const ToolTryIt = lazy(() => import('./pages/ToolTryIt').then(m => ({ default: m.ToolTryIt })))
-
-function RouteFallback() {
-  return (
-    <div className="route-loading" role="status" aria-live="polite">
-      Loading…
-    </div>
-  )
-}
 
 function LegacyWorkflowRedirect() {
   const { slug } = useParams<{ slug: string }>()

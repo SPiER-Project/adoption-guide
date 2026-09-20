@@ -8,6 +8,7 @@
  * `fill="none"`), never via a `fill` declaration — that keeps every icon
  * inheriting whatever token-driven `color` the surrounding pill already sets.
  */
+import type { InclusionStatus } from '@spier/core/data/catalog/tool-ui-metadata'
 import {
   AlertOctagon,
   AlertTriangle,
@@ -45,7 +46,8 @@ export const CDS_INDICATOR_ICON: Record<CdsIndicator, LucideIcon> = {
   info: Info,
 }
 
-export type InclusionStatus = 'core' | 'optional' | 'future'
+// The catalog's own type, re-exported so the views and both apps read one definition.
+export type { InclusionStatus }
 
 export const INCLUSION_ICON: Record<InclusionStatus, LucideIcon> = {
   core: Star,

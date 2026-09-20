@@ -413,8 +413,9 @@ next tool added without one fails exactly the same way, silently.
 ### One smaller inconsistency
 
 Nine of the ten recorders' FHIR builders live in `packages/core/src/lib/`. The
-tenth, `LethalMeansCounselingView`, builds its Procedure and Observations from
-`packages/tool-views/src/lib/lethalMeans.ts`. The module is React-free and DOM-free, so it would
+tenth, `LethalMeansCounselingView`, built its Procedure and Observations from
+`lethalMeans.ts` inside the tool-views package (moved to `packages/core/src/lib/lethalMeans.ts`
+on 2026-09-20, C3 of the repo-cruft audit). The module is React-free and DOM-free, so it would
 move as-is — but where it sits today it is invisible to `check:core-boundary` and
 unreachable from both Workers and from any non-React consumer. It is the only
 FHIR-shape module outside core. Low priority, trivially fixed.

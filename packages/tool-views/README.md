@@ -28,7 +28,14 @@ are checked the day that app exists.
 (the filler frame); `CarePlanDisplay`, `FhirJsonViewer` and `CodeDrawer`;
 `InstrumentHeader` and `RiskPill`; `InspectContext`, `PatientContext` and
 `PresentationContext` with `PresentationProvider`; and the four helpers the views
-share (`dates`, `launchStage`, `lethalMeans`, `statusIcons`).
+share (`dates`, `launchStage`, `statusIcons`, `toggleCode`) and the `InclusionBadge` both apps render.
+
+**Out since 2026-09-20:** `lethalMeans.ts`, the TL-008 Procedure/Observation builder,
+which was the one FHIR builder outside `packages/core` — invisible to
+`check:core-boundary` there, and carrying its own copies of `stageTag`,
+`displayFor` and `effectiveOf`. It is `packages/core/src/lib/lethalMeans.ts` now,
+and `LethalMeansCounselingView` imports it like every other recorder imports its
+builder.
 
 **⚠️ The contexts are in here on purpose, and it is what makes the package
 possible at all.** `packages/ui/README.md` records why `WorkflowForm` could not

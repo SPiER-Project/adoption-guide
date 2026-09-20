@@ -5,7 +5,6 @@ import { makeId } from '@spier/core/lib/id'
 import {
   buildSafetyTask,
   completeTask,
-  displayFor,
   findOpenEpisode,
   isTaskOpen,
   isTaskOverdue,
@@ -14,6 +13,7 @@ import {
   ESCALATION_TRIGGERS,
   SAFETY_TASK_TYPES,
 } from '@spier/core/lib/riskEpisode'
+import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { todayLocalIso, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'

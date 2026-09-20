@@ -84,7 +84,7 @@ import {
   buildMeansSafetyAction,
   LETHAL_MEANS_METHODS,
   MEANS_SAFETY_ACTIONS,
-} from '@spier/tool-views/lib/lethalMeans'
+} from '@spier/core/lib/lethalMeans'
 import type { FhirResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '../.runtime-fhir')

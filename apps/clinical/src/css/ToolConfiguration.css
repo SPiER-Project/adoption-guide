@@ -254,19 +254,6 @@
   border-color: transparent;
 }
 
-.tool-row-status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gap-inline);
-  margin-left: var(--space-1-5);
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  padding: var(--space-0-5) var(--space-1-5);
-  border-radius: var(--radius-pill);
-}
-
-.tool-row-status--core     { background: var(--accent-info-soft);   color: var(--accent-info); }
-.tool-row-status--optional { background: var(--surface-muted);      color: var(--text-muted); border: 1px solid var(--border-default); }
-.tool-row-status--future   { background: var(--accent-warning-bg);  color: var(--accent-warning-text); }
+/* The inclusion mark is the shared <InclusionBadge> (packages/tool-views), a Pill;
+   the three .tool-row-status--* rules that re-declared a pill here are gone. */
+.tool-row-status { margin-left: var(--space-1-5); }
