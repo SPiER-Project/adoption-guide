@@ -45,7 +45,7 @@ own structure. Nine sites must agree, and each is commented:
 | Consumer | Where |
 |---|---|
 | `web` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.app.json` |
-| `services/cds-hooks` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
+| `services/guide` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 | `services/mock-ehr` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 
 ⚠️ `vitest.config.ts` does **not** inherit `vite.config.ts` — see

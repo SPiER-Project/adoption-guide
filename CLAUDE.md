@@ -93,7 +93,7 @@ most of them are a gate that passed while checking nothing.
 - `packages/fhir-artifacts/generated/` — SUSHI's output, gitignored (#392).
 - `apps/guide/` — the **Adoption Guide**: the case for the pathway, the published
   artifacts, the Data Dictionary and a playground for every instrument. Served by
-  `services/cds-hooks`. ⚠️ **Carries no patient data and no data source** — its
+  `services/guide`. ⚠️ **Carries no patient data and no data source** — its
   fillers write into an unseeded local store, which is the blank "play with
   forms" state. The chart experience belongs to the mock EHR.
 - `apps/clinical/` — the **two SMART apps**: the patient chart and the population
@@ -342,7 +342,7 @@ node scripts/check-md-paths.mjs       # the OTHER half: every repo-rooted path w
                                       # while touching no .md, and a workflow that does not trigger
                                       # reports nothing rather than red
 node scripts/check-worker-csp.mjs     # ONE frame-ancestors policy across every Worker that serves a
-                                      # SPiER SMART surface. Run from services/cds-hooks AND
+                                      # SPiER SMART surface. Run from services/guide AND
                                       # services/clinical (`npm run check:csp`) rather than from web,
                                       # which reads none of it; it scans the whole repo, so either
                                       # caller is sufficient
@@ -374,27 +374,54 @@ never `ed-scenario-11.md`** — all three are outputs. A gap claim in that workb
 is a statement to the HL7 working group; see
 [`docs/internals/docs-gates.md`](docs/internals/docs-gates.md).
 
-### The three Workers — easy to forget, and CI gates all three
+### The four Workers — easy to forget, and CI gates all four
 
-the repo root's `npm run verify` covers **none of them**, and two of the three import
+the repo root's `npm run verify` covers **none of them**, and two of the four import
 the web catalog, so a change to `tool-ui-metadata.ts` or the population
 scenarios can break them with the root verify green.
 
 ```
-cd services/cds-hooks && npm install && npm run verify   # typecheck + eslint + check:csp + vitest
-cd services/clinical  && npm install && npm run verify   # the same, minus copy-fhir — this Worker
-                                                         # imports nothing from web/src, so its
-                                                         # verify is offline and takes seconds.
-                                                         # Do not add the FHIR dance for symmetry
+cd services/guide     && npm install && npm run verify   # the Adoption Guide SPA + the rendered IG.
+                                                         # OFFLINE since the CDS split — it imports
+                                                         # @spier/worker-http and nothing else, so no
+                                                         # copy-fhir and no root install. Do not add
+                                                         # the FHIR dance back for symmetry with cds
+cd services/cds       && npm install && npm run verify   # the CDS Hooks service. Needs copy-fhir and
+                                                         # a root install: card derivation imports the
+                                                         # catalog, the mappers and demo-population
+cd services/clinical  && npm install && npm run verify   # the two SMART apps. Also offline — it serves
+                                                         # dist-clinical as bytes
 cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no hex outside TOKENS,
                                                          # every var(--…) resolves)
 ```
 
+⚠️ **Three offerings, four deployables.** The **IG**, the **Adoption Guide** and
+the **clinical product demonstration** are three separate offerings, and both
+demos pull from the IG — the guide and the clinical app read the same compiled
+artifacts out of `packages/fhir-artifacts/generated/`, which is SUSHI's output
+from `ig/input/fsh/`. The **CDS Hooks service** is the fourth deployable and
+belongs to the standard rather than to either demo: its URL is an integration
+contract an adopter configures inside their own EHR.
+
+⚠️ **The CDS API left the guide Worker on 2026-09-20** (`services/cds`,
+`spier-cds`). Two smells drove it: `CDS_JWT_AUDIENCE` was pinned to the
+*adoption-guide* Worker's URL — a service's audience should be its own identity —
+and every guide deploy redeployed the endpoint. `services/guide` and
+`services/clinical` each carry a NEGATIVE test that they host no `/cds-services`.
+
+⚠️ **`SMART_LAUNCH_URL` is REQUIRED by the CDS Worker and it 500s without it.**
+The launch URL used to be derived from the request origin, which was true while
+one Worker served both the API and the app and became false at the `apps/` split
+(#552) — the cards' intents target `/patient/assessments/*` and only
+`apps/clinical` registers `/patient`, so every card had been launching at an
+origin that could not route it. Nothing caught it: `check:surface-links` reads
+in-app links and `check:catalog` resolves paths against route tables, and neither
+knows which WORKER serves a launch.
+
 ⚠️ **`services/clinical` is the Worker a real EHR frames, and that decides three
 things about it.** It serves `dist-clinical` (`VITE_SURFACE=clinical`) and
 nothing else — no `/cds-services` (cards come from `buildCdsCards` in-process,
-the endpoint's only runtime caller is a guide page, and `CDS_JWT_AUDIENCE` is
-baked to the adoption-guide Worker's URL) and no `/ig/`. `src/app.test.ts`
+and the published endpoint is its own Worker) and no `/ig/`. `src/app.test.ts`
 asserts both as negative tests, because "someone copies a route across for
 parity" is the failure. The mock EHR frames **this** Worker, not the guide one
 (`DEFAULT_PANEL_BASE_URL` in `services/mock-ehr/src/app.ts`).
@@ -413,7 +440,7 @@ on exactly that), and every such Worker keeps
 ⚠️ **The SPA Worker also serves the rendered IG at `/ig/`, and CI is the only
 thing that can put it there.** `deploy.yml`'s `cloudflare` job stages the IG
 Publisher's render into `web-dist/ig` and runs `wrangler deploy`; a local
-`npm run deploy` in `services/cds-hooks` ships a Worker whose `/ig/*` 404s,
+`npm run deploy` in `services/guide` ships a Worker whose `/ig/*` 404s,
 because `stage:assets` begins with `rm -rf web-dist` and nothing local renders
 the IG. Cloudflare's **Workers Builds** git integration is disconnected on
 purpose (2026-09-18) — reconnecting it races a second, IG-less deploy against

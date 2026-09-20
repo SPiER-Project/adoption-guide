@@ -60,7 +60,7 @@ Five things get called "the app" in conversation. They are not five peers:
 | Patient registry (Population, Dashboard) | 3 pages | Clinical runtime over the scenario store |
 | Individual patient charts | `PatientChart.tsx` + `PatientContext` | Clinical runtime, the only SMART-connected surface |
 | The Java-built IG | `ig/` | **Not an app.** The canonical, machine-readable source everything else derives from |
-| CDS Hooks service | `services/cds-hooks/` | **Already a second app**, in production, on Workers |
+| CDS Hooks service | `services/guide/` | **Already a second app**, in production, on Workers |
 | A patient-facing app | — | Doesn't exist. §5 |
 
 The IG is not a sibling of the others; it is upstream of all of them. Any framing
@@ -72,7 +72,7 @@ Everything below rests on these. They were measured, not recalled.
 
 ### 2.1 A second app already deep-imports the first one's source
 
-`services/cds-hooks/src/service.ts` reaches across the package boundary **seven**
+`services/cds/src/service.ts` reaches across the package boundary **seven**
 times with `../../../`:
 
 ```
@@ -131,8 +131,8 @@ ig/input/fsh  ──fsh-sushi──▶  ig/fsh-generated  ──copy-fhir.mjs─
                                                                           │
                                      web/src/{lib,data,types}  ◀──────────┘
                                           │            │
-                                          │            └──▶ dist ──stage:assets──▶ services/cds-hooks/web-dist
-                                          └────────── ../../../ ──────▶ services/cds-hooks/src
+                                          │            └──▶ dist ──stage:assets──▶ services/guide/web-dist
+                                          └────────── ../../../ ──────▶ services/guide/src
 ```
 
 Two inversions are visible in it:
@@ -395,13 +395,13 @@ none of them is solved by moving files between repositories:
    - ~~**Renaming does not merely stale a link; it takes the IG down.**~~ The
      Pages path is no longer the only copy of the render, so a rename stales links
      without taking the IG offline. `CANONICAL_IG_BASE` in
-     `services/cds-hooks/src/index.ts` still hardcodes a Pages path and would
+     `services/guide/src/index.ts` still hardcodes a Pages path and would
      still need updating — a link fix, not an outage.
    - ~~**"Point the Pages URLs at the Worker" cannot apply to `/ig/` itself.**~~ It
      can; it already has. ⚠️ What remains true is the *deploy* constraint CLAUDE.md
      records: only CI can put the IG there, because `stage:assets` begins with
      `rm -rf web-dist` and nothing local renders the IG — so a local
-     `npm run deploy` in `services/cds-hooks` ships a Worker whose `/ig/*` 404s.
+     `npm run deploy` in `services/guide` ships a Worker whose `/ig/*` 404s.
 
    §4's recommendation against making Cloudflare primary for the IG — free
    hosting, 254 MB per deploy, a Pages artifact coupling the SPA and IG — was
@@ -442,7 +442,7 @@ because every tree stays in one commit.
 **Phase 0 — declare `packages/core`; convert the Worker's deep imports.**
 The smallest useful step, and the only one worth doing regardless of what else
 happens. Turn the nine `../../../web/src/...` specifiers in
-`services/cds-hooks/src/` into `@spier/core` imports behind a workspace
+`services/guide/src/` into `@spier/core` imports behind a workspace
 reference, and add the lint constraint that `core` may not import React or touch
 `window`. Nothing moves on disk except a `package.json` and a `tsconfig`
 reference — which is the point: it is reversible, and it converts an undeclared
@@ -531,7 +531,7 @@ module names in it have all moved to `packages/core` and are imported as
 
 | Package | `../../../web/src` imports |
 |---|---|
-| `services/cds-hooks` | **9** (the nine §2.1 measured) |
+| `services/guide` | **9** (the nine §2.1 measured) |
 | `services/mock-ehr` | **12** |
 
 What the second Worker reaches for, beyond the scenarios and `types/fhir`:
@@ -593,7 +593,7 @@ they move with the data, so they were never arguments. The honest re-count:
 | `PatientProvider`, `localDataSource`, `useActivePatientId`, `usePatientOpenBroadcast` | **No — they go with the chart** |
 | `PopulationView.tsx` | **No — it goes with the chart-side data** (see the correction below; it is *not* being deprecated) |
 | `MeasureDashboard.tsx` | The only guide-side maybe |
-| `services/cds-hooks`, `services/mock-ehr` | Yes, and both already import it |
+| `services/guide`, `services/mock-ehr` | Yes, and both already import it |
 | `scripts/validate-fhir.mjs`, `scripts/build-use-case-workbook.mjs` | Yes — **repo-root tooling, not "the guide"**; both take paths |
 
 And the fact that decides it: **`measures.ts` imports no data at all.** It is pure
@@ -730,7 +730,7 @@ at all, still declared and still lintable, weaker than a package name).
 **2. Step A is not the smallest step, and B is the better first move.** "Smallest,
 no behaviour change" was wrong: A moves **17 files** and updates **29 referencing
 files across 7 trees** — 14 in `web/src`, 5 `scripts` gates, 2 repo-root
-scripts, 4 in `services/mock-ehr`, 1 in `services/cds-hooks`,
+scripts, 4 in `services/mock-ehr`, 1 in `services/guide`,
 `ig/input/fsh/population-patients.fsh`, and 2 workflows whose **path filters name
 the old location**, so a stale filter silently stops triggering them. That is
 precisely the churn §7 calls the dangerous part. **B moves nothing on disk**, which

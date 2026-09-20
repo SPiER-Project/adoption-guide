@@ -15,7 +15,7 @@ import { describe, expect, it } from 'vitest'
 import app from './app'
 import { DEMO_PATIENTS, DEMO_PATIENTS_BY_ID } from './fixtures'
 import { TRY_IT_ORDER, storyOf } from './demoStories'
-import { SERVICE_ID } from '../../cds-hooks/src/service'
+import { SERVICE_ID } from '../../cds/src/service'
 
 const BASE = 'https://mock-ehr.test'
 
@@ -203,14 +203,17 @@ describe('one patient chart', () => {
     expect(body).not.toContain('spier-adoption-guide.bbthorson.workers.dev/#')
   })
 
-  it('points the CDS call at the adoption-guide Worker by default — a DIFFERENT origin', async () => {
+  it('points the CDS call at the CDS Worker by default — a THIRD origin', async () => {
     // ⚠️ This used to read "the panel's own origin", derived from the panel base
     // because one Worker served the SPA and /cds-services together. That stopped
     // being true when services/clinical shipped, and the derivation would then
     // have pointed this fetch at a Worker with no such route — answering 200
     // with the SPA's HTML rather than anything a reader would call an error.
+    //
+    // ⚠️ Three origins now, none derivable from another: the panel is the
+    // clinical Worker, the service is `spier-cds`, and the guide is a third.
     const { body } = await html('/chart/patient-011')
-    expect(body).toContain('https://spier-adoption-guide.bbthorson.workers.dev/cds-services/spier-patient-view')
+    expect(body).toContain('https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view')
     // The two really are different hosts now; a regression to the derivation
     // would put the service on the panel's origin.
     expect(body).not.toContain('https://spier-clinical.bbthorson.workers.dev/cds-services')

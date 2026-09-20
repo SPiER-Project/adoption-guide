@@ -2,7 +2,7 @@
 
 The case for the pathway, the published artifacts, the Data Dictionary, the
 adoption rubric, and a playground for every instrument. Served by
-`services/cds-hooks`, which also serves the rendered IG at `/ig/`.
+`services/guide`, which also serves the rendered IG at `/ig/`.
 
 Built with `npm run build` from the repo root; the output is `dist`.
 

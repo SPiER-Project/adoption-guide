@@ -204,7 +204,7 @@ a launch button instead of a guide URL and a self-initiated OAuth dance.
 
 1. Branch per PR, squash-merged. Phases are NOT independent this time — B
    depends on A, D depends on B and C — do them in order.
-2. Run all three `verify`s (the repo root, `services/cds-hooks/`, `services/mock-ehr/`)
+2. Run all three `verify`s (the repo root, `services/guide/`, `services/mock-ehr/`)
    for any PR touching `packages/`. Fresh worktree needs `npm install` in each,
    plus `npm run copy-fhir` at the repo root.
 3. Prove a change to a security-relevant gate can fail before trusting it. In

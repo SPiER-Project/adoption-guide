@@ -274,7 +274,7 @@ const SCAN = [
   },
   // Real zeros, verified rather than assumed. The Worker reuses the web catalog
   // instead of restating codes; its only two LOINC literals are in
-  // services/cds-hooks/src/service.test.ts, where `code` is bound to a *variable*
+  // services/cds/src/service.test.ts, where `code` is bound to a *variable*
   // rather than a string — which cannot be checked statically and so is counted
   // under "not validated" below, not here.
   //

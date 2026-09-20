@@ -164,7 +164,7 @@ Three deployables, one repo, **one copy of every fixture**:
 |---|---|---|
 | SPiER panel app | today's `web/` — the SMART app | `spier-adoption-guide.…workers.dev` |
 | **Mock EHR** | new `services/mock-ehr/` — FHIR API + SMART stub + host chrome | `spier-mock-ehr.…workers.dev` |
-| CDS Hooks service | existing `services/cds-hooks/` | unchanged |
+| CDS Hooks service | existing `services/guide/` | unchanged |
 
 **Two Workers give two origins for free.** No DNS work, no
 `thespierproject.org` subdomain — which matters, because there is no DNS access
@@ -502,7 +502,7 @@ success.
   `services/mock-ehr/src/fhircastHub.ts`; the app subscribes to it with the
   `hub.url` / `hub.topic` the EHR puts in the token response. §6.2.
 - **`check:template`** — §3.
-- ⚠️ **A new deployable outside the gate net will rot.** `services/cds-hooks/`
+- ⚠️ **A new deployable outside the gate net will rot.** `services/guide/`
   has its own CI-gated `verify` precisely because `web/`'s does not cover it.
   `services/mock-ehr/` needs the same on day one — more urgently, because it
   reads the scenario fixtures and will break silently when those are re-anchored
@@ -964,7 +964,7 @@ cheap:
 
 | Piece | Cost | Why |
 |---|---|---|
-| Read API (13 resource types) | **cheap** | `SmartDataSource.getSlice` issues patient-scoped `GET Type?patient=X`. Serving that from the scenario fixtures is one route, a filter and a Bundle envelope. `services/cds-hooks` already imports those fixtures via `import.meta.glob`. |
+| Read API (13 resource types) | **cheap** | `SmartDataSource.getSlice` issues patient-scoped `GET Type?patient=X`. Serving that from the scenario fixtures is one route, a filter and a Bundle envelope. `services/guide` already imports those fixtures via `import.meta.glob`. |
 | `/metadata` | **trivial**, and load-bearing | It is the degradation demo. |
 | authorize / token / PKCE stub | **moderate** | Well-trodden but fiddly, and where `frame-ancestors` and cross-site storage bite (§6). |
 | **Strict write validation** | **the expensive part** | And the one that decides whether the mock is credible. |
@@ -973,7 +973,7 @@ cheap:
 strict writes "reusing `check-scenario-resources.mjs`". That script is **Node,
 reading generated StructureDefinitions off the filesystem**, and a Worker has no
 filesystem. Reusing it means bundling those StructureDefinitions through the Vite
-build — feasible (`services/cds-hooks` already does exactly this for the catalog
+build — feasible (`services/guide` already does exactly this for the catalog
 and scenarios), but it is a **port, not reuse**. Budget it on day one. If it
 slips, the mock ships lenient, which is precisely the failure
 `mock-patient-smart-launch.md` §6 predicted and this guardrail exists to prevent.

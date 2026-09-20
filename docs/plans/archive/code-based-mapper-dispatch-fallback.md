@@ -120,7 +120,7 @@ export function mapResponseToObservations(qr, opts = { allowHeuristic: false }) 
 - `web/src/lib/deriveFromResponse.ts` (provenance stamping + pass `allowHeuristic`)
 - `web/src/lib/dataSource/smartDataSource.ts` (update limitation comment; decide
   whether SMART path opts into heuristic)
-- `services/cds-hooks/src/service.ts` — the service also calls
+- `services/cds/src/service.ts` — the service also calls
   `mapResponseToObservations` on prefetched QRs; decide fallback policy there too.
 
 ## Tests

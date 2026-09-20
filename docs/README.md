@@ -72,7 +72,7 @@ each one from the section it belongs to.
 * [`internals/fhir-conformance.md`](internals/fhir-conformance.md) — the HL7 validator, the FML maps, the rules shared with the mock EHR's write endpoint, both halves of the scenario gate, the mapper-reader rule.
 * [`internals/measures.md`](internals/measures.md) — the four homes of a measure criterion, exclusion vs exception, narration-vs-measure agreement.
 * [`internals/docs-gates.md`](internals/docs-gates.md) — the markdown link gate and the generated HL7 use-case workbook.
-* [`internals/workers.md`](internals/workers.md) — `services/cds-hooks/` and `services/mock-ehr/`, neither covered by the root's verify.
+* [`internals/workers.md`](internals/workers.md) — `services/guide/` and `services/mock-ehr/`, neither covered by the root's verify.
 * [`internals/css-and-page-template.md`](internals/css-and-page-template.md) — one page template, two width tokens, one measure, and the gates' limits.
 * [`internals/build-gotchas.md`](internals/build-gotchas.md) — the stale-worktree diagnosis, the two aliased shims, the hand-duplicated values.
 
@@ -131,7 +131,7 @@ Prose about *how the repo is built* belongs in [`CLAUDE.md`](../CLAUDE.md) and
 * **Pathway stages** — the eight stage codes are defined once, in `ig/input/fsh/spier-codesystem.fsh`, and assembled into PlanDefinitions in `ig/input/fsh/pathway-stages.fsh`. Quote them by code rather than by name; three of the display names changed in July 2026.
 * **Hand-authored Questionnaires** — [`docs/instruments/README.md`](instruments/README.md), one folder per tool, with the tool→stage table and the per-tool provenance READMEs.
 * **Demo app** — `apps/guide/` and `apps/clinical/`, built from the repo root. The React-free domain layer is `packages/core/`, the demo patients are `packages/demo-population/`, and SUSHI's output is copied into `packages/fhir-artifacts/generated/` (gitignored) by `npm run copy-fhir`.
-* **Workers** — `services/cds-hooks/` (the live `/cds-services` endpoint) and `services/mock-ehr/` (the host the demo launches from), each with its own README and its own `npm run verify`.
+* **Workers** — `services/guide/` (the live `/cds-services` endpoint) and `services/mock-ehr/` (the host the demo launches from), each with its own README and its own `npm run verify`.
 
 ## Roadmap and issue tracking
 

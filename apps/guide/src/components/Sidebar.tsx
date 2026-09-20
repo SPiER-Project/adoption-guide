@@ -207,7 +207,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* ⚠️ **The spec link is DEMO-ONLY, and that is a broken-link fix rather
             than a tidy-up.** `IG.href` is `${import.meta.env.BASE_URL}ig/`, which
-            `services/cds-hooks` serves for real and `services/clinical` does not
+            `services/guide` serves for real and `services/clinical` does not
             hold at all — so on the clinical Worker it fell through to the SPA
             fallback and opened SPiER again in a new tab, titled "The SPiER
             Project" instead of the IG. Verified against both deploys 2026-09-18.

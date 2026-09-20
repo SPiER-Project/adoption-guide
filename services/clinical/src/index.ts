@@ -5,7 +5,7 @@
  * API here and no rendered IG; see `wrangler.jsonc` for why each is somewhere
  * else. Everything this file does about *being an asset host* — the Static
  * Assets catch-all, the explicit SPA fallback, the `frame-ancestors` CSP — is
- * `packages/worker-http`, shared with `services/cds-hooks`.
+ * `packages/worker-http`, shared with `services/guide`.
  *
  * ⚠️ **The shared module is not a tidiness move.** This is the Worker a real
  * EHR frames, so a `frame-ancestors` list that drifts from the guide Worker's

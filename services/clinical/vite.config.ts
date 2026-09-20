@@ -14,7 +14,7 @@ export default defineConfig({
       {
         // The Worker-side HTTP shared layer (packages/worker-http): the Static
         // Assets catch-all and the `frame-ancestors` policy, shared with
-        // services/cds-hooks so the header cannot differ between the two.
+        // services/guide so the header cannot differ between the two.
         find: '@spier/worker-http/',
         replacement: fileURLToPath(
           new URL('../../packages/worker-http/src/', import.meta.url),

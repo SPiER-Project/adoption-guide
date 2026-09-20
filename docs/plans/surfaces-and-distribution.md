@@ -227,10 +227,10 @@ has never been seen red is not evidence of anything.
 
 | Thing | Host | Note |
 |---|---|---|
-| Guide + panel (SPA), `demo` surface | `services/cds-hooks` Worker, Static Assets | also deployed to GitHub Pages under `/adoption-guide/` |
+| Guide + panel (SPA), `demo` surface | `services/guide` Worker, Static Assets | also deployed to GitHub Pages under `/adoption-guide/` |
 | **The two SMART apps, `clinical` surface** | **`services/clinical` Worker, its own origin** | **added 2026-09-18. No `/cds-services`, no `/ig`. What the mock EHR frames** |
-| CDS Hooks API | `services/cds-hooks` Worker, `/cds-services/*` | `run_worker_first`, Hono. Stayed put when the apps moved: `CDS_JWT_AUDIENCE` is baked to that URL and it is published |
-| Rendered IG | **both** — `services/cds-hooks` Static Assets *and* GitHub Pages | one gated render, deployed twice — see below |
+| CDS Hooks API | `services/guide` Worker, `/cds-services/*` | `run_worker_first`, Hono. Stayed put when the apps moved: `CDS_JWT_AUDIENCE` is baked to that URL and it is published |
+| Rendered IG | **both** — `services/guide` Static Assets *and* GitHub Pages | one gated render, deployed twice — see below |
 | Mock EHR | its own Worker | separate origin is a requirement, not a preference |
 
 ⚠️ **§5's "two Workers give two hostnames" is now three, and the third one is the
@@ -246,7 +246,7 @@ Workers share lives once, in `packages/worker-http`; see
 The Worker serves the IG from `web-dist/ig` as of **2026-09-18**. `deploy.yml`
 renders it once, gates it on CQL + QA, and two jobs ship the same bytes: `build`
 nests it into the Pages artifact, `cloudflare` stages it into the Worker's Static
-Assets. [`services/cds-hooks/src/index.ts`](../../services/cds-hooks/src/index.ts)
+Assets. [`services/guide/src/index.ts`](../../services/guide/src/index.ts)
 has **no `/ig` route at all** — the catch-all serves it like any other file, and
 `app.test.ts` asserts no handler comes back to shadow it.
 
@@ -312,7 +312,7 @@ on four supports. The measurement removed one and weakened two:
 ⚠️ **Pages became a FUNCTIONAL DEPENDENCY of the Worker on 2026-09-18 (#534),
 and this section justified keeping it on "it is free" for one PR before anyone
 noticed.** Files over the Static Assets per-file cap (25 MiB) are dropped from
-the Worker's copy, and `services/cds-hooks/src/index.ts` 302s them to the Pages
+the Worker's copy, and `services/guide/src/index.ts` 302s them to the Pages
 render — today that is `ig/output/full-ig.zip` at 36.8 MiB. So retiring Pages
 does not cost a redundant copy; it **breaks `/ig/full-ig.zip` on the primary
 host**, and it breaks it silently, because the redirect target simply stops
@@ -374,6 +374,12 @@ holds synthetic data only, so it is not an exception — but a future real-serve
 integration is not permitted to become one.
 
 ## 6. What "give a client the app" needs beyond code layout
+
+> **⚠️ Deferred, 2026-09-20 (Brad).** Licensing is being handled separately and
+> is **not** the gate on current work. Nothing below is withdrawn — the backlog
+> is still the authority before quoting a status to a partner, and the coded
+> statuses in the FSH are unchanged — but planning and handoff documents should
+> stop citing it as the blocking constraint. Revisit when a client ship is real.
 
 A clean build is necessary and not sufficient.
 

@@ -8,7 +8,7 @@ step across the eight workflows reads it via `node-version-file:
 hardcoded `node-version: 20` lines it replaced.
 
 ⚠️ **Do not move it to the repo root.** Cloudflare Workers Builds — which deploys
-`services/cds-hooks` (the one Worker serving both the SPA and the CDS Hooks API,
+`services/guide` (the one Worker serving both the SPA and the CDS Hooks API,
 see `docs/internals/workers.md`) — reads a root `.nvmrc` to choose the Node
 version for the *deploy* build. Putting it there silently repoints production's
 build environment as a side effect of a CI-only change, and the build fails at
