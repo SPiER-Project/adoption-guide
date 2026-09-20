@@ -1,4 +1,4 @@
-name: Terminology — nightly external-code check
+name: Terminology — external-code check
 
 # Verifies every LOINC and SNOMED CT code SPiER asserts against a live terminology
 # server, and opens (or updates) a single tracking issue when anything drifts.
@@ -21,9 +21,37 @@ name: Terminology — nightly external-code check
 #     runtime. Fixing #220 turned up three further drifted displays that existed
 #     only in TS and no amount of resource validation would ever have caught.
 #
-# This workflow closes both halves nightly rather than per-PR, because both checks
-# need a terminology server and would otherwise make every PR depend on
-# tx.fhir.org being up.
+# ─── Why it runs when it does (#480) ─────────────────────────
+#
+# This ran NIGHTLY and, on pull requests, only when the two check SCRIPTS
+# changed. That is mistimed in both directions: 365 runs a year for an event
+# that happens twice (LOINC and SNOMED each release twice), and NO run on the
+# pull request that introduces the defect. Every catch these gates have to their
+# name — #220's six fabricated LOINC codes, `86849004` resolving to the wrong
+# concept, #476's eight ASQ displays — was an authoring error at introduction,
+# not the authority changing something later. #476 was caught only because it
+# happened to edit `check-codings.mjs`.
+#
+# So: WEEKLY for authority drift, plus the authoring paths below at PR time.
+# Weekly still catches a release well inside its cycle, and still catches
+# tx.fhir.org picking up an edition, which the PENDING_TX expiry rules in both
+# scripts depend on (#479).
+#
+# ⚠️ **Not monthly.** GitHub disables scheduled workflows after 60 days of repo
+# inactivity, and the longer the cron the closer it sits to that cliff.
+#
+# ⚠️ **Both jobs run on PRs, not just the cheap one.** Splitting them was
+# considered and is wrong: `check-codings.mjs` scans TypeScript ONLY and says so
+# in its own PENDING_TX note — a wrong LOINC code in a Questionnaire is
+# `validate-fhir.mjs --tx`'s to catch. Running the codings job alone would have
+# left the Questionnaires exactly as unchecked as before. The resources job's
+# ~4m is mostly validation; the 190MB jar is cached on a version key shared with
+# ig.yml and fml-validate.yml, so a PR run reuses it.
+#
+# ⚠️ **This depended on giving `validate-fhir.mjs` a PENDING_TX list of its
+# own.** Without it that job is red on every run until tx.fhir.org ships LOINC
+# 2.83 — and wiring a months-red check onto every terminology PR would have made
+# the signal worse, not better, which is the whole argument of #480.
 #
 # ─── Two things worth knowing before editing ─────────────────
 #
@@ -54,16 +82,29 @@ name: Terminology — nightly external-code check
 
 on:
   schedule:
-    # 04:41 UTC daily — off the hour, and after the US-evening push window.
-    - cron: '41 4 * * *'
+    # 04:41 UTC on Mondays — off the hour, and after the US-evening push window.
+    # Was daily until #480; see the cadence note above for why weekly, and why
+    # not monthly.
+    - cron: '41 4 * * 1'
   workflow_dispatch:
-  # Also run when the checks themselves change, so a broken check is caught at
-  # PR time rather than at 04:41 the next morning.
   pull_request:
     paths:
+      # The checks themselves, so a broken check is caught at PR time.
       - 'scripts/check-codings.mjs'
       - 'scripts/validate-fhir.mjs'
-      - '.github/workflows/terminology-nightly.yml'
+      - 'scripts/lib/validator-jar.mjs'
+      - '.github/workflows/terminology.yml'
+      # ⚠️ **Where terminology is actually WRITTEN.** This half is #480: without
+      # it, a PR adding a wrong LOINC code to a Questionnaire, a mapper or the
+      # data dictionary got no terminology check at all until 04:41 the next
+      # morning — after it had merged. A workflow that does not trigger reports
+      # nothing; it does not report red.
+      - 'ig/input/resources/questionnaires/**'   # the 18 hand-authored Questionnaires
+      - 'ig/input/fsh/**'                        # CodeSystems, ValueSets, ADs, profiles
+      - 'packages/core/src/lib/observationMappers/**'
+      - 'packages/core/src/lib/carePlanMappers/**'
+      - 'packages/core/src/data/catalog/**'      # the data dictionary
+      - 'packages/demo-population/src/**'        # scenario slices carry coded answers
 
 # The repo default is read-only, and declaring this block at all resets every
 # *unlisted* scope to `none` — the trap that made the since-deleted
@@ -78,7 +119,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: terminology-nightly
+  group: terminology
   cancel-in-progress: false
 
 env:
@@ -307,7 +348,7 @@ jobs:
         run: |
           run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           {
-            echo "The nightly terminology check found codes or displays that no longer"
+            echo "The terminology check found codes or displays that no longer"
             echo "validate against \`$TX_SERVER\`."
             echo
             echo "| Check | Result |"
@@ -337,7 +378,7 @@ jobs:
             echo "\`$TX_SERVER\` is a re-run. **[Triage steps for both](../blob/main/docs/scheduled-checks-triage.md)**"
             echo "— which one you are looking at is decided by the table above."
             echo
-            echo "Opened by [\`terminology-nightly.yml\`](../blob/main/.github/workflows/terminology-nightly.yml). Refs #220."
+            echo "Opened by [\`terminology.yml\`](../blob/main/.github/workflows/terminology.yml). Refs #220."
           } > "$RUNNER_TEMP/body.md"
 
       - name: Open or update the tracking issue

@@ -92,7 +92,7 @@ jobs:
       # Pinned deliberately (E2b, docs/plans/repo-and-package-boundaries.md
       # §9.7) — scraped from the same constant scripts/lib/sushi-version.mjs's own
       # npx call uses, so CI and a local `npm run copy-fhir` never disagree.
-      # ig.yml, deploy.yml, terminology-nightly.yml and fml-validate.yml scrape
+      # ig.yml, deploy.yml, terminology.yml and fml-validate.yml scrape
       # the same line.
       - name: Read pinned sushi version
         id: sushi

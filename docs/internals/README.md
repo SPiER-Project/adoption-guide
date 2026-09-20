@@ -16,7 +16,7 @@ Read the file for the area you are changing **before** you change it.
 | File | Read it before |
 |---|---|
 | [`web-gates.md`](web-gates.md) | adding or changing anything `npm run verify` runs, or trusting a `check:*` gate's coverage |
-| [`terminology.md`](terminology.md) | adding a LOINC/SNOMED coding, touching `PENDING_TX`, or reading a red nightly |
+| [`terminology.md`](terminology.md) | adding a LOINC/SNOMED coding, touching either `PENDING_TX`, or reading a red `terminology.yml` |
 | [`ig-build.md`](ig-build.md) | changing `ig/input/`, `sushi-config.yaml`, an IG page, the CQL, or `deploy.yml` |
 | [`fhir-conformance.md`](fhir-conformance.md) | editing a scenario fixture, a mapper, an `.fml` map, or a validation rule shared with the mock EHR |
 | [`measures.md`](measures.md) | changing a measure criterion, a population, or the dashboard's scoring |

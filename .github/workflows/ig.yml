@@ -126,7 +126,7 @@ jobs:
       # same constant scripts/lib/sushi-version.mjs's own npx call uses, so CI and
       # a local `npm run copy-fhir` can never disagree. The empty-version guard
       # is load-bearing, same reasoning as the validator version below.
-      # ig-publish.yml, deploy.yml, terminology-nightly.yml and fml-validate.yml
+      # ig-publish.yml, deploy.yml, terminology.yml and fml-validate.yml
       # scrape the same line.
       - name: Read pinned sushi version
         id: sushi
@@ -238,7 +238,7 @@ jobs:
       # scripts/lib/validator-jar.mjs — shared with check-fml.mjs since #92/#229,
       # so both gates judge resources with the same validator. The empty-version
       # guard below is load-bearing: it is what caught the constant moving out
-      # of validate-fhir.mjs. terminology-nightly.yml scrapes the same line.
+      # of validate-fhir.mjs. terminology.yml scrapes the same line.
       - name: Read pinned validator version
         id: validator
         run: |

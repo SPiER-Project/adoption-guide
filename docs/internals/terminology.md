@@ -1,4 +1,4 @@
-# External terminology: LOINC, SNOMED, and the nightly
+# External terminology: LOINC, SNOMED, and when they are checked
 
 The one gate that needs a terminology server, its expiring allowlist, and why
 its floors are per source *and* per vocabulary family.
@@ -9,7 +9,7 @@ exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
 `check:codings` is deliberately **not** in `verify`, because it needs a
-terminology server and so cannot be offline-reproducible — it runs nightly
+terminology server and so cannot be offline-reproducible — it runs weekly
 instead:
 ```
 npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display
@@ -18,7 +18,7 @@ npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+displ
 
 ⚠️ **`PENDING_TX` is its one tolerated failure, and it is built to expire.**
 tx.fhir.org lags LOINC releases, so a code SPiER adopts from a new edition can be
-correct and still not resolve — the eight ASQ codes from LOINC 2.83 against the
+correct and still not resolve — the ASQ codes from LOINC 2.83 against the
 server's 2.82 are the case it was written for. An entry (keyed `system|code`,
 valued with the edition and date) lets that code pass. **Two of its three rules
 FAIL rather than warn:** an entry the server *does* resolve fails the run, so a
@@ -27,10 +27,23 @@ and an entry naming a code the scan no longer finds fails too, so a removed
 literal takes its exemption with it. That second rule caught its author on the
 first run — three of the eight ASQ codes live only in the Questionnaire JSON,
 which this script does not scan, so those exemptions could never have expired.
-Resource-side codes are `validate-fhir.mjs --tx`'s, and it has **no** allowlist
-by design; that lag is recorded in `docs/scheduled-checks-triage.md` § *Cause 1b*
-instead. A code that fails because it is *wrong* is #220 and belongs in a fix,
-never here.
+A code that fails because it is *wrong* is #220 and belongs in a fix, never here.
+
+⚠️ **There are TWO `PENDING_TX` lists now, and the asymmetry between them was a
+live defect.** `validate-fhir.mjs --tx` deliberately had none: the lag was
+"recorded in `docs/scheduled-checks-triage.md` instead". Recording it did not
+stop it failing — the resources job went red every night from 2026-09-14 on the
+same ASQ codes, while the codings job sat green behind its allowlist. #480 gave
+`validate-fhir.mjs` the twin, with the same expiry rule, because wiring a
+months-red job onto every terminology PR would have degraded the signal rather
+than added any.
+
+The two lists are **different lengths on purpose**: `check-codings.mjs` scans
+TypeScript, so it carries the five codes a mapper writes; `validate-fhir.mjs`
+reads the resources, so it carries all ten — the panel and the two items no
+mapper writes included. Listing a resource-only code in the TypeScript list is
+what rule 2 caught on its first run: an exemption for something the scan cannot
+reach can never be proven stale.
 
 ⚠️ **`tx.fhir.org` is not the authority — Regenstrief is, and there is a tool for
 asking it.** `bash scripts/loinc-audit/loinc-audit.sh .` checks every LOINC coding
@@ -55,7 +68,7 @@ count. That needs a deliberate re-check whenever a source grows, because nothing
 re-checks it on its own: #43 doubled the manifest's SNOMED inventory from 10
 codings to 20 while its floor sat at 5, dropping it to a quarter of the real
 count with nothing going red (#232). Every run prints the live count beside each
-floor, so any recent nightly log tells you where the ratios stand.
+floor, so any recent run's log tells you where the ratios stand.
 
 ⚠️ **A floor only protects the source as a whole, so `SCAN` entries deliberately
 overlap.** When one path holds two independent contributors, a whole-path floor
@@ -68,7 +81,7 @@ overlaps the first — safe, because `found` is keyed by system|code|display and
 codings inside an already-scanned tree, give it its own entry** rather than
 assuming the parent floor covers it.
 
-⚠️ **The nightly has a named reader and a written triage path —
+⚠️ **`terminology.yml` has a named reader and a written triage path —
 `docs/scheduled-checks-triage.md`.** A red run has two causes needing opposite
 responses (real drift → fix the code; `tx.fhir.org` down → re-run), and it links
 that doc from every issue it files. Note also that `schedule` runs only from the

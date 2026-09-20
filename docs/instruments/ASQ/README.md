@@ -49,10 +49,13 @@ that do not exist in LOINC at all. Anything that re-codes these items should be
 read against LOINC's own published panel definition, item by item — not against
 this file.
 
-⚠️ **`tx.fhir.org` serves LOINC 2.82 and does not resolve these codes yet.** The
-nightly `check:codings` gate carries them in its `PENDING_TX` allowlist, which
-fails the run once the server catches up so the entries get deleted rather than
-becoming permanent. If you see that failure, the fix is to remove those lines.
+⚠️ **`tx.fhir.org` serves LOINC 2.82 and does not resolve these codes yet.**
+**Two** `PENDING_TX` allowlists carry them — `scripts/check-codings.mjs` for the
+five written in TypeScript, and `scripts/validate-fhir.mjs` for all ten,
+including the panel and the two items no mapper writes. Each fails its run once
+the server catches up, so the entries get deleted rather than becoming
+permanent. If you see that failure, the fix is to remove those lines from both,
+along with the `no-validate` parameter in `ig/sushi-config.yaml` (#479).
 
 Three further CodeSystems used to live here — `asq-screening-result`,
 `asq-attempt-recency` and `asq-age-group` — and were **removed in favour of the

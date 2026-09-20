@@ -18,7 +18,7 @@ to scroll past.
 
 | Workflow | Schedule | Trigger to watch | Reader |
 |---|---|---|---|
-| [`terminology-nightly.yml`](../.github/workflows/terminology-nightly.yml) | `41 4 * * *` — 04:41 UTC daily | `schedule` | Repo maintainer |
+| [`terminology.yml`](../.github/workflows/terminology.yml) | `41 4 * * 1` — 04:41 UTC Mondays | `schedule` + the terminology-authoring paths on every PR | Repo maintainer |
 
 The reader is one person today because the repo has one active maintainer. That
 is a fact to change, not a design: when a second maintainer joins, add the row
@@ -38,7 +38,7 @@ UTC against a 04:41 cron — 41 minutes late is normal and not a symptom.
 
 ---
 
-## `terminology-nightly.yml` is red
+## `terminology.yml` is red
 
 It files (or refreshes) one reusable issue titled **"Terminology drift: external
 codes no longer validate"**, and links the run. Start there; the logs are
@@ -123,19 +123,38 @@ Response depends on which job is red, because only one of them has a mechanism:
   resource (`Questionnaire/ASQ-Screening-Tool` in `ig/sushi-config.yaml`), which
   skips the publisher's validation of that resource entirely — so it is listed
   below as a third thing to delete when the server updates, and the resource
-  stays covered by `validate-fhir.mjs` (structure, every PR), this nightly
+  stays covered by `validate-fhir.mjs` (structure, every PR), this workflow
   (codes) and the loinc-audit in the meantime.
 
-**Currently expected, resources job:** the ASQ Questionnaire's LOINC codes —
+**Suppressed, not expected (#480):** the ASQ Questionnaire's LOINC codes —
 panel `115564-7`, items `115566-2`, `115567-0`, `115568-8`, `115569-6`,
 `115570-4`, `115571-2`, `115572-0`, and the two answer codes `LA37190-8` /
 `LA37191-6` on the recency item (which also appear in
 `packages/demo-population/src/scenarios/patient-013.json`). Published in LOINC
 2.83, adopted 2026-09-08 (see `ig/input/fsh/asq.fsh`), and not served by
-tx.fhir.org's 2.82. Delete this paragraph, the matching `PENDING_TX` lines and
-the `no-validate: Questionnaire/ASQ-Screening-Tool` parameter in
-`ig/sushi-config.yaml` together once the server updates — a lingering entry in
-any of the three is a hole in the gate, and the `no-validate` one is the widest.
+tx.fhir.org's 2.82.
+
+⚠️ **This paragraph used to say the resources job was expected to be RED, and it
+was — every night from 2026-09-14.** `check-codings.mjs` had carried a
+`PENDING_TX` list for its five visible codes since 2026-09-08 and stayed green;
+`validate-fhir.mjs` had no equivalent, so the same lag failed the other job
+indefinitely. #480 gave it one, because a check that is red for months is one
+people stop reading — and that is exactly when real drift arrives unnoticed. Both
+jobs are green today; a red one means something new.
+
+Four things to delete together once tx.fhir.org serves 2.83 (#479), because a
+lingering entry in any of them is a hole in the gate:
+
+1. `PENDING_TX` in `scripts/validate-fhir.mjs` (all ten codes)
+2. `PENDING_TX` in `scripts/check-codings.mjs` (the five it can see)
+3. this paragraph
+4. `no-validate: Questionnaire/ASQ-Screening-Tool` in `ig/sushi-config.yaml` —
+   **the widest of the four**, since it skips the publisher's validation of that
+   resource entirely
+
+⚠️ You should not have to remember: both `PENDING_TX` lists **fail the run** when
+an entry stops suppressing anything, so the server catching up turns each one
+red with a message naming what to delete.
 
 ### Cause 2 — `tx.fhir.org` was unreachable or erroring
 
@@ -150,7 +169,7 @@ retries once after 60s; the codings job retries each request three times. A
 failure that survives all of that usually means a real outage.
 
 ```bash
-gh workflow run terminology-nightly.yml --repo SPiER-Project/adoption-guide
+gh workflow run terminology.yml --repo SPiER-Project/adoption-guide
 ```
 
 If it fails the same way twice in a row, check the server is up before spending

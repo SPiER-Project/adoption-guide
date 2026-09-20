@@ -185,7 +185,7 @@ different classes of problem, and a clean SUSHI run implies none of the others:
 | `node scripts/validate-fhir.mjs` | resource-level conformance: cardinality, extension context, required items, `display` vs CodeSystem, QR structure against its Questionnaire | `ig.yml` (`validate` job) |
 | IG Publisher | FHIRPath invariants, narrative link integrity, **everything about the StructureMaps** (element names, FHIRPath typeability, `import` target types), **and CQL→ELM translation** of `ig/input/cql` (gated on `path-binary` — see below) | `ig-publish.yml`, and the same gates in `deploy.yml` on every push to main |
 | `node scripts/check-fml.mjs` | FML syntax + the Stanley-Brown map still producing the CarePlan the runtime produces | `fml-validate.yml` |
-| `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC, SNOMED and terminology.hl7.org codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology-nightly.yml` (nightly + `workflow_dispatch`) |
+| `check:codings` + `validate-fhir --tx` | **external** terminology: LOINC, SNOMED and terminology.hl7.org codes that don't exist, and displays that don't match the publishing authority — including codings written in TypeScript, which no other gate reads | `terminology.yml` (weekly, every terminology-authoring PR, + `workflow_dispatch`) |
 
 ⚠️ **`check-fml.mjs` is a parser, not a profile checker.** It catches FML syntax
 and header mistakes; it does *not* catch a misspelled target element, an
@@ -254,7 +254,7 @@ run proved it with ten pinned lines that matched nothing. The one lever the
 publisher offers is the `no-validate` IG parameter, scoped to
 `Questionnaire/ASQ-Screening-Tool` in `sushi-config.yaml`; it skips that
 resource's publisher validation entirely (structure is still checked by
-`validate-fhir.mjs` on every PR, codes by the nightly), and it is the third of
+`validate-fhir.mjs` on every PR, codes by `terminology.yml`), and it is the third of
 three things deleted together when the server updates — see
 [`docs/scheduled-checks-triage.md`](../scheduled-checks-triage.md) § Cause 1b.
 Also: every non-blank line in `ignoreWarnings.txt`, comments included, is

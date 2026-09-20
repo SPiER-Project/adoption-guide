@@ -57,7 +57,7 @@ rather than an empty one (issue #226). Be precise about which gate sees what:
 | Runs | every root verify | PR + push touching `ig/`, `ig/input/resources/questionnaires/`, or the scenarios |
 | QuestionnaireResponses | linkIds, nesting, answerOption, ranges, value[x] type, plus the patient link and `authored` | full conformance, **including the scenario QRs** — `validate-fhir.mjs` unwraps the `responses` bucket since #414. It did not until then, which is how those 20 carried neither `subject` nor `authored` (#364) and hid 4 conformance errors |
 | Other buckets | unknown-bucket typos, `resourceType`, unique ids, patient linkage (**presence required, not just correctness** — the old rule only fired on a link pointing at the *wrong* patient, which is how #364's 20 unlinked QRs passed), **the subject Patient actually existing**, base-R4 required elements + status/intent codes, profile canonicals resolving, profile `min`/fixed/required-binding from the generated StructureDefinitions, SPiER extension bindings, date parsing | everything: real cardinality, **slicing**, invariants, extension context, reference targets, unknown elements |
-| Misses | cardinality *counts*, slices, invariants, unknown elements, external codes | nothing structural — but runs `-tx n/a`, so LOINC/SNOMED displays wait for the nightly |
+| Misses | cardinality *counts*, slices, invariants, unknown elements, external codes | nothing structural — but runs `-tx n/a`, so LOINC/SNOMED displays wait for `terminology.yml` |
 
 The offline half's base-R4 required-element and status-code tables are
 hand-maintained (`BASE_REQUIRED` / `STATUS_CODES` in
