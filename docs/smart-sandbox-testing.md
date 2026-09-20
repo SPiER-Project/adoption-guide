@@ -72,7 +72,7 @@ Patient ids can be listed from the open endpoint:
    it derives via the code-based fallback and does produce a risk alert (see
    *Known limitations*).
 2. **Write:** submit a PHQ-9 from the sidebar. Since #351 the write climbs the
-   **writeback ladder** (`web/src/lib/writeback/`, driven by
+   **writeback ladder** (`packages/core/src/lib/writeback/`, driven by
    `SmartDataSource.saveResponse`): the server's CapabilityStatement is probed,
    the QuestionnaireResponse is POSTed first, then each derived Observation with
    `derivedFrom` pointing at the server-assigned QR id and `subject` set to the

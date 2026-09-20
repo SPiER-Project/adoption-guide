@@ -6,7 +6,7 @@ slug, rendered by both the clinician's `/patient/*` routes and the guide's
 `/guide/tools/:slug/try`.
 
 Written 2026-09-17, after the clean-clinical-surface work
-([`docs/plans/production-clinical-surface.md`](../plans/production-clinical-surface.md))
+([`docs/plans/archive/production-clinical-surface.md`](../plans/archive/production-clinical-surface.md))
 surfaced two things worth an audit rather than a fix: the inventory of "what
 renders FHIR" could not be built mechanically, and the 29 views were
 heterogeneous in a way nobody had checked was intentional.

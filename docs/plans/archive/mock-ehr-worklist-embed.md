@@ -1,7 +1,8 @@
 # Plan 4 — Frame the caseload on the mock EHR's front door
 
-**Status:** IMPLEMENTED 2026-09-17. Kept for the reasoning. Three things went
-differently from the plan below:
+> Archived 2026-09-17: work complete (PR #525).
+
+Three things went differently from the plan below:
 
 1. **The frame is a fixed-height viewport, not a re-measured fitted box.** The
    plan said to re-measure the container query. The chart's dock had already

@@ -4,9 +4,10 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// Mirrors eslint.config.js. The Worker imports web source (catalog,
-// mappers, scenarios) so the two must agree on style, but it runs on
-// workerd rather than in a browser — hence the different globals.
+// Mirrors eslint.config.js so the two agree on style, but it runs on
+// workerd rather than in a browser — hence the different globals. Offline
+// since the CDS split (#556): this Worker imports @spier/worker-http and
+// nothing else, no longer the catalog, mappers or scenarios.
 export default defineConfig([
   // `.wrangler/` holds wrangler's generated temp bundles (a `wrangler dev` run
   // leaves `middleware-loader.entry.ts` behind). It is gitignored, so CI never

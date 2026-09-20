@@ -152,7 +152,7 @@ Delivered in the implementation PR:
    that as update-as-create, preserving the client id, until #531** — Medplum
    refuses that outright, so the app now creates once and PUTs against the id the
    server assigns. See
-   [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md).
+   [`medplum-spike-2026-09-17.md`](archive/medplum-spike-2026-09-17.md).
 2. **`subject` is the wrong element for two of the three.** `toCreatePayload`
    hard-coded `subject`, but `EpisodeOfCare` uses `patient` and `Task` uses
    `for`. Writing `subject` would have produced invalid FHIR that a strict
@@ -184,6 +184,6 @@ The design's open questions were decided on 2026-07-15:
   #531.** The risk named here is exactly what Medplum turned out to do, and the
   id-mapping is built: `SmartDataSource.serverIds`, plus the client id carried as
   a business `identifier`. See
-  [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md).
+  [`medplum-spike-2026-09-17.md`](archive/medplum-spike-2026-09-17.md).
 - **Registry filtering.** The work queue currently shows open work as a column;
   a dedicated "open episodes only" filter and sort-by-overdue are not yet wired.

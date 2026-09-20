@@ -6,7 +6,7 @@
 > `document-safety-actions`, `coordinate-handoffs`, `track-follow-up`,
 > `track-risk-over-time`, `measure-and-share`). The stage PlanDefinitions in
 > `ig/input/fsh/pathway-stages.fsh` and the tool catalog in
-> `web/src/data/catalog/` mirror its eight tiles and per-tile tool lists.
+> `packages/core/src/data/catalog/` mirror its eight tiles and per-tile tool lists.
 > The per-question SSC mappings and scores below are reference only — they
 > are not (yet) encoded as machine-readable data in this repo.
 

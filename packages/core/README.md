@@ -58,11 +58,11 @@ they were in `web/src`, because `fhir-artifacts` is now a sibling.
 
 ## Two things that are NOT here
 
-- **The tests.** They stayed in `web/src/**/*.test.ts` and import
-  `@spier/core/…`, so `web`'s `verify` still covers this package. Moving them
-  would mean a fourth `verify` pipeline for a package with no build — a
-  deliberate deferral, not an oversight. **When editing a module here, its test
-  is in the mirrored path under `web/src`.**
+- **A build step.** Tests live beside their subject, under `packages/core/src`
+  itself — `packages/core/tsconfig.json` (a `composite` project referenced from
+  the root `tsconfig.json`) and `vitest.config.ts`'s extended `test.include` are
+  what reach them from the root. Still the root's `npm run verify` and
+  `npx tsc -b`; no fourth pipeline.
 - **`fhir-resource-rules.mjs` is here but not under `src/`.** It is plain ESM
   with a hand-written `.d.mts`, imported by a Node CLI gate
   (`scripts/check-scenario-resources.mjs`) *and* by the mock EHR's write

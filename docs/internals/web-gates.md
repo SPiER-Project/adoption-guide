@@ -73,7 +73,7 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # THROUGH the leaf: `CarePlanDisplay` wrote its own
                        # `<pre>{JSON.stringify(carePlan.resource)}</pre>` plus a JSON download,
                        # and so was MISSING from the inventory in
-                       # `docs/plans/production-clinical-surface.md`, which was built by
+                       # `docs/plans/archive/production-clinical-surface.md`, which was built by
                        # listing the viewer's call sites. This derives the list instead: a
                        # non-test `.tsx` under `web/src` that serializes to JSON or renders a
                        # `<pre>` must call `useInspect()`, or carry an entry in
@@ -296,7 +296,7 @@ to tell the reader *which* of the two shapes they have.
 
 That choice is also why the gate runs last, and why it fails rather than skips
 when `.runtime-fhir` is missing or **older than the newest file under
-`packages/core/src/lib` or `web/src/lib`**. A stale emitted tree is the false
+`packages/core/src/lib` or either app's `src/lib`**. A stale emitted tree is the false
 green it is most exposed to: the directory exists, the read succeeds, and every
 answer describes a build nobody has. (The staleness test is an mtime comparison,
 so it is a heuristic — it catches the developer who edits a builder and re-runs

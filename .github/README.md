@@ -7,14 +7,20 @@ step across the eight workflows reads it via `node-version-file:
 .github/.nvmrc`, so the version has one definition instead of the thirteen
 hardcoded `node-version: 20` lines it replaced.
 
-⚠️ **Do not move it to the repo root.** Cloudflare Workers Builds — which deploys
-`services/guide` (the one Worker serving both the SPA and the CDS Hooks API,
-see `docs/internals/workers.md`) — reads a root `.nvmrc` to choose the Node
-version for the *deploy* build. Putting it there silently repoints production's
-build environment as a side effect of a CI-only change, and the build fails at
-environment setup in under a second with no log output, which is very hard to
-read as "your Node pin did this". That happened on the first attempt; the file
-lives here so a CI pin cannot reach the deploy.
+⚠️ **Do not move it to the repo root.** Cloudflare Workers Builds — the git
+integration that can deploy `services/guide` (the SPA Worker; the CDS Hooks
+API moved to its own Worker, `services/cds`, in #556) — reads a root `.nvmrc`
+to choose the Node version for the *deploy* build. Putting it there silently
+repoints production's build environment as a side effect of a CI-only change,
+and the build fails at environment setup in under a second with no log output,
+which is very hard to read as "your Node pin did this". That happened on the
+first attempt; the file lives here so a CI pin cannot reach the deploy.
+⚠️ **The git integration is disconnected as of 2026-09-18** (`deploy.yml`'s
+`cloudflare` job deploys instead, so the IG render it stages under `web-dist/ig`
+ships) — see CLAUDE.md's Workers section. That does not retire this caution:
+the Workers Builds *project* still exists and reads root config the moment
+someone reconnects it, which is exactly the kind of change that would not
+show up as a diff to this file.
 
 The same caution applies to `.node-version`, which Workers Builds also reads.
 

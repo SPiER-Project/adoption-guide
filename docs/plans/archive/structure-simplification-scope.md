@@ -1,7 +1,9 @@
 # Structure simplification — implementation scope
 
-Status: scoped 2026-08-28, not started. Each phase is one PR. Phases are
-independent — do them in order of appetite, but never combine two in one PR.
+> Archived 2026-08-31: work complete (PRs #443, #445, #446, #447).
+
+Each phase was one PR. Phases were independent, run in order of appetite,
+never combined in one PR.
 
 ## Why
 

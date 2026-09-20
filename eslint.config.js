@@ -27,8 +27,9 @@ export default defineConfig([
   // app and package went unlinted — which is what `check-core-boundary.mjs`
   // records as its reason for existing as a drift-check rather than a rule.
   // From the repo root `.` is everything, so the ignores below are what draw
-  // the line: the three Workers lint themselves under their own configs (and
-  // their own `verify`), and the rest of these hold no JS/TS this config owns.
+  // the line: the four Workers (guide, cds, clinical, mock-ehr) lint
+  // themselves under their own configs (and their own `verify`), and the rest
+  // of these hold no JS/TS this config owns.
   globalIgnores([
     'dist',
     'dist-clinical',

@@ -121,9 +121,9 @@ required and easy to miss.
 
 ~~If the instrument is built but not yet exercised by a UI launch, leave `launchActions: []` and the Roadmap page will mark it `planned` automatically (see `buildStatusOf` in `web/src/pages/Roadmap.tsx`).~~
 
-⚠️ **The Roadmap page and `buildStatusOf` were deleted** — this step no longer has an automatic consequence anywhere. `launchActions: []` is still the right thing for an instrument with no UI launch; it just does not derive a status any more. Run `npm --prefix web run check:catalog`, which is what now holds the catalog's wiring together.
+⚠️ **The Roadmap page and `buildStatusOf` were deleted** — this step no longer has an automatic consequence anywhere. `launchActions: []` is still the right thing for an instrument with no UI launch; it just does not derive a status any more. Run `npm run check:catalog`, which is what now holds the catalog's wiring together.
 
-Run `npm --prefix web run build` to confirm typings and imports compile.
+Run `npm run build` (or `npm run build:clinical` for the clinical surface) to confirm typings and imports compile.
 
 ### 6. Author IG narrative content
 

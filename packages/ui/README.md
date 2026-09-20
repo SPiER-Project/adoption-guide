@@ -17,7 +17,7 @@ layout or a domain colour; never a radius, padding, border or background.
 
 | | why |
 |---|---|
-| **`WorkflowForm`** | It reads `usePatient()`. The recorder frame is an app component that happens to look like a primitive, and moving it would have inverted the dependency — a UI package importing the app's patient context. It stays in `web/src/components`. |
+| **`WorkflowForm`** | It reads `usePatient()`. The recorder frame is an app component that happens to look like a primitive, and moving it would have inverted the dependency — a UI package importing the app's patient context. It lives in `packages/tool-views` instead, which owns the contexts the views (and this frame) read. |
 | **`Shell` / `AppShell` / `PanelShell` / `LaunchShell`** | Chrome, not surfaces. They compose the app's navigation and know about routes, surfaces and SMART sessions. |
 | **`SpierLogo`** | Brand, not a primitive. |
 

@@ -99,8 +99,9 @@ always the authority; this line is a timestamp, not a fact to maintain.
   | | | |
   |---|---|---|
   | Mock EHR | `services/mock-ehr` → `spier-mock-ehr` | https://spier-mock-ehr.bbthorson.workers.dev |
-  | Guide + CDS + IG | `services/guide` → `spier-adoption-guide` | https://spier-adoption-guide.bbthorson.workers.dev |
+  | Guide + IG | `services/guide` → `spier-adoption-guide` | https://spier-adoption-guide.bbthorson.workers.dev |
   | Clinical SMART apps | `services/clinical` → `spier-clinical` | framed by the mock EHR |
+  | CDS Hooks API | `services/cds` → `spier-cds` | integration endpoint an adopter's EHR configures (#556) |
 
 - **All six embedded-panel steps are merged and deployed**, proven in a browser
   end to end rather than inferred. Details live in

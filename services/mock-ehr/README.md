@@ -388,7 +388,7 @@ FHIR permits update-as-create; real servers frequently refuse it. Medplum answer
 because `ensureEncounter()` runs before nearly every save, that one refusal
 blocked **every** write. SPiER's entire writeback passed here and failed at the
 first server nobody on this project had written — see
-[`docs/plans/medplum-spike-2026-09-17.md`](../../docs/plans/medplum-spike-2026-09-17.md).
+[`docs/plans/archive/medplum-spike-2026-09-17.md`](../../docs/plans/archive/medplum-spike-2026-09-17.md).
 
 **That is the hazard of a mock you control: when the app and the server disagree,
 the server is what moves.** A `PUT` to an id this server does not hold is a 404
