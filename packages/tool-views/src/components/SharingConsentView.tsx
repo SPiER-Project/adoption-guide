@@ -121,17 +121,18 @@ export function SharingConsentView() {
         </>
       }
     >
-      {current && (
-        <WorkflowHint>
-          <strong>Current consent:</strong>{' '}
-          {consentDecision(current) === 'deny' ? 'sharing declined' : 'sharing permitted'}
-          {consentRecipient(current) ? ` · recipient: ${consentRecipient(current)}` : ''}
-          {(current as { dateTime?: string }).dateTime
-            ? ` · recorded ${isoDay((current as { dateTime?: string }).dateTime!)}`
-            : ''}
-          . Recording a new decision supersedes it.
-        </WorkflowHint>
-      )}
+      {current && (() => {
+        const { dateTime } = current as { dateTime?: string }
+        return (
+          <WorkflowHint>
+            <strong>Current consent:</strong>{' '}
+            {consentDecision(current) === 'deny' ? 'sharing declined' : 'sharing permitted'}
+            {consentRecipient(current) ? ` · recipient: ${consentRecipient(current)}` : ''}
+            {dateTime ? ` · recorded ${isoDay(dateTime)}` : ''}
+            . Recording a new decision supersedes it.
+          </WorkflowHint>
+        )
+      })()}
 
       <form className="workflow-form" onSubmit={handleSubmit}>
         <WorkflowField label="Decision">

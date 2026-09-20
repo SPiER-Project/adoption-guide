@@ -130,5 +130,14 @@
   ],
   "overrides": {
     "expo-random": "11.0.0"
+  },
+  "//engines": [
+    "jsdom 30's own engines field requires ^22.22.2 || ^24.15.0 || >=26.0.0 (npm test",
+    "fails to even boot vitest's jsdom environment below that). .github/.nvmrc pins",
+    "CI to 22, but nothing pinned a LOCAL install before this — engine-strict in",
+    ".npmrc is what turns this into an install-time failure instead of a runtime one."
+  ],
+  "engines": {
+    "node": ">=22.22.2"
   }
 }

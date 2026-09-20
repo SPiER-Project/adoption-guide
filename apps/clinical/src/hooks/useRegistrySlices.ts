@@ -182,7 +182,7 @@ export function useRegistrySlices(): RegistrySlices {
       setIsLoading(true)
       // `getSlice` is per-patient, so a cohort read is N reads. That is honest
       // about what the seam offers rather than pretending to a batch query.
-      Promise.all(
+      void Promise.all(
         patients.map(p =>
           dataSource
             .getSlice(p.id)
@@ -191,11 +191,18 @@ export function useRegistrySlices(): RegistrySlices {
             // patient-bound token 403s for anyone but its own subject.
             .catch(() => ({ patient: p, slice: EMPTY_SLICE })),
         ),
-      ).then(next => {
-        if (!live) return
-        setEntries(next)
-        setIsLoading(false)
-      })
+      )
+        .then(next => {
+          if (!live) return
+          setEntries(next)
+          setIsLoading(false)
+        })
+        // Every per-patient rejection is already caught above; this only
+        // guards the render step itself, so a thrown state update can never
+        // surface as an unhandled promise rejection.
+        .catch(() => {
+          if (live) setIsLoading(false)
+        })
     }
 
     refresh()

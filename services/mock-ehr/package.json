@@ -7,7 +7,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "test -n \"$CI\" || { echo 'Refusing to deploy outside CI — deploy.yml is the one place this Worker ships from. Push to main, or set CI=true to override.' >&2; exit 1; }; npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "pretest": "npm --prefix ../.. run copy-fhir",
@@ -30,5 +30,8 @@
     "vite": "^7.3.1",
     "vitest": "^3.0.5",
     "wrangler": "~4.107.0"
+  },
+  "engines": {
+    "node": ">=22.22.2"
   }
 }

@@ -28,14 +28,12 @@
  * React-free and DOM-free (`npm run check:core-boundary`).
  */
 import type {
+  QuestionnaireItem,
   QuestionnaireResource,
   QuestionnaireResponseAnswer,
   QuestionnaireResponseItem,
   QuestionnaireResponseResource,
 } from '../types/fhir'
-
-/* eslint-disable @typescript-eslint/no-explicit-any -- raw Questionnaire JSON */
-type QItem = any
 
 /** The value supplied for one linkId; coerced per the item's declared type. */
 export type NativeAnswer = boolean | number | string | { code: string }
@@ -45,7 +43,7 @@ export const SNOMED_YES = '373066001'
 export const SNOMED_NO = '373067005'
 
 /** The chain of items from the Questionnaire root down to `linkId`, inclusive. */
-function pathTo(items: QItem[] | undefined, linkId: string): QItem[] | undefined {
+function pathTo(items: QuestionnaireItem[] | undefined, linkId: string): QuestionnaireItem[] | undefined {
   for (const item of items ?? []) {
     if (item.linkId === linkId) return [item]
     const nested = pathTo(item.item, linkId)
@@ -62,9 +60,9 @@ function pathTo(items: QItem[] | undefined, linkId: string): QItem[] | undefined
  * the SNOMED pair, every caller that answers it yes/no fails here rather than
  * quietly building an answer the form does not offer.
  */
-function answerFor(item: QItem, value: NativeAnswer): QuestionnaireResponseAnswer {
-  const type = item.type as string
-  const options: QItem[] = item.answerOption ?? []
+function answerFor(item: QuestionnaireItem, value: NativeAnswer): QuestionnaireResponseAnswer {
+  const type = item.type
+  const options = item.answerOption ?? []
 
   if (type === 'choice' || type === 'open-choice') {
     const code = typeof value === 'boolean'
@@ -72,11 +70,11 @@ function answerFor(item: QItem, value: NativeAnswer): QuestionnaireResponseAnswe
       : typeof value === 'object'
       ? value.code
       : String(value)
-    const option = options.find((o: QItem) => o.valueCoding?.code === code)
+    const option = options.find(o => o.valueCoding?.code === code)
     if (!option) {
       throw new Error(
         `nativeQr: item ${item.linkId} offers no answerOption with code ${code} ` +
-        `(has ${options.map((o: QItem) => o.valueCoding?.code ?? '<non-coded>').join(', ') || 'none'})`,
+        `(has ${options.map(o => o.valueCoding?.code ?? '<non-coded>').join(', ') || 'none'})`,
       )
     }
     return { valueCoding: { ...option.valueCoding } }
@@ -113,15 +111,14 @@ export function buildNativeQuestionnaireResponse(
   questionnaire: QuestionnaireResource,
   answers: Record<string, NativeAnswer>,
 ): QuestionnaireResponseResource {
-  const q = questionnaire as unknown as QItem
-  if (!q || q.resourceType !== 'Questionnaire') {
+  if (!questionnaire || questionnaire.resourceType !== 'Questionnaire') {
     throw new Error('nativeQr: not a Questionnaire resource')
   }
   const root: QuestionnaireResponseItem[] = []
 
   for (const [linkId, value] of Object.entries(answers)) {
-    const path = pathTo(q.item, linkId)
-    if (!path) throw new Error(`nativeQr: ${q.url ?? '<no url>'} declares no item ${linkId}`)
+    const path = pathTo(questionnaire.item, linkId)
+    if (!path) throw new Error(`nativeQr: ${questionnaire.url ?? '<no url>'} declares no item ${linkId}`)
 
     // Walk (and extend) the response tree along the Questionnaire's group chain.
     let siblings = root
@@ -140,7 +137,7 @@ export function buildNativeQuestionnaireResponse(
   return {
     resourceType: 'QuestionnaireResponse',
     status: 'completed',
-    questionnaire: q.url,
+    questionnaire: questionnaire.url,
     item: root,
-  } as QuestionnaireResponseResource
+  }
 }

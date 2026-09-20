@@ -1,6 +1,6 @@
 name: Docs — markdown links and paths
 
-# Two gates over the same blind spot, in the one workflow cheap enough to run
+# Three gates over doc drift, in the one workflow cheap enough to run
 # unconditionally.
 #
 # 1. check-md-links.mjs — every relative `[text](path)` in a tracked .md resolves.
@@ -10,6 +10,11 @@ name: Docs — markdown links and paths
 #    packages/{ui,tool-views} extractions left 45+ rotted paths across 21 files —
 #    including the opening line of docs/internals/tool-views.md, a live internals
 #    doc CLAUDE.md sends readers to.
+# 3. check-plan-status.mjs — a docs/plans/*.md whose own "Status:" line says
+#    the work already shipped belongs in docs/plans/archive/ instead, and an
+#    archived plan needs its "> Archived <date>" banner. Six plans were exactly
+#    the first case on 2026-09-20 before #557 moved them by hand; this is what
+#    stops the same drift from re-accumulating unnoticed.
 #
 # This is the only workflow that triggers on docs/** and the root README.md.
 # web-lint.yml covers apps/**, packages/**, the root tooling, services/** and ig/**,
@@ -51,3 +56,4 @@ jobs:
           node-version-file: .github/.nvmrc
       - run: node scripts/check-md-links.mjs
       - run: node scripts/check-md-paths.mjs
+      - run: node scripts/check-plan-status.mjs

@@ -76,7 +76,9 @@ if (atDefaultRoute) {
 }
 
 export function bootstrap(App: ComponentType) {
-  createRoot(document.getElementById('root')!).render(
+  const rootEl = document.getElementById('root')
+  if (!rootEl) throw new Error('bootstrap: no #root element in the host HTML')
+  createRoot(rootEl).render(
     <StrictMode>
       <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />

@@ -107,9 +107,13 @@ function ConsentGateNotice({
   } else if (decision.blanketBasis === 'consent-expired') {
     tone = 'withheld'
     title = 'Everything withheld — the sharing consent has expired'
+    const { consent } = decision
+    if (!consent) {
+      throw new Error('ConsentGateNotice: consent-expired basis carries no consent on file')
+    }
     detail = (
       <>
-        The consent on file ended {isoDay(consentExpiry(decision.consent!))}, before this
+        The consent on file ended {isoDay(consentExpiry(consent))}, before this
         packet&rsquo;s date, so it no longer authorises release to <strong>{recipient}</strong>.{' '}
         {recordLink} to re-ask. {onFile}
       </>

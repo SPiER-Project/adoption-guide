@@ -204,7 +204,17 @@ const SCAN = [
   // read. The two real zeros are floors of 0 for the same reason the `services`
   // entry below is: they assert nothing today but cover terminology added
   // tomorrow from day one.
-  { path: 'apps/guide/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 0, snomed: 0, tho: 0 } },
+  //
+  // ⚠️ **D8 (docs/plans/repo-cruft-audit-2026-09-20.md): a `minCodings` of
+  // all-zero can never fail, on its own or on this coding scan's terms.** It
+  // reports the same "0 (floor 0)" whether the tree still has 30 files under
+  // it or the path was deleted out from under the entry entirely — a `minCodings`
+  // floor cannot tell those apart when every family floor is 0. `minFiles`
+  // closes that: a per-entry floor on how many files `walkFiles` actually read,
+  // same half-the-live-count convention as `minCodings` above. It is declared
+  // only where every `minCodings` floor is 0, since a non-zero coding floor
+  // already proves files were read.
+  { path: 'apps/guide/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 0, snomed: 0, tho: 0 }, minFiles: 15 },
   { path: 'apps/clinical/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 1, snomed: 0, tho: 0 } },
   { path: 'tests', exts: ['.ts', '.tsx'], minCodings: { loinc: 1, snomed: 1, tho: 1 } },
   // ─── packages/core — where the runtime mappers now live ─────
@@ -281,7 +291,12 @@ const SCAN = [
   // A floor of 0 cannot fail, so this entry contributes no protection against a
   // broken extractor; the trees above are what provide that. It stays in SCAN so that
   // terminology added to the Worker later is covered from day one.
-  { path: 'services', exts: ['.ts'], minCodings: { loinc: 0, snomed: 0, tho: 0 } },
+  //
+  // `minFiles` (D8, see the apps/guide/src comment above): 49 `.ts` files live
+  // under `services/` today across the four Workers, so a floor of 24 fails if
+  // this walk stops reaching them — a renamed `services/` directory, or an
+  // `exts` typo, reads as 0 files rather than as a clean 0/0/0.
+  { path: 'services', exts: ['.ts'], minCodings: { loinc: 0, snomed: 0, tho: 0 }, minFiles: 24 },
 ]
 
 /**
@@ -414,10 +429,13 @@ const found = new Map() // key -> {system, code, display, files:Set}
 let systemLiteralHits = 0
 const noCodeSites = []
 const perSource = new Map() // SCAN path -> { [family]: count of codings extracted }
+const filesScanned = new Map() // SCAN path -> number of files walkFiles actually read
 
 for (const entry of SCAN) {
   const sourceCount = Object.fromEntries(EXTERNAL_FAMILIES.map(f => [f.name, 0]))
-  for (const file of walkFiles(entry)) {
+  const entryFiles = walkFiles(entry)
+  filesScanned.set(entry.path, entryFiles.length)
+  for (const file of entryFiles) {
     const text = readFileSync(file, 'utf8')
     const rel = relative(root, file)
     for (const m of text.matchAll(EXTERNAL_SYSTEM_RE)) {
@@ -500,6 +518,9 @@ for (const entry of SCAN) {
   const counts = perSource.get(entry.path)
   const parts = Object.entries(entry.minCodings)
     .map(([family, floor]) => `${family} ${counts[family] ?? 0} (floor ${floor})`)
+  if (typeof entry.minFiles === 'number') {
+    parts.push(`files ${filesScanned.get(entry.path) ?? 0} (floor ${entry.minFiles})`)
+  }
   console.log(`scanned ${entry.path}: ${parts.join(', ')}`)
 }
 console.log(`found ${codings.length} distinct external coding(s) from ${systemLiteralHits} system literal(s)\n`)
@@ -526,6 +547,26 @@ if (starved.length) {
   }
   console.error('  The extractor is probably broken, or a scanned path moved.')
   console.error('  Refusing to report success on a scan that inspected almost nothing.')
+  process.exit(1)
+}
+
+// Guard 1b (D8): a `minCodings` floor of all-zero, by design, cannot fail —
+// which is exactly right for a source that legitimately writes no external
+// terminology, but it also means Guard 1 above cannot tell that source apart
+// from one whose path was renamed or emptied out from under it. `minFiles`
+// is the liveness check for those entries: it fails if the walk itself came
+// back thin, independent of what it found once there.
+const fileStarved = SCAN.filter(
+  e => typeof e.minFiles === 'number' && (filesScanned.get(e.path) ?? 0) < e.minFiles,
+)
+if (fileStarved.length) {
+  for (const e of fileStarved) {
+    console.error(
+      `✗ ${e.path} walk read ${filesScanned.get(e.path) ?? 0} file(s), expected at least ${e.minFiles}.`,
+    )
+  }
+  console.error('  The path probably moved or was renamed — every minCodings floor here is 0,')
+  console.error('  so nothing else would have caught it.')
   process.exit(1)
 }
 
