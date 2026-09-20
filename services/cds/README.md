@@ -91,7 +91,7 @@ a **best-effort** in-isolate replay check — true one-time-use needs shared sta
 
 | Var | Meaning |
 | --- | --- |
-| `CDS_JWT_ENFORCE` | `off` (skip), `warn` (verify, log failures, never block — **current default**), or `require` (401 on any failure). |
+| `CDS_JWT_ENFORCE` | `off` (skip), `warn` (verify, log failures, never block), or `require` (401 on any failure — **what is deployed**). |
 | `CDS_JWT_AUDIENCE` | Accepted `aud` — this service's canonical invoke URL(s), comma-separated. |
 | `CDS_JWT_TRUSTED_ISSUERS` | Optional comma-separated allowlist of accepted `iss` values. |
 | `CDS_JWT_JWKS_URL` | Fixed JWK Set URL used when a token carries no `jku` header. |
@@ -108,14 +108,72 @@ choice. This service refuses a `jku` whose host is not in
 `CDS_JWT_JKU_ALLOWED_HOSTS` **before any network call**; leave that var blank to
 ignore `jku` entirely and rely on `CDS_JWT_JWKS_URL` / registered issuers.
 
-### Rollout: `warn` → `require`
+### `warn` → `require`, and the client that made it possible
 
-Shipping in `warn` first: failures are logged via Workers observability without
-blocking, so we can confirm real callers present valid tokens before flipping to
-`require`. **The in-app demo / SMART path calls the service without a JWT**, so it
-must be handled before `require`: either exempt it (it is same-origin — a future
-option is to skip enforcement for same-origin requests) or have the SPA mint a
-dev token. Until then, keep `warn` and keep discovery open.
+This ran in `warn` from #147 until 2026-09-20.
+
+⚠️ **An endpoint in `warn` with no caller that can sign is not authenticated.**
+`warn` verifies, logs the failure and then calls `next()` — so every property
+this section describes was being computed and thrown away. What was actually
+deployed was an open compute endpoint with a log line, reachable by any
+unauthenticated POST from any origin. The rollout note that used to sit here
+described `warn` as a staging step for confirming that "real callers present
+valid tokens", which was never going to happen: the only caller was a browser,
+and a browser cannot hold a signing key.
+
+The fix was to build the missing half. `services/mock-ehr` is now a real **CDS
+Client** (`src/cdsClient.ts`):
+
+- it holds an **ES384** (P-384 + SHA-384) keypair, generated on first use and
+  kept in its `DemoStore` Durable Object — per-isolate keys would mean the
+  isolate serving the JWK Set publishing a key the signing isolate does not
+  hold, rejecting valid tokens intermittently and never locally;
+- it publishes the public half at **`/.well-known/jwks.json`**;
+- its chart page calls this service **through the host** (`POST /_admin/cds`)
+  rather than from the browser. That is what CDS Hooks describes — the EHR
+  invokes the service — and it is the only arrangement in which the signature
+  proves anything, since a browser that could sign would be a browser holding
+  the host's private key.
+
+The deployed policy registers exactly that client: `CDS_JWT_TRUSTED_ISSUERS` is
+the host's origin, `CDS_JWT_JWKS_URL` its key set, and
+`CDS_JWT_JKU_ALLOWED_HOSTS` its host — non-blank, which puts the SSRF guard on
+the live path rather than only under test.
+
+⚠️ **Two things stop working, and both are correct.** The CDS Hooks Sandbox
+cannot invoke (it signs nothing), and a tokenless `curl` gets a 401. The guide
+page says so; its invoke example carries an `Authorization` header now.
+
+### The test that makes `require` safe to deploy
+
+`src/cdsClientInterop.test.ts`. ⚠️ **Neither service can carry it alone, and
+that is the point.** `auth.test.ts` proves this service rejects what it should,
+but mints its own tokens with `jose` — so it proves the verifier against a
+*hypothetical* client. The mock EHR's tests prove it emits a well-formed JWS but
+cannot verify one. Two green suites either side of an interface neither crosses
+is exactly the shape that ships a 401, and `warn` would have hidden it: the
+cards would still have rendered.
+
+So that file imports the **real** minting code out of `services/mock-ehr` (a
+relative import across the two trees — there is no shared package, and inventing
+one for two functions would be the heavier mistake) and runs its output through
+the **real** middleware on the **real** route under the **deployed** policy.
+Five defects were planted and watched go red before it was trusted: a SHA-256
+digest under an `ES384` header, a P-256 curve under the same, publishing the
+private JWK, `aud` set to the service origin instead of the invoke URL, and a
+constant `jti`.
+
+⚠️ The private-JWK plant passed the first time. An EC private JWK carries the
+same `x`/`y` as the public one plus `d`, so the signature still verifies and
+every behavioural test stays green — the only observable difference is a field
+nothing was looking at. `cdsClient.test.ts` asserts it explicitly now.
+
+### Local development
+
+`wrangler.jsonc` deploys `require`, so `npm run dev` enforces it and a plain
+`curl` gets a 401 — correct, and inconvenient when you are poking at card
+derivation. Set `CDS_JWT_ENFORCE=off` in a local override for that; do not
+commit it.
 
 ## Build & run
 
@@ -140,7 +198,12 @@ npm run verify       # copy-fhir + typecheck + lint + check:csp + test
 
 ```bash
 npm run dev   # http://localhost:8790
+
+# Discovery is open.
 curl -s localhost:8790/cds-services | jq
+
+# Invoke is NOT. This returns 401 against the committed config — see
+# "Local development" above for the override.
 curl -s -X POST localhost:8790/cds-services/spier-patient-view \
   -H 'Content-Type: application/json' \
   -d '{"hook":"patient-view","hookInstance":"1","context":{"patientId":"patient-006"}}' | jq
