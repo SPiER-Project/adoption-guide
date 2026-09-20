@@ -154,6 +154,11 @@ export function MeasureDashboard() {
 
   const emptyCount = emptiness.filter(e => e.kind !== 'none').length
 
+  // ⚠️ `period` is a CACHE KEY here, not a value the callback reads — the
+  // MeasureReport's "as of" stamp must be re-minted when the window changes,
+  // and `new Date()` reads nothing React can track. The rule can only see that
+  // the identifier is unused inside the body, so the intent has to be stated.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const reportedAt = useMemo(() => new Date().toISOString(), [period])
 
   return (

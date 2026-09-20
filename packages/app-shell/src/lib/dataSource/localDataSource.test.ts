@@ -46,8 +46,19 @@ const userResponse: StoredResponse = {
   },
 }
 
-const readStore = () => JSON.parse(window.localStorage.getItem(STORE_KEY) ?? '{}')
-const readSeeds = () => JSON.parse(window.localStorage.getItem(SEEDS_KEY) ?? '{}')
+/**
+ * The two localStorage documents this suite inspects.
+ *
+ * ⚠️ Typed at the `JSON.parse` boundary, which is the only place a cast belongs:
+ * `parse` genuinely returns `any`, and reading `[PATIENT]` off it made every
+ * assertion below an unchecked member access on an `any` — nineteen of them, in
+ * the suite whose subject is what that store holds.
+ */
+type StoredSlice = { responses?: StoredResponse[] } & Record<string, unknown>
+const readStore = () =>
+  JSON.parse(window.localStorage.getItem(STORE_KEY) ?? '{}') as Record<string, StoredSlice>
+const readSeeds = () =>
+  JSON.parse(window.localStorage.getItem(SEEDS_KEY) ?? '{}') as Record<string, string | undefined>
 
 /** Simulate a fixture change by corrupting the recorded fingerprint. */
 const staleTheSeedRecord = () => {

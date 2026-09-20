@@ -398,7 +398,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     const clean = withPatientLink(resource, patientId)
     delete (clean as { id?: string }).id
     delete (clean as { _savedAt?: string })._savedAt
-    return clean as T
+    return clean
   }
 
   /**
@@ -640,7 +640,13 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    * makes it true of all of them.
    */
   private rewriteReferences<T>(node: T): T {
-    if (Array.isArray(node)) return node.map(n => this.rewriteReferences(n)) as unknown as T
+    // ⚠️ `Array.isArray` on a generic narrows it to `any[]`, so the mapped
+    // result is `any` and the recursion returns one. Naming the element type
+    // `unknown` keeps the walk honest — this function only ever rebuilds the
+    // shape it was handed.
+    if (Array.isArray(node)) {
+      return (node as unknown[]).map(n => this.rewriteReferences(n)) as unknown as T
+    }
     if (!node || typeof node !== 'object') return node
     const out: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(node as Record<string, unknown>)) {

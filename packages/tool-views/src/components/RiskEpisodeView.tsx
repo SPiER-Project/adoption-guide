@@ -15,7 +15,6 @@ import {
   ENTRY_REASONS,
   RISK_TIERS,
 } from '@spier/core/lib/riskEpisode'
-import type { FlagResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint } from './WorkflowForm'
 import { todayLocalIso } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
@@ -84,7 +83,7 @@ export function RiskEpisodeView() {
   const draft = useMemo(() => {
     if (openEpisode) {
       const closed = closeEpisode(openEpisode, { closureReason, endDate })
-      return activeFlag ? [closed, clearFlag(activeFlag as FlagResource, endDate)] : [closed]
+      return activeFlag ? [closed, clearFlag(activeFlag, endDate)] : [closed]
     }
     const id = 'episode-preview'
     return [
@@ -124,7 +123,7 @@ export function RiskEpisodeView() {
     addArtifact(closeEpisode(openEpisode, { closureReason, endDate }))
     // Clear the banner in the same action — a flag outliving its episode is
     // the failure mode this recorder exists to prevent.
-    if (activeFlag) addArtifact(clearFlag(activeFlag as FlagResource, endDate))
+    if (activeFlag) addArtifact(clearFlag(activeFlag, endDate))
     setNotice('Episode closed and chart banner cleared.')
   }
 

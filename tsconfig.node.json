@@ -22,5 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts"]
+  // ⚠️ `vitest.config.ts` joined this list with the type-aware lint. It is the
+  // same class of file as `vite.config.ts` and was simply never added, so it sat
+  // in no project — typechecked by nothing, and unparseable to a linter using
+  // `projectService`. Its aliases are what the shim gates read.
+  "include": ["vite.config.ts", "vitest.config.ts"]
 }

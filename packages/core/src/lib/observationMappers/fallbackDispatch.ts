@@ -46,7 +46,7 @@ import {
   type QuestionnaireCanonical,
 } from '@spier/fhir-artifacts/generated/instrument-signatures.generated'
 import type {
-  Coding,
+  QuestionnaireItem,
   QuestionnaireResource,
   QuestionnaireResponseAnswer,
   QuestionnaireResponseItem,
@@ -327,8 +327,9 @@ function* walkResponseItems(
 }
 
 /** Depth-first walk over Questionnaire items (nested). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function* walkQuestionnaireItems(items: any[] | undefined): Generator<any> {
+function* walkQuestionnaireItems(
+  items: QuestionnaireItem[] | undefined,
+): Generator<QuestionnaireItem> {
   for (const item of items ?? []) {
     yield item
     yield* walkQuestionnaireItems(item.item)
@@ -376,9 +377,8 @@ function itemsByCode(qr: QuestionnaireResponseResource): Map<string, Questionnai
   const contained = Array.isArray(containedRaw) ? (containedRaw as QuestionnaireResource[]) : []
   for (const res of contained) {
     if (res?.resourceType !== 'Questionnaire') continue
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const it of walkQuestionnaireItems((res as any).item)) {
-      const codes = (it.code as Coding[] | undefined)?.map((c) => c.code).filter((c): c is string => !!c)
+    for (const it of walkQuestionnaireItems(res.item)) {
+      const codes = it.code?.map((c) => c.code).filter((c): c is string => !!c)
       if (it.linkId && codes?.length) codesByLinkId.set(it.linkId, codes)
     }
   }

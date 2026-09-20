@@ -172,10 +172,10 @@ export function crisisResourceShares(
 ): CommunicationResource[] {
   return communications
     .filter(c =>
-      ((c as { meta?: { profile?: string[] } }).meta?.profile ?? []).includes(
+      (c.meta?.profile ?? []).includes(
         CRISIS_RESOURCES_PROFILE,
       ),
     )
     .slice()
-    .sort((a, b) => String(b.sent ?? '').localeCompare(String(a.sent ?? '')))
+    .sort((a, b) => (b.sent ?? '').localeCompare(a.sent ?? ''))
 }

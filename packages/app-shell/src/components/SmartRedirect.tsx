@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import FHIR from 'fhirclient/browser'
 import type { SmartClient } from '@spier/core/types/smartClient'
+import { describeError } from '../lib/describeError'
 import { useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
@@ -199,9 +200,9 @@ export function SmartRedirect() {
                     setError('Authorized successfully, but failed to fetch patient details.')
                 }
             })
-            .catch((err) => {
+            .catch((err: unknown) => {
                 console.error('SMART Ready Error:', err)
-                setError(err.message || 'Failed to complete SMART on FHIR authorization.')
+                setError(describeError(err) || 'Failed to complete SMART on FHIR authorization.')
             })
     }, [navigate, setSmartData, setHostDrawsPatientBanner, chromeMode])
 
