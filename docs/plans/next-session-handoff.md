@@ -42,7 +42,7 @@ durable material was five findings and one standing rule. That is the restructur
 working as intended. The temptation each time is to narrate the session; resist
 it.
 
-## State of the repo — derived 2026-08-21 (second pass), check it rather than trust it
+## State of the repo — derived 2026-09-20, check it rather than trust it
 
 ⚠️ **The SHA below is one commit stale by construction, and chasing it is a
 regress.** The commit that writes this file is necessarily the next one after the
@@ -50,38 +50,61 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`fcb9194`** when this was written, plus the commit that wrote
+- `main` was at **`b191d89`** when this was written, plus the commit that wrote
   it. **No open PRs** at that point.
-  **42 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
+  **41 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
   and truncates silently).
-- **All three `verify` pipelines green**, each run in this session:
+- **All four `verify` pipelines green**, each re-run against this `main` rather
+  than copied forward from the session that changed them:
 
-  | Package | Exit | Tests | Covered by `web`'s verify? |
+  | Package | Exit | Tests | Covered by the root's verify? |
   |---|---|---|---|
-  | `web` | 0 | 63 files / **732** | — |
-  | `services/cds-hooks` | 0 | 3 files / **32** | **No** |
-  | `services/mock-ehr` | 0 | 8 files / **138** | **No** |
+  | repo root | 0 | 96 files / **1087** | — |
+  | `services/cds-hooks` | 0 | 3 files / **43** | **No** |
+  | `services/clinical` | 0 | 1 file / **12** | **No** |
+  | `services/mock-ehr` | 0 | 11 files / **200** | **No** |
 
 - The one `eslint` warning (`MeasureDashboard.tsx`, a `useMemo` dep) is
   **pre-existing**.
-- ⚠️ **There are now three `packages/` as well as three apps**, and a fresh
-  worktree still needs `npm install` in **the three app/service packages only** —
-  `packages/*` carry no dependencies of their own. Plus `npm run copy-fhir` at the repo root.
-
-  | Package | What |
-  |---|---|
-  | `packages/core` | the React-free domain layer; **React-free and DOM-free by gate** |
-  | `packages/demo-population` | the 14 patients, their scenarios, and their `Patient` resources |
-  | `packages/fhir-artifacts/generated/` | SUSHI's output, gitignored |
-
-- **All six embedded-panel steps are merged and deployed**, and the claim was
-  proven in a browser end to end rather than inferred. Details live in
-  [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md), not here.
+- ⚠️ **`web/` NO LONGER EXISTS** (#553). The repo root is the tooling host: one
+  `package.json`, one `node_modules`, one `scripts/` tree, and `tests/` +
+  `shims/` where `web/src` used to be. Anything telling you to `cd web` is
+  older than 2026-09-19.
+- ⚠️ **There are FOUR install targets, and `packages/*` are not among them.** A
+  fresh worktree needs `npm install` at the repo root and in each of the three
+  `services/*`, then `npm run copy-fhir` at the root. Every `packages/*`
+  manifest declares **zero** dependencies — the test is whether a directory has
+  a **lockfile**, which only those four do. Counting `package.json` files gets
+  you six and sends you installing two things that have nothing to install.
+- ⚠️ **There is no root `src/`, and restoring one breaks a gate.**
+  `check-md-paths.mjs` derives its repo-rooted prefixes from the tracked tree's
+  top-level *names*, so a top-level `src` makes every package-relative
+  `` `src/auth.ts` `` in a service README resolve against the root and fail. It
+  was tried during #553 and reverted; the replacements are `tests/` and
+  `shims/`, which cannot collide that way.
+- **Seven packages and two apps** — `packages/` is no longer the three-row table
+  this file used to carry, and the per-package detail belongs in each package's
+  own README rather than here:
 
   | | |
   |---|---|
-  | Mock EHR | https://spier-mock-ehr.bbthorson.workers.dev |
-  | Panel | https://spier-adoption-guide.bbthorson.workers.dev |
+  | `apps/` | `guide` (the Adoption Guide) and `clinical` (the two SMART apps) |
+  | `packages/` | `core`, `ui`, `tool-views`, `app-shell`, `worker-http`, `demo-population`, `fhir-artifacts/generated/` (gitignored) |
+
+- **Three Workers, one per deployable**, and the names do not match their
+  directories — `services/cds-hooks` deploys as `spier-adoption-guide` and
+  serves the guide, the CDS endpoint *and* `/ig/`, which is why #553 left
+  renaming it alone:
+
+  | | | |
+  |---|---|---|
+  | Mock EHR | `services/mock-ehr` → `spier-mock-ehr` | https://spier-mock-ehr.bbthorson.workers.dev |
+  | Guide + CDS + IG | `services/cds-hooks` → `spier-adoption-guide` | https://spier-adoption-guide.bbthorson.workers.dev |
+  | Clinical SMART apps | `services/clinical` → `spier-clinical` | framed by the mock EHR |
+
+- **All six embedded-panel steps are merged and deployed**, proven in a browser
+  end to end rather than inferred. Details live in
+  [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md), not here.
 
 ## Standing rules — the operational ones
 
