@@ -25,6 +25,7 @@
  * becomes something the SERVICE can read (see `web/src/lib/toolEnablement.ts`).
  */
 import { launchableTools, type Tool } from '../data/catalog/tools'
+import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import { isPathwayRealization } from './pathwayRealizations'
 
 /**
@@ -49,7 +50,7 @@ import { isPathwayRealization } from './pathwayRealizations'
  * with neither, on a tool that does not exist and on one declared for the wrong
  * stage.
  */
-export const PATHWAY_STAGE_DEFAULTS: Readonly<Record<string, string>> = {
+export const PATHWAY_STAGE_DEFAULTS: Readonly<Partial<Record<StageId, string>>> = {
   // Only `core` tool at the stage; the alternate (TL-024, the CAMS therapeutic
   // worksheet) is `optional` and licensed separately.
   'define-risk-picture': 'TL-006',
@@ -95,7 +96,9 @@ export function stageLeadTools(stageId: string): Tool[] {
   // slips past that test, the published pathway should still be what a clinician
   // is led with.
   if (named.length > 0) return named
-  const fallback = PATHWAY_STAGE_DEFAULTS[stageId]
+  // `isStageId` narrows the caller's string to the generated union; a stage the
+  // CodeSystem does not know has no default by construction.
+  const fallback = isStageId(stageId) ? PATHWAY_STAGE_DEFAULTS[stageId] : undefined
   return fallback ? at.filter(t => t.id === fallback) : []
 }
 

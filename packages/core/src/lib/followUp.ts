@@ -18,11 +18,15 @@
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
+import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import { appointmentStart, appointmentStatus, type CodedOption } from './handoffs'
 import type { AppointmentResource, CommunicationResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
 
-export const STAGE_ID = 'track-follow-up'
+// `satisfies StageId`: the literal keeps its type, and a stage renamed in the
+// CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
+// than a stage tag nothing resolves.
+export const STAGE_ID = 'track-follow-up' satisfies StageId
 const STAGE_TITLE = 'Track Follow-Up'
 
 export const OUTREACH_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt'

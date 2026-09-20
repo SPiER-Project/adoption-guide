@@ -399,3 +399,22 @@ where a derived resource type would be rendered.
 | the recorder frame every view shares | `packages/tool-views/src/components/WorkflowForm.tsx` |
 | tool → launch path | `packages/core/src/data/catalog/tool-ui-metadata.ts` |
 | tool → stage, Questionnaire, licensing | `ig/input/fsh/` (derived in `tools.ts`) |
+
+
+## Notes moved from `CLAUDE.md` (2026-09-20)
+
+The one-definition rule, the fourth axis and the sibling route are stated with
+the other surface rules in [`surfaces-and-routing.md`](surfaces-and-routing.md)
+§ *The clinician-facing app shows no raw FHIR*. Two recorder rules that
+`CLAUDE.md` carried inline:
+
+⚠️ **"It is only a Communication" is not grounds to merge a recorder** —
+`caring-contact` WAS the generic recorder, and stamped neither its profile nor
+the opt-out extension, so a Stage-8 measure's exclusion could never fire (§2
+above has the full account).
+
+⚠️ **The prose is part of "no raw FHIR".** Settled 2026-09-17: a recorder's
+`lede`, labels and help describe the act — no resource type, profile name,
+extension id or `Element.path`, and no `<code>` at all. The wire format goes in
+`WorkflowForm`'s `fhirNote`, which renders inside the `useInspect()`-gated
+`CodeDrawer`. `check:fhir-render` RULE 3 parses the JSX text to enforce it (§4).

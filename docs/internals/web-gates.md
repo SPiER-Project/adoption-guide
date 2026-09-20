@@ -75,7 +75,7 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # and so was MISSING from the inventory in
                        # `docs/plans/archive/production-clinical-surface.md`, which was built by
                        # listing the viewer's call sites. This derives the list instead: a
-                       # non-test `.tsx` under `web/src` that serializes to JSON or renders a
+                       # non-test `.tsx` under any app root that serializes to JSON or renders a
                        # `<pre>` must call `useInspect()`, or carry an entry in
                        # NOT_A_RESOURCE_VIEW saying why it is not one.
                        # ⚠️ **The rule is FILE-LOCAL, and the reachability version does not
@@ -494,8 +494,10 @@ cannot change.*
 | `check:surface-links`' `resolveSpec` narrowed | RED — 89 modules → 1 |
 | `APP_ROOTS` renamed without updating callers | `appRoot()` THROWS, naming the declared set |
 
-⚠️ **What it does not do yet.** The gates are wired to *a* declared root
-(`appRoot('web/src')`); they do not yet walk *every* root. That is deliberate —
+⚠️ **What it did not do at first.** The gates were wired to *a* declared root
+(`appRoot('web/src')`) and did not yet walk *every* root; since the `apps/`
+split (#552) they iterate `APP_ROOTS` with a per-root floor. That staging was
+deliberate —
 today there is one tree, so walking it is identical behaviour, and the hard
 failure above guarantees the generalization cannot be skipped: the moment a
 second app tree exists, six gates go red until someone deals with them. The
@@ -598,3 +600,103 @@ failed.** It asserts both `dist` directories exist, not that they are fresh, so
 it read output from the previous run. `check:outputs` guards its corpus with an
 mtime comparison for exactly this reason; `check:surface` does not, and that gap
 is unclosed.
+
+
+## Notes moved from `CLAUDE.md`'s verify list (2026-09-20)
+
+`CLAUDE.md` keeps one line per command. These are the paragraphs that used to
+sit beside those lines.
+
+### `npm run lint` — type-aware, and `--max-warnings 0`
+
+⚠️ `recommendedTypeChecked`, not `recommended`: the untyped set has no types,
+so it cannot see an `any` at all — `qr.item[0].answer` on an untyped value is
+three member accesses it has nothing to say about. The `no-unsafe-*` family,
+`no-floating-promises` and `no-misused-promises` all need the checker, and
+those are the ones that catch a FHIR payload reaching a writer unchecked.
+
+⚠️ **`project:` globs, NOT `projectService: true`.** The service form resolves
+the closest `tsconfig.json`, which at the root is the SOLUTION file
+(`files: []` + references) — so files fell back to an inferred program with no
+`types`, and the linter saw ERROR TYPES. That is worse than not running:
+`no-unsafe-*` fires spuriously on them, and `no-unnecessary-type-assertion`
+AUTOFIXED AWAY a needed assertion in
+`tests/patientPathway.stageResolution.test.ts`, which only `tsc` then caught.
+The globs name the six real projects, so every file lints against its own
+`tsconfig.json`.
+
+⚠️ `--max-warnings 0` because eslint EXITS ZERO on warnings, so a rule
+configured as a warning never failed `verify` or CI — it printed.
+`react-hooks/exhaustive-deps` is a warning in the preset, and it had been
+printing.
+
+⚠️ Tests turn OFF three rules, and each is a judgement rather than an exemption
+taken to reach green: `no-non-null-assertion` (in a test `x!` against a fixture
+IS the assertion), `require-await` (an `async` test body with no `await` is a
+common and harmless shape), `unbound-method` (`expect(mock.fn)` is how vitest
+is used). A fourth would want a reason of the same kind.
+
+### `npm run check:favicons`
+
+⚠️ A favicon is its own document and cannot read a `var()`, so its six colours
+are necessarily a hand-duplicated copy of the palette — which is exactly why it
+is gated. The icons in `public/` are GENERATED from `--brand-primary` and
+`--brand-gradient-1…5` by `scripts/build-favicons.mjs` (`npm run
+build:favicons` rewrites them). The 2026 redesign would otherwise have left a
+raspberry icon nobody looks at.
+
+### `npm run check:extract` — the third rule
+
+⚠️ Every mapper's Questionnaire must be classified — in `EXPECTED`, or in
+`NO_LITERAL_EXTRACTS` with the reason. Absence from the hand list used to mean
+"checked and empty" and "never opened" indistinguishably, and four of fourteen
+mappers were in the second state.
+
+### The app roots (`scripts/lib/app-roots.mjs`)
+
+⚠️ `check:guide-boundary`, `check:surface-links`, `check:fhir-render`,
+`check:template`, `check:fhir-r5` and `check:outputs` no longer name an app
+tree themselves — the root comes from `scripts/lib/app-roots.mjs`, the
+`.ts`/`.tsx` twin of `style-roots.mjs`. Ten gates hardcoded `web/src`, and the
+`apps/` split turned one tree into two. Same two-part rule as the style roots:
+a PER-ROOT floor, plus a filesystem scan that HARD-FAILS on an app tree no root
+declares — keyed on `src/main.tsx` or `src/App.tsx`, because an app has an entry
+module by construction and a bare `src` glob would drag in `packages/core` and
+`packages/ui`. The floor cannot see a root deleted from the list; the
+filesystem can.
+
+### `npm run check:tool-view-routes`
+
+⚠️ Replaced the `App.tsx` half of `toolViews.test.ts`, which read `../App.tsx`
+by relative path — a shape that can only ever check ONE table, while the
+invariant is every table. Iterates the roots in `lib/app-roots.mjs` instead.
+
+### `npm run check:eager-forms`
+
+⚠️ Every tool view was already `lazy()` when the 18 Questionnaires were IN the
+entry chunk — laziness of the component is not the property that matters,
+because `App.tsx` imports `TOOL_VIEWS` statically and an eagerly-imported map's
+CONTENTS are eager whatever they render. So this walks STATIC imports only (not
+`module-graph.mjs`'s reader, whose pattern also matches `import(`) from every
+declared app entry. Worth ~23.8 KB gzip off first paint on both surfaces.
+
+⚠️ Its first version stripped block comments before line comments, and
+`/patient/*` in `App.tsx`'s own prose opened a fake block comment that
+swallowed the one import it polices — it walked 104 modules and said ✓.
+
+### `npm run check:surface-links`
+
+⚠️ A different question from `check:surface`, which reads the two BUNDLES and
+asserts what is compiled in. A component that ships on both surfaces can still
+link into a demo-only route: `PatientPathway` did, twice, one of them the
+embedded panel's only navigation. It does not 404 — the `*` catch-all returns
+the clinician to the patient record, silently. `check:catalog` resolves paths
+against the WHOLE route table, so it passed this and always would have.
+
+### A green `check:*` is not proof of coverage
+
+⚠️ Each gate has a rule it cannot see, and several were shipped in a form that
+passed a planted defect. Read the gate's own section here before adding one,
+changing one, or concluding that something is covered — and plant a defect
+before trusting a new rule ([`README.md`](README.md) § *The rule that produced
+all of it*).

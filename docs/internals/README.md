@@ -15,13 +15,15 @@ Read the file for the area you are changing **before** you change it.
 
 | File | Read it before |
 |---|---|
+| [`repo-layout.md`](repo-layout.md) | moving a tree, adding a package, or putting something back at the repo root |
+| [`surfaces-and-routing.md`](surfaces-and-routing.md) | adding a route, a guide section, a redirect, or anything a clinician might see raw FHIR through |
 | [`web-gates.md`](web-gates.md) | adding or changing anything `npm run verify` runs, or trusting a `check:*` gate's coverage |
 | [`terminology.md`](terminology.md) | adding a LOINC/SNOMED coding, touching either `PENDING_TX`, or reading a red `terminology.yml` |
 | [`ig-build.md`](ig-build.md) | changing `ig/input/`, `sushi-config.yaml`, an IG page, the CQL, or `deploy.yml` |
 | [`fhir-conformance.md`](fhir-conformance.md) | editing a scenario fixture, a mapper, an `.fml` map, or a validation rule shared with the mock EHR |
 | [`measures.md`](measures.md) | changing a measure criterion, a population, or the dashboard's scoring |
 | [`docs-gates.md`](docs-gates.md) | editing `docs/**`, the root `README.md`, or the HL7 use-case workbook |
-| [`workers.md`](workers.md) | changing any `services/*` Worker, `packages/worker-http`, or `packages/worker-tooling` |
+| [`workers.md`](workers.md) | changing any `services/*` Worker, `packages/worker-http`, `packages/worker-tooling`, or `deploy-origins.json` |
 | [`css-and-page-template.md`](css-and-page-template.md) | adding a page, a width, a design token, or a run of prose |
 | [`tool-views.md`](tool-views.md) | adding or merging an instrument filler or workflow recorder, or putting a resource on screen |
 | [`build-gotchas.md`](build-gotchas.md) | a confusing `git status`, a bundle-size question, or changing a hand-duplicated value |

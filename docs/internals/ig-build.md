@@ -97,7 +97,7 @@ runs after. Making F and H degrade when `fsh-generated/` is absent would have
 been the worse trade — a gate that quietly checks less is the #232/#261 shape
 exactly. Its four checks:
 
-- **E. No repo internals** in `ig/input/pagecontent/*.md` — `web/src`,
+- **E. No repo internals** in `ig/input/pagecontent/*.md` — `apps/`,
   `packages/`, `npm run`, `scripts/`, `.mjs`, `vitest`, `sushi-config`,
   `path-binary`, a bare `check:<name>` gate name, and `#NNN` issue references. An IG page is read by
   implementers who do not have this repo; build and gate prose lives in
@@ -118,7 +118,7 @@ exactly. Its four checks:
   **index** route navigating to a **relative** target is picking its parent's
   default child (`/patient` → `chart`), so the parent really does land
   somewhere; an **absolute** target is a redirect away from a page that is gone.
-  ⚠️ Because G reads `web/src`, `ig.yml` triggers on those two files — a route
+  ⚠️ Because G reads `apps/guide/src`, `ig.yml` triggers on those two files — a route
   rename breaks the IG's links with **no `ig/` change at all**.
 - **H. Every internal `.html` link resolves** to a `pages:` entry, an artifact
   page the publisher will emit, or a `GENERATED_PAGES` entry. ⚠️ **H is the
@@ -206,35 +206,47 @@ in CI so external codes go unchecked, and **nothing at all** validated the
 code+display literals in `packages/core/src/lib/*Mappers/`, even though those land in
 `Observation.code.coding` on every generated resource at runtime.
 
-`ig/input/resources/questionnaires/` is checked by the validator job **and**, since #473, by the
-IG Publisher: `ig/input/resources/questionnaires` is a tracked symlink to that
-folder, and each tool folder under it is a `path-resource` entry in
-`sushi-config.yaml`, so the 18 Questionnaires, the two CarePlan templates and
-the ASQ yes/no ValueSet are loaded, validated and rendered as IG artifacts.
-⚠️ **Per folder, never the recursive `questionnaires/*` form.** The publisher
-tries to load every file it finds — SUSHI skips non-JSON/XML, the publisher does
-not — and the tools' `references/` subfolders hold PDFs, DOCX and XLSX. The
-first CI run with `/*` logged 34 *Error loading … as Turtle* lines, spilled the
-binaries' bytes into `publisher.log`, and GNU grep then refused to read the QA
-counts out of a "binary" file: the QA step died under `bash -e` with no message
-while the QA itself was 0 errors / 0 broken links (#512). Both workflows now
-grep with `-a` and fail by name on an unparsed count, and
-`check-ig-narrative.mjs` fails on a resource JSON one folder below a listed
-directory that no entry reaches, so a new tool folder cannot be silently
-unpublished. `ig-publish.yml` therefore triggers on `ig/input/resources/questionnaires/**/*.json`
-too, and `deploy.yml`'s render cache key hashes it — a Questionnaire edit with
-no `ig/` change must not reuse a cached render. After a substantial change you
-can still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
+## The hand-authored Questionnaires
 
-⚠️ **Why a symlink and not `path-resource: ../ig/input/resources/questionnaires/*`.** The
-publisher refuses any resource path that escapes the IG root — *"Computed path
-does not start with first element"* — before it loads a single resource. The
-Questionnaires cannot move under `ig/` without splitting every per-tool folder
-(README, licensing memo, references) across two trees and re-pointing some
-thirty consumers of the `ig/input/resources/questionnaires/` path, so the IG reaches out through
-a symlink instead. SUSHI, the publisher and `check-ig-narrative.mjs` all follow
-it; a Windows checkout without symlink support gets a text file where the
-directory should be, and the publisher fails loudly on the missing path.
+`ig/input/resources/questionnaires/` is checked by the validator job **and**,
+since #473, by the IG Publisher: the tree is picked up through the single
+`path-resource: input/resources/questionnaires/*` entry in `sushi-config.yaml`,
+the ordinary mechanism for a resource authored as JSON, so the 18
+Questionnaires, the two CarePlan templates and the ASQ yes/no ValueSet are
+loaded, validated and rendered as IG artifacts. The app imports the same files
+at runtime through `packages/core/src/data/questionnaires.ts`, the single owner
+of those import paths.
+
+⚠️ **These folders hold resource JSON and nothing else.** Reference material —
+READMEs, licensing memos, PDFs, transcripts, spreadsheets — lives in
+`docs/instruments/<Tool>/`, and that separation is what lets the recursive `/*`
+form work: the publisher tries to parse every file it finds (SUSHI skips
+non-JSON/XML, the publisher does not), so one PDF in here becomes an "Error
+loading … as Turtle" line in `publisher.log`. The first CI run that met binaries
+under a `/*` entry logged 34 such lines, spilled the binaries' bytes into the
+log, and GNU grep then refused to read the QA counts out of a "binary" file: the
+QA step died under `bash -e` with no message while the QA itself was 0 errors /
+0 broken links (#512). Both workflows now grep with `-a` and fail by name on an
+unparsed count.
+
+⚠️ **Every resource JSON needs an `id` equal to its canonical's last segment**,
+because the publisher names the page `<Type>-<id>.html` and rejects a mismatch.
+A resource under `path-resource` with no `id` is a gate failure rather than a
+page the publisher names unpredictably (the Stanley-Brown Questionnaire had
+none).
+
+⚠️ **Until 2026-09-19 this tree lived OUTSIDE `ig/`, at `FHIR-Resources/`**, and
+reached the IG through a tracked symlink plus one hand-maintained `path-resource`
+entry per tool folder — the publisher refuses any resource path that escapes the
+IG root, and the per-folder list was the way around the binaries. That list's
+failure mode was silent: a missing folder was a Questionnaire the IG simply did
+not publish, and `check-ig-narrative.mjs` had to grow a rule for a resource one
+folder below a listed directory that no entry reached. Moving the resources
+under `ig/` and the reference material to `docs/instruments/` deleted the
+symlink, the list and the rule's reason at once. Do not reintroduce either.
+`ig-publish.yml` triggers on `ig/input/resources/questionnaires/**/*.json`, and
+`deploy.yml`'s render cache key hashes it. After a substantial change you can
+still dispatch the publisher directly: `gh workflow run ig-publish.yml`.
 
 ⚠️ **The `QuestionnaireRenderer` NPE that kept the Questionnaires out is gone,
 and the suppression that covered for it was hiding real defects.**
