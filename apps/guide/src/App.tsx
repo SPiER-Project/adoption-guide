@@ -61,6 +61,7 @@ const ProviderAppGuide = lazy(() => import('./pages/ProviderAppGuide').then(m =>
 const PopulationDashboardGuide = lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide })))
 const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
+const WhySpier = lazy(() => import('./pages/WhySpier').then(m => ({ default: m.WhySpier })))
 const ToolTryIt = lazy(() => import('./pages/ToolTryIt').then(m => ({ default: m.ToolTryIt })))
 
 function LegacyWorkflowRedirect() {
@@ -160,6 +161,13 @@ function AppRoutes() {
             {/* Published path, kept as a redirect after the move under Tools. */}
             <Route path="adoption-readiness" element={<Navigate to="/guide/tools/readiness" replace />} />
             <Route path="adoption-rubric" element={<EhrAdoptionRubric />} />
+            {/* The long form of the argument, which the Overview used to carry
+                in full — see the note on this section in guideSections.ts.
+                ⚠️ Same `<Route path="x" element={<Comp />}>` shape as its
+                siblings: check:guide-boundary and check:surface both resolve a
+                section's component by matching that literal form, and a
+                different one makes them skip the page rather than fail. */}
+            <Route path="why-spier" element={<WhySpier />} />
             {/* /guide/roadmap was published, so it gets a redirect rather than
                 falling through to the catch-all. The page mirrored GitHub Issues
                 onto the site; the issues are the roadmap now, and Adoption

@@ -1,19 +1,18 @@
-import { Link } from 'react-router-dom'
-import { BookOpen, Monitor, ScrollText, Zap } from 'lucide-react'
 import { PageHeader } from '@spier/ui/PageHeader'
-import { STAGES } from '@spier/core/data/catalog/stages'
+import { Button } from '@spier/ui/Button'
+import { Notice } from '@spier/ui/Notice'
 import {
+  OVERVIEW_DOORS,
   OVERVIEW_EYEBROW,
   OVERVIEW_LEDE,
-  OVERVIEW_LENSES,
   OVERVIEW_SECTIONS,
   OVERVIEW_STEPS,
   OVERVIEW_TITLE,
   type OverviewBlock,
 } from '../content/overview'
-import { IG_HREF, IG_TOKEN, renderInline } from '../content/renderInline'
+import { DEMO_CHART_PICKS, MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
+import { renderInline } from '../content/renderInline'
 import '../css/Overview.css'
-import { Notice } from '@spier/ui/Notice'
 
 function StepCards() {
   return (
@@ -34,72 +33,65 @@ function StepCards() {
   )
 }
 
-// The eight stages come from the pathway-stage CodeSystem via the catalog, so
-// the page cannot drift from the published artifact.
-function PathwayStages() {
+/**
+ * The page's one call to action, and the three charts to open behind it.
+ *
+ * Both the label and the destination come from `data/surfaces.ts`, so the
+ * button cannot come to name a surface the sidebar calls something else. The
+ * charts are `DEMO_CHART_PICKS` for the same reason: the host offers the same
+ * three in the same order, and that file says why they are restated as prose
+ * there rather than imported from the mock EHR's package.
+ *
+ * Same divided-cell furniture as the step cards below — three columns split by
+ * hairlines on the section's own ground — because this page has two three-up
+ * rows and inventing a second look for the second one is how a page starts
+ * carrying two design systems.
+ */
+function DemoPicks() {
   return (
-    <ol className="overview__pathway">
-      {STAGES.map(stage => (
-        <li key={stage.id} className="overview__pathway-stage">
-          <span className="overview__pathway-index">{stage.orderIndex + 1}</span>
-          <span className="overview__pathway-title">{stage.title}</span>
-        </li>
-      ))}
-    </ol>
+    <>
+      <Button
+        href={MOCK_EHR_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        accent
+        arrow
+        className="overview__cta"
+        aria-label={`Open the ${MOCK_EHR_LABEL} (opens in a new tab)`}
+      >
+        Open the {MOCK_EHR_LABEL}
+      </Button>
+      <ul className="overview__picks">
+        {DEMO_CHART_PICKS.map(pick => (
+          <li key={pick.name} className="overview__pick">
+            <h4 className="overview__pick-name">{pick.name}</h4>
+            <p className="overview__pick-situation">{pick.situation}</p>
+            <p className="overview__pick-shows">Shows {pick.shows}.</p>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 
-// One line icon per lens, in the tinted tile that leads its card. Decorative:
-// the badge under it carries the same meaning in words.
-const LENS_ICONS: Record<string, typeof Monitor> = {
-  host: Monitor,
-  guide: BookOpen,
-  cds: Zap,
-  ig: ScrollText,
-}
-
-function LensCards() {
+/**
+ * Three readers, three first destinations — see OVERVIEW_DOORS for why this
+ * replaced a row of cards naming the four surfaces.
+ *
+ * A description list, because that is what it is: each reader is the term and
+ * their route is the definition. It gives the reader line real markup rather
+ * than a bolded paragraph, so a screen reader announces the pairing.
+ */
+function DoorList() {
   return (
-    <div className="overview__lens-grid">
-      {OVERVIEW_LENSES.map(lens => {
-        const className = `overview__lens-card overview__lens-card--${lens.variant}`
-        const Icon = LENS_ICONS[lens.variant] ?? BookOpen
-        const inner = (
-          <>
-            <span className={`overview__lens-tile overview__lens-tile--${lens.variant}`} aria-hidden="true">
-              <Icon size={22} />
-            </span>
-            <span className="overview__lens-badge">{lens.badge}</span>
-            <h4>{lens.title}</h4>
-            <p>{lens.body}</p>
-            <span className="overview__lens-cta">{lens.cta}</span>
-          </>
-        )
-        // Three kinds of destination, and the third is new (#466): the IG's
-        // token (whose path depends on the active Vite base), an absolute URL
-        // for a surface on another origin — the Demo EHR — and an in-app route.
-        // Both external kinds open in a new tab and say so in the name, which is
-        // the rule the sidebar's outbound links already follow.
-        const external =
-          lens.href === IG_TOKEN ? IG_HREF : lens.href.startsWith('http') ? lens.href : null
-        return external ? (
-          <a
-            key={lens.key}
-            href={external}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${lens.title} (opens in a new tab)`}
-            className={className}
-          >
-            {inner}
-          </a>
-        ) : (
-          <Link key={lens.key} to={lens.href} className={className}>
-            {inner}
-          </Link>
-        )
-      })}
-    </div>
+    <dl className="overview__doors">
+      {OVERVIEW_DOORS.map(door => (
+        <div key={door.key} className="overview__door">
+          <dt className="overview__door-reader">{door.reader}</dt>
+          <dd className="overview__door-text">{renderInline(door.text)}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }
 
@@ -108,22 +100,18 @@ function Block({ block }: { block: OverviewBlock }) {
     case 'lead':
       return <p className="overview__lead">{renderInline(block.text)}</p>
     case 'note':
-      return <Notice tone="brand">{renderInline(block.text)}</Notice>
-    case 'prose':
-      return <p>{renderInline(block.text)}</p>
-    case 'vignette':
-      return (
-        <div className="overview__vignette">
-          <h4>{block.heading}</h4>
-          <p>{renderInline(block.text)}</p>
-        </div>
-      )
+      // ⚠️ `neutral`, and the tone is the point of the block. The audit found
+      // the interoperability caveat set at the same weight as the instruction
+      // it followed, on four pages (§3, §5 rule 2). A note here is a caveat or
+      // a pointer onward — both are quieter than what they follow, so neither
+      // gets a tinted panel competing with the call to action above it.
+      return <Notice tone="neutral">{renderInline(block.text)}</Notice>
+    case 'demo':
+      return <DemoPicks />
+    case 'doors':
+      return <DoorList />
     case 'steps':
       return <StepCards />
-    case 'pathway':
-      return <PathwayStages />
-    case 'lenses':
-      return <LensCards />
   }
 }
 

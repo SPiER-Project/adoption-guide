@@ -14,7 +14,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 
 import { renderInline } from './renderInline'
-import { OVERVIEW_LEDE, OVERVIEW_SECTIONS, OVERVIEW_LENSES } from './overview'
+import { OVERVIEW_LEDE, OVERVIEW_SECTIONS, OVERVIEW_DOORS } from './overview'
+import { DEMO_CHART_PICKS } from '../data/surfaces'
 
 // Server-rendered to a string rather than mounted, so this suite stays in the
 // default `node` environment — vitest.config.ts keeps jsdom an explicit opt-in
@@ -113,31 +114,60 @@ describe('the Overview content module', () => {
   })
 
   it('places each of the three rendered components exactly once', () => {
+    // ⚠️ The set changed with the rewrite: `pathway` moved to /guide/why-spier
+    // with the paragraph that explains why there are two vocabularies, and
+    // `lenses` became `doors`. Keep this list equal to the placement kinds in
+    // `OverviewBlock`, which is what makes a placement that is declared and
+    // never rendered — or rendered twice — a failing test rather than a page
+    // someone notices later.
     const kinds = OVERVIEW_SECTIONS.flatMap(s => s.blocks.map(b => b.kind))
-    for (const kind of ['steps', 'pathway', 'lenses']) {
+    for (const kind of ['demo', 'doors', 'steps']) {
       expect(kinds.filter(k => k === kind)).toHaveLength(1)
     }
   })
 
-  it('every lens card carries a resolvable href', () => {
-    expect(OVERVIEW_LENSES.length).toBeGreaterThan(0)
-    for (const lens of OVERVIEW_LENSES) {
-      // Three kinds since #466 — the IG's token, an in-app route, and an
-      // absolute URL for a surface on another origin (the Demo EHR). Enumerated
-      // rather than loosened to "any non-empty string": the point of the
-      // assertion is that `LensCards` has a branch for whatever this is, and a
-      // fourth kind would silently fall to the in-app `<Link>`.
-      const kind =
-        lens.href === 'ig'
-          ? 'ig'
-          : lens.href.startsWith('/')
-            ? 'route'
-            : /^https:\/\//.test(lens.href)
-              ? 'external'
-              : 'unknown'
-      expect(kind, lens.key).not.toBe('unknown')
-      expect(lens.title.trim()).not.toBe('')
-      expect(lens.cta.trim()).not.toBe('')
+  // The audit's §4.1 cap, as a test rather than a note nobody re-measures.
+  //
+  // It counts everything the page renders ABOVE the closing step cards: the
+  // lede, every heading, every prose block, the three doors, and the three
+  // chart picks, which are rendered from `data/surfaces.ts` and are the only
+  // words on the page that this module does not hold. The cards' own bodies are
+  // below the cap by the audit's wording and are one claim each anyway. The
+  // measured page was 1,716 words before this rewrite.
+  it('stays inside the 400-word cap', () => {
+    const marks = (t: string) => t.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*`]/g, '')
+    const words = (t: string) => marks(t).trim().split(/\s+/).filter(Boolean).length
+    const total =
+      words(OVERVIEW_LEDE) +
+      OVERVIEW_SECTIONS.reduce(
+        (n, s) =>
+          n + words(s.heading) + s.blocks.reduce((m, b) => m + ('text' in b ? words(b.text) : 0), 0),
+        0,
+      ) +
+      OVERVIEW_DOORS.reduce((n, d) => n + words(d.reader) + words(d.text), 0) +
+      DEMO_CHART_PICKS.reduce((n, p) => n + words(p.name) + words(p.situation) + words(p.shows), 0)
+    expect(total).toBeLessThanOrEqual(400)
+  })
+
+  it('every door names a reader and carries at least one link', () => {
+    expect(OVERVIEW_DOORS.length).toBeGreaterThan(0)
+    for (const door of OVERVIEW_DOORS) {
+      // The door's whole job: say who it is for, and hand them a destination.
+      expect(door.reader.trim()).not.toBe('')
+      expect(door.text).toMatch(/\]\(/)
+    }
+  })
+
+  it('gives every door href a branch renderInline has', () => {
+    // ⚠️ Enumerated rather than loosened to "any non-empty string". This is the
+    // lens cards' assertion, kept: an href that is none of these three falls to
+    // the in-app `<Link>`, which renders and looks right and navigates nowhere.
+    for (const door of OVERVIEW_DOORS) {
+      for (const [, href] of door.text.matchAll(/\]\(([^)]+)\)/g)) {
+        const kind =
+          href === 'ig' ? 'ig' : href.startsWith('/') ? 'route' : /^https:\/\//.test(href) ? 'external' : 'unknown'
+        expect(kind, `${door.key}: ${href}`).not.toBe('unknown')
+      }
     }
   })
 
@@ -148,10 +178,11 @@ describe('the Overview content module', () => {
       OVERVIEW_LEDE,
       ...OVERVIEW_SECTIONS.flatMap(s => [
         s.heading,
-        ...s.blocks.flatMap(b =>
-          'text' in b ? ('heading' in b ? [b.heading, b.text] : [b.text]) : [],
-        ),
+        ...s.blocks.flatMap(b => ('text' in b ? [b.text] : [])),
       ]),
+      // The doors carry every in-app link on the page, so they are the strings
+      // an unclosed bracket would cost the most.
+      ...OVERVIEW_DOORS.flatMap(d => [d.reader, d.text]),
     ]
     expect(strings.length).toBeGreaterThan(10)
     for (const text of strings) {
