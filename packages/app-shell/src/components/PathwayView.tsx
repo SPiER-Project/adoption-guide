@@ -49,7 +49,7 @@ export function PathwayLoadError({ error }: { error: string | null }) {
     <Notice tone="warning" title="The pathway artifact could not be read">
       <p>
         This page renders <code>PlanDefinition/SPiERSuicideSaferCarePathway</code> and has nothing to
-        show without it. Run <code>npm run copy-fhir -- --force</code> in <code>web/</code>.
+        show without it. Run <code>npm run copy-fhir -- --force</code> at the repo root.
       </p>
       <pre>{error}</pre>
     </Notice>

@@ -76,7 +76,7 @@ export function PopulationDashboardGuide() {
           </li>
           <li>
             <strong>Pathway measures</strong> &mdash; the Stage-8 measures scored over the panel for
-            a chosen period. See the <Link to="/population/measures">measure dashboard</Link>.
+            a chosen period, on the app&rsquo;s own Measures page.
           </li>
         </ul>
       </section>
@@ -87,7 +87,7 @@ export function PopulationDashboardGuide() {
           Per patient, the same four inputs the chart uses &mdash; the published{' '}
           <Link to="/guide/pathway">pathway</Link>, the{' '}
           <Link to="/guide/tools">tool catalog</Link>, that patient&rsquo;s record, and what the
-          site has <Link to="/settings">enabled</Link> &mdash; then grouped rather
+          site has enabled in its Settings &mdash; then grouped rather
           than rendered one at a time.
         </p>
         <p>
@@ -125,9 +125,8 @@ export function PopulationDashboardGuide() {
           .
         </Notice>
         <p>
-          With no host connected the same screen runs against sample patients, which is how to see
-          the derivation without a launch:{' '}
-          <Link to="/population/caseload">open the demo caseload</Link>.
+          There is no caseload to browse without a host: the roster comes from the server the launch
+          connects to, and this guide holds no patients.
         </p>
       </section>
     </div>

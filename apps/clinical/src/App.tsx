@@ -28,6 +28,11 @@ import { PresentationProvider } from '@spier/tool-views/context/PresentationProv
 import { SmartProvider } from '@spier/app-shell/context/SmartProvider'
 import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
 import { ToolConfigProvider } from './context/ToolConfigProvider'
+// Where the shared form views link on THIS surface — the chart, the caseload,
+// a tool's catalog launch path. The views hold no route literal of their own
+// since 2026-09-20 (they were dead on the guide); this app supplies them.
+import { SurfaceLinksContext } from '@spier/tool-views/context/SurfaceLinksContext'
+import { CLINICAL_SURFACE_LINKS } from './surfaceLinks'
 
 // SMART on FHIR — the real launch legs for this app.
 import { SmartLaunch } from '@spier/app-shell/components/SmartLaunch'
@@ -208,7 +213,9 @@ export default function App() {
       <SmartProvider>
         <PatientProvider>
           <ToolConfigProvider>
-            <AppRoutes />
+            <SurfaceLinksContext.Provider value={CLINICAL_SURFACE_LINKS}>
+              <AppRoutes />
+            </SurfaceLinksContext.Provider>
           </ToolConfigProvider>
         </PatientProvider>
       </SmartProvider>

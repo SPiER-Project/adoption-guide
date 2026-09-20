@@ -248,7 +248,7 @@ export function CarePathway() {
           This screen is a rendering of a published artifact, and here it is. The app bundles the compiled
           IG at build time and carries it wherever it runs &mdash; including into an EHR as a SMART app,
           where the same renderer draws the same protocol under{' '}
-          <Link to="/patient/pathway">Published Care Pathway</Link>, with these facts leading rather than
+          <em>Published Care Pathway</em>, with these facts leading rather than
           closing.
         </p>
       </PathwayProvenance>

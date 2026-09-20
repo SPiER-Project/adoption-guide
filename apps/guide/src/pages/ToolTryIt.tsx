@@ -42,10 +42,12 @@
  */
 import { useParams, Link } from 'react-router-dom'
 import { InspectContext } from '@spier/tool-views/context/InspectContext'
+import { SurfaceLinksContext } from '@spier/tool-views/context/SurfaceLinksContext'
 import { TOOL_VIEWS, isToolViewSlug } from '@spier/tool-views/data/toolViews'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Notice } from '@spier/ui/Notice'
 import { guideHref } from '../data/guideSections'
+import { GUIDE_SURFACE_LINKS } from '../data/surfaceLinks'
 
 export function ToolTryIt() {
   const { slug } = useParams<{ slug: string }>()
@@ -64,16 +66,24 @@ export function ToolTryIt() {
 
   return (
     <InspectContext.Provider value>
-      <div className="tool-try-it">
-      <Notice tone="info">
-        <strong>This is the implementer&rsquo;s view.</strong> It is the same recorder a clinician
-        uses, with the FHIR opened up: the Questionnaire it is built from, the
-        QuestionnaireResponse your answers produce, and what SPiER would write back. A clinician
-        launching this from a chart sees the form and none of this.{' '}
-        <Link to={guideHref('tools')}>Back to Tools</Link>.
-      </Notice>
-      {TOOL_VIEWS[slug]}
-      </div>
+      {/* The view's own links — its header's up-link, "View in chart", the
+          next-tool button, a recorder's cross-links — resolve against THIS
+          app's routes here: Tools as the parent, the try route for another
+          tool, and no chart. Provided at the one route that renders a shared
+          view rather than app-wide, so a second such route has to say so too
+          (useSurfaceLinks throws without a provider). */}
+      <SurfaceLinksContext.Provider value={GUIDE_SURFACE_LINKS}>
+        <div className="tool-try-it">
+        <Notice tone="info">
+          <strong>This is the implementer&rsquo;s view.</strong> It is the same recorder a clinician
+          uses, with the FHIR opened up: the Questionnaire it is built from, the
+          QuestionnaireResponse your answers produce, and what SPiER would write back. A clinician
+          launching this from a chart sees the form and none of this.{' '}
+          <Link to={guideHref('tools')}>Back to Tools</Link>.
+        </Notice>
+        {TOOL_VIEWS[slug]}
+        </div>
+      </SurfaceLinksContext.Provider>
     </InspectContext.Provider>
   )
 }

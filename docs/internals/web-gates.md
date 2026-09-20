@@ -693,6 +693,26 @@ embedded panel's only navigation. It does not 404 — the `*` catch-all returns
 the clinician to the patient record, silently. `check:catalog` resolves paths
 against the WHOLE route table, so it passed this and always would have.
 
+⚠️ **It walked only the clinical app until 2026-09-20, and the same defect
+shipped from the other direction.** The apps split (2026-09-19) took every
+`/patient/*`, `/population/*` and `/settings` route out of the guide, and every
+link into them — 33 launch buttons on Tools, 34 rows on Adoption Readiness,
+"View in chart" after every submit, the recorders' cross-links, the try page's
+up-link, seven redirects — fell to the guide's catch-all and landed on the
+Overview. The gate printed ✓ because the guide was not its subject. It now
+walks BOTH apps from their own `App.tsx` against their own tables, and reads a
+fourth literal form, any object property ending in `href`/`Href`. That form
+exists because of the fix: the 29 shared tool views hold no route literal any
+more — each app declares its routes for them in a `SurfaceLinks` object
+(`packages/tool-views/src/context/SurfaceLinksContext.ts`;
+`apps/clinical/src/surfaceLinks.ts`, `apps/guide/src/data/surfaceLinks.ts`),
+whose `href:`/`chartHref:`/`registryHref:` literals are what the gate checks on
+that app. A redirect into the other app is a cross-origin hop
+(`apps/guide/src/components/ClinicalRedirect.tsx`), not a `<Navigate>`. Proved
+red three ways before trusting: a guide page linking `/settings`, a guide
+`<Navigate>` into `/population/measures`, and a clinical `chartHref` pointing at
+`/guide/tools` ([`docs/plans/adoption-guide-ux-audit-2026-09-20.md`](../plans/adoption-guide-ux-audit-2026-09-20.md) §1.1).
+
 ### A green `check:*` is not proof of coverage
 
 ⚠️ Each gate has a rule it cannot see, and several were shipped in a form that

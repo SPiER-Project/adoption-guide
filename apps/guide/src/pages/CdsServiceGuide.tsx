@@ -205,8 +205,9 @@ export function CdsServiceGuide() {
         <h3 className="cds-service-guide__h3">Honesty notes</h3>
         <ul>
           <li>
-            This is a <strong>demo service</strong>. Bearer-JWT validation exists (see above) but runs
-            in <strong>warn</strong> mode &mdash; tokens are verified and logged, not yet enforced.
+            This is a <strong>demo service</strong>. Bearer-JWT validation is <strong>enforced</strong>
+            (see above): an unsigned or invalid token is a <code>401</code> and never reaches the card
+            builder.
           </li>
           <li>
             It is <strong>prefetch-only</strong>: it never queries a FHIR server. Live-path cards come

@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import { useScrollToTopOnNavigate } from '@spier/app-shell/hooks/useScrollToHash'
-import { PatientBanner } from '@spier/app-shell/components/PatientBanner'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from '@spier/app-shell/components/SpierLogo'
 import '@spier/app-shell/css/AppShell.css'
@@ -46,10 +45,12 @@ const PROJECT_LINKS = [
 
 export function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const location = useLocation()
   useScrollToTopOnNavigate()
-  const isPatientView =
-    location.pathname.startsWith('/patient') || location.pathname.startsWith('/chart')
+  // ⚠️ No PatientBanner and no path test for it. This shell used to draw the
+  // banner over /patient/* and /chart/*; neither is a route of this app since
+  // the apps split (the /chart/* paths that remain hop to the clinical origin),
+  // so the branch could never be taken and the shell no longer reads the
+  // location at all — which also means it cannot be what leaks a patient.
 
   return (
     <div className="app-shell">
@@ -72,7 +73,6 @@ export function AppShell() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="app-shell__content">
-        {isPatientView && <PatientBanner />}
         <div className="app-shell__body">
           <Outlet />
         </div>

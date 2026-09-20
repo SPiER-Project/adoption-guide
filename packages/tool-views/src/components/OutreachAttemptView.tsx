@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { LaunchLink } from './LaunchLink'
 import { usePatient } from '../context/PatientContext'
 import { makeId } from '@spier/core/lib/id'
 import {
@@ -150,7 +150,7 @@ export function OutreachAttemptView() {
         <WorkflowHint>
           <strong>{streak} consecutive attempts</strong> without reaching the patient. That is the{' '}
           <em>failed contact sequence</em> escalation trigger —{' '}
-          <Link to="/patient/workflow/safety-tasks">escalate this case</Link> so it lands in the
+          <LaunchLink slug="safety-tasks">escalate this case</LaunchLink> so it lands in the
           same work queue as registry escalations.
         </WorkflowHint>
       )}

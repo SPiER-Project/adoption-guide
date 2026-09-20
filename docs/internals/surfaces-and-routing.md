@@ -60,6 +60,40 @@ covers the catalog's launch paths, the panel's landing route, and (since
 now fails. What still nothing can see is a path that *resolves* but now lands
 on the explainer rather than the app — that class needs a grep.
 
+## A shared view holds no route literal; the app supplies its links (2026-09-20)
+
+⚠️ **The apps split made every guide link into the clinical app dead, and the
+grep above was pointed at one surface.** `check:surface-links` walked only
+`apps/clinical`; on the guide, 33 launch buttons, 34 readiness rows, "View in
+chart" after every submit, the recorders' cross-links, the try page's up-link
+and seven redirects all fell to the catch-all and landed on the Overview,
+silently, for a day. Found by the adoption-guide UX audit
+([`docs/plans/adoption-guide-ux-audit-2026-09-20.md`](../plans/adoption-guide-ux-audit-2026-09-20.md) §1.1).
+
+The rule that came out of it: **a view rendered by both apps holds no route
+literal.** `SurfaceLinksContext`
+(`packages/tool-views/src/context/SurfaceLinksContext.ts`) carries the parent
+page, the chart, the registry and a slug → route function; `apps/clinical`
+provides its own (`apps/clinical/src/surfaceLinks.ts`, routes read from the
+catalog's launch paths) and the guide provides its own
+(`apps/guide/src/data/surfaceLinks.ts`: Tools as parent, no chart, no registry,
+`/guide/tools/<slug>/try` for a tool). The hook **throws** outside a provider —
+a default would have to name one surface's routes, which is the defect in a
+different file. A recorder links another view with `<LaunchLink slug="…">`,
+and renders plain text where the surface has no route for it.
+
+- On the guide, "launch" means the guide's own try route; the clinician's
+  launch is the Demo EHR's to offer, and the Tools page says so with one
+  outbound button.
+- A published path whose home is now the other app is a **cross-origin hop**
+  (`apps/guide/src/components/ClinicalRedirect.tsx`, origin from
+  `deploy-origins.json`), never a `<Navigate>` — the router cannot reach
+  another origin, and a `<Navigate>` into it resolves to the catch-all.
+- `check:surface-links` walks **both** apps against their own tables and reads
+  the `…href:`/`…Href:` property form, which is where each app's `SurfaceLinks`
+  literals sit. It cannot see a computed target, and the guide's try route is
+  one; `check:tool-view-routes` pins those slugs instead.
+
 ## The clinician-facing app shows no raw FHIR; the guide does
 
 One invariant, one gate point: `InspectContext`

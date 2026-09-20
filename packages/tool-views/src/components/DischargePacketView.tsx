@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { LaunchLink } from './LaunchLink'
 import { usePatient } from '../context/PatientContext'
 import { makeId } from '@spier/core/lib/id'
 import {
@@ -77,7 +77,7 @@ function ConsentGateNotice({
 }) {
   const onFile = decision.consent ? `On file: ${consentSummary(decision.consent)}.` : null
   const recordLink = (
-    <Link to="/patient/workflow/sharing-consent">Record an information-sharing consent</Link>
+    <LaunchLink slug="sharing-consent">Record an information-sharing consent</LaunchLink>
   )
 
   let tone = 'neutral'

@@ -163,9 +163,8 @@ export const OVERVIEW_LENSES: OverviewLens[] = [
     body:
       'This site: how to adopt SPiER, and the host of the two SMART apps the Demo EHR launches. ' +
       'The care pathway rendered from its published PlanDefinition, a tool catalog across the ' +
-      'eight stages, a data dictionary, an adoption-readiness matrix and EHR adoption rubric, and ' +
-      'a Tool Configuration that decides what the provider app may recommend. It holds no patient ' +
-      'data of its own.',
+      'eight stages, a data dictionary, an adoption-readiness matrix and an EHR adoption rubric. ' +
+      'It holds no patient data of its own.',
     cta: 'Explore the guide →',
     href: '/guide/pathway',
   },
@@ -307,7 +306,7 @@ export const OVERVIEW_SECTIONS: OverviewSection[] = [
           '**Capture → Translate → Act** describes what SPiER does to the ' +
           '*artifacts*. It is not what you navigate by. The app is organized around the thing a ' +
           'clinician actually moves through — the **eight-stage Suicide Safer Care Pathway**, ' +
-          'which is the common entry point for every partner conversation and the vocabulary used by the ' +
+          'which is the common entry point for every partner conversation and the vocabulary used by ' +
           'the provider app, the caseload and the measure dashboard alike:',
       },
       { kind: 'pathway' },

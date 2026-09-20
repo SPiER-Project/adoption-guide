@@ -128,14 +128,3 @@
   gap: var(--space-2);
 }
 
-
-/* A launch action and its "try it" counterpart travel together: the clinician's
-   path and the guide's view of the same recorder. Wrapping them keeps the pair
-   on one line when the row wraps, so a reader never meets a stray "Try it with
-   the FHIR view" under a different tool's launch button. */
-.tool-detail-launch-pair {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}

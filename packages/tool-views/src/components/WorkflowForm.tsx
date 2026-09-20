@@ -43,6 +43,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
+import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from '@spier/ui/PageHeader'
@@ -88,16 +89,26 @@ export function WorkflowForm({
   children: ReactNode
 }) {
   const { activePatientId } = usePatient()
+  // The chart, the caseload and this page's parent are the SURFACE's routes,
+  // not this frame's: the clinical app has all three, the guide has only the
+  // parent (Tools). See SurfaceLinksContext for the dead links this replaced.
+  const links = useSurfaceLinks()
   return (
     <div className="form-view">
-      <PageHeader eyebrowStyle="pill" eyebrow={['Patient Chart', 'Workflow']} up="/patient/record" title={title} lede={lede} />
+      <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Workflow']} up={links.parent.href} title={title} lede={lede} />
 
       <div className="form-wrapper">
         <div className="form-card">
           {activePatientId === null && (
             <WorkflowHint>
-              No patient selected — this will be recorded in the scratch chart. Pick a patient from the
-              Population view to attach it to a specific record.
+              No patient selected — this will be recorded in the scratch chart.
+              {links.registryHref && (
+                <>
+                  {' '}
+                  Pick a patient from the <Link to={links.registryHref}>caseload</Link> to attach it to a
+                  specific record.
+                </>
+              )}
             </WorkflowHint>
           )}
 
@@ -105,10 +116,16 @@ export function WorkflowForm({
 
           {notice && (
             <WorkflowNotice>
-              {notice} <Link to="/patient/record#activity">View in chart</Link>
+              {notice}
+              {links.chartHref && (
+                <>
+                  {' '}
+                  <Link to={links.chartHref}>View in chart</Link>
+                </>
+              )}
               {noticeExtra && (
                 <>
-                  {' · '}
+                  {links.chartHref ? ' · ' : ' '}
                   {noticeExtra}
                 </>
               )}

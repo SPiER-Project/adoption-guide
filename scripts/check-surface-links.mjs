@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Every in-app link a CLINICIAN can reach must resolve on the clinical surface.
+ * Every in-app link on EACH surface must resolve on that surface's own route table.
  *
  * ── The defect this was written from ──────────────────────────────────────
  *
@@ -15,43 +15,78 @@
  * this repo's gates exist to catch — and it shipped with the surface axis and
  * survived three days of work on top of it.
  *
- * ── Why no existing gate saw it ───────────────────────────────────────────
+ * ── The second defect, from the other direction (2026-09-20) ──────────────
+ *
+ * This gate walked ONLY the clinical app. When the apps split (2026-09-19) the
+ * guide lost every `/patient/*`, `/population/*` and `/settings` route, and
+ * every link into them — 33 launch buttons on Tools, 34 rows on Adoption
+ * Readiness, "View in chart" after every submit, a recorder's cross-links, the
+ * try page's own up-link, seven redirects — fell to the guide's catch-all and
+ * landed the reader on the Overview. Same silence, same plausibility, and this
+ * gate printed a confident ✓ over it because the guide was not its subject.
+ * `docs/internals/surfaces-and-routing.md` had recorded the hole in one
+ * sentence ("that class needs a grep"); the grep was pointed at one surface.
+ * So it now walks both, from each app's own App.tsx, against each app's own
+ * routes. The audit that found it: docs/plans/adoption-guide-ux-audit-2026-09-20.md §1.1.
+ *
+ * ── Why no other gate saw either ──────────────────────────────────────────
  *
  * `check:surface` reads the two BUNDLES and asserts that demo-only pages and
  * the 14 demo patients are absent from the clinical one. It is about what is
- * COMPILED IN, and the link is not: `PatientPathway` legitimately ships on both
- * surfaces. `check:catalog` resolves the catalog's 36 launch paths, the SMART
- * landing route and every `<Navigate>` target — but against the WHOLE route
- * table, which contains `/guide/cds-service`, so the link resolves and always
- * would have. CLAUDE.md names this exact hole: *"a path that resolves but now
- * lands on the explainer rather than the app — that class needs a grep."*
- * This is that grep, made total.
+ * COMPILED IN, and a link is not: `PatientPathway` legitimately ships on both
+ * surfaces. `check:catalog` resolves the catalog's launch paths, the SMART
+ * landing route and every `<Navigate>` target — but against the UNION of both
+ * apps' tables (`readAllRouteTables`), so a guide redirect into `/settings`
+ * resolves there and always would have.
  *
- * ── What it checks ────────────────────────────────────────────────────────
+ * ── What it checks, per surface ───────────────────────────────────────────
  *
- * RULE 1  Every literal `to="…"` / `navigate('…')` in a module reachable from
- *         App.tsx on the clinical surface resolves against the clinical routes.
- * RULE 2  Every `<Navigate>` registered on the clinical surface points at a
- *         path that resolves there — a redirect that strands a clinician is the
- *         same defect one level up.
+ * RULE 1  Every literal navigation target in a module reachable from that
+ *         app's App.tsx resolves against that app's routes. Four forms:
+ *         `to="…"`, `navigate('…')`, the object property `to: '…'`, and any
+ *         object property ending in `href`/`Href` whose value is an absolute
+ *         path — see the note on the fourth below.
+ * RULE 2  Every `<Navigate>` registered in that app points at a path that
+ *         resolves there — a redirect that strands the reader is the same
+ *         defect one level up. A redirect whose destination is the OTHER app
+ *         is not a `<Navigate>` at all: it is a cross-origin hop
+ *         (`apps/guide/src/components/ClinicalRedirect.tsx`), which this rule
+ *         does not read and the router never sees.
+ *
+ * ── The shared views, and why the fourth form exists ──────────────────────
+ *
+ * The 29 tool views in `packages/tool-views` are reached from BOTH apps, so a
+ * route literal inside one is right on one surface and wrong on the other by
+ * construction — no rule over the module can say which. The fix is that they
+ * hold none: each app declares its routes for them in a `SurfaceLinks` object
+ * (`apps/clinical/src/surfaceLinks.ts`, `apps/guide/src/data/surfaceLinks.ts`)
+ * whose properties are `href: '/patient/record'`, `chartHref: '…'`,
+ * `registryHref: '…'`. Those literals live in the app whose table they must
+ * resolve against — which is exactly where this walk finds them, provided it
+ * reads that property form. Without it the three most important literals on
+ * the clinical surface would be invisible again, which is how the `to:` form
+ * came to be added the first time.
  *
  * ── What it cannot see ────────────────────────────────────────────────────
  *
- * ⚠️ **A computed target.** `navigate(somePath)` and `` to={`/patient/${id}`} ``
- * carry no literal to check. `ToolDetail` builds `/guide/tools/${slug}/try` that
- * way and is invisible here — it is safe only because its one caller is a guide
- * page, which is an argument recorded in CLAUDE.md rather than a fact this gate
- * establishes. A literal is the common case and the one that regressed.
+ * ⚠️ **A computed target.** `navigate(somePath)`, `` to={`/patient/${id}`} ``
+ * and the guide's `launchHref: (slug) => `/guide/tools/${slug}/try`` carry no
+ * literal to check. The try route exists and `check:tool-view-routes` pins the
+ * slugs, which is an argument rather than a fact this gate establishes. A
+ * literal is the common case and the one that regressed, twice.
  *
  * ⚠️ **A relative target** (`to="caseload"`) resolves against the rendering
  * route, which is not knowable from the file. Skipped deliberately, and counted
  * so the summary says how many.
  *
- * ⚠️ **`href` is not scanned, deliberately.** An `href` in this app is either an
- * external URL (`PROJECT_LINKS`, the mock EHR) or a path the WORKER serves and
- * the router never sees — `IG.href` is `${BASE_URL}ig/`, four thousand files of
- * rendered IG. Resolving those against the route table would report the
- * Implementation Guide as a broken link on both surfaces.
+ * ⚠️ **`href="…"` ATTRIBUTES are not scanned, deliberately.** An `href`
+ * attribute in these apps is either an external URL (`PROJECT_LINKS`, the mock
+ * EHR) or a path the WORKER serves and the router never sees — `IG.href` is
+ * `${BASE_URL}ig/`, four thousand files of rendered IG. Resolving those against
+ * a route table would report the Implementation Guide as a broken link on
+ * both surfaces. The property FORM is scanned (above) and is safe for the same
+ * reason the attribute is not: a template literal or an `https://` string does
+ * not start with `/` and is skipped.
  */
 import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
@@ -61,45 +96,19 @@ import { appRoot, appRootFloors, REPO_ROOT } from './lib/app-roots.mjs'
 import { resolveImport, spierPackageRoots } from './lib/module-graph.mjs'
 import { reportFloors } from './lib/floors.mjs'
 
-const SRC = appRoot('apps/clinical/src')
-const APP = join(SRC, 'App.tsx')
-
 let failures = 0
 function fail(msg) {
   console.error(`✗ ${msg}`)
   failures++
 }
 
-const { clinical, demoOnly, redirects, redirectTargets } = readSurfaceRoutes()
+const { byApp } = readSurfaceRoutes()
 
-// ── Which modules the clinical bundle actually reaches ──────────────────────
-//
-// Walked from App.tsx rather than from the clinical routes' components, because
-// the shell is a LAYOUT route (`<Route element={<Shell/>}>`) with no `path` —
-// starting from paths would miss `Shell`, `AppShell` and `Sidebar`, and the
-// sidebar is the single most likely place for a guide link to sit.
-//
-// The 10 demo-only pages are skipped the way the bundler skips them: their
-// declaration is `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface`, so with
-// `IS_DEMO` folded to false the import is unreachable and the chunk is not
-// emitted — which is the property `check:surface` asserts from the bundle.
-// ⚠️ **There is nothing to skip any more, and that is the point of the split.**
-// This used to parse `IS_DEMO ? lazy(() => import(…))` out of a shared App.tsx
-// and walk around those 10 pages, because the guide's chunks were declared in
-// the same file the clinician's app was built from. They are `apps/guide` now:
-// a page this app does not import is not in this app's graph at all, so the
-// walk below is the whole clinical surface by construction.
 // ⚠️ Resolves `@spier/<pkg>/…` too — a relative-only resolver stopped this walk
 // at packages/tool-views and the reach fell from 89 modules to 61 with the gate
 // still green. See lib/module-graph.mjs.
 const PACKAGE_ROOTS = spierPackageRoots(REPO_ROOT)
 const resolveSpec = (spec, fromFile) => resolveImport(spec, fromFile, REPO_ROOT, PACKAGE_ROOTS)
-
-// ⚠️ `blankDemoBlocks` lived here: it erased `{IS_DEMO && (…)}` JSX before
-// reading links, since that markup is not in the clinical bundle. With one app
-// per surface there is no such block to erase — a guide link in this tree is a
-// real defect, not a conditionally-compiled one, which is exactly what this
-// gate should now say.
 
 /**
  * The ROUTE part of a navigation target — everything before `#` or `?`.
@@ -116,106 +125,164 @@ function routePart(target) {
   return target.split(/[#?]/)[0] || '/'
 }
 
-const seen = new Map() // file → trail
-const stack = [[APP, ['App.tsx']]]
-while (stack.length) {
-  const [file, trail] = stack.pop()
-  if (seen.has(file)) continue
-  seen.set(file, trail)
-  const src = stripComments(readFileSync(file, 'utf8'))
-  for (const m of src.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)) {
-    const spec = m[1]
-    const next = resolveSpec(spec, file)
-    if (next && !next.includes('.test.')) stack.push([next, [...trail, relative(SRC, next)]])
+/**
+ * The two surfaces, each with the words its failure message needs. `landing`
+ * is where that app's `*` catch-all puts a reader, so the message can say what
+ * the defect looks like rather than what the router did.
+ */
+const SURFACES = [
+  {
+    id: 'clinical',
+    other: 'guide',
+    reader: 'a clinician',
+    landing: 'the patient record',
+    // Floors from the first green run after the apps split; a narrowing of the
+    // walk, the route parser or the target scanner shows up as a drop below.
+    floors: { modules: 105, routes: 20, targets: 13 },
+  },
+  {
+    id: 'guide',
+    other: 'clinical',
+    reader: 'a reader of the guide',
+    landing: 'the Overview',
+    // From this gate's first run over the guide (2026-09-20): 206 modules, 37
+    // routes, 25 absolute targets. Set below those so a lazy page being folded
+    // into the walk or a route being added does not move them, and a collapse
+    // of the reach does.
+    floors: { modules: 150, routes: 30, targets: 18 },
+  },
+]
+
+/**
+ * Every module the app reaches from its App.tsx, with the import trail that
+ * reached it.
+ *
+ * Walked from App.tsx rather than from the routes' components, because the
+ * shell is a LAYOUT route (`<Route element={<Shell/>}>`) with no `path` —
+ * starting from paths would miss `Shell`, `AppShell` and `Sidebar`, and the
+ * sidebar is the single most likely place for a cross-surface link to sit.
+ * There is nothing to skip: a page an app does not import is not in that app's
+ * graph at all, so the walk is the whole surface by construction.
+ */
+function reach(src, app) {
+  const seen = new Map()
+  const stack = [[app, ['App.tsx']]]
+  while (stack.length) {
+    const [file, trail] = stack.pop()
+    if (seen.has(file)) continue
+    seen.set(file, trail)
+    const text = stripComments(readFileSync(file, 'utf8'))
+    for (const m of text.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)) {
+      const next = resolveSpec(m[1], file)
+      if (next && !next.includes('.test.')) stack.push([next, [...trail, relative(src, next)]])
+    }
   }
+  return seen
 }
 
-// ── RULE 1 ──────────────────────────────────────────────────────────────────
-let checked = 0
-let relativeSkipped = 0
-for (const [file, trail] of seen) {
-  if (file === APP) continue // RULE 2 owns the route table itself
-  const src = stripComments(readFileSync(file, 'utf8'))
-  const targets = [
-    ...[...src.matchAll(/\bto=["']([^"']+)["']/g)].map((m) => m[1]),
-    ...[...src.matchAll(/\bnavigate\(\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
+/** Every literal navigation target in one module's source — the four forms. */
+function targetsIn(text) {
+  return [
+    ...[...text.matchAll(/\bto=["']([^"']+)["']/g)].map((m) => m[1]),
+    ...[...text.matchAll(/\bnavigate\(\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
     // ⚠️ **The object-property form, and leaving it out made this gate miss the
     // four links that matter most.** `Sidebar` builds the CLINICAL nav —
     // Patient record, Caseload, Measures, Settings — as an array of
     // `{ to: '/…', label }` mapped into `<NavLink to={item.to}>`, so no `to="…"`
     // attribute exists to match. The first green run of this gate checked 19
     // targets and not one of them was the clinical sidebar.
-    ...[...src.matchAll(/\bto:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
+    ...[...text.matchAll(/\bto:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
+    // The `SurfaceLinks` form — `href:`, `chartHref:`, `registryHref:` — and
+    // the Overview's lens cards. See the header for why this is scanned and
+    // the `href="…"` attribute is not.
+    ...[...text.matchAll(/\b\w*[hH]ref:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
   ]
-  for (const t of targets) {
-    if (!t.startsWith('/')) { relativeSkipped++; continue }
-    checked++
-    const path = routePart(t)
-    if (routeResolves(path, clinical)) continue
-    const why = routeResolves(path, demoOnly)
-      ? `"${t}" is registered inside an \`{IS_DEMO && (…)}\` block, so the clinical build does ` +
-        'not register it at all'
-      : `"${t}" resolves to no route on either surface`
+}
+
+const summaries = []
+for (const surface of SURFACES) {
+  const table = byApp[surface.id]
+  const otherTable = byApp[surface.other]
+  const src = appRoot(table.source)
+  const app = join(src, 'App.tsx')
+  const seen = reach(src, app)
+
+  // ── RULE 1 ────────────────────────────────────────────────────────────────
+  let checked = 0
+  let skipped = 0
+  for (const [file, trail] of seen) {
+    if (file === app) continue // RULE 2 owns the route table itself
+    const text = stripComments(readFileSync(file, 'utf8'))
+    for (const t of targetsIn(text)) {
+      if (!t.startsWith('/')) { skipped++; continue }
+      checked++
+      const path = routePart(t)
+      if (routeResolves(path, table.paths)) continue
+      const why = routeResolves(path, otherTable.paths)
+        ? `"${t}" is a route of apps/${surface.other}, which is another origin since the apps split`
+        : `"${t}" resolves to no route on either surface`
+      fail(
+        `${relative(REPO_ROOT, file)} navigates to a path ${surface.reader} cannot reach: ${why}.\n` +
+          `    reached from ${trail.join(' → ')}\n` +
+          `    A missing route falls to the \`*\` catch-all, which redirects to \`/\` — so this does ` +
+          `not 404, it silently returns the reader to ${surface.landing}.\n` +
+          `    Point it at a route apps/${surface.id} registers, or — if the view is shared — read it ` +
+          'from SurfaceLinksContext so each app supplies its own.',
+      )
+    }
+  }
+  if (checked === 0) {
     fail(
-      `${relative(REPO_ROOT, file)} navigates to a path a clinician cannot reach: ${why}.\n` +
-        `    reached from ${trail.join(' → ')}\n` +
-        '    A missing route falls to the `*` catch-all, which redirects to `/` — so this does ' +
-        'not 404, it silently returns the clinician to the patient record.\n' +
-        '    Gate the link on IS_DEMO, or point it at a route the clinical surface registers.',
+      `no absolute navigation targets were read from any ${surface.id} module, so RULE 1 verified ` +
+        'nothing there. The link scanner has stopped matching its four forms.',
     )
   }
-}
 
-if (checked === 0) {
-  fail(
-    'no absolute navigation targets were read from any clinical module, so RULE 1 verified ' +
-      'nothing. The link scanner has stopped matching `to="…"` / `navigate(\'…\')`.',
+  // ── RULE 2 ────────────────────────────────────────────────────────────────
+  let redirectsChecked = 0
+  for (const from of table.redirects) {
+    const to = table.redirectTargets.get(from)
+    if (to === undefined || !to.startsWith('/')) continue
+    redirectsChecked++
+    if (routeResolves(routePart(to), table.paths)) continue
+    fail(
+      `apps/${surface.id}/src/App.tsx: the redirect at "${from}" sends the reader to "${to}", ` +
+        `which does not resolve in this app — ${surface.reader} following it lands on the catch-all. ` +
+        `If the destination is the other app's, it is a cross-origin hop, not a <Navigate>.`,
+    )
+  }
+  if (redirectsChecked === 0) {
+    fail(`no ${surface.id} redirects were read, so RULE 2 verified nothing there.`)
+  }
+
+  // ── Liveness ──────────────────────────────────────────────────────────────
+  //
+  // ⚠️ Three collapsible dimensions per surface. The reach is a regex walk from
+  // App.tsx, the route set is parsed out of the same file, and the targets are
+  // literals scraped from the modules — a narrowing in any one of them leaves
+  // this printing a confident ✓ over a fraction of the surface. The
+  // `checked === 0` guards above cover the collapse-to-nothing cases; these
+  // cover the collapse-to-a-few.
+  reportFloors(
+    [
+      { source: `${surface.id} import graph`, dimension: 'module(s) reached', actual: seen.size, floor: surface.floors.modules },
+      { source: `${surface.id} route table`, dimension: 'route(s)', actual: table.paths.size, floor: surface.floors.routes },
+      { source: `${surface.id} import graph`, dimension: 'absolute link target(s)', actual: checked, floor: surface.floors.targets },
+    ],
+    fail,
+  )
+
+  summaries.push(
+    `${surface.id}: ${seen.size} module(s) reached, ${checked} absolute target(s) and ` +
+      `${redirectsChecked} redirect(s) resolve against ${table.paths.size} route(s) ` +
+      `(${skipped} relative/external target(s) skipped)`,
   )
 }
 
-// ── RULE 2 ──────────────────────────────────────────────────────────────────
-let redirectsChecked = 0
-for (const from of redirects) {
-  if (!clinical.has(from)) continue // a demo-only redirect is unreachable there
-  const to = redirectTargets.get(from)
-  if (to === undefined || !to.startsWith('/')) continue
-  redirectsChecked++
-  if (routeResolves(routePart(to), clinical)) continue
-  fail(
-    `App.tsx: the redirect at "${from}" is registered on the clinical surface but sends the ` +
-      `reader to "${to}", which does not resolve there — a clinician following it lands on ` +
-      'the catch-all.',
-  )
-}
-if (redirectsChecked === 0) {
-  fail('no clinical redirects were read, so RULE 2 verified nothing.')
-}
-
-// ── Liveness ────────────────────────────────────────────────────────────────
-//
-// ⚠️ Three collapsible dimensions and no floor until now. The reach is a regex
-// walk from App.tsx, the route set is parsed out of the same file, and the
-// targets are literals scraped from the modules — a narrowing in any one of
-// them leaves this printing a confident ✓ over a fraction of the surface. The
-// The `redirectsChecked === 0` guard above covers
-// the collapse-to-nothing cases; these cover the collapse-to-a-few.
-reportFloors(
-  [
-    ...appRootFloors(),
-    { source: 'clinical import graph', dimension: 'module(s) reached', actual: seen.size, floor: 105 },
-    { source: 'clinical route table', dimension: 'route(s)', actual: clinical.size, floor: 20 },
-    { source: 'clinical import graph', dimension: 'absolute link target(s)', actual: checked, floor: 13 },
-  ],
-  fail,
-)
+reportFloors(appRootFloors(), fail)
 
 if (failures) {
   console.error(`\nsurface-links check FAILED (${failures} issue(s)).`)
   process.exit(1)
 }
-console.log(
-  `✓ surface links: ${seen.size} module(s) reachable on the clinical surface, ` +
-    `${checked} absolute target(s) and ${redirectsChecked} clinical redirect(s) all resolve ` +
-    `against its ${clinical.size} route(s) (${relativeSkipped} relative target(s) skipped; ` +
-    `${demoOnly.size} route(s) are demo-only).`,
-)
+console.log(`✓ surface links — ${summaries.join('; ')}.`)

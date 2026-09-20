@@ -14,22 +14,8 @@ import { Pill } from '@spier/ui/Pill'
 import { DataTable } from '@spier/ui/DataTable'
 import '../css/ToolDetail.css'
 import { Button } from '@spier/ui/Button'
-import { isToolViewSlug } from '@spier/tool-views/data/toolViews'
-
-/**
- * The guide's own route for a tool's recorder: the same view the clinician's
- * launch path renders, with the FHIR opened up.
- *
- * ⚠️ Derived from the launch path's LAST SEGMENT rather than from a second
- * hand-kept list. `TOOL_VIEWS` is keyed by that segment, and `isToolViewSlug`
- * is what stops this offering a link to a slug with no view — a tool whose
- * launch path points somewhere `TOOL_VIEWS` does not cover simply gets no
- * "try it" button rather than a dead one.
- */
-function tryItHref(launchPath: string): string | null {
-  const slug = launchPath.split(/[?#]/)[0].split('/').filter(Boolean).pop()
-  return isToolViewSlug(slug) ? `/guide/tools/${slug}/try` : null
-}
+import { guideTryHref } from '../data/surfaceLinks'
+import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 
 interface ToolDetailProps {
   tool: Tool
@@ -132,32 +118,39 @@ export function ToolDetail({ tool }: ToolDetailProps) {
 
       {tool.launchActions.length > 0 && (
         <section className="tool-detail-section">
-          <h4 className="tool-detail-heading">Launch</h4>
-          {/* Two buttons per action, and they are two different claims. The
-              first is the CLINICIAN's path — the one the catalog publishes, the
-              one a CDS card's `type: "smart"` link and a SMART `intent` both
-              resolve to — and it renders the recorder exactly as a clinician
-              meets it, with no FHIR anywhere. The second is this guide's own
-              route, which renders the same element with the wire format opened
-              up. Before 2026-09-17 there was one button and one route serving
-              both readers, which is why a clinician saw JSON. */}
+          <h4 className="tool-detail-heading">Try it</h4>
+          {/* ⚠️ The catalog's launch path is the CLINICIAN's route — what a CDS
+              card's `type: "smart"` link and a SMART `intent` resolve to — and
+              it is a route of apps/clinical, not of this app. Until 2026-09-20
+              the first button here linked it directly, and since the apps split
+              every one of those 33 buttons fell to the guide's catch-all and
+              landed on the Overview. The guide explains and hosts; the mock EHR
+              holds and launches (CLAUDE.md) — so the form opens on the guide's
+              own try route, and the clinician's launch is the Demo EHR's to
+              offer. `guideTryHref` returns null for a launch path nothing here
+              renders (the measures dashboard), and that tool gets only the
+              outbound button rather than a dead one. */}
           <div className="tool-detail-launch">
             {tool.launchActions.map(action => {
-              const tryIt = tryItHref(action.path)
-              return (
-                <span key={action.path} className="tool-detail-launch-pair">
-                  <Button to={action.path} variant={action.variant ?? 'primary'} size="sm" arrow>
-                    {action.label}
-                  </Button>
-                  {tryIt && (
-                    <Button to={tryIt} variant="secondary" size="sm">
-                      Try it with the FHIR view
-                    </Button>
-                  )}
-                </span>
-              )
+              const tryIt = guideTryHref(action.path)
+              return tryIt ? (
+                <Button key={action.path} to={tryIt} variant={action.variant ?? 'primary'} size="sm" arrow>
+                  {/* The catalog's label is the clinician's verb; here the
+                      button opens a form on this page's origin, so it says so. */}
+                  {action.label.replace(/^Launch\s+/, 'Try ')}
+                </Button>
+              ) : null
             })}
+            <Button href={MOCK_EHR_URL} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
+              Launch from the {MOCK_EHR_LABEL}
+            </Button>
           </div>
+          <p className="tool-detail-body">
+            The form opens here with the FHIR view on: the Questionnaire it is built from, the response
+            your answers produce, and what SPiER would write back. A clinician meets the same form from a
+            patient&rsquo;s chart, with none of that showing &mdash; open the {MOCK_EHR_LABEL} and press{' '}
+            <strong>Launch SPiER</strong> to see it that way.
+          </p>
         </section>
       )}
 
