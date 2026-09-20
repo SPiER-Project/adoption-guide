@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { LaunchLink } from './LaunchLink'
 import { usePatient } from '../context/PatientContext'
 import { makeId } from '@spier/core/lib/id'
 import {
@@ -174,7 +174,7 @@ export function FollowUpAppointmentView() {
       {tracking.awaitingNoShowFollowUp && (
         <WorkflowHint>
           The most recent visit was a <strong>no-show</strong>. Record the re-engagement attempt on{' '}
-          <Link to="/patient/workflow/outreach">Follow-Up Outreach</Link> — a missed appointment by
+          <LaunchLink slug="outreach">Follow-Up Outreach</LaunchLink> — a missed appointment by
           a high-risk patient is a safety event, not an empty slot.
         </WorkflowHint>
       )}

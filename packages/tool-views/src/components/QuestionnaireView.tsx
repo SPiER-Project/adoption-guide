@@ -16,6 +16,8 @@ import type { RendererProperties } from '@formbox/renderer'
  */
 type RendererQuestionnaire = RendererProperties<'r4'>['questionnaire']
 import { usePatient } from '../context/PatientContext'
+import { useSurfaceLinks } from '../context/SurfaceLinksContext'
+import { launchSlug } from '../lib/launchSlug'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from '@spier/ui/PageHeader'
@@ -80,6 +82,10 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
   const [searchParams] = useSearchParams()
   const { addResponse, addCarePlan, writebackReport } = usePatient()
+  // Where this surface's chart and other tool views live — the clinician's
+  // routes in the clinical app, the try routes in the guide, and no chart at
+  // all there. The literals are the app's, not this view's (SurfaceLinksContext).
+  const links = useSurfaceLinks()
 
   function handleSubmit(submittedResponse: QuestionnaireResponseResource) {
     const base = submittedResponse || response
@@ -132,6 +138,15 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
     }
   }
 
+  // The mapper names the next tool by its clinician launch path — core knows
+  // no other route. The surface resolves the slug: the same path on the
+  // clinical surface, the try route on the guide, and no button at all where
+  // the surface renders nothing for it.
+  const suggested = submitResult?.riskAlert.suggestedAction
+  const suggestedSlug = suggested ? launchSlug(suggested.path) : undefined
+  const suggestedHref = suggestedSlug ? links.launchHref(suggestedSlug) : null
+  const suggestedNext = suggested && suggestedHref ? { href: suggestedHref, label: suggested.label } : null
+
   if (!questionnaire) {
     // Unreachable through the catalog: `questionnaireUrl` is typed as a
     // QUESTIONNAIRE_URLS value at every call site, and check:catalog asserts the
@@ -140,7 +155,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
     // route with a console error.
     return (
       <div className="form-view">
-        <PageHeader eyebrowStyle="pill" eyebrow={['Patient Chart', 'Assessment']} up="/patient/record" title={title} />
+        <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Assessment']} up={links.parent.href} title={title} />
         <EmptyState title="Instrument unavailable">
           This assessment is not part of the current build.
         </EmptyState>
@@ -150,7 +165,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
 
   return (
     <div className="form-view">
-      <PageHeader eyebrowStyle="pill" eyebrow={['Patient Chart', 'Assessment']} up="/patient/record" title={title} />
+      <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Assessment']} up={links.parent.href} title={title} />
 
       <div className="form-wrapper">
         <div className="form-card">
@@ -207,10 +222,12 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
                 </div>
               )}
               <div className="submit-result-actions">
-                <Button to="/patient/record#activity" variant="link" size="sm">View in chart</Button>
-                {submitResult.riskAlert.suggestedAction && (
-                  <Button to={submitResult.riskAlert.suggestedAction.path} size="sm" arrow>
-                    {submitResult.riskAlert.suggestedAction.label}
+                {links.chartHref && (
+                  <Button to={links.chartHref} variant="link" size="sm">View in chart</Button>
+                )}
+                {suggestedNext && (
+                  <Button to={suggestedNext.href} size="sm" arrow>
+                    {suggestedNext.label}
                   </Button>
                 )}
               </div>
@@ -218,8 +235,13 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
           )}
           {submitted && !carePlan && !submitResult && (
             <Notice tone="success">
-              Response saved to patient chart.{' '}
-              <Link to="/patient/record#activity">View in chart</Link>
+              Response saved.
+              {links.chartHref && (
+                <>
+                  {' '}
+                  <Link to={links.chartHref}>View in chart</Link>
+                </>
+              )}
             </Notice>
           )}
         </div>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
+import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { makeId } from '@spier/core/lib/id'
 import {
   buildEpisode,
@@ -37,6 +38,9 @@ import { Button } from '@spier/ui/Button'
 
 export function RiskEpisodeView() {
   const { addArtifact, activePatientId, episodes, flags, observations, responses } = usePatient()
+  // The registry is a page of the clinical app; the guide has none, so the
+  // notice's second link is absent there rather than dead (SurfaceLinksContext).
+  const { registryHref } = useSurfaceLinks()
 
   const openEpisode = useMemo(() => findOpenEpisode(episodes), [episodes])
   const activeFlag = useMemo(
@@ -152,7 +156,7 @@ export function RiskEpisodeView() {
       draft={draft}
       draftTitle={openEpisode ? 'Live FHIR (close episode)' : 'Live FHIR (open episode + flag)'}
       notice={notice}
-      noticeExtra={<Link to="/population">Open the risk registry</Link>}
+      noticeExtra={registryHref && <Link to={registryHref}>Open the risk registry</Link>}
     >
       {openEpisode ? (
         <>

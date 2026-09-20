@@ -42,6 +42,12 @@ import { SmartRedirect } from '@spier/app-shell/components/SmartRedirect'
 // apps/clinical's, and picks between panel and launch.
 import { AppShell } from './components/AppShell'
 
+// Published paths of the CLINICAL app, kept working on this origin. Each used
+// to be a <Navigate> to its new home; those homes are apps/clinical routes on
+// another origin since the apps split, so the hop is cross-origin. See the
+// component for the defect (every one landed on the Overview, silently).
+import { ClinicalRedirect } from './components/ClinicalRedirect'
+
 // Cross-tab patient-context sync (simulated FHIRcast).
 import { FhircastListener } from '@spier/app-shell/components/FhircastListener'
 
@@ -73,12 +79,11 @@ function LegacyGuideRedirect() {
   return <Navigate to={`/guide${rest ? `/${rest}` : ''}`} replace />
 }
 
-// /patient/chart/:patientId → /patient/record/:patientId. A plain <Navigate>
-// cannot do this: the id has to survive, and dropping it would land a launched
-// chart on whichever patient happened to be stored.
+// /chart/screenings/:tool → the clinical app's /patient/assessments/:tool. The
+// tool has to survive the hop, so it is a component rather than one literal.
 function LegacyAssessmentRedirect() {
   const { tool } = useParams<{ tool: string }>()
-  return <Navigate to={tool ? `/patient/assessments/${tool}` : '/patient/assessments'} replace />
+  return <ClinicalRedirect clinicalPath={tool ? `/patient/assessments/${tool}` : '/patient/assessments'} />
 }
 
 function AppRoutes() {
@@ -138,15 +143,19 @@ function AppRoutes() {
                 setting of the SMART app, which owns the tool catalog, not a
                 section of a guide that explains and hosts. The redirect stays —
                 the path was published and is linked from the chart, both surface
-                explainers and docs/mock-ehr-demo-script.md. */}
-            <Route path="tool-configuration" element={<Navigate to="/settings" replace />} />
+                explainers and docs/mock-ehr-demo-script.md.
+                ⚠️ /settings is a route of apps/clinical, on another origin, so
+                this is a cross-origin hop and not a <Navigate> — which, since the
+                apps split, resolved to this app's catch-all and put the reader on
+                the Overview. */}
+            <Route path="tool-configuration" element={<ClinicalRedirect clinicalPath="/settings" />} />
             <Route path="data-dictionary" element={<DataDictionary />} />
             {/* Measures moved to the EHR side (step D, #391): it is the only guide
                 section that read patient data, and the guide explains and
                 configures the pathway rather than holding a caseload. The redirect
                 stays — /guide/measures is a published tool launch path and is
                 already linked from CDS cards in the wild. */}
-            <Route path="measures" element={<Navigate to="/population/measures" replace />} />
+            <Route path="measures" element={<ClinicalRedirect clinicalPath="/population/measures" />} />
             <Route path="cds-service" element={<CdsServiceGuide />} />
             {/* Published path, kept as a redirect after the move under Tools. */}
             <Route path="adoption-readiness" element={<Navigate to="/guide/tools/readiness" replace />} />
@@ -174,13 +183,15 @@ function AppRoutes() {
               context must not be declared a guide page. */}
           <Route path="/guide/tools/:slug/try" element={<ToolTryIt />} />
 
-          {/* Legacy /chart/* redirects — keep for one cycle */}
-          <Route path="/chart" element={<Navigate to="/patient/record" replace />} />
-          <Route path="/chart/dashboard" element={<Navigate to="/patient/record" replace />} />
-          <Route path="/chart/screenings" element={<Navigate to="/patient/assessments" replace />} />
+          {/* Legacy /chart/* redirects — keep for one cycle. The first six meant
+              the chart, which is apps/clinical's, so they hop origins; the rest
+              meant guide pages and stay <Navigate>s. */}
+          <Route path="/chart" element={<ClinicalRedirect clinicalPath="/patient/record" />} />
+          <Route path="/chart/dashboard" element={<ClinicalRedirect clinicalPath="/patient/record" />} />
+          <Route path="/chart/screenings" element={<ClinicalRedirect clinicalPath="/patient/assessments" />} />
           <Route path="/chart/screenings/:tool" element={<LegacyAssessmentRedirect />} />
-          <Route path="/chart/careplan" element={<Navigate to="/patient/care-plans" replace />} />
-          <Route path="/chart/encounters" element={<Navigate to="/patient/encounters" replace />} />
+          <Route path="/chart/careplan" element={<ClinicalRedirect clinicalPath="/patient/care-plans" />} />
+          <Route path="/chart/encounters" element={<ClinicalRedirect clinicalPath="/patient/encounters" />} />
           <Route path="/chart/implementation-guide" element={<Navigate to="/guide" replace />} />
           {/* Both of these meant "the tool catalogue", which is /guide/tools now. */}
           <Route path="/chart/workflow" element={<Navigate to="/guide/tools" replace />} />

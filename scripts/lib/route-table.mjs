@@ -268,7 +268,22 @@ export function readSurfaceRoutes() {
         'being read, and real clinical routes would be reported unreachable.',
     )
   }
-  return { paths, clinical, demoOnly, redirects: clin.redirects, redirectTargets: clin.redirectTargets }
+  return {
+    paths,
+    clinical,
+    demoOnly,
+    redirects: clin.redirects,
+    redirectTargets: clin.redirectTargets,
+    // Each app's own table, whole, for a rule that runs per surface rather than
+    // "X must be in clinical". check:surface-links walks BOTH apps since
+    // 2026-09-20 — the guide's links into /patient/* were dead for a day with
+    // this reader returning only the clinical redirects — so a surface rule
+    // reads its own paths, redirects and targets from here.
+    byApp: {
+      clinical: { source: 'apps/clinical/src', paths: clinical, redirects: clin.redirects, redirectTargets: clin.redirectTargets },
+      guide: { source: 'apps/guide/src', paths: new Set(guide.paths), redirects: guide.redirects, redirectTargets: guide.redirectTargets },
+    },
+  }
 }
 
 /**

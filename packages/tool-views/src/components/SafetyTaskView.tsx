@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { LaunchLink } from './LaunchLink'
 import { usePatient } from '../context/PatientContext'
 import { makeId } from '@spier/core/lib/id'
 import {
@@ -145,7 +145,7 @@ export function SafetyTaskView() {
       {!openEpisode && (
         <WorkflowHint>
           No open episode — the task will be recorded without an episode link. Open one from{' '}
-          <Link to="/patient/workflow/risk-episode">Suicide-Risk Episode</Link> first so it rolls
+          <LaunchLink slug="risk-episode">Suicide-Risk Episode</LaunchLink> first so it rolls
           up into the registry work queue.
         </WorkflowHint>
       )}

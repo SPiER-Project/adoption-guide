@@ -9,6 +9,7 @@ import { Pill, type PillTone } from '@spier/ui/Pill'
 import { SCALE_TONES } from '../lib/scaleTones'
 import { Card } from '@spier/ui/Card'
 import { DataTable } from '@spier/ui/DataTable'
+import { guideTryHref } from '../data/surfaceLinks'
 
 // ─────────────────────────────────────────────────────────────
 // Adoption Readiness matrix
@@ -102,6 +103,13 @@ interface ReadinessRow {
   tier: ReadinessTier
   /** Sum of the three target-maturity dimensions, 0–9. */
   depthScore: number
+  /**
+   * The guide's own route for the tool's form, or null when nothing here
+   * renders it. ⚠️ Not the catalog's launch path: that is the clinical app's
+   * route, on another origin since the apps split, and linking it from this
+   * table sent 34 rows to the Overview.
+   */
+  tryHref: string | null
 }
 
 /**
@@ -162,6 +170,7 @@ export function AdoptionReadiness() {
         buildStatus: status,
         tier: readinessTier(status),
         depthScore: m.electronic + m.writeback + m.triggering,
+        tryHref: tool.launchActions[0] ? guideTryHref(tool.launchActions[0].path) : null,
       }
     }
 
@@ -297,7 +306,7 @@ export function AdoptionReadiness() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ tool, buildStatus, tier }) => (
+                {rows.map(({ tool, buildStatus, tier, tryHref }) => (
                   <tr key={tool.id}>
                     <td className="ar-col-tool">
                       <span className="ar-tool-name">{tool.shortName ?? tool.name}</span>
@@ -324,12 +333,11 @@ export function AdoptionReadiness() {
                     <td className="ar-col-mat"><MaturityChip level={tool.targetMaturity.triggering} dimension="Workflow triggering" /></td>
                     <td className="ar-col-resources">
                       <div className="ar-resources">
-                        {tool.launchActions[0] && (
-                          <Link className="ar-res-link" to={tool.launchActions[0].path}>
-                            Demo
+                        {tryHref ? (
+                          <Link className="ar-res-link" to={tryHref}>
+                            Try it
                           </Link>
-                        )}
-                        {!tool.launchActions[0] && (
+                        ) : (
                           <EmptyState as="span">—</EmptyState>
                         )}
                       </div>

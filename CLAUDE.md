@@ -54,7 +54,7 @@ npm run check:guide-boundary    # the Adoption Guide holds no patient data (walk
 npm run check:catalog           # tool-catalog wiring; every launch path, landing route and <Navigate> target resolves
 npm run check:tool-view-routes  # the 29 tool views are ONE definition and EVERY app's route table agrees, both ways
 npm run check:eager-forms       # the 18 Questionnaires stay OUT of the entry chunk (walks STATIC imports)
-npm run check:surface-links     # every in-app link a CLINICIAN can reach resolves on the CLINICAL surface
+npm run check:surface-links     # every in-app link on EACH app resolves on THAT app's route table (both apps walked; shared views hold no route literal)
 npm run check:origins           # every hosted origin comes from deploy-origins.json; no literal in TypeScript
 npm run check:stages            # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve

@@ -131,7 +131,7 @@ export function ProviderAppGuide() {
           <li>
             <strong>What this implementation has turned on.</strong> A card naming a tool the site
             does not use is a recommendation nobody can act on, so it is dropped.{' '}
-            <Link to="/settings">Tool Configuration</Link> is where that is set.
+            That is set on the app&rsquo;s own Settings page &mdash; a page of the SMART app, not of this guide.
           </li>
         </ol>
         <p>
@@ -178,9 +178,9 @@ export function ProviderAppGuide() {
           else&rsquo;s chart; a portability claim needs a server we do not control.
         </Notice>
         <p>
-          With no host connected the app still runs the instruments and recorders against sample
-          data, which is the way to walk a workflow without a launch:{' '}
-          <Link to="/patient/record">open the demo chart</Link>.
+          Without a host there is no chart to open &mdash; the patient data lives in the EHR, and this
+          guide holds none. The instruments still fill in: every tool under{' '}
+          <Link to="/guide/tools">Tools</Link> opens the same form the app renders, with nothing behind it.
         </p>
         <Notice>
           <strong>You will not see any FHIR in it, and that is deliberate.</strong> A clinician
