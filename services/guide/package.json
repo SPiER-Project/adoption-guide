@@ -10,7 +10,7 @@
     "build:worker": "vite build",
     "build": "npm run build:web && npm run stage:assets && npm run build:worker",
     "dev": "npm run build:web && npm run stage:assets && npm run build:worker && wrangler dev",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "test -n \"$CI\" || { echo 'Refusing to deploy outside CI: stage:assets does not render the IG, so a local deploy ships a Worker whose /ig/* 404s. Push to main and let deploy.yml run this instead.' >&2; exit 1; }; npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
@@ -32,5 +32,8 @@
     "vite": "^7.3.1",
     "vitest": "^3.0.5",
     "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=22.22.2"
   }
 }

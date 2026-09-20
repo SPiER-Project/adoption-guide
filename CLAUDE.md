@@ -281,7 +281,9 @@ Needs a terminology server, so it cannot be offline-reproducible:
 ```
 npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display literal in
                          # packages/core/src, apps/{guide,clinical}/src, tests/ and services/,
-                         # checked against tx.fhir.org
+                         # checked against tx.fhir.org. The two all-zero-floor roots
+                         # (apps/guide/src, services) also carry a minFiles floor, so an
+                         # emptied or renamed path fails even though 0 codings never can
 ```
 
 ⚠️ **`tx.fhir.org` is not the authority — Regenstrief is.**
@@ -344,6 +346,17 @@ node scripts/check-md-paths.mjs       # the OTHER half: every repo-rooted path w
                                       # the WHOLE tree, so a commit that only moves a .tsx rots them
                                       # while touching no .md, and a workflow that does not trigger
                                       # reports nothing rather than red
+node scripts/check-plan-status.mjs    # a docs/plans/*.md whose own "Status:" line claims the work
+                                      # already shipped (IMPLEMENTED/DONE/complete/MERGED) belongs in
+                                      # docs/plans/archive/ instead; an archived plan needs its
+                                      # "> Archived <date>" banner. Six plans were exactly the first
+                                      # case on 2026-09-20, moved by hand — this is what stops that
+                                      # drift from re-accumulating unnoticed. Also in docs-links.yml.
+                                      # ⚠️ Reads a designated "Status:" LINE, never the whole file — a
+                                      # whole-document scan for these words flags ordinary prose (a
+                                      # dated addendum saying one section "is complete and merged"
+                                      # while the file's own primary Status line says the rest is still
+                                      # a recommendation) as if the entire plan had shipped
 node scripts/check-worker-csp.mjs     # ONE frame-ancestors policy across every Worker that serves a
                                       # SPiER SMART surface. Run from services/guide AND
                                       # services/clinical (`npm run check:csp`) rather than from web,

@@ -13,7 +13,8 @@ terminology server and so cannot be offline-reproducible — it runs weekly
 instead:
 ```
 npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display
-                         # literal in web/src and services/, checked against tx.fhir.org
+                         # literal in packages/core/src, apps/{guide,clinical}/src,
+                         # tests/ and services/, checked against tx.fhir.org
 ```
 
 ⚠️ **`PENDING_TX` is its one tolerated failure, and it is built to expire.**
@@ -80,6 +81,18 @@ overlaps the first — safe, because `found` is keyed by system|code|display and
 `perSource` is tallied per entry. **When you add a substantial new source of
 codings inside an already-scanned tree, give it its own entry** rather than
 assuming the parent floor covers it.
+
+⚠️ **A `minCodings` floor of all-zero cannot fail, by construction — which is
+correct for a source that legitimately writes no external terminology, but
+indistinguishable from a source whose path was renamed or emptied out from
+under it.** `apps/guide/src` and `services` are real zeros (the guide holds no
+mapper code; the Workers reuse the catalog rather than restating codes), so
+until 2026-09-20 both entries asserted nothing about whether the scan still
+reached them at all — deleting either tree outright would have kept reporting
+"0 (floor 0)" forever. `minFiles` closes that the same way `minCodings` closes
+it for coding counts: a floor on how many files `walkFiles` actually read,
+roughly half the live count, declared only on entries where every `minCodings`
+floor is 0 (a non-zero coding floor already proves files were read).
 
 ⚠️ **`terminology.yml` has a named reader and a written triage path —
 `docs/scheduled-checks-triage.md`.** A red run has two causes needing opposite

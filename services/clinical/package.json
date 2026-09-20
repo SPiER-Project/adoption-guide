@@ -10,7 +10,7 @@
     "build:worker": "vite build",
     "build": "npm run build:web && npm run stage:assets && npm run build:worker",
     "dev": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "test -n \"$CI\" || { echo 'Refusing to deploy outside CI — deploy.yml is the one place this Worker ships from. Push to main, or set CI=true to override.' >&2; exit 1; }; npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
@@ -39,5 +39,8 @@
     "line the other two services install — a fresh `npm install` here fails",
     "ERESOLVE on it. Lift the pin when all three move to workers-types 5",
     "together, not one package at a time."
-  ]
+  ],
+  "engines": {
+    "node": ">=22.22.2"
+  }
 }
