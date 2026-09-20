@@ -19,7 +19,7 @@ scheme). Making it CI would mean putting one person's credential in Actions
 secrets — a terms question, and a dependency on one person's account. So it is a
 tool you run deliberately: when adding codes, and after a LOINC release.
 
-The offline gates stay where they are. `npm run check:codings` (nightly, against
+The offline gates stay where they are. `npm run check:codings` (weekly and on terminology PRs, against
 `tx.fhir.org`) covers codings written in TypeScript; `scripts/validate-fhir.mjs`
 covers resources. This is the authority the other two approximate.
 

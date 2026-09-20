@@ -272,7 +272,7 @@ cannot see, and several were shipped in a form that passed a planted defect.
 detail — read it before adding a gate, changing one, or concluding that
 something is covered.
 
-### External terminology (nightly, not in `verify`)
+### External terminology (weekly + terminology PRs, not in `verify`)
 
 Needs a terminology server, so it cannot be offline-reproducible:
 
@@ -288,9 +288,9 @@ you add codings and after a LOINC release. It is not a gate: it needs a personal
 Regenstrief account.
 
 Before adding a coding, touching the `PENDING_TX` allowlist, or reading a red
-nightly, see [`docs/internals/terminology.md`](docs/internals/terminology.md) —
+cadence, see [`docs/internals/terminology.md`](docs/internals/terminology.md) —
 including why the per-source floors are load-bearing and why an allowlist entry
-is built to expire. A red nightly has a written triage path in
+is built to expire. A red run has a written triage path in
 [`docs/scheduled-checks-triage.md`](docs/scheduled-checks-triage.md).
 
 ### In `ig/`

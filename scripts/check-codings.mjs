@@ -37,15 +37,16 @@
  * than trying to teach this scanner to evaluate TypeScript.
  *
  * It deliberately does NOT scan ig/input/resources/questionnaires/ or ig/: those are resources, and
- * `node scripts/validate-fhir.mjs --tx <server>` already covers them. The nightly
+ * `node scripts/validate-fhir.mjs --tx <server>` already covers them. The workflow
  * workflow runs both.
  *
  * ─── Why it is not in `npm run verify` ───────────────────────
  *
  * It needs a terminology server, so it cannot be offline-reproducible the way the
- * other seven drift checks are. It runs nightly instead
- * (.github/workflows/terminology-nightly.yml), which is also why every failure
- * mode below exits non-zero rather than warning: a nightly check nobody watches
+ * other seven drift checks are. It runs weekly, and on every PR that touches
+ * terminology-authoring paths (#480), instead
+ * (.github/workflows/terminology.yml), which is also why every failure
+ * mode below exits non-zero rather than warning: a scheduled check nobody watches
  * has to be loud.
  *
  * Usage:
@@ -158,7 +159,7 @@ const familyOf = system =>
 // because this change did not grow it (both new codes were already present).
 //
 // The run prints the live count next to each floor on every invocation, so the
-// figures above are checkable against any recent nightly log rather than taken
+// figures above are checkable against any recent run's log rather than taken
 // on trust.
 const SCAN = [
   // snomed raised 7 -> 9 (#330): the live count had grown to 19 while the floor
@@ -179,8 +180,8 @@ const SCAN = [
   // Observation.code a mapper produces — which is what this scan was actually
   // finding in web/src, not new UI-side terminology. The move made this gate go
   // RED correctly (loinc 4, snomed 3 against floors of 5, 8), invisible until now
-  // only because this check runs nightly, not in `verify`, and nothing had
-  // triggered a PR-time run of terminology-nightly.yml since Phase 3 merged.
+  // only because this check runs on a schedule, not in `verify`, and nothing had
+  // triggered a PR-time run of terminology.yml since Phase 3 merged.
   // New floors are ~half the 2026-08-31 live count (loinc 4, snomed 3, tho 1),
   // rounded down but not to zero — a zero floor asserts nothing, per the
   // convention above.
@@ -316,7 +317,8 @@ const PENDING_TX = new Map([
   // ⚠️ Only the FIVE codes this script can see are listed. The panel (115564-7)
   // and the two uncoded-by-the-mapper items (115570-4, 115572-0) are written in
   // the Questionnaire JSON, which this script deliberately does not scan — they
-  // are `validate-fhir.mjs --tx`'s to check, and the nightly runs that too.
+  // are `validate-fhir.mjs --tx`'s to check, and this workflow runs that too.
+  // ⚠️ That script has its OWN PENDING_TX for them since #480 — see its note.
   // Listing them here was rule 3's first catch: an entry for a code no scan can
   // reach is an exemption that never expires, because nothing can ever prove it
   // stale.
@@ -478,7 +480,7 @@ async function validateCode({ system, code, display }) {
       // PENDING_TX's whole reason for existing (it never lags a LOINC release):
       // wiring it in means accepting the string form HERE, keeping the throw for a
       // genuinely absent `result`, and solving auth — it needs a Regenstrief
-      // account, which a nightly would have to carry as a secret. Until then
+      // account, which a scheduled job would have to carry as a secret. Until then
       // tx.fhir.org is the server and PENDING_TX absorbs the lag.
       if (typeof p.result !== 'boolean') throw new Error('response carried no boolean `result`')
       return { ok: p.result, message: p.message, serverDisplay: p.display }

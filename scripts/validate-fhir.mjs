@@ -443,14 +443,87 @@ const SILENT_PASS_PATTERNS = [
 ]
 let silentPasses = 0
 
+/**
+ * Codes the terminology SERVER does not have yet, keyed `system|code`.
+ *
+ * ⚠️ **The twin of `PENDING_TX` in `check-codings.mjs`, and it exists because
+ * the two halves were asymmetric.** That script has had this list since
+ * 2026-09-08 and stays green; this one had nothing, so the same ASQ codes made
+ * the resources job RED every night from 2026-09-14 onward. `docs/scheduled-
+ * checks-triage.md` had to carry a paragraph telling its reader to expect a red
+ * run — which is the state #480 argues is worse than no gate, because a check
+ * that is red for months is one people stop reading.
+ *
+ * ⚠️ **A code belongs here ONLY when its absence is the server's edition
+ * lagging the publishing authority.** A code that is absent because it is WRONG
+ * is #220, and it belongs in a fix, not here. The reason string must say which,
+ * and carry the date it was verified.
+ *
+ * ⚠️ **Built to EXPIRE, the same way its twin is.** An entry that stops
+ * matching — because tx.fhir.org picked the edition up — is a hard FAILURE, not
+ * a silent no-op. Without that, a suppression outlives its cause and quietly
+ * becomes a hole. This is checked only on a live-server run: with `-tx n/a`
+ * these errors cannot occur at all, so absence proves nothing.
+ */
+const PENDING_TX = new Map([
+  // ASQ — LOINC 2.83 published the panel, its item codes and the recency
+  // answers; tx.fhir.org serves 2.82. Adopted 2026-09-08 (ig/input/fsh/asq.fsh),
+  // confirmed by $lookup the same day. Delete each line as tx picks up 2.83 —
+  // together with the matching lines in check-codings.mjs's PENDING_TX, the
+  // "Currently expected" paragraph in docs/scheduled-checks-triage.md and the
+  // no-validate parameter in ig/sushi-config.yaml (#479).
+  //
+  // ⚠️ This list is LONGER than its twin's five, and that asymmetry is correct:
+  // check-codings.mjs scans TypeScript only, so it can never see the panel code
+  // or the two items no mapper writes. Those live in the Questionnaire JSON,
+  // which is this script's to check. An entry there for a code that script
+  // cannot reach would be an exemption nothing could ever prove stale.
+  ['http://loinc.org|115564-7', 'ASQ panel — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115566-2', 'ASQ q1 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115567-0', 'ASQ q2 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115568-8', 'ASQ q3 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115569-6', 'ASQ q4 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115570-4', 'ASQ recency item — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115571-2', 'ASQ q5 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|115572-0', 'ASQ acuity item — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|LA37190-8', 'ASQ recency answer "Yes" — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  ['http://loinc.org|LA37191-6', 'ASQ recency answer "No" — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+])
+
+/**
+ * The validator's wording for "this server does not have that code". Anchored on
+ * both the code AND the system, so an entry cannot suppress the same code
+ * arriving from a different CodeSystem.
+ */
+const UNKNOWN_CODE = /Unknown code '([^']+)' in the CodeSystem '([^']+)'/i
+
+/** Live server only — see the expiry note on PENDING_TX. */
+const txLive = tx !== 'n/a'
+
+/** entry key -> how many issues it suppressed, for the staleness check below. */
+const pendingHits = new Map()
+
 for (const oo of outcomes) {
   const file = oo?.extension?.find((e) => e.url === FILE_EXT)?.valueString ?? '(unknown file)'
   const issues = []
   for (const issue of oo?.issue ?? []) {
     const severity = issue.severity ?? 'information'
-    if (severity in totals) totals[severity]++
     const text = issue.details?.text ?? issue.diagnostics ?? '(no detail)'
     const silentPass = severity === 'warning' && SILENT_PASS_PATTERNS.some((re) => re.test(text))
+
+    // ⚠️ Resolved BEFORE the totals, so a pending code is not tallied as an
+    // error and then quietly subtracted. A silentPass is never eligible: those
+    // mean "nothing was checked", which no edition lag can excuse.
+    if (txLive && !silentPass && (severity === 'error' || severity === 'fatal')) {
+      const m = UNKNOWN_CODE.exec(text)
+      const key = m ? `${m[2]}|${m[1]}` : null
+      if (key && PENDING_TX.has(key)) {
+        pendingHits.set(key, (pendingHits.get(key) ?? 0) + 1)
+        continue
+      }
+    }
+
+    if (severity in totals) totals[severity]++
     if (silentPass) silentPasses++
     const keep =
       severity === 'error' || severity === 'fatal' || silentPass || (showWarnings && severity === 'warning')
@@ -489,6 +562,31 @@ console.log(
     `${blocking} error(s), ${totals.warning} warning(s), ${totals.information} info`,
 )
 for (const { rel, reason } of excluded) console.log(`  skipped ${rel} — ${reason}`)
+
+if (txLive) {
+  const suppressed = [...pendingHits.values()].reduce((a, b) => a + b, 0)
+  if (suppressed) {
+    console.log(
+      `  note: ${suppressed} issue(s) across ${pendingHits.size} code(s) skipped as pending ` +
+        `a ${tx} edition update — see PENDING_TX in this file.`,
+    )
+  }
+  // ⚠️ An entry that no longer suppresses anything has outlived its cause. Left
+  // in place it is a permanent hole nothing can see, so it fails the run — the
+  // same rule its twin in check-codings.mjs carries.
+  const stale = [...PENDING_TX.keys()].filter((k) => !pendingHits.has(k))
+  if (stale.length) {
+    console.error(
+      `\n✗ ${stale.length} PENDING_TX entr(ies) no longer suppress anything — ${tx} has ` +
+        'caught up, so delete them (and their twins in check-codings.mjs, the "Currently ' +
+        'expected" paragraph in docs/scheduled-checks-triage.md, and the no-validate ' +
+        'parameter in ig/sushi-config.yaml):',
+    )
+    for (const k of stale) console.error(`  ${k}  (was: ${PENDING_TX.get(k)})`)
+    process.exitCode = 1
+  }
+}
+
 if (tx === 'n/a') {
   console.log(
     '  note: no terminology server (-tx n/a), so codes from external systems ' +
@@ -524,4 +622,8 @@ if (blocking > 0) {
   console.error(`\n✗ ${blocking} FHIR conformance error(s) — see above`)
   process.exit(1)
 }
+// ⚠️ A stale PENDING_TX entry already set exitCode above. Claiming success here
+// would print a ✓ over a non-zero exit — the shape this file's own SILENT_PASS
+// note exists to prevent, one level up.
+if (process.exitCode) process.exit(process.exitCode)
 console.log('✓ no FHIR conformance errors')

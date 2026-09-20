@@ -99,7 +99,7 @@ jobs:
       # Pinned deliberately (E2b, docs/plans/repo-and-package-boundaries.md
       # §9.7) — scraped from the same constant scripts/lib/sushi-version.mjs's own
       # npx call uses, so CI and a local `npm run copy-fhir` never disagree.
-      # ig.yml, ig-publish.yml, deploy.yml and terminology-nightly.yml scrape
+      # ig.yml, ig-publish.yml, deploy.yml and terminology.yml scrape
       # the same line.
       - name: Read pinned sushi version
         id: sushi
@@ -139,7 +139,7 @@ jobs:
         run: sushi .
 
       # Keyed on the VERSION parsed out of scripts/lib/validator-jar.mjs, not on
-      # a hash of the file — the same key ig.yml and terminology-nightly.yml use
+      # a hash of the file — the same key ig.yml and terminology.yml use
       # for the same `.fhir-validator` path. Hashing the file made this a second,
       # divergent entry for the identical ~190MB jar: two copies of it in the
       # repo's 10GB cache budget, and a cold 190MB download here whenever that

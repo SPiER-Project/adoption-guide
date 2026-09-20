@@ -67,7 +67,7 @@ file for the area you are changing before you change it; `CLAUDE.md` links to
 each one from the section it belongs to.
 
 * [`internals/web-gates.md`](internals/web-gates.md) — everything `npm run verify` runs, per gate.
-* [`internals/terminology.md`](internals/terminology.md) — LOINC/SNOMED codings, the nightly, the expiring `PENDING_TX` allowlist, the per-source floors.
+* [`internals/terminology.md`](internals/terminology.md) — LOINC/SNOMED codings, when the checks run, the two expiring `PENDING_TX` allowlists, the per-source floors.
 * [`internals/ig-build.md`](internals/ig-build.md) — SUSHI's warning shape, the IG menu and narrative gates, the IG Publisher, the CQL compile, the deploy cache.
 * [`internals/fhir-conformance.md`](internals/fhir-conformance.md) — the HL7 validator, the FML maps, the rules shared with the mock EHR's write endpoint, both halves of the scenario gate, the mapper-reader rule.
 * [`internals/measures.md`](internals/measures.md) — the four homes of a measure criterion, exclusion vs exception, narration-vs-measure agreement.
@@ -80,7 +80,7 @@ each one from the section it belongs to.
 
 * [`mock-ehr-demo-script.md`](mock-ehr-demo-script.md) — the ten-minute walkthrough of the hosted demo, with SPiER launched inside the mock EHR over a real SMART launch. Who you are, which of the three "start here" charts to open and why, what to click, what you should see on the host after a write, and what the demo does and does not prove. This is the *what to click*; [`services/mock-ehr/README.md`](../services/mock-ehr/README.md) is the *why*.
 * [`smart-sandbox-testing.md`](smart-sandbox-testing.md) — how to exercise the app's SMART on FHIR live read/write path against the public SMART App Launcher sandbox, including what the hash router costs the OAuth redirect.
-* [`scheduled-checks-triage.md`](scheduled-checks-triage.md) — the timer-driven workflow (`terminology-nightly.yml`): its schedule, its named reader, and what to do when it goes red. Distinguishes real terminology drift (fix the code) from a `tx.fhir.org` outage (re-run). Linked from every issue the workflow files.
+* [`scheduled-checks-triage.md`](scheduled-checks-triage.md) — the timer-driven workflow (`terminology.yml`): its schedule, its named reader, and what to do when it goes red. Distinguishes real terminology drift (fix the code) from a `tx.fhir.org` outage (re-run). Linked from every issue the workflow files.
 
 ## Requirements sources
 
