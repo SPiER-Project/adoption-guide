@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "A mock EHR FHIR server on Cloudflare Workers \u2014 serves SPiER's own population scenarios as a real FHIR read API so the embedded SMART panel can be launched against a server. Demo host only; never an interoperability claim.",
+  "description": "A mock EHR FHIR server on Cloudflare Workers — serves SPiER's own population scenarios as a real FHIR read API so the embedded SMART panel can be launched against a server. Demo host only; never an interoperability claim.",
   "scripts": {
     "build": "vite build",
     "dev": "vite build && wrangler dev",
@@ -16,7 +16,7 @@
     "check:host-css": "node scripts/check-host-css.mjs"
   },
   "dependencies": {
-    "hono": "^4.6.14"
+    "hono": "^4.13.8"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SPiER's clinical Worker \u2014 Static Assets over dist-clinical (VITE_SURFACE=clinical): the two SMART apps, no adoption guide, no synthetic patient, no CDS Hooks endpoint, no IG.",
+  "description": "SPiER's clinical Worker — Static Assets over dist-clinical (VITE_SURFACE=clinical): the two SMART apps, no adoption guide, no synthetic patient, no CDS Hooks endpoint, no IG.",
   "scripts": {
     "build:web": "npm --prefix ../.. run build:clinical",
     "stage:assets": "rm -rf web-dist && cp -R ../../dist-clinical ./web-dist",
@@ -18,13 +18,13 @@
     "verify": "npm run typecheck && npm run lint && npm run check:csp && npm run test"
   },
   "dependencies": {
-    "hono": "^4.6.14"
+    "hono": "^4.13.8"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
-    "@types/node": "^22.20.1",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^22.20.1",
     "eslint": "^10.8.0",
     "globals": "^17.8.0",
     "typescript": "~5.9.3",
@@ -36,7 +36,7 @@
   "//wrangler": [
     "Pinned to ~4.107, matching services/mock-ehr. wrangler 4.135 declares a",
     "peerOptional on @cloudflare/workers-types ^5, which conflicts with the 4.x",
-    "line the other two services install \u2014 a fresh `npm install` here fails",
+    "line the other two services install — a fresh `npm install` here fails",
     "ERESOLVE on it. Lift the pin when all three move to workers-types 5",
     "together, not one package at a time."
   ]
