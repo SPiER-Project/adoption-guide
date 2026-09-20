@@ -237,6 +237,13 @@ keywords and origins from the file, because the clinical Worker's header is a
 clickjacking surface and "it is config" is not a reason to let an unknown host
 through it.
 
+⚠️ **The mock EHR's SMART registration is built from the file.** Its
+`DEFAULT_REDIRECT_URIS` (`services/mock-ehr/src/smart.ts`) lists the three
+hosted SMART origins from `deploy-origins.json` plus the localhost dev ports, so
+a fourth hosted origin is added to the file and the registration follows;
+`/authorize` refuses an unregistered `redirect_uri` outright, so an origin
+missing there fails at the first launch rather than silently.
+
 ⚠️ **GitHub Pages is a dependency, not a spare copy.** `services/guide/src/index.ts`
 redirects any IG download over the Workers per-file size cap to the Pages
 render, so the `pages` key is load-bearing for every link on the IG's Downloads
@@ -254,3 +261,69 @@ belong to whom. `services/mock-ehr/README.md` § *The look of the host* has the
 reasoning, including why `hostChrome.ts`'s original argument for matching the app
 was reversed.
 
+
+
+## Notes moved from `CLAUDE.md`'s Workers section (2026-09-20)
+
+⚠️ **The CDS API left the guide Worker on 2026-09-20** (`services/cds`,
+`spier-cds`). Two smells drove it: `CDS_JWT_AUDIENCE` was pinned to the
+*adoption-guide* Worker's URL — a service's audience should be its own identity
+— and every guide deploy redeployed the endpoint. `services/guide` and
+`services/clinical` each carry a NEGATIVE test that they host no
+`/cds-services`.
+
+⚠️ **`CDS_JWT_ENFORCE` is `require`, and the mock EHR is the registered
+client.** It ran in `warn` from #147 to 2026-09-20 — `warn` verifies, logs the
+failure and proceeds, so an endpoint in `warn` with no caller that can sign is
+an open compute endpoint with a log line. What made `require` possible is that
+`services/mock-ehr` became an actual CDS Client: it signs ES384 with a key held
+in its Durable Object, publishes the public half at `/.well-known/jwks.json`,
+and its chart page reaches the service through the host rather than from the
+browser — a browser that could sign would be a browser holding the host's
+private key.
+
+⚠️ **The interop test lives in `services/cds` and imports the mock EHR's real
+minting code**, because neither service's own suite can see a mismatch: the
+mock EHR can mint a token the service rejects, and each side's tests pass
+identically. ⚠️ The Sandbox and a tokenless `curl` now get 401; that is
+correct, and the guide page says so. See `services/cds/README.md`.
+
+⚠️ **`services/clinical` is the Worker a real EHR frames, and that decides
+three things about it.** It serves `dist-clinical` (`VITE_SURFACE=clinical`)
+and nothing else — no `/cds-services` (cards come from `buildCdsCards`
+in-process, and the published endpoint is its own Worker) and no `/ig/`.
+`src/app.test.ts` asserts both as negative tests, because "someone copies a
+route across for parity" is the failure. The mock EHR frames **this** Worker,
+not the guide one (`DEFAULT_PANEL_BASE_URL` in `services/mock-ehr/src/env.ts`).
+
+⚠️ **The SPA Worker also serves the rendered IG at `/ig/`, and CI is the only
+thing that can put it there.** `deploy.yml`'s `cloudflare` job stages the IG
+Publisher's render into `web-dist/ig` and runs `wrangler deploy`; a local
+`npm run deploy` in `services/guide` refuses to run outside CI for exactly this
+reason (`stage:assets` begins with `rm -rf web-dist` and nothing local renders
+the IG, so the Worker it would ship 404s `/ig/*`). Cloudflare's **Workers
+Builds** git integration is disconnected on purpose (2026-09-18) — reconnecting
+it races a second, IG-less deploy against the Actions one. `index.ts` must NOT
+regain an `/ig` route; `run_worker_first` means any such handler shadows
+~4,000 real files, and `app.test.ts` gates it.
+
+⚠️ **The mock EHR's favicon is its own, too.** The host serves a slate
+record-card mark from `/favicon.svg` (`FAVICON_SVG` in `hostChrome.ts`, a
+Worker route because there is no Static Assets binding). Two tabs carrying the
+same plum icon read as one product, which is the impression the whole host
+palette exists to prevent — so its colours are `var(--chrome…)`, resolved out
+of `TOKENS` at module load rather than typed, and `check:host-css` holds them
+to the same one-definition rule as the pages.
+
+⚠️ **An embedded activity gets a VIEWPORT; never size a guest frame to its
+content.** Both the chart's dock and the front door's caseload frame are fixed
+heights that the guest scrolls inside. The panel's own chrome is
+`position: fixed` — the code drawer, the FHIRcast notice — so a frame sized to
+its content strands that chrome below the fold. Three attempts at a content
+height are on the record in `services/mock-ehr/src/chartPage.ts`; read them
+before trying a fourth.
+
+⚠️ **A framed launch is minted at RUNTIME, never baked into the markup.** Both
+frames ship `src="about:blank"` and POST to `/_admin/launch`. A launch URL in
+server-rendered HTML is a context minted at cache time and handed to whoever
+loads the page next; `chartPage.test.ts` asserts no absolute iframe `src`.

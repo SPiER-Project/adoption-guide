@@ -203,3 +203,37 @@ touching no `.md` at all, and under the old `'**.md'` filter the workflow would
 not have run. **A workflow that does not trigger reports nothing; it does not
 report red** — the same hole one level up. The job has no dependencies and no
 build, so running it always costs seconds.
+
+
+## Notes moved from `CLAUDE.md` (2026-09-20)
+
+### `check-md-paths.mjs` — the half the links gate never saw
+
+⚠️ A bare source path in running text is not a link, so the links gate never
+saw it — which is how the `packages/{ui,tool-views}` extractions rotted 45+
+paths across 21 files, including the OPENING LINE of this folder's
+`tool-views.md`.
+
+⚠️ A bare existence check would be mostly noise, because the convention here
+is to SUPERSEDE: "the former `web/src/index.css`" is correct prose about a
+file meant to be gone. So absence is allowed only WITH A REASON, and the
+allowlist is built to EXPIRE — an entry whose path comes back, or whose
+sentence was rewritten, is an error. Since 2026-09-20 the prefixes it
+recognises include the RETIRED top-level names (`web`, `FHIR-Resources`), so a
+path under a deleted tree is checked rather than skipped — 45 backticked
+`web/src/…` paths in live docs had passed ✓ because the deleted root had
+fallen out of the derived prefix set.
+
+⚠️ Both gates live in `docs-links.yml`, the ONLY workflow that triggers on
+`docs/**` or the root `README.md` — and it now has NO `paths:` filter: both
+resolve `.md` against the WHOLE tree, so a commit that only moves a `.tsx` rots
+them while touching no `.md`, and a workflow that does not trigger reports
+nothing rather than red.
+
+### `check-plan-status.mjs` — finished plans move to the archive
+
+⚠️ Reads a designated "Status:" LINE, never the whole file — a whole-document
+scan for these words flags ordinary prose (a dated addendum saying one step
+is done), which is how a gate like this gets switched off. A non-archive plan
+whose status line claims the work shipped fails; an archived plan without the
+`> Archived <date>: …` banner fails.

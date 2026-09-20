@@ -35,11 +35,15 @@
  * transmitted to the patient.
  */
 import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
+import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import { displayFor, type CodedOption } from './handoffs'
 import type { CommunicationResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
 
-export const STAGE_ID = 'document-safety-actions'
+// `satisfies StageId`: the literal keeps its type, and a stage renamed in the
+// CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
+// than a stage tag nothing resolves.
+export const STAGE_ID = 'document-safety-actions' satisfies StageId
 const STAGE_TITLE = 'Document Safety Actions'
 
 export const CRISIS_RESOURCES_PROFILE =

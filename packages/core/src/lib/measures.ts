@@ -32,6 +32,7 @@
  *
  * ⚠️ DEMO ONLY — computes over the local slice; no server-side $evaluate-measure.
  */
+import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import {
   APPOINTMENT_PROFILE,
   HANDOFF_CONTENT_ITEM_EXT,
@@ -261,16 +262,16 @@ export function isRiskConcept(o: ObservationResource): boolean {
  * app resolver rather than reimplementing stage rules is deliberate: two
  * definitions of "which stage is this" would drift.
  */
-function observationStage(o: ObservationResource, slice: PatientSlice): string | undefined {
+function observationStage(o: ObservationResource, slice: PatientSlice): StageId | undefined {
   const direct = stageForArtifact(o as FhirResourceLike)
-  if (direct) return direct
+  if (direct && isStageId(direct)) return direct
   const derivedFrom = (o as { derivedFrom?: Array<{ reference?: string }> }).derivedFrom ?? []
   for (const ref of derivedFrom) {
     const id = ref.reference?.replace('QuestionnaireResponse/', '')
     if (!id) continue
     const stored = slice.responses.find(r => r.id === id)
     const stage = stored && stageForArtifact(stored.resource as FhirResourceLike)
-    if (stage) return stage
+    if (stage && isStageId(stage)) return stage
   }
   return undefined
 }

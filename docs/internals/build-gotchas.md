@@ -93,13 +93,25 @@ and was false. See [`docs/internals/README.md`](README.md).
 
   ⚠️ **It used to compare mtimes, and that is why `prebuild` passed `--force`.** mtimes track edits only where the tree came from editing it — in a fresh CI checkout git stamps every file with checkout time, so they carry no information at all. The cost was a second, identical ~20s compile in the `verify` job moments after the first (measured 2026-09-09: 13:12:07→13:12:48, then 13:13:25→13:13:45). The cheaper half of the fix is incidental; the load-bearing half is that mtimes were also **weaker**, because a hand-edited output looks *newer* and therefore looked fine. The manifest hashes the outputs too, so tampering and truncation rebuild. All six branches — unchanged-but-touched input, changed input, edited output, deleted generated TS, wrong SUSHI version, `--force` — were planted and observed before this landed.
 - **Generated files must exist before `tsc -b`.** `packages/fhir-artifacts/generated/*.json` and `packages/fhir-artifacts/generated/care-plan-profiles.generated.ts` (the whole `generated/` directory is gitignored) are produced by `copy-fhir`. On a clean checkout, run `npm run copy-fhir` first or the typecheck/build fails on missing imports.
-- **One canonical URL, one definition.** `ig/` is canonical for CodeSystems and
-  ValueSets; `ig/input/resources/questionnaires/` holds Questionnaires (plus a couple of CarePlan
-  templates) and the few local CodeSystems that have no FSH counterpart. Never
-  define the same canonical URL in both trees — three ASQ CodeSystems did, and
-  the `ig/input/resources/questionnaires` copies silently shadowed the IG's with drifted `display`
-  values until `validate-fhir.mjs` caught it. `node scripts/validate-fhir.mjs`
-  loads both trees, so a fresh collision shows up as a display or binding error.
+- **One canonical URL, one definition.** There are still **two authoring
+  sources** inside `ig/`, and the rule is about them: `ig/input/fsh/` (compiled
+  by SUSHI) is canonical for CodeSystems, ValueSets, profiles and definitions;
+  `ig/input/resources/questionnaires/` holds the 18 hand-authored
+  Questionnaires, 2 CarePlan templates and one ValueSet (`ASQ/yes-no.json`),
+  which SUSHI never reads. ⚠️ **No CodeSystems live in the JSON tree** — this
+  paragraph said "and the few local CodeSystems with no FSH counterpart" until
+  2026-09-18, describing a category of exception that no longer exists and
+  inviting the very thing the next sentence forbids. A new CodeSystem goes in
+  FSH; there is no local-exception path. Never define the same canonical URL in
+  both sources — three ASQ CodeSystems did, and the hand-authored copies
+  silently shadowed the FSH ones with drifted `display` values. The gate is
+  `node scripts/check-canonical-uniqueness.mjs` (needs SUSHI output; in
+  `ig.yml`). ⚠️ SUSHI catches only *half* of this — it keys duplicates on
+  resourceType + id and never reads the JSON tree at all, so a collision on the
+  same URL with a *different* id was caught by nothing before that gate.
+  ⚠️ Both sources living under `ig/` since 2026-09-19 does **not** merge them:
+  SUSHI compiles one and the publisher loads the other, and the gate still
+  compares two trees.
 - **Drift-prone hand-duplicated values.** Stage IDs, LOINC codes, and ASQ disposition codes are duplicated by hand across `ig/input/fsh/` (canonical, e.g. `pathway-stages.fsh`), `packages/core/src/lib/observationMappers/` (e.g. `phq9.ts`, `asq.ts`), and `packages/demo-population/src/` (e.g. `patients.json`). LOINC **per-item** codes are no longer hand-copied into `packages/core/src/lib/observationMappers/fallbackDispatch.ts`: `INSTRUMENT_SIGNATURES` (used to recognize foreign QRs) names only linkIds, and their codes are resolved from `packages/fhir-artifacts/generated/instrument-signatures.generated.ts`, which `copy-fhir` derives from the Questionnaire JSON — so a linkId that stops carrying a code is a type error rather than drift. When you change any such code, **grep the whole repo** for the old value and update every site.
 - **The Stanley-Brown CarePlan transformation exists twice on purpose.**
   `ig/input/resources/maps/StanleyBrownQRToCarePlan.fml` declares it (and is
@@ -209,3 +221,36 @@ buys nothing. `scripts/lib/crc32.mjs` likewise keeps its twelve hand-rolled line
 over `zlib.crc32`: the version argument expired, but the real reason did not —
 `build-use-case-workbook.mjs --check` byte-diffs the `.xlsx`, so the checksum has
 to be ours rather than whatever the runtime ships.
+
+
+## Notes moved from `CLAUDE.md`'s gotchas (2026-09-20)
+
+⚠️ **The SUSHI compile in `copy-fhir` is retried 3× (10s, then 30s), and that
+is about the CLOUDFLARE deploy, not about flaky FSH.** SUSHI downloads seven
+FHIR packages from `packages.fhir.org` on a cold cache; a few minutes of
+trouble there failed the Workers build of the public demo on 2026-09-15, on a
+commit that touched no FHIR at all. The exposure is asymmetric — Actions caches
+the generated tree on the content fingerprint and usually skips SUSHI entirely,
+while Cloudflare has no equivalent and compiles from scratch on every deploy.
+It retries EVERY failure rather than matching a network error string, because a
+signature list is a guard that can silently stop guarding; a real FSH error
+just fails again, fast, since the first attempt warmed the package cache.
+`COPY_FHIR_SUSHI_ATTEMPTS=1` turns it off while debugging a real error. See
+`scripts/lib/retry.mjs`. ⚠️ `scripts/check-sushi-output.mjs` invokes SUSHI too
+and is **not** retried — it is a CI gate you can re-run, not a deploy.
+
+⚠️ **SMART registrations live in
+`packages/app-shell/src/config/smart-registrations.json`, and only there.** A
+SMART app does not have *a* `client_id` — it is registered separately with
+every EHR it launches from, so the file maps an issuer's ORIGIN to the id that
+EHR issued. **Deliberately a checked-in file and NOT an env var**: a build-time
+variable lets the deployed app and the EHR's actual registration disagree, and
+the disagreement is invisible until a launch fails at someone else's
+authorization server. `scripts/medplum-register-launch.mjs` READS this file
+rather than restating a UUID, which is what closes the loop;
+`smartClients.test.ts` asserts it still does, that every key is a bare origin
+(a FHIR base path silently never matches), and that no issuer is registered
+under the fallback id. ⚠️ A `client_id` is not a secret — it travels in the
+`/authorize` query string in the clear and this is a public client with PKCE.
+The reason an adopter replaces the file is that the registrations are not
+*theirs*, not that they are sensitive.

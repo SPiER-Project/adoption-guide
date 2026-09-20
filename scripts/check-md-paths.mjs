@@ -99,8 +99,11 @@ const ALLOWED = new Map(Object.entries({
   //    than a present-tense claim, so the fix here is an allowlist entry, not a
   //    rewrite.
   '.claude/skills/assessment-to-ig/SKILL.md::web/src/pages/Roadmap.tsx': 'struck through, with an immediately-following ⚠️ saying the Roadmap page was deleted',
-  'CLAUDE.md::web/src/index.css': 'reads "formerly `web/src/index.css`" / quotes that exact supersede sentence as an example',
-  'CLAUDE.md::web/src/lib/surface.ts': 'reads "`web/src/lib/surface.ts` is deleted"',
+  // CLAUDE.md carried both of these until 2026-09-20; the sentences moved to
+  // docs/internals with the rest of the reasoning (C1 of the repo-cruft audit).
+  'docs/internals/docs-gates.md::web/src/index.css': 'quotes "the former `web/src/index.css`" as the example of correct supersede prose',
+  'docs/internals/repo-layout.md::web/src/index.css': 'reads "formerly `web/src/index.css`"',
+  'docs/internals/repo-layout.md::web/src/lib/surface.ts': 'reads "`web/src/lib/surface.ts` is deleted"',
   'docs/plans/docs-and-ig-content-consolidation.md::web/src/data/pilot-plans/asq.md': 'a "done" status-table cell narrating a dead MANIFEST path that was dropped',
   'docs/plans/docs-and-ig-content-consolidation.md::web/src/data/roadmap.generated.json': 'same table; the file and the roadmap pipeline are both gone',
   'docs/plans/docs-and-ig-content-consolidation.md::web/README.md': 'reads "`web/README.md`\'s deleted `fetch-roadmap` pipeline" — web/README.md itself is gone too',
