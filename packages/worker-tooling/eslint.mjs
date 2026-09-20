@@ -16,9 +16,11 @@
  * node_modules, as it always did) is what actually determines which
  * versions build the config.
  *
- * `packages/worker-tooling` is the eventual right home for this once it
- * exists (see docs/plans/repo-cruft-audit-2026-09-20.md, C2); this relative-
- * import version removes today's four-way copy without it.
+ * It lived in `scripts/lib/` first (#558), with a note that this package was
+ * its eventual home; `aliases.mjs`, `vite.mjs` and `tsconfig.worker.json`
+ * beside it are the same move for the other three config files each service
+ * carried. `scripts/check-service-toolchain.mjs` is what keeps a copy from
+ * coming back.
  */
 export function workerEslintConfig({ js, stylistic, globals, tseslint, defineConfig, globalIgnores }) {
   return defineConfig([

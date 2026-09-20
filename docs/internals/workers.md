@@ -33,7 +33,7 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
-## One toolchain, four hand-mirrored copies
+## One toolchain, four services — shared since 2026-09-20
 
 #387's "no npm workspaces" gave the repo one root install; the cost is that each
 service carries its own copy of the Worker toolchain — eslint, typescript-eslint,
@@ -62,10 +62,35 @@ was the wrangler version the pin forbade.
 
 The four now move together: `wrangler ^4.135.0` and
 `@cloudflare/workers-types ^5.20260920.1` in every service, and a `//cloudflare`
-note in each manifest saying so. ⚠️ **Nothing enforces it** — the note is the
-whole guard, which is why it is in all four files rather than in the one where
-the pin happened to live. `services/*/package.json` is also where the *other*
-mirrored ranges sit; when you bump one, bump the set.
+note in each manifest saying so. ⚠️ **Until 2026-09-20 nothing enforced it** —
+the note was the whole guard. `scripts/check-service-toolchain.mjs`
+(`npm run check:toolchain` in every service's `verify`) now fails the moment
+any two `services/*/package.json` devDependency maps differ, so "bump the set"
+is a rule the gate holds rather than a sentence to remember.
+
+⚠️ **The version ranges were the visible fork; the config files were the quiet
+one.** Each service also carried its own `eslint.config.js`, `tsconfig.json`,
+`vite.config.ts` and `vitest.config.ts` — twelve files meant to be identical.
+They were not: the tsconfigs disagreed on `paths` (guide declared five aliases,
+clinical one) and on `baseUrl`; `services/mock-ehr`'s vitest aliases used the
+object form, which PREFIX-matches, while the others used the anchored
+exact + prefix pair; `services/cds`'s vite config aliased a package it never
+imported. None of it broke anything, which is exactly why it drifted. The
+bodies live once now, in
+[`packages/worker-tooling`](../../packages/worker-tooling/README.md): a
+service's config file is a `defineConfig(...)` around an imported body, its
+tsconfig is `"extends"` plus `include`, and the same gate fails a config that
+stops importing the body, adds a local alias or `compilerOptions`, or lets the
+tsconfig `paths` and the Vite aliases name different packages.
+
+⚠️ **Nothing under `packages/worker-tooling` imports a dependency, and that is
+the constraint #387 imposes, not a style.** A bare `import 'vite'` from a file
+under `packages/` resolves against the ROOT install's Vite, not the service's;
+so the eslint body takes its six dependencies as arguments, the vite/vitest
+bodies return plain objects for the service's own `defineConfig` to type, and
+the `.d.mts` files describe those objects structurally. Moving a `defineConfig`
+call INTO the package would look tidier and silently build every service's
+config from the wrong package versions.
 
 In `services/guide/` — **the guide SPA and the rendered IG:**
 ```

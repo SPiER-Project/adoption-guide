@@ -1,60 +1,8 @@
-import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
+import { workerVitestConfig } from '../../packages/worker-tooling/vite.mjs'
 
-// Tests exercise the pure service logic (src/service.ts) — no Workers runtime,
-// no Hono. Running under Vitest (which is Vite) means the web app's
-// `import.meta.glob` catalog/scenario loaders transform normally, and
-// crypto.randomUUID is available from the Node global. The Cloudflare plugin is
-// intentionally NOT loaded here: we don't need workerd to test card derivation.
-export default defineConfig({
-  // The demo population resolves by declared alias, not by npm workspace
-  // (#387 records why there is no workspace yet). Anchored exact + prefix
-  // pair; must agree with tsconfig.json's `paths`.
-  resolve: {
-    alias: [
-      {
-        find: /^@spier\/demo-population$/,
-        replacement: fileURLToPath(
-          new URL('../../packages/demo-population/src/index.ts', import.meta.url),
-        ),
-      },
-      {
-        // The Worker-side HTTP shared layer (packages/worker-http): the Static
-        // Assets catch-all and the `frame-ancestors` policy, shared with
-        // services/clinical so the header cannot differ between the two.
-        find: '@spier/worker-http/',
-        replacement: fileURLToPath(
-          new URL('../../packages/worker-http/src/', import.meta.url),
-        ),
-      },
-      {
-        // The React-free domain layer (packages/core), step B (#389). Prefix
-        // alias: every consumer imports `@spier/core/<path>` mirroring the
-        // package's own structure.
-        find: '@spier/core/',
-        replacement: fileURLToPath(
-          new URL('../../packages/core/src/', import.meta.url),
-        ),
-      },
-      {
-        // The compiled FHIR artifacts (packages/fhir-artifacts), step E1 (#392).
-        // ⚠️ Static imports only — Vite does not resolve aliases inside
-        // `import.meta.glob`, so the runtime globs use relative paths.
-        find: '@spier/fhir-artifacts/',
-        replacement: fileURLToPath(
-          new URL('../../packages/fhir-artifacts/', import.meta.url),
-        ),
-      },
-      {
-        find: '@spier/demo-population/',
-        replacement: fileURLToPath(
-          new URL('../../packages/demo-population/src/', import.meta.url),
-        ),
-      },
-    ],
-  },
-  test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts'],
-  },
-})
+// HTTP-level tests through the Hono app's `fetch`, no workerd. The test body
+// and the @spier/* aliases are packages/worker-tooling's (see vite.mjs there
+// for why there is no `fhirclient` alias); `defineConfig` stays here so the
+// config is typed against THIS service's Vitest.
+export default defineConfig(workerVitestConfig())

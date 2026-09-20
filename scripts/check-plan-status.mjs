@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// D9 (docs/plans/repo-cruft-audit-2026-09-20.md): keeps docs/plans/ from
+// D9 (docs/plans/archive/repo-cruft-audit-2026-09-20.md): keeps docs/plans/ from
 // re-accumulating the drift #557 cleaned up once — a plan whose own status
 // line says the work already shipped, sitting outside docs/plans/archive/
 // where nothing tells a reader it is history rather than a live proposal.

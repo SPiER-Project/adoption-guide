@@ -40,13 +40,12 @@ cries wolf on the domain vocabulary gets switched off.
 There is no npm workspace yet
 ([#387](https://github.com/SPiER-Project/adoption-guide/issues/387)), so this
 resolves by **declared alias** — `@spier/core/<path>`, mirroring this package's
-own structure. Nine sites must agree, and each is commented:
+own structure. Five sites must agree, and each is commented:
 
 | Consumer | Where |
 |---|---|
-| `web` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.app.json` |
-| `services/guide` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
-| `services/mock-ehr` | `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
+| the two apps (repo root) | `vite.config.ts`, `vitest.config.ts`, `tsconfig.app.json` |
+| the four `services/*` Workers | `packages/worker-tooling/aliases.mjs` (Vite + Vitest) and `packages/worker-tooling/tsconfig.worker.json` (`tsc`) — once for all four; `scripts/check-service-toolchain.mjs` holds the two lists to the same packages |
 
 ⚠️ `vitest.config.ts` does **not** inherit `vite.config.ts` — see
 [`../demo-population/README.md`](../demo-population/README.md), where that was

@@ -1,0 +1,50 @@
+{
+  // The compiler options every service Worker compiles under — once. Each
+  // `services/<name>/tsconfig.json` is now `"extends"` of this file plus its
+  // own `include`, and nothing else; scripts/check-service-toolchain.mjs fails
+  // a service that grows a `compilerOptions` block of its own.
+  //
+  // Relative paths in a tsconfig resolve against the file that DECLARES them,
+  // so the `paths` below are written from this directory (`../core/src/*`),
+  // not from a service's. `types` are package names, not paths: TypeScript
+  // resolves them from the extending project's own node_modules, which is what
+  // gives each service its own `@cloudflare/workers-types` and `vite/client`
+  // rather than the root's.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // @types/node is here only for vite.config.ts / vitest.config.ts, which
+    // reach `node:url` through packages/worker-tooling/aliases.mjs. The Worker
+    // source itself uses no Node API.
+    "types": ["@cloudflare/workers-types", "vite/client", "node"],
+    // Match the web app's strictness exactly — two of these projects typecheck
+    // web source they import (catalog, mappers, scenarios), which is clean
+    // under the app's config but not under extra flags like
+    // noUncheckedIndexedAccess.
+    "strict": true,
+    "resolveJsonModule": true,
+    // ⚠️ Must name the same packages as aliases.mjs beside this file: the
+    // bundler resolves through that list, tsc through this one, and a package
+    // in one but not the other compiles yet fails to bundle (or the reverse).
+    // The gate asserts the two agree.
+    "paths": {
+      "@spier/core/*": ["../core/src/*"],
+      "@spier/worker-http/*": ["../worker-http/src/*"],
+      "@spier/fhir-artifacts/*": ["../fhir-artifacts/*"],
+      "@spier/demo-population": ["../demo-population/src/index.ts"],
+      "@spier/demo-population/*": ["../demo-population/src/*"]
+    },
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    // Parity with the two apps and every packages/* tsconfig — a dead local or
+    // an unhandled switch case is invisible otherwise (D3).
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
