@@ -4,8 +4,8 @@ The compiled FHIR artifacts every consumer reads: SUSHI's output from
 `ig/input/fsh/`, plus the TypeScript derived from it. **Everything under
 `generated/` is a build artifact — gitignored, and never edited by hand.**
 
-Produced by [`web/scripts/copy-fhir.mjs`](../../web/scripts/copy-fhir.mjs) —
-`npm run copy-fhir` in `web/`, or `-- --force` to skip the incremental check.
+Produced by [`scripts/copy-fhir.mjs`](../../scripts/copy-fhir.mjs) —
+`npm run copy-fhir` at the repo root, or `-- --force` to skip the incremental check.
 
 ## Why it is not `web/src/data/fhir/` any more
 
@@ -22,7 +22,7 @@ leave the IG) was deliberately **not** done here.
 
 ⚠️ **It is done now, elsewhere — this paragraph described an open remainder for
 two weeks after there was none.** The `Patient`s left the IG in #399 (E2a), and
-the build moved in E2b: `fsh-sushi` is out of `web/package.json`, and
+the build moved in E2b: `fsh-sushi` is out of `package.json`, and
 `scripts/lib/sushi-version.mjs` exports the `SUSHI_VERSION` that `copy-fhir.mjs`,
 `check-sushi-output.mjs` and five CI workflows all read. #392 closed 2026-09-15.
 
@@ -40,7 +40,7 @@ reasons, not dependency reasons.
 Vite requires a glob pattern to be relative or absolute — **aliases are not
 resolved inside `import.meta.glob`**. So static imports use
 `@spier/fhir-artifacts/generated/…`, while the five runtime globs use relative
-paths that climb out of `web/`. Verified to work under vitest and in a
+paths that climb out of the importing package. Verified to work under vitest and in a
 production build; they get shorter and more natural when step B moves `core` to
 `packages/core/`, which is a sibling of this package.
 

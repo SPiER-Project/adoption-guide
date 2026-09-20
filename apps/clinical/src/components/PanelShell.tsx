@@ -74,7 +74,7 @@ export function PanelShell() {
       )}
       {/* Owns the panel's page inset, the way `.app-shell__body` owns the
           shell's. Declared as the second sanctioned owner in
-          web/scripts/check-page-template.mjs — see PANEL_BODY there. */}
+          scripts/check-page-template.mjs — see PANEL_BODY there. */}
       <main className="panel-shell__body">
         <Outlet />
       </main>

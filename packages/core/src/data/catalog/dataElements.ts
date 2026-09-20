@@ -27,7 +27,7 @@ export type FhirResourceType =
  * A FHIR Coding, written the way FHIR writes one.
  *
  * `system` is a URL, never a friendly name — that is load-bearing rather than
- * cosmetic. `web/scripts/check-codings.mjs` finds terminology by matching a
+ * cosmetic. `scripts/check-codings.mjs` finds terminology by matching a
  * system-URL literal and then requiring a sibling `system` field on the
  * enclosing object literal. The previous shape here spelled it
  * `codeSystem: 'LOINC'`, so not one of these rows was ever validated — the

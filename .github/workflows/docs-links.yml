@@ -6,13 +6,14 @@ name: Docs — markdown links and paths
 # 1. check-md-links.mjs — every relative `[text](path)` in a tracked .md resolves.
 # 2. check-md-paths.mjs — every repo-rooted path written as backticked PROSE
 #    exists, or is allowlisted with a reason. The links gate never saw those:
-#    `web/src/data/toolViews.tsx` in running text is not a link, which is how the
+#    `packages/tool-views/src/data/toolViews.tsx` in running text is not a link, which is how the
 #    packages/{ui,tool-views} extractions left 45+ rotted paths across 21 files —
 #    including the opening line of docs/internals/tool-views.md, a live internals
 #    doc CLAUDE.md sends readers to.
 #
 # This is the only workflow that triggers on docs/** and the root README.md.
-# web-lint.yml covers web/**, services/** and ig/**, so a docs-only change
+# web-lint.yml covers apps/**, packages/**, the root tooling, services/** and ig/**,
+# so a docs-only change
 # triggered NOTHING before this existed — which is how #389 and #392 left
 # fourteen dead links across the plan docs and two READMEs with nothing going
 # red. Plan docs are ungated prose by design; this gates the two properties of
@@ -21,7 +22,7 @@ name: Docs — markdown links and paths
 # ⚠️ **Deliberately NO `paths:` filter, since 2026-09-19.** Both gates take a
 # tracked .md file and resolve it against THE WHOLE WORKING TREE, so their input
 # is not the .md files — it is the .md files *and every path any of them names*.
-# A commit that only moves `web/src/Foo.tsx` rots both a link and a prose path
+# A commit that only moves `apps/guide/src/Foo.tsx` rots both a link and a prose path
 # while touching no .md at all, and under a `'**.md'` filter the workflow would
 # not run: a workflow that does not trigger reports nothing, it does not report
 # red. That is the exact shape of the hole these gates exist to close, so

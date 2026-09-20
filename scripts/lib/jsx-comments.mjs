@@ -1,10 +1,14 @@
+/* eslint-disable no-irregular-whitespace -- The JSDoc below quotes the very
+   comment that broke both <Route> scanners. The zero-width space inside its
+   `<Comp />` is what stops THIS file from tripping them the same way, so it
+   is load-bearing and must not be normalised away. */
 /**
  * Blank the comments out of a `.tsx` source before scanning it for code.
  *
  * ── The defect this exists for ──────────────────────────────────────────────
  *
  * This repo has **two** hand-rolled `<Route>` scanners — `check-ig-narrative.mjs`
- * (which app links an IG page may point at) and `web/scripts/lib/route-table.mjs`
+ * (which app links an IG page may point at) and `scripts/lib/route-table.mjs`
  * (which navigation targets resolve). Both searched the raw file for `<Route`.
  *
  * Then a comment was added to `App.tsx` quoting the shape a route must be

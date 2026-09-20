@@ -33,16 +33,16 @@ on:
       # all — which is exactly what #440 did, leaving three pages pointing at
       # `#/guide/roadmap`. Without these two paths the gate would exist and sit
       # idle for the only change that can break what it checks.
-      - 'web/src/App.tsx'
-      - 'web/src/data/guideSections.ts'
-      - 'web/scripts/check-concept-crosswalk.mjs'
+      - 'apps/guide/src/App.tsx'
+      - 'apps/guide/src/data/guideSections.ts'
+      - 'scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
       # exist but sit idle exactly when the code it protects moves.
       - 'packages/core/src/lib/**'
       - 'packages/core/src/types/**'
-      - 'web/package.json'
-      - 'web/scripts/copy-fhir.mjs'
+      - 'package.json'
+      - 'scripts/copy-fhir.mjs'
       - 'scripts/lib/sushi-version.mjs'
       - '.github/workflows/ig.yml'
   pull_request:
@@ -59,16 +59,16 @@ on:
       # all — which is exactly what #440 did, leaving three pages pointing at
       # `#/guide/roadmap`. Without these two paths the gate would exist and sit
       # idle for the only change that can break what it checks.
-      - 'web/src/App.tsx'
-      - 'web/src/data/guideSections.ts'
-      - 'web/scripts/check-concept-crosswalk.mjs'
+      - 'apps/guide/src/App.tsx'
+      - 'apps/guide/src/data/guideSections.ts'
+      - 'scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
       # exist but sit idle exactly when the code it protects moves.
       - 'packages/core/src/lib/**'
       - 'packages/core/src/types/**'
-      - 'web/package.json'
-      - 'web/scripts/copy-fhir.mjs'
+      - 'package.json'
+      - 'scripts/copy-fhir.mjs'
       - 'scripts/lib/sushi-version.mjs'
       - '.github/workflows/ig.yml'
   workflow_dispatch:
@@ -194,7 +194,7 @@ jobs:
 
       - name: Check concept-layer crosswalks
         working-directory: ${{ github.workspace }}
-        run: node web/scripts/check-concept-crosswalk.mjs
+        run: node scripts/check-concept-crosswalk.mjs
 
       - name: Upload generated resources
         uses: actions/upload-artifact@v4
@@ -219,7 +219,7 @@ jobs:
         with:
           node-version-file: .github/.nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -267,12 +267,12 @@ jobs:
 
       # #302: the FHIR the APP emits was gated by nothing. The emitter runs the
       # real production builders (vitest is the only TS runtime in this package)
-      # and writes to web/.runtime-fhir, which the validator then reads via
+      # and writes to .runtime-fhir, which the validator then reads via
       # --also. On its first run this found 118 errors, including every profile's
       # required concept-domain category missing from every builder.
       - name: Install web dependencies
         run: npm ci
-        working-directory: ./web
+        working-directory: .
 
       # The emitter imports the generated CodeSystems out of packages/fhir-artifacts/generated/,
       # which is gitignored. `--no-compile` copies the fsh-generated artifact
@@ -280,11 +280,11 @@ jobs:
       # avoid paying for that compile twice.
       - name: Copy generated FHIR into the web app
         run: npm run copy-fhir -- --no-compile
-        working-directory: ./web
+        working-directory: .
 
       - name: Emit the runtime FHIR corpus
         run: npm run emit:runtime-fhir
-        working-directory: ./web
+        working-directory: .
 
       - name: Validate FHIR resources
-        run: node scripts/validate-fhir.mjs --also web/.runtime-fhir
+        run: node scripts/validate-fhir.mjs --also .runtime-fhir

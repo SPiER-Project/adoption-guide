@@ -33,7 +33,7 @@ import { createContext, useContext } from 'react'
  * from the clinician's routes and from `/guide/tools/:slug/try` alike: the
  * audience is a property of the render, not of the module graph. The gate can
  * only ask whether a file consulted this hook — see
- * `web/scripts/check-fhir-render.mjs` and `docs/internals/tool-views.md` §3.
+ * `scripts/check-fhir-render.mjs` and `docs/internals/tool-views.md` §3.
  *
  * ⚠️ **A FOURTH axis, and deliberately not any of the other three.**
  *

@@ -34,7 +34,7 @@ name: FML — StructureMap compile + transform parity
 # cannot be offline-reproducible. It runs here rather than in `npm run verify`,
 # the same treatment `check:codings` gets. The offline half of the same
 # contract — the runtime mapper against the same golden file — is asserted by
-# web/src/lib/carePlanMappers/stanleyBrown.parity.test.ts in `verify`.
+# packages/core/src/lib/carePlanMappers/stanleyBrown.parity.test.ts in `verify`.
 #
 # ─── What this does NOT cover ───────────────────────────────────────────────
 #

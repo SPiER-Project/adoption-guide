@@ -5,18 +5,18 @@
   "type": "module",
   "description": "SPiER on Cloudflare Workers — one Worker serving the adoption-guide SPA (Static Assets) and the CDS Hooks 2.0 API, sharing the app's browser-free derivation code.",
   "scripts": {
-    "build:web": "npm --prefix ../../web run build",
-    "stage:assets": "rm -rf web-dist && cp -R ../../web/dist ./web-dist",
+    "build:web": "npm --prefix ../.. run build",
+    "stage:assets": "rm -rf web-dist && cp -R ../../dist ./web-dist",
     "build:worker": "vite build",
     "build": "npm run build:web && npm run stage:assets && npm run build:worker",
     "dev": "npm run build:web && npm run stage:assets && npm run build:worker && wrangler dev",
     "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "pretest": "npm --prefix ../../web run copy-fhir",
+    "pretest": "npm --prefix ../.. run copy-fhir",
     "test": "vitest run",
     "check:csp": "node ../../scripts/check-worker-csp.mjs",
-    "verify": "npm --prefix ../../web run copy-fhir && npm run typecheck && npm run lint && npm run check:csp && npm run test"
+    "verify": "npm --prefix ../.. run copy-fhir && npm run typecheck && npm run lint && npm run check:csp && npm run test"
   },
   "dependencies": {
     "hono": "^4.6.14",

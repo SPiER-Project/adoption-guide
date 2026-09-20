@@ -243,6 +243,11 @@ export function PatientProvider({
       isSmartSession,
       activePatientId,
       populationPatient,
+      // ⚠️ Read at line 215 but absent from this list until the tooling hoist
+      // put packages/ under `eslint .` for the first time. It cannot bite
+      // today — neither app passes the prop, so it is the stable
+      // EMPTY_POPULATION constant — which is exactly why nothing noticed.
+      populationPatients,
       walkthrough,
       slice,
       sliceState.isLoading,

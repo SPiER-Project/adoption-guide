@@ -32,7 +32,7 @@ import { generateCarePlan } from '@spier/core/lib/carePlanMappers/stanleyBrown'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // Paths are relative to `web/`, which is vitest's cwd.
-const GOLDEN_CARE_PLAN = '../scripts/fixtures/stanley-brown/careplan-expected.json'
+const GOLDEN_CARE_PLAN = 'scripts/fixtures/stanley-brown/careplan-expected.json'
 
 /**
  * Both QuestionnaireResponse shapes, against ONE golden — they carry identical
@@ -46,8 +46,8 @@ const GOLDEN_CARE_PLAN = '../scripts/fixtures/stanley-brown/careplan-expected.js
  * real safety plan lost all three of its contact sections.
  */
 const FIXTURE_QRS = [
-  ['conformant (item.item — what SPiER\'s form emits)', '../scripts/fixtures/stanley-brown/questionnaireresponse-conformant.json'],
-  ['legacy (answer.item — non-conformant, still accepted)', '../scripts/fixtures/stanley-brown/questionnaireresponse.json'],
+  ['conformant (item.item — what SPiER\'s form emits)', 'scripts/fixtures/stanley-brown/questionnaireresponse-conformant.json'],
+  ['legacy (answer.item — non-conformant, still accepted)', 'scripts/fixtures/stanley-brown/questionnaireresponse.json'],
 ] as const
 
 const FIXTURE_QR = FIXTURE_QRS[0][1]

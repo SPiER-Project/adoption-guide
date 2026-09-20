@@ -13,10 +13,10 @@ export default defineConfig({
       // could drift from the version the app actually ships, and then the test
       // would be exercising a client the panel never uses.
       //
-      // Prefix aliasing is what is wanted here (unlike web/vite.config.ts's
+      // Prefix aliasing is what is wanted here (unlike vite.config.ts's
       // anchored shim regexes): 'fhirclient/lib/Client' must resolve under the
       // same package root.
-      fhirclient: fileURLToPath(new URL('../../web/node_modules/fhirclient', import.meta.url)),
+      fhirclient: fileURLToPath(new URL('../../node_modules/fhirclient', import.meta.url)),
       // The demo population — declared alias, not a workspace (#387). Object
       // form matches this file's existing shape; prefix matching is wanted, so
       // '@spier/demo-population/patients.json' resolves under the same root.

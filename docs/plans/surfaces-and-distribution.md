@@ -22,15 +22,15 @@ measurements it rests on.
 |---|---|
 | **1 — the IG is not an application** | **RESTATED**, from [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §1, because the framing keeps recurring. §1 |
 | **2 — guide and clinical demo stay ONE app** | **UPHELD, and its scope corrected.** §5 of that doc answered a demo question, not a distribution one. §2 |
-| **3 — a third axis: build surface (`demo` / `clinical`)** | ~~SHIPPED 2026-09-15~~ → **RETIRED 2026-09-19.** It was one route table folded two ways by `IS_DEMO`; there are two apps now (`apps/guide`, `apps/clinical`) and the module that exported the flag is deleted. `VITE_SURFACE` survives as a build TARGET — which `index.html` vite starts from — read only by `web/vite.config.ts`. §3 |
+| **3 — a third axis: build surface (`demo` / `clinical`)** | ~~SHIPPED 2026-09-15~~ → **RETIRED 2026-09-19.** It was one route table folded two ways by `IS_DEMO`; there are two apps now (`apps/guide`, `apps/clinical`) and the module that exported the flag is deleted. `VITE_SURFACE` survives as a build TARGET — which `index.html` vite starts from — read only by `vite.config.ts`. §3 |
 | **4 — the IG stays on GitHub Pages** | **PROPOSED.** §4 |
 | **5 — mock EHR gets its own Worker** | **PROPOSED**, per [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §3. §4 |
 
 | Phase | State |
 |---|---|
 | A — measure the IG's file count | **Not started.** One line in `deploy.yml`. §4 |
-| B — surface flag + clinical build | **Done 2026-09-15; DEPLOYED 2026-09-18.** `npm run build:clinical` → `web/dist-clinical/`. The guide routes and their chunks fold out. ⚠️ **Superseded 2026-09-19:** the clinical build used to reach `@spier/demo-population` through an empty shim; the seed corpus is a constructor argument now and NEITHER build carries fixtures, so the shim and its alias are deleted. `services/clinical` now serves it on its own origin, and the mock EHR frames **that** Worker. §3, §4 |
-| C — a gate asserting the clinical surface is clean | **Done 2026-09-15.** `npm run check:surface` (`web/scripts/check-surface.mjs`) reads BOTH builds. ⚠️ **Three rules since 2026-09-19:** guide pages in demo only, SMART-app pages in clinical only, and the 14 patients in NEITHER — the third cannot be checked both ways, so the first two are its positive control. In the build job of `web-lint.yml`, not in `verify` (it needs the builds). Proven red on two plants before it was trusted. §3 |
+| B — surface flag + clinical build | **Done 2026-09-15; DEPLOYED 2026-09-18.** `npm run build:clinical` → `dist-clinical/`. The guide routes and their chunks fold out. ⚠️ **Superseded 2026-09-19:** the clinical build used to reach `@spier/demo-population` through an empty shim; the seed corpus is a constructor argument now and NEITHER build carries fixtures, so the shim and its alias are deleted. `services/clinical` now serves it on its own origin, and the mock EHR frames **that** Worker. §3, §4 |
+| C — a gate asserting the clinical surface is clean | **Done 2026-09-15.** `npm run check:surface` (`scripts/check-surface.mjs`) reads BOTH builds. ⚠️ **Three rules since 2026-09-19:** guide pages in demo only, SMART-app pages in clinical only, and the 14 patients in NEITHER — the third cannot be checked both ways, so the first two are its positive control. In the build job of `web-lint.yml`, not in `verify` (it needs the builds). Proven red on two plants before it was trusted. §3 |
 | D — licensing verification before any client ships | **Off the critical path, not off the list.** A conference showing is lower stakes than a ship, not zero. §6, §8 |
 
 ---
@@ -191,10 +191,10 @@ reachable as far as the bundler knows — and the guide lens, the Overview, the
 legacy guide redirects and the `/` → `/overview` front door sit in `IS_DEMO`
 blocks; the clinical front door is `/patient/record`. Conditional redirects are
 written as two literal `<Route>`s under the condition, because
-`web/scripts/lib/route-table.mjs` reads `<Navigate to="…">` literally. The sidebar
+`scripts/lib/route-table.mjs` reads `<Navigate to="…">` literally. The sidebar
 shows the two apps and settings instead of the guide. `vite.config.ts` points
 the `@spier/demo-population` alias at an empty shim on `clinical` — one alias
-entry, two targets, so `web/scripts/lib/vite-alias.mjs` still sees one — and the
+entry, two targets, so `scripts/lib/vite-alias.mjs` still sees one — and the
 four importers see a population of nobody with no code path changed. The
 clinical bundle is 39 chunks to the demo's 54; the ten guide pages' chunks are
 not emitted.
@@ -236,7 +236,7 @@ has never been seen red is not evidence of anything.
 ⚠️ **§5's "two Workers give two hostnames" is now three, and the third one is the
 point of the exercise.** `services/clinical` exists so the clinical *build* has
 somewhere to be launched into: a surface flag that is only ever built in CI
-proves nothing, and until 2026-09-18 `web/dist-clinical` had been previewed
+proves nothing, and until 2026-09-18 `dist-clinical` had been previewed
 locally and deployed nowhere. It also makes the mock EHR's demo honest — the
 host now frames the build a real EHR would get, rather than the guide build that
 merely contains the same two apps. The `frame-ancestors` header those two

@@ -1,4 +1,4 @@
-# The `web/` verification gates
+# The repo-root verification gates
 
 What `npm run verify` runs, what each gate's load-bearing rule is, and what it
 cannot see.
@@ -8,7 +8,7 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
-In `web/`, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, every `check:*` drift gate listed below, and the unit tests in sequence. (**Deliberately not a count.** This line said "eleven" while `verify` ran fourteen, because a pinned number goes stale silently on every gate added — the same failure as a stale `check:codings` floor in #232. If you add a gate, add it to this list; there is no number to bump.)
+At the repo root, the one-shot entry point is **`npm run verify`** — it runs copy-fhir (forced), typecheck, both linters, every `check:*` drift gate listed below, and the unit tests in sequence. (**Deliberately not a count.** This line said "eleven" while `verify` ran fourteen, because a pinned number goes stale silently on every gate added — the same failure as a stale `check:codings` floor in #232. If you add a gate, add it to this list; there is no number to bump.)
 
 ⚠️ **CI runs `npm run verify` itself**, rather than re-listing its steps, so a
 gate added to `package.json` is enforced automatically. It did not always: the
@@ -180,7 +180,7 @@ npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almo
                          # error when wrong, so SUSHI and the validator both pass a
                          # step pointing at nothing. This resolves all three against
                          # the generated artifacts, reading the stage list through
-                         # the same `web/scripts/lib/stage-codes.mjs` that `check:stages`
+                         # the same `scripts/lib/stage-codes.mjs` that `check:stages`
                          # uses rather than a second copy.
                          # ⚠️ Its load-bearing rule is that the pathway carries NO
                          # `timing[x]` at all: the reassessment cadence has exactly
@@ -275,7 +275,7 @@ Four rules:
    FHIR-modelled", `bssa.fsh` had published the profile — and the `output` block
    was never written. Prose and structure disagreed and nothing compared them.
 2. **CLAIMED** — every declared output profile appears as `meta.profile` on a
-   resource in `web/.runtime-fhir`.
+   resource in `.runtime-fhir`.
 3. **TYPED** — and on a resource of the declared `type`. Zero violations today;
    it exists because `Condition/spier-cams-suicide-driver` is the one non-
    Observation instrument output, and a mapper returning it as an Observation
@@ -285,7 +285,7 @@ Four rules:
    too short to be a reason, all fail.
 
 ⚠️ **Its load-bearing rule is that rule 2 reads the EMITTED CORPUS, not the
-source.** `web/.runtime-fhir` is what `runtimeFhir.emit.test.ts` produces by
+source.** `.runtime-fhir` is what `runtimeFhir.emit.test.ts` produces by
 running every production builder — the same tree `validate-fhir.mjs --also`
 checks. **A lexical scan would have passed the TL-009 defect**:
 `spier-safety-handoff` appeared in `packages/core/src` the entire time it was
@@ -295,7 +295,7 @@ second is the invariant. The failure message still consults the source, but only
 to tell the reader *which* of the two shapes they have.
 
 That choice is also why the gate runs last, and why it fails rather than skips
-when `web/.runtime-fhir` is missing or **older than the newest file under
+when `.runtime-fhir` is missing or **older than the newest file under
 `packages/core/src/lib` or `web/src/lib`**. A stale emitted tree is the false
 green it is most exposed to: the directory exists, the read succeeds, and every
 answer describes a build nobody has. (The staleness test is an mtime comparison,
@@ -330,7 +330,7 @@ to stamp.
   example QuestionnaireResponses, which are hand-authored but validated by the
   IG build, which is exactly the property #263's bad fixture lacked.
 - **The profile canonical, not conformance.** A resource can claim a profile it
-  violates; `validate-fhir.mjs --also web/.runtime-fhir` is what catches that,
+  violates; `validate-fhir.mjs --also .runtime-fhir` is what catches that,
   and only if the claim is there to validate against.
 - **Right profile, wrong content.** A handoff with an empty content checklist is
   conformant, countable, and says nothing travelled with the patient.
@@ -362,7 +362,7 @@ the subject of a check. Publishing more profiles can never fail that gate.
 
 So this gate starts from the published set: every `kind: resource`,
 `derivation: constraint` StructureDefinition is claimed by something in
-`web/.runtime-fhir`, or is named in `EXEMPT` with a reason. It runs after
+`.runtime-fhir`, or is named in `EXEMPT` with a reason. It runs after
 `npm test` for the same reason `check:outputs` does — the tests produce the
 corpus.
 
@@ -392,7 +392,7 @@ the first.
 ## The clinical surface (in the CI build job, not in `verify`)
 
 ```
-npm run build:clinical   # VITE_SURFACE=clinical → web/dist-clinical/ (src/lib/surface.ts)
+npm run build:clinical   # VITE_SURFACE=clinical → dist-clinical/ (src/lib/surface.ts)
 npm run check:surface    # both bundles exist; every derived marker — the guide pages' chunks,
                          # the "/guide" and "/overview" route literals, the demo patients'
                          # display names — is ABSENT from the clinical bundle AND PRESENT in
@@ -452,10 +452,10 @@ catch what the specific checks cannot see.
 
 ## App source roots — the `apps/` split's tripwire
 
-`web/scripts/lib/app-roots.mjs` — `appRoot(source)`, `appRootFloors()`. Six
+`scripts/lib/app-roots.mjs` — `appRoot(source)`, `appRootFloors()`. Six
 gates in `verify` call the second; ten call the first.
 
-It is [`style-roots.mjs`](../../web/scripts/lib/style-roots.mjs)'s rule applied
+It is [`style-roots.mjs`](../../scripts/lib/style-roots.mjs)'s rule applied
 to the `.ts`/`.tsx` trees, and written **before** the accident rather than after
 it. That module exists because `packages/ui` was carved out of `web/src` and
 four CSS gates went green while dropping a quarter of their input. The `apps/`
@@ -523,7 +523,7 @@ ever see one table**, while the invariant is *every* table. A second app could
 route to a key that does not exist and the suite would stay green.
 
 So it became a gate, reading the app roots from
-[`lib/app-roots.mjs`](../../web/scripts/lib/app-roots.mjs). It walks every
+[`lib/app-roots.mjs`](../../scripts/lib/app-roots.mjs). It walks every
 declared root's `App.tsx`, so the second app is checked the day it is declared —
 and that declaration cannot be quiet, because an undeclared app tree is already a
 hard failure.
@@ -584,7 +584,7 @@ a fixture now. It would have reported a clean guide having never opened the tool
 views. The floor caught it only by **equality**, which is luck, not design.
 
 The resolver is now declared once in
-[`lib/module-graph.mjs`](../../web/scripts/lib/module-graph.mjs) and understands
+[`lib/module-graph.mjs`](../../scripts/lib/module-graph.mjs) and understands
 `@spier/<pkg>/…`, derived from the filesystem rather than typed.
 
 ⚠️ **And it turned out both gates had been under-reading all along.** With

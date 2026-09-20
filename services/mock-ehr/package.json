@@ -10,9 +10,9 @@
     "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "pretest": "npm --prefix ../../web run copy-fhir",
+    "pretest": "npm --prefix ../.. run copy-fhir",
     "test": "vitest run",
-    "verify": "npm --prefix ../../web run copy-fhir && npm run typecheck && npm run lint && npm run check:host-css && npm run test",
+    "verify": "npm --prefix ../.. run copy-fhir && npm run typecheck && npm run lint && npm run check:host-css && npm run test",
     "check:host-css": "node scripts/check-host-css.mjs"
   },
   "dependencies": {

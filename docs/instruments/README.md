@@ -37,7 +37,7 @@ ig/input/fsh/<tool>.fsh
     ↓
 ig/fsh-generated/resources/*.json          (sushi output, gitignored)
     ↓
-packages/fhir-artifacts/generated/*.json   (copied by web/scripts/copy-fhir.mjs, gitignored)
+packages/fhir-artifacts/generated/*.json   (copied by scripts/copy-fhir.mjs, gitignored)
     ↓
 imported via packages/core/src/data/catalog/ as ActivityDefinitions, PlanDefinitions, etc.
 ```

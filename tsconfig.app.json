@@ -1,0 +1,86 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    // ⚠️ `node` joined the list when the apps moved out. What is left under
+    // web/src is a handful of CROSS-PACKAGE tests, and several of them read
+    // fixtures off disk (`node:fs`, `__dirname`). Before the split those
+    // globals arrived incidentally through the app sources that used to live
+    // here; with only tests left, the project has to ask for them.
+    "types": ["vite/client", "node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "paths": {
+      // packages/core imports fhirclient's Client type. `fhirclient` is web's
+      // dependency and no other package declares a second copy, which could
+      // drift from the version the app ships.
+      // ⚠️ The BARE specifier needs its own entry now that SmartLaunch,
+      // SmartRedirect and SmartProvider live in packages/app-shell. From
+      // web/src a bare `fhirclient` resolved by walking up into
+      // node_modules; from packages/app-shell/src that walk reaches the
+      // repo root and finds nothing, and these files enter THIS project's
+      // program through the @spier/app-shell path mapping above.
+      "fhirclient": ["./node_modules/fhirclient/index.d.ts"],
+      "fhirclient/*": ["./node_modules/fhirclient/*"],
+      "@spier/core/*": ["./packages/core/src/*"],
+      "@spier/ui/*": ["./packages/ui/src/*"],
+      "@spier/tool-views/*": ["./packages/tool-views/src/*"],
+      "@spier/app-shell/*": ["./packages/app-shell/src/*"],
+      // packages/ui is React, and it lives OUTSIDE web/. TypeScript resolves a
+      // bare specifier by walking up from the importing FILE, so from
+      // packages/ui/src that walk reaches the repo root and finds no
+      // node_modules at all. These map the four packages those components
+      // import back to web's copy — the same arrangement `fhirclient` above
+      // already uses for packages/core, and the same one the three services use.
+      // ⚠️ Not a convenience: without them every .tsx in packages/ui fails with
+      // "Cannot find module 'react'", and adding a dependency to those
+      // components means adding a line here.
+      // ⚠️ Pointed at @types, not at the packages. TypeScript resolves types by
+      // walking up from the importing file too, so mapping these to
+      // node_modules/react would resolve the JS and then fail with "Could not
+      // find a declaration file". react-router-dom and lucide-react ship their
+      // own types, so those map to the package itself.
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-router-dom": ["./node_modules/react-router-dom"],
+      "lucide-react": ["./node_modules/lucide-react"],
+      // ⚠️ packages/tool-views renders the formbox questionnaire renderer, and its
+      // files are outside web/ — so the node_modules walk-up that resolves these
+      // for web's own sources never reaches node_modules from there. Mapped at
+      // the declaration file because a bare directory makes TS resolve the JS and
+      // then ask for types, exactly as the react entries above record.
+      "@formbox/renderer": ["./node_modules/@formbox/renderer/dist/index.d.ts"],
+      "@formbox/hs-theme": ["./node_modules/@formbox/hs-theme/dist/index.d.ts"],
+      "@spier/fhir-artifacts/*": ["./packages/fhir-artifacts/*"],
+      "@spier/demo-population": ["./packages/demo-population/src/index.ts"],
+      "@spier/demo-population/*": ["./packages/demo-population/src/*"]
+    },
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  // ⚠️ packages/ui is NOT included here. It is a referenced composite project
+  // (see tsconfig.json) with its own config, exactly like packages/core — which
+  // is what gives its .tsx files a tsconfig esbuild can find by walking up from
+  // them, and therefore the automatic JSX runtime. Listing its `src` here as
+  // well made web's config responsible for type-checking its colocated tests,
+  // which then could not resolve `vitest`.
+  "include": ["tests", "shims"]
+}

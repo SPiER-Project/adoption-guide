@@ -6,7 +6,7 @@ import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNo
 // ASQ item codes, so it is now the example of the pattern being RETIRED — see
 // ig/input/fsh/asq.fsh.) These codes MUST stay in sync with the
 // Questionnaire item codes (ig/input/resources/questionnaires/PSS-3/pss3-questionnaire.json) and the
-// anti-drift check web/scripts/check-observation-extract.mjs EXPECTED list.
+// anti-drift check scripts/check-observation-extract.mjs EXPECTED list.
 const PSS3_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-item'
 const PSS3_RESULT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-result'
 const PSS3_RECENCY_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-attempt-recency'

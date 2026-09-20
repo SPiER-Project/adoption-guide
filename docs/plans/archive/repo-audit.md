@@ -225,7 +225,7 @@ Need a script that, post-`sushi`, copies a subset of `ig/fsh-generated/resources
 ```
 ig/                              → npx sushi
   fsh-generated/resources/*.json
-web/scripts/copy-fhir.mjs        → copies to web/src/data/fhir/
+scripts/copy-fhir.mjs        → copies to web/src/data/fhir/
 web/src/data/fhir/
   ActivityDefinition-*.json
   PlanDefinition-*.json

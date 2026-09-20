@@ -21,7 +21,7 @@
  * frames — paid by every visitor whether or not they ever opened a form.
  *
  * So the join reads a derived table instead
- * (`questionnaire-ordinals.generated.ts`, emitted by `web/scripts/copy-fhir.mjs`
+ * (`questionnaire-ordinals.generated.ts`, emitted by `scripts/copy-fhir.mjs`
  * from the same Questionnaires), and `./questionnaires.ts` keeps the whole
  * resources for the one caller that renders them — which is lazy.
  * `docs/plans/tool-bundling-audit-2026-09-19.md` §5.1 has the measurement.

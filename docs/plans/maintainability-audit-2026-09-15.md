@@ -318,7 +318,7 @@ alone there is worth checking.
 
 ## Method and what was not checked
 
-Three passes over `web/src`, `services/*`, `packages/*`, `web/scripts` and
+Three passes over `web/src`, `services/*`, `packages/*`, `scripts` and
 `docs/plans`: a CSS rule-block parse of every `.css`, a JSX pattern sweep of
 `pages/` and `components/`, and a read of the build, deploy, SMART-launch and
 gate sources. Headline counts (form-skeleton duplication,

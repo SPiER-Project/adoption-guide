@@ -33,8 +33,8 @@ const ROOT = process.cwd()
 
 // Generated trees: not tracked, so "does not exist" says nothing about the prose.
 const GENERATED = [
-  'ig/fsh-generated', 'packages/fhir-artifacts/generated', 'web/.runtime-fhir',
-  'ig/output', 'docs/use-cases/dist', 'web/dist', 'web/node_modules',
+  'ig/fsh-generated', 'packages/fhir-artifacts/generated', '.runtime-fhir',
+  'ig/output', 'docs/use-cases/dist', 'dist', 'node_modules',
 ]
 
 const ARCHIVE = 'docs/plans/archive/'
@@ -43,10 +43,10 @@ const ARCHIVE = 'docs/plans/archive/'
 const ALLOWED = new Map(Object.entries({
   // -- the gate's own internals doc QUOTES rotted paths as examples, which is
   //    unavoidable: a page explaining which paths rotted has to name them.
-  'docs/internals/docs-gates.md::web/src/index.css': 'quoted as an example of correct supersede prose',
+  'docs/internals/docs-gates.md::packages/ui/src/index.css': 'quoted as an example of correct supersede prose',
   'docs/internals/docs-gates.md::ig/input/fsh/population-patients.fsh': 'quoted as an example of correct supersede prose',
   'docs/internals/docs-gates.md::packages/core/src/lib/foo.ts': 'invented path, illustrating what the gate cannot see',
-  'docs/internals/docs-gates.md::web/src/Foo.tsx': 'invented path, illustrating the missing-trigger hole',
+  'docs/internals/docs-gates.md::apps/guide/src/Foo.tsx': 'invented path, illustrating the missing-trigger hole',
 
   // -- per-instrument IG pages that were never authored. The licensing memos
   //    say so in as many words ("when that page is created").
@@ -56,23 +56,22 @@ const ALLOWED = new Map(Object.entries({
   'docs/instruments/SAFE-T/licensing/MEMO.md::ig/input/pagecontent/safet.md': 'IG attribution page not yet authored; memo says so',
 
   // -- history: the sentence around each of these says the file is gone.
-  'CLAUDE.md::web/src/lib/surface.ts': 'names the deleted IS_DEMO flag module while saying it is deleted',
-  'CLAUDE.md::web/src/index.css': 'reads "formerly web/src/index.css"; moved to packages/ui/src/foundation.css in #544',
-  'packages/ui/README.md::web/src/index.css': 'reads "the former web/src/index.css"; same move',
-  'web/README.md::scripts/fetch-roadmap.mjs': 'names it in a list of things "all deleted together" with the Roadmap page',
-  '.claude/skills/assessment-to-ig/SKILL.md::web/src/pages/Roadmap.tsx': 'struck through, with a note that the Roadmap page was deleted',
+  //
+  // ⚠️ **Eleven `web/…` entries were deleted here at the tooling hoist, and
+  //    their prose was NOT changed.** `web/` stopped being a tracked top-level
+  //    directory, so `topLevel` no longer contains it and the scan skips every
+  //    `web/…` path before it reaches this map — an entry for one can never
+  //    fire, which is what `stale` reports. The sentences are still correct
+  //    history ("the former `web/src/index.css`"); they are simply outside
+  //    what this gate can see now. Nothing is owed unless `web/` comes back.
   'services/cds-hooks/README.md::.github/workflows/deploy-cloudflare.yml': 'reads "the collision that deleted ... in #143"',
   'packages/demo-population/src/patients/README.md::ig/input/fsh/population-patients.fsh': 'reads "They were ... until step E2"; the file left the IG in #399',
   'docs/internals/docs-gates.md::ig/input/resources/questionnaires/README.md': 'recounts a defect the links gate once found in that README, which has since gone',
-  'docs/plans/maintainability-audit-2026-09-15.md::web/src/css/Dashboard.css': 'annotated "(now deleted)" in the table itself',
-  'docs/plans/next-session-handoff.md::web/src/data/roadmap.generated.json': 'annotated as since-deleted',
-  'docs/plans/provider-app-rename.md::web/src/pages/PatientAppGuide.tsx': 'the rename plan\'s BEFORE column; the rename shipped',
-  'docs/plans/structure-simplification-scope.md::web/scripts/check-fallback-signatures.mjs': 'a gate that was proposed and then retired',
-  'docs/plans/tool-loading-and-views-audit-2026-09-17.md::web/src/components/WorkflowActionView.tsx': 'audit-dated path; the view moved into packages/tool-views in #547',
+  'docs/plans/structure-simplification-scope.md::scripts/check-fallback-signatures.mjs': 'a gate that was proposed and then retired',
 
   // -- the outreach one-pager pipeline, deleted whole. The README narrates it
   //    in the past tense ("were the outreach handout").
-  'docs/outreach/README.md::web/public/SPiER-Overview-Care-Pathway.html': 'one-pager pipeline deleted; README is past tense',
+  'docs/outreach/README.md::public/SPiER-Overview-Care-Pathway.html': 'one-pager pipeline deleted; README is past tense',
   'docs/outreach/README.md::docs/one-pager.md': 'same',
   'docs/outreach/README.md::scripts/build-onepager.mjs': 'same',
   'docs/outreach/README.md::.github/workflows/onepager.yml': 'same',
@@ -84,10 +83,8 @@ const ALLOWED = new Map(Object.entries({
   'docs/plans/docs-and-ig-content-consolidation.md::docs/one-pager.md': 'same',
   'docs/plans/docs-and-ig-content-consolidation.md::ig/input/pagecontent/design-decisions.md': 'same',
   'docs/plans/docs-and-ig-content-consolidation.md::ig/input/resources/questionnaires/README.md': 'same',
-  'docs/plans/docs-and-ig-content-consolidation.md::web/public/SPiER-Overview-Care-Pathway.html': 'same',
-  'docs/plans/docs-and-ig-content-consolidation.md::web/scripts/fetch-roadmap.mjs': 'same',
-  'docs/plans/docs-and-ig-content-consolidation.md::web/src/data/pilot-plans/asq.md': 'same',
-  'docs/plans/docs-and-ig-content-consolidation.md::web/src/data/roadmap.generated.json': 'same',
+  'docs/plans/docs-and-ig-content-consolidation.md::public/SPiER-Overview-Care-Pathway.html': 'same',
+  'docs/plans/docs-and-ig-content-consolidation.md::scripts/fetch-roadmap.mjs': 'same',
 
   // -- the 14 demo patients left the IG in #399 (step E2a). Three plan docs
   //    narrate that move and name the file it moved from.

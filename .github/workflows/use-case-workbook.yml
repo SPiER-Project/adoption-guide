@@ -27,7 +27,7 @@ name: Use-case workbook — freshness and demo linkage
 # without anything under docs/ changing. It was pinned to patient-011 alone
 # while three more ED patients (012–014) had joined the linkage, so an edit to
 # any of those three skipped this job entirely. web-lint.yml also triggers on
-# web/**, but it does not run this script.
+# the app and tooling trees, but it does not run this script.
 
 on:
   push:

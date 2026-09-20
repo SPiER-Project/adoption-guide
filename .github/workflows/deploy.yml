@@ -89,20 +89,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ── Companion web app (Vite → web/dist) ───────────────────────────────
+      # ── Companion web app (Vite → dist) ───────────────────────────────
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .github/.nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install web dependencies
-        working-directory: ./web
+        working-directory: .
         run: npm ci
 
       - name: Build web app
-        working-directory: ./web
+        working-directory: .
         run: npm run build
         env:
           VITE_BASE: /adoption-guide/ # GitHub Pages serves under this subpath; Cloudflare/dev default to root (/)
@@ -372,10 +372,10 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # ── Combine: nest the rendered IG under the app at /adoption-guide/ig/ ──────────
-      - name: Nest rendered IG under web/dist/ig
+      - name: Nest rendered IG under dist/ig
         run: |
-          mkdir -p web/dist/ig
-          cp -r ig/output/. web/dist/ig/
+          mkdir -p dist/ig
+          cp -r ig/output/. dist/ig/
 
       # ── Publish the combined site ─────────────────────────────────────────
       - name: Setup Pages
@@ -384,7 +384,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './web/dist' # app at /adoption-guide/, rendered IG at /adoption-guide/ig/
+          path: './dist' # app at /adoption-guide/, rendered IG at /adoption-guide/ig/
 
   deploy:
     environment:
@@ -399,7 +399,7 @@ jobs:
 
   # ── Cloudflare Workers: the CLINICAL surface, its own Worker, its own origin ──
   #
-  # `services/clinical` serves `web/dist-clinical` — the two SMART apps, no guide
+  # `services/clinical` serves `dist-clinical` — the two SMART apps, no guide
   # routes, no synthetic patient — and nothing else: no /cds-services, no /ig.
   #
   # ⚠️ **Deliberately `needs:` NOTHING.** The other Cloudflare job consumes the
@@ -428,7 +428,7 @@ jobs:
       # compile on a cold cache, so the same package cache the other jobs use is
       # restored here too.
       - name: Install web dependencies
-        working-directory: ./web
+        working-directory: .
         run: npm ci
 
       - name: Install Worker dependencies
@@ -499,7 +499,7 @@ jobs:
   #
   # ⚠️ The web app is built a SECOND time here, and that is not waste: the Pages
   # build sets `VITE_BASE=/adoption-guide/` and Cloudflare serves at the root, so
-  # the two bundles genuinely differ. Copying `web/dist` across from `build`
+  # the two bundles genuinely differ. Copying `dist` across from `build`
   # would deploy Pages-based asset URLs to the Worker.
   cloudflare:
     name: Deploy to Cloudflare Workers
@@ -551,7 +551,7 @@ jobs:
           echo "restored $matched"
 
       - name: Install web dependencies
-        working-directory: ./web
+        working-directory: .
         run: npm ci
 
       - name: Install Worker dependencies

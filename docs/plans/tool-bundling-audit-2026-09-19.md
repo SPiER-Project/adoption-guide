@@ -388,23 +388,23 @@ Three reasons to leave it whole:
 
 Named per the brief's rule:
 
-- **`web/scripts/lib/app-roots.mjs`** — today it declares **exactly one** root,
+- **`scripts/lib/app-roots.mjs`** — today it declares **exactly one** root,
   `web/src` (floor 42). It does *not* list `packages/tool-views/src`. Any new
   `packages/<x>/src` holding app-ish `.tsx` needs a row plus a per-root floor,
   and the `undeclaredAppTrees` hard-failure keys on `src/main.tsx` / `src/App.tsx`
   so it will **not** catch a new *package* tree — only a new *app* tree.
-- **`web/scripts/lib/style-roots.mjs`** — already carries
+- **`scripts/lib/style-roots.mjs`** — already carries
   `packages/tool-views/src` (floorCss 1, floorSrc 12). A split moves those CSS
   files; both halves need rows, and a floor that goes with a deleted row is the
   documented silent-pass.
-- **`web/scripts/lib/module-graph.mjs`** — derives `@spier/<pkg>` →
+- **`scripts/lib/module-graph.mjs`** — derives `@spier/<pkg>` →
   `packages/<pkg>/src` from the filesystem, so it follows a new package with no
   edit. This is the one that does *not* need changing, and it is the one that
   previously broke.
 - **`check:tool-view-routes`** — iterates declared app roots against the one
   map. Two maps means the rule "this one definition serves every app" no longer
   has a single subject; that is the gate whose premise a split destroys.
-- **`web/vite.config.ts` + `web/vitest.config.ts` + two `tsconfig.json`s** —
+- **`vite.config.ts` + `vitest.config.ts` + two `tsconfig.json`s** —
   the README's four-places rule, per new package.
 
 **The gate I would plant and cannot:** I can construct the plant for a dropped

@@ -15,7 +15,7 @@ and the app's Overview page loads the same three-step framing from
 
 ## The two-sided one-pager was removed
 
-`web/public/SPiER-Overview-Care-Pathway.html` and its committed PDF were the
+`public/SPiER-Overview-Care-Pathway.html` and its committed PDF were the
 outreach handout: front page the pitch, back page the eight-stage pathway, one
 file serving as both a web page and a printable PDF. It has not been distributed
 for some time, so it was deleted rather than kept current — an outreach artifact
@@ -38,7 +38,7 @@ the SPA's `index.html` with a **200** — about 820 bytes. That behaviour predat
 this removal and is documented here because it is the thing that makes "is it
 still served?" an unreliable question to answer by status code.
 
-If it is ever wanted back, `git log -- web/public/SPiER-Overview-Care-Pathway.html`
+If it is ever wanted back, `git log -- public/SPiER-Overview-Care-Pathway.html`
 has every version, and the last one is at the commit that removed it. Two things
 about that file are worth reading before reviving it rather than rediscovering:
 its stylesheet had a print layer and a `@media screen` layer that could not see

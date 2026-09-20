@@ -42,7 +42,7 @@ most of them are a gate that passed while checking nothing.
   by the app and both Workers, which have **zero** deep imports into `web/src`.
   Its tests live beside their subject, under `packages/core/src` itself, rather
   than under `web/src` — `packages/core/tsconfig.json` (a `composite` project
-  referenced from `web/tsconfig.json`) and `web/vitest.config.ts`'s extended
+  referenced from `tsconfig.json`) and `vitest.config.ts`'s extended
   `test.include` are what reach them from there. Still `web`'s `npm run verify`
   and `npx tsc -b`; no fourth pipeline.
 - `packages/ui/` — the **design system**: the eight surface primitives
@@ -83,7 +83,7 @@ most of them are a gate that passed while checking nothing.
   moving them now would mean moving them twice.
   ⚠️ **`fhirclient` is imported BARE here**, which `packages/core` never does, so
   it needed a new alias in `vite.config.ts` AND `vitest.config.ts` and a mapping
-  in this package's tsconfig AND `web/tsconfig.app.json` — the four places
+  in this package's tsconfig AND `tsconfig.app.json` — the four places
   #387's no-workspaces arrangement always costs. See `packages/app-shell/README.md`.
 - `packages/worker-http/` — what the two asset-serving Workers share about
   *being an asset host*: the Static Assets catch-all, the explicit SPA fallback,
@@ -103,25 +103,46 @@ most of them are a gate that passed while checking nothing.
   both surfaces with `IS_DEMO ?` folding the other's pages out at build time;
   `web/src/lib/surface.ts` is deleted. `VITE_SURFACE` survives as a build
   **target** — which `index.html` vite starts from — read only by
-  `web/vite.config.ts`. `check:tool-view-routes` reads EVERY app's table and
+  `vite.config.ts`. `check:tool-view-routes` reads EVERY app's table and
   holds them to the one tool-view definition.
-- `web/` — ⚠️ **no longer an app.** It is the TOOLING host: `package.json`, the
-  only `node_modules` (#387 — no npm workspaces), every `scripts/check-*` gate,
-  the vite/vitest configs, `public/`, and the two vite shims. What is left under
-  `web/src` is a handful of cross-package tests, which is why it is **not** in
-  `APP_ROOTS` any more — it has no entry module, so the filesystem rule in
-  `web/scripts/lib/app-roots.mjs` reaches that conclusion on its own. Moving the
-  tooling to the repo root is the next step and deliberately not this one.
+- **The repo root is the TOOLING host** — ⚠️ **`web/` is gone** (2026-09-19).
+  `package.json`, the only `node_modules` (#387 — no npm workspaces), the
+  vite/vitest/eslint/stylelint configs, every `tsconfig`, `public/`, `tests/`
+  and `shims/` all live at the root, and `web/scripts/` merged into the existing
+  root `scripts/` (the two trees had **no** filename collisions, including their
+  two `lib/` directories). One install and one config now serve both apps and
+  all six packages, which is what `web/` existed to provide and what an
+  app-local config could not — an app directory has no install under it.
+  ⚠️ **There is no root `src/`, deliberately.** The obvious move — `web/src`
+  becomes `src/` — was made and then reverted: `check-md-paths.mjs` derives its
+  repo-rooted prefixes from the tracked tree's top-level names, so a top-level
+  `src` makes every package-relative `` `src/auth.ts` `` in a service README
+  resolve against the ROOT and fail. The two names that replaced it cannot
+  collide that way:
+  - `tests/` — the handful of cross-package tests (the rest live beside their
+    subject, under each package).
+  - `shims/` — the two vite shims and `vite-env.d.ts`, aliased from
+    `vite.config.ts` and gated by `check:ucum` / `check:fhir-r5`.
+  ⚠️ Neither holds an entry module, so `APP_ROOTS` still names only the two
+  apps — the filesystem rule in `scripts/lib/app-roots.mjs` reaches that on its
+  own rather than being told.
+  ⚠️ **`eslint .` got WIDER at the hoist and that is deliberate.** It ran from
+  `web/`, so `.` was web's own tree and every app and package went unlinted;
+  from the root it reaches them, and `eslint.config.js` now carries the ignore
+  list that draws the line (the three Workers lint themselves). It found two
+  real defects on first run — see `packages/app-shell/src/context/PatientProvider.tsx`.
   Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/`
-  by `web/scripts/copy-fhir.mjs`, and Questionnaires imported from
+  by `scripts/copy-fhir.mjs`, and Questionnaires imported from
   `ig/input/resources/questionnaires/`.
-- `docs/` — project/reference docs. `scripts/` — repo-level helper scripts.
+- `docs/` — project/reference docs. `scripts/` — **one** tree now: the repo-level
+  helpers (IG, validator, docs gates) and every `check:*` gate the root's
+  `verify` runs.
 
 ## Verification commands
 
 Run these before considering a change done.
 
-### In `web/`
+### At the repo root — the `npm` gates
 
 The one-shot entry point is **`npm run verify`** — copy-fhir (forced),
 typecheck, both linters, every `check:*` gate below, and the unit tests, in
@@ -140,13 +161,13 @@ npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
                        # ⚠️ This, check:css-dead, check:prose and check:template all read TWO trees
                        # now — web/src and packages/ui/src — declared once in
-                       # web/scripts/lib/style-roots.mjs with a PER-ROOT floor. A global floor is
+                       # scripts/lib/style-roots.mjs with a PER-ROOT floor. A global floor is
                        # what they had when packages/ui was extracted, and 31 stylesheets cleared
                        # it while nine were missing: css-dead and template reported ✓ over
                        # three-quarters of the CSS. The floors alone still could not see a root
                        # DELETED from the list (it takes its own floor with it), so the roots are
                        # additionally checked against the filesystem
-npm run check:favicons # the tab mark still matches the brand tokens. The icons in web/public/
+npm run check:favicons # the tab mark still matches the brand tokens. The icons in public/
                        # are GENERATED from --brand-primary and --brand-gradient-1…5 by
                        # scripts/build-favicons.mjs (`npm run build:favicons` rewrites them).
                        # ⚠️ A favicon is its own document and cannot read a var(), so its six
@@ -176,7 +197,7 @@ npm run check:core-boundary    # packages/core stays React-free and DOM-free
 npm run check:guide-boundary   # the Adoption Guide holds no patient data (walks guide pages transitively)
                                # ⚠️ This, check:surface-links, check:fhir-render, check:template,
                                # check:fhir-r5 and check:outputs no longer name `web/src` themselves —
-                               # the root comes from web/scripts/lib/app-roots.mjs, the `.ts`/`.tsx`
+                               # the root comes from scripts/lib/app-roots.mjs, the `.ts`/`.tsx`
                                # twin of style-roots.mjs. Ten gates hardcoded that path, and the
                                # `apps/` split turns one tree into two. Same two-part rule: a PER-ROOT
                                # floor, plus a filesystem scan that HARD-FAILS on an app tree no root
@@ -222,7 +243,7 @@ npm run check:outputs          # the OTHER half of a tool's FHIR contract: every
                                # PlanDefinition.action.output profile is stamped by a resource the app
                                # actually emits, on the declared type, and every launchable recorder
                                # declares one. ⚠️ Runs AFTER `npm test` in `verify`, because it reads
-                               # web/.runtime-fhir — the emitted corpus, not the source. A lexical scan
+                               # .runtime-fhir — the emitted corpus, not the source. A lexical scan
                                # would have PASSED the TL-009 defect: the canonical was in the source
                                # the whole time, in measures.ts, as the constant a filter READ
 npm run check:published-profiles # the COMPLEMENT: every profile the IG publishes is claimed by
@@ -281,7 +302,12 @@ fails in a fresh worktree:
 npx fsh-sushi .        # compile FSH → fsh-generated/resources/
 ```
 
-### At the repo root
+### At the repo root — the standalone `node` scripts
+
+These have no `npm run` wrapper: they gate the IG, the validator and the docs
+rather than the app, and several need Java or the network. They live in the same
+`scripts/` tree as the `check:*` gates above, which the tooling hoist merged
+into one directory.
 
 ```
 node scripts/check-sushi-output.mjs   # compile ig/ and gate the WARNING SHAPE against a reasoned
@@ -350,9 +376,9 @@ is a statement to the HL7 working group; see
 
 ### The three Workers — easy to forget, and CI gates all three
 
-`web/`'s `npm run verify` covers **none of them**, and two of the three import
+the repo root's `npm run verify` covers **none of them**, and two of the three import
 the web catalog, so a change to `tool-ui-metadata.ts` or the population
-scenarios can break them with `web/` green.
+scenarios can break them with the root verify green.
 
 ```
 cd services/cds-hooks && npm install && npm run verify   # typecheck + eslint + check:csp + vitest
@@ -365,7 +391,7 @@ cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no 
 ```
 
 ⚠️ **`services/clinical` is the Worker a real EHR frames, and that decides three
-things about it.** It serves `web/dist-clinical` (`VITE_SURFACE=clinical`) and
+things about it.** It serves `dist-clinical` (`VITE_SURFACE=clinical`) and
 nothing else — no `/cds-services` (cards come from `buildCdsCards` in-process,
 the endpoint's only runtime caller is a guide page, and `CDS_JWT_AUDIENCE` is
 baked to the adoption-guide Worker's URL) and no `/ig/`. `src/app.test.ts`
@@ -629,9 +655,9 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   It is also deliberately not a `guideSections.ts` entry — it renders recorders
   that write to patient context, so it is not a guide page and `check:guide-boundary`'s
   premise does not hold for it.
-- **Vite base path:** `/adoption-guide/` (see `web/vite.config.ts`). Don't hardcode absolute asset paths.
+- **Vite base path:** `/adoption-guide/` (see `vite.config.ts`). Don't hardcode absolute asset paths.
 - **Two build surfaces, one route table — and the flag now folds BOTH ways.**
-  `VITE_SURFACE=clinical` (a build TARGET now, read only by `web/vite.config.ts`;
+  `VITE_SURFACE=clinical` (a build TARGET now, read only by `vite.config.ts`;
   the old `surface.ts` module and its `IS_DEMO` are deleted) builds the two SMART apps
   with no guide route registered; `demo` builds the Adoption Guide with **no
   SMART-app page** registered. A demo-only page is declared
@@ -657,14 +683,14 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   comment — and throws on one it cannot parse; that is why the config's comments
   say "alias entry" and not the property name.
 - **Never hand-edit generated output** — `packages/fhir-artifacts/generated/`,
-  `ig/fsh-generated/`, `docs/use-cases/dist/`, `web/.runtime-fhir/`, and
-  `web/public/favicon.*` + `web/public/apple-touch-icon.png`. To change
+  `ig/fsh-generated/`, `docs/use-cases/dist/`, `.runtime-fhir/`, and
+  `public/favicon.*` + `public/apple-touch-icon.png`. To change
   FHIR shapes, edit FSH in `ig/input/fsh/`; to change a Questionnaire, edit the
   JSON in `ig/input/resources/questionnaires/`.
 
 ## Gotchas
 
-- **Fresh worktrees need `npm install`** in `web/` before any npm script runs.
+- **Fresh worktrees need `npm install`** at the repo root before any npm script runs.
 - **`copy-fhir` is incremental, on a CONTENT fingerprint — not mtimes.** It
   skips the ~30s SUSHI compile when `.copy-fhir-manifest` in the generated tree
   still matches the SUSHI version, the hash of every input's content, and the

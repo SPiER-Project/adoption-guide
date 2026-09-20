@@ -26,14 +26,14 @@ and each is commented as such:
 
 | Consumer | Where the alias lives |
 |---|---|
-| `web` app + build | `web/vite.config.ts` |
-| `web` tests | `web/vitest.config.ts` — **separately**, see below |
-| `web` typecheck | `web/tsconfig.app.json` `paths` |
+| `web` app + build | `vite.config.ts` |
+| `web` tests | `vitest.config.ts` — **separately**, see below |
+| `web` typecheck | `tsconfig.app.json` `paths` |
 | `services/cds-hooks` | its `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 | `services/mock-ehr` | its `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 | Node scripts (gates, root tooling) | plain `fs` paths — no alias involved |
 
-⚠️ **`web/vitest.config.ts` does NOT inherit `web/vite.config.ts`.** It is its own
+⚠️ **`vitest.config.ts` does NOT inherit `vite.config.ts`.** It is its own
 `defineConfig` with no `mergeConfig`, so a Vite alias is invisible to the test run.
 This was verified rather than assumed: under vitest, `@lhncbc/ucum-lhc` resolves to
 the real library (`Ucum, UcumLhcUtils, UnitTables`), not the shim (`UcumLhcUtils`
@@ -62,7 +62,7 @@ make the inverted direction look sanctioned.
 
 ## The gates that read this directory
 
-Five in `web/scripts` and two at the repo root, all by `fs` path rather than by
+Five in `scripts` and two at the repo root, all by `fs` path rather than by
 import, plus two workflow path filters. They are listed on #388. **If you move
 anything here, plant each gate's defect and watch it go red** — a script pointed at
 a directory that no longer exists reports green, not red, and this repo has six

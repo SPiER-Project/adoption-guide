@@ -270,7 +270,7 @@ one-PR job.
 
    Registries updated: `PatientSlice` in `web/src/types/fhir.ts`, `FHIR_BUCKETS` /
    `NON_FHIR_BUCKETS` / `PATIENT_ELEMENT` / `BASE_REQUIRED` / `STATUS_CODES` in
-   `web/scripts/check-scenario-resources.mjs`, and the bucket map in
+   `scripts/check-scenario-resources.mjs`, and the bucket map in
    `scripts/validate-fhir.mjs`. Both gates fail loudly on an unknown bucket
    (`check-scenario-resources.mjs` lists the known set), so a forgotten registry is
    caught rather than silently skipped.

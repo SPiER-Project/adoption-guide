@@ -16,11 +16,15 @@ name: Web — lint, typecheck & build
 # but `vite build` does not typecheck and does not run tests, so type errors and
 # failing tests in the production Worker reached deploy undetected.
 
-# ⚠️ **`apps/**` and `packages/**` are in the trigger list, and leaving them out
-# is a silent failure, not a loud one.** Every gate here reads the two app trees
-# and the six packages; before the apps/ split they all lived under `web/`, so
-# one glob covered them. A workflow that does not trigger reports NOTHING — it
-# does not report red — so an apps-only PR would have merged unverified.
+# ⚠️ **The trigger list is long BECAUSE one glob no longer covers the tooling,
+# and leaving a path out is a silent failure, not a loud one.** Every gate here
+# reads the two app trees and the six packages; before the apps/ split they all
+# lived under `web/`, and before the tooling hoist `web/**` still covered the
+# scripts, the configs and the lockfile. Both moves replaced one glob with
+# several, and there is no `**` that spans the repo root's own files without
+# also matching `docs/**`. A workflow that does not trigger reports NOTHING — it
+# does not report red — so a scripts-only or config-only PR would merge
+# unverified. Add a path here whenever a new file at the root feeds a gate.
 on:
   push:
     branches:
@@ -28,7 +32,17 @@ on:
     paths:
       - 'apps/**'
       - 'packages/**'
-      - 'web/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'shims/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'vitest.config.ts'
+      - 'tsconfig*.json'
+      - 'eslint.config.js'
+      - '.stylelintrc.json'
       - 'services/**'
       - 'ig/**'
       - '.github/workflows/web-lint.yml'
@@ -36,7 +50,17 @@ on:
     paths:
       - 'apps/**'
       - 'packages/**'
-      - 'web/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'shims/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'vitest.config.ts'
+      - 'tsconfig*.json'
+      - 'eslint.config.js'
+      - '.stylelintrc.json'
       - 'services/**'
       - 'ig/**'
       - '.github/workflows/web-lint.yml'
@@ -70,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./web
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
@@ -80,7 +104,7 @@ jobs:
         with:
           node-version-file: .github/.nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -91,14 +115,14 @@ jobs:
       # The other half of the design-token rule. `lint:css` enforces that a
       # colour/size/shadow declaration uses `var(--…)`; it cannot tell whether
       # the token exists, so `color: var(--made-up)` passes it (issue #280).
-      # Reads only web/src, so it belongs in this fast job.
+      # Reads only the app trees, so it belongs in this fast job.
       - name: Check CSS token references
         run: npm run check:tokens
 
       # The third CSS gate, and the first that reads CSS and TSX together:
       # every class selector must be referenced by something that can put it
       # on an element. `lint:css` and `check:tokens` both passed 148 selectors
-      # whose components had been deleted (2026-09-15). Reads web/src plus the
+      # whose components had been deleted (2026-09-15). Reads the style roots plus the
       # installed formbox theme (for the renderer's hash classes), so it
       # belongs in this fast job.
       - name: Check for dead CSS selectors
@@ -107,7 +131,7 @@ jobs:
       # The reading measure. `lint:css` and `check:tokens` between them prove a
       # cap is spelled with a real token; neither can tell whether that token is
       # a WIDTH where a character count was meant — which is what `--measure-prose`
-      # was for as long as it was 760px. Reads only web/src, so it belongs here.
+      # was for as long as it was 760px. Reads only the style roots, so it belongs here.
       - name: Check prose measure
         run: npm run check:prose
 
@@ -115,7 +139,7 @@ jobs:
       # have asked `useInspect()` first — the leaf gate on `FhirJsonViewer`
       # cannot see one that writes its own `<pre>{JSON.stringify(…)}</pre>`,
       # which is exactly how `CarePlanDisplay` escaped the inventory. Reads only
-      # web/src, so it belongs here.
+      # the app trees, so it belongs here.
       - name: Check raw-FHIR rendering
         run: npm run check:fhir-render
 
@@ -152,7 +176,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./web
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
@@ -162,14 +186,14 @@ jobs:
         with:
           node-version-file: .github/.nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       # The cache key for the generated FHIR tree, taken from the one place that
       # defines what determines that tree. `copy-fhir.mjs` is node-builtins
       # only, so this runs before any install.
       - name: Fingerprint the FHIR inputs
         id: fhir
-        working-directory: ./web
+        working-directory: .
         run: echo "key=$(node scripts/copy-fhir.mjs --print-input-fingerprint)" >> "$GITHUB_OUTPUT"
 
       # Lookup-only: this job does not restore the tree, it PRODUCES it. `verify`
@@ -286,14 +310,14 @@ jobs:
           node-version-file: .github/.nvmrc
           cache: npm
           cache-dependency-path: |
-            web/package-lock.json
+            package-lock.json
             services/cds-hooks/package-lock.json
 
       # The cache key for the generated FHIR tree — one definition, in
       # copy-fhir.mjs. Node-builtins only, so it needs no install.
       - name: Fingerprint the FHIR inputs
         id: fhir
-        working-directory: ./web
+        working-directory: .
         run: echo "key=$(node scripts/copy-fhir.mjs --print-input-fingerprint)" >> "$GITHUB_OUTPUT"
 
       # Restoring the tree lets this job's `copy-fhir` skip the SUSHI compile —
@@ -314,11 +338,11 @@ jobs:
           path: packages/fhir-artifacts/generated
           key: fhir-generated-${{ steps.fhir.outputs.key }}
 
-      # The service's `pretest` shells out to `npm --prefix ../../web run
+      # The service's `pretest` shells out to `npm --prefix ../.. run
       # copy-fhir` (its tests import web's catalog and mappers), so web's
       # dependencies have to be present too.
       - name: Install web dependencies
-        working-directory: ./web
+        working-directory: .
         run: npm ci
 
       - name: Install service dependencies
@@ -350,8 +374,8 @@ jobs:
   # The clinical Worker: typecheck, lint, the shared-CSP gate, and unit tests.
   #
   # ⚠️ **No `copy-fhir` and no web install, and that is a property worth
-  # keeping.** This Worker imports nothing from `web/src` — it serves
-  # `web/dist-clinical` as bytes — so its verify is offline and takes seconds.
+  # keeping.** This Worker imports nothing from the app trees — it serves
+  # `dist-clinical` as bytes — so its verify is offline and takes seconds.
   # The day something here needs the catalog is the day this job grows the FHIR
   # cache dance the other two carry; until then, do not add it for symmetry.
   #
@@ -385,7 +409,7 @@ jobs:
   # integration test that drives the app's real SmartDataSource against it.
   # Its own job for the same reason as cds-hooks above, and more urgently: this
   # service reads the population scenario fixtures directly, so a re-anchoring
-  # by web/scripts/shift-scenario-dates.mjs (or any fixture edit) can break it
+  # by scripts/shift-scenario-dates.mjs (or any fixture edit) can break it
   # while every web gate stays green.
   mock-ehr:
     runs-on: ubuntu-latest
@@ -402,14 +426,14 @@ jobs:
           node-version-file: .github/.nvmrc
           cache: npm
           cache-dependency-path: |
-            web/package-lock.json
+            package-lock.json
             services/mock-ehr/package-lock.json
 
       # The cache key for the generated FHIR tree — one definition, in
       # copy-fhir.mjs. Node-builtins only, so it needs no install.
       - name: Fingerprint the FHIR inputs
         id: fhir
-        working-directory: ./web
+        working-directory: .
         run: echo "key=$(node scripts/copy-fhir.mjs --print-input-fingerprint)" >> "$GITHUB_OUTPUT"
 
       # Restoring the tree lets this job's `copy-fhir` skip the SUSHI compile —
@@ -430,12 +454,12 @@ jobs:
           path: packages/fhir-artifacts/generated
           key: fhir-generated-${{ steps.fhir.outputs.key }}
 
-      # `pretest` shells out to `npm --prefix ../../web run copy-fhir` (the 14
+      # `pretest` shells out to `npm --prefix ../.. run copy-fhir` (the 14
       # Patient resources it serves are SUSHI output), and the integration test
-      # resolves fhirclient out of web/node_modules rather than keeping a second
+      # resolves fhirclient out of node_modules rather than keeping a second
       # copy — so web's dependencies have to be installed too.
       - name: Install web dependencies
-        working-directory: ./web
+        working-directory: .
         run: npm ci
 
       - name: Install service dependencies

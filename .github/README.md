@@ -23,7 +23,7 @@ version, set it in the Cloudflare Workers Builds configuration, not here.
 
 ## Lower bound on the Node version
 
-`web/`'s jsdom (`^30`) declares `engines: ^22.22.2 || ^24.15.0 || >=26.0.0`, so
+the root's jsdom (`^30`) declares `engines: ^22.22.2 || ^24.15.0 || >=26.0.0`, so
 **`.nvmrc` must not be pinned below 22.22.2.** As written it says `22`, which
 `setup-node` resolves to the newest 22.x — 22.23.2 at the time of writing — and
 that satisfies it.
@@ -37,4 +37,4 @@ exact floor — passes, as do 22.22.3 and 24.18.0. **Do not match on a specific
 error string**: the failure on 20.17.0 is `ERR_REQUIRE_ESM` (`require()` of an ES
 module from `html-encoding-sniffer`), not the `webidl.util.markAsUncloneable` this
 was previously documented as. The message moves between versions; the load
-failure is the stable part. See the comment at the top of `web/vitest.config.ts`.
+failure is the stable part. See the comment at the top of `vitest.config.ts`.

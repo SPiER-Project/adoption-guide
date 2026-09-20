@@ -117,7 +117,7 @@ npm run verify       # typecheck + test
 ```
 
 `npm run build` orchestrates three steps: `build:web` (web app at base `/`),
-`stage:assets` (copy `../../web/dist` → `./web-dist`), `build:worker` (bundle the
+`stage:assets` (copy `../../dist` → `./web-dist`), `build:worker` (bundle the
 Worker). `dist/` and `web-dist/` are gitignored.
 
 ### Try it locally

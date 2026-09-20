@@ -77,7 +77,7 @@ const NO_R4_ROUTE = new Set(['Consent'])
  * classified deliberately.
  *
  * ⚠️ Duplicated from `APPOINTMENT_NOT_YET_HELD` in
- * `web/scripts/check-scenario-resources.mjs`. The gate is plain Node and cannot
+ * `scripts/check-scenario-resources.mjs`. The gate is plain Node and cannot
  * import TypeScript, the same constraint that makes `scripts/lib/careplan-parity.mjs`
  * a hand-kept twin of its test. Change one, change the other.
  */

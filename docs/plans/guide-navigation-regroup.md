@@ -116,7 +116,7 @@ interface GuideSection {
 }
 ```
 
-Then update `web/scripts/check-guide-boundary.mjs` — its `guideEntryPoints()`
+Then update `scripts/check-guide-boundary.mjs` — its `guideEntryPoints()`
 parses `/\{\s*path:\s*'([^']+)'/g` over the whole file, which will already pick up
 a subsection's `path`. Confirm it resolves the route: the gate looks for
 `<Route path="${p}" element={<Comp />}>` in `App.tsx`, and a nested path

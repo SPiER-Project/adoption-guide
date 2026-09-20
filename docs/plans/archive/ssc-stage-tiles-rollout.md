@@ -20,8 +20,8 @@ and verification. Do not combine phases into one PR.
 > forms (Section A/B, Interim, Outcome/Disposition) are separate
 > ActivityDefinitions all mapped to TL-020. Tools TL-012 (ED-SAFE), TL-016
 > (CALM), TL-018 (Colorado Post-Visit) are retired; TL-026–TL-045 are new
-> placeholder tools. Read `CLAUDE.md` first; run `npm install` in `web/` on a
-> fresh worktree; finish every change with `npm run verify` in `web/` and
+> placeholder tools. Read `CLAUDE.md` first; run `npm install` at the repo root on a
+> fresh worktree; finish every change with `npm run verify` at the repo root and
 > `npx --no-install sushi ../ig` (run from `web/`), plus `npx vitest run`.
 > Workflow: branch per PR, squash-merge, reset branch to origin/main after
 > merge. Repo: `SPiER-Project/adoption-guide` (pass `--repo` to `gh`).
@@ -78,7 +78,7 @@ doc). All verification is green.
 >
 > ⚠️ **The three artifacts the Problem below names are also gone** —
 > `web/src/pages/Roadmap.tsx`, `web/src/data/roadmap.generated.json` and
-> `web/scripts/fetch-roadmap.mjs` were removed when the roadmap stopped being
+> `scripts/fetch-roadmap.mjs` were removed when the roadmap stopped being
 > mirrored onto the site. The label migration itself stands; only the site half
 > of it has no remaining consumer. Read what follows as history, not as a map of
 > the tree.
@@ -87,7 +87,7 @@ doc). All verification is green.
 `web/src/pages/Roadmap.tsx` builds label-filter links like
 `stage:${tool.stageId}` — those now point at labels that don't exist. The
 committed snapshot `web/src/data/roadmap.generated.json` is fetched from
-GitHub by `web/scripts/fetch-roadmap.mjs` and must be refreshed **after** the
+GitHub by `scripts/fetch-roadmap.mjs` and must be refreshed **after** the
 GitHub-side migration. `scripts/seed-roadmap-issues.mjs` is a historical
 record — do not re-run it.
 
@@ -116,7 +116,7 @@ with `--dry-run`, modeled on the seed script's `gh` usage, or run manually):
    `stage:<new-stage-code>`, `status:planned` (Waves 1–2 below) or
    `status:future` (Waves 3–6). Names/stages are in
    `web/src/data/catalog/tool-ui-metadata.ts` + `pathway-tool-placeholders.fsh`.
-6. Refresh the snapshot: `node web/scripts/fetch-roadmap.mjs`, commit the
+6. Refresh the snapshot: `node scripts/fetch-roadmap.mjs`, commit the
    regenerated `web/src/data/roadmap.generated.json`.
 7. Verify: `npm run verify`; load `/#/guide/roadmap` in the dev server — every
    stage group shows its tools, and the epic links filter correctly on GitHub.
@@ -227,7 +227,7 @@ ids. Blocked in part by the TL-017 Communication→ServiceRequest recorder
 migration, which measure 7 now depends on.
 
 After each wave: update the tool's GitHub issue `status:` label
-(`planned`→`built`), re-run `node web/scripts/fetch-roadmap.mjs`, and commit
+(`planned`→`built`), re-run `node scripts/fetch-roadmap.mjs`, and commit
 the snapshot.
 
 ---

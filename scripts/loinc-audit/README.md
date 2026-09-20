@@ -31,7 +31,7 @@ covers resources. This is the authority the other two approximate.
 - **After a LOINC release** (twice a year), which is the only time drift happens.
 - **When `tx.fhir.org` cannot answer.** It lags LOINC releases — it served 2.82
   for months after 2.83 shipped — which is exactly the gap `PENDING_TX` in
-  `web/scripts/check-codings.mjs` exists to absorb. This tool has no such gap.
+  `scripts/check-codings.mjs` exists to absorb. This tool has no such gap.
 
 ## Two traps, both of which produced false results before this was written
 

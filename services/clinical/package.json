@@ -3,10 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SPiER's clinical Worker \u2014 Static Assets over web/dist-clinical (VITE_SURFACE=clinical): the two SMART apps, no adoption guide, no synthetic patient, no CDS Hooks endpoint, no IG.",
+  "description": "SPiER's clinical Worker \u2014 Static Assets over dist-clinical (VITE_SURFACE=clinical): the two SMART apps, no adoption guide, no synthetic patient, no CDS Hooks endpoint, no IG.",
   "scripts": {
-    "build:web": "npm --prefix ../../web run build:clinical",
-    "stage:assets": "rm -rf web-dist && cp -R ../../web/dist-clinical ./web-dist",
+    "build:web": "npm --prefix ../.. run build:clinical",
+    "stage:assets": "rm -rf web-dist && cp -R ../../dist-clinical ./web-dist",
     "build:worker": "vite build",
     "build": "npm run build:web && npm run stage:assets && npm run build:worker",
     "dev": "npm run build && wrangler dev",

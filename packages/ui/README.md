@@ -43,7 +43,7 @@ deliberately deeper than the design for WCAG AA at app sizes.
 `check:tokens`, `check:css-dead`, `check:prose` and `check:template` all read
 this tree **and** `web/src` — the components live here and the pages that use
 them live there, so every one of those questions spans both. They stay in
-`web/scripts` and run in `web`'s `npm run verify`, the same arrangement
+`scripts` and run in `web`'s `npm run verify`, the same arrangement
 `packages/core` uses for its tests: **one pipeline, not a fourth.**
 
 ⚠️ Every one of them fails when it reads nothing, and each was re-proven against
@@ -59,5 +59,5 @@ import '@spier/ui/foundation.css'   // once, in main.tsx
 ```
 
 Resolved by declared alias rather than an npm workspace (#387), so the alias
-lives in `web/vite.config.ts`, `web/vitest.config.ts` and `web/tsconfig.app.json`
+lives in `vite.config.ts`, `vitest.config.ts` and `tsconfig.app.json`
 — all three must agree.

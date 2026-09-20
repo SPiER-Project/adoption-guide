@@ -17,16 +17,16 @@ Precedent already in-repo: `copy-fhir.mjs` emits
 1. **Branch per PR, squash-merged.** After merge, reset the branch to
    `origin/main` before further commits.
 2. **Run all three verifies** when touching anything under `packages/`:
-   `web/`, `services/cds-hooks/`, `services/mock-ehr/` each have their own
+   the repo root, `services/cds-hooks/` and `services/mock-ehr/` each have their own
    `npm run verify` (fresh worktrees need `npm install` in each first, and
-   `npm run copy-fhir` in `web/` before typechecking).
+   `npm run copy-fhir` at the repo root before typechecking).
 3. **Prove a change to a gate can fail before trusting it.** When you delete or
    modify a check script, first plant a defect of the kind it guarded, confirm
    the *new* arrangement catches it (type error, test failure, or remaining
    gate), then remove the plant. Report what you planted and what caught it.
 4. **Never hand-edit `packages/fhir-artifacts/generated/`** — it is gitignored
    build output. New generated modules go there, produced by
-   `web/scripts/copy-fhir.mjs`, and are never committed.
+   `scripts/copy-fhir.mjs`, and are never committed.
 5. **Update CLAUDE.md in the same PR** — only the blocks your change makes
    stale (e.g. a deleted gate's entry in the `verify` list). Do not rewrite
    unrelated sections.
@@ -67,19 +67,19 @@ but confirm).
 
 **Problem:** `packages/core/src/lib/observationMappers/fallbackDispatch.ts`
 hand-duplicates per-item LOINC codes from the Questionnaire JSON in
-`ig/input/resources/questionnaires/`. `web/scripts/check-fallback-signatures.mjs` (npm script
+`ig/input/resources/questionnaires/`. `scripts/check-fallback-signatures.mjs` (npm script
 `check:fallback`) exists only to check the two agree.
 
 **Approach:** generate the signature table from the Questionnaires at
 copy-fhir time; the hand copy and the gate both go away.
 
 **Steps:**
-1. Read `web/scripts/check-fallback-signatures.mjs` first. **The gate script is
+1. Read `scripts/check-fallback-signatures.mjs` first. **The gate script is
    the spec**: it already encodes exactly how a signature relates to a
    Questionnaire's `item.code` entries (which instruments, which codes, any
    deliberate exclusions). Port that derivation logic into a generator; do not
    invent your own reading of the Questionnaires.
-2. Extend `web/scripts/copy-fhir.mjs` to emit
+2. Extend `scripts/copy-fhir.mjs` to emit
    `packages/fhir-artifacts/generated/instrument-signatures.generated.ts`
    (follow the existing `care-plan-profiles.generated.ts` pattern for shape,
    header comment, and incremental-build handling).
@@ -91,7 +91,7 @@ copy-fhir time; the hand copy and the gate both go away.
    cannot reproduce, keep that commentary in `fallbackDispatch.ts` next to the
    import — do not lose reasoning, only duplication.
 4. Delete `check-fallback-signatures.mjs`, remove `check:fallback` from
-   `web/package.json` (both the script entry and the `verify` chain), and
+   `package.json` (both the script entry and the `verify` chain), and
    delete its bullet from CLAUDE.md's verify list and from the
    "Drift-prone hand-duplicated values" gotcha.
 5. **Planted defect (ground rule 3):** change one LOINC item code in one
@@ -139,12 +139,12 @@ still cover everything they cover today.
    `web/src/lib/carePlanMappers/__fixtures__/` are used by mirror tests
    (`nativeQr.ts` derives response shapes from the Questionnaire JSON — it is
    load-bearing, see #327; move it, never rewrite it).
-3. Extend `web/vitest.config.ts` `include` to add
+3. Extend `vitest.config.ts` `include` to add
    `../packages/core/src/**/*.test.ts`. The `@spier/core/` and
    `@spier/demo-population` aliases already resolve there, so imports keep
    working. ⚠️ That config deliberately does NOT merge `vite.config.ts` — read
    its header comment before touching aliases.
-4. **Typechecking is the hard part.** `web/tsconfig.app.json` includes only
+4. **Typechecking is the hard part.** `tsconfig.app.json` includes only
    `src/`, so moved tests would silently stop being typechecked.
    `packages/core` currently has **no tsconfig.json**. Fix: give
    `packages/core` a tsconfig (extending web's compiler options, including

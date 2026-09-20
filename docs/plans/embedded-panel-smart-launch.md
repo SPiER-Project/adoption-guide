@@ -74,7 +74,7 @@ So the two documents divide as follows, and neither supersedes the other:
 any one and §6's objection reasserts itself in full:
 
 1. **The mock validates writes before accepting them**, reusing the profile
-   checks in `web/scripts/check-scenario-resources.mjs` rather than inventing a
+   checks in `scripts/check-scenario-resources.mjs` rather than inventing a
    second, laxer opinion. §6's own stated mitigation.
 2. **Prove it can reject.** Plant an invalid write — wrong `Coding.display`, a
    missing required slice — and watch it 422 before the mock is trusted. A mock
@@ -195,7 +195,7 @@ this section inherited.
 ⚠️ **`check:template` gains a second page-inset owner.** `.app-shell__body` is
 currently its *sole* owner by gate, and `PageHeader` the only page-title
 implementation. `PanelShell`'s body is a legitimate second owner — it must be
-**declared** to `web/scripts/check-page-template.mjs` with a reason, in the same
+**declared** to `scripts/check-page-template.mjs` with a reason, in the same
 allowlist-with-reasons style as `LENSES`. Working around the gate instead is how
 the panel becomes the place template drift lives.
 
@@ -506,7 +506,7 @@ success.
   has its own CI-gated `verify` precisely because `web/`'s does not cover it.
   `services/mock-ehr/` needs the same on day one — more urgently, because it
   reads the scenario fixtures and will break silently when those are re-anchored
-  by `web/scripts/shift-scenario-dates.mjs`.
+  by `scripts/shift-scenario-dates.mjs`.
 
 ### 6.1 Step 5 result — the framed panel, measured 2026-08-19
 

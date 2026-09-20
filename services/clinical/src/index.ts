@@ -1,7 +1,7 @@
 /**
  * SPiER's clinical Worker — the two SMART apps, on their own origin.
  *
- * It serves one thing: `web/dist-clinical`, staged into ./web-dist. There is no
+ * It serves one thing: `dist-clinical`, staged into ./web-dist. There is no
  * API here and no rendered IG; see `wrangler.jsonc` for why each is somewhere
  * else. Everything this file does about *being an asset host* — the Static
  * Assets catch-all, the explicit SPA fallback, the `frame-ancestors` CSP — is

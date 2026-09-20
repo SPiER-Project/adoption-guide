@@ -44,7 +44,7 @@ spier-client`, which the open sandbox accepts). Press **Launch** — the app
 authorizes, exchanges the code, and lands on the Patient Chart reading the
 launch patient's live data.
 
-For local dev, start the server first (`npm run dev` in `web/`).
+For local dev, start the server first (`npm run dev` at the repo root).
 
 ### URL-driven launch (no launcher UI — useful for scripted testing)
 

@@ -209,7 +209,7 @@ and inventing one would claim more than the resource can back — so the recipie
 stays an assembly-time input, and the Consent reference is what makes an
 omission traceable.
 
-`web/scripts/check-scenario-resources.mjs` learned to look *inside* complex
+`scripts/check-scenario-resources.mjs` learned to look *inside* complex
 extensions for this (sub-extension cardinality and bindings); before that, a
 withheld item with no basis, or a basis outside the vocabulary, passed the
 offline gate. Both defects were planted and confirmed failing before the change

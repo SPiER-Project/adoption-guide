@@ -40,7 +40,7 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { basename, dirname, join, relative, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
 import { reportFloors } from './lib/floors.mjs'
@@ -64,7 +64,7 @@ const PATIENTS_DIR = join(root, 'packages/demo-population/src/patients')
 
 /**
  * Scenario buckets that hold FHIR resources, and the resourceType each implies.
- * Mirrors `FHIR_BUCKETS` in web/scripts/check-scenario-resources.mjs, which
+ * Mirrors `FHIR_BUCKETS` in scripts/check-scenario-resources.mjs, which
  * gates the same correspondence offline.
  *
  * `responses` is here too, and is the odd one out: it holds StoredResponse
@@ -128,9 +128,9 @@ const argValue = (flag) => {
 const showWarnings = argv.includes('--show-warnings')
 /**
  * Extra directories of standalone resource JSON to validate, repeatable:
- *   --also web/.runtime-fhir
+ *   --also .runtime-fhir
  *
- * Added for #302, whose subject is `web/.runtime-fhir` — the resources the APP
+ * Added for #302, whose subject is `.runtime-fhir` — the resources the APP
  * emits, produced by `npm --prefix web run emit:runtime-fhir`. Kept as a generic
  * flag rather than a hardcoded path because the directory is gitignored and only
  * exists after the emitter runs; hardcoding it would make a normal local run fail

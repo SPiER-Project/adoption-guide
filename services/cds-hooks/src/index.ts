@@ -10,7 +10,7 @@
  *     ./web-dist/ig by its `cloudflare` job — never built on this Worker).
  *
  * ⚠️ **This is no longer the only Worker serving a SPiER SMART surface.**
- * `services/clinical` serves the `clinical` build (`web/dist-clinical`) on its
+ * `services/clinical` serves the `clinical` build (`dist-clinical`) on its
  * own origin — the two SMART apps, no guide routes, no synthetic patient. It
  * deliberately hosts NEITHER /cds-services nor /ig: the endpoint's only runtime
  * caller is `CdsServiceGuide.tsx`, a guide page that is not in that build, and

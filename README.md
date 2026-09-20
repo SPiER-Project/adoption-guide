@@ -75,7 +75,8 @@ Eight stages, from the first signal to population measurement, so that an implem
 
 * **`ig/`** — the HL7 FHIR Implementation Guide. FSH sources in `input/fsh/` are compiled by SUSHI and are the **canonical, machine-readable** definition of every profile, ValueSet, CodeSystem, ActivityDefinition and PlanDefinition; narrative pages are in `input/pagecontent/`. Rendered at the [Implementation Guide](https://spier-project.github.io/adoption-guide/ig/) link above; see [`ig/README.md`](ig/README.md) to build it.
 * **`ig/input/resources/questionnaires/`** — hand-authored Questionnaire JSON and per-tool reference material, one folder per instrument. [`docs/instruments/README.md`](docs/instruments/README.md) has the tool→stage table.
-* **`web/`** — the SPiER companion app (React/TS): the interactive pathway demo, patient and population views, and the EHR adoption rubric. It is also a SMART on FHIR app, and doubles as the reference implementation.
+* **`apps/`** — the two React/TS front ends: `guide/` is the Adoption Guide (the case for the pathway, the published artifacts, the Data Dictionary and a playground for every instrument) and `clinical/` is the pair of SMART on FHIR apps — the patient chart and the population dashboard — which double as the reference implementation.
+* **the repo root** — the tooling host: one `package.json` and one `node_modules` for every app and package, the vite/vitest/eslint/stylelint configs, `public/`, `tests/` and `shims/`. `web/` held all of this until 2026-09-19.
 * **`packages/`** — `core/` (the React-free domain layer shared by the app, the CDS Hooks Worker and the mock EHR), `worker-http/` (what the two asset-serving Workers share about being an asset host, including the one `frame-ancestors` policy), `demo-population/` (the demo patients and scenario slices), and `fhir-artifacts/generated/` (SUSHI output, gitignored).
 * **`services/`** — three Cloudflare Workers: `cds-hooks/` serves the adoption guide, the live `/cds-services` endpoint and the rendered IG; `clinical/` serves the clinical build of the two SMART apps on its own origin; and `mock-ehr/` is the host chart the demo launches from.
 * **`docs/`** — strategy, requirements sources, research, and plans. [`docs/README.md`](docs/README.md) is the index.
@@ -99,6 +100,6 @@ Label conventions: `tool:TL-XXX`, `priority:p1|p2|p3`, `status:built|planned|fut
 
 ## Contributing
 
-This repository holds the canonical source for SPiER's technical and clinical definitions. Read [`CLAUDE.md`](CLAUDE.md) before changing anything under `ig/`, `packages/` or `web/` — it names the verification gate for each tree, and several of them exist because a defect got through once.
+This repository holds the canonical source for SPiER's technical and clinical definitions. Read [`CLAUDE.md`](CLAUDE.md) before changing anything under `ig/`, `packages/`, `apps/` or the root tooling — it names the verification gate for each tree, and several of them exist because a defect got through once.
 
 The `.claude/skills/assessment-to-ig/` skill walks through converting a validated clinical assessment into the full SPiER artifact set (Questionnaire JSON + FSH + IG page + catalog wiring); `fhir-questionnaire-quality` is the review counterpart, and `concept-harmonization` covers work that spans instruments.

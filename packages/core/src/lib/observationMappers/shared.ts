@@ -203,7 +203,7 @@ export function getYesNoBoolean(item: QuestionnaireResponseItem | undefined): bo
  *
  * ── Why the system URL is repeated five times ────────────────
  *
- * `web/scripts/check-codings.mjs` reads these literals statically: it needs
+ * `scripts/check-codings.mjs` reads these literals statically: it needs
  * `system`, `code` and `display` as sibling *string literals* in one object, so
  * hoisting the URL into a shared const would take this table right back out of
  * the gate's view. Five repetitions buy the only automated proof that these

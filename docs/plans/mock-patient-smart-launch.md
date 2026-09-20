@@ -158,7 +158,7 @@ toward the other. Do not let them merge in triage.
   [`scripts/validate-fhir.mjs`](../../scripts/validate-fhir.mjs)** already unwraps
   the scenario buckets into a temp directory, dropping `_savedAt`. Bundle assembly
   is that walk plus an envelope and reference rewriting.
-- **[`runtimeFhir.emit.test.ts`](../../web/src/lib/runtimeFhir.emit.test.ts)** is
+- **[`runtimeFhir.emit.test.ts`](../../tests/runtimeFhir.emit.test.ts)** is
   the precedent for the gate: a test that asserts the builders' output *and* writes
   it to a gitignored directory for the Java validator to check, because there is no
   TS runtime in the package other than vitest. A Bundle export gate should reuse

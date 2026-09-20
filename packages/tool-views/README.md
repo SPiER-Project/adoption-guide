@@ -64,16 +64,16 @@ consequences:
 
 1. **`tsconfig.json`'s most important job is `jsx`.** esbuild finds a tsconfig by
    walking up from the FILE; from here that walk reaches the repo root and never
-   sees `web/tsconfig.app.json`. Without a config here the views compile to the
+   sees `tsconfig.app.json`. Without a config here the views compile to the
    classic JSX runtime and die with "React is not defined" while `tsc` stays
    green. `packages/ui` records the same trap.
-2. **Every bare dependency needs an alias in `web/vite.config.ts` AND
-   `web/vitest.config.ts`, and a `paths` entry in this tsconfig and in
-   `web/tsconfig.app.json`.** Adding a dependency to these components means
+2. **Every bare dependency needs an alias in `vite.config.ts` AND
+   `vitest.config.ts`, and a `paths` entry in this tsconfig and in
+   `tsconfig.app.json`.** Adding a dependency to these components means
    adding it in four places. ⚠️ Use the **anchored exact** alias form; a
    `@formbox/hs-theme/` *prefix* alias rewrites the path before Vite consults the
    package's `exports` map and breaks `@formbox/hs-theme/style.css`.
-3. **`web/vitest.config.ts`'s `test.include` must name this package**, or its
+3. **`vitest.config.ts`'s `test.include` must name this package**, or its
    colocated tests silently do not run and `verify` stays green. That is not
    hypothetical — `packages/ui`'s `Button.test.tsx` executed zero times for a
    whole commit.

@@ -13,7 +13,7 @@
     // breaks either the typecheck or the test, never silently both.
     "baseUrl": ".",
     "paths": {
-      "fhirclient/*": ["../../web/node_modules/fhirclient/*"],
+      "fhirclient/*": ["../../node_modules/fhirclient/*"],
       // The demo population resolves by declared alias, not by workspace
       // (#387). Mirrors vite.config.ts and vitest.config.ts here.
       "@spier/core/*": ["../../packages/core/src/*"],
