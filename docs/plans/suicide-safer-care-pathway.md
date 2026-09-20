@@ -155,7 +155,7 @@ the retrospective review is still owed.
   `measures.narration.test.ts` (a new measure miss must land in
   `EXPLAINED_MISSES` *with a reason* or be fixed in the fixture — never
   allowlisted to make the build green). Run the full `verify` plus
-  `services/cds-hooks` and `services/mock-ehr` verifies before calling this
+  `services/guide` and `services/mock-ehr` verifies before calling this
   done; the Workers import the catalog and scenario data and can break with
   `web/` green.
 
@@ -318,7 +318,7 @@ URL for the new page) and `/guide/tools` is new. That makes the migration step
 a named risk, not a rename:
 
 - **`check:catalog` validates tool launch paths against `App.tsx` routes both
-  ways**, and `services/cds-hooks` imports the catalog — grep
+  ways**, and `services/guide` imports the catalog — grep
   `guide/pathway` across `web/src`, `services/`, `packages/`, and `docs/`
   before and after; every tool-detail deep link and launch action that meant
   "the catalog" must move to `/guide/tools`.
@@ -326,7 +326,7 @@ a named risk, not a rename:
   tool anchors now live under `/guide/tools`; follow the `/guide/measures`
   precedent (redirect kept because it was a published launch path) if any
   published path pointed at a tool anchor under `/guide/pathway`.
-- Run `services/cds-hooks` and `services/mock-ehr` verifies — both can break
+- Run `services/guide` and `services/mock-ehr` verifies — both can break
   on this with the root verify green.
 
 ### The renderer (React-free core)
@@ -392,7 +392,7 @@ Small by design — Pattern A means the artifact is already in the bundle:
 
 Extend [`cards.ts`](../../packages/core/src/lib/cdsHooks/cards.ts) with
 tier-driven guidance cards surfaced in the mock EHR through the existing
-`services/cds-hooks` Worker:
+`services/guide` Worker:
 
 - **Problem-list guidance card**: for a patient whose latest concept
   Observation is a positive tier, suggest the clinician add the
@@ -409,7 +409,7 @@ tier-driven guidance cards surfaced in the mock EHR through the existing
   substantial new coding source inside an already-scanned tree, give it its
   own overlapping `SCAN` entry with floors (#261 rule). ICD-10 literals are
   invisible to every gate — comment them with the verification pointer.
-- `services/cds-hooks` `npm run verify` gates this; it imports the catalog
+- `services/guide` `npm run verify` gates this; it imports the catalog
   and scenarios, so run it even for "web-only" changes in this phase.
 
 ---
@@ -429,7 +429,7 @@ tier-driven guidance cards surfaced in the mock EHR through the existing
 | `check:readers` | Phase 1c mapper edits (readers unchanged, but the gate re-parses them) |
 | `check:scenarios` / `check:dates` | Phase 1c ripple |
 | `measures.narration.test.ts` | Phase 1c — tier changes can create measure misses; explain or fix, never quietly allowlist |
-| `services/cds-hooks` verify | Phases 1c, 3, 5 |
+| `services/guide` verify | Phases 1c, 3, 5 |
 | `services/mock-ehr` verify | Phases 1c, 3, 4 |
 | SUSHI + `check-sushi-output.mjs` | Phase 2 |
 | `validate-fhir.mjs` | Phase 2 |

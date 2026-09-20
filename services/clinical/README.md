@@ -31,9 +31,9 @@ than proving nothing.
 
 | | Where it lives instead | Why not here |
 |---|---|---|
-| `/cds-services` | `services/cds-hooks` | Cards come from `buildCdsCards` **in-process**; the only runtime caller of the HTTP endpoint is `CdsServiceGuide.tsx`, a guide page absent from this build. And `CDS_JWT_AUDIENCE` is baked to the adoption-guide Worker's published URL — moving the endpoint is a re-registration with every caller, not a redeploy. |
-| `/ig/` | `services/cds-hooks` + GitHub Pages | ~4,000 files of implementer documentation. A clinician's app is not where it belongs, and the audience that reads it already has two hosts that answer. |
-| the adoption guide | `services/cds-hooks` | It is the other product. The split is earned by open-sourcing these two apps, not by screen design. |
+| `/cds-services` | `services/guide` | Cards come from `buildCdsCards` **in-process**; the only runtime caller of the HTTP endpoint is `CdsServiceGuide.tsx`, a guide page absent from this build. And `CDS_JWT_AUDIENCE` is baked to the adoption-guide Worker's published URL — moving the endpoint is a re-registration with every caller, not a redeploy. |
+| `/ig/` | `services/guide` + GitHub Pages | ~4,000 files of implementer documentation. A clinician's app is not where it belongs, and the audience that reads it already has two hosts that answer. |
+| the adoption guide | `services/guide` | It is the other product. The split is earned by open-sourcing these two apps, not by screen design. |
 
 `src/app.test.ts` asserts all three as **negative** tests — a path that reaches
 the ASSETS binding like any other, rather than a 404, because under the SPA
@@ -47,7 +47,7 @@ A Static Assets binding on its own cannot set a response header, and **this is
 the Worker a real EHR frames.** So the policy —
 `DEFAULT_FRAME_ANCESTORS`, the re-wrap, the explicit SPA fallback — lives once,
 in [`packages/worker-http/src/spaAssets.ts`](../../packages/worker-http/src/spaAssets.ts),
-shared with `services/cds-hooks`.
+shared with `services/guide`.
 
 ⚠️ **A header that drifts between the two Workers is a clickjacking surface on
 this one specifically** — and this is also the copy nobody would think to

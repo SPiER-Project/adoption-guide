@@ -53,7 +53,7 @@ const renderShell = (path = '/population/caseload') =>
 
 describe('what the clinical chrome does NOT carry', () => {
   it('has no Implementation Guide link — it 404s on this Worker', () => {
-    // The defect: `${BASE_URL}ig/` is served by services/cds-hooks and not held
+    // The defect: `${BASE_URL}ig/` is served by services/guide and not held
     // by services/clinical, so it fell through to the SPA fallback and opened
     // SPiER again in a new tab. Verified against both deploys 2026-09-18.
     renderShell()

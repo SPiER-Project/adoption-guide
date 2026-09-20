@@ -17,7 +17,7 @@ Precedent already in-repo: `copy-fhir.mjs` emits
 1. **Branch per PR, squash-merged.** After merge, reset the branch to
    `origin/main` before further commits.
 2. **Run all three verifies** when touching anything under `packages/`:
-   the repo root, `services/cds-hooks/` and `services/mock-ehr/` each have their own
+   the repo root, `services/guide/` and `services/mock-ehr/` each have their own
    `npm run verify` (fresh worktrees need `npm install` in each first, and
    `npm run copy-fhir` at the repo root before typechecking).
 3. **Prove a change to a gate can fail before trusting it.** When you delete or
@@ -99,7 +99,7 @@ copy-fhir time; the hand copy and the gate both go away.
    dispatch tests (`fallbackDispatch.test.ts`), and confirm something fails or
    the generated table visibly follows the change. Revert the plant.
 
-**Verification:** all three verifies green (⚠️ `services/cds-hooks` imports the
+**Verification:** all three verifies green (⚠️ `services/guide` imports the
 web catalog and can break with web green); `fallbackDispatch.test.ts` passes
 unmodified — if the tests needed edits beyond import paths, the generator's
 output diverged from the old table, which is a bug in the generator, not the

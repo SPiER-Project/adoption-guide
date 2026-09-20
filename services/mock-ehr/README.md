@@ -36,7 +36,7 @@ Data is the app's own files, with **no second copy of anything**: the scenarios
 from `packages/demo-population/src/scenarios/patient-0NN.json` and the 14 Patients
 from `packages/demo-population/src/patients/patient-0NN.json`. Both are
 inlined by the Vite build, because a Worker has no filesystem — the same
-arrangement `services/cds-hooks` uses, and the reason `main` in `wrangler.jsonc`
+arrangement `services/guide` uses, and the reason `main` in `wrangler.jsonc`
 points at `dist/index.js` rather than at source.
 
 ⚠️ **This said the Patients were FSH-generated, read from
@@ -277,12 +277,12 @@ MOCK_REDIRECT_URIS=http://localhost:8788/
 # Only if the CDS Hooks service is NOT on the panel's origin (it is, locally):
 # MOCK_CDS_BASE_URL=http://localhost:8788/
 
-# services/cds-hooks/.dev.vars
+# services/guide/.dev.vars
 PANEL_FRAME_ANCESTORS='self' http://localhost:8787
 ```
 
 Then `npm run dev -- --port 8787` here and `npm run dev -- --port 8788` in
-`services/cds-hooks` (`.claude/launch.json` has both as `mock-ehr` and
+`services/guide` (`.claude/launch.json` has both as `mock-ehr` and
 `panel-worker`). Both halves are needed: an unregistered `redirect_uri` is
 refused **without a `Location` header**, and a panel whose `frame-ancestors` does
 not name this origin renders as a blocked frame. ⚠️ `wrangler dev` does **not**
@@ -527,6 +527,6 @@ load-bearing search must reject, and a 500 on a best-effort one must degrade.
 could drift from the version the app ships, and the test would then exercise a
 client the panel never uses.
 
-`wrangler` is pinned to `~4.107.0` to match `services/cds-hooks`; 4.124+ peer-
+`wrangler` is pinned to `~4.107.0` to match `services/guide`; 4.124+ peer-
 depends on `@cloudflare/workers-types` v5, which conflicts with the v4 types
 both services use.

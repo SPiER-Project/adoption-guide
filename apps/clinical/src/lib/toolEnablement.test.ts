@@ -11,7 +11,7 @@ describe('toolEnablementFor — the chart in a host offers every tool the servic
   })
 
   it('offers every catalogued tool in panel chrome, matching the CDS Hooks service', () => {
-    // The service (services/cds-hooks/src/service.ts) passes `() => true`; a
+    // The service (services/cds/src/service.ts) passes `() => true`; a
     // panel that applied the preset disagreed with it about patient-006.
     const enabled = toolEnablementFor('panel', sitePreset)
     expect(enabled('TL-001')).toBe(true)

@@ -1,13 +1,11 @@
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
-// Bundle the Worker entry (src/index.ts) into a single ESM file for Cloudflare.
-// Same arrangement as services/guide: plain Vite rather than
-// @cloudflare/vite-plugin, because the point of the Vite build here is that the
-// app's `import.meta.glob` loaders — the population scenarios and the generated
-// Patient resources, both imported from ../../packages — are transformed and
-// their JSON inlined at build time. A Worker has no filesystem, so this is the
-// only way the fixtures reach it.
+// Tests exercise the pure service logic (src/service.ts) — no Workers runtime,
+// no Hono. Running under Vitest (which is Vite) means the web app's
+// `import.meta.glob` catalog/scenario loaders transform normally, and
+// crypto.randomUUID is available from the Node global. The Cloudflare plugin is
+// intentionally NOT loaded here: we don't need workerd to test card derivation.
 export default defineConfig({
   // The demo population resolves by declared alias, not by npm workspace
   // (#387 records why there is no workspace yet). Anchored exact + prefix
@@ -18,6 +16,15 @@ export default defineConfig({
         find: /^@spier\/demo-population$/,
         replacement: fileURLToPath(
           new URL('../../packages/demo-population/src/index.ts', import.meta.url),
+        ),
+      },
+      {
+        // The Worker-side HTTP shared layer (packages/worker-http): the Static
+        // Assets catch-all and the `frame-ancestors` policy, shared with
+        // services/clinical so the header cannot differ between the two.
+        find: '@spier/worker-http/',
+        replacement: fileURLToPath(
+          new URL('../../packages/worker-http/src/', import.meta.url),
         ),
       },
       {
@@ -46,19 +53,8 @@ export default defineConfig({
       },
     ],
   },
-  build: {
-    ssr: './src/index.ts',
-    outDir: 'dist',
-    emptyOutDir: true,
-    target: 'esnext',
-    rollupOptions: {
-      // `cloudflare:*` modules are provided BY the runtime, so Rollup must leave
-      // the import alone rather than try to resolve it — step 4's Durable Object
-      // imports `cloudflare:workers`. Without this the build fails with "failed
-      // to resolve import", which reads as a missing dependency.
-      external: [/^cloudflare:/],
-      output: { entryFileNames: 'index.js', format: 'es' },
-    },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
-  ssr: { target: 'webworker', noExternal: true },
 })

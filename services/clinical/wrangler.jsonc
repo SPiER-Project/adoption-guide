@@ -30,7 +30,7 @@
     // `frame-ancestors` CSP — a Static Assets binding on its own cannot set a
     // response header, and this is the Worker a real EHR frames.
     "run_worker_first": true,
-    // "none" rather than "single-page-application", matching services/cds-hooks
+    // "none" rather than "single-page-application", matching services/guide
     // and for the same reason: the app is a HashRouter, so SPA fallback never
     // carried a real navigation, and under it the binding answers EVERY miss
     // with index.html and a 200 — which means `asset.status === 404` is never

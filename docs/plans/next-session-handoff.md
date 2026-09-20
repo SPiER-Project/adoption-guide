@@ -60,7 +60,7 @@ always the authority; this line is a timestamp, not a fact to maintain.
   | Package | Exit | Tests | Covered by the root's verify? |
   |---|---|---|---|
   | repo root | 0 | 96 files / **1087** | — |
-  | `services/cds-hooks` | 0 | 3 files / **43** | **No** |
+  | `services/guide` | 0 | 3 files / **43** | **No** |
   | `services/clinical` | 0 | 1 file / **12** | **No** |
   | `services/mock-ehr` | 0 | 11 files / **200** | **No** |
 
@@ -92,14 +92,14 @@ always the authority; this line is a timestamp, not a fact to maintain.
   | `packages/` | `core`, `ui`, `tool-views`, `app-shell`, `worker-http`, `demo-population`, `fhir-artifacts/generated/` (gitignored) |
 
 - **Three Workers, one per deployable**, and the names do not match their
-  directories — `services/cds-hooks` deploys as `spier-adoption-guide` and
+  directories — `services/guide` deploys as `spier-adoption-guide` and
   serves the guide, the CDS endpoint *and* `/ig/`, which is why #553 left
   renaming it alone:
 
   | | | |
   |---|---|---|
   | Mock EHR | `services/mock-ehr` → `spier-mock-ehr` | https://spier-mock-ehr.bbthorson.workers.dev |
-  | Guide + CDS + IG | `services/cds-hooks` → `spier-adoption-guide` | https://spier-adoption-guide.bbthorson.workers.dev |
+  | Guide + CDS + IG | `services/guide` → `spier-adoption-guide` | https://spier-adoption-guide.bbthorson.workers.dev |
   | Clinical SMART apps | `services/clinical` → `spier-clinical` | framed by the mock EHR |
 
 - **All six embedded-panel steps are merged and deployed**, proven in a browser
@@ -593,6 +593,13 @@ from becoming an unexamined hole later.
   convention). Recorded so they are not re-investigated.
 
 ## The quietest risk: licensing (#64)
+
+> **⚠️ Deferred, 2026-09-20 (Brad).** Licensing is being handled separately and
+> is **not** the gate on current work. Nothing below is withdrawn — the backlog
+> is still the authority before quoting a status to a partner, and the coded
+> statuses in the FSH are unchanged — but planning and handoff documents should
+> stop citing it as the blocking constraint. Revisit when a client ship is real.
+
 
 [`../best-practices/licensing-verification-backlog.md`](../best-practices/licensing-verification-backlog.md)
 is blunt about it, and it is worth reading before quoting any licensing status to

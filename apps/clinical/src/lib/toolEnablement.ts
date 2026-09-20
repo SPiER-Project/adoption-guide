@@ -10,7 +10,7 @@
  * that the stabilization plan is still to do.
  *
  * The cause was two rules for "is this tool enabled". The CDS Hooks service
- * (`services/cds-hooks/src/service.ts`) treats every catalogued tool as enabled.
+ * (`services/cds/src/service.ts`) treats every catalogued tool as enabled.
  * The chart used the Tool Configuration preset — "what does a site like ours
  * have turned on?", which starts on Common Mid-Tier: the catalog's `core` tools.
  * CAMS SSF-5 and CAMS Stabilization are both `optional`, so the preset switched

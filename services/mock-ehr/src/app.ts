@@ -117,14 +117,18 @@ const DEFAULT_PANEL_BASE_URL = 'https://spier-clinical.bbthorson.workers.dev/'
  * ⚠️ **This used to be derived from the panel's own origin, and that derivation
  * became false the day `services/clinical` shipped.** One Worker served the SPA
  * and `/cds-services/*`, so "the service is where the panel is" was a fact worth
- * deriving rather than configuring. Now the panel is on the clinical Worker and
- * the service stayed on the adoption-guide one — `CDS_JWT_AUDIENCE` is baked to
- * that URL and it is a published endpoint. Keeping the derivation would have
- * left a blank `MOCK_CDS_BASE_URL` silently pointing the chart's CDS fetch at a
- * Worker that has no such route, which is a 200 of HTML rather than an error
- * anyone would read.
+ * deriving rather than configuring. Keeping the derivation would have left a
+ * blank `MOCK_CDS_BASE_URL` silently pointing the chart's CDS fetch at a Worker
+ * that has no such route, which is a 200 of HTML rather than an error anyone
+ * would read.
+ *
+ * ⚠️ **Updated 2026-09-20: the service is on its OWN Worker now** (`spier-cds`,
+ * services/cds), not the adoption-guide one. Three origins are in play from this
+ * host — the panel (clinical), the CDS service, and the guide — and none of them
+ * is derivable from either of the others. That is the whole reason each is a
+ * named default rather than a computed one.
  */
-const DEFAULT_CDS_BASE_URL = 'https://spier-adoption-guide.bbthorson.workers.dev/'
+const DEFAULT_CDS_BASE_URL = 'https://spier-cds.bbthorson.workers.dev/'
 
 /**
  * The path the CDS Hooks service answers on, at whichever origin hosts it.

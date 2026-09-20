@@ -170,7 +170,7 @@ awkward to retrofit.
 
 ## The pattern to copy
 
-`services/cds-hooks/` is the precedent and it already solves the hard part —
+`services/guide/` is the precedent and it already solves the hard part —
 importing the app's fixtures into a Worker:
 
 ```ts
@@ -181,7 +181,7 @@ That works because the Worker is **Vite-bundled** (`import.meta.glob` needs it),
 which is why `wrangler.jsonc` points `main` at `./dist/index.js` rather than at
 source. Copy that arrangement rather than reinventing it.
 
-⚠️ **Give it its own CI-gated `verify` on day one.** `services/cds-hooks` has one
+⚠️ **Give it its own CI-gated `verify` on day one.** `services/guide` has one
 precisely because `web/`'s does not cover it. The mock needs it *more*, because
 it reads scenario fixtures that `scripts/shift-scenario-dates.mjs`
 periodically re-anchors — a break there is silent and shows up as an empty chart

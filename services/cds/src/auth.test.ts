@@ -87,10 +87,22 @@ async function signToken(
   return jwt.sign(overrides.key ?? signingKey)
 }
 
-/** A full Bindings env — stub ASSETS plus the JWT policy under test. */
+/**
+ * A full Bindings env — the JWT policy under test, plus the launch URL the
+ * invoke route requires.
+ *
+ * ⚠️ **No ASSETS binding any more.** This Worker serves JSON only since the CDS
+ * API moved out of the adoption-guide Worker (2026-09-20); a stub binding here
+ * would imply a tenant that does not exist.
+ *
+ * ⚠️ `SMART_LAUNCH_URL` is not incidental. The invoke route 500s without it by
+ * design, so these auth tests would fail on a *launch-config* error and report
+ * it as an auth result. Supplied once here so every case exercises the policy
+ * it names.
+ */
 function env(policy: CdsJwtEnv) {
   return {
-    ASSETS: { fetch: async () => new Response(null) },
+    SMART_LAUNCH_URL: 'https://clinical.test/',
     ...policy,
   }
 }

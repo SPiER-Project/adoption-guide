@@ -1,0 +1,56 @@
+{
+  // SPiER's CDS Hooks service — JSON only, on its own origin.
+  //
+  // ⚠️ **No `assets` block, and that is deliberate.** This Worker publishes an
+  // API; it serves no SPA and no IG. `scripts/check-worker-csp.mjs` scopes its
+  // rules 3 and 4 (`serveSpaAsset`/`withFrameAncestors` must be value-imported,
+  // `not_found_handling: "none"`) to services that declare `assets`, so this
+  // one is correctly outside them — it never renders a framed SMART surface.
+  // Adding an assets block here would mean adopting those rules too.
+  //
+  // ⚠️ **No `run_worker_first`** either, for the same reason: that setting
+  // exists so the guide Worker's handler can see requests ahead of ~4,000
+  // static IG files. There are no static files here.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "spier-cds",
+  "main": "dist/index.js",
+  "compatibility_date": "2025-07-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // ⚠️ **REQUIRED — the invoke route returns 500 without it.** Where a card's
+    // `type: "smart"` link launches. This is the CLINICAL Worker, because the
+    // cards' intents target `/patient/assessments/*`, which exist only in
+    // `apps/clinical`; the guide app has no `/patient` route at all.
+    //
+    // It used to be derived from the request URL, on the reasoning that one
+    // Worker served both the API and the app. The apps/ split (#552) ended that
+    // and nothing noticed — see the note at the top of src/index.ts. Deriving
+    // it again would silently point launches at whatever origin happens to host
+    // this service.
+    "SMART_LAUNCH_URL": "https://spier-clinical.bbthorson.workers.dev/",
+
+    // CDS Hooks bearer-JWT policy (read by src/auth.ts). See README "Bearer-token
+    // authentication". Starts in `warn` so the in-app demo/SMART path — which may
+    // call the service without a token — keeps working while we observe real
+    // callers; flip to `require` once callers reliably present a valid JWT (#231).
+    //
+    // "off" | "warn" | "require".
+    "CDS_JWT_ENFORCE": "warn",
+    // Accepted `aud` — this service's canonical invoke URL(s), comma-separated.
+    // ⚠️ Now this Worker's OWN URL. It was pinned to the adoption-guide Worker's
+    // URL while the API lived there, which is exactly the kind of value that
+    // goes stale unnoticed: an audience should be the service's own identity.
+    "CDS_JWT_AUDIENCE": "https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view",
+    // Optional: comma-separated allowlist of accepted `iss` values.
+    "CDS_JWT_TRUSTED_ISSUERS": "",
+    // Optional: fixed JWK Set URL used when a token carries no `jku` header.
+    "CDS_JWT_JWKS_URL": "",
+    // SSRF guard: comma-separated hosts a token's `jku` header may point at.
+    // A `jku` on any other host is rejected WITHOUT being fetched. Blank =
+    // ignore `jku` entirely and rely on CDS_JWT_JWKS_URL / registered issuers.
+    "CDS_JWT_JKU_ALLOWED_HOSTS": ""
+  }
+}

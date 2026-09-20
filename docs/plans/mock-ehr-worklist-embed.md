@@ -134,7 +134,7 @@ by the same project as the app it launches. That paragraph already exists in the
 
 ## Framing is already permitted
 
-`services/cds-hooks/src/index.ts:51` sets
+`services/guide/src/index.ts:51` sets
 `frame-ancestors 'self' https://spier-mock-ehr.bbthorson.workers.dev` by default,
 and the chart already frames the app from that origin. No CSP change is needed.
 If the frame renders blank, the browser console names the blocked ancestor.

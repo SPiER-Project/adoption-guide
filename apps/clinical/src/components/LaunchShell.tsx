@@ -13,7 +13,7 @@
  * ── What it drops, and why each one is a defect rather than a preference ────
  *
  * ⚠️ **The "Spec → Implementation Guide" link was live-broken on this surface.**
- * It resolves to `${BASE_URL}ig/`, which `services/cds-hooks` serves for real
+ * It resolves to `${BASE_URL}ig/`, which `services/guide` serves for real
  * and `services/clinical` does not hold at all — so on the clinical Worker it
  * hit the SPA fallback and opened SPiER again in a new tab, titled "The SPiER
  * Project" instead of the IG. Verified against both deploys on 2026-09-18. It is

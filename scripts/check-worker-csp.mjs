@@ -3,7 +3,7 @@
  * One `frame-ancestors` policy, for every Worker that serves a SPiER SMART
  * surface.
  *
- * Two Workers serve a build of `web/` over Static Assets — `services/cds-hooks`
+ * Two Workers serve a build of `web/` over Static Assets — `services/guide`
  * (the `demo` surface, plus the CDS Hooks API and the rendered IG) and
  * `services/clinical` (the `clinical` surface, which is the one a real EHR
  * frames). The header they attach is the only thing standing between a SMART

@@ -4,9 +4,9 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// Mirrors services/guide/eslint.config.js exactly. This Worker imports no
-// web source, but it is read alongside the other two and a third style would be
-// one more thing to notice rather than one fewer.
+// Mirrors eslint.config.js. The Worker imports web source (catalog,
+// mappers, scenarios) so the two must agree on style, but it runs on
+// workerd rather than in a browser — hence the different globals.
 export default defineConfig([
   // `.wrangler/` holds wrangler's generated temp bundles (a `wrangler dev` run
   // leaves `middleware-loader.entry.ts` behind). It is gitignored, so CI never

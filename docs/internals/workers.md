@@ -1,22 +1,68 @@
-# The three Workers
+# The four Workers
 
 the repo root's `npm run verify` covers none of them. Each has its own CI-gated verify;
 the mock EHR has a CSS gate no CSS linter could provide, and the two that serve
 Static Assets share a CSP gate.
+
+## Three offerings, four deployables
+
+The **IG**, the **Adoption Guide** and the **clinical product demonstration** are
+three separate offerings. Both demos **pull from the IG**: the guide and the
+clinical app read the same compiled artifacts out of
+`packages/fhir-artifacts/generated/`, which is SUSHI's output from
+`ig/input/fsh/`. Neither restates an artifact the IG defines; when they disagree
+with it, the IG is right and the gates say so.
+
+The **CDS Hooks service** is the fourth deployable and belongs to the standard
+rather than to either demo — its URL is an integration contract an adopter
+configures inside their own EHR.
+
+| Offering | Worker | Serves |
+|---|---|---|
+| Implementation Guide | `spier-adoption-guide` (`services/guide`) | the rendered IG at `/ig/*` |
+| Adoption Guide | `spier-adoption-guide` (`services/guide`) | the guide SPA |
+| Clinical demonstration | `spier-clinical` (`services/clinical`) | the two SMART apps |
+| CDS Hooks service | `spier-cds` (`services/cds`) | `/cds-services/*`, JSON only |
+
+⚠️ The IG and the Adoption Guide share one Worker and are still two offerings —
+one is the published standard, the other is a site explaining how to adopt it.
+The mock EHR (`spier-mock-ehr`) is not an offering at all: it is the demo host.
 
 Moved out of `CLAUDE.md`, which keeps the commands and the rules and links
 here for the reasoning. Every ⚠️ below is a defect that shipped: the paragraph
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
-In `services/cds-hooks/` — **easy to forget, and CI gates it:**
+In `services/guide/` — **the guide SPA and the rendered IG:**
 ```
-npm install && npm run verify   # typecheck + eslint + vitest for the Worker
+npm install && npm run verify   # typecheck + eslint + check:csp + vitest
 ```
-the repo root's `npm run verify` does NOT cover this package, but the `cds-hooks` CI job
-does. It imports the web catalog, so a change to `tool-ui-metadata.ts` (launch
-actions especially) or to the population scenarios can break its tests without
-anything at the repo root failing.
+the repo root's `npm run verify` does NOT cover this package, but the `guide` CI
+job does.
+
+⚠️ **Its verify became OFFLINE at the CDS split (2026-09-20).** It used to import
+the web catalog — a change to `tool-ui-metadata.ts` or the population scenarios
+could break it — because the Worker hosted the CDS API, whose card derivation
+reads both. That left with the API. This Worker now imports
+`@spier/worker-http` and nothing else, so it needs neither `copy-fhir` nor a root
+install. Do not add the FHIR dance back for symmetry with `services/cds`.
+
+In `services/cds/` — **the CDS Hooks service, on its own origin:**
+```
+npm install && npm run verify   # copy-fhir + typecheck + eslint + check:csp + vitest
+```
+⚠️ **This is where the catalog dependency went.** Card derivation imports the
+catalog, the mappers and `@spier/demo-population`, so this job needs the
+generated FHIR tree and a root install — the inverse of the guide's.
+
+⚠️ **`SMART_LAUNCH_URL` is required and the invoke route 500s without it.** It
+was derived from the request origin, which was true while one Worker served both
+the API and the app and became false at the `apps/` split (#552): the cards'
+intents target `/patient/assessments/*` and only `apps/clinical` registers
+`/patient`. A test asserted the old behaviour and kept passing, because it
+checked the link equalled the *request* origin — still true — and never that the
+origin could route the launch. An assertion that encodes an assumption cannot
+notice the assumption expiring.
 
 In `services/clinical/` — **the newest one, and the one a real EHR frames:**
 ```

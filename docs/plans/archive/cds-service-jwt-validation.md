@@ -4,7 +4,7 @@
 
 ## Current state
 
-`services/cds-hooks/` is a Hono app on Cloudflare Workers (one Worker also serves
+`services/guide/` is a Hono app on Cloudflare Workers (one Worker also serves
 the SPA via the `ASSETS` binding). Endpoints:
 
 - `GET /cds-services` — discovery (`src/index.ts:48`)
@@ -52,7 +52,7 @@ Add to `wrangler.jsonc` a `vars` block and/or secrets for policy:
 - `CDS_JWT_ENFORCE` (`"off" | "warn" | "require"`) — start in `warn` so the demo
   and existing callers don't break; flip to `require` later.
 - `CDS_JWT_AUDIENCE` — the canonical invoke URL(s) this service accepts as `aud`
-  (e.g. `https://spier-adoption-guide.bbthorson.workers.dev/cds-services/spier-patient-view`).
+  (e.g. `https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view`).
 - `CDS_JWT_TRUSTED_ISSUERS` (optional allowlist) and/or
   `CDS_JWT_JWKS_URL` for a fixed key source when a client has no `jku`.
 
@@ -105,13 +105,13 @@ the SPA mint/accept a dev token).
 
 ## Files touched
 
-- `services/cds-hooks/package.json` — add `jose`.
-- `services/cds-hooks/src/auth.ts` (new) — the middleware.
-- `services/cds-hooks/src/index.ts` — `Env` fields, apply middleware to
+- `services/guide/package.json` — add `jose`.
+- `services/cds/src/auth.ts` (new) — the middleware.
+- `services/guide/src/index.ts` — `Env` fields, apply middleware to
   invoke/feedback.
-- `services/cds-hooks/wrangler.jsonc` — `vars` (enforce mode, audience, issuer
+- `services/guide/wrangler.jsonc` — `vars` (enforce mode, audience, issuer
   allowlist); JWKS host allowlist. Secrets via `wrangler secret put` if any.
-- `services/cds-hooks/README.md` — document the auth policy + env vars.
+- `services/guide/README.md` — document the auth policy + env vars.
 
 ## Tests (`src/app.test.ts` / new `src/auth.test.ts`)
 

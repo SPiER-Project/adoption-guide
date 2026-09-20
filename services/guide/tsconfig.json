@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // @types/node is here only for vite.config.ts / vitest.config.ts, which
+    // need `node:url`'s fileURLToPath to build the demo-population alias — and
+    // fileURLToPath rather than `new URL().pathname` because a repo path can
+    // contain a space (this worktree's does), which .pathname percent-encodes.
+    // The Worker source itself uses no Node API. Same arrangement, and the same
+    // reason, as services/mock-ehr.
+    "types": ["@cloudflare/workers-types", "vite/client", "node"],
+    // Match the web app's strictness exactly — this project typechecks web
+    // source it imports (catalog, mappers, scenarios), which is clean under
+    // web's config but not under extra flags like noUncheckedIndexedAccess.
+    "strict": true,
+    "resolveJsonModule": true,
+    // The demo population resolves by declared alias, not by workspace (#387).
+    // Mirrors vite.config.ts and vitest.config.ts here; all three must agree.
+    "paths": {
+      // packages/core imports fhirclient's Client type. `fhirclient` is web's
+      // dependency and no other package declares a second copy, which could
+      // drift from the version the app ships.
+      "fhirclient/*": ["../../node_modules/fhirclient/*"],
+      "@spier/core/*": ["../../packages/core/src/*"],
+      "@spier/worker-http/*": ["../../packages/worker-http/src/*"],
+      "@spier/fhir-artifacts/*": ["../../packages/fhir-artifacts/*"],
+      "@spier/demo-population": ["../../packages/demo-population/src/index.ts"],
+      "@spier/demo-population/*": ["../../packages/demo-population/src/*"]
+    },
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "vite.config.ts", "vitest.config.ts"]
+}

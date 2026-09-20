@@ -71,6 +71,31 @@ Eight stages, from the first signal to population measurement, so that an implem
 - **FHIR standardization** — every tool mapped to `Questionnaire`, `Observation`, `CarePlan` and the derived concept-layer resources, with one canonical shape per instrument.
 - **An EHR adoption rubric** — a framework vendors and health systems can use to self-assess their support for the eight stages, which doubles as the opening question in every partner conversation.
 
+## Three offerings, and how they relate
+
+SPiER publishes three things, and it is worth keeping them apart:
+
+1. **The Implementation Guide** — the published standard. FSH in `ig/input/fsh/`
+   compiled by SUSHI, plus the hand-authored Questionnaires. This is the
+   canonical, machine-readable definition of every profile, ValueSet,
+   CodeSystem, ActivityDefinition and PlanDefinition.
+2. **The Adoption Guide** — a site explaining how to adopt the standard: the
+   case for the pathway, the published artifacts, the Data Dictionary, and a
+   playground for every instrument.
+3. **The clinical product demonstration** — two SMART on FHIR apps, a patient
+   chart and a population dashboard, launched from a mock EHR.
+
+**Both demonstrations pull from the IG.** The Adoption Guide and the clinical
+apps read the same compiled artifacts out of
+`packages/fhir-artifacts/generated/`, which is SUSHI's output. Neither restates
+an artifact the IG defines, and where one would disagree with it, a gate fails.
+That is what makes the demonstrations evidence for the standard rather than a
+parallel implementation of it.
+
+Alongside them, the **CDS Hooks service** (`/cds-services`) belongs to the
+standard rather than to either demonstration: an adopter configures its URL
+inside their own EHR and consumes the cards without installing any SPiER app.
+
 ## Repository structure
 
 * **`ig/`** — the HL7 FHIR Implementation Guide. FSH sources in `input/fsh/` are compiled by SUSHI and are the **canonical, machine-readable** definition of every profile, ValueSet, CodeSystem, ActivityDefinition and PlanDefinition; narrative pages are in `input/pagecontent/`. Rendered at the [Implementation Guide](https://spier-project.github.io/adoption-guide/ig/) link above; see [`ig/README.md`](ig/README.md) to build it.
@@ -78,7 +103,7 @@ Eight stages, from the first signal to population measurement, so that an implem
 * **`apps/`** — the two React/TS front ends: `guide/` is the Adoption Guide (the case for the pathway, the published artifacts, the Data Dictionary and a playground for every instrument) and `clinical/` is the pair of SMART on FHIR apps — the patient chart and the population dashboard — which double as the reference implementation.
 * **the repo root** — the tooling host: one `package.json` and one `node_modules` for every app and package, the vite/vitest/eslint/stylelint configs, `public/`, `tests/` and `shims/`. `web/` held all of this until 2026-09-19.
 * **`packages/`** — `core/` (the React-free domain layer shared by the app, the CDS Hooks Worker and the mock EHR), `worker-http/` (what the two asset-serving Workers share about being an asset host, including the one `frame-ancestors` policy), `demo-population/` (the demo patients and scenario slices), and `fhir-artifacts/generated/` (SUSHI output, gitignored).
-* **`services/`** — three Cloudflare Workers: `cds-hooks/` serves the adoption guide, the live `/cds-services` endpoint and the rendered IG; `clinical/` serves the clinical build of the two SMART apps on its own origin; and `mock-ehr/` is the host chart the demo launches from.
+* **`services/`** — four Cloudflare Workers: `guide/` serves the Adoption Guide and the rendered IG; `cds/` serves the live `/cds-services` endpoint on its own origin; `clinical/` serves the clinical build of the two SMART apps; and `mock-ehr/` is the host chart the demo launches from.
 * **`docs/`** — strategy, requirements sources, research, and plans. [`docs/README.md`](docs/README.md) is the index.
 * **`scripts/`** — repo-level tooling: the FHIR validator and FML gates, the IG-menu, IG-narrative, markdown-link and SUSHI-output checks, and the use-case-workbook builder.
 

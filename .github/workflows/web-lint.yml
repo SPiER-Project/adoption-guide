@@ -9,9 +9,9 @@ name: Web — lint, typecheck & build
 # catalog checks validate against ig/input/fsh/, so ig/** triggers too. Runs on
 # every push to main and matching PRs.
 #
-# services/** is in the trigger list because the cds-hooks Worker imports web
+# services/** is in the trigger list because the cds Worker imports web
 # source (catalog, mappers, scenarios), so a web change can break it — and
-# because until the cds-hooks job below existed, a service-only PR triggered NO
+# because until the per-service jobs below existed, a service-only PR triggered NO
 # workflow at all. Cloudflare Workers Builds does build the Worker on deploy,
 # but `vite build` does not typecheck and does not run tests, so type errors and
 # failing tests in the production Worker reached deploy undetected.
@@ -233,7 +233,7 @@ jobs:
             fhir-packages-
 
       # ⚠️ ONE step on purpose: `npm run verify` runs the whole gate list, the
-      # same way the cds-hooks and mock-ehr jobs below do.
+      # same way the cds and mock-ehr jobs below do.
       #
       # This job used to hand-list its steps — copy-fhir, check:catalog,
       # check:scenarios:resources, tsc, lint, test — and that list drifted from
@@ -295,11 +295,50 @@ jobs:
   # The CDS Hooks Worker: typecheck, lint, and unit tests. Runs as its own job
   # so a service-only change gets a signal, and so a web change that breaks the
   # Worker's imports fails here rather than at deploy time.
-  cds-hooks:
+  # The Adoption Guide Worker: typecheck, lint, the shared-CSP gate, and unit
+  # tests.
+  #
+  # ⚠️ **No `copy-fhir` and no root install, as of the CDS split (2026-09-20).**
+  # This job used to carry the whole FHIR dance because the Worker hosted the
+  # CDS API, whose card derivation imports the catalog and the mappers. That
+  # left with the API: `services/guide` now imports `@spier/worker-http` and
+  # nothing else, so its verify is offline and takes seconds — the same property
+  # `clinical` has and the same note applies. The day something here needs the
+  # catalog is the day this job grows the cache dance back; do not add it for
+  # symmetry with `cds`.
+  guide:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./services/cds-hooks
+        working-directory: ./services/guide
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .github/.nvmrc
+          cache: npm
+          cache-dependency-path: services/guide/package-lock.json
+
+      - name: Install service dependencies
+        run: npm ci
+
+      - name: Verify
+        run: npm run verify
+
+  # The CDS Hooks Worker: typecheck, lint, the shared-CSP gate, and unit tests.
+  #
+  # ⚠️ **This job IS the old `cds-hooks` job.** The API moved to its own Worker
+  # on 2026-09-20 and took the FHIR dance with it: its card derivation imports
+  # the catalog, the mappers and the demo population, so it needs the generated
+  # tree and a root install. The guide job below no longer does.
+  cds:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/cds
 
     steps:
       - uses: actions/checkout@v4
@@ -311,7 +350,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            services/cds-hooks/package-lock.json
+            services/cds/package-lock.json
 
       # The cache key for the generated FHIR tree — one definition, in
       # copy-fhir.mjs. Node-builtins only, so it needs no install.
@@ -381,7 +420,7 @@ jobs:
   #
   # `check:csp` scans the WHOLE repo (both asset-serving Workers plus
   # packages/worker-http), so it is deliberately run from this job AND from
-  # cds-hooks: either one catches a drifted `frame-ancestors` policy, and a
+  # guide: either one catches a drifted `frame-ancestors` policy, and a
   # service-only PR that touches just one of them still gets the verdict.
   clinical:
     runs-on: ubuntu-latest
@@ -407,7 +446,7 @@ jobs:
 
   # The mock EHR Worker: typecheck, lint, and unit tests — including the
   # integration test that drives the app's real SmartDataSource against it.
-  # Its own job for the same reason as cds-hooks above, and more urgently: this
+  # Its own job for the same reason as the others above, and more urgently: this
   # service reads the population scenario fixtures directly, so a re-anchoring
   # by scripts/shift-scenario-dates.mjs (or any fixture edit) can break it
   # while every web gate stays green.

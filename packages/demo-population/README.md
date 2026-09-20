@@ -29,7 +29,7 @@ and each is commented as such:
 | `web` app + build | `vite.config.ts` |
 | `web` tests | `vitest.config.ts` — **separately**, see below |
 | `web` typecheck | `tsconfig.app.json` `paths` |
-| `services/cds-hooks` | its `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
+| `services/guide` | its `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 | `services/mock-ehr` | its `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
 | Node scripts (gates, root tooling) | plain `fs` paths — no alias involved |
 

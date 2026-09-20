@@ -64,7 +64,7 @@ const ALLOWED = new Map(Object.entries({
   //    fire, which is what `stale` reports. The sentences are still correct
   //    history ("the former `web/src/index.css`"); they are simply outside
   //    what this gate can see now. Nothing is owed unless `web/` comes back.
-  'services/cds-hooks/README.md::.github/workflows/deploy-cloudflare.yml': 'reads "the collision that deleted ... in #143"',
+  'services/guide/README.md::.github/workflows/deploy-cloudflare.yml': 'reads "the collision that deleted ... in #143"',
   'packages/demo-population/src/patients/README.md::ig/input/fsh/population-patients.fsh': 'reads "They were ... until step E2"; the file left the IG in #399',
   'docs/internals/docs-gates.md::ig/input/resources/questionnaires/README.md': 'recounts a defect the links gate once found in that README, which has since gone',
   'docs/plans/structure-simplification-scope.md::scripts/check-fallback-signatures.mjs': 'a gate that was proposed and then retired',
