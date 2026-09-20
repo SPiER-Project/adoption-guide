@@ -19,7 +19,7 @@
  */
 export const CONCEPT_DOMAIN_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-concept-domain'
 
-export const SUICIDE_RISK_DOMAIN = {
+const SUICIDE_RISK_DOMAIN = {
   system: CONCEPT_DOMAIN_SYSTEM,
   code: 'suicide-risk',
   display: 'Suicide risk',

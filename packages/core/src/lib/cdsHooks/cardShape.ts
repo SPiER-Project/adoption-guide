@@ -9,7 +9,7 @@
  */
 
 /** CDS Hooks caps `Card.summary` at 140 characters. */
-export const MAX_SUMMARY = 140
+const MAX_SUMMARY = 140
 
 /** Truncate to the CDS Hooks 140-char cap with an ellipsis. */
 export function truncateSummary(text: string): string {

@@ -726,7 +726,7 @@ function denyProvisions(consent: ConsentResource) {
  * it, so a permit naming one clinic authorises that clinic — not everyone.
  * An empty list is an unrestricted permit.
  */
-export function permittedRecipients(consent: ConsentResource): string[] {
+function permittedRecipients(consent: ConsentResource): string[] {
   const actors = (consent as {
     provision?: { actor?: { reference?: { display?: string } }[] }
   }).provision?.actor

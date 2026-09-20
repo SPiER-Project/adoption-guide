@@ -38,7 +38,7 @@ import { makeId } from './id'
  */
 
 /** BroadcastChannel name — the local stand-in for a FHIRcast hub endpoint. */
-export const FHIRCAST_CHANNEL = 'spier-fhircast'
+const FHIRCAST_CHANNEL = 'spier-fhircast'
 
 /**
  * The FHIRcast "topic" — in production this is the opaque session id handed out

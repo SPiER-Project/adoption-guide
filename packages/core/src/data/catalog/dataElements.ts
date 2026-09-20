@@ -1163,8 +1163,6 @@ export const BINDINGS: Binding[] = [
 export const bindingsUsedByTool = (toolId: string) =>
   BINDINGS.filter(b => b.usedBy.includes(toolId))
 
-export const conceptById = (id: string) => CONCEPTS.find(c => c.id === id)
-
 /** The bindings that express a shared concept, in dictionary order. */
 export const bindingsForConcept = (conceptId: string) =>
   BINDINGS.filter(b => b.conceptId === conceptId)

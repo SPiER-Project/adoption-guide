@@ -171,7 +171,7 @@ export function WorkflowField({
  * to scroll puts the notice below the fold, and a submit that appears to do
  * nothing is the worst outcome on a suicide-safer-care recorder.
  */
-export function WorkflowNotice({ children }: { children: ReactNode }) {
+function WorkflowNotice({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     ref.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })

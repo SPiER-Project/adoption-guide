@@ -1,7 +1,5 @@
 # Vite worker bundle
 dist/
-# Staged copy of the web app build (assets served by the Worker)
-web-dist/
 # wrangler local state (dev cache, logs)
 .wrangler/
 # Local `wrangler dev` overrides (per-developer hosts, ports, secrets). Wrangler

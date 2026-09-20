@@ -9,11 +9,6 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Firebase / deploy debug
-firebase-debug.log
-firebase-debug.*.log
-.firebase/
-
 # Node / build artifacts that shouldn't be in source control
 node_modules/
 
@@ -26,7 +21,6 @@ packages/fhir-artifacts/generated/
 # one. Each Worker's `stage:assets` copies the matching tree into its web-dist/.
 dist/
 dist-clinical/
-dist-ssr/
 *.local
 
 # Resources emitted by the production builders for the #302 validator gate

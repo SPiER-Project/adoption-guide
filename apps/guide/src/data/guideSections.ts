@@ -229,7 +229,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   { path: 'adoption-rubric', label: 'Adoption Rubric', group: 'evaluate', width: 'wide' },
 ]
 
-export const GUIDE_BASE = '/guide'
+const GUIDE_BASE = '/guide'
 
 /** Absolute HashRouter path for a guide section. */
 export function guideHref(path: string): string {
