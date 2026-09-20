@@ -18,27 +18,23 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
-      // packages/core imports fhirclient's Client type. `fhirclient` is web's
-      // dependency and no other package declares a second copy, which could
-      // drift from the version the app ships.
-      // ⚠️ The BARE specifier needs its own entry now that SmartLaunch,
-      // SmartRedirect and SmartProvider live in packages/app-shell. From
-      // web/src a bare `fhirclient` resolved by walking up into
-      // node_modules; from packages/app-shell/src that walk reaches the
-      // repo root and finds nothing, and these files enter THIS project's
-      // program through the @spier/app-shell path mapping above.
-      "fhirclient": ["../../node_modules/fhirclient/index.d.ts"],
-      "fhirclient/*": ["../../node_modules/fhirclient/*"],
+      // ⚠️ **No `fhirclient` entry, deliberately — see vite.config.ts.**
+      // fhirclient 3 is exports-only: `fhirclient/Client` and
+      // `fhirclient/browser` are export-map names, not paths on disk, so a
+      // `fhirclient/*` mapping resolves nothing and a bare `fhirclient` one
+      // lands on a stub whose whole content is "import from
+      // 'fhirclient/browser' or 'fhirclient/node'". `moduleResolution:
+      // "bundler"` reads that export map, and the root install the hoist
+      // created is what the walk-up from packages/app-shell finds.
       "@spier/core/*": ["../../packages/core/src/*"],
       "@spier/ui/*": ["../../packages/ui/src/*"],
       "@spier/tool-views/*": ["../../packages/tool-views/src/*"],
       "@spier/app-shell/*": ["../../packages/app-shell/src/*"],
-      // packages/ui is React, and it lives OUTSIDE web/. TypeScript resolves a
-      // bare specifier by walking up from the importing FILE, so from
-      // packages/ui/src that walk reaches the repo root and finds no
-      // node_modules at all. These map the four packages those components
-      // import back to web's copy — the same arrangement `fhirclient` above
-      // already uses for packages/core, and the same one the three services use.
+      // packages/ui is React, and it lives OUTSIDE the app trees. These map the
+      // four packages those components import back to the root install — the
+      // arrangement the three services use too. (It used to name `fhirclient`
+      // as the other example here; that entry is gone, for the reason at the
+      // top of this block.)
       // ⚠️ Not a convenience: without them every .tsx in packages/ui fails with
       // "Cannot find module 'react'", and adding a dependency to those
       // components means adding a line here.

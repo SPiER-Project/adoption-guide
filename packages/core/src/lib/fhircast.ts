@@ -277,9 +277,28 @@ export function activeTransportKind(): FhircastTransportKind {
 // One channel per document, opened lazily so importing this module has no
 // side effects (and so it degrades gracefully where BroadcastChannel is
 // unavailable, e.g. older test environments).
-let channel: BroadcastChannel | null = null
+//
+// ⚠️ **The type is DERIVED from the value, not named — because this module is
+// compiled by a Worker project that has no DOM lib.** `services/mock-ehr`
+// imports one constant from this file (`MRN_SYSTEM`), which typechecks the
+// whole module under `lib: ["ES2022"]`, where `BroadcastChannel` exists as a
+// *value* (@types/node declares it) but not as a *type*. `InstanceType<typeof
+// …>` reads the instance type off whichever declaration the program has — DOM's
+// in the apps, Node's in the Worker — so one annotation serves both.
+//
+// ⚠️ It typechecked as a bare `BroadcastChannel` for as long as it did only by
+// accident: fhirclient 2's `lib/types.d.ts` opened with `/// <reference
+// lib="dom" />`, and the mock EHR's integration test imported it, so the entire
+// DOM lib was injected into that Worker's program through a transitive type
+// import. fhirclient 3 dropped the reference and the Worker's declared `lib`
+// started meaning what it says. `check:core-boundary` never saw any of this —
+// it reads this tree for *runtime* DOM reach, and permits a feature-detected
+// `BroadcastChannel` precisely as used below.
+type BroadcastChannelInstance = InstanceType<typeof BroadcastChannel>
 
-function getChannel(): BroadcastChannel | null {
+let channel: BroadcastChannelInstance | null = null
+
+function getChannel(): BroadcastChannelInstance | null {
   if (typeof BroadcastChannel === 'undefined') return null
   if (!channel) channel = new BroadcastChannel(FHIRCAST_CHANNEL)
   return channel

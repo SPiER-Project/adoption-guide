@@ -5,7 +5,7 @@
  * formatPatientDisplay's SMART branch). Used by both the OAuth redirect
  * screen and SmartContext's session rehydration.
  */
-import type Client from 'fhirclient/lib/Client'
+import type { SmartClient } from '@spier/core/types/smartClient'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 export interface SmartPatientSummary {
@@ -25,7 +25,7 @@ export interface SmartPatientSummary {
   [key: string]: unknown
 }
 
-export async function readSmartPatientSummary(client: Client): Promise<SmartPatientSummary> {
+export async function readSmartPatientSummary(client: SmartClient): Promise<SmartPatientSummary> {
   if (!client.patient.id) return {}
   const patientData = await client.patient.read()
   const name = patientData.name?.[0]
@@ -34,7 +34,7 @@ export async function readSmartPatientSummary(client: Client): Promise<SmartPati
     : 'Unknown Name'
   // Prefer SPiER's own MRN namespace; fall back to the first identifier that
   // has a value, since a real EHR will not use our system.
-  const identifiers: Array<{ system?: string; value?: string }> = patientData.identifier ?? []
+  const identifiers = patientData.identifier ?? []
   const mrn = identifiers.find(i => i?.system === MRN_SYSTEM)?.value
     ?? identifiers.find(i => i?.value)?.value
 

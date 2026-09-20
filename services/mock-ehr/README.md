@@ -522,11 +522,21 @@ what caught the missing `QuestionnaireResponse.subject` (see `NORMALIZED_LINKS`
 in `src/fixtures.ts`). It also asserts the failure direction: a 500 on a
 load-bearing search must reject, and a 500 on a best-effort one must degrade.
 
-`fhirclient` is deliberately **not** a dependency here — it is aliased to
-`node_modules` in `vitest.config.ts` and `tsconfig.json`. A second copy
-could drift from the version the app ships, and the test would then exercise a
-client the panel never uses.
+`fhirclient` is deliberately **not** a dependency here: a second copy could
+drift from the version the app ships, and the test would then exercise a client
+the panel never uses. It used to be *aliased* to the root `node_modules` in
+`vitest.config.ts` and `tsconfig.json`; both entries are gone, because fhirclient
+3 is exports-only and a prefix alias rewrites the specifier before the export map
+is consulted. The ordinary walk-up from `src/` reaches the same root install.
 
-`wrangler` is pinned to `~4.107.0` to match `services/guide`; 4.124+ peer-
-depends on `@cloudflare/workers-types` v5, which conflicts with the v4 types
-both services use.
+⚠️ **The two client shapes in that test are declared locally now.** They were
+`fhirclient.Adapter` and `fhirclient.ClientState`; fhirclient 3.0.0's tarball
+omits `types/types.d.ts` while every shipped declaration imports it, so that
+namespace does not resolve. Writing the shapes out lost nothing — both were
+already reaching the constructor through `as unknown as`, which asserted the fit
+rather than checking it.
+
+`wrangler` and `@cloudflare/workers-types` move together across all four
+services (`^4.135.0` / `^5`) — see
+[`docs/internals/workers.md`](../../docs/internals/workers.md) §
+"One toolchain, four hand-mirrored copies".

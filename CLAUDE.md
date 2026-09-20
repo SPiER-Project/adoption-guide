@@ -83,10 +83,14 @@ most of them are a gate that passed while checking nothing.
   `AppShell`, `apps/clinical` has its own `Sidebar`, `Shell`, `PanelShell` and
   `LaunchShell`, genuinely different implementations now rather than one
   `IS_DEMO`-branching copy — so there is nothing left in common to extract here.
-  ⚠️ **`fhirclient` is imported BARE here**, which `packages/core` never does, so
-  it needed a new alias in `vite.config.ts` AND `vitest.config.ts` and a mapping
-  in this package's tsconfig AND `tsconfig.app.json` — the four places
-  #387's no-workspaces arrangement always costs. See `packages/app-shell/README.md`.
+  ⚠️ **`fhirclient` is imported here and in `packages/core` it is not.** The
+  SMART components run the OAuth dance (`import FHIR from 'fhirclient/browser'`);
+  core consumes an authorized client through **`@spier/core/types/smartClient`**,
+  a surface this repo declares rather than importing — fhirclient 3 ships
+  declarations that reference a module its tarball omits, which `skipLibCheck`
+  turns into a silent `any`. The four alias/tsconfig entries this line used to
+  name are all deleted: v3 is exports-only, and a prefix alias resolves ahead of
+  an export map. See `packages/app-shell/README.md`.
 - `packages/worker-http/` — what the two asset-serving Workers share about
   *being an asset host*: the Static Assets catch-all, the explicit SPA fallback,
   and the one `frame-ancestors` policy. React-free and DOM-free like

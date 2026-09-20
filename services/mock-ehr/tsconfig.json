@@ -8,12 +8,8 @@
     // up on a real loopback server (node:http, Buffer). The Worker source
     // itself uses none of it.
     "types": ["@cloudflare/workers-types", "vite/client", "node"],
-    // Mirrors the vitest alias: fhirclient is web's dependency and this package
-    // deliberately keeps no second copy of it. Editing one without the other
-    // breaks either the typecheck or the test, never silently both.
     "baseUrl": ".",
     "paths": {
-      "fhirclient/*": ["../../node_modules/fhirclient/*"],
       // The demo population resolves by declared alias, not by workspace
       // (#387). Mirrors vite.config.ts and vitest.config.ts here.
       "@spier/core/*": ["../../packages/core/src/*"],

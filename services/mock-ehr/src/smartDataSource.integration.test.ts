@@ -19,8 +19,7 @@
  * Only workerd is absent, and nothing here depends on it.
  */
 import { createServer, type Server } from 'node:http'
-import Client from 'fhirclient/lib/Client'
-import type { fhirclient } from 'fhirclient/lib/types'
+import Client from 'fhirclient/Client'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
@@ -87,8 +86,35 @@ afterAll(async () => {
  * The bits of the fhirclient environment `Client` actually touches on a read
  * path: `fhir` (fhir.js interop — absent), `options`, `btoa`, and storage
  * (only reached on token refresh, which an open server never triggers).
+ *
+ * ⚠️ **These two shapes were `fhirclient.Adapter` and `fhirclient.ClientState`
+ * until fhirclient 3, and they are declared locally now because that namespace
+ * is unreachable.** fhirclient 3.0.0's tarball omits `types/types.d.ts` while
+ * every shipped declaration imports it, so `fhirclient/types` does not resolve
+ * — see the header of `packages/core/src/types/smartClient.ts`. Writing the
+ * shapes out is not a workaround so much as what the old code was doing
+ * anyway: both values were reaching the constructor through
+ * `as unknown as fhirclient.Adapter`, which asserted the fit rather than
+ * checking it. These are the real objects, described.
  */
-function nodeEnvironment(): fhirclient.Adapter {
+interface ClientEnvironment {
+  options: Record<string, unknown>
+  fhir: null
+  btoa(s: string): string
+  atob(s: string): string
+  getStorage(): {
+    get(key: string): Promise<unknown>
+    set(key: string, value: unknown): Promise<unknown>
+    unset(key: string): Promise<boolean>
+  }
+}
+
+interface ClientState {
+  serverUrl: string
+  tokenResponse: Record<string, unknown>
+}
+
+function nodeEnvironment(): ClientEnvironment {
   const store = new Map<string, unknown>()
   return {
     options: {},
@@ -100,7 +126,7 @@ function nodeEnvironment(): fhirclient.Adapter {
       set: async (key: string, value: unknown) => { store.set(key, value); return value },
       unset: async (key: string) => store.delete(key),
     }),
-  } as unknown as fhirclient.Adapter
+  }
 }
 
 /**
@@ -115,10 +141,8 @@ function nodeEnvironment(): fhirclient.Adapter {
  */
 async function clientFor(patientId: string): Promise<Client> {
   const { tokenResponse } = await launchFor(`http://127.0.0.1:${port}`, { patient: patientId })
-  return new Client(nodeEnvironment(), {
-    serverUrl: SERVER_URL,
-    tokenResponse,
-  } as fhirclient.ClientState)
+  const state: ClientState = { serverUrl: SERVER_URL, tokenResponse }
+  return new Client(nodeEnvironment(), state)
 }
 
 describe('SmartDataSource against the mock EHR', () => {

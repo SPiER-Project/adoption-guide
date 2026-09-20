@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type Client from 'fhirclient/lib/Client'
+import type { SmartClient } from '@spier/core/types/smartClient'
 import type { SmartPatientSummary } from '../lib/smartPatient'
 
 // The SMART context object and its hook. Deliberately NOT a .tsx and holding no
@@ -10,10 +10,10 @@ import type { SmartPatientSummary } from '../lib/smartPatient'
 // split.
 
 export interface SmartContextType {
-    client: Client | null;
+    client: SmartClient | null;
     patient: SmartPatientSummary | null;
     error: Error | null;
-    setSmartData: (client: Client, patient: SmartPatientSummary) => void;
+    setSmartData: (client: SmartClient, patient: SmartPatientSummary) => void;
     setError: (error: Error) => void;
 }
 

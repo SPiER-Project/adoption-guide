@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import FHIR from 'fhirclient'
-import type Client from 'fhirclient/lib/Client'
+import FHIR from 'fhirclient/browser'
+import type { SmartClient } from '@spier/core/types/smartClient'
 import { readSmartPatientSummary, type SmartPatientSummary } from '../lib/smartPatient'
 import { SmartContext } from './SmartContext'
 
@@ -8,7 +8,7 @@ import { SmartContext } from './SmartContext'
 // context object and the useSmart hook live in SmartContext.ts.
 
 export function SmartProvider({ children }: { children: React.ReactNode }) {
-    const [client, setClient] = useState<Client | null>(null)
+    const [client, setClient] = useState<SmartClient | null>(null)
     const [patient, setPatient] = useState<SmartPatientSummary | null>(null)
     const [error, setContextError] = useState<Error | null>(null)
 
@@ -25,7 +25,9 @@ export function SmartProvider({ children }: { children: React.ReactNode }) {
         let cancelled = false
         FHIR.oauth2
             .ready()
-            .then(async (rehydrated) => {
+            // Annotated for the same reason as SmartRedirect's: this is the
+            // other place fhirclient's `Client` becomes ours.
+            .then(async (rehydrated: SmartClient) => {
                 if (cancelled) return
                 const summary = await readSmartPatientSummary(rehydrated)
                 if (cancelled) return
@@ -65,7 +67,7 @@ export function SmartProvider({ children }: { children: React.ReactNode }) {
      * effect.
      */
     const setSmartData = useCallback(
-        (newClient: Client, newPatient: SmartPatientSummary) => {
+        (newClient: SmartClient, newPatient: SmartPatientSummary) => {
             setClient(newClient)
             setPatient(newPatient)
             setContextError(null)

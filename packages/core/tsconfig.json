@@ -20,10 +20,6 @@
     "typeRoots": ["../../node_modules/@types"],
     "types": ["node"],
     "paths": {
-      // packages/core imports fhirclient's Client type. `fhirclient` is web's
-      // dependency and no other package declares a second copy, which could
-      // drift from the version the app ships.
-      "fhirclient/*": ["../../node_modules/fhirclient/*"],
       // Same "no ancestor node_modules" problem as above, but for a real
       // package rather than an @types-only one: the moved tests `import ...
       // from 'vitest'` explicitly (see CLAUDE.md), and that bare specifier

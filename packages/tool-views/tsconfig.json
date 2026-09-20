@@ -49,7 +49,6 @@
       "@spier/ui/*": ["../ui/src/*"],
       "@spier/fhir-artifacts/*": ["../fhir-artifacts/*"],
       // Reached only through core's own sources, which are included below.
-      "fhirclient/*": ["../../node_modules/fhirclient/*"],
       // Its own alias, so a colocated test can import its subject the way a
       // consumer does rather than by a relative path.
       "@spier/tool-views/*": ["./src/*"]

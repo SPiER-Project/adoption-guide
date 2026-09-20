@@ -35,11 +35,6 @@
       "react-dom": ["../../node_modules/@types/react-dom"],
       "react-router-dom": ["../../node_modules/react-router-dom"],
       "lucide-react": ["../../node_modules/lucide-react"],
-      // ⚠️ Pointed at the declaration file, not the directory: SmartLaunch and
-      // SmartRedirect import fhirclient BARE (`import FHIR from 'fhirclient'`),
-      // which packages/core never does — it only reaches fhirclient/lib/Client.
-      "fhirclient": ["../../node_modules/fhirclient/index.d.ts"],
-      "fhirclient/*": ["../../node_modules/fhirclient/*"],
       // Reached only through the INCLUDED tool-views sources below.
       "@formbox/renderer": ["../../node_modules/@formbox/renderer/dist/index.d.ts"],
       "@formbox/hs-theme": ["../../node_modules/@formbox/hs-theme/dist/index.d.ts"],

@@ -21,7 +21,7 @@
     "hono": "^4.13.8"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250109.0",
+    "@cloudflare/workers-types": "^5.20260920.1",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^22.20.1",
@@ -31,14 +31,14 @@
     "typescript-eslint": "^8.65.0",
     "vite": "^7.3.1",
     "vitest": "^3.0.5",
-    "wrangler": "~4.107.0"
+    "wrangler": "^4.135.0"
   },
-  "//wrangler": [
-    "Pinned to ~4.107, matching services/mock-ehr. wrangler 4.135 declares a",
-    "peerOptional on @cloudflare/workers-types ^5, which conflicts with the 4.x",
-    "line the other two services install — a fresh `npm install` here fails",
-    "ERESOLVE on it. Lift the pin when all three move to workers-types 5",
-    "together, not one package at a time."
+  "//cloudflare": [
+    "wrangler and @cloudflare/workers-types are ONE bump, not two: wrangler",
+    "4.135 declares a peerOptional on @cloudflare/workers-types ^5, so raising",
+    "wrangler alone fails this package's own `npm install` with ERESOLVE. Keep",
+    "the four services on the same pair — nothing gates it. See",
+    "docs/internals/workers.md § \"One toolchain, four hand-mirrored copies\"."
   ],
   "engines": {
     "node": ">=22.22.2"
