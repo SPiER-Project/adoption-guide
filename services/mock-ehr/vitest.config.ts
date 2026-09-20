@@ -7,16 +7,17 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   resolve: {
     alias: {
-      // The integration test drives the app's real SmartDataSource, which needs
-      // a real fhirclient Client. `fhirclient` is web's dependency and this
-      // package deliberately does not declare its own copy — a second copy
-      // could drift from the version the app actually ships, and then the test
-      // would be exercising a client the panel never uses.
-      //
-      // Prefix aliasing is what is wanted here (unlike vite.config.ts's
-      // anchored shim regexes): 'fhirclient/lib/Client' must resolve under the
-      // same package root.
-      fhirclient: fileURLToPath(new URL('../../node_modules/fhirclient', import.meta.url)),
+      // ⚠️ **No `fhirclient` alias, and it had to go at fhirclient 3.** The
+      // integration test drives the app's real SmartDataSource, which needs a
+      // real fhirclient Client; this package deliberately declares no copy of
+      // its own, so the root install is the one it gets. An alias used to point
+      // at that directory and PREFIX-match, which is what `fhirclient/lib/
+      // Client` needed. v3 is exports-only — `fhirclient/Client` is an
+      // export-map name resolving to `types/Client.d.ts` + `esm/Client.js`, not
+      // a path — and a prefix rewrite happens BEFORE the export map is read, so
+      // the alias sent it to a `<dir>/Client` that does not exist. The ordinary
+      // walk-up from services/mock-ehr/src reaches the same root install and
+      // does consult the export map.
       // The demo population — declared alias, not a workspace (#387). Object
       // form matches this file's existing shape; prefix matching is wanted, so
       // '@spier/demo-population/patients.json' resolves under the same root.

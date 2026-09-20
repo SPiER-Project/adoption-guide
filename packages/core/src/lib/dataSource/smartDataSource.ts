@@ -24,7 +24,7 @@
  *  - Write failures propagate to the caller (PatientContext surfaces them in
  *    the UI). There is deliberately no silent fallback to localStorage.
  */
-import type Client from 'fhirclient/lib/Client'
+import type { SmartClient } from '../../types/smartClient'
 import { toolForQuestionnaireUrl, stripCanonicalVersion } from '../../data/catalog'
 import { deriveFromResponse } from '../deriveFromResponse'
 import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '../patientPathway'
@@ -159,7 +159,7 @@ function withPatientLink<T extends FhirResource>(resource: T, patientId: string)
 
 export class SmartDataSource implements FhirDataSource, WritebackTarget {
   private readonly listeners = new Set<() => void>()
-  private readonly client: Client
+  private readonly client: SmartClient
   /** Writeback policy. Injected so the Tier-3 confirm flow can opt in per-write. */
   private readonly writebackConfig: WritebackConfig
   /**
@@ -189,7 +189,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    */
   private readonly serverIds = new Map<string, string>()
 
-  constructor(client: Client, writebackConfig: WritebackConfig = {}) {
+  constructor(client: SmartClient, writebackConfig: WritebackConfig = {}) {
     this.client = client
     this.writebackConfig = writebackConfig
   }

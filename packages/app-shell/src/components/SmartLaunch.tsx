@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import FHIR from 'fhirclient'
+import FHIR from 'fhirclient/browser'
 
 import { clientIdForIssuer } from '../lib/smartClients'
 

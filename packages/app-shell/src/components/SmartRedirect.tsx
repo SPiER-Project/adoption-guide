@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import FHIR from 'fhirclient'
+import FHIR from 'fhirclient/browser'
+import type { SmartClient } from '@spier/core/types/smartClient'
 import { useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
@@ -41,7 +42,16 @@ export function SmartRedirect() {
         // by exchanging the authorization code for an access token
         FHIR.oauth2
             .ready()
-            .then(async (client) => {
+            // ⚠️ **The annotation is the seam, and it is load-bearing.** This is
+            // the one place fhirclient's own `Client` meets the surface this
+            // codebase declares (`@spier/core/types/smartClient`), so this is
+            // where the structural check happens — an upstream signature change
+            // fails HERE rather than spreading through everything downstream.
+            // Without it `client` is fhirclient 3's `Client`, whose declarations
+            // reference a `./types` module its tarball omits, so every
+            // `client.state.…` below was an unchecked read on an unresolvable
+            // type.
+            .then(async (client: SmartClient) => {
                 setStatus('Client authenticated. Fetching patient context...')
 
                 try {
@@ -125,9 +135,11 @@ export function SmartRedirect() {
                         // enforces for a cross-patient read (`mayCrossPatients`).
                         // A launch with neither a patient nor that scope really is
                         // broken, and still lands on `/`.
-                        const scope = String(
-                            (client.state.tokenResponse as { scope?: unknown } | undefined)?.scope ?? '',
-                        )
+                        // `scope` is `unknown` off the token response, and a
+                        // non-string one must not become "[object Object]" and
+                        // then silently fail every `user/*.read` test below.
+                        const rawScope = client.state.tokenResponse?.scope
+                        const scope = typeof rawScope === 'string' ? rawScope : ''
                         const isWorklist = scope
                             .split(/\s+/)
                             .some(s => /^user\/[^.]+\.(read|\*)$/.test(s))

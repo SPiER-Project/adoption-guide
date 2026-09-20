@@ -72,7 +72,43 @@ export interface ObservationResource extends FhirResource {
   interpretation?: Array<{ coding?: Coding[]; text?: string }>
 }
 export type CarePlanResource = FhirResource & { resourceType: 'CarePlan' }
-export type PatientResource = FhirResource & { resourceType: 'Patient' }
+/**
+ * FHIR R4 HumanName — the four fields anything here reads off a name.
+ * `[k: string]: unknown` keeps the rest of the element readable, as elsewhere.
+ */
+export interface HumanName {
+  use?: string
+  text?: string
+  family?: string
+  given?: string[]
+  [k: string]: unknown
+}
+
+/** FHIR R4 Identifier — an MRN, in practice. */
+export interface Identifier {
+  use?: string
+  system?: string
+  value?: string
+  [k: string]: unknown
+}
+
+/**
+ * ⚠️ **Named fields, unlike its sibling one-liners above, because a real server
+ * answers `Patient.read()` with this and something has to say what it holds.**
+ * Everything else in this file is read out of scenario JSON we author; a Patient
+ * can arrive from an EHR over SMART. `readSmartPatientSummary` reads exactly
+ * these four, and read them through fhirclient's `any`-typed `FHIR.Patient`
+ * until 2026-09-20 — so `name[0].given.join(' ')` was unchecked on a value the
+ * app does not control. Typed here, `given` is `string[] | undefined` and the
+ * optional chaining the code already had is what makes it compile.
+ */
+export interface PatientResource extends FhirResource {
+  resourceType: 'Patient'
+  name?: HumanName[]
+  identifier?: Identifier[]
+  birthDate?: string
+  gender?: string
+}
 export type CommunicationResource = FhirResource & { resourceType: 'Communication' }
 export type AppointmentResource = FhirResource & { resourceType: 'Appointment' }
 export type MeasureReportResource = FhirResource & { resourceType: 'MeasureReport' }

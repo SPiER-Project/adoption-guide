@@ -59,18 +59,33 @@ repo root and never sees `tsconfig.app.json`, so without `"jsx":
 "React is not defined" **while `tsc` stays green**. `packages/ui` and
 `packages/tool-views` both record the same thing.
 
-⚠️ **`fhirclient` is imported BARE here, and that needed four new declarations.**
-`SmartLaunch`, `SmartRedirect` and `SmartProvider` do `import FHIR from
-'fhirclient'`; `packages/core` only ever reaches `fhirclient/lib/Client`, so no
-bare entry existed. From `web/src` a bare specifier resolved by walking up into
-`node_modules`; from here that walk finds nothing (no npm workspaces, #387).
-It is now aliased in `vite.config.ts` **and** `vitest.config.ts`, and
-mapped in this package's `tsconfig.json` **and** `tsconfig.app.json` — the
-last because these files enter the app project's program through the
-`@spier/app-shell/*` path mapping.
+⚠️ **`fhirclient` is imported here and `packages/core` is not — that is the
+split, and it changed shape at fhirclient 3 (2026-09-20).** `SmartLaunch`,
+`SmartRedirect` and `SmartProvider` import the library for real
+(`import FHIR from 'fhirclient/browser'`) because they run the OAuth dance;
+`packages/core` consumes an authorized client and never imports the package at
+all any more.
 
-⚠️ **One TS2307 cascades.** Before that bare mapping existed, the unresolved
-`fhirclient` also produced six unrelated-looking errors in `web/src` tests —
+The four declarations this section used to describe — an alias in
+`vite.config.ts` and `vitest.config.ts`, a mapping in this package's
+`tsconfig.json` and in `tsconfig.app.json` — are **all deleted**. fhirclient 3
+is exports-only (`fhirclient/browser` is an export-map name, not a path), and a
+prefix alias rewrites a specifier *before* the export map is read, so every one
+of them pointed at a file that does not exist. The root install the tooling
+hoist created is what ordinary resolution finds, from here and from
+`packages/core` alike.
+
+⚠️ **The `Client` TYPE is ours, not theirs** —
+`@spier/core/types/smartClient`. fhirclient 3.0.0's tarball omits
+`types/types.d.ts` while every shipped declaration imports it, so its types
+silently degrade to `any` under `skipLibCheck`. The seam is the `.then((client:
+SmartClient) => …)` annotation on `FHIR.oauth2.ready()` in `SmartRedirect` and
+`SmartProvider`: that is the one place the two meet, and where an upstream
+signature change has to fail. That file's header has the measurements.
+
+⚠️ **One TS2307 cascades.** Before a bare `fhirclient` mapping existed (it no
+longer does, see above), the unresolved specifier also produced six
+unrelated-looking errors in tests —
 `Cannot find module 'node:fs'`, `Cannot find name '__dirname'`. They were noise
 from the single failed resolution and vanished with it. Fixing them
 individually would have meant adding `@types/node` to a project that does not

@@ -34,11 +34,6 @@ const REACT_DIR = fileURLToPath(new URL('./node_modules/react', import.meta.url)
 const REACT_DOM_DIR = fileURLToPath(new URL('./node_modules/react-dom', import.meta.url))
 const ROUTER_DIR = fileURLToPath(new URL('./node_modules/react-router-dom', import.meta.url))
 const LUCIDE_DIR = fileURLToPath(new URL('./node_modules/lucide-react', import.meta.url))
-// ⚠️ Needed for packages/app-shell, whose SMART components import `fhirclient`
-// BARE. Kept after the hoist for the same reason as in vite.config.ts: the
-// walk-up now does reach the root's node_modules, but the alias pins WHICH copy
-// rather than leaving it to resolution order.
-const FHIRCLIENT_DIR = fileURLToPath(new URL('./node_modules/fhirclient', import.meta.url))
 const FORMBOX_RENDERER_DIR = fileURLToPath(new URL('./node_modules/@formbox/renderer', import.meta.url))
 const FORMBOX_THEME_DIR = fileURLToPath(new URL('./node_modules/@formbox/hs-theme', import.meta.url))
 // Test-only, so it is here and not in vite.config.ts — packages/ui's colocated
@@ -83,8 +78,17 @@ export default defineConfig({
       { find: 'react-dom/', replacement: `${REACT_DOM_DIR}/` },
       { find: /^react-router-dom$/, replacement: ROUTER_DIR },
       { find: /^lucide-react$/, replacement: LUCIDE_DIR },
-      { find: /^fhirclient$/, replacement: FHIRCLIENT_DIR },
-      { find: 'fhirclient/', replacement: `${FHIRCLIENT_DIR}/` },
+      // ⚠️ **No `fhirclient` alias, and that is required rather than tidy.**
+      // fhirclient 3 is exports-only: `fhirclient/browser` and
+      // `fhirclient/Client` are export-map entries resolving to `esm/entry/
+      // browser.js` and `types/Client.d.ts`, paths that do not exist under
+      // those names on disk. A `fhirclient/` PREFIX alias rewrites the
+      // specifier BEFORE Vite consults the export map, so it sent the build
+      // looking for `<dir>/browser` and failed — the identical trap the
+      // `@formbox/hs-theme` note below records. The bare entry went with it
+      // because fhirclient 3 has no bare entry point at all (its `index.d.ts`
+      // is a stub that says so), and the root install the hoist created is
+      // what the ordinary node walk-up now finds.
       // ── formbox, resolved for packages/tool-views ────────────────────
       // Same problem, and the same fix, as React above: packages/tool-views has
       // no node_modules of its own, so Vite cannot resolve a bare
