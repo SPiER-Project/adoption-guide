@@ -429,6 +429,24 @@ contract an adopter configures inside their own EHR.
 and every guide deploy redeployed the endpoint. `services/guide` and
 `services/clinical` each carry a NEGATIVE test that they host no `/cds-services`.
 
+⚠️ **`CDS_JWT_ENFORCE` is `require`, and the mock EHR is the registered
+client.** It ran in `warn` from #147 to 2026-09-20 — `warn` verifies, logs the
+failure and then proceeds, so an endpoint in `warn` with no caller that can sign
+is an open compute endpoint with a log line, not an authenticated one. It stayed
+that way because nothing in the demo could mint a token. `services/mock-ehr` now
+holds an ES384 keypair in its Durable Object, publishes it at
+`/.well-known/jwks.json`, and invokes the service **server-to-server** from
+`POST /_admin/cds` — the chart page's browser fetch could never have been signed,
+because a browser that can sign is a browser holding the private key.
+⚠️ **The interop test lives in `services/cds` and imports the mock EHR's real
+minting code**, because neither service's own suite can see a mismatch: one mints
+with `jose` against a hypothetical client, the other emits a JWS it cannot
+verify. Two green suites either side of an interface neither crosses is the shape
+that ships a 401. Five planted defects, including one — publishing the private
+JWK — that passed every behavioural test because an EC private JWK verifies
+identically. ⚠️ The Sandbox and a tokenless `curl` now get 401; that is correct,
+and the guide page says so. See `services/cds/README.md`.
+
 ⚠️ **`SMART_LAUNCH_URL` is REQUIRED by the CDS Worker and it 500s without it.**
 The launch URL used to be derived from the request origin, which was true while
 one Worker served both the API and the app and became false at the `apps/` split

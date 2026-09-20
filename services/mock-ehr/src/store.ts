@@ -52,6 +52,7 @@
  */
 import type { MockResource } from './fixtures'
 import type { CapabilityProfile } from './capability'
+import type { CdsSigningKey } from './cdsClient'
 // Type-only: see the header of demoStore.ts for why this must never become a
 // value import.
 import type { DemoStore } from './demoStore'
@@ -105,6 +106,22 @@ export interface DemoState {
    */
   getProfile(): Promise<CapabilityProfile | null>
   setProfile(profile: CapabilityProfile): Promise<void>
+  /** This host's CDS Client signing key, or null if none has been minted. */
+  getCdsKey(): Promise<CdsSigningKey | null>
+  /**
+   * Store `key` only if none exists; return whichever key is authoritative
+   * afterwards.
+   *
+   * ⚠️ **"If absent" and the return value are both the point.** A Worker runs
+   * many isolates, so two can decide simultaneously that no key exists and each
+   * generate one. Inside the Durable Object these calls are serialized, so the
+   * first wins and the second is handed the winner rather than overwriting it —
+   * which matters because the loser's public half was never published, and a
+   * token signed with it would be rejected by a verifier reading
+   * `/.well-known/jwks.json`. A plain `set` would produce exactly that, rarely,
+   * and never locally where there is one isolate.
+   */
+  putCdsKeyIfAbsent(key: CdsSigningKey): Promise<CdsSigningKey>
 }
 
 /**
@@ -132,9 +149,12 @@ export function memoryStore(): DemoState {
   const writes: StoredWrite[] = []
   let seq = 0
   let profile: CapabilityProfile | null = null
+  let cdsKey: CdsSigningKey | null = null
   return {
     getProfile: async () => profile,
     setProfile: async (next) => { profile = next },
+    getCdsKey: async () => cdsKey,
+    putCdsKeyIfAbsent: async (key) => (cdsKey ??= key),
     add: async (patientId, resource) => {
       seq += 1
       const stored: MockResource = { ...resource, id: `srv-${seq}` }

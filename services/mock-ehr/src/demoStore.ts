@@ -19,12 +19,14 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { CapabilityProfile } from './capability'
 import type { DemoState, StoredWrite } from './store'
+import type { CdsSigningKey } from './cdsClient'
 import type { MockResource } from './fixtures'
 
 /** Storage keys. `seq` is the id counter; writes are `w:<zero-padded seq>`. */
 const SEQ_KEY = 'seq'
 const WRITE_PREFIX = 'w:'
 const PROFILE_KEY = 'profile'
+const CDS_KEY = 'cds-signing-key'
 
 /** Zero-padded so `storage.list()`'s lexicographic order is insertion order. */
 function writeKey(seq: number): string {
@@ -90,4 +92,24 @@ export class DemoStore extends DurableObject implements DemoState {
     // set up.
     await this.ctx.storage.put(PROFILE_KEY, profile)
   }
+
+  async getCdsKey(): Promise<CdsSigningKey | null> {
+    return (await this.ctx.storage.get<CdsSigningKey>(CDS_KEY)) ?? null
+  }
+
+  async putCdsKeyIfAbsent(key: CdsSigningKey): Promise<CdsSigningKey> {
+    // Read-then-write is safe HERE and nowhere else: a Durable Object handles
+    // one call at a time, so the two isolates that raced to generate a keypair
+    // arrive here in sequence and the second sees the first's. See the
+    // interface note in store.ts.
+    const existing = await this.ctx.storage.get<CdsSigningKey>(CDS_KEY)
+    if (existing) return existing
+    await this.ctx.storage.put(CDS_KEY, key)
+    return key
+  }
+
+  // ⚠️ Deliberately NOT cleared by reset(), same as the profile: "forget the
+  // demo's written resources" must not rotate this host's published identity.
+  // A verifier caches a JWK Set by `kid`, and re-minting one mid-demo would
+  // reject the next call until that cache expired.
 }

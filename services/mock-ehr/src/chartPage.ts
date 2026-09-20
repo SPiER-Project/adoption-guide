@@ -672,6 +672,13 @@ export function patientChartPage(
             <code>type: "smart"</code> is what lets a card launch the panel into this chart, scoped to
             the instrument the card names.
           </p>
+          <p class="lede">
+            The host made that call <strong>server to server</strong>, carrying a short-lived JWT it
+            signed with its own key &mdash; the browser never holds one. The service verifies it
+            against the key set this host publishes at
+            <a href="/.well-known/jwks.json"><code>/.well-known/jwks.json</code></a>, which is what
+            CDS&nbsp;Hooks means by trusting a CDS Client. An unsigned call is refused.
+          </p>
 
           <h3>Launch context</h3>
           <p class="readout" id="dock-sent">Nothing launched yet — press <strong>Launch SPiER</strong> and the
@@ -754,6 +761,11 @@ function chartScript({
   // Imported rather than restated: the MRN namespace has four sites that must
   // agree and check:patients gates them (see fixtures.ts).
   var MRN_SYSTEM = ${JSON.stringify(MRN_SYSTEM)};
+  // ⚠️ Displayed, not fetched. The browser calls this host's own /_admin/cds,
+  // which mints a signed JWT and invokes the service server-to-server — see the
+  // route in app.ts. This literal stays because it is what the page SHOWS the
+  // reader, and because chartPage.test.ts asserts the three origins stay
+  // distinct through it.
   var CDS_ENDPOINT = ${JSON.stringify(cdsEndpoint)};
   var PANEL_ORIGIN = ${JSON.stringify(panelOrigin)};
 
@@ -1039,7 +1051,13 @@ function chartScript({
 
   // ── CDS Hooks patient-view ────────────────────────────────────────────────
   // No prefetch: see the module header. hookInstance must be unique per call.
-  fetch(CDS_ENDPOINT, {
+  //
+  // Posted to this HOST, not to the service. The host signs a JWT with the key
+  // it publishes at /.well-known/jwks.json and invokes the service itself,
+  // which is both what CDS Hooks describes (the EHR calls the service) and the
+  // only way the call can be signed at all — a browser that could sign would be
+  // a browser holding the host's private key.
+  fetch('/_admin/cds', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -1054,8 +1072,11 @@ function chartScript({
   }).then(function (body) {
     renderCards(body.cards || []);
   }).catch(function (err) {
+    // Names the SERVICE, not this host: the reader wants to know which endpoint
+    // did not answer. A 401 here means this host's signed identity was refused,
+    // which the status code is what distinguishes.
     document.getElementById('cds-status').textContent =
-      'The CDS service at ' + PANEL_ORIGIN + ' could not be reached (' + err.message + ').';
+      'The CDS service at ' + CDS_ENDPOINT + ' could not be reached (' + err.message + ').';
   });
 
   function renderCards(cards) {
