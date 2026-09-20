@@ -5,7 +5,6 @@ import { makeId } from '@spier/core/lib/id'
 import {
   buildOutreachAttempt,
   deriveAppointmentTracking,
-  displayFor,
   outreachAttempts,
   outreachOutcome,
   outreachPrompt,
@@ -15,6 +14,7 @@ import {
   OUTREACH_OUTCOMES,
   OUTREACH_PROMPTS,
 } from '@spier/core/lib/followUp'
+import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow } from '../lib/dates'
 import { Button } from '@spier/ui/Button'

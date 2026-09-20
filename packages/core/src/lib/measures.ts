@@ -32,6 +32,7 @@
  *
  * ⚠️ DEMO ONLY — computes over the local slice; no server-side $evaluate-measure.
  */
+import { observationEffective } from './observationEffective'
 import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import {
   APPOINTMENT_PROFILE,
@@ -302,11 +303,6 @@ function contentItemCodes(resource: FhirResource): string[] {
     .filter((c): c is string => !!c)
 }
 
-/** Observation.effectiveDateTime, or the start of an effectivePeriod. */
-function observationEffective(o: ObservationResource): string | undefined {
-  const r = o as { effectiveDateTime?: string; effectivePeriod?: { start?: string } }
-  return r.effectiveDateTime ?? r.effectivePeriod?.start
-}
 
 // ─────────────────────────────────────────────────────────────
 // Evaluation context

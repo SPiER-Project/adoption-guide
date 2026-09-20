@@ -29,8 +29,8 @@ import {
   consentDecision,
   isReferralOpen,
   REFERRAL_STATUSES,
-  displayFor as displayHandoff,
 } from './handoffs'
+import { displayFor as displayHandoff } from './codedOption'
 import {
   deriveAppointmentTracking,
   unreachedStreak,

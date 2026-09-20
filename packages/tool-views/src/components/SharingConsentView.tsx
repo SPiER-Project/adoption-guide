@@ -6,9 +6,9 @@ import {
   consentDecision,
   consentRecipient,
   currentSharingConsent,
-  displayFor,
   CONSENT_DECISIONS,
 } from '@spier/core/lib/handoffs'
+import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { todayLocalIso, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'

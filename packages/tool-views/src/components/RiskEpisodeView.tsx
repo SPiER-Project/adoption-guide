@@ -7,7 +7,6 @@ import {
   buildFlag,
   clearFlag,
   closeEpisode,
-  displayFor,
   episodeCurrentTier,
   findOpenEpisode,
   pickEpisodeTrigger,
@@ -15,6 +14,7 @@ import {
   ENTRY_REASONS,
   RISK_TIERS,
 } from '@spier/core/lib/riskEpisode'
+import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint } from './WorkflowForm'
 import { todayLocalIso } from '../lib/dates'
 import { Button } from '@spier/ui/Button'

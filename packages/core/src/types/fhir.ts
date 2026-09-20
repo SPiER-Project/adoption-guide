@@ -183,7 +183,7 @@ export type ConsentResource = FhirResource & { resourceType: 'Consent' }
 
 // From ig/input/fsh/lethal-means.fsh (Stage 4). Read by the Stage-8 lethal
 // means counseling measure, and written by the TL-008 recorder
-// (components/LethalMeansCounselingView.tsx → lib/lethalMeans.ts).
+// (packages/tool-views LethalMeansCounselingView.tsx → lib/lethalMeans.ts here).
 export type ProcedureResource = FhirResource & { resourceType: 'Procedure' }
 
 // ─── Stage 7 (Track Risk Over Time) ──────────────────────────

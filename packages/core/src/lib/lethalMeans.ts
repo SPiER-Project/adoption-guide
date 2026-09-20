@@ -24,17 +24,19 @@
  *
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
-import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
-import type { CodedOption } from '@spier/core/lib/handoffs'
-import type { ObservationResource, ProcedureResource } from '@spier/core/types/fhir'
-import { suicideRiskCategory } from '@spier/core/lib/conceptDomain'
+import { displayFor, type CodedOption } from './codedOption'
+// Re-exported for the recorder, which imports its whole vocabulary from here.
+export { displayFor }
+import { stageTag } from './stageTag'
+import { observationEffective } from './observationEffective'
+import type { ObservationResource, ProcedureResource } from '../types/fhir'
+import { suicideRiskCategory } from './conceptDomain'
 
 // `satisfies StageId`: the literal keeps its type, and a stage renamed in the
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
 // than a stage tag nothing resolves.
 export const STAGE_ID = 'document-safety-actions' satisfies StageId
-const STAGE_TITLE = 'Document Safety Actions'
 
 export const COUNSELING_PROFILE =
   'http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling'
@@ -75,14 +77,6 @@ export const MEANS_SAFETY_ACTIONS: CodedOption[] = [
   { code: 'declined', display: 'Declined / not yet addressed' },
 ]
 
-export function displayFor(options: CodedOption[], code: string): string {
-  return options.find(o => o.code === code)?.display ?? code
-}
-
-function stageTag() {
-  return [{ system: PATHWAY_STAGE_SYSTEM, code: STAGE_ID, display: STAGE_TITLE }]
-}
-
 // ─── The counseling Procedure ─────────────────────────────────
 
 /**
@@ -101,7 +95,7 @@ export function buildLethalMeansCounseling(params: {
   return {
     resourceType: 'Procedure',
     id: params.id,
-    meta: { profile: [COUNSELING_PROFILE], tag: stageTag() },
+    meta: { profile: [COUNSELING_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'completed',
     // R4 caps Procedure.category at 0..1, so the single slot carries the domain
     // code; the counselling act itself is identified by Procedure.code below.
@@ -142,7 +136,7 @@ export function buildMeansSafetyAction(params: {
   return {
     resourceType: 'Observation',
     id: params.id,
-    meta: { profile: [MEANS_SAFETY_ACTION_PROFILE], tag: stageTag() },
+    meta: { profile: [MEANS_SAFETY_ACTION_PROFILE], tag: stageTag(STAGE_ID) },
     status: params.completed ? 'final' : 'preliminary',
     category: [
       { coding: [{ system: OBSERVATION_CATEGORY_SYSTEM, code: 'procedure' }] },
@@ -193,11 +187,7 @@ export function meansSafetyActions(observations: ObservationResource[]): Observa
   return observations
     .filter(o => meansSafetyMethod(o) !== undefined)
     .slice()
-    .sort((a, b) => (effectiveOf(b) ?? '').localeCompare(effectiveOf(a) ?? ''))
-}
-
-function effectiveOf(o: ObservationResource): string | undefined {
-  return (o as { effectiveDateTime?: string }).effectiveDateTime
+    .sort((a, b) => (observationEffective(b) ?? '').localeCompare(observationEffective(a) ?? ''))
 }
 
 export function meansSafetyMethod(o: ObservationResource): string | undefined {

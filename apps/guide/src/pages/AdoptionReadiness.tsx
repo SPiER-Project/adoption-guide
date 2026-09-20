@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
+import { InclusionBadge } from '@spier/tool-views/components/InclusionBadge'
 import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
-import { INCLUSION_ICON, LICENSING_ICON, READINESS_TIER_ICON, type InclusionStatus } from '@spier/tool-views/lib/statusIcons'
+import { LICENSING_ICON, READINESS_TIER_ICON } from '@spier/tool-views/lib/statusIcons'
 import '../css/AdoptionReadiness.css'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Pill, type PillTone } from '@spier/ui/Pill'
@@ -117,16 +118,6 @@ function buildStatusFor(tool: Tool): { status: BuildStatus } {
 
 function readinessTier(buildStatus: BuildStatus): ReadinessTier {
   return buildStatus === 'built' ? 'built' : 'in-progress'
-}
-
-const INCLUSION_TONE: Record<InclusionStatus, PillTone> = { core: 'info', optional: 'neutral', future: 'warning' }
-
-function InclusionBadge({ status }: { status: InclusionStatus }) {
-  return (
-    <Pill size="sm" tone={INCLUSION_TONE[status]} icon={INCLUSION_ICON[status]}>
-      {status}
-    </Pill>
-  )
 }
 
 /** Licensing keeps a page-owned palette (five statuses, one of them violet) — colour only, see AdoptionReadiness.css. */

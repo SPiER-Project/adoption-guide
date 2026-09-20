@@ -49,6 +49,7 @@ npm run check:fhir-r5           # the R5-model shim is still safe: every fhirVer
 npm run check:crosswalk         # concept-crosswalk validation
 npm run check:extract           # the SDC observationExtract contract, and EVERY mapper's Questionnaire classified
 npm run check:core-boundary     # packages/core stays React-free and DOM-free
+npm run check:dupes             # no function is defined twice: same name + same body across files fails, and so does a renamed copy of 5+ lines
 npm run check:guide-boundary    # the Adoption Guide holds no patient data (walks guide pages transitively)
 npm run check:catalog           # tool-catalog wiring; every launch path, landing route and <Navigate> target resolves
 npm run check:tool-view-routes  # the 29 tool views are ONE definition and EVERY app's route table agrees, both ways
@@ -177,6 +178,7 @@ One line each; the mechanism and the incident behind it are in
 - **Generated files must exist before `tsc -b`** — run `npm run copy-fhir` first on a clean checkout.
 - **One canonical URL, one definition**, across the FSH tree and the JSON tree; **no CodeSystems live in the JSON tree**. `check-canonical-uniqueness.mjs` is the gate; SUSHI catches only half of this.
 - **Hand-duplicated values drift**: stage ids, LOINC codes and ASQ disposition codes are typed in `ig/input/fsh/`, the mappers and the demo population — grep the whole repo when you change one. Stage-id **constants** in TypeScript are typed against the generated `StageId` union (`satisfies StageId`), so a renamed stage is a compile error there; the JSON side stays gated by `check:stages`.
+- **Hand-duplicated helpers drift too, and `check:dupes` fails the copy.** A recorder's stage tag is `stageTag(STAGE_ID)` from `packages/core/src/lib/stageTag.ts`, its option lookup is `displayFor` from `codedOption.ts`, an Observation's date is `observationEffective`. Every FHIR builder — `lethalMeans.ts` included since 2026-09-20 — lives in `packages/core/src/lib`; `packages/tool-views` holds views and their contexts, never a resource builder.
 - **The Stanley-Brown CarePlan transformation exists twice on purpose** (`.fml` + `carePlanMappers/stanleyBrown.ts`), compared against one golden file; change both.
 - **Tool licensing lives in the FSH, and only there**; `Tool.licensing` is derived. A new tool with unsettled terms gets `#unknown`. No status has been verified against the rights holder's current terms — [`docs/best-practices/licensing-verification-backlog.md`](docs/best-practices/licensing-verification-backlog.md).
 - **Tool ids live in the FSH too** (`ActivityDefinition.identifier`); `tools.ts` derives the pairing and `check:catalog` fails a hand map. `TL-0NN` is not an AD id; the mapping is many-to-one.

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toggleCode } from '../lib/toggleCode'
 import { usePatient } from '../context/PatientContext'
 import { makeId } from '@spier/core/lib/id'
 import {
@@ -8,7 +9,7 @@ import {
   CRISIS_RESOURCES,
   DEFAULT_CRISIS_RESOURCES,
 } from '@spier/core/lib/crisisResources'
-import { displayFor } from '@spier/core/lib/handoffs'
+import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
@@ -37,10 +38,6 @@ import { Button } from '@spier/ui/Button'
  * ⚠️ DEMO ONLY — nothing is persisted to a server, and no resource is actually
  * sent to the patient.
  */
-
-function toggle(list: string[], code: string): string[] {
-  return list.includes(code) ? list.filter(c => c !== code) : [...list, code]
-}
 
 export function CrisisResourcesView() {
   const { addArtifact, activePatientId, communications } = usePatient()
@@ -152,7 +149,7 @@ export function CrisisResourcesView() {
               <input
                 type="checkbox"
                 checked={codes.includes(resource.code)}
-                onChange={() => setCodes(prev => toggle(prev, resource.code))}
+                onChange={() => setCodes(prev => toggleCode(prev, resource.code))}
               />{' '}
               {resource.display}
             </label>

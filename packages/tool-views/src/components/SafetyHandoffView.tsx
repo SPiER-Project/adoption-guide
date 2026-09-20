@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toggleCode } from '../lib/toggleCode'
 import { usePatient } from '../context/PatientContext'
 import { makeId } from '@spier/core/lib/id'
 import {
@@ -47,10 +48,6 @@ const DEFAULT_CONTENT = [
   'follow-up-plan',
   'next-provider',
 ]
-
-function toggle(list: string[], code: string): string[] {
-  return list.includes(code) ? list.filter(c => c !== code) : [...list, code]
-}
 
 export function SafetyHandoffView() {
   const { addArtifact, activePatientId, communications } = usePatient()
@@ -191,7 +188,7 @@ export function SafetyHandoffView() {
               <input
                 type="checkbox"
                 checked={contentCodes.includes(item.code)}
-                onChange={() => setContentCodes(prev => toggle(prev, item.code))}
+                onChange={() => setContentCodes(prev => toggleCode(prev, item.code))}
               />{' '}
               {item.display}
             </label>

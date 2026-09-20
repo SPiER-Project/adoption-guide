@@ -2,7 +2,8 @@
  * Artifact card rendering shared by the patient chart's pathway rail and its
  * unstaged "Other activity" bucket.
  */
-import { displayFor, outreachOutcome, OUTREACH_OUTCOMES } from '@spier/core/lib/followUp'
+import { outreachOutcome, OUTREACH_OUTCOMES } from '@spier/core/lib/followUp'
+import { displayFor } from '@spier/core/lib/codedOption'
 import {
   carePlanDisplayName,
   workflowArtifactDisplay,

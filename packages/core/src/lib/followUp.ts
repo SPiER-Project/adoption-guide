@@ -17,9 +17,10 @@
  *
  * ⚠️ DEMO ONLY — no data is persisted to a server.
  */
-import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
-import { appointmentStart, appointmentStatus, type CodedOption } from './handoffs'
+import { appointmentStart, appointmentStatus } from './handoffs'
+import { displayFor, type CodedOption } from './codedOption'
+import { stageTag } from './stageTag'
 import type { AppointmentResource, CommunicationResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
 
@@ -27,7 +28,6 @@ import { suicideRiskCategory } from './conceptDomain'
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
 // than a stage tag nothing resolves.
 export const STAGE_ID = 'track-follow-up' satisfies StageId
-const STAGE_TITLE = 'Track Follow-Up'
 
 export const OUTREACH_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt'
 export const CARING_CONTACT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact'
@@ -93,13 +93,6 @@ const UNREACHED_OUTCOMES = new Set([
 /** Prompts that mark an attempt as no-show follow-up (TL-035) vs routine (TL-033). */
 const NO_SHOW_PROMPTS = new Set(['missed-appointment', 'no-show', 'cancelled-appointment'])
 
-export function displayFor(options: CodedOption[], code: string): string {
-  return options.find(o => o.code === code)?.display ?? code
-}
-
-function stageTag() {
-  return [{ system: PATHWAY_STAGE_SYSTEM, code: STAGE_ID, display: STAGE_TITLE }]
-}
 
 // ─── TL-033 / TL-035 — Outreach attempt ───────────────────────
 
@@ -126,7 +119,7 @@ export function buildOutreachAttempt(params: {
   return {
     resourceType: 'Communication',
     id: params.id,
-    meta: { profile: [OUTREACH_PROFILE], tag: stageTag() },
+    meta: { profile: [OUTREACH_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'completed',
     category: [{ text: isNoShowFollowUp ? 'No-show follow-up' : 'Follow-up outreach attempt' }, suicideRiskCategory()],
     subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
@@ -260,7 +253,7 @@ export function buildCaringContact(params: {
   return {
     resourceType: 'Communication',
     id: params.id,
-    meta: { profile: [CARING_CONTACT_PROFILE], tag: stageTag() },
+    meta: { profile: [CARING_CONTACT_PROFILE], tag: stageTag(STAGE_ID) },
     // `completed` even when the opt-out is set: the opt-out is the patient's
     // standing preference stamped on the contact that carried it, not a claim
     // that this message went unsent. That matches ExampleCaringContact, which

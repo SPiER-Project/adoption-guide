@@ -3,13 +3,13 @@ import { usePatient } from '../context/PatientContext'
 import { makeId } from '@spier/core/lib/id'
 import {
   buildSafetyReferral,
-  displayFor,
   isReferralOpen,
   referralPerformer,
   setReferralStatus,
   REFERRAL_REASONS,
   REFERRAL_STATUSES,
 } from '@spier/core/lib/handoffs'
+import { displayFor } from '@spier/core/lib/codedOption'
 import type { ServiceRequestResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
 import { isoDay } from '../lib/dates'

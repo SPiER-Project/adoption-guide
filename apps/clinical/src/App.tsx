@@ -1,4 +1,5 @@
 import '@formbox/hs-theme/style.css'
+import { RouteFallback } from '@spier/app-shell/components/RouteFallback'
 import '@spier/app-shell/css/App.css'
 import '@spier/app-shell/css/CarePlan.css'
 
@@ -52,14 +53,6 @@ const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ defa
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
 const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
-
-function RouteFallback() {
-  return (
-    <div className="route-loading" role="status" aria-live="polite">
-      Loading…
-    </div>
-  )
-}
 
 function LegacyChartRedirect() {
   const { patientId } = useParams<{ patientId: string }>()

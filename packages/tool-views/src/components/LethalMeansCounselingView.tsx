@@ -11,7 +11,7 @@ import {
   COUNSELING_TEXT,
   LETHAL_MEANS_METHODS,
   MEANS_SAFETY_ACTIONS,
-} from '../lib/lethalMeans'
+} from '@spier/core/lib/lethalMeans'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'

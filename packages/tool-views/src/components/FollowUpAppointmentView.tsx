@@ -7,10 +7,10 @@ import {
   appointmentStart,
   appointmentStatus,
   buildFollowUpAppointment,
-  displayFor,
   setAppointmentStatus,
   APPOINTMENT_STATUSES,
 } from '@spier/core/lib/handoffs'
+import { displayFor } from '@spier/core/lib/codedOption'
 import { deriveAppointmentTracking } from '@spier/core/lib/followUp'
 import type { AppointmentResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'

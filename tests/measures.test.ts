@@ -29,7 +29,7 @@ import {
   OUTREACH_OUTCOME_EXT,
   OUTREACH_OUTCOME_SYSTEM,
 } from '@spier/core/lib/followUp'
-import { buildLethalMeansCounseling, buildMeansSafetyAction } from '@spier/tool-views/lib/lethalMeans'
+import { buildLethalMeansCounseling, buildMeansSafetyAction } from '@spier/core/lib/lethalMeans'
 import { CLOSURE_REASON_EXT, EPISODE_PROFILE } from '@spier/core/lib/riskEpisode'
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import type { PatientSlice } from '@spier/core/types/fhir'

@@ -9,11 +9,11 @@ import {
   consentExpiry,
   consentRecipient,
   currentSharingConsent,
-  displayFor,
   handoffWithheldItems,
   HANDOFF_CONTENT_ITEMS,
   WITHHOLDING_BASES,
 } from '@spier/core/lib/handoffs'
+import { displayFor } from '@spier/core/lib/codedOption'
 import type { SharingDecision } from '@spier/core/lib/handoffs'
 import type { ConsentResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'

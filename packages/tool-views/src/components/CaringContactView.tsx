@@ -5,10 +5,10 @@ import {
   buildCaringContact,
   caringContactOptedOut,
   caringContacts,
-  displayFor,
   hasOptedOutOfCaringContacts,
   OUTREACH_CHANNELS,
 } from '@spier/core/lib/followUp'
+import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'

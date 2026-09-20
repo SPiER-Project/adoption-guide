@@ -11,9 +11,9 @@ import {
   LETHAL_MEANS_METHOD_SYSTEM,
   MEANS_SAFETY_ACTION_PROFILE,
   MEANS_SAFETY_ACTION_SYSTEM,
-} from '@spier/tool-views/lib/lethalMeans'
-import { stageForArtifact } from '@spier/core/lib/patientPathway'
-import type { ObservationResource } from '@spier/core/types/fhir'
+} from './lethalMeans'
+import { stageForArtifact } from './patientPathway'
+import type { ObservationResource } from '../types/fhir'
 
 describe('lethal means counseling Procedure (TL-008)', () => {
   const counseling = buildLethalMeansCounseling({

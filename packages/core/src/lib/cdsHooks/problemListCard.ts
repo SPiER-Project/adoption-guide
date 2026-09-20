@@ -46,6 +46,7 @@
  *
  * React-free and DOM-free (`npm run check:core-boundary`).
  */
+import { observationEffective } from '../observationEffective'
 import { isRiskConcept } from '../measures'
 import { loadPathway, type PathwayAction, type PathwayModel } from '../pathway'
 import { RISK_TIER_SYSTEM } from '../riskEpisode'
@@ -105,11 +106,6 @@ export interface RiskConceptTier {
   effective?: string
 }
 
-/** `Observation.effectiveDateTime`, or the start of an `effectivePeriod`. */
-function effectiveOf(o: ObservationResource): string | undefined {
-  const r = o as { effectiveDateTime?: string; effectivePeriod?: { start?: string } }
-  return r.effectiveDateTime ?? r.effectivePeriod?.start
-}
 
 /**
  * The most recent harmonized suicide-risk tier in a set of Observations, or
@@ -136,7 +132,7 @@ export function latestRiskConceptTier(observations: ObservationResource[]): Risk
     if (!isRiskConcept(o)) continue
     const coding = o.valueCodeableConcept?.coding?.find(c => c.system === RISK_TIER_SYSTEM)
     if (!coding?.code) continue
-    const effective = effectiveOf(o)
+    const effective = observationEffective(o)
     const at = effective ? new Date(effective).getTime() : Number.NEGATIVE_INFINITY
     if (Number.isNaN(at)) continue
     if (best && at <= best.at) continue
