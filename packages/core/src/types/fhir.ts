@@ -22,6 +22,30 @@ export interface QuestionnaireResource extends FhirResource {
   resourceType: 'Questionnaire'
   url?: string
   version?: string
+  item?: QuestionnaireItem[]
+}
+
+/**
+ * Minimal FHIR R4 Questionnaire.item shape — loose like the rest of this file
+ * (`[k: string]: unknown` covers `extension`, `code`, etc. that a caller reads
+ * off the raw JSON but this type does not name). Recursive through `item` for
+ * `group`-type nesting.
+ */
+export interface QuestionnaireAnswerOption {
+  valueCoding?: Coding
+  valueString?: string
+  valueInteger?: number
+  [k: string]: unknown
+}
+
+export interface QuestionnaireItem {
+  linkId: string
+  text?: string
+  type: string
+  required?: boolean
+  answerOption?: QuestionnaireAnswerOption[]
+  item?: QuestionnaireItem[]
+  [k: string]: unknown
 }
 
 export interface QuestionnaireResponseResource extends FhirResource {

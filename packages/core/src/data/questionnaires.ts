@@ -15,6 +15,22 @@
 import { stripCanonicalVersion } from './catalog'
 import type { QuestionnaireResource } from '../types/fhir'
 
+/**
+ * Narrow a hand-authored Questionnaire JSON import into a `QuestionnaireResource`,
+ * checking the three fields every caller here relies on rather than trusting a
+ * bare `as unknown as QuestionnaireResource` cast. A malformed or truncated
+ * instrument file fails at import time, at the one place that knows which file
+ * it came from, instead of typechecking cleanly and surfacing as an
+ * `undefined` deref wherever `.item` or `.url` is first read.
+ */
+function asQuestionnaire(json: unknown, path: string): QuestionnaireResource {
+  const q = json as Partial<QuestionnaireResource> | null | undefined
+  if (!q || q.resourceType !== 'Questionnaire' || typeof q.url !== 'string' || !Array.isArray(q.item)) {
+    throw new Error(`questionnaires: ${path} is not a well-formed Questionnaire (resourceType/url/item)`)
+  }
+  return q as QuestionnaireResource
+}
+
 // This module is the single owner of the hand-authored Questionnaire JSON
 // imports from ig/input/resources/questionnaires/. Both the form renderer (web/src/data/toolViews.tsx)
 // and the ordinal-scoring join below consume the resources through the named
@@ -50,24 +66,24 @@ import pssFullJson from '../../../../ig/input/resources/questionnaires/PSS-Full/
 import stanleyBrownJson from '../../../../ig/input/resources/questionnaires/Stanley-Brown/stanley-brown-questionnaire.json'
 
 /** Named Questionnaire resources — the canonical, typed registry entries. */
-export const asqQuestionnaire = asq as unknown as QuestionnaireResource
-export const bssaQuestionnaire = bssa as unknown as QuestionnaireResource
-export const pss3Questionnaire = pss3 as unknown as QuestionnaireResource
-export const safetQuestionnaire = safet as unknown as QuestionnaireResource
-export const phq9Questionnaire = phq9 as unknown as QuestionnaireResource
-export const sbqrQuestionnaire = sbqr as unknown as QuestionnaireResource
-export const cssrsScreener = cssrsScreenerJson as unknown as QuestionnaireResource
-export const cssrsSinceLastContact = cssrsSinceLastContactJson as unknown as QuestionnaireResource
-export const cssrsPediatric = cssrsPediatricJson as unknown as QuestionnaireResource
-export const cssrsFull = cssrsFullJson as unknown as QuestionnaireResource
-export const camsSectionA = camsSectionAJson as unknown as QuestionnaireResource
-export const camsSectionB = camsSectionBJson as unknown as QuestionnaireResource
-export const camsOutcomeDisposition = camsOutcomeDispositionJson as unknown as QuestionnaireResource
-export const camsStabilizationPlan = camsStabilizationPlanJson as unknown as QuestionnaireResource
-export const camsTherapeuticWorksheet = camsTherapeuticWorksheetJson as unknown as QuestionnaireResource
-export const crpQuestionnaire = crpJson as unknown as QuestionnaireResource
-export const pssFullQuestionnaire = pssFullJson as unknown as QuestionnaireResource
-export const stanleyBrownQuestionnaire = stanleyBrownJson as unknown as QuestionnaireResource
+export const asqQuestionnaire = asQuestionnaire(asq, 'ASQ/asq-questionnaire.json')
+export const bssaQuestionnaire = asQuestionnaire(bssa, 'BSSA/bssa-questionnaire.json')
+export const pss3Questionnaire = asQuestionnaire(pss3, 'PSS-3/pss3-questionnaire.json')
+export const safetQuestionnaire = asQuestionnaire(safet, 'SAFE-T/safet-questionnaire.json')
+export const phq9Questionnaire = asQuestionnaire(phq9, 'PHQ-9/phq9-questionnaire.json')
+export const sbqrQuestionnaire = asQuestionnaire(sbqr, 'SBQ-R/sbqr-questionnaire.json')
+export const cssrsScreener = asQuestionnaire(cssrsScreenerJson, 'C-SSRS/cssrs-screener.json')
+export const cssrsSinceLastContact = asQuestionnaire(cssrsSinceLastContactJson, 'C-SSRS/cssrs-since-last-contact.json')
+export const cssrsPediatric = asQuestionnaire(cssrsPediatricJson, 'C-SSRS/cssrs-pediatric.json')
+export const cssrsFull = asQuestionnaire(cssrsFullJson, 'C-SSRS/cssrs-full-lifetime-recent.json')
+export const camsSectionA = asQuestionnaire(camsSectionAJson, 'CAMS/cams-ssf5-section-a.json')
+export const camsSectionB = asQuestionnaire(camsSectionBJson, 'CAMS/cams-ssf5-section-b.json')
+export const camsOutcomeDisposition = asQuestionnaire(camsOutcomeDispositionJson, 'CAMS/cams-ssf5-outcome-disposition.json')
+export const camsStabilizationPlan = asQuestionnaire(camsStabilizationPlanJson, 'CAMS/cams-stabilization-plan.json')
+export const camsTherapeuticWorksheet = asQuestionnaire(camsTherapeuticWorksheetJson, 'CAMS/cams-therapeutic-worksheet.json')
+export const crpQuestionnaire = asQuestionnaire(crpJson, 'CRP/crp-questionnaire.json')
+export const pssFullQuestionnaire = asQuestionnaire(pssFullJson, 'PSS-Full/pss-full-questionnaire.json')
+export const stanleyBrownQuestionnaire = asQuestionnaire(stanleyBrownJson, 'Stanley-Brown/stanley-brown-questionnaire.json')
 
 const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
   asqQuestionnaire,
@@ -92,7 +108,10 @@ const ALL_QUESTIONNAIRES: QuestionnaireResource[] = [
 
 /** Canonical (version-stripped) Questionnaire URL → Questionnaire resource. */
 export const QUESTIONNAIRE_BY_URL: Record<string, unknown> = Object.fromEntries(
-  ALL_QUESTIONNAIRES.filter(q => q?.url).map(q => [stripCanonicalVersion(q.url!), q]),
+  ALL_QUESTIONNAIRES.flatMap(q => {
+    const { url } = q
+    return url ? [[stripCanonicalVersion(url), q]] : []
+  }),
 )
 
 /**
