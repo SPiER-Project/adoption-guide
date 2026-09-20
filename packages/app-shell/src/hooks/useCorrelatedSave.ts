@@ -44,7 +44,6 @@ import type {
   EncounterResource,
   EpisodeOfCareResource,
   FhirResource,
-  ObservationResource,
   PatientSlice,
   QuestionnaireResponseResource,
   StoredResponse,
@@ -189,7 +188,7 @@ export function useCorrelatedSave({
             ? {
                 ...derived,
                 observations: derived.observations.map(o =>
-                  stampEncounter(o as ObservationResource, encounterId),
+                  stampEncounter(o, encounterId),
                 ),
               }
             : null

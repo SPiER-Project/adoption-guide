@@ -65,8 +65,13 @@ class FakeSocket {
 function hubFetch(overrides: { endpoint?: string | null; ok?: boolean } = {}) {
   const calls: Array<{ url: string; body: string; method: string }> = []
   const impl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input)
-    calls.push({ url, body: String(init?.body ?? ''), method: init?.method ?? 'GET' })
+    // ⚠️ `String(input)` was wrong for two of the three `RequestInfo` arms: a
+    // `Request` stringifies to "[object Request]", so a test that passed one
+    // would record a URL matching nothing and the assertion would fail for a
+    // reason nowhere near the cause. Same for a `BodyInit` that is not a string.
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    const body = typeof init?.body === 'string' ? init.body : ''
+    calls.push({ url, body, method: init?.method ?? 'GET' })
     if (overrides.ok === false) return new Response('no', { status: 500 })
     const endpoint = overrides.endpoint === undefined ? ENDPOINT : overrides.endpoint
     return new Response(
@@ -176,7 +181,8 @@ describe('receiving from the hub', () => {
     await configureFhircastHub({ url: HUB_URL, topic: TOPIC }, impl)
     const evt = event(TOPIC)
     FakeSocket.last!.receive(evt)
-    expect(FakeSocket.last!.sent.map(s => JSON.parse(s))).toEqual([{ id: evt.id, status: 'ok' }])
+    expect(FakeSocket.last!.sent.map(s => JSON.parse(s) as unknown))
+      .toEqual([{ id: evt.id, status: 'ok' }])
   })
 
   it('survives a frame that is not JSON', async () => {
@@ -203,7 +209,8 @@ describe('publishing through the hub', () => {
     const post = calls.find(c => c.url.includes(encodeURIComponent(TOPIC)))
     expect(post).toBeDefined()
     expect(post!.method).toBe('POST')
-    expect(JSON.parse(post!.body).event['hub.event']).toBe('patient-open')
+    const posted = JSON.parse(post!.body) as { event?: Record<string, unknown> }
+    expect(posted.event?.['hub.event']).toBe('patient-open')
   })
 
   it('stamps the live session topic rather than the demo default', async () => {

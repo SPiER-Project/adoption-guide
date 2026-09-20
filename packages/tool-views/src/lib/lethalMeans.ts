@@ -175,7 +175,7 @@ function profiles(resource: { meta?: { profile?: string[] } }): string[] {
 }
 
 export function isLethalMeansCounseling(resource: ProcedureResource): boolean {
-  return profiles(resource as { meta?: { profile?: string[] } }).includes(COUNSELING_PROFILE)
+  return profiles(resource).includes(COUNSELING_PROFILE)
 }
 
 /**

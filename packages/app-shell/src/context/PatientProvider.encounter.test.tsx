@@ -149,7 +149,7 @@ async function mount(route = '/patient/record'): Promise<ChartApi> {
 }
 
 /** The blank-patient slice — sliceKey is null with no active patient. */
-const slice = () => source.getSliceSync!(null)
+const slice = () => source.getSliceSync(null)
 
 // The resource types here are deliberately loose (`FhirResource` has an index
 // signature), so reads go through narrow local shapes — the same convention as
@@ -232,7 +232,7 @@ describe('positive screen → correlated record', () => {
 
 /** Re-read helper used inside waitFor, kept separate for readability. */
 function s2() {
-  return source.getSliceSync!(null)
+  return source.getSliceSync(null)
 }
 
 
@@ -384,5 +384,5 @@ describe('the rest of the correlation funnel', () => {
 
 /** patient-011's slice, for the patient-switch test. */
 function patient011() {
-  return source.getSliceSync!('patient-011')
+  return source.getSliceSync('patient-011')
 }

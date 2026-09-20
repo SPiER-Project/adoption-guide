@@ -11,8 +11,12 @@ import '../css/CdsServiceGuide.css'
 
 const DISCOVERY_CURL = `curl -s ${CDS_DISCOVERY_URL}`
 
+// ⚠️ Carries an Authorization header, because the service enforces one.
+// A tokenless version of this command was published here while enforcement ran
+// in `warn` — it worked, and it taught every reader that the endpoint is open.
 const INVOKE_CURL = `curl -X POST ${CDS_INVOKE_URL} \\
   -H 'Content-Type: application/json' \\
+  -H "Authorization: Bearer $CDS_CLIENT_JWT" \\
   -d '{"hook":"patient-view","hookInstance":"demo","context":{"userId":"Practitioner/demo","patientId":"patient-001"}}'`
 
 type DiscoveryState =
@@ -95,11 +99,15 @@ export function CdsServiceGuide() {
         <h3 className="cds-service-guide__h3">Invoke the service</h3>
         <p>
           Post a <code>patient-view</code> request with a patient in context to get back{' '}
-          <code>{'{ "cards": [...] }'}</code>:
+          <code>{'{ "cards": [...] }'}</code>. Invocation is <strong>authenticated</strong> &mdash;
+          see below &mdash; so the call carries a bearer JWT your client signs:
         </p>
         <pre className="cds-service-guide__pre">
           <code>{INVOKE_CURL}</code>
         </pre>
+        <p>
+          Without a valid token this returns <code>401</code>. Discovery, above, stays open.
+        </p>
         <p>
           There are <strong>two derivation paths</strong>. When the request includes the patient&rsquo;s
           completed <code>QuestionnaireResponse</code>s in <code>prefetch</code>, the cards derive from
@@ -122,8 +130,12 @@ export function CdsServiceGuide() {
           >
             CDS Hooks Sandbox
           </a>
-          , add the discovery URL above as a service, then open a patient to see SPiER&rsquo;s cards
-          appear in context. CORS is already wide open, so no proxy or configuration is needed.
+          , add the discovery URL above as a service, then open a patient. CORS is wide open, so
+          no proxy is needed &mdash; but the sandbox does not sign a client JWT, so{' '}
+          <strong>invocation returns <code>401</code></strong> and discovery is as far as it gets.
+          That is the service behaving correctly rather than a gap: a CDS Client is an identity the
+          service has registered, and the sandbox is not one. Register an issuer and its key-set
+          URL to change that.
         </p>
       </section>
 
@@ -138,12 +150,24 @@ export function CdsServiceGuide() {
           open</strong>, since clients fetch it before they hold a token.
         </p>
         <p>
-          Enforcement currently runs in <strong>warn</strong> mode: an invalid or missing token is
-          logged but <em>not</em> blocked, so the tokenless curl commands above and the sandbox flow
-          still work while callers adopt tokens. It flips to a hard <code>require</code> (401 on any
-          failure) via a single config change. A JWT&rsquo;s client-controlled <code>jku</code>{' '}
-          header is treated as an SSRF risk &mdash; its host must be allowlisted or it is rejected
-          without ever being fetched.
+          Enforcement runs in <strong>require</strong> mode: any failure is a <code>401</code>, and
+          an unsigned call never reaches the card builder. It ran in <strong>warn</strong> until
+          2026&#8209;09&#8209;20 &mdash; verifying, logging the failure, and proceeding &mdash;
+          which is not authentication so much as a log line, and it stayed that way because nothing
+          in the demo could produce a token.
+        </p>
+        <p>
+          What changed is that the {MOCK_EHR_LABEL} became a real CDS Client. It holds an ES384
+          keypair, publishes the public half as a JWK Set, and calls this service{' '}
+          <strong>server to server</strong> with a short-lived signed JWT &mdash; the browser never
+          holds one, which is the only arrangement in which a signature proves anything. Its chart
+          page names the key-set URL under &ldquo;Under the hood&rdquo;.
+        </p>
+        <p>
+          A JWT&rsquo;s client-controlled <code>jku</code> header is treated as an SSRF risk &mdash;
+          its host must be allowlisted or the token is rejected <em>without ever being fetched</em>.
+          The demo host&rsquo;s tokens do carry <code>jku</code>, so that guard is on the live path
+          rather than only under test.
         </p>
       </section>
 

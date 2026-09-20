@@ -364,8 +364,10 @@ export class LocalDataSource implements FhirDataSource {
    * `FhirDataSource.listCohort` and `SmartDataSource`'s implementation, which
    * returns `null` precisely because a chart token cannot answer this.
    */
-  async listCohort(): Promise<RegistryPatient[]> {
-    return [...this.patients]
+  listCohort(): Promise<RegistryPatient[]> {
+    // `Promise.resolve` rather than `async`, matching `getSlice` below: the
+    // seam's signature is what requires a promise, and nothing here awaits.
+    return Promise.resolve([...this.patients])
   }
 
   getSliceSync(patientId: string | null): PatientSlice {

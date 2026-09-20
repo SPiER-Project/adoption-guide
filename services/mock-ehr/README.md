@@ -246,11 +246,10 @@ wrote, which is the only thing that corroborates the panel's scorecard.
 Two entry points, which are the two the panel plan names (§2): an activity button
 that knows only the patient, and a **CDS Hooks card whose link is
 `type: "smart"`** — the card names the instrument, so the panel opens already
-scoped to it. The card comes from the adoption-guide Worker's `/cds-services` endpoint — which
-since 2026-09-18 is **not** the host this chart frames the panel from: the panel
-is `services/clinical` and the service stayed put, so `DEFAULT_PANEL_BASE_URL`
-and `DEFAULT_CDS_BASE_URL` in `src/app.ts` are two separate constants rather than
-one derived from the other. Its `appContext` carries
+scoped to it. The card comes from `spier-cds` (`services/cds`) — a **third**
+origin, neither the panel's nor this host's, so `DEFAULT_PANEL_BASE_URL` and
+`DEFAULT_CDS_BASE_URL` in `src/app.ts` are two separate constants rather than one
+derived from the other. Its `appContext` carries
 `{"intent":"open-…"}` which this server copies into the SMART launch context.
 The division of labour is the spec's: the CDS service proposes, the EHR mints
 the launch.
@@ -287,6 +286,62 @@ Then `npm run dev -- --port 8787` here and `npm run dev -- --port 8788` in
 refused **without a `Location` header**, and a panel whose `frame-ancestors` does
 not name this origin renders as a blocked frame. ⚠️ `wrangler dev` does **not**
 hot-reload `.dev.vars` — restart it.
+
+## This host is a CDS Client, and it signs
+
+CDS Hooks 2.0 says a CDS Client SHALL send `Authorization: Bearer <JWT>` on every
+service call, signed with its own key, and that the service verifies it. SPiER's
+service (`services/cds`) has implemented the verifying half since #147 — and ran
+in `warn` mode until 2026-09-20, which logs a failure and then proceeds.
+
+⚠️ **An enforcement mode that never rejects is not authentication; it is a log
+line.** And the reason it stayed that way was real: nothing in the demo could
+mint a token, so `require` would have turned this chart's cards into a 401. The
+missing half is `src/cdsClient.ts`.
+
+| Piece | Where |
+| --- | --- |
+| ES384 keypair, generated on first use | `DemoStore` Durable Object, `cds-signing-key` |
+| Public half | `GET /.well-known/jwks.json` |
+| Signed, server-to-server invoke | `POST /_admin/cds` |
+
+⚠️ **The key lives in the Durable Object for the same reason the capability
+profile does.** A Worker runs many isolates; a per-isolate keypair would mean the
+isolate answering `/.well-known/jwks.json` publishing a key the *signing* isolate
+does not hold. The verifier would then reject a token this host had legitimately
+minted — intermittently, and never under `wrangler dev`, which is one isolate.
+`putCdsKeyIfAbsent` is "if absent" and returns the incumbent precisely because
+two isolates can race to generate on a cold start.
+
+⚠️ **A checked-in demo keypair was the obvious alternative and is worse than it
+looks.** Not because this key protects anything — it guards synthetic patients,
+same as `MOCK_SIGNING_SECRET` — but because a private key in a public repo is
+indistinguishable, to every scanner and every reader, from one that does. This
+repo is the reference an adopter copies.
+
+⚠️ **The call moved server-to-server, and that is a correctness fix as much as
+plumbing.** The chart page used to POST to the CDS service straight from the
+browser. That is not how CDS Hooks works — the *EHR* invokes the service — and it
+is also why signing was impossible: the only ways to let a browser send a signed
+token are to give the browser a key or to mint one for anyone who loads the page,
+and both give away the identity the signature is supposed to prove. So the
+browser posts to `/_admin/cds` and this host makes the call.
+
+The chart page still **displays** the service's real URL (that is what the reader
+wants to see, and `chartPage.test.ts` asserts the three origins stay distinct
+through it); only the fetch target changed.
+
+⚠️ **No `jose` here, unlike the service.** A compact JWS is two base64url
+segments, a signature and a dot; `tokens.ts` already has the base64url helpers,
+and WebCrypto's ECDSA output is *already* the raw `r || s` pair JWS specifies
+(Node's `crypto` emits DER for the same call and would need re-encoding). Adding
+a library to concatenate three strings would put a dependency in a Worker whose
+whole point is to be a small honest fake.
+
+The handshake is proved end to end in **`services/cds/src/cdsClientInterop.test.ts`**,
+which imports this module's real minting code and runs it through the real
+middleware under the deployed policy — see that service's README for why neither
+side's own tests could have caught a mismatch.
 
 ## The look of the host
 

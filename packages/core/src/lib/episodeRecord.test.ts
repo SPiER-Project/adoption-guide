@@ -4,6 +4,15 @@ import { TRIGGER_EXT } from '@spier/core/lib/riskEpisode'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 
+/**
+ * `expect.objectContaining(...)` is typed `any` by vitest. Inline, that turned
+ * each `{ resource, reason }` literal into an unchecked assignment, so a typo'd
+ * `reason` would have been compared to nothing. One named cast keeps the rest
+ * of the literal honest.
+ */
+const withId = (id: string) =>
+  expect.objectContaining({ id }) as unknown as FhirResourceLike
+
 const episode = (id: string, triggerRef?: string): FhirResourceLike =>
   ({
     resourceType: 'EpisodeOfCare',
@@ -105,7 +114,7 @@ describe('groupByEpisode', () => {
       appointments: [{ resourceType: 'Appointment', id: 'future', status: 'booked' } as FhirResourceLike],
     })
     expect(unassigned).toEqual([
-      { resource: expect.objectContaining({ id: 'future' }), reason: 'not-yet-occurred' },
+      { resource: withId('future'), reason: 'not-yet-occurred' },
     ])
   })
 
@@ -126,8 +135,8 @@ describe('groupByEpisode', () => {
       consents: [at('Consent', 'c1')], // no R4 route at all
     })
     expect(unassigned).toEqual([
-      { resource: expect.objectContaining({ id: 'orphan' }), reason: 'no-encounter' },
-      { resource: expect.objectContaining({ id: 'c1' }), reason: 'no-r4-route' },
+      { resource: withId('orphan'), reason: 'no-encounter' },
+      { resource: withId('c1'), reason: 'no-r4-route' },
     ])
   })
 

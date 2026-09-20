@@ -3,6 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "//lint": [
+    "`--max-warnings 0` because eslint EXITS ZERO on warnings, so a rule",
+    "configured as a warning never failed `verify` or CI — it only printed.",
+    "`react-hooks/exhaustive-deps` is a warning in its own recommended",
+    "preset, and it is the only thing that catches `useEffect(async () => …)`:",
+    "`no-misused-promises` cannot, because React's `EffectCallback` returns",
+    "`void | Destructor` and TypeScript's void-return assignability lets a",
+    "Promise through. So the one rule covering that mistake was advisory."
+  ],
   "scripts": {
     "copy-fhir": "node scripts/copy-fhir.mjs",
     "predev": "npm run copy-fhir",
@@ -14,7 +23,7 @@
     "prebuild:clinical": "npm run copy-fhir",
     "build:clinical": "tsc -b && VITE_SURFACE=clinical vite build",
     "check:surface": "node scripts/check-surface.mjs",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "lint:css": "stylelint \"apps/*/src/**/*.css\" \"packages/{ui,tool-views,app-shell}/src/**/*.css\"",
     "check:tokens": "node scripts/check-css-tokens.mjs",
     "build:favicons": "node scripts/build-favicons.mjs",

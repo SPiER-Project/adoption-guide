@@ -12,9 +12,44 @@
  */
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 
+/**
+ * FHIR R4 `Reference` and `Annotation`, to the depth anything here reads them.
+ */
+export interface Reference {
+  reference?: string
+  display?: string
+  [k: string]: unknown
+}
+
+export interface Annotation {
+  text?: string
+  [k: string]: unknown
+}
+
+/**
+ * FHIR R4 `Resource.meta`.
+ *
+ * ⚠️ **Named on `FhirResource` below because SEVEN call sites were casting to
+ * this shape inline** — `(c as { meta?: { profile?: string[] } })` in
+ * `handoffs.ts`, `followUp.ts`, `measures.ts`, `crisisResources.ts` and
+ * `lethalMeans.ts`. A cast repeated seven times is a type that was missing, and
+ * each copy is independently free to drift from what is actually stamped.
+ *
+ * ⚠️ Both members are load-bearing rather than descriptive: `profile` is how
+ * every Stage-8 measure recognizes its own output (a handoff Communication has
+ * no required element distinguishing it from any other), and `tag` carries the
+ * pathway stage that `stageForArtifact` reads first.
+ */
+export interface Meta {
+  profile?: string[]
+  tag?: Coding[]
+  [k: string]: unknown
+}
+
 export interface FhirResource {
   resourceType: string
   id?: string
+  meta?: Meta
   [k: string]: unknown
 }
 
@@ -27,9 +62,15 @@ export interface QuestionnaireResource extends FhirResource {
 
 /**
  * Minimal FHIR R4 Questionnaire.item shape — loose like the rest of this file
- * (`[k: string]: unknown` covers `extension`, `code`, etc. that a caller reads
- * off the raw JSON but this type does not name). Recursive through `item` for
- * `group`-type nesting.
+ * (`[k: string]: unknown` covers `extension` and the other elements a caller
+ * reads off the raw JSON but this type does not name). Recursive through `item`
+ * for `group`-type nesting.
+ *
+ * ⚠️ `code` IS named, and used to be one of the elements that sentence waved
+ * at. It is what `fallbackDispatch` reads to recognize a foreign instrument and
+ * what `check:extract` gates the observationExtract contract on — reaching it
+ * through the index signature meant `unknown`, which is why that module walked
+ * Questionnaire items as `any[]` behind a disable.
  */
 export interface QuestionnaireAnswerOption {
   valueCoding?: Coding
@@ -42,6 +83,7 @@ export interface QuestionnaireItem {
   linkId: string
   text?: string
   type: string
+  code?: Coding[]
   required?: boolean
   answerOption?: QuestionnaireAnswerOption[]
   item?: QuestionnaireItem[]
@@ -63,6 +105,12 @@ export interface CodeableConcept {
 export interface ObservationResource extends FhirResource {
   resourceType: 'Observation'
   code?: CodeableConcept
+  // ⚠️ Named so `deriveFromResponse` can APPEND to them. It spread
+  // `obs.derivedFrom` and `obs.note` off the index signature's `unknown`, which
+  // it could only do behind a file-level `no-explicit-any` — in the module that
+  // stamps provenance onto every derived Observation the app writes.
+  derivedFrom?: Reference[]
+  note?: Annotation[]
   effectiveDateTime?: string
   valueInteger?: number
   valueBoolean?: boolean
@@ -109,7 +157,19 @@ export interface PatientResource extends FhirResource {
   birthDate?: string
   gender?: string
 }
-export type CommunicationResource = FhirResource & { resourceType: 'Communication' }
+/**
+ * ⚠️ **`sent` is named because six call sites read it and four of them were
+ * casting inline** — `(c as { sent?: string }).sent`, repeated in `measures.ts`
+ * and twice each in `followUp.ts`. Two more did `String(c.sent ?? '')` against
+ * the index signature's `unknown`, which `no-base-to-string` flags for a real
+ * reason: had `sent` ever arrived as an object, every such value would collapse
+ * to `"[object Object]"` and sort identically — a handoff list silently in the
+ * wrong order rather than an error. It is a FHIR `dateTime`, so: a string.
+ */
+export interface CommunicationResource extends FhirResource {
+  resourceType: 'Communication'
+  sent?: string
+}
 export type AppointmentResource = FhirResource & { resourceType: 'Appointment' }
 export type MeasureReportResource = FhirResource & { resourceType: 'MeasureReport' }
 

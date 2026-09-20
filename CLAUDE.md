@@ -162,7 +162,38 @@ number goes stale silently on every gate added.
 ```
 npm run copy-fhir      # compile IG via SUSHI + copy resources into the generated tree (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
-npm run lint           # eslint
+npm run lint           # eslint, TYPE-AWARE and --max-warnings 0
+                       # ⚠️ `recommendedTypeChecked`, not `recommended`: the untyped set has
+                       # no types, so it cannot see an `any` at all — `qr.item[0].answer` on an
+                       # untyped value is three member accesses it has nothing to say about.
+                       # The no-unsafe-* family, no-floating-promises and no-misused-promises
+                       # all need the checker, and those are the ones that catch a FHIR payload
+                       # reaching a writer unchecked.
+                       # ⚠️ **`project:` globs, NOT `projectService: true`.** The service form
+                       # resolves the closest tsconfig.json, which here is the SOLUTION file
+                       # (`files: []` + references) — so files fell back to an inferred program
+                       # with no `types`, and the linter saw ERROR TYPES. That is worse than
+                       # not running: no-unsafe-* fires spuriously on them, and
+                       # no-unnecessary-type-assertion AUTOFIXED AWAY a needed assertion in
+                       # tests/patientPathway.stageResolution.test.ts, which only `tsc` then
+                       # caught. A file in no listed project is a hard parse error either way,
+                       # which is what surfaced packages/worker-http (it had no tsconfig at
+                       # all) and vitest.config.ts (in none of them)
+                       # ⚠️ `--max-warnings 0` because eslint EXITS ZERO on warnings, so a
+                       # rule configured as a warning never failed verify or CI — it printed.
+                       # react-hooks/exhaustive-deps is a warning in its own preset and is the
+                       # ONLY thing that catches `useEffect(async () => …)`: no-misused-promises
+                       # cannot, because React's `EffectCallback` returns `void | Destructor`
+                       # and TypeScript's void-return assignability lets a Promise through
+                       # ⚠️ Tests turn OFF three rules, and each is a judgement rather than an
+                       # exemption taken to reach green: `no-non-null-assertion` (in a test
+                       # `x!` against a fixture the file builds IS the assertion),
+                       # `require-await` (the `async` on a test double is what turns its
+                       # `throw` into the REJECTED promise the test awaits — removing it, the
+                       # fix the rule points at, silently stops testing the failure path) and
+                       # `unbound-method` (`expect(obj.method)` is the assertion form).
+                       # The no-unsafe-* family stays ON there: it found 19 real ones in
+                       # localDataSource.test.ts, the suite whose subject is what that store holds
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
                        # ⚠️ This, check:css-dead, check:prose and check:template all read every
@@ -428,6 +459,24 @@ contract an adopter configures inside their own EHR.
 *adoption-guide* Worker's URL — a service's audience should be its own identity —
 and every guide deploy redeployed the endpoint. `services/guide` and
 `services/clinical` each carry a NEGATIVE test that they host no `/cds-services`.
+
+⚠️ **`CDS_JWT_ENFORCE` is `require`, and the mock EHR is the registered
+client.** It ran in `warn` from #147 to 2026-09-20 — `warn` verifies, logs the
+failure and then proceeds, so an endpoint in `warn` with no caller that can sign
+is an open compute endpoint with a log line, not an authenticated one. It stayed
+that way because nothing in the demo could mint a token. `services/mock-ehr` now
+holds an ES384 keypair in its Durable Object, publishes it at
+`/.well-known/jwks.json`, and invokes the service **server-to-server** from
+`POST /_admin/cds` — the chart page's browser fetch could never have been signed,
+because a browser that can sign is a browser holding the private key.
+⚠️ **The interop test lives in `services/cds` and imports the mock EHR's real
+minting code**, because neither service's own suite can see a mismatch: one mints
+with `jose` against a hypothetical client, the other emits a JWS it cannot
+verify. Two green suites either side of an interface neither crosses is the shape
+that ships a 401. Five planted defects, including one — publishing the private
+JWK — that passed every behavioural test because an EC private JWK verifies
+identically. ⚠️ The Sandbox and a tokenless `curl` now get 401; that is correct,
+and the guide page says so. See `services/cds/README.md`.
 
 ⚠️ **`SMART_LAUNCH_URL` is REQUIRED by the CDS Worker and it 500s without it.**
 The launch URL used to be derived from the request origin, which was true while

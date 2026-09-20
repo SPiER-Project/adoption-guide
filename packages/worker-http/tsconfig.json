@@ -1,0 +1,43 @@
+{
+  // ⚠️ **This package had no tsconfig at all until the type-aware lint landed,
+  // and the gap was invisible.** `spaAssets.ts` was typechecked only as a side
+  // effect of being imported by two services through their `@spier/worker-http/*`
+  // path mappings, and linted by the root's `eslint .` under the untyped rules
+  // only. `projectService: true` turns "in no project" into a hard parse error,
+  // which is the first thing that ever said so out loud — the same class of
+  // finding as every other ⚠️ in this repo: something passed while checking
+  // nothing.
+  //
+  // ⚠️ **`DOM` is in `lib` and the module is still DOM-FREE**, which is not a
+  // contradiction. `Request`, `Response` and `URL` are the fetch API and exist
+  // in workerd; TypeScript happens to declare them in `lib.dom`, so a project
+  // with `lib: ["ES2022"]` alone cannot name them. What "DOM-free" forbids is
+  // `window`, `document` and friends — and the services compile this same file
+  // against `@cloudflare/workers-types` with no DOM at all, which is the check
+  // that actually holds that line. If a real DOM global appears here it will
+  // typecheck under THIS config and fail under both of theirs.
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting — parity with every other package and both apps. */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "composite": true
+  },
+  "include": ["src"]
+}

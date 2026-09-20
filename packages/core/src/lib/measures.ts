@@ -223,7 +223,7 @@ export function referencedCriteria(): string[] {
 // ─────────────────────────────────────────────────────────────
 
 function conformsTo(resource: FhirResource | undefined, profile: string): boolean {
-  const profiles = (resource as { meta?: { profile?: string[] } } | undefined)?.meta?.profile
+  const profiles = resource?.meta?.profile
   return Array.isArray(profiles) && profiles.includes(profile)
 }
 
@@ -409,7 +409,7 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
 
   const handoffDates = communications
     .filter(c => conformsTo(c, SAFETY_HANDOFF_PROFILE))
-    .map(c => ms((c as { sent?: string }).sent))
+    .map(c => ms(c.sent))
   const packetDates = (slice.documentReferences ?? [])
     .filter((d: DocumentReferenceResource) => conformsTo(d, PACKET_PROFILE))
     .map((d: DocumentReferenceResource) => ms((d as { date?: string }).date))
@@ -488,7 +488,7 @@ function dischargeDispositionCodes(encounter: EncounterResource): string[] {
 
 function sentWithin(messages: CommunicationResource[], from: number, windowMs: number): boolean {
   return messages.some(c => {
-    const n = ms((c as { sent?: string }).sent)
+    const n = ms(c.sent)
     return Number.isFinite(n) && n >= from && n <= from + windowMs
   })
 }

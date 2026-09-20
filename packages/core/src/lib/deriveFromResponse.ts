@@ -60,8 +60,7 @@ export function deriveFromResponse(
   // stageForArtifact reads meta.tag first (tier 1) and falls back to canonical
   // resolution (tier 3).
   const stageId = stageForArtifact(storedResource as FhirResourceLike)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const observations: ObservationResource[] = result.observations.map((obs: any) => ({
+  const observations: ObservationResource[] = result.observations.map(obs => ({
     ...obs,
     // ⚠️ `derivedFrom` is an OBSERVATION element, and this array is not purely
     // Observations: `camsSectionB` returns its suicide-driver Conditions through

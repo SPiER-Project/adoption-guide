@@ -2,6 +2,19 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
+import type { RendererProperties } from '@formbox/renderer'
+
+/**
+ * Exactly what formbox's `Renderer` accepts for `questionnaire` at the version
+ * this component renders.
+ *
+ * ⚠️ `RendererProperties<'r4'>`, not `ComponentProps<typeof Renderer>`. The
+ * component is generic over the FHIR version, so `ComponentProps` collapses the
+ * prop to `fhir4.Questionnaire | fhir5.Questionnaire` — a union that `fhirVersion="r4"`
+ * then refuses. Naming the instantiation keeps the cast below as narrow as the
+ * call site actually is.
+ */
+type RendererQuestionnaire = RendererProperties<'r4'>['questionnaire']
 import { usePatient } from '../context/PatientContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
@@ -103,7 +116,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
       if (carePlanMapper) {
         const plan = carePlanMapper(responseToUse)
         if (!plan.isEmpty) {
-          setCarePlan(plan as GeneratedCarePlan)
+          setCarePlan(plan)
           addCarePlan(plan.resource)
           setTimeout(() => {
             document.querySelector('.careplan-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -146,8 +159,23 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
             fhirVersion="r4"
             // Renderer is generic over formbox's strict FHIR types; the raw imported
             // Questionnaire JSON doesn't structurally match, so cast at this boundary.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            questionnaire={questionnaire as any}
+            // ⚠️ To the PROP's own type rather than `any`. Both say "trust me" to
+            // the compiler, but this one still fails if formbox changes what the
+            // prop accepts, and it does not launder an `any` into the render tree.
+            questionnaire={questionnaire as unknown as RendererQuestionnaire}
+            // ⚠️ **`theme` is an error type, and the fault is upstream.**
+            // `@formbox/hs-theme`'s shipped `dist/index.d.ts` imports from
+            // `'../../../../packages/theme/lib'` — a path outside the published
+            // package, which does not exist — so every one of its exports
+            // resolves to an error. `skipLibCheck: true` swallows the TS2307,
+            // exactly as it does for fhirclient 3's missing `types/types.d.ts`
+            // (see `@spier/core/types/smartClient`). The difference is what to do
+            // about it: there we READ the client's members, so declaring the five
+            // we use was worth it; this value is opaque, travels straight back
+            // into the same vendor's component, and is never read here. So the
+            // rule is suppressed at the one line rather than a large vendor type
+            // being re-declared and left to drift.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             theme={theme}
             onChange={(newResponse) => setResponse(newResponse as unknown as QuestionnaireResponseResource)}
             onSubmit={persistName ? (r => handleSubmit(r as unknown as QuestionnaireResponseResource)) : undefined}

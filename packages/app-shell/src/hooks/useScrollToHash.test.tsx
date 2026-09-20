@@ -19,6 +19,7 @@ import { useEffect } from 'react'
 import { MemoryRouter, useNavigate, type NavigateFunction } from 'react-router-dom'
 import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import type { MockInstance } from 'vitest'
 import { scrollToAnchor, useScrollToHash, useScrollToTopOnNavigate } from './useScrollToHash'
 
 /* ---------- jsdom geometry helpers ---------- */
@@ -62,7 +63,10 @@ function makeTarget(id: string, top: number, scrollMarginTop?: string) {
   return el
 }
 
-let scrollToSpy: ReturnType<typeof vi.spyOn>
+// ⚠️ `ReturnType<typeof vi.spyOn>` collapses the generic to `any`, so every
+// `scrollToSpy.mockClear()` below was an unchecked call. `MockInstance` over the
+// spied signature keeps it a real type.
+let scrollToSpy: MockInstance<typeof window.scrollTo>
 
 beforeEach(() => {
   document.body.innerHTML = ''
