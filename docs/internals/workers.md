@@ -33,6 +33,40 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
+## One toolchain, four hand-mirrored copies
+
+#387's "no npm workspaces" gave the repo one root install; the cost is that each
+service carries its own copy of the Worker toolchain — eslint, typescript-eslint,
+vite, vitest, `@types/node`, wrangler and `@cloudflare/workers-types`. Four
+copies of a version range is four chances to fork, and they did: on 2026-09-20
+two services were on `wrangler ~4.107.0` and two on `^4.0.0`, with a note in
+`services/clinical/package.json` explaining a pin that by then described a state
+that no longer existed.
+
+⚠️ **`wrangler` and `@cloudflare/workers-types` are COUPLED inside a single
+manifest, and that is what made the fork stick.** wrangler 4.135 declares a
+`peerOptional` on `@cloudflare/workers-types` `^5.20260918.1`, so a manifest
+asking for `wrangler ^4.135` *and* `@cloudflare/workers-types ^4` fails
+`npm install` with ERESOLVE on its own — nothing about the sibling services is
+involved, because each has its own install (#387). The bump is therefore two
+lines per service, never one.
+
+⚠️ **The note that recorded this got the mechanism wrong, and that is why the
+pin outlived its reason.** `services/clinical/package.json` read "conflicts with
+the 4.x line the *other two services* install", which describes a cross-service
+constraint that does not exist and makes the fix sound like a four-way
+negotiation rather than two lines in one file. So the pin stayed, and it held
+**three HIGH advisories** open across two services (undici cross-user
+disclosure, miniflare, sharp) for as long as it stood — the fix for all three
+was the wrangler version the pin forbade.
+
+The four now move together: `wrangler ^4.135.0` and
+`@cloudflare/workers-types ^5.20260920.1` in every service, and a `//cloudflare`
+note in each manifest saying so. ⚠️ **Nothing enforces it** — the note is the
+whole guard, which is why it is in all four files rather than in the one where
+the pin happened to live. `services/*/package.json` is also where the *other*
+mirrored ranges sit; when you bump one, bump the set.
+
 In `services/guide/` — **the guide SPA and the rendered IG:**
 ```
 npm install && npm run verify   # typecheck + eslint + check:csp + vitest
