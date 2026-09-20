@@ -77,14 +77,16 @@ function EpisodeCard({ record }: { record: EpisodeRecord }) {
               '',
             )
       // An Appointment is named BY its Encounter, so it has no pointer of its own.
-      if (encId && map.has(encId)) map.get(encId)!.push(a)
+      const encBucket = encId ? map.get(encId) : undefined
+      if (encBucket) encBucket.push(a)
       else if (a.resourceType === 'Appointment') {
         const owner = encounters.find(e =>
           ((e as { appointment?: { reference?: string }[] }).appointment ?? []).some(
             r => r?.reference === `Appointment/${a.id}`,
           ),
         )
-        if (owner) map.get(String(owner.id))!.push(a)
+        const ownerBucket = owner ? map.get(String(owner.id)) : undefined
+        if (ownerBucket) ownerBucket.push(a)
       }
     }
     return map

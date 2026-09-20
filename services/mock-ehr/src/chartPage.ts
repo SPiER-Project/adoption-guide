@@ -787,6 +787,27 @@ function chartScript({
   var dockSent = document.getElementById('dock-sent');
   var dockError = document.getElementById('dock-error');
 
+  /**
+   * Render a line of text with some substrings wrapped in <code>, without
+   * ever building HTML from a string. Every value here (patient/topic ids,
+   * SMART intents) is fixture or crypto.randomUUID() data today, but a
+   * concatenated-string innerHTML is one refactor away from reflected
+   * markup injection, and no linter or test sees inside this template
+   * literal to catch that refactor when it happens.
+   */
+  function renderInline(target, parts) {
+    while (target.firstChild) target.removeChild(target.firstChild);
+    parts.forEach(function (part) {
+      if (part && typeof part === 'object') {
+        var code = document.createElement('code');
+        code.textContent = part.code;
+        target.appendChild(code);
+      } else {
+        target.appendChild(document.createTextNode(String(part)));
+      }
+    });
+  }
+
   /*
    * The panel width, read from the operator's preference and never offered here.
    *
@@ -851,10 +872,10 @@ function chartScript({
     }).then(function (body) {
       frame.src = body.launchUrl;
       dockContext.textContent = label || 'pathway';
-      dockSent.innerHTML = 'Launch context sent: <code>patient=' + PATIENT + '</code>'
-        + (intent ? ' <code>intent=' + intent + '</code>' : '')
-        + ' <code>need_patient_banner=false</code>'
-        + ' <code>hub.topic=' + TOPIC + '</code>';
+      var sentParts = ['Launch context sent: ', { code: 'patient=' + PATIENT }];
+      if (intent) sentParts.push(' ', { code: 'intent=' + intent });
+      sentParts.push(' ', { code: 'need_patient_banner=false' }, ' ', { code: 'hub.topic=' + TOPIC });
+      renderInline(dockSent, sentParts);
     }).catch(function (err) {
       dockContext.textContent = '';
       // In the dock itself, not only the drawer: a failure has to be visible
@@ -901,7 +922,7 @@ function chartScript({
     if (!endpoint) throw new Error('the hub returned no channel endpoint');
     var socket = new WebSocket(endpoint);
     socket.addEventListener('open', function () {
-      castStatus.innerHTML = 'Subscribed on <code>' + TOPIC + '</code>. Announcing this chart…';
+      renderInline(castStatus, ['Subscribed on ', { code: TOPIC }, '. Announcing this chart…']);
       announce();
     });
     socket.addEventListener('message', function (e) {
@@ -983,8 +1004,10 @@ function chartScript({
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(event),
     }).then(function (res) { return res.json(); }).then(function (body) {
-      castStatus.innerHTML = 'Announced <code>patient-open</code> for ' + who
-        + ' on <code>' + TOPIC + '</code> — delivered to ' + body.delivered + ' subscriber(s).';
+      renderInline(castStatus, [
+        'Announced ', { code: 'patient-open' }, ' for ' + who,
+        ' on ', { code: TOPIC }, ' — delivered to ' + body.delivered + ' subscriber(s).',
+      ]);
       logCast('patient-open → ' + who + '  (published by this chart)', 'info');
     }).catch(function (err) {
       castStatus.textContent = 'Could not announce: ' + err.message;

@@ -307,19 +307,20 @@ export function buildCdsCards({
 
   // Cards #2..n: tool-suggested actions from risk alerts not already surfaced.
   for (const alert of riskAlerts) {
-    if (!alert.suggestedAction || alert.level === 'none') continue
-    if (seenPaths.has(alert.suggestedAction.path)) continue
-    const tool = TOOLS.find((t) => t.launchActions.some((a) => a.path === alert.suggestedAction!.path))
+    const suggestedAction = alert.suggestedAction
+    if (!suggestedAction || alert.level === 'none') continue
+    if (seenPaths.has(suggestedAction.path)) continue
+    const tool = TOOLS.find((t) => t.launchActions.some((a) => a.path === suggestedAction.path))
     if (!tool || !isToolEnabled(tool.id)) continue
 
     const { link, routerPath } = cardLink(
-      alert.suggestedAction.label,
-      alert.suggestedAction.path,
+      suggestedAction.label,
+      suggestedAction.path,
       smartLaunch,
     )
     cards.push({
       uuid: makeUuid(),
-      summary: truncateSummary(alert.suggestedAction.label),
+      summary: truncateSummary(suggestedAction.label),
       detail: alert.detail,
       // Alert cards carry only two urgencies: critical for acute/high, else
       // warning (preserves the pre-refactor urgent/recommended split).
@@ -332,7 +333,7 @@ export function buildCdsCards({
         ...(routerPath ? { 'spier-router-paths': { [routerPath[0]]: routerPath[1] } } : {}),
       },
     })
-    seenPaths.add(alert.suggestedAction.path)
+    seenPaths.add(suggestedAction.path)
   }
 
   // Card #n+1: tier-driven clinician guidance, read out of the published

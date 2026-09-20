@@ -254,9 +254,11 @@ const CLINICAL_OVERRIDES: Record<
 // isn't mistaken for one, and strip the version suffix so stored URLs line up
 // with the (typically unversioned) lookups in `toolForQuestionnaireUrl`.
 function questionnaireUrlsFromAD(ad: ActivityDefinitionDoc): string[] {
-  return (ad.relatedArtifact ?? [])
-    .filter((r) => r.type === 'depends-on' && r.resource?.includes('/Questionnaire/'))
-    .map((r) => stripCanonicalVersion(r.resource!))
+  return (ad.relatedArtifact ?? []).flatMap((r) => {
+    const resource = r.resource
+    if (r.type !== 'depends-on' || !resource?.includes('/Questionnaire/')) return []
+    return [stripCanonicalVersion(resource)]
+  })
 }
 
 // Derive the catalog WorkflowType from ActivityDefinition.kind. Most tools are

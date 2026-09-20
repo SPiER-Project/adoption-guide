@@ -119,8 +119,11 @@ export function presetToolIds(presetId: PresetId): string[] {
       return launchable.map(t => t.id)
     case 'common-mid-tier':
       return launchable.filter(t => t.inclusionStatus === 'core').map(t => t.id)
-    default:
-      return PRESETS.find(p => p.id === presetId)!.toolIds
+    case 'minimum-viable': {
+      const preset = PRESETS.find(p => p.id === presetId)
+      if (!preset) throw new Error(`toolPresets: no PRESETS entry for ${presetId}`)
+      return preset.toolIds
+    }
   }
 }
 
