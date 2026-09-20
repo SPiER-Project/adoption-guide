@@ -31,7 +31,7 @@
 // so an out-of-place section would make prev/next bounce between groups.
 
 /** Ordered categories the sections fall into. */
-export type GuideGroupId = 'standard' | 'applications' | 'evaluate'
+export type GuideGroupId = 'standard' | 'applications' | 'evaluate' | 'reference'
 
 export interface GuideGroup {
   id: GuideGroupId
@@ -68,6 +68,15 @@ export const GUIDE_GROUPS: GuideGroup[] = [
   // storage does not survive a laptop, and a readiness score is something an
   // adopter shares with a vendor.
   { id: 'evaluate', label: 'Evaluate' },
+  // Background: the argument for SPiER, read once and rarely returned to. It
+  // holds one section today, and that is the honest state rather than a
+  // placeholder — the adoption-guide UX audit
+  // (docs/plans/adoption-guide-ux-audit-2026-09-20.md §4.5) proposes moving the
+  // Data Dictionary, Adoption Readiness and the Adoption Rubric in beside it,
+  // which is a later PR because it changes where three published paths sit in
+  // the sidebar. Last, because it is what a reader reaches for after the
+  // pathway, the tools and the apps rather than before them.
+  { id: 'reference', label: 'Reference' },
 ]
 
 export interface GuideSection {
@@ -227,6 +236,21 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // `wide`: the rubric is an auto-fit grid of stage columns, and more columns
   // visible at once is the point of scoring against it.
   { path: 'adoption-rubric', label: 'Adoption Rubric', group: 'evaluate', width: 'wide' },
+
+  // ── Reference ───────────────────────────────────────────────────────────
+  // ⚠️ **This page is where the Overview's essays went, not new writing.** The
+  // front door stated Capture → Translate → Act three times, gave the four
+  // surfaces five paragraphs and then four cards repeating them, and ran 1,716
+  // words before a reader reached a link (audit §3, §4.1). The argument was
+  // worth keeping and the front door was the wrong place for it.
+  //
+  // ⚠️ The model itself is canonical in the IG's how-to-read page, which is
+  // what `OVERVIEW_STEPS` is kept in step with. This page is the same model for
+  // a reader who has not opened a specification; when they disagree, the IG
+  // wins.
+  //
+  // `prose`: paragraphs, one stage list and one callout — no table, no grid.
+  { path: 'why-spier', label: 'Why SPiER', group: 'reference', width: 'prose' },
 ]
 
 const GUIDE_BASE = '/guide'

@@ -42,10 +42,11 @@
  * ── What it checks, per surface ───────────────────────────────────────────
  *
  * RULE 1  Every literal navigation target in a module reachable from that
- *         app's App.tsx resolves against that app's routes. Four forms:
- *         `to="…"`, `navigate('…')`, the object property `to: '…'`, and any
+ *         app's App.tsx resolves against that app's routes. Five forms:
+ *         `to="…"`, `navigate('…')`, the object property `to: '…'`, any
  *         object property ending in `href`/`Href` whose value is an absolute
- *         path — see the note on the fourth below.
+ *         path — see the note on the fourth below — and the content modules'
+ *         inline `[text](/route)` markup, see the note on the fifth.
  * RULE 2  Every `<Navigate>` registered in that app points at a path that
  *         resolves there — a redirect that strands the reader is the same
  *         defect one level up. A redirect whose destination is the OTHER app
@@ -66,6 +67,21 @@
  * reads that property form. Without it the three most important literals on
  * the clinical surface would be invisible again, which is how the `to:` form
  * came to be added the first time.
+ *
+ * ── The content modules, and why the fifth form exists ───────────────────
+ *
+ * ⚠️ **The Overview's links moved out of this gate's reach once already.** The
+ * front door carried them as lens cards with an `href:` property, which the
+ * fourth form reads; the 2026-09-20 rewrite replaced those cards with three
+ * reader "doors" whose links are written in `content/overview.ts`'s inline
+ * markup — `[Care Pathway](/guide/pathway)` — inside an ordinary string. A
+ * planted `/guide/pathwayy` passed this gate green. Those five links are the
+ * only navigation on the page a first-time reader is offered, so they are
+ * exactly the ones that must not rot.
+ *
+ * The form is narrow on purpose: it captures a target only when the href
+ * begins with `/`, so `](ig)`, an `https://` URL and an array index followed
+ * by a call all fail to match rather than being collected and filtered later.
  *
  * ── What it cannot see ────────────────────────────────────────────────────
  *
@@ -180,7 +196,7 @@ function reach(src, app) {
   return seen
 }
 
-/** Every literal navigation target in one module's source — the four forms. */
+/** Every literal navigation target in one module's source — the five forms. */
 function targetsIn(text) {
   return [
     ...[...text.matchAll(/\bto=["']([^"']+)["']/g)].map((m) => m[1]),
@@ -196,6 +212,11 @@ function targetsIn(text) {
     // the Overview's lens cards. See the header for why this is scanned and
     // the `href="…"` attribute is not.
     ...[...text.matchAll(/\b\w*[hH]ref:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
+    // The content modules' inline markup — `[Care Pathway](/guide/pathway)` in
+    // a plain string, rendered by `content/renderInline.tsx`. See the header
+    // for the regression that made this form necessary, and for why it matches
+    // only an href that starts with `/`.
+    ...[...text.matchAll(/\[[^\]\n]+\]\((\/[^)\s]*)\)/g)].map((m) => m[1]),
   ]
 }
 

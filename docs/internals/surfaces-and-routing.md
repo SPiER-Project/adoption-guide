@@ -22,12 +22,17 @@ rather than unfinished — `apps/clinical/src/lib/toolEnablement.ts` has the fou
 reasons, one of which the "Configure" move retired. Read it before wiring the
 preset into the panel.
 
-## The guide's sidebar has three groups, and they are a claim about kind
+## The guide's sidebar has four groups, and they are a claim about kind
 
 `GUIDE_GROUPS` (`apps/guide/src/data/guideSections.ts`) is **The standard**
 (Care Pathway, Tools, Data Dictionary — published artifacts and the contract
 over them), **The applications** (Provider App, Population Dashboard, CDS
-Service — the three things that run it) and **Evaluate** (Adoption Rubric).
+Service — the three things that run it), **Evaluate** (Adoption Rubric) and
+**Reference** (Why SPiER — the argument for the project, read once). The fourth
+group arrived on 2026-09-20 with the Overview rewrite, which cut the front door
+from 1,716 words to about 300 and had to put the essays somewhere; the UX audit
+proposes moving the Data Dictionary and the two evaluation pages in beside it,
+which is a later change because it moves published paths in the sidebar.
 `GUIDE_SECTIONS` must stay **grouped-contiguous** in that order, because the
 pager walks it linearly; `guideSections.test.ts` pins that, plus the
 subsection rules below.
@@ -93,6 +98,15 @@ and renders plain text where the surface has no route for it.
   the `…href:`/`…Href:` property form, which is where each app's `SurfaceLinks`
   literals sit. It cannot see a computed target, and the guide's try route is
   one; `check:tool-view-routes` pins those slugs instead.
+- ⚠️ **It also reads the content modules' inline link markup — the link text
+  in square brackets, the route in parentheses — and that
+  form was added because the links moved** (2026-09-20). The Overview's
+  navigation was four lens cards with an `href:` property, which the gate read;
+  the copy rewrite replaced them with three reader doors whose links are
+  written inline in `apps/guide/src/content/overview.ts`. A planted
+  `/guide/pathwayy` passed green. Six links on the front door — the only
+  navigation a first-time reader is offered — were unwatched for the length of
+  one commit.
 
 ## The clinician-facing app shows no raw FHIR; the guide does
 

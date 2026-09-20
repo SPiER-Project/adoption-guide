@@ -1,6 +1,18 @@
 # Adoption Guide — copy, layout and UX audit
 
-**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements) applied on this branch; §2–§6 remain recommendations
+**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements) and PR 2 (§4.1 the Overview rewrite) applied; §3-§6 remain recommendations
+
+**Status 2026-09-20 (PR 2):** the Overview is rewritten to §4.1 — 1,716 words
+down to 252 above the closing step cards (346 with them), one call to action,
+the three chart picks, the interoperability caveat stated once and quietly, and
+three reader doors in place of the four surface cards. The essays are not
+deleted: Capture → Translate → Act at length, the two vocabularies, the four
+surfaces and the portability case are now `/guide/why-spier`, a new **Reference**
+group in the sidebar and the pager (Brad's call, 2026-09-20 — the alternative
+was dropping them and linking the IG). Two new assertions on the content module
+(the 400-word cap, and every door href having a branch), and
+`check:surface-links` learned the content modules' inline link markup after a
+planted dead route passed green. PRs 3-6 remain.
 
 **Status 2026-09-20 (PR 1):** every link in §1.1 resolves or hops to the
 clinical origin; the shared views read their routes from `SurfaceLinksContext`
@@ -331,7 +343,7 @@ Each is one PR against `main`, none stacked.
 | # | Scope | Size | Needs a decision? |
 |---|---|---|---|
 | 1 | **Fix the broken class and gate it** (§1.1): primary tool button → try route, launch → outbound Demo EHR; shared views' "View in chart" and cross-links hidden or redirected under inspect; try-page eyebrow; guide walk in `check-surface-links.mjs`; dead redirects; dead `PatientBanner` branch. Plus the five copy defects in §1.2. | S–M | No. Mechanical, and every change is a defect today. |
-| 2 | **Overview rewrite** (§4.1). `apps/guide/src/content/overview.ts` is one data file, so this is one file plus a test update. | S | Yes: the three-doors framing and which essays move to Reference. |
+| 2 | **Overview rewrite** (§4.1). Applied — see the status note at the top. Larger than the S estimated here: the essays moved to a new guide section rather than being dropped, which added a route, a sidebar group and a pager step. | S | Answered: three doors replace the lens cards, and the essays move to `/guide/why-spier` under Reference. |
 | 3 | **Care Pathway split** (§4.2): explainer + `/guide/pathway/protocol` subsection; tier table; FSH documentation rewrite; code drawer for gates and URLs. | M | Yes: the tier table replaces the three columns on the clinical surface too, since `PathwayView.tsx` is shared. |
 | 4 | **Tools as pages** (§4.3): list + `/guide/tools/:slug` with the form inline; retire the accordion; fold the try route in. Touches `check:tool-view-routes` and `check:guide-boundary` expectations. | M–L | Yes: whether the tool page IS the try route or wraps it. |
 | 5 | **See it running** (§4.4): trim three pages, drawers for mechanism and caveat, CDS corrections. | S | No. |

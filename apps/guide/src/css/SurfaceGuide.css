@@ -1,6 +1,7 @@
-/* The two pages that explain SPiER's clinical apps — `PatientAppGuide` and
-   `PopulationDashboardGuide`. One stylesheet, because they are the same kind of
-   page: prose about a surface, with links out to it.
+/* The guide's prose pages — `ProviderAppGuide` and `PopulationDashboardGuide`,
+   which explain SPiER's clinical apps, and `WhySpier`, which makes the case for
+   the whole thing. One stylesheet, because they are the same kind of page:
+   paragraphs and lists with links out, and no table or grid to lay out.
 
    `.surface-guide` sets NO width. Both render inside the /guide layout, which
    already owns one; a sub-page that restates it is the double ownership
@@ -81,3 +82,54 @@
    pages to SAY what they do not prove — a caveat set in small grey type is a
    caveat the reader is being invited to skip. */
 
+/* The eight pathway stages, on WhySpier. Rendered from the pathway-stage
+   CodeSystem (see data/catalog/stages.ts), not typed out, so the vocabulary
+   cannot drift from the canonical FSH.
+
+   It carries no prose measure: a stage title is two or three words, so the cap
+   that keeps a paragraph readable would only stop the grid from using the
+   column it is given. */
+.surface-guide__pathway {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid var(--tint-peach);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .surface-guide__pathway {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.surface-guide__pathway-stage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-md);
+  line-height: 1.4;
+  color: var(--text-body);
+}
+
+.surface-guide__pathway-index {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.surface-guide__pathway-title {
+  font-weight: 500;
+}

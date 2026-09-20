@@ -7,10 +7,10 @@
  * was Markdown imported with Vite's `?raw` and rendered by a small renderer.
  * A typed module wins here for one reason that matters more than authoring
  * comfort: `tsc` and eslint stay pointed at the content. A section that loses
- * its heading, a block whose `kind` is misspelled, a lens card missing its
- * `href` — all of those are build failures rather than a page that renders
- * wrong at runtime. A `?raw` string is opaque to both tools, and this content
- * carries in-app routes that must keep resolving.
+ * its heading, a block whose `kind` is misspelled, a door missing its `text` —
+ * all of those are build failures rather than a page that renders wrong at
+ * runtime. A `?raw` string is opaque to both tools, and this content carries
+ * in-app routes that must keep resolving.
  *
  * It follows `data/guideSections.ts`, which is this repo's model for making one
  * ordered data file the thing everything else derives from.
@@ -18,7 +18,7 @@
  * ─── The inline-markup convention ────────────────────────────────────────────
  *
  * Deliberately five rules and no more, rendered by `renderInline` in
- * `pages/Overview.tsx`:
+ * `content/renderInline.tsx`:
  *
  *   **bold**          → <strong>
  *   *italic*          → <em>
@@ -33,27 +33,51 @@
  * ⚠️ `*` is markup here. If prose ever needs a literal asterisk, add an escape
  * to `renderInline` and a test for it; do not leave it to chance.
  *
- * ⚠️ The three `kind`s with no text of their own — `steps`, `pathway`,
- * `lenses` — are placements, not content. `pathway` renders STAGES from the
- * pathway-stage CodeSystem, so the eight stages are never restated here.
+ * ⚠️ The three `kind`s with no text of their own — `demo`, `doors`, `steps` —
+ * are placements, not content. `demo` renders DEMO_CHART_PICKS from
+ * `data/surfaces.ts`, so the three charts are never restated here.
+ *
+ * ─── What this page is for, and the length it has to hold ────────────────────
+ *
+ * ⚠️ **It was 1,716 words, and a reader met their first link 1,400 words in.**
+ * The adoption-guide UX audit (docs/plans/adoption-guide-ux-audit-2026-09-20.md
+ * §3, §4.1) measured it: Capture → Translate → Act was stated three times over,
+ * the four surfaces were given five paragraphs of prose and then four cards
+ * saying the same four things, and every one of the site's four readers was
+ * addressed in the same paragraph.
+ *
+ * So the page now answers exactly three questions, in this order, and the cap
+ * is **400 words before the closing step cards**:
+ *
+ *   1. What is SPiER?          — the lede, three sentences, no jargon.
+ *   2. What do I do first?     — one instruction, three charts, one caveat.
+ *   3. Where do I go next?     — three doors, one per reader, one line each.
+ *
+ * ⚠️ **The essays that used to sit between those are not deleted — they moved**
+ * to `/guide/why-spier` (pages/WhySpier.tsx), which is where the long form of
+ * Capture → Translate → Act, the two vocabularies, the four surfaces and the
+ * portability case now live. Adding a paragraph here is almost always adding it
+ * to the wrong page.
  */
 
-/** A block inside a section. `steps`/`pathway`/`lenses` mark where a rendered
- *  component goes; the rest carry prose. */
+/** A block inside a section. `demo`/`doors`/`steps` mark where a rendered
+ *  component goes; the other two carry prose.
+ *
+ *  ⚠️ There was a third prose kind, `prose`, for a plain body paragraph. The
+ *  page has none left: a section is a heading, one lead and a placement. Add it
+ *  back with its renderer and its stylesheet rule if a section ever earns a
+ *  second paragraph — but read the length cap above first. */
 export type OverviewBlock =
-  | { kind: 'prose'; text: string }
   /** The section's opening paragraph, set larger than body prose. */
   | { kind: 'lead'; text: string }
-  /** A quieter aside, used for the "this site is the Adoption Guide" pointer. */
+  /** A quieter aside — the pointer onward, and the one interoperability caveat. */
   | { kind: 'note'; text: string }
-  /** A boxed illustration with its own sub-heading. */
-  | { kind: 'vignette'; heading: string; text: string }
+  /** The Demo EHR button and its three charts, both from `data/surfaces.ts`. */
+  | { kind: 'demo' }
+  /** The three reader doors (OVERVIEW_DOORS). */
+  | { kind: 'doors' }
   /** The Capture → Translate → Act cards (OVERVIEW_STEPS). */
   | { kind: 'steps' }
-  /** The eight pathway stages, read from the catalog. */
-  | { kind: 'pathway' }
-  /** The "where to go next" cards (OVERVIEW_LENSES). */
-  | { kind: 'lenses' }
 
 export interface OverviewSection {
   /** Stable key for React, and a handle for a future deep link. */
@@ -64,23 +88,75 @@ export interface OverviewSection {
   blocks: OverviewBlock[]
 }
 
-import { MOCK_EHR_URL } from '../data/surfaces'
-
 export const OVERVIEW_EYEBROW = 'SPiER'
 export const OVERVIEW_TITLE = 'Setting priorities for technology-enabled suicide-safer care'
 
+/**
+ * Three sentences, for someone who has never heard of SPiER.
+ *
+ * ⚠️ **The previous lede opened on "a FHIR-native reference implementation"**
+ * and ran six sentences, naming the mission, the artifacts, two audiences and
+ * the licence. The audit's §3 finding is that a decision-maker stops reading at
+ * that first phrase. Nothing here names a standard, a resource type or an
+ * audience: what SPiER is, what it does, and what it costs.
+ */
 export const OVERVIEW_LEDE =
-  'A FHIR-native reference implementation of the suicide-safer care pathway. SPiER’s mission is to ' +
-  'make suicide-safer care the standard everywhere — and the tools to do it already exist. ' +
-  'Validated screeners, risk assessments, safety plans, and response protocols live on paper, in PDFs, ' +
-  'and in plain-text guidelines that no EHR can act on. SPiER makes each layer machine-actionable, ' +
-  'shows EHR vendors and health-system admins what a configured implementation looks like, and ' +
-  'provides the code to execute on it. The artifacts are free and open to adopt at no cost.'
+  'Suicide-safer care already has validated tools — screeners, risk assessments and safety plans — ' +
+  'and most of them live on paper and in PDFs that software cannot act on. SPiER encodes them, so ' +
+  'an electronic health record can capture a result the same way everywhere, read a result some ' +
+  'other tool produced, and put the right next step in front of the clinician. Everything SPiER ' +
+  'publishes is free to adopt.'
 
 /**
- * The three steps, at a glance. Each card is deliberately one claim long: the
- * numbered sections below carry the substance, and the point of the grid is
- * that a reader can hold all three in their head before reading any of them.
+ * Three readers, three first destinations.
+ *
+ * ⚠️ **These replaced four cards that sorted by SURFACE, not by reader**
+ * (audit §4.1). The cards named the Demo EHR, this guide, the CDS service and
+ * the IG — a correct list of the four things SPiER is, and no help at all to
+ * someone deciding which of them to open. How the four fit together is a real
+ * question and still gets a real answer, on `/guide/why-spier`; it is just not
+ * the question the front door has to answer.
+ *
+ * Each door is ONE sentence. A second sentence is the beginning of the essay
+ * this page was before.
+ */
+export interface OverviewDoor {
+  key: string
+  /** Names the reader, in their own words: "If you are …". */
+  reader: string
+  /** One sentence, carrying the links. */
+  text: string
+}
+
+export const OVERVIEW_DOORS: OverviewDoor[] = [
+  {
+    key: 'adopt',
+    reader: 'If you are deciding whether to adopt',
+    text:
+      'Read the [Care Pathway](/guide/pathway) for the protocol SPiER implements, then ' +
+      '[Adoption Readiness](/guide/tools/readiness) for where each instrument stands today.',
+  },
+  {
+    key: 'implement',
+    reader: 'If you are implementing this in an EHR',
+    text:
+      'Start with the [Tools](/guide/tools) catalog and the ' +
+      '[Data Dictionary](/guide/data-dictionary), then the ' +
+      '[CDS service](/guide/cds-service) an EHR can call without embedding anything.',
+  },
+  {
+    key: 'spec',
+    reader: 'If you are reviewing the specification',
+    text:
+      'The [published HL7 FHIR Implementation Guide](ig) holds the profiles, value sets and ' +
+      'questionnaires that everything above is built from.',
+  },
+]
+
+/**
+ * The three steps, at a glance. Each card is deliberately one claim long, and
+ * the long form lives on `/guide/why-spier` — the point of the grid is that a
+ * reader can hold all three in their head without reading any of them.
  * Wording is kept in step with `ig/input/pagecontent/how-to-read.md`, which is
  * the canonical statement of this model.
  */
@@ -105,329 +181,54 @@ export const OVERVIEW_STEPS = [
   },
 ] as const
 
-export interface OverviewLens {
-  key: string
-  /** BEM modifier suffix on the card. */
-  variant: string
-  badge: string
-  title: string
-  body: string
-  cta: string
-  /**
-   * An in-app route ("/…"), an absolute `https://` URL, or the literal `ig`
-   * for the published IG (whose path depends on the active Vite base).
-   */
-  href: string
-}
-
-/**
- * The four surfaces, in the order a newcomer should meet them (#466).
- *
- * ⚠️ **These were four "lenses" until 2026-09-09, and two of them no longer
- * existed.** The cards read Adoption Guide / Population View / Patient View /
- * Implementation Guide — a list of *this app’s tabs*, from before the app
- * stopped being the only surface. It named two retired lenses, and never
- * mentioned either the Demo EHR (where a launch starts) or the CDS Hooks service
- * (in production since #143).
- *
- * The reported gap, which #466 files: *"i understand we’re launching the smart
- * app against the data from the mock EHR, i just don’t think it’s particularly
- * clear what the relationship is."* It was not clear because nothing stated it —
- * and this card row was the closest the product came to trying.
- *
- * ⚠️ **The Demo EHR is first, and that is the point of the reorder.** A launch
- * starts there; the guide is what gets launched. Every previous ordering put this
- * app’s own tabs first and the host nowhere.
- */
-export const OVERVIEW_LENSES: OverviewLens[] = [
-  {
-    key: 'host',
-    variant: 'host',
-    badge: 'Start here',
-    // Non-breaking space before the external-link arrow, so it never wraps
-    // away from the title.
-    title: 'Demo EHR\u00a0↗',
-    body:
-      'A stand-in vendor chart holding fourteen synthetic patients, with a real SMART on FHIR ' +
-      'authorization server. It is the system of record: the patient data lives there, and both ' +
-      'SPiER apps are launched from it — a chart launch from one patient, a worklist launch from ' +
-      'the patient list.',
-    cta: 'Open a chart and launch SPiER →',
-    href: MOCK_EHR_URL,
-  },
-  {
-    key: 'guide',
-    variant: 'guide',
-    badge: 'Adopt',
-    title: 'Adoption Guide',
-    body:
-      'This site: how to adopt SPiER, and the host of the two SMART apps the Demo EHR launches. ' +
-      'The care pathway rendered from its published PlanDefinition, a tool catalog across the ' +
-      'eight stages, a data dictionary, an adoption-readiness matrix and an EHR adoption rubric. ' +
-      'It holds no patient data of its own.',
-    cta: 'Explore the guide →',
-    href: '/guide/pathway',
-  },
-  {
-    key: 'cds',
-    variant: 'cds',
-    badge: 'Service',
-    title: 'CDS Hooks service',
-    body:
-      'The decision support an EHR can call without embedding anything: a hosted CDS Hooks 2.0 ' +
-      'endpoint returning the same next-step cards the provider app shows, from the same builder. ' +
-      'An EHR registers one URL and renders whatever comes back.',
-    cta: 'See the endpoint →',
-    href: '/guide/cds-service',
-  },
-  {
-    key: 'ig',
-    variant: 'ig',
-    badge: 'Specification',
-    title: 'Implementation Guide\u00a0↗',
-    body:
-      'The published HL7 FHIR Implementation Guide — the normative spec: profiles, value sets, ' +
-      'code systems, and canonical Questionnaires. Upstream of everything above rather than a ' +
-      'peer of it: both apps and the service read their definitions from here.',
-    cta: 'Open the HL7 IG →',
-    href: 'ig',
-  },
-]
-
 export const OVERVIEW_SECTIONS: OverviewSection[] = [
   {
-    id: 'how-it-works',
-    heading: 'How SPiER works',
-    modifier: 'steps',
+    // The one instruction, and the only call to action on the page. It is first
+    // because the fastest way to understand SPiER is to watch it run, and
+    // because every previous ordering put a reader through the argument before
+    // offering them the demonstration.
+    id: 'start',
+    heading: 'See it running, in about ten minutes',
     blocks: [
       {
         kind: 'lead',
         text:
-          'Everything that matters in suicide prevention currently lives only in human-readable form — ' +
-          'validated screeners on paper, the equivalences between different tools in clinicians’ heads, ' +
-          'response protocols in plain-text guidelines. SPiER’s work is to encode each layer so software ' +
-          'can act on it, in three steps that build on each other: **Capture → Translate → Act**.',
+          'The quickest way to understand SPiER is to watch it work inside a chart. Open the Demo ' +
+          'EHR, pick one of these three patients, and press *Launch SPiER*.',
       },
-      { kind: 'steps' },
+      { kind: 'demo' },
       {
+        // ⚠️ **The site's ONE statement of this caveat, and it is deliberately
+        // quiet.** `data/surfaces.ts` records why the claim is load-bearing and
+        // must survive: a host written and run by this project proves the app
+        // behaves as a guest, not that it interoperates. The audit found the
+        // same sentence on four pages, set at the same weight as the
+        // instruction it followed (§3, §5 rule 2) — so it is stated once, here,
+        // under the instruction rather than in front of it.
         kind: 'note',
         text:
-          'This site is the **Adoption Guide** — how to adopt SPiER and see it running. For ' +
-          'the normative spec — profiles, value sets, and canonical Questionnaires — see the ' +
-          '[published HL7 FHIR Implementation Guide](ig).',
-      },
-    ],
-  },
-  {
-    id: 'capture',
-    heading: '1. Capture — make the tools writable',
-    blocks: [
-      {
-        kind: 'prose',
-        text:
-          'HL7 is the standards body that defines how healthcare data is structured and exchanged (FHIR is ' +
-          'their modern standard). National standards like **US Core** and **USCDI** already ' +
-          'cover the basics — demographics, diagnoses, medications — but they don’t yet specify *how* ' +
-          'suicide screeners, risk assessments, and safety plans should be captured. So today every EHR captures ' +
-          'that information a little differently — same questions, different shapes — which makes the ' +
-          'data hard to share, hard to measure, and hard to act on. That’s the gap SPiER fills.',
-      },
-      {
-        kind: 'prose',
-        text:
-          'SPiER translates each tool (the **ASQ**, **Columbia**, ' +
-          '**Stanley-Brown**, and others) into a single canonical FHIR shape — a ' +
-          '`Questionnaire` and its `QuestionnaireResponse` — so the ' +
-          'same instrument is recorded identically everywhere it’s used, and contributes that work to the ' +
-          'existing HL7 workgroups already shaping clinical data standards. The path is ' +
-          '**draft → test with partners → contribute to HL7 → influence the published standard**, ' +
-          'paired with a coalition of provider organizations who can collectively *demand* that consistency ' +
-          'from their EHR vendors.',
-      },
-    ],
-  },
-  {
-    id: 'translate',
-    heading: '2. Translate — make different tools mutually intelligible',
-    blocks: [
-      {
-        kind: 'prose',
-        text:
-          'Partners don’t all use the same instruments — one site screens with the ASQ, another with the ' +
-          'Columbia, another with PHQ-9 Item 9 — and a result is useless to a system that can’t read the ' +
-          'instrument behind it. SPiER defines an instrument-agnostic **concept layer**: a single ' +
-          'common suicide-risk tier (carried on a generic LOINC) that every tool maps *into*, so a receiving ' +
-          'system can act on a result **without having to run the same tool that produced it**.',
-      },
-      {
-        kind: 'prose',
-        text:
-          'This mirrors the approach HL7’s **Gravity Project** took for social-determinants ' +
-          'screening. The derived concept is screening-level and *unconfirmed* — it flags a need for ' +
-          'follow-up, not a diagnosis — and is always linked back to the full-fidelity capture layer it came ' +
-          'from. It is also SPiER’s most contributable standards artifact.',
-      },
-    ],
-  },
-  {
-    id: 'act',
-    heading: '3. Act — make the response protocols executable',
-    blocks: [
-      {
-        kind: 'prose',
-        text:
-          'The clinical response to a positive screen already exists as written, endorsed guidelines — they ' +
-          'just can’t fire on their own. SPiER encodes them as executable logic (`PlanDefinition` ' +
-          'plus CDS Hooks) so the right next step surfaces at the right moment: an acute positive ASQ prompts a ' +
-          'safety evaluation and a safety plan, a transition prompts a caring-contact follow-up.',
-      },
-      {
-        kind: 'prose',
-        text:
-          'This is the frontier of SPiER’s work — and notably an *encoding* problem rather than a ' +
-          '*consensus* problem, because the protocol content is already settled. Throughout, ' +
-          '**SPiER recommends; the clinician (or the institution’s configured policy) decides.**',
-      },
-    ],
-  },
-  {
-    // Two vocabularies run through this app and they are easy to mistake for
-    // competing taxonomies. They are orthogonal: Capture/Translate/Act is the
-    // artifact axis (canonical in the IG's how-to-read page), the eight stages
-    // are the clinical axis (canonical in the pathway-stage CodeSystem, via
-    // FSH). Navigation follows the clinical axis, so say so once, here, rather
-    // than leaving a reader to reconcile them.
-    id: 'axes',
-    heading: 'How that maps to what you see in this app',
-    blocks: [
-      {
-        kind: 'prose',
-        text:
-          '**Capture → Translate → Act** describes what SPiER does to the ' +
-          '*artifacts*. It is not what you navigate by. The app is organized around the thing a ' +
-          'clinician actually moves through — the **eight-stage Suicide Safer Care Pathway**, ' +
-          'which is the common entry point for every partner conversation and the vocabulary used by ' +
-          'the provider app, the caseload and the measure dashboard alike:',
-      },
-      { kind: 'pathway' },
-      {
-        kind: 'prose',
-        text:
-          'Every stage is a place a patient can be. Each of the three steps above cuts across all eight of ' +
-          'them — a stage needs its instruments captured, its results translated, and its next action ' +
-          'made executable. Start with the ' +
-          '[Care Pathway](/guide/pathway) for the protocol itself — rendered from the ' +
-          'published PlanDefinition — the [Tools](/guide/tools) catalog for the ' +
-          'stage-by-stage instrument detail, or the ' +
-          '[Adoption Readiness matrix](/guide/tools/readiness) to see where each instrument ' +
-          'stands today — what’s built, what its licensing requires, and how deeply it integrates.',
-      },
-    ],
-  },
-  {
-    id: 'surfaces',
-    heading: 'Four surfaces, and which one to open first',
-    blocks: [
-      {
-        kind: 'prose',
-        text:
-          '**SPiER is not one application, and the confusing part is which piece you are ' +
-          'looking at.** Four things, and only one of them is a place to start:',
-      },
-      {
-        kind: 'prose',
-        text:
-          '**The Demo EHR holds the patient data.** It is a stand-in for a vendor chart — ' +
-          'fourteen synthetic patients, a real SMART on FHIR authorization server, and a launch ' +
-          'button on every chart. Nothing about it is SPiER, and it says so on every page.',
-      },
-      {
-        kind: 'prose',
-        text:
-          '**This adoption guide explains the tools and hosts the apps.** When you press *Launch ' +
-          'SPiER* over there, the panel that docks on the right is served from here. The guide ' +
-          'holds no patient data of its own: what the panel renders, it read from that server.',
-      },
-      {
-        kind: 'prose',
-        text:
-          '**The CDS Hooks service is the same recommendations without an embed.** An EHR that ' +
-          'wants the next-step cards and nothing else registers one URL and renders what comes ' +
-          'back — no panel, no iframe. The host page shows those cards beside its own launch ' +
-          'button, and they come from the same builder the panel uses, so the two cannot ' +
-          'disagree. See the [CDS Service](/guide/cds-service) page.',
-      },
-      {
-        kind: 'prose',
-        text:
-          '**The Implementation Guide is upstream of all three, not a peer.** The profiles, ' +
-          'value sets and Questionnaires are what an implementer builds against; the apps and ' +
-          'the service read their definitions from it rather than defining anything themselves.',
-      },
-      {
-        kind: 'prose',
-        text:
-          '**In order:** open the [Demo EHR](' + MOCK_EHR_URL + '), pick one of the three charts it ' +
-          'suggests, and press *Launch SPiER*. Everything in the slate chrome is the host; ' +
-          'everything in the panel is this app. That boundary — which pixels belong to whom — is ' +
-          'the thing worth watching, and it is why the two are styled nothing alike. What each ' +
-          'app does once launched is described under ' +
-          '[Provider App](/guide/provider-app) and ' +
-          '[Population Dashboard](/guide/dashboard).',
-      },
-      {
-        kind: 'prose',
-        text:
-          '⚠️ **What none of this demonstrates is interoperability.** The host is written and run ' +
-          'by the same project as the app it launches, so a handshake succeeding there shows the ' +
-          'app behaves correctly as a guest — not that it works against a server nobody here ' +
-          'controls. That claim needs a third-party sandbox, and it has not been made.',
-      },
-    ],
-  },
-  {
-    id: 'portability',
-    heading: 'Why it matters: portability across care transitions',
-    blocks: [
-      {
-        kind: 'prose',
-        text:
-          'A patient at risk of suicide moves through a lot of hands: ED, inpatient, outpatient, primary care, ' +
-          'crisis line, community provider. Right now, the safety plan and risk assessment too often stay behind ' +
-          'with the system that created them. EHRs hold the data; **Health Information Exchanges move it ' +
-          'between organizations** — but exchange is only meaningful once the data is captured in a ' +
-          'standard shape, translated into a concept any system can read, and tied to a clear next action.',
-      },
-      {
-        kind: 'prose',
-        text:
-          'When all three come together, ' +
-          '**the patient’s safety information becomes available wherever they show up next — not just ' +
-          'locked in the chart that first created it.**',
-      },
-      {
-        kind: 'vignette',
-        heading: 'A concrete example',
-        text:
-          'A patient is screened with the **ASQ** in an emergency department, assessed with the ' +
-          '**Columbia Scale**, and discharged with a **Stanley-Brown Safety Plan**. Forty-eight ' +
-          'hours later, they’re seen by an outpatient clinician at a different organization. Today, ' +
-          'that clinician usually starts from scratch — re-screens, re-asks, re-builds the plan. ' +
-          'With SPiER’s work in place, the clinician can see what’s already been done — what screener, ' +
-          'what risk level, what coping strategies and supports the patient already identified — and ' +
-          'pick up where the ED left off.',
-      },
-      {
-        kind: 'prose',
-        text:
-          'The same standardized data also gives systems a foundation for measuring whether the pathway is ' +
-          'working — a path to quality improvement at the population level.',
+          'The Demo EHR is run by the same project as the app it launches. That shows SPiER ' +
+          'behaves correctly as a guest — not that it works against a server nobody here controls.',
       },
     ],
   },
   {
     id: 'next',
     heading: 'Where to go next',
-    blocks: [{ kind: 'lenses' }],
+    blocks: [{ kind: 'doors' }],
+  },
+  {
+    id: 'how-it-works',
+    heading: 'What SPiER does to a tool',
+    modifier: 'steps',
+    blocks: [
+      { kind: 'steps' },
+      {
+        kind: 'note',
+        text:
+          '[Why SPiER](/guide/why-spier) takes each of the three steps in turn, and explains how ' +
+          'the guide, the Demo EHR, the CDS service and the specification fit together.',
+      },
+    ],
   },
 ]
