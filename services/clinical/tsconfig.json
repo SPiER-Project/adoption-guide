@@ -22,7 +22,13 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    // Parity with the two apps and every packages/* tsconfig — a dead local or
+    // an unhandled switch case is invisible here otherwise (D3,
+    // docs/plans/repo-cruft-audit-2026-09-20.md C2).
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src", "vite.config.ts", "vitest.config.ts"]
 }
