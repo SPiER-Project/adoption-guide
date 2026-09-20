@@ -73,9 +73,9 @@ floor, so any recent run's log tells you where the ratios stand.
 ⚠️ **A floor only protects the source as a whole, so `SCAN` entries deliberately
 overlap.** When one path holds two independent contributors, a whole-path floor
 cannot tell them apart and losing either one stays green. #261 measured this:
-reverting the data dictionary to its old un-gated shape dropped `web/src` LOINC
-from 69 to 41, still clearing a floor of 34, while ~28 codings silently left the
-scan. The fix is a second, narrower `SCAN` entry (`web/src/data/catalog`) that
+reverting the data dictionary to its old un-gated shape dropped that tree's LOINC
+count from 69 to 41, still clearing a floor of 34, while ~28 codings silently left the
+scan. The fix is a second, narrower `SCAN` entry (`packages/core/src/data/catalog`) that
 overlaps the first — safe, because `found` is keyed by system|code|display and
 `perSource` is tallied per entry. **When you add a substantial new source of
 codings inside an already-scanned tree, give it its own entry** rather than

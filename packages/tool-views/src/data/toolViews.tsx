@@ -34,9 +34,9 @@
  * CLAUDE.md). Declaring them beside the map keeps every filler behind its own
  * dynamic import.
  *
- * ⚠️ These are NOT demo-only. A demo-only page is declared
- * `IS_DEMO ? lazy(…) : NotOnThisSurface` inline in App.tsx so the import stays
- * unreachable on the clinical surface; these ship on both surfaces, because the
+ * ⚠️ These are NOT demo-only. A demo-only page is simply absent from
+ * `apps/clinical/src/App.tsx`'s own route table — no conditional import, since
+ * each app is now its own file; these ship on both surfaces, because the
  * clinical build is exactly the one a clinician fills an instrument in.
  */
 import { lazy, type ReactNode } from 'react'

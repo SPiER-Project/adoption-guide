@@ -1,8 +1,8 @@
 # Cache policy for the Cloudflare Workers deployment.
 #
 # Cloudflare Workers static assets reads this file from the assets directory;
-# Vite copies everything in web/public/ into web/dist/, so it ships with the
-# build. GitHub Pages ignores the file, which is harmless — it serves the same
+# Vite copies everything in public/ into dist/, so it ships with the build.
+# GitHub Pages ignores the file, which is harmless — it serves the same
 # bundle under its own (unconfigurable) cache policy.
 #
 # Measured before this file existed: every response, including content-hashed

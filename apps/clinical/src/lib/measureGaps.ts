@@ -113,7 +113,7 @@ export const MEASURE_GAPS: Record<string, MeasureGap> = {
  * `measureGaps.test.ts` fails in that case, so this should never render — but a
  * missing entry degrading to honest generic copy beats a blank space.
  */
-export const GENERIC_GAP: MeasureGap = {
+const GENERIC_GAP: MeasureGap = {
   denominator: "this measure's cohort",
   missing:
     'No patient in the demo registry meets the cohort criteria, so there is nothing to score. The definition is live and will compute as soon as conforming artifacts exist.',

@@ -43,9 +43,11 @@ crossings:
   and what they read. This package holds the *providers*; that split is what
   keeps the dependency pointing one way.
 - **`Sidebar`, `Shell`, `AppShell`, `PanelShell`, `LaunchShell`.** They are
-  runtime, but they are also where `IS_DEMO` still branches, so they are the
-  chrome the split itself has to divide. Moving them now would mean moving them
-  again.
+  runtime, but they are the chrome the `apps/` split (#552) divided into two:
+  `apps/guide` has its own `Sidebar` and `AppShell`, `apps/clinical` has its own
+  `Sidebar`, `Shell`, `PanelShell` and `LaunchShell` — genuinely different
+  implementations now, not one `IS_DEMO`-branching copy, so there is nothing
+  left in common to move here.
 
 ## Traps
 

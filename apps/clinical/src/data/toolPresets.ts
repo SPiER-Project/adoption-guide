@@ -90,7 +90,7 @@ export const PRESETS: Preset[] = [
  */
 export const DEFAULT_PRESET: PresetId = 'guided-pathway'
 
-export function allLaunchableIds(): string[] {
+function allLaunchableIds(): string[] {
   return launchableTools().map(t => t.id)
 }
 

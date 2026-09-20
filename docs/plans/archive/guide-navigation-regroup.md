@@ -1,9 +1,11 @@
 # Plan 3 — Regroup the Adoption Guide's navigation
 
-**Status:** IMPLEMENTED 2026-09-17. Kept for the reasoning; the sections below describe what was done. Run AFTER
-[`provider-app-rename.md`](provider-app-rename.md), which renames a section this
-plan moves. Independent of [`production-clinical-surface.md`](production-clinical-surface.md)
-except that both add routes under `/guide/tools/`.
+> Archived 2026-09-17: work complete (PR #525).
+
+Run AFTER [`provider-app-rename.md`](provider-app-rename.md), which renames a
+section this plan moves. Independent of
+[`production-clinical-surface.md`](production-clinical-surface.md) except that
+both add routes under `/guide/tools/`.
 
 ## Why
 

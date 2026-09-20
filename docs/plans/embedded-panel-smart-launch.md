@@ -215,7 +215,7 @@ The read side is mechanical. The SMART stub is where the credibility is.
 | `GET /fhir/metadata` | **load-bearing — see below** |
 | `GET /fhir/Patient/{id}`, `GET /fhir/{Type}?patient=` | `SmartDataSource.getSlice` issues 14 patient-scoped searches across 13 resource types; that list *is* the required surface, and it is not small |
 | `POST /fhir/{Type}` | strict — §1 guardrail 1 |
-| `PUT /fhir/{Type}/{id}` | ⚠️ **missing from this table until step 4 built it.** `saveArtifact` PUTs the eight lifecycle types so open→close converges; without it the panel's save aborts on the CORS preflight. §5.1 ⚠️ **It was update-as-create until #531** — a host may now answer 404 to a `PUT` at an id it does not hold, and SPiER creates with POST first. [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md) |
+| `PUT /fhir/{Type}/{id}` | ⚠️ **missing from this table until step 4 built it.** `saveArtifact` PUTs the eight lifecycle types so open→close converges; without it the panel's save aborts on the CORS preflight. §5.1 ⚠️ **It was update-as-create until #531** — a host may now answer 404 to a `PUT` at an id it does not hold, and SPiER creates with POST first. [`medplum-spike-2026-09-17.md`](archive/medplum-spike-2026-09-17.md) |
 | `GET /authorize`, `POST /token` | PKCE S256, launch context |
 
 **`/metadata` is the one to get right.** `parseCapabilityStatement`

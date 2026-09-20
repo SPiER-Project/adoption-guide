@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SPiER's Adoption Guide Worker \u2014 the guide SPA and the rendered HL7 IG over Static Assets. The CDS Hooks API moved to services/cds on 2026-09-20, which is why this no longer imports the catalog and its verify is offline.",
+  "description": "SPiER's Adoption Guide Worker — the guide SPA and the rendered HL7 IG over Static Assets. The CDS Hooks API moved to services/cds on 2026-09-20, which is why this no longer imports the catalog and its verify is offline.",
   "scripts": {
     "build:web": "npm --prefix ../.. run build",
     "stage:assets": "rm -rf web-dist && cp -R ../../dist ./web-dist",
@@ -18,13 +18,13 @@
     "verify": "npm run typecheck && npm run lint && npm run check:csp && npm run test"
   },
   "dependencies": {
-    "hono": "^4.6.14"
+    "hono": "^4.13.8"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
-    "@types/node": "^22.20.1",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^22.20.1",
     "eslint": "^10.8.0",
     "globals": "^17.8.0",
     "typescript": "~5.9.3",

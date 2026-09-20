@@ -9,12 +9,15 @@ name: Web — lint, typecheck & build
 # catalog checks validate against ig/input/fsh/, so ig/** triggers too. Runs on
 # every push to main and matching PRs.
 #
-# services/** is in the trigger list because the cds Worker imports web
-# source (catalog, mappers, scenarios), so a web change can break it — and
-# because until the per-service jobs below existed, a service-only PR triggered NO
-# workflow at all. Cloudflare Workers Builds does build the Worker on deploy,
-# but `vite build` does not typecheck and does not run tests, so type errors and
-# failing tests in the production Worker reached deploy undetected.
+# services/** is in the trigger list because the cds Worker imports
+# packages/core's catalog, mappers and demo-population, so a change there can
+# break it — and because until the per-service jobs below existed, a
+# service-only PR triggered NO workflow at all. `deploy.yml`'s `cloudflare` job
+# builds the Worker on deploy (Cloudflare Workers Builds' git integration is
+# disconnected as of 2026-09-18 — see CLAUDE.md's Workers section), but
+# `vite build` does not typecheck and does not run tests, so type errors and
+# failing tests in the production Worker would otherwise reach deploy
+# undetected.
 
 # ⚠️ **The trigger list is long BECAUSE one glob no longer covers the tooling,
 # and leaving a path out is a silent failure, not a loud one.** Every gate here

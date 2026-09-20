@@ -78,12 +78,6 @@ export interface FhirResourceLike {
   [k: string]: unknown
 }
 
-/** Kept for back-compat with importers that referenced the CarePlan-specific shape. */
-export interface CarePlanLike {
-  id?: string
-  category?: CategoryLike
-}
-
 /**
  * `category` as FHIR R4 actually types it, which is BOTH shapes.
  *
@@ -150,14 +144,6 @@ export function stageForArtifact(resource: FhirResourceLike | undefined): string
   }
 
   return undefined
-}
-
-/**
- * Back-compat delegate — CarePlan stage resolution now flows through the
- * generalized `stageForArtifact`.
- */
-export function stageForCarePlan(plan: CarePlanLike): string | undefined {
-  return stageForArtifact(plan as FhirResourceLike)
 }
 
 interface DerivedPathway {

@@ -67,7 +67,7 @@ const ALLOWED = new Map(Object.entries({
   'services/guide/README.md::.github/workflows/deploy-cloudflare.yml': 'reads "the collision that deleted ... in #143"',
   'packages/demo-population/src/patients/README.md::ig/input/fsh/population-patients.fsh': 'reads "They were ... until step E2"; the file left the IG in #399',
   'docs/internals/docs-gates.md::ig/input/resources/questionnaires/README.md': 'recounts a defect the links gate once found in that README, which has since gone',
-  'docs/plans/structure-simplification-scope.md::scripts/check-fallback-signatures.mjs': 'a gate that was proposed and then retired',
+  'docs/plans/docs-and-ig-content-consolidation.md::docs/plans/structure-simplification-scope.md': 'reads "#443 (...) created docs/plans/archive/"; true when #443 landed — that doc itself moved into archive/ only later',
 
   // -- the outreach one-pager pipeline, deleted whole. The README narrates it
   //    in the past tense ("were the outreach handout").
@@ -92,15 +92,37 @@ const ALLOWED = new Map(Object.entries({
   'docs/plans/mock-patient-smart-launch.md::ig/input/fsh/population-patients.fsh': 'same',
   'docs/plans/repo-and-package-boundaries.md::ig/input/fsh/population-patients.fsh': 'same',
   'docs/plans/surfaces-and-distribution.md::ig/input/fsh/population-patients.fsh': 'same',
+
+  // -- `web/` was deleted whole at the tooling hoist (#553). RETIRED_ROOTS below
+  //    makes these paths visible again; every one of them is already correctly
+  //    hedged as history ("formerly", "now deleted", struck through) rather
+  //    than a present-tense claim, so the fix here is an allowlist entry, not a
+  //    rewrite.
+  '.claude/skills/assessment-to-ig/SKILL.md::web/src/pages/Roadmap.tsx': 'struck through, with an immediately-following ⚠️ saying the Roadmap page was deleted',
+  'CLAUDE.md::web/src/index.css': 'reads "formerly `web/src/index.css`" / quotes that exact supersede sentence as an example',
+  'CLAUDE.md::web/src/lib/surface.ts': 'reads "`web/src/lib/surface.ts` is deleted"',
+  'docs/plans/docs-and-ig-content-consolidation.md::web/src/data/pilot-plans/asq.md': 'a "done" status-table cell narrating a dead MANIFEST path that was dropped',
+  'docs/plans/docs-and-ig-content-consolidation.md::web/src/data/roadmap.generated.json': 'same table; the file and the roadmap pipeline are both gone',
+  'docs/plans/docs-and-ig-content-consolidation.md::web/README.md': 'reads "`web/README.md`\'s deleted `fetch-roadmap` pipeline" — web/README.md itself is gone too',
+  'docs/plans/maintainability-audit-2026-09-15.md::web/src/css/Dashboard.css': 'row is annotated "(now deleted)"',
+  'docs/plans/next-session-handoff.md::web/src/data/roadmap.generated.json': 'reads "that file has since been deleted along with the Roadmap page"',
+  'docs/plans/tool-loading-and-views-audit-2026-09-17.md::web/src/components/WorkflowActionView.tsx': 'table cell reads "deleted with its last caller"',
+  'packages/ui/README.md::web/src/index.css': 'reads "the former `web/src/index.css`"',
 }))
 
 // Repo-rooted prefixes are DERIVED from the tracked tree, not typed, so a new
 // top-level directory is covered the day it appears.
 const tracked = execSync('git ls-files', { encoding: 'utf8' }).trim().split('\n')
 const topLevel = new Set(tracked.filter((f) => f.includes('/')).map((f) => f.split('/')[0]))
-// apps/ does not exist yet but is the declared target layout; name it so the
-// forward references above are checked rather than silently skipped.
-topLevel.add('apps')
+// Roots that used to be tracked and are named in historical or superseded
+// prose. Once a root leaves the tree, `topLevel` forgets it and every path
+// under it (e.g. `web/src/Foo.tsx`) skips the scan instead of being checked —
+// which is exactly how 45+ `web/…` paths rotted through the tooling hoist.
+// Naming them here keeps those paths visible to the gate: current-tense claims
+// about a retired root now fail, and correctly historical ones need an
+// ALLOWED entry, same as any other missing path.
+const RETIRED_ROOTS = ['web', 'FHIR-Resources']
+RETIRED_ROOTS.forEach((r) => topLevel.add(r))
 
 const mdFiles = tracked.filter((f) => f.endsWith('.md') && !f.startsWith(ARCHIVE))
 

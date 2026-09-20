@@ -1,25 +1,3 @@
-export const DEMO_PATIENT = {
-  resourceType: 'Patient' as const,
-  id: 'demo-patient',
-  name: [
-    {
-      use: 'official' as const,
-      given: ['Jane'],
-      family: 'Doe',
-    },
-  ],
-  birthDate: '1990-01-15',
-  gender: 'female' as const,
-  identifier: [
-    {
-      system: 'http://thespierproject.org/fhir/identifier/mrn',
-      value: '12345',
-    },
-  ],
-}
-
-export type DemoPatient = typeof DEMO_PATIENT
-
 export interface PatientDisplay {
   fullName: string
   dob: string

@@ -7,7 +7,7 @@ EHR?"*
 > **The spike proposed below has been run.** Its results — including the answers
 > to the four questions in *"What to check in a spike, in order"* and four
 > defects it found in SPiER — are in
-> [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md). Read that first;
+> [`medplum-spike-2026-09-17.md`](archive/medplum-spike-2026-09-17.md). Read that first;
 > this note is what was believed beforehand.
 
 ⚠️ `medplum.com` is blocked by this environment's egress proxy, so the findings

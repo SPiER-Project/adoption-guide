@@ -80,7 +80,7 @@ function CardDetail({ text }: { text: string }) {
   )
 }
 
-export function CdsCardView({ card }: { card: Card }) {
+function CdsCardView({ card }: { card: Card }) {
   const ext = card.extension
   const narrativeOnly = ext?.['spier-narrative-only'] === true
   const routerPaths = ext?.['spier-router-paths'] ?? {}

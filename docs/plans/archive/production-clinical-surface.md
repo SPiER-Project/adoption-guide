@@ -1,7 +1,9 @@
 # Plan 2 — The clinician-facing app carries no FHIR view
 
-**Status:** IMPLEMENTED 2026-09-17. Kept for the reasoning. Three things went
-differently from the plan below, each for a reason recorded in the code:
+> Archived 2026-09-17: work complete (PR #525).
+
+Three things went differently from the plan below, each for a reason recorded
+in the code:
 
 1. **A context, not a prop.** Seven components render FHIR and four of them are
    reached from both surfaces, so a prop would have to be threaded through every
@@ -19,7 +21,7 @@ differently from the plan below, each for a reason recorded in the code:
 `TOOL_VIEWS` like the other seventeen fillers. And finding 2 below, the missing
 inventory entry, is now mechanically derived rather than written down: see
 `npm run check:fhir-render` and
-[`docs/internals/tool-views.md`](../internals/tool-views.md).
+[`docs/internals/tool-views.md`](../../internals/tool-views.md).
 
 3. **The try route is a sibling of the `/guide` layout, not a child, and not a
    `guideSections.ts` entry.** The views render their own `PageHeader` (two on a

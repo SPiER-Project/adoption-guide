@@ -1,10 +1,11 @@
 # Medplum spike — results
 
-**Status:** spike complete, 2026-09-17; **the write finding was FIXED in the
-same branch** (#531) and this doc updated to say so, 2026-09-18. Answers the four
-questions in [`medplum-as-host-research.md`](medplum-as-host-research.md) and
-reports what running them found. Four defects in SPiER, one of them
-architectural.
+> Archived 2026-09-17: work complete (PR #531).
+
+**The write finding was FIXED in the same branch** (#531) and this doc updated
+to say so, 2026-09-18. Answers the four questions in
+[`medplum-as-host-research.md`](../medplum-as-host-research.md) and reports what
+running them found. Four defects in SPiER, one of them architectural.
 
 SPiER's IG and its whole demo population now live in a Medplum project, the app
 launches from Medplum into a working chart, and it writes to it.
@@ -32,8 +33,8 @@ against the Medplum source, not against summaries.
 | Writes | **blocked at first** — see [The write finding](#the-write-finding); fixed, then verified live |
 
 Two scripts do the loading, both default to a dry run and need `--apply`:
-[`scripts/medplum-upload.mjs`](../../scripts/medplum-upload.mjs) and
-[`scripts/medplum-load-population.mjs`](../../scripts/medplum-load-population.mjs).
+[`scripts/medplum-upload.mjs`](../../../scripts/medplum-upload.mjs) and
+[`scripts/medplum-load-population.mjs`](../../../scripts/medplum-load-population.mjs).
 Neither is a gate and neither is in any `verify` — both need credentials and a
 network.
 
@@ -72,7 +73,7 @@ Every save went through `saveAgainstEncounter`, which calls `ensureEncounter()`
 **first**. That builds an Encounter with a client-minted id
 (`encounters.ts`: `` id: params.id ?? `encounter-${makeId()}` ``) and, because
 `Encounter` is one of the eight
-[`LIFECYCLE_RESOURCE_TYPES`](../../packages/core/src/lib/dataSource/lifecycleTypes.ts),
+[`LIFECYCLE_RESOURCE_TYPES`](../../../packages/core/src/lib/dataSource/lifecycleTypes.ts),
 SPiER wrote it with `PUT <Type>/<client id>` — FHIR **update-as-create**.
 
 Medplum refuses it, and refuses the obvious repair too:
@@ -95,7 +96,7 @@ not silent.
 
 ### Why SPiER's own testing could not have caught it
 
-[`services/mock-ehr/README.md`](../../services/mock-ehr/README.md) says it in as
+[`services/mock-ehr/README.md`](../../../services/mock-ehr/README.md) says it in as
 many words:
 
 > ⚠️ **`PUT` exists because a browser found it, not because the spec asked.** The
@@ -256,7 +257,7 @@ section headed *unproven*.
   validation (needs self-hosting). `PANEL_FRAME_ANCESTORS` would need the Medplum
   origin for the framed case.
 - ~~**Launch from Medplum's Apps tab.**~~ Registered 2026-09-18 with
-  [`scripts/medplum-register-launch.mjs`](../../scripts/medplum-register-launch.mjs)
+  [`scripts/medplum-register-launch.mjs`](../../../scripts/medplum-register-launch.mjs)
   (dry run by default, `--apply` to write). ⚠️ **`launchUri` was not unset — it
   was `http://localhost:5173/`**, so SPiER had been on the Apps tab all along,
   launching a dev server nobody else can reach. It points at the workers.dev

@@ -78,9 +78,11 @@ most of them are a gate that passed while checking nothing.
   is distribution** — the SMART apps are open-sourced and the mock EHR is not,
   so `apps/clinical` must not depend on `apps/guide`'s tree.
   ⚠️ **The pages, `Sidebar`, `Shell`, `AppShell`, `PanelShell` and `LaunchShell`
-  are deliberately NOT here.** They are runtime too, but they are where
-  `IS_DEMO` still branches — they are the chrome the split itself divides, so
-  moving them now would mean moving them twice.
+  are deliberately NOT here.** They are runtime too, but they are the chrome the
+  `apps/` split (#552) divided into two: `apps/guide` has its own `Sidebar` and
+  `AppShell`, `apps/clinical` has its own `Sidebar`, `Shell`, `PanelShell` and
+  `LaunchShell`, genuinely different implementations now rather than one
+  `IS_DEMO`-branching copy — so there is nothing left in common to extract here.
   ⚠️ **`fhirclient` is imported BARE here**, which `packages/core` never does, so
   it needed a new alias in `vite.config.ts` AND `vitest.config.ts` and a mapping
   in this package's tsconfig AND `tsconfig.app.json` — the four places
@@ -159,14 +161,14 @@ npx tsc -b             # typecheck (project references; needs generated files pr
 npm run lint           # eslint
 npm run lint:css       # stylelint (design-token enforcement)
 npm run check:tokens   # every var(--token) resolves to a real definition
-                       # ⚠️ This, check:css-dead, check:prose and check:template all read TWO trees
-                       # now — web/src and packages/ui/src — declared once in
-                       # scripts/lib/style-roots.mjs with a PER-ROOT floor. A global floor is
-                       # what they had when packages/ui was extracted, and 31 stylesheets cleared
-                       # it while nine were missing: css-dead and template reported ✓ over
-                       # three-quarters of the CSS. The floors alone still could not see a root
-                       # DELETED from the list (it takes its own floor with it), so the roots are
-                       # additionally checked against the filesystem
+                       # ⚠️ This, check:css-dead, check:prose and check:template all read every
+                       # root declared once in scripts/lib/style-roots.mjs, each with its OWN
+                       # floor (five today: both apps plus packages/{ui,tool-views,app-shell}).
+                       # A global floor is what they had when packages/ui was extracted, and 31
+                       # stylesheets cleared it while nine were missing: css-dead and template
+                       # reported ✓ over three-quarters of the CSS. The floors alone still could
+                       # not see a root DELETED from the list (it takes its own floor with it), so
+                       # the roots are additionally checked against the filesystem
 npm run check:favicons # the tab mark still matches the brand tokens. The icons in public/
                        # are GENERATED from --brand-primary and --brand-gradient-1…5 by
                        # scripts/build-favicons.mjs (`npm run build:favicons` rewrites them).
@@ -278,7 +280,8 @@ Needs a terminology server, so it cannot be offline-reproducible:
 
 ```
 npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+display literal in
-                         # packages/core/src, web/src and services/, checked against tx.fhir.org
+                         # packages/core/src, apps/{guide,clinical}/src, tests/ and services/,
+                         # checked against tx.fhir.org
 ```
 
 ⚠️ **`tx.fhir.org` is not the authority — Regenstrief is.**
@@ -532,7 +535,8 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   drill-in page passes `up` to make the first eyebrow segment its way back out.
 - **Below the page header, eight components own the surfaces**, and seven of
   them now live in `packages/ui` (`@spier/ui/<name>`); `WorkflowForm` stays in
-  `web/src/components` because it reads patient context. `SectionHeader`
+  `packages/tool-views` (`@spier/tool-views/<path>`) because it reads patient
+  context. `SectionHeader`
   (the `<h3>` row), `Card` (a bordered panel), `Pill` (a small inline marker),
   `Notice` (a tinted message box), `EmptyState` ("nothing here"), `DataTable`
   (the table shell: wrapper, header type, cell padding, dividers),
@@ -656,7 +660,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   caller and that page is inside the guide, so inspection is always on where it
   renders; render it anywhere else and the heading outlives its content. The
   five files that check for themselves are `FhirJsonViewer`, `CodeDrawer` and
-  the three above — `grep -rl useInspect web/src` is the list.
+  the three above — `grep -rl useInspect apps packages` is the list.
   ⚠️ **A FOURTH axis, not chrome mode, build surface or data source.** A
   standalone `/patient/record` browse is still the clinician's app; the public
   demo is the `demo` surface and is exactly where the app most needs to look
@@ -683,15 +687,17 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   that write to patient context, so it is not a guide page and `check:guide-boundary`'s
   premise does not hold for it.
 - **Vite base path:** `/adoption-guide/` (see `vite.config.ts`). Don't hardcode absolute asset paths.
-- **Two build surfaces, one route table — and the flag now folds BOTH ways.**
-  `VITE_SURFACE=clinical` (a build TARGET now, read only by `vite.config.ts`;
-  the old `surface.ts` module and its `IS_DEMO` are deleted) builds the two SMART apps
-  with no guide route registered; `demo` builds the Adoption Guide with **no
-  SMART-app page** registered. A demo-only page is declared
-  `IS_DEMO ? lazy(() => import(…)) : NotOnThisSurface` **inline** (a helper would
-  keep the import reachable), a clinical-only page the same with `IS_CLINICAL`, a
-  demo-only route sits in an `IS_DEMO && (…)` block, and a redirect that differs
-  by surface is two literal `<Route>`s (the route-table reader wants
+- **Two build surfaces, two route tables — no flag folds either way any more.**
+  `VITE_SURFACE=clinical` is a build TARGET now, read only by `vite.config.ts`
+  to pick which `index.html`/entry `apps/{guide,clinical}` vite starts from; the
+  old `surface.ts` module and its `IS_DEMO` are deleted. `apps/clinical/src/App.tsx`
+  registers the two SMART apps with no guide route; `apps/guide/src/App.tsx`
+  registers the Adoption Guide with **no SMART-app page**. A demo-only page is
+  simply absent from `apps/clinical/src/App.tsx`'s table (and vice versa) — no
+  conditional import, no guard block, because each app is its own file: "a page
+  this app does not declare is not reachable here, full stop" (`apps/guide/src/App.tsx`'s
+  own header comment). A redirect that differs by surface is just two apps each
+  declaring their own `<Route>` (the route-table reader wants
   `<Navigate to="…">` verbatim).
   ⚠️ **NEITHER build carries the demo population** (2026-09-19). It is not a
   shim any more: `LocalDataSource` takes its seed corpus as a **constructor

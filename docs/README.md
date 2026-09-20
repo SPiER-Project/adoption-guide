@@ -21,12 +21,17 @@ false in another.
 | Stage names and tool ids | the pathway-stage CodeSystem and the ActivityDefinitions | docs quote by code, or link to the IG artifact page |
 | Adoption guidance, readiness, rubric | the app, as data modules | not JSX paragraphs |
 | Plans and status | GitHub issues, plus each plan doc's own status table | finished plans move to [`plans/archive/`](plans/archive/) with a banner |
-| Licensing evidence | `ig/input/resources/questionnaires/<tool>/licensing/MEMO.md` | the FSH extension states the *status*; the MEMO is the evidence — both are kept |
+| Licensing evidence | `docs/instruments/<Tool>/licensing/MEMO.md` | the FSH extension states the *status*; the MEMO is the evidence — both are kept |
 
-⚠️ **Docs have no CI gate** — only [`use-cases/`](use-cases/) and
-[`outreach/`](outreach/) are checked by a workflow. Everything else here is
-ungated prose, so a claim written into one of these files stays wrong until a
-person reads it. Verify before you write, and prefer a link to a restatement.
+⚠️ **Docs are gated on LINKS AND PATHS, not on CLAIMS.** `docs-links.yml` runs
+`check-md-links.mjs` (every relative link resolves) and `check-md-paths.mjs`
+(every backticked repo-rooted path resolves, or is allowlisted with a reason)
+against every tracked `.md` in the repo, not just [`use-cases/`](use-cases/)
+(which additionally has its own build-output gate,
+`build-use-case-workbook.mjs --check`). What neither gate can see is a
+sentence that is simply WRONG about what the code does — a path can resolve
+and a link can click through while the claim next to it is stale. Verify
+before you write, and prefer a link to a restatement.
 
 A new doc goes in `reference/` if it transcribes an external source, `plans/`
 if it proposes work, `research/` if it reports an investigation,
@@ -100,7 +105,8 @@ has landed. A finished plan moves to [`plans/archive/`](plans/archive/) with a
 * [`plans/next-session-handoff.md`](plans/next-session-handoff.md) — start here. Deliberately short: it says which plan to read first and why, and records what happens when a plan doc is not kept current.
 * [`plans/docs-and-ig-content-consolidation.md`](plans/docs-and-ig-content-consolidation.md) — this consolidation: repo mechanics leaked into the IG pages, normative rationale leaked out into FSH `//` comments the publisher never renders, and the pitch and stage list were each copied five to seven times. Three phases; its Status table says what has landed.
 * [`plans/ig-cleanup-audit-2026-09-16.md`](plans/ig-cleanup-audit-2026-09-16.md) — the IG read for a vendor implementer: per-page keep/cut/move verdicts (11.9k → ~5.2k words), artifact groups instead of pruning, the Questionnaires-are-absent finding, and five decisions to make before any edit.
-* [`plans/structure-simplification-scope.md`](plans/structure-simplification-scope.md) — phased simplification of the repo's layout; one PR per phase, never combined.
+* [`plans/tool-loading-and-views-audit-2026-09-17.md`](plans/tool-loading-and-views-audit-2026-09-17.md) — how Questionnaires and CarePlans load and how the tool views are defined, folded into one audit because both halves meet at the same declaration; the FHIR contract over the recorders `docs/internals/tool-views.md` covers their shape.
+* [`plans/tool-bundling-audit-2026-09-19.md`](plans/tool-bundling-audit-2026-09-19.md) — three questions about `@formbox/renderer` (is the bundle weight actually the forms, should it be switched off, does the open-sourcing boundary cut through it), each with the command that produced its measurement; all three answer no or "not yet", so no decision record was filed.
 * [`plans/repo-and-package-boundaries.md`](plans/repo-and-package-boundaries.md) — one repo with declared packages, and why the answer to "separate repos?" turned out to be a different question.
 * [`plans/surfaces-and-distribution.md`](plans/surfaces-and-distribution.md) — what counts as an app, what ships to whom, and where each surface runs.
 * [`plans/embedded-panel-smart-launch.md`](plans/embedded-panel-smart-launch.md) — SPiER as a SMART app launched from a host chart into the right third of the screen.

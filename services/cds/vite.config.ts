@@ -19,15 +19,6 @@ export default defineConfig({
         ),
       },
       {
-        // The Worker-side HTTP shared layer (packages/worker-http): the Static
-        // Assets catch-all and the `frame-ancestors` policy, shared with
-        // services/clinical so the header cannot differ between the two.
-        find: '@spier/worker-http/',
-        replacement: fileURLToPath(
-          new URL('../../packages/worker-http/src/', import.meta.url),
-        ),
-      },
-      {
         // The React-free domain layer (packages/core), step B (#389). Prefix
         // alias: every consumer imports `@spier/core/<path>` mirroring the
         // package's own structure.

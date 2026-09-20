@@ -48,7 +48,7 @@ const OBSERVATION_CATEGORY_SYSTEM = 'http://terminology.hl7.org/CodeSystem/obser
  * concept for means-safety counseling specifically, so the specificity lives in
  * `code.text` rather than in a code SPiER would have had to invent.
  */
-export const COUNSELING_CODE = { system: SNOMED_SYSTEM, code: '409063005', display: 'Counseling' }
+const COUNSELING_CODE = { system: SNOMED_SYSTEM, code: '409063005', display: 'Counseling' }
 
 /** Default `code.text` — names the protocol most sites will recognise. */
 export const COUNSELING_TEXT = 'Lethal means safety counseling (CALM)'

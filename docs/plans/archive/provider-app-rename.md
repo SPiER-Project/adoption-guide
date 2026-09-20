@@ -1,8 +1,9 @@
 # Plan 1 — "Patient App" becomes "Provider App"
 
-**Status:** IMPLEMENTED 2026-09-17. Kept for the reasoning. Self-contained. Run this BEFORE
-[`guide-navigation-regroup.md`](guide-navigation-regroup.md), which reorders the
-same file.
+> Archived 2026-09-17: work complete (PR #525).
+
+Self-contained. Ran BEFORE [`guide-navigation-regroup.md`](guide-navigation-regroup.md),
+which reorders the same file.
 
 ## Why
 

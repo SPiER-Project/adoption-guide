@@ -35,7 +35,7 @@ export const CSSRS_RISK_LEVEL_SYSTEM = 'http://thespierproject.org/fhir/CodeSyst
  * The narrative is not lost — it belongs in `CodeableConcept.text`, which is
  * exactly the element for a human-readable rendering.
  */
-export const CSSRS_RISK_LEVEL_DISPLAY: Record<string, string> = {
+const CSSRS_RISK_LEVEL_DISPLAY: Record<string, string> = {
   none: 'None',
   low: 'Low',
   moderate: 'Moderate',
