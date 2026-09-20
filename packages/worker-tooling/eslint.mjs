@@ -30,7 +30,10 @@ export function workerEslintConfig({ js, stylistic, globals, tseslint, defineCon
     // server gets ~50 style errors from generated code, which makes
     // `npm run verify` fail locally and pass in CI. That asymmetry is worse
     // than the noise.
-    globalIgnores(['dist', 'web-dist', '.wrangler']),
+    // `**/dist/` rather than `dist`: services/mock-ehr builds its browser
+    // modules into src/client/dist/, and a bare `dist` pattern matches only the
+    // top-level directory.
+    globalIgnores(['**/dist/', 'web-dist', '.wrangler']),
     {
       files: ['**/*.ts'],
       extends: [js.configs.recommended, tseslint.configs.recommended],

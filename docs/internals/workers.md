@@ -190,6 +190,22 @@ failed once: `hostChrome.ts` was extracted *from* `controlPage.ts` to give the
 palette one definition, and `controlPage.ts` then hand-typed four of those hexes
 in its own `<!doctype>` document for as long as it existed.
 
+⚠️ **The pages' behaviour was invisible to every one of those tools, for the
+same reason the CSS was.** Until 2026-09-20 each page's JavaScript was a string
+inside its `.ts` builder — `chartScript()` alone was 408 lines of ES5 in a
+template literal, with the page's values interpolated as `var PATIENT = ${…}`.
+`tsc` did not type it, eslint did not read it, no test could import a function
+from it, and the `innerHTML` concatenation the 2026-09-20 audit found (B11) had
+lived there precisely because nothing looked. The three behaviours are
+`src/client/{home,chart,settings}.ts` now — a browser project with a DOM `lib`,
+built by `vite.client.config.ts` and served by the Worker at
+`/client/<name>.js?v=<content hash>` — and the page hands its module its inputs
+as a `<script type="application/json">` block. The same PR split the 1,185-line
+`app.ts` into six route modules mounted at `/` with their full paths; the
+tests, which drive `app.request()` against those paths, are what proved the
+split changed nothing. `src/clientAssets.test.ts` fails a page that grows an
+inline `<script>` again.
+
 ## Hosted origins: one file, and the configs that repeat it
 
 Until 2026-09-20 the five hosted origins — four `workers.dev` Workers and the

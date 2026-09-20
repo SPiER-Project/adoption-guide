@@ -248,7 +248,7 @@ that knows only the patient, and a **CDS Hooks card whose link is
 `type: "smart"`** — the card names the instrument, so the panel opens already
 scoped to it. The card comes from `spier-cds` (`services/cds`) — a **third**
 origin, neither the panel's nor this host's, so `DEFAULT_PANEL_BASE_URL` and
-`DEFAULT_CDS_BASE_URL` in `src/app.ts` are two separate constants rather than one
+`DEFAULT_CDS_BASE_URL` in `src/env.ts` are two separate constants rather than one
 derived from the other. Its `appContext` carries
 `{"intent":"open-…"}` which this server copies into the SMART launch context.
 The division of labour is the spec's: the CDS service proposes, the EHR mints
@@ -342,6 +342,46 @@ The handshake is proved end to end in **`services/cds/src/cdsClientInterop.test.
 which imports this module's real minting code and runs it through the real
 middleware under the deployed policy — see that service's README for why neither
 side's own tests could have caught a mismatch.
+
+## How the source is laid out (since 2026-09-20)
+
+`src/app.ts` **composes and does not handle.** It was 1,185 lines — 29 routes
+plus every helper they shared — and it is now the module that mounts six route
+modules and the 404. Each `routes/*.ts` is a `Hono<AppEnv>` registered with its
+FULL paths and mounted at `/`, not a sub-app mounted at a prefix, because Hono's
+`/fhir/*` does not match `/fhir` itself and a prefix mount would have re-opened
+that question for every module. Same paths as before, so `app.request()` in the
+tests is the proof the split changed nothing.
+
+| Module | Owns |
+|---|---|
+| `src/routes/fhir.ts` | CORS, the bearer check, discovery, `/metadata`, read, search, create, update |
+| `src/routes/auth.ts` | `/authorize`, `/token` |
+| `src/routes/admin.ts` | `/_admin/capabilities`, `/_admin/launch`, `/_admin/writes`, `/_admin/reset` |
+| `src/routes/fhircast.ts` | the hub's HTTP surface and `/_admin/fhircast` |
+| `src/routes/cds.ts` | the JWK Set and the signed `/_admin/cds` invocation |
+| `src/routes/pages.ts` | `/`, `/chart/{id}`, `/settings`, the favicon, and `/client/<name>.js` |
+| `src/env.ts`, `src/profile.ts`, `src/fhirResponses.ts` | the `Env` shape and origin defaults; the live capability profile; the FHIR media type, OperationOutcome, searchset and the fixtures-plus-writes view |
+
+⚠️ **No page ships an inline `<script>` any more, and that is what put the
+pages' behaviour under the tools.** `chartScript()` alone was 408 lines of ES5
+inside a template literal in `chartPage.ts` — code no `tsc`, eslint or test
+could see into, which is how an `innerHTML` concatenation lived in it until an
+audit read the file. The three page behaviours are `src/client/{home,chart,settings}.ts`
+now: a browser project with its own `src/client/tsconfig.json` (DOM `lib`; the
+Worker's tsconfig excludes the directory), built by `vite.client.config.ts` into
+`src/client/dist/` (gitignored) and served by the Worker at
+`/client/<name>.js?v=<content hash>` from `src/clientAssets.ts`. A page hands
+its module its inputs as DATA in a `<script type="application/json"
+id="spier-page-config">` block (`page()` in `hostChrome.ts`; the shape is
+`src/client/types.ts`, shared type-only by both projects) rather than
+interpolating them into code. `src/clientAssets.test.ts` asserts every page
+loads exactly one module and carries no other `<script>`.
+
+⚠️ **`npm run build:client` has to run before the Worker bundle or the tests.**
+`build` and `pretest` both run it, so `npm run build`, `npm run dev` and
+`npm test` are fine; a bare `npx vitest run` on a fresh checkout fails with a
+message naming the command. `typecheck` runs both projects.
 
 ## The look of the host
 
@@ -518,7 +558,8 @@ service, so it is a decision rather than an omission.
 ## Verify
 
 ```
-npm install && npm run verify   # copy-fhir + typecheck + eslint + check:host-css + vitest
+npm install && npm run verify   # copy-fhir + typecheck (Worker + browser project) + eslint
+                                # + check:host-css + check:toolchain + build:client + vitest
 ```
 
 ⚠️ **CI runs `npm run verify` itself** rather than re-listing its steps, so a gate

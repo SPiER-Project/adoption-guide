@@ -24,6 +24,22 @@ async function html(path: string) {
   return { res, body: await res.text() }
 }
 
+/**
+ * The page's client module, as the Worker serves it. Since 2026-09-20 a page
+ * ships no inline script: its behaviour is `src/client/<name>.ts`, built into
+ * `src/client/dist/` (which `pretest` does) and referenced by one
+ * `<script type="module" src>`. Assertions about what the page DOES go here;
+ * assertions about what it SHOWS stay on the HTML.
+ */
+async function clientModule(path: string) {
+  const { body } = await html(path)
+  const m = body.match(/<script type="module" src="([^"]+)"><\/script>/)
+  if (!m) throw new Error(`no client module on ${path}`)
+  const res = await app.request(`${BASE}${m[1].replace(/&amp;/g, '&')}`)
+  expect(res.status).toBe(200)
+  return res.text()
+}
+
 describe('the front door', () => {
   it('lists every demo patient, with a way into each chart', async () => {
     // ⚠️ On `/`, not `/chart`. The list IS the front door now — the operator's
@@ -106,12 +122,16 @@ describe('the front door', () => {
     expect(body).not.toContain('#/population/summary')
     // The page asks the SERVER for the launch rather than assembling one: it
     // never builds OAuth parameters, exactly as the chart's launch does not.
-    expect(body).toContain("fetch('/_admin/launch'")
-    expect(body).toContain('userScoped: true')
+    // That request lives in the page's client module (src/client/home.ts), so
+    // it is read from the module the Worker serves — the markup holds no code.
+    const module = await clientModule('/')
+    expect(module).toMatch(/fetch\(["']\/_admin\/launch["']/)
+    expect(module).toContain('userScoped: true')
     // ⚠️ `embed: true` is what makes it a panel rather than a whole app in a box,
     // and it is also what makes the app land on the SUMMARY rather than on a
     // second sortable patient list above this page's own patient table.
-    expect(body).toContain('embed: true')
+    expect(module).toContain('embed: true')
+    expect(body).not.toMatch(/<script(?![^>]*\btype="(?:module|application\/json)")[^>]*>/)
     // ⚠️ The honesty claim MOVED rather than being dropped. The old page said
     // "not a SMART launch" because it was not one; this one is, so what survives
     // is the narrower sentence about who runs the host.
@@ -367,8 +387,10 @@ describe('the chart leads with the launch, and carries no controls', () => {
     const settings = await html('/settings')
     expect(chart.body).not.toContain('data-profile=')
     expect(chart.body).not.toContain('/_admin/capabilities')
+    expect(await clientModule('/chart/patient-011')).not.toContain('/_admin/capabilities')
     expect(settings.body).toContain('data-profile="full"')
-    expect(settings.body).toContain('/_admin/capabilities')
+    // The PUT that flips it is code, so it is in the settings module.
+    expect(await clientModule('/settings')).toContain('/_admin/capabilities')
     // …and the chart says where the controls went, rather than dropping them.
     expect(chart.body).toContain('href="/settings"')
   })
@@ -380,7 +402,9 @@ describe('the chart leads with the launch, and carries no controls', () => {
     for (const px of [380, 470, 700]) {
       expect(settings.body).toContain(`data-width="${px}"`)
     }
-    // Every viewer who never opens /settings gets the middle one.
+    // Every viewer who never opens /settings gets the middle one. The key and
+    // the default reach the chart's module as DATA, in the page's JSON config
+    // block, so they are still on the page.
     expect(chart.body).toContain('spier-mock-ehr:panel-width')
     expect(chart.body).toContain('470')
     // ⚠️ A TEXT assertion on the guard, and labelled as one: the stored value is
@@ -388,8 +412,9 @@ describe('the chart leads with the launch, and carries no controls', () => {
     // preference becomes a style injection. Only the three measured widths are
     // honored. Verified for real in a browser (a stored
     // `999px; background:url(x)` renders at 470px); this is what keeps the guard
-    // from being deleted as noise.
-    expect(chart.body).toContain('PANEL_WIDTHS.indexOf(raw) === -1')
+    // from being deleted as noise. It is code, so it is read from the chart's
+    // client module rather than from the markup.
+    expect(await clientModule('/chart/patient-011')).toContain('PANEL_WIDTHS.indexOf(raw) === -1')
   })
 
   it('keeps the server’s own account of what was written — a readout, not a control', async () => {
@@ -399,7 +424,7 @@ describe('the chart leads with the launch, and carries no controls', () => {
     // which is an action, did not.
     const chart = await html('/chart/patient-011')
     expect(chart.body).toContain('id="writes-summary"')
-    expect(chart.body).toContain('/_admin/writes')
+    expect(await clientModule('/chart/patient-011')).toContain('/_admin/writes')
     expect(chart.body).not.toContain('id="reset-writes"')
     expect((await html('/settings')).body).toContain('id="reset-writes"')
   })
@@ -496,7 +521,7 @@ describe('POST /_admin/launch — a worklist launch carrying an intent', () => {
     // Same handler for both; the intent is what differs, and it is an attribute
     // rather than a second code path.
     expect(body).toContain('data-intent="open-measures"')
-    expect(body).toContain("button.getAttribute('data-intent')")
+    expect(await clientModule('/')).toMatch(/button\.getAttribute\(["']data-intent["']\)/)
   })
 
   it('carries the intent in the launch CONTEXT, not in the URL', async () => {
