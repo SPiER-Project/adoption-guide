@@ -61,6 +61,7 @@
  *     axis starts carrying weight.
  *   - **No refresh tokens, no `offline_access`.**
  */
+import { DEPLOY_ORIGINS } from '@spier/core/lib/deployOrigins'
 import { s256, sign, spend, verify } from './tokens'
 
 export interface SmartEnv {
@@ -93,9 +94,12 @@ export interface SmartEnv {
  * services/clinical (8789).
  */
 const DEFAULT_REDIRECT_URIS = [
-  'https://spier-clinical.bbthorson.workers.dev/',
-  'https://spier-adoption-guide.bbthorson.workers.dev/',
-  'https://spier-project.github.io/adoption-guide/',
+  // The hosted SPiER SMART origins come from deploy-origins.json (repo root),
+  // the one file that names them. A fourth host is added THERE; a literal
+  // typed here instead fails `npm run check:origins`.
+  `${DEPLOY_ORIGINS.clinical}/`,
+  `${DEPLOY_ORIGINS.guide}/`,
+  `${DEPLOY_ORIGINS.pages}/`,
   'http://localhost:5173/',
   'http://localhost:4173/',
   'http://localhost:4174/',

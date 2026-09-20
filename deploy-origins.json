@@ -1,0 +1,26 @@
+{
+  "$comment": [
+    "THE ORIGINS SPIER IS DEPLOYED AT. One file, imported by every module that",
+    "needs one and gated against every config that must repeat one.",
+    "",
+    "Four Workers and one GitHub Pages site, all on personal/project accounts",
+    "until the project has a domain. Before this file the same five strings were",
+    "typed into nine places across seven source files, and each rename (the CDS",
+    "split, the clinical Worker) found them one at a time. Code imports",
+    "`@spier/core/lib/deployOrigins` (or this file relatively, where no alias",
+    "reaches); `services/*/wrangler.jsonc` cannot import, so its copies are",
+    "checked by `npm run check:origins` instead.",
+    "",
+    "Values are ORIGINS — scheme + host, no trailing slash — except `pages`,",
+    "which carries the repository path GitHub Pages serves under. Build the",
+    "URL you need from them; do not add a URL here.",
+    "",
+    "An adopter deploying SPiER replaces these with their own. They are not",
+    "secrets; they are the same strings a browser's address bar shows."
+  ],
+  "guide": "https://spier-adoption-guide.bbthorson.workers.dev",
+  "clinical": "https://spier-clinical.bbthorson.workers.dev",
+  "cds": "https://spier-cds.bbthorson.workers.dev",
+  "mockEhr": "https://spier-mock-ehr.bbthorson.workers.dev",
+  "pages": "https://spier-project.github.io/adoption-guide"
+}

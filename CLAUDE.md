@@ -285,6 +285,14 @@ npm run check:surface-links    # every in-app link a CLINICIAN can reach resolve
                                # not 404 — the `*` catch-all returns the clinician to the patient
                                # record, silently. check:catalog resolves paths against the WHOLE route
                                # table, so it passed this and always would have
+npm run check:origins          # every hosted origin comes from deploy-origins.json (repo root): no
+                               # `*.workers.dev` / `github.io` literal in TypeScript (code imports
+                               # DEPLOY_ORIGINS), every wrangler.jsonc / workflow copy is an origin in
+                               # the file, an asset Worker's PANEL_FRAME_ANCESTORS admits only origins
+                               # in the file, every key is read by something, and the file's values are
+                               # bare https origins (only `pages` carries a path). ⚠️ Nine literals in
+                               # seven files was the count on 2026-09-20; the CDS audience pointed at
+                               # the guide Worker for a release because one of them was not updated
 npm run check:stages           # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway          # the pathway PlanDefinition's tier codes, stage codes and
                                # definitionCanonicals all resolve against the generated artifacts
@@ -911,6 +919,19 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
   the record of which session moved the ref. The three commands and the
   tree-hashing confirmation are in
   [`docs/internals/build-gotchas.md`](docs/internals/build-gotchas.md).
+- **Hosted origins come from `deploy-origins.json` at the repo root, and only
+  from there.** Four `workers.dev` Workers and the GitHub Pages site, as bare
+  `https://` origins (only `pages` carries the repository path). Code imports
+  `@spier/core/lib/deployOrigins`; `packages/worker-http` and `services/guide`
+  import the JSON relatively because they have no `@spier/core` alias; the
+  `services/*/wrangler.jsonc` vars that cannot import are held to the file by
+  `check:origins`. Append your own path — `${DEPLOY_ORIGINS.cds}/cds-services`
+  — never a URL into the file. ⚠️ **GitHub Pages is a dependency, not a spare
+  copy**: `services/guide/src/index.ts` redirects IG downloads over the Workers
+  size cap to the Pages render, so retiring Pages is a change to that route
+  and to `deploy.yml`, not a deletion of one key. ⚠️ The mock EHR's
+  `DEFAULT_REDIRECT_URIS` is built from the file's three SMART origins; a
+  fourth hosted origin is added to the file, and the registration follows.
 - **Two of `@formbox/renderer`'s dependencies are aliased to shims** in
   `vite.config.ts` (and therefore in vitest): `fhirpath/fhir-context/r5` → an
   empty object, `@lhncbc/ucum-lhc` → a throwing shim. Together they cut the

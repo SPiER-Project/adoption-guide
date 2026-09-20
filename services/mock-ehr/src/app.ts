@@ -37,6 +37,7 @@
  */
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { DEPLOY_ORIGINS } from '@spier/core/lib/deployOrigins'
 import {
   CAPABILITY_PROFILES,
   PROFILE_DESCRIPTIONS,
@@ -116,7 +117,7 @@ export interface Env extends SmartEnv {
  * `/guide` pages, which is precisely the class `web`'s `check:surface-links`
  * exists to catch and which the clinical build removes outright.
  */
-const DEFAULT_PANEL_BASE_URL = 'https://spier-clinical.bbthorson.workers.dev/'
+const DEFAULT_PANEL_BASE_URL = `${DEPLOY_ORIGINS.clinical}/`
 
 /**
  * Default origin for the CDS Hooks service.
@@ -135,7 +136,7 @@ const DEFAULT_PANEL_BASE_URL = 'https://spier-clinical.bbthorson.workers.dev/'
  * is derivable from either of the others. That is the whole reason each is a
  * named default rather than a computed one.
  */
-const DEFAULT_CDS_BASE_URL = 'https://spier-cds.bbthorson.workers.dev/'
+const DEFAULT_CDS_BASE_URL = `${DEPLOY_ORIGINS.cds}/`
 
 /**
  * The path the CDS Hooks service answers on, at whichever origin hosts it.

@@ -35,8 +35,18 @@
  * `'self'` keeps an app's own same-origin iframes working (the step-0 width
  * spike used one). Deliberately not a wildcard, which would make the header
  * decorative.
+ *
+ * The one permitted ancestor is the mock EHR's origin, read from
+ * `deploy-origins.json` at the repo root rather than typed here — the file
+ * every hosted origin comes from. Imported RELATIVELY, not as
+ * `@spier/core/lib/deployOrigins`, because the two Workers that bundle this
+ * module (`services/guide`, `services/clinical`) are the ones with no
+ * `@spier/core` alias, and this module must stay importable by an asset host
+ * that knows nothing about the domain layer.
  */
-export const DEFAULT_FRAME_ANCESTORS = "'self' https://spier-mock-ehr.bbthorson.workers.dev"
+import origins from '../../../deploy-origins.json'
+
+export const DEFAULT_FRAME_ANCESTORS = `'self' ${origins.mockEhr}`
 
 /** The Static Assets binding, as both Workers declare it. */
 export interface AssetsBinding {
