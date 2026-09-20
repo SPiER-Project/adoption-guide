@@ -45,10 +45,13 @@
   "vars": {
     // Space-separated `frame-ancestors` sources — who may embed this app in a
     // frame. Blank = DEFAULT_FRAME_ANCESTORS in packages/worker-http, which
-    // admits 'self' and the mock EHR. One definition, shared with the
-    // adoption-guide Worker, because a header that differs between the two is a
-    // clickjacking surface on whichever copy nobody re-reads — and that is this
-    // one. `scripts/check-worker-csp.mjs` keeps a second copy from coming back.
+    // admits 'self' and the mock EHR's origin read from deploy-origins.json at
+    // the repo root. One definition, shared with the adoption-guide Worker,
+    // because a header that differs between the two is a clickjacking surface
+    // on whichever copy nobody re-reads — and that is this one.
+    // `scripts/check-worker-csp.mjs` keeps a second copy from coming back, and
+    // `npm run check:origins` refuses an override here that admits a host the
+    // file does not name.
     "PANEL_FRAME_ANCESTORS": ""
   }
 }

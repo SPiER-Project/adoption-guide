@@ -11,6 +11,7 @@ import { TOOLS, stageById } from '../../data/catalog'
 import { RISK_LEVEL_ORDER } from '../observationMappers'
 import type { RiskAlert } from '../observationMappers'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
+import { DEPLOY_ORIGINS } from '../deployOrigins'
 import { intentForLaunchPath } from '../smartIntent'
 import { orderByPathwayRealization } from '../pathwayRealizations'
 import { stageLeadToolIds } from '../pathwaySelection'
@@ -62,8 +63,9 @@ export function derivedNextStep(stageId: string): { label: string; rationale: st
 
 // Deployed app base — links point here so a real CDS client (which has no idea
 // about SPiER's SPA routing) can still open the tool. HashRouter → the router
-// path lives after the `#`.
-const APP_BASE_URL = 'https://spier-project.github.io/adoption-guide/'
+// path lives after the `#`. The host comes from deploy-origins.json (repo
+// root) like every other hosted origin; `check:origins` fails a literal here.
+const APP_BASE_URL = `${DEPLOY_ORIGINS.pages}/`
 const SOURCE_LABEL = 'SPiER Suicide-Safer Pathway'
 
 /** The one field patients.json still hand-curates (see lib/registry.ts). */

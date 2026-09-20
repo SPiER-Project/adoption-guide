@@ -165,6 +165,44 @@ failed once: `hostChrome.ts` was extracted *from* `controlPage.ts` to give the
 palette one definition, and `controlPage.ts` then hand-typed four of those hexes
 in its own `<!doctype>` document for as long as it existed.
 
+## Hosted origins: one file, and the configs that repeat it
+
+Until 2026-09-20 the five hosted origins — four `workers.dev` Workers and the
+GitHub Pages site — were typed as literals in nine places across seven source
+files, plus four `wrangler.jsonc` vars. Each rename found them one at a time:
+`SMART_LAUNCH_URL` was derived from the wrong origin for a release after the
+`apps/` split (`services/cds/README.md`), and `CDS_JWT_AUDIENCE` named the
+adoption-guide Worker after the API had left it. They come from
+`deploy-origins.json` at the repo root now, typed through
+`packages/core/src/lib/deployOrigins.ts`, and `scripts/check-deploy-origins.mjs`
+(`npm run check:origins`, in the root `verify`) holds the two places that
+cannot import.
+
+⚠️ **Two importers read the JSON relatively, and that is the alias cost of
+#387 showing through, not a shortcut.** `packages/worker-http/src/spaAssets.ts`
+builds `DEFAULT_FRAME_ANCESTORS` from `origins.mockEhr`, and
+`services/guide/src/index.ts` builds its IG fallback from `origins.pages`; both
+are bundled by Workers that have no `@spier/core` alias and are meant to stay
+importable by an asset host that knows nothing about the domain layer. The
+gate's rule 1 forbids the literal either way, so a relative import is the only
+form left to a module in that position.
+
+⚠️ **`wrangler.jsonc` cannot import, so its copies are checked, not derived.**
+`services/cds` carries four (the SMART launch URL, the JWT audience, the trusted
+issuer, the JWKS URL) and each must equal an origin in the file or a path under
+one. A blank `PANEL_FRAME_ANCESTORS` in an asset Worker means the code default
+(`'self'` + the mock EHR); a non-blank one may admit only `'self'`-style
+keywords and origins from the file, because the clinical Worker's header is a
+clickjacking surface and "it is config" is not a reason to let an unknown host
+through it.
+
+⚠️ **GitHub Pages is a dependency, not a spare copy.** `services/guide/src/index.ts`
+redirects any IG download over the Workers per-file size cap to the Pages
+render, so the `pages` key is load-bearing for every link on the IG's Downloads
+page. Retiring Pages is a change to that route and to `deploy.yml`'s Pages job,
+made together, not the removal of one key — and `check:origins` rule 5 would
+fail the orphaned key the moment nothing read it.
+
 ⚠️ **The mock EHR is deliberately NOT styled like SPiER**, and that is a demo
 claim rather than a preference. Its pages say *"Everything below this bar is
 drawn by SPiER, not by the host"*, so the host is slate and steel and SPiER's

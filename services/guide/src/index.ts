@@ -26,6 +26,7 @@
  * and the catch-all delegates everything — SPA and IG alike — to ASSETS.
  */
 import { Hono } from 'hono'
+import origins from '../../../deploy-origins.json'
 import { serveSpaAsset } from '@spier/worker-http/spaAssets'
 import type { SpaAssetsEnv } from '@spier/worker-http/spaAssets'
 
@@ -63,7 +64,12 @@ const app = new Hono<{ Bindings: Env }>()
 // target just stops answering. `surfaces-and-distribution.md` §4 justified
 // keeping Pages on "it is free" for one PR after this became true; it now says
 // what has to change before Pages can go.
-const IG_FALLBACK_BASE = 'https://spier-project.github.io/adoption-guide/ig/'
+//
+// The Pages host itself comes from deploy-origins.json at the repo root — the
+// one file every hosted origin is read from — imported relatively because this
+// Worker deliberately has no `@spier/core` alias (it imports the asset layer
+// and nothing else). `npm run check:origins` at the root fails a literal here.
+const IG_FALLBACK_BASE = `${origins.pages}/ig/`
 
 app.all('*', (c) => serveSpaAsset(c.req.raw, c.env, (url) =>
   // An IG path we do not hold is an oversized download; the canonical Pages

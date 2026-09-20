@@ -1,3 +1,5 @@
+import { DEPLOY_ORIGINS } from '@spier/core/lib/deployOrigins'
+
 /**
  * Where SPiER's other surfaces live.
  *
@@ -31,7 +33,7 @@
  * demonstrated — which is precisely why those three have to keep saying it
  * plainly.
  */
-export const MOCK_EHR_URL = 'https://spier-mock-ehr.bbthorson.workers.dev/'
+export const MOCK_EHR_URL = `${DEPLOY_ORIGINS.mockEhr}/`
 
 export const MOCK_EHR_LABEL = 'Demo EHR'
 

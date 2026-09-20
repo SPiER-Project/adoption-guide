@@ -16,9 +16,10 @@
  * rather than incidental.
  */
 
+import { DEPLOY_ORIGINS } from '../deployOrigins'
+
 /** CDS Hooks 2.0 discovery document — advertises the `spier-patient-view` service. */
-export const CDS_DISCOVERY_URL =
-  'https://spier-cds.bbthorson.workers.dev/cds-services'
+export const CDS_DISCOVERY_URL = `${DEPLOY_ORIGINS.cds}/cds-services`
 
 /** The `spier-patient-view` service id (a `patient-view` hook). */
 export const CDS_SERVICE_ID = 'spier-patient-view'
