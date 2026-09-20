@@ -110,10 +110,14 @@ describe('stageForArtifact — shared questionnaire is disambiguated by meta.tag
 
 describe('deriveFromResponse — derived Observations carry the source QR stage', () => {
   // Load whatever example QuestionnaireResponses ship in the generated IG data.
-  const qrModules = import.meta.glob('../packages/fhir-artifacts/generated/QuestionnaireResponse-*.json', { eager: true }) as Record<
-    string,
-    { default: QuestionnaireResponseResource }
-  >
+  // ⚠️ The type parameter, not a trailing `as Record<…>`. Both produce the same
+  // type, but the assertion form made `no-unnecessary-type-assertion` and `tsc`
+  // disagree — eslint deleted it and tsc then failed on `m` being `unknown`.
+  // Every other glob in this repo already uses this form.
+  const qrModules = import.meta.glob<{ default: QuestionnaireResponseResource }>(
+    '../packages/fhir-artifacts/generated/QuestionnaireResponse-*.json',
+    { eager: true },
+  )
   const exampleQrs = Object.values(qrModules).map((m) => m.default)
 
   it('ships at least one example QuestionnaireResponse fixture', () => {
@@ -223,7 +227,7 @@ describe('write path: stampLaunchStage stamps the launching tool’s stage', () 
 })
 
 describe('stageForArtifact — tier 1: meta.tag', () => {
-  const stageId = STAGES[1]!.id
+  const stageId = STAGES[1].id
 
   it('resolves a stage tag on any resourceType (e.g. Communication)', () => {
     const comm: FhirResourceLike = {
@@ -251,7 +255,7 @@ describe('stageForArtifact — tier 1: meta.tag', () => {
 })
 
 describe('stageForArtifact — tier 2: category.coding', () => {
-  const stageId = STAGES[2]!.id
+  const stageId = STAGES[2].id
 
   it('resolves a stage coding under category (the CarePlan placeholder mechanism)', () => {
     const plan: FhirResourceLike = {
@@ -342,8 +346,8 @@ describe('stageForArtifact — tier 4: CarePlan meta.profile', () => {
 
 describe('stageForArtifact — resolution precedence', () => {
   it('prefers meta.tag over category.coding over the profile map', () => {
-    const tagStage = STAGES[3]!.id
-    const categoryStage = STAGES[2]!.id
+    const tagStage = STAGES[3].id
+    const categoryStage = STAGES[2].id
     const artifact: FhirResourceLike = {
       resourceType: 'CarePlan',
       // The profile map would say document-safety-actions.
@@ -370,7 +374,7 @@ describe('stageForArtifact — resolution precedence', () => {
 })
 
 describe('groupArtifactsByStage / unstagedArtifacts', () => {
-  const stageId = STAGES[1]!.id
+  const stageId = STAGES[1].id
   const mapped: FhirResourceLike = {
     resourceType: 'Observation',
     id: 'mapped',

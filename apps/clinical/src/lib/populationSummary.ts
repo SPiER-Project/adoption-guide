@@ -16,7 +16,7 @@
  */
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
-import type { ObservationResource, PatientSlice } from '@spier/core/types/fhir'
+import type { PatientSlice } from '@spier/core/types/fhir'
 import { RISK_LABEL } from '@spier/app-shell/lib/riskLabel'
 
 /** Re-exported for the caseload and the filter menu, which index it by the five registry levels. */
@@ -94,7 +94,7 @@ export function positiveItem9OnDay(slices: PatientSlice[], day: Date): number {
   const target = day.toISOString().slice(0, 10)
   let n = 0
   for (const slice of slices) {
-    for (const obs of slice.observations as ObservationResource[]) {
+    for (const obs of slice.observations) {
       const isItem9 = obs.code?.coding?.some(c => c.code === PHQ9_ITEM9_LOINC)
       if (!isItem9) continue
       // `issued` is not on ObservationResource — the profiles are the real

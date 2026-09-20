@@ -4,6 +4,13 @@ import type { Card } from '@spier/core/lib/cdsHooks/types'
 import { TOOLS } from '@spier/core/data/catalog'
 import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
 import { stageLeadToolIds } from '@spier/core/lib/pathwaySelection'
+
+/**
+ * `expect.any(String)` is typed `any` by vitest, so using it inline makes the
+ * WHOLE object literal an unchecked assignment — the other keys stop being
+ * compared against the real `Card` shape. Naming the cast once keeps them.
+ */
+const anyString = expect.any(String) as unknown as string
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import { intentForLaunchPath, launchPathForIntent } from '@spier/core/lib/smartIntent'
@@ -118,7 +125,7 @@ describe('buildCdsCards — stage card shape', () => {
     expect(card.source.topic).toEqual({
       system: PATHWAY_STAGE_SYSTEM,
       code: launchStage,
-      display: expect.any(String),
+      display: anyString,
     })
     expect(card.extension?.['spier-card-id']).toBe(`cds-stage-${launchStage}`)
     expect(card.extension?.['spier-stage-id']).toBe(launchStage)

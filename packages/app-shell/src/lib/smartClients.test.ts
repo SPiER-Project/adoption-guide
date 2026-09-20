@@ -84,7 +84,9 @@ describe('the registration script reads THIS file', () => {
   it('and that path is where this test found the config', () => {
     // Guards the restatement above: if CONFIG_PATH drifts from the real
     // location, this fails rather than certifying a string nothing uses.
-    const onDisk = JSON.parse(readFileSync(join(REPO, CONFIG_PATH), 'utf8'))
+    const onDisk = JSON.parse(readFileSync(join(REPO, CONFIG_PATH), 'utf8')) as {
+      byIssuerOrigin?: Record<string, string>
+    }
     expect(onDisk.byIssuerOrigin).toEqual(registrations.byIssuerOrigin)
   })
 })

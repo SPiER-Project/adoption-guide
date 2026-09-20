@@ -30,15 +30,15 @@ describe('derivePathwayStatus', () => {
     expect(result.activeStageId).toBe(STAGES[0]?.id)
 
     // First stage should be active, rest not-started
-    expect(result.statuses[STAGES[0]!.id]).toBe('active')
+    expect(result.statuses[STAGES[0].id]).toBe('active')
     for (let i = 1; i < STAGES.length; i++) {
-      expect(result.statuses[STAGES[i]!.id]).toBe('not-started')
+      expect(result.statuses[STAGES[i].id]).toBe('not-started')
     }
   })
 
   it('handles a single artifact at a specific stage', () => {
     const stageIndex = 1
-    const stageId = STAGES[stageIndex]!.id
+    const stageId = STAGES[stageIndex].id
     const artifacts: PatientArtifacts = {
       responses: [],
       observations: [mockArtifact(stageId)],
@@ -50,15 +50,15 @@ describe('derivePathwayStatus', () => {
 
     // Up to stageIndex should be complete
     for (let i = 0; i <= stageIndex; i++) {
-      expect(result.statuses[STAGES[i]!.id]).toBe('complete')
+      expect(result.statuses[STAGES[i].id]).toBe('complete')
     }
     // Next stage should be active (if exists)
     if (stageIndex + 1 < STAGES.length) {
-      expect(result.statuses[STAGES[stageIndex + 1]!.id]).toBe('active')
+      expect(result.statuses[STAGES[stageIndex + 1].id]).toBe('active')
     }
     // Rest should be not-started
     for (let i = stageIndex + 2; i < STAGES.length; i++) {
-      expect(result.statuses[STAGES[i]!.id]).toBe('not-started')
+      expect(result.statuses[STAGES[i].id]).toBe('not-started')
     }
   })
 
@@ -68,8 +68,8 @@ describe('derivePathwayStatus', () => {
     const artifacts: PatientArtifacts = {
       responses: [],
       observations: [
-        mockArtifact(STAGES[lowerIndex]!.id),
-        mockArtifact(STAGES[higherIndex]!.id),
+        mockArtifact(STAGES[lowerIndex].id),
+        mockArtifact(STAGES[higherIndex].id),
       ],
     }
     const result = derivePathwayStatus(artifacts)
@@ -78,13 +78,13 @@ describe('derivePathwayStatus', () => {
     expect(result.activeStageId).toBe(STAGES[higherIndex + 1]?.id || null)
 
     for (let i = 0; i <= higherIndex; i++) {
-      expect(result.statuses[STAGES[i]!.id]).toBe('complete')
+      expect(result.statuses[STAGES[i].id]).toBe('complete')
     }
     if (higherIndex + 1 < STAGES.length) {
-      expect(result.statuses[STAGES[higherIndex + 1]!.id]).toBe('active')
+      expect(result.statuses[STAGES[higherIndex + 1].id]).toBe('active')
     }
     for (let i = higherIndex + 2; i < STAGES.length; i++) {
-      expect(result.statuses[STAGES[i]!.id]).toBe('not-started')
+      expect(result.statuses[STAGES[i].id]).toBe('not-started')
     }
   })
 
@@ -98,9 +98,9 @@ describe('derivePathwayStatus', () => {
     expect(result.maxCompletedIndex).toBe(-1)
     expect(result.activeStageId).toBe(STAGES[0]?.id)
 
-    expect(result.statuses[STAGES[0]!.id]).toBe('active')
+    expect(result.statuses[STAGES[0].id]).toBe('active')
     for (let i = 1; i < STAGES.length; i++) {
-      expect(result.statuses[STAGES[i]!.id]).toBe('not-started')
+      expect(result.statuses[STAGES[i].id]).toBe('not-started')
     }
   })
 
@@ -110,7 +110,7 @@ describe('derivePathwayStatus', () => {
       responses: [],
       observations: [
         mockArtifact(), // Unmapped
-        mockArtifact(STAGES[stageIndex]!.id), // Mapped to index 1
+        mockArtifact(STAGES[stageIndex].id), // Mapped to index 1
         mockArtifact(), // Unmapped
       ],
     }
@@ -120,10 +120,10 @@ describe('derivePathwayStatus', () => {
     expect(result.activeStageId).toBe(STAGES[stageIndex + 1]?.id || null)
 
     for (let i = 0; i <= stageIndex; i++) {
-      expect(result.statuses[STAGES[i]!.id]).toBe('complete')
+      expect(result.statuses[STAGES[i].id]).toBe('complete')
     }
     if (stageIndex + 1 < STAGES.length) {
-      expect(result.statuses[STAGES[stageIndex + 1]!.id]).toBe('active')
+      expect(result.statuses[STAGES[stageIndex + 1].id]).toBe('active')
     }
   })
 })

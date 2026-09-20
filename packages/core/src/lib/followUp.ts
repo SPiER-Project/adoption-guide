@@ -204,8 +204,8 @@ export function outreachAttempts(communications: CommunicationResource[]): Commu
     .filter(isOutreachAttempt)
     .slice()
     .sort((a, b) => {
-      const sa = (a as { sent?: string }).sent ?? ''
-      const sb = (b as { sent?: string }).sent ?? ''
+      const sa = a.sent ?? ''
+      const sb = b.sent ?? ''
       return sb.localeCompare(sa)
     })
 }
@@ -292,14 +292,14 @@ export function caringContactOptedOut(resource: CommunicationResource): boolean 
 export function caringContacts(communications: CommunicationResource[]): CommunicationResource[] {
   return communications
     .filter(c =>
-      ((c as { meta?: { profile?: string[] } }).meta?.profile ?? []).includes(
+      (c.meta?.profile ?? []).includes(
         CARING_CONTACT_PROFILE,
       ),
     )
     .slice()
     .sort((a, b) => {
-      const sa = (a as { sent?: string }).sent ?? ''
-      const sb = (b as { sent?: string }).sent ?? ''
+      const sa = a.sent ?? ''
+      const sb = b.sent ?? ''
       return sb.localeCompare(sa)
     })
 }

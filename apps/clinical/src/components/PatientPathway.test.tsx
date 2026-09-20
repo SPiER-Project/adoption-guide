@@ -169,9 +169,9 @@ describe('CdsCardView — long detail and the configure link', () => {
   it('clips detail past the limit behind "Show more", and expands on demand', () => {
     const { container } = renderRail('ehr', [card(3, { detail: long })])
     const text = container.querySelector('.cds-card-rationale__text')!
-    expect(text.textContent!.length).toBeLessThan(long.length)
+    expect(text.textContent.length).toBeLessThan(long.length)
     // Cut at a sentence boundary, not mid-word.
-    expect(text.textContent!.endsWith('.')).toBe(true)
+    expect(text.textContent.endsWith('.')).toBe(true)
     const more = screen.getByRole('button', { name: 'Show more' })
     fireEvent.click(more)
     expect(container.querySelector('.cds-card-rationale__text')?.textContent).toBe(long)

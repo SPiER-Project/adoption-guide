@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import FHIR from 'fhirclient/browser'
+import { describeError } from '../lib/describeError'
 
 import { clientIdForIssuer } from '../lib/smartClients'
 
@@ -126,9 +127,9 @@ export function SmartLaunch() {
                 // real iframe launch, panel step 5.
                 completeInTarget: true,
             })
-            .catch((err) => {
+            .catch((err: unknown) => {
                 console.error('FHIR OAuth2 Authorize Error:', err)
-                setError(err.message || 'An error occurred during SMART launch.')
+                setError(describeError(err) || 'An error occurred during SMART launch.')
             })
     }, [])
 

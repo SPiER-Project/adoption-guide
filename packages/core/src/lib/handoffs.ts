@@ -335,10 +335,10 @@ export function buildSafetyHandoff(params: {
 export function safetyHandoffs(communications: CommunicationResource[]): CommunicationResource[] {
   return communications
     .filter(c =>
-      ((c as { meta?: { profile?: string[] } }).meta?.profile ?? []).includes(SAFETY_HANDOFF_PROFILE),
+      (c.meta?.profile ?? []).includes(SAFETY_HANDOFF_PROFILE),
     )
     .slice()
-    .sort((a, b) => String(b.sent ?? '').localeCompare(String(a.sent ?? '')))
+    .sort((a, b) => (b.sent ?? '').localeCompare(a.sent ?? ''))
 }
 
 // ─── TL-030 — Discharge safety packet (DocumentReference) ─────
