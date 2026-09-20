@@ -21,7 +21,7 @@ Read the file for the area you are changing **before** you change it.
 | [`fhir-conformance.md`](fhir-conformance.md) | editing a scenario fixture, a mapper, an `.fml` map, or a validation rule shared with the mock EHR |
 | [`measures.md`](measures.md) | changing a measure criterion, a population, or the dashboard's scoring |
 | [`docs-gates.md`](docs-gates.md) | editing `docs/**`, the root `README.md`, or the HL7 use-case workbook |
-| [`workers.md`](workers.md) | changing `services/guide/` or `services/mock-ehr/` |
+| [`workers.md`](workers.md) | changing any `services/*` Worker, `packages/worker-http`, or `packages/worker-tooling` |
 | [`css-and-page-template.md`](css-and-page-template.md) | adding a page, a width, a design token, or a run of prose |
 | [`tool-views.md`](tool-views.md) | adding or merging an instrument filler or workflow recorder, or putting a resource on screen |
 | [`build-gotchas.md`](build-gotchas.md) | a confusing `git status`, a bundle-size question, or changing a hand-duplicated value |

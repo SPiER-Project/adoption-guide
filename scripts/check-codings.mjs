@@ -205,7 +205,7 @@ const SCAN = [
   // entry below is: they assert nothing today but cover terminology added
   // tomorrow from day one.
   //
-  // ⚠️ **D8 (docs/plans/repo-cruft-audit-2026-09-20.md): a `minCodings` of
+  // ⚠️ **D8 (docs/plans/archive/repo-cruft-audit-2026-09-20.md): a `minCodings` of
   // all-zero can never fail, on its own or on this coding scan's terms.** It
   // reports the same "0 (floor 0)" whether the tree still has 30 files under
   // it or the path was deleted out from under the entry entirely — a `minCodings`

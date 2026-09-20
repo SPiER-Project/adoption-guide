@@ -13,7 +13,8 @@
     "pretest": "npm --prefix ../.. run copy-fhir",
     "test": "vitest run",
     "check:csp": "node ../../scripts/check-worker-csp.mjs",
-    "verify": "npm --prefix ../.. run copy-fhir && npm run typecheck && npm run lint && npm run check:csp && npm run test"
+    "verify": "npm --prefix ../.. run copy-fhir && npm run typecheck && npm run lint && npm run check:csp && npm run check:toolchain && npm run test",
+    "check:toolchain": "node ../../scripts/check-service-toolchain.mjs"
   },
   "dependencies": {
     "hono": "^4.13.8",

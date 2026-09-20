@@ -21,16 +21,15 @@ chart, that would make the product import from the demo host.
 
 There is no npm workspace yet ([#387](https://github.com/SPiER-Project/adoption-guide/issues/387)
 records the decision and the deferred workspaces migration), so this resolves by
-**declared alias** rather than by package name resolution. Four places must agree,
+**declared alias** rather than by package name resolution. Five places must agree,
 and each is commented as such:
 
 | Consumer | Where the alias lives |
 |---|---|
-| `web` app + build | `vite.config.ts` |
-| `web` tests | `vitest.config.ts` — **separately**, see below |
-| `web` typecheck | `tsconfig.app.json` `paths` |
-| `services/guide` | its `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
-| `services/mock-ehr` | its `vite.config.ts`, `vitest.config.ts`, `tsconfig.json` |
+| the two apps' build (repo root) | `vite.config.ts` |
+| the two apps' tests | `vitest.config.ts` — **separately**, see below |
+| the two apps' typecheck | `tsconfig.app.json` `paths` |
+| the four `services/*` Workers | `packages/worker-tooling/aliases.mjs` (Vite + Vitest) and `packages/worker-tooling/tsconfig.worker.json` — once, gated by `scripts/check-service-toolchain.mjs` |
 | Node scripts (gates, root tooling) | plain `fs` paths — no alias involved |
 
 ⚠️ **`vitest.config.ts` does NOT inherit `vite.config.ts`.** It is its own

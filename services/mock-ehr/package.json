@@ -12,8 +12,9 @@
     "lint": "eslint .",
     "pretest": "npm --prefix ../.. run copy-fhir",
     "test": "vitest run",
-    "verify": "npm --prefix ../.. run copy-fhir && npm run typecheck && npm run lint && npm run check:host-css && npm run test",
-    "check:host-css": "node scripts/check-host-css.mjs"
+    "verify": "npm --prefix ../.. run copy-fhir && npm run typecheck && npm run lint && npm run check:host-css && npm run check:toolchain && npm run test",
+    "check:host-css": "node scripts/check-host-css.mjs",
+    "check:toolchain": "node ../../scripts/check-service-toolchain.mjs"
   },
   "dependencies": {
     "hono": "^4.13.8"

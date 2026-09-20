@@ -95,6 +95,17 @@ most of them are a gate that passed while checking nothing.
   *being an asset host*: the Static Assets catch-all, the explicit SPA fallback,
   and the one `frame-ancestors` policy. React-free and DOM-free like
   `packages/core`, and gated by `scripts/check-worker-csp.mjs`.
+- `packages/worker-tooling/` — the **Worker toolchain, once**: the eslint body,
+  the tsconfig base, and the Vite/Vitest body + `@spier/*` alias list that all
+  four `services/*` Workers consume. ⚠️ **Nothing in it imports a dependency**
+  — a bare `import 'vite'` under `packages/` resolves the ROOT install's copy,
+  not the service's (#387), so the eslint body takes its dependencies as
+  arguments and the vite body returns plain objects for the service's own
+  `defineConfig`. `scripts/check-service-toolchain.mjs` (`check:toolchain` in
+  every service's `verify`) fails a config that stops consuming it, a manifest
+  whose devDependencies differ from its siblings', or a tsconfig `paths` /
+  Vite alias pair that name different packages. See
+  `packages/worker-tooling/README.md`.
 - `packages/demo-population/` — the 14 demo patients + scenario slices (#388).
 - `packages/fhir-artifacts/generated/` — SUSHI's output, gitignored (#392).
 - `apps/guide/` — the **Adoption Guide**: the case for the pathway, the published
@@ -135,7 +146,8 @@ most of them are a gate that passed while checking nothing.
   ⚠️ **`eslint .` got WIDER at the hoist and that is deliberate.** It ran from
   `web/`, so `.` was web's own tree and every app and package went unlinted;
   from the root it reaches them, and `eslint.config.js` now carries the ignore
-  list that draws the line (the three Workers lint themselves). It found two
+  list that draws the line (the four Workers lint themselves, all through
+  `packages/worker-tooling/eslint.mjs`). It found two
   real defects on first run — see `packages/app-shell/src/context/PatientProvider.tsx`.
   Consumes generated FHIR JSON copied into `packages/fhir-artifacts/generated/`
   by `scripts/copy-fhir.mjs`, and Questionnaires imported from
@@ -397,6 +409,12 @@ node scripts/check-worker-csp.mjs     # ONE frame-ancestors policy across every 
                                       # services/clinical (`npm run check:csp`) rather than from web,
                                       # which reads none of it; it scans the whole repo, so either
                                       # caller is sufficient
+node scripts/check-service-toolchain.mjs   # ONE Worker toolchain: the four services/*/package.json
+                                      # devDependency maps are identical, every service config consumes
+                                      # packages/worker-tooling (and declares no alias / compilerOptions
+                                      # of its own), and the tsconfig `paths` and Vite alias lists name
+                                      # the same packages. `npm run check:toolchain` in every service's
+                                      # verify; scans all of services/, so one caller is sufficient
 node scripts/validate-fhir.mjs        # HL7 validator_cli over ig/fsh-generated/, ig/input/resources/questionnaires/ and
                                       # the unwrapped scenarios (needs Java 17+; caches a ~190MB jar)
 node scripts/check-fml.mjs --tx https://tx.fhir.org   # FHIR Mapping Language gate (same Java + jar;
@@ -445,6 +463,17 @@ cd services/clinical  && npm install && npm run verify   # the two SMART apps. A
 cd services/mock-ehr  && npm install && npm run verify   # + check:host-css (no hex outside TOKENS,
                                                          # every var(--…) resolves)
 ```
+
+⚠️ **All four build under ONE toolchain, `packages/worker-tooling`, and
+`check:toolchain` in each verify is what keeps it one.** A service's
+`eslint.config.js`, `tsconfig.json`, `vite.config.ts` and `vitest.config.ts`
+are each a few lines consuming a shared body; the bodies, the `@spier/*` alias
+list and the compiler options live in that package. Before 2026-09-20 the
+twelve files were hand-mirrored copies that had already forked (tsconfig
+`paths`, vitest alias form, an alias in cds that nothing used) while the
+devDependency ranges forked far enough to hold three HIGH advisories open.
+Add a compiler option, an alias or a devDependency to the package (or to all
+four manifests), never to one service — the gate fails the single copy.
 
 ⚠️ **Three offerings, four deployables.** The **IG**, the **Adoption Guide** and
 the **clinical product demonstration** are three separate offerings, and both

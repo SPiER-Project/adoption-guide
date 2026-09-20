@@ -1,59 +1,8 @@
-import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
+import { workerViteConfig } from '../../packages/worker-tooling/vite.mjs'
 
-// Bundle the Worker entry (src/index.ts) into a single ESM file for Cloudflare.
-// Plain Vite (not @cloudflare/vite-plugin) so the build stays decoupled from
-// asset handling — wrangler serves ./web-dist natively. This is still a Vite
-// build, so the app's `import.meta.glob` catalog + scenario loaders (imported
-// from ../../packages) are transformed and their JSON inlined at build time.
-export default defineConfig({
-  // The demo population resolves by declared alias, not by npm workspace
-  // (#387 records why there is no workspace yet). Anchored exact + prefix
-  // pair; must agree with tsconfig.json's `paths`.
-  resolve: {
-    alias: [
-      {
-        find: /^@spier\/demo-population$/,
-        replacement: fileURLToPath(
-          new URL('../../packages/demo-population/src/index.ts', import.meta.url),
-        ),
-      },
-      {
-        // The React-free domain layer (packages/core), step B (#389). Prefix
-        // alias: every consumer imports `@spier/core/<path>` mirroring the
-        // package's own structure.
-        find: '@spier/core/',
-        replacement: fileURLToPath(
-          new URL('../../packages/core/src/', import.meta.url),
-        ),
-      },
-      {
-        // The compiled FHIR artifacts (packages/fhir-artifacts), step E1 (#392).
-        // ⚠️ Static imports only — Vite does not resolve aliases inside
-        // `import.meta.glob`, so the runtime globs use relative paths.
-        find: '@spier/fhir-artifacts/',
-        replacement: fileURLToPath(
-          new URL('../../packages/fhir-artifacts/', import.meta.url),
-        ),
-      },
-      {
-        find: '@spier/demo-population/',
-        replacement: fileURLToPath(
-          new URL('../../packages/demo-population/src/', import.meta.url),
-        ),
-      },
-    ],
-  },
-  build: {
-    ssr: './src/index.ts',
-    outDir: 'dist',
-    emptyOutDir: true,
-    target: 'esnext',
-    rollupOptions: {
-      output: { entryFileNames: 'index.js', format: 'es' },
-    },
-  },
-  // Bundle every dependency (hono + the web/src modules) into the single output
-  // so the Worker has no runtime resolution to do.
-  ssr: { target: 'webworker', noExternal: true },
-})
+// The CDS Hooks Worker: JSON only, no Static Assets. It imports the catalog,
+// the mappers and the demo population from ../../packages, which is why it is
+// a Vite build at all (the fixtures' `import.meta.glob` loaders inline at
+// build time). Shared build body: packages/worker-tooling.
+export default defineConfig(workerViteConfig())
