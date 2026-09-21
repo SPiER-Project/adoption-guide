@@ -16,10 +16,26 @@
  * adding one means adding an entry here — no new component, no new markup.
  */
 import { RISK_LEVEL_ORDER } from '@spier/core/lib/observationMappers'
-import type { DerivedRegistryRow } from '@spier/core/lib/registry'
-import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import type { DerivedRegistryRow, RegistryRiskLevel } from '@spier/core/lib/registry'
 
-type RiskLevel = RiskAlert['level']
+type RiskLevel = RegistryRiskLevel
+
+/**
+ * Where each level sits when the table is "highest risk first".
+ *
+ * ⚠️ **`unknown` sorts BELOW `none`, and that is a deliberate reading of what
+ * this column sorts on.** A never-screened patient is not a low-risk patient,
+ * but neither is their risk *known* to be high — putting them above an acute
+ * chart would rank a question above an answer. What they are owed is a screen,
+ * and the Recommended Next Step column says exactly that on their row.
+ *
+ * Extends `RISK_LEVEL_ORDER` rather than restating it, so the five severities
+ * keep one ordering across every surface that ranks them.
+ */
+const ROW_RISK_ORDER: Record<RiskLevel, number> = {
+  ...RISK_LEVEL_ORDER,
+  unknown: RISK_LEVEL_ORDER.none + 1,
+}
 
 export type SortCol = 'patient' | 'risk' | 'activity' | 'nextVisit' | 'nextDue'
 export type SortDir = 'asc' | 'desc'
@@ -79,8 +95,8 @@ function compareInDefaultDir(col: SortCol, a: DerivedRegistryRow, b: DerivedRegi
     case 'patient':
       return a.displayName.localeCompare(b.displayName)
     case 'risk':
-      // RISK_LEVEL_ORDER puts acute lowest, so ascending order is highest-risk-first.
-      return RISK_LEVEL_ORDER[a.currentRiskLevel] - RISK_LEVEL_ORDER[b.currentRiskLevel]
+      // ROW_RISK_ORDER puts acute lowest, so ascending order is highest-risk-first.
+      return ROW_RISK_ORDER[a.currentRiskLevel] - ROW_RISK_ORDER[b.currentRiskLevel]
     case 'activity':
       return (activityTime(b) ?? 0) - (activityTime(a) ?? 0)
     case 'nextVisit':

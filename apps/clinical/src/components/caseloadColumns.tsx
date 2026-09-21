@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom'
 import { stageTitleById } from '@spier/core/data/catalog'
 import { ageOf } from '../lib/populationFilters'
 import { RISK_LABEL } from '../lib/populationSummary'
+import { riskTitle } from '@spier/app-shell/lib/riskLabel'
 import { RiskPill } from '@spier/tool-views/components/RiskPill'
 import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
 import { formatDaysAgo, isoDay } from '@spier/tool-views/lib/dates'
@@ -111,7 +112,18 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
     sortCol: 'risk',
     filter: 'risk',
     className: 'caseload-table-risk-col',
-    render: row => <RiskPill level={row.currentRiskLevel} label={RISK_LABEL[row.currentRiskLevel]} />,
+    // ⚠️ `title` carries the one level whose word does not explain itself.
+    // `Unknown` on a caseload row means "no suicide-risk screening on file",
+    // not "we lost the number" — `riskTitle` is where that sentence already
+    // lives, shared with the identity strip so the two cannot word it
+    // differently.
+    render: row => (
+      <RiskPill
+        level={row.currentRiskLevel}
+        label={RISK_LABEL[row.currentRiskLevel]}
+        title={riskTitle(row.currentRiskLevel)}
+      />
+    ),
   },
   // Stage-7 work queue (TL-037) and the Stage-6 follow-up rollup (TL-034/035)
   // share one column: neither ever drove a row's height, and merging them buys

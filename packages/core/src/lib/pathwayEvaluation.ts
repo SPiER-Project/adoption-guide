@@ -170,6 +170,18 @@ export interface PathwayEvaluation {
   tier: { code: string; display: string; recordedOn?: string } | null
   /** The cadence state, once a tier is on record. */
   reassessment: ReassessmentState | null
+  /**
+   * Whether anything on this record answers "has this patient been screened".
+   *
+   * ⚠️ **"Not screened" and "screened, nothing found" are different facts and
+   * must not render as one word.** `riskLabel.ts` has said so for as long as
+   * the identity strip has existed — *a chart that has never been screened
+   * must not read as cleared* — and the caseload had no way to tell them apart,
+   * because its risk level came from `highestRiskLevel([])`, which is `none`.
+   * The evaluator is the one place that already knows: it is the same question
+   * as "does the protocol's first row apply".
+   */
+  screened: boolean
 }
 
 /** The slice of a chart this evaluator reads. Every bucket is optional. */
@@ -433,6 +445,22 @@ export function evaluatePathway(
   record: PathwayRecord,
   options: EvaluatePathwayOptions = {},
 ): PathwayEvaluation {
+  const slice = asSlice(record)
+  // ⚠️ Stamped HERE, at one exit, rather than on each of the walk's six
+  // returns. "Has this patient been screened" is a property of the record and
+  // not of which row matched, and threading it through every branch is how one
+  // branch ends up saying something different from the others.
+  const screened =
+    screenArtifacts(slice).length > 0 ||
+    assessmentArtifacts(slice).length > 0 ||
+    tierHistory(slice).length > 0
+  return { ...walkPathway(record, options), screened }
+}
+
+function walkPathway(
+  record: PathwayRecord,
+  options: EvaluatePathwayOptions,
+): Omit<PathwayEvaluation, 'screened'> {
   const now = options.now ?? new Date()
   const pathway = options.pathway ?? loadPathway()
   const slice = asSlice(record)
@@ -562,7 +590,7 @@ function one(
   alsoDue: PathwayObligation[],
   tier: PathwayEvaluation['tier'],
   reassessment: ReassessmentState | null,
-): PathwayEvaluation {
+): Omit<PathwayEvaluation, 'screened'> {
   return { primary, alsoDue, reason: primary.reason, tier, reassessment }
 }
 
@@ -580,7 +608,7 @@ function evaluateTier(params: {
   tier: NonNullable<PathwayEvaluation['tier']>
   tiers: TierPoint[]
   now: Date
-}): PathwayEvaluation {
+}): Omit<PathwayEvaluation, 'screened'> {
   const { pathway, slice, tier, tiers, now } = params
 
   // `imminent` has no group of its own; it carries at least the high-risk

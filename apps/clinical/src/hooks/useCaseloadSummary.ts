@@ -23,8 +23,7 @@
  */
 import { useMemo } from 'react'
 import { evaluateAllMeasures, trailingPeriod } from '@spier/core/lib/measures'
-import { deriveRegistryRow, type DerivedRegistryRow } from '@spier/core/lib/registry'
-import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import { deriveRegistryRow, type DerivedRegistryRow, type RegistryRiskLevel } from '@spier/core/lib/registry'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import { alertsForPatient, groupAlertsByPatient, type PatientAlertGroup } from '../lib/populationAlerts'
 import { riskCountsOf, summaryTiles, tierCensus } from '../lib/populationSummary'
@@ -49,7 +48,7 @@ export interface CaseloadSummary {
   entries: CaseloadEntry[]
   rows: DerivedRegistryRow[]
   /** Patients per risk tier. One source for the census bar, the high-risk tile and the Risk filter. */
-  riskCounts: Record<RiskAlert['level'], number>
+  riskCounts: Record<RegistryRiskLevel, number>
   alertGroups: PatientAlertGroup[]
   tiles: SummaryTile[]
   census: TierCensusEntry[]

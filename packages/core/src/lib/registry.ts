@@ -76,11 +76,31 @@ export interface RegistryActivity {
   label: string
 }
 
+/**
+ * What a caseload row can say about a patient's risk.
+ *
+ * ⚠️ **`unknown` is not a sixth severity — it is the absence of the question
+ * having been asked**, and it is here because the five-value alert vocabulary
+ * could not express it. `highestRiskLevel([])` is `none`, so a patient nobody
+ * had ever screened rendered the same word as a patient screened and cleared.
+ * `riskLabel.ts` has carried the distinction for the identity strip since it
+ * was written — *a chart that has never been screened must not read as
+ * cleared* — and this is the row type catching up with it.
+ *
+ * Structurally the same six values as `RiskLevel` in the view layer, declared
+ * here rather than imported because `packages/core` is React-free and that
+ * module ships lucide icons (`npm run check:core-boundary`). The two are tied
+ * together at every render site: `RISK_LABEL` and `RISK_ICON` are keyed by the
+ * view's union, so a value this one gained and that one did not would not
+ * compile.
+ */
+export type RegistryRiskLevel = RiskAlert['level'] | 'unknown'
+
 export interface DerivedRegistryRow extends RegistryPatient {
   /** Null once every stage (including the last) is complete — see derivePathwayStatus. */
   currentStage: string | null
   completedStages: string[]
-  currentRiskLevel: RiskAlert['level']
+  currentRiskLevel: RegistryRiskLevel
   /** Null when the slice has no dated artifact at all. */
   lastActivity: RegistryActivity | null
   /**
@@ -484,9 +504,20 @@ export function deriveRegistryRow(
   // until something does. Showing `none` for them would read as "screened, no
   // risk", which is the opposite of true. So a record with no tier keeps
   // saying what its instruments said.
+  //
+  // ⚠️ **And `unknown` below the fallback, which `highestRiskLevel` cannot
+  // say.** It returns `none` for an empty alert set, so a patient nobody has
+  // ever screened read exactly like a patient screened and cleared — the
+  // distinction `riskLabel.ts` calls out as clinical and the one word this
+  // column had no way to spell. A record the evaluator finds no screen, no
+  // assessment and no tier on has not been asked the question.
   const alertLevel = highestRiskLevel(slice.riskAlerts)
-  const currentRiskLevel =
-    (evaluation.tier ? riskLevelForTier(evaluation.tier.code) : undefined) ?? alertLevel
+  const tierLevel = evaluation.tier ? riskLevelForTier(evaluation.tier.code) : undefined
+  // The alert guard is belt-and-braces: a slice carrying alerts but no
+  // artifacts is malformed, and reading it as "never screened" would be the
+  // louder error of the two.
+  const anySignal = evaluation.screened || slice.riskAlerts.length > 0
+  const currentRiskLevel: RegistryRiskLevel = tierLevel ?? (anySignal ? alertLevel : 'unknown')
 
   return {
     ...patient,
@@ -497,8 +528,10 @@ export function deriveRegistryRow(
     ...deriveEpisodeRollup(slice, now),
     ...deriveFollowUpRollup(slice, now),
     // Fed the tier-derived level too, so the row's next-reassessment date is
-    // computed off the same tier the chart's card is.
-    ...deriveReassessmentRollup(slice, currentRiskLevel, now),
+    // computed off the same tier the chart's card is. An unscreened patient is
+    // on no cadence, which `none` → `no-risk` already says: "not on the
+    // suicide-safer care pathway".
+    ...deriveReassessmentRollup(slice, currentRiskLevel === 'unknown' ? 'none' : currentRiskLevel, now),
     nextStep: evaluation.primary
       ? { label: evaluation.primary.title, rationale: evaluation.reason }
       : null,

@@ -51,6 +51,27 @@ describe('sortRows', () => {
     ])
   })
 
+  it('ranks an unscreened patient below every screened one, including `none`', () => {
+    // ⚠️ **`unknown` is not a severity and must not be sorted as one.** It
+    // means "no suicide-risk screening on file", so putting it above an acute
+    // chart would rank a question above an answer — and putting it above
+    // `none` would rank it above a patient who WAS screened. What an
+    // unscreened patient is owed is a screen, which their Recommended Next
+    // Step column says.
+    const rows = [
+      row({ id: 'unknown', currentRiskLevel: 'unknown' }),
+      row({ id: 'none', currentRiskLevel: 'none' }),
+      row({ id: 'acute', currentRiskLevel: 'acute' }),
+      row({ id: 'low', currentRiskLevel: 'low' }),
+    ]
+    expect(sortRows(rows, { col: 'risk', dir: DEFAULT_DIR.risk }).map(r => r.id)).toEqual([
+      'acute',
+      'low',
+      'none',
+      'unknown',
+    ])
+  })
+
   it('puts the soonest visit first in the nextVisit default direction', () => {
     const rows = [
       row({ id: 'late', nextAppointment: visit('2026-09-01') }),

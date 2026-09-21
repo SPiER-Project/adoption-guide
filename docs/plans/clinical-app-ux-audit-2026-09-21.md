@@ -87,12 +87,31 @@ because a chart that has one cannot be missing it. Four demo rows change in
 total: patient-001 and patient-006 from high to moderate, patient-013 and
 patient-014 from none to acute.
 
-⚠️ **The related half is still open: `none` and `unknown` are one word on this
-page.** `RiskLevel` already carries both, and `riskLabel.ts` says why — "a
-chart that has never been screened must not read as cleared" — but the registry
-row's type does not, so a never-screened patient and a screened-negative one
-both render *None*. Closing it means touching the census bar, the risk filter
-and the summary tiles, which is PR 7's screen and its audit section.
+**`none` and `unknown` are two words on this page now, too.** `RiskLevel` in
+the view layer has carried both since the identity strip was written, and
+`riskLabel.ts` says why — "a chart that has never been screened must not read
+as cleared" — but the registry row's type did not, so patient-002 (whose story
+is literally *no suicide-risk screening on file*) and patient-012 (a negative
+ED screen, deliberately) both rendered **None**. `DerivedRegistryRow`'s level
+is `RegistryRiskLevel` now, the evaluator answers "has this patient been
+screened" from the record rather than from the cached alerts, and the caseload
+pill carries `riskTitle` so the one word that does not explain itself says
+*No suicide-risk screening on file* on hover. `unknown` sorts BELOW `none`: it
+is not a severity, and ranking a question above an answer would be the wrong
+kind of loud. The census bar and the risk filter gain it as an entry that
+appears only when the count is non-zero.
+
+Five demo rows change in total: patient-001 and patient-006 high → moderate,
+patient-013 and patient-014 none → acute, patient-002 none → unknown.
+patient-012 stays `none`, which is the pair that makes the distinction visible.
+
+⚠️ **Two of the plants for this one passed first time, and the tests were
+rewritten rather than the result accepted.** "patient-013 reads acute with no
+alerts on file" survives a `screened` rewired to read the alert list, because
+that row's level comes from its TIER — so the property needed a case no
+fixture has: a screen on file that yields neither an alert nor a tier. The sort
+tests never built an `unknown` row, so putting `unknown` above `acute` passed
+as well. Both now fail on the plant.
 
 ⚠️ **That closes the narrow half of the gap and not the recorded worry about
 it.** `docs/best-practices/concept-harmonization.md` had flagged in advance that
