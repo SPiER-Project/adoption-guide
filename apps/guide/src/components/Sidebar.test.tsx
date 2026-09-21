@@ -198,3 +198,70 @@ describe('the sidebar says each thing once', () => {
     expect(tryZone.getByRole('link', { name: 'Tools' })).toBeTruthy()
   })
 })
+
+/**
+ * The headings, and which row is lit.
+ *
+ * ⚠️ **One page, one lit row — and that stopped being free on 2026-09-20.**
+ * `NavLink` matches a path PREFIX. While `tools/readiness` was a subsection of
+ * Tools that was exactly right: the reader was on a page of Tools and Tools
+ * lit. The adoption-guide UX audit (§4.6) made Adoption Readiness a Reference
+ * row and it kept its published path, so the prefix match lit Tools as well and
+ * the sidebar showed two rows for one page — in two different groups, which is
+ * the version a reader cannot explain away. The fix routes the highlight
+ * through `resolveGuidePath`, the same function the layout's header, width and
+ * pager already use.
+ */
+describe('the sidebar groups the guide by the reader’s question', () => {
+  afterEach(() => cleanup())
+
+  const renderAt = (path: string) =>
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <Sidebar isOpen={false} onClose={() => {}} />
+      </MemoryRouter>,
+    )
+
+  it('heads the guide nav with exactly the three groups, in reading order', async () => {
+    const { GUIDE_GROUPS } = await import('../data/guideSections')
+    renderAt('/overview')
+    const guideNav = screen.getByRole('navigation', { name: 'Adoption Guide' })
+    const headings = [...guideNav.querySelectorAll('.sidebar-group-heading')].map(h => h.textContent)
+    expect(headings).toEqual(['Understand', 'See it running', 'Reference'])
+    // Derived, not a second copy: the headings ARE the group labels, in order.
+    expect(headings).toEqual(GUIDE_GROUPS.map(g => g.label))
+  })
+
+  it('offers Adoption Readiness as a row under Reference', async () => {
+    const { GUIDE_SECTIONS } = await import('../data/guideSections')
+    renderAt('/overview')
+    const row = within(screen.getByRole('navigation', { name: 'Adoption Guide' }))
+      .getByRole('link', { name: 'Adoption Readiness' })
+    expect(row.getAttribute('href')).toBe('/guide/tools/readiness')
+    // It was reachable only from inside Tools between 2026-09-17 and 2026-09-20.
+    expect(GUIDE_SECTIONS.find(s => s.path === 'tools/readiness')?.group).toBe('reference')
+  })
+
+  it.each([
+    ['/guide/tools', 'Tools'],
+    ['/guide/tools/readiness', 'Adoption Readiness'],
+    ['/guide/pathway', 'Care Pathway'],
+    // A subsection borrows its section's row, and a deep link its section's too.
+    ['/guide/pathway/protocol', 'Care Pathway'],
+    ['/guide/tools/TL-003', 'Tools'],
+  ])('lights exactly one row on %s, and it is %s', (path, label) => {
+    renderAt(path)
+    const guideNav = screen.getByRole('navigation', { name: 'Adoption Guide' })
+    const lit = [...guideNav.querySelectorAll('.sidebar-link--child.active')].map(a => a.textContent)
+    expect(lit).toEqual([label])
+    // aria-current follows the class, or a screen reader is told something else.
+    const current = [...guideNav.querySelectorAll('[aria-current="page"]')].map(a => a.textContent)
+    expect(current).toEqual([label])
+  })
+
+  it('lights no guide row outside the guide', () => {
+    renderAt('/overview')
+    const guideNav = screen.getByRole('navigation', { name: 'Adoption Guide' })
+    expect(guideNav.querySelectorAll('.sidebar-link--child.active')).toHaveLength(0)
+  })
+})

@@ -16,8 +16,12 @@ import {
  *
  * `resolveGuidePath` is tested for the trap named on it: `tools` and
  * `tools/readiness` both prefix-match `/guide/tools/readiness`, so a
- * section-first lookup resolves the subsection to its parent and the subsection
- * is never seen.
+ * segment-first lookup resolves that path to its PREFIX NEIGHBOUR and the page
+ * that owns it is never seen. The trap moved on 2026-09-20 rather than going
+ * away — Adoption Readiness stopped being a subsection of Tools and became a
+ * Reference row while keeping its path — so it is pinned in both shapes:
+ * `pathway/protocol` is still a subsection, `tools/readiness` is now a section,
+ * and both must beat `tools`/`pathway` to their own path.
  */
 describe('GUIDE_SECTIONS', () => {
   it('is grouped-contiguous, in GUIDE_GROUPS order', () => {
@@ -75,14 +79,27 @@ describe('resolveGuidePath', () => {
     expect(r?.subsection).toBeUndefined()
   })
 
-  it('prefers the subsection over its parent section', () => {
-    // The trap this function is written against: `tools` matches the first
-    // segment of `tools/readiness`, so a section-first lookup wins and the
+  it('prefers a subsection over its parent section', () => {
+    // The trap this function is written against: `pathway` matches the first
+    // segment of `pathway/protocol`, so a segment-first lookup wins and the
     // subsection is unreachable.
+    const r = resolveGuidePath('/guide/pathway/protocol')
+    expect(r?.section.path).toBe('pathway')
+    expect(r?.subsection?.path).toBe('pathway/protocol')
+    expect(r?.subsection?.label).toBe('The published protocol')
+  })
+
+  it('resolves a section whose path is nested under another section to ITSELF', () => {
+    // ⚠️ The same trap one level up, and the one that bites harder. Adoption
+    // Readiness is a Reference row at `tools/readiness` (2026-09-20). Resolved
+    // to Tools it would take Tools' title, group eyebrow, width and pager
+    // neighbours — a page rendered under another page's chrome, which is
+    // exactly what a reader cannot diagnose.
     const r = resolveGuidePath('/guide/tools/readiness')
-    expect(r?.section.path).toBe('tools')
-    expect(r?.subsection?.path).toBe('tools/readiness')
-    expect(r?.subsection?.label).toBe('Adoption Readiness')
+    expect(r?.section.path).toBe('tools/readiness')
+    expect(r?.section.label).toBe('Adoption Readiness')
+    expect(r?.section.group).toBe('reference')
+    expect(r?.subsection).toBeUndefined()
   })
 
   it('falls back to the owning section for an unknown deep link', () => {
@@ -94,7 +111,8 @@ describe('resolveGuidePath', () => {
   })
 
   it('tolerates a trailing slash', () => {
-    expect(resolveGuidePath('/guide/tools/readiness/')?.subsection?.path).toBe('tools/readiness')
+    expect(resolveGuidePath('/guide/tools/readiness/')?.section.path).toBe('tools/readiness')
+    expect(resolveGuidePath('/guide/pathway/protocol/')?.subsection?.path).toBe('pathway/protocol')
   })
 
   it('returns undefined for a bare /guide and for an unknown section', () => {

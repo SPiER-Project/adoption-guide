@@ -1,7 +1,7 @@
 import { Fragment, useEffect } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Home, ExternalLink } from 'lucide-react'
-import { GUIDE_SECTIONS, guideGroupLabel, guideHref } from '../data/guideSections'
+import { GUIDE_SECTIONS, guideGroupLabel, guideHref, resolveGuidePath } from '../data/guideSections'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import '@spier/app-shell/css/Sidebar.css'
 import { cx } from '@spier/ui/cx'
@@ -136,6 +136,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [isOpen, onClose])
 
+  // ⚠️ **Which row is lit is `resolveGuidePath`'s answer, not `NavLink`'s, and
+  // the two stopped agreeing on 2026-09-20.** `NavLink` matches a path PREFIX,
+  // which is right for `/guide/tools/TL-003` (light Tools) and wrong for
+  // `/guide/tools/readiness`, which became a Reference row of its own while
+  // keeping its path — so Tools and Adoption Readiness both matched and the
+  // sidebar lit two rows for one page. The layout already asks one function
+  // which section owns a path, for the title, eyebrow, width and pager; the
+  // sidebar asking a different one is how they drift. So it asks that one.
+  const active = resolveGuidePath(useLocation().pathname)?.section
+
   return (
     <>
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
@@ -160,15 +170,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             return (
               <Fragment key={section.path}>
                 {group !== prev && <p className="sidebar-group-heading">{group}</p>}
-                <NavLink
+                <Link
                   to={guideHref(section.path)}
-                  className={({ isActive }) =>
-                    `sidebar-link sidebar-link--child ${isActive ? 'active' : ''}`
-                  }
+                  className={cx('sidebar-link', 'sidebar-link--child', active === section && 'active')}
+                  aria-current={active === section ? 'page' : undefined}
                   onClick={onClose}
                 >
                   {section.label}
-                </NavLink>
+                </Link>
               </Fragment>
             )
           })}

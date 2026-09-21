@@ -265,8 +265,7 @@ export function AdoptionReadiness() {
               <Pill size="sm" variant="label" className="ar-lic--not-recorded">—</Pill>
               <span className="ar-legend-text">
                 No licensing status on the tool&rsquo;s ActivityDefinition. Every one carries a status
-                today, so this should not appear &mdash; <code>npm run check:catalog</code> fails the
-                build if one is missing.
+                today, so this should not appear: a tool without one cannot be published.
               </span>
             </div>
           </>

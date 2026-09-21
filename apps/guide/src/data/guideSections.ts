@@ -14,8 +14,25 @@
 // that answered two different questions.** Three of them define what SPiER IS —
 // the protocol, the catalogue of instruments, the data contract — and three are
 // SURFACES that run it. A reader met six undifferentiated rows and could not
-// tell which was which. The split is 'standard' / 'applications' / 'evaluate',
+// tell which was which. The split was 'standard' / 'applications' / 'evaluate',
 // in that reading order: what SPiER defines, what runs it, where you stand.
+//
+// ⚠️ **The grouping survived 2026-09-20; the LABELS did not, and neither did
+// 'evaluate'.** The adoption-guide UX audit
+// (docs/plans/adoption-guide-ux-audit-2026-09-20.md §4.6) found the names
+// described the CONTENT — 'The standard', 'The applications' — where a sidebar
+// is read as a question: a reader arriving at a row headed 'The standard' does
+// not know whether it is for them. The three headings are now the reader's own
+// questions, and the audit's option of collapsing to one unheaded list of seven
+// rows was declined for the reason the 2026-09-17 split was made: the rows are
+// not the same kind of thing.
+//
+// The two moves that came with the relabel, both the audit's:
+//   - 'evaluate' is gone rather than renamed. It held one section, and the
+//     rubric is reference material a reader reaches for, not a fourth question.
+//   - the Data Dictionary left 'Understand'. It is the data contract, which is
+//     something an implementer LOOKS UP while wiring — it was the longest page
+//     in the guide (§2: seventeen screens) sitting second in the reading order.
 //
 // ⚠️ **No section here writes state ANOTHER SURFACE READS, and that is the
 // invariant the groups encode.** The one that did — Tool Configuration — left
@@ -31,7 +48,7 @@
 // so an out-of-place section would make prev/next bounce between groups.
 
 /** Ordered categories the sections fall into. */
-export type GuideGroupId = 'standard' | 'applications' | 'evaluate' | 'reference'
+export type GuideGroupId = 'understand' | 'running' | 'reference'
 
 export interface GuideGroup {
   id: GuideGroupId
@@ -41,41 +58,37 @@ export interface GuideGroup {
 
 /** Reading order of the groups, top to bottom. */
 export const GUIDE_GROUPS: GuideGroup[] = [
-  // What an implementer builds AGAINST. All three are published artifacts or
-  // direct renderings of them, so nothing here changes when a surface does.
-  { id: 'standard', label: 'The standard' },
-  // What RUNS the standard. Two SMART apps and one hosted endpoint — an EHR
-  // that embeds neither app can still call the service and render the same
-  // cards, which is why the CDS service is a peer here and not a footnote.
-  { id: 'applications', label: 'The applications' },
+  // What SPiER IS: the protocol a site would adopt, and the instruments that
+  // walk it. Both are published artifacts or direct renderings of them, so
+  // nothing here changes when a surface does.
+  { id: 'understand', label: 'Understand' },
+  // What RUNS it. Two SMART apps and one hosted endpoint — an EHR that embeds
+  // neither app can still call the service and render the same cards, which is
+  // why the CDS service is a peer here and not a footnote.
+  //
   // ⚠️ There was a group called 'Configure', and it is gone rather than
   // empty (2026-09-15). It held two sections that were not the same kind of
   // thing: Tool Configuration, which had side effects on another surface, and
   // CDS Service, which configures nothing and is pure reference. The first
   // moved to /settings in the SMART app that owns the tool catalog; the second
-  // is now in 'The applications', beside the two apps it is a peer of. What
-  // emptied the group is the 2026-09-09 boundary finally being applied here:
-  // the guide explains and hosts — it does not configure.
+  // is here, beside the two apps it is a peer of. What emptied the group is the
+  // 2026-09-09 boundary finally being applied: the guide explains and hosts —
+  // it does not configure.
+  { id: 'running', label: 'See it running' },
+  // What a reader LOOKS UP rather than reads through: the data contract, the
+  // catalogue scored for readiness, the rubric, and the argument for SPiER.
+  // Last, because it is what a reader reaches for after the pathway, the tools
+  // and the apps rather than before them.
   //
-  // ⚠️ **'Evaluate' is down to one section and that is not an oversight.**
-  // Adoption Readiness left for /guide/tools/readiness on 2026-09-17 (it is a
-  // view of the catalogue — see the subsection below). What is left is the
-  // rubric, and it is the one section here that WRITES state: it persists
-  // scores to localStorage. That makes it the odd one out against the
-  // read-only invariant above, and it is the standing argument for the rubric
-  // becoming its own surface beside /settings rather than a guide page. Not
-  // acted on, because where those answers live is a product question: browser
-  // storage does not survive a laptop, and a readiness score is something an
-  // adopter shares with a vendor.
-  { id: 'evaluate', label: 'Evaluate' },
-  // Background: the argument for SPiER, read once and rarely returned to. It
-  // holds one section today, and that is the honest state rather than a
-  // placeholder — the adoption-guide UX audit
-  // (docs/plans/adoption-guide-ux-audit-2026-09-20.md §4.5) proposes moving the
-  // Data Dictionary, Adoption Readiness and the Adoption Rubric in beside it,
-  // which is a later PR because it changes where three published paths sit in
-  // the sidebar. Last, because it is what a reader reaches for after the
-  // pathway, the tools and the apps rather than before them.
+  // ⚠️ **'Evaluate' held the rubric alone and is gone (2026-09-20).** The
+  // rubric is still the one section here that WRITES state — it persists scores
+  // to localStorage — which makes it the odd one out against the read-only
+  // invariant above, and it is the standing argument for the rubric becoming
+  // its own surface beside /settings rather than a guide page. Not acted on,
+  // because where those answers live is a product question: browser storage
+  // does not survive a laptop, and a readiness score is something an adopter
+  // shares with a vendor. Moving it into Reference did not settle that; it
+  // stopped a one-row group from being a third heading in a seven-row sidebar.
   { id: 'reference', label: 'Reference' },
 ]
 
@@ -147,8 +160,8 @@ export interface GuideSection {
  * /guide/overview both still resolve — see the routes in App.tsx.
  */
 export const GUIDE_SECTIONS: GuideSection[] = [
-  // ── The standard ────────────────────────────────────────────────────────
-  // What SPiER defines and an implementer builds against. All three render
+  // ── Understand ──────────────────────────────────────────────────────────
+  // What SPiER defines and an implementer builds against. Both render
   // published artifacts or the contract over them, so nothing here changes
   // when a surface does.
   //
@@ -176,8 +189,8 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // subsection choose its own width — the only option that touched neither
   // the sidebar nor check:template RULE 5a).
   //
-  // ⚠️ **The published protocol is a SUBSECTION here, for the same reason
-  // Adoption Readiness is one under Tools.** /guide/pathway says what a
+  // ⚠️ **The published protocol is a SUBSECTION here: a second view of one
+  // section, not a section of its own.** /guide/pathway says what a
   // suicide-safer care pathway does and lets a reader try one against the
   // tier table; /guide/pathway/protocol is the same artifact rendered in full
   // — spine, gates, pending definitions, provenance, JSON — for the
@@ -187,21 +200,22 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   {
     path: 'pathway',
     label: 'Care Pathway',
-    group: 'standard',
+    group: 'understand',
     width: 'wide',
     subsections: [{ path: 'pathway/protocol', label: 'The published protocol' }],
   },
   // `wide`: two catalogue tables.
   //
-  // ⚠️ **Adoption Readiness is a SUBSECTION here, not a sibling, and that is
-  // not a filing preference.** pages/AdoptionReadiness.tsx imports `TOOLS` and
-  // `groupToolsByStage` from the catalog and renders one row per catalogued
-  // instrument; its own header comment says "Data is reused, not duplicated:
-  // everything here comes from the catalog." It is a second VIEW of this
-  // section — scored by build status, inclusion status and target maturity —
-  // so it belongs under the thing it is a view of. It was a top-level
-  // 'Evaluate' section until 2026-09-17. `/guide/adoption-readiness` still
-  // redirects, and so does `/guide/roadmap`, which pointed at it.
+  // ⚠️ **Adoption Readiness was a SUBSECTION here and is a Reference row
+  // again since 2026-09-20 — but it kept the path.** It is still a second VIEW
+  // of this section (pages/AdoptionReadiness.tsx renders one row per
+  // catalogued instrument, scored by build status, inclusion status and target
+  // maturity), which is why it was filed under Tools on 2026-09-17 and why
+  // `/guide/tools/readiness` is still the right address for it. What changed
+  // is who it is FOR: an adopter checking what is ready is not reading the
+  // catalogue, and a page reachable only by a link inside another page is one
+  // a reader has to be told about (audit §4.6). So it is declared below, in
+  // 'reference', with this path — see the note there.
   //
   // ⚠️ **The tool page is a PARAMETERISED subsection, and it is declared for
   // the gates alone.** `/guide/tools/TL-0NN` (pages/ToolPage.tsx, 2026-09-20)
@@ -218,18 +232,12 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   {
     path: 'tools',
     label: 'Tools',
-    group: 'standard',
+    group: 'understand',
     width: 'wide',
-    subsections: [
-      { path: 'tools/readiness', label: 'Adoption Readiness' },
-      { path: 'tools/:toolRef', label: 'Tool' },
-    ],
+    subsections: [{ path: 'tools/:toolRef', label: 'Tool' }],
   },
-  // `wide`: four tables, the widest being the per-concept routes table whose
-  // whole purpose is comparing routes side by side.
-  { path: 'data-dictionary', label: 'Data Dictionary', group: 'standard', width: 'wide' },
 
-  // ── The applications ────────────────────────────────────────────────────
+  // ── See it running ──────────────────────────────────────────────────────
   // What RUNS the standard. The two apps the guide HOSTS, plus the endpoint an
   // EHR can call instead of embedding either — three things that walk the same
   // pathway, which is why they are one group rather than two apps and a
@@ -256,27 +264,44 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // at. ⚠️ The "patient app" in repo-and-package-boundaries.md and
   // licensing-verification-backlog.md means that FUTURE patient-facing app and
   // is deliberately not renamed.
-  { path: 'provider-app', label: 'Provider App', group: 'applications', width: 'prose' },
-  { path: 'dashboard', label: 'Population Dashboard', group: 'applications', width: 'prose' },
+  { path: 'provider-app', label: 'Provider App', group: 'running', width: 'prose' },
+  { path: 'dashboard', label: 'Population Dashboard', group: 'running', width: 'prose' },
   // The THIRD thing that runs the pathway. It was filed under "Configure"
   // until 2026-09-15, which misread it — the page configures nothing, it is
   // prose, four curl blocks and a read-only probe of the live discovery
   // document. Under 'Learn' until 2026-09-17, which filed it beside the
   // reference material rather than beside its two peers.
-  { path: 'cds-service', label: 'CDS Service', group: 'applications', width: 'prose' },
+  { path: 'cds-service', label: 'CDS Service', group: 'running', width: 'prose' },
 
-  // ── Evaluate ────────────────────────────────────────────────────────────
+  // ── Reference ───────────────────────────────────────────────────────────
   // 'measures' is deliberately absent. It moved to the EHR side as
   // /population/measures (step D, #391): it was the one guide section that read
   // patient data, and measures over a caseload belong beside the caseload —
   // which is also where they would sit in a real deployment. /guide/measures
   // still redirects, because it is a published tool launch path.
   //
+  // `wide`: four tables, the widest being the per-concept routes table whose
+  // whole purpose is comparing routes side by side.
+  { path: 'data-dictionary', label: 'Data Dictionary', group: 'reference', width: 'wide' },
+  // ⚠️ **The one section whose `path` is nested under ANOTHER section's, and
+  // that is deliberate.** `/guide/tools/readiness` says what the page is — a
+  // scored view of the catalogue — and it is published: `/guide/adoption-
+  // readiness` and `/guide/roadmap` both redirect to it, and Tools links every
+  // one of its rows. Giving it a Reference-shaped address would have made a
+  // fourth spelling of one page to move a sidebar row, so the row moved and the
+  // URL did not.
+  //
+  // ⚠️ That nesting is why `resolveGuidePath` matches a section's FULL path
+  // before it falls back to the first segment. Without that, `/guide/tools/…`
+  // resolves to Tools and this row's header, eyebrow and pager step are the
+  // ones its neighbour would get — which is exactly the trap the subsection
+  // lookup was written against, one level up.
+  //
+  // `wide`: eight tables, one per pathway stage.
+  { path: 'tools/readiness', label: 'Adoption Readiness', group: 'reference', width: 'wide' },
   // `wide`: the rubric is an auto-fit grid of stage columns, and more columns
   // visible at once is the point of scoring against it.
-  { path: 'adoption-rubric', label: 'Adoption Rubric', group: 'evaluate', width: 'wide' },
-
-  // ── Reference ───────────────────────────────────────────────────────────
+  { path: 'adoption-rubric', label: 'Adoption Rubric', group: 'reference', width: 'wide' },
   // ⚠️ **This page is where the Overview's essays went, not new writing.** The
   // front door stated Capture → Translate → Act three times, gave the four
   // surfaces five paragraphs and then four cards repeating them, and ran 1,716
@@ -312,11 +337,17 @@ export function guideGroupLabel(id: GuideGroupId): string {
  * subsection is a page of its section, so the pager treats it as though the
  * reader were on the section itself rather than as a step of its own.
  *
- * ⚠️ **Matches the LONGEST path first, and that is load-bearing.**
+ * ⚠️ **Matches the FULL path first, and that is load-bearing.**
  * `tools/readiness` and `tools` both prefix-match `/guide/tools/readiness`; a
- * first-match-wins loop over `GUIDE_SECTIONS` would resolve it to Tools and the
- * subsection would never be seen. Subsections are therefore checked before
- * sections, not alongside them.
+ * first-segment loop over `GUIDE_SECTIONS` resolves it to Tools, and the page
+ * that owns the path is never seen. So exact matches — subsections, then
+ * sections — are both checked before any segment fallback.
+ *
+ * ⚠️ It was written for subsections alone, when `tools/readiness` was one.
+ * Adoption Readiness became a Reference ROW on 2026-09-20 and kept its path
+ * (see the note on it), which put the same trap under SECTIONS — where it bites
+ * harder: a section resolved to its neighbour takes that neighbour's title,
+ * group eyebrow, width and pager step.
  *
  * `undefined` for a path that names no section — the layout falls back to the
  * first section, as it did when `/guide` itself rendered a titleless header.
@@ -332,10 +363,12 @@ export function resolveGuidePath(
       if (sub.path === rest) return { section, subsection: sub }
     }
   }
-  // A section matches on its FIRST segment, so a deep link the guide does not
-  // know about (a stage anchor) — or a parameterised subsection, which the
-  // literal comparison above can never match — still renders its section's
-  // chrome rather than falling back to the first section in the list.
+  const exact = GUIDE_SECTIONS.find(s => s.path === rest)
+  if (exact) return { section: exact }
+  // Only now the FIRST segment, so a deep link the guide does not know about
+  // (a stage anchor) — or a parameterised subsection, which the literal
+  // comparisons above can never match — still renders its section's chrome
+  // rather than falling back to the first section in the list.
   const segment = rest.split('/')[0]
   const section = GUIDE_SECTIONS.find(s => s.path === segment)
   return section ? { section } : undefined

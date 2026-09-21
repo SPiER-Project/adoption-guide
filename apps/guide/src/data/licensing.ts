@@ -30,5 +30,5 @@ export const LICENSING_BLURB: Record<Licensing, string> = {
   registration: 'Free but gated — requires registering with the rights holder, obtaining written permission, and/or training before deployment (e.g. C-SSRS, Stanley-Brown).',
   commercial: 'Requires a paid license, a purchased instrument, or a negotiated agreement with the rights holder (e.g. CAMS). Confirm terms before deploying.',
   'spier-authored': 'No third-party instrument is reproduced — SPiER workflow content, published with the IG under CC0-1.0. Anything you substitute into the step carries its own terms.',
-  unknown: 'Not established by the licensing audit (#64). Confirm terms with the rights holder before deploying — this is an open question, not a green light.',
+  unknown: 'Not established by the licensing audit. Confirm terms with the rights holder before deploying — this is an open question, not a green light.',
 }
