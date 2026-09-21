@@ -166,8 +166,13 @@ fhirRoutes.get('/fhir/:type', async (c) => {
     return c.body(JSON.stringify(operationOutcome('error', 'invalid', parsed.diagnostics)), parsed.status)
   }
 
-  const denied = denyForeignPatient(c, parsed.query.patientId)
-  if (denied) return denied
+  // ⚠️ EVERY id in the list, not the first. `patient=a,b` is OR (see
+  // parseSearch), so a token scoped to `a` must be refused the moment `b`
+  // appears — checking one of them would make the OR a way around the scope.
+  for (const id of parsed.query.patientIds ?? []) {
+    const denied = denyForeignPatient(c, id)
+    if (denied) return denied
+  }
 
   const matches = applySearch(await servableFor(c), type, parsed.query)
   return c.body(JSON.stringify(searchset(matches, fhirBase(c.req.url))))

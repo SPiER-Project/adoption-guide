@@ -1,21 +1,22 @@
 /**
- * Zone 2 of the Population view: alerts grouped by patient (deck panel 8,
- * issue #278).
+ * The caseload's alerts, grouped by patient — the body of `/population/alerts`,
+ * and the one panel the mock EHR's framed summary still renders inline.
  *
- * The deck names eight alert rules. This panel shows the ones SPiER can
+ * The dashboard names eight alert rules. This panel shows the ones SPiER can
  * actually compute — every alert traceable to a published `Measure` group — and
  * then says out loud which rules it is NOT watching, because "13 alerts" read
  * against a panel silently missing five rules is worse than no panel. See
  * `lib/populationAlerts.ts` for why it is built on the measure engine rather
  * than a rules engine of its own.
  *
- * ⚠️ **Collapsed by default, and height-capped, on purpose.** Rendered fully
- * expanded this panel measured 1085px against an 800px viewport and pushed the
- * first caseload row to y=1825 — it buried the worklist it is supposed to
- * triage. Each patient is one `<details>` row showing its alert labels; the
- * per-alert explanation and measure provenance are one click away. The list also
- * scrolls inside a fixed cap, so an unusually bad day cannot reintroduce the
- * problem.
+ * ⚠️ **Collapsed by default, and height-capped, on purpose** — and that was
+ * not enough. Rendered fully expanded it measured 1085px against an 800px
+ * viewport; collapsed and capped it still cost ~350px above the caseload's
+ * table, and it grew from 13 alerts over 5 patients to 19 over 8 as the
+ * fixtures did (clinical-app audit §8.2). So the caseload carries
+ * `CaseloadAlertsLine` instead and this is what the page behind it renders.
+ * Each patient is one `<details>` row showing its alert labels; the per-alert
+ * explanation and its provenance are one click away.
  */
 import { Link } from 'react-router-dom'
 import { UNAVAILABLE_RULES, type PatientAlertGroup } from '../lib/populationAlerts'
@@ -66,11 +67,13 @@ export function PopulationAlertsPanel({ groups }: { groups: PatientAlertGroup[] 
                         <span className="pop-alert-label">{a.label}</span>
                         <span className="pop-alert-detail">{a.detail}</span>
                         {/* Provenance. An alert nobody can trace back to a
-                            definition is an alert nobody can audit or dispute. */}
+                            definition is an alert nobody can audit or dispute
+                            — in the reader's words, not the criterion's key
+                            (audit §8.5). */}
                         <span className="pop-alert-source">
-                          {a.source
-                            ? `Measure ${a.source.measureId} · ${a.source.groupCode}`
-                            : 'Derived from episode workflow state'}
+                          {a.source?.title
+                            ? `From the ${a.source.title} measure`
+                            : 'From this patient’s open workflow'}
                         </span>
                       </span>
                     </li>
@@ -87,7 +90,7 @@ export function PopulationAlertsPanel({ groups }: { groups: PatientAlertGroup[] 
 
       <details className="pop-alerts-unwatched">
         <summary className="pop-alerts-unwatched-summary">
-          {UNAVAILABLE_RULES.length} deck rules are not being watched
+          {UNAVAILABLE_RULES.length} alert rules are not being watched
         </summary>
         <ul className="pop-alerts-unwatched-list">
           {UNAVAILABLE_RULES.map(r => (

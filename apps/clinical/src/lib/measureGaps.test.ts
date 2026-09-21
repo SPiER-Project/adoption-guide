@@ -47,12 +47,31 @@ describe('MEASURE_GAPS coverage', () => {
   it('never claims a number', () => {
     for (const [id, gap] of Object.entries(MEASURE_GAPS)) {
       expect(gap.denominator, id).not.toMatch(/\b\d+(\.\d+)?%/)
-      expect(gap.issues.length, id).toBeGreaterThan(0)
+    }
+  })
+
+  /**
+   * ⚠️ The reader of this copy is a quality lead. Four of these entries used
+   * to name the FHIR resource the registry lacked and end with a GitHub issue
+   * number, which `check:jargon`'s clinical rule set bans by name — and which
+   * PR 5 deferred here rather than fixing blind (audit §1.9's last rows).
+   * Asserting it per entry is what stops one creeping back in: the gate reads
+   * string LITERALS and these are literals, but a sentence assembled from
+   * parts would slip past it and not past this.
+   */
+  it('says what is missing from the charts, not from the wire', () => {
+    for (const [id, gap] of Object.entries(MEASURE_GAPS)) {
+      const text = `${gap.denominator} ${gap.missing}`
+      expect(text, id).not.toMatch(/#\d{2,4}\b/)
+      expect(text, id).not.toMatch(/\bSPiER[A-Z]/)
+      expect(text, id).not.toMatch(
+        /\b(?:EpisodeOfCare|ServiceRequest|DocumentReference|Communication|Observation|CarePlan|QuestionnaireResponse|CodeSystem|ValueSet|profile)\b/,
+      )
     }
   })
 
   it('falls back to generic copy for an unknown measure', () => {
-    expect(gapFor('SPiERNotAThing').missing).toMatch(/no patient in the demo registry/i)
+    expect(gapFor('SPiERNotAThing').missing).toMatch(/no patient on this caseload/i)
   })
 })
 

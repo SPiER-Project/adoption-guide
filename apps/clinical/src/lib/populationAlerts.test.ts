@@ -65,6 +65,10 @@ describe('alertsForPatient', () => {
     expect(alerts[0].source).toEqual({
       measureId: 'SPiERSafetyPlanBeforeDischarge',
       groupCode: 'safety-plan-completed',
+      // What the panel RENDERS. The pair above is still the criterion's key and
+      // is what the suppression cases below read; the title is the same fact in
+      // the care manager's words (audit §8.5).
+      title: 'Safety Plan Completed Before Discharge',
     })
   })
 

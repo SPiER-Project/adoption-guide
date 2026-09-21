@@ -87,6 +87,12 @@ const LENSES = {
   // layout component to render a header for it the way AdoptionGuide does for
   // its sections \u2014 so this page owns its own, like the caseload beside it.
   'MeasureDashboard.tsx': 'the Population lens\u2019s second page; the lens has no header-rendering layout',
+  // Added by PR 7 of the clinical-app audit (§4.8, §8.2). The alerts were a
+  // panel above the caseload's own table — collapsed and height-capped and
+  // still ~350px of the first screen — so the caseload carries a count and
+  // this is the page it opens. Third page of the same lens, same reason as
+  // MeasureDashboard beside it, and its `up` is how a reader gets back.
+  'PopulationAlerts.tsx': 'the Population lens\u2019s third page; the lens has no header-rendering layout',
   'PatientChart.tsx': 'the Patient View lens; eyebrow names the lens, title the page',
   // Added in Phase 4 of docs/plans/suicide-safer-care-pathway.md, when the
   // published protocol had to be reachable from the embedded SMART panel. Same

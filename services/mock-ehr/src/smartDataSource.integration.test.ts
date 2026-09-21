@@ -28,6 +28,7 @@ import type { StoredResponse } from '@spier/core/types/fhir'
 import type { DerivedArtifacts } from '@spier/core/lib/dataSource/types'
 import app, { resetProfile } from './app'
 import { launchFor } from './__fixtures__/launch'
+import { mintLaunch } from './smart'
 import { fakeStore, type FakeStoreBinding } from './__fixtures__/store'
 
 let server: Server
@@ -47,6 +48,13 @@ let failTypes: string[] = []
  */
 let requestEnv: Record<string, unknown> = {}
 
+/**
+ * Every `/fhir` URL this server answered since the last reset. The cohort read
+ * is a claim about a COUNT (clinical-app audit §8.8), so the count has to be
+ * measured rather than reasoned about.
+ */
+let fhirRequests: string[] = []
+
 beforeAll(async () => {
   server = createServer((req, res) => {
     // `port`, not `server.address()`: the address is null once the server is
@@ -57,6 +65,7 @@ beforeAll(async () => {
     const chunks: Buffer[] = []
     req.on('data', c => chunks.push(c as Buffer))
     req.on('end', async () => {
+      if (url.includes('/fhir/')) fhirRequests.push(url)
       if (failTypes.some(t => url.includes(`/fhir/${t}?`))) {
         res.writeHead(500, { 'content-type': 'application/fhir+json' })
         res.end('{"resourceType":"OperationOutcome"}')
@@ -262,6 +271,99 @@ describe('SmartDataSource against the mock EHR', () => {
  * never produces, and the provenance assertion below — the one thing here that
  * cannot be checked any other way — would have been quietly testing nothing.
  */
+/**
+ * The COHORT read — `getSlices`, against a real worklist grant.
+ *
+ * ⚠️ **The claim is a request count, so it is counted.** A caseload of
+ * fourteen patients was 196 patient-scoped searches, each cross-origin and each
+ * preflighted: about 400 requests to draw a page of summary tiles, measured on
+ * the demo EHR's front door (clinical-app audit §1.12, §8.8). `patient=a,b,c`
+ * is core FHIR OR on a reference parameter, and it makes the same read fourteen
+ * requests. Both halves are asserted here — the answers are RIGHT and the
+ * number of questions is SMALL — because either alone is satisfiable by a bug.
+ */
+describe('the cohort read against the mock EHR', () => {
+  /** A worklist client: a `user/*.read` grant with no patient in context. */
+  async function worklistClient(): Promise<Client> {
+    const { tokenResponse } = await launchFor(`http://127.0.0.1:${port}`, {
+      launch: await mintLaunch({ userScoped: true }, {}),
+      scope: 'launch user/*.read',
+    })
+    return new Client(nodeEnvironment(), { serverUrl: SERVER_URL, tokenResponse })
+  }
+
+  const COHORT = ['patient-001', 'patient-002', 'patient-011']
+
+  it('reads every patient in ONE set of searches, not one set each', async () => {
+    const source = new SmartDataSource(await worklistClient())
+    fhirRequests = []
+    const slices = await source.getSlices(COHORT)
+
+    // Three patients × fourteen searches would be 42. It is fourteen.
+    const searches = fhirRequests.filter(u => /\/fhir\/\w+\?/.test(u))
+    expect(searches.length).toBe(14)
+    expect(searches.every(u => u.includes('%2C') || u.includes(','))).toBe(true)
+
+    // …and the answers are the same ones `getSlice` gives for each patient.
+    expect([...slices.keys()].sort()).toEqual([...COHORT].sort())
+    expect(slices.get('patient-011')?.responses.length).toBe(5)
+    expect(slices.get('patient-011')?.riskAlerts.length).toBeGreaterThan(0)
+    // patient-002 is the never-screened chart: present, and empty.
+    expect(slices.get('patient-002')?.responses).toEqual([])
+  })
+
+  it('puts every resource on the right patient, and nobody else’s on any of them', async () => {
+    // ⚠️ The failure a batched read makes that a per-patient one cannot: the
+    // Bundle comes back mixed, and the sort is `patientIdOf` reading the
+    // element each type actually uses — `for` on a Task, `participant.actor`
+    // on an Appointment. Getting that wrong shows one patient's chart on
+    // another's row, and every count on the page still looks plausible.
+    const slices = await new SmartDataSource(await worklistClient()).getSlices(COHORT)
+    for (const qr of slices.get('patient-011')?.responses ?? []) {
+      expect(qr.resource.subject).toEqual({ reference: 'Patient/patient-011' })
+    }
+    const tasks = slices.get('patient-011')?.tasks ?? []
+    expect(tasks.length).toBeGreaterThan(0)
+    for (const task of tasks) {
+      expect((task as { for?: { reference?: string } }).for?.reference).toBe('Patient/patient-011')
+    }
+    const appointments = slices.get('patient-011')?.appointments ?? []
+    expect(appointments.length).toBeGreaterThan(0)
+  })
+
+  it('agrees with the per-patient read it replaces', async () => {
+    // The batched path and the loop must produce the same slice, or the
+    // caseload and the chart disagree about the same patient.
+    const source = new SmartDataSource(await worklistClient())
+    const batched = (await source.getSlices(COHORT)).get('patient-011')
+    const oneByOne = await source.getSlice('patient-011')
+    expect(batched?.responses.map(r => r.resource.id)).toEqual(
+      oneByOne.responses.map(r => r.resource.id),
+    )
+    expect(batched?.observations.length).toBe(oneByOne.observations.length)
+    expect(batched?.riskAlerts).toEqual(oneByOne.riskAlerts)
+  })
+
+  it('falls back to one patient at a time when the OR search is refused', async () => {
+    // ⚠️ The documented failure mode: comma-as-OR is in the base specification
+    // and a server that does not implement it is expected to refuse. A refusal
+    // must not empty the caseload.
+    const source = new SmartDataSource(await worklistClient())
+    try {
+      failTypes = ['QuestionnaireResponse']
+      fhirRequests = []
+      const slices = await source.getSlices(COHORT)
+      // Nothing came back — every patient's core search 500s in both paths —
+      // but the FALLBACK ran, which the request count is what shows: the
+      // batched read is 14 searches and the loop is 42.
+      expect(fhirRequests.filter(u => /\/fhir\/\w+\?/.test(u)).length).toBeGreaterThan(14)
+      expect(slices.size).toBe(0)
+    } finally {
+      failTypes = []
+    }
+  })
+})
+
 describe('the writeback ladder against the mock EHR (step 4)', () => {
   /** A scenario response whose mapper fires, with its real derived artifacts. */
   function submissionFor(patientId: string): { entry: StoredResponse; derived: DerivedArtifacts } {

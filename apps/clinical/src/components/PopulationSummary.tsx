@@ -2,13 +2,17 @@
  * Zone 1 of the Population view: the executive-summary tiles and the risk-tier
  * census bar (deck panels 1–2, issue #278).
  *
- * ⚠️ **This is a management artifact sitting on top of a triage artifact.** The
- * caseload table below it is what someone uses to decide who to call next, and
- * a strip of tiles tall enough to push the first patient row below the fold
- * would trade the page's actual job for a summary. Hence: one wrapping row of
- * compact tiles, and a collapse toggle. If this grows, shrink it.
+ * ⚠️ **This is a management artifact sitting BESIDE a triage artifact, and it
+ * is no longer on top of one.** "If this grows, shrink it" is what this comment
+ * used to say, and it grew: seven tiles, a census bar and a blocked-metrics
+ * line put the first patient row at 1,104px on a laptop and 1,419px on a phone
+ * (clinical-app audit §1.11, re-measured in §8.2). It renders BELOW the table
+ * now, and the collapse rule is the second half: a phone opens it collapsed to
+ * the tiles that are actually breached, because on a phone this is the third
+ * screen of a page whose job is on the first.
  */
 import { useState } from 'react'
+import { useNarrowViewport } from '../hooks/useNarrowViewport'
 import type { SummaryTile, TierCensusEntry } from '../lib/populationSummary'
 import { SectionHeader } from '@spier/ui/SectionHeader'
 import { cx } from '@spier/ui/cx'
@@ -35,16 +39,36 @@ export function PopulationSummary({
   census: TierCensusEntry[]
   total: number
 }) {
-  const [open, setOpen] = useState(true)
+  const narrow = useNarrowViewport()
+  // ⚠️ The initial value is read ONCE, from the width the page opened at, and
+  // is then the reader's to change. Re-deriving it on every resize would
+  // re-close a summary someone had opened, which is the shape of bug that makes
+  // a control feel broken.
+  const [open, setOpen] = useState(() => !narrow)
   const computable = tiles.filter((t): t is Extract<SummaryTile, { state: 'value' }> => t.state === 'value')
   const blocked = tiles.filter((t): t is Extract<SummaryTile, { state: 'blocked' }> => t.state === 'blocked')
+  // Collapsed does not mean empty. A caseload with five high-risk patients
+  // against a goal of under 5% is the one thing in here worth a phone's first
+  // glance, so the breached tiles survive the collapse and everything else
+  // waits behind the toggle. Nothing breached collapses to nothing, which is
+  // the honest reading of "no tile is over its goal".
+  const breached = computable.filter(t => t.breached)
 
   return (
     <Card as="section" padding="compact" tone="wash" className="pop-summary" aria-label="Caseload summary">
       <SectionHeader
         title="Summary"
+        meta={open || breached.length === 0 ? undefined : `${breached.length} over goal`}
         collapsible={{ open, onToggle: () => setOpen(o => !o), controls: 'pop-summary-body' }}
       />
+
+      {!open && breached.length > 0 && (
+        <div className="pop-tiles pop-tiles--breached-only">
+          {breached.map(t => (
+            <Tile key={t.id} tile={t} />
+          ))}
+        </div>
+      )}
 
       {open && (
         <div id="pop-summary-body">

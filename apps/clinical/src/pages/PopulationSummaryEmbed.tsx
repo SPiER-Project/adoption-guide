@@ -30,6 +30,7 @@
  *   caseload table's page uses. Two summaries that could disagree would be worse
  *   than one summary in one place.
  */
+import { CohortScopeNotice } from '../components/CohortScopeNotice'
 import { PopulationAlertsPanel } from '../components/PopulationAlertsPanel'
 import { PopulationSummary } from '../components/PopulationSummary'
 import { useCaseloadSummary } from '../hooks/useCaseloadSummary'
@@ -41,25 +42,25 @@ export function PopulationSummaryEmbed() {
 
   return (
     <div className="population-summary-embed">
-      {/* ⚠️ Same notice the full lens carries, and for the same reason: a SMART
-          access token is bound to one patient, so a census drawn from it is a
-          census of one. Saying so beats a tile strip that reads like a caseload. */}
-      {scope === 'in-context' && (
-        <Notice tone="warning">
-          <strong>Showing the patient in context only.</strong> A SMART access token is
-          bound to one patient, so this connection cannot serve a caseload — nothing
-          here is a cross-patient claim.
-        </Notice>
-      )}
+      {/* ⚠️ Same rule the caseload follows: a session that cannot serve a
+          cohort renders no cohort summary. This used to show the warning AND
+          the tiles, so a chart launch framed a strip of zeros (audit §8.7). */}
+      {scope !== 'registry' && <CohortScopeNotice scope={scope} />}
 
       {isLoading && rows.length === 0 && (
         <Notice tone="info">Reading the caseload from the connected server…</Notice>
       )}
 
-      <div className="population-zones">
-        <PopulationSummary tiles={tiles} census={census} total={rows.length} />
-        <PopulationAlertsPanel groups={alertGroups} />
-      </div>
+      {scope === 'registry' && (
+        <div className="population-zones">
+          <PopulationSummary tiles={tiles} census={census} total={rows.length} />
+          {/* ⚠️ Still the PANEL here, where the caseload now carries a count
+              that opens a page. A host framing an activity at the top of its
+              own worklist has nowhere to send a reader, so this is the one
+              place the inline list is still the right shape. */}
+          <PopulationAlertsPanel groups={alertGroups} />
+        </div>
+      )}
     </div>
   )
 }

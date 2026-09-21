@@ -119,7 +119,7 @@ describe('useRegistrySlices — the population read goes through the seam', () =
     expect(Number(screen.getByTestId('observations').textContent)).toBe(1)
   })
 
-  it('narrows to the patient in context under SMART, instead of serving local rows', async () => {
+  it('serves NO cohort under SMART, rather than bundled rows or a census of one', async () => {
     const smart = {
       client: { patient: { id: 'patient-011' } },
       patient: { id: 'patient-011', name: [{ family: 'Alvarez', given: ['Maria'] }] },
@@ -129,16 +129,32 @@ describe('useRegistrySlices — the population read goes through the seam', () =
     // so it reads 'in-context' on the very first render — before the effect that
     // loads the slice has run. Waiting on it therefore waits for nothing, and the
     // assertions below raced the effect: they passed locally every time and CI
-    // failed with `expected +0 to be 1`, which is the signature of a test whose
-    // wait target is synchronous.
-    //
-    // The count is the value the effect actually produces, so waiting on it waits
-    // for the thing under test. The whole point of that value: NOT 14. A SMART
-    // token is bound to one patient, so a 14-row caseload would be a claim this
-    // connection cannot support.
-    await waitFor(() => expect(Number(screen.getByTestId('count').textContent)).toBe(1))
+    // failed, which is the signature of a test whose wait target is synchronous.
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
+    // NOT 14 — a token bound to one patient cannot support a 14-row caseload —
+    // and NOT 1 either: a cohort of one is a chart, and the pages say which
+    // session they are in instead of rendering a census over it (audit §8.7).
+    expect(screen.getByTestId('count').textContent).toBe('0')
     expect(screen.getByTestId('scope').textContent).toBe('in-context')
-    expect(screen.getByTestId('ids').textContent).toBe('patient-011')
+  })
+
+  it('says NO SOURCE, not "registry", when there is neither a session nor a bundled population', async () => {
+    // ⚠️ The case this hook's own tests could not see until PR 7, because every
+    // one of them passes `populationPatients` explicitly. `apps/clinical` does
+    // not — the build compiles the demo population away — so this is what the
+    // deployed clinical app's caseload URL actually is, and it used to report
+    // `registry` and render "0 of 0 patients shown" as a result.
+    render(
+      <MemoryRouter initialEntries={['/population']}>
+        <SmartContext.Provider value={SMART_STUB as never}>
+          <PatientProvider dataSource={new LocalDataSource(DEMO_SEED)}>
+            <Probe />
+          </PatientProvider>
+        </SmartContext.Provider>
+      </MemoryRouter>,
+    )
+    await waitFor(() => expect(screen.getByTestId('scope').textContent).toBe('no-source'))
+    expect(screen.getByTestId('count').textContent).toBe('0')
   })
 
   it('keeps the page populated when one patient is unreadable', async () => {
@@ -241,7 +257,8 @@ describe('useRegistrySlices — listCohort decides the cohort', () => {
       patient: smartPatient('patient-002'),
     })
     await waitFor(() => expect(screen.getByTestId('scope').textContent).toBe('in-context'))
-    expect(screen.getByTestId('ids').textContent).toBe('patient-002')
+    // One chart, and therefore no cohort — see the 'in-context' case above.
+    expect(screen.getByTestId('count').textContent).toBe('0')
   })
 
   it('treats a REFUSED roster as "cannot answer", not as a page error', async () => {

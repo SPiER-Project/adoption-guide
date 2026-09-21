@@ -61,6 +61,7 @@ const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ defa
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
 const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
 const MeasureDashboard = lazy(() => import('./pages/MeasureDashboard').then(m => ({ default: m.MeasureDashboard })))
+const PopulationAlerts = lazy(() => import('./pages/PopulationAlerts').then(m => ({ default: m.PopulationAlerts })))
 
 function LegacyChartRedirect() {
   const { patientId } = useParams<{ patientId: string }>()
@@ -212,6 +213,11 @@ function AppRoutes() {
               embeds it as `?embed=1#/population`. */}
           <Route index element={<Navigate to="caseload" replace />} />
           <Route path="caseload" element={<PopulationView />} />
+          {/* The alerts, as a page. They were a panel above the caseload's own
+              table, which is the one thing the caseload exists to show — audit
+              §4.8 and §8.2. The caseload carries the count and this is what it
+              opens. */}
+          <Route path="alerts" element={<PopulationAlerts />} />
           {/* The summary and alerts with no table and no page header — what the
               mock EHR frames at the top of its front door. See the module
               header for why the whole lens is the wrong thing to embed. */}

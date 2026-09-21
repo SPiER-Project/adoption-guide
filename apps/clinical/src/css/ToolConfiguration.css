@@ -15,17 +15,6 @@
   max-width: var(--page-width-wide);
 }
 
-.tool-config-header {
-  margin-bottom: var(--space-7);
-}
-
-.tool-config-intro {
-  color: var(--text-body);
-  line-height: 1.55;
-  margin: 0 0 var(--space-3) 0;
-  max-width: var(--measure-prose);
-}
-
 .tool-config-meta {
   display: flex;
   flex-wrap: wrap;
@@ -158,23 +147,11 @@
   margin-bottom: var(--space-4);
 }
 
-.tool-config-stage-header {
-  margin-bottom: var(--space-3);
-}
-
 .tool-config-stage-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-strong);
-  margin: 0 0 var(--space-1) 0;
-}
-
-.tool-config-stage-desc {
-  font-size: var(--font-size-base);
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.45;
-  max-width: var(--measure-prose);
+  margin: 0 0 var(--space-3) 0;
 }
 
 .tool-config-stage-list {
@@ -208,13 +185,6 @@
   accent-color: var(--accent-info);
 }
 
-.tool-row-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-0-5);
-  min-width: 0;
-}
-
 .tool-row-name {
   display: inline-flex;
   align-items: baseline;
@@ -231,15 +201,7 @@
   letter-spacing: var(--tracking-caps);
 }
 
-.tool-row-purpose {
-  max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-.tool-row--disabled .tool-row-name,
-.tool-row--disabled .tool-row-purpose {
+.tool-row--disabled .tool-row-name {
   color: var(--text-faint);
 }
 

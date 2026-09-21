@@ -55,6 +55,24 @@ export interface FhirDataSource {
   getSliceSync?(patientId: string | null): PatientSlice
 
   /**
+   * Every named patient's slice at once — the CASELOAD's read, not the chart's.
+   *
+   * ⚠️ **OPTIONAL, and a caller must be able to do without it.** `getSlice` is
+   * per patient, so a cohort of fourteen is fourteen reads of fourteen searches
+   * each: 196 cross-origin requests, each preflighted, to draw a page of
+   * summary tiles (clinical-app audit §1.12, measured in §8.8). A source that
+   * can answer for several patients in fewer requests implements this; one that
+   * cannot omits it, and the caller loops `getSlice`.
+   *
+   * ⚠️ **Not a batch API and not paging.** It answers for the ids it is given
+   * and nothing else. An id the source cannot read is absent from the map
+   * rather than mapped to an empty slice — "I could not read this chart" and
+   * "this chart is empty" are the two answers this repo keeps insisting on
+   * telling apart.
+   */
+  getSlices?(patientIds: string[]): Promise<Map<string, PatientSlice>>
+
+  /**
    * The cohort this source can answer for — the roster a population app indexes
    * across (#401, blocker 2's second half).
    *

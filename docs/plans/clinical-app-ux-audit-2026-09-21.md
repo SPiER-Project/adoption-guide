@@ -6,9 +6,139 @@ caseload, the measures), the shared chrome in `packages/app-shell/`, the shared
 views in `packages/tool-views/`, and the mock EHR that launches them
 (`services/mock-ehr/`).
 
-**Status:** PRs 1 through 6 have shipped; PR 7 has not started. §7 records
-the decisions Brad made on 2026-09-21; the briefs to run PRs 5–7 each in a
-fresh session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+**Status:** all seven PRs have shipped. §7 records the decisions Brad made on
+2026-09-21; the briefs to run PRs 5–7 each in a fresh session are in
+[`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md). §8 is
+PR 7's own audit of the care manager's two screens, written before they were
+touched.
+
+**Status 2026-09-21 (PR 7):** the care manager's two screens were audited
+first (§8, appended before anything was edited) and then redesigned on those
+findings — §1.10, §1.11, §1.12, §4.8, §4.9.
+
+**The caseload leads with the worklist.** The summary moved below the table and
+the nineteen-alert panel became one line — *12 urgent · 19 alerts across 8
+patients · Review alerts →* — opening `/population/alerts`, which is the same
+`PopulationAlertsPanel` on a page of its own. The first patient row is at
+**296px** on a laptop where it was 1,104, and at **344px** on a phone where it
+was 1,419; 39 words sit above it where 289 did. On a phone the summary opens
+collapsed to the tiles that are OVER their goal — two of seven — and expanded
+on a laptop, from a media query in `useNarrowViewport` rather than an observer,
+because this is a top-level page and its width is the window's (`PanelShell`
+measures its own box for the opposite reason). The lede stops explaining what a
+recommendation is, and the three views stay.
+
+**196 requests become 14.** `SmartDataSource.getSlices` reads the whole cohort
+in one set of searches using `patient=a,b,c`, which is core FHIR OR on a
+reference parameter; the mock's `parseSearch` takes a list now and the route
+checks the scope of **every** id in it, because checking the first would make
+the comma a way around patient scoping. The fourteen searches became a table
+(`SLICE_READS`) so `getSlice` and `getSlices` cannot drift — ⚠️ **and
+`smartScopes.test.ts` went red on the first run after that refactor**, because
+it derived the scope list by matching `this.search('X')` and now matched
+nothing. Its own liveness assertion is what said so; the derivation reads
+`SLICE_READS`. Verified live on the demo host's front door: fourteen
+comma-joined searches where there were 196.
+
+**A session with no cohort renders no cohort screen.** ⚠️ §8.7's finding was
+not the token: `apps/clinical` mounts `PatientProvider` with no
+`populationPatients` — correctly, the build compiles the demo population away —
+so `inContextCohort` filtered an always-empty list, and a chart launch said
+*"Showing the patient in context only"* above **zero** rows while the alerts
+panel said in bold *"No measure group reports a failure … that is a real
+result"*. The hook has three scopes now (`registry` / `in-context` /
+`no-source`), the invented cohort of one is deleted, and all four pages render
+one line naming the session and offering the launch that can serve a caseload.
+⚠️ **The hook's own tests could not see this**, because every one of them
+passes `populationPatients` explicitly; one now does not.
+
+**Three controls that did nothing are gone.** *Reset demo data* was gated on
+`scope !== 'registry'`, written when `registry` meant the local store — since
+#401 a worklist launch reports `registry` too, so it rendered during a live
+session, cleared browser storage the page was not reading, and reloaded.
+Deleted rather than repaired: the clinical build has no bundled scenarios to
+reset, and the demo's real control is *Reset written data* on the demo EHR's
+Settings page. *Patient record* left the sidebar on a patient-less launch,
+where it was an error page carrying a **Launch PHQ-9** button for nobody,
+against a grant the server refuses every write from; the wordmark goes to the
+caseload in that session for the same reason.
+
+**The copy the earlier PRs deferred.** `check:jargon`'s `DEFERRED` list is
+empty — `measureGaps.ts` and `populationAlerts.ts` were its two entries, and
+⚠️ **only one of them was what the exemption said it was.** The alert
+provenance really was the criterion key (`SPiERCaringContactAdherence ·
+caring-contact-within-30-days`, nineteen times); the measure explanations were
+also **stale**, four of them asserting things the same page disproved three
+lines below — *"No scenario in the demo registry contains an EpisodeOfCare"*
+above a table scoring eight patients in that cohort. They say what is missing
+from the CHARTS now, the GitHub issue links are gone, and the key is still on
+the alert for the suppression tests to read. Also gone: *"4 deck rules"*,
+*"Deck panel 5"*, *"phase 4"*, *"the plan's gap 3"*, and the footnote
+explaining FHIRcast — the presenter's copy is the mock EHR's own pages.
+
+**Settings is 383 words, from 1,501.** The intro about app config versus EHR
+capability, the eight stage descriptions written to an EHR vendor and the forty
+published tool purposes ending *"Belongs to the … stage of the SPiER pathway"*
+are the preset picker, the checklist and one sentence. ⚠️ The two strings PR 5
+fixed elsewhere were **deleted here rather than routed through `stageBlurbs`
+and `toolPurposeLine`**: on a checklist a stage is a grouping and its title is
+all a grouping needs, and its reader is ticking instruments they already run.
+Neither was visible to `check:jargon`, for the reason PR 6 recorded — both are
+runtime values out of the generated FSH, not literals in the AST.
+
+**Measured in a real browser**, launched from a local mock EHR, against this
+branch and `main` at `665c7c1`:
+
+| Screen | Width | Before | After |
+|---|---|---|---|
+| Caseload — first patient row | 1024×768 | 1,104px | **296px** |
+| Caseload — first patient row | 1440×900 | 700px | **296px** |
+| Caseload — first patient row | 375×812 | 1,419px | **344px** |
+| Caseload — words above the table | any | 289 | **39** |
+| Caseload — page words / height | 375×812 | 848 / 3,119px | **575 / 2,060px** |
+| Measures — words / first table | 1024×768 | 503 / 617px | **372 / 402px** |
+| Measures — words / first table | 375×812 | — | 372 / 584px |
+| Settings — words / height | 375×812 | 1,501 / 8,641px | **383 / 4,178px** |
+| Settings — words / height | 1024×768 | 1,501 / 5,590px | **383 / 3,368px** |
+| Alerts page | 375×812 | — | 176 words / 676px |
+| Framed summary — FHIR searches per read | — | **196** | **14** |
+
+**Gates.** Five word budgets (`/population/caseload`, `/population/alerts`,
+`/population/summary`, `/population/measures`, `/settings`) replace their
+`NO_BUDGET` entries, plus a **second, sharper** number for the caseload:
+`CHROME_CAP` counts the words rendered above the table, because a whole-page
+cap on a worklist moves with the caseload's size and says nothing about what
+buried it. New tests for the phone collapse rule (jsdom has no `matchMedia`, so
+the collapsed branch is invisible to every other test in the repo), the alerts
+line, the cohort read against the real server, and the OR scope guard.
+
+**Proved red.** Nineteen plants, each run and reverted: the summary back above
+the table; the settings intro restored; an issue number back in a measure gap;
+the provenance title blanked; *Patient record* surviving a patient-less launch;
+the embed rendering its zones for a one-patient session; `no-source` reported
+as `registry`; a cohort of one invented again; the OR list parsed as one
+literal id; the scope guard reading only the first id; `applySearch` matching
+only the first listed patient; the cohort read looping per patient; every
+resource bucketed onto the first patient asked for; a refused OR search
+emptying the caseload; `SLICE_READS` renamed out from under the scope gate; the
+summary expanded on a phone; the collapsed summary falling back to a
+non-breached tile; the alerts line listing patients instead of counting them;
+the alerts line vanishing at zero. The twentieth was not planted — it happened:
+`smartScopes.test.ts` went red on the real refactor, before any test was
+touched.
+
+**Deliberately not done.** The caseload's table still scrolls sideways on a
+phone — 923px of six columns inside a 341px wrapper (§1.11) — because a
+responsive row layout is a different piece of work from the ordering §4.8
+asked for, and the header filters and the compact filter row both work today.
+The framed summary on the demo EHR's front door keeps its inline alert panel
+and its 233 words: a host embedding an activity has nowhere to send a reader,
+and the audit did not scope the host's layout. Nothing was added to the
+dashboard — no new measures, no new registry columns, and no role model, so
+three blocked tiles and three of the four unwatched alert rules are still named
+rather than removed (§8.9). ⚠️ One measurement moved the wrong way and is
+worth stating: the measures page is 3,185px tall on a phone against 2,547px on
+a laptop, which is eight tables stacked and not something this pass shortened.
 
 **Status 2026-09-21 (PR 6):** the forms keep their frame and fix their beats —
 §1.8, §4.6 and rule 6.
@@ -964,7 +1094,7 @@ Each PR is mergeable on its own and leaves every gate green.
 | **4** | Shipped | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it. The rail keeps only the guidance cards; `PanelShell` loses its footnote links; the identity strip gains the patient's age | §1.6, §1.7, rule 5 |
 | **5** | Shipped | *Where this patient is* and *What's on file*: the rail and the record sections become pages; the stage definitions become clinician sentences in core; the walkthrough leaves the clinical build; the protocol page leads in plain words; the clinical jargon scan and the clinical word budgets, both proved red — and the first deny list excused the very row it was written beside | §1.9, §1.10, rules 1–2 |
 | **6** | Shipped | Fillers and recorders: the scratch-chart notice keys on the patient in CONTEXT; the confirmation beat is one next action from the pathway evaluator plus one way back, on the fillers, the recorders and the care-plan branch that had none; the safety plan's demo caveat stops claiming nothing was sent. Grew two things it exposed: the concept id beside each safety-plan step, and a plant that passed on an empty chart | §1.8, §4.6, rule 6 |
-| **7** | — | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count. ⚠️ Two of its findings landed early in PR 3 — the risk column and the `none`/`unknown` split — so its audit section starts from a page that already ranks on the tier | §1.10, §1.11, §1.12 |
+| **7** | Shipped | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count. ⚠️ Two of its findings landed early in PR 3 — the risk column and the `none`/`unknown` split — so its audit section starts from a page that already ranks on the tier | §1.10, §1.11, §1.12 |
 
 PR 3 before PR 4 on purpose: the landing screen renders the policy's primary
 card, and building the screen first would mean building it twice. PRs 2 and 3
@@ -1000,3 +1130,285 @@ Each PR has a paste-ready brief for a fresh session in
    them each night and the *Reset written data* control on the host's Settings
    page stays for a presenter who needs a clean chart now.
 6. **A full-screen takeover, with a clear way back.** Shipped in PR 1 (§4.10).
+
+---
+
+## 8. The care manager's two screens — the PR 7 audit
+
+Decided 2026-09-21 (§7 item 4): `/population/caseload` and `/population/measures`
+are in this pass and are audited by this document's method before anything is
+redesigned. This section is that audit. `/settings` is here too, because §1.10
+left it half-finished and §4.9 hands it to PR 7.
+
+**How it was measured.** A local `services/mock-ehr` on `:8787` framing a local
+`apps/clinical` dev build, on `main` at `665c7c1` plus nothing. Three launches,
+each minted by the host rather than typed into the address bar: the **framed
+summary** on the front door (`/population/summary`, embedded, user-scoped), the
+**worklist launch** behind *Open the full caseload* (top-level, user-scoped, no
+patient), and a **chart launch** for Sarah Patel (patient-bound). Widths 375×812,
+1024×768 and 1440×900. Words on arrival are counted the way
+`apps/clinical/src/pages/pageLength.test.tsx` counts them — a closed `<details>`
+costs its `summary` and nothing else — over the page's own root, so the shell's
+chrome is excluded. Offsets are measured inside `.app-shell__content`, which is
+the element that actually scrolls in a launched tab.
+
+### 8.1 Who the reader is, and it is not the clinician
+
+The chart's reader is one clinician holding one patient. These two screens have
+a different reader and the audit had not named them:
+
+- **The care manager / triage nurse** — the caseload's user. Owns a panel, not a
+  patient. Wants *who do I call next*, and after that *what is that patient
+  owed*. Needs the table and needs it first (§4.8).
+- **The quality lead** — the measures page's user. Wants *how is this programme
+  doing over a period*, and needs to be able to tell a bad score from an absent
+  one. Reads it monthly, not hourly.
+- **The operator** — `/settings`. Sets up a deployment once, and is the only one
+  of the three who is allowed to be shown a catalogue.
+
+The clinician is **not** one of the three, and neither is the implementer; but
+§1.9's fourth reader, the **demo presenter**, is all over both screens — as is
+the reader of the dashboard deck, who is a fifth reader this audit had not
+counted at all (the words *deck*, *panel 5*, *phase 4*, *gap 3* are on the
+caseload today).
+
+### 8.2 The caseload puts nothing to do on the first screen — measured
+
+| Width | First patient row | Words before the table | Page words | Content height |
+|---|---|---|---|---|
+| 1440×900 | **700px** (the two zones go side by side) | 289 | 845 | 2,157px |
+| 1024×768 | **1,104px** in a 674px scroll viewport | 289 | 848 | 2,761px |
+| 375×812 | **1,419px** | 289 | 848 | 3,119px |
+
+⚠️ **Both of §1.11's numbers have got worse since it was taken, and PR 3 is
+why.** 936px → 1,104px on desktop and 1,290px → 1,419px on a phone: the
+reassessment work (#279, landed inside PR 3) added two summary tiles and the
+row-derived reassessment alerts, which took the alerts panel from 13 alerts over
+5 patients to **19 over 8**. Nothing regressed — the page grew two true things —
+which is exactly why §4.8's answer is the ORDER rather than a diet.
+
+What a phone reader meets before any patient: the eyebrow, the title, a 37-word
+lede, seven summary tiles, a six-segment census bar, a "Not yet measurable" line
+naming three more metrics, an alerts panel reading *19 · 8 patients · 12
+urgent*, a drawer saying four more rules are unwatched, three view tabs, a count
+line and a view description. Then the table.
+
+The table itself is unchanged from §1.11: **923px wide inside a 341px wrapper**
+at 375, six columns, scrolling sideways inside its own box. The compact filter
+row appears (it is measured, not guessed), so the header-mounted menus are
+reachable — that part works.
+
+**The summary is expanded by default at every width.** `PopulationSummary` opens
+`useState(true)` and nothing narrows it, so the phone gets the widest artifact on
+the page at full height. Its own header comment says *"If this grows, shrink
+it."* — it grew.
+
+### 8.3 The measures page tells a quality lead the wrong number of measures
+
+Under the **worklist launch** (user-scoped, 14 patients), at 1024×768:
+
+| | |
+|---|---|
+| Words on arrival | 503 |
+| Content height | 2,547px |
+| First table | 617px |
+| Tables | 8 |
+| Groups with no denominator | 1 of 12 |
+
+Two defects that are simply wrong rather than a matter of taste:
+
+1. **"All seven measures, computed live over the 14-patient registry"** — there
+   are **eight**, and the page says so itself four lines later (*"1 of 8
+   measures have no denominator in this period"*). The seven is a literal in
+   `MeasureDashboard.tsx`; the eight is `MEASURE_SPECS.length`. The reassessment
+   measure added by #279 is the eighth.
+2. **Eight `MeasureReport`s are assembled on every render and thrown away.**
+   `FhirJsonViewer` returns `null` when inspection is off, and inspection is
+   never on on this surface — so `buildSummaryMeasureReport` runs eight times
+   per render, and again on every window change, to produce nothing. (The gate
+   is right and the call site is the waste.)
+
+### 8.4 Settings is the longest page in the app, and PR 5's two fixes did not reach it
+
+At 1024×768: **1,501 words, 5,590px**. At 375×812: **1,501 words, 8,641px** —
+the §1.10 measurement, unchanged. 34 checkboxes, 4 preset cards, 6 rows that
+cannot be toggled, 40 tools.
+
+⚠️ **Both of the copy fixes PR 5 shipped are missing here, because this page
+renders the same two strings from different call sites.**
+
+- Every stage heading carries the **CodeSystem definition written to an EHR
+  vendor** — *"The EHR finds a suicide-risk signal and determines whether more
+  review is needed."* PR 5 replaced exactly this on `/patient/where` with
+  `packages/core/src/data/catalog/stageBlurbs.ts`; this page still reads
+  `stage.description`.
+- Every tool row carries the **whole published `purpose`**, ending *"Belongs to
+  the Identify Possible Risk stage of the SPiER pathway."* PR 5 wrote
+  `apps/clinical/src/lib/toolCopy.ts` for precisely that sentence; this page
+  does not call it.
+
+Neither is visible to `check:jargon`'s clinical scan, and for the reason PR 6
+already recorded: both strings are **runtime values out of the generated FSH**,
+not literals in the AST the scan reads. This is the second time that hole has
+hidden the same sentence.
+
+### 8.5 Every string on these screens that an implementer, a presenter or the deck's reader wrote
+
+§1.9's table, for the two screens it deferred. Everything here was read off a
+live launch, not off the source.
+
+| Where | Text | Reader it is for |
+|---|---|---|
+| Caseload lede | *"Recommendations show the next best step regardless of which tools **your implementation** has enabled"* | implementer |
+| Caseload footnote | *"**Mock registry data** — 14 patients **sampled across the pathway stages**… broadcasts a **FHIRcast** patient-open event: a chart open in another tab follows along, the way context-synced apps do in production"* | presenter |
+| Caseload footnote | *"**Reset demo data to the shipped scenarios**"* | presenter |
+| Summary, blocked tiles | *"Historical risk"* → hover: *"…would make the scale non-monotonic — see **the plan's gap 3**"*; *"…**The deck** states reassessment intervals but never one for plan review"*; *"the care-team role model, which SPiER has no **CareTeam or PractitionerRole** for (**phase 4**)"* | the deck's reader |
+| Alerts, per alert | *"**Measure SPiERCaringContactAdherence · caring-contact-within-30-days**"*, ×19 | implementer |
+| Alerts, one label | *"No coded risk level in **the episode**"*, detail *"…no **risk-concept Observation** dated inside it, so the current **tier** is not discrete data"* | implementer |
+| Alerts, drawer | *"**4 deck rules** are not being watched"*, then *"waiting on the care-team role model (**phase 4**)"* ×2 | the deck's reader |
+| Caseload view tab | *"**Deck panel 5** — when each patient is next due, on the cadence their tier publishes"* | the deck's reader |
+| Scope notice | *"A **SMART access token** is bound to one patient… A registry read needs a **user-scoped launch and a cohort query**, which this server does not offer yet"* | implementer |
+| Measures lede | *"…nothing on this page is stored, which is the point of **Stage 8**"* | implementer |
+| Measures, empty measure | *"…they carry no **interpretation** and score into instrument-specific **value sets** (the ASQ screening-result **CodeSystem**, for one) rather than the shared risk-tier **ValueSet**… Tracked as **#77**."* ×8 possible | implementer |
+| Measures, empty measure | *"No scenario in the demo registry contains an **EpisodeOfCare** on the SPiER episode profile"*, *"TL-017 records referrals as **ServiceRequest**"*, *"two dated **SPiERSuicideRiskConcept** Observations"* | implementer |
+| Settings | the stage `definition` and the full tool `purpose` — §8.4 | EHR vendor / implementer |
+| Settings | *"**TL-001**"* on every row; *"9 of **34 buildable** tools enabled · Profile: Guided Pathway · **40 total in catalog** (6 not yet built)"* | implementer |
+
+⚠️ **`measureGaps.ts`'s copy is also out of date, and only the empty-cohort case
+shows it.** Six of its eight entries assert things about the demo registry that
+stopped being true — *"No scenario in the demo registry contains an
+EpisodeOfCare on the SPiER episode profile"* is contradicted by the same page's
+own *Current Risk Level Documented: 8 / 1 / 6 / 86%* three lines below. They are
+invisible on the worklist launch because `emptinessOf` only renders them for a
+measure that never computes — and all eight of them render at once on the
+patient-bound one (§8.7).
+
+### 8.6 Controls that do nothing for this reader
+
+1. **"Reset demo data to the shipped scenarios", on a live server-backed
+   session.** The guard is `scope !== 'registry'`, written when `registry`
+   meant "the bundled local store". Since #401 a **worklist launch also reports
+   `registry`**, because the source served a cohort — so the button renders
+   during a live SMART session against the mock EHR, calls
+   `resetLocalDemoData()`, reloads, and changes nothing a reader can see. The
+   thing that actually resets a server-backed demo is the host's own *Reset
+   written data* on the mock EHR's Settings page, which PR 2 shipped and which
+   this button does not mention.
+2. **The sidebar's *Patient record*, in a worklist launch.** A worklist token
+   carries no patient, so the destination renders *"EHR data error. The SMART
+   launch did not include a patient context."* and then, under it, a full
+   recommendation card — *Screen for suicide risk · No suicide-risk screen on
+   file* — with a **Launch PHQ-9** button, for nobody. A worklist grant cannot
+   write at all (`patientForWrite` 403s a token with no patient context), so the
+   one button on that page is an action the server will refuse.
+3. **Settings' *Open the patient chart →*, in a worklist launch.** Same
+   destination, same error; and the paragraph above it promises *"Changes here
+   take effect on the patient chart"* to a session that has no chart.
+4. **The measurement-period selector, on a patient-bound session.** All four
+   windows produce 8-of-8 empty, because the cohort is empty for a reason no
+   window can fix (§8.7).
+5. **The summary's collapse toggle, on a phone** — it works, but it opens
+   expanded, so the control's only use is to undo the default.
+
+### 8.7 A patient-bound session shows two screens that contradict themselves
+
+This is §1.10's *"the 0-patient cohort"*, and the cause turns out not to be the
+token.
+
+`apps/clinical/src/App.tsx` mounts `<PatientProvider>` with **no
+`populationPatients`** — correctly, because neither build carries the demo
+population. So `populationPatients` is `[]` in this app, always. Two things in
+`apps/clinical/src/hooks/useRegistrySlices.ts` are written against a list that
+cannot have anything in it:
+
+- `inContextCohort(all, id)` filters that empty list, so a patient-bound launch
+  yields **zero** rows while the page says *"Showing the patient in context
+  only"*. The notice promises one patient and the page shows none.
+- the `!isSmartSession` branch hands back the same empty list, so the clinical
+  app opened with **no launch at all** — which is what `services/clinical`
+  serves at that URL — renders a caseload of *"0 of 0 patients shown"*, every
+  tile zero, *"No patients match the active filters"* with no filters active,
+  and *"Mock registry data — 0 patients sampled across the pathway stages"*.
+
+What that costs, measured on Sarah Patel's chart launch at 1024×768:
+
+| | Worklist launch | Chart launch |
+|---|---|---|
+| Measures — lede | *"…over the 14-patient registry"* | *"…over the **0-patient cohort in context**"* |
+| Measures — words / height | 503 / 2,547px | **937 / 3,341px** |
+| Measures — empty groups | 1 of 12 | **12 of 12**, 8 of 8 measures |
+| Caseload — rows | 14 | **0** |
+| Caseload — alerts | 19 over 8 patients | *"**Nothing outstanding.** No measure group reports a failure for any patient in this period. **That is a real result, not an empty state**"* |
+
+Three of those are false statements rather than thin ones. The alerts panel's
+empty state is the sharpest: the module's own header says it exists so that a
+panel *"showed six rules permanently reading zero"* cannot assert a clean
+caseload — and on an empty cohort it asserts exactly that, in bold, for a patient
+whose chart owes an assessment. The measures page is longer and more alarming
+when it has less to say, because eight stale *Not yet measurable* paragraphs
+render only in the case where the cohort is empty for a completely different
+reason.
+
+### 8.8 The framed summary's request fan-out — measured, and §1.12 corrected
+
+Cold load of the mock EHR's front door at 1024×768, counted at the browser:
+
+| | Requests |
+|---|---|
+| SMART discovery | 1 |
+| Roster (`GET Patient`) | 1 |
+| Patient slices — 14 patients × 14 type searches | **196** |
+| **Total FHIR requests** | **198** |
+
+Each is cross-origin and carries `Authorization`, so on a cold CORS cache each
+is preceded by an `OPTIONS` the wrangler log shows — which is where §1.12's
+*"about 400"* comes from. The frame itself is 476px tall at 382px down the page
+on desktop, and 503px tall at 617px on a phone.
+
+⚠️ **§1.12 has two things wrong, and one of them matters.** It says *"six
+tiles"*; there are **seven** computable tiles, a census bar and an alerts panel.
+And it says *"serially per patient"* — they are **fully parallel**:
+`useRegistrySlices` fires all fourteen `getSlice` calls in one `Promise.all`, and
+each of those fires its fourteen searches in another. What serialises them is the
+browser's six-connections-per-origin limit, not the code. That changes the fix:
+there is no serial loop to unroll, and pipelining would buy nothing. The number
+of requests is the whole problem.
+
+Two levers, and only one of them is honest FHIR:
+
+- **Fewer types.** The summary needs almost all fourteen — `deriveRegistryRow`
+  and `evaluateAllMeasures` between them read responses, observations, care
+  plans, communications, episodes, flags, tasks, documents, referrals,
+  appointments, procedures and encounters. Dropping types would change the
+  answers.
+- **Fewer requests per type.** A comma-separated reference search —
+  `GET /fhir/Observation?patient=p1,p2,…&category=survey` — is core FHIR `OR`
+  semantics on a reference parameter, and turns 196 into **14**. The mock's
+  `parseSearch` takes one id today; widening it to a list is a contained change
+  that keeps every clinical type patient-scoped, which is the rule
+  `services/mock-ehr/src/search.ts` is written to protect.
+
+### 8.9 What PR 7 changes, and what it does not
+
+On §4.8, §4.9 and the findings above:
+
+1. **The table first.** The summary and the alerts move below it. The lede stops
+   explaining what a recommendation is.
+2. **The summary collapses to its breached tiles on a phone** and stays open on
+   desktop.
+3. **The alerts become a count that opens a page** — `/population/alerts` — so
+   the caseload carries one line where it carries a 19-row panel.
+4. **The three views stay**, and the deck vocabulary leaves their descriptions.
+5. **A patient-bound session says so in one line and offers the worklist
+   launch**, on both screens, instead of rendering an empty cohort as a result.
+6. **The framed summary's fan-out** goes from 198 requests to the low teens.
+7. **Settings leaves the panel's navigation**; its 1,501 words become the preset
+   picker, the checklist and one sentence, and it gets `stageBlurbs` and
+   `toolPurposeLine` like every other page that renders those two strings.
+8. **Word budgets** for `/population/caseload`, `/population/measures`,
+   `/settings` and `/population/summary`, in the file PR 5 added.
+
+Out of scope, per the brief: new measures, new registry columns, and the role
+model `docs/plans/suicide-care-dashboard.md` says is missing — which is what
+three of the blocked tiles and three of the four unwatched alert rules are
+waiting on. They stay named rather than removed.
