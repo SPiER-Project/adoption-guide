@@ -216,7 +216,15 @@ const SCAN = [
   // already proves files were read.
   { path: 'apps/guide/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 0, snomed: 0, tho: 0 }, minFiles: 15 },
   { path: 'apps/clinical/src', exts: ['.ts', '.tsx'], minCodings: { loinc: 1, snomed: 0, tho: 0 } },
-  { path: 'tests', exts: ['.ts', '.tsx'], minCodings: { loinc: 1, snomed: 1, tho: 1 } },
+  // ⚠️ Re-measured 2026-09-20, the day after the entry above was written: #566
+  // moved tests/lethalMeans.test.ts — which carried this tree's ONE snomed and
+  // ONE tho literal — into packages/core/src/lib/, where the entry below scans
+  // it (409063005 "Counseling" still reports ✓). `tests` is loinc 1 / snomed 0
+  // / tho 0 now, and the snomed/tho floors of 1 went red on main four hours
+  // after that merge with nothing running this workflow until the next
+  // terminology-touching PR. That is the "one deletion from red" the paragraph
+  // above predicted, and it fired. loinc 1 keeps the entry able to fail.
+  { path: 'tests', exts: ['.ts', '.tsx'], minCodings: { loinc: 1, snomed: 0, tho: 0 } },
   // ─── packages/core — where the runtime mappers now live ─────
   //
   // The whole-package entry. Without it the mappers' codings would have left the
