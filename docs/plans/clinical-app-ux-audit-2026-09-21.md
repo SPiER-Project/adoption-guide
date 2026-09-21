@@ -703,15 +703,15 @@ Every rule below is a defect from §1 restated as something a test can fail on.
 
 Each PR is mergeable on its own and leaves every gate green.
 
-| PR | Scope | Closes |
-|---|---|---|
-| **1** (this branch) | Mock EHR: the dock is a bottom sheet under 60rem; launch copy; this audit | §1.2, rule 8 |
-| **2** | Demo host hygiene: `mock-ehr` job in `deploy.yml`; prefetch on the host's CDS call; `embed=0` on top-level launches; the "written since" line on the chart page; nightly reset of written data | §1.1, §1.3, §1.13, §1.14, rule 7 |
-| **3** | The pathway evaluator in core (§4.5): one primary from the published pathway, satisfied steps retire, act-titled cards, product defaults stop recommending; the CDS service inherits | §1.4, §1.5, rules 3–4 |
-| **4** | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it | §1.6, §1.7, rule 5 |
-| **5** | *Where this patient is* and *What's on file*: the rail and record sections become pages; the walkthrough leaves the clinical build; the protocol page in plain words; clinical word budgets and the clinical jargon scan | §1.9, §1.10, rules 1–2 |
-| **6** | Fillers and recorders: the scratch-chart notice, the confirmation beat, one next action | §1.8, rule 6 |
-| **7** | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count | §1.10, §1.11, §1.12 |
+| PR | Status | Scope | Closes |
+|---|---|---|---|
+| **1** | Shipped (#574) | Mock EHR: the dock is a bottom sheet under 60rem; launch copy; this audit | §1.2, rule 8 |
+| **2** | Shipped (#575) | Demo host hygiene: `mock-ehr` job in `deploy.yml`; prefetch on the host's CDS call; `embed=0` on top-level launches; the "written since" line on the chart page; nightly reset of written data | §1.1, §1.3, §1.13, §1.14, rule 7 |
+| **3** | Shipped (#576) | The pathway evaluator in core (§4.5): one primary from the published pathway, satisfied steps retire, act-titled cards, product defaults stop recommending; the CDS service inherits. Grew four things the evaluator exposed: the CAMS mapper emits the coded overall risk its published crosswalk was waiting for, the demo's story for that chart stops naming the wrong number, the caseload's risk column reads the harmonized tier, and `unknown` stops rendering as `none` | §1.4, §1.5, rules 3–4 |
+| **4** | — | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it | §1.6, §1.7, rule 5 |
+| **5** | — | *Where this patient is* and *What's on file*: the rail and record sections become pages; the walkthrough leaves the clinical build; the protocol page in plain words; clinical word budgets and the clinical jargon scan | §1.9, §1.10, rules 1–2 |
+| **6** | — | Fillers and recorders: the scratch-chart notice, the confirmation beat, one next action | §1.8, rule 6 |
+| **7** | — | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count. ⚠️ Two of its findings landed early in PR 3 — the risk column and the `none`/`unknown` split — so its audit section starts from a page that already ranks on the tier | §1.10, §1.11, §1.12 |
 
 PR 3 before PR 4 on purpose: the landing screen renders the policy's primary
 card, and building the screen first would mean building it twice. PRs 2 and 3
