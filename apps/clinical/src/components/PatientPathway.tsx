@@ -565,32 +565,15 @@ export function PatientPathway({
         ))}
       </ol>
 
-      {/* The panel's link strip — its only chrome-level navigation, since
-          PanelShell deliberately carries no nav (it exists to give the vertical
-          budget back to the form).
-
-          ⚠️ **Tool configuration is reachable here and NOT from the two
-          "Configure tools" links above, which is the opposite of how it looks.**
-          Those two sit inside "this tool is disabled" messages, and nothing is
-          disabled in panel chrome: `toolEnablementFor` returns `() => true`, so
-          `disabledCount` is always 0 and the remaining message means the catalog
-          has no launchable tool for that step — which no setting can change.
-          Offering the switch there would promise a fix it cannot deliver. Here
-          it is honest: the page itself says what the setting does and does not
-          do in a host chart. */}
-      {inPanel && (
-        <p className="pathway-footnote">
-          <Link to="/patient/pathway">The published protocol</Link>
-          {' · '}
-          {/* ⚠️ The guide link that used to sit here is gone with the flag. It
-              pointed at `/guide/cds-service`, which this app does not register,
-              and this footnote is the panel's ONLY navigation — so on a real
-              embedded launch it returned the clinician to the chart with no
-              explanation (check:surface-links). The two that remain are
-              `/patient/*` and `/settings`, which this app does register. */}
-          <Link to="/settings">Tools this deployment offers</Link>
-        </p>
-      )}
+      {/* ⚠️ **The panel's footnote links are GONE, not moved** (clinical-app
+          audit §4.7, PR 4). They were *The published protocol* and *Tools this
+          deployment offers*, and they were the panel's only navigation — which
+          was the argument for them and is now the argument against: the panel
+          has a landing screen, the protocol is reached through *Why this?*, and
+          the settings page has never had any effect in panel chrome anyway
+          (`lib/toolEnablement.ts` has the four reasons). Putting a deployment
+          setting in a clinician's host chart, one tap from a suicide-risk
+          recommendation, is what §4.9 is for. */}
     </section>
   )
 }

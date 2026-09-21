@@ -33,33 +33,26 @@
  * one disclosure away, and anything it has *not* enabled is counted rather than
  * hidden — the same treatment the chart's stage tiles already give, so a
  * clinician who has seen one recognises the other.
+ *
+ * Since 2026-09-21 that drawer is `components/StageAlternatives.tsx`, because
+ * the *Why this?* page owes the same escape for the step it explains
+ * (clinical-app audit §4.2). One definition; see its header for why the list is
+ * shared rather than moved.
  */
 import { useMemo } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@spier/ui/PageHeader'
 import { SectionHeader } from '@spier/ui/SectionHeader'
 import { Card } from '@spier/ui/Card'
-import { Button } from '@spier/ui/Button'
 import { EmptyState } from '@spier/ui/EmptyState'
-import { stageAlternativeTools, stageLeadTools } from '@spier/core/lib/pathwaySelection'
+import { stageLeadTools } from '@spier/core/lib/pathwaySelection'
 import { stageById } from '@spier/core/data/catalog/stages'
 import type { Tool } from '@spier/core/data/catalog/tools'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { toolEnablementFor } from '../lib/toolEnablement'
+import { StageAlternatives, ToolActions } from '../components/StageAlternatives'
 import '../css/PathwayStage.css'
-
-function ToolActions({ tool }: { tool: Tool }) {
-  return (
-    <p className="pathway-stage__actions">
-      {tool.launchActions.map((action, i) => (
-        <Button key={action.path} to={action.path} variant={i === 0 ? 'primary' : 'secondary'}>
-          {action.label}
-        </Button>
-      ))}
-    </p>
-  )
-}
 
 export function PathwayStage() {
   const { stageId } = useParams<{ stageId: string }>()
@@ -75,16 +68,7 @@ export function PathwayStage() {
     [chromeMode, siteToolEnabled],
   )
 
-  const { lead, available, withheld } = useMemo(() => {
-    if (!stage) return { lead: [] as Tool[], available: [] as Tool[], withheld: 0 }
-    const alternatives = stageAlternativeTools(stage.id)
-    const available = alternatives.filter(t => isToolEnabled(t.id))
-    return {
-      lead: stageLeadTools(stage.id),
-      available,
-      withheld: alternatives.length - available.length,
-    }
-  }, [stage, isToolEnabled])
+  const lead = useMemo<Tool[]>(() => (stage ? stageLeadTools(stage.id) : []), [stage])
 
   // An unknown stage is a bad URL, not a blank page. The chart is where every
   // link to here comes from, so it is where a wrong one goes back to.
@@ -113,31 +97,7 @@ export function PathwayStage() {
         ))
       )}
 
-      {(available.length > 0 || withheld > 0) && (
-        <details className="pathway-stage__alternatives">
-          <summary className="pathway-stage__alternatives-summary">
-            Use a different instrument for this stage
-          </summary>
-          <p className="pathway-stage__alternatives-note">
-            The pathway names what SPiER demonstrates end to end. It does not know this patient, so
-            everything else this deployment offers at this stage is here.
-          </p>
-          {available.map(tool => (
-            <Card key={tool.id} padding="compact">
-              <h4 className="pathway-stage__tool-name">{tool.name}</h4>
-              <p className="pathway-stage__tool-purpose">{tool.purpose}</p>
-              <ToolActions tool={tool} />
-            </Card>
-          ))}
-          {withheld > 0 && (
-            <p className="pathway-stage__alternatives-note">
-              {withheld} {withheld === 1 ? 'other tool is' : 'other tools are'} catalogued for this
-              stage but not enabled in your implementation.{' '}
-              <Link to="/settings">Configure tools</Link>.
-            </p>
-          )}
-        </details>
-      )}
+      <StageAlternatives stageId={stage.id} isToolEnabled={isToolEnabled} />
     </div>
   )
 }

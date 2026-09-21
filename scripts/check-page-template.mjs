@@ -116,6 +116,12 @@ const LENSES = {
   // Its `up` is the way back to Tools; its title names the tool, which matters
   // exactly where four tools share one recorder.
   'ToolPage.tsx': 'the guide’s page for one catalogued tool; a sibling of the /guide layout that owns the header above a shared form view',
+  // Added 2026-09-21 with the clinical-app audit's landing screen (§4.2). Same
+  // shape as PathwayStage above — a page of the Patient lens, which has no
+  // layout component to draw a header for it — and the same extra reason: it
+  // is the one drill-in from the chart's landing card, so its `up` is the way
+  // back, and in the panel it is the only way.
+  'WhyThis.tsx': 'the reasoning behind the chart’s one recommendation; a drill-in from the landing card, and its `up` is the way back',
 }
 
 const errors = []

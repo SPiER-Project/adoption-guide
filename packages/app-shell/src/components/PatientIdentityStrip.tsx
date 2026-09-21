@@ -37,8 +37,14 @@ export function PatientIdentityStrip({ dense }: { dense?: boolean }) {
     return (
       <div className="identity-strip identity-strip--dense">
         <span className="identity-strip__name">{patientDisplay.fullName}</span>
+        {/* Age rather than the date of birth, and the whole strip rather than a
+            second line on the page: the landing screen's "who" and this strip
+            are ONE statement of who the chart is about (clinical-app audit
+            §4.1, §4.7), and at 375px there is room for one of age and DOB. The
+            full strip below keeps both, because a browsing chrome has the
+            width for the identifying fact as well as the placing one. */}
         <span className="identity-strip__meta">
-          {patientDisplay.dob} &middot; MRN {patientDisplay.mrn}
+          {patientDisplay.age && <>Age {patientDisplay.age} &middot; </>}MRN {patientDisplay.mrn}
         </span>
         <RiskPill level={risk} label={RISK_LABEL[risk]} sm title={riskTitle(risk)} />
       </div>
@@ -49,7 +55,10 @@ export function PatientIdentityStrip({ dense }: { dense?: boolean }) {
     <div className="identity-strip">
       <span className="identity-strip__name">{patientDisplay.fullName}</span>
       <Divider />
-      <Field label="DOB">{patientDisplay.dob}</Field>
+      <Field label="DOB">
+        {patientDisplay.dob}
+        {patientDisplay.age && ` (${patientDisplay.age})`}
+      </Field>
       <Divider />
       <Field label="MRN" mono>{patientDisplay.mrn}</Field>
       <Divider />

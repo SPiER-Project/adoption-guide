@@ -1,0 +1,123 @@
+/* ===========================
+   The chart's landing screen — one instruction, and two ways off it.
+
+   Layout only. `Card` owns the panel's padding, radius, border and background;
+   `Button` owns the launch control and the two link-styled jumps. What is here
+   is where things sit, how big the words are, and one domain colour per urgency
+   on the card's left edge — the `className`-for-layout-or-a-domain-colour rule
+   in `docs/internals/css-and-page-template.md`.
+   =========================== */
+
+.chart-landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* The urgency edge. `Card accent` already draws a left rule in the brand
+   colour; these re-colour that one rule rather than adding a second surface,
+   which is why they set a border colour and nothing else.
+
+   ⚠️ Compounded with `.card` on purpose. A single-class selector would tie the
+   winner to stylesheet import order — which this file does not control and
+   which changes with the module graph — so the modifier is written two classes
+   deep and beats `.card--accent` by specificity instead of by luck. */
+.card.chart-landing__now--urgent {
+  border-left-color: var(--risk-acute);
+}
+
+.card.chart-landing__now--elevated {
+  border-left-color: var(--risk-moderate);
+}
+
+.card.chart-landing__now--routine {
+  border-left-color: var(--brand-primary);
+}
+
+/* Nothing due is not an alarm and not a success badge — it is the absence of a
+   claim, so it takes the page's own edge. */
+.card.chart-landing__now--clear {
+  border-left-color: var(--border-default);
+}
+
+/* The act. The largest thing on the screen, because it is the screen. */
+.chart-landing__act {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+  color: var(--text-strong);
+}
+
+/* The trigger, in the clinician's words. One of the three prose sizes
+   (`check:prose` RULE 5) with the measure capped against its own type. */
+.chart-landing__trigger {
+  margin: var(--space-2) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  color: var(--text-body);
+}
+
+/* The published step's own instruction, shown only where there is nothing to
+   launch. Same size as the trigger it follows — it is the second half of one
+   statement, not a footnote to it. */
+.chart-landing__instruction {
+  margin: var(--space-2) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  color: var(--text-body);
+}
+
+.chart-landing__launch {
+  margin: var(--space-4) 0 0;
+}
+
+/* The rest of the tier's obligations, as one line. */
+.chart-landing__also {
+  margin: var(--space-4) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-muted);
+}
+
+.chart-landing__also-label {
+  font-weight: 600;
+  color: var(--text-base);
+}
+
+.chart-landing__why {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+/* The two ways off the screen. A column on a phone so each label keeps its
+   fact beside it rather than wrapping away from it; a row as soon as there is
+   width for both. */
+.chart-landing__ways {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .chart-landing__ways {
+    flex-direction: row;
+    gap: var(--space-5);
+  }
+}
+
+.chart-landing__way {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-inline);
+  font-size: var(--font-size-base);
+}
+
+.chart-landing__fact {
+  color: var(--text-muted);
+}

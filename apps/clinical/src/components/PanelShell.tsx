@@ -30,6 +30,22 @@
  * panel gives up naming its patient and it does so only when told, by a standard
  * parameter, that something else is doing it. See `PresentationContext`.
  *
+ * ⚠️ **Except on a narrow panel, where the parameter is answered anyway**
+ * (clinical-app audit §1.7, decision §7.3 — Brad, 2026-09-21). The parameter
+ * says the host HAS a banner; it does not say the banner is VISIBLE. On a phone
+ * the host's layout stacks, its banner sits hundreds of pixels above, and since
+ * the panel became a full-screen takeover (#574) it is covered outright — so a
+ * clinician filled in a suicide-risk screener with no name on screen. Below the
+ * phone breakpoint the strip is drawn regardless, because the alternative is a
+ * safety defect in the one setting where the app is most likely to be used
+ * one-handed.
+ *
+ * The cost, stated rather than discovered: a host that docks the panel at a
+ * width under 640px on a DESKTOP — the demo host's 470px dock is one — now sees
+ * the strip beside its own visible banner. That is one 24px line of redundancy
+ * against a phone with no patient named at all, and the only rule that would
+ * separate the two cases is a device sniff with no breakpoint behind it.
+ *
  * ── What it deliberately does NOT do ──────────────────────────────────────
  *
  * - **No sidebar.** The lens switcher is implementer navigation; a clinician in
@@ -43,17 +59,21 @@
  *   and it holds regardless of how the offline-vs-mock-EHR question lands.
  * - **No width opinion.** Nothing here sets a width; the host sizes the frame.
  */
+import { useRef } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useScrollToTopOnNavigate } from '@spier/app-shell/hooks/useScrollToHash'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { PatientIdentityStrip } from '@spier/app-shell/components/PatientIdentityStrip'
+import { useIsNarrow } from '../hooks/useIsNarrow'
 import '../css/PanelShell.css'
 
 export function PanelShell() {
   useScrollToTopOnNavigate()
   const { activePatientId, isSmartConnected } = usePatient()
   const { hostDrawsPatientBanner } = usePresentation()
+  const rootRef = useRef<HTMLDivElement>(null)
+  const isNarrow = useIsNarrow(rootRef)
 
   // Mirrors PatientBanner's rule: with no patient and no SMART context there is
   // nobody to name, and a strip reading "—" is worse than no strip.
@@ -63,10 +83,15 @@ export function PanelShell() {
   // drawing a duplicate banner two inches from the host's own — and the reason
   // the default is to draw one is that a panel which never names its patient is
   // a safety problem rather than a tidy one.
-  const hasPatient = (activePatientId !== null || isSmartConnected) && !hostDrawsPatientBanner
+  //
+  // The third condition is the narrow-panel rule in the header comment: under
+  // the phone breakpoint the host's banner is not on screen whatever the launch
+  // parameter said, so the strip is drawn anyway.
+  const hasPatient =
+    (activePatientId !== null || isSmartConnected) && (!hostDrawsPatientBanner || isNarrow)
 
   return (
-    <div className="panel-shell">
+    <div className="panel-shell" ref={rootRef}>
       {hasPatient && (
         <div className="panel-shell__patient">
           <PatientIdentityStrip dense />
