@@ -722,21 +722,3 @@ function evaluateTier(params: {
 function withAction<T>(action: PathwayAction | undefined, build: (a: PathwayAction) => T): T | null {
   return action ? build(action) : null
 }
-
-/**
- * The primary's headline and its reason, for a caseload row's "next step".
- *
- * ⚠️ **One expression, two surfaces.** The population caseload used to derive
- * its column from the patient's active STAGE while the chart derived its card
- * from something else, which is how a row and that patient's own chart came to
- * recommend different things — the disagreement the caseload page claims cannot
- * happen. Both now read this.
- */
-export function pathwayNextStep(
-  record: PathwayRecord,
-  options: EvaluatePathwayOptions = {},
-): { label: string; rationale: string } | null {
-  const { primary, reason } = evaluatePathway(record, options)
-  if (!primary) return null
-  return { label: primary.title, rationale: reason }
-}

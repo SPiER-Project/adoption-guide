@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import { evaluatePathway, pathwayNextStep, type PathwayRecord } from './pathwayEvaluation'
+import { evaluatePathway, type PathwayRecord } from './pathwayEvaluation'
 import { RISK_TIER_SYSTEM } from './riskEpisode'
 import { CRISIS_RESOURCES_PROFILE } from './crisisResources'
 import type {
@@ -322,14 +322,19 @@ describe('no product default ever recommends', () => {
   })
 })
 
-describe('the caseload reads the same expression the chart does', () => {
-  it('returns the primary’s headline and the evaluation’s sentence', () => {
-    const next = pathwayNextStep(recordFor('patient-003'), { now: NOW })
-    const { primary, reason } = evaluate(recordFor('patient-003'))
-    expect(next).toEqual({ label: primary!.title, rationale: reason })
+describe('the caseload reads the same evaluation the chart does', () => {
+  // `deriveRegistryRow` runs `evaluatePathway` once per row and takes the
+  // primary's headline and the tier off the one result — asserted there, in
+  // registry.test.ts, against the real demo slices. What belongs here is the
+  // shape that makes that possible.
+  it('carries a tier and a primary a row can render without re-deriving either', () => {
+    const { primary, reason, tier } = evaluate(sarahPlusCssrs('moderate'))
+    expect(tier?.code).toBe('moderate')
+    expect(primary?.title).toBeTruthy()
+    expect(reason).toBe(primary?.reason)
   })
 
-  it('returns null when nothing is due', () => {
-    expect(pathwayNextStep(sarahPlusCssrs('no-risk'), { now: NOW })).toBeNull()
+  it('has no primary when nothing is due', () => {
+    expect(evaluate(sarahPlusCssrs('no-risk')).primary).toBeNull()
   })
 })

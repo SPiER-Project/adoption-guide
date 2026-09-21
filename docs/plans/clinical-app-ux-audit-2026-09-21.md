@@ -64,13 +64,35 @@ story, the curated next-step line in `patients.json` (which also claimed a
 "risk status" that chart has never carried) and two prose references now say
 which one they mean.
 
-⚠️ **The two numbers reach two different SPiER surfaces, and nothing reconciles
-them.** The caseload's RISK column is `highestRiskLevel(riskAlerts)`, so it
-reads *High* for this patient while the chart's own card reads *moderate risk*.
-That is not new and this PR does not cause it — but the pathway evaluator makes
-the harmonized tier visible for the first time, so the divergence is now legible
-where it used to be hidden. Which of the two a worklist should rank on is §7's
-territory and PR 7's screen.
+**The two numbers reached two different SPiER surfaces, and the caseload now
+reads the tier.** Its RISK column was `highestRiskLevel(riskAlerts)` — the most
+severe thing any instrument said — so it printed *High* for this patient while
+that patient's own chart read *moderate risk*. `deriveRegistryRow` now
+evaluates the pathway once per row and takes the harmonized tier from it, which
+is what the protocol conditions on; the row's next-reassessment date is
+computed off the same tier, so the two surfaces agree on the cadence as well.
+An alert is still the fallback where a record has reached no tier at all — a
+positive PHQ-9 with no assessment yet reaches none, and printing *None* for
+that patient would read as "screened, no risk".
+
+⚠️ **That change found a worse thing than the one it was made for.**
+patient-013 and patient-014 are the ED exception branches — an acute positive
+ASQ, then a transfer and an elopement. Their scenarios carry an **empty
+`riskAlerts` array**, which is a cached derivation rather than anything in the
+record, and `highestRiskLevel([])` is `none`. So the worklist rendered **None**
+for two patients whose charts record an acute positive screen, and
+`RISK_LEVEL_ORDER` sorted them to the **bottom** of a list whose own caption
+says "highest risk first". Reading the tier off the Observation fixes it,
+because a chart that has one cannot be missing it. Four demo rows change in
+total: patient-001 and patient-006 from high to moderate, patient-013 and
+patient-014 from none to acute.
+
+⚠️ **The related half is still open: `none` and `unknown` are one word on this
+page.** `RiskLevel` already carries both, and `riskLabel.ts` says why — "a
+chart that has never been screened must not read as cleared" — but the registry
+row's type does not, so a never-screened patient and a screened-negative one
+both render *None*. Closing it means touching the census bar, the risk filter
+and the summary tiles, which is PR 7's screen and its audit section.
 
 ⚠️ **That closes the narrow half of the gap and not the recorded worry about
 it.** `docs/best-practices/concept-harmonization.md` had flagged in advance that

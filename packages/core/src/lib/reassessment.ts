@@ -96,6 +96,28 @@ export function tierCodeForLevel(level: RiskLevel): string {
   return LEVEL_TO_TIER[level]
 }
 
+/**
+ * The inverse, built by inverting the SAME table rather than typing a second
+ * one — so the two can never disagree about which end `acute`/`imminent` is.
+ */
+const TIER_TO_LEVEL = Object.fromEntries(
+  Object.entries(LEVEL_TO_TIER).map(([level, tier]) => [tier, level]),
+) as Record<string, RiskLevel>
+
+/**
+ * The app's risk level for a harmonized tier code, or `undefined` for a tier
+ * this app has no word for.
+ *
+ * ⚠️ **`undefined` rather than a default.** A tier added to
+ * `SPiERSuicideRiskTier` that nothing here knows about must not quietly render
+ * as `none` — "screened, no risk" — which is the strongest claim in the
+ * vocabulary and the opposite of "we do not recognise this". Callers fall back
+ * to what they had.
+ */
+export function riskLevelForTier(tierCode: string): RiskLevel | undefined {
+  return TIER_TO_LEVEL[tierCode]
+}
+
 /** Interval for a risk level, or null when that tier has no routine cadence. */
 export function intervalDaysForLevel(level: RiskLevel): number | null {
   return REASSESSMENT_INTERVAL_DAYS[tierCodeForLevel(level)] ?? null

@@ -41,10 +41,10 @@ import {
 // of that code from drifting; measures.ts does not import this module, so there
 // is no cycle.
 import { RISK_CONCEPT_LOINC } from './measures'
-import { reassessmentState, type ReassessmentState } from './reassessment'
+import { reassessmentState, riskLevelForTier, type ReassessmentState } from './reassessment'
 // One definition of "when was this recorded", shared with the pathway evaluator.
 import { bestArtifactDate } from './artifactDate'
-import { pathwayNextStep } from './pathwayEvaluation'
+import { evaluatePathway } from './pathwayEvaluation'
 import type { PatientSlice } from '../types/fhir'
 
 /** Just enough of an Observation to find the risk-concept ones. */
@@ -445,7 +445,48 @@ export function deriveRegistryRow(
   }
   const { statuses, activeStageId } = derivePathwayStatus(artifacts)
   const completedStages = STAGES.filter(s => statuses[s.id] === 'complete').map(s => s.id)
-  const currentRiskLevel = highestRiskLevel(slice.riskAlerts)
+
+  // ONE evaluation of the published pathway per row, read for two things: the
+  // row's risk level and its next step. Calling it twice would be a second
+  // chance for a row to disagree with itself.
+  const evaluation = evaluatePathway(
+    {
+      responses: slice.responses,
+      observations: slice.observations,
+      carePlans: slice.carePlans,
+      communications: slice.communications ?? [],
+      procedures: slice.procedures ?? [],
+      episodes: slice.episodes ?? [],
+      riskAlerts: slice.riskAlerts,
+    },
+    { now },
+  )
+
+  // ⚠️ **The HARMONIZED TIER, not the loudest alert** — changed 2026-09-21.
+  //
+  // This was `highestRiskLevel(slice.riskAlerts)`, which is the most severe
+  // thing any instrument said about the patient. That is a different question
+  // from the one the pathway branches on, and for a real demo chart the two
+  // gave different answers out loud: patient-006's CAMS session rates
+  // psychological pain and hopelessness at 4/5, which drives the ALERT to
+  // high, while the patient's own OVERALL risk rating is 3/5, which is the
+  // moderate tier. The caseload said High and that patient's own chart said
+  // moderate risk — the disagreement this page's own copy claims cannot
+  // happen.
+  //
+  // The tier wins because it is what the protocol conditions on: the tier
+  // branch, the reassessment cadence and every obligation below it are gated
+  // on `SPiERSuicideRiskTier`, never on an instrument's own reading of itself.
+  //
+  // ⚠️ **The alert is the FALLBACK, and that is not a compromise.** A patient
+  // with a positive PHQ-9 and no assessment yet has no tier at all — the
+  // pathway's gate is "positive screen, go and assess", and it reaches no tier
+  // until something does. Showing `none` for them would read as "screened, no
+  // risk", which is the opposite of true. So a record with no tier keeps
+  // saying what its instruments said.
+  const alertLevel = highestRiskLevel(slice.riskAlerts)
+  const currentRiskLevel =
+    (evaluation.tier ? riskLevelForTier(evaluation.tier.code) : undefined) ?? alertLevel
 
   return {
     ...patient,
@@ -455,18 +496,11 @@ export function deriveRegistryRow(
     lastActivity: deriveLastActivity(slice, now),
     ...deriveEpisodeRollup(slice, now),
     ...deriveFollowUpRollup(slice, now),
+    // Fed the tier-derived level too, so the row's next-reassessment date is
+    // computed off the same tier the chart's card is.
     ...deriveReassessmentRollup(slice, currentRiskLevel, now),
-    nextStep: pathwayNextStep(
-      {
-        responses: slice.responses,
-        observations: slice.observations,
-        carePlans: slice.carePlans,
-        communications: slice.communications ?? [],
-        procedures: slice.procedures ?? [],
-        episodes: slice.episodes ?? [],
-        riskAlerts: slice.riskAlerts,
-      },
-      { now },
-    ),
+    nextStep: evaluation.primary
+      ? { label: evaluation.primary.title, rationale: evaluation.reason }
+      : null,
   }
 }
