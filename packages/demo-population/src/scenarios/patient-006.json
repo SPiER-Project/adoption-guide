@@ -237,7 +237,16 @@
         "reference": "Patient/patient-006"
       },
       "effectiveDateTime": "2026-08-06T10:00:00.000Z",
-      "valueInteger": 3,
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk",
+            "code": "3",
+            "display": "3 — Moderate risk"
+          }
+        ],
+        "text": "3 — Moderate risk"
+      },
       "interpretation": [
         {
           "coding": [

@@ -41,7 +41,10 @@ import {
 // of that code from drifting; measures.ts does not import this module, so there
 // is no cycle.
 import { RISK_CONCEPT_LOINC } from './measures'
-import { reassessmentState, type ReassessmentState } from './reassessment'
+import { reassessmentState, riskLevelForTier, type ReassessmentState } from './reassessment'
+// One definition of "when was this recorded", shared with the pathway evaluator.
+import { bestArtifactDate } from './artifactDate'
+import { evaluatePathway } from './pathwayEvaluation'
 import type { PatientSlice } from '../types/fhir'
 
 /** Just enough of an Observation to find the risk-concept ones. */
@@ -73,11 +76,31 @@ export interface RegistryActivity {
   label: string
 }
 
+/**
+ * What a caseload row can say about a patient's risk.
+ *
+ * ⚠️ **`unknown` is not a sixth severity — it is the absence of the question
+ * having been asked**, and it is here because the five-value alert vocabulary
+ * could not express it. `highestRiskLevel([])` is `none`, so a patient nobody
+ * had ever screened rendered the same word as a patient screened and cleared.
+ * `riskLabel.ts` has carried the distinction for the identity strip since it
+ * was written — *a chart that has never been screened must not read as
+ * cleared* — and this is the row type catching up with it.
+ *
+ * Structurally the same six values as `RiskLevel` in the view layer, declared
+ * here rather than imported because `packages/core` is React-free and that
+ * module ships lucide icons (`npm run check:core-boundary`). The two are tied
+ * together at every render site: `RISK_LABEL` and `RISK_ICON` are keyed by the
+ * view's union, so a value this one gained and that one did not would not
+ * compile.
+ */
+export type RegistryRiskLevel = RiskAlert['level'] | 'unknown'
+
 export interface DerivedRegistryRow extends RegistryPatient {
   /** Null once every stage (including the last) is complete — see derivePathwayStatus. */
   currentStage: string | null
   completedStages: string[]
-  currentRiskLevel: RiskAlert['level']
+  currentRiskLevel: RegistryRiskLevel
   /** Null when the slice has no dated artifact at all. */
   lastActivity: RegistryActivity | null
   /**
@@ -117,52 +140,19 @@ export interface DerivedRegistryRow extends RegistryPatient {
   /** Date of the most recent risk-concept Observation, or null. */
   lastAssessment: string | null
   reassessment: ReassessmentState
+  /**
+   * What the published pathway says to do next for this patient, or null when
+   * nothing is due.
+   *
+   * ⚠️ **The same expression the chart's leading card uses**
+   * (`lib/pathwayEvaluation.ts`). The caseload used to derive this column from
+   * the patient's active STAGE while the chart derived its card from the stage's
+   * lead tool plus a live alert — two derivations, and they disagreed, which is
+   * exactly what the caseload page claims cannot happen.
+   */
+  nextStep: { label: string; rationale: string } | null
 }
 
-function bestArtifactDate(resource: FhirResourceLike): string | undefined {
-  const r = resource as {
-    authored?: string
-    effectiveDateTime?: string
-    issued?: string
-    sent?: string
-    // Stage-7: Task carries authoredOn; EpisodeOfCare/Flag carry period.start.
-    // Without these the feed would fall back to the local `_savedAt` stamp,
-    // which is the save time rather than the clinical time (and is absent
-    // entirely on resources read back from a SMART server).
-    authoredOn?: string
-    // Stage-5: DocumentReference carries `date`, Consent `dateTime`, and
-    // Appointment `start` (its clinical time is the visit, not the booking).
-    date?: string
-    dateTime?: string
-    start?: string
-    period?: { start?: string; end?: string }
-    // CarePlan's own record-time field, and the FHIR home of what the demo
-    // fixtures used to keep in `_savedAt`. It sits beside `_savedAt` rather than
-    // up with the clinical fields because both answer "when was this written
-    // down", not "when did it happen".
-    created?: string
-    _savedAt?: string
-    meta?: { lastUpdated?: string }
-  }
-  return (
-    r.authored ??
-    r.effectiveDateTime ??
-    r.issued ??
-    r.sent ??
-    r.authoredOn ??
-    r.date ??
-    r.dateTime ??
-    r.start ??
-    // An episode that has closed is most meaningfully dated by its end.
-    r.period?.end ??
-    r.period?.start ??
-    r.created ??
-    r._savedAt ??
-    // Resources read back from a SMART server carry no `_savedAt`; the server's
-    // own stamp is the last resort before the row goes undated.
-    r.meta?.lastUpdated
-  )
-}
 
 /**
  * When an appointment counts as *activity*.
@@ -475,7 +465,59 @@ export function deriveRegistryRow(
   }
   const { statuses, activeStageId } = derivePathwayStatus(artifacts)
   const completedStages = STAGES.filter(s => statuses[s.id] === 'complete').map(s => s.id)
-  const currentRiskLevel = highestRiskLevel(slice.riskAlerts)
+
+  // ONE evaluation of the published pathway per row, read for two things: the
+  // row's risk level and its next step. Calling it twice would be a second
+  // chance for a row to disagree with itself.
+  const evaluation = evaluatePathway(
+    {
+      responses: slice.responses,
+      observations: slice.observations,
+      carePlans: slice.carePlans,
+      communications: slice.communications ?? [],
+      procedures: slice.procedures ?? [],
+      episodes: slice.episodes ?? [],
+      riskAlerts: slice.riskAlerts,
+    },
+    { now },
+  )
+
+  // ⚠️ **The HARMONIZED TIER, not the loudest alert** — changed 2026-09-21.
+  //
+  // This was `highestRiskLevel(slice.riskAlerts)`, which is the most severe
+  // thing any instrument said about the patient. That is a different question
+  // from the one the pathway branches on, and for a real demo chart the two
+  // gave different answers out loud: patient-006's CAMS session rates
+  // psychological pain and hopelessness at 4/5, which drives the ALERT to
+  // high, while the patient's own OVERALL risk rating is 3/5, which is the
+  // moderate tier. The caseload said High and that patient's own chart said
+  // moderate risk — the disagreement this page's own copy claims cannot
+  // happen.
+  //
+  // The tier wins because it is what the protocol conditions on: the tier
+  // branch, the reassessment cadence and every obligation below it are gated
+  // on `SPiERSuicideRiskTier`, never on an instrument's own reading of itself.
+  //
+  // ⚠️ **The alert is the FALLBACK, and that is not a compromise.** A patient
+  // with a positive PHQ-9 and no assessment yet has no tier at all — the
+  // pathway's gate is "positive screen, go and assess", and it reaches no tier
+  // until something does. Showing `none` for them would read as "screened, no
+  // risk", which is the opposite of true. So a record with no tier keeps
+  // saying what its instruments said.
+  //
+  // ⚠️ **And `unknown` below the fallback, which `highestRiskLevel` cannot
+  // say.** It returns `none` for an empty alert set, so a patient nobody has
+  // ever screened read exactly like a patient screened and cleared — the
+  // distinction `riskLabel.ts` calls out as clinical and the one word this
+  // column had no way to spell. A record the evaluator finds no screen, no
+  // assessment and no tier on has not been asked the question.
+  const alertLevel = highestRiskLevel(slice.riskAlerts)
+  const tierLevel = evaluation.tier ? riskLevelForTier(evaluation.tier.code) : undefined
+  // The alert guard is belt-and-braces: a slice carrying alerts but no
+  // artifacts is malformed, and reading it as "never screened" would be the
+  // louder error of the two.
+  const anySignal = evaluation.screened || slice.riskAlerts.length > 0
+  const currentRiskLevel: RegistryRiskLevel = tierLevel ?? (anySignal ? alertLevel : 'unknown')
 
   return {
     ...patient,
@@ -485,6 +527,13 @@ export function deriveRegistryRow(
     lastActivity: deriveLastActivity(slice, now),
     ...deriveEpisodeRollup(slice, now),
     ...deriveFollowUpRollup(slice, now),
-    ...deriveReassessmentRollup(slice, currentRiskLevel, now),
+    // Fed the tier-derived level too, so the row's next-reassessment date is
+    // computed off the same tier the chart's card is. An unscreened patient is
+    // on no cadence, which `none` → `no-risk` already says: "not on the
+    // suicide-safer care pathway".
+    ...deriveReassessmentRollup(slice, currentRiskLevel === 'unknown' ? 'none' : currentRiskLevel, now),
+    nextStep: evaluation.primary
+      ? { label: evaluation.primary.title, rationale: evaluation.reason }
+      : null,
   }
 }

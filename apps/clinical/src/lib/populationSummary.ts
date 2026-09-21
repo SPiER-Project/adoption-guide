@@ -14,15 +14,14 @@
  * distinction into the type system, so a caller cannot render a blocked tile as
  * a number without deleting the `blocked` case.
  */
-import type { RiskAlert } from '@spier/core/lib/observationMappers'
-import type { DerivedRegistryRow } from '@spier/core/lib/registry'
+import type { DerivedRegistryRow, RegistryRiskLevel } from '@spier/core/lib/registry'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import { RISK_LABEL } from '@spier/app-shell/lib/riskLabel'
 
 /** Re-exported for the caseload and the filter menu, which index it by the five registry levels. */
 export { RISK_LABEL }
 
-type RiskLevel = RiskAlert['level']
+type RiskLevel = RegistryRiskLevel
 
 /** PHQ-9 item 9 — the deck's pathway entry trigger (panel 3). */
 const PHQ9_ITEM9_LOINC = '44260-8'
@@ -56,11 +55,19 @@ export interface TierCensusEntry {
 }
 
 
-/** Highest risk first — the order a triage reader wants, and the census order. */
-export const CENSUS_ORDER: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none']
+/**
+ * Highest risk first — the order a triage reader wants, and the census order.
+ *
+ * ⚠️ `unknown` is last, and it is a census entry rather than an omission: a
+ * caseload where a tenth of the patients have never been screened is saying
+ * something, and leaving them out of the bar would make the other five shares
+ * add to 100% of a number that is not the caseload. `tierCensus` drops any
+ * level with a zero count, so it appears only when it is true.
+ */
+export const CENSUS_ORDER: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none', 'unknown']
 
 export function riskCountsOf(rows: DerivedRegistryRow[]): Record<RiskLevel, number> {
-  const counts = { acute: 0, high: 0, moderate: 0, low: 0, none: 0 }
+  const counts = { acute: 0, high: 0, moderate: 0, low: 0, none: 0, unknown: 0 }
   for (const r of rows) counts[r.currentRiskLevel]++
   return counts
 }

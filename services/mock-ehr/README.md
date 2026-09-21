@@ -184,7 +184,7 @@ carries a one-line story per patient (host voice, no demographics — not a fift
 copy of the patient data, and `demoStories.test.ts` pins its key set to
 `DEMO_PATIENTS`) plus the three `TRY_IT_ORDER` picks, chosen so the "fill one in
 and watch it write back" story has somewhere to happen: an empty chart
-(patient-002), a high-risk chart with the stabilization plan still to do (patient-006),
+(patient-002), a chart at moderate risk with the safety plan still to do (patient-006),
 and a complete ED episode (patient-011). Every caveat moved into a closed
 `<details class="hood">` — still on the page, because the panel plan §1 requires
 the page to SAY what it does not prove; it does not require that first.

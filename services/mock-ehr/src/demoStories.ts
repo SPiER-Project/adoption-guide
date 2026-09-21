@@ -68,8 +68,14 @@ export const DEMO_STORIES: Record<string, DemoStory> = {
   // published pathway's PHQ-9 → C-SSRS workflow, and this chart is a CAMS
   // course. Its two cards (define the risk picture, Start Stabilization Plan)
   // still show, and the panel and the host agree on them.
+  // ⚠️ "High risk" until 2026-09-21, and it was reading the wrong number. The
+  // SSF-5's elevated VITALS (pain and hopelessness at 4/5) drive the risk
+  // ALERT to high; the patient's own OVERALL risk rating is 3/5, which the
+  // published CAMS crosswalk maps to the moderate tier — and the tier is what
+  // the pathway branches on. Both numbers are on this chart and they are not
+  // the same measurement, so the line names which one it means.
   'patient-006': {
-    story: 'High risk after a CAMS session; stabilization plan still to do.',
+    story: 'Moderate overall risk on a CAMS session, two vitals elevated; safety plan still to do.',
   },
   'patient-007': {
     story: 'Adolescent; discharged with a safety plan, intake booked but unconfirmed.',
@@ -87,7 +93,7 @@ export const DEMO_STORIES: Record<string, DemoStory> = {
     story: 'A complete ED episode, from screen to handoff to follow-up.',
     tryIt: {
       why: 'The whole pathway, filled in. Screened positive in the ED, assessed, safety-planned, handed off and followed up.',
-      watch: 'Every stage on the rail is complete and each one shows what was recorded there. Nothing is left to do; this is what a finished episode looks like.',
+      watch: 'Every stage on the rail is complete and each one shows what was recorded there. What is still open is what the protocol keeps asking for at high risk: crisis resources were never recorded, and the reassessment is long past due.',
     },
   },
   'patient-012': {

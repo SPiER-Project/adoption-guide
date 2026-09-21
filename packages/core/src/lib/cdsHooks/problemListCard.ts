@@ -122,6 +122,24 @@ export interface RiskConceptTier {
  * and PSS-Full, which have the clinician assign the tier directly, and the
  * risk-status Observations a documented risk picture produces.
  *
+ * ⚠️ **HALF of that reason expired on 2026-09-21, and the narrowness is now an
+ * open decision rather than a settled one.** "A second implementation of a
+ * crosswalk" is no longer the alternative: `lib/conceptCrosswalk.ts` reads the
+ * published ConceptMaps as data, so a native result CAN be translated here
+ * without anything being reimplemented — and the pathway evaluator does exactly
+ * that. So the two readers disagree on purpose: the evaluator says patient-006
+ * is at moderate risk (CAMS, through the published map) while this card stays
+ * silent for her, because nothing on her chart carries the harmonized value.
+ *
+ * That is left standing rather than quietly widened. Whether to prompt a
+ * problem-list entry off a crosswalked tier — including a PATIENT SELF-RATING,
+ * which is what the CAMS route is — is a clinical decision about when SPiER
+ * suggests a diagnosis, not a plumbing one, and widening it would change what
+ * every screened patient's chart says. See
+ * `docs/best-practices/concept-harmonization.md` §2. Until that decision is
+ * made, `latestRiskConceptTier` stays literal and this note is the record that
+ * it is a choice.
+ *
  * Undated observations lose to dated ones rather than being dropped: a resource
  * with no `effective[x]` still says something, it just cannot claim to be the
  * latest.
@@ -243,6 +261,10 @@ export function buildProblemListGuidanceCard(observations: ObservationResource[]
     // would be an offer to create a Condition from a screen.
     extension: {
       'spier-card-id': PROBLEM_LIST_CARD_ID,
+      // Nothing to launch and nothing a site could enable to change that — the
+      // work happens in the host's own problem-list workflow. Without this the
+      // chart offered "configure tools" under a card that has no tool.
+      'spier-narrative-only': true,
       ...(group.stage ? { 'spier-stage-id': group.stage.code } : {}),
     },
   }

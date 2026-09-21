@@ -1,65 +1,46 @@
 /**
- * Pure, React-free builder for the Patient Chart's CDS Hooks Cards.
+ * Pure, React-free builder for the patient-view CDS Hooks Cards.
  *
- * Given a patient's live pathway slice (active stage + risk alerts + tool
- * config), returns genuine CDS Hooks 2.0 `Card[]`. Kept importable from Node —
- * no `window`, no react-router — so the future hosted `/cds-services` endpoint
- * (plan-cds-hooks-service) can share it verbatim.
+ * Given a patient's record slice, returns genuine CDS Hooks 2.0 `Card[]`: the
+ * one thing the published pathway says to do now, then the rest of what the
+ * patient's tier owes, then the problem-list guidance prompt. Kept importable
+ * from Node — no `window`, no react-router — so the hosted `/cds-services`
+ * endpoint shares it verbatim with the chart and the embedded panel.
+ *
+ * ── Rewritten 2026-09-21 (clinical-app audit §1.4, §1.5, §4.5) ──
+ *
+ * The old builder emitted a card for the ACTIVE STAGE, leading with that
+ * stage's lead tool — which for five of the eight stages is a product default
+ * (`PATHWAY_STAGE_DEFAULTS`), not anything the published protocol names — plus
+ * one card per live risk alert, which nothing ever retired. A chart whose
+ * *Clarify Risk* step was complete and held a C-SSRS Screener still said
+ * **Start C-SSRS Screener**, and the card the protocol actually obliged at
+ * moderate risk sat third.
+ *
+ * Every one of those decisions now lives in `lib/pathwayEvaluation.ts`, which
+ * walks the published `PlanDefinition/SPiERSuicideSaferCarePathway` against the
+ * record. This file does one job: turn its answer into cards. Nothing here
+ * decides what is recommended.
+ *
+ * ⚠️ **`PATHWAY_STAGE_DEFAULTS` no longer produces a card, and the constant
+ * stays.** It is still what a stage page OFFERS and what the guided preset
+ * turns on; it is no longer what anything RECOMMENDS (decision §7.2).
  */
 
-import { TOOLS, stageById } from '../../data/catalog'
-import { RISK_LEVEL_ORDER } from '../observationMappers'
-import type { RiskAlert } from '../observationMappers'
 import { PATHWAY_STAGE_SYSTEM } from '../patientPathway'
+import { stageById } from '../../data/catalog'
 import { DEPLOY_ORIGINS } from '../deployOrigins'
 import { intentForLaunchPath } from '../smartIntent'
-import { orderByPathwayRealization } from '../pathwayRealizations'
-import { stageLeadToolIds } from '../pathwaySelection'
-import type { ObservationResource } from '../../types/fhir'
+import {
+  evaluatePathway,
+  type EvaluatePathwayOptions,
+  type ObligationUrgency,
+  type PathwayObligation,
+  type PathwayRecord,
+} from '../pathwayEvaluation'
 import { makeUuid, truncateSummary } from './cardShape'
 import { buildProblemListGuidanceCard } from './problemListCard'
 import type { Card, CdsIndicator, CdsLink, Coding } from './types'
-import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
-
-// Per-stage rationale copy for the "next step" card, keyed by stage id. Falls
-// back to the stage's own CodeSystem definition when a stage has no blurb.
-// `Record<StageId, string>` rather than `Record<string, string>` on purpose: a
-// typo'd key here used to silently fall through to the CodeSystem's own
-// definition text below instead of erroring, and a stage added to the
-// CodeSystem with no blurb here failed the same way. Both a typo AND a
-// missing entry are now compile errors.
-const STAGE_BLURB: Record<StageId, string> = {
-  'identify-possible-risk': 'Administer a suicide-risk screen to find a signal and decide whether more review is needed.',
-  'clarify-risk': 'Positive screen — clarify the nature, severity, and context of suicide risk.',
-  'define-risk-picture': 'Document the current risk status and the clinical reasoning that guides next steps.',
-  'document-safety-actions': 'Document concrete actions to reduce risk: safety plan, means counseling.',
-  'coordinate-handoffs': 'Transfer suicide-safety information and responsibility across settings.',
-  'track-follow-up': 'Track caring contacts and follow-up steps after the immediate encounter.',
-  'track-risk-over-time': 'Keep the active suicide-safer care episode visible, trackable, and escalated when needed.',
-  'measure-and-share': 'Use pathway activity for reporting, QI, and information sharing.',
-}
-
-/**
- * The next step for a stage, derived from the published pathway rather than
- * curated per patient.
- *
- * ⚠️ **Exported because the caseload needs the same words as the card.** The
- * population dashboard's "Recommended Next Step" column used to read
- * `RegistryPatient.recommendedNextStep`, which is hand-written in
- * `patients.json` — a field no FHIR `Patient` carries, so a cohort read over
- * real patients cannot produce it (#401). The column now falls back to this,
- * which is the SAME expression the next-step card has always fallen back to. Two
- * copies of it would let a caseload row and that patient's own chart recommend
- * different things, which is precisely the disagreement the dashboard page
- * claims cannot happen.
- */
-export function derivedNextStep(stageId: string): { label: string; rationale: string } {
-  const stage = stageById(stageId)
-  return {
-    label: `Next step: ${stage?.title ?? stageId}`,
-    rationale: (isStageId(stageId) ? STAGE_BLURB[stageId] : undefined) ?? stage?.description ?? '',
-  }
-}
 
 // Deployed app base — links point here so a real CDS client (which has no idea
 // about SPiER's SPA routing) can still open the tool. HashRouter → the router
@@ -67,13 +48,6 @@ export function derivedNextStep(stageId: string): { label: string; rationale: st
 // root) like every other hosted origin; `check:origins` fails a literal here.
 const APP_BASE_URL = `${DEPLOY_ORIGINS.pages}/`
 const SOURCE_LABEL = 'SPiER Suicide-Safer Pathway'
-
-/** The one field patients.json still hand-curates (see lib/registry.ts). */
-export interface RecommendedNextStep {
-  stageId: string
-  label: string
-  rationale: string
-}
 
 /**
  * Emit card links as SMART app launches instead of deep links.
@@ -96,25 +70,23 @@ export interface SmartLaunchLinks {
 }
 
 export interface BuildCdsCardsInput {
-  activeStageId: string | null
-  riskAlerts: RiskAlert[]
+  /** The patient's chart, as the pathway evaluator reads it. */
+  record: PathwayRecord
+  /**
+   * Whether a site has this tool turned on.
+   *
+   * ⚠️ **It can never withhold a recommendation, only its launch button.** The
+   * old builder dropped a whole card when its tool was disabled, so a site
+   * whose preset excluded the pathway's instrument silently lost the
+   * recommendation (the 2026-09-02 defect). What the protocol obliges is not a
+   * site setting, so a disabled tool now costs the card its link and nothing
+   * else — the clinician still reads what is due.
+   */
   isToolEnabled: (id: string) => boolean
-  /** The active patient's curated recommendation, or null (e.g. under SMART). */
-  recommendedNextStep: RecommendedNextStep | null
-  isSmartConnected: boolean
   /** Set by a host-facing service to emit `type: "smart"` links. See above. */
   smartLaunch?: SmartLaunchLinks
-  /**
-   * The patient's Observations, for the tier-driven guidance cards.
-   *
-   * Optional, and an omission means "this caller has no observation slice" — it
-   * yields no guidance card rather than a wrong one. `riskAlerts` is not a
-   * substitute: an alert is what an instrument said, while the guidance card is
-   * gated on the *harmonized concept* the record carries (LOINC 93374-7 +
-   * SPiERSuicideRiskTier), which is what the published pathway's tier branch
-   * conditions on. See `problemListCard.ts`.
-   */
-  observations?: ObservationResource[]
+  /** Passed through to the evaluator — the protocol, and the clock. */
+  evaluation?: EvaluatePathwayOptions
 }
 
 function appUrlForPath(path: string): string {
@@ -153,196 +125,84 @@ function cardLink(
   return { link: { label, url, type: 'absolute' }, routerPath: [url, path] }
 }
 
-// Stage/next-step card urgency: acute/high → critical, moderate → warning,
-// low/none → info. Matches the pre-refactor urgent/recommended/routine ladder.
-function indicatorForLevel(level: RiskAlert['level']): CdsIndicator {
-  if (level === 'acute' || level === 'high') return 'critical'
-  if (level === 'moderate') return 'warning'
-  return 'info'
+/** The record's urgency, in the card vocabulary. */
+const INDICATOR_FOR_URGENCY: Record<ObligationUrgency, CdsIndicator> = {
+  routine: 'info',
+  elevated: 'warning',
+  urgent: 'critical',
 }
 
 function stageTopic(stageId: string): Coding {
   return { system: PATHWAY_STAGE_SYSTEM, code: stageId, display: stageById(stageId)?.title ?? stageId }
 }
 
+function cardFor(
+  obligation: PathwayObligation,
+  options: { primary: boolean; isToolEnabled: (id: string) => boolean; smartLaunch?: SmartLaunchLinks },
+): Card {
+  const { tool } = obligation
+  const launchable = tool && options.isToolEnabled(tool.id) ? tool : null
+  const { link, routerPath } = launchable
+    ? cardLink(launchable.label, launchable.path, options.smartLaunch)
+    : { link: null, routerPath: null }
+
+  return {
+    uuid: makeUuid(),
+    // The title is the ACT — "Complete a collaborative safety plan" — and the
+    // detail is THE TRIGGER, in the clinician's words. Never a CodeSystem
+    // definition, and never the published step's description as well (audit
+    // §4.5): for a step with a button the description only restates what the
+    // button says, and two sentences per card is what turned a chart into
+    // something to read rather than something to do.
+    //
+    // ⚠️ The exception is a step with nothing to launch. There the published
+    // description IS the act — "At EVERY CONTACT, ask: …" — and dropping it
+    // would leave a card that names an instruction without giving it.
+    summary: truncateSummary(obligation.title),
+    detail: launchable ? obligation.reason : `${obligation.reason}\n\n${obligation.description}`,
+    indicator: INDICATOR_FOR_URGENCY[obligation.urgency],
+    source: { label: SOURCE_LABEL, url: APP_BASE_URL, topic: stageTopic(obligation.stageId) },
+    ...(link ? { links: [link] } : {}),
+    extension: {
+      'spier-card-id': `cds-pathway-${obligation.actionId}`,
+      'spier-stage-id': obligation.stageId,
+      ...(options.primary ? { 'spier-primary': true as const } : {}),
+      // A standing instruction has no tool at all, so "no tools enabled for
+      // this stage — configure tools" would send a clinician somewhere that
+      // cannot help. A card whose tool is merely disabled does not set this.
+      ...(tool ? {} : { 'spier-narrative-only': true as const }),
+      ...(routerPath ? { 'spier-router-paths': { [routerPath[0]]: routerPath[1] } } : {}),
+    },
+  }
+}
+
+/**
+ * The patient's cards: the primary first, then what else the tier owes, then
+ * the problem-list guidance prompt.
+ *
+ * Exactly one card carries `spier-primary`, and only when something is due. A
+ * patient with nothing outstanding gets no action card at all — which is the
+ * answer, not an empty result: the chart says *Nothing is due* from the
+ * evaluator's own sentence.
+ */
 export function buildCdsCards({
-  activeStageId,
-  riskAlerts,
+  record,
   isToolEnabled,
-  recommendedNextStep,
-  isSmartConnected,
   smartLaunch,
-  observations,
+  evaluation,
 }: BuildCdsCardsInput): Card[] {
+  const { primary, alsoDue } = evaluatePathway(record, evaluation)
   const cards: Card[] = []
-  // Router paths already surfaced as a link, so alert cards don't duplicate them.
-  const seenPaths = new Set<string>()
 
-  // Card #1: the active pathway stage.
-  if (activeStageId) {
-    // ⚠️ **SELECTION, not ordering — changed 2026-09-19.** This used to offer
-    // every enabled tool at the stage with the pathway's realization sorted
-    // first, and said so: "Ordering only — nothing a site enabled is withheld."
-    // That made the card a catalogue with a good default: six screeners at
-    // Identify Possible Risk, eight at Clarify Risk, in a 470px clinical panel.
-    // Brad, 2026-09-18: *"the SMART app should have a defined pathway (a tool
-    // selected for each page)."*
-    //
-    // ⚠️ **The selection is read from the PUBLISHED PATHWAY, and that is what
-    // makes it safe to apply here rather than needing a per-site toolset the
-    // service can read** (the "real fix" `web/src/lib/toolEnablement.ts`
-    // describes). The contradiction that rule guards against is the panel and
-    // the host's own cards disagreeing about the same patient — which happens
-    // when one of them consults browser-local state the other cannot see. A rule
-    // derived from `PlanDefinition/SPiERSuicideSaferCarePathway` is not state:
-    // the hosted Worker, the embedded panel and the standalone chart all bundle
-    // the same artifact, so all three narrow to the same tool without anything
-    // being transported anywhere.
-    //
-    // ⚠️ **The fallback is what keeps this from re-creating the 2026-09-02
-    // defect.** `buildCdsCards` drops a card with nothing to launch, and a site
-    // whose preset does not include the pathway's instrument would otherwise get
-    // an empty stage card — Minimum Viable enables the ASQ and the pathway names
-    // the PHQ-9, so that is not hypothetical. When none of the lead tools is
-    // enabled the card falls back to everything that is, which is exactly the
-    // old behaviour. Narrowing must never be able to withhold a recommendation.
-    const stageTools = orderByPathwayRealization(
-      TOOLS.filter((t) => t.stageId === activeStageId && t.launchActions.length > 0),
-    )
-    const enabledTools = stageTools.filter((t) => isToolEnabled(t.id))
-    const leadIds = new Set(stageLeadToolIds(activeStageId))
-    const leadingTools = enabledTools.filter((t) => leadIds.has(t.id))
-    const offeredTools = leadingTools.length > 0 ? leadingTools : enabledTools
-    const options = offeredTools.flatMap((tool) =>
-      tool.launchActions.map((action) => ({ tool, action })),
-    )
-
-    // Highest-severity live alert drives urgency (this patient's own slice).
-    const topAlert = [...riskAlerts].sort((a, b) => RISK_LEVEL_ORDER[a.level] - RISK_LEVEL_ORDER[b.level])[0]
-    const effectiveLevel = topAlert?.level && topAlert.level !== 'none' ? topAlert.level : null
-    // ⚠️ The reporting stage is never urgent. The stage card's urgency mirrors
-    // the patient's highest live alert, which is right for every clinical stage
-    // and wrong for the last one: a high-risk patient whose remaining step is
-    // "use this activity for reporting" was shown an URGENT card whose action was
-    // "open the measure dashboard" — in a 470px clinical panel. The alert cards
-    // (#2..n) still carry the patient's urgency; this caps only the stage card.
-    const indicator =
-      activeStageId === 'measure-and-share'
-        ? 'info'
-        : effectiveLevel ? indicatorForLevel(effectiveLevel) : 'info'
-
-    // Substitute the patient's curated recommendation only when no tools are
-    // wired for this stage, we're not on a live EHR, and it targets this stage.
-    const useRecommendation =
-      options.length === 0 &&
-      !isSmartConnected &&
-      recommendedNextStep != null &&
-      recommendedNextStep.stageId === activeStageId
-
-    // A live alert whose suggested action is one of THIS stage's tools is
-    // absorbed into the stage card (the dedupe below never emits it again), and
-    // the reason it fired would vanish with it: Sarah Patel's "PHQ-9 Item 9
-    // positive" became a generic "Positive screen — clarify…" the moment the
-    // C-SSRS Screener became a Clarify Risk tool. The stage card carries the
-    // absorbed alert's summary and detail instead of the stage blurb, so the
-    // card still says WHY this step is due and which instrument answers it.
-    const optionPaths = new Set(options.map(({ action }) => action.path))
-    const absorbedAlert = [...riskAlerts]
-      .sort((a, b) => RISK_LEVEL_ORDER[a.level] - RISK_LEVEL_ORDER[b.level])
-      .find((a) => a.level !== 'none' && !!a.suggestedAction && optionPaths.has(a.suggestedAction.path))
-
-    const routerPaths: Record<string, string> = {}
-    // ⚠️ One link per DESTINATION, not per tool. Two tools can share a launch
-    // path — TL-042 (KPI Reporting) and TL-043 (Dashboard) both launch
-    // `/guide/measures` with the same label — and this map ran over tools, so
-    // the card carried two byte-identical links. The in-app chart has rendered
-    // two identical "Open measure dashboard" buttons for every patient at the
-    // measure-and-share stage since the cards were built; nothing caught it
-    // because `spier-router-paths` is keyed by URL and silently collapsed the
-    // pair, so only the visible list was ever doubled. Found when a host EHR
-    // rendered the same cards as SMART launch buttons (panel step 5) — the
-    // duplication is louder when each one is a button that mints an OAuth
-    // launch.
-    const linkedPaths = new Set<string>()
-    const links: CdsLink[] = []
-    for (const { tool, action } of options) {
-      seenPaths.add(action.path)
-      if (linkedPaths.has(action.path)) continue
-      linkedPaths.add(action.path)
-      const label =
-        tool.launchActions.length > 1
-          ? `${tool.shortName ?? tool.name}: ${action.label}`
-          : action.label
-      const { link, routerPath } = cardLink(label, action.path, smartLaunch)
-      if (routerPath) routerPaths[routerPath[0]] = routerPath[1]
-      links.push(link)
-    }
-
-    cards.push({
-      uuid: makeUuid(),
-      summary: truncateSummary(
-        useRecommendation && recommendedNextStep
-          ? recommendedNextStep.label
-          : derivedNextStep(activeStageId).label,
-      ),
-      detail:
-        useRecommendation && recommendedNextStep
-          ? recommendedNextStep.rationale
-          : absorbedAlert
-            ? `${absorbedAlert.summary}. ${absorbedAlert.detail}`
-          // `activeStageId` is resolved off live patient data (see
-          // `derivePathwayStatus`), so it stays a plain string rather than
-          // `StageId`; `derivedNextStep` carries the `isStageId` boundary guard
-          // for indexing the hand-authored STAGE_BLURB table with it.
-          : derivedNextStep(activeStageId).rationale,
-      indicator,
-      source: { label: SOURCE_LABEL, url: APP_BASE_URL, topic: stageTopic(activeStageId) },
-      links: links.length > 0 ? links : undefined,
-      extension: {
-        'spier-card-id': `cds-stage-${activeStageId}`,
-        'spier-stage-id': activeStageId,
-        ...(useRecommendation ? { 'spier-narrative-only': true } : {}),
-        ...(Object.keys(routerPaths).length > 0 ? { 'spier-router-paths': routerPaths } : {}),
-      },
-    })
+  if (primary) cards.push(cardFor(primary, { primary: true, isToolEnabled, smartLaunch }))
+  for (const obligation of alsoDue) {
+    cards.push(cardFor(obligation, { primary: false, isToolEnabled, smartLaunch }))
   }
 
-  // Cards #2..n: tool-suggested actions from risk alerts not already surfaced.
-  for (const alert of riskAlerts) {
-    const suggestedAction = alert.suggestedAction
-    if (!suggestedAction || alert.level === 'none') continue
-    if (seenPaths.has(suggestedAction.path)) continue
-    const tool = TOOLS.find((t) => t.launchActions.some((a) => a.path === suggestedAction.path))
-    if (!tool || !isToolEnabled(tool.id)) continue
-
-    const { link, routerPath } = cardLink(
-      suggestedAction.label,
-      suggestedAction.path,
-      smartLaunch,
-    )
-    cards.push({
-      uuid: makeUuid(),
-      summary: truncateSummary(suggestedAction.label),
-      detail: alert.detail,
-      // Alert cards carry only two urgencies: critical for acute/high, else
-      // warning (preserves the pre-refactor urgent/recommended split).
-      indicator: alert.level === 'acute' || alert.level === 'high' ? 'critical' : 'warning',
-      source: { label: SOURCE_LABEL, url: APP_BASE_URL, topic: stageTopic(tool.stageId) },
-      links: [link],
-      extension: {
-        'spier-card-id': `cds-alert-${alert.tool}`,
-        'spier-stage-id': tool.stageId,
-        ...(routerPath ? { 'spier-router-paths': { [routerPath[0]]: routerPath[1] } } : {}),
-      },
-    })
-    seenPaths.add(suggestedAction.path)
-  }
-
-  // Card #n+1: tier-driven clinician guidance, read out of the published
-  // pathway. Last on purpose — it is a documentation prompt, and the actionable
-  // cards above are what a clinician should reach first. It carries no link, so
-  // it can never be a duplicate of one.
-  const guidance = buildProblemListGuidanceCard(observations ?? [])
+  // Last on purpose — it is a documentation prompt, and the actionable cards
+  // above are what a clinician should reach first. It carries no link, so it
+  // can never be a duplicate of one.
+  const guidance = buildProblemListGuidanceCard(record.observations ?? [])
   if (guidance) cards.push(guidance)
 
   return cards

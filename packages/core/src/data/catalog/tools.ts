@@ -406,5 +406,23 @@ export function toolForQuestionnaireUrl(canonical: string | undefined): Tool | u
   )
 }
 
+/**
+ * Find the Tool that administers an ActivityDefinition canonical. Version-tolerant.
+ *
+ * The join the published pathway itself uses: every clinical step names its
+ * demonstrated realization as `action.definitionCanonical`, and `Tool` carries
+ * the same canonicals in `activityDefinitionUrls`. `pathwayRealizations.ts`
+ * answers the set-membership half of this question ("does the pathway name
+ * this tool at its stage"); the pathway evaluator needs the other direction —
+ * given the step, which tool launches it.
+ */
+export function toolForActivityDefinition(canonical: string | undefined): Tool | undefined {
+  if (!canonical) return undefined
+  const target = stripCanonicalVersion(canonical)
+  return TOOLS.find((t) =>
+    t.activityDefinitionUrls?.some((u) => stripCanonicalVersion(u) === target),
+  )
+}
+
 // Silence unused warning while TOOL_UI_METADATA is publicly available via the barrel.
 export { TOOL_UI_METADATA }

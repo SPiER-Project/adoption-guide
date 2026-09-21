@@ -54,10 +54,14 @@ const TIER_URL = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-
  * An entry is a known gap, not an exemption from thinking about it.
  */
 const NO_MAPPER_REASON = {
-  'http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk':
-    'Published crosswalk with no runtime producer (#436): the CAMS mappers emit the SSF-5 ' +
-    'overall-risk rating as Observation.valueInteger with an H/N/L interpretation, never as a ' +
-    'cams-ssf-overall-risk coding — so no code in this map is emitted by SPiER today.',
+  // ⚠️ `cams-ssf-overall-risk` lived here until 2026-09-21, and this is what an
+  // entry being CLOSED looks like. The reason it carried was "#436: the CAMS
+  // mappers emit the SSF-5 overall-risk rating as Observation.valueInteger …
+  // so no code in this map is emitted by SPiER today" — a published crosswalk
+  // with nothing to translate, which left CAMS with no route into the concept
+  // layer and a CAMS patient's chart unable to state a risk tier at all.
+  // `camsSectionA.ts` is now that producer and the source moved into
+  // MAPPER_FOR_SOURCE below, where check F actually looks at it.
   'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier':
     'Egress map (tier → LOINC), so its source is the concept layer itself rather than an ' +
     'instrument disposition. Produced by whichever instrument route reached the tier, which ' +
@@ -71,6 +75,16 @@ const MAPPER_FOR_SOURCE = {
   'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level': [
     'packages/core/src/lib/observationMappers/cssrsScreener.ts',
     'packages/core/src/lib/observationMappers/cssrsFull.ts',
+  ],
+  // ⚠️ The codes here are the bare ordinals '1'–'5', so check F's quoted-literal
+  // search is weaker for this source than for the others: a file that happened
+  // to contain `'3'` for an unrelated reason would satisfy it. Verified rather
+  // than assumed on the file it names — the only quoted single digits in
+  // camsSectionA.ts are CAMS_OVERALL_RISK_OPTIONS' own codes, and removing one
+  // fails this gate. `camsSectionA.test.ts` pins the same table against the
+  // generated CodeSystem, which is the check that does not depend on spelling.
+  'http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk': [
+    'packages/core/src/lib/observationMappers/camsSectionA.ts',
   ],
 }
 

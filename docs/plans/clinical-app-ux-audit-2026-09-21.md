@@ -6,9 +6,135 @@ caseload, the measures), the shared chrome in `packages/app-shell/`, the shared
 views in `packages/tool-views/`, and the mock EHR that launches them
 (`services/mock-ehr/`).
 
-**Status:** PRs 1 and 2 have shipped; PRs 3–7 have not started. §7 records the
-decisions Brad made on 2026-09-21; the briefs to run PRs 3–7 each in a fresh
-session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+**Status:** PRs 1, 2 and 3 have shipped; PRs 4–7 have not started. §7 records
+the decisions Brad made on 2026-09-21; the briefs to run PRs 4–7 each in a
+fresh session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+
+**Status 2026-09-21 (PR 3):** the chart stops answering "what do I do" three
+times — §1.4, §1.5, §4.5 and rules 3 and 4. A new evaluator in
+`packages/core/src/lib/pathwayEvaluation.ts` walks
+`PlanDefinition/SPiERSuicideSaferCarePathway` against the patient's record and
+returns one primary obligation, the also-due list, and one sentence naming the
+trigger; `buildCdsCards` is rewritten over it and decides nothing itself. A
+step is retired by an artifact of the right kind recorded after its trigger, so
+Sarah Patel's chart no longer says *Start C-SSRS Screener* on a step that holds
+one, and `PATHWAY_STAGE_DEFAULTS` produces no cards at all — it still says what
+a stage OFFERS and no longer what anything RECOMMENDS. Exactly one card carries
+`spier-primary`. Measured in the panel at 375×812, Sarah goes from 3 cards /
+318 words / 2,358px to 1 card / 164 words / 1,217px, with the one button at
+437px instead of ~520px: above the fold for the first time.
+
+Two readings the table in §4.5 did not spell out, both recorded in the
+evaluator: the published pathway states the tier's obligations but does **not**
+rank them (no `action.priority`, no `selectionBehavior`), so the ranking that
+puts the safety plan above crisis resources comes from §4.5 and decision §7.2
+and is declared in TypeScript; and the tier is read through the published
+crosswalk ConceptMaps as well as a `SPiERSuicideRiskTier` value, because SPiER's
+own C-SSRS administrations record their result in the instrument's native
+vocabulary and a rule that read only the harmonized value could not tell
+moderate from high for the one assessment the pathway names.
+
+Two things the evaluator surfaced rather than fixed. **No demo scenario records
+crisis resources at all**, so every patient with a tier now leads with *Share
+patient-facing crisis resources* — a true reading of the fixtures and a gap in
+them. And **Maria Alvarez is not "finished"** — that chart holds no crisis
+resources and its reassessment is seven weeks overdue — so the demo host's
+narration for it was corrected in the same change.
+
+A third was surfaced and then fixed in the same PR. **The CAMS SSF-5 recorded
+its overall-risk rating as a bare integer on LOINC 93374-7**, so
+`ConceptMap/CAMSOverallRiskToRiskTier` — published, and translating codes — had
+nothing to translate, and patient-006's chart could state no risk tier at all.
+`cams.fsh` had anticipated exactly this and said on the CodeSystem that "a
+producer maps valueInteger n to the like-numbered code before translating";
+nothing was that producer. The mapper now is, so that chart reads *Complete a
+collaborative safety plan — CAMS SSF-5 on Aug 6: moderate risk*. The six SSF
+vitals still carry integers, because `SPiERCAMSSSFVital` requires them. The
+crosswalk gate's `NO_MAPPER_REASON` entry for this source is deleted rather than
+reworded, so the map is now really checked.
+
+Fixing that exposed a second thing the demo had been saying wrongly, corrected
+here too: patient-006's story line read *"High risk after a CAMS session"*, and
+that number is the risk ALERT, which the mapper drives from the highest of the
+six SSF vitals (psychological pain and hopelessness are both 4/5). The
+patient's own OVERALL risk rating — the one item the published crosswalk reads,
+and therefore the one the pathway branches on — is 3/5, which is moderate. Both
+numbers are on the chart and they are not the same measurement. The host's
+story, the curated next-step line in `patients.json` (which also claimed a
+"risk status" that chart has never carried) and two prose references now say
+which one they mean.
+
+**The two numbers reached two different SPiER surfaces, and the caseload now
+reads the tier.** Its RISK column was `highestRiskLevel(riskAlerts)` — the most
+severe thing any instrument said — so it printed *High* for this patient while
+that patient's own chart read *moderate risk*. `deriveRegistryRow` now
+evaluates the pathway once per row and takes the harmonized tier from it, which
+is what the protocol conditions on; the row's next-reassessment date is
+computed off the same tier, so the two surfaces agree on the cadence as well.
+An alert is still the fallback where a record has reached no tier at all — a
+positive PHQ-9 with no assessment yet reaches none, and printing *None* for
+that patient would read as "screened, no risk".
+
+⚠️ **That change found a worse thing than the one it was made for.**
+patient-013 and patient-014 are the ED exception branches — an acute positive
+ASQ, then a transfer and an elopement. Their scenarios carry an **empty
+`riskAlerts` array**, which is a cached derivation rather than anything in the
+record, and `highestRiskLevel([])` is `none`. So the worklist rendered **None**
+for two patients whose charts record an acute positive screen, and
+`RISK_LEVEL_ORDER` sorted them to the **bottom** of a list whose own caption
+says "highest risk first". Reading the tier off the Observation fixes it,
+because a chart that has one cannot be missing it. Four demo rows change in
+total: patient-001 and patient-006 from high to moderate, patient-013 and
+patient-014 from none to acute.
+
+**`none` and `unknown` are two words on this page now, too.** `RiskLevel` in
+the view layer has carried both since the identity strip was written, and
+`riskLabel.ts` says why — "a chart that has never been screened must not read
+as cleared" — but the registry row's type did not, so patient-002 (whose story
+is literally *no suicide-risk screening on file*) and patient-012 (a negative
+ED screen, deliberately) both rendered **None**. `DerivedRegistryRow`'s level
+is `RegistryRiskLevel` now, the evaluator answers "has this patient been
+screened" from the record rather than from the cached alerts, and the caseload
+pill carries `riskTitle` so the one word that does not explain itself says
+*No suicide-risk screening on file* on hover. `unknown` sorts BELOW `none`: it
+is not a severity, and ranking a question above an answer would be the wrong
+kind of loud. The census bar and the risk filter gain it as an entry that
+appears only when the count is non-zero.
+
+Five demo rows change in total: patient-001 and patient-006 high → moderate,
+patient-013 and patient-014 none → acute, patient-002 none → unknown.
+patient-012 stays `none`, which is the pair that makes the distinction visible.
+
+⚠️ **Two of the plants for this one passed first time, and the tests were
+rewritten rather than the result accepted.** "patient-013 reads acute with no
+alerts on file" survives a `screened` rewired to read the alert list, because
+that row's level comes from its TIER — so the property needed a case no
+fixture has: a screen on file that yields neither an alert nor a tier. The sort
+tests never built an `unknown` row, so putting `unknown` above `acute` passed
+as well. Both now fail on the plant.
+
+⚠️ **That closes the narrow half of the gap and not the recorded worry about
+it.** `docs/best-practices/concept-harmonization.md` had flagged in advance that
+letting CAMS reach the shared tier puts one *patient self-rating* beside five
+clinician-determined routes. On the wire nothing is conflated — SPiER emits the
+CAMS-native vocabulary and never a harmonized-tier value — but in the
+application it now is: the evaluator translates the self-rating and then obliges
+a safety plan and a reassessment cadence from it exactly as it would from a
+clinician's C-SSRS. That doc records what changed; whether the two provenances
+should drive the same obligations is a clinical decision, not a mapper one.
+
+**Deliberately not done in PR 3.** No page layout: the landing screen, "Why
+this?" and the narrow-panel identity strip are PR 4's, and the also-due
+obligations therefore still render as cards on the rail rather than as text
+under the primary. Because the rail groups cards by `spier-stage-id`, the
+primary is first in the card list but not always first on screen — a patient
+whose primary sits at a later stage than the problem-list prompt sees the
+prompt above it. That is the landing screen's job, not the builder's, and it is
+why Maria's chart is longer than before (391 words at 470px against 296): three
+obligations are genuinely outstanding where the old chart said little.
+`high-missed-appointment-outreach` is a published high-risk obligation this
+evaluator never emits, because it is gated on a missed appointment rather than
+on the tier.
 
 **Status 2026-09-21 (PR 2):** the demo host stops drifting from `main` and
 stops contradicting itself — §1.1, §1.3, §1.13, §1.14 and §4.11.
@@ -577,15 +703,15 @@ Every rule below is a defect from §1 restated as something a test can fail on.
 
 Each PR is mergeable on its own and leaves every gate green.
 
-| PR | Scope | Closes |
-|---|---|---|
-| **1** (this branch) | Mock EHR: the dock is a bottom sheet under 60rem; launch copy; this audit | §1.2, rule 8 |
-| **2** | Demo host hygiene: `mock-ehr` job in `deploy.yml`; prefetch on the host's CDS call; `embed=0` on top-level launches; the "written since" line on the chart page; nightly reset of written data | §1.1, §1.3, §1.13, §1.14, rule 7 |
-| **3** | The pathway evaluator in core (§4.5): one primary from the published pathway, satisfied steps retire, act-titled cards, product defaults stop recommending; the CDS service inherits | §1.4, §1.5, rules 3–4 |
-| **4** | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it | §1.6, §1.7, rule 5 |
-| **5** | *Where this patient is* and *What's on file*: the rail and record sections become pages; the walkthrough leaves the clinical build; the protocol page in plain words; clinical word budgets and the clinical jargon scan | §1.9, §1.10, rules 1–2 |
-| **6** | Fillers and recorders: the scratch-chart notice, the confirmation beat, one next action | §1.8, rule 6 |
-| **7** | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count | §1.10, §1.11, §1.12 |
+| PR | Status | Scope | Closes |
+|---|---|---|---|
+| **1** | Shipped (#574) | Mock EHR: the dock is a bottom sheet under 60rem; launch copy; this audit | §1.2, rule 8 |
+| **2** | Shipped (#575) | Demo host hygiene: `mock-ehr` job in `deploy.yml`; prefetch on the host's CDS call; `embed=0` on top-level launches; the "written since" line on the chart page; nightly reset of written data | §1.1, §1.3, §1.13, §1.14, rule 7 |
+| **3** | Shipped (#576) | The pathway evaluator in core (§4.5): one primary from the published pathway, satisfied steps retire, act-titled cards, product defaults stop recommending; the CDS service inherits. Grew four things the evaluator exposed: the CAMS mapper emits the coded overall risk its published crosswalk was waiting for, the demo's story for that chart stops naming the wrong number, the caseload's risk column reads the harmonized tier, and `unknown` stops rendering as `none` | §1.4, §1.5, rules 3–4 |
+| **4** | — | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it | §1.6, §1.7, rule 5 |
+| **5** | — | *Where this patient is* and *What's on file*: the rail and record sections become pages; the walkthrough leaves the clinical build; the protocol page in plain words; clinical word budgets and the clinical jargon scan | §1.9, §1.10, rules 1–2 |
+| **6** | — | Fillers and recorders: the scratch-chart notice, the confirmation beat, one next action | §1.8, rule 6 |
+| **7** | — | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count. ⚠️ Two of its findings landed early in PR 3 — the risk column and the `none`/`unknown` split — so its audit section starts from a page that already ranks on the tier | §1.10, §1.11, §1.12 |
 
 PR 3 before PR 4 on purpose: the landing screen renders the policy's primary
 card, and building the screen first would mean building it twice. PRs 2 and 3

@@ -2,10 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '@spier/core/data/catalog'
 import { resetLocalDemoData } from '@spier/app-shell/lib/dataSource/localDataSource'
-import { type DerivedRegistryRow } from '@spier/core/lib/registry'
+import { type DerivedRegistryRow, type RegistryRiskLevel } from '@spier/core/lib/registry'
 import { RISK_LABEL, CENSUS_ORDER } from '../lib/populationSummary'
 import { AGE_BANDS, bandOf, ageOf } from '../lib/populationFilters'
-import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import { useCaseloadSummary } from '../hooks/useCaseloadSummary'
 import {
   CASELOAD_VIEWS,
@@ -26,7 +25,7 @@ import '../css/PopulationView.css'
 import { cx } from '@spier/ui/cx'
 import { Notice } from '@spier/ui/Notice'
 
-type RiskLevel = RiskAlert['level']
+type RiskLevel = RegistryRiskLevel
 
 const RISK_LEVELS: RiskLevel[] = CENSUS_ORDER
 

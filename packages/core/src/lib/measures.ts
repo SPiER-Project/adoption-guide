@@ -224,7 +224,23 @@ export function referencedCriteria(): string[] {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-function conformsTo(resource: FhirResource | undefined, profile: string): boolean {
+/**
+ * Does the resource claim this profile?
+ *
+ * Exported because the pathway evaluator asks the same question of the same
+ * resources — is this Communication a crisis-resources record, is this
+ * Procedure means-safety counseling — and `npm run check:dupes` fails a second
+ * copy of a one-line predicate that is really a statement about what
+ * `meta.profile` means.
+ */
+export function conformsTo(
+  // Structurally typed rather than `FhirResource`: the pathway evaluator reads
+  // the same question off `FhirResourceLike`, whose `resourceType` is optional.
+  // This predicate looks at `meta.profile` and nothing else, so requiring more
+  // of its argument than it reads would just cost every caller a cast.
+  resource: { meta?: { profile?: string[] } } | undefined,
+  profile: string,
+): boolean {
   const profiles = resource?.meta?.profile
   return Array.isArray(profiles) && profiles.includes(profile)
 }
@@ -263,7 +279,7 @@ export function isRiskConcept(o: ObservationResource): boolean {
  * app resolver rather than reimplementing stage rules is deliberate: two
  * definitions of "which stage is this" would drift.
  */
-function observationStage(o: ObservationResource, slice: PatientSlice): StageId | undefined {
+export function observationStage(o: ObservationResource, slice: PatientSlice): StageId | undefined {
   const direct = stageForArtifact(o as FhirResourceLike)
   if (direct && isStageId(direct)) return direct
   const derivedFrom = (o as { derivedFrom?: Array<{ reference?: string }> }).derivedFrom ?? []

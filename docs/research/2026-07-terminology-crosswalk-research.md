@@ -153,9 +153,12 @@ argument.** The existing note says the mapping is lossy and needs clinician
 override. The sharper problem is that a consumer reading
 `Observation.code = 93374-7` valued `high` cannot tell whether it came from a
 clinician's structured assessment or a patient's momentary self-rating — the tier
-ValueSet carries nothing to distinguish them. See #436, and
-`docs/best-practices/concept-harmonization.md` §2 for how Gravity separates the
-two by resource type.
+ValueSet carries nothing to distinguish them. See #436 — answered on 2026-09-21
+in its narrow half only, by making the CAMS mapper emit a `cams-ssf-overall-risk`
+code so the published crosswalk has something to translate; the provenance
+question here is untouched, and
+`docs/best-practices/concept-harmonization.md` §2 records what that now means in
+practice, plus how Gravity separates the two by resource type.
 
 ### High and Imminent Risk Boundary Analysis
 

@@ -36,10 +36,33 @@ Key Gravity decisions worth copying:
   ⚠️ **This is the decision SPiER has not yet copied, and #264 is where it bites.**
   The shared suicide-risk tier is reached by five clinician-determined routes (ASQ
   disposition, C-SSRS risk level, BSSA disposition, PSS-3 result, SAFE-T judgment)
-  and, if #436 goes the wrong way, by one patient self-rating (the CAMS SSF
-  overall-risk item, whose Questionnaire is titled "Section A (Patient)" and asks
-  the patient to rate "how you feel right now"). A consumer reading
+  and, since 2026-09-21, by one patient self-rating: the CAMS SSF overall-risk
+  item, whose Questionnaire is titled "Section A (Patient)" and asks the patient
+  to rate "how you feel right now". A consumer reading
   `Observation.code = 93374-7` valued `high` cannot currently tell those apart.
+
+  ⚠️ **#436 was answered, and only its narrow half.** The CAMS mapper now emits
+  the overall-risk rating as a `cams-ssf-overall-risk` code, so the published
+  `CAMSOverallRiskToRiskTier` map finally has something to translate — before
+  that, a CAMS patient's chart could state no risk tier at all and the pathway
+  could not say what they were owed. What that did **not** do is settle the
+  provenance question this section is about, and the distinction is worth
+  stating precisely:
+
+  - **On the wire, nothing is conflated yet.** SPiER emits the CAMS-native
+    vocabulary on 93374-7, never a harmonized-tier value, and nothing in the app
+    emits `SPiERSuicideRiskConcept` at all. A consumer reading a CAMS chart sees
+    `cams-ssf-overall-risk#3` and can tell exactly what produced it.
+  - **In the application, it now is.** The pathway evaluator
+    (`packages/core/src/lib/pathwayEvaluation.ts`) translates that self-rating
+    through the published map and then treats the result exactly as it treats a
+    clinician's C-SSRS determination — including obliging a safety plan and
+    setting a reassessment cadence. A patient's momentary self-rating and a
+    structured clinical assessment drive the same obligations, and nothing the
+    clinician sees marks the difference except the instrument's name in the
+    card's one sentence.
+
+  So the axis below is now load-bearing rather than anticipatory.
 
   So **fidelity has two axes and #264 currently models one.** `wider` /
   `relatedto` / `equivalent` from the ConceptMap describes *vocabulary precision*;

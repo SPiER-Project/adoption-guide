@@ -1,9 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { buildCdsCards, type BuildCdsCardsInput } from '@spier/core/lib/cdsHooks/cards'
 import type { Card } from '@spier/core/lib/cdsHooks/types'
-import { TOOLS } from '@spier/core/data/catalog'
-import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
-import { stageLeadToolIds } from '@spier/core/lib/pathwaySelection'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
+import { evaluatePathway, type PathwayRecord } from '@spier/core/lib/pathwayEvaluation'
+import { intentForLaunchPath, launchPathForIntent } from '@spier/core/lib/smartIntent'
+import { PROBLEM_LIST_CARD_ID } from '@spier/core/lib/cdsHooks/problemListCard'
+import { RISK_TIER_SYSTEM } from '@spier/core/lib/riskEpisode'
+import type { ObservationResource } from '@spier/core/types/fhir'
 
 /**
  * `expect.any(String)` is typed `any` by vitest, so using it inline makes the
@@ -11,256 +15,180 @@ import { stageLeadToolIds } from '@spier/core/lib/pathwaySelection'
  * compared against the real `Card` shape. Naming the cast once keeps them.
  */
 const anyString = expect.any(String) as unknown as string
-import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
-import type { RiskAlert } from '@spier/core/lib/observationMappers'
-import { intentForLaunchPath, launchPathForIntent } from '@spier/core/lib/smartIntent'
-import { PROBLEM_LIST_CARD_ID } from '@spier/core/lib/cdsHooks/problemListCard'
-import { RISK_TIER_SYSTEM } from '@spier/core/lib/riskEpisode'
 
-// A real launchable tool from the catalog anchors the link/dedupe tests so they
-// stay honest against actual paths rather than invented ones. It has to be the
-// tool that LEADS its stage card: the builder puts the pathway's demonstrated
-// realization first (orderByPathwayRealization), so the first catalog tool is
-// no longer the first link — for Identify Possible Risk that is the PHQ-9.
-const launchTool = orderByPathwayRealization(TOOLS.filter((t) => t.launchActions.length > 0))[0]
-const launchPath = launchTool.launchActions[0].path
-const launchStage = launchTool.stageId
+const NOW = new Date('2026-09-21T12:00:00.000Z')
 
-function alert(overrides: Partial<RiskAlert> = {}): RiskAlert {
+function recordFor(id: string): PathwayRecord {
+  const s = POPULATION_SCENARIOS[id]
+  if (!s) throw new Error(`no demo scenario ${id} — this test would check nothing`)
   return {
-    tool: 'PHQ-9',
-    level: 'moderate',
-    summary: 'summary',
-    detail: 'detail',
-    ...overrides,
+    responses: s.responses,
+    observations: s.observations,
+    carePlans: s.carePlans,
+    communications: s.communications ?? [],
+    procedures: s.procedures ?? [],
+    episodes: s.episodes ?? [],
+    riskAlerts: s.riskAlerts,
   }
 }
 
-/**
- * The ROUTER paths a card offers. `link.url` is the absolute app URL (or a SMART
- * launch URL when one is configured), so it is the wrong thing to compare
- * against a catalog `launchAction.path`; the builder publishes the mapping as
- * `spier-router-paths` for exactly this reason.
- */
+function build(record: PathwayRecord, overrides: Partial<BuildCdsCardsInput> = {}): Card[] {
+  return buildCdsCards({
+    record,
+    isToolEnabled: () => true,
+    evaluation: { now: NOW },
+    ...overrides,
+  })
+}
+
+/** The ROUTER paths a card offers — `link.url` is the absolute app URL. */
 function routerPathsOf(card: Card): string[] {
   return Object.values(card.extension?.['spier-router-paths'] ?? {}).sort()
 }
 
-function build(overrides: Partial<BuildCdsCardsInput> = {}) {
-  return buildCdsCards({
-    activeStageId: launchStage,
-    riskAlerts: [],
-    isToolEnabled: () => false,
-    recommendedNextStep: null,
-    isSmartConnected: false,
-    ...overrides,
-  })
-}
+const actionCards = (cards: Card[]) =>
+  cards.filter(c => c.extension?.['spier-card-id'] !== PROBLEM_LIST_CARD_ID)
 
-describe('buildCdsCards — an alert absorbed into the stage card keeps its reason', () => {
-  it('carries the alert summary + detail as the stage card detail, and emits no duplicate', () => {
-    // The alert names a tool that belongs to the ACTIVE stage (the PHQ-9 → C-SSRS
-    // Screener case once the screener became a Clarify Risk tool). The dedupe
-    // rightly emits one link for that path; the reason the step is due must
-    // not disappear with the alert card.
-    const cards = build({
-      isToolEnabled: () => true,
-      riskAlerts: [
-        alert({
-          level: 'moderate',
-          summary: 'PHQ-9 Item 9 positive (score: 1/3)',
-          detail: 'Patient endorsed thoughts of death or self-harm.',
-          suggestedAction: { label: 'Start it', path: launchPath },
-        }),
-      ],
-    })
-    expect(cards[0].detail).toBe(
-      'PHQ-9 Item 9 positive (score: 1/3). Patient endorsed thoughts of death or self-harm.',
-    )
-    const linking = cards.filter((c) => c.links?.some((l) => l.url.endsWith(launchPath)))
-    expect(linking).toHaveLength(1)
-    expect(linking[0].extension?.['spier-card-id']).toBe(`cds-stage-${launchStage}`)
+describe('one primary, and it is the pathway’s first unsatisfied step', () => {
+  it('marks exactly one card primary, and it leads', () => {
+    for (const id of Object.keys(POPULATION_SCENARIOS)) {
+      const cards = build(recordFor(id))
+      const primaries = cards.filter(c => c.extension?.['spier-primary'] === true)
+      expect(primaries.length, `${id} has ${primaries.length} primary cards`).toBeLessThanOrEqual(1)
+      if (primaries.length === 1) expect(cards[0]).toBe(primaries[0])
+    }
+    // …and at least one patient actually has one, or the check is vacuous.
+    expect(
+      Object.keys(POPULATION_SCENARIOS).some(
+        id => build(recordFor(id)).some(c => c.extension?.['spier-primary'] === true),
+      ),
+    ).toBe(true)
   })
 
-  it('keeps the stage blurb when no alert targets this stage’s tools', () => {
-    const [card] = build({
-      isToolEnabled: () => true,
-      riskAlerts: [alert({ level: 'high', suggestedAction: { label: 'Elsewhere', path: '/patient/assessments/stanley-and-brown' } })],
-    })
-    expect(card.detail).not.toContain('summary')
-    expect(card.detail?.length ?? 0).toBeGreaterThan(0)
-  })
-})
-
-describe('buildCdsCards — level → indicator', () => {
-  it('maps the highest-severity alert to the stage-card indicator', () => {
-    // acute outranks moderate regardless of array order.
-    const [card] = build({ riskAlerts: [alert({ level: 'moderate' }), alert({ level: 'acute' })] })
-    expect(card.indicator).toBe('critical')
-  })
-
-  it('maps moderate → warning, low → info, and empty → info', () => {
-    expect(build({ riskAlerts: [alert({ level: 'high' })] })[0].indicator).toBe('critical')
-    expect(build({ riskAlerts: [alert({ level: 'moderate' })] })[0].indicator).toBe('warning')
-    expect(build({ riskAlerts: [alert({ level: 'low' })] })[0].indicator).toBe('info')
-    expect(build({ riskAlerts: [] })[0].indicator).toBe('info')
-  })
-
-  it('never marks the reporting stage urgent, whatever the alert level', () => {
-    // A high-risk patient whose remaining step is "measure and share" was shown
-    // an URGENT card whose action was "open the measure dashboard". Urgency
-    // belongs to the alert cards, which still carry it.
-    const cards = build({
-      activeStageId: 'measure-and-share',
-      riskAlerts: [alert({ level: 'acute' })],
-    })
-    expect(cards[0].extension?.['spier-stage-id']).toBe('measure-and-share')
-    expect(cards[0].indicator).toBe('info')
-  })
-})
-
-describe('buildCdsCards — stage card shape', () => {
-  it('carries a pathway-stage topic Coding and deterministic extension id', () => {
-    const [card] = build()
-    expect(card.source.topic).toEqual({
-      system: PATHWAY_STAGE_SYSTEM,
-      code: launchStage,
-      display: anyString,
-    })
-    expect(card.extension?.['spier-card-id']).toBe(`cds-stage-${launchStage}`)
-    expect(card.extension?.['spier-stage-id']).toBe(launchStage)
-  })
-
-  it('emits absolute deep links with an in-app router path when tools are enabled', () => {
-    const [card] = build({ isToolEnabled: (id) => id === launchTool.id })
-    expect(card.links).toHaveLength(1)
-    const link = card.links![0]
-    expect(link.type).toBe('absolute')
-    expect(link.url).toBe(`https://spier-project.github.io/adoption-guide/#${launchPath}`)
-    expect(card.extension?.['spier-router-paths']?.[link.url]).toBe(launchPath)
-  })
-
-  it('no enabled tools → no links and no narrative-only flag', () => {
-    const [card] = build()
-    expect(card.links).toBeUndefined()
-    expect(card.extension?.['spier-narrative-only']).toBeUndefined()
-  })
-})
-
-describe('buildCdsCards — recommendedNextStep substitution', () => {
-  const recommendedNextStep = {
-    stageId: launchStage,
-    label: 'Curated next step',
-    rationale: 'Because the care team said so.',
-  }
-
-  it('substitutes only when options are empty, not SMART, and the stage matches', () => {
-    const [card] = build({ recommendedNextStep })
-    expect(card.summary).toBe('Curated next step')
-    expect(card.detail).toBe('Because the care team said so.')
-    expect(card.extension?.['spier-narrative-only']).toBe(true)
-  })
-
-  it('does not substitute under a live SMART connection', () => {
-    const [card] = build({ recommendedNextStep, isSmartConnected: true })
-    expect(card.summary).toBe(`Next step: ${card.source.topic!.display}`)
-    expect(card.extension?.['spier-narrative-only']).toBeUndefined()
-  })
-
-  it('does not substitute when the recommendation targets a different stage', () => {
-    const other = { ...recommendedNextStep, stageId: `${launchStage}-nope` }
-    const [card] = build({ recommendedNextStep: other })
-    expect(card.summary.startsWith('Next step:')).toBe(true)
-  })
-
-  it('does not substitute when tools are enabled for the stage', () => {
-    const [card] = build({ recommendedNextStep, isToolEnabled: (id) => id === launchTool.id })
-    expect(card.summary.startsWith('Next step:')).toBe(true)
-    expect(card.extension?.['spier-narrative-only']).toBeUndefined()
-  })
-})
-
-describe('buildCdsCards — alert cards & dedupe', () => {
-  const suggestedAction = { label: 'Do the thing', path: launchPath }
-
-  it('collapses duplicate suggestedAction paths to a single alert card', () => {
-    const cards = buildCdsCards({
-      activeStageId: null,
-      riskAlerts: [
-        alert({ tool: 'A', level: 'high', suggestedAction }),
-        alert({ tool: 'B', level: 'moderate', suggestedAction }),
-      ],
-      isToolEnabled: (id) => id === launchTool.id,
-      recommendedNextStep: null,
-      isSmartConnected: false,
-    })
-    expect(cards).toHaveLength(1)
-    expect(cards[0].extension?.['spier-card-id']).toBe('cds-alert-A')
-    expect(cards[0].indicator).toBe('critical')
-  })
-
-  it('suppresses an alert card whose path is already a stage-card link', () => {
-    const cards = buildCdsCards({
-      activeStageId: launchStage,
-      riskAlerts: [alert({ tool: 'A', level: 'high', suggestedAction })],
-      isToolEnabled: (id) => id === launchTool.id,
-      recommendedNextStep: null,
-      isSmartConnected: false,
-    })
-    expect(cards.filter((c) => c.extension?.['spier-card-id']?.startsWith('cds-alert-'))).toHaveLength(0)
-  })
-
-  it('skips alerts with no suggestedAction or level none', () => {
-    const cards = buildCdsCards({
-      activeStageId: null,
-      riskAlerts: [alert({ level: 'none', suggestedAction }), alert({ level: 'high' })],
-      isToolEnabled: () => true,
-      recommendedNextStep: null,
-      isSmartConnected: false,
-    })
-    expect(cards).toHaveLength(0)
-  })
-})
-
-describe('buildCdsCards — summary length', () => {
-  it('truncates summaries to the CDS Hooks 140-char cap', () => {
-    const longLabel = 'x'.repeat(200)
-    const [card] = build({
-      recommendedNextStep: { stageId: launchStage, label: longLabel, rationale: 'r' },
-    })
-    expect(card.summary.length).toBeLessThanOrEqual(140)
-    expect(card.summary.endsWith('…')).toBe(true)
-  })
-})
-
-describe('buildCdsCards — SMART launch links (panel step 5)', () => {
-  const LAUNCH_URL = 'https://spier-adoption-guide.example/'
-
-  it('emits type:"absolute" deep links by default', () => {
-    // The in-app default. Unchanged by step 5 on purpose: the Patient Chart
-    // renders these cards itself and there is no EHR to perform a launch.
-    const [card] = build({ isToolEnabled: () => true })
-    expect(card.links?.length).toBeGreaterThan(0)
-    for (const link of card.links!) {
-      expect(link.type).toBe('absolute')
-      expect(link.appContext).toBeUndefined()
+  it('is the obligation the evaluator picked, card for card and in order', () => {
+    for (const id of Object.keys(POPULATION_SCENARIOS)) {
+      const { primary, alsoDue } = evaluatePathway(recordFor(id), { now: NOW })
+      const expected = [primary, ...alsoDue].filter(o => !!o).map(o => o.title)
+      expect(actionCards(build(recordFor(id))).map(c => c.summary), id).toEqual(expected)
     }
   })
 
+  it('Marcus Chen with an empty chart is told to screen, not to do a stage’s default', () => {
+    const [card] = build(recordFor('patient-002'))
+    expect(card.summary).toBe('Screen for suicide risk')
+    expect(card.extension?.['spier-primary']).toBe(true)
+    expect(routerPathsOf(card)).toEqual(['/patient/assessments/phq-9'])
+  })
+
+  it('Sarah Patel is told to assess, and nothing recommends a C-SSRS once she has one', () => {
+    const before = build(recordFor('patient-003'))
+    expect(before[0].summary).toBe('Assess suicide risk after a positive screen')
+    expect(routerPathsOf(before[0])).toEqual(['/patient/assessments/cssrs-screener'])
+  })
+
+  it('nothing due → no action cards at all', () => {
+    // patient-012: a negative ASQ. The patient does not enter the pathway.
+    expect(actionCards(build(recordFor('patient-012')))).toEqual([])
+  })
+})
+
+describe('card shape — what the chart, the panel and a host EHR all read', () => {
+  it('titles the ACT and details the trigger, never a CodeSystem definition', () => {
+    const [card] = build(recordFor('patient-003'))
+    expect(card.summary).toBe('Assess suicide risk after a positive screen')
+    expect(card.detail?.startsWith('PHQ-9 on Aug 11: positive screen.')).toBe(true)
+  })
+
+  it('carries a pathway-stage topic Coding and a deterministic card id', () => {
+    const [card] = build(recordFor('patient-002'))
+    expect(card.source.topic).toEqual({
+      system: PATHWAY_STAGE_SYSTEM,
+      code: 'identify-possible-risk',
+      display: anyString,
+    })
+    expect(card.extension?.['spier-card-id']).toBe('cds-pathway-screen')
+    expect(card.extension?.['spier-stage-id']).toBe('identify-possible-risk')
+  })
+
+  it('every card resolves to a stage the chart can group it under', () => {
+    // PatientPathway files a card by `spier-stage-id`; one that does not
+    // resolve renders above the rail instead of on the step it belongs to.
+    for (const id of Object.keys(POPULATION_SCENARIOS)) {
+      for (const card of build(recordFor(id))) {
+        expect(card.extension?.['spier-stage-id'], `${id}/${card.summary}`).toBeTruthy()
+      }
+    }
+  })
+
+  it('truncates a summary to the CDS Hooks 140-char cap', () => {
+    const cards = build(recordFor('patient-002'))
+    for (const card of cards) expect(card.summary.length).toBeLessThanOrEqual(140)
+  })
+
+  it('maps the record’s urgency onto the card indicator', () => {
+    expect(build(recordFor('patient-002'))[0].indicator).toBe('info')
+    expect(build(recordFor('patient-011'))[0].indicator).toBe('critical')
+  })
+})
+
+describe('a disabled tool costs the card its button, never the recommendation', () => {
+  /**
+   * ⚠️ **The 2026-09-02 defect, closed rather than guarded.** The old builder
+   * DROPPED a card whose tool was disabled, so a site whose preset excluded the
+   * pathway's instrument silently lost the recommendation — Minimum Viable
+   * enables the ASQ and the pathway names the PHQ-9, so that is a real
+   * configuration. What the protocol obliges is not a site setting.
+   */
+  it('keeps the card and its words with every tool turned off', () => {
+    const on = build(recordFor('patient-003'))
+    const off = build(recordFor('patient-003'), { isToolEnabled: () => false })
+    expect(off.map(c => c.summary)).toEqual(on.map(c => c.summary))
+    expect(off[0].links).toBeUndefined()
+    expect(on[0].links?.length).toBe(1)
+  })
+
+  it('says "configure tools" for a disabled tool, and not for a standing instruction', () => {
+    // The chart's empty state sends a reader to /settings, which is the right
+    // thing to say about a tool that is off and the wrong thing about a step
+    // with no tool at all.
+    const off = build(recordFor('patient-003'), { isToolEnabled: () => false })
+    expect(off[0].extension?.['spier-narrative-only']).toBeUndefined()
+    const standing = build(recordFor('patient-011')).find(c =>
+      c.extension?.['spier-card-id'] === 'cds-pathway-high-every-contact-question',
+    )
+    expect(standing?.extension?.['spier-narrative-only']).toBe(true)
+  })
+})
+
+describe('link form — deep link in the app, SMART launch for a host', () => {
+  const LAUNCH_URL = 'https://spier-adoption-guide.example/'
+
+  it('emits type:"absolute" deep links with a router path by default', () => {
+    const [card] = build(recordFor('patient-003'))
+    const link = card.links![0]
+    expect(link.type).toBe('absolute')
+    expect(link.url).toBe(
+      'https://spier-project.github.io/adoption-guide/#/patient/assessments/cssrs-screener',
+    )
+    expect(card.extension?.['spier-router-paths']?.[link.url]).toBe(
+      '/patient/assessments/cssrs-screener',
+    )
+  })
+
   it('emits type:"smart" links carrying the tool in appContext when asked', () => {
-    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    const [card] = build(recordFor('patient-003'), { smartLaunch: { launchUrl: LAUNCH_URL } })
     const link = card.links![0]
     expect(link.type).toBe('smart')
     // The URL is the app's launch_uri — the SAME for every link, which is why
     // the tool cannot be carried in it.
     expect(link.url).toBe(LAUNCH_URL)
-    expect(JSON.parse(link.appContext!)).toEqual({ intent: intentForLaunchPath(launchPath) })
+    expect(JSON.parse(link.appContext!)).toEqual({
+      intent: intentForLaunchPath('/patient/assessments/cssrs-screener'),
+    })
   })
 
   it('never puts iss or launch in the URL — the CDS client appends those', () => {
-    // The one thing a card builder must not do: it has no authorization server
-    // and no launch context, so inventing either would be a fabrication.
-    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    const [card] = build(recordFor('patient-003'), { smartLaunch: { launchUrl: LAUNCH_URL } })
     for (const link of card.links!) {
       expect(link.url).not.toContain('iss=')
       expect(link.url).not.toContain('launch=')
@@ -268,210 +196,55 @@ describe('buildCdsCards — SMART launch links (panel step 5)', () => {
   })
 
   it('drops spier-router-paths, which only the app itself can act on', () => {
-    // A router path handed to a host EHR is an invitation to route a link it is
-    // not the consumer of.
-    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    const [card] = build(recordFor('patient-003'), { smartLaunch: { launchUrl: LAUNCH_URL } })
     expect(card.extension?.['spier-router-paths']).toBeUndefined()
-    // …and it is still there in the default form.
-    const [plain] = build({ isToolEnabled: () => true })
-    expect(Object.keys(plain.extension?.['spier-router-paths'] ?? {}).length).toBeGreaterThan(0)
-  })
-
-  it('applies to alert cards too, not just the stage card', () => {
-    const cards = buildCdsCards({
-      activeStageId: null,
-      riskAlerts: [alert({ level: 'high', suggestedAction: { label: 'Launch it', path: launchPath } })],
-      isToolEnabled: () => true,
-      recommendedNextStep: null,
-      isSmartConnected: false,
-      smartLaunch: { launchUrl: LAUNCH_URL },
-    })
-    expect(cards).toHaveLength(1)
-    expect(cards[0].links![0]).toMatchObject({ type: 'smart', url: LAUNCH_URL })
-    expect(cards[0].extension?.['spier-router-paths']).toBeUndefined()
+    expect(Object.keys(build(recordFor('patient-003'))[0].extension?.['spier-router-paths'] ?? {}).length)
+      .toBeGreaterThan(0)
   })
 
   it('emits an intent the app can resolve back to the tool', () => {
-    // The round trip is the whole contract between the card and the panel: the
-    // host copies appContext.intent into the launch context, and SmartRedirect
-    // resolves it to a route. Asserted end to end here so neither half can drift
-    // alone.
-    const [card] = build({ isToolEnabled: () => true, smartLaunch: { launchUrl: LAUNCH_URL } })
+    // The round trip is the whole contract between the card and the panel.
+    const [card] = build(recordFor('patient-003'), { smartLaunch: { launchUrl: LAUNCH_URL } })
     const { intent } = JSON.parse(card.links![0].appContext!) as { intent: string }
-    expect(launchPathForIntent(intent)).toBe(launchPath)
+    expect(launchPathForIntent(intent)).toBe('/patient/assessments/cssrs-screener')
+  })
+
+  it('offers ONE launch per card — a card is one act', () => {
+    for (const id of Object.keys(POPULATION_SCENARIOS)) {
+      for (const card of build(recordFor(id))) {
+        expect((card.links ?? []).length, `${id}/${card.summary}`).toBeLessThanOrEqual(1)
+      }
+    }
   })
 })
 
-describe('buildCdsCards — problem-list guidance card (pathway Phase 5)', () => {
-  const conceptObs = (tier: string) => ({
-    resourceType: 'Observation' as const,
+describe('the problem-list guidance card stays last and unlinked', () => {
+  const conceptObs = (tier: string): ObservationResource => ({
+    resourceType: 'Observation',
     id: `obs-${tier}`,
     status: 'final',
     code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
-    effectiveDateTime: '2026-08-05T10:00:00.000Z',
+    effectiveDateTime: '2026-09-05T10:00:00.000Z',
     valueCodeableConcept: {
       coding: [{ system: RISK_TIER_SYSTEM, code: tier, display: `${tier} risk` }],
     },
-  })
+  }) as unknown as ObservationResource
 
-  it('appends the guidance card when the latest concept tier is positive', () => {
-    const cards = build({ observations: [conceptObs('high')] })
+  it('appends it when the latest concept tier is positive', () => {
+    const base = recordFor('patient-003')
+    const cards = build({ ...base, observations: [...(base.observations ?? []), conceptObs('high')] })
     const guidance = cards.find(c => c.extension?.['spier-card-id'] === PROBLEM_LIST_CARD_ID)
     expect(guidance).toBeDefined()
-    // Last, and carrying no link — a documentation prompt sits behind the
-    // actionable cards and can never duplicate one of their destinations.
     expect(cards.at(-1)).toBe(guidance)
     expect(guidance!.links).toBeUndefined()
+    expect(guidance!.extension?.['spier-primary']).toBeUndefined()
   })
 
-  it('emits none for a negative tier, and none when no observations are passed', () => {
-    const negative = build({ observations: [conceptObs('no-risk')] })
+  it('emits none for a negative tier, and none for a chart with no observations', () => {
+    const base = recordFor('patient-003')
+    const negative = build({ ...base, observations: [...(base.observations ?? []), conceptObs('no-risk')] })
     expect(negative.some(c => c.extension?.['spier-card-id'] === PROBLEM_LIST_CARD_ID)).toBe(false)
-    const absent = build()
+    const absent = build({ responses: [] })
     expect(absent.some(c => c.extension?.['spier-card-id'] === PROBLEM_LIST_CARD_ID)).toBe(false)
-  })
-})
-
-describe('buildCdsCards — one link per destination', () => {
-  it('does not repeat a launch path two tools share', () => {
-    // TL-042 and TL-043 both launch /population/measures with the same label, so the
-    // stage card carried two byte-identical links. Asserted against the real
-    // catalog rather than a fixture, because the defect WAS the catalog shape:
-    // a fixture would have had to reproduce the coincidence to catch it.
-    const shared = new Map<string, number>()
-    for (const tool of TOOLS) {
-      for (const action of tool.launchActions) {
-        shared.set(action.path, (shared.get(action.path) ?? 0) + 1)
-      }
-    }
-    const duplicated = [...shared.entries()].filter(([, n]) => n > 1)
-    // If this ever becomes empty the test stops proving anything — say so rather
-    // than passing vacuously.
-    expect(duplicated.length).toBeGreaterThan(0)
-
-    for (const [path] of duplicated) {
-      const stageId = TOOLS.find(t => t.launchActions.some(a => a.path === path))!.stageId
-      const [card] = buildCdsCards({
-        activeStageId: stageId,
-        riskAlerts: [],
-        isToolEnabled: () => true,
-        recommendedNextStep: null,
-        isSmartConnected: false,
-      })
-      const urls = (card.links ?? []).map(l => l.url)
-      expect(urls.length).toBe(new Set(urls).size)
-    }
-  })
-
-  it('keeps distinct destinations at the same stage', () => {
-    // The dedupe must not collapse a stage's genuinely different destinations
-    // into one link — that would be the opposite defect and just as invisible.
-    //
-    // ⚠️ The premise changed on 2026-09-19: the card offers what the PATHWAY
-    // leads with rather than every tool at the stage, so "every launch path at
-    // this stage" is no longer what it should carry. Document Safety Actions is
-    // the stage the pathway names twice, which is what keeps this testing the
-    // dedupe rather than the narrowing.
-    for (const stageId of [...new Set(TOOLS.map(t => t.stageId))]) {
-      const leadPaths = new Set(
-        TOOLS.filter(t => stageLeadToolIds(stageId).includes(t.id))
-          .flatMap(t => t.launchActions.map(a => a.path)),
-      )
-      if (leadPaths.size < 2) continue
-      const [card] = buildCdsCards({
-        activeStageId: stageId,
-        riskAlerts: [],
-        isToolEnabled: () => true,
-        recommendedNextStep: null,
-        isSmartConnected: false,
-      })
-      expect(card.links?.length).toBe(leadPaths.size)
-      return
-    }
-    throw new Error('no stage leads with two distinct destinations — this test checked nothing')
-  })
-})
-
-describe('the stage card offers a SELECTION, not a catalogue', () => {
-  /**
-   * Changed 2026-09-19. The card used to offer every enabled tool at the stage
-   * with the pathway's realization sorted first — up to EIGHT links at Clarify
-   * Risk, three of them CAMS SSF-5 sections, in a 470px clinical panel.
-   *
-   * ⚠️ **The selection is read from the published pathway, which is why it is
-   * safe to apply in the hosted service and the panel alike.** The rule
-   * `web/src/lib/toolEnablement.ts` guards is that the panel and the host's own
-   * cards must not disagree about the same patient, which happens when one
-   * consults browser-local state the other cannot see. A rule derived from
-   * `PlanDefinition/SPiERSuicideSaferCarePathway` is not state — all three
-   * surfaces bundle the same artifact.
-   */
-  const stagesWithTools = [...new Set(
-    TOOLS.filter(t => t.launchActions.length > 0).map(t => t.stageId),
-  )]
-
-  it('has stages to check, and a stage where this actually narrows something', () => {
-    expect(stagesWithTools.length).toBeGreaterThanOrEqual(6)
-    // Without a stage that offers more than the pathway names, "the card shows
-    // the lead tools" is true of a catalogue that never had alternatives.
-    const narrowed = stagesWithTools.filter(
-      s => TOOLS.filter(t => t.stageId === s && t.launchActions.length > 0).length
-        > stageLeadToolIds(s).length,
-    )
-    expect(narrowed.length).toBeGreaterThan(0)
-  })
-
-  it.each(stagesWithTools)('%s offers only what the pathway leads with, everything enabled', stageId => {
-    const [card] = build({ activeStageId: stageId, isToolEnabled: () => true })
-    const leadPaths = [...new Set(
-      TOOLS.filter(t => stageLeadToolIds(stageId).includes(t.id))
-        .flatMap(t => t.launchActions.map(a => a.path)),
-    )].sort()
-    // Compared as PATHS rather than counts: two tools can share a launch path,
-    // and the builder emits one link per destination.
-    expect(routerPathsOf(card)).toEqual(leadPaths)
-  })
-
-  it('offers ONE launch at Clarify Risk, which used to offer eight', () => {
-    const [card] = build({ activeStageId: 'clarify-risk', isToolEnabled: () => true })
-    expect(card.links?.length).toBe(1)
-    expect(card.links?.[0].label).toContain('C-SSRS Screener')
-  })
-
-  it('still offers BOTH obligations where the pathway names two', () => {
-    // Document Safety Actions is named twice — a safety plan and crisis
-    // resources. Narrowing must not collapse a published obligation.
-    const [card] = build({ activeStageId: 'document-safety-actions', isToolEnabled: () => true })
-    expect(card.links?.length).toBe(2)
-  })
-})
-
-describe('narrowing can never withhold a recommendation', () => {
-  /**
-   * ⚠️ **The 2026-09-02 defect, from the other side.** `buildCdsCards` drops a
-   * card with nothing to launch. A site whose preset excludes the pathway's
-   * instrument would get an empty stage card — Minimum Viable enables the ASQ
-   * and the pathway names the PHQ-9, so this is the real configuration, not a
-   * hypothetical one.
-   */
-  const leadId = stageLeadToolIds(launchStage)[0]
-  const other = TOOLS.find(
-    t => t.stageId === launchStage && t.launchActions.length > 0 && t.id !== leadId,
-  )
-
-  it('has a non-lead tool at this stage to fall back to', () => {
-    expect(other, 'no alternative at the stage — this whole describe would be vacuous').toBeDefined()
-  })
-
-  it('falls back to what IS enabled when no lead tool is', () => {
-    const [card] = build({ isToolEnabled: id => id === other!.id })
-    expect(card, 'the stage card vanished — a site got no recommendation at all').toBeDefined()
-    expect(card.links?.length).toBeGreaterThan(0)
-    expect(routerPathsOf(card)).toContain(other!.launchActions[0].path)
-  })
-
-  it('prefers the lead tool when BOTH are enabled', () => {
-    const [card] = build({ isToolEnabled: id => id === other!.id || id === leadId })
-    expect(routerPathsOf(card)).not.toContain(other!.launchActions[0].path)
   })
 })

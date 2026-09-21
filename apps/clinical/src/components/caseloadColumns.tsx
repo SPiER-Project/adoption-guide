@@ -8,11 +8,11 @@
  * fast-refresh boundary.
  */
 import type { ReactNode } from 'react'
-import { derivedNextStep } from '@spier/core/lib/cdsHooks'
 import { Link } from 'react-router-dom'
 import { stageTitleById } from '@spier/core/data/catalog'
 import { ageOf } from '../lib/populationFilters'
 import { RISK_LABEL } from '../lib/populationSummary'
+import { riskTitle } from '@spier/app-shell/lib/riskLabel'
 import { RiskPill } from '@spier/tool-views/components/RiskPill'
 import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
 import { formatDaysAgo, isoDay } from '@spier/tool-views/lib/dates'
@@ -112,7 +112,18 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
     sortCol: 'risk',
     filter: 'risk',
     className: 'caseload-table-risk-col',
-    render: row => <RiskPill level={row.currentRiskLevel} label={RISK_LABEL[row.currentRiskLevel]} />,
+    // ⚠️ `title` carries the one level whose word does not explain itself.
+    // `Unknown` on a caseload row means "no suicide-risk screening on file",
+    // not "we lost the number" — `riskTitle` is where that sentence already
+    // lives, shared with the identity strip so the two cannot word it
+    // differently.
+    render: row => (
+      <RiskPill
+        level={row.currentRiskLevel}
+        label={RISK_LABEL[row.currentRiskLevel]}
+        title={riskTitle(row.currentRiskLevel)}
+      />
+    ),
   },
   // Stage-7 work queue (TL-037) and the Stage-6 follow-up rollup (TL-034/035)
   // share one column: neither ever drove a row's height, and merging them buys
@@ -243,19 +254,20 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
     header: 'Recommended Next Step',
     className: 'caseload-table-next-col',
     render: row => {
-      // ⚠️ The curated line when there is one, the PATHWAY's own next step
-      // otherwise — and the fallback is the same `derivedNextStep` the CDS card
-      // uses, so a row here and that patient's own chart cannot recommend
-      // different things.
+      // ⚠️ The curated line when there is one, and otherwise the step the
+      // PUBLISHED PATHWAY owes this record — the same expression the patient's
+      // own chart leads with, so a row here and that chart cannot recommend
+      // different things. It used to fall back to the patient's active STAGE,
+      // which is a different question with a different answer.
       //
       // `recommendedNextStep` is hand-written in patients.json and is therefore
       // absent from any cohort read over real FHIR Patients (#401), which is
       // what made this fallback necessary rather than merely tidy.
-      const next = row.recommendedNextStep ?? (row.currentStage ? derivedNextStep(row.currentStage) : null)
+      const next = row.recommendedNextStep ?? row.nextStep
       if (!next) {
-        // No curated line and no active stage: every stage is complete. Saying so
-        // beats an empty cell, which reads as missing data.
-        return <div className="caseload-next-label">Pathway complete</div>
+        // No curated line and nothing the pathway is waiting on. Saying so beats
+        // an empty cell, which reads as missing data.
+        return <div className="caseload-next-label">Nothing is due</div>
       }
       return (
         <>

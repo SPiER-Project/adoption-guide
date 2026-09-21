@@ -2,12 +2,13 @@
  * The Guided Pathway preset is the app's default, and these are the properties
  * that make that safe rather than merely tidy.
  *
- * ⚠️ **Changing DEFAULT_PRESET is how the 2026-09-02 defect happened.**
- * `buildCdsCards` drops an alert card whose tool is disabled, so a preset that
- * switches off a named tool makes a recommendation VANISH from the standalone
- * chart while the host page — which offers every tool — still shows it. Same
- * patient, two answers. The last two describes below are that measurement,
- * turned into a standing check.
+ * ⚠️ **Changing DEFAULT_PRESET used to be how the 2026-09-02 defect happened.**
+ * `buildCdsCards` dropped an alert card whose tool was disabled, so a preset
+ * that switched off a named tool made a recommendation VANISH from the
+ * standalone chart while the host page — which offers every tool — still
+ * showed it. Same patient, two answers. Cards now come from the published
+ * pathway and a disabled tool costs one only its launch button; the last
+ * describe below is that closure, as a standing check.
  */
 import { describe, expect, it } from 'vitest'
 import {
@@ -20,7 +21,6 @@ import { launchableTools } from '@spier/core/data/catalog'
 import { STAGES } from '@spier/core/data/catalog/stages'
 import { isPathwayRealization } from '@spier/core/lib/pathwayRealizations'
 import { buildCdsCards } from '@spier/core/lib/cdsHooks/cards'
-import { derivePathwayStatus } from '@spier/core/lib/patientPathway'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 
 const guidedIds = () => new Set(presetToolIds('guided-pathway'))
@@ -95,104 +95,62 @@ describe('Guided Pathway — one tool at every stage', () => {
   })
 })
 
-describe('the default preset withholds no recommendation it did not already', () => {
+describe('no preset can change WHICH recommendation a patient gets', () => {
   /**
-   * The 2026-09-02 defect, as a standing check. `buildCdsCards` DROPS an alert
-   * card whose tool is disabled, so a preset change can make a recommendation
-   * vanish from the standalone chart while the host page — which offers every
-   * tool — still shows it. Same patient, two answers.
+   * ⚠️ **The 2026-09-02 defect, closed on 2026-09-21 rather than guarded.**
    *
-   * Every demo scenario is built three ways: everything enabled (what the CDS
-   * service and the embedded panel apply), the outgoing default, and the new
-   * one.
+   * The old `buildCdsCards` dropped a card whose tool was disabled, so a preset
+   * change could make a recommendation vanish from the standalone chart while
+   * the host page — which offers every tool — still showed it. Same patient,
+   * two answers. This suite used to measure that: it compared every scenario
+   * under three presets and pinned the one card the default still withheld
+   * (patient-006's stabilization plan) in a `KNOWN_WITHHELD` allowlist.
+   *
+   * Cards are now what the PUBLISHED PATHWAY owes the record, and what a
+   * protocol obliges is not a site setting — so a disabled tool costs a card
+   * its launch button and nothing else. The allowlist is gone because the
+   * condition it recorded cannot arise. What replaces it is the stronger
+   * property: the card LIST is identical under every preset.
    */
   const scenarios = Object.entries(POPULATION_SCENARIOS)
 
-  const cardsFor = (scenario: (typeof scenarios)[number][1], enabled: (id: string) => boolean) => {
-    const artifacts = {
-      responses: scenario.responses,
-      carePlans: scenario.carePlans,
-      observations: scenario.observations,
-      communications: scenario.communications ?? [],
-    }
-    return buildCdsCards({
-      activeStageId: derivePathwayStatus(artifacts).activeStageId,
-      riskAlerts: scenario.riskAlerts,
-      recommendedNextStep: null,
-      isSmartConnected: false,
-      observations: scenario.observations,
+  const cardsFor = (scenario: (typeof scenarios)[number][1], enabled: (id: string) => boolean) =>
+    buildCdsCards({
+      record: {
+        responses: scenario.responses,
+        observations: scenario.observations,
+        carePlans: scenario.carePlans,
+        communications: scenario.communications ?? [],
+        procedures: scenario.procedures ?? [],
+        episodes: scenario.episodes ?? [],
+        riskAlerts: scenario.riskAlerts,
+      },
       isToolEnabled: enabled,
     })
-  }
 
   it('has scenarios to check', () => {
     expect(scenarios.length).toBeGreaterThanOrEqual(10)
   })
 
-  it.each(scenarios)('%s loses no card that the outgoing default kept', (_id, scenario) => {
-    // The actual question this change has to answer. Narrowing 21 tools to 9
-    // must not cost a recommendation that mid-tier was showing.
-    const mid = new Set(presetToolIds('common-mid-tier'))
-    const ids = guidedIds()
-    const before = cardsFor(scenario, id => mid.has(id)).map(c => c.summary)
-    const after = cardsFor(scenario, id => ids.has(id)).map(c => c.summary)
-    expect(before.filter(s => !after.includes(s))).toEqual([])
+  it.each(scenarios)('%s gets the same cards under every preset, and with none', (_id, scenario) => {
+    const everything = cardsFor(scenario, () => true).map(c => c.summary)
+    for (const preset of PRESETS) {
+      const ids = new Set(presetToolIds(preset.id))
+      expect(cardsFor(scenario, id => ids.has(id)).map(c => c.summary)).toEqual(everything)
+    }
+    expect(cardsFor(scenario, () => false).map(c => c.summary)).toEqual(everything)
   })
 
-  it.each(scenarios)('%s keeps a launch on every card that had one', (_id, scenario) => {
-    // Fewer alternatives per card is the POINT; a card losing its LAST launch is
-    // a dead recommendation. Matched by summary, not index, so a dropped card
-    // fails the test above rather than misaligning this one.
-    //
-    // ⚠️ **No planted defect makes this one fail, and that is recorded rather
-    // than taken as strength.** With today's `buildCdsCards`, a stage card's
-    // links come from the enabled tools at that stage and every catalogued tool
-    // has at least one launch action — so "the stage is not empty" already
-    // implies "the card has a launch", which the test above covers. Every plant
-    // tried either emptied a stage (firing that one) or was a legitimate
-    // alternative pick. It stays because the implication is a property of the
-    // CARD BUILDER, not of the preset: a future `cards.ts` that filters links
-    // separately from tools would break it silently, and this is the only thing
-    // looking.
-    const all = cardsFor(scenario, () => true)
+  it.each(scenarios)('%s keeps a launch on every card the Guided Pathway enables', (_id, scenario) => {
+    // The preset decides what a site can LAUNCH. Guided Pathway is derived from
+    // the published pathway, so every tool the pathway itself names is in it —
+    // which means no card the protocol produces should lose its button.
     const ids = guidedIds()
+    const all = cardsFor(scenario, () => true)
     for (const card of cardsFor(scenario, id => ids.has(id))) {
       const before = (all.find(c => c.summary === card.summary)?.links ?? []).length
       const after = (card.links ?? []).length
-      if (before > 0) {
-        expect(after, `"${card.summary}" had ${before} launch(es) and now has none`).toBeGreaterThan(0)
-      }
+      expect(after, `"${card.summary}" had ${before} launch(es) and now has none`).toBe(before)
     }
-  })
-
-  /**
-   * ⚠️ **The one card the standalone chart still withholds, pinned exactly.**
-   *
-   * This is NOT caused by the Guided Pathway preset — `common-mid-tier` loses
-   * the same card and nothing else, because the CAMS stabilization plan is
-   * `optional` and neither preset turns optional tools on. It is the half of the
-   * 2026-09-02 defect that was never closed: `web/src/lib/toolEnablement.ts`
-   * fixed the PANEL by offering every tool there, and the standalone chart kept
-   * honouring the preset, which is where the preset is the point.
-   *
-   * Pinned as an exact list rather than a count so it can only shrink: a NEW
-   * withheld card fails, and closing this one fails too and takes the entry with
-   * it. The real fix is the per-site toolset the SERVICE can read, which
-   * `toolEnablement.ts` describes and nothing implements yet.
-   */
-  const KNOWN_WITHHELD: Record<string, string[]> = {
-    'patient-006': ['Start Stabilization Plan'],
-  }
-
-  it('withholds exactly the cards we know about, and no others', () => {
-    const ids = guidedIds()
-    const actual: Record<string, string[]> = {}
-    for (const [pid, scenario] of scenarios) {
-      const all = cardsFor(scenario, () => true).map(c => c.summary)
-      const guided = cardsFor(scenario, id => ids.has(id)).map(c => c.summary)
-      const lost = all.filter(s => !guided.includes(s))
-      if (lost.length) actual[pid] = lost
-    }
-    expect(actual).toEqual(KNOWN_WITHHELD)
   })
 })

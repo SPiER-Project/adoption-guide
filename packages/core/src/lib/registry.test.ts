@@ -11,6 +11,11 @@ import type {
   StoredResponse,
 } from '@spier/core/types/fhir'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import { highestRiskLevel } from '@spier/core/lib/observationMappers'
+import { evaluatePathway } from '@spier/core/lib/pathwayEvaluation'
+import { riskLevelForTier, tierCodeForLevel } from '@spier/core/lib/reassessment'
+import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import DEMO_PATIENTS from '@spier/demo-population/patients.json'
 
 describe('deriveRegistryRow', () => {
   const patient: RegistryPatient = {
@@ -43,7 +48,11 @@ describe('deriveRegistryRow', () => {
 
     // Derived fields with no data
     expect(row.lastActivity).toBeNull()
-    expect(row.currentRiskLevel).toBe('none')
+    // ⚠️ `unknown`, not `none` — this was `none` until 2026-09-21, and it is the
+    // defect in miniature: a slice with nothing in it is a patient nobody has
+    // screened, and `none` is the word for a patient who WAS screened and had
+    // nothing found.
+    expect(row.currentRiskLevel).toBe('unknown')
 
     // derivePathwayStatus with no artifacts should mean the pathway is not started, so first stage active
     // We expect currentStage to be defined (typically the first stage if empty)
@@ -387,5 +396,182 @@ describe('deriveRegistryRow', () => {
       expect(row.currentStage).toBe('track-follow-up')
       expect(row.lastActivity?.label).toBe('Information-sharing consent — permitted')
     })
+  })
+})
+
+/**
+ * The risk column, and why it reads the tier.
+ *
+ * Every case is a DEMO FIXTURE. The point of the change is that two SPiER
+ * surfaces disagreed about real charts, so a hand-built slice shaped to agree
+ * with the new code would prove nothing about the charts that disagreed.
+ */
+describe('a row’s risk level is the harmonized tier, not the loudest alert', () => {
+  const NOW = new Date('2026-09-21T12:00:00.000Z')
+
+  const rowFor = (id: string) => {
+    const slice = POPULATION_SCENARIOS[id]
+    if (!slice) throw new Error(`no demo scenario ${id} — this test would check nothing`)
+    const demographics = (DEMO_PATIENTS as RegistryPatient[]).find(p => p.id === id)
+    if (!demographics) throw new Error(`no demo patient ${id}`)
+    return deriveRegistryRow(demographics, slice, NOW)
+  }
+
+  it('takes the tier where an instrument shouted louder than the record', () => {
+    // patient-006's CAMS session rates psychological pain and hopelessness at
+    // 4/5, which drives the ALERT to high; the patient's own overall risk
+    // rating is 3/5, which is the moderate tier the pathway branches on. The
+    // caseload said High while that patient's own chart said moderate risk.
+    expect(highestRiskLevel(POPULATION_SCENARIOS['patient-006'].riskAlerts)).toBe('high')
+    expect(rowFor('patient-006').currentRiskLevel).toBe('moderate')
+    // patient-001 is the same shape with a PHQ-9 alert on top.
+    expect(highestRiskLevel(POPULATION_SCENARIOS['patient-001'].riskAlerts)).toBe('high')
+    expect(rowFor('patient-001').currentRiskLevel).toBe('moderate')
+  })
+
+  it('does not read an acute ED screen as "none" because no alert was cached', () => {
+    // ⚠️ **The safety-relevant half, and it was live.** patient-013 and
+    // patient-014 are the ED exception branches — an acute positive ASQ, then
+    // a transfer and an elopement. Their scenarios carry an EMPTY `riskAlerts`
+    // array, which is a cached derivation rather than anything in the record,
+    // and `highestRiskLevel([])` is `none`. So the worklist rendered "None"
+    // for two patients whose charts record an acute positive screen, and
+    // `RISK_LEVEL_ORDER` sorted them to the BOTTOM of a highest-risk-first
+    // list. The tier is read from the Observation, so it cannot be absent for
+    // a chart that has one.
+    for (const id of ['patient-013', 'patient-014']) {
+      expect(POPULATION_SCENARIOS[id].riskAlerts, id).toEqual([])
+      expect(highestRiskLevel(POPULATION_SCENARIOS[id].riskAlerts), id).toBe('none')
+      expect(rowFor(id).currentRiskLevel, id).toBe('acute')
+    }
+  })
+
+  it('keeps the alert when the record has reached no tier yet', () => {
+    // A positive PHQ-9 with no assessment after it: the pathway's gate says
+    // "go and assess" and reaches no tier. `none` would read as "screened, no
+    // risk", which is the opposite of true.
+    const row = rowFor('patient-003')
+    expect(row.currentRiskLevel).toBe('moderate')
+    expect(row.currentRiskLevel).toBe(highestRiskLevel(POPULATION_SCENARIOS['patient-003'].riskAlerts))
+  })
+
+  it('agrees with that patient’s own chart, for every demo patient', () => {
+    // The property the whole change exists for. A row and the chart behind it
+    // may not answer "how much risk" differently.
+    for (const p of DEMO_PATIENTS as RegistryPatient[]) {
+      const slice = POPULATION_SCENARIOS[p.id]
+      if (!slice) continue
+      const { tier } = evaluatePathway(
+        {
+          responses: slice.responses,
+          observations: slice.observations,
+          carePlans: slice.carePlans,
+          communications: slice.communications ?? [],
+          procedures: slice.procedures ?? [],
+          episodes: slice.episodes ?? [],
+          riskAlerts: slice.riskAlerts,
+        },
+        { now: NOW },
+      )
+      if (!tier) continue
+      expect(deriveRegistryRow(p, slice, NOW).currentRiskLevel, p.id).toBe(riskLevelForTier(tier.code))
+    }
+  })
+
+  it('has demo patients whose two answers DIFFER, or the checks above are vacuous', () => {
+    const changed = (DEMO_PATIENTS as RegistryPatient[]).filter(p => {
+      const slice = POPULATION_SCENARIOS[p.id]
+      return slice && deriveRegistryRow(p, slice, NOW).currentRiskLevel !== highestRiskLevel(slice.riskAlerts)
+    })
+    expect(changed.map(p => p.id)).toEqual([
+      'patient-001',
+      'patient-002',
+      'patient-006',
+      'patient-013',
+      'patient-014',
+    ])
+  })
+})
+
+describe('"never screened" and "screened, nothing found" are different words', () => {
+  const NOW = new Date('2026-09-21T12:00:00.000Z')
+  const anyone: RegistryPatient = {
+    id: 'p1',
+    displayName: 'Test Patient',
+    dob: '1980-01-01',
+    mrn: '12345',
+    gender: 'other',
+    recommendedNextStep: null,
+  }
+  const rowFor = (id: string) => {
+    const slice = POPULATION_SCENARIOS[id]
+    const demographics = (DEMO_PATIENTS as RegistryPatient[]).find(p => p.id === id)!
+    return deriveRegistryRow(demographics, slice, NOW)
+  }
+
+  it('tells the two apart on two demo charts that used to read the same', () => {
+    // ⚠️ **The pair is the test.** patient-002's story is literally "no
+    // suicide-risk screening on file"; patient-012 is the negative ED branch —
+    // a self-administered ASQ with all four items negative. Both rendered
+    // `None` on the caseload, because `highestRiskLevel([])` is `none` and the
+    // row type had no other word. `riskLabel.ts` had called that out as
+    // clinical for as long as the identity strip has existed: a chart that has
+    // never been screened must not read as cleared.
+    expect(rowFor('patient-002').currentRiskLevel).toBe('unknown')
+    expect(rowFor('patient-012').currentRiskLevel).toBe('none')
+  })
+
+  it('does not reach for `unknown` once anything has been recorded', () => {
+    // Every other demo chart carries a screen, an assessment or a tier.
+    const unknowns = (DEMO_PATIENTS as RegistryPatient[])
+      .filter(p => POPULATION_SCENARIOS[p.id])
+      .filter(p => rowFor(p.id).currentRiskLevel === 'unknown')
+      .map(p => p.id)
+    expect(unknowns).toEqual(['patient-002'])
+  })
+
+  it('reads the record, not the cached alerts — a screen with neither alert nor tier', () => {
+    // ⚠️ **Constructed, and the reason is recorded: no demo chart is this
+    // shape, and a plant proved the fixture-based version was checking
+    // nothing.** "patient-013 has no alerts and still reads acute" passes on
+    // the TIER, so it survived a `screened` rewired to read `riskAlerts`. The
+    // property that needs its own case is a screen on file that produces
+    // neither — then `screened` is the only thing standing between the row and
+    // the word `unknown`.
+    const screenOnly: PatientSlice = {
+      responses: [
+        {
+          id: 'phq9-1',
+          questionnaireName: 'PHQ-9',
+          completedAt: '2026-09-01T10:00:00.000Z',
+          resource: {
+            resourceType: 'QuestionnaireResponse',
+            status: 'completed',
+            questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
+            authored: '2026-09-01T10:00:00.000Z',
+            item: [],
+          },
+        } as unknown as StoredResponse,
+      ],
+      observations: [],
+      carePlans: [],
+      riskAlerts: [],
+    }
+    const row = deriveRegistryRow(anyone, screenOnly, NOW)
+    expect(row.currentRiskLevel).not.toBe('unknown')
+    expect(row.currentRiskLevel).toBe('none')
+  })
+})
+
+describe('riskLevelForTier is the inverse of tierCodeForLevel', () => {
+  it('round-trips every level, so the two tables cannot disagree', () => {
+    for (const level of ['acute', 'high', 'moderate', 'low', 'none'] as const) {
+      expect(riskLevelForTier(tierCodeForLevel(level)), level).toBe(level)
+    }
+  })
+
+  it('returns undefined for a tier this app has no word for', () => {
+    // Never `none`: an unrecognised tier must not render as "screened, no risk".
+    expect(riskLevelForTier('historical')).toBeUndefined()
   })
 })

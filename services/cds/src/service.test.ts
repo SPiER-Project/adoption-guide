@@ -52,25 +52,21 @@ describe('scenario fallback (no prefetch)', () => {
     }
   })
 
-  it('offers the measure dashboard on the measure-and-share stage', () => {
-    // patient-010 is a resolved episode whose active stage is `measure-and-share`.
-    //
-    // This test used to assert the CURATED NARRATIVE FALLBACK here, because that
-    // stage had no wired tool and the recommendation text surfaced instead. That
-    // premise expired when TL-042/TL-043 gained launch actions pointing at the
-    // measure dashboard: every one of the eight stages now has a wired tool, so
-    // the fallback no longer fires for ANY bundled patient. Restoring the old
-    // assertion would mean un-wiring the dashboard, which is strictly worse — an
-    // actionable link beats narrative text with nowhere to go.
-    //
-    // The fallback itself is still reachable when a site disables a stage's tools
-    // via tool configuration, and remains unit-tested against `buildCdsCards`
-    // directly in web/src/lib/cdsHooks/cards.test.ts.
+  it('no longer recommends the measure dashboard, or any other product default', () => {
+    // ⚠️ **This assertion is the inverse of the one it replaces**, and the
+    // inversion is the point. patient-010 is a resolved episode whose furthest
+    // stage is `measure-and-share`, and this service used to hand a clinician
+    // "Open measure dashboard" as their next step — because the old builder led
+    // with the active stage's lead tool and, at that stage, the lead is a
+    // PRODUCT DEFAULT the published pathway never names. Decision §7.2 of the
+    // clinical-app audit settles that defaults may be OFFERED and never
+    // RECOMMENDED, so the dashboard is not a card any more.
     const { cards } = buildPatientViewResponse(request({ context: { patientId: 'patient-010' } }))
-    const stageCard = cards.find((c) => c.extension?.['spier-stage-id'] === 'measure-and-share')
-    expect(stageCard).toBeDefined()
-    expect(stageCard?.extension?.['spier-narrative-only']).toBeUndefined()
-    expect(stageCard?.links?.some((l) => l.url.includes('/population/measures'))).toBe(true)
+    const urls = cards.flatMap((c) => (c.links ?? []).map((l) => l.url))
+    expect(urls.some((u) => u.includes('/population/measures'))).toBe(false)
+    // …and she is still told something, from the protocol itself.
+    expect(cards.length).toBeGreaterThan(0)
+    expect(cards.filter((c) => c.extension?.['spier-primary'] === true)).toHaveLength(1)
   })
 
   it('returns an empty (valid) card list for an unknown patient id', () => {
@@ -96,8 +92,16 @@ describe('live path (prefetched QuestionnaireResponses)', () => {
     )
     expect(cards.length).toBeGreaterThan(0)
     expect(cards.some((c) => c.indicator === 'critical')).toBe(true)
-    // Live path never emits the curated narrative fallback.
-    expect(cards.every((c) => !c.extension?.['spier-narrative-only'])).toBe(true)
+    // Exactly one primary, and it is an act rather than a stage name.
+    expect(cards.filter((c) => c.extension?.['spier-primary'] === true)).toHaveLength(1)
+    // The only card with nothing to launch is the standing "ask at every
+    // contact" obligation and the problem-list prompt — never a recommendation
+    // whose tool the service quietly turned off.
+    for (const card of cards) {
+      if (card.extension?.['spier-narrative-only']) {
+        expect(card.links ?? []).toHaveLength(0)
+      }
+    }
   })
 
   // A foreign EHR's PHQ-9 QR: NOT under a SPiER canonical, foreign linkIds, but
