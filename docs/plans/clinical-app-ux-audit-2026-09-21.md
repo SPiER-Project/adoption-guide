@@ -21,7 +21,7 @@ Sarah Patel's chart no longer says *Start C-SSRS Screener* on a step that holds
 one, and `PATHWAY_STAGE_DEFAULTS` produces no cards at all — it still says what
 a stage OFFERS and no longer what anything RECOMMENDS. Exactly one card carries
 `spier-primary`. Measured in the panel at 375×812, Sarah goes from 3 cards /
-318 words / 2,358px to 1 card / 164 words / 1,217px, with her one button at
+318 words / 2,358px to 1 card / 164 words / 1,217px, with the one button at
 437px instead of ~520px: above the fold for the first time.
 
 Two readings the table in §4.5 did not spell out, both recorded in the
@@ -37,9 +37,9 @@ moderate from high for the one assessment the pathway names.
 Two things the evaluator surfaced rather than fixed. **No demo scenario records
 crisis resources at all**, so every patient with a tier now leads with *Share
 patient-facing crisis resources* — a true reading of the fixtures and a gap in
-them. And **Maria Alvarez is not "finished"** — her chart holds no crisis
-resources and her reassessment is seven weeks overdue — so the demo host's
-narration for her was corrected in the same change.
+them. And **Maria Alvarez is not "finished"** — that chart holds no crisis
+resources and its reassessment is seven weeks overdue — so the demo host's
+narration for it was corrected in the same change.
 
 A third was surfaced and then fixed in the same PR. **The CAMS SSF-5 recorded
 its overall-risk rating as a bare integer on LOINC 93374-7**, so
@@ -47,11 +47,30 @@ its overall-risk rating as a bare integer on LOINC 93374-7**, so
 nothing to translate, and patient-006's chart could state no risk tier at all.
 `cams.fsh` had anticipated exactly this and said on the CodeSystem that "a
 producer maps valueInteger n to the like-numbered code before translating";
-nothing was that producer. The mapper now is, so her chart reads *Complete a
+nothing was that producer. The mapper now is, so that chart reads *Complete a
 collaborative safety plan — CAMS SSF-5 on Aug 6: moderate risk*. The six SSF
 vitals still carry integers, because `SPiERCAMSSSFVital` requires them. The
 crosswalk gate's `NO_MAPPER_REASON` entry for this source is deleted rather than
 reworded, so the map is now really checked.
+
+Fixing that exposed a second thing the demo had been saying wrongly, corrected
+here too: patient-006's story line read *"High risk after a CAMS session"*, and
+that number is the risk ALERT, which the mapper drives from the highest of the
+six SSF vitals (psychological pain and hopelessness are both 4/5). The
+patient's own OVERALL risk rating — the one item the published crosswalk reads,
+and therefore the one the pathway branches on — is 3/5, which is moderate. Both
+numbers are on the chart and they are not the same measurement. The host's
+story, the curated next-step line in `patients.json` (which also claimed a
+"risk status" that chart has never carried) and two prose references now say
+which one they mean.
+
+⚠️ **The two numbers reach two different SPiER surfaces, and nothing reconciles
+them.** The caseload's RISK column is `highestRiskLevel(riskAlerts)`, so it
+reads *High* for this patient while the chart's own card reads *moderate risk*.
+That is not new and this PR does not cause it — but the pathway evaluator makes
+the harmonized tier visible for the first time, so the divergence is now legible
+where it used to be hidden. Which of the two a worklist should rank on is §7's
+territory and PR 7's screen.
 
 ⚠️ **That closes the narrow half of the gap and not the recorded worry about
 it.** `docs/best-practices/concept-harmonization.md` had flagged in advance that

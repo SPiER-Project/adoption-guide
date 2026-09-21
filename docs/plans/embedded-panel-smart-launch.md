@@ -714,8 +714,8 @@ which half is the product, and an audience cannot see what SPiER contributes.
      the natural first click (the first row) is a finished episode with nothing
      left to do — so the demo's most compelling move, fill in an assessment and
      watch the host confirm the write, had no motivation anywhere. The picks are
-     an empty chart (patient-002), a high-risk chart with the stabilization plan
-     still owed (patient-006) and the complete ED episode (patient-011).
+     an empty chart (patient-002), a chart with the safety plan still owed
+     (patient-006) and the complete ED episode (patient-011).
    - **The chart's evidence had the launch's weight.** The CDS endpoint URL, the
      hub topic, the write log and the announce control sat inline under the
      launch. They are all still on the page, in a closed *Under the hood* drawer;
