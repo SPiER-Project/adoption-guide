@@ -44,6 +44,27 @@
     { "tag": "v2", "new_sqlite_classes": ["FhircastHub"] }
   ],
 
+  // ── The nightly reset ───────────────────────────────────────────────────
+  // Written resources stay on the server on purpose: the demo's claim is a
+  // write landing on a FHIR server with the host's own log corroborating the
+  // panel's scorecard, and browser-side storage would delete the claim along
+  // with the problem. The problem is real all the same — one visitor's writes
+  // are the next visitor's chart, so "Marcus Chen has nothing on file" opens at
+  // step 3 — and this is one of the three answers to it. The other two are the
+  // line the chart shows when it has been written to (src/client/chart.ts) and
+  // the Reset button on /settings, which a presenter uses when tomorrow is too
+  // late.
+  //
+  // 09:00 UTC: before the working day in the Americas, after it in Europe, and
+  // well away from a live demo in either.
+  //
+  // ⚠️ The handler is `scheduled` in src/index.ts, which is why that file
+  // exports a handler OBJECT rather than the Hono app. A cron with no
+  // `scheduled` export fails in the Cloudflare dashboard and nowhere else.
+  "triggers": {
+    "crons": ["0 9 * * *"]
+  },
+
   "vars": {
     // Which CapabilityStatement this server advertises at startup. One of
     // "full" | "no-observation" | "documents-only" | "read-only" (see

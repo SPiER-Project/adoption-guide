@@ -170,6 +170,12 @@ export function controlPage(
     Reset discards the writes and <strong>leaves the capability profile alone</strong> — "reset the
     data" and "put the server back to full capability" are different intentions.
   </p>
+  <p class="lede">
+    <strong>Written data is cleared automatically every night</strong>, so a chart that an earlier
+    visitor worked through is back to its own story by the next morning. This button is the same
+    clearance, on demand — for a presenter who cannot wait, or who has just finished a run and wants
+    the next one to start where the script says it does.
+  </p>
   <p class="readout">
     <span id="writes-summary">Loading…</span>
     <button type="button" id="reset-writes" class="btn">Reset written data</button>

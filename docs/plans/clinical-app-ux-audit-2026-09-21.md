@@ -6,10 +6,39 @@ caseload, the measures), the shared chrome in `packages/app-shell/`, the shared
 views in `packages/tool-views/`, and the mock EHR that launches them
 (`services/mock-ehr/`).
 
-**Status:** audit written; PR 1 (the mock EHR's phone layout) is on this branch
-and nothing else has started. §7 records the decisions Brad made on
-2026-09-21; the briefs to run PRs 2–7 each in a fresh session are in
-[`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+**Status:** PRs 1 and 2 have shipped; PRs 3–7 have not started. §7 records the
+decisions Brad made on 2026-09-21; the briefs to run PRs 3–7 each in a fresh
+session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+
+**Status 2026-09-21 (PR 2):** the demo host stops drifting from `main` and
+stops contradicting itself — §1.1, §1.3, §1.13, §1.14 and §4.11.
+`.github/workflows/deploy.yml` grows a `mock-ehr` job beside `clinical` and
+`cds`, so all four Workers ship on merge, and `scripts/check-deploy-jobs.mjs`
+fails the moment a `services/*/wrangler.jsonc` has no job that deploys it (five
+rules, all planted red). The audit was right that the Worker was hand-deployed
+and understated it by one turn: #558 had given all four services the same
+`test -n "$CI"` guard the day before, so the README's own hand-deploy
+instruction had already stopped working — the documented recovery was broken
+too. The host now attaches `prefetch.questionnaireResponses` to its signed CDS
+call, as a searchset Bundle of the patient's completed responses from **both**
+the fixtures and the Durable Object, so the service's live path reads the chart
+instead of the bundled scenario; what it *recommends* from that is untouched
+and is PR 3's. Written data still lives on the server (§7 item 5) and a Cron
+Trigger at 09:00 UTC calls the same `reset()` the Settings button calls — the
+front door's drawer and `/settings` both say so. A chart whose story the writes
+contradict now says so in one line under its launch card, outside the drawer,
+from a new `?patient=` filter on the write log. Both of the front door's
+top-level launches send `embed=0`, which is what a tab that was ever embedded
+needs to leave panel chrome.
+
+**Deliberately not done in PR 2.** Nothing about what the service recommends,
+and nothing under `apps/` or `packages/` — §1.4, §4.1 and §4.5 are PR 3's, and
+with an empty prefetch the service still takes its fallback and surfaces the
+patient's curated `recommendedNextStep`, which is the half of §7 item 1
+("otherwise, screening") that PR 3 answers. Two stale claims in
+[`mock-ehr-demo-script.md`](../mock-ehr-demo-script.md) were corrected while
+that file was open — it still said the front door's caseload frame is *not* a
+SMART launch, which stopped being true at #401.
 
 The prompt (Brad, 2026-09-21): *"on the mock EHR, the only change I want to make
 sure we make is that when launching the smart app on mobile, the side bar

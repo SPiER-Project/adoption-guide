@@ -111,10 +111,21 @@ adminRoutes.post('/_admin/launch', async (c) => {
   // the `#`. The app reads it from `location.search` on purpose (see
   // PresentationProvider) — appending it after the fragment would make it part
   // of the route and it would be silently ignored.
+  //
+  // ⚠️ **`embed: false` is not the same as omitting it, and that is a fix
+  // rather than a nicety.** PresentationProvider persists the flag in
+  // sessionStorage so it survives the OAuth redirect, which means it survives
+  // for the TAB: a chart launch followed by a top-level launch in the same tab
+  // inherits panel chrome from the first one, with nothing in the second
+  // launch to say otherwise. `embed=0` is the caller saying "not embedded" out
+  // loud, so the app clears what it remembered. Omitting the parameter still
+  // means "no opinion" — every existing caller that sends nothing is
+  // unaffected.
   const url = new URL(panelBase)
   url.searchParams.set('iss', `${origin}/fhir`)
   url.searchParams.set('launch', launch)
   if (body.embed === true) url.searchParams.set('embed', '1')
+  else if (body.embed === false) url.searchParams.set('embed', '0')
   url.hash = '#/launch'
   return c.json({
     launch,
@@ -132,12 +143,28 @@ adminRoutes.post('/_admin/launch', async (c) => {
  * SPiER reporting on itself, and this is the server's own account of the same
  * event. Two independent statements of what happened is the difference between a
  * demo and an assertion.
+ *
+ * `?patient=<id>` narrows it to one chart. The whole-store count is the
+ * operator's number — how much the demo has accumulated — and the per-chart one
+ * is the clinical reader's: a chart page whose launch card tells a story about
+ * the fixture needs to know whether an earlier visitor has written to THIS
+ * patient, and the total says nothing about that. Writes are stored with the
+ * patient they were made for, so this is a filter rather than a second index.
+ *
+ * ⚠️ An unknown id returns a count of zero rather than a 404. There is nothing
+ * to say about a patient nobody has written to, and "no writes" is the honest
+ * answer to that question whether or not the server holds the chart — a 404
+ * here would make the chart page's readout fail loudly for a patient whose
+ * only sin is being clean.
  */
 adminRoutes.get('/_admin/writes', async (c) => {
   const store = storeFor(envOf(c))
   if (!store) return c.json({ error: 'No DEMO_STORE binding — this deployment cannot persist writes.' }, 503)
-  const writes = await store.list()
+  const only = c.req.query('patient')
+  const all = await store.list()
+  const writes = only ? all.filter(w => w.patientId === only) : all
   return c.json({
+    ...(only ? { patient: only } : {}),
     count: writes.length,
     byType: writes.reduce<Record<string, number>>((acc, w) => {
       const type = String(w.resource.resourceType)

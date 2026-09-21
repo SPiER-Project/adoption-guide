@@ -331,6 +331,70 @@ describe('without a DEMO_STORE binding', () => {
   })
 })
 
+/**
+ * `GET /_admin/writes`, and its `?patient=` filter.
+ *
+ * ⚠️ The filter is not a convenience for the drawer — it is what lets the CHART
+ * contradict its own story. A chart page's launch card is static prose about
+ * the fixture ("no suicide-risk screening on file") while written data stays in
+ * this server for every later visitor, so the page has to be able to ask "has
+ * anyone written to THIS patient". The whole-store count cannot answer that.
+ */
+describe('the write log, per patient', () => {
+  async function writes(env: FakeStoreBinding, query = '') {
+    const res = await app.request(`${BASE}/_admin/writes${query}`, {}, env)
+    return {
+      res,
+      body: (await res.json()) as {
+        patient?: string
+        count: number
+        byType: Record<string, number>
+        writes: Array<{ patient: string }>
+      },
+    }
+  }
+
+  /** Two patients' writes in one store, the state the deployed host is always in. */
+  async function twoPatients(): Promise<FakeStoreBinding> {
+    const env = fakeStore()
+    await env.state.add(PATIENT, { resourceType: 'QuestionnaireResponse' })
+    await env.state.add(PATIENT, { resourceType: 'Observation' })
+    await env.state.add('patient-002', { resourceType: 'QuestionnaireResponse' })
+    return env
+  }
+
+  it('counts the whole store when nothing is asked for — the operator\'s number', async () => {
+    const { body } = await writes(await twoPatients())
+    expect(body.count).toBe(3)
+    expect(body.patient).toBeUndefined()
+  })
+
+  it('narrows to one chart, and says which one it answered for', async () => {
+    const { body } = await writes(await twoPatients(), `?patient=${PATIENT}`)
+    expect(body.count).toBe(2)
+    expect(body.patient).toBe(PATIENT)
+    expect(body.byType).toEqual({ QuestionnaireResponse: 1, Observation: 1 })
+    // Every row really is this patient's — a filter that returned the whole
+    // store would still satisfy a count assertion on a single-patient store,
+    // which is why the fixture holds two.
+    expect(body.writes.every(w => w.patient === PATIENT)).toBe(true)
+  })
+
+  it('answers zero for a clean chart rather than 404ing it', async () => {
+    // The chart page asks this on every load. A 404 for a patient whose only
+    // sin is being untouched would turn the common case into an error path.
+    const { res, body } = await writes(await twoPatients(), '?patient=patient-006')
+    expect(res.status).toBe(200)
+    expect(body.count).toBe(0)
+    expect(body.byType).toEqual({})
+  })
+
+  it('still 503s with no DEMO_STORE binding, filter or not', async () => {
+    const res = await app.request(`${BASE}/_admin/writes?patient=${PATIENT}`, {}, {})
+    expect(res.status).toBe(503)
+  })
+})
+
 describe('reset', () => {
   it('discards writes and leaves the profile alone', async () => {
     const env = fakeStore()

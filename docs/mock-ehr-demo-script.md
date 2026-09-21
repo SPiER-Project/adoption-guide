@@ -23,9 +23,16 @@ which pixels belong to whom — so point at it once, early.
 - Use a **fresh browser tab** for the front door. After a launch, the same tab's
   caseload widget is scoped to the one patient you launched (the SMART session
   lives in that tab), and it will say so; it is not broken.
-- If someone ran the demo before you, open **Settings → Reset written data** so
-  the write log starts at "Nothing written yet." Reset leaves the capability
-  profile alone; check it reads **full**.
+- **Check the charts are clean.** Written data stays on the server — that is the
+  demo, not a bug — and it is cleared automatically every night. If someone ran
+  a demo since then, a chart will say so in one line under its launch card
+  (*"3 records were added to this chart by an earlier demo"*). Open **Settings →
+  Reset written data** and the write log goes back to "Nothing written yet."
+  Reset leaves the capability profile alone; check it reads **full**.
+- **The host is on whatever is on `main`.** All four Workers deploy from `main`
+  on merge, this one included since 2026-09-21. If the demo behaves like an
+  older commit, the deploy failed — look at the `mock-ehr` job in the last
+  **Deploy** run on GitHub, not at the code.
 
 ## The ten minutes
 
@@ -47,8 +54,10 @@ SPiER.* **Start here** offers three charts. Say which you are opening and why:
 | **Maria Alvarez** | Complete ED episode | What a finished pathway looks like |
 
 The patient table below has all fourteen, each with a one-line story. The
-caseload widget under that is SPiER embedded as a hosted activity; say once
-that it is **not** a SMART launch (the drawer at the bottom says why) and move on.
+caseload frame above it is SPiER embedded as a hosted activity, and it **is** a
+real SMART launch — user-scoped, no patient in context, reading this server's
+fourteen patients. Say that once and move on; the drawer at the bottom has what
+it still does not prove.
 
 ### 2. Marcus Chen — PHQ-9 to C-SSRS from zero (5 min)
 
@@ -142,13 +151,19 @@ bottom.
 - **Does not prove SMART scopes.** Scopes are echoed, not enforced. The
   patient binding *is* enforced (a token for one patient cannot read another),
   which is the one thing the FHIRcast step relies on.
-- **The caseload widget on the front door is not a SMART launch** and shows
-  SPiER's bundled demo registry, not the server's data.
+- **The caseload frame on the front door reads this server**, over a real
+  user-scoped launch. It shows the summary rather than the sortable worklist —
+  a judgement about that page, not a limit of the launch. It was a frame with
+  no `iss` and no `launch` over SPiER's own bundled registry until #401; this
+  line said so for longer than that was true.
 
 ## If something looks wrong
 
 | Symptom | Cause | Do |
 |---|---|---|
+| A chart is further along than this script says | An earlier demo wrote to it — writes stay on the server until the nightly clear | The chart says so under its launch card; **Settings → Reset written data** |
+| The demo behaves like an older commit | A failed deploy, not a code bug — every Worker ships from `main` on merge | Check the last **Deploy** run on GitHub; the job for this Worker is `mock-ehr` |
+| *Recommendations from SPiER* says the service could not be reached | The CDS Worker is down, or this host is pointed at the wrong origin for it | The origin is in the chart's **Under the hood → Decision support**; a 401 there means this host's signed identity was refused, which is a different fault from a 5xx |
 | Panel shows *Redirecting to EHR…* and stops | The panel's `frame-ancestors` does not name this host, or the redirect URI is unregistered | Both are configured on the deployed Workers; locally, see *Local dev* in the mock EHR README |
 | Front-door widget shows one patient | Same tab as an earlier launch | Open the front door in a fresh tab |
 | Write log says *Could not read the write log* | `DEMO_STORE` binding missing | Deployment issue, not a demo step; the panel's scorecard still works |

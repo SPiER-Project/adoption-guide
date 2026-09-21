@@ -57,6 +57,7 @@ npm run check:tool-view-routes  # the 29 tool views are ONE definition and EVERY
 npm run check:eager-forms       # the 18 Questionnaires stay OUT of the entry chunk (walks STATIC imports)
 npm run check:surface-links     # every in-app link on EACH app resolves on THAT app's route table (both apps walked; shared views hold no route literal)
 npm run check:origins           # every hosted origin comes from deploy-origins.json; no literal in TypeScript
+npm run check:deploy-jobs       # every services/*/wrangler.jsonc is deployed from main by deploy.yml
 npm run check:stages            # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve
 npm run check:outputs           # every PlanDefinition.action.output profile is stamped by an EMITTED resource (after npm test)
@@ -144,6 +145,7 @@ The rules, each with its history in [`docs/internals/workers.md`](docs/internals
 - **`services/clinical` hosts no `/cds-services` and no `/ig/`**, and its tests assert both as negatives. The mock EHR frames this Worker.
 - **The `frame-ancestors` policy lives in `packages/worker-http`, once**; `check-worker-csp.mjs` holds five rules over it.
 - **The rendered IG at `/ig/` is put there by CI only**; a local deploy is refused. Cloudflare's Workers Builds integration stays disconnected. `index.ts` must not regain an `/ig` route.
+- **All four deploy from `main`**, by a job each in `.github/workflows/deploy.yml`, gated by `check:deploy-jobs`; the mock EHR joined them 2026-09-21 and `npm run deploy` refuses outside CI everywhere. **The rendered IG is the CI-only part**, not the deploy.
 - **All four build under `packages/worker-tooling`**, and `check:toolchain` in each verify keeps it one. Add an option, alias or devDependency there, never to one service.
 - **Hosted origins come from `deploy-origins.json`** at the repo root; wrangler copies are gated by `check:origins`. GitHub Pages is a dependency (IG downloads over the size cap redirect to it), not a spare copy.
 - **The mock EHR is deliberately NOT styled like SPiER**, favicon included. **An embedded activity gets a VIEWPORT** — never size a guest frame to its content. **A framed launch is minted at RUNTIME**, never baked into the markup. **Its `app.ts` composes six route modules and its pages ship no inline script**: the behaviour is `services/mock-ehr/src/client/*.ts`, built by `npm run build:client`; do not add a `script:` string back to `page()`.

@@ -4,6 +4,7 @@
  */
 import { Hono } from 'hono'
 import { DEFAULT_CDS_CLIENT_ID, JWKS_PATH, mintCdsToken, publicJwks, signingKeyFor } from '../cdsClient'
+import { QR_PREFETCH_KEY, questionnaireResponseBundle } from '../cdsPrefetch'
 import { storeFor } from '../store'
 import { CDS_SERVICE_PATH, cdsOriginFor, envOf, type AppEnv } from '../env'
 
@@ -46,11 +47,20 @@ cdsRoutes.get(JWKS_PATH, async (c) => {
 })
 
 /**
- * Invoke the CDS Hooks service on the chart page's behalf, signed.
+ * Invoke the CDS Hooks service on the chart page's behalf, signed, and with
+ * this chart's data attached.
  *
- * Returns the service's response verbatim — this host adds an identity and
- * nothing else. A non-2xx is passed through with its status so the chart can
- * say what actually happened rather than "could not be reached".
+ * Returns the service's response verbatim — this host adds an identity and a
+ * prefetch, and nothing else. A non-2xx is passed through with its status so
+ * the chart can say what actually happened rather than "could not be reached".
+ *
+ * ⚠️ **The PREFETCH is this host's, not the caller's, and that direction is the
+ * point.** In CDS Hooks the prefetch is the EHR's statement about its own
+ * record; a browser supplying one would be the page telling the service what
+ * the chart holds. So whatever arrives under the service's own prefetch key is
+ * replaced by what this server actually has. Other keys are left alone: no
+ * caller sends any today, and dropping an unknown one would be this route
+ * deciding what a future hook may ask for.
  */
 cdsRoutes.post('/_admin/cds', async (c) => {
   const store = storeFor(envOf(c))
@@ -66,6 +76,32 @@ cdsRoutes.post('/_admin/cds', async (c) => {
   const cdsOrigin = cdsOriginFor(envOf(c))
   const endpoint = `${cdsOrigin}${CDS_SERVICE_PATH}`
   const selfOrigin = new URL(c.req.url).origin
+
+  // ── Attach the chart ──────────────────────────────────────────────────────
+  //
+  // ⚠️ **Without this the service answers about a FIXTURE.** Its live path runs
+  // the prefetched responses through the same mappers the app runs on a
+  // submitted form; with nothing prefetched it falls back to the bundled
+  // population scenario for the patient id, which stops being this chart the
+  // moment anything is written to it. The host's card then recommends a screen
+  // the panel has already recorded — audit §1.14.
+  //
+  // ⚠️ A body with no `context.patientId` is passed through untouched rather
+  // than rejected. This route is a signing proxy for whatever hook the page
+  // asks for, and a patient-less hook (or a malformed one) is the service's to
+  // answer; inventing a 400 here would put this host's opinion of the CDS
+  // Hooks spec in front of the service that implements it.
+  const body = hookRequest as { context?: { patientId?: unknown }; prefetch?: Record<string, unknown> }
+  const patientId = typeof body?.context?.patientId === 'string' ? body.context.patientId : ''
+  if (patientId) {
+    hookRequest = {
+      ...body,
+      prefetch: {
+        ...body.prefetch,
+        [QR_PREFETCH_KEY]: await questionnaireResponseBundle(patientId, store, `${selfOrigin}/fhir`),
+      },
+    }
+  }
 
   const token = await mintCdsToken(await signingKeyFor(store), {
     iss: selfOrigin,
