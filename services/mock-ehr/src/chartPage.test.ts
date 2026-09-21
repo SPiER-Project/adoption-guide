@@ -417,6 +417,42 @@ describe('the chart leads with the launch, and carries no controls', () => {
     expect(await clientModule('/chart/patient-011')).toContain('PANEL_WIDTHS.indexOf(raw) === -1')
   })
 
+  it('takes over the screen below 60rem — fixed, full-viewport, with a labelled way back to the chart', async () => {
+    // ⚠️ Measured on the deployed host at 375×812 (2026-09-21): the narrow-screen
+    // rule made the dock `position: static` and wrapped it under the chart
+    // column, so pressing Launch SPiER grew the document from 886px to 1536px and
+    // put the dock's top edge at 874px — in an 867px viewport. Nothing on screen
+    // changed. jsdom computes no layout, so this pins the PROPERTY that
+    // measurement found missing: inside the narrow-screen media query the dock is
+    // fixed, fills the viewport and sits above the sticky app bar. The rule is
+    // read out of the page's CSS by its selector so a later refactor that keeps
+    // the class but drops the media query fails here.
+    const { body } = await html('/chart/patient-011')
+    const media = body.indexOf('@media (max-width: 60rem)')
+    expect(media).toBeGreaterThan(-1)
+    const block = body.slice(media, body.indexOf('}\n  }', media))
+    const dock = block.slice(block.indexOf('.panel-dock {'))
+    expect(dock).toMatch(/position:\s*fixed/)
+    expect(dock).toMatch(/inset:\s*0;/)
+    expect(dock).toMatch(/height:\s*100dvh/)
+    expect(dock).not.toMatch(/position:\s*static/)
+    // Above the app bar (z-index 10), which is the only other stacked thing.
+    const z = /z-index:\s*(\d+)/.exec(dock)
+    expect(z && Number(z[1])).toBeGreaterThan(10)
+    // A takeover owes a way back, in words (Brad, 2026-09-21: "as long as it's
+    // clear how to navigate back to the patient chart"). It is the SAME button
+    // the desktop dock closes with, so one handler serves both renderings.
+    const dockStart = body.indexOf('<aside class="panel-dock')
+    const dockMarkup = body.slice(dockStart, body.indexOf('</aside>', dockStart))
+    expect(dockMarkup).toContain('id="close-panel"')
+    expect(dockMarkup).toContain('Back to chart')
+    expect(dockMarkup).toMatch(/aria-label="Close SPiER and return to the chart"/)
+    // And the launch card no longer promises a layout that is only true on a
+    // desktop: "beside the chart" was a lie on every phone.
+    expect(body).not.toContain('beside the chart')
+    expect(body).toContain('Opens in a panel on this chart')
+  })
+
   it('keeps the server’s own account of what was written — a readout, not a control', async () => {
     // Deliberately a second statement about the same event: the panel's
     // scorecard is SPiER reporting on itself, and one source cannot corroborate

@@ -485,31 +485,62 @@ const CHART_CSS = `
 
   .panel-dock[hidden] { display: none; }
 
+  /* The way back out of a full-screen panel. Desktop shows the glyph the dock
+     has always had; below 60rem the dock covers the whole chart, so the same
+     button reads "Back to chart" and sits where a phone puts its back control,
+     at the left of the bar. One button, two renderings, so the close handler
+     and the id it is bound to stay one thing. */
+  .panel-dock__back { display: none; }
+
   /*
-   * ── Below the dock's own width, the two columns stack ─────────────────────
+   * ── Below the dock's own width, the dock takes over the screen ────────────
    *
-   * ⚠️ **Without this the chart column is crushed rather than narrowed.** The
-   * layout is one flex row and the dock is flex: 0 0 auto at up to 700px, so on
-   * a 375px screen the dock kept its full width and .chart-main — which is
+   * ⚠️ **Without a rule here the chart column is crushed rather than narrowed.**
+   * The layout is one flex row and the dock is flex: 0 0 auto at up to 700px, so
+   * on a 375px screen the dock kept its full width and .chart-main — which is
    * flex: 1 1 auto with min-width: 0, and therefore shrinkable to nothing — was
    * left about 90px, wrapping its prose to one word per line. It looked like a
    * rendering bug and was simply the row doing what a row does.
    *
+   * ⚠️ **The first fix stacked the dock UNDER the chart, and that put the panel
+   * below the fold.** Measured on the deployed host at 375×812 (2026-09-21):
+   * pressing Launch SPiER grew the document from 886px to 1536px and the dock's
+   * top edge landed at 874px — seven pixels past the bottom of an 867px viewport.
+   * Nothing on screen changed. A clinician who presses the one button the page
+   * offers has to know to scroll down to find out that it worked, which is the
+   * front door's undiscoverable-entry-point defect (§6.3) one screen later.
+   *
+   * So below 60rem the dock is a full-screen takeover: fixed to the viewport,
+   * the whole of it, the way a phone EHR opens an activity (Brad, 2026-09-21:
+   * "a full screen take over, as long as it's clear how to navigate back to the
+   * patient chart"). The guest bar stays at the top of it and its close button
+   * becomes a labelled "Back to chart" at the left, which is the one thing a
+   * takeover owes. dvh rather than vh: on a phone vh is the largest viewport,
+   * and a takeover that tall hides its own bottom edge behind the browser's
+   * toolbar. Nothing here is in flow any more, so the wrap on .chart-layout is
+   * only a guard against the crushed-column case above.
+   *
    * 60rem is above the widest dock option (700px) plus a readable column, so the
-   * side-by-side layout only survives where both halves fit. Stacked, the dock
-   * stops being a viewport-tall sticky rail — there is no column beside it to
-   * stay level with — and becomes a tall panel in flow, with the chart above it.
+   * side-by-side layout only survives where both halves fit.
    */
   @media (max-width: 60rem) {
     .chart-layout { flex-wrap: wrap; }
 
     .panel-dock {
+      position: fixed;
+      inset: 0;
       width: 100%;
-      position: static;
-      height: 80vh;
-      border-left: 0;
-      border-top: 1px solid var(--line);
+      height: 100dvh;
+      /* Above the sticky app bar (10): the takeover is the thing the clinician
+         just asked for, and the bar has nothing on it they need while it is up. */
+      z-index: 20;
+      border: 0;
+      border-radius: 0;
     }
+
+    .panel-dock__close { order: -1; margin-left: 0; margin-right: var(--s2); }
+    .panel-dock__back { display: inline; }
+    .panel-dock__close-x { display: none; }
   }
 `
 
@@ -578,7 +609,7 @@ export function patientChartPage(
             back to this chart. ${esc(story)}
           </p>
           <p class="launch__meta">
-            Opens in a panel beside the chart over a SMART on FHIR launch: SPiER authorizes against
+            Opens in a panel on this chart over a SMART on FHIR launch: SPiER authorizes against
             this EHR, reads this chart, and writes to it.
           </p>
         </div>
@@ -669,7 +700,10 @@ export function patientChartPage(
       <div class="guest__bar">
         <span class="guest__title">SPiER</span>
         <span id="dock-context"></span>
-        <button type="button" id="close-panel" class="btn panel-dock__close" title="Close the panel">&times;</button>
+        <button type="button" id="close-panel" class="btn panel-dock__close" aria-label="Close SPiER and return to the chart">
+          <span class="panel-dock__back" aria-hidden="true">&larr; Back to chart</span>
+          <span class="panel-dock__close-x" aria-hidden="true">&times;</span>
+        </button>
       </div>
       <p class="panel-dock__empty panel-dock__error" id="dock-error" hidden></p>
       <iframe id="panel" title="SPiER Suicide-Safer Pathway" src="about:blank"></iframe>
