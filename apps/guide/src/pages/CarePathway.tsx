@@ -1,17 +1,25 @@
 /**
- * Care Pathway — the Suicide Safer Care protocol, rendered from the artifact.
+ * Care Pathway — what a suicide-safer care pathway does, and a way to try one.
  *
- * Phase 3 of docs/plans/suicide-safer-care-pathway.md. Two claims this page
- * makes, both of which are meant to be literally true rather than rhetorical:
+ * The explainer. Until 2026-09-20 this page rendered the whole published
+ * protocol — every step, gate, FHIRPath condition, canonical URL and note, in
+ * 2,445 words — under a simulator, and answered nowhere the question a reader
+ * deciding whether to adopt actually has: what does a good pathway DO? The
+ * adoption-guide UX audit (docs/plans/adoption-guide-ux-audit-2026-09-20.md
+ * §3, §4.2) split it. This page is the five things a pathway does, in prose a
+ * decision-maker can read, the C-SSRS simulator as the centrepiece, and the
+ * tier table it lights up. The full artifact — spine, gates, provenance, the
+ * JSON — is one link away at `/guide/pathway/protocol` (CarePathwayProtocol.tsx),
+ * which is also the ONE place in the guide that says "rendered from the
+ * published PlanDefinition" (audit §5 rule 5; it used to be said on three).
  *
- *  1. **Everything in the spine comes from the PlanDefinition.** Step titles,
- *     descriptions, stage codes, tier gates, FHIRPath conditions, documentation
- *     notes and the artifacts each step is realized by are all read out of
- *     `PlanDefinition-SPiERSuicideSaferCarePathway` by `@spier/core/lib/pathway`.
- *     The provenance strip at the bottom shows the same JSON the page drew
- *     itself from, so the claim is inspectable. The one exception is labelled:
- *     the "Pending clinical definition" strip is page copy, precisely because
- *     the artifact deliberately does not encode those three things.
+ * Two claims this page makes, both meant to be literally true:
+ *
+ *  1. **The tier table is the artifact's.** Rows, tiers, obligations and notes
+ *     are read out of `PlanDefinition-SPiERSuicideSaferCarePathway` by
+ *     `@spier/core/lib/pathway` and folded by `@spier/core/lib/pathwayMatrix`;
+ *     nothing about the branch is typed here. The protocol page shows the same
+ *     JSON the table drew itself from.
  *
  *  2. **The simulator runs the shipped mapper.** Toggling a C-SSRS answer
  *     builds a *native-shaped* QuestionnaireResponse — item nesting and every
@@ -23,19 +31,30 @@
  *     never produced, and a demo that hand-rolled its own ladder would be the
  *     same mistake with a bigger audience.
  *
- * ⚠️ The rendering itself is NOT here. Phase 4 put the same protocol in the
- * embedded SMART panel, and both surfaces draw it from
- * `components/PathwayView.tsx` — one spine, one set of tier columns, one
- * provenance block. What stays on this page is what makes it the *implementer's*
- * view: the lede, the simulator, and provenance in the closing position.
+ * ⚠️ The eight-stage list is deliberately NOT here. The audit's sketch had it;
+ * the page answers "what does a pathway do" in the protocol's own five steps,
+ * and the stage vocabulary is the catalogue's axis — explained once on
+ * `/guide/why-spier`, and worn by every step on the protocol page as a chip.
+ * A second vocabulary in 400 words is the kind of thing the audit removed.
+ *
+ * ⚠️ Copy rules this page is written against (audit §5): the reader is named
+ * in the first sentence; the task comes first and the one caveat after it,
+ * quieter; no script, gate, function, package or file name reaches the page —
+ * the simulator's lede used to name the mapper function. The test beside this
+ * file pins the word cap and the absence of "PlanDefinition" from the prose.
  *
  * ⚠️ A GUIDE SUB-PAGE. It renders inside AdoptionGuide's header, so it must not
  * render a page header of its own and must not pad its own root — `npm run
  * check:template` gates both, the header rule in the reverse direction (a page
- * outside its LENSES allowlist may not grow one). And it holds no patient data:
- * the simulator's input is synthetic
- * and the page imports mappers, never fixtures (`npm run check:guide-boundary`
- * walks these imports transitively).
+ * outside its LENSES allowlist may not grow one). The section is `wide` for
+ * the table's sake, so every run of prose caps itself at the reading measure
+ * (data/guideSections.ts says why that is the choice). And it holds no patient
+ * data: the simulator's input is synthetic and the page imports mappers, never
+ * fixtures (`npm run check:guide-boundary` walks these imports transitively).
+ *
+ * ⚠️ The two links below are route LITERALS, not `guideHref(...)`, so that
+ * `npm run check:surface-links` can read them; a computed target is the one
+ * form that gate cannot see.
  */
 import { useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
@@ -43,16 +62,12 @@ import { cssrsScreener } from '@spier/core/data/questionnaires'
 import { buildNativeQuestionnaireResponse } from '@spier/core/lib/nativeQuestionnaireResponse'
 import { mapCSSRSScreener } from '@spier/core/lib/observationMappers/cssrsScreener'
 import { tierCodeForLevel } from '@spier/core/lib/reassessment'
-import {
-  PathwayLoadError,
-  PathwayPending,
-  PathwayProvenance,
-  PathwaySpine,
-} from '@spier/app-shell/components/PathwayView'
+import { PathwayLoadError, PathwayTierTable } from '@spier/app-shell/components/PathwayView'
 import { usePathway } from '@spier/app-shell/hooks/usePathway'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { guideHref } from '../data/guideSections'
 import '@spier/app-shell/css/CarePathway.css'
+import { Button } from '@spier/ui/Button'
 import { Card } from '@spier/ui/Card'
 
 /* ─── The simulator's questions, derived from the Questionnaire ─── */
@@ -153,24 +168,57 @@ export function CarePathway() {
   return (
     <div className="care-pathway">
       <p className="care-pathway__lede">
-        One ordered course of suicide-safer care: screen, gate on the result, clarify the risk, then apply
-        the obligations that risk tier carries. Everything below the simulator is <strong>rendered from
-        the published PlanDefinition</strong> &mdash; the steps, their gates, the tier branch and every
-        note are read from the artifact rather than restated here. The instruments named are the
-        realization SPiER demonstrates end to end; the steps themselves are coded by what they accomplish,
-        so a site using different instruments satisfies the same protocol. For the instruments and
-        recorders themselves, see the <Link to={guideHref('tools')}>Tools</Link> catalog.
+        If you are deciding whether to adopt SPiER, this is the protocol it implements, in plain words,
+        with a way to try it. A suicide-safer care pathway does five things.
       </p>
+
+      {/* ── The five things, in the protocol's own order ──────────── */}
+      <section className="care-pathway__story" aria-label="What a suicide-safer care pathway does">
+        <p className="care-pathway__para">
+          <strong>Screen everyone.</strong> Every patient gets a screen that carries a suicidality item
+          &mdash; in primary care, usually the PHQ-9 as part of routine depression screening &mdash; so
+          that risk is found by design rather than by chance. Suicidal thoughts disclosed at any point in
+          care, or a clinician&rsquo;s own concern, enter the same pathway.
+        </p>
+        <p className="care-pathway__para">
+          <strong>Gate on a positive.</strong> A positive item is a gate, not a diagnosis. Item 9 of the
+          PHQ-9 scored 1 or more opens the next step, and a score of 0 closes it, unless clinical judgment
+          says otherwise. Nothing is written to the record on the strength of a screen alone.
+        </p>
+        <p className="care-pathway__para">
+          <strong>Clarify with a validated assessment.</strong> The positive screen is clarified with a
+          validated assessment. SPiER demonstrates the C-SSRS Screener with Triage Points, whose six
+          questions each map to a published risk level. If every answer is no, the patient does not enter
+          the pathway. Otherwise the assessment yields one of three tiers: low, moderate or high.
+        </p>
+        <p className="care-pathway__para">
+          <strong>Tier the response.</strong> The tier decides what the patient is owed. Crisis resources
+          are owed at every tier. From moderate upward, a collaborative safety plan is completed and
+          reviewed at each contact. At high risk the protocol adds a direct question at every contact, an
+          immediate safety evaluation with lethal-means counselling, and an outreach protocol for a missed
+          appointment. The table under the simulator is that matrix.
+        </p>
+        <p className="care-pathway__para">
+          <strong>Keep asking, and step down only by rule.</strong> Risk is reassessed on a cadence the
+          tier sets &mdash; more often when judgment says so &mdash; so a tier is a current fact rather
+          than a label. The source protocol steps a patient down only by rule: a sustained run of negative
+          reassessments, no destabilising event, and a psychiatric consultant&rsquo;s agreement. SPiER has
+          not yet published that rule; the protocol page says why.
+        </p>
+        <p className="care-pathway__para">
+          The instruments are the demonstration, not the requirement. Each step is defined by what it
+          accomplishes, so a site that screens with the ASQ or assesses with another validated tool
+          satisfies the same protocol. The instruments themselves are in <Link to="/guide/tools">Tools</Link>.
+        </p>
+      </section>
 
       {/* ── Simulator ─────────────────────────────────────────── */}
       <Card as="section" tone="brand" className="pathway-sim" aria-labelledby="pathway-sim-title">
         <h3 id="pathway-sim-title" className="pathway-sim__title">Try a C-SSRS result</h3>
         <p className="pathway-sim__lede">
-          Answer the C-SSRS Screener below and watch the branch light up. The answers are built into a
-          QuestionnaireResponse shaped the way SPiER&rsquo;s own form builds one &mdash; item nesting and the
-          SNOMED Yes/No codings read off the Questionnaire &mdash; and run through the same
-          <code> mapCSSRSScreener </code> the app runs on a real submission. Synthetic input only; no
-          patient data is involved.
+          Answer the screener as a patient might and watch the tier change. The answers run through the
+          same derivation the app applies to a real submission, so what lights up below is what the app
+          would do.
         </p>
 
         <ul className="pathway-sim__questions">
@@ -208,6 +256,10 @@ export function CarePathway() {
           <span className="pathway-sim__result-detail">{simulation.result.riskAlert.detail}</span>
         </div>
 
+        <p className="pathway-sim__note">
+          The answers exist only on this page. Nothing is recorded, and no patient is involved.
+        </p>
+
         <div className="pathway-sim__json">
           <FhirJsonViewer
             title="QuestionnaireResponse the simulator built (Capture)"
@@ -222,36 +274,29 @@ export function CarePathway() {
         </div>
       </Card>
 
-      {/* ── The spine ─────────────────────────────────────────── */}
-      <section className="pathway-spine-section" aria-labelledby="pathway-spine-title">
-        <h3 id="pathway-spine-title" className="pathway-section-title">The pathway</h3>
-        <PathwaySpine
-          model={model}
-          activeTierCode={simulation.tierCode}
-          exitNote={
-            simulation.tierCode === 'no-risk' ? (
-              <p className="pathway-branch__exit">
-                Every screener item is negative, so the simulated patient does not enter the pathway and none
-                of the tier obligations apply &mdash; the artifact states this on the assessment step above.
-              </p>
-            ) : null
-          }
-        />
+      {/* ── The tier table, lit by the simulator ──────────────── */}
+      <section aria-labelledby="pathway-tiers-title">
+        <h3 id="pathway-tiers-title" className="pathway-section-title">What each tier is owed</h3>
+        <PathwayTierTable tiers={model.tierBranch.tiers} activeTierCode={simulation.tierCode} framed />
+        {simulation.tierCode === 'no-risk' && (
+          <p className="pathway-branch__exit">
+            Every screener item is negative, so the simulated patient does not enter the pathway and none
+            of the tier obligations apply.
+          </p>
+        )}
       </section>
 
-      {/* ── Pending clinical definition (page copy, NOT the artifact) ── */}
-      <PathwayPending />
-
-      {/* ── Provenance ────────────────────────────────────────── */}
-      <PathwayProvenance model={model}>
-        <p className="pathway-provenance__lede">
-          This screen is a rendering of a published artifact, and here it is. The app bundles the compiled
-          IG at build time and carries it wherever it runs &mdash; including into an EHR as a SMART app,
-          where the same renderer draws the same protocol under{' '}
-          <em>Published Care Pathway</em>, with these facts leading rather than
-          closing.
+      {/* ── One link onward: the implementer's page ────────────── */}
+      <Card as="section" tone="muted" className="care-pathway__onward" aria-labelledby="pathway-onward-title">
+        <h3 id="pathway-onward-title" className="pathway-section-title">The published protocol</h3>
+        <p className="care-pathway__para">
+          Everything above is published as one machine-readable protocol: each step, gate and note as
+          written, what is deliberately left undefined, and the form a decision-support engine reads.
         </p>
-      </PathwayProvenance>
+        <Button to="/guide/pathway/protocol" variant="secondary" arrow>
+          Read the published protocol
+        </Button>
+      </Card>
     </div>
   )
 }

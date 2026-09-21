@@ -1,6 +1,29 @@
 # Adoption Guide — copy, layout and UX audit
 
-**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements) and PR 2 (§4.1 the Overview rewrite) applied; §3-§6 remain recommendations
+**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite) and PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings) applied; §4.3–§4.6 and the §5 gates remain recommendations
+
+**Status 2026-09-20 (PR 3):** the Care Pathway is split to §4.2.
+`/guide/pathway` is the explainer — a named reader, the five things a pathway
+does in five paragraphs, the C-SSRS simulator as the centrepiece, and the tier
+branch as ONE table, obligation × tier, lit by the simulator's result — 2,445
+rendered words down to 1,203, of which the page's own prose is about 460, the
+simulator's questions 180 and the artifact's table 580; 9.0 screens down to
+about 3.5. `/guide/pathway/protocol` is a new subsection (declared with its
+full sub-path, so both gates see it) holding the spine with the table in place,
+the pending-definition strip, the FHIRPath gates and canonical URLs in a
+closed, inspect-gated drawer, and provenance with the JSON; it is the one page
+that says "rendered from the published PlanDefinition" (§5 rule 5 — three pages
+said it). The table replaces the three columns on the clinician's
+`/patient/pathway` as well — Brad's call, 2026-09-20: one artifact, one
+rendering — and the drawer returns null there, so the panel now shows the
+protocol in words and not one FHIRPath expression. In the artifact, the three
+§1.3 `documentation.display` strings (and a fourth of the same class, the
+ICD-10 note's pointer at a repo doc) now state the clinical claim and nothing
+about this repo, and the three obligations every tier repeats carry identical
+documentation, which is what lets the table draw them as the diagram's spanning
+row — a core test pins that. Deliberately not done: the eight-stage strip §4.2
+sketched; the explainer stays in the protocol's own five steps, and the stage
+vocabulary stays Why SPiER's. PRs 4–6 remain.
 
 **Status 2026-09-20 (PR 2):** the Overview is rewritten to §4.1 — 1,716 words
 down to 252 above the closing step cards (346 with them), one call to action,
@@ -344,7 +367,7 @@ Each is one PR against `main`, none stacked.
 |---|---|---|---|
 | 1 | **Fix the broken class and gate it** (§1.1): primary tool button → try route, launch → outbound Demo EHR; shared views' "View in chart" and cross-links hidden or redirected under inspect; try-page eyebrow; guide walk in `check-surface-links.mjs`; dead redirects; dead `PatientBanner` branch. Plus the five copy defects in §1.2. | S–M | No. Mechanical, and every change is a defect today. |
 | 2 | **Overview rewrite** (§4.1). Applied — see the status note at the top. Larger than the S estimated here: the essays moved to a new guide section rather than being dropped, which added a route, a sidebar group and a pager step. | S | Answered: three doors replace the lens cards, and the essays move to `/guide/why-spier` under Reference. |
-| 3 | **Care Pathway split** (§4.2): explainer + `/guide/pathway/protocol` subsection; tier table; FSH documentation rewrite; code drawer for gates and URLs. | M | Yes: the tier table replaces the three columns on the clinical surface too, since `PathwayView.tsx` is shared. |
+| 3 | **Care Pathway split** (§4.2): explainer + `/guide/pathway/protocol` subsection; tier table; FSH documentation rewrite; code drawer for gates and URLs. Applied — see the status note at the top. | M | Answered: the tier table replaces the three columns on the clinical surface too (one artifact, one rendering), and the section stays `wide` with the explainer's prose capped at the reading measure rather than the width model changing. |
 | 4 | **Tools as pages** (§4.3): list + `/guide/tools/:slug` with the form inline; retire the accordion; fold the try route in. Touches `check:tool-view-routes` and `check:guide-boundary` expectations. | M–L | Yes: whether the tool page IS the try route or wraps it. |
 | 5 | **See it running** (§4.4): trim three pages, drawers for mechanism and caveat, CDS corrections. | S | No. |
 | 6 | **Sidebar labels + Reference group** (§4.6), and the two gates in §5. | S | Yes: the labels. |

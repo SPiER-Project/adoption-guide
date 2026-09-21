@@ -5,10 +5,15 @@
    `.app-shell__body` owns the page inset (see PageHeader.tsx and
    `npm run check:template`). Tokens only — no raw colors, sizes or shadows;
    `npm run lint:css` and `npm run check:tokens` gate both directions.
+
+   Three pages read this sheet: the guide's explainer (/guide/pathway), the
+   guide's protocol page (/guide/pathway/protocol) and the clinician's panel
+   view (/patient/pathway). One sheet because they draw one artifact through
+   one set of components (components/PathwayView.tsx).
    ============================================================ */
 
 /* `.care-pathway` sets no width.
-   This page renders inside the /guide layout, and `.implementation-guide`
+   The two guide pages render inside the /guide layout, and `.implementation-guide`
    already set one; a sub-page that restates its width is the same
    double-ownership that gave the guide its 24px indent. Seven sub-pages did
    it, at five different widths (820 / 900 / 960 / 1040 / 1200), so the
@@ -48,14 +53,43 @@
   line-height: var(--line-height-normal);
 }
 
-/* 591 characters, and at the page's full width that was 165 a line. The cap is
-   on the text run, never on `.care-pathway` — see `--measure-prose`. */
+/* ── The explainer's prose (/guide/pathway) ─────────────────────
+   The section is `wide` for the tier table's sake (data/guideSections.ts), so
+   every run of prose caps itself at the reading measure — the cap is on the
+   text run, never on `.care-pathway`. Three sizes and no others: the lede at
+   `lg`, the paragraphs at `md`, notes at `base` (`npm run check:prose`). */
 .care-pathway__lede {
   margin: 0;
   max-width: var(--measure-prose);
-  color: var(--text-muted);
+  color: var(--text-body);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-normal);
+}
+
+.care-pathway__story {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.care-pathway__para {
+  margin: 0;
+  max-width: var(--measure-prose);
+  color: var(--text-body);
   font-size: var(--font-size-md);
   line-height: var(--line-height-normal);
+}
+
+/* The one link onward to the protocol page: a title, a sentence, a button. */
+.care-pathway__onward .pathway-section-title {
+  margin: 0;
+}
+
+.care-pathway__onward {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
 }
 
 .pathway-section-title {
@@ -122,41 +156,6 @@
   margin-top: var(--space-1);
   color: var(--brand-terracotta-text);
   font-size: var(--font-size-2xs);
-}
-
-/* ── Gates: triggers and FHIRPath conditions ────────────────── */
-
-.pathway-gate {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-
-.pathway-gate__row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin: 0;
-}
-
-.pathway-gate__kind {
-  color: var(--text-faint);
-  font-size: var(--font-size-2xs);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-}
-
-.pathway-gate__expr {
-  overflow-x: auto;
-  padding: var(--space-2);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface-muted);
-  color: var(--text-body);
-  font-size: var(--font-size-2xs);
-  white-space: pre;
 }
 
 /* ── The spine ──────────────────────────────────────────────── */
@@ -274,85 +273,135 @@
   font-style: italic;
 }
 
-/* ── The tier branch: every tier visible at once ────────────── */
-
+/* ── The tier branch: one table, obligation × tier ───────────────
+   Drawn by `DataTable`, which owns the cell padding, the header type and the
+   dividers, and scrolls the table inside its own box when it is wider than the
+   page. What this sheet adds is LAYOUT on the table (a minimum width, so four
+   columns never crush below a readable measure) and the two things the table
+   is about: which tier a column is, and which column the simulator lit. */
 .pathway-step--branch {
   border-left-color: var(--brand-primary);
 }
 
-.pathway-branch__scroll {
-  overflow-x: auto;
-  margin-top: var(--space-4);
-  padding-bottom: var(--space-2);
-}
-
 .pathway-branch {
-  display: grid;
-  grid-auto-columns: minmax(17rem, 1fr);
-  grid-auto-flow: column;
-  gap: var(--space-4);
-  align-items: start;
-  min-width: min-content;
+  margin-top: var(--space-4);
 }
 
-.pathway-tier {
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-4);
-  border: 1px solid var(--border-default);
-  border-top: 4px solid var(--border-strong);
-  border-radius: var(--radius-2xl);
-  background-color: var(--surface-card);
-  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+/* Four columns at a floor of ~11rem each. Below that the notes in a cell wrap
+   to one word a line; above it the table takes the page width it is given. */
+.pathway-matrix {
+  min-width: 44rem;
 }
 
-.pathway-tier--low { border-top-color: var(--risk-low); }
-.pathway-tier--moderate { border-top-color: var(--risk-moderate); }
-.pathway-tier--high { border-top-color: var(--risk-high); }
-
-.pathway-tier--dimmed {
-  opacity: 0.55;
+.pathway-matrix__corner {
+  width: 30%;
 }
 
-.pathway-tier--active {
-  opacity: 1;
-  box-shadow: var(--shadow-md);
+.pathway-matrix__tier {
+  position: relative;
 }
 
-.pathway-tier--active.pathway-tier--low { background-color: var(--risk-low-soft-bg); }
-.pathway-tier--active.pathway-tier--moderate { background-color: var(--risk-moderate-soft-bg); }
-.pathway-tier--active.pathway-tier--high { background-color: var(--risk-high-soft-bg); }
-
-.pathway-tier__head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  align-items: baseline;
-  justify-content: space-between;
+/* The tier's colour, as a dot beside its name — the one place the risk colours
+   appear on the table, so the column reads as "low / moderate / high" at a
+   glance without colouring the text below contrast. */
+.pathway-matrix__swatch {
+  display: inline-block;
+  width: var(--space-3);
+  height: var(--space-3);
+  margin-right: var(--space-2);
+  border-radius: var(--radius-pill);
+  background-color: var(--border-strong);
+  vertical-align: middle;
 }
 
-.pathway-tier__title {
-  margin: 0;
-  color: var(--text-strong);
-  font-size: var(--font-size-md);
-  font-weight: 700;
-}
+.pathway-matrix__tier--low .pathway-matrix__swatch { background-color: var(--risk-low); }
+.pathway-matrix__tier--moderate .pathway-matrix__swatch { background-color: var(--risk-moderate); }
+.pathway-matrix__tier--high .pathway-matrix__swatch { background-color: var(--risk-high); }
 
-.pathway-tier__flag {
-  padding: var(--space-1) var(--space-2);
+.pathway-matrix__flag {
+  display: block;
+  width: fit-content;
+  margin-top: var(--space-1);
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
   background-color: var(--brand-primary);
   color: var(--text-on-brand);
   font-size: var(--font-size-2xs);
   font-weight: 600;
+  letter-spacing: normal;
   text-transform: uppercase;
 }
 
-.pathway-tier__desc {
-  margin: var(--space-2) 0 0;
+/* A row header is the obligation itself — title, sentence, chip, realization —
+   set the way `.pathway-obligation` sets them, minus that class's box. */
+.pathway-matrix__obligation {
+  font-weight: 400;
+}
+
+.pathway-matrix__cell {
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+/* The gate row's sentence, and a cell's notes, are bounded by the column, so
+   neither carries the reading measure. */
+.pathway-matrix__desc {
+  margin: 0;
   color: var(--text-muted);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
+}
+
+.pathway-matrix__cell--owed .pathway-notes {
+  margin-top: var(--space-2);
+}
+
+.pathway-matrix__mark {
+  display: inline-block;
+  padding: var(--space-0-5) var(--space-2);
+  border: 1px solid var(--accent-success-light);
+  border-radius: var(--radius-pill);
+  background-color: var(--accent-success-bg);
+  color: var(--accent-success-text);
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.pathway-matrix__cell--none {
+  color: var(--text-faint);
+  text-align: center;
+}
+
+/* Visually hidden, still in the accessibility tree: a dash is not a sentence,
+   and a screen reader should hear what the empty cell means. */
+.pathway-matrix__hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- not spacing: part of the visually-hidden recipe (1px box, clipped), where -1px keeps the clipped box off the layout */
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The simulator's result: the column it produced at full strength on the brand
+   tint, the others faded. A spanning cell that covers the lit tier is lit — the
+   obligation applies — and a dash in the lit column stays legible, because
+   "not owed at this tier" is part of the answer. */
+.pathway-matrix__cell--dimmed {
+  opacity: 0.5;
+}
+
+.pathway-matrix__cell--active {
+  background-color: var(--tint-peach-soft);
+}
+
+.pathway-matrix__cell--active.pathway-matrix__cell--none {
+  opacity: 1;
 }
 
 .pathway-branch__exit {
@@ -463,11 +512,110 @@
   font-size: var(--font-size-xs);
 }
 
+/* The one caveat on the simulator, after the result and quieter than it. */
+.pathway-sim__note {
+  margin: var(--space-3) 0 0;
+  max-width: var(--measure-prose);
+  color: var(--text-faint);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
 .pathway-sim__json {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   margin-top: var(--space-4);
+}
+
+/* ── The code drawer: gates and references, as written ─────────
+   A closed <details> inside a muted Card (components/PathwayCodeDrawer.tsx).
+   The Card owns the box; this owns the disclosure's own parts. */
+.pathway-code__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  cursor: pointer;
+}
+
+.pathway-code__label {
+  color: var(--text-strong);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.pathway-code__hint {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.pathway-code__lede {
+  margin: var(--space-3) 0 0;
+  max-width: var(--measure-prose);
+  color: var(--text-muted);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+.pathway-code__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 0;
+}
+
+.pathway-code__step {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: baseline;
+  color: var(--text-strong);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.pathway-code__id {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-2xs);
+  font-weight: 400;
+}
+
+.pathway-code__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+
+.pathway-code__fact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pathway-code__kind {
+  color: var(--text-faint);
+  font-size: var(--font-size-2xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+/* Wraps rather than scrolls: a FHIRPath expression is one long line, and on a
+   phone a scrolling <pre> inside a scrolling page is two things to drag. */
+.pathway-code__expr {
+  margin: 0;
+  overflow-wrap: anywhere;
+  padding: var(--space-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-muted);
+  color: var(--text-body);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-2xs);
+  white-space: pre-wrap;
 }
 
 /* ── Pending clinical definition ────────────────────────────── */
@@ -552,9 +700,9 @@
 }
 
 /* ── Provenance, leading ────────────────────────────────────────
-   The embedded panel's variant. On the guide page these facts close the page
-   and answer "where did this come from"; inside a host chart they ARE the
-   demonstration — the app carried a published artifact into someone else's
+   The embedded panel's variant. On the guide's protocol page these facts close
+   the page and answer "where did this come from"; inside a host chart they ARE
+   the demonstration — the app carried a published artifact into someone else's
    system — so the strip opens the page and the canonical URL is the headline
    rather than one cell of a definition list. Same facts, same JSON, different
    weight; see components/PathwayView.tsx. */
@@ -574,31 +722,15 @@
   line-height: var(--line-height-normal);
 }
 
-/* ── Load failure ───────────────────────────────────────────── */
-
-/* The explanation under the heading is prose and ran to 145 characters a line.
-   Only the `<p>`: `.pathway-load-error__detail` below is the raw canonical and
-   the command to run, a code run with its own `overflow-x`, and wrapping that
-   to a reading measure would be wrong. */
-
-@media (max-width: 767px) {
-  .pathway-branch {
-    grid-auto-columns: minmax(15rem, 1fr);
-  }
-}
-
 /* ── Panel chrome ───────────────────────────────────────────────
    The embedded SMART activity is ~470px wide (panel plan §9.1), and the card
    padding that reads as generous across a lens reads as lost real estate there.
    Scoped to `.panel-shell` rather than to a width, because the constraint is
    the chrome the host gave us and not the viewport — the same reasoning
-   PageHeader.css's panel variant is built on. */
+   PageHeader.css's panel variant is built on. The tier table needs nothing
+   here: `DataTable` scrolls it inside its own box at any width. */
 .panel-shell .pathway-step,
 .panel-shell .pathway-provenance,
 .panel-shell .pathway-pending {
   padding: var(--space-4);
-}
-
-.panel-shell .pathway-tier {
-  padding: var(--space-3);
 }

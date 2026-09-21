@@ -328,17 +328,22 @@ function parseAction(raw: RawAction, path: string): PathwayAction {
   }
 }
 
-/** Every action in the tree, depth-first, parents before children. */
-function flatten(actions: PathwayAction[], out: PathwayAction[] = []): PathwayAction[] {
+/**
+ * Every action in the tree, depth-first, parents before children.
+ *
+ * Exported because two views walk the tree the same way — the branch finder
+ * below and the guide's code drawer — and `npm run check:dupes` fails a copy.
+ */
+export function flattenActions(actions: PathwayAction[], out: PathwayAction[] = []): PathwayAction[] {
   for (const action of actions) {
     out.push(action)
-    flatten(action.children, out)
+    flattenActions(action.children, out)
   }
   return out
 }
 
 function findTierBranch(steps: PathwayAction[]): { group: PathwayAction; tiers: PathwayAction[] } {
-  const candidates = flatten(steps).filter(a => a.children.some(c => c.tier))
+  const candidates = flattenActions(steps).filter(a => a.children.some(c => c.tier))
   if (candidates.length === 0) {
     return bail(
       'no tier branch found — no action has tier-coded children. The branch is the point of this ' +

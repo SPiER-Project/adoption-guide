@@ -54,6 +54,7 @@ import { FhircastListener } from '@spier/app-shell/components/FhircastListener'
 const Overview = lazy(() => import('./pages/Overview').then(m => ({ default: m.Overview })))
 const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide })))
 const CarePathway = lazy(() => import('./pages/CarePathway').then(m => ({ default: m.CarePathway })))
+const CarePathwayProtocol = lazy(() => import('./pages/CarePathwayProtocol').then(m => ({ default: m.CarePathwayProtocol })))
 const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney })))
 const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
 const CdsServiceGuide = lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide })))
@@ -119,6 +120,15 @@ function AppRoutes() {
                 deep links (/guide/pathway#stage-…) are forwarded by CarePathway
                 itself — see the note there. */}
             <Route path="pathway" element={<CarePathway />} />
+            {/* The published protocol is a SUBSECTION of Care Pathway since
+                2026-09-20: /guide/pathway explains what a pathway does and lets
+                a reader try one, and this is the same artifact rendered in full
+                for the implementer — spine, gates, provenance, JSON. Reached by
+                one link from the explainer, not a sidebar row.
+                ⚠️ Declared in guideSections.ts `subsections` as well, with the
+                FULL sub-path; that is what makes it CHECKED — check:guide-boundary
+                derives the guide's page set from that file. */}
+            <Route path="pathway/protocol" element={<CarePathwayProtocol />} />
             {/* ⚠️ Declared in this exact `<Route path="x" element={<Comp />}>`
                 form on purpose: check-guide-boundary.mjs reads the route table to
                 find each section's component, and a different shape would make it

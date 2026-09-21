@@ -42,9 +42,14 @@ subsection rules below.
 reachable but should not be a sidebar row or a pager step is declared as a
 **`subsections` entry** on its owning section, whose `path` is the FULL
 sub-path (`tools/readiness`, never `readiness`) because both gates build
-`/guide/${path}`. Adoption Readiness is the one that exists: it renders one row
-per catalogued instrument entirely from the catalog, so it is a view of Tools
-rather than a peer of it.
+`/guide/${path}`. Two exist. Adoption Readiness renders one row per catalogued
+instrument entirely from the catalog, so it is a view of Tools rather than a
+peer of it; The published protocol (`pathway/protocol`, 2026-09-20) is the
+Care Pathway's artifact rendered in full — spine, gates, provenance, JSON — for
+the implementer, while `/guide/pathway` itself explains what a pathway does and
+lets a reader try one (adoption-guide UX audit §4.2). A subsection gets the
+drill-in header from `resolveGuidePath`, which checks subsections BEFORE
+sections because both prefix-match.
 
 ## The guide explains and hosts; the mock EHR holds and launches (2026-09-09)
 
@@ -119,8 +124,10 @@ call sites that would otherwise leave an empty wrapper behind check it too:
 `CarePlanDisplay`'s JSON toggle and download. An empty wrapper is its own
 defect — a disclosure that opens onto nothing reads worse than no disclosure.
 `ToolDetail` is deliberately not on that list; [`tool-views.md`](tool-views.md)
-§3 says why it is safe where it renders and nowhere else. The five files that
-check for themselves are `FhirJsonViewer`, `CodeDrawer` and the three above —
+§3 says why it is safe where it renders and nowhere else. The six files that
+check for themselves are `FhirJsonViewer`, `CodeDrawer`, the three above and
+`PathwayCodeDrawer` (the pathway's FHIRPath gates and canonical URLs, which
+used to print inline on the clinician's panel — 2026-09-20) —
 `grep -rl useInspect apps packages` is the list.
 
 ⚠️ **A FOURTH axis, not chrome mode, build surface or data source.** A

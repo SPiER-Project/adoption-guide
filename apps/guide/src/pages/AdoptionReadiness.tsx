@@ -358,8 +358,8 @@ export function AdoptionReadiness() {
             context across the 8-stage Suicide Safer Care pathway.
           </li>
           <li>
-            <Link to="/guide/pathway">Care Pathway</Link> — the clinical protocol itself,
-            rendered from the published PlanDefinition.
+            <Link to="/guide/pathway">Care Pathway</Link> — what a suicide-safer care pathway
+            does, tier by tier, with a simulator to try it.
           </li>
           <li>
             <Link to="/guide/adoption-rubric">EHR Adoption Rubric</Link> — score your own
