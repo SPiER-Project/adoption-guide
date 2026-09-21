@@ -3,6 +3,7 @@ import { LOINC_SYSTEM, type GeneratedCarePlan } from '@spier/core/lib/carePlanMa
 import { Notice } from '@spier/ui/Notice'
 import { Pill } from '@spier/ui/Pill'
 import { useInspect } from '../context/InspectContext'
+import { usePatient } from '../context/PatientContext'
 import { todayLocalIso } from '../lib/dates'
 
 /**
@@ -16,6 +17,16 @@ import { todayLocalIso } from '../lib/dates'
  * behind it, and "Download CarePlan JSON" beside a safety plan is the clearest
  * tell that this is a demo.
  *
+ * ⚠️ **The "Demo Only" line was false under a live launch**, and had been since
+ * the writeback ladder landed (clinical-app audit §4.6, item 3). It read
+ * "Nothing about this patient has been sent anywhere or saved to any server" —
+ * asserted unconditionally, on a screen reached by submitting a form whose
+ * CarePlan `addCarePlan` had just written to the connected EHR. A demo caveat
+ * that is wrong in the one setting a site is evaluating is worse than no
+ * caveat, so the claim is now made per session, and it is a claim about where
+ * a completed plan GOES rather than about whether this particular write
+ * landed — which is the data source's to report, not this component's.
+ *
  * ⚠️ This component was NOT on the list in
  * `docs/plans/production-clinical-surface.md` — it renders its own `<pre>`
  * rather than going through `FhirJsonViewer`, so the plan's inventory (built
@@ -25,6 +36,7 @@ import { todayLocalIso } from '../lib/dates'
  */
 export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
   const inspect = useInspect()
+  const { isSmartSession } = usePatient()
   const [showJson, setShowJson] = useState(false)
 
   // Derive filename from the resource id (e.g. "cams-stabilization-careplan-1234" → "cams-stabilization-careplan")
@@ -47,18 +59,34 @@ export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
         <Pill tone="warning">Generated</Pill>
       </div>
 
-      <Notice tone="warning">
-        <strong>Demo Only</strong> — This safety plan was built in your browser for demonstration
-        purposes. Nothing about this patient has been sent anywhere or saved to any server; it
-        stays on this device until you close the demo.
-      </Notice>
+      {isSmartSession ? (
+        <Notice tone="info">
+          <strong>This is a live record</strong> — a safety plan completed here is written to the
+          connected EHR rather than kept in this browser. Review it with the patient before it is
+          relied on.
+        </Notice>
+      ) : (
+        <Notice tone="warning">
+          <strong>Demo only</strong> — this safety plan was built in your browser for demonstration
+          purposes. Nothing about this patient has been sent anywhere; it stays on this device
+          until you close the demo.
+        </Notice>
+      )}
 
       <div className="careplan-steps">
         {carePlan.activities.map((activity, idx) => (
           <div key={idx} className="careplan-step">
             <p className="careplan-step-title">
               {activity.stepTitle}
-              {activity.sectionCode && (
+              {/* ⚠️ The fourth implementer-facing thing in this component, found
+                  while fixing the third: the section's concept id, rendered
+                  beside a safety-plan step as "LOINC: 96782-8". `check:jargon`
+                  cannot see it — the code is a runtime value, and the literal
+                  beside it is a bare system name with no digits — so it
+                  survived §1.9's sweep. It joins the other three behind
+                  `useInspect()` rather than being deleted, because in the
+                  guide it is exactly what a reader came for. */}
+              {inspect && activity.sectionCode && (
                 <span className="careplan-step-code">
                   {activity.sectionCode.system === LOINC_SYSTEM ? 'LOINC' : 'SPiER'}: {activity.sectionCode.code}
                 </span>

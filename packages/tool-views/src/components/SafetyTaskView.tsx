@@ -15,6 +15,7 @@ import {
 } from '@spier/core/lib/riskEpisode'
 import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { todayLocalIso, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -46,7 +47,7 @@ export function SafetyTaskView() {
   const [owner, setOwner] = useState('')
   const [triggers, setTriggers] = useState<string[]>([])
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const isEscalation = taskType === 'escalation'
 
@@ -72,20 +73,19 @@ export function SafetyTaskView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(
-      buildSafetyTask({
-        id: `task-${makeId()}`,
-        patientId: activePatientId,
-        episodeId: openEpisode?.id,
-        taskType,
-        dueDate: dueDate ? `${dueDate}T23:59:59Z` : undefined,
-        owner: owner.trim() || undefined,
-        escalationTriggers: isEscalation ? triggers : [],
-        note: note.trim() || undefined,
-        authoredOn: new Date().toISOString(),
-      }),
-    )
-    setNotice(`${displayFor(SAFETY_TASK_TYPES, taskType)} recorded.`)
+    const task = buildSafetyTask({
+      id: `task-${makeId()}`,
+      patientId: activePatientId,
+      episodeId: openEpisode?.id,
+      taskType,
+      dueDate: dueDate ? `${dueDate}T23:59:59Z` : undefined,
+      owner: owner.trim() || undefined,
+      escalationTriggers: isEscalation ? triggers : [],
+      note: note.trim() || undefined,
+      authoredOn: new Date().toISOString(),
+    })
+    addArtifact(task)
+    report(`${displayFor(SAFETY_TASK_TYPES, taskType)} recorded.`, task)
     setNote('')
     setTriggers([])
   }
@@ -112,6 +112,7 @@ export function SafetyTaskView() {
       draft={draft}
       draftTitle="Live FHIR Task"
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {episodeTasks.length > 0 && (

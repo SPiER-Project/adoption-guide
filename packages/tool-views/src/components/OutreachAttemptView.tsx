@@ -16,6 +16,7 @@ import {
 } from '@spier/core/lib/followUp'
 import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { nowLocalIso, toIsoOrNow } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -55,7 +56,7 @@ export function OutreachAttemptView() {
   )
   const [safetyConcern, setSafetyConcern] = useState(false)
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const sentIso = useMemo(() => {
     return toIsoOrNow(sent)
@@ -78,19 +79,18 @@ export function OutreachAttemptView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(
-      buildOutreachAttempt({
-        id: `outreach-${makeId()}`,
-        patientId: activePatientId,
-        sent: sentIso,
-        channel,
-        outcome,
-        prompt,
-        safetyConcern,
-        note: note.trim() || undefined,
-      }),
-    )
-    setNotice('Outreach attempt recorded.')
+    const attempt = buildOutreachAttempt({
+      id: `outreach-${makeId()}`,
+      patientId: activePatientId,
+      sent: sentIso,
+      channel,
+      outcome,
+      prompt,
+      safetyConcern,
+      note: note.trim() || undefined,
+    })
+    addArtifact(attempt)
+    report('Outreach attempt recorded.', attempt)
     setNote('')
     setSafetyConcern(false)
   }
@@ -118,6 +118,7 @@ export function OutreachAttemptView() {
       draft={draft}
       draftTitle="Live FHIR Communication (outreach attempt)"
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {attempts.length > 0 && (

@@ -10,6 +10,7 @@ import {
 } from '@spier/core/lib/followUp'
 import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -52,7 +53,7 @@ export function CaringContactView() {
   const [message, setMessage] = useState(DEFAULT_MESSAGE)
   const [optOut, setOptOut] = useState(false)
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const sentIso = useMemo(() => {
     return toIsoOrNow(sent)
@@ -77,11 +78,13 @@ export function CaringContactView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(buildCaringContact({ id: `caring-contact-${makeId()}`, ...params }))
-    setNotice(
+    const contact = buildCaringContact({ id: `caring-contact-${makeId()}`, ...params })
+    addArtifact(contact)
+    report(
       optOut
         ? 'Caring contact recorded, and the patient is now opted out of the series.'
         : 'Caring contact recorded.',
+      contact,
     )
     setNote('')
   }
@@ -108,6 +111,7 @@ export function CaringContactView() {
       draft={draft}
       draftTitle="Live FHIR Communication (caring contact)"
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {contacts.length > 0 && (

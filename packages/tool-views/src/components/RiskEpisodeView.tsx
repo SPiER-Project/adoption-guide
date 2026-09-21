@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
-import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { makeId } from '@spier/core/lib/id'
 import {
   buildEpisode,
@@ -17,6 +15,7 @@ import {
 } from '@spier/core/lib/riskEpisode'
 import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { todayLocalIso } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -38,9 +37,11 @@ import { Button } from '@spier/ui/Button'
 
 export function RiskEpisodeView() {
   const { addArtifact, activePatientId, episodes, flags, observations, responses } = usePatient()
-  // The registry is a page of the clinical app; the guide has none, so the
-  // notice's second link is absent there rather than dead (SurfaceLinksContext).
-  const { registryHref } = useSurfaceLinks()
+  // ⚠️ **The success notice's "Open the risk registry" link is gone (2026-09-21).**
+  // Opening an episode left a clinician with three places to go — the registry,
+  // the chart, and whatever the pathway owed next — which is clinical-app audit
+  // §1.5 inside one notice. The beat now offers ONE next action and one way
+  // back (`NextStep`), and the caseload is reached from the chrome.
 
   const openEpisode = useMemo(() => findOpenEpisode(episodes), [episodes])
   const activeFlag = useMemo(
@@ -73,7 +74,7 @@ export function RiskEpisodeView() {
   const [startDate, setStartDate] = useState(todayLocalIso())
   const [closureReason, setClosureReason] = useState(CLOSURE_REASONS[0].code)
   const [endDate, setEndDate] = useState(todayLocalIso())
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
   // Default to whatever the concept layer would pick, so the common case is
   // one click rather than a required decision.
   const [triggerRef, setTriggerRef] = useState<string>(
@@ -107,28 +108,30 @@ export function RiskEpisodeView() {
     e.preventDefault()
     if (triggerMissing) return
     const id = `episode-${makeId()}`
-    addArtifact(
-      buildEpisode({
-        id,
-        patientId: activePatientId,
-        entryReason,
-        currentTier,
-        startDate,
-        triggerRef: requiresTrigger ? triggerRef : undefined,
-      }),
-    )
-    addArtifact(buildFlag({ id: `flag-${id}`, patientId: activePatientId, startDate }))
-    setNotice('Episode opened and chart banner raised.')
+    const episode = buildEpisode({
+      id,
+      patientId: activePatientId,
+      entryReason,
+      currentTier,
+      startDate,
+      triggerRef: requiresTrigger ? triggerRef : undefined,
+    })
+    const flag = buildFlag({ id: `flag-${id}`, patientId: activePatientId, startDate })
+    addArtifact(episode)
+    addArtifact(flag)
+    report('Episode opened and chart banner raised.', episode, flag)
   }
 
   function handleClose(e: React.FormEvent) {
     e.preventDefault()
     if (!openEpisode) return
-    addArtifact(closeEpisode(openEpisode, { closureReason, endDate }))
+    const closed = closeEpisode(openEpisode, { closureReason, endDate })
+    addArtifact(closed)
     // Clear the banner in the same action — a flag outliving its episode is
     // the failure mode this recorder exists to prevent.
-    if (activeFlag) addArtifact(clearFlag(activeFlag, endDate))
-    setNotice('Episode closed and chart banner cleared.')
+    const cleared = activeFlag ? clearFlag(activeFlag, endDate) : null
+    if (cleared) addArtifact(cleared)
+    report('Episode closed and chart banner cleared.', ...[closed, cleared].filter(r => r !== null))
   }
 
   const tier = episodeCurrentTier(openEpisode)
@@ -156,7 +159,7 @@ export function RiskEpisodeView() {
       draft={draft}
       draftTitle={openEpisode ? 'Live FHIR (close episode)' : 'Live FHIR (open episode + flag)'}
       notice={notice}
-      noticeExtra={registryHref && <Link to={registryHref}>Open the risk registry</Link>}
+      justRecorded={written}
     >
       {openEpisode ? (
         <>

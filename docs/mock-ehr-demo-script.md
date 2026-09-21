@@ -72,18 +72,22 @@ it still does not prove.
    The pathway names the PHQ-9 as the screen it demonstrates, so it leads.*
 4. Press **Launch PHQ-9**. Answer the questions; on item 9 pick anything above
    **Not at all**. **Submit.**
-5. The result shows *PHQ-9 Item 9 positive* and one button: **Start C-SSRS
+5. The result shows *PHQ-9 Item 9 positive* and, under it, one next action:
+   **Next — Assess suicide risk after a positive screen**, with **Launch C-SSRS
    Screener →**. Say: *that is the pathway's gate — a positive item 9 leads to
-   the assessment, not to another screen.* Press it.
+   the assessment, not to another screen, and it is the same sentence his chart
+   will show when we go back to it.* Press it.
 6. Answer the six C-SSRS questions (answer **Yes** to Q2 or Q3 for a moderate
    tier, Q4 or Q5 for high) and **Submit**. The result names the derived tier
-   and offers **Start Safety Plan** at moderate and high — the obligation that
+   and, again, one next action — the safety plan, which is the obligation that
    tier carries.
-7. Press **View in chart**. Two things to point at: the rail has moved to
-   **Define the Risk Picture** with steps 1 and 2 complete, and the top of the
-   chart shows **Saved to the EHR** — which of the things SPiER tried to save
-   actually landed (each completed form, its scores and risk level, a readable
-   copy, and the opt-in problem-list proposal, which is off by design).
+7. Press **Back to chart**. Two things to point at: the landing card now names
+   that same act and **Where this patient is** has moved on a step, and the top
+   of the chart shows **Saved to the EHR** — which of the things SPiER tried to
+   save actually landed (each completed form, its scores and risk level, a
+   readable copy, and the opt-in problem-list proposal, which is off by design).
+   Say: *the form and the chart have not agreed by accident — they are reading
+   the same published pathway against the same record.*
 8. Back on the host page, open **Under the hood → Written to this chart**. It
    lists what landed by type — two QuestionnaireResponses, their Observations
    and the DocumentReference copies — within a few seconds of the submit. Say:

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import Renderer from '@formbox/renderer'
 import { theme } from '@formbox/hs-theme'
 import type { RendererProperties } from '@formbox/renderer'
@@ -18,12 +18,12 @@ type RendererQuestionnaire = RendererProperties<'r4'>['questionnaire']
 import { usePatient } from '../context/PatientContext'
 import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { usePageHeaderOwner } from '../context/PageHeaderOwnerContext'
-import { launchSlug } from '../lib/launchSlug'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from '@spier/ui/PageHeader'
 import { InstrumentHeader } from './InstrumentHeader'
 import { CarePlanDisplay } from './CarePlanDisplay'
+import { NextStep } from './NextStep'
 import { RiskPill } from './RiskPill'
 import { mapResponseToObservations } from '@spier/core/lib/observationMappers'
 import { QUESTIONNAIRE_BY_URL } from '@spier/core/data/questionnaires'
@@ -31,10 +31,10 @@ import { stripCanonicalVersion } from '@spier/core/data/catalog'
 import { stampLaunchStage } from '../lib/launchStage'
 import type { GeneratedCarePlan } from '@spier/core/lib/carePlanMappers'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
+import type { PathwayRecord } from '@spier/core/lib/pathwayEvaluation'
 import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Notice } from '@spier/ui/Notice'
-import { Button } from '@spier/ui/Button'
 
 const LEVEL_CONFIG: Record<string, { className: string; label: string }> = {
   acute:    { className: 'alert--acute',    label: 'ACUTE' },
@@ -81,6 +81,14 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
   const [submitted, setSubmitted] = useState(false)
   const [carePlan, setCarePlan] = useState<GeneratedCarePlan | null>(null)
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
+  /**
+   * What this submit wrote, folded into the record the confirmation beat
+   * evaluates. The save is asynchronous — a round trip under SMART — and the
+   * beat renders the instant the submit lands, so without this the next action
+   * would be answered from the chart as it stood BEFORE the response that was
+   * just filled in (see `NextStep`).
+   */
+  const [pending, setPending] = useState<PathwayRecord | undefined>(undefined)
   const [searchParams] = useSearchParams()
   const { addResponse, addCarePlan, writebackReport } = usePatient()
   // Where this surface's chart and other tool views live — the clinician's
@@ -126,18 +134,34 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
         setSubmitResult(mapperResult)
       }
 
+      const justWritten: PathwayRecord = {
+        responses: [
+          {
+            id: String(responseToUse.id ?? ''),
+            questionnaireName: persistName,
+            completedAt: new Date().toISOString(),
+            resource: responseToUse,
+          },
+        ],
+        observations: mapperResult?.observations ?? [],
+        riskAlerts: mapperResult ? [mapperResult.riskAlert] : [],
+      }
+
       // Generate CarePlan if mapper provided
       if (carePlanMapper) {
         const plan = carePlanMapper(responseToUse)
         if (!plan.isEmpty) {
           setCarePlan(plan)
           addCarePlan(plan.resource)
+          setPending({ ...justWritten, carePlans: [plan.resource] })
           setTimeout(() => {
             document.querySelector('.careplan-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           }, 100)
           return
         }
       }
+
+      setPending(justWritten)
 
       // Scroll to result summary if no care plan
       setTimeout(() => {
@@ -146,14 +170,13 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
     }
   }
 
-  // The mapper names the next tool by its clinician launch path — core knows
-  // no other route. The surface resolves the slug: the same path on the
-  // clinical surface, the try route on the guide, and no button at all where
-  // the surface renders nothing for it.
-  const suggested = submitResult?.riskAlert.suggestedAction
-  const suggestedSlug = suggested ? launchSlug(suggested.path) : undefined
-  const suggestedHref = suggestedSlug ? links.launchHref(suggestedSlug) : null
-  const suggestedNext = suggested && suggestedHref ? { href: suggestedHref, label: suggested.label } : null
+  // ⚠️ **The mapper's `suggestedAction` is deliberately not rendered here any
+  // more.** Until 2026-09-21 this view resolved it to a button and stood it
+  // beside "View in chart", so a filler's per-instrument hint — which knows one
+  // response and nothing else about the chart — competed with the chart's own
+  // answer (clinical-app audit §4.6, §1.5). It is not deleted: it rides on the
+  // `RiskAlert`, which is part of the record `NextStep` evaluates, so it still
+  // informs the one action instead of being a second one.
 
   if (!questionnaire) {
     // Unreachable through the catalog: `questionnaireUrl` is typed as a
@@ -229,27 +252,18 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
                   ))}
                 </div>
               )}
-              <div className="submit-result-actions">
-                {links.chartHref && (
-                  <Button to={links.chartHref} variant="link" size="sm">View in chart</Button>
-                )}
-                {suggestedNext && (
-                  <Button to={suggestedNext.href} size="sm" arrow>
-                    {suggestedNext.label}
-                  </Button>
-                )}
-              </div>
+              <NextStep pending={pending} />
             </div>
           )}
+          {/* ⚠️ The care-plan branch had NO confirmation beat at all before
+              2026-09-21 — a Stanley-Brown submit rendered the plan and stopped,
+              so the one instrument that most obviously leads somewhere was the
+              one that said nothing about where. It gets the same beat, under
+              the plan rather than above it. */}
           {submitted && !carePlan && !submitResult && (
             <Notice tone="success">
               Response saved.
-              {links.chartHref && (
-                <>
-                  {' '}
-                  <Link to={links.chartHref}>View in chart</Link>
-                </>
-              )}
+              <NextStep pending={pending} />
             </Notice>
           )}
         </div>
@@ -257,6 +271,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
         {carePlan && (
           <div className="form-card">
             <CarePlanDisplay carePlan={carePlan} />
+            <NextStep pending={pending} />
           </div>
         )}
 
